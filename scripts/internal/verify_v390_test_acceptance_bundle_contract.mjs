@@ -87,6 +87,37 @@ check("source-contract and actual-case failures materialize distinct current fir
   "actual exact-case first-failure lifecycle does not replace stale root evidence with current case/run/source");
 });
 
+check("acceptance first-failure summary report and root artifact share the suite command", () => {
+  for (const [suite, expectedCommand, failureStage] of [
+    ["ui", "./test_ui.sh", "ui-exact-424"],
+    ["release", "./test_release.sh", "feature-gates"],
+  ]) {
+    const outputDir = fixtureDir(`reproduction-${suite}`);
+    const result = runBundle([
+      "--output-dir", outputDir,
+      "--suite", suite,
+      "--fixture-fail-stage", failureStage,
+    ]);
+    assert(result.status === 1, `${suite} reproduction fixture must fail once`);
+    const summary = readJson(path.join(outputDir, "summary.json"));
+    const firstFailure = readJson(path.join(outputDir, "first-failure.json"));
+    const report = readTextFile(path.join(outputDir, "report.md"));
+    assert(summary.firstFailure?.reproductionCommand === expectedCommand,
+      `${suite} summary reproduction command mismatch`);
+    assert(firstFailure.firstFailure?.reproductionCommand === expectedCommand &&
+      firstFailure.acceptanceCommand === expectedCommand,
+    `${suite} root first-failure reproduction command mismatch`);
+    assert(report.includes(`reproductionCommand: ${expectedCommand}`),
+      `${suite} report reproduction command mismatch`);
+  }
+  for (const snippet of [
+    'ui: "./test_ui.sh"',
+    '"server-30": "./test_server_30min.sh"',
+    '"server-120": "./test_server_120min.sh"',
+    'release: "./test_release.sh"',
+  ]) assertIncludes(files.bundle, snippet, "suite reproduction mapping");
+});
+
 check("current final actual preflight keeps 120 conditional and requires a clean worktree", () => {
   assert(!files.bundle.includes("current final actual acceptance requires explicit --run-120"),
     "actual preflight still makes conditional 120 mandatory");

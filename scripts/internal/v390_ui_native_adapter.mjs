@@ -210,10 +210,22 @@ async function openNativePlaywrightPage(playwright, {
       correlationSource: correlationId ? 'request-header' : 'none',
       method: request.method(),
       status: response.status(),
+      httpOk: response.ok(),
       url: response.url(),
+      responseHeaders: {
+        "content-type": String(response.headers()["content-type"] || ""),
+      },
     };
     networkEntries.push(entry);
-    if (request.method() === "POST" && /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(urlPath(response.url()))) {
+    const endpointOwnedProjection = captureEndpointOwnedResponseProjection({
+      response,
+      entry,
+      pendingSafeResponseReads,
+      safeResponseReadFailures,
+    });
+    if (endpointOwnedProjection) {
+      // The shared response-listener projection owns endpoint-action evidence.
+    } else if (request.method() === "POST" && /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(urlPath(response.url()))) {
       const read = response.json()
         .then(payload => {
           entry.safeResponseBody = {
@@ -223,28 +235,6 @@ async function openNativePlaywrightPage(playwright, {
         })
         .catch(() => {
           entry.safeResponseBody = { sessionId: "", offerReceived: false };
-        })
-        .finally(() => pendingSafeResponseReads.delete(read));
-      pendingSafeResponseReads.add(read);
-    } else if (request.method() === "POST" && urlPath(response.url()) === "/ops/api/onvif/import-draft") {
-      const read = response.json()
-        .then(payload => {
-          const gate = payload?.credentialGate || {};
-          const redaction = gate.redactionGuard || {};
-          entry.safeResponseBody = {
-            credentialGate: {
-              schema: String(gate.schema || ""),
-              requiredScope: String(gate.requiredScope || ""),
-              primaryStoreProvider: String(gate.primaryStoreProvider || ""),
-              primaryStoreDecision: String(gate.primaryStoreDecision || ""),
-              credentialReferenceStatus: String(gate.credentialReferenceStatus || ""),
-              urlCredentialsRejected: redaction.urlCredentialsRejected === true,
-              secretMaterialStored: gate.secretMaterialStored === true,
-            },
-          };
-        })
-        .catch(() => {
-          entry.safeResponseBody = { credentialGate: null };
         })
         .finally(() => pendingSafeResponseReads.delete(read));
       pendingSafeResponseReads.add(read);
@@ -933,6 +923,177 @@ function safeFormResponseProjection(pathname, payload) {
     persistentSecretFieldsPresent: objectContainsKey(value,
       new Set(["passwordHash", "passwordHistory", "tokenHash"])),
   };
+}
+
+const endpointOwnedResponsePatterns = Object.freeze([
+  Object.freeze({ kind: "auth-user-disable", method: "POST", pattern: /^\/ops\/api\/users\/([^/]+)\/disable$/ }),
+  Object.freeze({ kind: "source-create", method: "POST", pattern: /^\/ops\/api\/sources$/ }),
+  Object.freeze({ kind: "source-disable", method: "DELETE", pattern: /^\/ops\/api\/sources\/([^/]+)$/ }),
+  Object.freeze({ kind: "view-disable", method: "DELETE", pattern: /^\/ops\/api\/views\/([^/]+)$/ }),
+  Object.freeze({ kind: "onvif-import-draft", method: "POST", pattern: /^\/ops\/api\/onvif\/import-draft$/ }),
+]);
+
+export function captureEndpointOwnedResponseProjection({
+  response,
+  entry,
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  const request = response?.request?.();
+  const method = String(request?.method?.() || "").toUpperCase();
+  const pathname = urlPath(response?.url?.() || "");
+  const descriptor = endpointOwnedResponsePatterns.find(candidate =>
+    candidate.method === method && candidate.pattern.test(pathname));
+  if (!descriptor) return null;
+  const read = Promise.resolve()
+    .then(() => response.json())
+    .then(payload => {
+      entry.safeResponseBody = endpointOwnedSafeResponseProjection({
+        kind: descriptor.kind,
+        method,
+        pathname,
+        payload,
+      });
+      entry.safeResponseProjectionSource = "playwright-response-json";
+      entry.safeResponseProjectionKind = descriptor.kind;
+    })
+    .catch(error => {
+      safeResponseReadFailures.push(
+        `endpoint response projection failed for ${method} ${pathname}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      delete entry.safeResponseBody;
+      delete entry.safeResponseProjectionSource;
+      delete entry.safeResponseProjectionKind;
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+function endpointOwnedSafeResponseProjection({ kind, pathname, payload }) {
+  const value = requireResponseObject(payload, `${kind} response`);
+  assertEndpointResponseSensitiveBoundary(kind, value);
+  if (kind === "auth-user-disable") {
+    const username = decodePathSegment(pathname.match(/^\/ops\/api\/users\/([^/]+)\/disable$/)?.[1]);
+    const user = requireResponseObject(value.user, "auth disable user");
+    requireResponseIdentity(user.username, username, "auth disable username");
+    requireResponseBoolean(user.enabled, false, "auth disable enabled");
+    requireResponseIdentity(value.status, "disabled", "auth disable status");
+    return { status: "disabled", user: { username, enabled: false } };
+  }
+  if (kind === "source-create") {
+    const source = requireResponseObject(value.source, "source create source");
+    const sourceId = requireResponseIdentity(source.sourceId, "", "source create sourceId", { nonEmpty: true });
+    const enabled = requireResponseBoolean(source.enabled, true, "source create enabled");
+    requireResponseBoolean(value.ok, true, "source create ok");
+    return { ok: true, source: { sourceId, enabled } };
+  }
+  if (kind === "source-disable") {
+    const sourceId = decodePathSegment(pathname.match(/^\/ops\/api\/sources\/([^/]+)$/)?.[1]);
+    const source = requireResponseObject(value.source, "source disable source");
+    requireResponseIdentity(source.sourceId, sourceId, "source disable sourceId");
+    requireResponseBoolean(source.enabled, false, "source disable enabled");
+    requireResponseBoolean(value.ok, true, "source disable ok");
+    requireResponseIdentity(value.status, "disabled", "source disable status");
+    return { ok: true, status: "disabled", source: { sourceId, enabled: false } };
+  }
+  if (kind === "view-disable") {
+    const viewId = decodePathSegment(pathname.match(/^\/ops\/api\/views\/([^/]+)$/)?.[1]);
+    const view = requireResponseObject(value.view, "view disable view");
+    requireResponseIdentity(view.viewId, viewId, "view disable viewId");
+    requireResponseBoolean(view.enabled, false, "view disable enabled");
+    requireResponseBoolean(value.ok, true, "view disable ok");
+    requireResponseIdentity(value.status, "disabled", "view disable status");
+    return {
+      ok: true,
+      status: "disabled",
+      view: {
+        viewId,
+        sourceId: String(view.sourceId || ""),
+        enabled: false,
+      },
+    };
+  }
+  const gate = requireResponseObject(value.credentialGate, "ONVIF credential gate");
+  const redaction = requireResponseObject(gate.redactionGuard, "ONVIF redaction guard");
+  const sourceDraft = requireResponseObject(value.sourceDraft, "ONVIF source draft");
+  const publishedViewDraft = requireResponseObject(value.publishedViewDraft, "ONVIF published view draft");
+  requireResponseBoolean(value.ok, true, "ONVIF import ok");
+  const sourceId = requireResponseIdentity(sourceDraft.sourceId, "", "ONVIF source draft sourceId", { nonEmpty: true });
+  const viewId = requireResponseIdentity(publishedViewDraft.viewId, "", "ONVIF view draft viewId", { nonEmpty: true });
+  requireResponseIdentity(publishedViewDraft.sourceId, sourceId, "ONVIF view draft sourceId");
+  const sourceEnabled = requireResponseBoolean(sourceDraft.enabled, true, "ONVIF source draft enabled");
+  const viewEnabled = requireResponseBoolean(publishedViewDraft.enabled, true, "ONVIF view draft enabled");
+  return {
+    ok: true,
+    credentialGate: {
+      schema: String(gate.schema || ""),
+      requiredScope: String(gate.requiredScope || ""),
+      primaryStoreProvider: String(gate.primaryStoreProvider || ""),
+      primaryStoreDecision: String(gate.primaryStoreDecision || ""),
+      credentialReferenceStatus: String(gate.credentialReferenceStatus || ""),
+      urlCredentialsRejected: redaction.urlCredentialsRejected === true,
+      secretMaterialStored: gate.secretMaterialStored === true,
+    },
+    sourceDraft: { sourceId, enabled: sourceEnabled },
+    publishedViewDraft: { viewId, sourceId, enabled: viewEnabled },
+  };
+}
+
+function assertEndpointResponseSensitiveBoundary(kind, value) {
+  const allowedOnvifSensitivePaths = new Set([
+    "auth.credentialRefPresent",
+    "auth.plaintextSecretIncluded",
+    "credentialGate.credentialReferenceStatus",
+    "credentialGate.secretMaterialStored",
+    "credentialGate.redactionGuard.urlCredentialsRejected",
+    "selectedProfile.token",
+    "sourceDraft.rtspUrl",
+  ]);
+  const findings = [];
+  const visit = (candidate, segments = []) => {
+    if (Array.isArray(candidate)) {
+      candidate.forEach((item, index) => visit(item, [...segments, String(index)]));
+      return;
+    }
+    if (!candidate || typeof candidate !== "object") return;
+    for (const [key, item] of Object.entries(candidate)) {
+      const next = [...segments, key];
+      const fieldPath = next.join(".");
+      const leaf = item === null || typeof item !== "object";
+      const sensitiveKey = leaf && /password|token|credential|secret|(?:^|_)(?:url|uri)$|(?:url|uri)$/i.test(key);
+      const sensitiveValue = typeof item === "string" && /^(?:rtsp|rtsps|http|https|whep):\/\//i.test(item);
+      const allowedDrop = kind === "onvif-import-draft" && allowedOnvifSensitivePaths.has(fieldPath);
+      if ((sensitiveKey || sensitiveValue) && !allowedDrop) findings.push(fieldPath);
+      visit(item, next);
+    }
+  };
+  visit(value);
+  if (findings.length > 0) {
+    throw new Error(`sensitive response material is not allowlisted: ${findings.join(",")}`);
+  }
+}
+
+function requireResponseObject(value, label) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} is missing`);
+  }
+  return value;
+}
+
+function requireResponseIdentity(actual, expected, label, { nonEmpty = false } = {}) {
+  const value = String(actual || "");
+  if ((nonEmpty && !value) || (!nonEmpty && value !== String(expected))) {
+    throw new Error(`${label} mismatch`);
+  }
+  return value;
+}
+
+function requireResponseBoolean(actual, expected, label) {
+  if (typeof actual !== "boolean" || actual !== expected) {
+    throw new Error(`${label} mismatch`);
+  }
+  return actual;
 }
 
 function objectContainsKey(value, forbidden) {

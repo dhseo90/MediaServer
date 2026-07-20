@@ -2290,7 +2290,9 @@ function buildMutationCleanup({
     inverseAction,
     afterReadback: {
       identity: `${independentReadback.identity}:cleanup`,
-      expectation: sourceViewState ? "inactive-or-equal-before" : "equal-before",
+      expectation: caseId === "AUTH-020"
+        ? "absent"
+        : (sourceViewState ? "inactive-or-equal-before" : "equal-before"),
       locator: structuredClone(independentReadback.locator),
     },
     readback: structuredClone(independentReadback),

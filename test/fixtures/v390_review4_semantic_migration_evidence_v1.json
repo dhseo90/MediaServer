@@ -3,8 +3,8 @@
   "migrationVersion": "review4-acceptance-prerequisite-v2",
   "generatedBy": "verify_v390_review4_semantic_migration_contract.mjs",
   "candidateGeneratorMayApprove": false,
-  "baselineCandidateDigest": "c654e2717bb2bfec5b42df9a589c20468f23917e8c3b492dd66d27e89a9174d7",
-  "freshCandidateDigest": "65cc4cf1429f52f4ec3a3c2653dc25529b3250c1c4f135bf5f2aa450efa71d5a",
+  "baselineCandidateDigest": "65cc4cf1429f52f4ec3a3c2653dc25529b3250c1c4f135bf5f2aa450efa71d5a",
+  "freshCandidateDigest": "41870754c0ffaabe67457a28815ec9686e9a378ba5a3da387e03e5ef78bf9ae0",
   "equivalenceAlgorithmSha256": "6d103a884ac9111b8a3356211ae757cf0285c29cec323fcaa9b32d145a48f47d",
   "carryForward": [
     {
@@ -6892,8 +6892,8 @@
   "unapproved": [
     {
       "id": "UI-018",
-      "oldSourceFlowDigest": "1f61edf80974c3ca30fad91c2e38a93fbe94d58ab1c1488313934de230731e5a",
-      "newSourceFlowDigest": "c92c4c8feb7f44e776e99639316c3112fff01c020780b3fd733cc50d01591ab7",
+      "oldSourceFlowDigest": "c92c4c8feb7f44e776e99639316c3112fff01c020780b3fd733cc50d01591ab7",
+      "newSourceFlowDigest": "6a8a20f379fca7919daac6c2dff940586357deb670cf8992933b70f93aa877e7",
       "changedFields": [
         "trustBindings"
       ],
@@ -6901,8 +6901,8 @@
     },
     {
       "id": "SAFE-212",
-      "oldSourceFlowDigest": "e9c57ce50a49b9e6e1616420f406b3327613f3388022f5e6d48cafafe1318357",
-      "newSourceFlowDigest": "2fdfcd2a8cf372390e8efb5f7629beb1159a19eb4f4707a364606263c3f83ea4",
+      "oldSourceFlowDigest": "2fdfcd2a8cf372390e8efb5f7629beb1159a19eb4f4707a364606263c3f83ea4",
+      "newSourceFlowDigest": "cdedcee969796ee2b24578d202e144b9be9d5ddd4b3f52c873541f89dcf3ac04",
       "changedFields": [
         "trustBindings"
       ],
@@ -6910,8 +6910,8 @@
     },
     {
       "id": "OPS-179",
-      "oldSourceFlowDigest": "446a4e2c79ff30d749a66ac5b4bcd56e6459ec9e08a4a7653938ee3d4f99307e",
-      "newSourceFlowDigest": "ee6dcc5923c62dffcf282902a8a2c5bfae5b317eaa0c3510c9dd92e9aca03fd3",
+      "oldSourceFlowDigest": "ee6dcc5923c62dffcf282902a8a2c5bfae5b317eaa0c3510c9dd92e9aca03fd3",
+      "newSourceFlowDigest": "8def123f2c4add639b6d281301acbc2295395697869b6d8bda0da858aeddb75c",
       "changedFields": [
         "trustBindings"
       ],

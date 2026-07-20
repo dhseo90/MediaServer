@@ -863,7 +863,16 @@ export function createV390UiCaseRuntime({
           item,
           caseContext,
         );
-        if (cleanup.afterReadback.expectation === "inactive-or-equal-before" &&
+        if (cleanup.afterReadback.expectation === "absent") {
+          assert(observed === null,
+            `${item.caseId} fresh authoritative cleanup readback expected an absent fixture`);
+          if (item.caseId === "AUTH-020") {
+            assertAuthFixtureAbsentFromUsersFile(
+              descriptor.auth?.usersFile || "",
+              caseContext.fixtureId,
+            );
+          }
+        } else if (cleanup.afterReadback.expectation === "inactive-or-equal-before" &&
             caseContext.cleanupExpectedRecord === null) {
           const sourceInactive = observed?.source === null || observed?.source?.enabled === false;
           const viewInactive = observed?.publishedView === null || observed?.publishedView?.enabled === false;
@@ -1653,7 +1662,7 @@ export function createV390UiCaseRuntime({
       context.endpointActionFixture.loginPasswordRef = passwordRef;
       context.beforeRecordEndpoint = `/ops/api/users/${encodeURIComponent(context.fixtureId)}/disable`;
       context.beforeRecord = await readEndpointRecord(context.beforeRecordEndpoint, item, context);
-      context.cleanupExpectedRecord = context.beforeRecord;
+      context.cleanupExpectedRecord = null;
       assert(context.beforeRecord?.enabled === true,
         `${item.caseId} acceptance-owned active user seed is missing`);
       return;
@@ -1735,8 +1744,13 @@ export function createV390UiCaseRuntime({
           entry.correlationId !== action.semanticCompletion.correlationId) return false;
       try { return new URL(entry.url).pathname === request.path; } catch { return false; }
     });
-    assert(responses.length === 1 && responses[0].status === endpointResponse.status,
+    assert(responses.length === 1 && responses[0].status === endpointResponse.status &&
+      responses[0].safeResponseProjectionSource === "playwright-response-json" &&
+      endpointResponse.projectionSource === "playwright-response-json",
       `${item.caseId} endpoint-owned network response readback mismatch`);
+    const safeResponse = responses[0].safeResponseBody;
+    assert(safeResponse && stableJson(safeResponse) === stableJson(endpointResponse.safeBody),
+      `${item.caseId} endpoint-owned safe response projection drift`);
     const common = {
       schema: "media-server.v390-ui-endpoint-action-readback.v1",
       fixtureId: context.fixtureId,
@@ -1746,6 +1760,8 @@ export function createV390UiCaseRuntime({
       correlationId: action.semanticCompletion.correlationId,
       actualBrowserRequestObserved: true,
       responseSynthesized: false,
+      requestId: responses[0].requestId,
+      safeResponse: structuredClone(safeResponse),
       authoritative: true,
     };
     if (item.caseId === "AUTH-020") {
@@ -1760,7 +1776,8 @@ export function createV390UiCaseRuntime({
       });
       const password = runtimeSecrets.get(context.endpointActionFixture.loginPasswordRef) || "";
       const newLogin = await postForm(`${httpBase}/login`, { username: context.fixtureId, password });
-      assert(endpointResponse.json?.status === "disabled" && endpointResponse.json?.user?.enabled === false &&
+      assert(safeResponse.status === "disabled" &&
+        safeResponse.user?.username === context.fixtureId && safeResponse.user?.enabled === false &&
         stored?.enabled === false && listed?.enabled === false &&
         existingSession.status === 401 && newLogin.status === 401,
       `${item.caseId} disabled user response/store/list/session/login readback failed`);
@@ -1776,7 +1793,8 @@ export function createV390UiCaseRuntime({
     const source = (sources.json?.sources || []).find(value => String(value?.sourceId || "") === context.fixtureId);
     const view = (views.json?.views || []).find(value => String(value?.viewId || "") === context.fixtureId);
     if (item.caseId === "SRC-008") {
-      assert(endpointResponse.json?.ok === true && endpointResponse.json?.source?.sourceId === context.fixtureId &&
+      assert(safeResponse.ok === true && safeResponse.source?.sourceId === context.fixtureId &&
+        safeResponse.source?.enabled === true &&
         source?.enabled === true && source?.displayName === `REVIEW4 ${item.caseId} source`,
       `${item.caseId} created source response/registry readback failed`);
       return { ...common, readbackKind: "created-source-registry", sourcePresent: true, enabled: true };
@@ -1786,7 +1804,8 @@ export function createV390UiCaseRuntime({
         "GET", `/client/api/views/${encodeURIComponent(context.fixtureId)}`,
         null, item, context, [404], { freshRole: true, roleOverride: "viewer" },
       );
-      assert(endpointResponse.json?.status === "disabled" && endpointResponse.json?.source?.enabled === false &&
+      assert(safeResponse.status === "disabled" && safeResponse.source?.sourceId === context.fixtureId &&
+        safeResponse.source?.enabled === false &&
         source?.enabled === false && view?.enabled === true && client.status === 404,
       `${item.caseId} disabled source response/registry/client boundary readback failed`);
       return { ...common, readbackKind: "disabled-source-and-client-boundary", sourceEnabled: false,
@@ -1797,17 +1816,22 @@ export function createV390UiCaseRuntime({
         "GET", `/client/api/views/${encodeURIComponent(context.fixtureId)}`,
         null, item, context, [404], { freshRole: true, roleOverride: "viewer" },
       );
-      assert(endpointResponse.json?.status === "disabled" && endpointResponse.json?.view?.enabled === false &&
+      assert(safeResponse.status === "disabled" && safeResponse.view?.viewId === context.fixtureId &&
+        safeResponse.view?.enabled === false &&
         source?.enabled === true && view?.enabled === false && client.status === 404,
       `${item.caseId} disabled view response/registry/client boundary readback failed`);
       return { ...common, readbackKind: "disabled-view-and-client-boundary", sourceEnabled: true,
         viewEnabled: false, clientStatus: client.status };
     }
-    assert(item.caseId === "SRC-031" && endpointResponse.json?.ok === true &&
-      endpointResponse.json?.credentialGate?.schema === "media-server.onvif-credential-binding-gate.v1" &&
-      endpointResponse.json?.credentialGate?.requiredScope === "source:write" &&
-      endpointResponse.json?.credentialGate?.redactionGuard?.urlCredentialsRejected === true &&
-      endpointResponse.json?.credentialGate?.secretMaterialStored === false &&
+    assert(item.caseId === "SRC-031" && safeResponse.ok === true &&
+      safeResponse.credentialGate?.schema === "media-server.onvif-credential-binding-gate.v1" &&
+      safeResponse.credentialGate?.requiredScope === "source:write" &&
+      safeResponse.credentialGate?.urlCredentialsRejected === true &&
+      safeResponse.credentialGate?.secretMaterialStored === false &&
+      safeResponse.sourceDraft?.sourceId && safeResponse.sourceDraft?.enabled === true &&
+      safeResponse.publishedViewDraft?.viewId &&
+      safeResponse.publishedViewDraft?.sourceId === safeResponse.sourceDraft.sourceId &&
+      safeResponse.publishedViewDraft?.enabled === true &&
       stableJson(sources.json) === context.endpointActionFixture.sourceRegistryBefore &&
       stableJson(views.json) === context.endpointActionFixture.viewRegistryBefore,
     `${item.caseId} ONVIF draft response/registry equal-before readback failed`);
@@ -2519,6 +2543,13 @@ export async function runAuthoritativeReadbackWithSnapshotRestore({
   }
   if (readbackFailure) throw readbackFailure;
   return result;
+}
+
+export function assertAuthFixtureAbsentFromUsersFile(usersFile, username) {
+  const state = readUsersState(usersFile);
+  assert(!state.users.some(user => String(user?.username || "") === String(username || "")),
+    `auth fixture remains in the authoritative users file: ${username}`);
+  return true;
 }
 
 function validateUnifiedWorkspaceCaseReadback(caseId, { workspace, detail, sourceId }) {

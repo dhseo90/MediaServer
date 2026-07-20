@@ -7,6 +7,7 @@ import {
   executeCatalogRuntimeOracle,
   executeCatalogRuntimeOracleAtSourceRoute,
 } from "./v390_ui_exact_oracle_runtime.mjs";
+import { captureEndpointOwnedResponseProjection } from "./v390_ui_native_adapter.mjs";
 
 const checks = [];
 
@@ -398,15 +399,13 @@ await check("response redaction separates UI-068 narrative labels from structure
 await check("endpoint-owned mutation requires the actual method/path/status/correlation response", async () => {
   const fixtureId = "auth-020-runtime-contract";
   const correlationId = "AUTH-020:endpoint-contract";
-  const response = {
-    phase: "response",
+  const response = await actualEndpointResponseEntry({
     method: "POST",
-    url: `http://runtime.invalid/ops/api/users/${fixtureId}/disable`,
+    path: `/ops/api/users/${fixtureId}/disable`,
     status: 200,
     correlationId,
-    safeResponseBody: { status: "disabled", user: { username: fixtureId, enabled: false } },
-    responseHeaders: { "content-type": "application/json" },
-  };
+    payload: { status: "disabled", user: { username: fixtureId, enabled: false } },
+  });
   const execute = entries => executeCatalogRuntimeOracle({
     browser: authMutationBrowser(),
     item: exactItem("AUTH-020", "/ops/users"),
@@ -424,6 +423,18 @@ await check("endpoint-owned mutation requires the actual method/path/status/corr
   await expectReject(() => execute([{ ...response, status: 409 }]), "exact request status mismatch");
   await expectReject(() => execute([{ ...response, correlationId: "AUTH-020:wrong-correlation" }]),
     "exact mutation response correlation mismatch");
+  await expectReject(() => execute([{ ...response, safeResponseProjectionSource: "" }]),
+    "did not pass through the native Playwright response projection");
+  const missingBody = await actualEndpointResponseEntry({
+    method: "POST",
+    path: `/ops/api/users/${fixtureId}/disable`,
+    status: 200,
+    correlationId,
+    payload: null,
+    expectProjectionFailure: true,
+  });
+  await expectReject(() => execute([missingBody]),
+    "did not pass through the native Playwright response projection");
 });
 
 await check("DOM redaction labels are distinct from exposed credential values", async () => {
@@ -829,4 +840,50 @@ async function check(name, fn) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+async function actualEndpointResponseEntry({
+  method,
+  path,
+  status,
+  correlationId,
+  payload,
+  expectProjectionFailure = false,
+}) {
+  const entry = {
+    phase: "response",
+    requestId: "runtime-contract-request",
+    correlationId,
+    correlationSource: "request-header",
+    method,
+    status,
+    httpOk: status >= 200 && status < 300,
+    url: `http://runtime.invalid${path}`,
+    responseHeaders: { "content-type": "application/json" },
+  };
+  const pending = new Set();
+  const failures = [];
+  const request = { method: () => method };
+  const response = {
+    request: () => request,
+    url: () => entry.url,
+    json: async () => structuredClone(payload),
+  };
+  const read = captureEndpointOwnedResponseProjection({
+    response,
+    entry,
+    pendingSafeResponseReads: pending,
+    safeResponseReadFailures: failures,
+  });
+  assert(read, `${method} ${path} did not enter the native response listener`);
+  await read;
+  assert(pending.size === 0, `${method} ${path} response projection remained pending`);
+  if (expectProjectionFailure) {
+    assert(failures.length === 1 && !entry.safeResponseBody,
+      `${method} ${path} missing body did not fail closed`);
+  } else {
+    assert(failures.length === 0 && entry.safeResponseBody,
+      `${method} ${path} actual response projection failed: ${failures.join(",")}`);
+  }
+  return entry;
 }

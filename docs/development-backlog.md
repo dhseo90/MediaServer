@@ -6396,6 +6396,15 @@ Canonical actual FAIL evidence는 그대로 보존하며 장시간/UI/release ac
   readback·success/exception cleanup으로 결속합니다. `verify_v390_test_acceptance_bundle.mjs`는 actual case와
   source-contract failure 모두 root first-failure를 current commit/run/case/error/log로 갱신하고 과거 실패를
   `priorFirstFailure`로만 보존합니다. 이 static correction은 actual UI/Policy v4/장시간 PASS가 아닙니다.
+- Endpoint response/cleanup 후속은 `v390_ui_native_adapter.mjs`의 실제 Playwright response listener가 위 5개
+  method/path만 allowlist projection하고 correlation/request ID·HTTP status와 같은 network entry에 결속합니다.
+  Raw body와 password/token/credential/secret/URL material은 보존하지 않고 fail-closed하며, AUTH-020은 원래
+  없던 fixture를 file snapshot으로 제거한 뒤 fresh users readback `absent`와 성공·예외 모두 users-file 원본
+  bytes 일치를 검증합니다. First-failure reproduction은 suite별 `./test_ui.sh`, 30분, 120분, release 명령을
+  summary/report/root artifact에 동일하게 기록합니다. Candidate `41870754…ae0`은 986행과 feature/pass/status를
+  유지하고 UI-018/SAFE-212/OPS-179 세 sourceFlow만 갱신했으며, 983 carry-forward+3 independent review의 공식
+  producer 1회가 semantic/native 네 fixture를 함께 교체했습니다. 별도 native generator와 actual UI·30분·
+  120분·release acceptance는 실행하지 않았습니다.
 - `v390_ui_exact_core_oracles.mjs`는 approval envelope 전체 digest 대신 case/sourceFlow/expected behavior/
   feature contract/verifier/state locator context의 row-local runtime binding으로 after-state identity를 만듭니다.
   `v390_ui_exact_oracle_catalog.mjs`와 `v390_ui_native_exact_cases_lib.mjs`는 동일 implementation manifest를

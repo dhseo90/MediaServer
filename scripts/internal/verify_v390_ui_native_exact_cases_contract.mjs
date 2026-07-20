@@ -26,6 +26,7 @@ import {
   validateRequestedObservedEnvelope,
 } from "./v390_ui_requested_observed_schema.mjs";
 import {
+  assertAuthFixtureAbsentFromUsersFile,
   createV390UiCaseRuntime,
   formReadbackProfiles,
   runAuthoritativeReadbackWithSnapshotRestore,
@@ -480,6 +481,12 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
     `${item.caseId} endpoint action/readback sequence drift`);
     assert(item.workflow.cleanup.some(value => value.kind === "restore-fixture-state"),
       `${item.caseId} endpoint-owned cleanup is missing`);
+    const cleanup = item.workflow.cleanup.find(value => value.kind === "restore-fixture-state");
+    if (item.caseId === "AUTH-020") {
+      assert(cleanup?.afterReadback?.expectation === "absent" &&
+        cleanup.inverseAction?.localAction?.type === "restore-file-backed-fixture-snapshot",
+      "AUTH-020 must restore the pre-case users file and prove the acceptance-owned user absent");
+    }
     assert(!item.workflow.controlSequence.some(value =>
       ["assert-product-boundary", "assert-product-state"].includes(value.kind)),
     `${item.caseId} endpoint mutation is disguised as a boundary/state read`);
@@ -487,7 +494,9 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
   assert(runtimeSource.includes("responseSynthesized: false") &&
     runtimeSource.includes("actualBrowserRequestObserved: true") &&
     runnerSource.includes("matchingResponses.length === 1") &&
-    runnerSource.includes("entry.correlationId !== completionRequest.correlationId"),
+    runnerSource.includes("entry.correlationId !== completionRequest.correlationId") &&
+    runnerSource.includes('safeResponseProjectionSource === "playwright-response-json"') &&
+    !runnerSource.includes("structuredClone(response.json ?? response.text)"),
   "endpoint-owned runtime does not require an actual correlated browser response");
   assert(runtimeSource.includes("disabled user response/store/list/session/login readback failed") &&
     runtimeSource.includes("created source response/registry readback failed") &&
@@ -964,7 +973,13 @@ check("self-contained runtime closes invite, auth readback, preference, and visu
     "visual matrix must not reuse bootstrap storage state after exact mutations");
 
   const adapterSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
-  for (const snippet of ["safePersistedRequestBodyProjection", "safeFormResponseProjection"]) {
+  for (const snippet of [
+    "safePersistedRequestBodyProjection",
+    "safeFormResponseProjection",
+    "captureEndpointOwnedResponseProjection",
+    'safeResponseProjectionSource = "playwright-response-json"',
+    "assertEndpointResponseSensitiveBoundary",
+  ]) {
     assert(adapterSource.includes(snippet), `native adapter safe identity capture missing: ${snippet}`);
   }
   assert(!adapterSource.includes("safeResponseBody = payload"),
@@ -1165,6 +1180,7 @@ check("authoritative cleanup readback restores state after success and failure",
   const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_cleanup_readback_"));
   const stateFile = path.join(temporaryRoot, "users.json");
   const baseline = Buffer.from('{"users":[{"username":"operator","lastLoginAt":""}]}\n');
+  const fixtureUsername = "auth-020-review4-fixture";
   const snapshots = [{
     path: stateFile,
     exists: true,
@@ -1176,24 +1192,27 @@ check("authoritative cleanup readback restores state after success and failure",
     const result = await runAuthoritativeReadbackWithSnapshotRestore({
       snapshots,
       readback: async () => {
-        fs.writeFileSync(stateFile, '{"users":[{"username":"operator","lastLoginAt":"changed"}]}\n');
+        fs.writeFileSync(stateFile,
+          `{"users":[{"username":"operator","lastLoginAt":"changed"},{"username":"${fixtureUsername}","enabled":false}]}\n`);
         return { status: 302 };
       },
-      label: "UI-004 original-password login",
+      label: "AUTH-020 successful primary cleanup",
     });
     assert(result.status === 302, "successful cleanup readback result was not preserved");
     assert(fs.readFileSync(stateFile).equals(baseline),
       "successful cleanup readback left authoritative state changed");
+    assertAuthFixtureAbsentFromUsersFile(stateFile, fixtureUsername);
 
     let failureMessage = "";
     try {
       await runAuthoritativeReadbackWithSnapshotRestore({
         snapshots,
         readback: async () => {
-          fs.writeFileSync(stateFile, '{"users":[{"username":"operator","lastLoginAt":"failed"}]}\n');
+          fs.writeFileSync(stateFile,
+            `{"users":[{"username":"operator","lastLoginAt":"failed"},{"username":"${fixtureUsername}","enabled":false}]}\n`);
           throw new Error("intentional readback failure");
         },
-        label: "UI-004 failing original-password login",
+        label: "AUTH-020 failing primary cleanup",
       });
     } catch (error) {
       failureMessage = error instanceof Error ? error.message : String(error);
@@ -1202,6 +1221,11 @@ check("authoritative cleanup readback restores state after success and failure",
       "cleanup readback failure was not preserved");
     assert(fs.readFileSync(stateFile).equals(baseline),
       "failed cleanup readback left authoritative state changed");
+    assertAuthFixtureAbsentFromUsersFile(stateFile, fixtureUsername);
+    assert(runtimeSource.includes("fresh authoritative cleanup readback expected an absent fixture") &&
+      runtimeSource.includes("assertAuthFixtureAbsentFromUsersFile") &&
+      runtimeSource.includes("context.cleanupExpectedRecord = null"),
+    "AUTH-020 fresh absent cleanup readback is not fail closed");
   } finally {
     fs.rmSync(temporaryRoot, { recursive: true, force: true });
   }

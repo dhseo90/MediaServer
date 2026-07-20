@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
   buildLiveSessionEvidence,
+  captureEndpointOwnedResponseProjection,
   nativeCapabilities,
   resolvePlaywrightModule,
   secretStrippedBrowserEnv,
@@ -137,6 +138,73 @@ check("issued invite tokens are registered and redacted at every evidence bounda
   }
 });
 
+check("endpoint-owned responses are projected only through the Playwright response listener", async () => {
+  const cases = [
+    ["POST", "/ops/api/users/auth-020-fixture/disable", 200,
+      { status: "disabled", user: { username: "auth-020-fixture", enabled: false } },
+      { status: "disabled", user: { username: "auth-020-fixture", enabled: false } }],
+    ["POST", "/ops/api/sources", 201,
+      { ok: true, source: { sourceId: "src-008-fixture", enabled: true, file: "sample_h264.mp4" } },
+      { ok: true, source: { sourceId: "src-008-fixture", enabled: true } }],
+    ["DELETE", "/ops/api/sources/src-010-fixture", 200,
+      { ok: true, status: "disabled", source: { sourceId: "src-010-fixture", enabled: false } },
+      { ok: true, status: "disabled", source: { sourceId: "src-010-fixture", enabled: false } }],
+    ["DELETE", "/ops/api/views/src-019-fixture", 200,
+      { ok: true, status: "disabled", view: { viewId: "src-019-fixture", sourceId: "src-019-fixture", enabled: false } },
+      { ok: true, status: "disabled", view: { viewId: "src-019-fixture", sourceId: "src-019-fixture", enabled: false } }],
+    ["POST", "/ops/api/onvif/import-draft", 200, {
+      ok: true,
+      selectedProfile: { token: "profile-token-that-must-not-be-stored" },
+      auth: { credentialRefPresent: false, plaintextSecretIncluded: false },
+      credentialGate: {
+        schema: "media-server.onvif-credential-binding-gate.v1",
+        requiredScope: "source:write",
+        primaryStoreProvider: "none",
+        primaryStoreDecision: "not-required",
+        credentialReferenceStatus: "not-provided",
+        secretMaterialStored: false,
+        redactionGuard: { urlCredentialsRejected: true },
+      },
+      sourceDraft: { sourceId: "src-031-source", rtspUrl: "rtsp://camera.invalid/live", enabled: true },
+      publishedViewDraft: { viewId: "src-031-view", sourceId: "src-031-source", enabled: true },
+    }, {
+      ok: true,
+      credentialGate: {
+        schema: "media-server.onvif-credential-binding-gate.v1",
+        requiredScope: "source:write",
+        primaryStoreProvider: "none",
+        primaryStoreDecision: "not-required",
+        credentialReferenceStatus: "not-provided",
+        urlCredentialsRejected: true,
+        secretMaterialStored: false,
+      },
+      sourceDraft: { sourceId: "src-031-source", enabled: true },
+      publishedViewDraft: { viewId: "src-031-view", sourceId: "src-031-source", enabled: true },
+    }],
+  ];
+  for (const [method, pathname, status, payload, expected] of cases) {
+    const observed = await captureListenerProjection({ method, pathname, status, payload });
+    assert(observed.failures.length === 0, `${method} ${pathname} projection failed: ${observed.failures.join(",")}`);
+    assert(observed.entry.safeResponseProjectionSource === "playwright-response-json",
+      `${method} ${pathname} projection provenance missing`);
+    assert(JSON.stringify(observed.entry.safeResponseBody) === JSON.stringify(expected),
+      `${method} ${pathname} safe projection drift`);
+    assert(!/profile-token-that-must-not-be-stored|rtsp:\/\//.test(JSON.stringify(observed.entry.safeResponseBody)),
+      `${method} ${pathname} persisted sensitive response material`);
+  }
+  const sensitive = await captureListenerProjection({
+    method: "POST",
+    pathname: "/ops/api/users/auth-020-fixture/disable",
+    status: 200,
+    payload: {
+      status: "disabled",
+      user: { username: "auth-020-fixture", enabled: false, passwordHash: "forbidden" },
+    },
+  });
+  assert(sensitive.failures.length === 1 && !sensitive.entry.safeResponseBody,
+    "sensitive endpoint response did not fail closed");
+});
+
 check("live session evidence preserves request view and response session identity", () => {
   const correlationId = "visual-live:session";
   const entries = [
@@ -204,7 +272,7 @@ let pass = 0;
 let fail = 0;
 for (const item of checks) {
   try {
-    item.fn();
+    await item.fn();
     pass += 1;
     console.log(`[pass] ${item.name}`);
   } catch (error) {
@@ -229,4 +297,33 @@ function readText(relativePath) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+async function captureListenerProjection({ method, pathname, status, payload }) {
+  const entry = {
+    phase: "response",
+    requestId: "contract-request",
+    correlationId: "contract-correlation",
+    method,
+    status,
+    url: `http://runtime.invalid${pathname}`,
+  };
+  const pending = new Set();
+  const failures = [];
+  const request = { method: () => method };
+  const response = {
+    request: () => request,
+    url: () => entry.url,
+    json: async () => structuredClone(payload),
+  };
+  const read = captureEndpointOwnedResponseProjection({
+    response,
+    entry,
+    pendingSafeResponseReads: pending,
+    safeResponseReadFailures: failures,
+  });
+  assert(read, `${method} ${pathname} did not enter the endpoint response listener`);
+  await read;
+  assert(pending.size === 0, `${method} ${pathname} response projection remained pending`);
+  return { entry, failures };
 }

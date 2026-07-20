@@ -200,18 +200,25 @@ check("120-minute launcher invocation is recorded as direct user authorization",
   assert(summary.authorization?.userLauncher === "./test_server_120min.sh", "direct 120-minute user command mismatch");
 });
 
-check("server launcher preserves first failure and later not-run evidence", () => {
-  const outputDir = fixtureRoot("server-fail");
-  const result = runLower([
-    "verify-v390-server-longrun", "--duration-minutes", "30", "--output-dir", outputDir,
-    "--user-launcher", "test_server_30min", "--fixture-fail-phase", "integrated-smoke",
-  ]);
-  assert(result.status === 1, "fixture first failure must exit 1");
-  const summary = readJson(path.join(outputDir, "summary.json"));
-  assert(summary.failedPhase === "integrated-smoke", "server first-failure phase mismatch");
-  assert(summary.failure?.reproductionCommand === "./test_server_30min.sh", "server user reproduction command mismatch");
-  for (const id of ["soak-case-loop", "runtime-idle"]) {
-    assert(summary.phases.find(item => item.id === id)?.status === "not-run", `${id} must be not-run`);
+check("server launchers preserve suite-specific first failure and later not-run evidence", () => {
+  for (const [minutes, launcher, expectedCommand] of [
+    [30, "test_server_30min", "./test_server_30min.sh"],
+    [120, "test_server_120min", "./test_server_120min.sh"],
+  ]) {
+    const outputDir = fixtureRoot(`server-fail-${minutes}`);
+    const result = runLower([
+      "verify-v390-server-longrun", "--duration-minutes", String(minutes), "--output-dir", outputDir,
+      "--user-launcher", launcher, "--fixture-fail-phase", "integrated-smoke",
+    ]);
+    assert(result.status === 1, `${minutes}-minute fixture first failure must exit 1`);
+    const summary = readJson(path.join(outputDir, "summary.json"));
+    assert(summary.failedPhase === "integrated-smoke", `${minutes}-minute first-failure phase mismatch`);
+    assert(summary.failure?.reproductionCommand === expectedCommand,
+      `${minutes}-minute user reproduction command mismatch`);
+    for (const id of ["soak-case-loop", "runtime-idle"]) {
+      assert(summary.phases.find(item => item.id === id)?.status === "not-run",
+        `${minutes}-minute ${id} must be not-run`);
+    }
   }
 });
 

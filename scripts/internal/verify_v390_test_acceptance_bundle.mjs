@@ -1200,8 +1200,20 @@ function buildFirstFailure() {
     exitCode: failedCheck?.exitCode ?? stage?.exitCode ?? 1,
     logPath: failedCheck?.logPath || stage?.logPath || "",
     stderrTail: failedCheck?.tail || stage?.tail || [],
-    reproductionCommand: "./test_release.sh",
+    reproductionCommand: reproductionCommandForSuite(options.suite),
   };
+}
+
+function reproductionCommandForSuite(suite) {
+  const commands = {
+    ui: "./test_ui.sh",
+    "server-30": "./test_server_30min.sh",
+    "server-120": "./test_server_120min.sh",
+    release: "./test_release.sh",
+  };
+  const command = commands[String(suite || "")];
+  assert(command, `unsupported acceptance suite reproduction command: ${suite || "missing"}`);
+  return command;
 }
 
 function writeCurrentFirstFailure(summary) {
@@ -1224,7 +1236,7 @@ function writeCurrentFirstFailure(summary) {
     invocationId: summary.runId,
     runId: summary.runId,
     sourceProvenance: summary.sourceProvenance,
-    acceptanceCommand: summary.command,
+    acceptanceCommand: summary.firstFailure?.reproductionCommand || "",
     failedStage: summary.failedStage,
     failedCommand: summary.failedCommand,
     firstFailure: {
@@ -1487,6 +1499,7 @@ function renderReport(payload) {
     `failedStage: ${payload.failedStage || "(none)"}`,
     `firstFailureCommand: ${payload.firstFailure?.command || "(none)"}`,
     `firstFailureContext: ${payload.firstFailure?.context || "(none)"}`,
+    `reproductionCommand: ${payload.firstFailure?.reproductionCommand || ""}`,
     `automatedAcceptanceStatus: ${payload.automatedAcceptanceStatus || "not-evaluated"}`,
     `evidenceBoundary: ${payload.evidenceBoundary || ""}`,
     "",

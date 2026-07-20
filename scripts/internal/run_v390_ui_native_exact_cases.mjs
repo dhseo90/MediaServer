@@ -1845,6 +1845,9 @@ async function executeEndpointOwnedAction(
     `${item.caseId} endpoint-owned action response binding mismatch: ${matchingResponses.length}`);
   assert(matchingResponses[0].status === response.status && request.allowedStatuses.includes(matchingResponses[0].status),
     `${item.caseId} endpoint-owned action network status mismatch`);
+  assert(matchingResponses[0].safeResponseProjectionSource === "playwright-response-json" &&
+    matchingResponses[0].safeResponseBody && typeof matchingResponses[0].safeResponseBody === "object",
+  `${item.caseId} endpoint-owned action safe response projection missing`);
   const after = await browser.snapshot("body");
   const actionEvidence = {
     ...semanticCompletionAction(action, item),
@@ -1854,7 +1857,9 @@ async function executeEndpointOwnedAction(
     response: {
       status: response.status,
       contentType: response.contentType,
-      body: structuredClone(response.json ?? response.text),
+      safeBody: structuredClone(matchingResponses[0].safeResponseBody),
+      projectionSource: matchingResponses[0].safeResponseProjectionSource,
+      projectionKind: matchingResponses[0].safeResponseProjectionKind,
     },
     networkBinding: {
       method: matchingResponses[0].method,
@@ -1875,7 +1880,13 @@ async function executeEndpointOwnedAction(
     before,
     after,
     networkResponses,
-    endpointResponse: response,
+    endpointResponse: {
+      status: response.status,
+      contentType: response.contentType,
+      safeBody: structuredClone(matchingResponses[0].safeResponseBody),
+      projectionSource: matchingResponses[0].safeResponseProjectionSource,
+      projectionKind: matchingResponses[0].safeResponseProjectionKind,
+    },
   });
   return {
     actionEvidence: { ...actionEvidence, completionStatus: "awaiting-independent-readback" },

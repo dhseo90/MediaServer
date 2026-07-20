@@ -22,6 +22,14 @@ const refreshControls = Object.freeze({
   "/client/events": "#refresh",
 });
 
+const endpointOwnedProjectionCases = new Set([
+  "AUTH-020",
+  "SRC-008",
+  "SRC-010",
+  "SRC-019",
+  "SRC-031",
+]);
+
 export function isExistingSpecializedExactOracle(itemOrCaseId) {
   const item = typeof itemOrCaseId === "object" ? itemOrCaseId : null;
   const caseId = item?.caseId || String(itemOrCaseId || "");
@@ -438,6 +446,11 @@ async function observeRequest(
       try { return new URL(entry.url).pathname === new URL(urlPath, "http://runtime.invalid").pathname; } catch (_) { return false; }
     });
     assert(match, `${item.caseId} exact mutation response missing: ${method} ${urlPath}`);
+    if (endpointOwnedProjectionCases.has(item.caseId)) {
+      assert(match.safeResponseProjectionSource === "playwright-response-json" &&
+        typeof match.safeResponseProjectionKind === "string" && match.safeResponseProjectionKind,
+      `${item.caseId} endpoint response did not pass through the native Playwright response projection`);
+    }
     status = match.status;
     body = match.safeResponseBody ?? null;
     contentType = String(match.responseHeaders?.["content-type"] || match.contentType || "");
