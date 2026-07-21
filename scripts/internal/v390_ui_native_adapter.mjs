@@ -257,8 +257,10 @@ async function openNativePlaywrightPage(playwright, {
           }
           entry.safeResponseBody = safeFormResponseProjection(urlPath(response.url()), payload);
         })
-        .catch(error => {
-          safeResponseReadFailures.push(error instanceof Error ? error.message : String(error));
+        .catch(() => {
+          safeResponseReadFailures.push(
+            `form response projection failed for POST ${urlPath(response.url())}: response parsing or runtime secret registration failed`,
+          );
           entry.safeResponseBody = safeFormResponseProjection(urlPath(response.url()), null);
         })
         .finally(() => pendingSafeResponseReads.delete(read));
@@ -338,7 +340,7 @@ async function openNativePlaywrightPage(playwright, {
             !actionPending && pendingSafeResponseReads.size === 0 &&
             Date.now() - quietStartedAt >= quietMs) {
           if (safeResponseReadFailures.length > 0) {
-            throw new Error("safe response projection or runtime secret registration failed");
+            throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
           }
           return {
             correlationId: correlationId || "",
@@ -455,7 +457,7 @@ async function openNativePlaywrightPage(playwright, {
     redactObservedSecrets: async () => {
       await Promise.all([...pendingSafeResponseReads]);
       if (safeResponseReadFailures.length > 0) {
-        throw new Error("safe response projection or runtime secret registration failed");
+        throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
       }
       const variants = secretVariants([...observedRuntimeSecrets]);
       if (variants.length === 0) {
@@ -933,6 +935,12 @@ const endpointOwnedResponsePatterns = Object.freeze([
   Object.freeze({ kind: "onvif-import-draft", method: "POST", pattern: /^\/ops\/api\/onvif\/import-draft$/ }),
 ]);
 
+export function formatSafeResponseReadFailure(failures = []) {
+  const reasons = [...new Set(failures.map(value => String(value || "").trim()).filter(Boolean))];
+  const suffix = reasons.length > 0 ? `: ${reasons.join("; ")}` : "";
+  return `safe response projection or runtime secret registration failed${suffix}`;
+}
+
 export function captureEndpointOwnedResponseProjection({
   response,
   entry,
@@ -959,7 +967,7 @@ export function captureEndpointOwnedResponseProjection({
     })
     .catch(error => {
       safeResponseReadFailures.push(
-        `endpoint response projection failed for ${method} ${pathname}: ${error instanceof Error ? error.message : String(error)}`,
+        `endpoint response projection failed [${descriptor.kind}] ${method} ${pathname}: ${redactedEndpointProjectionFailure(error)}`,
       );
       delete entry.safeResponseBody;
       delete entry.safeResponseProjectionSource;
@@ -1041,15 +1049,7 @@ function endpointOwnedSafeResponseProjection({ kind, pathname, payload }) {
 }
 
 function assertEndpointResponseSensitiveBoundary(kind, value) {
-  const allowedOnvifSensitivePaths = new Set([
-    "auth.credentialRefPresent",
-    "auth.plaintextSecretIncluded",
-    "credentialGate.credentialReferenceStatus",
-    "credentialGate.secretMaterialStored",
-    "credentialGate.redactionGuard.urlCredentialsRejected",
-    "selectedProfile.token",
-    "sourceDraft.rtspUrl",
-  ]);
+  const allowedDiscardValidators = endpointResponseAllowedDiscardValidators(kind);
   const findings = [];
   const visit = (candidate, segments = []) => {
     if (Array.isArray(candidate)) {
@@ -1063,20 +1063,78 @@ function assertEndpointResponseSensitiveBoundary(kind, value) {
       const leaf = item === null || typeof item !== "object";
       const sensitiveKey = leaf && /password|token|credential|secret|(?:^|_)(?:url|uri)$|(?:url|uri)$/i.test(key);
       const sensitiveValue = typeof item === "string" && /^(?:rtsp|rtsps|http|https|whep):\/\//i.test(item);
-      const allowedDrop = kind === "onvif-import-draft" && allowedOnvifSensitivePaths.has(fieldPath);
+      const allowedDrop = (sensitiveKey || sensitiveValue) &&
+        allowedDiscardValidators.get(fieldPath)?.(item) === true;
       if ((sensitiveKey || sensitiveValue) && !allowedDrop) findings.push(fieldPath);
       visit(item, next);
     }
   };
   visit(value);
   if (findings.length > 0) {
-    throw new Error(`sensitive response material is not allowlisted: ${findings.join(",")}`);
+    throw new EndpointResponseProjectionError(
+      "sensitive-response-field-rejected",
+      `rejected field paths: ${[...new Set(findings)].join(",")}`,
+    );
+  }
+}
+
+function endpointResponseAllowedDiscardValidators(kind) {
+  if (kind === "auth-user-disable") {
+    return new Map([
+      ["user.mustChangePassword", value => typeof value === "boolean"],
+      ["user.passwordUpdatedAt", value => typeof value === "string"],
+    ]);
+  }
+  if (kind !== "onvif-import-draft") return new Map();
+  const falseBoolean = value => value === false;
+  return new Map([
+    ["previewContract.credentialMaterialIncluded", falseBoolean],
+    ["selectedProfile.token", value => typeof value === "string" && value.length > 0],
+    ["auth.credentialRefPresent", value => typeof value === "boolean"],
+    ["auth.plaintextSecretIncluded", falseBoolean],
+    ["credentialGate.credentialRefPresent", value => typeof value === "boolean"],
+    ["credentialGate.credentialReferenceStatus", value =>
+      value === "reference-present-redacted" || value === "reference-absent"],
+    ["credentialGate.productPersistentSecretStoreEnabled", falseBoolean],
+    ["credentialGate.externalSecretManagerEnabled", falseBoolean],
+    ["credentialGate.credentialBindingStoreEnabled", falseBoolean],
+    ["credentialGate.secretMaterialStored", falseBoolean],
+    ["credentialGate.redactionGuard.urlCredentialsRejected", value => value === true],
+    ["credentialGate.redactionGuard.draftApiOmitsCredentialRef", value => value === true],
+    ["credentialGate.redactionGuard.sourceRegistrySecretFields", falseBoolean],
+    ["credentialGate.redactionGuard.publishedViewSecretFields", falseBoolean],
+    ["credentialGate.redactionGuard.authHeaderMaterialIncluded", falseBoolean],
+    ["credentialGate.redactionGuard.soapSecurityHeaderIncluded", falseBoolean],
+    ["sourceDraft.rtspUrl", isCredentialFreeRtspUrl],
+  ]);
+}
+
+function isCredentialFreeRtspUrl(value) {
+  if (typeof value !== "string") return false;
+  try {
+    const parsed = new URL(value);
+    return ["rtsp:", "rtsps:"].includes(parsed.protocol) && !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
+}
+
+function redactedEndpointProjectionFailure(error) {
+  if (error instanceof EndpointResponseProjectionError) return error.message;
+  return "response JSON parsing or response shape validation failed";
+}
+
+class EndpointResponseProjectionError extends Error {
+  constructor(code, detail) {
+    super(`${code}: ${detail}`);
+    this.name = "EndpointResponseProjectionError";
+    this.code = code;
   }
 }
 
 function requireResponseObject(value, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error(`${label} is missing`);
+    throw new EndpointResponseProjectionError("response-shape-invalid", `${label} is missing`);
   }
   return value;
 }
@@ -1084,14 +1142,14 @@ function requireResponseObject(value, label) {
 function requireResponseIdentity(actual, expected, label, { nonEmpty = false } = {}) {
   const value = String(actual || "");
   if ((nonEmpty && !value) || (!nonEmpty && value !== String(expected))) {
-    throw new Error(`${label} mismatch`);
+    throw new EndpointResponseProjectionError("response-identity-mismatch", `${label} mismatch`);
   }
   return value;
 }
 
 function requireResponseBoolean(actual, expected, label) {
   if (typeof actual !== "boolean" || actual !== expected) {
-    throw new Error(`${label} mismatch`);
+    throw new EndpointResponseProjectionError("response-boolean-mismatch", `${label} mismatch`);
   }
   return actual;
 }

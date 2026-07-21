@@ -6405,6 +6405,15 @@ Canonical actual FAIL evidence는 그대로 보존하며 장시간/UI/release ac
   유지하고 UI-018/SAFE-212/OPS-179 세 sourceFlow만 갱신했으며, 983 carry-forward+3 independent review의 공식
   producer 1회가 semantic/native 네 fixture를 함께 교체했습니다. 별도 native generator와 actual UI·30분·
   120분·release acceptance는 실행하지 않았습니다.
+- AUTH-020 full-response 후속은 `http_auth.cpp`의 `AppendPublicUserJson` 전체 공개 shape를 listener contract에
+  직접 결속합니다. `user.mustChangePassword` boolean과 `user.passwordUpdatedAt` string은 lifecycle metadata로
+  경로·타입을 검증한 뒤 폐기하고 safe projection에는 status/username/enabled만 남깁니다. Source create/disable,
+  view disable, ONVIF import-draft도 `SourceJson`/`PublishedViewJson`/`BuildOnvifLiveImportDraft`의 전체 응답 shape를
+  같은 listener에서 검증합니다. 허용된 profile token·credential 부재 증명·credential-free RTSP URL은 명시
+  경로/불변값 검증 뒤 폐기하며 그 밖의 password/token/credential/secret/URL material은 field path와 endpoint만
+  남기고 fail-closed합니다. Source `82f83f30...` actual AUTH-020 `126/125/1/298` FAIL은 그대로 보존합니다.
+  Read-only candidate `41870754...ae0`은 feature/pass/status/sourceFlow 변경 0이라 producer와 generator를 실행하지
+  않았고, 이 static correction에서도 actual UI·Policy v4·30분·120분·release acceptance는 미실행입니다.
 - `v390_ui_exact_core_oracles.mjs`는 approval envelope 전체 digest 대신 case/sourceFlow/expected behavior/
   feature contract/verifier/state locator context의 row-local runtime binding으로 after-state identity를 만듭니다.
   `v390_ui_exact_oracle_catalog.mjs`와 `v390_ui_native_exact_cases_lib.mjs`는 동일 implementation manifest를

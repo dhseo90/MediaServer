@@ -10,6 +10,7 @@ import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg
 import {
   buildLiveSessionEvidence,
   captureEndpointOwnedResponseProjection,
+  formatSafeResponseReadFailure,
   nativeCapabilities,
   resolvePlaywrightModule,
   secretStrippedBrowserEnv,
@@ -35,6 +36,9 @@ const adapterSource = readText("scripts/internal/v390_ui_native_adapter.mjs");
 const runnerSource = readText("scripts/internal/verify_v390_ui_automation.mjs");
 const exactRunnerSource = readText("scripts/internal/run_v390_ui_native_exact_cases.mjs");
 const caseRuntimeSource = readText("scripts/internal/v390_ui_case_runtime.mjs");
+const authProductSource = readText("src/ingress/http_auth.cpp");
+const registryProductSource = readText("src/ingress/source_view_registry.cpp");
+const onvifProductSource = readText("src/ingress/onvif_live_import.cpp");
 const serverSh = readText("server.sh");
 const docs = [
   readText("docs/development-backlog.md"),
@@ -138,43 +142,56 @@ check("issued invite tokens are registered and redacted at every evidence bounda
   }
 });
 
-check("endpoint-owned responses are projected only through the Playwright response listener", async () => {
+check("endpoint-owned response fixtures cover the product response fields", () => {
+  for (const field of [
+    "username", "displayName", "role", "enabled", "scopesCount", "scopes",
+    "mustChangePassword", "failedLoginCount", "lockedUntil", "lastFailedLoginAt",
+    "lastLoginAt", "lastLoginIp", "createdAt", "passwordUpdatedAt", "disabledAt",
+  ]) {
+    assert(authProductSource.includes(`\\\"${field}\\\"`), `AppendPublicUserJson field missing: ${field}`);
+  }
+  for (const field of [
+    "sourceId", "displayName", "kind", "enabled", "tags", "ownerGroup", "site",
+    "group", "floor", "zone", "canonicalSourceKey", "file", "rtspUrl",
+    "webrtcSourceId", "whepUrl", "httpUrl", "viewId", "defaultRuleId",
+    "allowedRuleIds", "allowedOverlayModes", "showDashboard", "showEvents",
+    "showMetadataSummary", "clientGroups", "maxTiles",
+  ]) {
+    assert(registryProductSource.includes(`\\\"${field}\\\"`) ||
+      registryProductSource.includes(`"${field}"`),
+    `source/view product field missing: ${field}`);
+  }
+  for (const field of [
+    "previewContract", "selectedProfile", "credentialGate", "sourceDraft",
+    "publishedViewDraft", "credentialMaterialIncluded", "credentialReferenceStatus",
+    "secretMaterialStored", "urlCredentialsRejected", "draftApiOmitsCredentialRef",
+  ]) {
+    assert(onvifProductSource.includes(`\\\"${field}\\\"`), `ONVIF product field missing: ${field}`);
+  }
+});
+
+check("endpoint-owned full product responses are projected only through the Playwright response listener", async () => {
   const cases = [
     ["POST", "/ops/api/users/auth-020-fixture/disable", 200,
-      { status: "disabled", user: { username: "auth-020-fixture", enabled: false } },
+      fullAuthDisableResponse(),
       { status: "disabled", user: { username: "auth-020-fixture", enabled: false } }],
     ["POST", "/ops/api/sources", 201,
-      { ok: true, source: { sourceId: "src-008-fixture", enabled: true, file: "sample_h264.mp4" } },
+      fullSourceResponse("src-008-fixture", true, "created"),
       { ok: true, source: { sourceId: "src-008-fixture", enabled: true } }],
     ["DELETE", "/ops/api/sources/src-010-fixture", 200,
-      { ok: true, status: "disabled", source: { sourceId: "src-010-fixture", enabled: false } },
+      fullSourceResponse("src-010-fixture", false, "disabled"),
       { ok: true, status: "disabled", source: { sourceId: "src-010-fixture", enabled: false } }],
     ["DELETE", "/ops/api/views/src-019-fixture", 200,
-      { ok: true, status: "disabled", view: { viewId: "src-019-fixture", sourceId: "src-019-fixture", enabled: false } },
+      fullViewDisableResponse(),
       { ok: true, status: "disabled", view: { viewId: "src-019-fixture", sourceId: "src-019-fixture", enabled: false } }],
-    ["POST", "/ops/api/onvif/import-draft", 200, {
-      ok: true,
-      selectedProfile: { token: "profile-token-that-must-not-be-stored" },
-      auth: { credentialRefPresent: false, plaintextSecretIncluded: false },
-      credentialGate: {
-        schema: "media-server.onvif-credential-binding-gate.v1",
-        requiredScope: "source:write",
-        primaryStoreProvider: "none",
-        primaryStoreDecision: "not-required",
-        credentialReferenceStatus: "not-provided",
-        secretMaterialStored: false,
-        redactionGuard: { urlCredentialsRejected: true },
-      },
-      sourceDraft: { sourceId: "src-031-source", rtspUrl: "rtsp://camera.invalid/live", enabled: true },
-      publishedViewDraft: { viewId: "src-031-view", sourceId: "src-031-source", enabled: true },
-    }, {
+    ["POST", "/ops/api/onvif/import-draft", 200, fullOnvifDraftResponse(), {
       ok: true,
       credentialGate: {
         schema: "media-server.onvif-credential-binding-gate.v1",
         requiredScope: "source:write",
         primaryStoreProvider: "none",
-        primaryStoreDecision: "not-required",
-        credentialReferenceStatus: "not-provided",
+        primaryStoreDecision: "defer-product-persistent-store",
+        credentialReferenceStatus: "reference-present-redacted",
         urlCredentialsRejected: true,
         secretMaterialStored: false,
       },
@@ -189,20 +206,57 @@ check("endpoint-owned responses are projected only through the Playwright respon
       `${method} ${pathname} projection provenance missing`);
     assert(JSON.stringify(observed.entry.safeResponseBody) === JSON.stringify(expected),
       `${method} ${pathname} safe projection drift`);
-    assert(!/profile-token-that-must-not-be-stored|rtsp:\/\//.test(JSON.stringify(observed.entry.safeResponseBody)),
+    assert(!/profile-live-main|rtsp:\/\/|mustChangePassword|passwordUpdatedAt|canonicalSourceKey/.test(
+      JSON.stringify(observed.entry.safeResponseBody)),
       `${method} ${pathname} persisted sensitive response material`);
   }
-  const sensitive = await captureListenerProjection({
-    method: "POST",
-    pathname: "/ops/api/users/auth-020-fixture/disable",
-    status: 200,
-    payload: {
-      status: "disabled",
-      user: { username: "auth-020-fixture", enabled: false, passwordHash: "forbidden" },
-    },
-  });
-  assert(sensitive.failures.length === 1 && !sensitive.entry.safeResponseBody,
-    "sensitive endpoint response did not fail closed");
+});
+
+check("endpoint-owned sensitive response fields fail closed with redacted field-path diagnostics", async () => {
+  const forbiddenValue = "contract-secret-value-that-must-not-appear";
+  const cases = [
+    ["auth-user-disable", "POST", "/ops/api/users/auth-020-fixture/disable", 200,
+      withField(fullAuthDisableResponse(), ["user", "passwordHash"], forbiddenValue), "user.passwordHash"],
+    ["source-create", "POST", "/ops/api/sources", 201,
+      withField(fullSourceResponse("src-008-fixture", true, "created"), ["source", "rtspUrl"],
+        `rtsp://user:${forbiddenValue}@camera.invalid/live`), "source.rtspUrl"],
+    ["source-disable", "DELETE", "/ops/api/sources/src-010-fixture", 200,
+      withField(fullSourceResponse("src-010-fixture", false, "disabled"), ["source", "tokenHash"], forbiddenValue),
+      "source.tokenHash"],
+    ["view-disable", "DELETE", "/ops/api/views/src-019-fixture", 200,
+      withField(fullViewDisableResponse(), ["view", "secret"], forbiddenValue), "view.secret"],
+    ["onvif-import-draft", "POST", "/ops/api/onvif/import-draft", 200,
+      withField(fullOnvifDraftResponse(), ["credentialGate", "secretMaterialStored"], true),
+      "credentialGate.secretMaterialStored"],
+  ];
+  for (const [kind, method, pathname, status, payload, fieldPath] of cases) {
+    const observed = await captureListenerProjection({ method, pathname, status, payload });
+    assert(observed.failures.length === 1 && !observed.entry.safeResponseBody,
+      `${kind} sensitive endpoint response did not fail closed`);
+    const failure = formatSafeResponseReadFailure(observed.failures);
+    assert(failure.includes(`[${kind}] ${method} ${pathname}`) && failure.includes(fieldPath),
+      `${kind} redacted endpoint/field-path diagnostic missing: ${failure}`);
+    assert(!failure.includes(forbiddenValue) && !JSON.stringify(observed.entry).includes(forbiddenValue),
+      `${kind} diagnostic or evidence retained sensitive response material`);
+  }
+});
+
+check("AUTH public lifecycle fields accept exact public types and reject type drift", async () => {
+  const cases = [
+    [withField(fullAuthDisableResponse(), ["user", "mustChangePassword"], "false"), "user.mustChangePassword"],
+    [withField(fullAuthDisableResponse(), ["user", "passwordUpdatedAt"], 123), "user.passwordUpdatedAt"],
+  ];
+  for (const [payload, fieldPath] of cases) {
+    const observed = await captureListenerProjection({
+      method: "POST",
+      pathname: "/ops/api/users/auth-020-fixture/disable",
+      status: 200,
+      payload,
+    });
+    const failure = formatSafeResponseReadFailure(observed.failures);
+    assert(observed.failures.length === 1 && !observed.entry.safeResponseBody && failure.includes(fieldPath),
+      `AUTH lifecycle type drift did not fail closed for ${fieldPath}`);
+  }
 });
 
 check("live session evidence preserves request view and response session identity", () => {
@@ -297,6 +351,177 @@ function readText(relativePath) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function fullAuthDisableResponse() {
+  return {
+    status: "disabled",
+    user: {
+      username: "auth-020-fixture",
+      displayName: "REVIEW4 AUTH-020 user",
+      role: "viewer",
+      enabled: false,
+      scopesCount: 1,
+      scopes: ["view:9001"],
+      mustChangePassword: false,
+      failedLoginCount: 0,
+      lockedUntil: "",
+      lastFailedLoginAt: "",
+      lastLoginAt: "2026-07-21T00:00:00Z",
+      lastLoginIp: "127.0.0.1",
+      createdAt: "2026-07-21T00:00:00Z",
+      passwordUpdatedAt: "2026-07-21T00:00:00Z",
+      disabledAt: "2026-07-21T00:01:00Z",
+    },
+  };
+}
+
+function fullSourceResponse(sourceId, enabled, status) {
+  return {
+    ok: true,
+    status,
+    source: {
+      sourceId,
+      displayName: `REVIEW4 ${sourceId} source`,
+      kind: "file",
+      enabled,
+      tags: ["review4"],
+      ownerGroup: "ops",
+      site: "test-site",
+      group: "test-group",
+      floor: "test-floor",
+      zone: "REVIEW4",
+      canonicalSourceKey: "file:sample_h264.mp4",
+      file: "sample_h264.mp4",
+    },
+  };
+}
+
+function fullViewDisableResponse() {
+  return {
+    ok: true,
+    status: "disabled",
+    view: {
+      viewId: "src-019-fixture",
+      displayName: "REVIEW4 SRC-019 view",
+      sourceId: "src-019-fixture",
+      defaultRuleId: "",
+      allowedRuleIds: [],
+      allowedOverlayModes: ["raw", "va-overlay", "va-rule"],
+      showDashboard: true,
+      showEvents: true,
+      showMetadataSummary: true,
+      clientGroups: ["default"],
+      maxTiles: 1,
+      enabled: false,
+    },
+  };
+}
+
+function fullOnvifDraftResponse() {
+  return {
+    ok: true,
+    status: "onvifImportDraft",
+    notSaved: true,
+    previewContract: {
+      schema: "media-server.onvif-draft-preview.v1",
+      scope: "ops-sources-before-save",
+      requiresExplicitSave: true,
+      storageAction: "none",
+      sourceRegistryMutation: false,
+      publishedViewMutation: false,
+      rawSoapIncluded: false,
+      credentialMaterialIncluded: false,
+      endpointIncluded: false,
+      diagnosticJsonIncluded: false,
+    },
+    candidate: {
+      manufacturer: "ExampleCam",
+      model: "EC-LiveT-200",
+      firmwareVersion: "1.2.3-test",
+      serialNumber: "EXAMPLE-ONVIF-0001",
+    },
+    selectedProfile: {
+      token: "profile-live-main",
+      name: "Live Main H264",
+      mediaApi: "Media2",
+      encoding: "H264",
+      width: 1920,
+      height: 1080,
+      fps: 30,
+      transport: "RTSP",
+    },
+    auth: {
+      required: true,
+      credentialRefPresent: true,
+      plaintextSecretIncluded: false,
+    },
+    credentialGate: {
+      schema: "media-server.onvif-credential-binding-gate.v1",
+      targetStep: "V260-S03",
+      status: "credential-reference-only-store-deferred",
+      primaryStoreProvider: "none",
+      primaryStoreDecision: "defer-product-persistent-store",
+      fallbackProviders: ["in-memory-fixture"],
+      excludedProviders: ["local-encrypted", "external-secret-manager"],
+      sourceWriteRequired: true,
+      requiredScope: "source:write",
+      authRequired: true,
+      credentialRefPresent: true,
+      credentialReferenceStatus: "reference-present-redacted",
+      productPersistentSecretStoreEnabled: false,
+      externalSecretManagerEnabled: false,
+      credentialBindingStoreEnabled: false,
+      secretMaterialStored: false,
+      referenceValueExposed: false,
+      redactionGuard: {
+        urlCredentialsRejected: true,
+        draftApiOmitsCredentialRef: true,
+        sourceRegistrySecretFields: false,
+        publishedViewSecretFields: false,
+        clientViewerExposureAdded: false,
+        authHeaderMaterialIncluded: false,
+        soapSecurityHeaderIncluded: false,
+      },
+      contract: {
+        eventPostPayloadChanged: false,
+        webrtcDataChannelSchemaChanged: false,
+        sseMetadataSchemaChanged: false,
+        wsMetadataSchemaChanged: false,
+        rtspOrWebrtcMediaPathChanged: false,
+        authRoleScopeChanged: false,
+      },
+    },
+    sourceDraft: {
+      sourceId: "src-031-source",
+      displayName: "ExampleCam Live Main",
+      kind: "rtsp",
+      rtspUrl: "rtsp://camera.invalid/live",
+      enabled: true,
+      tags: ["onvif", "live"],
+      ownerGroup: "ops",
+    },
+    publishedViewDraft: {
+      viewId: "src-031-view",
+      displayName: "ExampleCam Live Main",
+      sourceId: "src-031-source",
+      allowedOverlayModes: ["raw", "va-overlay", "va-rule"],
+      showDashboard: true,
+      showEvents: true,
+      showMetadataSummary: true,
+      clientGroups: ["default"],
+      maxTiles: 1,
+      enabled: true,
+    },
+  };
+}
+
+function withField(payload, pathSegments, value) {
+  const clone = structuredClone(payload);
+  let target = clone;
+  for (const segment of pathSegments.slice(0, -1)) target = target[segment];
+  target[pathSegments.at(-1)] = value;
+  return clone;
 }
 
 async function captureListenerProjection({ method, pathname, status, payload }) {
