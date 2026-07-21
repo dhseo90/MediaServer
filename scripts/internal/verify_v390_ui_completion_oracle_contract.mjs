@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   allowedCompletionSources,
+  buildEndpointActionSemanticReadback,
   domSnapshotDigest,
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
@@ -683,6 +684,70 @@ check("REVIEW4-58 persisted mutation requires a changed authoritative runtime re
     "unchanged persisted readback became completion");
 });
 
+check("REVIEW4-65 all endpoint-owned readbacks close through one canonical completion observation", () => {
+  for (const caseId of ["AUTH-020", "SRC-008", "SRC-010", "SRC-019", "SRC-031"]) {
+    const item = manifest.cases.find(value => value.caseId === caseId);
+    const endpointAction = item.workflow.controlSequence.find(value => value.kind === "execute-endpoint-action");
+    const completionAction = endpointCompletionAction(endpointAction);
+    const runtimeReadback = endpointRuntimeReadback(item, endpointAction);
+    const networkResponses = [endpointNetworkResponse(runtimeReadback)];
+    const semanticReadback = buildEndpointActionSemanticReadback({
+      action: endpointAction,
+      actionEvidence: completionAction,
+      runtimeReadback,
+      networkResponses,
+    });
+    const result = evaluateCompletionOracle({
+      action: completionAction,
+      networkResponses,
+      semanticReadback,
+    });
+    assert(result.pass && result.source === "endpoint-dom",
+      `${caseId} endpoint-owned completion failed: ${result.reason}`);
+    const actual = semanticReadback.observation.actual;
+    assert(actual.actualPath === endpointAction.semanticCompletion.request.urlPath &&
+      actual.path === endpointAction.semanticCompletion.request.urlPathTemplate &&
+      actual.fixtureBinding.verified === true && actual.requestId === runtimeReadback.requestId &&
+      actual.safeResponse && actual.authoritativeReadback.authoritative === true,
+    `${caseId} canonical endpoint observation evidence is incomplete`);
+  }
+});
+
+check("REVIEW4-65 endpoint-owned completion fails closed on every evidence boundary", () => {
+  const item = manifest.cases.find(value => value.caseId === "AUTH-020");
+  const endpointAction = item.workflow.controlSequence.find(value => value.kind === "execute-endpoint-action");
+  const completionAction = endpointCompletionAction(endpointAction);
+  const runtimeReadback = endpointRuntimeReadback(item, endpointAction);
+  const response = endpointNetworkResponse(runtimeReadback);
+  const build = ({ actionValue = endpointAction, readback = runtimeReadback, responses = [response] } = {}) =>
+    buildEndpointActionSemanticReadback({
+      action: actionValue,
+      actionEvidence: completionAction,
+      runtimeReadback: readback,
+      networkResponses: responses,
+    });
+  expectThrow(() => build({ readback: { runtimeEndpointActionReadback: runtimeReadback } }),
+    "endpoint-action-readback-shape-missing");
+  expectThrow(() => build({ readback: { ...runtimeReadback, method: "DELETE" } }),
+    "endpoint-action-method-path-mismatch");
+  expectThrow(() => build({ readback: { ...runtimeReadback, path: "/ops/api/users/other/disable" } }),
+    "endpoint-action-method-path-mismatch");
+  const unboundAction = structuredClone(endpointAction);
+  unboundAction.semanticCompletion.request.urlPath = "/ops/api/users/other/disable";
+  expectThrow(() => build({ actionValue: unboundAction }), "endpoint-action-fixture-binding-mismatch");
+  expectThrow(() => build({ readback: { ...runtimeReadback, correlationId: "" } }),
+    "endpoint-action-correlation-request-id-missing");
+  expectThrow(() => build({ readback: { ...runtimeReadback, requestId: "" } }),
+    "endpoint-action-correlation-request-id-missing");
+  expectThrow(() => build({ readback: { ...runtimeReadback, status: 409 } }),
+    "endpoint-action-status-mismatch");
+  expectThrow(() => build({ responses: [{ ...response, safeResponseBody: { status: "forged" } }] }),
+    "endpoint-action-safe-response-mismatch");
+  expectThrow(() => build({ readback: { ...runtimeReadback, authoritative: false } }),
+    "endpoint-action-authoritative-readback-missing");
+  expectThrow(() => build({ readback: null }), "endpoint-action-readback-shape-missing");
+});
+
 check("REVIEW4-58 locks one exact request and rejects another fixture or duplicate request", () => {
   const completionAction = {
     ...action("click"),
@@ -982,6 +1047,95 @@ console.log(`- pass: ${result.pass}`);
 console.log(`- fail: ${result.fail}`);
 console.log("- actualBrowserExecution: not-run-by-this-contract");
 if (result.fail > 0) process.exit(1);
+
+function endpointCompletionAction(endpointAction) {
+  const completion = endpointAction.semanticCompletion;
+  return {
+    kind: endpointAction.kind,
+    executed: true,
+    dispatch: endpointAction.dispatch,
+    actionId: completion.actionId,
+    actionKind: endpointAction.kind,
+    completionPhase: completion.phase,
+    controlSelector: completion.controlSelector,
+    correlationId: completion.correlationId,
+    semanticCompletionRequired: completion.required === true,
+    expectedReadbackIdentity: completion.readbackIdentity,
+    expectedBehaviorSha256: completion.expectedBehaviorSha256,
+    expectedReadbackExpectation: structuredClone(completion.readbackExpectation),
+    expectedEndpoint: {
+      correlationId: completion.request.correlationId,
+      method: completion.request.method,
+      urlPathTemplate: completion.request.urlPathTemplate,
+      urlPath: completion.request.urlPath,
+      allowedStatuses: [...completion.request.allowedStatuses],
+    },
+    allowedCompletionSources: [completion.requiredSource, ...completion.attestedAlternatives],
+  };
+}
+
+function endpointRuntimeReadback(item, endpointAction) {
+  const request = endpointAction.semanticCompletion.request;
+  const input = item.workflow.inputs.find(value => value.kind === "endpoint-action-fixture");
+  const fixtureId = request.pathParameters.fixtureId || input.actualValue.readback?.sourceId ||
+    input.actualValue.readback?.viewId || `${item.caseId.toLowerCase()}-review4-fixture`;
+  const safeResponseByCase = {
+    "AUTH-020": { status: "disabled", user: { username: fixtureId, enabled: false } },
+    "SRC-008": { ok: true, source: { sourceId: fixtureId, enabled: true } },
+    "SRC-010": { ok: true, status: "disabled", source: { sourceId: fixtureId, enabled: false } },
+    "SRC-019": { ok: true, status: "disabled", view: { viewId: fixtureId, sourceId: fixtureId, enabled: false } },
+    "SRC-031": {
+      ok: true,
+      credentialGate: {
+        schema: "media-server.onvif-credential-binding-gate.v1",
+        requiredScope: "source:write",
+        urlCredentialsRejected: true,
+        secretMaterialStored: false,
+      },
+      sourceDraft: { sourceId: "5", enabled: true },
+      publishedViewDraft: { viewId: "5", sourceId: "5", enabled: true },
+    },
+  };
+  return {
+    schema: "media-server.v390-ui-endpoint-action-readback.v1",
+    fixtureId,
+    method: request.method,
+    path: request.urlPath,
+    status: request.allowedStatuses[0],
+    correlationId: request.correlationId,
+    requestId: `${item.caseId.toLowerCase()}-endpoint-request`,
+    safeResponse: structuredClone(safeResponseByCase[item.caseId]),
+    actualBrowserRequestObserved: true,
+    responseSynthesized: false,
+    authoritative: true,
+    readbackKind: input.actualValue.readback.kind,
+  };
+}
+
+function endpointNetworkResponse(runtimeReadback) {
+  return {
+    phase: "response",
+    requestId: runtimeReadback.requestId,
+    correlationId: runtimeReadback.correlationId,
+    correlationSource: "request-header",
+    method: runtimeReadback.method,
+    status: runtimeReadback.status,
+    url: `http://127.0.0.1${runtimeReadback.path}`,
+    safeResponseBody: structuredClone(runtimeReadback.safeResponse),
+    safeResponseProjectionSource: "playwright-response-json",
+  };
+}
+
+function expectThrow(fn, expectedMessage) {
+  let error = null;
+  try {
+    fn();
+  } catch (value) {
+    error = value;
+  }
+  assert(error instanceof Error && error.message.includes(expectedMessage),
+    `expected ${expectedMessage}, got ${error instanceof Error ? error.message : "no error"}`);
+}
 
 function snapshot(state, text) {
   return {

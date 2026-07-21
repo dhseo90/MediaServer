@@ -21,6 +21,114 @@ export function domSnapshotDigest(snapshot) {
   return crypto.createHash("sha256").update(stableStringify(snapshot)).digest("hex");
 }
 
+export function buildEndpointActionSemanticReadback({
+  action,
+  actionEvidence,
+  runtimeReadback,
+  networkResponses = [],
+}) {
+  const actual = canonicalEndpointActionObservation({
+    action,
+    actionEvidence,
+    runtimeReadback,
+    networkResponses,
+  });
+  const observation = { actual };
+  return {
+    schema: "media-server.v390-ui-semantic-readback.v2",
+    identity: action.semanticCompletion.readbackIdentity,
+    correlationId: actionEvidence.correlationId,
+    actionId: actionEvidence.actionId,
+    expectedBehaviorSha256: action.semanticCompletion.expectedBehaviorSha256,
+    observationSource: "readback-request",
+    selector: actionEvidence.controlSelector,
+    observation,
+    observationSha256: domSnapshotDigest(observation),
+  };
+}
+
+export function canonicalEndpointActionObservation({
+  action,
+  actionEvidence,
+  runtimeReadback,
+  networkResponses = [],
+}) {
+  requireEndpointCondition(action?.kind === "execute-endpoint-action",
+    "endpoint-action-kind-mismatch");
+  requireEndpointCondition(action?.semanticCompletion?.phase === "primary-action",
+    "endpoint-action-completion-phase-mismatch");
+  requireEndpointCondition(runtimeReadback?.schema === "media-server.v390-ui-endpoint-action-readback.v1",
+    "endpoint-action-readback-shape-missing");
+  const request = action.semanticCompletion.request;
+  requireEndpointCondition(request && request.method && request.urlPathTemplate && request.urlPath,
+    "endpoint-action-request-binding-missing");
+  requireEndpointCondition(action.endpoint?.method === request.method &&
+    action.endpoint?.path === request.urlPathTemplate,
+  "endpoint-action-template-binding-mismatch");
+  const expandedPath = expandEndpointTemplate(request.urlPathTemplate, request.pathParameters || {});
+  requireEndpointCondition(expandedPath === request.urlPath,
+    "endpoint-action-fixture-binding-mismatch");
+  requireEndpointCondition(actionEvidence?.actionId === action.semanticCompletion.actionId &&
+    actionEvidence?.correlationId === request.correlationId &&
+    actionEvidence?.expectedEndpoint?.method === request.method &&
+    actionEvidence?.expectedEndpoint?.urlPathTemplate === request.urlPathTemplate &&
+    actionEvidence?.expectedEndpoint?.urlPath === request.urlPath,
+  "endpoint-action-evidence-binding-mismatch");
+  requireEndpointCondition(runtimeReadback.method === request.method &&
+    runtimeReadback.path === request.urlPath,
+  "endpoint-action-method-path-mismatch");
+  requireEndpointCondition(runtimeReadback.correlationId === request.correlationId &&
+    typeof runtimeReadback.requestId === "string" && runtimeReadback.requestId,
+  "endpoint-action-correlation-request-id-missing");
+  requireEndpointCondition(Array.isArray(request.allowedStatuses) &&
+    request.allowedStatuses.includes(Number(runtimeReadback.status)),
+  "endpoint-action-status-mismatch");
+  requireEndpointCondition(runtimeReadback.safeResponse &&
+    typeof runtimeReadback.safeResponse === "object" && !Array.isArray(runtimeReadback.safeResponse),
+  "endpoint-action-safe-response-missing");
+  requireEndpointCondition(runtimeReadback.actualBrowserRequestObserved === true &&
+    runtimeReadback.responseSynthesized === false && runtimeReadback.authoritative === true &&
+    typeof runtimeReadback.readbackKind === "string" && runtimeReadback.readbackKind,
+  "endpoint-action-authoritative-readback-missing");
+  if (Object.hasOwn(request.pathParameters || {}, "fixtureId")) {
+    requireEndpointCondition(runtimeReadback.fixtureId === request.pathParameters.fixtureId,
+      "endpoint-action-runtime-fixture-binding-mismatch");
+  }
+  const responses = (Array.isArray(networkResponses) ? networkResponses : []).filter(entry => {
+    if (entry?.phase && entry.phase !== "response") return false;
+    if (entry?.requestId !== runtimeReadback.requestId ||
+        entry?.correlationSource !== "request-header" ||
+        entry?.correlationId !== request.correlationId ||
+        entry?.method !== request.method || Number(entry?.status) !== Number(runtimeReadback.status)) return false;
+    try { return new URL(String(entry.url), "http://localhost").pathname === request.urlPath; } catch { return false; }
+  });
+  requireEndpointCondition(responses.length === 1,
+    responses.length === 0 ? "endpoint-action-network-response-missing" : "endpoint-action-network-response-ambiguous");
+  const response = responses[0];
+  requireEndpointCondition(response.safeResponseProjectionSource === "playwright-response-json" &&
+    stableStringify(response.safeResponseBody) === stableStringify(runtimeReadback.safeResponse),
+  "endpoint-action-safe-response-mismatch");
+  return {
+    endpointActionObserved: true,
+    method: request.method,
+    path: request.urlPathTemplate,
+    actualPath: request.urlPath,
+    fixtureBinding: {
+      pathTemplate: request.urlPathTemplate,
+      actualPath: request.urlPath,
+      pathParameters: structuredClone(request.pathParameters || {}),
+      verified: true,
+    },
+    correlationRequired: true,
+    independentReadbackRequired: true,
+    correlationId: request.correlationId,
+    requestId: runtimeReadback.requestId,
+    status: Number(runtimeReadback.status),
+    safeResponse: structuredClone(runtimeReadback.safeResponse),
+    authoritativeReadback: structuredClone(runtimeReadback),
+  };
+}
+
 export function evaluateCompletionOracle({
   action,
   before = null,
@@ -186,6 +294,18 @@ function actionBoundAlternative(base, action, persistedReadback, eventRecord, se
   if (matchesEventRecord(eventRecord, action)) return allowedResult(base, action, "event-record");
   if (matchesServerLog(serverLog, action)) return allowedResult(base, action, "server-log");
   return null;
+}
+
+function expandEndpointTemplate(template, parameters) {
+  return String(template).replace(/\{([^}]+)\}/g, (_match, key) => {
+    requireEndpointCondition(Object.hasOwn(parameters, key),
+      "endpoint-action-fixture-parameter-missing");
+    return encodeURIComponent(String(parameters[key]));
+  });
+}
+
+function requireEndpointCondition(condition, reason) {
+  if (!condition) throw new Error(reason);
 }
 
 function allowedResult(base, action, source, additions = {}) {

@@ -6414,6 +6414,15 @@ Canonical actual FAIL evidence는 그대로 보존하며 장시간/UI/release ac
   남기고 fail-closed합니다. Source `82f83f30...` actual AUTH-020 `126/125/1/298` FAIL은 그대로 보존합니다.
   Read-only candidate `41870754...ae0`은 feature/pass/status/sourceFlow 변경 0이라 producer와 generator를 실행하지
   않았고, 이 static correction에서도 actual UI·Policy v4·30분·120분·release acceptance는 미실행입니다.
+- Endpoint-owned completion 후속은 `v390_ui_completion_oracle_lib.mjs`의 canonical observation builder가
+  AUTH-020/SRC-008/SRC-010/SRC-019/SRC-031의 manifest path template과 실제 확장 path·fixture parameter,
+  correlation/request ID, status, Playwright safe response, authoritative independent readback을 함께 검증한 뒤에만
+  completion evidence를 생성합니다. `run_v390_ui_native_exact_cases.mjs`는 기존 wrapper 전체가 아니라 이 canonical
+  observation을 completion oracle에 전달합니다. Source `c8d76cc6...` actual AUTH-020 `126/125/1/298`의
+  `semantic-readback-observation-mismatch` FAIL은 그대로 보존합니다. RED는 completion contract 22/1로 재현했고,
+  다섯 composed case와 wrapper/method/path/fixture/correlation/request/status/safe-response/authoritative negative를
+  추가한 뒤 24/24 PASS했습니다. Candidate `41870754...ae0`/986행과 feature/pass/status/sourceFlow는 모두 불변이라
+  producer·generator를 실행하지 않았으며 actual UI·Policy v4·30분·120분·release acceptance도 미실행입니다.
 - `v390_ui_exact_core_oracles.mjs`는 approval envelope 전체 digest 대신 case/sourceFlow/expected behavior/
   feature contract/verifier/state locator context의 row-local runtime binding으로 after-state identity를 만듭니다.
   `v390_ui_exact_oracle_catalog.mjs`와 `v390_ui_native_exact_cases_lib.mjs`는 동일 implementation manifest를

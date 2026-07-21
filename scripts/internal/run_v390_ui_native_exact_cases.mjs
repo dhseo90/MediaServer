@@ -8,7 +8,11 @@ import { fileURLToPath } from "node:url";
 
 import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
 import { createV390UiCaseRuntime } from "./v390_ui_case_runtime.mjs";
-import { domSnapshotDigest, evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
+import {
+  buildEndpointActionSemanticReadback,
+  domSnapshotDigest,
+  evaluateCompletionOracle,
+} from "./v390_ui_completion_oracle_lib.mjs";
 import {
   createNativeExactExecutionFailureSummary,
   createNativeExactPreExecutionFailureSummary,
@@ -2158,13 +2162,20 @@ async function executeIndependentReadback(
         ...(catalogRuntimeReadback ? { exactRuntimeOracle: catalogRuntimeReadback } : {}),
       }
     : (pending.explicitObserved || null));
-  const semanticReadback = semanticReadbackEvidence(
-    pending.action,
-    pending.actionEvidence,
-    pending.before,
-    freshAfter,
-    explicitObserved,
-  );
+  const semanticReadback = runtimeEndpointActionReadback
+    ? buildEndpointActionSemanticReadback({
+        action: pending.action,
+        actionEvidence: pending.actionEvidence,
+        runtimeReadback: runtimeEndpointActionReadback,
+        networkResponses: pending.networkResponses,
+      })
+    : semanticReadbackEvidence(
+        pending.action,
+        pending.actionEvidence,
+        pending.before,
+        freshAfter,
+        explicitObserved,
+      );
   const completionOracle = evaluateCompletionOracle({
     action: pending.actionEvidence,
     before: pending.before,
