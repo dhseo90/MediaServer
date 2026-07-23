@@ -27,6 +27,7 @@ import {
 } from "./v390_ui_requested_observed_schema.mjs";
 import {
   assertAuthFixtureAbsentFromUsersFile,
+  assertInactiveOrEqualBeforeCleanup,
   createV390UiCaseRuntime,
   formReadbackProfiles,
   runAuthoritativeReadbackWithSnapshotRestore,
@@ -71,6 +72,87 @@ check("builder is deterministic and preserves exact case order", () => {
   assert(JSON.stringify(manifest.cases.map(item => item.caseId)) ===
     JSON.stringify(canonical.cases.map(item => item.testId)), "canonical ordered IDs drift");
 });
+
+check("endpoint source fixtures intentionally cross the published canonical-media baseline without bypassing sourceId identity", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const seed = readJson("test/fixtures/manual_ui_fulltest_va_seed_matrix.json");
+  const baselineFile = seed.sources.find(item => item.kind === "file" && item.file === "sample_h264.mp4");
+  assert(baselineFile, "published acceptance baseline sample_h264.mp4 source is missing");
+  const baseline = [{
+    sourceId: "9001",
+    canonicalSourceKey: `file:${baselineFile.file}`,
+    enabled: true,
+  }];
+  const endpointSources = new Map([
+    ["SRC-008", rebuilt.cases.find(item => item.caseId === "SRC-008")?.workflow.inputs
+      .find(input => input.kind === "endpoint-action-fixture")?.actualValue?.body],
+    ["SRC-010", rebuilt.cases.find(item => item.caseId === "SRC-010")?.workflow.inputs
+      .find(input => input.kind === "endpoint-action-fixture")?.actualValue?.setup?.source],
+    ["SRC-019", rebuilt.cases.find(item => item.caseId === "SRC-019")?.workflow.inputs
+      .find(input => input.kind === "endpoint-action-fixture")?.actualValue?.setup?.source],
+  ]);
+  const legacy = { ...endpointSources.get("SRC-008") };
+  delete legacy.allowDuplicateSource;
+  assert(simulateSourceWrite(baseline, legacy, { method: "POST" }).status === 409,
+    "legacy SRC-008 fixture did not reproduce the duplicate canonical source 409");
+  for (const [caseId, source] of endpointSources) {
+    assert(source?.allowDuplicateSource === true,
+      `${caseId} endpoint source fixture does not explicitly allow the acceptance-owned canonical media duplicate`);
+    const result = simulateSourceWrite(baseline, source, { method: caseId === "SRC-008" ? "POST" : "PUT" });
+    assert(result.status === 201 && result.source?.sourceId === source.sourceId && result.source?.enabled === true,
+      `${caseId} canonical-collision fixture did not produce 201 plus authoritative source readback`);
+  }
+  const idCollision = simulateSourceWrite(baseline, {
+    ...endpointSources.get("SRC-008"),
+    sourceId: "9001",
+    allowDuplicateSource: true,
+  }, { method: "POST" });
+  assert(idCollision.status === 409 && idCollision.reason === "sourceId already exists",
+    "allowDuplicateSource bypassed a sourceId collision");
+});
+
+check("inactive-or-equal-before cleanup accepts absent or disabled state and rejects enabled residue", () => {
+  assert(assertInactiveOrEqualBeforeCleanup({
+    caseId: "SRC-008",
+    observed: { source: null, publishedView: null },
+    expectedRecord: null,
+  }).mode === "inactive", "pre-mutation absent cleanup was rejected");
+  assert(assertInactiveOrEqualBeforeCleanup({
+    caseId: "SRC-008",
+    observed: { source: { sourceId: "src-008", enabled: false }, publishedView: null },
+    expectedRecord: null,
+  }).mode === "inactive", "post-mutation disabled cleanup was rejected");
+  let rejected = false;
+  try {
+    assertInactiveOrEqualBeforeCleanup({
+      caseId: "SRC-008",
+      observed: { source: { sourceId: "src-008", enabled: true }, publishedView: null },
+      expectedRecord: null,
+    });
+  } catch (error) {
+    rejected = String(error.message).includes("suite-created source/view state was not disabled");
+  }
+  assert(rejected, "enabled suite-created source state passed cleanup");
+});
+
+function simulateSourceWrite(existingSources, payload, { method } = {}) {
+  const sourceId = String(payload?.sourceId || "");
+  const canonicalSourceKey = payload?.kind === "file" && payload?.file
+    ? `file:${payload.file}`
+    : String(payload?.canonicalSourceKey || "");
+  if (method === "POST" && existingSources.some(source => source.sourceId === sourceId)) {
+    return { status: 409, reason: "sourceId already exists" };
+  }
+  const duplicate = existingSources.find(source =>
+    source.canonicalSourceKey === canonicalSourceKey && source.sourceId !== sourceId);
+  if (duplicate && payload?.allowDuplicateSource !== true) {
+    return { status: 409, reason: "duplicate source", duplicateSourceId: duplicate.sourceId };
+  }
+  return {
+    status: existingSources.some(source => source.sourceId === sourceId) ? 200 : 201,
+    source: { sourceId, canonicalSourceKey, enabled: payload?.enabled !== false },
+  };
+}
 
 check("non-canonical implementation review metadata does not invalidate the exact 424 manifest", () => {
   const generated = buildNativeExactManifest({ canonical, implementation });

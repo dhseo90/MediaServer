@@ -928,11 +928,11 @@ function safeFormResponseProjection(pathname, payload) {
 }
 
 const endpointOwnedResponsePatterns = Object.freeze([
-  Object.freeze({ kind: "auth-user-disable", method: "POST", pattern: /^\/ops\/api\/users\/([^/]+)\/disable$/ }),
-  Object.freeze({ kind: "source-create", method: "POST", pattern: /^\/ops\/api\/sources$/ }),
-  Object.freeze({ kind: "source-disable", method: "DELETE", pattern: /^\/ops\/api\/sources\/([^/]+)$/ }),
-  Object.freeze({ kind: "view-disable", method: "DELETE", pattern: /^\/ops\/api\/views\/([^/]+)$/ }),
-  Object.freeze({ kind: "onvif-import-draft", method: "POST", pattern: /^\/ops\/api\/onvif\/import-draft$/ }),
+  Object.freeze({ kind: "auth-user-disable", method: "POST", expectedStatus: 200, pattern: /^\/ops\/api\/users\/([^/]+)\/disable$/ }),
+  Object.freeze({ kind: "source-create", method: "POST", expectedStatus: 201, pattern: /^\/ops\/api\/sources$/ }),
+  Object.freeze({ kind: "source-disable", method: "DELETE", expectedStatus: 200, pattern: /^\/ops\/api\/sources\/([^/]+)$/ }),
+  Object.freeze({ kind: "view-disable", method: "DELETE", expectedStatus: 200, pattern: /^\/ops\/api\/views\/([^/]+)$/ }),
+  Object.freeze({ kind: "onvif-import-draft", method: "POST", expectedStatus: 200, pattern: /^\/ops\/api\/onvif\/import-draft$/ }),
 ]);
 
 export function formatSafeResponseReadFailure(failures = []) {
@@ -953,6 +953,18 @@ export function captureEndpointOwnedResponseProjection({
   const descriptor = endpointOwnedResponsePatterns.find(candidate =>
     candidate.method === method && candidate.pattern.test(pathname));
   if (!descriptor) return null;
+  const actualStatus = Number(entry?.status || 0);
+  entry.endpointResponseKind = descriptor.kind;
+  entry.endpointExpectedStatus = descriptor.expectedStatus;
+  if (actualStatus !== descriptor.expectedStatus) {
+    safeResponseReadFailures.push(
+      `endpoint response status mismatch [${descriptor.kind}] ${method} ${pathname}: expected status ${descriptor.expectedStatus}, actual status ${actualStatus}`,
+    );
+    delete entry.safeResponseBody;
+    delete entry.safeResponseProjectionSource;
+    delete entry.safeResponseProjectionKind;
+    return Promise.resolve();
+  }
   const read = Promise.resolve()
     .then(() => response.json())
     .then(payload => {

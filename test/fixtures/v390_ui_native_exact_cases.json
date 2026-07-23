@@ -5,9 +5,9 @@
     "canonicalSha256": "56b9fa6f376664856e8df1a6434b8659e91675f5a7f3884fb4c865736824c80c",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "26e6fd3c22a27727db6f9622fc93e0cd01b2bfd42ad9599508a4ded637e991aa",
+    "implementationProjectionSha256": "3e8a70b9fce05b998a94e25fcb357d2d28e1fac1cc379ac0dfcb573bf4192743",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "24e0d562764981f3093d67a0ff88f9c5be1dbdf1141d47738517fbcacee52ae1",
+    "runtimeOracleCatalogSha256": "8a70d76d5612e76c9ad8f86167ba7bb9792c5d1b24409129b613579e4ebe5eba",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -10792,7 +10792,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "6a8a20f379fca7919daac6c2dff940586357deb670cf8992933b70f93aa877e7",
+            "semanticCallChainSha256": "6d959bc91152c866ccfd25db9ce96872a57c5d285f75f1a64660d70d0670c20c",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -10874,7 +10874,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "6a8a20f379fca7919daac6c2dff940586357deb670cf8992933b70f93aa877e7"
+          "assertedSemanticDigest": "6d959bc91152c866ccfd25db9ce96872a57c5d285f75f1a64660d70d0670c20c"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -10886,7 +10886,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "6b431f877e1d401a92834655f3266cc1ad5aa25bae104c65fc7e4dc4348dcd9b",
+          "specSha256": "1fc381f811a0abcc58e9d4859e477359bb43d4ab92872e610d93eb6152ff4d44",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11013,7 +11013,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "6a8a20f379fca7919daac6c2dff940586357deb670cf8992933b70f93aa877e7"
+            "semanticCallChainSha256": "6d959bc91152c866ccfd25db9ce96872a57c5d285f75f1a64660d70d0670c20c"
           }
         ]
       },
@@ -98808,6 +98808,7 @@
                 "displayName": "REVIEW4 SRC-008 source",
                 "kind": "file",
                 "file": "sample_h264.mp4",
+                "allowDuplicateSource": true,
                 "enabled": true,
                 "zone": "REVIEW4"
               },
@@ -100246,6 +100247,7 @@
                   "displayName": "REVIEW4 SRC-010 source",
                   "kind": "file",
                   "file": "sample_h264.mp4",
+                  "allowDuplicateSource": true,
                   "enabled": true,
                   "zone": "REVIEW4"
                 },
@@ -104899,6 +104901,7 @@
                   "displayName": "REVIEW4 SRC-019 source",
                   "kind": "file",
                   "file": "sample_h264.mp4",
+                  "allowDuplicateSource": true,
                   "enabled": true,
                   "zone": "REVIEW4"
                 },

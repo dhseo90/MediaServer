@@ -212,6 +212,32 @@ check("endpoint-owned full product responses are projected only through the Play
   }
 });
 
+check("endpoint-owned non-success responses fail before success-shape projection with redacted status diagnostics", async () => {
+  const cases = [
+    ["POST", "/ops/api/users/auth-020-fixture/disable", 403, 200],
+    ["POST", "/ops/api/sources", 409, 201],
+    ["DELETE", "/ops/api/sources/src-010-fixture", 409, 200],
+    ["DELETE", "/ops/api/views/src-019-fixture", 403, 200],
+    ["POST", "/ops/api/onvif/import-draft", 409, 200],
+  ];
+  for (const [method, pathname, status, expectedStatus] of cases) {
+    const observed = await captureListenerProjection({
+      method,
+      pathname,
+      status,
+      payload: { ok: false, error: "contract error body must not be projected", source: null },
+    });
+    const failure = formatSafeResponseReadFailure(observed.failures);
+    assert(observed.jsonReadCount === 0, `${method} ${pathname} parsed an error response body`);
+    assert(observed.failures.length === 1 && !observed.entry.safeResponseBody,
+      `${method} ${pathname} non-success response did not fail closed`);
+    assert(failure.includes(`expected status ${expectedStatus}`) && failure.includes(`actual status ${status}`),
+      `${method} ${pathname} expected/actual status diagnostic missing: ${failure}`);
+    assert(!failure.includes("contract error body") && !failure.includes("source is missing"),
+      `${method} ${pathname} error body was replaced by or leaked through a success-shape diagnostic`);
+  }
+});
+
 check("endpoint-owned sensitive response fields fail closed with redacted field-path diagnostics", async () => {
   const forbiddenValue = "contract-secret-value-that-must-not-appear";
   const cases = [
@@ -536,10 +562,14 @@ async function captureListenerProjection({ method, pathname, status, payload }) 
   const pending = new Set();
   const failures = [];
   const request = { method: () => method };
+  let jsonReadCount = 0;
   const response = {
     request: () => request,
     url: () => entry.url,
-    json: async () => structuredClone(payload),
+    json: async () => {
+      jsonReadCount += 1;
+      return structuredClone(payload);
+    },
   };
   const read = captureEndpointOwnedResponseProjection({
     response,
@@ -550,5 +580,5 @@ async function captureListenerProjection({ method, pathname, status, payload }) 
   assert(read, `${method} ${pathname} did not enter the endpoint response listener`);
   await read;
   assert(pending.size === 0, `${method} ${pathname} response projection remained pending`);
-  return { entry, failures };
+  return { entry, failures, jsonReadCount };
 }

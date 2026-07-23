@@ -2755,6 +2755,7 @@ function endpointOwnedActionInput(canonicalCase, productAction) {
     displayName: `REVIEW4 ${caseId} source`,
     kind: "file",
     file: "sample_h264.mp4",
+    allowDuplicateSource: true,
     enabled: true,
     zone: "REVIEW4",
   };

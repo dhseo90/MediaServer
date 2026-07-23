@@ -31,6 +31,19 @@ export const formReadbackProfiles = Object.freeze({
   "AUTH-036": profile("a7dcf49c1b91e2e3c96c6db48efcfb5776d5f8a2d50ad780896e5715bcc86cc3", ["responsePending", "storePending", "listPending", "noUserOrInvite", "pendingLoginDenied", "uiPending"]),
 });
 
+export function assertInactiveOrEqualBeforeCleanup({ caseId, observed, expectedRecord } = {}) {
+  if (expectedRecord !== null) {
+    assert(stableJson(observed) === stableJson(expectedRecord),
+      `${caseId} fresh authoritative cleanup readback differs from the original state`);
+    return { mode: "equal-before" };
+  }
+  const sourceInactive = observed?.source === null || observed?.source?.enabled === false;
+  const viewInactive = observed?.publishedView === null || observed?.publishedView?.enabled === false;
+  assert(sourceInactive && viewInactive,
+    `${caseId} suite-created source/view state was not disabled before isolated teardown`);
+  return { mode: "inactive", sourceInactive, viewInactive };
+}
+
 function profile(expectedBehaviorSha256, requiredChecks) {
   return Object.freeze({ expectedBehaviorSha256, requiredChecks: Object.freeze([...requiredChecks]) });
 }
@@ -872,13 +885,12 @@ export function createV390UiCaseRuntime({
               caseContext.fixtureId,
             );
           }
-        } else if (cleanup.afterReadback.expectation === "inactive-or-equal-before" &&
-            caseContext.cleanupExpectedRecord === null) {
-          const sourceInactive = observed?.source === null || observed?.source?.enabled === false;
-          const viewInactive = observed?.publishedView === null || observed?.publishedView?.enabled === false;
-          assert(sourceInactive && viewInactive &&
-            (item.caseId === "SRC-008" ? observed?.source?.enabled === false : true),
-          `${item.caseId} suite-created source/view state was not disabled before isolated teardown`);
+        } else if (cleanup.afterReadback.expectation === "inactive-or-equal-before") {
+          assertInactiveOrEqualBeforeCleanup({
+            caseId: item.caseId,
+            observed,
+            expectedRecord: caseContext.cleanupExpectedRecord,
+          });
         } else {
           assert(stableJson(observed) === stableJson(caseContext.cleanupExpectedRecord),
             `${item.caseId} fresh authoritative cleanup readback differs from the original state`);

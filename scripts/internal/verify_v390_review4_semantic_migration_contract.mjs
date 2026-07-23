@@ -6,6 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -19,6 +20,8 @@ import { replaceJsonFixturesAtomically } from "./feature_semantic_review4_apply.
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const producerPath = path.join(rootDir, "scripts/internal/produce_v390_review4_migration_aware_approvals.mjs");
+const producerSource = fs.readFileSync(producerPath, "utf8");
 const args = process.argv.slice(2);
 if (hasHelpFlag(args)) {
   printUsageAndExit(`V390 REVIEW4 semantic migration contract
@@ -44,6 +47,8 @@ if (evidencePath && !baselinePath) throw new Error("--write-evidence requires --
 
 runBindingContract();
 runFixtureTransactionContract();
+runProducerInputPathContract();
+runProducerReviewedOnContract();
 let delta = null;
 if (baselinePath) {
   delta = buildDelta(readAudit(baselinePath), readAudit(freshPath));
@@ -58,6 +63,9 @@ if (baselinePath) {
 console.log("== V390 REVIEW4 semantic migration contract ==");
 console.log("- positive/negative bindings: 9");
 console.log("- semantic/native transaction bindings: 2");
+console.log("- producer input-path bindings: 5");
+console.log("- producer entrypoint negative smoke: 1");
+console.log("- producer reviewedOn contract: 1");
 if (delta) {
   console.log(`- rows: ${delta.rows}`);
   console.log(`- carryForwardEligible: ${delta.carryForwardEligible.length}`);
@@ -160,6 +168,158 @@ function runFixtureTransactionContract() {
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
+}
+
+function runProducerInputPathContract() {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "v390-review4-producer-input-path-"));
+  try {
+    const resolveInputPath = evaluateProducerFunction("resolveInputPath", ["path", "rootDir"],
+      [path, rootDir]);
+    const readInputJson = evaluateProducerFunction("readInputJson",
+      ["fs", "resolveInputPath", "readJson"],
+      [fs, resolveInputPath, file => JSON.parse(fs.readFileSync(file, "utf8"))]);
+    const absolute = path.join(temp, "absolute-migration.json");
+    const relative = path.relative(rootDir, path.join(rootDir, "test/fixtures/v390_review4_semantic_migration_evidence_v1.json"));
+    fs.writeFileSync(absolute, '{"absolute":true}\n');
+    assert(resolveInputPath(absolute) === path.normalize(absolute),
+      "/private/tmp absolute migration path was recombined below the repository root");
+    assert(resolveInputPath(relative) === path.resolve(rootDir, relative),
+      "repository-relative producer input did not resolve below the repository root");
+
+    for (const token of [
+      'readInputJson("prior-audit", priorAuditPath)',
+      'readInputJson("migration-evidence", migrationPath)',
+      'readInputJson("decisions", decisionsPath)',
+      'readInputJson("review-package", packagePath)',
+    ]) assert(producerSource.includes(token), `producer input does not share resolveInputPath: ${token}`);
+    assert(!producerSource.includes("path.join(rootDir, migrationRelative)"),
+      "producer still joins repository root to the migration input");
+
+    const targets = ["audit", "approval", "implementation", "native"].map(name => path.join(temp, `${name}.json`));
+    const before = targets.map((target, index) => `${JSON.stringify({ index, generation: 0 })}\n`);
+    targets.forEach((target, index) => fs.writeFileSync(target, before[index]));
+    const missing = path.join(temp, "missing-migration.json");
+    let failure = "";
+    try {
+      readInputJson("migration-evidence", missing);
+    } catch (error) {
+      failure = String(error?.message || error);
+    }
+    assert(failure.includes(path.normalize(missing)),
+      "missing producer input error did not expose the actual resolved path");
+    targets.forEach((target, index) => assert(fs.readFileSync(target, "utf8") === before[index],
+      `producer input failure changed target fixture bytes: ${path.basename(target)}`));
+    const firstInputRead = producerSource.indexOf('readInputJson("prior-audit", priorAuditPath)');
+    const atomicReplacement = producerSource.indexOf("replaceJsonFixturesAtomically({");
+    assert(firstInputRead >= 0 && atomicReplacement > firstInputRead,
+      "producer atomic replacement can run before all external inputs are resolved");
+
+    const fixturePaths = [
+      "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+      "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+      "test/fixtures/project_feature_implementation_evidence.json",
+      "test/fixtures/v390_ui_native_exact_cases.json",
+    ].map(relative => path.join(rootDir, relative));
+    const fixtureBytes = fixturePaths.map(file => fs.readFileSync(file));
+    const missingPriorAudit = path.join(temp, "missing-prior-audit.json");
+    const migration = path.join(temp, "migration.json");
+    const decisions = path.join(temp, "decisions.json");
+    const reviewPackage = path.join(temp, "review-package.json");
+    for (const file of [migration, decisions, reviewPackage]) fs.writeFileSync(file, "{}\n");
+    const smoke = spawnSync(process.execPath, [
+      producerPath,
+      "--write-ledger",
+      "--prior-audit", missingPriorAudit,
+      "--migration-evidence", migration,
+      "--decisions", decisions,
+      "--review-package", reviewPackage,
+    ], { cwd: rootDir, encoding: "utf8" });
+    const smokeOutput = `${smoke.stdout || ""}${smoke.stderr || ""}`;
+    assert(smoke.status !== 0, "producer missing-input entrypoint smoke unexpectedly succeeded");
+    assert(!smokeOutput.includes("ReferenceError"),
+      "producer missing-input entrypoint smoke failed with ReferenceError");
+    assert(smokeOutput.includes(`prior-audit input missing: ${path.normalize(missingPriorAudit)}`),
+      "producer missing-input entrypoint smoke did not report the resolved prior-audit path");
+    fixturePaths.forEach((file, index) => assert(fs.readFileSync(file).equals(fixtureBytes[index]),
+      `producer entrypoint input failure changed target fixture bytes: ${path.basename(file)}`));
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
+function runProducerReviewedOnContract() {
+  const normalizeReviewedOn = evaluateProducerFunction("normalizeReviewedOn", [], []);
+  const assertNormalizedReviewedOn = evaluateProducerFunction("assertNormalizedReviewedOn", [], []);
+  assert(normalizeReviewedOn("2026-07-22") === "2026-07-22",
+    "date-only reviewedAt did not remain canonical");
+  assert(normalizeReviewedOn("2026-07-22T22:43:09.519Z") === "2026-07-22",
+    "UTC ISO reviewedAt did not normalize to its UTC calendar date");
+  for (const invalid of [
+    undefined,
+    "",
+    "2026/07/22",
+    "2026-02-30",
+    "2026-07-22T22:43:09.51Z",
+    "2026-07-22T22:43:09.519",
+    "2026-07-22T22:43:09.519+09:00",
+  ]) {
+    let failure = "";
+    try { normalizeReviewedOn(invalid); } catch (error) { failure = String(error?.message || error); }
+    assert(failure.includes(invalid === undefined || invalid === "" ? "reviewedAt missing" : "reviewedAt invalid"),
+      `invalid reviewedAt was accepted: ${String(invalid)}`);
+  }
+
+  const reviewedOn = "2026-07-22";
+  const approval = { reviewedOn, approvals: Array.from({ length: 986 }, (_, index) => ({ id: `ROW-${index}`, reviewedOn })) };
+  assertNormalizedReviewedOn(approval, reviewedOn, 986);
+  for (const mutate of [
+    value => { value.reviewedOn = "2026-07-23"; },
+    value => { value.approvals[985].reviewedOn = "2026-07-23"; },
+  ]) {
+    const changed = structuredClone(approval);
+    mutate(changed);
+    let failure = "";
+    try { assertNormalizedReviewedOn(changed, reviewedOn, 986); } catch (error) { failure = String(error?.message || error); }
+    assert(failure.includes("normalized reviewedOn top-level/row mismatch"),
+      "reviewedOn top-level/row mismatch was accepted");
+  }
+
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "v390-review4-reviewed-on-"));
+  try {
+    const fixturePaths = ["audit", "approval", "implementation", "native"].map(name => path.join(temp, `${name}.json`));
+    const fixtureBytes = fixturePaths.map((file, index) => `${JSON.stringify({ index, generation: 0 })}\n`);
+    fixturePaths.forEach((file, index) => fs.writeFileSync(file, fixtureBytes[index]));
+    try { normalizeReviewedOn("2026-02-30"); } catch {}
+    fixturePaths.forEach((file, index) => assert(fs.readFileSync(file, "utf8") === fixtureBytes[index],
+      `reviewedAt preflight failure changed fixture bytes: ${path.basename(file)}`));
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+
+  const preflightCall = producerSource.indexOf("const approvalInput = prevalidateMigrationApprovalInputs(");
+  const buildCall = producerSource.indexOf("const approval = buildMigrationApproval(");
+  const atomicReplacement = producerSource.indexOf("replaceJsonFixturesAtomically({");
+  assert(preflightCall >= 0 && buildCall > preflightCall && atomicReplacement > buildCall,
+    "reviewedAt and decision/package/candidate preflight does not precede approval build and atomic replacement");
+  assert(!producerSource.includes("reviewedOn: decisions.reviewedAt"),
+    "producer still assigns decisions.reviewedAt directly to reviewedOn");
+}
+
+function evaluateProducerFunction(name, parameterNames, parameterValues) {
+  const marker = `function ${name}(`;
+  const start = producerSource.indexOf(marker);
+  assert(start >= 0, `producer function missing: ${name}`);
+  const open = producerSource.indexOf("{", start);
+  let depth = 0;
+  let end = -1;
+  for (let index = open; index < producerSource.length; index += 1) {
+    if (producerSource[index] === "{") depth += 1;
+    if (producerSource[index] === "}") depth -= 1;
+    if (depth === 0) { end = index + 1; break; }
+  }
+  assert(end > open, `producer function body incomplete: ${name}`);
+  const declaration = producerSource.slice(start, end);
+  return Function(...parameterNames, `return (${declaration});`)(...parameterValues);
 }
 
 function buildDelta(baseline, fresh) {
