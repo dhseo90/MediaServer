@@ -2922,7 +2922,7 @@ function workflowFixtureId(caseId) {
   if (/^RULE-\d+$/.test(caseId)) {
     return String(3_920_000 + Number(caseId.replace(/\D/g, "")));
   }
-  const channelCase = /^(?:SRC-(?:001|002|003|004|005|009|017|018|066)|UI-109)$/.exec(caseId);
+  const channelCase = /^(?:SRC-(?:001|002|003|004|005|008|009|010|017|018|019|066)|UI-109)$/.exec(caseId);
   if (channelCase) {
     const digits = Number(caseId.replace(/\D/g, ""));
     return String(3_900_000 + (caseId.startsWith("UI-") ? 100_000 : 0) + digits);

@@ -166,6 +166,8 @@ Usage:
                  V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
   verify-v390-ui-native-exact-cases-contract
                  V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-review4-source-fixture-ids
+                 V390-REVIEW4-65 numeric source/view fixture를 실제 격리 제품 서버에서 검증합니다.
   verify-v390-ui-exact-core-oracles-contract
                  V390-REVIEW4-65 UI/AUTH/SRC/RULE 288개 기능별 runtime oracle 계약을 검증합니다.
   verify-v390-ui-exact-event-oracles-contract
@@ -466,6 +468,8 @@ Usage:
                  V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
   verify-v390-ui-native-exact-cases-contract
                  V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-review4-source-fixture-ids
+                 V390-REVIEW4-65 numeric source/view fixture를 실제 격리 제품 서버에서 검증합니다.
   verify-v390-ui-completion-oracle-contract
                  V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
   verify-v390-ui-policy-v4-producer-contract
@@ -2331,6 +2335,10 @@ case "${cmd}" in
   verify-v390-ui-native-exact-cases-contract)
     require_internal verify_v390_ui_native_exact_cases_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_native_exact_cases_contract.mjs" "$@"
+    ;;
+  verify-v390-review4-source-fixture-ids)
+    require_internal verify_v390_review4_source_fixture_ids.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_source_fixture_ids.mjs" "$@"
     ;;
   verify-v390-ui-exact-core-oracles-contract)
     require_internal verify_v390_ui_exact_core_oracles_contract.mjs

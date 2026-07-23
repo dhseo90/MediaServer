@@ -5,9 +5,9 @@
     "canonicalSha256": "56b9fa6f376664856e8df1a6434b8659e91675f5a7f3884fb4c865736824c80c",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "3e8a70b9fce05b998a94e25fcb357d2d28e1fac1cc379ac0dfcb573bf4192743",
+    "implementationProjectionSha256": "ef5b8fac965f2705905e1db8e7b734da8dbc966b685b02851d3edf88fbf4e7b4",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "8a70d76d5612e76c9ad8f86167ba7bb9792c5d1b24409129b613579e4ebe5eba",
+    "runtimeOracleCatalogSha256": "46b54326aa5c8b0bae0087f487534274e9e3182c77aeb37f2f0fbf58cb7e2342",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -10792,7 +10792,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "6d959bc91152c866ccfd25db9ce96872a57c5d285f75f1a64660d70d0670c20c",
+            "semanticCallChainSha256": "816f8659c365f95742a1af4636cdd84b5b210c4da79db80408b5d36af2915ea2",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -10874,7 +10874,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "6d959bc91152c866ccfd25db9ce96872a57c5d285f75f1a64660d70d0670c20c"
+          "assertedSemanticDigest": "816f8659c365f95742a1af4636cdd84b5b210c4da79db80408b5d36af2915ea2"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -10886,7 +10886,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "1fc381f811a0abcc58e9d4859e477359bb43d4ab92872e610d93eb6152ff4d44",
+          "specSha256": "fd931924a4cfdf989fdbaa1b639cbd51dd80bbfd6ada4cbdeb4d1982dc760941",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11013,7 +11013,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "6d959bc91152c866ccfd25db9ce96872a57c5d285f75f1a64660d70d0670c20c"
+            "semanticCallChainSha256": "816f8659c365f95742a1af4636cdd84b5b210c4da79db80408b5d36af2915ea2"
           }
         ]
       },
@@ -98786,7 +98786,7 @@
             "route": "/ops/sources",
             "semanticCallChainSha256": "c1dd70f0aea94d7bb775f30e59f2b76e10acf468d3d2b5a4ad6546529a88ec08",
             "persistedMutation": true,
-            "fixtureId": "src-008-review4-fixture",
+            "fixtureId": "3900008",
             "beforeSnapshotRef": "SRC-008:before-product-state"
           }
         ],
@@ -98804,7 +98804,7 @@
               "method": "POST",
               "path": "/ops/api/sources",
               "body": {
-                "sourceId": "src-008-review4-fixture",
+                "sourceId": "3900008",
                 "displayName": "REVIEW4 SRC-008 source",
                 "kind": "file",
                 "file": "sample_h264.mp4",
@@ -98814,15 +98814,15 @@
               },
               "setup": {
                 "kind": "source-absent",
-                "sourceId": "src-008-review4-fixture"
+                "sourceId": "3900008"
               },
               "readback": {
                 "kind": "created-source-registry",
-                "sourceId": "src-008-review4-fixture"
+                "sourceId": "3900008"
               }
             },
             "seedReference": {
-              "fixtureId": "src-008-review4-fixture",
+              "fixtureId": "3900008",
               "accountRole": "operator",
               "route": "/ops/sources"
             },
@@ -99154,14 +99154,14 @@
           {
             "kind": "restore-fixture-state",
             "cleanupId": "SRC-008:restore-fixture",
-            "fixtureId": "src-008-review4-fixture",
+            "fixtureId": "3900008",
             "strategy": "restore-before-snapshot",
             "beforeSnapshotRef": "SRC-008:before-product-state",
             "inverseAction": {
               "endpoint": null,
               "localAction": {
                 "type": "restore-source-view-snapshot",
-                "target": "src-008-review4-fixture",
+                "target": "3900008",
                 "effect": "restore an existing source/view pair or disable a suite-created pair before isolated server teardown"
               }
             },
@@ -100106,9 +100106,9 @@
               "correlationSource": "request-header",
               "method": "DELETE",
               "urlPathTemplate": "/ops/api/sources/{fixtureId}",
-              "urlPath": "/ops/api/sources/src-010-review4-fixture",
+              "urlPath": "/ops/api/sources/3900010",
               "pathParameters": {
-                "fixtureId": "src-010-review4-fixture"
+                "fixtureId": "3900010"
               },
               "allowedStatuses": [
                 200
@@ -100222,7 +100222,7 @@
             "route": "/ops/sources",
             "semanticCallChainSha256": "802dec525416e0f2c28bbce7c7bcfd02442bf486502750125447bd33ca37fdaf",
             "persistedMutation": true,
-            "fixtureId": "src-010-review4-fixture",
+            "fixtureId": "3900010",
             "beforeSnapshotRef": "SRC-010:before-product-state"
           }
         ],
@@ -100243,7 +100243,7 @@
               "setup": {
                 "kind": "source-view-pair",
                 "source": {
-                  "sourceId": "src-010-review4-fixture",
+                  "sourceId": "3900010",
                   "displayName": "REVIEW4 SRC-010 source",
                   "kind": "file",
                   "file": "sample_h264.mp4",
@@ -100252,9 +100252,9 @@
                   "zone": "REVIEW4"
                 },
                 "publishedView": {
-                  "viewId": "src-010-review4-fixture",
+                  "viewId": "3900010",
                   "displayName": "REVIEW4 SRC-010 view",
-                  "sourceId": "src-010-review4-fixture",
+                  "sourceId": "3900010",
                   "allowedOverlayModes": [
                     "raw",
                     "va-overlay",
@@ -100273,12 +100273,12 @@
               },
               "readback": {
                 "kind": "disabled-source-and-client-boundary",
-                "sourceId": "src-010-review4-fixture",
-                "viewId": "src-010-review4-fixture"
+                "sourceId": "3900010",
+                "viewId": "3900010"
               }
             },
             "seedReference": {
-              "fixtureId": "src-010-review4-fixture",
+              "fixtureId": "3900010",
               "accountRole": "operator",
               "route": "/ops/sources"
             },
@@ -100447,9 +100447,9 @@
                 "correlationSource": "request-header",
                 "method": "DELETE",
                 "urlPathTemplate": "/ops/api/sources/{fixtureId}",
-                "urlPath": "/ops/api/sources/src-010-review4-fixture",
+                "urlPath": "/ops/api/sources/3900010",
                 "pathParameters": {
-                  "fixtureId": "src-010-review4-fixture"
+                  "fixtureId": "3900010"
                 },
                 "allowedStatuses": [
                   200
@@ -100572,9 +100572,9 @@
                 "correlationSource": "request-header",
                 "method": "DELETE",
                 "urlPathTemplate": "/ops/api/sources/{fixtureId}",
-                "urlPath": "/ops/api/sources/src-010-review4-fixture",
+                "urlPath": "/ops/api/sources/3900010",
                 "pathParameters": {
-                  "fixtureId": "src-010-review4-fixture"
+                  "fixtureId": "3900010"
                 },
                 "allowedStatuses": [
                   200
@@ -100614,14 +100614,14 @@
           {
             "kind": "restore-fixture-state",
             "cleanupId": "SRC-010:restore-fixture",
-            "fixtureId": "src-010-review4-fixture",
+            "fixtureId": "3900010",
             "strategy": "restore-before-snapshot",
             "beforeSnapshotRef": "SRC-010:before-product-state",
             "inverseAction": {
               "endpoint": null,
               "localAction": {
                 "type": "restore-source-view-snapshot",
-                "target": "src-010-review4-fixture",
+                "target": "3900010",
                 "effect": "restore an existing source/view pair or disable a suite-created pair before isolated server teardown"
               }
             },
@@ -104760,9 +104760,9 @@
               "correlationSource": "request-header",
               "method": "DELETE",
               "urlPathTemplate": "/ops/api/views/{fixtureId}",
-              "urlPath": "/ops/api/views/src-019-review4-fixture",
+              "urlPath": "/ops/api/views/3900019",
               "pathParameters": {
-                "fixtureId": "src-019-review4-fixture"
+                "fixtureId": "3900019"
               },
               "allowedStatuses": [
                 200
@@ -104876,7 +104876,7 @@
             "route": "/ops/sources",
             "semanticCallChainSha256": "fba20e5c7496eac5cd7af33a93d10e8e23e91b35d633d01fa624de4211e50a87",
             "persistedMutation": true,
-            "fixtureId": "src-019-review4-fixture",
+            "fixtureId": "3900019",
             "beforeSnapshotRef": "SRC-019:before-product-state"
           }
         ],
@@ -104897,7 +104897,7 @@
               "setup": {
                 "kind": "source-view-pair",
                 "source": {
-                  "sourceId": "src-019-review4-fixture",
+                  "sourceId": "3900019",
                   "displayName": "REVIEW4 SRC-019 source",
                   "kind": "file",
                   "file": "sample_h264.mp4",
@@ -104906,9 +104906,9 @@
                   "zone": "REVIEW4"
                 },
                 "publishedView": {
-                  "viewId": "src-019-review4-fixture",
+                  "viewId": "3900019",
                   "displayName": "REVIEW4 SRC-019 view",
-                  "sourceId": "src-019-review4-fixture",
+                  "sourceId": "3900019",
                   "allowedOverlayModes": [
                     "raw",
                     "va-overlay",
@@ -104927,12 +104927,12 @@
               },
               "readback": {
                 "kind": "disabled-view-and-client-boundary",
-                "sourceId": "src-019-review4-fixture",
-                "viewId": "src-019-review4-fixture"
+                "sourceId": "3900019",
+                "viewId": "3900019"
               }
             },
             "seedReference": {
-              "fixtureId": "src-019-review4-fixture",
+              "fixtureId": "3900019",
               "accountRole": "operator",
               "route": "/ops/sources"
             },
@@ -105101,9 +105101,9 @@
                 "correlationSource": "request-header",
                 "method": "DELETE",
                 "urlPathTemplate": "/ops/api/views/{fixtureId}",
-                "urlPath": "/ops/api/views/src-019-review4-fixture",
+                "urlPath": "/ops/api/views/3900019",
                 "pathParameters": {
-                  "fixtureId": "src-019-review4-fixture"
+                  "fixtureId": "3900019"
                 },
                 "allowedStatuses": [
                   200
@@ -105226,9 +105226,9 @@
                 "correlationSource": "request-header",
                 "method": "DELETE",
                 "urlPathTemplate": "/ops/api/views/{fixtureId}",
-                "urlPath": "/ops/api/views/src-019-review4-fixture",
+                "urlPath": "/ops/api/views/3900019",
                 "pathParameters": {
-                  "fixtureId": "src-019-review4-fixture"
+                  "fixtureId": "3900019"
                 },
                 "allowedStatuses": [
                   200
@@ -105268,14 +105268,14 @@
           {
             "kind": "restore-fixture-state",
             "cleanupId": "SRC-019:restore-fixture",
-            "fixtureId": "src-019-review4-fixture",
+            "fixtureId": "3900019",
             "strategy": "restore-before-snapshot",
             "beforeSnapshotRef": "SRC-019:before-product-state",
             "inverseAction": {
               "endpoint": null,
               "localAction": {
                 "type": "restore-source-view-snapshot",
-                "target": "src-019-review4-fixture",
+                "target": "3900019",
                 "effect": "restore an existing source/view pair or disable a suite-created pair before isolated server teardown"
               }
             },

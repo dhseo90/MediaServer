@@ -91,6 +91,23 @@ check("endpoint source fixtures intentionally cross the published canonical-medi
     ["SRC-019", rebuilt.cases.find(item => item.caseId === "SRC-019")?.workflow.inputs
       .find(input => input.kind === "endpoint-action-fixture")?.actualValue?.setup?.source],
   ]);
+  const expectedFixtureIds = new Map([
+    ["SRC-008", "3900008"],
+    ["SRC-010", "3900010"],
+    ["SRC-019", "3900019"],
+  ]);
+  for (const [caseId, expectedFixtureId] of expectedFixtureIds) {
+    const item = rebuilt.cases.find(candidate => candidate.caseId === caseId);
+    const setup = item?.workflow.setup.find(value => value.kind === "seed-reviewed-state");
+    const input = item?.workflow.inputs.find(value => value.kind === "endpoint-action-fixture")?.actualValue;
+    assert(setup?.fixtureId === expectedFixtureId,
+      `${caseId} fixtureId is not in the deterministic numeric source namespace`);
+    assert(input?.body?.sourceId === expectedFixtureId ||
+      (input?.setup?.source?.sourceId === expectedFixtureId &&
+        input?.setup?.publishedView?.viewId === expectedFixtureId &&
+        input?.setup?.publishedView?.sourceId === expectedFixtureId),
+    `${caseId} source/view identity did not propagate the numeric fixtureId`);
+  }
   const legacy = { ...endpointSources.get("SRC-008") };
   delete legacy.allowDuplicateSource;
   assert(simulateSourceWrite(baseline, legacy, { method: "POST" }).status === 409,
@@ -109,6 +126,12 @@ check("endpoint source fixtures intentionally cross the published canonical-medi
   }, { method: "POST" });
   assert(idCollision.status === 409 && idCollision.reason === "sourceId already exists",
     "allowDuplicateSource bypassed a sourceId collision");
+  const nonNumeric = simulateSourceWrite(baseline, {
+    ...endpointSources.get("SRC-008"),
+    sourceId: "src-008-review4-fixture",
+  }, { method: "POST" });
+  assert(nonNumeric.status === 400 && nonNumeric.reason === "sourceId must be numeric",
+    "mock-only source contract bypassed the product numeric parser");
 });
 
 check("inactive-or-equal-before cleanup accepts absent or disabled state and rejects enabled residue", () => {
@@ -137,6 +160,9 @@ check("inactive-or-equal-before cleanup accepts absent or disabled state and rej
 
 function simulateSourceWrite(existingSources, payload, { method } = {}) {
   const sourceId = String(payload?.sourceId || "");
+  if (!/^[0-9]+$/.test(sourceId)) {
+    return { status: 400, reason: "sourceId must be numeric" };
+  }
   const canonicalSourceKey = payload?.kind === "file" && payload?.file
     ? `file:${payload.file}`
     : String(payload?.canonicalSourceKey || "");

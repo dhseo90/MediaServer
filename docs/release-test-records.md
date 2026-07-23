@@ -2822,6 +2822,20 @@ evidence로 사용하지 않습니다.
 | Endpoint response/cleanup correction 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, exact 424 browser, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다. Source `c3a0282c...`의 기존 actual evidence와 AUTH-020 FAIL을 PASS로 변경하지 않았습니다 | not-run / actual acceptance 미완료 |
 | Full product response correction 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, exact 424 browser, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다. Source `82f83f30...`의 AUTH-020 actual FAIL은 그대로 보존합니다 | not-run / actual acceptance 미완료 |
 
+### REVIEW4-65 numeric source/view fixture identity correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 보존한 actual RED | Source `9e285917baeae30ef377b6a26ef25c8298695d18`의 `./test_ui.sh`는 SRC-008 `POST /ops/api/sources` expected 201/actual 400에서 exact executed/pass/fail/not-run `151/150/1/273`으로 중단됐습니다. Policy v4는 not-run이며 이 correction에서 actual UI를 재실행하지 않았습니다 | FAIL preserved / PASS 승격 없음 |
+| 원인과 제품 경계 | Actual product의 `IsNumericRegistryId`와 source/view parser는 source/view/source-reference ID를 numeric string으로 요구합니다. Generated SRC-008/010/019의 nonnumeric fixture와 numeric parser가 없는 contract simulation이 실제 400을 놓쳤습니다. 제품 C++·API schema·event/WebRTC/SSE/WS/RTSP media path는 변경하지 않았습니다 | 원인 직접 확인 |
+| Numeric identity 구현 | `workflowFixtureId()`의 기존 source namespace에 SRC-008=`3900008`, SRC-010=`3900010`, SRC-019=`3900019`를 추가하고 setup fixture/body/source/view/reference/cleanup이 같은 ID를 사용하도록 generated manifest를 갱신했습니다. AUTH-020·SRC-031의 별도 identity는 변경하지 않았습니다 | PASS |
+| Focused verifier 자체 실패/수정 | 신규 실제 제품 verifier의 첫 실행은 readiness URL을 `/healthz`로 잘못 사용해 timeout FAIL했고, 제품의 `/health` route로 교정했습니다. 실패 경로에서도 child/temp/port cleanup을 수행했습니다 | 최초 FAIL, verifier 수정 후 PASS |
+| Actual focused status matrix | Nonnumeric source/view/source reference는 각각 400, canonical duplicate without opt-in과 numeric ID collision은 409, numeric source/view setup은 201, delete는 200, disabled client view/session readback은 404입니다. SRC-008/010/019 성공 cleanup, 강제 예외 cleanup probe, PID/listener/temp cleanup이 모두 PASS했습니다 | PASS |
+| Native generator/불변 | 공식 `verify-v390-ui-native-exact-cases --update-manifest`는 정확히 1회 실행했습니다. Canonical SHA `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989` 불변, product fixture identity 변경은 SRC-008/010/019이며 producer 뒤 전체 JSON 행 비교에는 UI-018 semantic provenance 갱신까지 포함합니다. Ordered ID·route·role·viewport·theme·productAction 변경 0, 최종 native SHA `274b1e833d95cfab6e0da379cdd2dfacb1fc739702f502eec9cc050ee50b1ad4`, 424/423+1/unsupported 0입니다 | PASS |
+| Semantic 독립 검토/producer | Candidate `f3a4f638eee1a957dec8d4a6fa157c43cc4913c2bf7075476a9eaca1b1bcaf75`은 986행 feature/pass/status 변경 0, sourceFlow 변경 UI-018 한 행(`6d959bc9…`→`816f8659…`)입니다. Immutable package/decision SHA `14220ba8f515fb75414fe5de8d9c1b7447db0b0049070f27b091a0956e627797`/`5443da0547a7b47170109fcb98961a9e10f08dc4f913614a6a4a721e93a7202b`로 독립 승인했고 valid-input producer를 정확히 1회 실행했습니다. Migration evidence SHA는 `9c66fb47b9c59e9f32067e5251b839dbebdb97bb8fba21c8e0d50a687a80fd23`입니다 | 985 carry-forward + 1 independent review, atomic fixture 교체 PASS |
+| 최종 정적/실제 focused gate | Actual product focused PASS; adapter 16/16, native exact 28/28, completion 24/24, acceptance 19/19, launcher 17/17, final integrity 12/12, semantic audit/approval 986/986, self-test 11/11, migration binding 9·transaction 2·path 5·entrypoint 1·reviewedOn 1, feature evidence 986/986, project/release/script/docs inventory와 MJS/JSON/diff PASS입니다 | PASS |
+| 미실행 경계/다음 명령 | Actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`는 실행하지 않았습니다. 기존 SRC-008 actual FAIL은 보존합니다. Commit/push와 clean/sync 확인 뒤 다음 사용자 명령은 인자·환경변수 없는 `./test_ui.sh` 하나입니다 | not-run / UI 재실행 준비 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |
