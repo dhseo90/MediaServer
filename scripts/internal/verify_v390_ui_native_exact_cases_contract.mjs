@@ -29,6 +29,7 @@ import {
   assertAuthFixtureAbsentFromUsersFile,
   assertInactiveOrEqualBeforeCleanup,
   createV390UiCaseRuntime,
+  fixtureViewerScopes,
   formReadbackProfiles,
   runAuthoritativeReadbackWithSnapshotRestore,
   seedExactAccessRequestFixture,
@@ -1337,6 +1338,32 @@ check("authoritative cleanup readback restores state after success and failure",
   } finally {
     fs.rmSync(temporaryRoot, { recursive: true, force: true });
   }
+});
+
+check("SRC-010 and SRC-019 use a fresh fixture-scoped viewer and restore auth bytes", () => {
+  for (const fixtureId of ["3900010", "3900019"]) {
+    assert(JSON.stringify(fixtureViewerScopes(fixtureId)) === JSON.stringify([
+      `view:read:${fixtureId}`,
+      `dashboard:read:${fixtureId}`,
+      `event:read:${fixtureId}`,
+      `metadata:read:${fixtureId}`,
+    ]), `${fixtureId} fixture viewer scope projection drift`);
+  }
+  for (const snippet of [
+    '["SRC-010", "SRC-019"].includes(item.caseId)',
+    "requestFixtureScopedViewerReadback",
+    "scopeRuntimeViewerToView(context.fixtureId)",
+    "fixture-scoped viewer fresh login",
+    "runAuthoritativeReadbackWithSnapshotRestore",
+    "operatorOrAdminBypass: false",
+    'postForm(`${httpBase}/logout`, {}, { cookie })',
+  ]) {
+    assert(runtimeSource.includes(snippet),
+      `fixture-scoped viewer readback lifecycle missing: ${snippet}`);
+  }
+  assert(!runtimeSource.includes(
+    'null, item, context, [404], { freshRole: true, roleOverride: "viewer" }',
+  ), "SRC endpoint readback still uses the default unscoped viewer session");
 });
 
 check("fresh role session restores login audit writes before a read-only case", async () => {

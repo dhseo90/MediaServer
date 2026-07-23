@@ -2836,6 +2836,10 @@ evidence로 사용하지 않습니다.
 | 최종 정적/실제 focused gate | Actual product focused PASS; adapter 16/16, native exact 28/28, completion 24/24, acceptance 19/19, launcher 17/17, final integrity 12/12, semantic audit/approval 986/986, self-test 11/11, migration binding 9·transaction 2·path 5·entrypoint 1·reviewedOn 1, feature evidence 986/986, project/release/script/docs inventory와 MJS/JSON/diff PASS입니다 | PASS |
 | 미실행 경계/다음 명령 | Actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`는 실행하지 않았습니다. 기존 SRC-008 actual FAIL은 보존합니다. Commit/push와 clean/sync 확인 뒤 다음 사용자 명령은 인자·환경변수 없는 `./test_ui.sh` 하나입니다 | not-run / UI 재실행 준비 |
 
+### REVIEW4-65 SRC-010/SRC-019 scoped viewer readback correction
+
+Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/270`으로 SRC-010의 unscoped viewer client detail 403에서 fail-stop했고, SRC-008은 201·authoritative readback·cleanup까지 PASS했습니다. Runtime은 SRC-010/SRC-019의 client boundary만 acceptance viewer `viewId`와 4개 fixture scope에 임시 결속하고 fresh login cookie를 사용하며, 성공·예외 모두 logout과 users-file byte restoration을 수행합니다. Auth-enabled focused verifier는 두 case의 unrelated viewer 403, scoped active 200, disable 후 404, operator setup/mutation, users-file/PID/port/temp cleanup을 실제 서버에서 PASS했습니다. Native exact 29/29, runtime 23/23, completion 24/24, adapter 16/16, acceptance 19/19, launcher 17/17, final-integrity 12/12가 PASS했고 424/423+1/unsupported 0과 ordered ID·route·role·viewport·theme·product action은 불변입니다. Candidate `2dfd32fa13d68ad9c33e3f24889cb8110fc7d5136b20a07241ec2160dc7a240c`는 986행, feature/pass/status 변경 0, sourceFlow 변경은 UI-018 `816f8659…`→`0eb14dfb…` 한 행입니다. Actual `./test_ui.sh`, Policy v4, 30분, 120분, release acceptance는 미실행이며 기존 SRC-010 FAIL을 PASS로 덮어쓰지 않습니다.
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

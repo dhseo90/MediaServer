@@ -622,12 +622,7 @@ export function createV390UiCaseRuntime({
     const viewer = (store.users || []).find(user => user.username === username);
     assert(viewer?.role === "viewer", "runtime viewer fixture account is unavailable");
     viewer.viewId = viewId;
-    viewer.scopes = [
-      `view:read:${viewId}`,
-      `dashboard:read:${viewId}`,
-      `event:read:${viewId}`,
-      `metadata:read:${viewId}`,
-    ];
+    viewer.scopes = fixtureViewerScopes(viewId);
     writePrivateJson(usersFile, store);
   }
 
@@ -1812,9 +1807,9 @@ export function createV390UiCaseRuntime({
       return { ...common, readbackKind: "created-source-registry", sourcePresent: true, enabled: true };
     }
     if (item.caseId === "SRC-010") {
-      const client = await requestEndpoint(
+      const client = await requestFixtureScopedViewerReadback(
         "GET", `/client/api/views/${encodeURIComponent(context.fixtureId)}`,
-        null, item, context, [404], { freshRole: true, roleOverride: "viewer" },
+        item, context, [404],
       );
       assert(safeResponse.status === "disabled" && safeResponse.source?.sourceId === context.fixtureId &&
         safeResponse.source?.enabled === false &&
@@ -1824,9 +1819,9 @@ export function createV390UiCaseRuntime({
         viewEnabled: true, clientStatus: client.status };
     }
     if (item.caseId === "SRC-019") {
-      const client = await requestEndpoint(
+      const client = await requestFixtureScopedViewerReadback(
         "GET", `/client/api/views/${encodeURIComponent(context.fixtureId)}`,
-        null, item, context, [404], { freshRole: true, roleOverride: "viewer" },
+        item, context, [404],
       );
       assert(safeResponse.status === "disabled" && safeResponse.view?.viewId === context.fixtureId &&
         safeResponse.view?.enabled === false &&
@@ -2489,6 +2484,78 @@ export function createV390UiCaseRuntime({
     return { status: response.status, json, text };
   }
 
+  async function requestFixtureScopedViewerReadback(
+    method,
+    endpoint,
+    item,
+    context,
+    allowedStatuses,
+  ) {
+    assert(["SRC-010", "SRC-019"].includes(item.caseId),
+      `${item.caseId} fixture-scoped viewer readback is not allowed`);
+    const usersFile = descriptor.auth?.usersFile || "";
+    const username = descriptor.auth?.usernames?.viewer || "";
+    const password = roleSecrets.roles?.viewer || "";
+    assert(usersFile && fs.existsSync(usersFile) && username && password,
+      `${item.caseId} fixture-scoped viewer identity is unavailable`);
+    const snapshots = snapshotStateFiles([usersFile]);
+    const scopes = fixtureViewerScopes(context.fixtureId);
+    return runAuthoritativeReadbackWithSnapshotRestore({
+      snapshots,
+      label: `${item.caseId} fixture-scoped viewer readback`,
+      readback: async () => {
+        let cookie = "";
+        try {
+          scopeRuntimeViewerToView(context.fixtureId);
+          const scopedStore = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+          const scopedViewer = (scopedStore.users || []).find(user => user.username === username);
+          assert(scopedViewer?.viewId === context.fixtureId &&
+            scopes.every(scope => scopedViewer.scopes?.includes(scope)),
+          `${item.caseId} fixture-scoped viewer assignment mismatch`);
+
+          const login = await postForm(`${httpBase}/login`, { username, password });
+          assert(login.status === 302,
+            `${item.caseId} fixture-scoped viewer fresh login failed HTTP ${login.status}`);
+          cookie = cookieFromResponse(login);
+          const principal = await requestJson(`${httpBase}/auth/whoami`, { cookie });
+          assert(principal.status === 200 && principal.json?.authenticated === true &&
+            principal.json?.username === username && principal.json?.role === "viewer" &&
+            scopes.every(scope => principal.json?.scopes?.includes(scope)),
+          `${item.caseId} fixture-scoped viewer principal readback mismatch`);
+
+          const response = await fetch(`${httpBase}${endpoint}`, {
+            method,
+            redirect: "manual",
+            headers: { Cookie: cookie },
+          });
+          const text = await response.text();
+          let json = null;
+          try { json = text ? JSON.parse(text) : null; } catch { json = null; }
+          if (!allowedStatuses.includes(response.status)) {
+            throw new Error(
+              `${item.caseId} runtime ${method} ${endpoint} failed HTTP ${response.status}: ${text.slice(0, 160)}`,
+            );
+          }
+          return {
+            status: response.status,
+            json,
+            text,
+            viewerScopeBinding: {
+              viewId: context.fixtureId,
+              scopes: [...scopes],
+              freshLogin: true,
+              operatorOrAdminBypass: false,
+            },
+          };
+        } finally {
+          if (cookie) {
+            await postForm(`${httpBase}/logout`, {}, { cookie }).catch(() => {});
+          }
+        }
+      },
+    });
+  }
+
   async function createAuthUser(username, role, password, viewId) {
     const admin = await adminCookie();
     const response = await fetch(`${httpBase}/ops/api/users`, {
@@ -2525,6 +2592,17 @@ export function createV390UiCaseRuntime({
     assert(response.status === 302, `runtime admin login failed HTTP ${response.status}`);
     return cookieFromResponse(response);
   }
+}
+
+export function fixtureViewerScopes(fixtureId) {
+  const value = String(fixtureId || "");
+  assert(/^[0-9]+$/.test(value), "fixture-scoped viewer viewId must be numeric");
+  return [
+    `view:read:${value}`,
+    `dashboard:read:${value}`,
+    `event:read:${value}`,
+    `metadata:read:${value}`,
+  ];
 }
 
 export async function runAuthoritativeReadbackWithSnapshotRestore({

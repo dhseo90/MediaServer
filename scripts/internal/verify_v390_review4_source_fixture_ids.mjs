@@ -2,6 +2,7 @@
 // 파일 용도: REVIEW4-65 source/view numeric fixture를 실제 제품 parser와 throwaway registry에서 검증한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
@@ -11,6 +12,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { fixtureViewerScopes } from "./v390_ui_case_runtime.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const rawArgs = process.argv.slice(2);
@@ -46,6 +48,18 @@ let httpPort = 0;
 let rtspPort = 0;
 let httpBase = "";
 let server = null;
+let adminCookie = "";
+let operatorCookie = "";
+const authPasswords = {
+  admin: generatedPassword(),
+  operator: generatedPassword(),
+  viewer: generatedPassword(),
+};
+const authUsernames = {
+  admin: "admin",
+  operator: "review4_operator",
+  viewer: "review4_viewer",
+};
 let primaryError = null;
 let cleanupError = null;
 
@@ -57,6 +71,7 @@ try {
   httpBase = `http://127.0.0.1:${httpPort}`;
   server = startServer();
   await waitForServer();
+  await bootstrapAuth();
   await runContract();
 } catch (error) {
   primaryError = error;
@@ -95,6 +110,8 @@ console.log(`- SRC-008 sourceId: ${fixtureIds["SRC-008"]}`);
 console.log(`- SRC-010 sourceId/viewId: ${fixtureIds["SRC-010"]}`);
 console.log(`- SRC-019 sourceId/viewId: ${fixtureIds["SRC-019"]}`);
 console.log("- actual product parser: PASS");
+console.log("- auth-enabled scoped viewer readback: PASS");
+console.log("- users-file success/exception byte restoration: PASS");
 console.log("- success cleanup: PASS");
 console.log("- exception cleanup: PASS");
 console.log("- pid/port/temp cleanup: PASS");
@@ -126,24 +143,50 @@ async function runContract() {
 
   const src010 = fixtureIds["SRC-010"];
   await createPair(src010, "SRC-010");
-  const disabled010 = await disableSource(src010, "SRC-010-delete-source");
-  assert(disabled010.status === "disabled" && disabled010.source?.sourceId === src010 &&
-    disabled010.source?.enabled === false, "SRC-010 source DELETE safe response drift");
-  await assertSourceInactive(src010, "SRC-010");
-  await assertClientBoundary(src010, "SRC-010");
+  await assertUnrelatedViewerForbidden(src010, "SRC-010");
+  await withFixtureScopedViewer(src010, "SRC-010", async cookie => {
+    await expectStatus("SRC-010-active-client-readback", "GET",
+      `/client/api/views/${encodeURIComponent(src010)}`, 200, null, { cookie });
+    const disabled010 = await disableSource(src010, "SRC-010-delete-source");
+    assert(disabled010.status === "disabled" && disabled010.source?.sourceId === src010 &&
+      disabled010.source?.enabled === false, "SRC-010 source DELETE safe response drift");
+    await assertSourceInactive(src010, "SRC-010");
+    await expectStatus("SRC-010-disabled-client-readback", "GET",
+      `/client/api/views/${encodeURIComponent(src010)}`, 404, null, { cookie });
+  });
   assert((await enabledResidue(src010, "source")) === 0, "SRC-010 enabled source residue is not zero");
   await disableView(src010, "SRC-010-cleanup-view");
 
   const src019 = fixtureIds["SRC-019"];
   await createPair(src019, "SRC-019");
-  const disabled019 = await disableView(src019, "SRC-019-delete-view");
-  assert(disabled019.status === "disabled" && disabled019.view?.viewId === src019 &&
-    disabled019.view?.sourceId === src019 && disabled019.view?.enabled === false,
-  "SRC-019 view DELETE safe response drift");
-  await assertViewInactive(src019, "SRC-019");
-  await assertClientBoundary(src019, "SRC-019");
+  await assertUnrelatedViewerForbidden(src019, "SRC-019");
+  await withFixtureScopedViewer(src019, "SRC-019", async cookie => {
+    await expectStatus("SRC-019-active-client-readback", "GET",
+      `/client/api/views/${encodeURIComponent(src019)}`, 200, null, { cookie });
+    const disabled019 = await disableView(src019, "SRC-019-delete-view");
+    assert(disabled019.status === "disabled" && disabled019.view?.viewId === src019 &&
+      disabled019.view?.sourceId === src019 && disabled019.view?.enabled === false,
+    "SRC-019 view DELETE safe response drift");
+    await assertViewInactive(src019, "SRC-019");
+    await expectStatus("SRC-019-disabled-client-readback", "GET",
+      `/client/api/views/${encodeURIComponent(src019)}`, 404, null, { cookie });
+  });
   assert((await enabledResidue(src019, "view")) === 0, "SRC-019 enabled view residue is not zero");
   await disableSource(src019, "SRC-019-cleanup-source");
+
+  const beforeException = fs.readFileSync(usersFile);
+  let scopedReadbackFailure = "";
+  try {
+    await withFixtureScopedViewer(src019, "SRC-019-exception", async () => {
+      throw new Error("injected-scoped-viewer-readback-failure");
+    });
+  } catch (error) {
+    scopedReadbackFailure = safeError(error);
+  }
+  assert(scopedReadbackFailure === "injected-scoped-viewer-readback-failure",
+    "scoped viewer exception did not preserve the primary failure");
+  assert(fs.readFileSync(usersFile).equals(beforeException),
+    "scoped viewer exception did not restore users file bytes");
 
   let injectedFailureObserved = false;
   try {
@@ -200,11 +243,51 @@ async function assertViewInactive(id, kind) {
   assert(!view || view.enabled === false, `${kind} view cleanup is neither absent nor disabled`);
 }
 
-async function assertClientBoundary(id, kind) {
-  await expectStatus(`${kind}-client-readback`, "GET",
-    `/client/api/views/${encodeURIComponent(id)}`, 404, null);
-  await expectStatus(`${kind}-client-session-readback`, "POST",
-    `/client/api/views/${encodeURIComponent(id)}/webrtc/session`, 404, { overlayMode: "raw" });
+async function assertUnrelatedViewerForbidden(id, kind) {
+  const cookie = await freshLogin("viewer");
+  try {
+    await expectStatus(`${kind}-unrelated-viewer`, "GET",
+      `/client/api/views/${encodeURIComponent(id)}`, 403, null, { cookie });
+  } finally {
+    await logout(cookie);
+  }
+}
+
+async function withFixtureScopedViewer(id, kind, readback) {
+  const before = fs.readFileSync(usersFile);
+  const scopes = fixtureViewerScopes(id);
+  let cookie = "";
+  let result;
+  let primary = null;
+  try {
+    const store = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+    const viewer = (store.users || []).find(user => user?.username === authUsernames.viewer);
+    assert(viewer?.role === "viewer", `${kind} viewer fixture is unavailable`);
+    viewer.viewId = id;
+    viewer.scopes = [...scopes];
+    fs.writeFileSync(usersFile, `${JSON.stringify(store, null, 2)}\n`, { mode: 0o600 });
+    assert(viewer.viewId === id && scopes.every(scope => viewer.scopes.includes(scope)),
+      `${kind} viewer viewId/scope binding mismatch`);
+    cookie = await freshLogin("viewer");
+    const principal = await requestJson(
+      `${kind}-viewer-whoami`, "GET", "/auth/whoami", [200], null, { cookie },
+    );
+    assert(principal.authenticated === true &&
+      principal.username === authUsernames.viewer &&
+      principal.role === "viewer" &&
+      scopes.every(scope => principal.scopes?.includes(scope)),
+    `${kind} fresh viewer principal scope mismatch`);
+    result = await readback(cookie);
+  } catch (error) {
+    primary = error instanceof Error ? error : new Error(String(error));
+  } finally {
+    if (cookie) await logout(cookie);
+    fs.writeFileSync(usersFile, before, { mode: 0o600 });
+  }
+  assert(fs.readFileSync(usersFile).equals(before),
+    `${kind} users file byte restoration failed`);
+  if (primary) throw primary;
+  return result;
 }
 
 async function enabledResidue(id, recordKind) {
@@ -225,15 +308,20 @@ async function viewById(id) {
   return (payload.views || []).find(value => String(value?.viewId || "") === id) || null;
 }
 
-async function expectStatus(kind, method, requestPath, expected, body) {
-  await requestJson(kind, method, requestPath, [expected], body);
+async function expectStatus(kind, method, requestPath, expected, body, options = {}) {
+  await requestJson(kind, method, requestPath, [expected], body, options);
   console.log(`[pass] ${kind} ${method} ${requestPath} expected=${expected} actual=${expected}`);
 }
 
-async function requestJson(kind, method, requestPath, expectedStatuses, body) {
+async function requestJson(kind, method, requestPath, expectedStatuses, body, { cookie = "" } = {}) {
+  const requestCookie = cookie ||
+    (requestPath.startsWith("/ops/") ? operatorCookie : "");
   const response = await fetch(`${httpBase}${requestPath}`, {
     method,
-    headers: body === null ? {} : { "content-type": "application/json" },
+    headers: {
+      ...(requestCookie ? { Cookie: requestCookie } : {}),
+      ...(body === null ? {} : { "content-type": "application/json" }),
+    },
     ...(body === null ? {} : { body: JSON.stringify(body) }),
   });
   if (!expectedStatuses.includes(response.status)) {
@@ -308,7 +396,7 @@ function startServer() {
       ...process.env,
       MEDIA_SERVER_SKIP_LOCAL_ENV: "1",
       MEDIA_SERVER_SKIP_BUILD: "1",
-      MEDIA_SERVER_AUTH_MODE: "off",
+      MEDIA_SERVER_AUTH_MODE: "auto",
       MEDIA_SERVER_SOURCE_REGISTRY: sourceFile,
       MEDIA_SERVER_PUBLISHED_VIEWS: viewFile,
       MEDIA_SERVER_ANALYSIS_REGISTRY: analysisFile,
@@ -323,6 +411,90 @@ function startServer() {
     },
     stdio: ["ignore", "ignore", "ignore"],
   });
+}
+
+async function bootstrapAuth() {
+  const setup = await postForm("/setup", {
+    username: authUsernames.admin,
+    password: authPasswords.admin,
+    confirm: authPasswords.admin,
+  });
+  assert(setup.status === 302, `auth setup failed HTTP ${setup.status}`);
+  adminCookie = await login("admin");
+  await requestJson("operator-create", "POST", "/ops/api/users", [201], {
+    username: authUsernames.operator,
+    displayName: "REVIEW4 operator",
+    role: "operator",
+    password: authPasswords.operator,
+    enabled: true,
+    mustChangePassword: false,
+  }, { cookie: adminCookie });
+  await requestJson("viewer-create", "POST", "/ops/api/users", [201], {
+    username: authUsernames.viewer,
+    displayName: "REVIEW4 viewer",
+    role: "viewer",
+    viewId: baselineSourceId,
+    password: authPasswords.viewer,
+    enabled: true,
+    mustChangePassword: false,
+  }, { cookie: adminCookie });
+  operatorCookie = await login("operator");
+  const operator = await requestJson(
+    "operator-whoami", "GET", "/auth/whoami", [200], null, { cookie: operatorCookie },
+  );
+  assert(operator.authenticated === true && operator.role === "operator",
+    "operator credential readback failed");
+  const viewerCookie = await freshLogin("viewer");
+  try {
+    const viewer = await requestJson(
+      "viewer-whoami", "GET", "/auth/whoami", [200], null, { cookie: viewerCookie },
+    );
+    assert(viewer.authenticated === true && viewer.role === "viewer" &&
+      fixtureViewerScopes(baselineSourceId).every(scope => viewer.scopes?.includes(scope)),
+    "baseline viewer credential readback failed");
+  } finally {
+    await logout(viewerCookie);
+  }
+}
+
+async function freshLogin(role) {
+  return login(role);
+}
+
+async function login(role) {
+  const response = await postForm("/login", {
+    username: authUsernames[role],
+    password: authPasswords[role],
+  });
+  assert(response.status === 302, `${role} login failed HTTP ${response.status}`);
+  return cookieFromResponse(response);
+}
+
+async function logout(cookie) {
+  await postForm("/logout", {}, { cookie }).catch(() => {});
+}
+
+async function postForm(requestPath, values, { cookie = "" } = {}) {
+  return fetch(`${httpBase}${requestPath}`, {
+    method: "POST",
+    redirect: "manual",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      ...(cookie ? { Cookie: cookie } : {}),
+    },
+    body: new URLSearchParams(values),
+  });
+}
+
+function cookieFromResponse(response) {
+  const pair = String(response.headers.get("set-cookie") || "").split(";", 1)[0];
+  assert(/^[^=]+=.+/.test(pair), "auth login session cookie missing");
+  return pair;
+}
+
+function generatedPassword() {
+  const random = crypto.randomBytes(24).toString("base64url");
+  return `V390!aA7-${random}`;
 }
 
 async function waitForServer() {
