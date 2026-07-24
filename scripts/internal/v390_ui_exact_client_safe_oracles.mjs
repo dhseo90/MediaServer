@@ -30,11 +30,21 @@ const rootSelectorFor = route => route === "/client/live"
 function api(method, path, statuses, {
   schema = null,
   requiredTokens = [],
+  requiredFixtureBindings = [],
   forbiddenFields = [],
   cardinality = null,
 } = {}) {
   const responseSchema = schema || (/\/(?:client|ops)\/api\/|\/lab\/analysis\//.test(path) ? "json" : "html");
-  return { method, path, statuses, schema: responseSchema, requiredTokens, forbiddenFields, cardinality };
+  return {
+    method,
+    path,
+    statuses,
+    schema: responseSchema,
+    requiredTokens,
+    requiredFixtureBindings,
+    forbiddenFields,
+    cardinality,
+  };
 }
 
 function dom(selector, property, operator, value) {
@@ -61,6 +71,14 @@ function exactSpec(caseId, featureMeaning, {
   const requests = apiAssertions.map(request => {
     const jsonBinding = request.schema === "html" ? { paths: [], assertions: [], values: [] }
       : buildJsonBinding(request.requiredTokens);
+    const fixtureBindings = request.schema === "html"
+      ? []
+      : (request.requiredFixtureBindings || []).map(binding => ({
+          path: binding.path,
+          operator: "equals-fixture",
+          value: "{fixtureId}",
+          fixtureRef: binding.fixtureRef,
+        }));
     const forbiddenJsonBinding = request.schema === "html"
       ? { keys: request.forbiddenFields, values: [] }
       : buildForbiddenJsonBinding(request.forbiddenFields);
@@ -70,8 +88,11 @@ function exactSpec(caseId, featureMeaning, {
       fixtureRefs: fixtureRefsFor(request.path),
       allowedStatuses: request.statuses,
       responseSchema: request.schema,
-      requiredJsonPaths: jsonBinding.paths,
-      jsonAssertions: jsonBinding.assertions,
+      requiredJsonPaths: [...new Set([
+        ...jsonBinding.paths,
+        ...fixtureBindings.map(binding => binding.path),
+      ])],
+      jsonAssertions: [...jsonBinding.assertions, ...fixtureBindings],
       requiredJsonValues: jsonBinding.values,
       requiredBodyTokens: request.schema === "html" ? request.requiredTokens : [],
       forbiddenJsonKeys: forbiddenJsonBinding.keys,
@@ -454,9 +475,21 @@ const entries = [
     snapshotTargets: ["webrtc-active-sessions"], cleanupTargets: ["sessionId", "playable-source"],
   }),
   exactSpec("CLIENT-021", "VA overlay toggle/status/metadata가 같은 mode에 결속", {
-    route: "/client/live", role: "viewer", visibleControl: '[data-testid="client-live-va-overlay-toggle"]', action: { kind: "activate", target: '[data-testid="client-live-va-overlay-toggle"]' }, fixtures: ["assigned-view", "va-metadata-sample"],
-    apiAssertions: [api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { requiredTokens: ["overlayMode=va-overlay", "sessionId"] })],
-    domAssertions: [dom('[data-testid="client-live-va-overlay-toggle"]', "ariaPressed", "equals", "true"), dom("[data-overlay-status]", "text", "includes", "va-overlay"), dom("[data-overlay-metadata]", "sampleId", "equals", "{vaMetadataSampleId}")],
+    route: "/client/live", role: "viewer", visibleControl: '[data-tile] [data-mode-action="va-overlay"]', action: { kind: "activate", target: '[data-tile] [data-mode-action="va-overlay"]' }, fixtures: ["assigned-view", "va-metadata-sample"],
+    apiAssertions: [
+      api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { requiredTokens: ["overlayMode=va-overlay", "sessionId"] }),
+      api("GET", "/client/api/views/{assignedViewId}/events?limit=6", [200], {
+        requiredTokens: ["eventType=presence", "status=open"],
+        requiredFixtureBindings: [{ path: "$..eventId", fixtureRef: "va-metadata-sample" }],
+      }),
+    ],
+    domAssertions: [
+      dom('[data-tile] [data-mode-action="va-overlay"]', "ariaPressed", "equals", "true"),
+      dom('[data-tile] [data-role="status"]', "text", "includes", "온라인"),
+      dom('[data-tile] [data-role="info-overlay"]', "hidden", "equals", false),
+      dom('[data-tile] [data-role="info-overlay"] [data-overlay="connection"]', "text", "includes", "연결"),
+      dom("#liveDockEvents", "text", "includesAll", ["person", "presence", "open"]),
+    ],
     semanticKeys: ["va-overlay", "vaMetadataSampleId"], forbiddenFields: viewerRawFields, forbiddenNetwork: noWriteNetwork, forbiddenStateMutations: protocolMutations,
     snapshotTargets: ["webrtc-active-sessions"], cleanupTargets: ["sessionId", "va-metadata-sample"],
   }),
@@ -510,7 +543,12 @@ const entries = [
   opsBoundary("SAFE-024", "VLM privacy/external transfer guard", "vlmPrivacyGuard", { requiredTokens: ["external-transfer-warning", "retentionAccepted", "loggingAccepted"], forbiddenFields: ["credential", "prompt", "rawProviderResponse", "sourceUrl", "rawFrameBytes"] }),
   hiddenBoundary("SAFE-028", "VLM prompt/raw response/credential/source redaction", { forbiddenSelectors: ["[data-raw-vlm-prompt]", "[data-provider-response]"], forbiddenFields: ["prompt", "rawProviderResponse", "credential", "sourceUrl", "rawFrameBytes"], semanticKeys: ["vlm-redaction", "raw-provider-material-absent"] }),
   hiddenBoundary("SAFE-031", "viewer/client VLM internal material 비노출", { route: "/client/live", role: "viewer", forbiddenSelectors: ["[data-vlm-model]", "[data-vlm-review-card]"], forbiddenFields: ["modelId", "prompt", "provider", "rawProviderResponse"], semanticKeys: ["modelId", "rawProviderResponse"], apiPath: "/client/api/views", requiredTokens: ["views"] }),
-  opsBoundary("SAFE-033", "VLM diagnostic/raw details는 Ops details 안에만 존재", "vlmOpsDebugDetails", { selector: "details[data-vlm-debug]", requiredTokens: ["ops-only", "redacted"], forbiddenFields: ["credential", "rawFrameBytes"] }),
+  opsBoundary("SAFE-033", "VLM diagnostic/raw details는 Ops details 안에만 존재", "vlmOpsDebugDetails", {
+    route: "/ops/vlm",
+    selector: '#opsVlmRawDetails[data-vlm-task="raw-debug"]',
+    requiredTokens: ["opsVlmRawDetails", 'data-vlm-task="raw-debug"'],
+    forbiddenFields: ["credential", "rawFrameBytes"],
+  }),
   exactSpec("SAFE-038", "VLM suggestion은 seeded draft fields만 적용하고 저장하지 않음", {
     route: "/ops/rules", role: "operator", visibleControl: '[data-vlm-rule-draft-index="{draftId}"]', action: { kind: "activate", target: '[data-vlm-rule-draft-index="{draftId}"]' }, fixtures: ["vlm-rule-suggestion-draft"],
     apiAssertions: [api("GET", "/ops/api/vlm/rule-suggestion-drafts?limit=10", [200], { requiredTokens: ["draftId", "manualReviewRequired=true", "autoApply=false"] })],

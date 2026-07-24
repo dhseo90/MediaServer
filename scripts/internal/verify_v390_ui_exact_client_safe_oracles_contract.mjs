@@ -118,6 +118,53 @@ check("media/session, scoped client projection, no-write and cleanup oracles are
   }
 });
 
+check("CLIENT-005/021 require tile-owned UI sessions and actual product overlay DOM", () => {
+  const allStop = clientSafeExactOracleFor("CLIENT-005");
+  assert(allStop.setup.fixtures.includes("active-live-session") &&
+    allStop.requests.some(item => item.method === "DELETE" && item.path.includes("/webrtc/session/") &&
+      item.fixtureRefs.includes("active-session")),
+  "CLIENT-005 must retain the UI-created session all-stop contract");
+  const overlay = clientSafeExactOracleFor("CLIENT-021");
+  assert(overlay.setup.fixtures.includes("va-metadata-sample") &&
+    overlay.requests.some(item => item.method === "POST" && item.path.includes("/webrtc/session")),
+  "CLIENT-021 must retain metadata provenance and UI-created session contract");
+  assert(overlay.requests.some(item =>
+    item.method === "GET" &&
+    item.path === "/client/api/views/{fixtureId}/events?limit=6" &&
+    item.fixtureRefs.length === 1 &&
+    item.fixtureRefs[0] === "assigned-view" &&
+    item.jsonAssertions.some(assertion =>
+      assertion.path === "$..eventId" &&
+      assertion.operator === "equals-fixture" &&
+      assertion.fixtureRef === "va-metadata-sample")),
+  "CLIENT-021 deterministic VA event API binding missing");
+  assert(overlay.dom.some(item => item.selector === '[data-tile] [data-mode-action="va-overlay"]' &&
+    item.requiredAttributes.some(attribute => attribute.name === "aria-pressed" && attribute.value === "true")),
+  "CLIENT-021 tile-local VA mode control assertion missing");
+  assert(overlay.dom.some(item => item.selector === '[data-tile] [data-role="status"]' &&
+    item.requiredTextTokens.includes("온라인")),
+  "CLIENT-021 tile-local live status assertion missing");
+  assert(overlay.dom.some(item => item.selector === '[data-tile] [data-role="info-overlay"]' &&
+    item.propertyAssertions.some(property => property.name === "hidden" && property.value === false)),
+  "CLIENT-021 tile-local info overlay assertion missing");
+  assert(overlay.dom.some(item => item.selector === "#liveDockEvents" &&
+    ["person", "presence", "open"].every(token => item.requiredTextTokens.includes(token))),
+  "CLIENT-021 viewer-safe event projection DOM assertion missing");
+  assert(!overlay.dom.some(item => /data-overlay-(?:status|metadata)/.test(item.selector)),
+    "CLIENT-021 must reject nonexistent overlay status/metadata selectors");
+  const materialized = materializeClientSafeExactOracle("CLIENT-021", {
+    "assigned-view": "9001",
+    "va-metadata-sample": "va-sample-21",
+  });
+  const eventRequest = materialized.requests.find(item =>
+    item.method === "GET" && item.path === "/client/api/views/9001/events?limit=6");
+  assert(eventRequest?.jsonAssertions.some(assertion =>
+    assertion.path === "$..eventId" &&
+    assertion.operator === "equals-fixture" &&
+    assertion.value === "va-sample-21"),
+  "CLIENT-021 materialized API binding is not tied to the seeded VA event");
+});
+
 check("selector cardinality, fixture refs and JSONPath bindings are evaluator-ready", () => {
   for (const caseId of clientSafeExactOracleCaseIds()) {
     const spec = clientSafeExactOracleFor(caseId);

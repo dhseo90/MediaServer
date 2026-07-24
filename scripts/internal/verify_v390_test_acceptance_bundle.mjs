@@ -152,6 +152,7 @@ let longrun120Decision = null;
 let uiEnvironmentHandle = null;
 let uiEnvironmentSummary = null;
 let uiEnvironmentCleanup = null;
+let uiBuildBinding = null;
 let finalizedSourceProvenanceEnd = null;
 
 const inheritedSecretDisposition = discardInheritedAcceptanceSecrets(process.env);
@@ -174,8 +175,9 @@ fs.mkdirSync(runDir, { recursive: true });
 if (options.dryRun) {
   writeDryRun();
 } else {
-  await runActualBundle();
+  const summary = await runActualBundle();
   assertFirstFailureClosure(stages, failedStage);
+  if (summary.result !== "PASS") process.exitCode = 1;
 }
 
 async function runActualBundle() {
@@ -210,7 +212,7 @@ async function runActualBundle() {
   normalizeTextArtifacts(outputDir);
   const summary = writeAcceptanceArtifacts();
   printSummary(summary);
-  if (summary.result !== "PASS") process.exit(1);
+  return summary;
 }
 
 function assertFirstFailureClosure(stageLedger, firstFailedStage) {
@@ -276,6 +278,19 @@ async function runRealStage(stageId) {
 
   if (stageId === "build") {
     await runSingleCommandStage(stageId, command("./server.sh", ["build"]));
+    if (!failedStage) {
+      uiBuildBinding = attestUiBuildBinding();
+      const buildStage = stages.findLast(item => item.id === stageId);
+      assert(buildStage?.status === "PASS", "current UI build stage was not recorded as PASS");
+      buildStage.details = { ...(buildStage.details || {}), uiBuildBinding };
+      buildStage.logPath = writeStageLog(stageId, [
+        `command=${buildStage.command}`,
+        `sourceCommitSha=${uiBuildBinding.sourceCommitSha}`,
+        `sourceWorktreeStatusSha256=${uiBuildBinding.sourceWorktreeStatusSha256}`,
+        `buildPath=${uiBuildBinding.buildPath}`,
+        `buildSha256=${uiBuildBinding.buildSha256}`,
+      ]);
+    }
     return;
   }
 
@@ -301,6 +316,7 @@ async function runRealStage(stageId) {
   }
 
   if (stageId === "ui-environment-bootstrap") {
+    assertCurrentUiBuildBinding();
     const startedAt = Date.now();
     uiEnvironmentHandle = await startSelfContainedUiEnvironment({
       rootDir,
@@ -311,6 +327,7 @@ async function runRealStage(stageId) {
       buildPath: options.uiBuildPath,
     });
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
+    uiEnvironmentSummary.uiBuildBinding = uiBuildBinding;
     const endedAt = Date.now();
     stages.push(makeStage({
       id: stageId,
@@ -335,6 +352,7 @@ async function runRealStage(stageId) {
 
   if (stageId === "ui-exact-424") {
     assert(uiEnvironmentHandle?.runtime, "self-contained UI environment was not acquired");
+    assertCurrentUiBuildBinding();
     const childDir = path.join(runDir, "ui-exact-424");
     const childSummaryPath = path.join(childDir, "summary.json");
     const args = [
@@ -510,7 +528,13 @@ async function runFixtureStage(stageId) {
     recordFailure(stageId, `fixture fail ${stageId}`, `fixture failure at ${stageId}`);
     return;
   }
+  if (stageId === "build") {
+    uiBuildBinding = { ...attestUiBuildBinding(), fixtureMode: true };
+    stages.push(passStage(stageId, "fixture current-source UI build binding", { uiBuildBinding }));
+    return;
+  }
   if (stageId === "ui-environment-bootstrap") {
+    assertCurrentUiBuildBinding();
     uiEnvironmentHandle = await startSelfContainedUiEnvironment({
       rootDir,
       runId,
@@ -518,6 +542,7 @@ async function runFixtureStage(stageId) {
       buildPath: options.uiBuildPath,
     });
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
+    uiEnvironmentSummary.uiBuildBinding = uiBuildBinding;
     stages.push(passStage(stageId, "fixture self-contained UI environment wiring", uiEnvironmentSummary));
     return;
   }
@@ -747,6 +772,7 @@ function buildActualSummary() {
     command: `./server.sh verify-v390-test-acceptance-bundle ${rawArgs.join(" ")}`,
     sourceProvenance,
     sourceProvenanceEnd,
+    uiBuildBinding,
     outputPreparation,
     executionMode,
     suite: options.suite,
@@ -791,6 +817,7 @@ function buildActualSummary() {
       evidenceBoundary: "environment bootstrap was not run",
     },
     uiAutomation: childEvidence("ui-exact-424", uiAutomationSummary),
+    actualBrowserExecution: uiAutomationSummary?.actualBrowserExecution === true,
     longrun120: {
       decision: longrun120Decision,
       policyDecision: longrun120Decision?.policyDecision || "미확인",
@@ -1404,6 +1431,7 @@ function stageSelectedForSuite(stageId) {
   if (options.suite === "release") return true;
   return [
     "preflight",
+    "build",
     "ui-environment-bootstrap",
     "ui-exact-424",
     "ui-server-cleanup",
@@ -1411,6 +1439,36 @@ function stageSelectedForSuite(stageId) {
     "cleanup",
     "report",
   ].includes(stageId);
+}
+
+function attestUiBuildBinding() {
+  const resolvedBuildPath = path.resolve(rootDir, options.uiBuildPath);
+  assert(fs.existsSync(resolvedBuildPath), `UI build output is missing after build: ${resolvedBuildPath}`);
+  const metadata = fs.statSync(resolvedBuildPath);
+  assert(metadata.isFile(), `UI build output is not a regular file: ${resolvedBuildPath}`);
+  assert(metadata.size > 0, `UI build output is empty: ${resolvedBuildPath}`);
+  return {
+    schema: "media-server.v390-ui-build-source-binding.v1",
+    sourceCommitSha: sourceProvenance.commitSha,
+    sourceWorktreeStatusSha256: sourceProvenance.worktreeStatusSha256,
+    buildPath: resolvedBuildPath,
+    buildSha256: sha256File(resolvedBuildPath),
+    buildBytes: metadata.size,
+  };
+}
+
+function assertCurrentUiBuildBinding() {
+  assert(uiBuildBinding, "UI environment requires a completed current-source build binding");
+  assert(uiBuildBinding.sourceCommitSha === sourceProvenance.commitSha,
+    "UI build binding source commit drifted before environment bootstrap");
+  assert(uiBuildBinding.sourceWorktreeStatusSha256 === sourceProvenance.worktreeStatusSha256,
+    "UI build binding source worktree drifted before environment bootstrap");
+  const resolvedBuildPath = path.resolve(rootDir, options.uiBuildPath);
+  assert(uiBuildBinding.buildPath === resolvedBuildPath,
+    "UI environment build path differs from the completed build path");
+  assert(fs.existsSync(resolvedBuildPath), `UI build output disappeared before UI execution: ${resolvedBuildPath}`);
+  assert(sha256File(resolvedBuildPath) === uiBuildBinding.buildSha256,
+    "UI build output changed after the current-source build completed");
 }
 
 function passStage(id, commandValue, details = {}) {

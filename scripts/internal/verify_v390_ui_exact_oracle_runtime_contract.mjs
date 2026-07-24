@@ -2,11 +2,16 @@
 // 파일 용도: exact 424 runtime oracle 실행기가 status/DOM/network 누락을 거짓 PASS로 처리하지 않는지 검증한다.
 
 import {
+  bindDashboardRuntimeTrendBaseline,
   containsForbiddenResponseMaterial,
   containsForbiddenStructuredDomMaterial,
+  dashboardRuntimeTrendSample,
   executeCatalogRuntimeOracle,
   executeCatalogRuntimeOracleAtSourceRoute,
+  validateClientRuntimeFixtureBindings,
+  waitForClientVaOverlayProjection,
 } from "./v390_ui_exact_oracle_runtime.mjs";
+import { usesEventExactRuntimeBindings } from "./v390_ui_case_runtime.mjs";
 import { captureEndpointOwnedResponseProjection } from "./v390_ui_native_adapter.mjs";
 
 const checks = [];
@@ -22,6 +27,52 @@ await check("EVT-001 actual response counts and DOM projections pass", async () 
   assert(result.responses.length === 1 && result.dom.length === 4, "EVT-001 evidence cardinality mismatch");
   assert(result.responses[0].assertionEvidence.length === 3, "EVT-001 request assertions were not executed");
   assert(result.dom.every(item => item.semanticEvidence.length === 1), "EVT-001 DOM assertions were not executed");
+});
+
+await check("EVT-024 executes all three bounded samples with authoritative baseline binding", async () => {
+  const body = eventBody();
+  const browser = eventBrowser({
+    body,
+    domText: { "#dashRuntimeTrendSparkline": "bounded runtime samples 3" },
+  });
+  let fetchCount = 0;
+  const evaluate = browser.evaluate;
+  browser.evaluate = async script => {
+    if (String(script).startsWith("fetch(")) fetchCount += 1;
+    return evaluate(script);
+  };
+  const result = await executeCatalogRuntimeOracle({
+    browser,
+    item: exactItem("EVT-024", "/ops/dashboard"),
+    fixtureId: "evt-024-runtime-contract",
+    correlationId: "EVT-024:contract",
+    catalogBindings: {
+      eventExactRuntime: {
+        schema: "media-server.v390-ui-event-runtime-bindings.v1",
+        caseId: "EVT-024",
+        seedByPath: {},
+        requestByPath: {},
+        priorResponseByPath: {
+          "sessionManager.activeSessions": 2,
+          "sessionManager.activeAnalysisTaps": 1,
+        },
+        sensitiveCanaries: [],
+      },
+    },
+  });
+  assert(fetchCount === 3 && result.responses[0].sampleCount === 3 &&
+    result.responses[0].sampleDigests.length === 3,
+  "EVT-024 bounded repeat cardinality was not executed");
+});
+
+await check("requested EVT binding scope is complete and excludes specialized mutation paths", async () => {
+  const requested = "003,004,007,016,017,019,020,022,023,024,025,026,028,030,031,036,041,042,043,044,046,047,049,050,051,052,053,054,055,056,057,058,064,065,066,067,069,070,071,072,075"
+    .split(",").map(value => `EVT-${value}`);
+  assert(requested.length === 41 && requested.every(usesEventExactRuntimeBindings),
+    "requested EVT exact runtime binding scope is incomplete");
+  assert(["EVT-001", "EVT-018", "EVT-021", "EVT-037", "EVT-038", "EVT-048", "EVT-061", "EVT-068"]
+    .every(caseId => !usesEventExactRuntimeBindings(caseId)),
+  "persisted specialized EVT workflow entered the shared read-only binding path");
 });
 
 await check("cross-route primary action verifies source catalog and restores destination", async () => {
@@ -912,6 +963,205 @@ await check("CLIENT control sequence binds POST session id to DELETE and DOM his
     "CLIENT-020 DELETE was not rebound to the created session ID");
   assert(result.cleanup?.strategy === "stop-live-session" && result.cleanup?.paused === true,
     "CLIENT-020 final live session was not cleaned up");
+});
+
+await check("CLIENT composed sessions are UI-created and VA sample bindings fail closed", async () => {
+  const activeSessionSpec = {
+    caseId: "CLIENT-005",
+    setup: { fixtures: ["assigned-view", "active-live-session"] },
+    action: { kind: "activate" },
+  };
+  const active = validateClientRuntimeFixtureBindings(activeSessionSpec, { sessionId: "" });
+  assert(active.uiCreatesSession === true,
+    "CLIENT-005 did not require a UI-created session");
+  await expectReject(() => Promise.resolve(validateClientRuntimeFixtureBindings(
+    activeSessionSpec,
+    { sessionId: "backend-precreated-session" },
+  )), "rejects a backend-precreated session");
+
+  const vaSpec = {
+    caseId: "CLIENT-021",
+    setup: { fixtures: ["assigned-view", "va-metadata-sample"] },
+    action: { kind: "activate" },
+  };
+  const va = validateClientRuntimeFixtureBindings(vaSpec, {
+    sessionId: "",
+    vaMetadataSampleId: "va-sample-21",
+  });
+  assert(va.uiCreatesSession === true && va.vaMetadataSampleRequired === true,
+    "CLIENT-021 UI-created VA session contract missing");
+  await expectReject(() => Promise.resolve(validateClientRuntimeFixtureBindings(
+    vaSpec,
+    { sessionId: "", vaMetadataSampleId: "" },
+  )), "VA metadata sample binding is missing");
+  await expectReject(() => Promise.resolve(validateClientRuntimeFixtureBindings(
+    vaSpec,
+    { sessionId: "backend-precreated-session", vaMetadataSampleId: "va-sample-21" },
+  )), "rejects a backend-precreated session");
+});
+
+await check("CLIENT-021 waits for bound product VA event projection and fails closed", async () => {
+  const calls = [];
+  const browser = {
+    evaluate: async source => {
+      calls.push(String(source));
+      return {
+        modeActive: true,
+        statusOnline: true,
+        infoOverlayVisible: true,
+        apiStatus: 200,
+        eventProjection: {
+          eventId: "va-sample-21",
+          label: "person",
+          eventType: "presence",
+          status: "open",
+        },
+        metadataReceived: true,
+        trackCount: 1,
+        eventCount: 1,
+        safeProjectionRendered: true,
+      };
+    },
+  };
+  const observed = await waitForClientVaOverlayProjection(browser, {
+    caseId: "CLIENT-021",
+    tileSelector: '[data-tile="0"]',
+    viewId: "9001",
+    vaMetadataSampleId: "va-sample-21",
+    timeoutMs: 1_000,
+    pollIntervalMs: 50,
+  });
+  assert(observed.sampleId === "va-sample-21" &&
+    observed.eventType === "presence" &&
+    observed.eventStatus === "open" &&
+    observed.metadataReceived === true &&
+    observed.safeProjectionRendered === true,
+  "CLIENT-021 safe VA event projection evidence mismatch");
+  assert(calls.length === 1 &&
+    calls[0].includes("while (Date.now() <= deadline)") &&
+    calls[0].includes("/events?limit=6") &&
+    calls[0].includes("#liveDockEvents") &&
+    calls[0].includes("lastMetadataAt") &&
+    calls[0].includes('[data-role="tracks"]') &&
+    calls[0].includes('[data-role="events"]') &&
+    calls[0].includes("statusOnline") &&
+    calls[0].includes("infoOverlayVisible"),
+  "CLIENT-021 bounded product wait does not bind API, DOM, and async tile state");
+  await expectReject(() => waitForClientVaOverlayProjection(browser, {
+    caseId: "CLIENT-021",
+    tileSelector: '[data-tile="0"]',
+    viewId: "9001",
+    vaMetadataSampleId: "",
+  }), "VA metadata sample binding is missing");
+  const mismatchBrowser = {
+    evaluate: async () => ({
+      modeActive: true,
+      statusOnline: true,
+      infoOverlayVisible: true,
+      apiStatus: 200,
+      eventProjection: {
+        eventId: "other-sample",
+        label: "person",
+        eventType: "presence",
+        status: "open",
+      },
+      metadataReceived: true,
+      trackCount: 1,
+      eventCount: 1,
+      safeProjectionRendered: true,
+    }),
+  };
+  await expectReject(() => waitForClientVaOverlayProjection(mismatchBrowser, {
+    caseId: "CLIENT-021",
+    tileSelector: '[data-tile="0"]',
+    viewId: "9001",
+    vaMetadataSampleId: "va-sample-21",
+  }), "VA overlay projection did not reach the exact terminal state");
+});
+
+await check("EVT-048 binds a deterministic response-derived baseline to current catalog state", async () => {
+  const responses = [
+    {
+      sessionManager: {
+        activeSessions: 2,
+        registryActiveStreams: 3,
+        resourceActiveStreams: 99,
+        activeAnalysisTaps: 4,
+      },
+      webrtcHttp: {
+        metadataSideChannel: { activeSseClients: 1, activeWebSocketClients: 2 },
+        metadataDataChannel: { channels: [{}, {}] },
+      },
+      analysisMatching: { activeTapCount: 98 },
+    },
+    {
+      summary: { total: 1, live: 1 },
+      sourceHealth: [{ sourceId: "9001", status: "live" }],
+    },
+    {
+      records: { records: [{ eventId: "evt-048-review4-fixture" }] },
+    },
+  ];
+  const expected = dashboardRuntimeTrendSample(responses);
+  assert(JSON.stringify(expected) === JSON.stringify({
+    sessions: 2,
+    streams: 3,
+    taps: 4,
+    metadataClients: 5,
+    liveSources: 1,
+    sourceTotal: 1,
+    eventRecords: 1,
+    loadScore: 15,
+  }), `EVT-048 product-equivalent trend derivation drift: ${JSON.stringify(expected)}`);
+  const catalogBindings = {};
+  const runtimeBindings = { sourceId: "9001" };
+  const baseline = bindDashboardRuntimeTrendBaseline({
+    item: { caseId: "EVT-048" },
+    responseBodies: responses,
+    runtimeBindings,
+    catalogBindings,
+  });
+  assert(JSON.stringify(catalogBindings.runtimeTrendBaseline) === JSON.stringify(baseline) &&
+    JSON.stringify(runtimeBindings.runtimeTrendBaseline) === JSON.stringify(baseline),
+  "EVT-048 baseline did not bind to both current catalog and runtime observations");
+  bindDashboardRuntimeTrendBaseline({
+    item: { caseId: "EVT-048" },
+    responseBodies: responses,
+    runtimeBindings,
+    catalogBindings,
+  });
+
+  const missingSource = structuredClone(responses);
+  missingSource[1].sourceHealth = [{ sourceId: "other-source", status: "live" }];
+  await expectReject(() => Promise.resolve(bindDashboardRuntimeTrendBaseline({
+    item: { caseId: "EVT-048" },
+    responseBodies: missingSource,
+    runtimeBindings: { sourceId: "9001" },
+    catalogBindings: {},
+  })), "default published source is not uniquely present");
+
+  const duplicateSource = structuredClone(responses);
+  duplicateSource[1].sourceHealth.push({ sourceId: "9001", status: "live" });
+  await expectReject(() => Promise.resolve(bindDashboardRuntimeTrendBaseline({
+    item: { caseId: "EVT-048" },
+    responseBodies: duplicateSource,
+    runtimeBindings: { sourceId: "9001" },
+    catalogBindings: {},
+  })), "default published source is not uniquely present");
+
+  await expectReject(() => Promise.resolve(bindDashboardRuntimeTrendBaseline({
+    item: { caseId: "EVT-048" },
+    responseBodies: responses,
+    runtimeBindings: { sourceId: "9001" },
+    catalogBindings: { runtimeTrendBaseline: { ...expected, sessions: 999 } },
+  })), "current case runtime trend baseline drift");
+
+  await expectReject(() => Promise.resolve(bindDashboardRuntimeTrendBaseline({
+    item: { caseId: "EVT-048" },
+    responseBodies: responses,
+    runtimeBindings: { sourceId: "9001" },
+    catalogBindings: null,
+  })), "current case catalogBindings are required");
 });
 
 const failures = checks.filter(item => item.status === "FAIL");

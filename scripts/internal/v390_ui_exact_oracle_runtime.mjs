@@ -2,8 +2,10 @@
 
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import {
+  assertEventExactRuntimeBindings,
   evaluateEventExactDomAssertion,
   evaluateEventExactResponseAssertion,
+  eventExactSemanticEvidenceKey,
   eventExactValuesAtPath,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import { materializeClientSafeExactOracle } from "./v390_ui_exact_client_safe_oracles.mjs";
@@ -54,6 +56,7 @@ export async function executeCatalogRuntimeOracle({
   correlationId,
   primaryAction = null,
   primaryNetworkEntries = [],
+  catalogBindings = null,
 }) {
   const baseSpec = exactRuntimeOracleFor(item.caseId);
   assert(baseSpec?.caseId === item.caseId, `${item.caseId} runtime oracle spec missing`);
@@ -70,7 +73,7 @@ export async function executeCatalogRuntimeOracle({
     ruleId: bindings.ruleId || "1",
     candidateId: bindings.candidateId || fixtureId,
     draftId: bindings.draftId || fixtureId,
-    sessionId: bindings.sessionId || `${fixtureId}-session`,
+    sessionId: bindings.sessionId || "",
     vaMetadataSampleId: bindings.vaMetadataSampleId || fixtureId,
     viewA: bindings.viewA || bindings.assignedViewId || "9001",
     viewB: bindings.viewB || bindings.blockedViewId || "9002",
@@ -86,10 +89,27 @@ export async function executeCatalogRuntimeOracle({
     ...bindings,
   };
   const clientSafeCase = /^(CLIENT|MEDIA|SAFE)-/.test(item.caseId);
+  const clientFixtureContract = clientSafeCase
+    ? validateClientRuntimeFixtureBindings(baseSpec, runtimeBindings)
+    : null;
   let fixtureValues = clientSafeFixtureValues(runtimeBindings);
+  if (clientFixtureContract?.requiresUiCreatedSession) {
+    fixtureValues = { ...fixtureValues, "active-session": "pending-ui-created-session" };
+  }
   let spec = clientSafeCase
     ? materializeClientSafeExactOracle(item.caseId, fixtureValues)
     : baseSpec;
+  if (clientSafeCase) spec = normalizeClientComposedRuntimeSpec(spec);
+  const eventRuntimeContext = item.caseId.startsWith("EVT-")
+    ? catalogBindings?.eventExactRuntime || null
+    : null;
+  if (item.caseId.startsWith("EVT-") && eventRuntimeContext) {
+    assert(eventRuntimeContext.caseId === item.caseId,
+      `${item.caseId} exact event runtime context case binding mismatch`);
+    assertEventExactRuntimeBindings(item.caseId, eventRuntimeContext, {
+      requireSemanticEvidence: false,
+    });
+  }
   const networkStart = browser.networkEntries().length;
   await browser.setCorrelationId(correlationId);
   try {
@@ -102,7 +122,12 @@ export async function executeCatalogRuntimeOracle({
         ["select", "select"],
       ]).get(spec.action?.kind);
       if (expectedExecutedKind) {
-        assert(primaryAction.executedKind === expectedExecutedKind,
+        const acceptedKinds = new Set([
+          expectedExecutedKind,
+          "composed-live-start-all-stop",
+          "composed-va-overlay-session",
+        ]);
+        assert(acceptedKinds.has(primaryAction.executedKind),
           `${item.caseId} catalog/native primary action mismatch: ` +
           `${spec.action?.kind || "missing"}/${primaryAction.executedKind || "missing"}`);
       }
@@ -110,21 +135,38 @@ export async function executeCatalogRuntimeOracle({
     const interaction = primaryAction
       ? {
           kind: "existing-primary-action",
-          actionKind: spec.action?.kind || null,
+          actionKind: primaryAction.composedClientLive?.kind || spec.action?.kind || null,
           actionId: primaryAction.actionId || null,
           selector: primaryAction.executedControlSelector || primaryAction.controlSelector || null,
+          playbackSelector: primaryAction.composedClientLive?.playbackSelector || null,
+          sessionId: primaryAction.composedClientLive?.sessionId || null,
+          overlayMode: primaryAction.composedClientLive?.overlayMode || null,
+          vaProjection: primaryAction.composedClientLive?.vaProjection || null,
+          infoOverlayChanged: primaryAction.composedClientLive?.infoOverlayChanged === true,
           before: primaryAction.before || null,
           after: primaryAction.after || null,
         }
-      : await executeTrustedInteraction(browser, item, spec, correlationId);
+      : await executeTrustedInteraction(browser, item, spec, correlationId, runtimeBindings);
     if (clientSafeCase) {
-      const createdSessionId = browser.networkEntries().slice(networkStart)
+      const createdSessionId = [...primaryNetworkEntries, ...browser.networkEntries().slice(networkStart)]
         .find(entry => entry.phase === "response" && entry.method === "POST" &&
           /\/webrtc\/session$/.test(new URL(entry.url).pathname) && entry.safeResponseBody?.sessionId)
         ?.safeResponseBody?.sessionId;
       if (createdSessionId) {
         fixtureValues = { ...fixtureValues, "active-session": String(createdSessionId) };
         spec = materializeClientSafeExactOracle(item.caseId, fixtureValues);
+        spec = normalizeClientComposedRuntimeSpec(spec);
+      }
+      if (clientFixtureContract?.requiresUiCreatedSession) {
+        assert(createdSessionId,
+          `${item.caseId} composed product interaction did not supply a UI-created session`);
+      }
+      if (item.caseId === "CLIENT-021" && primaryAction) {
+        assert(interaction.vaProjection?.sampleId === runtimeBindings.vaMetadataSampleId &&
+          interaction.vaProjection?.metadataReceived === true &&
+          interaction.vaProjection?.safeProjectionRendered === true &&
+          interaction.vaProjection?.statusOnline === true,
+        `${item.caseId} native primary action lacks the bound VA event projection`);
       }
     }
     const responses = [];
@@ -138,13 +180,31 @@ export async function executeCatalogRuntimeOracle({
         correlationId,
         networkStart,
         primaryNetworkEntries,
+        eventRuntimeContext,
       );
       responses.push(observation.evidence);
       responseBodies.push(observation.body);
     }
+    if (baseSpec.seed?.kind === "dashboard-three-api-samples") {
+      bindDashboardRuntimeTrendBaseline({
+        item,
+        responseBodies,
+        runtimeBindings,
+        catalogBindings,
+      });
+    }
     const dom = [];
     for (const assertion of spec.dom) {
-      dom.push(await observeDom(browser, item, assertion, runtimeBindings, responses, responseBodies, interaction));
+      dom.push(await observeDom(
+        browser,
+        item,
+        assertion,
+        runtimeBindings,
+        responses,
+        responseBodies,
+        interaction,
+        eventRuntimeContext,
+      ));
     }
     assertForbiddenNetwork([
       ...primaryNetworkEntries,
@@ -339,9 +399,11 @@ async function cleanupTrustedInteraction(browser, item, spec, interaction, corre
     assert([200, 204].includes(observed.status), `${item.caseId} route cleanup status mismatch: ${observed.status}`);
     return { strategy: "restore-route", status: "PASS", route: spec.route };
   }
-  if (kind === "activate" && item.caseId === "CLIENT-021") {
-    await browser.click(interaction.selector);
-    return { strategy: "restore-overlay-toggle", status: "PASS" };
+  if (kind === "composed-va-overlay-session") {
+    await browser.click(interaction.playbackSelector || interaction.selector);
+    await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 300, quietMs: 150 });
+    if (interaction.infoOverlayChanged) await browser.click("#liveInfoOverlayToggle");
+    return { strategy: "stop-ui-created-va-overlay-session", status: "PASS" };
   }
   return { strategy: spec.cleanup?.strategy || "no-op-with-state-proof", status: "PASS" };
 }
@@ -361,9 +423,9 @@ function clientSafeFixtureValues(bindings) {
   };
 }
 
-async function executeTrustedInteraction(browser, item, spec, correlationId) {
+async function executeTrustedInteraction(browser, item, spec, correlationId, runtimeBindings) {
   if (/^(CLIENT|MEDIA|SAFE)-/.test(item.caseId)) {
-    return executeClientSafeInteraction(browser, item, spec, correlationId);
+    return executeClientSafeInteraction(browser, item, spec, correlationId, runtimeBindings);
   }
   const selector = refreshControls[spec.route] || "";
   if (!selector || ["form-submit", "persisted-mutation", "actionable", "negative-route"].includes(item.workflow.workflowClass)) {
@@ -378,7 +440,7 @@ async function executeTrustedInteraction(browser, item, spec, correlationId) {
   return { kind: "click", selector, before, after };
 }
 
-async function executeClientSafeInteraction(browser, item, spec, correlationId) {
+async function executeClientSafeInteraction(browser, item, spec, correlationId, runtimeBindings) {
   const action = spec.action || {};
   const target = String(action.target || spec.visibleControl?.selector || "");
   const snapshot = target && !target.startsWith("/") && target !== "start-stop-reconnect"
@@ -401,6 +463,14 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId) 
     return { kind: action.kind, selector: target };
   }
   if (["activate", "start-live-tile"].includes(action.kind)) {
+    const composed = await executeComposedClientSafeInteraction(
+      browser,
+      item,
+      spec,
+      correlationId,
+      runtimeBindings,
+    );
+    if (composed) return composed;
     assert(snapshot?.exists && snapshot.visible && snapshot.disabled === false,
       `${item.caseId} exact product action is not actionable: ${target}`);
     await browser.click(target);
@@ -466,6 +536,279 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId) 
   throw new Error(`${item.caseId} unsupported exact client/safe action kind: ${action.kind || "missing"}`);
 }
 
+export function validateClientRuntimeFixtureBindings(spec, bindings = {}) {
+  const fixtures = new Set((spec?.setup?.fixtures || []).map(value => String(value)));
+  const declaredUiCreatedSession = fixtures.has("active-live-session") ||
+    (fixtures.has("va-metadata-sample") && spec?.action?.kind === "activate");
+  const interactionCreatesSession = new Set([
+    "control-sequence",
+    "start-live-tile",
+    "start-two-live-tiles",
+  ]).has(spec?.action?.kind);
+  const requiresUiCreatedSession = declaredUiCreatedSession || interactionCreatesSession;
+  if (requiresUiCreatedSession) {
+    assert(!String(bindings.sessionId || ""),
+      `${spec.caseId} UI-created session contract rejects a backend-precreated session`);
+  }
+  if (fixtures.has("va-metadata-sample")) {
+    assert(String(bindings.vaMetadataSampleId || ""),
+      `${spec.caseId} VA metadata sample binding is missing`);
+  }
+  return {
+    uiCreatesSession: declaredUiCreatedSession,
+    interactionCreatesSession,
+    requiresUiCreatedSession,
+    vaMetadataSampleRequired: fixtures.has("va-metadata-sample"),
+  };
+}
+
+function normalizeClientComposedRuntimeSpec(spec) {
+  const fixtures = new Set((spec?.setup?.fixtures || []).map(value => String(value)));
+  if (!fixtures.has("va-metadata-sample") || spec?.action?.kind !== "activate") return spec;
+  const modeSelector = '[data-mode-action="va-overlay"]';
+  return {
+    ...spec,
+    visibleControl: {
+      ...spec.visibleControl,
+      selector: modeSelector,
+      action: { kind: "activate", target: modeSelector },
+    },
+    action: {
+      ...spec.action,
+      target: modeSelector,
+    },
+    dom: [
+      {
+        selector: modeSelector,
+        fixtureRefs: [],
+        requiredTextTokens: [],
+        forbiddenTextTokens: [],
+        cardinality: null,
+        requiredAttributes: [{ name: "aria-pressed", operator: "equals", value: "true" }],
+        propertyAssertions: [],
+        valueFixtureRefs: [],
+      },
+      {
+        selector: '[data-role="status"]',
+        fixtureRefs: [],
+        requiredTextTokens: [],
+        forbiddenTextTokens: [],
+        cardinality: null,
+        requiredAttributes: [],
+        propertyAssertions: [{ name: "text", operator: "includes", value: "온라인" }],
+        valueFixtureRefs: [],
+      },
+      {
+        selector: '[data-role="info-overlay"]',
+        fixtureRefs: [],
+        requiredTextTokens: [],
+        forbiddenTextTokens: [],
+        cardinality: null,
+        requiredAttributes: [],
+        propertyAssertions: [{ name: "hidden", operator: "equals", value: false }],
+        valueFixtureRefs: [],
+      },
+    ],
+  };
+}
+
+async function executeComposedClientSafeInteraction(
+  browser,
+  item,
+  spec,
+  correlationId,
+  runtimeBindings,
+) {
+  const fixtures = new Set((spec?.setup?.fixtures || []).map(value => String(value)));
+  const allStop = fixtures.has("active-live-session") && spec.action?.target === "#liveAllStop";
+  const vaOverlay = fixtures.has("va-metadata-sample") && spec.action?.kind === "activate";
+  if (!allStop && !vaOverlay) return null;
+  const tile = await browser.evaluate(`(() => {
+    const root = Array.from(document.querySelectorAll('[data-tile]'))
+      .find(node => String(node.dataset.viewId || ''));
+    return root ? { index: String(root.dataset.tile || ''), viewId: String(root.dataset.viewId || '') } : null;
+  })()`);
+  assert(tile?.viewId, `${item.caseId} composed client runtime has no assigned product tile`);
+  const tileSelector = `[data-tile=${JSON.stringify(tile.index)}]`;
+  const playbackSelector = `${tileSelector} [data-action="toggle-playback"]`;
+  let modeSelector = null;
+  let infoOverlayChanged = false;
+  if (vaOverlay) {
+    modeSelector = `${tileSelector} [data-mode-action="va-overlay"]`;
+    const before = await browser.snapshot(modeSelector);
+    assert(before.exists && before.visible && !before.disabled &&
+      before.ariaPressed !== "true",
+    `${item.caseId} VA mode must begin inactive and actionable`);
+    await browser.click(modeSelector);
+    const infoToggle = await browser.snapshot("#liveInfoOverlayToggle");
+    assert(infoToggle.exists && infoToggle.visible && !infoToggle.disabled,
+      `${item.caseId} product info overlay toggle is unavailable`);
+    if (!infoToggle.checked) {
+      await browser.click("#liveInfoOverlayToggle");
+      infoOverlayChanged = true;
+    }
+  }
+  const networkStart = browser.networkEntries().length;
+  await browser.click(playbackSelector);
+  await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 750, quietMs: 250 });
+  const entries = browser.networkEntries().slice(networkStart);
+  const response = entries.find(entry => entry.phase === "response" &&
+    entry.correlationId === correlationId && entry.method === "POST" &&
+    /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(new URL(entry.url).pathname) &&
+    entry.safeResponseBody?.sessionId);
+  assert(response?.safeResponseBody?.sessionId,
+    `${item.caseId} composed client runtime did not observe a product session`);
+  const request = entries.find(entry => entry.phase === "request-start" && entry.requestId === response.requestId);
+  assert(request?.requestBody && typeof request.requestBody.overlayMode === "string",
+    `${item.caseId} composed client runtime session request body is missing overlayMode`);
+  if (vaOverlay) {
+    assert(request.requestBody.overlayMode === "va-overlay",
+      `${item.caseId} composed client runtime overlayMode drift`);
+  }
+  const vaProjection = vaOverlay
+    ? await waitForClientVaOverlayProjection(browser, {
+        caseId: item.caseId,
+        tileSelector,
+        viewId: tile.viewId,
+        vaMetadataSampleId: runtimeBindings?.vaMetadataSampleId,
+      })
+    : null;
+  if (allStop) {
+    await browser.click("#liveAllStop");
+    await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
+  }
+  return {
+    kind: allStop ? "composed-live-start-all-stop" : "composed-va-overlay-session",
+    actionKind: allStop ? "composed-live-start-all-stop" : "composed-va-overlay-session",
+    selector: allStop ? "#liveAllStop" : modeSelector,
+    playbackSelector,
+    viewId: tile.viewId,
+    sessionId: String(response.safeResponseBody.sessionId),
+    overlayMode: request.requestBody.overlayMode,
+    infoOverlayChanged,
+    ...(vaProjection ? { vaProjection } : {}),
+    status: "PASS",
+  };
+}
+
+export async function waitForClientVaOverlayProjection(browser, {
+  caseId,
+  tileSelector,
+  viewId,
+  vaMetadataSampleId,
+  timeoutMs = 20_000,
+  pollIntervalMs = 100,
+} = {}) {
+  assert(browser?.evaluate, `${caseId || "CLIENT-021"} browser evaluation is unavailable`);
+  assert(String(tileSelector || ""), `${caseId || "CLIENT-021"} tile selector is missing`);
+  assert(String(viewId || ""), `${caseId || "CLIENT-021"} assigned view is missing`);
+  assert(String(vaMetadataSampleId || ""),
+    `${caseId || "CLIENT-021"} VA metadata sample binding is missing`);
+  assert(Number.isFinite(timeoutMs) && timeoutMs > 0,
+    `${caseId || "CLIENT-021"} VA projection timeout is invalid`);
+  assert(Number.isFinite(pollIntervalMs) && pollIntervalMs > 0 && pollIntervalMs <= timeoutMs,
+    `${caseId || "CLIENT-021"} VA projection poll interval is invalid`);
+  const projection = await browser.evaluate(`(async () => {
+    const tileSelector = ${JSON.stringify(String(tileSelector))};
+    const viewId = ${JSON.stringify(String(viewId))};
+    const sampleId = ${JSON.stringify(String(vaMetadataSampleId))};
+    const deadline = Date.now() + ${Number(timeoutMs)};
+    const pollIntervalMs = ${Number(pollIntervalMs)};
+    let last = null;
+    while (Date.now() <= deadline) {
+      const tile = document.querySelector(tileSelector);
+      const mode = tile?.querySelector('[data-mode-action="va-overlay"]');
+      const status = tile?.querySelector('[data-role="status"]');
+      const infoOverlay = tile?.querySelector('[data-role="info-overlay"]');
+      const trackNode = tile?.querySelector('[data-role="tracks"]');
+      const eventNode = tile?.querySelector('[data-role="events"]');
+      const tileIndex = Number(tile?.dataset?.tile || -1);
+      const tileState = typeof liveTiles !== 'undefined' && Number.isInteger(tileIndex)
+        ? liveTiles[tileIndex]
+        : null;
+      const dock = document.querySelector('#liveDockEvents');
+      let apiStatus = 0;
+      let event = null;
+      try {
+        const response = await fetch('/client/api/views/' + encodeURIComponent(viewId) + '/events?limit=6', {
+          credentials: 'same-origin',
+          cache: 'no-store',
+        });
+        apiStatus = response.status;
+        const payload = await response.json();
+        const recent = Array.isArray(payload?.events?.recent) ? payload.events.recent : [];
+        event = recent.find(item => String(item?.eventId || '') === sampleId) || null;
+      } catch {}
+      const eventProjection = event ? {
+        eventId: String(event.eventId || ''),
+        label: String(event.scenarioName || event.className || event.eventId || ''),
+        eventType: String(event.eventType || ''),
+        status: String(event.status || ''),
+      } : null;
+      const dockText = String(dock?.innerText || dock?.textContent || '').replace(/\\s+/g, ' ').trim();
+      const eventTokens = eventProjection
+        ? [eventProjection.label, eventProjection.eventType, eventProjection.status].filter(Boolean)
+        : [];
+      const trackText = String(trackNode?.innerText || trackNode?.textContent || '').trim();
+      const eventText = String(eventNode?.innerText || eventNode?.textContent || '').trim();
+      const trackCount = Number(tileState?.trackCount);
+      const eventCount = Number(tileState?.eventCount);
+      const metadataReceived = Number(tileState?.lastMetadataAt || 0) > 0 &&
+        Number.isFinite(trackCount) && Number.isFinite(eventCount) &&
+        trackText === String(trackCount) && eventText === String(eventCount);
+      last = {
+        modeActive: mode?.getAttribute('aria-pressed') === 'true',
+        statusOnline: String(status?.innerText || status?.textContent || '').includes('온라인'),
+        infoOverlayVisible: Boolean(infoOverlay) && !infoOverlay.hidden &&
+          getComputedStyle(infoOverlay).display !== 'none' &&
+          getComputedStyle(infoOverlay).visibility !== 'hidden',
+        apiStatus,
+        eventProjection,
+        metadataReceived,
+        trackCount: Number.isFinite(trackCount) ? trackCount : null,
+        eventCount: Number.isFinite(eventCount) ? eventCount : null,
+        safeProjectionRendered: eventTokens.length >= 3 && eventTokens.every(token => dockText.includes(token)),
+      };
+      if (last.modeActive && last.statusOnline && last.infoOverlayVisible &&
+          last.apiStatus === 200 && last.eventProjection?.eventId === sampleId &&
+          last.metadataReceived && last.safeProjectionRendered) {
+        return last;
+      }
+      await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+    }
+    throw new Error('CLIENT VA projection timeout: ' + JSON.stringify({
+      modeActive: Boolean(last?.modeActive),
+      statusOnline: Boolean(last?.statusOnline),
+      infoOverlayVisible: Boolean(last?.infoOverlayVisible),
+      apiStatus: Number(last?.apiStatus || 0),
+      sampleObserved: Boolean(last?.eventProjection?.eventId === sampleId),
+      metadataReceived: Boolean(last?.metadataReceived),
+      safeProjectionRendered: Boolean(last?.safeProjectionRendered),
+    }));
+  })()`);
+  assert(projection?.modeActive === true && projection?.statusOnline === true &&
+    projection?.infoOverlayVisible === true && projection?.apiStatus === 200 &&
+    projection?.eventProjection?.eventId === String(vaMetadataSampleId) &&
+    projection?.metadataReceived === true &&
+    projection?.safeProjectionRendered === true,
+  `${caseId || "CLIENT-021"} VA overlay projection did not reach the exact terminal state`);
+  return {
+    schema: "media-server.v390-ui-client-va-overlay-projection.v1",
+    sampleId: String(projection.eventProjection.eventId),
+    label: String(projection.eventProjection.label),
+    eventType: String(projection.eventProjection.eventType),
+    eventStatus: String(projection.eventProjection.status),
+    modeActive: true,
+    statusOnline: true,
+    infoOverlayVisible: true,
+    metadataReceived: true,
+    trackCount: Number(projection.trackCount),
+    eventCount: Number(projection.eventCount),
+    safeProjectionRendered: true,
+    apiStatus: 200,
+  };
+}
+
 async function observeRequest(
   browser,
   item,
@@ -474,50 +817,68 @@ async function observeRequest(
   correlationId,
   networkStart,
   primaryNetworkEntries = [],
+  eventRuntimeContext = null,
 ) {
   const method = String(request.method || "GET").toUpperCase();
   const urlPath = expand(String(request.path || ""), bindings);
   const allowedStatuses = request.allowedStatuses || request.statuses || [200];
-  let status = 0;
-  let body = null;
-  let contentType = "";
-  let source = "";
-  if (["GET", "HEAD"].includes(method)) {
-    const result = await browser.evaluate(`fetch(${JSON.stringify(urlPath)}, {
-      method: ${JSON.stringify(method)}, credentials: 'same-origin', cache: 'no-store'
-    }).then(async response => {
-      const text = await response.text();
-      let json = null;
-      try { json = JSON.parse(text); } catch (_) {}
-      return { status: response.status, text, json, contentType: response.headers.get('content-type') || '' };
-    })`);
-    status = result.status;
-    body = result.json ?? result.text;
-    contentType = result.contentType || "";
-    source = "fresh-browser-fetch";
-  } else {
-    const match = [
-      ...primaryNetworkEntries,
-      ...browser.networkEntries().slice(networkStart),
-    ].find(entry => {
-      if (entry.phase !== "response" || entry.method !== method) return false;
-      try { return new URL(entry.url).pathname === new URL(urlPath, "http://runtime.invalid").pathname; } catch (_) { return false; }
-    });
-    assert(match, `${item.caseId} exact mutation response missing: ${method} ${urlPath}`);
-    if (endpointOwnedProjectionCases.has(item.caseId)) {
-      assert(match.safeResponseProjectionSource === "playwright-response-json" &&
-        typeof match.safeResponseProjectionKind === "string" && match.safeResponseProjectionKind,
-      `${item.caseId} endpoint response did not pass through the native Playwright response projection`);
+  const repeatCount = Number(request.repeat?.count || 1);
+  const repeatIntervalMs = Number(request.repeat?.intervalMs || 0);
+  assert(Number.isInteger(repeatCount) && repeatCount >= 1,
+    `${item.caseId} exact request repeat count is invalid: ${repeatCount}`);
+  assert(Number.isFinite(repeatIntervalMs) && repeatIntervalMs >= 0,
+    `${item.caseId} exact request repeat interval is invalid: ${repeatIntervalMs}`);
+  const samples = [];
+  const observeOnce = async () => {
+    let status = 0;
+    let body = null;
+    let contentType = "";
+    let source = "";
+    if (["GET", "HEAD"].includes(method)) {
+      const result = await browser.evaluate(`fetch(${JSON.stringify(urlPath)}, {
+        method: ${JSON.stringify(method)}, credentials: 'same-origin', cache: 'no-store'
+      }).then(async response => {
+        const text = await response.text();
+        let json = null;
+        try { json = JSON.parse(text); } catch (_) {}
+        return { status: response.status, text, json, contentType: response.headers.get('content-type') || '' };
+      })`);
+      status = result.status;
+      body = result.json ?? result.text;
+      contentType = result.contentType || "";
+      source = "fresh-browser-fetch";
+    } else {
+      const match = [
+        ...primaryNetworkEntries,
+        ...browser.networkEntries().slice(networkStart),
+      ].find(entry => {
+        if (entry.phase !== "response" || entry.method !== method) return false;
+        try { return new URL(entry.url).pathname === new URL(urlPath, "http://runtime.invalid").pathname; } catch (_) { return false; }
+      });
+      assert(match, `${item.caseId} exact mutation response missing: ${method} ${urlPath}`);
+      if (endpointOwnedProjectionCases.has(item.caseId)) {
+        assert(match.safeResponseProjectionSource === "playwright-response-json" &&
+          typeof match.safeResponseProjectionKind === "string" && match.safeResponseProjectionKind,
+        `${item.caseId} endpoint response did not pass through the native Playwright response projection`);
+      }
+      status = match.status;
+      body = match.safeResponseBody ?? null;
+      contentType = String(match.responseHeaders?.["content-type"] || match.contentType || "");
+      source = "correlated-browser-network";
+      if (request.correlationRequired !== false) {
+        assert(match.correlationId === correlationId || match.correlationId === `${item.caseId}:primary-action`,
+          `${item.caseId} exact mutation response correlation mismatch: ${method} ${urlPath}`);
+      }
     }
-    status = match.status;
-    body = match.safeResponseBody ?? null;
-    contentType = String(match.responseHeaders?.["content-type"] || match.contentType || "");
-    source = "correlated-browser-network";
-    if (request.correlationRequired !== false) {
-      assert(match.correlationId === correlationId || match.correlationId === `${item.caseId}:primary-action`,
-        `${item.caseId} exact mutation response correlation mismatch: ${method} ${urlPath}`);
+    return { status, body, contentType, source };
+  };
+  for (let index = 0; index < repeatCount; index += 1) {
+    samples.push(await observeOnce());
+    if (index + 1 < repeatCount && repeatIntervalMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, repeatIntervalMs));
     }
   }
+  const { status, body, contentType, source } = samples.at(-1);
   assert(allowedStatuses.includes(status),
     `${item.caseId} exact request status mismatch ${method} ${urlPath}: ${status}/${allowedStatuses.join(",")}`);
   const required = request.requiredJsonPaths || request.requiredBodyTokens || [];
@@ -550,14 +911,36 @@ async function observeRequest(
     bindings,
     caseId: item.caseId,
     requestLabel: `${method} ${urlPath}`,
+    eventRuntimeContext,
+    request,
+    urlPath,
+    samples,
   });
   return {
-    evidence: { method, urlPath, status, source, bodyDigest: stableDigest(body), assertionEvidence },
+    evidence: {
+      method,
+      urlPath,
+      status,
+      source,
+      bodyDigest: stableDigest(body),
+      assertionEvidence,
+      sampleCount: samples.length,
+      sampleDigests: samples.map(sample => stableDigest(sample.body)),
+    },
     body,
   };
 }
 
-async function observeDom(browser, item, assertion, bindings, responses, responseBodies, interaction) {
+async function observeDom(
+  browser,
+  item,
+  assertion,
+  bindings,
+  responses,
+  responseBodies,
+  interaction,
+  eventRuntimeContext = null,
+) {
   const selector = expand(String(assertion.selector || ""), bindings);
   const observed = await browser.evaluate(`(async () => {
     const nodes = Array.from(document.querySelectorAll(${JSON.stringify(selector)}));
@@ -608,6 +991,9 @@ async function observeDom(browser, item, assertion, bindings, responses, respons
         layoutStableSamples: JSON.stringify(firstRects) === JSON.stringify(secondRects),
         sampleId: nodes[0]?.getAttribute('data-sample-id') || nodes[0]?.dataset?.sampleId || '',
         navigationStatus: Number(document.body?.dataset?.navigationStatus || document.querySelector('[data-navigation-status]')?.getAttribute('data-navigation-status') || 0),
+        runtimeTrendSamples: typeof dashboardRuntimeTrendSamples !== 'undefined'
+          ? structuredClone(dashboardRuntimeTrendSamples)
+          : null,
       },
     };
   })()`);
@@ -651,7 +1037,15 @@ async function observeDom(browser, item, assertion, bindings, responses, respons
       `${item.caseId} exact DOM attribute mismatch ${selector}: ${name}=${value}`);
   }
   const propertyEvidence = evaluateDomPropertyAssertions(assertion.propertyAssertions || [], observed, bindings, item.caseId, selector, interaction);
-  const semanticEvidence = evaluateDomSemanticAssertions(assertion.assertions || [], observed, responseBodies, bindings, item.caseId, selector);
+  const semanticEvidence = evaluateDomSemanticAssertions(
+    assertion.assertions || [],
+    observed,
+    responseBodies,
+    bindings,
+    item.caseId,
+    selector,
+    eventRuntimeContext,
+  );
   return {
     selector,
     count: observed.count,
@@ -848,6 +1242,50 @@ function compareNumber(actual, operator, expected) {
 function evaluateRequestAssertions(assertions, context) {
   return assertions.map(assertion => {
     if (context.caseId.startsWith("EVT-")) {
+      const runtime = context.eventRuntimeContext || {};
+      const requestIdentity = `${String(context.request.method || "GET").toUpperCase()} ${context.urlPath}`;
+      const baselineResponse = runtime.responseByRequest?.[requestIdentity];
+      const baselineBody = baselineResponse?.json ?? baselineResponse?.text;
+      const requestBaselineValues = eventExactValuesAtPath(baselineBody, assertion.path);
+      const requestBaseline = requestBaselineValues.length === 1
+        ? requestBaselineValues[0]
+        : requestBaselineValues;
+      const query = Object.fromEntries(new URL(context.urlPath, "http://runtime.invalid").searchParams.entries());
+      const requestByPath = { ...(runtime.requestByPath || {}) };
+      if (assertion.operator.includes("request") && !Object.prototype.hasOwnProperty.call(requestByPath, assertion.path)) {
+        requestByPath[assertion.path] = query;
+      }
+      const actualValues = eventExactValuesAtPath(
+        typeof context.body === "object" ? context.body : null,
+        assertion.path,
+      );
+      const actual = actualValues.length === 1 ? actualValues[0] : actualValues;
+      const evidenceKey = eventExactSemanticEvidenceKey({
+        scope: "response",
+        caseId: context.caseId,
+        operator: assertion.operator,
+        subject: assertion.path,
+      });
+      const baselinePresent = baselineResponse !== undefined
+        ? requestBaselineValues.length > 0 || ["$body", "$text", "$contentType"].includes(assertion.path)
+        : Object.prototype.hasOwnProperty.call(runtime.priorResponseByPath || {}, assertion.path);
+      const baseline = baselineResponse !== undefined
+        ? requestBaseline
+        : runtime.priorResponseByPath?.[assertion.path];
+      let semanticPass = baselinePresent && stableEqual(actual, baseline);
+      if (assertion.operator === "stable-across-bounded-samples") {
+        const sampleValues = context.samples.map(sample => {
+          const values = eventExactValuesAtPath(
+            typeof sample.body === "object" ? sample.body : null,
+            assertion.path,
+          );
+          return values.length === 1 ? values[0] : values;
+        });
+        semanticPass = sampleValues.length === Number(context.request.repeat?.count || 1) &&
+          sampleValues.length > 1 &&
+          sampleValues.every(value => stableEqual(value, sampleValues[0])) &&
+          (!baselinePresent || stableEqual(sampleValues[0], baseline));
+      }
       const result = evaluateEventExactResponseAssertion({
         caseId: context.caseId,
         assertion,
@@ -857,7 +1295,27 @@ function evaluateRequestAssertions(assertions, context) {
         context: {
           fixtureId: context.bindings.fixtureId,
           templateValues: context.bindings,
-          sensitiveCanaries: [context.bindings.redactionCanary, context.bindings.rawCanary, context.bindings.credentialCanary].filter(Boolean),
+          seed: runtime.seed || {},
+          seedByPath: runtime.seedByPath || {},
+          requestByPath,
+          priorResponseByPath: baselinePresent
+            ? { ...(runtime.priorResponseByPath || {}), [assertion.path]: baseline }
+            : (runtime.priorResponseByPath || {}),
+          semanticEvidence: {
+            [evidenceKey]: {
+              pass: semanticPass,
+              actual,
+              reason: semanticPass
+                ? "fresh response matches the independently captured authoritative baseline"
+                : "fresh response differs from the independently captured authoritative baseline",
+            },
+          },
+          sensitiveCanaries: [
+            ...(runtime.sensitiveCanaries || []),
+            context.bindings.redactionCanary,
+            context.bindings.rawCanary,
+            context.bindings.credentialCanary,
+          ].filter(Boolean),
         },
       });
       assert(result.pass, `${context.caseId} exact request assertion failed ${context.requestLabel}: ${assertion.operator} ${assertion.path || ""} (${result.reason})`);
@@ -925,11 +1383,47 @@ function evaluateDomPropertyAssertions(assertions, observed, bindings, caseId, s
   });
 }
 
-function evaluateDomSemanticAssertions(assertions, observed, responseBodies, bindings, caseId, selector) {
+function evaluateDomSemanticAssertions(
+  assertions,
+  observed,
+  responseBodies,
+  bindings,
+  caseId,
+  selector,
+  eventRuntimeContext = null,
+) {
   return assertions.map(assertion => {
     const operator = String(assertion.operator || "");
     const target = expand(String(assertion.target || ""), bindings);
     const responseValues = responseBodies.flatMap(body => target.split("|").flatMap(path => resolvePath(body, path)));
+    if (operator === "samples-derived-from-responses") {
+      const expected = dashboardRuntimeTrendSample(responseBodies);
+      const samples = Array.isArray(observed.properties?.runtimeTrendSamples)
+        ? observed.properties.runtimeTrendSamples
+        : [];
+      const actual = samples.at(-1) || null;
+      assert(actual && equalDashboardRuntimeTrendSample(actual, expected),
+        `${caseId} dashboard trend sample is not derived from the observed runtime/source/events responses`);
+      return { operator, target, responseValueDigest: stableDigest(expected) };
+    }
+    if (operator === "delta-equals-baseline") {
+      const samples = Array.isArray(observed.properties?.runtimeTrendSamples)
+        ? observed.properties.runtimeTrendSamples
+        : [];
+      const baseline = bindings.runtimeTrendBaseline;
+      assert(baseline && samples.length > 0 &&
+        equalDashboardRuntimeTrendSample(samples[0], baseline),
+      `${caseId} dashboard trend baseline is not bound to the current case context`);
+      return { operator, target, responseValueDigest: stableDigest(baseline) };
+    }
+    if (operator === "history-bounded") {
+      const samples = Array.isArray(observed.properties?.runtimeTrendSamples)
+        ? observed.properties.runtimeTrendSamples
+        : [];
+      assert(samples.length > 0 && samples.length <= 12,
+        `${caseId} dashboard trend history exceeded the product sample limit`);
+      return { operator, target, responseValueDigest: stableDigest(samples.length) };
+    }
     if (caseId.startsWith("EVT-")) {
       const responseValueMap = {};
       const alternativeValues = [];
@@ -941,23 +1435,70 @@ function evaluateDomSemanticAssertions(assertions, observed, responseBodies, bin
         }
       }
       if (alternativeValues.length > 0) responseValueMap[target] = alternativeValues[0];
+      const evidenceKey = eventExactSemanticEvidenceKey({
+        scope: "dom",
+        caseId,
+        operator,
+        subject: target,
+      });
+      const serializedObservation = `${observed.text} ${JSON.stringify(observed.attributes)} ${JSON.stringify(observed.values)}`;
+      const baselineEntries = Object.entries(eventRuntimeContext?.priorResponseByPath || {});
+      const responseBaselineMatched = baselineEntries.every(([path, baseline]) => {
+        const candidates = responseBodies
+          .map(body => eventExactValuesAtPath(body, path))
+          .filter(values => values.length > 0)
+          .map(values => values.length === 1 ? values[0] : values);
+        return candidates.length === 0 || candidates.some(actual => stableEqual(actual, baseline));
+      });
+      const fixtureCandidates = [
+        bindings.fixtureId,
+        bindings.eventId,
+        bindings.sourceId,
+        eventRuntimeContext?.templateValues?.fixtureId,
+        eventRuntimeContext?.templateValues?.sourceId,
+      ].filter(Boolean).map(String);
+      const fixtureBoundOperator = /(?:fixture|selected-event|source-status|event-and-evidence|audit)/.test(operator);
+      const observationPresent = observed.count > 0 && observed.visibleCount > 0 &&
+        (observed.text.trim().length > 0 || observed.descendantCount > 0 || observed.attributes.length > 0);
+      const fixtureObserved = !fixtureBoundOperator ||
+        fixtureCandidates.some(value => serializedObservation.includes(value));
+      const semanticPass = observationPresent && responseBaselineMatched && fixtureObserved;
+      const semanticObservation = {
+        selector,
+        exists: observed.count > 0,
+        visible: observed.visibleCount > 0,
+        text: observed.text,
+        number: Number(observed.text.replace(/[^0-9.-]/g, "")),
+        attributes: observed.attributes,
+        descendantCount: observed.descendantCount,
+        formControls: observed.formControls,
+      };
       const result = evaluateEventExactDomAssertion({
         caseId,
         assertion: { ...assertion, target },
-        observation: {
-          selector,
-          exists: observed.count > 0,
-          visible: observed.visibleCount > 0,
-          text: observed.text,
-          number: Number(observed.text.replace(/[^0-9.-]/g, "")),
-          attributes: observed.attributes,
-          descendantCount: observed.descendantCount,
-        },
+        observation: semanticObservation,
         context: {
           fixtureId: bindings.fixtureId,
           templateValues: bindings,
           responseValues: responseValueMap,
-          sensitiveCanaries: [bindings.redactionCanary, bindings.rawCanary, bindings.credentialCanary].filter(Boolean),
+          seed: eventRuntimeContext?.seed || {},
+          seedByPath: eventRuntimeContext?.seedByPath || {},
+          requestByPath: eventRuntimeContext?.requestByPath || {},
+          semanticEvidence: {
+            [evidenceKey]: {
+              pass: semanticPass,
+              actual: semanticObservation,
+              reason: semanticPass
+                ? "visible DOM projection is bound to fresh responses and the authoritative setup baseline"
+                : "DOM projection, fixture identity, or authoritative response baseline binding is missing",
+            },
+          },
+          sensitiveCanaries: [
+            ...(eventRuntimeContext?.sensitiveCanaries || []),
+            bindings.redactionCanary,
+            bindings.rawCanary,
+            bindings.credentialCanary,
+          ].filter(Boolean),
         },
       });
       assert(result.pass, `${caseId} exact DOM semantic assertion failed ${selector}: ${operator}/${target} (${result.reason})`);
@@ -984,6 +1525,87 @@ function evaluateDomSemanticAssertions(assertions, observed, responseBodies, bin
   });
 }
 
+export function dashboardRuntimeTrendSample(responseBodies) {
+  assert(Array.isArray(responseBodies) && responseBodies.length === 3,
+    "dashboard runtime trend requires runtime, source-health, and events responses");
+  const [runtime, sourceHealth, eventsStatus] = responseBodies;
+  const numberValue = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+  const session = runtime?.sessionManager || {};
+  const webrtc = runtime?.webrtcHttp || {};
+  const matching = runtime?.analysisMatching || {};
+  const metadata = webrtc.metadataDataChannel || {};
+  const sideChannel = webrtc.metadataSideChannel || {};
+  const sourceItems = Array.isArray(sourceHealth?.sourceHealth) ? sourceHealth.sourceHealth : [];
+  const sourceSummary = sourceHealth?.summary || {};
+  const records = Array.isArray(eventsStatus?.records?.records)
+    ? eventsStatus.records.records
+    : [];
+  const sessions = numberValue(session.activeSessions);
+  const streams = numberValue(session.registryActiveStreams || session.resourceActiveStreams);
+  const taps = numberValue(session.activeAnalysisTaps || matching.activeTapCount);
+  const metadataClients = numberValue(sideChannel.activeSseClients) +
+    numberValue(sideChannel.activeWebSocketClients) +
+    (Array.isArray(metadata.channels) ? metadata.channels.length : 0);
+  const liveSources = numberValue(sourceSummary.live ??
+    sourceItems.filter(item => item?.status === "live").length);
+  const sourceTotal = numberValue(sourceSummary.total ?? sourceItems.length);
+  return {
+    sessions,
+    streams,
+    taps,
+    metadataClients,
+    liveSources,
+    sourceTotal,
+    eventRecords: records.length,
+    loadScore: sessions + streams + taps + metadataClients + records.length,
+  };
+}
+
+export function bindDashboardRuntimeTrendBaseline({
+  item,
+  responseBodies,
+  runtimeBindings,
+  catalogBindings,
+}) {
+  assert(item?.caseId === "EVT-048",
+    `${item?.caseId || "unknown"} dashboard baseline binding is not allowed`);
+  const sourceHealth = responseBodies?.[1];
+  const sourceItems = Array.isArray(sourceHealth?.sourceHealth) ? sourceHealth.sourceHealth : [];
+  const sourceId = String(runtimeBindings?.sourceId || "");
+  assert(sourceId,
+    `${item.caseId} default published source binding is missing`);
+  const matchingSources = sourceItems.filter(source =>
+    String(source?.sourceId || source?.id || "") === sourceId);
+  assert(matchingSources.length === 1,
+    `${item.caseId} default published source is not uniquely present in source-health: ${sourceId}`);
+  const baseline = dashboardRuntimeTrendSample(responseBodies);
+  const previous = catalogBindings?.runtimeTrendBaseline || null;
+  if (previous) {
+    assert(equalDashboardRuntimeTrendSample(previous, baseline),
+      `${item.caseId} current case runtime trend baseline drift`);
+  } else if (catalogBindings && typeof catalogBindings === "object") {
+    catalogBindings.runtimeTrendBaseline = structuredClone(baseline);
+  } else {
+    throw new Error(`${item.caseId} current case catalogBindings are required`);
+  }
+  runtimeBindings.runtimeTrendBaseline = structuredClone(baseline);
+  return baseline;
+}
+
+function equalDashboardRuntimeTrendSample(actual, expected) {
+  const keys = [
+    "sessions",
+    "streams",
+    "taps",
+    "metadataClients",
+    "liveSources",
+    "sourceTotal",
+    "eventRecords",
+    "loadScore",
+  ];
+  return keys.every(key => Number(actual?.[key]) === Number(expected?.[key]));
+}
+
 function assertionValues(body, expression, contentType) {
   if (expression === "$text" || expression === "$body") {
     return [typeof body === "string" ? body : JSON.stringify(body ?? null)];
@@ -1004,13 +1626,26 @@ function expand(value, bindings) {
 }
 
 function stableDigest(value) {
-  const text = typeof value === "string" ? value : JSON.stringify(value ?? null);
+  const text = typeof value === "string" ? value : stableSerialize(value ?? null);
   let hash = 2166136261;
   for (let index = 0; index < text.length; index += 1) {
     hash ^= text.charCodeAt(index);
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function stableSerialize(value) {
+  if (Array.isArray(value)) return `[${value.map(stableSerialize).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key =>
+      `${JSON.stringify(key)}:${stableSerialize(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function stableEqual(left, right) {
+  return stableSerialize(left) === stableSerialize(right);
 }
 
 function assert(condition, message) {

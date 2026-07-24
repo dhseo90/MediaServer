@@ -88,6 +88,56 @@ check("mutation cases bind request, independent readback, audit, before/after, a
   }
 });
 
+check("review PUT responses and independent audit readbacks keep distinct action contracts", () => {
+  const expectedAuditActions = {
+    "EVT-037": "incident-action-update",
+    "EVT-061": "operator-feature-correction-update",
+    "EVT-068": "operator-resolution-flow-update",
+  };
+  for (const [id, caseAction] of Object.entries(expectedAuditActions)) {
+    const spec = eventExactOracleFor(id);
+    const put = spec.apiAssertions.find(item => item.method === "PUT");
+    const audit = spec.apiAssertions.find(item => item.method === "GET" && item.path.startsWith("/ops/api/audit"));
+    const putAction = put?.bodyAssertions.find(item => item.path === "audit.action");
+    const auditAction = audit?.bodyAssertions.find(item => item.operator === "contains-action");
+    assert(putAction?.operator === "equals" && putAction.expected === "event-review-update",
+      `${id} PUT response must retain the generic event-review-update action`);
+    assert(auditAction?.expected === caseAction,
+      `${id} independent audit readback lost the case-specific action`);
+    assert(putAction.expected !== auditAction.expected,
+      `${id} response and audit readback actions were conflated`);
+  }
+});
+
+check("EVT-018 test binds POST, refreshed attempt row, and redaction without dry-run UI", () => {
+  const spec = eventExactOracleFor("EVT-018");
+  assert(spec.action.steps.includes("click-test") && !spec.action.steps.includes("click-dry-run"),
+    "EVT-018 action must execute Test without Dry-run");
+  const testRequest = spec.apiAssertions.find(item =>
+    item.method === "POST" && item.path === "/ops/api/alerts/deliveries/test");
+  assert(testRequest?.bodyAssertions.some(item =>
+    item.path === "status" && item.operator === "equals" && item.expected === "delivered"),
+  "EVT-018 Test response status binding missing");
+  assert(testRequest?.bodyAssertions.some(item =>
+    item.path === "mode" && item.operator === "equals" && item.expected === "fixture"),
+  "EVT-018 Test response mode binding missing");
+  const refresh = spec.apiAssertions.find(item =>
+    item.method === "GET" && item.path === "/ops/api/alerts/deliveries");
+  assert(refresh?.bodyAssertions.some(item =>
+    item.path === "attempts" && item.operator === "contains-fixture-delivery"),
+  "EVT-018 refreshed attempt readback missing");
+  const attemptRow = spec.domAssertions.find(item =>
+    item.selector.includes("[data-alert-delivery-test={fixtureId}]"));
+  assert(attemptRow?.assertions.some(item =>
+    item.operator === "text-includes" && item.target === "delivered · fixture"),
+  "EVT-018 latest attempt visual result missing");
+  assert(attemptRow?.assertions.some(item =>
+    item.operator === "not-contains-sensitive-canary" && item.target === "endpointToken"),
+  "EVT-018 latest attempt redaction assertion missing");
+  assert(!spec.domAssertions.some(item => item.selector === "#alertDeliveryDryRunResult"),
+    "EVT-018 Test must not claim the Dry-run result DOM");
+});
+
 check("all specs assert body semantics, DOM semantics, forbidden boundaries, snapshots, and cleanup", () => {
   for (const id of eventExactOracleCaseIds()) {
     const spec = eventExactOracleFor(id);

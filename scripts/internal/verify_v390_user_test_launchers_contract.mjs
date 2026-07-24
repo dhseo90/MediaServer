@@ -264,7 +264,7 @@ exit 1
     "fallback failure must report the user-facing release command");
 });
 
-check("UI launcher delegates only exact 424 environment and Policy v4 stages", () => {
+check("UI launcher builds current source before exact 424 environment and Policy v4 stages", () => {
   const outputDir = fixtureRoot("ui-pass");
   const result = runLower([
     "verify-v390-test-acceptance-bundle", "--output-dir", outputDir, "--suite", "ui", "--fixture-pass",
@@ -272,12 +272,30 @@ check("UI launcher delegates only exact 424 environment and Policy v4 stages", (
   assert(result.status === 0, result.stderr || result.stdout);
   const summary = readJson(path.join(outputDir, "summary.json"));
   assert(summary.suite === "ui", "UI suite identity mismatch");
-  for (const id of ["preflight", "ui-environment-bootstrap", "ui-exact-424", "ui-server-cleanup", "ui-fulltest-qualification", "cleanup", "report"]) {
+  for (const id of ["preflight", "build", "ui-environment-bootstrap", "ui-exact-424", "ui-server-cleanup", "ui-fulltest-qualification", "cleanup", "report"]) {
     assert(summary.stages.find(item => item.id === id)?.status === "PASS", `${id} must execute in UI suite`);
   }
-  for (const id of ["build", "feature-gates", "server-longrun-30", "longrun-120-decision", "server-longrun-120", "final-integrity"]) {
+  for (const id of ["feature-gates", "server-longrun-30", "longrun-120-decision", "server-longrun-120", "final-integrity"]) {
     assert(summary.stages.find(item => item.id === id)?.status === "not-run", `${id} must not run in UI suite`);
   }
+});
+
+check("UI launcher build failure never reaches bootstrap or browser execution", () => {
+  const outputDir = fixtureRoot("ui-build-fail");
+  const result = runLower([
+    "verify-v390-test-acceptance-bundle", "--output-dir", outputDir, "--suite", "ui",
+    "--fixture-fail-stage", "build",
+  ]);
+  assert(result.status === 1, "UI build failure fixture must exit 1");
+  const summary = readJson(path.join(outputDir, "summary.json"));
+  assert(summary.failedStage === "build", "UI build failure stage mismatch");
+  assert(summary.stages.find(item => item.id === "build")?.status === "FAIL", "UI build failure was not recorded");
+  for (const id of ["ui-environment-bootstrap", "ui-exact-424", "ui-fulltest-qualification"]) {
+    const stage = summary.stages.find(item => item.id === id);
+    assert(stage?.status === "not-run" && stage.reason === "not run after build failure",
+      `${id} must be not-run after UI build failure`);
+  }
+  assert(summary.actualBrowserExecution === false, "UI build failure claimed browser execution");
 });
 
 check("UI launcher fail-stop keeps Policy v4 not-run and still cleans up", () => {

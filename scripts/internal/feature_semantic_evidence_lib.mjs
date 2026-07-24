@@ -40,6 +40,11 @@ const weakWords = new Set([
   "required", "selected", "current", "actual", "final", "pass", "fail", "not",
   "run", "media", "server", "source", "state", "status", "result", "route", "test",
 ]);
+const reviewedUiScreenRouteOverrides = new Map([
+  ["MEDIA-017", "/client/live"],
+  ["SAFE-018", "/client/live"],
+  ["SAFE-031", "/client/live"],
+]);
 
 export function buildSemanticEvidence({ rootDir, row, legacyItem }) {
   void rootDir;
@@ -1121,6 +1126,8 @@ function semanticRoute(row, legacyItem) {
 
 function uiScreenRoute(row, legacyItem) {
   if (row.uiNeed === "비대상" && !splitAreas(row.area).includes("UI")) return null;
+  const reviewedOverride = reviewedUiScreenRouteOverrides.get(row.id);
+  if (reviewedOverride) return reviewedOverride;
   const explicit = semanticRoute(row, legacyItem);
   if (explicit) return explicit;
   const prefix = featurePrefix(row.id);

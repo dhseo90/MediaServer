@@ -8,6 +8,12 @@ import path from "node:path";
 
 import { assertSecretValuesAbsentFromTree } from "./v390_acceptance_ui_environment.mjs";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
+import {
+  eventExactRuntimeBindingRequirements,
+  eventExactValuesAtPath,
+  materializeEventExactTemplate,
+} from "./v390_ui_exact_event_oracle_evaluator.mjs";
+import { ruleRelationshipFixtureIdentity } from "./v390_ui_native_exact_cases_lib.mjs";
 
 const descriptorSchema = "media-server.v390-ui-runtime-descriptor.v1";
 const roleMapSchema = "media-server.v390-ui-role-state-map.v1";
@@ -46,6 +52,46 @@ export function assertInactiveOrEqualBeforeCleanup({ caseId, observed, expectedR
 
 function profile(expectedBehaviorSha256, requiredChecks) {
   return Object.freeze({ expectedBehaviorSha256, requiredChecks: Object.freeze([...requiredChecks]) });
+}
+
+const ruleRelationshipFixtureCaseIds = new Set([
+  "RULE-093", "RULE-094", "RULE-095", "RULE-096",
+  "RULE-097", "RULE-098", "RULE-100", "RULE-101",
+]);
+
+const exactRuntimeFixturePlans = Object.freeze({
+  "runtime-session-and-tap": Object.freeze(["viewer-va-overlay-session"]),
+  "diagnostic-log-marker": Object.freeze(["diagnostic-log-marker"]),
+  "published-view-event": Object.freeze(["event-record"]),
+  "va-tap-and-event": Object.freeze(["event-record", "viewer-va-overlay-session"]),
+  "dashboard-three-api-samples": Object.freeze(["event-record"]),
+});
+
+const eventExactRuntimeBindingCaseIds = new Set([
+  "EVT-003", "EVT-004", "EVT-007", "EVT-016", "EVT-017", "EVT-019", "EVT-020",
+  "EVT-022", "EVT-023", "EVT-024", "EVT-025", "EVT-026", "EVT-028", "EVT-030",
+  "EVT-031", "EVT-036", "EVT-041", "EVT-042", "EVT-043", "EVT-044", "EVT-046",
+  "EVT-047", "EVT-049", "EVT-050", "EVT-051", "EVT-052", "EVT-053", "EVT-054",
+  "EVT-055", "EVT-056", "EVT-057", "EVT-058", "EVT-064", "EVT-065", "EVT-066",
+  "EVT-067", "EVT-069", "EVT-070", "EVT-071", "EVT-072", "EVT-075",
+]);
+
+export function usesEventExactRuntimeBindings(caseId) {
+  return eventExactRuntimeBindingCaseIds.has(String(caseId || ""));
+}
+
+// Oracle가 선언한 seed/fixture만 실제 runtime fixture로 물질화한다.
+export function runtimeFixturePlanFor(spec) {
+  if (!spec || typeof spec !== "object") return Object.freeze([]);
+  const plan = new Set(exactRuntimeFixturePlans[String(spec.seed?.kind || "")] || []);
+  const fixtures = Array.isArray(spec.setup?.fixtures)
+    ? spec.setup.fixtures.map(value => String(value))
+    : (Array.isArray(spec.fixtures) ? spec.fixtures.map(value => String(value)) : []);
+  if (fixtures.includes("saved-layout-preference")) plan.add("viewer-live-layout-preference");
+  if (fixtures.includes("va-metadata-sample")) {
+    plan.add("event-record");
+  }
+  return Object.freeze([...plan]);
 }
 
 export function createV390UiCaseRuntime({
@@ -112,7 +158,7 @@ export function createV390UiCaseRuntime({
             descriptor.auth?.defaultViewId || "9001",
           );
           context.transientStateSeeded = true;
-        } else if (["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100", "RULE-101"].includes(item.caseId)) {
+        } else if (ruleRelationshipFixtureCaseIds.has(item.caseId)) {
           await seedRuleRelationshipFixturesViaApi(item, context);
           context.transientStateSeeded = true;
         } else if (["UI-036", "UI-046", "UI-053", "RULE-104", "RULE-111"].includes(item.caseId)) {
@@ -488,15 +534,14 @@ export function createV390UiCaseRuntime({
   }
 
   async function seedRuleRelationshipFixturesViaApi(item, context) {
-    const suffix = item.caseId.slice(-3);
     const digit = item.caseId.slice(-1);
+    const relationshipIdentity = ruleRelationshipFixtureIdentity(item.caseId);
     const profileId = `969${digit}`;
     const templateId = `979${digit}`;
     const vaRuleId = `989${digit}`;
     // SourceRegistry는 10진수 source identity를 요구하므로 충돌을 피하는 숫자 ID를 사용하고,
     // 사람이 읽을 수 있는 case 결속은 displayName과 file에 유지한다.
-    const sourceId = `93${suffix}`;
-    const viewId = `rule-${suffix}-view`;
+    const { sourceId, viewId } = relationshipIdentity;
     const profile = (id, enabled = true) => ({
       id, enabled, detector: "yolo", fps: 6, maxQueue: 1, confidence: 0.25, nms: 0.45,
       trackingClasses: ["person"], analysis: { classes: ["person"] },
@@ -530,12 +575,24 @@ export function createV390UiCaseRuntime({
       clientGroups: [], maxTiles: 1,
     };
     const fixtures = [
-      { endpoint: `/lab/analysis/profiles/${profileId}`, payload: profile(profileId, item.caseId !== "RULE-094") },
-      { endpoint: `/lab/analysis/rules/${templateId}`, payload: template(
+      {
+        createMethod: "PUT",
+        createEndpoint: `/lab/analysis/profiles/${profileId}`,
+        readbackEndpoint: `/lab/analysis/profiles/${profileId}`,
+        cleanupEndpoint: `/lab/analysis/profiles/${profileId}`,
+        payload: profile(profileId, item.caseId !== "RULE-094"),
+      },
+      {
+        createMethod: "PUT",
+        createEndpoint: `/lab/analysis/rules/${templateId}`,
+        readbackEndpoint: `/lab/analysis/rules/${templateId}`,
+        cleanupEndpoint: `/lab/analysis/rules/${templateId}`,
+        payload: template(
         templateId,
         item.caseId !== "RULE-094",
         item.caseId === "RULE-101" ? ["vehicle"] : ["person"],
-      ) },
+        ),
+      },
     ];
     if (["RULE-093", "RULE-094", "RULE-101"].includes(item.caseId)) {
       await requestEndpoint("GET", `/lab/analysis/va-rules/${vaRuleId}`, null, item, context, [404], {
@@ -549,20 +606,61 @@ export function createV390UiCaseRuntime({
     }
     if (item.caseId === "RULE-094") {
       fixtures.push(
-        { endpoint: "/lab/analysis/profiles/9684", payload: profile("9684", true) },
-        { endpoint: "/lab/analysis/rules/9784", payload: template("9784", true) },
+        {
+          createMethod: "PUT", createEndpoint: "/lab/analysis/profiles/9684",
+          readbackEndpoint: "/lab/analysis/profiles/9684", cleanupEndpoint: "/lab/analysis/profiles/9684",
+          payload: profile("9684", true),
+        },
+        {
+          createMethod: "PUT", createEndpoint: "/lab/analysis/rules/9784",
+          readbackEndpoint: "/lab/analysis/rules/9784", cleanupEndpoint: "/lab/analysis/rules/9784",
+          payload: template("9784", true),
+        },
       );
     }
     if (item.caseId === "RULE-101") {
-      fixtures.push({ endpoint: "/lab/analysis/profiles/9681", payload: {
-        ...profile("9681", true),
-        trackingClasses: ["vehicle"],
-        analysis: { classes: ["vehicle"] },
-      } });
+      fixtures.push({
+        createMethod: "PUT", createEndpoint: "/lab/analysis/profiles/9681",
+        readbackEndpoint: "/lab/analysis/profiles/9681", cleanupEndpoint: "/lab/analysis/profiles/9681",
+        payload: {
+          ...profile("9681", true),
+          trackingClasses: ["vehicle"],
+          analysis: { classes: ["vehicle"] },
+        },
+      });
     }
-    fixtures.push({ endpoint: `/ops/api/sources/${sourceId}`, payload: source });
+    const sourceFixture = (value) => ({
+      createMethod: "POST",
+      createEndpoint: "/ops/api/sources",
+      cleanupEndpoint: `/ops/api/sources/${encodeURIComponent(value.sourceId)}`,
+      collectionEndpoint: "/ops/api/sources",
+      collectionRecordsKey: "sources",
+      recordIdField: "sourceId",
+      expectedCreateStatuses: [201],
+      responseField: "source",
+      recordId: value.sourceId,
+      payload: value,
+    });
+    const viewFixture = (value) => ({
+      createMethod: "POST",
+      createEndpoint: "/ops/api/views",
+      cleanupEndpoint: `/ops/api/views/${encodeURIComponent(value.viewId)}`,
+      collectionEndpoint: "/ops/api/views",
+      collectionRecordsKey: "views",
+      recordIdField: "viewId",
+      expectedCreateStatuses: [201],
+      responseField: "view",
+      recordId: value.viewId,
+      payload: value,
+    });
+    fixtures.push(sourceFixture(source));
     if (["RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100"].includes(item.caseId)) {
-      fixtures.push({ endpoint: `/lab/analysis/va-rules/${vaRuleId}`, payload: vaRule });
+      fixtures.push({
+        createMethod: "PUT", createEndpoint: `/lab/analysis/va-rules/${vaRuleId}`,
+        readbackEndpoint: `/lab/analysis/va-rules/${vaRuleId}`,
+        cleanupEndpoint: `/lab/analysis/va-rules/${vaRuleId}`,
+        payload: vaRule,
+      });
     }
     let blockedSource = null;
     let blockedView = null;
@@ -572,30 +670,81 @@ export function createV390UiCaseRuntime({
       disallowedVaRule = vaRuleFor(disallowedRuleId, Number(disallowedRuleId), { kind: "file", file: source.file });
       blockedSource = {
         ...source,
-        sourceId: "93970",
+        sourceId: relationshipIdentity.blockedSourceId,
         displayName: "REVIEW4 RULE-097 blocked source",
         file: "rule-097-blocked-source.mp4",
       };
       blockedView = {
         ...view,
-        viewId: "rule-097-blocked-view",
+        viewId: relationshipIdentity.blockedViewId,
         sourceId: blockedSource.sourceId,
         displayName: "REVIEW4 RULE-097 blocked view",
         defaultRuleId: "",
         allowedRuleIds: [],
       };
       fixtures.push(
-        { endpoint: `/lab/analysis/va-rules/${disallowedRuleId}`, payload: disallowedVaRule },
-        { endpoint: `/ops/api/sources/${blockedSource.sourceId}`, payload: blockedSource },
+        {
+          createMethod: "PUT", createEndpoint: `/lab/analysis/va-rules/${disallowedRuleId}`,
+          readbackEndpoint: `/lab/analysis/va-rules/${disallowedRuleId}`,
+          cleanupEndpoint: `/lab/analysis/va-rules/${disallowedRuleId}`,
+          payload: disallowedVaRule,
+        },
+        sourceFixture(blockedSource),
       );
     }
-    fixtures.push({ endpoint: `/ops/api/views/${viewId}`, payload: view });
-    if (blockedView) fixtures.push({ endpoint: `/ops/api/views/${blockedView.viewId}`, payload: blockedView });
+    fixtures.push(viewFixture(view));
+    if (blockedView) fixtures.push(viewFixture(blockedView));
     for (const fixture of fixtures) {
-      await requestEndpoint("GET", fixture.endpoint, null, item, context, [404], { roleOverride: "operator" });
-      const write = await requestEndpoint("PUT", fixture.endpoint, fixture.payload, item, context, [200, 201], { roleOverride: "operator" });
-      assert(write.json?.ok === true, `${item.caseId} relationship fixture write did not return ok=true: ${fixture.endpoint}`);
-      context.transientApiCleanup.push(fixture.endpoint);
+      if (fixture.collectionEndpoint) {
+        const before = await requestEndpoint("GET", fixture.collectionEndpoint, null, item, context, [200], {
+          roleOverride: "operator",
+        });
+        const records = Array.isArray(before.json?.[fixture.collectionRecordsKey])
+          ? before.json[fixture.collectionRecordsKey]
+          : [];
+        assert(!records.some(record => String(record?.[fixture.recordIdField] || "") === fixture.recordId),
+          `${item.caseId} relationship fixture already exists: ${fixture.collectionEndpoint}/${fixture.recordId}`);
+      } else {
+        await requestEndpoint("GET", fixture.readbackEndpoint, null, item, context, [404], {
+          roleOverride: "operator",
+        });
+      }
+      const write = await requestEndpoint(
+        fixture.createMethod,
+        fixture.createEndpoint,
+        fixture.payload,
+        item,
+        context,
+        fixture.expectedCreateStatuses || [200, 201],
+        { roleOverride: "operator" },
+      );
+      // 생성 성공 뒤 응답·readback 검증이 실패해도 API cleanup 대상은 즉시 등록한다.
+      context.transientApiCleanup.push(fixture.collectionEndpoint
+        ? {
+          endpoint: fixture.cleanupEndpoint,
+          collectionEndpoint: fixture.collectionEndpoint,
+          collectionRecordsKey: fixture.collectionRecordsKey,
+          recordIdField: fixture.recordIdField,
+          recordId: fixture.recordId,
+        }
+        : fixture.cleanupEndpoint);
+      assert(write.json?.ok === true,
+        `${item.caseId} relationship fixture create did not return ok=true: ${fixture.createMethod} ${fixture.createEndpoint}`);
+      if (fixture.responseField) {
+        assert(String(write.json?.[fixture.responseField]?.[fixture.recordIdField] || "") === fixture.recordId,
+          `${item.caseId} relationship fixture create response identity mismatch: ${fixture.createEndpoint}`);
+      }
+      const readback = await requestEndpoint("GET", fixture.collectionEndpoint || fixture.readbackEndpoint, null, item, context, [200], {
+        roleOverride: "operator",
+      });
+      if (fixture.collectionEndpoint) {
+        const records = Array.isArray(readback.json?.[fixture.collectionRecordsKey])
+          ? readback.json[fixture.collectionRecordsKey]
+          : [];
+        const record = records.find(value => String(value?.[fixture.recordIdField] || "") === fixture.recordId);
+        assert(record?.enabled === fixture.payload.enabled,
+          `${item.caseId} relationship fixture collection readback mismatch: ${fixture.collectionEndpoint}/${fixture.recordId}`);
+      }
     }
     context.transientFixtureIds.push(profileId, templateId,
       ...(["RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100"].includes(item.caseId) ? [vaRuleId] : []),
@@ -658,23 +807,37 @@ export function createV390UiCaseRuntime({
   }
 
   async function cleanupTransientApiSeeds(item, context) {
-    const deletedEndpoints = [...context.transientApiCleanup];
-    for (const endpoint of [...context.transientApiCleanup].reverse()) {
+    const cleanupEntries = [...context.transientApiCleanup].map(entry => typeof entry === "string" ? { endpoint: entry } : entry);
+    for (const { endpoint, roleOverride = "operator" } of [...cleanupEntries].reverse()) {
       await requestEndpoint("DELETE", endpoint, null, item, context, [200, 404], {
         freshRole: true,
-        roleOverride: "operator",
+        roleOverride,
       });
     }
     context.transientApiCleanup = [];
-    for (const endpoint of deletedEndpoints) {
-      const sourceViewSoftDelete = endpoint.startsWith("/ops/api/sources/") || endpoint.startsWith("/ops/api/views/");
-      const readback = await requestEndpoint("GET", endpoint, null, item, context, sourceViewSoftDelete ? [200] : [404], {
+    for (const entry of cleanupEntries) {
+      const { endpoint } = entry;
+      const sourceKind = endpoint.startsWith("/ops/api/sources/") ? "source" :
+        (endpoint.startsWith("/ops/api/views/") ? "view" : "");
+      const sourceViewSoftDelete = Boolean(sourceKind);
+      const collectionEndpoint = entry.collectionEndpoint || (sourceKind === "source"
+        ? "/ops/api/sources"
+        : (sourceKind === "view" ? "/ops/api/views" : ""));
+      const collectionRecordsKey = entry.collectionRecordsKey || (sourceKind === "source" ? "sources" : "views");
+      const recordIdField = entry.recordIdField || (sourceKind === "source" ? "sourceId" : "viewId");
+      const recordId = entry.recordId || decodeURIComponent(endpoint.slice(endpoint.lastIndexOf("/") + 1));
+      const readback = await requestEndpoint("GET", collectionEndpoint || endpoint, null, item, context,
+        sourceViewSoftDelete ? [200] : [404], {
         freshRole: true,
         roleOverride: "operator",
       });
       if (sourceViewSoftDelete) {
-        assert((readback.json?.source || readback.json?.view)?.enabled === false,
-          `${item.caseId} transient source/view fixture was not soft-disabled before snapshot restoration`);
+        const records = Array.isArray(readback.json?.[collectionRecordsKey])
+          ? readback.json[collectionRecordsKey]
+          : [];
+        const record = records.find(value => String(value?.[recordIdField] || "") === recordId);
+        assert(record?.enabled === false,
+          `${item.caseId} transient source/view fixture was not soft-disabled in collection readback before snapshot restoration`);
       }
     }
     const catalog = await requestEndpoint(
@@ -1313,10 +1476,21 @@ export function createV390UiCaseRuntime({
 
   async function prepareCatalogRuntimeFixture(item, context) {
     const spec = exactRuntimeOracleFor(item.caseId);
+    const fixturePlan = runtimeFixturePlanFor(spec);
+    if (fixturePlan.length > 0) {
+      await materializeExactRuntimeFixturePlan(item, context, spec, fixturePlan);
+      if (usesEventExactRuntimeBindings(item.caseId)) {
+        await captureEventExactRuntimeBindings(item, context, spec);
+      }
+      return;
+    }
     const fixtureNames = Array.isArray(spec?.setup?.fixtures) ? spec.setup.fixtures : [];
     const eventFixture = item.caseId.startsWith("EVT-") || fixtureNames.some(name =>
       /(?:event|incident|review|rule-suggestion|vlm-summary|resolution)/i.test(String(name)));
-    if (!spec || !eventFixture || !["/ops/events", "/client/events", "/client/live"].includes(spec.route)) return;
+    if (!spec || !eventFixture) return;
+    if (item.caseId.startsWith("EVT-") && !usesEventExactRuntimeBindings(item.caseId)) return;
+    if (!item.caseId.startsWith("EVT-") &&
+        !["/ops/events", "/client/events", "/client/live"].includes(spec.route)) return;
     const eventPath = descriptor?.eventStoragePath;
     assert(eventPath, `${item.caseId} catalog EventRecord storage is unavailable`);
     const observationPath = vlmObservationStoragePath(eventPath);
@@ -1399,6 +1573,305 @@ export function createV390UiCaseRuntime({
       reviewStatus,
       matchedFixture: true,
       recordCount,
+    };
+    if (usesEventExactRuntimeBindings(item.caseId)) {
+      await captureEventExactRuntimeBindings(item, context, spec);
+    }
+  }
+
+  async function captureEventExactRuntimeBindings(item, context, spec) {
+    const requirements = eventExactRuntimeBindingRequirements(item.caseId);
+    const valuesForKey = (value, wantedKey) => {
+      const results = [];
+      const visit = current => {
+        if (Array.isArray(current)) {
+          current.forEach(visit);
+          return;
+        }
+        if (!current || typeof current !== "object") return;
+        for (const [key, child] of Object.entries(current)) {
+          if (key === wantedKey) results.push(child);
+          visit(child);
+        }
+      };
+      visit(value);
+      return results;
+    };
+    const templateValues = {
+      fixtureId: context.fixtureId,
+      eventId: context.fixtureId,
+      id: context.fixtureId,
+      viewId: context.catalogBindings.viewId || descriptor.auth?.defaultViewId || "9001",
+      sourceId: context.catalogBindings.sourceId || defaultPublishedSourceIdentity(descriptor).sourceId,
+      ruleId: context.catalogBindings.ruleId || "1",
+      q: context.catalogBindings.searchQuery || context.fixtureId,
+      evidence: "snapshot",
+      incidentStatus: "open",
+      startTimeMs: "0",
+      endTimeMs: String(Date.now()),
+      limit: "100",
+      offset: "0",
+    };
+    const responseByRequest = {};
+    const responseSamplesByRequest = {};
+    const responseByPath = {};
+    const requestByPath = {};
+    const seedByPath = {};
+    const mergedQuery = {};
+    const baselineBodies = [];
+    for (const request of spec.requests) {
+      assert(["GET", "HEAD"].includes(request.method),
+        `${item.caseId} event runtime baseline cannot pre-dispatch a mutation: ${request.method} ${request.path}`);
+      const endpoint = materializeEventExactTemplate(request.path, templateValues);
+      const identity = `${request.method} ${endpoint}`;
+      Object.assign(mergedQuery,
+        Object.fromEntries(new URL(endpoint, "http://runtime.invalid").searchParams.entries()));
+      const roleOverride = endpoint.startsWith("/client/api/") ? "viewer" : "operator";
+      const count = Number(request.repeat?.count || 1);
+      const intervalMs = Number(request.repeat?.intervalMs || 0);
+      const samples = [];
+      for (let index = 0; index < count; index += 1) {
+        const response = await requestEndpoint(
+          request.method,
+          endpoint,
+          null,
+          item,
+          context,
+          request.allowedStatuses,
+          { freshRole: index === 0, roleOverride },
+        );
+        samples.push({
+          status: response.status,
+          json: response.json,
+          text: response.text,
+        });
+        if (index + 1 < count && intervalMs > 0) {
+          await new Promise(resolve => setTimeout(resolve, intervalMs));
+        }
+      }
+      responseSamplesByRequest[identity] = samples;
+      responseByRequest[identity] = samples.at(-1);
+      const body = samples.at(-1)?.json ?? samples.at(-1)?.text ?? null;
+      baselineBodies.push(body);
+      for (const assertion of request.assertions) {
+        const values = eventExactValuesAtPath(body, assertion.path);
+        const actual = values.length === 1 ? values[0] : values;
+        if (values.length > 0 || ["$text", "$contentType", "$body"].includes(assertion.path)) {
+          responseByPath[assertion.path] = actual;
+        }
+        if (requirements.seedPaths.includes(assertion.path)) {
+          seedByPath[assertion.path] = actual;
+        }
+        if (requirements.requestPaths.includes(assertion.path)) {
+          requestByPath[assertion.path] = { ...mergedQuery };
+        }
+      }
+    }
+    for (const target of requirements.requestPaths) {
+      if (Object.prototype.hasOwnProperty.call(requestByPath, target)) continue;
+      const keys = target.split("/").filter(Boolean);
+      requestByPath[target] = keys.length === 1
+        ? mergedQuery[keys[0]]
+        : Object.fromEntries(keys.filter(key => key in mergedQuery).map(key => [key, mergedQuery[key]]));
+    }
+    for (const target of requirements.seedPaths) {
+      if (Object.prototype.hasOwnProperty.call(seedByPath, target)) continue;
+      const keys = target.split("/").filter(Boolean);
+      const projection = Object.fromEntries(keys.map(key => {
+        const values = baselineBodies.flatMap(body => valuesForKey(body, key));
+        return [key, values.length === 1 ? values[0] : values];
+      }));
+      seedByPath[target] = keys.length === 1 ? projection[keys[0]] : projection;
+    }
+    if (item.caseId === "EVT-003" || item.caseId === "EVT-025") {
+      const sourceId = templateValues.sourceId;
+      const sourceHealth = responseByPath.sourceHealth;
+      assert(Array.isArray(sourceHealth) &&
+        sourceHealth.some(value => String(value?.sourceId || value?.id || "") === sourceId),
+      `${item.caseId} source-health fixture was not materialized for the default published source`);
+      seedByPath.sourceHealth = sourceId;
+      const status = sourceHealth.find(value =>
+        String(value?.sourceId || value?.id || "") === sourceId)?.status;
+      assert(typeof status === "string" && status,
+        `${item.caseId} source-health fixture status is unavailable`);
+      seedByPath["sourceHealth[].status"] = status;
+      templateValues.channelId = sourceId;
+      templateValues.status = status;
+    }
+    const canaries = [
+      context.catalogBindings.redactionCanary,
+      context.catalogBindings.rawCanary ||
+        (item.caseId === "EVT-031" ? `REVIEW4-${context.fixtureId}-RAW-CANARY` : ""),
+      context.catalogBindings.credentialCanary ||
+        (item.caseId === "EVT-057" ? `REVIEW4-${context.fixtureId}-CREDENTIAL-CANARY` : ""),
+    ].filter(Boolean);
+    context.catalogBindings = {
+      ...context.catalogBindings,
+      ...templateValues,
+      eventExactRuntime: {
+        schema: "media-server.v390-ui-event-runtime-bindings.v1",
+        caseId: item.caseId,
+        templateValues,
+        seedByPath,
+        requestByPath,
+        priorResponseByPath: responseByPath,
+        responseByRequest,
+        responseSamplesByRequest,
+        sensitiveCanaries: canaries,
+        repeatedRequests: requirements.repeatedRequests,
+      },
+    };
+  }
+
+  async function materializeExactRuntimeFixturePlan(item, context, spec, fixturePlan) {
+    const plan = new Set(fixturePlan);
+    const source = defaultPublishedSourceIdentity(descriptor);
+    const viewId = String(descriptor.auth?.defaultViewId || "");
+    assert(viewId, `${item.caseId} default PublishedView is unavailable for runtime fixture setup`);
+    const bindings = {
+      ...context.catalogBindings,
+      sourceId: source.sourceId,
+      viewId,
+    };
+
+    if (plan.has("event-record")) {
+      const eventPath = descriptor?.eventStoragePath;
+      assert(eventPath, `${item.caseId} EventRecord storage is unavailable`);
+      const existing = fs.existsSync(eventPath) &&
+        fs.readFileSync(eventPath, "utf8").includes(`\"eventId\":\"${context.fixtureId}\"`);
+      assert(!existing, `${item.caseId} runtime EventRecord fixture already exists`);
+      seedEventRecordFixture(eventPath, {
+        eventId: context.fixtureId,
+        sourceId: source.sourceId,
+        streamId: source.streamId,
+        status: "open",
+      });
+      bindings.eventId = context.fixtureId;
+      if (Array.isArray(spec?.setup?.fixtures) && spec.setup.fixtures.includes("va-metadata-sample")) {
+        // CLIENT-021 메타데이터 출처는 seed하지만 세션은 브라우저 타일이 직접 생성해야 한다.
+        bindings.vaMetadataSampleId = context.fixtureId;
+      }
+    }
+
+    if (plan.has("diagnostic-log-marker")) {
+      const logPath = path.join(rootDir, ".media_server.log");
+      assert(path.resolve(logPath) === path.resolve(rootDir, ".media_server.log"),
+        `${item.caseId} diagnostic log fixture must target the product root log`);
+      if (!context.snapshots.some(snapshot => snapshot.path === path.resolve(logPath))) {
+        context.snapshots.push(...snapshotStateFiles([logPath]));
+      }
+      const marker = `REVIEW4-${context.fixtureId}-LOG-MARKER`;
+      const redactionCanary = `REVIEW4-${context.fixtureId}-REDACTION-CANARY`;
+      fs.appendFileSync(logPath, [
+        `[review4] ${marker} password=${redactionCanary}`,
+        `[review4] ${marker} \"token\":\"${redactionCanary}\"`,
+        `[review4] ${marker} Authorization: Bearer ${redactionCanary}`,
+        `[review4] ${marker} cookie=${redactionCanary}`,
+        `[review4] ${marker} session_secret=${redactionCanary}`,
+      ].join("\n") + "\n", { mode: 0o600 });
+      fs.chmodSync(logPath, 0o600);
+      const logTail = await requestEndpoint(
+        "GET",
+        "/ops/api/diagnostics/log-tail?limit=50",
+        null,
+        item,
+        context,
+        [200],
+        { roleOverride: "operator" },
+      );
+      const lines = Array.isArray(logTail.json?.lines) ? logTail.json.lines.map(value => String(value)) : [];
+      assert(lines.some(line => line.includes(marker)),
+        `${item.caseId} diagnostic marker is missing from the authoritative log-tail readback`);
+      assert(!lines.some(line => line.includes(redactionCanary)),
+        `${item.caseId} diagnostic log-tail did not redact the fixture canary`);
+      assert(lines.filter(line => line.includes(marker)).every(line => line.includes("redacted")),
+        `${item.caseId} diagnostic log-tail did not preserve the marker with redacted sensitive material`);
+      bindings.logMarker = marker;
+    }
+
+    if (plan.has("viewer-raw-session") || plan.has("viewer-va-overlay-session")) {
+      const overlayMode = plan.has("viewer-va-overlay-session") ? "va-overlay" : "raw";
+      const created = await requestEndpoint(
+        "POST",
+        `/client/api/views/${encodeURIComponent(viewId)}/webrtc/session`,
+        { overlayMode },
+        item,
+        context,
+        [200],
+        { freshRole: true, roleOverride: "viewer" },
+      );
+      const sessionId = String(created.json?.sessionId || "");
+      assert(sessionId && created.json?.offer,
+        `${item.caseId} ${overlayMode} runtime session seed is missing sessionId or offer`);
+      context.transientApiCleanup.push({
+        endpoint: `/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`,
+        roleOverride: "viewer",
+      });
+      const runtime = await requestEndpoint(
+        "GET",
+        "/ops/api/runtime/status",
+        null,
+        item,
+        context,
+        [200],
+        { roleOverride: "operator" },
+      );
+      assert(Number(runtime.json?.sessionManager?.activeSessions || 0) >= 1,
+        `${item.caseId} runtime session seed is absent from authoritative runtime status`);
+      if (overlayMode === "va-overlay") {
+        assert(Number(runtime.json?.sessionManager?.activeAnalysisTaps || 0) >= 1,
+          `${item.caseId} VA overlay session seed is absent from authoritative runtime status`);
+      }
+      bindings.sessionId = sessionId;
+      if (overlayMode === "va-overlay") bindings.vaMetadataSampleId = context.fixtureId;
+    }
+
+    if (plan.has("viewer-live-layout-preference")) {
+      const layout = {
+        schema: "media-server.client-live-layout.v1",
+        presetType: "user",
+        workspaceLayout: { gridSize: 2, density: "compact", dockSide: "right" },
+        filters: { eventFeed: "selected-tile", selectedTileIndex: 1, selectedViewId: viewId },
+        overlayDefaults: { infoOverlayEnabled: true },
+        selectedSources: [{ slot: 0, viewId, overlayMode: "raw" }],
+        tiles: [{ slot: 0, viewId, overlayMode: "raw", selected: true }],
+      };
+      const saved = await requestEndpoint(
+        "PUT",
+        "/client/api/preferences/live-layout",
+        layout,
+        item,
+        context,
+        [200, 201],
+        { freshRole: true, roleOverride: "viewer" },
+      );
+      const preference = saved.json?.userPreference?.workspaceLayout;
+      assert(saved.json?.saved === true && preference?.gridSize === 2 &&
+        preference?.density === "compact" && preference?.dockSide === "right",
+      `${item.caseId} saved layout preference response is incomplete`);
+      const readback = await requestEndpoint(
+        "GET",
+        "/client/api/preferences/live-layout",
+        null,
+        item,
+        context,
+        [200],
+        { freshRole: true, roleOverride: "viewer" },
+      );
+      const restored = readback.json?.userPreference?.workspaceLayout;
+      assert(restored?.gridSize === 2 && restored?.density === "compact" && restored?.dockSide === "right",
+        `${item.caseId} saved layout preference is missing from authoritative readback`);
+    }
+
+    context.catalogBindings = bindings;
+    context.transientStateSeeded = true;
+    context.transientSeedReadback = {
+      fixturePlan: [...fixturePlan],
+      sourceId: bindings.sourceId,
+      viewId: bindings.viewId,
+      eventId: bindings.eventId || "",
+      sessionId: bindings.sessionId || "",
+      status: "PASS",
     };
   }
 
@@ -1559,6 +2032,7 @@ export function createV390UiCaseRuntime({
   }
 
   async function preparePersistedFixture(item, context) {
+    if (ruleRelationshipFixtureCaseIds.has(item.caseId)) return;
     if ((item.workflow.inputs || []).some(input => input.kind === "endpoint-action-fixture")) return;
     const setup = (item.workflow.setup || []).find(value =>
       value.kind === "seed-reviewed-state" && value.persistedMutation === true);

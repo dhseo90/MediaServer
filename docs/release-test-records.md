@@ -2889,6 +2889,18 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 정적 최종 gate | Completion 24/24, adapter 16/16, acceptance 19/19, launcher 17/17, final integrity 12/12, feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8, script inventory 11/11, docs links failure 0 | PASS |
 | 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | static rerun readiness / actual PASS 아님 |
 
+### REVIEW4-65 exact 잔여 147건 정적 전수 감사와 실행 준비 보정
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 보존한 actual 경계 | Source `536af3b447206d418701b2479bfd75a275c3a764`, run `v390-test-acceptance-20260724132006-90046`은 exact `277 executed / 276 PASS / 1 FAIL / 147 not-run`에서 RULE-093 source `93093` 조회 404로 중단됐습니다 | actual FAIL preserved, 실제 진행률 65.3% |
+| 잔여 전수 감사 | Position 278~424의 147건을 source route/role/control, fixture identity, endpoint/readback, semantic evidence, cleanup 기준으로 모두 직접 대조했습니다 | static audit 147/147, actual 실행 아님 |
+| 공통 blocker 보정 | RULE-093~101 numeric identity/lifecycle, EVT 41건 evaluator binding과 EVT-024 세 request, MEDIA-017/SAFE-018/SAFE-031 client/live viewer, SAFE-016 negative 404, EVT-004 redaction, EVT-018, CLIENT-005/021, acceptance current build, first-failure closure를 보정했습니다 | focused contracts PASS |
+| 원자 파생물 | Canonical/native generator는 in-memory validation 뒤 두 fixture를 원자 교체하고 중간 실패 시 partial write를 남기지 않습니다. Workflow count는 actionable 28/form-submit 16/persisted 102/read-only 233/hidden-disabled 42/negative-route 3입니다 | native exact 36/36 PASS |
+| Semantic provenance | Candidate `126119d4fc5beef66ed75338c335a21a3807a2d03696d77b9d91ce8690518c5f`, 982 carry-forward+UI-018/EVT-004/SAFE-212/OPS-179 독립 승인입니다. Package/decision SHA는 `d8a09db09436c0838abd0fb6a8c92441240915c7accd1c44d84155b3b30dbf5b`/`81d520bf041e0244bfcd89cab2a97855ce37da617c890cc95e2c74dd2e861bc6`입니다 | Sol/xhigh independent review, audit/approval 986/986 PASS |
+| 정적 최종 gate | Event evaluator 17/17, event 12/12, runtime 31/31, client-safe 10/10, completion 25/25, adapter 16/16, acceptance 21/21, launcher 18/18, final integrity 12/12, Policy v4 9/9·10/10·6/6·7/7, feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8, script 11/11, docs/build/code-comments PASS | static execution readiness 100% |
+| 미실행 경계 | `147/147`은 잔여 case의 정적 검토 완료이며 실제 browser PASS가 아닙니다. 이번 작업에서는 actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | REVIEW4-65 actual acceptance 미완료 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

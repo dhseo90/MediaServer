@@ -5532,7 +5532,7 @@
     {
       "testId": "MEDIA-017",
       "featureId": "MEDIA-017",
-      "route": "/ops/sources",
+      "route": "/client/live",
       "accountRole": "viewer",
       "viewport": {
         "width": 390,
@@ -5592,8 +5592,8 @@
     {
       "testId": "SAFE-018",
       "featureId": "SAFE-018",
-      "route": "/ops",
-      "accountRole": "operator",
+      "route": "/client/live",
+      "accountRole": "viewer",
       "viewport": {
         "width": 390,
         "height": 844
@@ -5682,8 +5682,8 @@
     {
       "testId": "SAFE-031",
       "featureId": "SAFE-031",
-      "route": "/ops",
-      "accountRole": "operator",
+      "route": "/client/live",
+      "accountRole": "viewer",
       "viewport": {
         "width": 390,
         "height": 844

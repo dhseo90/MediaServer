@@ -12,6 +12,7 @@ import {
   domSnapshotDigest,
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
+import { buildNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -913,6 +914,54 @@ check("REVIEW4-58 corrected all activate-control handlers with exact transaction
       completion.localTransition.requiredRequests?.length >= 1,
     `${caseId} live session seed/request completion missing`);
   }
+});
+
+check("REVIEW4-65 event/client composed workflows bind exact product controls and requests", () => {
+  const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
+  const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
+  const generated = buildNativeExactManifest({ canonical, implementation });
+  const byId = new Map(generated.cases.map(item => [item.caseId, item]));
+  for (const [caseId, selector] of new Map([
+    ["EVT-018", "#alertDeliveryTest"],
+    ["EVT-037", "[data-event-review-save]"],
+    ["EVT-038", "#alertDeliveryDryRun"],
+    ["EVT-061", "[data-event-review-save]"],
+    ["EVT-068", "[data-event-review-save]"],
+  ])) {
+    const item = byId.get(caseId);
+    assert(item?.workflow.workflowClass === "persisted-mutation" &&
+      item.workflow.primaryControl.selector === selector &&
+      item.workflow.controlSequence.some(actionItem => actionItem.kind === "execute-persisted-action") &&
+      item.workflow.controlSequence.some(actionItem => actionItem.kind === "verify-independent-readback"),
+    `${caseId} actual event mutation workflow binding missing`);
+  }
+  const client005 = byId.get("CLIENT-005");
+  const client021 = byId.get("CLIENT-021");
+  const client005Transition = client005.workflow.expectedResults[0].completion.localTransition;
+  const client021Transition = client021.workflow.expectedResults[0].completion.localTransition;
+  assert(client005.workflow.primaryControl.selector === "#liveAllStop" &&
+    client005Transition.type === "composed-live-start-all-stop" &&
+    client005Transition.requiredRequests.map(request => request.method).join("|") === "POST|POST|DELETE",
+  "CLIENT-005 composed playback/all-stop request contract drift");
+  assert(client021.workflow.primaryControl.selector === '[data-mode-action="va-overlay"]' &&
+    client021Transition.type === "composed-va-overlay-session" &&
+    client021Transition.requiredRequests.map(request => request.method).join("|") === "POST|POST",
+  "CLIENT-021 composed VA overlay request contract drift");
+
+  const composedStart = exactRunnerSource.indexOf("async function executeComposedClientLiveAction");
+  const composedEnd = exactRunnerSource.indexOf("function materializeComposedClientCompletion", composedStart);
+  const composedSource = exactRunnerSource.slice(composedStart, composedEnd);
+  assert(composedStart >= 0 && composedEnd > composedStart &&
+    !composedSource.includes("fetch(") &&
+    composedSource.includes("[data-mode-action=\"va-overlay\"]") &&
+    composedSource.includes("[data-action=\"toggle-playback\"]") &&
+    composedSource.includes("requestBody.overlayMode") &&
+    composedSource.includes("waitForClientVaOverlayProjection") &&
+    composedSource.includes("vaMetadataSampleId") &&
+    composedSource.includes("backend-precreated active session"),
+  "CLIENT composed runner bypasses or omits the actual product DOM/network boundary");
+  assert(exactRunnerSource.split("catalogBindings: caseContext?.catalogBindings || null").length - 1 === 2,
+    "current case catalog bindings are not passed to both exact runtime oracle executions");
 });
 
 check("REVIEW4-58 form readback snapshots the exact submit control and never relabels the form", () => {

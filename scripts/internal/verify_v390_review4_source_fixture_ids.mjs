@@ -505,7 +505,7 @@ async function waitForServer() {
       const response = await fetch(`${httpBase}/health`);
       if (response.ok) return;
     } catch {
-      // Continue bounded readiness polling.
+      // 제한된 횟수 안에서 readiness polling을 계속한다.
     }
     await delay(100);
   }

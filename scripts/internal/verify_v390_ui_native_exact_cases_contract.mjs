@@ -14,6 +14,8 @@ import {
   createNativeExactExecutionFailureSummary,
   createNativeExactPreExecutionFailureSummary,
   normalizeProductScreenRoute,
+  review4WorkflowClassExpectedCounts,
+  ruleRelationshipFixtureIdentity,
   validateNativeExactCaptureSummary,
   validateNativeExactCleanupContract,
   validateNativeExactManifest,
@@ -32,6 +34,7 @@ import {
   createV390UiCaseRuntime,
   fixtureViewerScopes,
   formReadbackProfiles,
+  runtimeFixturePlanFor,
   runAuthoritativeReadbackWithSnapshotRestore,
   seedExactAccessRequestFixture,
   seedEventRecordFixture,
@@ -48,6 +51,7 @@ const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.js
 const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
 const manifest = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const runnerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"), "utf8");
+const generatorSource = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_v390_ui_native_exact_cases.mjs"), "utf8");
 const nativeLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_exact_cases_lib.mjs"), "utf8");
 const runtimeSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_case_runtime.mjs"), "utf8");
 const environmentSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_acceptance_ui_environment.mjs"), "utf8");
@@ -75,18 +79,149 @@ check("builder is deterministic and preserves exact case order", () => {
     JSON.stringify(canonical.cases.map(item => item.testId)), "canonical ordered IDs drift");
 });
 
+check("canonical and native generator writes are one validated atomic transaction", () => {
+  assert(generatorSource.includes("replaceJsonFixturesAtomically") &&
+    generatorSource.includes("[canonicalPath, canonical]") &&
+    generatorSource.includes("[manifestPath, generated]") &&
+    generatorSource.indexOf("validateNativeExactManifest({ manifest: generated") <
+      generatorSource.indexOf("replaceJsonFixturesAtomically({"),
+  "canonical/native generator does not validate before its atomic replacement");
+  assert(!generatorSource.includes("fs.writeFileSync(canonicalPath") &&
+    !generatorSource.includes("fs.writeFileSync(manifestPath"),
+  "canonical/native generator retains a partial direct-write path");
+});
+
+check("RULE relationship fixtures use one collision-free numeric identity contract", () => {
+  const caseIds = ["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100", "RULE-101"];
+  const identities = caseIds.map(caseId => [caseId, ruleRelationshipFixtureIdentity(caseId)]);
+  const allIds = identities.flatMap(([, identity]) =>
+    [identity.sourceId, identity.viewId, identity.blockedSourceId, identity.blockedViewId].filter(Boolean));
+  assert(allIds.every(value => /^\d+$/.test(value)), "RULE relationship source/view identity must be numeric");
+  assert(new Set(allIds).size === allIds.length, "RULE relationship source/view identity namespace collision");
+
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const byId = new Map(rebuilt.cases.map(item => [item.caseId, item]));
+  for (const caseId of ["RULE-095", "RULE-096"]) {
+    const identity = ruleRelationshipFixtureIdentity(caseId);
+    assert(byId.get(caseId)?.workflow?.productAction?.localAction?.verificationEndpoint?.path ===
+      `/client/api/views/${identity.viewId}/webrtc/session`,
+    `${caseId} numeric session identity drift`);
+  }
+  const rule097Identity = ruleRelationshipFixtureIdentity("RULE-097");
+  const rule097Fixture = byId.get("RULE-097")?.workflow?.inputs
+    ?.find(input => input.kind === "rejected-endpoint-fixture");
+  assert(rule097Fixture?.actualValue?.assignedViewId === rule097Identity.viewId &&
+    rule097Fixture?.actualValue?.blockedViewId === rule097Identity.blockedViewId,
+  "RULE-097 assigned/blocked numeric identity drift");
+  assert(runtimeSource.includes("ruleRelationshipFixtureIdentity(item.caseId)") &&
+    runtimeSource.includes("sourceId: relationshipIdentity.blockedSourceId") &&
+    runtimeSource.includes("viewId: relationshipIdentity.blockedViewId"),
+  "RULE relationship runtime does not consume the shared numeric identity contract");
+  assert(runnerSource.includes("ruleRelationshipFixtureIdentity(item.caseId)") &&
+    !/rule-(?:093|094|095|096|097|098|100|101)-(?:source|view)/.test(runnerSource),
+  "RULE actual browser runner does not consume the shared numeric identity contract");
+  for (const caseId of ["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100", "RULE-101"]) {
+    const identity = ruleRelationshipFixtureIdentity(caseId);
+    assert(runnerSource.includes("relationshipIdentity.sourceId") ||
+      !["RULE-093", "RULE-094", "RULE-100", "RULE-101"].includes(caseId),
+    `${caseId} actual browser runner numeric identity binding missing`);
+    assert(byId.get(caseId), `${caseId} native relationship case missing`);
+    assert(/^\d+$/.test(identity.sourceId) && /^\d+$/.test(identity.viewId),
+      `${caseId} relationship identity is not numeric`);
+  }
+  let unsupportedRule099 = "";
+  try {
+    ruleRelationshipFixtureIdentity("RULE-099");
+  } catch (error) {
+    unsupportedRule099 = String(error?.message || error);
+  }
+  assert(unsupportedRule099.includes("unsupported rule relationship fixture identity: RULE-099") &&
+    !byId.has("RULE-099"),
+  "RULE-099 indirect-only relationship contract was incorrectly promoted to an exact UI fixture");
+});
+
+check("workflow distribution is owned by the shared exact 424 contract", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const counts = Object.fromEntries(Object.keys(review4WorkflowClassExpectedCounts).map(workflowClass => [
+    workflowClass,
+    rebuilt.cases.filter(item => item.workflow.workflowClass === workflowClass).length,
+  ]));
+  assert(JSON.stringify(counts) === JSON.stringify(review4WorkflowClassExpectedCounts),
+    `shared workflow distribution drift: ${JSON.stringify(counts)}`);
+  assert(Object.values(counts).reduce((sum, count) => sum + count, 0) === 424,
+    "shared workflow distribution total must be exact 424");
+
+  const changed = structuredClone(rebuilt);
+  changed.cases.find(item => item.workflow.workflowClass === "actionable").workflow.workflowClass = "read-only-state";
+  let rejected = false;
+  try {
+    validateNativeExactManifest({ manifest: changed, canonical, implementation });
+  } catch {
+    rejected = true;
+  }
+  assert(rejected, "workflow class mutation must fail closed");
+});
+
+check("declared exact runtime seeds materialize through the shared deterministic fixture registry", () => {
+  const runtimeById = new Map(buildExactRuntimeOracleCatalog({ implementation })
+    .map(item => [item.caseId, item]));
+  const expectedPlans = new Map([
+    ["EVT-001", ["viewer-va-overlay-session"]],
+    ["EVT-004", ["diagnostic-log-marker"]],
+    ["EVT-023", ["event-record"]],
+    ["EVT-026", ["event-record", "viewer-va-overlay-session"]],
+    ["EVT-048", ["event-record"]],
+    ["CLIENT-005", []],
+    ["CLIENT-010", ["viewer-live-layout-preference"]],
+    ["CLIENT-021", ["event-record"]],
+  ]);
+  for (const [caseId, expected] of expectedPlans) {
+    const actual = runtimeFixturePlanFor(runtimeById.get(caseId));
+    assert(JSON.stringify(actual) === JSON.stringify(expected),
+      `${caseId} declared runtime fixture plan drift`);
+  }
+  assert(runtimeFixturePlanFor(runtimeById.get("EVT-003")).length === 0,
+    "undeclared runtime seed must not materialize an extra fixture");
+  assert(runtimeFixturePlanFor({ seed: { kind: "unknown-runtime-seed" }, setup: { fixtures: ["unrelated"] } }).length === 0,
+    "unknown runtime seed must fail closed without materializing a fixture");
+  assert(!runtimeFixturePlanFor(runtimeById.get("CLIENT-005")).some(plan => /session/.test(plan)),
+    "CLIENT-005 must not precreate a backend session before the composed UI action");
+  assert(!runtimeFixturePlanFor(runtimeById.get("CLIENT-021")).some(plan => /session/.test(plan)),
+    "CLIENT-021 must not precreate a backend VA session before the composed UI action");
+  for (const snippet of [
+    "async function materializeExactRuntimeFixturePlan",
+    "diagnostic marker is missing from the authoritative log-tail readback",
+    "VA overlay session seed is absent from authoritative runtime status",
+    "saved layout preference is missing from authoritative readback",
+    'roleOverride: "viewer"',
+  ]) assert(runtimeSource.includes(snippet), `shared runtime fixture registry contract missing ${snippet}`);
+});
+
+check("EVT-004 diagnostic log evidence is redacted and byte-restored before native execution", () => {
+  const verifier = path.join(rootDir, "scripts/internal/verify_v390_evt004_diagnostic_log_redaction_contract.mjs");
+  const run = spawnSync(process.execPath, [verifier], {
+    cwd: rootDir,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const output = `${run.stdout || ""}\n${run.stderr || ""}`;
+  assert(run.status === 0, `EVT-004 diagnostic redaction contract failed:\n${output}`);
+  assert(output.includes("- pass: 5") && output.includes("- fail: 0"),
+    `EVT-004 diagnostic redaction summary drift:\n${output}`);
+});
+
 check("audited route-local primary controls match their exact runtime oracles", () => {
   const runtimeById = new Map(buildExactRuntimeOracleCatalog({ implementation })
     .map(item => [item.caseId, item]));
   const expected = new Map([
-    ["EVT-003", ["/ops/dashboard", "#dashRootCauseList"]],
-    ["EVT-018", ["/ops/events", "#alertDeliveryTest"]],
-    ["EVT-022", ["/ops/events", "#event-review-audit-list"]],
-    ["SAFE-053", ["/ops/events", "[data-incident-rule-draft-route]"]],
-    ["SAFE-060", ["/ops/events", '[data-testid="ops-operational-action-pack"]']],
-    ["SAFE-061", ["/ops/events", '[data-testid="ops-rule-what-if-preview"]']],
+    ["EVT-003", ["/ops/dashboard", "#dashRootCauseList", "read-only-state"]],
+    ["EVT-018", ["/ops/events", "#alertDeliveryTest", "persisted-mutation"]],
+    ["EVT-022", ["/ops/events", "#event-review-audit-list", "read-only-state"]],
+    ["SAFE-053", ["/ops/events", "[data-incident-rule-draft-route]", "read-only-state"]],
+    ["SAFE-060", ["/ops/events", '[data-testid="ops-operational-action-pack"]', "read-only-state"]],
+    ["SAFE-061", ["/ops/events", '[data-testid="ops-rule-what-if-preview"]', "read-only-state"]],
   ]);
-  for (const [caseId, [route, selector]] of expected) {
+  for (const [caseId, [route, selector, workflowClass]] of expected) {
     const item = manifest.cases.find(candidate => candidate.caseId === caseId);
     const runtime = runtimeById.get(caseId);
     const runtimeSelector = typeof runtime?.visibleControl === "string"
@@ -94,7 +229,7 @@ check("audited route-local primary controls match their exact runtime oracles", 
       : runtime?.visibleControl?.selector;
     assert(runtime?.route === route && runtimeSelector === selector,
       `${caseId} exact runtime route/control drift`);
-    assert(item?.workflow.workflowClass === "read-only-state" &&
+    assert(item?.workflow.workflowClass === workflowClass &&
       item.workflow.primaryControl.route === route &&
       item.workflow.primaryControl.selector === selector &&
       item.workflow.primaryControl.expectedVisible === true,
@@ -372,6 +507,51 @@ check("SAFE-017 keeps its cross-route negative behavior without changing UI-018 
   assert(item.oracle.kind === "semantic-cross-route-negative-status", "SAFE-017 cross-route oracle missing");
 });
 
+check("MEDIA/SAFE client cases and SAFE-016 negative route use one exact route lifecycle", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const byId = new Map(rebuilt.cases.map(item => [item.caseId, item]));
+  for (const caseId of ["MEDIA-017", "SAFE-018", "SAFE-031"]) {
+    const canonicalCase = canonical.cases.find(item => item.testId === caseId);
+    const item = byId.get(caseId);
+    assert(canonicalCase?.route === "/client/live" && canonicalCase.accountRole === "viewer",
+      `${caseId} canonical client/live viewer source-of-truth mismatch`);
+    assert(item?.canonicalRoute === "/client/live" && item.screenRoute === "/client/live" &&
+      item.accountRole === "viewer" && item.workflow.exactRuntimeOracle.route === "/client/live" &&
+      item.workflow.exactRuntimeOracle.role === "viewer",
+    `${caseId} canonical/screen/runtime oracle route-role binding mismatch`);
+    for (const [field, value, expectedError] of [
+      ["route", "/ops", "canonical/runtime oracle route mismatch"],
+      ["accountRole", "operator", "canonical/runtime oracle role mismatch"],
+    ]) {
+      const mutatedCanonical = structuredClone(canonical);
+      mutatedCanonical.cases.find(candidate => candidate.testId === caseId)[field] = value;
+      let message = "";
+      try {
+        buildNativeExactManifest({ canonical: mutatedCanonical, implementation });
+      } catch (error) {
+        message = String(error?.message || error);
+      }
+      assert(message.includes(expectedError),
+        `${caseId} ${field} mismatch did not fail closed: ${message}`);
+    }
+  }
+
+  const safe016 = byId.get("SAFE-016");
+  assert(safe016?.canonicalRoute === "/ops" && safe016.screenRoute === "/ops" &&
+    safe016.disposition === "native-executable" &&
+    safe016.workflow.workflowClass === "negative-route",
+  "SAFE-016 cross-route negative classification mismatch");
+  const negativeAction = safe016.actions.find(action => action.kind === "navigate-negative");
+  assert(negativeAction?.route === "/__v390-undefined-route__" &&
+    JSON.stringify(negativeAction.allowedStatuses) === "[404]" &&
+    safe016.workflow.productAction.endpoint.path === "/__v390-undefined-route__" &&
+    JSON.stringify(safe016.workflow.productAction.endpoint.allowedStatuses) === "[404]",
+  "SAFE-016 exact undefined-route 404 lifecycle mismatch");
+  assert(!safe016.actions.some(action =>
+    action.kind === "assert-product-state" || action.kind === "assert-product-boundary"),
+  "SAFE-016 negative route still enters the generic source-route readback lifecycle");
+});
+
 check("all cases declare native action, oracle seed, and artifact plan", () => {
   for (const item of manifest.cases) {
     assert(item.dispatch === "playwright-native", `${item.caseId} dispatch mismatch`);
@@ -545,15 +725,7 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
     }
   }
   assert(new Set(workflowIds).size === 424, "workflow IDs must be unique");
-  const expectedWorkflowClassCounts = {
-    "read-only-state": 240,
-    "form-submit": 16,
-    "persisted-mutation": 97,
-    actionable: 27,
-    "negative-route": 2,
-    "hidden-disabled": 42,
-  };
-  for (const [workflowClass, expectedCount] of Object.entries(expectedWorkflowClassCounts)) {
+  for (const [workflowClass, expectedCount] of Object.entries(review4WorkflowClassExpectedCounts)) {
     assert(workflowClassCounts[workflowClass] === expectedCount,
       `${workflowClass} workflow count mismatch: ${workflowClassCounts[workflowClass] || 0}/${expectedCount}`);
   }
@@ -737,10 +909,11 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
   }
   const rule097 = manifest.cases.find(item => item.caseId === "RULE-097");
   const rule097Fixture = rule097.workflow.inputs.find(input => input.kind === "rejected-endpoint-fixture");
+  const rule097Identity = ruleRelationshipFixtureIdentity("RULE-097");
   assert(rule097.workflow.primaryControl.accountRole === "viewer" &&
     rule097.workflow.primaryControl.route === "/client/live" &&
-    rule097Fixture?.actualValue?.assignedViewId === "rule-097-view" &&
-    rule097Fixture?.actualValue?.blockedViewId === "rule-097-blocked-view" &&
+    rule097Fixture?.actualValue?.assignedViewId === rule097Identity.viewId &&
+    rule097Fixture?.actualValue?.blockedViewId === rule097Identity.blockedViewId &&
     rule097Fixture?.actualValue?.disallowedRuleId === "98970" &&
     rule097.workflow.expectedResults[0].completion.readbackExpectation.textIncludesAll.includes("REVIEW4 RULE-097 view"),
   "RULE-097 scoped assigned/blocked client read model contract missing");
@@ -790,8 +963,8 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
   const relationshipExpectations = new Map([
     ["RULE-093", ["/lab/analysis/va-rules/9893", 400, ["missing-profile", "missing-template"]]],
     ["RULE-094", ["/lab/analysis/va-rules/9894", 400, ["inactive-profile", "inactive-template"]]],
-    ["RULE-095", ["/client/api/views/rule-095-view/webrtc/session", 400, ["source-mismatch"]]],
-    ["RULE-096", ["/client/api/views/rule-096-view/webrtc/session", 404, ["inactive-view", "inactive-channel"]]],
+    ["RULE-095", [`/client/api/views/${ruleRelationshipFixtureIdentity("RULE-095").viewId}/webrtc/session`, 400, ["source-mismatch"]]],
+    ["RULE-096", [`/client/api/views/${ruleRelationshipFixtureIdentity("RULE-096").viewId}/webrtc/session`, 404, ["inactive-view", "inactive-channel"]]],
   ]);
   for (const [caseId, [path, status, tokens]] of relationshipExpectations) {
     const item = manifest.cases.find(candidate => candidate.caseId === caseId);
@@ -812,6 +985,37 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
     "scopeRuntimeViewerToView", "scopedViewerBoundaryObserved",
     "allowed vaRule is required for va-rule mode", "priority-conflict candidate reached the VA registry",
   ]) assert(runtimeSource.includes(snippet), `relationship runtime contract missing ${snippet}`);
+  for (const caseId of ["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100", "RULE-101"]) {
+    assert(runtimeSource.includes(`"${caseId}"`), `relationship fixture case binding missing ${caseId}`);
+  }
+  for (const snippet of [
+    "if (ruleRelationshipFixtureCaseIds.has(item.caseId)) return;",
+    'createMethod: "POST",',
+    'createEndpoint: "/ops/api/sources",',
+    'createEndpoint: "/ops/api/views",',
+    'collectionEndpoint: "/ops/api/sources",',
+    'collectionEndpoint: "/ops/api/views",',
+    'collectionRecordsKey: "sources",',
+    'collectionRecordsKey: "views",',
+    "expectedCreateStatuses: [201]",
+    "relationship fixture collection readback mismatch",
+    "transient source/view fixture was not soft-disabled in collection readback before snapshot restoration",
+  ]) assert(runtimeSource.includes(snippet), `relationship fixture lifecycle contract missing ${snippet}`);
+  assert(!runtimeSource.includes("fixtures.push({ endpoint: `/ops/api/sources/${sourceId}`, payload: source });"),
+    "relationship source seed still uses item endpoint fixture shape");
+  const relationshipSeed = runtimeSource.slice(
+    runtimeSource.indexOf("async function seedRuleRelationshipFixturesViaApi"),
+    runtimeSource.indexOf("function scopeRuntimeViewerToView"),
+  );
+  assert(relationshipSeed.indexOf("context.transientApiCleanup.push(fixture.collectionEndpoint") <
+      relationshipSeed.indexOf("const readback = await requestEndpoint"),
+  "relationship fixture cleanup must be registered before authoritative readback validation");
+  assert(!relationshipSeed.includes("readbackEndpoint: `/ops/api/sources/${encodeURIComponent(value.sourceId)}`") &&
+      !relationshipSeed.includes("readbackEndpoint: `/ops/api/views/${encodeURIComponent(value.viewId)}`"),
+  "relationship source/view fixture must use collection readback because item GET is unsupported");
+  assert(runtimeSource.includes('endpoint.startsWith("/ops/api/sources/") ? "source"') &&
+      runtimeSource.includes('endpoint.startsWith("/ops/api/views/") ? "view"'),
+  "all source/view cleanup must derive a collection readback instead of unsupported item GET");
   for (const [caseId, tokens] of new Map([
     ["RULE-103", ["configuredRuleId", "defaultRuleId", "missing-zone-red"]],
     ["RULE-104", ["eventAndVlmSidecar", "approvalGatedRuleDraftReadiness", "registryWritePerformed"]],
@@ -990,8 +1194,13 @@ check("runner owns native execution, role state, first-fail, and artifact fields
   const crossRoleCount = manifest.cases.filter(item => item.workflow.setup.some(setup =>
     setup.kind === "bind-action-role-session" && setup.accountRole !== item.accountRole)).length;
   const secretRefCount = manifest.cases.filter(item => JSON.stringify(item.workflow.inputs).includes("secretRef")).length;
-  assert(persistedSeedCount === 118, `persisted seed closure drift: ${persistedSeedCount}/118`);
-  assert(mutationCleanupCount === 118, `mutation cleanup closure drift: ${mutationCleanupCount}/118`);
+  const requiredMutationClassCount =
+    review4WorkflowClassExpectedCounts["persisted-mutation"] +
+    review4WorkflowClassExpectedCounts["form-submit"];
+  assert(persistedSeedCount === mutationCleanupCount,
+    `persisted seed/cleanup closure drift: ${persistedSeedCount}/${mutationCleanupCount}`);
+  assert(persistedSeedCount >= requiredMutationClassCount,
+    `persisted seed closure does not cover mutation workflow classes: ${persistedSeedCount}/${requiredMutationClassCount}`);
   assert(crossRoleCount === 7, `cross-role closure drift: ${crossRoleCount}/7`);
   assert(secretRefCount === 11, `secretRef case closure drift: ${secretRefCount}/11`);
   assert(runnerSource.indexOf("validateRunnerWorkflowCompatibility(manifest.cases)") <
@@ -1136,7 +1345,8 @@ check("self-contained runtime closes invite, auth readback, preference, and visu
     assert(runnerSource.includes(snippet), `exact runner P0/P1 lifecycle closure missing: ${snippet}`);
   }
   const persistedCases = manifest.cases.filter(item => item.workflow.workflowClass === "persisted-mutation");
-  assert(persistedCases.length === 97, `persisted lifecycle count drift: ${persistedCases.length}/97`);
+  assert(persistedCases.length === review4WorkflowClassExpectedCounts["persisted-mutation"],
+    `persisted lifecycle count drift: ${persistedCases.length}/${review4WorkflowClassExpectedCounts["persisted-mutation"]}`);
   assert(new Set(persistedCases.map(item => item.workflow.controlSequence
     .find(action => action.kind === "execute-persisted-action")?.uiLifecycle?.adapter)).size >= 8,
   "persisted workflows must use domain-specific UI lifecycle adapters");
@@ -1467,10 +1677,22 @@ check("fresh role session restores login audit writes before a read-only case", 
 check("canonical requested route and runtime screen route are explicit projections", () => {
   const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
   const projected = manifest.cases.filter(item => item.canonicalRoute !== item.screenRoute);
-  assert(projected.length === 41, `canonical/runtime route projection count mismatch: ${projected.length}`);
+  const expectedProjected = manifest.cases.filter(item => {
+    const canonicalCase = canonicalById.get(item.caseId);
+    return item.disposition !== "negative-route" &&
+      normalizeProductScreenRoute(canonicalCase?.route || "") !== canonicalCase?.route;
+  });
+  assert(projected.length === expectedProjected.length,
+    `canonical/runtime route projection count mismatch: ${projected.length}/${expectedProjected.length}`);
   for (const item of manifest.cases) {
-    assert(item.canonicalRoute === canonicalById.get(item.caseId)?.route,
+    const canonicalCase = canonicalById.get(item.caseId);
+    assert(item.canonicalRoute === canonicalCase?.route,
       `${item.caseId} canonical requested route drift`);
+    const expectedScreenRoute = item.disposition === "negative-route"
+      ? canonicalCase.route
+      : normalizeProductScreenRoute(canonicalCase.route);
+    assert(item.screenRoute === expectedScreenRoute,
+      `${item.caseId} runtime screen route projection drift`);
     assert(item.disposition === "negative-route" || !item.screenRoute.includes("/api/"),
       `${item.caseId} runtime screen route retains API ownership route`);
   }

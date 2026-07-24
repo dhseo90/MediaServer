@@ -16,6 +16,7 @@ import {
 import {
   createNativeExactExecutionFailureSummary,
   createNativeExactPreExecutionFailureSummary,
+  ruleRelationshipFixtureIdentity,
   validateNativeExactCaptureSummary,
   validateNativeExactManifest,
 } from "./v390_ui_native_exact_cases_lib.mjs";
@@ -33,6 +34,7 @@ import {
   executeCatalogRuntimeOracle,
   executeCatalogRuntimeOracleAtSourceRoute,
   isExistingSpecializedExactOracle,
+  waitForClientVaOverlayProjection,
 } from "./v390_ui_exact_oracle_runtime.mjs";
 import {
   assertRequestedObservedEnvelope,
@@ -472,15 +474,16 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
               status: "PASS",
             });
           } else if (["RULE-093", "RULE-094"].includes(item.caseId)) {
+            const relationshipIdentity = ruleRelationshipFixtureIdentity(item.caseId);
             await browser.evaluate(`(async () => {
               if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
               await openOpsRulesEditor('va-rule', 'new', '');
-              const values = ${JSON.stringify({})};
+              const relationshipIdentity = ${JSON.stringify(relationshipIdentity)};
               const channel = document.getElementById('opsVaRuleChannelSelect');
               const profile = document.getElementById('opsVaRuleProfileSelect');
               const template = document.getElementById('opsVaRuleTemplateSeedSelect');
               if (!channel || !profile || !template) throw new Error('VA relationship controls are unavailable');
-              channel.value = ${JSON.stringify(item.caseId === "RULE-093" ? "rule-093-source" : "rule-094-source")};
+              channel.value = relationshipIdentity.sourceId;
               if (${JSON.stringify(item.caseId)} === 'RULE-093') {
                 profile.add(new Option('missing profile 9997', '9997'));
                 template.add(new Option('missing template 9998', '9998'));
@@ -496,9 +499,11 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
               status: "PASS",
             });
           } else if (item.caseId === "RULE-100") {
+            const relationshipIdentity = ruleRelationshipFixtureIdentity(item.caseId);
             await browser.evaluate(`(async () => {
               if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
               await openOpsRulesEditor('va-rule', 'new', '');
+              const relationshipIdentity = ${JSON.stringify(relationshipIdentity)};
               const id = document.getElementById('opsVaRuleIdInput');
               const channel = document.getElementById('opsVaRuleChannelSelect');
               const profile = document.getElementById('opsVaRuleProfileSelect');
@@ -507,7 +512,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
                 throw new Error('VA priority-conflict controls are unavailable');
               }
               id.value = ${JSON.stringify("3920100")};
-              channel.value = ${JSON.stringify("rule-100-source")};
+              channel.value = relationshipIdentity.sourceId;
               profile.value = ${JSON.stringify("9690")};
               template.value = ${JSON.stringify("9790")};
               if (typeof opsRulesUpdateReviewLoop === 'function') opsRulesUpdateReviewLoop();
@@ -521,16 +526,18 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
               status: "PASS",
             });
           } else if (item.caseId === "RULE-101") {
+            const relationshipIdentity = ruleRelationshipFixtureIdentity(item.caseId);
             await browser.evaluate(`(async () => {
               if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
               await openOpsRulesEditor('va-rule', 'new', '');
+              const relationshipIdentity = ${JSON.stringify(relationshipIdentity)};
               const id = document.getElementById('opsVaRuleIdInput');
               const channel = document.getElementById('opsVaRuleChannelSelect');
               const profile = document.getElementById('opsVaRuleProfileSelect');
               const template = document.getElementById('opsVaRuleTemplateSeedSelect');
               if (!id || !channel || !profile || !template) throw new Error('VA class-binding controls are unavailable');
               id.value = '9891';
-              channel.value = 'rule-101-source';
+              channel.value = relationshipIdentity.sourceId;
               profile.value = '9691';
               template.value = '9791';
               if (typeof opsRulesSetSelectedCategories !== 'function') throw new Error('product category selector is unavailable');
@@ -1113,6 +1120,19 @@ async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwn
         groundPlane: input.actualValue?.groundPlane,
         zoneThreshold: input.actualValue?.zoneThreshold,
         zoneDwellMs: input.actualValue?.zoneDwellMs,
+        reviewStatus: input.actualValue?.reviewStatus,
+        incidentId: input.actualValue?.incidentId,
+        incidentStatus: input.actualValue?.incidentStatus,
+        actionTarget: input.actualValue?.actionTarget,
+        note: input.actualValue?.note,
+        correctedFeatureLabel: input.actualValue?.correctedFeatureLabel,
+        featureAliases: input.actualValue?.featureAliases,
+        reanalysisRequested: input.actualValue?.reanalysisRequested,
+        reanalysisReason: input.actualValue?.reanalysisReason,
+        deliveryKind: input.actualValue?.deliveryKind,
+        deliveryLabel: input.actualValue?.deliveryLabel,
+        deliveryEndpoint: input.actualValue?.deliveryEndpoint,
+        deliveryEnabled: input.actualValue?.deliveryEnabled,
       })};
       if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
       await openOpsRulesEditor(value.mode, value.operation === 'create' ? 'new' : 'edit', value.fixtureId);
@@ -1325,9 +1345,63 @@ async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwn
 
   if (lifecycle.adapter === "event-review-save") {
     const rowSelector = `[data-event-review-row][data-event-id=${JSON.stringify(fixtureId)}]`;
-    await browser.select(`${rowSelector} [data-event-review-field="reviewStatus"]`, "reviewing");
-    await browser.fill(`${rowSelector} [data-event-review-field="note"]`, `REVIEW4 ${item.caseId} runtime review`);
+    await browser.waitForSelector(`${rowSelector} [data-event-review-save]`);
+    await browser.evaluate(`(() => {
+      const row = document.querySelector(${JSON.stringify(rowSelector)});
+      const values = ${JSON.stringify({
+        reviewStatus: input.actualValue?.reviewStatus || "reviewing",
+        incidentId: input.actualValue?.incidentId,
+        incidentStatus: input.actualValue?.incidentStatus,
+        actionTarget: input.actualValue?.actionTarget,
+        note: input.actualValue?.note || `REVIEW4 ${item.caseId} runtime review`,
+        correctedFeatureLabel: input.actualValue?.correctedFeatureLabel,
+        featureAliases: input.actualValue?.featureAliases,
+        reanalysisRequested: input.actualValue?.reanalysisRequested,
+        reanalysisReason: input.actualValue?.reanalysisReason,
+      })};
+      if (!row) throw new Error('event review product row is unavailable');
+      const setValue = (name, value) => {
+        if (value === undefined || value === null) return;
+        const control = row.querySelector('[data-event-review-field="' + name + '"]');
+        if (!control) throw new Error('event review field is unavailable: ' + name);
+        if (control.type === 'checkbox') control.checked = Boolean(value);
+        else control.value = Array.isArray(value) ? value.join(', ') : String(value);
+        control.dispatchEvent(new Event('input', { bubbles: true }));
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+      for (const [name, value] of Object.entries(values)) setValue(name, value);
+      return {
+        eventId: row.dataset.eventId || '',
+        fields: Object.keys(values).filter(name => values[name] !== undefined && values[name] !== null),
+      };
+    })()`);
     return { ...base, selector: `${rowSelector} [data-event-review-save]` };
+  }
+
+  if (["alert-delivery-persist-test", "alert-delivery-dry-run"].includes(lifecycle.adapter)) {
+    await browser.waitForSelector("#alertDeliveryId");
+    await browser.fill("#alertDeliveryId", fixtureId);
+    await browser.select("#alertDeliveryKind", input.actualValue?.deliveryKind || "webhook");
+    await browser.fill("#alertDeliveryLabel", input.actualValue?.deliveryLabel || `REVIEW4 ${item.caseId}`);
+    await browser.fill("#alertDeliveryEndpoint",
+      input.actualValue?.deliveryEndpoint || `https://alerts.example.invalid/${fixtureId}`);
+    const enabled = await browser.snapshot("#alertDeliveryEnabled");
+    const expectedEnabled = input.actualValue?.deliveryEnabled !== false;
+    if (enabled.checked !== expectedEnabled) await browser.click("#alertDeliveryEnabled");
+    const activationSelectors = lifecycle.adapter === "alert-delivery-persist-test"
+      ? ["#alertDeliverySave", "#alertDeliveryTest"]
+      : ["#alertDeliveryDryRun"];
+    for (const selector of activationSelectors) {
+      const control = await browser.snapshot(selector);
+      assert(control.exists && control.visible && !control.disabled,
+        `${item.caseId} alert delivery control is unavailable: ${selector}`);
+    }
+    return {
+      ...base,
+      selector: activationSelectors[0],
+      activationCount: activationSelectors.length,
+      activationSelectors,
+    };
   }
 
   if (lifecycle.adapter === "client-layout-save") {
@@ -1362,6 +1436,36 @@ async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwn
 function assertPersistedRequestBinding(networkResponses, action, lifecycle, caseId) {
   const request = action.semanticCompletion?.request;
   assert(request && lifecycle?.fixtureId, `${caseId} persisted request binding contract missing`);
+  if (lifecycle.requestBinding?.mode === "ordered-exact-requests") {
+    let previousIndex = -1;
+    const observed = lifecycle.requestBinding.expectedRequests.map(expected => {
+      const urlPath = expected.pathTemplate.replaceAll("{fixtureId}", encodeURIComponent(lifecycle.fixtureId));
+      const matches = networkResponses.map((entry, index) => ({ entry, index })).filter(({ entry, index }) => {
+        let pathname = "";
+        try { pathname = new URL(entry.url, "http://127.0.0.1").pathname; } catch { pathname = ""; }
+        return index > previousIndex && entry.phase === "response" &&
+          entry.correlationId === request.correlationId &&
+          entry.method === expected.method && pathname === urlPath &&
+          entry.status >= 200 && entry.status < 300;
+      });
+      assert(matches.length === 1,
+        `${caseId} persisted exact request did not uniquely bind ${expected.method} ${urlPath}: ${matches.length}`);
+      previousIndex = matches[0].index;
+      return {
+        method: expected.method,
+        urlPath,
+        status: matches[0].entry.status,
+        requestId: matches[0].entry.requestId,
+        responseIndex: matches[0].index,
+      };
+    });
+    return {
+      fixtureId: lifecycle.fixtureId,
+      mode: lifecycle.requestBinding.mode,
+      requests: observed,
+      correlationId: request.correlationId,
+    };
+  }
   if (lifecycle.requestBinding?.mode === "ordered-source-view-pair") {
     const observed = lifecycle.requestBinding.expectedRequests.map(expected => {
       const urlPath = expected.pathTemplate.replaceAll("{fixtureId}", encodeURIComponent(lifecycle.fixtureId));
@@ -1658,6 +1762,7 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   let originalSessionCookie = "";
   let runtimeSecretRedaction = null;
   let inviteDomSecretCapture = null;
+  let composedClientLive = null;
   try {
     if (action.kind === "toggle-details") {
       assert(before.tag === "details", `${item.caseId} details contract mismatch`);
@@ -1678,8 +1783,19 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
       executedKind = "select";
     } else if (action.kind === "activate-control") {
       assert(before.visible && before.disabled === false, `${item.caseId} activate control is not actionable`);
-      await browser.click(action.selector);
-      executedKind = "click";
+      composedClientLive = await executeComposedClientLiveAction(
+        browser,
+        item,
+        action,
+        caseContext,
+        networkStart,
+      );
+      if (composedClientLive) {
+        executedKind = composedClientLive.kind;
+      } else {
+        await browser.click(action.selector);
+        executedKind = "click";
+      }
     } else if (action.kind === "submit-form") {
       const input = workflowInput(item, action.inputId, "form-values");
       submittedFormInput = input.actualValue || {};
@@ -1709,8 +1825,18 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
       workflowInput(item, action.inputId, "reversible-fixture-record");
       assert(Boolean(action.endpoint) !== Boolean(action.localAction),
         `${item.caseId} persisted action endpoint/local action must be exclusive`);
-      for (let activation = 0; activation < persistedLifecycle.activationCount; activation += 1) {
-        await browser.click(persistedLifecycle.selector);
+      const activationSelectors = Array.isArray(persistedLifecycle.activationSelectors)
+        ? persistedLifecycle.activationSelectors
+        : Array.from({ length: persistedLifecycle.activationCount }, () => persistedLifecycle.selector);
+      assert(activationSelectors.length === persistedLifecycle.activationCount,
+        `${item.caseId} persisted activation selector count drift`);
+      for (const selector of activationSelectors) {
+        await browser.click(selector);
+        await browser.waitForNetworkQuiet({
+          correlationId: action.semanticCompletion.correlationId,
+          minimumObservationMs: 500,
+          quietMs: 200,
+        });
       }
       executedKind = "persisted-control";
     } else {
@@ -1738,8 +1864,12 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   if (action.kind === "toggle-checkbox") {
     assert(after.checked !== before.checked, `${item.caseId} checkbox did not toggle`);
   }
+  const completionAction = materializeComposedClientCompletion(
+    semanticCompletionAction(action, item),
+    composedClientLive,
+  );
   const actionEvidence = {
-    ...semanticCompletionAction(action, item),
+    ...completionAction,
     controlSelector: action.semanticCompletion.controlSelector || snapshotSelector,
     executedControlSelector: snapshotSelector,
     executedKind,
@@ -1750,6 +1880,7 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
       ...(inviteDomSecretCapture ? { inviteDomSecretCapture } : {}),
       runtimeSecretRedaction,
     } : {}),
+    ...(composedClientLive ? { composedClientLive: structuredClone(composedClientLive) } : {}),
     before,
     after,
     status: "PASS",
@@ -1788,6 +1919,130 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   return {
     actionEvidence: { ...boundActionEvidence, completionStatus: "awaiting-independent-readback" },
     completionOracle: null,
+  };
+}
+
+async function executeComposedClientLiveAction(browser, item, action, caseContext, networkStart) {
+  const type = action.semanticCompletion?.localTransition?.type || "";
+  if (!["composed-live-start-all-stop", "composed-va-overlay-session"].includes(type)) return null;
+  const staleSessionId = String(caseContext?.catalogBindings?.sessionId || "");
+  assert(!staleSessionId,
+    `${item.caseId} composed client interaction forbids a backend-precreated active session`);
+  const tile = await browser.evaluate(`(() => {
+    const roots = Array.from(document.querySelectorAll('[data-tile]'));
+    const root = roots.find(node => String(node.dataset.viewId || '')) || null;
+    if (!root) return null;
+    return {
+      index: String(root.dataset.tile || ''),
+      viewId: String(root.dataset.viewId || ''),
+      playbackDisabled: Boolean(root.querySelector('[data-action="toggle-playback"]')?.disabled),
+    };
+  })()`);
+  assert(tile?.index !== undefined && tile.viewId && tile.playbackDisabled === false,
+    `${item.caseId} composed client interaction has no assigned actionable tile`);
+  const tileSelector = `[data-tile=${JSON.stringify(tile.index)}]`;
+  const playbackSelector = `${tileSelector} [data-action="toggle-playback"]`;
+  let modeSelector = null;
+  let infoOverlayChanged = false;
+  if (type === "composed-va-overlay-session") {
+    modeSelector = `${tileSelector} [data-mode-action="va-overlay"]`;
+    const modeBefore = await browser.snapshot(modeSelector);
+    assert(modeBefore.exists && modeBefore.visible && !modeBefore.disabled,
+      `${item.caseId} VA overlay product mode control is unavailable`);
+    assert(modeBefore.ariaPressed !== "true",
+      `${item.caseId} VA overlay product mode was active before the composed interaction`);
+    await browser.click(modeSelector);
+    const modeAfter = await browser.snapshot(modeSelector);
+    assert(modeAfter.ariaPressed === "true",
+      `${item.caseId} VA overlay product mode did not become active`);
+    const infoToggle = await browser.snapshot("#liveInfoOverlayToggle");
+    assert(infoToggle.exists && infoToggle.visible && !infoToggle.disabled,
+      `${item.caseId} product info overlay toggle is unavailable`);
+    if (!infoToggle.checked) {
+      await browser.click("#liveInfoOverlayToggle");
+      infoOverlayChanged = true;
+    }
+  }
+  await browser.click(playbackSelector);
+  await browser.waitForNetworkQuiet({
+    correlationId: action.semanticCompletion.correlationId,
+    minimumObservationMs: 750,
+    quietMs: 250,
+  });
+  const created = browser.networkEntries().slice(networkStart);
+  const sessionResponse = created.find(entry => entry.phase === "response" &&
+    entry.correlationId === action.semanticCompletion.correlationId &&
+    entry.method === "POST" &&
+    /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(new URL(entry.url).pathname) &&
+    entry.safeResponseBody?.sessionId);
+  assert(sessionResponse?.safeResponseBody?.sessionId,
+    `${item.caseId} composed product playback did not create an observed session`);
+  const sessionId = String(sessionResponse.safeResponseBody.sessionId);
+  const sessionRequest = created.find(entry => entry.phase === "request-start" &&
+    entry.requestId === sessionResponse.requestId);
+  assert(sessionRequest?.requestBody && typeof sessionRequest.requestBody.overlayMode === "string",
+    `${item.caseId} composed product playback request is missing overlayMode`);
+  let vaProjection = null;
+  if (type === "composed-va-overlay-session") {
+    assert(sessionRequest.requestBody.overlayMode === "va-overlay",
+      `${item.caseId} product session request overlayMode drift: ${sessionRequest.requestBody.overlayMode}`);
+    vaProjection = await waitForClientVaOverlayProjection(browser, {
+      caseId: item.caseId,
+      tileSelector,
+      viewId: tile.viewId,
+      vaMetadataSampleId: caseContext?.catalogBindings?.vaMetadataSampleId,
+    });
+    assert(vaProjection.sampleId === String(caseContext?.catalogBindings?.vaMetadataSampleId || ""),
+      `${item.caseId} product VA projection is not bound to the seeded metadata event`);
+  }
+  if (type === "composed-live-start-all-stop") {
+    await browser.click("#liveAllStop");
+    await browser.waitForNetworkQuiet({
+      correlationId: action.semanticCompletion.correlationId,
+      minimumObservationMs: 500,
+      quietMs: 200,
+    });
+    const deleted = browser.networkEntries().slice(networkStart).filter(entry =>
+      entry.phase === "response" &&
+      entry.correlationId === action.semanticCompletion.correlationId &&
+      entry.method === "DELETE" &&
+      new URL(entry.url).pathname.endsWith(`/webrtc/session/${encodeURIComponent(sessionId)}`) &&
+      entry.status === 200);
+    assert(deleted.length === 1,
+      `${item.caseId} product all-stop did not close the UI-created session exactly once`);
+  }
+  return {
+    schema: "media-server.v390-ui-composed-client-live-action.v1",
+    kind: type,
+    tileIndex: tile.index,
+    viewId: tile.viewId,
+    sessionId,
+    overlayMode: sessionRequest.requestBody.overlayMode,
+    modeSelector,
+    playbackSelector,
+    infoOverlayChanged,
+    ...(vaProjection ? { vaProjection: structuredClone(vaProjection) } : {}),
+    cleanupRequired: type === "composed-va-overlay-session",
+    status: "PASS",
+  };
+}
+
+function materializeComposedClientCompletion(actionEvidence, composedClientLive) {
+  if (!composedClientLive || !actionEvidence.expectedLocalTransition) return actionEvidence;
+  const requiredRequests = (actionEvidence.expectedLocalTransition.requiredRequests || []).map(request => ({
+    ...request,
+    urlPath: String(request.urlPath)
+      .replaceAll("{assignedViewId}", encodeURIComponent(composedClientLive.viewId))
+      .replaceAll("{sessionId}", encodeURIComponent(composedClientLive.sessionId)),
+  }));
+  assert(requiredRequests.every(request => !request.urlPath.includes("{")),
+    `${actionEvidence.actionId} composed request binding remained unresolved`);
+  return {
+    ...actionEvidence,
+    expectedLocalTransition: {
+      ...actionEvidence.expectedLocalTransition,
+      requiredRequests,
+    },
   };
 }
 
@@ -1943,6 +2198,7 @@ async function semanticAssertionResult(
         fixtureId: caseContext?.fixtureId || exactFixtureId(item),
         bindings: exactOracleBindings(caseRuntimeOwner, caseContext),
         correlationId: completion.correlationId,
+        catalogBindings: caseContext?.catalogBindings || null,
       });
   if (catalogObservation) {
     exactObserved = { ...observed, exactRuntimeOracle: catalogObservation };
@@ -2119,6 +2375,7 @@ async function executeIndependentReadback(
         fixtureId: caseContext?.fixtureId || exactFixtureId(item),
         bindings: exactOracleBindings(caseRuntimeOwner, caseContext),
         correlationId: pending.action.semanticCompletion.correlationId,
+        catalogBindings: caseContext?.catalogBindings || null,
         primaryAction: item.workflow.workflowClass === "actionable"
           ? pending.actionEvidence
           : null,
@@ -2238,6 +2495,9 @@ function exactOracleBindings(caseRuntimeOwner, caseContext) {
     candidateId: catalog.candidateId || caseContext?.fixtureId || "",
     eventId: catalog.eventId || caseContext?.fixtureId || "",
     searchQuery: catalog.searchQuery || caseContext?.fixtureId || "",
+    sessionId: catalog.sessionId || "",
+    vaMetadataSampleId: catalog.vaMetadataSampleId || "",
+    runtimeTrendBaseline: catalog.runtimeTrendBaseline || null,
   };
 }
 

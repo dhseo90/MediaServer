@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { replaceJsonFixturesAtomically } from "./feature_semantic_review4_apply.mjs";
 import { refreshCanonicalCaseManifest } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { buildNativeExactManifest, validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 
@@ -39,12 +40,35 @@ if (rawArgs.includes("--update-canonical-binding")) {
     canonical,
     implementation,
   });
-  fs.writeFileSync(canonicalPath, `${JSON.stringify(canonical, null, 2)}\n`, "utf8");
 }
 const generated = buildNativeExactManifest({ canonical, implementation });
+validateNativeExactManifest({ manifest: generated, canonical, implementation });
 
-if (rawArgs.includes("--update-manifest") || rawArgs.includes("--update-canonical-binding")) {
-  fs.writeFileSync(manifestPath, `${JSON.stringify(generated, null, 2)}\n`, "utf8");
+if (rawArgs.includes("--update-canonical-binding")) {
+  replaceJsonFixturesAtomically({
+    replacements: [
+      [canonicalPath, canonical],
+      [manifestPath, generated],
+    ],
+    validateReadback: () => {
+      const canonicalReadback = readJson(canonicalPath);
+      const manifestReadback = readJson(manifestPath);
+      validateNativeExactManifest({
+        manifest: manifestReadback,
+        canonical: canonicalReadback,
+        implementation,
+      });
+    },
+  });
+} else if (rawArgs.includes("--update-manifest")) {
+  replaceJsonFixturesAtomically({
+    replacements: [[manifestPath, generated]],
+    validateReadback: () => validateNativeExactManifest({
+      manifest: readJson(manifestPath),
+      canonical,
+      implementation,
+    }),
+  });
 }
 
 assert(fs.existsSync(manifestPath), `exact native manifest missing: ${manifestPath}`);

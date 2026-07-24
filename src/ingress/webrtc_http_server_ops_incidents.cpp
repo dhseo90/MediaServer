@@ -116,6 +116,105 @@ std::string OpsAuditEntriesCsv(const WebRtcHttpRuntimeConfig& config,
     return out.str();
 }
 
+bool IsDiagnosticLogKeyCharacter(const char ch) {
+    return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') ||
+           (ch >= '0' && ch <= '9') || ch == '_' || ch == '-';
+}
+
+bool IsDiagnosticLogSpace(const char ch) {
+    return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n';
+}
+
+std::string CanonicalDiagnosticLogKey(const std::string_view value) {
+    std::string out;
+    out.reserve(value.size());
+    for (const char ch : value) {
+        if (ch == '_' || ch == '-') {
+            continue;
+        }
+        if (ch >= 'A' && ch <= 'Z') {
+            out.push_back(static_cast<char>(ch - 'A' + 'a'));
+        } else {
+            out.push_back(ch);
+        }
+    }
+    return out;
+}
+
+bool IsSensitiveDiagnosticLogKey(const std::string_view key) {
+    const std::string canonical = CanonicalDiagnosticLogKey(key);
+    return canonical.find("password") != std::string::npos ||
+           canonical.find("token") != std::string::npos ||
+           canonical.find("authorization") != std::string::npos ||
+           canonical.find("cookie") != std::string::npos ||
+           canonical.find("session") != std::string::npos ||
+           canonical.find("secret") != std::string::npos ||
+           canonical.find("credential") != std::string::npos ||
+           canonical.find("apikey") != std::string::npos;
+}
+
+std::size_t ConsumeQuotedDiagnosticLogValue(const std::string& line, const std::size_t quote) {
+    std::size_t cursor = quote + 1;
+    while (cursor < line.size()) {
+        if (line[cursor] == '\\') {
+            cursor += 2;
+            continue;
+        }
+        if (line[cursor] == '"') {
+            return cursor + 1;
+        }
+        ++cursor;
+    }
+    return line.size();
+}
+
+std::string RedactDiagnosticLogLine(std::string line) {
+    std::size_t cursor = 0;
+    while (cursor < line.size()) {
+        if (!IsDiagnosticLogKeyCharacter(line[cursor])) {
+            ++cursor;
+            continue;
+        }
+        const std::size_t key_begin = cursor;
+        while (cursor < line.size() && IsDiagnosticLogKeyCharacter(line[cursor])) {
+            ++cursor;
+        }
+        const std::size_t key_end = cursor;
+        if (!IsSensitiveDiagnosticLogKey(std::string_view(line).substr(key_begin, key_end - key_begin))) {
+            continue;
+        }
+
+        const bool quoted_key = key_begin > 0 && line[key_begin - 1] == '"' &&
+                                key_end < line.size() && line[key_end] == '"';
+        std::size_t separator = quoted_key ? key_end + 1 : key_end;
+        while (separator < line.size() && IsDiagnosticLogSpace(line[separator])) {
+            ++separator;
+        }
+        if (separator >= line.size() || (line[separator] != ':' && line[separator] != '=')) {
+            continue;
+        }
+        std::size_t value_begin = separator + 1;
+        while (value_begin < line.size() && IsDiagnosticLogSpace(line[value_begin])) {
+            ++value_begin;
+        }
+        if (value_begin >= line.size()) {
+            continue;
+        }
+
+        const std::size_t replace_begin = quoted_key ? key_begin - 1 : key_begin;
+        const bool quoted_value = line[value_begin] == '"';
+        const std::size_t value_end = quoted_value
+            ? ConsumeQuotedDiagnosticLogValue(line, value_begin)
+            : line.size();
+        const std::string replacement = quoted_key && line[separator] == ':' && quoted_value
+            ? "\"<redacted>\":\"<redacted>\""
+            : "[redacted]";
+        line.replace(replace_begin, value_end - replace_begin, replacement);
+        cursor = replace_begin + replacement.size();
+    }
+    return line;
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27950 function
 std::string OpsDiagnosticLogTailJson(const std::unordered_map<std::string, std::string>& query) {
     const int limit = ParseClampedIntQuery(query, "limit", 80, 1, 500);
@@ -127,7 +226,7 @@ std::string OpsDiagnosticLogTailJson(const std::unordered_map<std::string, std::
         if (static_cast<int>(lines.size()) >= limit) {
             lines.erase(lines.begin());
         }
-        lines.push_back(Trim(line));
+        lines.push_back(RedactDiagnosticLogLine(Trim(line)));
     }
     std::ostringstream out;
     out << "{\"status\":\"ops-diagnostic-log-tail\","

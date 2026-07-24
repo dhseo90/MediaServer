@@ -2252,28 +2252,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEventReviewInboxJson",
           "anchor": "bool OpsEventReviewInboxJson(const WebRtcHttpRuntimeConfig& config,",
-          "line": 6513,
+          "line": 6612,
           "contextSha256": "202391b169484951987da5246414e14e59033089321e7b24742f8b07ef2894d6"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEventReviewInboxJson",
           "anchor": "const std::string incident_status_filter =",
-          "line": 6544,
+          "line": 6643,
           "contextSha256": "96c6d3f76515185bddb2bb052319c4225344c2c425225be51c8381a7ebfe83da"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEventReviewInboxJson",
           "anchor": "std::ostringstream out;",
-          "line": 6586,
+          "line": 6685,
           "contextSha256": "07caaba5410a3d1403ca93b74289805135f8997bc184c3d6c082d5ea43c90faf"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEventReviewInboxJson",
           "anchor": "<< \"\\\"incidentBrief\\\":\" << OpsExplainableIncidentBriefViewJson(event_result.records_json, reviews)",
-          "line": 6656,
+          "line": 6755,
           "contextSha256": "21194ef1c56e0323c3aa716e5bdb1eb33c51825a6e8cf325e013fca6866e29e2"
         },
         "readback": {
@@ -2297,31 +2297,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The actual product/storage owner contains the feature input dispatch.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6513",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:6544"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6612",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:6643"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch reaches the feature-specific action or projection builder.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6544",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:6586"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6643",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:6685"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action writes the authoritative state, reject, or schema projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6586",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:6656"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6685",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:6755"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts OpsExplainableIncidentBriefViewJson.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6656",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6755",
           "target": "scripts/internal/verify_v250_explainable_incident_brief.mjs:41"
         },
         {
@@ -5744,28 +5744,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "std::string OpsRuntimeEvidenceWindowViewJson(",
-          "line": 2201,
+          "line": 2300,
           "contextSha256": "b0e09141cdadffaa5756442222ed738f968002357a352c87ed3d7e5c28465697"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 2205,
+          "line": 2304,
           "contextSha256": "aab589cca7992c995ee3e43cd54afb62e37528e26cc4656d5799452c2db65e39"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "items.push_back(item);",
-          "line": 2226,
+          "line": 2325,
           "contextSha256": "232b5ca4f88da430331f68d27df9209edcee92e5e97d1f1d6cbff36d2f71a0c6"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "<< \"\\\"boundedLocalBuffer\\\":true,\"",
-          "line": 2235,
+          "line": 2334,
           "contextSha256": "d18974f0479d7a09c3c6e3b37f6b18febc6e338ca1f35f6e921f999225d45e10"
         },
         "readback": {
@@ -5789,31 +5789,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "Actual owner contains input dispatch.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2201",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2205"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2300",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2304"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "Dispatch reaches feature action.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2205",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2226"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2304",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2325"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "Action emits authoritative state/reject/projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2226",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2235"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2325",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2334"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "boundedLocalBuffer is asserted in the canonical functional verifier against the exact production function block",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2235",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2334",
           "target": "scripts/internal/verify_v280_runtime_evidence_window.mjs:47"
         },
         {
@@ -22932,28 +22932,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentTriageBoardViewJson",
           "anchor": "std::string OpsIncidentTriageBoardViewJson(",
-          "line": 1379,
+          "line": 1478,
           "contextSha256": "5f451cb34d8501c667bbdbf83abca28e4697f498ed8e0a5f0b5964aeff2ad130"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentTriageBoardViewJson",
           "anchor": "cards.reserve(event_json_records.size());",
-          "line": 1383,
+          "line": 1482,
           "contextSha256": "80dee30927cc62a249a2e1b13da794d469d5aab808978f2f8e8ec95835351d9d"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentTriageBoardViewJson",
           "anchor": "std::ostringstream out;",
-          "line": 1395,
+          "line": 1494,
           "contextSha256": "07caaba5410a3d1403ca93b74289805135f8997bc184c3d6c082d5ea43c90faf"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentTriageBoardViewJson",
           "anchor": "<< \"\\\"cardCount\\\":\" << cards.size() << \",\"",
-          "line": 1410,
+          "line": 1509,
           "contextSha256": "39f4cd48813afce99a6e86cd8b671eb51e465cffc2ea89e381dd222330a183df"
         },
         "readback": {
@@ -22977,31 +22977,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The owner role flows to the dispatch role inside the actual feature implementation.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1379",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1383"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1478",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1482"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch role flows to the action role inside the actual feature implementation.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1383",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1395"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1482",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1494"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action role flows to the state role inside the actual feature implementation.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1395",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1410"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1494",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1509"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts cardCount from the computed source flow.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1410",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1509",
           "target": "scripts/internal/verify_v270_incident_triage_board.mjs:42"
         },
         {
@@ -23032,28 +23032,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentDecisionScorecardViewJson",
           "anchor": "std::string OpsIncidentDecisionScorecardViewJson(",
-          "line": 1513,
+          "line": 1612,
           "contextSha256": "67f65dfa71a98c3f6709a0be887bd670dcfae363b22cbcbfa81f213a7eddb829"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentDecisionScorecardViewJson",
           "anchor": "scorecards.reserve(event_json_records.size());",
-          "line": 1517,
+          "line": 1616,
           "contextSha256": "8f16f6e4649b1a99f0bb7fbda43afcf87cb126a9011d98b29121250ee287465b"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentDecisionScorecardViewJson",
           "anchor": "std::ostringstream out;",
-          "line": 1529,
+          "line": 1628,
           "contextSha256": "07caaba5410a3d1403ca93b74289805135f8997bc184c3d6c082d5ea43c90faf"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentDecisionScorecardViewJson",
           "anchor": "<< \"\\\"scorecardCount\\\":\" << scorecards.size() << \",\"",
-          "line": 1542,
+          "line": 1641,
           "contextSha256": "27abfc99048492c5fe1b3cfc61f982ad874863f22b2a79d7cdfa53a48b3a9814"
         },
         "readback": {
@@ -23077,31 +23077,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The owner role flows to the dispatch role inside the actual feature implementation.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1513",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1517"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1612",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1616"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch role flows to the action role inside the actual feature implementation.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1517",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1529"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1616",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1628"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action role flows to the state role inside the actual feature implementation.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1529",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1542"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1628",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1641"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "The independent canonical verifier asserts scorecardCount from the computed source flow.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1542",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1641",
           "target": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:42"
         },
         {
@@ -23432,28 +23432,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentActionReadinessQueueViewJson",
           "anchor": "std::string OpsIncidentActionReadinessQueueViewJson(",
-          "line": 1836,
+          "line": 1935,
           "contextSha256": "13205759c61a35015b6f5a38c9dfdeb552d787710ec788a822371b739cff396e"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentActionReadinessQueueViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 1840,
+          "line": 1939,
           "contextSha256": "32be5c3d51e4e2f3f4514aa5c6741be3c842622d66a5d5e6caa4b85d81ff216e"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentActionReadinessQueueViewJson",
           "anchor": "for (const std::string& event_json : event_json_records) {",
-          "line": 1845,
+          "line": 1944,
           "contextSha256": "ac4043ff601128a91fc8197eee8d4255c9acd33f89bb6c08ccd5c1acafa63f7c"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentActionReadinessQueueViewJson",
           "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.incident-action-readiness-queue.v1\\\",\"",
-          "line": 1870,
+          "line": 1969,
           "contextSha256": "19a8195269fca1b74be5e29ddc566a6442730cd1d6a4e9d55af5794cd40a3429"
         },
         "readback": {
@@ -23477,31 +23477,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The executable/product owner contains the feature-specific dispatch or input projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1836",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1840"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1935",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1939"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch flows to the feature-specific action without relying on an inventory claim.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1840",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1845"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1939",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1944"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action computes or emits the authoritative feature state/reject/projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1845",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1870"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1944",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1969"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.incident-action-readiness-queue.v1 from the computed source flow.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1870",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1969",
           "target": "scripts/internal/verify_v280_incident_action_readiness_queue.mjs:48"
         },
         {
@@ -23532,28 +23532,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsApprovalGatedRuleDraftReadinessViewJson",
           "anchor": "std::string OpsApprovalGatedRuleDraftReadinessViewJson(",
-          "line": 2551,
+          "line": 2650,
           "contextSha256": "dabab5567891b594c87b4f78737a78acb3e8b9c9815db69633fc9311704a9612"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsApprovalGatedRuleDraftReadinessViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 2555,
+          "line": 2654,
           "contextSha256": "168d5b632eb1a84737131084ad95d8ca8029341ad5264d043a20048ca3a36bac"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsApprovalGatedRuleDraftReadinessViewJson",
           "anchor": "for (const std::string& event_json : event_json_records) {",
-          "line": 2559,
+          "line": 2658,
           "contextSha256": "ac4043ff601128a91fc8197eee8d4255c9acd33f89bb6c08ccd5c1acafa63f7c"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsApprovalGatedRuleDraftReadinessViewJson",
           "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.approval-gated-rule-draft-readiness.v1\\\",\"",
-          "line": 2580,
+          "line": 2679,
           "contextSha256": "b589503fac7e33cf9bca7664176ae3dcb727dae092d2d0f12f4228218bd8dbd1"
         },
         "readback": {
@@ -23577,31 +23577,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The executable/product owner contains the feature-specific dispatch or input projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2551",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2555"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2650",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2654"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch flows to the feature-specific action without relying on an inventory claim.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2555",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2559"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2654",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2658"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action computes or emits the authoritative feature state/reject/projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2559",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2580"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2658",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2679"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.approval-gated-rule-draft-readiness.v1 from the computed source flow.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2580",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2679",
           "target": "scripts/internal/verify_v280_approval_gated_rule_draft.mjs:47"
         },
         {
@@ -23632,28 +23632,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEvidenceIntakeFieldReadinessViewJson",
           "anchor": "std::string OpsEvidenceIntakeFieldReadinessViewJson(",
-          "line": 2037,
+          "line": 2136,
           "contextSha256": "ccfb2020e2b3d244e39ac421e589c30c982bc4d4d0b127c66ce69491a4e1bbe3"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEvidenceIntakeFieldReadinessViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 2041,
+          "line": 2140,
           "contextSha256": "db8328ee6795c709abf3b3aaffec02d1422d821eebdedd1266bd002a27534304"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEvidenceIntakeFieldReadinessViewJson",
           "anchor": "for (const std::string& event_json : event_json_records) {",
-          "line": 2046,
+          "line": 2145,
           "contextSha256": "ac4043ff601128a91fc8197eee8d4255c9acd33f89bb6c08ccd5c1acafa63f7c"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEvidenceIntakeFieldReadinessViewJson",
           "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.evidence-intake-field-readiness.v1\\\",\"",
-          "line": 2078,
+          "line": 2177,
           "contextSha256": "9fdf2a2d151a48290131c6936334d6e86ea5f5d96273b1ebf39e293d1417faf4"
         },
         "readback": {
@@ -23677,31 +23677,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The executable/product owner contains the feature-specific dispatch or input projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2037",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2041"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2136",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2140"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch flows to the feature-specific action without relying on an inventory claim.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2041",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2046"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2140",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2145"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action computes or emits the authoritative feature state/reject/projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2046",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2078"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2145",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2177"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.evidence-intake-field-readiness.v1 from the computed source flow.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2078",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2177",
           "target": "scripts/internal/verify_v280_evidence_intake_field_readiness.mjs:47"
         },
         {
@@ -23732,28 +23732,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "std::string OpsRuntimeEvidenceWindowViewJson(",
-          "line": 2201,
+          "line": 2300,
           "contextSha256": "b0e09141cdadffaa5756442222ed738f968002357a352c87ed3d7e5c28465697"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 2205,
+          "line": 2304,
           "contextSha256": "aab589cca7992c995ee3e43cd54afb62e37528e26cc4656d5799452c2db65e39"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "for (const std::string& event_json : event_json_records) {",
-          "line": 2209,
+          "line": 2308,
           "contextSha256": "ac4043ff601128a91fc8197eee8d4255c9acd33f89bb6c08ccd5c1acafa63f7c"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.runtime-evidence-window.v1\\\",\"",
-          "line": 2231,
+          "line": 2330,
           "contextSha256": "22a58f4c131dd8072bb5b54e6833b4bfb903bddd5e656fa5359d17577898da98"
         },
         "readback": {
@@ -23777,31 +23777,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The executable/product owner contains the feature-specific dispatch or input projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2201",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2205"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2300",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2304"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch flows to the feature-specific action without relying on an inventory claim.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2205",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2209"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2304",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2308"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action computes or emits the authoritative feature state/reject/projection.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2209",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2231"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2308",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2330"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "The independent verifier asserts media-server.ops.runtime-evidence-window.v1 from the computed source flow.",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2231",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2330",
           "target": "scripts/internal/verify_v280_runtime_evidence_window.mjs:46"
         },
         {

@@ -197,6 +197,90 @@ function directDomAssertion(assertion) {
   return DIRECT_DOM_OPERATORS.has(assertion.operator);
 }
 
+export function eventExactRuntimeBindingRequirements(caseId) {
+  const spec = eventExactOracleFor(caseId);
+  const seedPaths = new Set();
+  const requestPaths = new Set();
+  const semanticEvidenceKeys = new Set();
+  let sensitiveCanaryRequired = false;
+  for (const request of spec.requests) {
+    for (const assertion of request.assertions) {
+      if (assertion.operator.includes("seed")) seedPaths.add(assertion.path);
+      if (assertion.operator.includes("request")) requestPaths.add(assertion.path);
+      if (!directResponseAssertion(assertion)) {
+        semanticEvidenceKeys.add(eventExactSemanticEvidenceKey({
+          scope: "response",
+          caseId,
+          operator: assertion.operator,
+          subject: assertion.path,
+        }));
+      }
+      if (genericSensitiveAbsenceOperator(assertion.operator)) sensitiveCanaryRequired = true;
+    }
+  }
+  for (const contract of spec.dom) {
+    for (const assertion of contract.assertions) {
+      if (assertion.operator.includes("seed")) seedPaths.add(assertion.target);
+      if (assertion.operator.includes("request")) requestPaths.add(assertion.target);
+      if (!directDomAssertion(assertion)) {
+        semanticEvidenceKeys.add(eventExactSemanticEvidenceKey({
+          scope: "dom",
+          caseId,
+          operator: assertion.operator,
+          subject: assertion.target,
+        }));
+      }
+      if (genericSensitiveAbsenceOperator(assertion.operator)) sensitiveCanaryRequired = true;
+    }
+  }
+  return Object.freeze({
+    caseId,
+    seedPaths: Object.freeze([...seedPaths]),
+    requestPaths: Object.freeze([...requestPaths]),
+    semanticEvidenceKeys: Object.freeze([...semanticEvidenceKeys]),
+    sensitiveCanaryRequired,
+    repeatedRequests: Object.freeze(spec.requests
+      .filter(request => Number(request.repeat?.count || 1) > 1)
+      .map(request => Object.freeze({
+        method: request.method,
+        path: request.path,
+        count: Number(request.repeat.count),
+        intervalMs: Number(request.repeat.intervalMs || 0),
+      }))),
+  });
+}
+
+export function assertEventExactRuntimeBindings(caseId, context = {}, {
+  requireSemanticEvidence = true,
+} = {}) {
+  const requirements = eventExactRuntimeBindingRequirements(caseId);
+  const missing = [];
+  for (const path of requirements.seedPaths) {
+    if (!Object.prototype.hasOwnProperty.call(context.seedByPath || {}, path) ||
+        context.seedByPath[path] === undefined) {
+      missing.push(`seedByPath:${path}`);
+    }
+  }
+  for (const path of requirements.requestPaths) {
+    if (!Object.prototype.hasOwnProperty.call(context.requestByPath || {}, path) ||
+        context.requestByPath[path] === undefined) {
+      missing.push(`requestByPath:${path}`);
+    }
+  }
+  if (requirements.sensitiveCanaryRequired && forbiddenCanaries(context).length === 0) {
+    missing.push("sensitiveCanaries");
+  }
+  if (requireSemanticEvidence) {
+    for (const key of requirements.semanticEvidenceKeys) {
+      if (semanticEvidenceFor(context, key) === undefined) missing.push(`semanticEvidence:${key}`);
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error(`${caseId} exact event runtime bindings missing: ${missing.join(", ")}`);
+  }
+  return requirements;
+}
+
 export function evaluateEventExactResponseAssertion({ caseId, assertion, responseJson, responseText = "", responseHeaders = {}, context = {} }) {
   let actual;
   if (assertion.path === "$text") actual = responseText;

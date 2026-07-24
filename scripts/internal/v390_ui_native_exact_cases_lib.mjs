@@ -33,6 +33,32 @@ export const review4WorkflowClasses = Object.freeze([
   "hidden-disabled",
   "negative-route",
 ]);
+export const review4WorkflowClassExpectedCounts = Object.freeze({
+  actionable: 28,
+  "form-submit": 16,
+  "persisted-mutation": 102,
+  "read-only-state": 233,
+  "hidden-disabled": 42,
+  "negative-route": 3,
+});
+
+const canonicalRuntimeIdentityCases = new Set([
+  "MEDIA-017",
+  "SAFE-018",
+  "SAFE-031",
+]);
+
+export function ruleRelationshipFixtureIdentity(caseId) {
+  const match = /^RULE-(093|094|095|096|097|098|100|101)$/.exec(String(caseId || ""));
+  assert(match, `unsupported rule relationship fixture identity: ${caseId}`);
+  const suffix = match[1];
+  return Object.freeze({
+    sourceId: `93${suffix}`,
+    viewId: `94${suffix}`,
+    blockedSourceId: caseId === "RULE-097" ? "93970" : "",
+    blockedViewId: caseId === "RULE-097" ? "94970" : "",
+  });
+}
 
 const endpointOwnedActionCases = new Set([
   "AUTH-020",
@@ -279,7 +305,7 @@ const formContracts = new Map([
 ]);
 
 const localOnlyMutationCases = new Set([
-  "UI-026", "UI-036", "UI-046", "RULE-092", "RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101", "RULE-102", "RULE-103", "RULE-104", "RULE-111", "CLIENT-002", "CLIENT-005", "SAFE-038",
+  "UI-026", "UI-036", "UI-046", "RULE-092", "RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101", "RULE-102", "RULE-103", "RULE-104", "RULE-111", "CLIENT-002", "CLIENT-005", "CLIENT-021", "SAFE-038",
 ]);
 const forcedPersistedMutationCases = new Set([
   "RULE-011", "RULE-012", "RULE-016", "RULE-026", "RULE-027", "RULE-028", "RULE-029", "RULE-030",
@@ -292,6 +318,7 @@ const forcedPersistedMutationCases = new Set([
   "RULE-076", "RULE-077", "RULE-078", "RULE-079", "RULE-080", "RULE-081", "RULE-082", "RULE-083",
   "RULE-084", "RULE-085", "RULE-086", "RULE-087", "RULE-088", "RULE-089", "RULE-090", "RULE-091",
   "RULE-073", "RULE-075",
+  "EVT-018", "EVT-037", "EVT-038", "EVT-061", "EVT-068",
 ]);
 const endpointActionCases = new Set();
 const readOnlyBoundaryCases = new Set(["RULE-007", "RULE-025"]);
@@ -503,8 +530,14 @@ const mutationPrimaryControls = new Map([
   ["RULE-104", { selector: "[data-approval-gated-rule-draft-route]", route: "/ops/events" }],
   ["RULE-111", { selector: "[data-vlm-rule-draft-index]", route: "/ops/rules" }],
   ["EVT-021", { selector: "[data-event-review-save]", route: "/ops/events" }],
+  ["EVT-018", { selector: "#alertDeliveryTest", route: "/ops/events" }],
+  ["EVT-037", { selector: "[data-event-review-save]", route: "/ops/events" }],
+  ["EVT-038", { selector: "#alertDeliveryDryRun", route: "/ops/events" }],
+  ["EVT-061", { selector: "[data-event-review-save]", route: "/ops/events" }],
+  ["EVT-068", { selector: "[data-event-review-save]", route: "/ops/events" }],
   ["CLIENT-002", { selector: '[data-action="toggle-playback"]', route: "/client/live" }],
   ["CLIENT-005", { selector: "#liveAllStop", route: "/client/live" }],
+  ["CLIENT-021", { selector: '[data-mode-action="va-overlay"]', route: "/client/live" }],
   ["CLIENT-009", { selector: "#liveSaveLayoutPreference", route: "/client/live" }],
   ["SAFE-038", { selector: "[data-vlm-rule-draft-index]", route: "/ops/rules" }],
   ["UI-036", { selector: "[data-vlm-rule-draft-index]", route: "/ops/rules" }],
@@ -522,7 +555,6 @@ const readModelPrimaryOverrides = new Map([
   ["RULE-097", { selector: '[data-testid="client-live-source-tree"]', route: "/client/live" }],
   ["RULE-098", { selector: "#opsRulesValidationList", route: "/ops/rules" }],
   ["EVT-003", { selector: "#dashRootCauseList", route: "/ops/dashboard" }],
-  ["EVT-018", { selector: "#alertDeliveryTest", route: "/ops/events" }],
   ["EVT-022", { selector: "#event-review-audit-list", route: "/ops/events" }],
   ["SAFE-053", { selector: "[data-incident-rule-draft-route]", route: "/ops/events" }],
   ["SAFE-060", { selector: '[data-testid="ops-operational-action-pack"]', route: "/ops/events" }],
@@ -541,6 +573,10 @@ const overrideControlSourceCatalog = new Map([
   ["#alertDeliveryTest", {
     file: "src/ingress/product_ui_server_pages.cpp",
     anchor: '<button id="alertDeliveryTest" class="button-secondary" type="button">Fixture 전송</button>',
+  }],
+  ["#alertDeliveryDryRun", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<button id="alertDeliveryDryRun" class="button-secondary" type="button">Dry-run</button>',
   }],
   ["#event-review-audit-list", {
     file: "src/ingress/product_ui_server_pages.cpp",
@@ -694,6 +730,10 @@ const overrideControlSourceCatalog = new Map([
     file: "src/ingress/product_ui_client_scripts.cpp",
     anchor: 'data-action="toggle-playback" title="타일 ${tile.index + 1} 재생"',
   }],
+  ['[data-mode-action="va-overlay"]', {
+    file: "src/ingress/product_ui_client_scripts.cpp",
+    anchor: '<button type="button" class="tile-mode-button" data-mode-action="va-overlay" aria-pressed="false" title="VA 오버레이">VA</button>',
+  }],
   ["#liveAllStop", {
     file: "src/ingress/product_ui_client_scripts.cpp",
     anchor: '<button id="liveAllStop" class="ghost danger" type="button">전체 연결 해제</button>',
@@ -749,6 +789,7 @@ const enabledControls = new Set([
   "#opsRulesRefresh",
   '[data-action="toggle-playback"]',
   "#liveAllStop",
+  '[data-mode-action="va-overlay"]',
   '[data-vlm-option-id="local-qwen3-vl-4b"]',
   "[data-vlm-rule-draft-index]",
   "#alertDeliveryTest",
@@ -1047,13 +1088,26 @@ const localCompletionContracts = new Map([
     ],
   }],
   ["CLIENT-005", {
-    seedRequirements: [{ kind: "live-session", state: "active", minimumCount: 1, sessionId: "client-005-review4-session" }],
+    seedRequirements: [{ kind: "live-tile", state: "idle", minimumCount: 1 }],
     requiredRequests: [
-      { sequence: 1, method: "DELETE", urlPath: "/client/api/views/client-005-review4-fixture/webrtc/session/client-005-review4-session", allowedStatuses: [200] },
+      { sequence: 1, method: "POST", urlPath: "/client/api/views/{assignedViewId}/webrtc/session", allowedStatuses: [200] },
+      { sequence: 2, method: "POST", urlPath: "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer", allowedStatuses: [200] },
+      { sequence: 3, method: "DELETE", urlPath: "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}", allowedStatuses: [200] },
     ],
     postconditions: [
       { selector: '[data-action="toggle-playback"]', property: "ariaLabel", operator: "includes", value: "재생" },
       { selector: '[data-role="tile-playback-icon"]', property: "text", operator: "equals", value: "▶" },
+    ],
+  }],
+  ["CLIENT-021", {
+    seedRequirements: [{ kind: "live-tile", state: "idle", minimumCount: 1 }],
+    requiredRequests: [
+      { sequence: 1, method: "POST", urlPath: "/client/api/views/{assignedViewId}/webrtc/session", allowedStatuses: [200] },
+      { sequence: 2, method: "POST", urlPath: "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer", allowedStatuses: [200] },
+    ],
+    postconditions: [
+      { selector: '[data-mode-action="va-overlay"]', property: "ariaPressed", operator: "equals", value: "true" },
+      { selector: '[data-role="status"]', property: "text", operator: "includes", value: "온라인" },
     ],
   }],
   ["SAFE-038", {
@@ -1453,8 +1507,21 @@ export function buildNativeExactManifest({ canonical, implementation }) {
     assert(exactRuntimeOracle?.caseId === canonicalCase.testId,
       `${canonicalCase.testId} exact runtime oracle missing`);
     const negativeRoute = canonicalCase.testId === "UI-018";
-    const crossRouteNegative = canonicalCase.testId === "SAFE-017";
+    const crossRouteNegative = ["SAFE-016", "SAFE-017"].includes(canonicalCase.testId);
     const screenRoute = negativeRoute ? canonicalCase.route : normalizeProductScreenRoute(canonicalCase.route);
+    if (canonicalRuntimeIdentityCases.has(canonicalCase.testId)) {
+      assert(canonicalCase.route === exactRuntimeOracle.route,
+        `${canonicalCase.testId} canonical/runtime oracle route mismatch`);
+      assert(canonicalCase.accountRole === exactRuntimeOracle.role,
+        `${canonicalCase.testId} canonical/runtime oracle role mismatch`);
+      assert(screenRoute === exactRuntimeOracle.route,
+        `${canonicalCase.testId} screen/runtime oracle route mismatch`);
+    }
+    const negativeRoutePath = crossRouteNegative ? exactRuntimeOracle.route : canonicalCase.route;
+    if (crossRouteNegative) {
+      assert(negativeRoutePath.startsWith("/") && negativeRoutePath !== screenRoute,
+        `${canonicalCase.testId} cross-route negative target mismatch`);
+    }
     const canonicalSelector = normalizeCanonicalSelector(canonicalCase.controlAction?.selector, canonicalCase);
     const workflowClass = classifyWorkflow({ canonicalCase, implementationItem, canonicalSelector });
     const primaryControl = resolvePrimaryControl({
@@ -1479,6 +1546,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
       primaryControl,
       negativeRoute,
       crossRouteNegative,
+      negativeRoutePath,
     });
     const primaryActionPlan = primaryWorkflowAction(workflowParts.controlSequence, negativeRoute);
     const actions = workflowParts.controlSequence.map(action => ({
@@ -1823,7 +1891,11 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     const projectionErrors = validateRequestedObservedEnvelope({
       requested: item.requestedProjection,
       observed: item.observedProjection,
-      canonicalCase: canonical.cases[index],
+      canonicalCase: {
+        ...canonical.cases[index],
+        route: expectedItem.canonicalRoute,
+        accountRole: expectedItem.accountRole,
+      },
       nativeCase: item,
     });
     assert(projectionErrors.length === 0,
@@ -1837,16 +1909,8 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     workflowClass,
     manifest.cases.filter(item => item.workflow.workflowClass === workflowClass).length,
   ]));
-  const expectedWorkflowClassCounts = {
-    actionable: 27,
-    "form-submit": 16,
-    "persisted-mutation": 97,
-    "read-only-state": 240,
-    "hidden-disabled": 42,
-    "negative-route": 2,
-  };
   for (const workflowClass of review4WorkflowClasses) {
-    assert(workflowClassCounts[workflowClass] === expectedWorkflowClassCounts[workflowClass],
+    assert(workflowClassCounts[workflowClass] === review4WorkflowClassExpectedCounts[workflowClass],
       `${workflowClass} workflow count mismatch`);
   }
   assert(JSON.stringify(manifest) === JSON.stringify(expected), "generated exact native manifest drift");
@@ -1876,7 +1940,11 @@ export function normalizeProductScreenRoute(route) {
 function classifyWorkflow({ canonicalCase, implementationItem, canonicalSelector }) {
   const flowKind = implementationItem.semanticEvidence?.review4Proof?.flowKind || "";
   if (readModelPrimaryOverrides.has(canonicalCase.testId)) return "read-only-state";
-  if (canonicalCase.testId === "UI-018" || canonicalCase.testId === "SAFE-017") return "negative-route";
+  if (canonicalCase.testId === "UI-018" ||
+      canonicalCase.testId === "SAFE-016" ||
+      canonicalCase.testId === "SAFE-017") {
+    return "negative-route";
+  }
   if (localOnlyMutationCases.has(canonicalCase.testId)) return "actionable";
   if (endpointActionCases.has(canonicalCase.testId)) return "actionable";
   if (formMutationCases.has(canonicalCase.testId) || formSubmitOverrides.has(canonicalCase.testId)) return "form-submit";
@@ -2038,6 +2106,7 @@ function buildCaseNativeWorkflow({
   primaryControl,
   negativeRoute,
   crossRouteNegative,
+  negativeRoutePath,
 }) {
   const caseId = canonicalCase.testId;
   const semantic = implementationItem.semanticEvidence || {};
@@ -2074,6 +2143,7 @@ function buildCaseNativeWorkflow({
     primaryControl,
     negativeRoute,
     crossRouteNegative,
+    negativeRoutePath,
   });
   const inputs = buildWorkflowInputs({
     canonicalCase,
@@ -2138,7 +2208,7 @@ function buildCaseNativeWorkflow({
     if (crossRouteNegative) {
       controlSequence.push(nativeAction("navigate-negative", {
         actionId: `${caseId}:navigate-negative`,
-        route: canonicalCase.route,
+        route: negativeRoutePath,
         allowedStatuses: [404],
       }));
     }
@@ -2276,6 +2346,7 @@ function buildMutationCleanup({
   ].some(prefix => endpointPath.startsWith(prefix));
   const fileBackedState = workflowClass === "form-submit" ||
     caseId === "SRC-031" ||
+    ["EVT-018", "EVT-037", "EVT-038", "EVT-061", "EVT-068"].includes(caseId) ||
     endpointPath === "/client/api/preferences/live-layout" ||
     endpointPath.startsWith("/ops/api/users") ||
     endpointPath.startsWith("/ops/api/invites") ||
@@ -2370,6 +2441,7 @@ function buildProductAction({
   primaryControl,
   negativeRoute,
   crossRouteNegative,
+  negativeRoutePath,
 }) {
   const caseId = canonicalCase.testId;
   if (endpointOwnedActionCases.has(caseId)) {
@@ -2390,7 +2462,7 @@ function buildProductAction({
       kind: "negative-route-request",
       endpoint: {
         method: "GET",
-        path: negativeRoute || crossRouteNegative ? canonicalCase.route : screenRoute,
+        path: negativeRoute || crossRouteNegative ? negativeRoutePath : screenRoute,
         allowedStatuses: [404],
       },
       localAction: null,
@@ -2416,12 +2488,15 @@ function buildProductAction({
   }
   if (workflowClass === "actionable") {
     if (["RULE-092", "RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101"].includes(caseId)) {
+      const relationshipIdentity = ["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101"].includes(caseId)
+        ? ruleRelationshipFixtureIdentity(caseId)
+        : null;
       const verificationEndpoint = caseId === "RULE-092"
         ? { method: "POST", path: "/lab/analysis/rules", allowedStatuses: [400] }
         : (caseId === "RULE-095"
-          ? { method: "POST", path: "/client/api/views/rule-095-view/webrtc/session", allowedStatuses: [400] }
+          ? { method: "POST", path: `/client/api/views/${relationshipIdentity.viewId}/webrtc/session`, allowedStatuses: [400] }
           : (caseId === "RULE-096"
-            ? { method: "POST", path: "/client/api/views/rule-096-view/webrtc/session", allowedStatuses: [404] }
+            ? { method: "POST", path: `/client/api/views/${relationshipIdentity.viewId}/webrtc/session`, allowedStatuses: [404] }
             : { method: "PUT", path: `/lab/analysis/va-rules/${caseId === "RULE-093" ? "9893" : (caseId === "RULE-094" ? "9894" : (caseId === "RULE-101" ? "9891" : "{fixtureId}"))}`, allowedStatuses: [400] }));
       return {
         kind: "rejected-ui-action",
@@ -2438,7 +2513,11 @@ function buildProductAction({
       kind: "local-control-action",
       endpoint: null,
       localAction: {
-        type: localActionType(primaryControl.selector),
+        type: caseId === "CLIENT-005"
+          ? "composed-live-start-all-stop"
+          : (caseId === "CLIENT-021"
+            ? "composed-va-overlay-session"
+            : localActionType(primaryControl.selector)),
         target: primaryControl.selector,
         effect: implementationItem.semanticEvidence?.stateOracle?.expectedBehavior || "reviewed local product state transition",
       },
@@ -2568,13 +2647,25 @@ function mutationProductAction(caseId, implementationItem, primaryControl) {
   }
   if (caseId === "RULE-024") return endpoint("DELETE", "/lab/analysis/profiles/{fixtureId}");
   if (caseId === "EVT-021") return endpoint("PUT", "/ops/api/events/reviews/{fixtureId}");
+  if (caseId === "EVT-018") return endpoint("POST", "/ops/api/alerts/deliveries", [200, 201]);
+  if (caseId === "EVT-038") return endpoint("POST", "/ops/api/alerts/deliveries/dry-run", [200]);
+  if (["EVT-037", "EVT-061", "EVT-068"].includes(caseId)) {
+    return endpoint("PUT", "/ops/api/events/reviews/{fixtureId}", [200]);
+  }
   if (caseId === "CLIENT-009") return endpoint("PUT", "/client/api/preferences/live-layout");
   if (caseId === "RULE-102") return local("update-review-loop", "render event type/conflict/reference/preset/EventRecord review state");
   if (caseId === "RULE-103") return local("click", "refresh configured/default re-entry rules before exact GET and replay readback");
   if (caseId === "RULE-104") return local("navigate", "open the approval-gated event draft in /ops/rules without registry writes");
   if (caseId === "RULE-111") return local("click", "apply one actual VLM candidate to the event-template form without saving or runtime/provider calls");
   if (caseId === "CLIENT-002") return local("click", "start selected live tile and create its client session");
-  if (caseId === "CLIENT-005") return local("click", "stop all live tiles and close their client sessions");
+  if (caseId === "CLIENT-005") {
+    return local("composed-live-start-all-stop",
+      "start the first assigned tile through the product playback control, then stop all product-owned live sessions");
+  }
+  if (caseId === "CLIENT-021") {
+    return local("composed-va-overlay-session",
+      "select the product VA overlay mode, start the assigned tile, and bind the created session to product DOM/network readback");
+  }
   if (caseId === "SAFE-038") return local("click", "apply draft fields without registry, event, schema, media, or viewer write");
   if (caseId === "UI-036") return local("click", "apply the selected VLM candidate to the event-template draft without persisting it");
   const proof = implementationItem.semanticEvidence?.review4Proof || {};
@@ -2651,6 +2742,7 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
       return inputs;
     }
     if (["RULE-092", "RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101"].includes(caseId)) {
+      const relationshipIdentity = caseId === "RULE-092" ? null : ruleRelationshipFixtureIdentity(caseId);
       inputs.push({
         inputId: `${caseId}:local-control-input`,
         kind: "rejected-endpoint-fixture",
@@ -2664,9 +2756,9 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
               : (caseId === "RULE-094"
                 ? { variants: ["inactive-profile", "inactive-template"], profileId: "9694", templateId: "9794" }
                 : (caseId === "RULE-095"
-                  ? { variant: "source-mismatch", viewId: "rule-095-view", ruleId: "9895" }
+                  ? { variant: "source-mismatch", viewId: relationshipIdentity.viewId, ruleId: "9895" }
                   : (caseId === "RULE-096"
-                    ? { variants: ["inactive-view", "inactive-channel"], viewId: "rule-096-view", ruleId: "9896" }
+                    ? { variants: ["inactive-view", "inactive-channel"], viewId: relationshipIdentity.viewId, ruleId: "9896" }
                     : (caseId === "RULE-100"
                       ? { validRuleId: "9890", conflictRuleId: workflowFixtureId(caseId), priority: 9890 }
                       : {
@@ -2718,15 +2810,16 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
     return inputs;
   }
   if (["RULE-097", "RULE-098", "RULE-100"].includes(caseId)) {
+    const relationshipIdentity = ruleRelationshipFixtureIdentity(caseId);
     const exact = {
       "RULE-097": {
-        assignedViewId: "rule-097-view",
-        blockedViewId: "rule-097-blocked-view",
+        assignedViewId: relationshipIdentity.viewId,
+        blockedViewId: relationshipIdentity.blockedViewId,
         allowedRuleId: "9897",
         disallowedRuleId: "98970",
       },
       "RULE-098": {
-        viewId: "rule-098-view",
+        viewId: relationshipIdentity.viewId,
         ruleId: "9898",
         rejectedRequestRole: "viewer",
         expectedStatus: 400,
@@ -2831,6 +2924,49 @@ function endpointOwnedActionInput(canonicalCase, productAction) {
 }
 
 function persistedMutationInputValues(caseId) {
+  if (caseId === "EVT-018") {
+    return {
+      deliveryKind: "webhook",
+      deliveryLabel: "REVIEW4 EVT-018",
+      deliveryEndpoint: "https://alerts.example.invalid/review4-evt-018",
+      deliveryEnabled: true,
+    };
+  }
+  if (caseId === "EVT-038") {
+    return {
+      deliveryKind: "webhook",
+      deliveryLabel: "REVIEW4 EVT-038",
+      deliveryEndpoint: "https://alerts.example.invalid/review4-evt-038",
+      deliveryEnabled: true,
+    };
+  }
+  if (caseId === "EVT-037") {
+    return {
+      reviewStatus: "reviewing",
+      incidentId: "incident:evt-037-review4-fixture",
+      incidentStatus: "investigating",
+      actionTarget: "operator-triage",
+      note: "REVIEW4 EVT-037 incident action",
+    };
+  }
+  if (caseId === "EVT-061") {
+    return {
+      reviewStatus: "reviewing",
+      correctedFeatureLabel: "review4-corrected-feature",
+      featureAliases: ["review4-alias-a", "review4-alias-b"],
+      reanalysisRequested: true,
+      reanalysisReason: "REVIEW4 EVT-061 exact reanalysis",
+    };
+  }
+  if (caseId === "EVT-068") {
+    return {
+      reviewStatus: "reviewing",
+      incidentId: "incident:evt-068-review4-fixture",
+      incidentStatus: "resolved",
+      actionTarget: "review4-operator",
+      note: "REVIEW4 EVT-068 resolution",
+    };
+  }
   if (caseId === "SRC-009") {
     return { displayName: "File Source Updated", zone: "South", file: "sample_h265.mp4" };
   }
@@ -2966,7 +3102,9 @@ function persistedUiLifecycle(caseId, productAction, inputs) {
   else if (caseId === "RULE-020") adapter = "rule-event-delete";
   else if (["RULE-022", "RULE-023", "RULE-026", "RULE-027", "RULE-028", "RULE-029", "RULE-030", "RULE-031", "RULE-032", "RULE-033"].includes(caseId)) adapter = "rule-profile-save";
   else if (caseId === "RULE-024") adapter = "rule-profile-delete";
-  else if (caseId === "EVT-021") adapter = "event-review-save";
+  else if (["EVT-021", "EVT-037", "EVT-061", "EVT-068"].includes(caseId)) adapter = "event-review-save";
+  else if (caseId === "EVT-018") adapter = "alert-delivery-persist-test";
+  else if (caseId === "EVT-038") adapter = "alert-delivery-dry-run";
   else if (caseId === "CLIENT-009") adapter = "client-layout-save";
   assert(adapter, `${caseId} persisted UI lifecycle adapter is not classified`);
   let requestBinding = null;
@@ -2980,6 +3118,22 @@ function persistedUiLifecycle(caseId, productAction, inputs) {
             { method: "PUT", pathTemplate: "/ops/api/sources/{fixtureId}" },
             { method: "PUT", pathTemplate: "/ops/api/views/{fixtureId}" },
           ],
+    };
+  }
+  if (adapter === "alert-delivery-persist-test") {
+    requestBinding = {
+      mode: "ordered-exact-requests",
+      expectedRequests: [
+        { method: "POST", pathTemplate: "/ops/api/alerts/deliveries" },
+        { method: "POST", pathTemplate: "/ops/api/alerts/deliveries/test" },
+      ],
+    };
+  } else if (adapter === "alert-delivery-dry-run") {
+    requestBinding = {
+      mode: "ordered-exact-requests",
+      expectedRequests: [
+        { method: "POST", pathTemplate: "/ops/api/alerts/deliveries/dry-run" },
+      ],
     };
   }
   return {

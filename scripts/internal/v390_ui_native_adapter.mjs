@@ -224,7 +224,7 @@ async function openNativePlaywrightPage(playwright, {
       safeResponseReadFailures,
     });
     if (endpointOwnedProjection) {
-      // The shared response-listener projection owns endpoint-action evidence.
+      // 공용 response listener projection이 endpoint-action evidence를 소유한다.
     } else if (request.method() === "POST" && /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(urlPath(response.url()))) {
       const read = response.json()
         .then(payload => {

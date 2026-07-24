@@ -2,12 +2,12 @@
   "schema": "media-server.v390-ui-native-exact-cases.v2",
   "sourceBindings": {
     "canonicalSchema": "media-server.ui-fulltest-canonical-case-manifest.v1",
-    "canonicalSha256": "56b9fa6f376664856e8df1a6434b8659e91675f5a7f3884fb4c865736824c80c",
+    "canonicalSha256": "a9771e0261ca525c822161e348708c0993ed9c86c4fcfca360704cacbbc9421a",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "6edf57d536cf063c995a18b880c56d0936007eee5d02a9a1297aa588763169d2",
+    "implementationProjectionSha256": "7bf71787c8ae439745965a10e1d7829f806f3c406b26a4444806d7102426f493",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "e3914cf200ab185a112b1d9b5635f9f7ccde02c2db497721cd25d3fdccc50e06",
+    "runtimeOracleCatalogSha256": "5c5eb4d65cd133c1b46e883576867494360c51a75bdfac08f86c0175c1eadd85",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -10787,7 +10787,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "14a89dc1ea9c38241519ebe69b0dae4145f3dd22f03a6a738b33c6a9a4871345",
+            "semanticCallChainSha256": "fe58f5d64a9925ccb279e669585a02287e4fd7103285ea110b285cfac7a74a9a",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -10869,7 +10869,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "14a89dc1ea9c38241519ebe69b0dae4145f3dd22f03a6a738b33c6a9a4871345"
+          "assertedSemanticDigest": "fe58f5d64a9925ccb279e669585a02287e4fd7103285ea110b285cfac7a74a9a"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -10881,7 +10881,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "e722d5bb33d7d4c7d68a88602d53f5003a39b93a39ebff1041db5b1c61878cf3",
+          "specSha256": "6cf4570b8ea41903197f2235feab307f31e53af2c3fdc328522226944451df09",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11008,7 +11008,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "14a89dc1ea9c38241519ebe69b0dae4145f3dd22f03a6a738b33c6a9a4871345"
+            "semanticCallChainSha256": "fe58f5d64a9925ccb279e669585a02287e4fd7103285ea110b285cfac7a74a9a"
           }
         ]
       },
@@ -186254,10 +186254,10 @@
             "kind": "rejected-endpoint-fixture",
             "actualValue": {
               "method": "POST",
-              "path": "/client/api/views/rule-095-view/webrtc/session",
+              "path": "/client/api/views/94095/webrtc/session",
               "body": {
                 "variant": "source-mismatch",
-                "viewId": "rule-095-view",
+                "viewId": "94095",
                 "ruleId": "9895"
               }
             },
@@ -186294,7 +186294,7 @@
             "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
             "verificationEndpoint": {
               "method": "POST",
-              "path": "/client/api/views/rule-095-view/webrtc/session",
+              "path": "/client/api/views/94095/webrtc/session",
               "allowedStatuses": [
                 400
               ]
@@ -186985,13 +186985,13 @@
             "kind": "rejected-endpoint-fixture",
             "actualValue": {
               "method": "POST",
-              "path": "/client/api/views/rule-096-view/webrtc/session",
+              "path": "/client/api/views/94096/webrtc/session",
               "body": {
                 "variants": [
                   "inactive-view",
                   "inactive-channel"
                 ],
-                "viewId": "rule-096-view",
+                "viewId": "94096",
                 "ruleId": "9896"
               }
             },
@@ -187028,7 +187028,7 @@
             "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
             "verificationEndpoint": {
               "method": "POST",
-              "path": "/client/api/views/rule-096-view/webrtc/session",
+              "path": "/client/api/views/94096/webrtc/session",
               "allowedStatuses": [
                 404
               ]
@@ -187751,8 +187751,8 @@
             "inputId": "RULE-097:exact-runtime-boundary",
             "kind": "rejected-endpoint-fixture",
             "actualValue": {
-              "assignedViewId": "rule-097-view",
-              "blockedViewId": "rule-097-blocked-view",
+              "assignedViewId": "94097",
+              "blockedViewId": "94970",
               "allowedRuleId": "9897",
               "disallowedRuleId": "98970"
             },
@@ -188435,7 +188435,7 @@
             "inputId": "RULE-098:exact-runtime-boundary",
             "kind": "rejected-endpoint-fixture",
             "actualValue": {
-              "viewId": "rule-098-view",
+              "viewId": "94098",
               "ruleId": "9898",
               "rejectedRequestRole": "viewer",
               "expectedStatus": 400,
@@ -195555,7 +195555,7 @@
             "setupId": "EVT-004:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "b599968b654ae9e869ca059be78d956c2e49147eb5b02a220fd3afc08c1cb6ef",
+            "semanticCallChainSha256": "7423ddc5ffba2b97efed052b62876aa35f1da346aa92f98a604d76d3789e290a",
             "persistedMutation": false,
             "fixtureId": "evt-004-review4-fixture",
             "beforeSnapshotRef": null
@@ -195637,7 +195637,7 @@
             "contextSha256": "c127b4251e7787da8460210c60a22a9d7d827f173d469e8962300bbbb9cb68de"
           },
           "verifierCommand": "verify-ops-click-e2e",
-          "assertedSemanticDigest": "b599968b654ae9e869ca059be78d956c2e49147eb5b02a220fd3afc08c1cb6ef"
+          "assertedSemanticDigest": "7423ddc5ffba2b97efed052b62876aa35f1da346aa92f98a604d76d3789e290a"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-event-oracle.v1",
@@ -195888,7 +195888,7 @@
             "cleanupId": "EVT-004:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "b599968b654ae9e869ca059be78d956c2e49147eb5b02a220fd3afc08c1cb6ef"
+            "semanticCallChainSha256": "7423ddc5ffba2b97efed052b62876aa35f1da346aa92f98a604d76d3789e290a"
           }
         ]
       },
@@ -197807,7 +197807,7 @@
         "selector": "#alertDeliveryTest",
         "requestedSelector": "#dashRuntimeOpsList",
         "canonicalSelector": "#dashRuntimeOpsList",
-        "selectorSource": "review4-read-model-control-override",
+        "selectorSource": "review4-mutation-control-override",
         "actionAnchor": "DispatchOpsAlertDeliveryFixture",
         "actionRoute": "/ops/events",
         "targetSelector": "#alertDeliveryTest"
@@ -197872,33 +197872,73 @@
           "dispatch": "playwright-native",
           "actionId": "EVT-018:wait-visible",
           "selector": "#alertDeliveryTest",
-          "selectorSource": "review4-read-model-control-override"
+          "selectorSource": "review4-mutation-control-override"
         },
         {
-          "kind": "assert-visible-read-model",
+          "kind": "execute-persisted-action",
           "dispatch": "playwright-native",
-          "actionId": "EVT-018:assert-visible-read-model",
+          "actionId": "EVT-018:execute-persisted-action",
           "selector": "#alertDeliveryTest",
+          "endpoint": {
+            "method": "POST",
+            "path": "/ops/api/alerts/deliveries",
+            "allowedStatuses": [
+              200,
+              201
+            ]
+          },
+          "localAction": null,
+          "inputId": "EVT-018:mutation-fixture",
+          "uiLifecycle": {
+            "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+            "adapter": "alert-delivery-persist-test",
+            "fixtureBinding": {
+              "fixtureId": "evt-018-review4-fixture",
+              "requestMethod": "POST",
+              "requestPathTemplate": "/ops/api/alerts/deliveries"
+            },
+            "requestBinding": {
+              "mode": "ordered-exact-requests",
+              "expectedRequests": [
+                {
+                  "method": "POST",
+                  "pathTemplate": "/ops/api/alerts/deliveries"
+                },
+                {
+                  "method": "POST",
+                  "pathTemplate": "/ops/api/alerts/deliveries/test"
+                }
+              ]
+            },
+            "requiredPhases": [
+              "select-or-open",
+              "populate-valid-product-input",
+              "activate-primary-control",
+              "correlated-request",
+              "authoritative-readback"
+            ]
+          },
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "EVT-018:assert-visible-read-model",
-            "actionKind": "assert-visible-read-model",
+            "actionId": "EVT-018:execute-persisted-action",
+            "actionKind": "execute-persisted-action",
             "controlSelector": "#alertDeliveryTest",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "EVT-018:assert-visible-read-model:completion",
+            "correlationId": "EVT-018:execute-persisted-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "EVT-018:assert-visible-read-model:completion",
+              "correlationId": "EVT-018:execute-persisted-action:completion",
               "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/events",
-              "urlPath": "/ops/events",
+              "method": "POST",
+              "urlPathTemplate": "/ops/api/alerts/deliveries",
+              "urlPath": "/ops/api/alerts/deliveries",
               "pathParameters": {},
               "allowedStatuses": [
-                200
+                200,
+                201
               ]
             },
             "localTransition": null,
@@ -197917,8 +197957,7 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#EVT-018:oracle#0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "persistedMutationObserved": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -197949,7 +197988,7 @@
             "actionId": "EVT-018:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "EVT-018:assert-visible-read-model",
+            "linkedPrimaryActionId": "EVT-018:execute-persisted-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "EVT-018:verify-independent-readback:completion",
             "request": null,
@@ -197985,7 +198024,7 @@
       "workflow": {
         "schema": "media-server.v390-ui-case-native-workflow.v2",
         "workflowId": "EVT-018:native-workflow",
-        "workflowClass": "read-only-state",
+        "workflowClass": "persisted-mutation",
         "semanticClassification": {
           "flowKind": "read-model",
           "operation": "read",
@@ -198002,12 +198041,12 @@
           {
             "kind": "seed-reviewed-state",
             "setupId": "EVT-018:reviewed-state",
-            "strategy": "read-only-state",
+            "strategy": "persisted-mutation",
             "route": "/ops/events",
             "semanticCallChainSha256": "35c3fe245bd7891a3f6071cc628e21bb7eb8a4cc00bab97b579e10c274f2ed8f",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "evt-018-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "EVT-018:before-product-state"
           }
         ],
         "inputs": [
@@ -198018,12 +198057,21 @@
             "sensitive": false
           },
           {
-            "inputId": "EVT-018:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "EVT-018:mutation-fixture",
+            "kind": "reversible-fixture-record",
             "actualValue": {
-              "method": "GET",
-              "path": "/ops/events",
-              "accountRole": "operator"
+              "id": "evt-018-review4-fixture",
+              "displayName": "REVIEW4 EVT-018 fixture",
+              "operation": "read",
+              "deliveryKind": "webhook",
+              "deliveryLabel": "REVIEW4 EVT-018",
+              "deliveryEndpoint": "https://alerts.example.invalid/review4-evt-018",
+              "deliveryEnabled": true
+            },
+            "seedReference": {
+              "fixtureId": "evt-018-review4-fixture",
+              "accountRole": "operator",
+              "route": "/ops/events"
             },
             "sensitive": false
           }
@@ -198033,7 +198081,7 @@
           "selector": "#alertDeliveryTest",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-read-model-control-override",
+          "source": "review4-mutation-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
@@ -198045,12 +198093,13 @@
           }
         },
         "productAction": {
-          "kind": "product-state-read",
+          "kind": "persisted-mutation-request",
           "endpoint": {
-            "method": "GET",
-            "path": "/ops/events",
+            "method": "POST",
+            "path": "/ops/api/alerts/deliveries",
             "allowedStatuses": [
-              200
+              200,
+              201
             ]
           },
           "localAction": null
@@ -198087,8 +198136,8 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "saving and testing an alert integration records delivered fixture while endpoint credentials remain redacted",
-          "specSha256": "1622354f8a0c4d5151660195fdd3f19f8aca18f103b2efd6876d2983532acc1c",
-          "requestCount": 2,
+          "specSha256": "4de4737faaddb140e15ce1f791a0c7bd34043896263886bc2bb14537760e693a",
+          "requestCount": 3,
           "domAssertionCount": 2,
           "stateSnapshotCount": 13,
           "cleanupStrategy": "restore-byte-exact-snapshots",
@@ -198154,33 +198203,73 @@
             "dispatch": "playwright-native",
             "actionId": "EVT-018:wait-visible",
             "selector": "#alertDeliveryTest",
-            "selectorSource": "review4-read-model-control-override"
+            "selectorSource": "review4-mutation-control-override"
           },
           {
-            "kind": "assert-visible-read-model",
+            "kind": "execute-persisted-action",
             "dispatch": "playwright-native",
-            "actionId": "EVT-018:assert-visible-read-model",
+            "actionId": "EVT-018:execute-persisted-action",
             "selector": "#alertDeliveryTest",
+            "endpoint": {
+              "method": "POST",
+              "path": "/ops/api/alerts/deliveries",
+              "allowedStatuses": [
+                200,
+                201
+              ]
+            },
+            "localAction": null,
+            "inputId": "EVT-018:mutation-fixture",
+            "uiLifecycle": {
+              "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+              "adapter": "alert-delivery-persist-test",
+              "fixtureBinding": {
+                "fixtureId": "evt-018-review4-fixture",
+                "requestMethod": "POST",
+                "requestPathTemplate": "/ops/api/alerts/deliveries"
+              },
+              "requestBinding": {
+                "mode": "ordered-exact-requests",
+                "expectedRequests": [
+                  {
+                    "method": "POST",
+                    "pathTemplate": "/ops/api/alerts/deliveries"
+                  },
+                  {
+                    "method": "POST",
+                    "pathTemplate": "/ops/api/alerts/deliveries/test"
+                  }
+                ]
+              },
+              "requiredPhases": [
+                "select-or-open",
+                "populate-valid-product-input",
+                "activate-primary-control",
+                "correlated-request",
+                "authoritative-readback"
+              ]
+            },
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-018:assert-visible-read-model",
-              "actionKind": "assert-visible-read-model",
+              "actionId": "EVT-018:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
               "controlSelector": "#alertDeliveryTest",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-018:assert-visible-read-model:completion",
+              "correlationId": "EVT-018:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-018:assert-visible-read-model:completion",
+                "correlationId": "EVT-018:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/events",
-                "urlPath": "/ops/events",
+                "method": "POST",
+                "urlPathTemplate": "/ops/api/alerts/deliveries",
+                "urlPath": "/ops/api/alerts/deliveries",
                 "pathParameters": {},
                 "allowedStatuses": [
-                  200
+                  200,
+                  201
                 ]
               },
               "localTransition": null,
@@ -198199,8 +198288,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#EVT-018:oracle#0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -198231,7 +198319,7 @@
               "actionId": "EVT-018:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "EVT-018:assert-visible-read-model",
+              "linkedPrimaryActionId": "EVT-018:execute-persisted-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-018:verify-independent-readback:completion",
               "request": null,
@@ -198285,22 +198373,23 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-018:assert-visible-read-model",
-              "actionKind": "assert-visible-read-model",
+              "actionId": "EVT-018:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
               "controlSelector": "#alertDeliveryTest",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-018:assert-visible-read-model:completion",
+              "correlationId": "EVT-018:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-018:assert-visible-read-model:completion",
+                "correlationId": "EVT-018:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/events",
-                "urlPath": "/ops/events",
+                "method": "POST",
+                "urlPathTemplate": "/ops/api/alerts/deliveries",
+                "urlPath": "/ops/api/alerts/deliveries",
                 "pathParameters": {},
                 "allowedStatuses": [
-                  200
+                  200,
+                  201
                 ]
               },
               "localTransition": null,
@@ -198319,8 +198408,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#EVT-018:oracle#0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -198332,11 +198420,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "EVT-018:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "35c3fe245bd7891a3f6071cc628e21bb7eb8a4cc00bab97b579e10c274f2ed8f"
+            "kind": "restore-fixture-state",
+            "cleanupId": "EVT-018:restore-fixture",
+            "fixtureId": "evt-018-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "EVT-018:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-file-backed-fixture-snapshot",
+                "target": "evt-018-review4-fixture",
+                "effect": "restore every owned file-backed product state byte-for-byte"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#EVT-018:oracle#0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a:cleanup",
+              "expectation": "equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_ops_alert_delivery_integrations.mjs",
+                "symbol": "EVT-018:oracle",
+                "anchor": "assert(Array.isArray(fixture.attempts) && fixture.attempts.length === 1, \"/ops/events fixture attempt missing\");",
+                "anchorSha256": "b1909d53aa31db265b9d67035817249b36e541397c6c870fb569a75f714a01fa",
+                "contextSha256": "0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#EVT-018:oracle#0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_ops_alert_delivery_integrations.mjs",
+                "symbol": "EVT-018:oracle",
+                "anchor": "assert(Array.isArray(fixture.attempts) && fixture.attempts.length === 1, \"/ops/events fixture attempt missing\");",
+                "anchorSha256": "b1909d53aa31db265b9d67035817249b36e541397c6c870fb569a75f714a01fa",
+                "contextSha256": "0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a"
+              },
+              "verifierCommand": "verify-ops-alert-delivery-integrations",
+              "assertedSemanticDigest": "35c3fe245bd7891a3f6071cc628e21bb7eb8a4cc00bab97b579e10c274f2ed8f"
+            }
           }
         ]
       },
@@ -198355,8 +198475,8 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "EVT-018:assert-visible-read-model",
-        "primaryActionCorrelationId": "EVT-018:assert-visible-read-model:completion",
+        "primaryActionId": "EVT-018:execute-persisted-action",
+        "primaryActionCorrelationId": "EVT-018:execute-persisted-action:completion",
         "primaryControlSelector": "#alertDeliveryTest",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#EVT-018:oracle#0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a"
       },
@@ -205873,13 +205993,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "[data-event-review-save]",
         "requestedSelector": null,
         "canonicalSelector": null,
-        "selectorSource": "review4-explicit-control-not-applicable",
+        "selectorSource": "review4-mutation-control-override",
         "actionAnchor": "OpsEventReviewStateJson",
         "actionRoute": "/ops/events",
-        "targetSelector": null
+        "targetSelector": "[data-event-review-save]"
       },
       "actions": [
         {
@@ -205937,28 +206057,63 @@
           }
         },
         {
-          "kind": "assert-product-state",
+          "kind": "wait-visible",
           "dispatch": "playwright-native",
-          "actionId": "EVT-037:assert-product-state",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_ops_event_action_incident_workflow.mjs#incident-action-source-contract#00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e",
+          "actionId": "EVT-037:wait-visible",
+          "selector": "[data-event-review-save]",
+          "selectorSource": "review4-mutation-control-override"
+        },
+        {
+          "kind": "execute-persisted-action",
+          "dispatch": "playwright-native",
+          "actionId": "EVT-037:execute-persisted-action",
+          "selector": "[data-event-review-save]",
+          "endpoint": {
+            "method": "PUT",
+            "path": "/ops/api/events/reviews/{fixtureId}",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "localAction": null,
+          "inputId": "EVT-037:mutation-fixture",
+          "uiLifecycle": {
+            "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+            "adapter": "event-review-save",
+            "fixtureBinding": {
+              "fixtureId": "evt-037-review4-fixture",
+              "requestMethod": "PUT",
+              "requestPathTemplate": "/ops/api/events/reviews/{fixtureId}"
+            },
+            "requestBinding": null,
+            "requiredPhases": [
+              "select-or-open",
+              "populate-valid-product-input",
+              "activate-primary-control",
+              "correlated-request",
+              "authoritative-readback"
+            ]
+          },
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "EVT-037:assert-product-state",
-            "actionKind": "assert-product-state",
-            "controlSelector": null,
+            "actionId": "EVT-037:execute-persisted-action",
+            "actionKind": "execute-persisted-action",
+            "controlSelector": "[data-event-review-save]",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "EVT-037:assert-product-state:completion",
+            "correlationId": "EVT-037:execute-persisted-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "EVT-037:assert-product-state:completion",
+              "correlationId": "EVT-037:execute-persisted-action:completion",
               "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/events",
-              "urlPath": "/ops/events",
-              "pathParameters": {},
+              "method": "PUT",
+              "urlPathTemplate": "/ops/api/events/reviews/{fixtureId}",
+              "urlPath": "/ops/api/events/reviews/evt-037-review4-fixture",
+              "pathParameters": {
+                "fixtureId": "evt-037-review4-fixture"
+              },
               "allowedStatuses": [
                 200
               ]
@@ -205979,8 +206134,7 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_ops_event_action_incident_workflow.mjs#incident-action-source-contract#00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "persistedMutationObserved": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -206011,7 +206165,7 @@
             "actionId": "EVT-037:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "EVT-037:assert-product-state",
+            "linkedPrimaryActionId": "EVT-037:execute-persisted-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "EVT-037:verify-independent-readback:completion",
             "request": null,
@@ -206047,7 +206201,7 @@
       "workflow": {
         "schema": "media-server.v390-ui-case-native-workflow.v2",
         "workflowId": "EVT-037:native-workflow",
-        "workflowClass": "read-only-state",
+        "workflowClass": "persisted-mutation",
         "semanticClassification": {
           "flowKind": "read-model",
           "operation": "read",
@@ -206064,12 +206218,12 @@
           {
             "kind": "seed-reviewed-state",
             "setupId": "EVT-037:reviewed-state",
-            "strategy": "read-only-state",
+            "strategy": "persisted-mutation",
             "route": "/ops/events",
             "semanticCallChainSha256": "e5bc20a02f2e2b21603b8af789307c3c69cf31fe96b15c9b4d4b40c2b3dfc950",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "evt-037-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "EVT-037:before-product-state"
           }
         ],
         "inputs": [
@@ -206080,45 +206234,47 @@
             "sensitive": false
           },
           {
-            "inputId": "EVT-037:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "EVT-037:mutation-fixture",
+            "kind": "reversible-fixture-record",
             "actualValue": {
-              "method": "GET",
-              "path": "/ops/events",
-              "accountRole": "operator"
+              "id": "evt-037-review4-fixture",
+              "displayName": "REVIEW4 EVT-037 fixture",
+              "operation": "read",
+              "reviewStatus": "reviewing",
+              "incidentId": "incident:evt-037-review4-fixture",
+              "incidentStatus": "investigating",
+              "actionTarget": "operator-triage",
+              "note": "REVIEW4 EVT-037 incident action"
+            },
+            "seedReference": {
+              "fixtureId": "evt-037-review4-fixture",
+              "accountRole": "operator",
+              "route": "/ops/events"
             },
             "sensitive": false
           }
         ],
         "primaryControl": {
-          "applicability": "not-applicable",
-          "selector": null,
+          "applicability": "required",
+          "selector": "[data-event-review-save]",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-explicit-control-not-applicable",
-          "expectedVisible": false,
-          "expectedEnabled": false,
-          "reason": "reviewed feature is exercised by exact endpoint/readback rather than a direct product control",
+          "source": "review4-mutation-control-override",
+          "expectedVisible": true,
+          "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
-            "symbol": "OpsEventReviewStateJson",
-            "anchor": "std::ostringstream out;",
-            "anchorSha256": "9d653d72f3ae979fc56205ad7026ecd9e8dda56802db65080c137b53e79dc1fe",
-            "contextSha256": "d9fe55db82369de6b4f38a76526b8b454ff18d0fb552af3b4a90031939cee864"
-          },
-          "readbackLocator": {
-            "file": "scripts/internal/verify_ops_event_action_incident_workflow.mjs",
-            "symbol": "incident-action-source-contract",
-            "anchor": "assertIncludes(reviewStateBlock, \"incident-action-state\", \"/ops/api/events/reviews incident action state schema\");",
-            "anchorSha256": "c15b6a8c51bde36d14d8a4ecb9eb9c88974b528ac80b22089a7fca9bdc0a68dd",
-            "contextSha256": "00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e"
+            "file": "src/ingress/product_ui_page_scripts.cpp",
+            "symbol": "review4-primary-control:EVT-037",
+            "anchor": "button type=\"button\" class=\"button button-secondary button-compact\" data-event-review-save",
+            "anchorSha256": "0408ee51773a19a2153ed9c0450bd6cf3f16e2b56a89560cee635eaa2975c25b",
+            "contextSha256": "0408ee51773a19a2153ed9c0450bd6cf3f16e2b56a89560cee635eaa2975c25b"
           }
         },
         "productAction": {
-          "kind": "product-state-read",
+          "kind": "persisted-mutation-request",
           "endpoint": {
-            "method": "GET",
-            "path": "/ops/events",
+            "method": "PUT",
+            "path": "/ops/api/events/reviews/{fixtureId}",
             "allowedStatuses": [
               200
             ]
@@ -206157,7 +206313,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident action state persists only to Ops review and audit and is correlated by eventId and incidentId",
-          "specSha256": "329deef540c627fbdbef869da3b903ece0bbb6b51fb1548522134983bb38595d",
+          "specSha256": "06a491b4b9215d09b757860b0e6beb8f754bfe4bed774ad0038cabe09523a425",
           "requestCount": 3,
           "domAssertionCount": 1,
           "stateSnapshotCount": 12,
@@ -206220,28 +206376,63 @@
             }
           },
           {
-            "kind": "assert-product-state",
+            "kind": "wait-visible",
             "dispatch": "playwright-native",
-            "actionId": "EVT-037:assert-product-state",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_ops_event_action_incident_workflow.mjs#incident-action-source-contract#00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e",
+            "actionId": "EVT-037:wait-visible",
+            "selector": "[data-event-review-save]",
+            "selectorSource": "review4-mutation-control-override"
+          },
+          {
+            "kind": "execute-persisted-action",
+            "dispatch": "playwright-native",
+            "actionId": "EVT-037:execute-persisted-action",
+            "selector": "[data-event-review-save]",
+            "endpoint": {
+              "method": "PUT",
+              "path": "/ops/api/events/reviews/{fixtureId}",
+              "allowedStatuses": [
+                200
+              ]
+            },
+            "localAction": null,
+            "inputId": "EVT-037:mutation-fixture",
+            "uiLifecycle": {
+              "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+              "adapter": "event-review-save",
+              "fixtureBinding": {
+                "fixtureId": "evt-037-review4-fixture",
+                "requestMethod": "PUT",
+                "requestPathTemplate": "/ops/api/events/reviews/{fixtureId}"
+              },
+              "requestBinding": null,
+              "requiredPhases": [
+                "select-or-open",
+                "populate-valid-product-input",
+                "activate-primary-control",
+                "correlated-request",
+                "authoritative-readback"
+              ]
+            },
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-037:assert-product-state",
-              "actionKind": "assert-product-state",
-              "controlSelector": null,
+              "actionId": "EVT-037:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
+              "controlSelector": "[data-event-review-save]",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-037:assert-product-state:completion",
+              "correlationId": "EVT-037:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-037:assert-product-state:completion",
+                "correlationId": "EVT-037:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/events",
-                "urlPath": "/ops/events",
-                "pathParameters": {},
+                "method": "PUT",
+                "urlPathTemplate": "/ops/api/events/reviews/{fixtureId}",
+                "urlPath": "/ops/api/events/reviews/evt-037-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "evt-037-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -206262,8 +206453,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_event_action_incident_workflow.mjs#incident-action-source-contract#00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -206294,7 +206484,7 @@
               "actionId": "EVT-037:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "EVT-037:assert-product-state",
+              "linkedPrimaryActionId": "EVT-037:execute-persisted-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-037:verify-independent-readback:completion",
               "request": null,
@@ -206348,20 +206538,22 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-037:assert-product-state",
-              "actionKind": "assert-product-state",
-              "controlSelector": null,
+              "actionId": "EVT-037:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
+              "controlSelector": "[data-event-review-save]",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-037:assert-product-state:completion",
+              "correlationId": "EVT-037:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-037:assert-product-state:completion",
+                "correlationId": "EVT-037:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/events",
-                "urlPath": "/ops/events",
-                "pathParameters": {},
+                "method": "PUT",
+                "urlPathTemplate": "/ops/api/events/reviews/{fixtureId}",
+                "urlPath": "/ops/api/events/reviews/evt-037-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "evt-037-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -206382,8 +206574,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_event_action_incident_workflow.mjs#incident-action-source-contract#00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -206395,11 +206586,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "EVT-037:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "e5bc20a02f2e2b21603b8af789307c3c69cf31fe96b15c9b4d4b40c2b3dfc950"
+            "kind": "restore-fixture-state",
+            "cleanupId": "EVT-037:restore-fixture",
+            "fixtureId": "evt-037-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "EVT-037:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-file-backed-fixture-snapshot",
+                "target": "evt-037-review4-fixture",
+                "effect": "restore every owned file-backed product state byte-for-byte"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_event_action_incident_workflow.mjs#incident-action-source-contract#00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e:cleanup",
+              "expectation": "equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_ops_event_action_incident_workflow.mjs",
+                "symbol": "incident-action-source-contract",
+                "anchor": "assertIncludes(reviewStateBlock, \"incident-action-state\", \"/ops/api/events/reviews incident action state schema\");",
+                "anchorSha256": "c15b6a8c51bde36d14d8a4ecb9eb9c88974b528ac80b22089a7fca9bdc0a68dd",
+                "contextSha256": "00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_event_action_incident_workflow.mjs#incident-action-source-contract#00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_ops_event_action_incident_workflow.mjs",
+                "symbol": "incident-action-source-contract",
+                "anchor": "assertIncludes(reviewStateBlock, \"incident-action-state\", \"/ops/api/events/reviews incident action state schema\");",
+                "anchorSha256": "c15b6a8c51bde36d14d8a4ecb9eb9c88974b528ac80b22089a7fca9bdc0a68dd",
+                "contextSha256": "00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e"
+              },
+              "verifierCommand": "verify-ops-event-action-incident-workflow",
+              "assertedSemanticDigest": "e5bc20a02f2e2b21603b8af789307c3c69cf31fe96b15c9b4d4b40c2b3dfc950"
+            }
           }
         ]
       },
@@ -206418,9 +206641,9 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "EVT-037:assert-product-state",
-        "primaryActionCorrelationId": "EVT-037:assert-product-state:completion",
-        "primaryControlSelector": null,
+        "primaryActionId": "EVT-037:execute-persisted-action",
+        "primaryActionCorrelationId": "EVT-037:execute-persisted-action:completion",
+        "primaryControlSelector": "[data-event-review-save]",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_event_action_incident_workflow.mjs#incident-action-source-contract#00f9105f9a2c2845106fc63a7d484bb21aadd54b90bce87bc54e34011859807e"
       },
       "artifacts": {
@@ -206453,11 +206676,11 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": null,
-          "applicability": "not-applicable",
-          "exists": false,
-          "visible": false,
-          "enabled": false
+          "selector": "[data-event-review-save]",
+          "applicability": "required",
+          "exists": true,
+          "visible": true,
+          "enabled": true
         },
         "provenance": {
           "screenRoute": "browser-location",
@@ -206482,13 +206705,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#alertDeliveryDryRun",
         "requestedSelector": null,
         "canonicalSelector": null,
-        "selectorSource": "review4-explicit-control-not-applicable",
+        "selectorSource": "review4-mutation-control-override",
         "actionAnchor": "DispatchOpsAlertDeliveryDryRun",
         "actionRoute": "/ops/events",
-        "targetSelector": null
+        "targetSelector": "#alertDeliveryDryRun"
       },
       "actions": [
         {
@@ -206546,27 +206769,68 @@
           }
         },
         {
-          "kind": "assert-product-state",
+          "kind": "wait-visible",
           "dispatch": "playwright-native",
-          "actionId": "EVT-038:assert-product-state",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#alert-dry-run-status-oracle#6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1",
+          "actionId": "EVT-038:wait-visible",
+          "selector": "#alertDeliveryDryRun",
+          "selectorSource": "review4-mutation-control-override"
+        },
+        {
+          "kind": "execute-persisted-action",
+          "dispatch": "playwright-native",
+          "actionId": "EVT-038:execute-persisted-action",
+          "selector": "#alertDeliveryDryRun",
+          "endpoint": {
+            "method": "POST",
+            "path": "/ops/api/alerts/deliveries/dry-run",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "localAction": null,
+          "inputId": "EVT-038:mutation-fixture",
+          "uiLifecycle": {
+            "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+            "adapter": "alert-delivery-dry-run",
+            "fixtureBinding": {
+              "fixtureId": "evt-038-review4-fixture",
+              "requestMethod": "POST",
+              "requestPathTemplate": "/ops/api/alerts/deliveries/dry-run"
+            },
+            "requestBinding": {
+              "mode": "ordered-exact-requests",
+              "expectedRequests": [
+                {
+                  "method": "POST",
+                  "pathTemplate": "/ops/api/alerts/deliveries/dry-run"
+                }
+              ]
+            },
+            "requiredPhases": [
+              "select-or-open",
+              "populate-valid-product-input",
+              "activate-primary-control",
+              "correlated-request",
+              "authoritative-readback"
+            ]
+          },
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "EVT-038:assert-product-state",
-            "actionKind": "assert-product-state",
-            "controlSelector": null,
+            "actionId": "EVT-038:execute-persisted-action",
+            "actionKind": "execute-persisted-action",
+            "controlSelector": "#alertDeliveryDryRun",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "EVT-038:assert-product-state:completion",
+            "correlationId": "EVT-038:execute-persisted-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "EVT-038:assert-product-state:completion",
+              "correlationId": "EVT-038:execute-persisted-action:completion",
               "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/events",
-              "urlPath": "/ops/events",
+              "method": "POST",
+              "urlPathTemplate": "/ops/api/alerts/deliveries/dry-run",
+              "urlPath": "/ops/api/alerts/deliveries/dry-run",
               "pathParameters": {},
               "allowedStatuses": [
                 200
@@ -206588,8 +206852,7 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#alert-dry-run-status-oracle#6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "persistedMutationObserved": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -206620,7 +206883,7 @@
             "actionId": "EVT-038:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "EVT-038:assert-product-state",
+            "linkedPrimaryActionId": "EVT-038:execute-persisted-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "EVT-038:verify-independent-readback:completion",
             "request": null,
@@ -206656,7 +206919,7 @@
       "workflow": {
         "schema": "media-server.v390-ui-case-native-workflow.v2",
         "workflowId": "EVT-038:native-workflow",
-        "workflowClass": "read-only-state",
+        "workflowClass": "persisted-mutation",
         "semanticClassification": {
           "flowKind": "read-model",
           "operation": "read",
@@ -206673,12 +206936,12 @@
           {
             "kind": "seed-reviewed-state",
             "setupId": "EVT-038:reviewed-state",
-            "strategy": "read-only-state",
+            "strategy": "persisted-mutation",
             "route": "/ops/events",
             "semanticCallChainSha256": "ec7f36f364fe05bf5c689eb8534a1ee9dad94b62bb33ada7c06344a8380d1801",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "evt-038-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "EVT-038:before-product-state"
           }
         ],
         "inputs": [
@@ -206689,45 +206952,46 @@
             "sensitive": false
           },
           {
-            "inputId": "EVT-038:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "EVT-038:mutation-fixture",
+            "kind": "reversible-fixture-record",
             "actualValue": {
-              "method": "GET",
-              "path": "/ops/events",
-              "accountRole": "operator"
+              "id": "evt-038-review4-fixture",
+              "displayName": "REVIEW4 EVT-038 fixture",
+              "operation": "read",
+              "deliveryKind": "webhook",
+              "deliveryLabel": "REVIEW4 EVT-038",
+              "deliveryEndpoint": "https://alerts.example.invalid/review4-evt-038",
+              "deliveryEnabled": true
+            },
+            "seedReference": {
+              "fixtureId": "evt-038-review4-fixture",
+              "accountRole": "operator",
+              "route": "/ops/events"
             },
             "sensitive": false
           }
         ],
         "primaryControl": {
-          "applicability": "not-applicable",
-          "selector": null,
+          "applicability": "required",
+          "selector": "#alertDeliveryDryRun",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-explicit-control-not-applicable",
-          "expectedVisible": false,
-          "expectedEnabled": false,
-          "reason": "reviewed feature is exercised by exact endpoint/readback rather than a direct product control",
+          "source": "review4-mutation-control-override",
+          "expectedVisible": true,
+          "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
-            "symbol": "DispatchOpsAlertDeliveryDryRun",
-            "anchor": "std::string DispatchOpsAlertDeliveryDryRun(const WebRtcHttpRuntimeConfig& config,",
-            "anchorSha256": "7883a23070cc2e5a65b1f6bc19a24aaaa9ce2540b2b23b0935ef9567b2088696",
-            "contextSha256": "c93ab8e9bf44968bf764e154fe67eb2eb983c57bf0f8d6365dc991a68f74bc8c"
-          },
-          "readbackLocator": {
-            "file": "scripts/internal/verify_ops_alert_delivery_integrations.mjs",
-            "symbol": "alert-dry-run-status-oracle",
-            "anchor": "assert(dryRun.status === \"ops-alert-delivery-dry-run\", \"dry-run status mismatch\");",
-            "anchorSha256": "daff5f96989b7aac665250d46492f7a294086b7a4e66f67d26c36287a4b89330",
-            "contextSha256": "6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1"
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "symbol": "review4-primary-control:EVT-038",
+            "anchor": "<button id=\"alertDeliveryDryRun\" class=\"button-secondary\" type=\"button\">Dry-run</button>",
+            "anchorSha256": "50e3061ccd066cc35e6a995a52a68ad94939a646adf5b41a9d64a1931411f618",
+            "contextSha256": "50e3061ccd066cc35e6a995a52a68ad94939a646adf5b41a9d64a1931411f618"
           }
         },
         "productAction": {
-          "kind": "product-state-read",
+          "kind": "persisted-mutation-request",
           "endpoint": {
-            "method": "GET",
-            "path": "/ops/events",
+            "method": "POST",
+            "path": "/ops/api/alerts/deliveries/dry-run",
             "allowedStatuses": [
               200
             ]
@@ -206829,27 +207093,68 @@
             }
           },
           {
-            "kind": "assert-product-state",
+            "kind": "wait-visible",
             "dispatch": "playwright-native",
-            "actionId": "EVT-038:assert-product-state",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#alert-dry-run-status-oracle#6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1",
+            "actionId": "EVT-038:wait-visible",
+            "selector": "#alertDeliveryDryRun",
+            "selectorSource": "review4-mutation-control-override"
+          },
+          {
+            "kind": "execute-persisted-action",
+            "dispatch": "playwright-native",
+            "actionId": "EVT-038:execute-persisted-action",
+            "selector": "#alertDeliveryDryRun",
+            "endpoint": {
+              "method": "POST",
+              "path": "/ops/api/alerts/deliveries/dry-run",
+              "allowedStatuses": [
+                200
+              ]
+            },
+            "localAction": null,
+            "inputId": "EVT-038:mutation-fixture",
+            "uiLifecycle": {
+              "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+              "adapter": "alert-delivery-dry-run",
+              "fixtureBinding": {
+                "fixtureId": "evt-038-review4-fixture",
+                "requestMethod": "POST",
+                "requestPathTemplate": "/ops/api/alerts/deliveries/dry-run"
+              },
+              "requestBinding": {
+                "mode": "ordered-exact-requests",
+                "expectedRequests": [
+                  {
+                    "method": "POST",
+                    "pathTemplate": "/ops/api/alerts/deliveries/dry-run"
+                  }
+                ]
+              },
+              "requiredPhases": [
+                "select-or-open",
+                "populate-valid-product-input",
+                "activate-primary-control",
+                "correlated-request",
+                "authoritative-readback"
+              ]
+            },
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-038:assert-product-state",
-              "actionKind": "assert-product-state",
-              "controlSelector": null,
+              "actionId": "EVT-038:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
+              "controlSelector": "#alertDeliveryDryRun",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-038:assert-product-state:completion",
+              "correlationId": "EVT-038:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-038:assert-product-state:completion",
+                "correlationId": "EVT-038:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/events",
-                "urlPath": "/ops/events",
+                "method": "POST",
+                "urlPathTemplate": "/ops/api/alerts/deliveries/dry-run",
+                "urlPath": "/ops/api/alerts/deliveries/dry-run",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -206871,8 +207176,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#alert-dry-run-status-oracle#6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -206903,7 +207207,7 @@
               "actionId": "EVT-038:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "EVT-038:assert-product-state",
+              "linkedPrimaryActionId": "EVT-038:execute-persisted-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-038:verify-independent-readback:completion",
               "request": null,
@@ -206957,19 +207261,19 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-038:assert-product-state",
-              "actionKind": "assert-product-state",
-              "controlSelector": null,
+              "actionId": "EVT-038:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
+              "controlSelector": "#alertDeliveryDryRun",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-038:assert-product-state:completion",
+              "correlationId": "EVT-038:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-038:assert-product-state:completion",
+                "correlationId": "EVT-038:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/events",
-                "urlPath": "/ops/events",
+                "method": "POST",
+                "urlPathTemplate": "/ops/api/alerts/deliveries/dry-run",
+                "urlPath": "/ops/api/alerts/deliveries/dry-run",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -206991,8 +207295,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#alert-dry-run-status-oracle#6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -207004,11 +207307,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "EVT-038:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "ec7f36f364fe05bf5c689eb8534a1ee9dad94b62bb33ada7c06344a8380d1801"
+            "kind": "restore-fixture-state",
+            "cleanupId": "EVT-038:restore-fixture",
+            "fixtureId": "evt-038-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "EVT-038:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-file-backed-fixture-snapshot",
+                "target": "evt-038-review4-fixture",
+                "effect": "restore every owned file-backed product state byte-for-byte"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#alert-dry-run-status-oracle#6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1:cleanup",
+              "expectation": "equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_ops_alert_delivery_integrations.mjs",
+                "symbol": "alert-dry-run-status-oracle",
+                "anchor": "assert(dryRun.status === \"ops-alert-delivery-dry-run\", \"dry-run status mismatch\");",
+                "anchorSha256": "daff5f96989b7aac665250d46492f7a294086b7a4e66f67d26c36287a4b89330",
+                "contextSha256": "6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#alert-dry-run-status-oracle#6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_ops_alert_delivery_integrations.mjs",
+                "symbol": "alert-dry-run-status-oracle",
+                "anchor": "assert(dryRun.status === \"ops-alert-delivery-dry-run\", \"dry-run status mismatch\");",
+                "anchorSha256": "daff5f96989b7aac665250d46492f7a294086b7a4e66f67d26c36287a4b89330",
+                "contextSha256": "6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1"
+              },
+              "verifierCommand": "verify-ops-alert-delivery-integrations",
+              "assertedSemanticDigest": "ec7f36f364fe05bf5c689eb8534a1ee9dad94b62bb33ada7c06344a8380d1801"
+            }
           }
         ]
       },
@@ -207027,9 +207362,9 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "EVT-038:assert-product-state",
-        "primaryActionCorrelationId": "EVT-038:assert-product-state:completion",
-        "primaryControlSelector": null,
+        "primaryActionId": "EVT-038:execute-persisted-action",
+        "primaryActionCorrelationId": "EVT-038:execute-persisted-action:completion",
+        "primaryControlSelector": "#alertDeliveryDryRun",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#alert-dry-run-status-oracle#6a0719c4194e4ab49b13f6f2f49570190e47961442060f4850b78769b59ddff1"
       },
       "artifacts": {
@@ -207062,11 +207397,11 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": null,
-          "applicability": "not-applicable",
-          "exists": false,
-          "visible": false,
-          "enabled": false
+          "selector": "#alertDeliveryDryRun",
+          "applicability": "required",
+          "exists": true,
+          "visible": true,
+          "enabled": true
         },
         "provenance": {
           "screenRoute": "browser-location",
@@ -217487,13 +217822,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "[data-event-review-save]",
         "requestedSelector": null,
         "canonicalSelector": null,
-        "selectorSource": "review4-explicit-control-not-applicable",
+        "selectorSource": "review4-mutation-control-override",
         "actionAnchor": "OpsEventReviewStateJson",
         "actionRoute": "/ops/events",
-        "targetSelector": null
+        "targetSelector": "[data-event-review-save]"
       },
       "actions": [
         {
@@ -217551,28 +217886,63 @@
           }
         },
         {
-          "kind": "assert-product-state",
+          "kind": "wait-visible",
           "dispatch": "playwright-native",
-          "actionId": "EVT-061:assert-product-state",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_v310_operator_feature_correction.mjs#canonical-functional-assertion:EVT-061#c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab",
+          "actionId": "EVT-061:wait-visible",
+          "selector": "[data-event-review-save]",
+          "selectorSource": "review4-mutation-control-override"
+        },
+        {
+          "kind": "execute-persisted-action",
+          "dispatch": "playwright-native",
+          "actionId": "EVT-061:execute-persisted-action",
+          "selector": "[data-event-review-save]",
+          "endpoint": {
+            "method": "PUT",
+            "path": "/ops/api/events/reviews/{fixtureId}",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "localAction": null,
+          "inputId": "EVT-061:mutation-fixture",
+          "uiLifecycle": {
+            "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+            "adapter": "event-review-save",
+            "fixtureBinding": {
+              "fixtureId": "evt-061-review4-fixture",
+              "requestMethod": "PUT",
+              "requestPathTemplate": "/ops/api/events/reviews/{fixtureId}"
+            },
+            "requestBinding": null,
+            "requiredPhases": [
+              "select-or-open",
+              "populate-valid-product-input",
+              "activate-primary-control",
+              "correlated-request",
+              "authoritative-readback"
+            ]
+          },
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "EVT-061:assert-product-state",
-            "actionKind": "assert-product-state",
-            "controlSelector": null,
+            "actionId": "EVT-061:execute-persisted-action",
+            "actionKind": "execute-persisted-action",
+            "controlSelector": "[data-event-review-save]",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "EVT-061:assert-product-state:completion",
+            "correlationId": "EVT-061:execute-persisted-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "EVT-061:assert-product-state:completion",
+              "correlationId": "EVT-061:execute-persisted-action:completion",
               "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/api/events/reviews",
-              "urlPath": "/ops/api/events/reviews",
-              "pathParameters": {},
+              "method": "PUT",
+              "urlPathTemplate": "/ops/api/events/reviews/{fixtureId}",
+              "urlPath": "/ops/api/events/reviews/evt-061-review4-fixture",
+              "pathParameters": {
+                "fixtureId": "evt-061-review4-fixture"
+              },
               "allowedStatuses": [
                 200
               ]
@@ -217593,8 +217963,7 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_v310_operator_feature_correction.mjs#canonical-functional-assertion:EVT-061#c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "persistedMutationObserved": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -217625,7 +217994,7 @@
             "actionId": "EVT-061:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "EVT-061:assert-product-state",
+            "linkedPrimaryActionId": "EVT-061:execute-persisted-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "EVT-061:verify-independent-readback:completion",
             "request": null,
@@ -217661,7 +218030,7 @@
       "workflow": {
         "schema": "media-server.v390-ui-case-native-workflow.v2",
         "workflowId": "EVT-061:native-workflow",
-        "workflowClass": "read-only-state",
+        "workflowClass": "persisted-mutation",
         "semanticClassification": {
           "flowKind": "read-model",
           "operation": "read",
@@ -217678,12 +218047,12 @@
           {
             "kind": "seed-reviewed-state",
             "setupId": "EVT-061:reviewed-state",
-            "strategy": "read-only-state",
+            "strategy": "persisted-mutation",
             "route": "/ops/events",
             "semanticCallChainSha256": "5d405e8d3a1e63ed752fd13a3d969d9c7eb76a90ecfa3959523ac6c314f71ebd",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "evt-061-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "EVT-061:before-product-state"
           }
         ],
         "inputs": [
@@ -217694,45 +218063,50 @@
             "sensitive": false
           },
           {
-            "inputId": "EVT-061:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "EVT-061:mutation-fixture",
+            "kind": "reversible-fixture-record",
             "actualValue": {
-              "method": "GET",
-              "path": "/ops/api/events/reviews",
-              "accountRole": "operator"
+              "id": "evt-061-review4-fixture",
+              "displayName": "REVIEW4 EVT-061 fixture",
+              "operation": "read",
+              "reviewStatus": "reviewing",
+              "correctedFeatureLabel": "review4-corrected-feature",
+              "featureAliases": [
+                "review4-alias-a",
+                "review4-alias-b"
+              ],
+              "reanalysisRequested": true,
+              "reanalysisReason": "REVIEW4 EVT-061 exact reanalysis"
+            },
+            "seedReference": {
+              "fixtureId": "evt-061-review4-fixture",
+              "accountRole": "operator",
+              "route": "/ops/api/events/reviews"
             },
             "sensitive": false
           }
         ],
         "primaryControl": {
-          "applicability": "not-applicable",
-          "selector": null,
+          "applicability": "required",
+          "selector": "[data-event-review-save]",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-explicit-control-not-applicable",
-          "expectedVisible": false,
-          "expectedEnabled": false,
-          "reason": "reviewed feature is exercised by exact endpoint/readback rather than a direct product control",
+          "source": "review4-mutation-control-override",
+          "expectedVisible": true,
+          "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
-            "symbol": "OpsEventReviewStateJson",
-            "anchor": "std::ostringstream out;",
-            "anchorSha256": "9d653d72f3ae979fc56205ad7026ecd9e8dda56802db65080c137b53e79dc1fe",
-            "contextSha256": "d9fe55db82369de6b4f38a76526b8b454ff18d0fb552af3b4a90031939cee864"
-          },
-          "readbackLocator": {
-            "file": "scripts/internal/verify_v310_operator_feature_correction.mjs",
-            "symbol": "canonical-functional-assertion:EVT-061",
-            "anchor": "assertIncludes(evt061ReviewStateBlock, \"correctedFeatureLabel\", \"EVT-061 block-scoped canonical correction state\");",
-            "anchorSha256": "8febf568f30d31e59ea7784575701abfa0d6d78823d8ed255d0a578998fde9c4",
-            "contextSha256": "c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab"
+            "file": "src/ingress/product_ui_page_scripts.cpp",
+            "symbol": "review4-primary-control:EVT-061",
+            "anchor": "button type=\"button\" class=\"button button-secondary button-compact\" data-event-review-save",
+            "anchorSha256": "0408ee51773a19a2153ed9c0450bd6cf3f16e2b56a89560cee635eaa2975c25b",
+            "contextSha256": "0408ee51773a19a2153ed9c0450bd6cf3f16e2b56a89560cee635eaa2975c25b"
           }
         },
         "productAction": {
-          "kind": "product-state-read",
+          "kind": "persisted-mutation-request",
           "endpoint": {
-            "method": "GET",
-            "path": "/ops/api/events/reviews",
+            "method": "PUT",
+            "path": "/ops/api/events/reviews/{fixtureId}",
             "allowedStatuses": [
               200
             ]
@@ -217771,7 +218145,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "operator feature correction persists only in review and audit and renders exact correction and reanalysis state",
-          "specSha256": "8d3c5275a5637971e0ae7532b74b8f79add0017fa2c1f709d0cd0899684d93cb",
+          "specSha256": "4cfc3da7e601cdb46a1b377b8587266c2e60143dc56c9f085ded941f77c44910",
           "requestCount": 3,
           "domAssertionCount": 1,
           "stateSnapshotCount": 12,
@@ -217834,28 +218208,63 @@
             }
           },
           {
-            "kind": "assert-product-state",
+            "kind": "wait-visible",
             "dispatch": "playwright-native",
-            "actionId": "EVT-061:assert-product-state",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_v310_operator_feature_correction.mjs#canonical-functional-assertion:EVT-061#c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab",
+            "actionId": "EVT-061:wait-visible",
+            "selector": "[data-event-review-save]",
+            "selectorSource": "review4-mutation-control-override"
+          },
+          {
+            "kind": "execute-persisted-action",
+            "dispatch": "playwright-native",
+            "actionId": "EVT-061:execute-persisted-action",
+            "selector": "[data-event-review-save]",
+            "endpoint": {
+              "method": "PUT",
+              "path": "/ops/api/events/reviews/{fixtureId}",
+              "allowedStatuses": [
+                200
+              ]
+            },
+            "localAction": null,
+            "inputId": "EVT-061:mutation-fixture",
+            "uiLifecycle": {
+              "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+              "adapter": "event-review-save",
+              "fixtureBinding": {
+                "fixtureId": "evt-061-review4-fixture",
+                "requestMethod": "PUT",
+                "requestPathTemplate": "/ops/api/events/reviews/{fixtureId}"
+              },
+              "requestBinding": null,
+              "requiredPhases": [
+                "select-or-open",
+                "populate-valid-product-input",
+                "activate-primary-control",
+                "correlated-request",
+                "authoritative-readback"
+              ]
+            },
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-061:assert-product-state",
-              "actionKind": "assert-product-state",
-              "controlSelector": null,
+              "actionId": "EVT-061:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
+              "controlSelector": "[data-event-review-save]",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-061:assert-product-state:completion",
+              "correlationId": "EVT-061:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-061:assert-product-state:completion",
+                "correlationId": "EVT-061:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/api/events/reviews",
-                "urlPath": "/ops/api/events/reviews",
-                "pathParameters": {},
+                "method": "PUT",
+                "urlPathTemplate": "/ops/api/events/reviews/{fixtureId}",
+                "urlPath": "/ops/api/events/reviews/evt-061-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "evt-061-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -217876,8 +218285,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_v310_operator_feature_correction.mjs#canonical-functional-assertion:EVT-061#c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -217908,7 +218316,7 @@
               "actionId": "EVT-061:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "EVT-061:assert-product-state",
+              "linkedPrimaryActionId": "EVT-061:execute-persisted-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-061:verify-independent-readback:completion",
               "request": null,
@@ -217964,20 +218372,22 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-061:assert-product-state",
-              "actionKind": "assert-product-state",
-              "controlSelector": null,
+              "actionId": "EVT-061:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
+              "controlSelector": "[data-event-review-save]",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-061:assert-product-state:completion",
+              "correlationId": "EVT-061:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-061:assert-product-state:completion",
+                "correlationId": "EVT-061:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/api/events/reviews",
-                "urlPath": "/ops/api/events/reviews",
-                "pathParameters": {},
+                "method": "PUT",
+                "urlPathTemplate": "/ops/api/events/reviews/{fixtureId}",
+                "urlPath": "/ops/api/events/reviews/evt-061-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "evt-061-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -217998,8 +218408,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_v310_operator_feature_correction.mjs#canonical-functional-assertion:EVT-061#c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -218011,11 +218420,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "EVT-061:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "5d405e8d3a1e63ed752fd13a3d969d9c7eb76a90ecfa3959523ac6c314f71ebd"
+            "kind": "restore-fixture-state",
+            "cleanupId": "EVT-061:restore-fixture",
+            "fixtureId": "evt-061-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "EVT-061:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-file-backed-fixture-snapshot",
+                "target": "evt-061-review4-fixture",
+                "effect": "restore every owned file-backed product state byte-for-byte"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_v310_operator_feature_correction.mjs#canonical-functional-assertion:EVT-061#c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab:cleanup",
+              "expectation": "equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_v310_operator_feature_correction.mjs",
+                "symbol": "canonical-functional-assertion:EVT-061",
+                "anchor": "assertIncludes(evt061ReviewStateBlock, \"correctedFeatureLabel\", \"EVT-061 block-scoped canonical correction state\");",
+                "anchorSha256": "8febf568f30d31e59ea7784575701abfa0d6d78823d8ed255d0a578998fde9c4",
+                "contextSha256": "c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_v310_operator_feature_correction.mjs#canonical-functional-assertion:EVT-061#c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_v310_operator_feature_correction.mjs",
+                "symbol": "canonical-functional-assertion:EVT-061",
+                "anchor": "assertIncludes(evt061ReviewStateBlock, \"correctedFeatureLabel\", \"EVT-061 block-scoped canonical correction state\");",
+                "anchorSha256": "8febf568f30d31e59ea7784575701abfa0d6d78823d8ed255d0a578998fde9c4",
+                "contextSha256": "c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab"
+              },
+              "verifierCommand": "verify-v310-operator-feature-correction",
+              "assertedSemanticDigest": "5d405e8d3a1e63ed752fd13a3d969d9c7eb76a90ecfa3959523ac6c314f71ebd"
+            }
           }
         ]
       },
@@ -218034,9 +218475,9 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "EVT-061:assert-product-state",
-        "primaryActionCorrelationId": "EVT-061:assert-product-state:completion",
-        "primaryControlSelector": null,
+        "primaryActionId": "EVT-061:execute-persisted-action",
+        "primaryActionCorrelationId": "EVT-061:execute-persisted-action:completion",
+        "primaryControlSelector": "[data-event-review-save]",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_v310_operator_feature_correction.mjs#canonical-functional-assertion:EVT-061#c4a07789f66dc25c98717c9627fee9dd06549be8f5b2d0902273815020c7cfab"
       },
       "artifacts": {
@@ -218069,11 +218510,11 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": null,
-          "applicability": "not-applicable",
-          "exists": false,
-          "visible": false,
-          "enabled": false
+          "selector": "[data-event-review-save]",
+          "applicability": "required",
+          "exists": true,
+          "visible": true,
+          "enabled": true
         },
         "provenance": {
           "screenRoute": "browser-location",
@@ -220542,13 +220983,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "[data-event-review-save]",
         "requestedSelector": null,
         "canonicalSelector": null,
-        "selectorSource": "review4-explicit-control-not-applicable",
+        "selectorSource": "review4-mutation-control-override",
         "actionAnchor": "OpsV320OperatorResolutionFlowInfoFor",
         "actionRoute": "/ops/events",
-        "targetSelector": null
+        "targetSelector": "[data-event-review-save]"
       },
       "actions": [
         {
@@ -220606,28 +221047,63 @@
           }
         },
         {
-          "kind": "assert-product-state",
+          "kind": "wait-visible",
           "dispatch": "playwright-native",
-          "actionId": "EVT-068:assert-product-state",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_v320_operator_resolution_flow.mjs#canonical-functional-assertion:EVT-068#24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706",
+          "actionId": "EVT-068:wait-visible",
+          "selector": "[data-event-review-save]",
+          "selectorSource": "review4-mutation-control-override"
+        },
+        {
+          "kind": "execute-persisted-action",
+          "dispatch": "playwright-native",
+          "actionId": "EVT-068:execute-persisted-action",
+          "selector": "[data-event-review-save]",
+          "endpoint": {
+            "method": "PUT",
+            "path": "/ops/api/events/reviews/{fixtureId}",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "localAction": null,
+          "inputId": "EVT-068:mutation-fixture",
+          "uiLifecycle": {
+            "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+            "adapter": "event-review-save",
+            "fixtureBinding": {
+              "fixtureId": "evt-068-review4-fixture",
+              "requestMethod": "PUT",
+              "requestPathTemplate": "/ops/api/events/reviews/{fixtureId}"
+            },
+            "requestBinding": null,
+            "requiredPhases": [
+              "select-or-open",
+              "populate-valid-product-input",
+              "activate-primary-control",
+              "correlated-request",
+              "authoritative-readback"
+            ]
+          },
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "EVT-068:assert-product-state",
-            "actionKind": "assert-product-state",
-            "controlSelector": null,
+            "actionId": "EVT-068:execute-persisted-action",
+            "actionKind": "execute-persisted-action",
+            "controlSelector": "[data-event-review-save]",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "EVT-068:assert-product-state:completion",
+            "correlationId": "EVT-068:execute-persisted-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "EVT-068:assert-product-state:completion",
+              "correlationId": "EVT-068:execute-persisted-action:completion",
               "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/api/events/reviews",
-              "urlPath": "/ops/api/events/reviews",
-              "pathParameters": {},
+              "method": "PUT",
+              "urlPathTemplate": "/ops/api/events/reviews/{fixtureId}",
+              "urlPath": "/ops/api/events/reviews/evt-068-review4-fixture",
+              "pathParameters": {
+                "fixtureId": "evt-068-review4-fixture"
+              },
               "allowedStatuses": [
                 200
               ]
@@ -220648,8 +221124,7 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_v320_operator_resolution_flow.mjs#canonical-functional-assertion:EVT-068#24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "persistedMutationObserved": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -220680,7 +221155,7 @@
             "actionId": "EVT-068:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "EVT-068:assert-product-state",
+            "linkedPrimaryActionId": "EVT-068:execute-persisted-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "EVT-068:verify-independent-readback:completion",
             "request": null,
@@ -220716,7 +221191,7 @@
       "workflow": {
         "schema": "media-server.v390-ui-case-native-workflow.v2",
         "workflowId": "EVT-068:native-workflow",
-        "workflowClass": "read-only-state",
+        "workflowClass": "persisted-mutation",
         "semanticClassification": {
           "flowKind": "read-model",
           "operation": "read",
@@ -220733,12 +221208,12 @@
           {
             "kind": "seed-reviewed-state",
             "setupId": "EVT-068:reviewed-state",
-            "strategy": "read-only-state",
+            "strategy": "persisted-mutation",
             "route": "/ops/events",
             "semanticCallChainSha256": "f492dbd9fda77c57a51cefc1a8f9eef8a0f086eaa9605b8e1c04f018f62ef454",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "evt-068-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "EVT-068:before-product-state"
           }
         ],
         "inputs": [
@@ -220749,45 +221224,47 @@
             "sensitive": false
           },
           {
-            "inputId": "EVT-068:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "EVT-068:mutation-fixture",
+            "kind": "reversible-fixture-record",
             "actualValue": {
-              "method": "GET",
-              "path": "/ops/api/events/reviews",
-              "accountRole": "operator"
+              "id": "evt-068-review4-fixture",
+              "displayName": "REVIEW4 EVT-068 fixture",
+              "operation": "read",
+              "reviewStatus": "reviewing",
+              "incidentId": "incident:evt-068-review4-fixture",
+              "incidentStatus": "resolved",
+              "actionTarget": "review4-operator",
+              "note": "REVIEW4 EVT-068 resolution"
+            },
+            "seedReference": {
+              "fixtureId": "evt-068-review4-fixture",
+              "accountRole": "operator",
+              "route": "/ops/api/events/reviews"
             },
             "sensitive": false
           }
         ],
         "primaryControl": {
-          "applicability": "not-applicable",
-          "selector": null,
+          "applicability": "required",
+          "selector": "[data-event-review-save]",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-explicit-control-not-applicable",
-          "expectedVisible": false,
-          "expectedEnabled": false,
-          "reason": "reviewed feature is exercised by exact endpoint/readback rather than a direct product control",
+          "source": "review4-mutation-control-override",
+          "expectedVisible": true,
+          "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
-            "symbol": "OpsV320OperatorResolutionFlowInfoFor",
-            "anchor": "const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);",
-            "anchorSha256": "79409e785d39118ff90703aef599199677f6c06a93d97dc3e38c3a36b429d8f7",
-            "contextSha256": "4519651024b39a23de2901f498507931b889b769ec01d008ef806e48d3f122dc"
-          },
-          "readbackLocator": {
-            "file": "scripts/internal/verify_v320_operator_resolution_flow.mjs",
-            "symbol": "canonical-functional-assertion:EVT-068",
-            "anchor": "assertIncludes(evt068ResolutionFlowBlock, \"close_action_available\", \"OPS-075 /ops/events block-scoped canonical resolution flow\");",
-            "anchorSha256": "4089cdcd89701fb4dddeee14f2742541bf4b2b9361f4610326e1b6bbd6f764ba",
-            "contextSha256": "24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706"
+            "file": "src/ingress/product_ui_page_scripts.cpp",
+            "symbol": "review4-primary-control:EVT-068",
+            "anchor": "button type=\"button\" class=\"button button-secondary button-compact\" data-event-review-save",
+            "anchorSha256": "0408ee51773a19a2153ed9c0450bd6cf3f16e2b56a89560cee635eaa2975c25b",
+            "contextSha256": "0408ee51773a19a2153ed9c0450bd6cf3f16e2b56a89560cee635eaa2975c25b"
           }
         },
         "productAction": {
-          "kind": "product-state-read",
+          "kind": "persisted-mutation-request",
           "endpoint": {
-            "method": "GET",
-            "path": "/ops/api/events/reviews",
+            "method": "PUT",
+            "path": "/ops/api/events/reviews/{fixtureId}",
             "allowedStatuses": [
               200
             ]
@@ -220826,7 +221303,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "operator resolution flow persists assignment, note, close/reopen state and exact audit actions only to review and audit",
-          "specSha256": "9e64beb8dc6cc08fa61ad5d619151c8a0bc718f6721ded1c13975c741bbb9fc7",
+          "specSha256": "5e2e7636fe84c837f91c3d65ec185271f13b98625835c1886bbe32a52463749a",
           "requestCount": 3,
           "domAssertionCount": 1,
           "stateSnapshotCount": 12,
@@ -220889,28 +221366,63 @@
             }
           },
           {
-            "kind": "assert-product-state",
+            "kind": "wait-visible",
             "dispatch": "playwright-native",
-            "actionId": "EVT-068:assert-product-state",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_v320_operator_resolution_flow.mjs#canonical-functional-assertion:EVT-068#24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706",
+            "actionId": "EVT-068:wait-visible",
+            "selector": "[data-event-review-save]",
+            "selectorSource": "review4-mutation-control-override"
+          },
+          {
+            "kind": "execute-persisted-action",
+            "dispatch": "playwright-native",
+            "actionId": "EVT-068:execute-persisted-action",
+            "selector": "[data-event-review-save]",
+            "endpoint": {
+              "method": "PUT",
+              "path": "/ops/api/events/reviews/{fixtureId}",
+              "allowedStatuses": [
+                200
+              ]
+            },
+            "localAction": null,
+            "inputId": "EVT-068:mutation-fixture",
+            "uiLifecycle": {
+              "schema": "media-server.v390-ui-persisted-lifecycle.v1",
+              "adapter": "event-review-save",
+              "fixtureBinding": {
+                "fixtureId": "evt-068-review4-fixture",
+                "requestMethod": "PUT",
+                "requestPathTemplate": "/ops/api/events/reviews/{fixtureId}"
+              },
+              "requestBinding": null,
+              "requiredPhases": [
+                "select-or-open",
+                "populate-valid-product-input",
+                "activate-primary-control",
+                "correlated-request",
+                "authoritative-readback"
+              ]
+            },
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-068:assert-product-state",
-              "actionKind": "assert-product-state",
-              "controlSelector": null,
+              "actionId": "EVT-068:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
+              "controlSelector": "[data-event-review-save]",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-068:assert-product-state:completion",
+              "correlationId": "EVT-068:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-068:assert-product-state:completion",
+                "correlationId": "EVT-068:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/api/events/reviews",
-                "urlPath": "/ops/api/events/reviews",
-                "pathParameters": {},
+                "method": "PUT",
+                "urlPathTemplate": "/ops/api/events/reviews/{fixtureId}",
+                "urlPath": "/ops/api/events/reviews/evt-068-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "evt-068-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -220931,8 +221443,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_operator_resolution_flow.mjs#canonical-functional-assertion:EVT-068#24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -220963,7 +221474,7 @@
               "actionId": "EVT-068:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "EVT-068:assert-product-state",
+              "linkedPrimaryActionId": "EVT-068:execute-persisted-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-068:verify-independent-readback:completion",
               "request": null,
@@ -221019,20 +221530,22 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "EVT-068:assert-product-state",
-              "actionKind": "assert-product-state",
-              "controlSelector": null,
+              "actionId": "EVT-068:execute-persisted-action",
+              "actionKind": "execute-persisted-action",
+              "controlSelector": "[data-event-review-save]",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "EVT-068:assert-product-state:completion",
+              "correlationId": "EVT-068:execute-persisted-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-068:assert-product-state:completion",
+                "correlationId": "EVT-068:execute-persisted-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/api/events/reviews",
-                "urlPath": "/ops/api/events/reviews",
-                "pathParameters": {},
+                "method": "PUT",
+                "urlPathTemplate": "/ops/api/events/reviews/{fixtureId}",
+                "urlPath": "/ops/api/events/reviews/evt-068-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "evt-068-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -221053,8 +221566,7 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_operator_resolution_flow.mjs#canonical-functional-assertion:EVT-068#24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "persistedMutationObserved": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -221066,11 +221578,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "EVT-068:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "f492dbd9fda77c57a51cefc1a8f9eef8a0f086eaa9605b8e1c04f018f62ef454"
+            "kind": "restore-fixture-state",
+            "cleanupId": "EVT-068:restore-fixture",
+            "fixtureId": "evt-068-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "EVT-068:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-file-backed-fixture-snapshot",
+                "target": "evt-068-review4-fixture",
+                "effect": "restore every owned file-backed product state byte-for-byte"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_v320_operator_resolution_flow.mjs#canonical-functional-assertion:EVT-068#24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706:cleanup",
+              "expectation": "equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_v320_operator_resolution_flow.mjs",
+                "symbol": "canonical-functional-assertion:EVT-068",
+                "anchor": "assertIncludes(evt068ResolutionFlowBlock, \"close_action_available\", \"OPS-075 /ops/events block-scoped canonical resolution flow\");",
+                "anchorSha256": "4089cdcd89701fb4dddeee14f2742541bf4b2b9361f4610326e1b6bbd6f764ba",
+                "contextSha256": "24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_v320_operator_resolution_flow.mjs#canonical-functional-assertion:EVT-068#24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_v320_operator_resolution_flow.mjs",
+                "symbol": "canonical-functional-assertion:EVT-068",
+                "anchor": "assertIncludes(evt068ResolutionFlowBlock, \"close_action_available\", \"OPS-075 /ops/events block-scoped canonical resolution flow\");",
+                "anchorSha256": "4089cdcd89701fb4dddeee14f2742541bf4b2b9361f4610326e1b6bbd6f764ba",
+                "contextSha256": "24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706"
+              },
+              "verifierCommand": "verify-v320-operator-resolution-flow",
+              "assertedSemanticDigest": "f492dbd9fda77c57a51cefc1a8f9eef8a0f086eaa9605b8e1c04f018f62ef454"
+            }
           }
         ]
       },
@@ -221089,9 +221633,9 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "EVT-068:assert-product-state",
-        "primaryActionCorrelationId": "EVT-068:assert-product-state:completion",
-        "primaryControlSelector": null,
+        "primaryActionId": "EVT-068:execute-persisted-action",
+        "primaryActionCorrelationId": "EVT-068:execute-persisted-action:completion",
+        "primaryControlSelector": "[data-event-review-save]",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_v320_operator_resolution_flow.mjs#canonical-functional-assertion:EVT-068#24a735a504517ecdd4fa3bb7d56eadabefea0dc5a5c1855aaa668e1227251706"
       },
       "artifacts": {
@@ -221124,11 +221668,11 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": null,
-          "applicability": "not-applicable",
-          "exists": false,
-          "visible": false,
-          "enabled": false
+          "selector": "[data-event-review-save]",
+          "applicability": "required",
+          "exists": true,
+          "visible": true,
+          "enabled": true
         },
         "provenance": {
           "screenRoute": "browser-location",
@@ -225657,23 +226201,38 @@
             "request": null,
             "localTransition": {
               "selector": "#liveAllStop",
-              "type": "activate",
+              "type": "composed-live-start-all-stop",
               "target": "#liveAllStop",
               "effect": "stop/reconnect/logout 후 session cleanup 확인",
               "property": null,
               "seedRequirements": [
                 {
-                  "kind": "live-session",
-                  "state": "active",
-                  "minimumCount": 1,
-                  "sessionId": "client-005-review4-session"
+                  "kind": "live-tile",
+                  "state": "idle",
+                  "minimumCount": 1
                 }
               ],
               "requiredRequests": [
                 {
                   "sequence": 1,
+                  "method": "POST",
+                  "urlPath": "/client/api/views/{assignedViewId}/webrtc/session",
+                  "allowedStatuses": [
+                    200
+                  ]
+                },
+                {
+                  "sequence": 2,
+                  "method": "POST",
+                  "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
+                  "allowedStatuses": [
+                    200
+                  ]
+                },
+                {
+                  "sequence": 3,
                   "method": "DELETE",
-                  "urlPath": "/client/api/views/client-005-review4-fixture/webrtc/session/client-005-review4-session",
+                  "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}",
                   "allowedStatuses": [
                     200
                   ]
@@ -225826,7 +226385,7 @@
             "kind": "local-control-input",
             "actualValue": {
               "selector": "#liveAllStop",
-              "operation": "activate"
+              "operation": "composed-live-start-all-stop"
             },
             "sensitive": false
           }
@@ -225851,7 +226410,7 @@
           "kind": "local-control-action",
           "endpoint": null,
           "localAction": {
-            "type": "activate",
+            "type": "composed-live-start-all-stop",
             "target": "#liveAllStop",
             "effect": "stop/reconnect/logout 후 session cleanup 확인"
           }
@@ -225975,23 +226534,38 @@
               "request": null,
               "localTransition": {
                 "selector": "#liveAllStop",
-                "type": "activate",
+                "type": "composed-live-start-all-stop",
                 "target": "#liveAllStop",
                 "effect": "stop/reconnect/logout 후 session cleanup 확인",
                 "property": null,
                 "seedRequirements": [
                   {
-                    "kind": "live-session",
-                    "state": "active",
-                    "minimumCount": 1,
-                    "sessionId": "client-005-review4-session"
+                    "kind": "live-tile",
+                    "state": "idle",
+                    "minimumCount": 1
                   }
                 ],
                 "requiredRequests": [
                   {
                     "sequence": 1,
+                    "method": "POST",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session",
+                    "allowedStatuses": [
+                      200
+                    ]
+                  },
+                  {
+                    "sequence": 2,
+                    "method": "POST",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
+                    "allowedStatuses": [
+                      200
+                    ]
+                  },
+                  {
+                    "sequence": 3,
                     "method": "DELETE",
-                    "urlPath": "/client/api/views/client-005-review4-fixture/webrtc/session/client-005-review4-session",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}",
                     "allowedStatuses": [
                       200
                     ]
@@ -226134,23 +226708,38 @@
               "request": null,
               "localTransition": {
                 "selector": "#liveAllStop",
-                "type": "activate",
+                "type": "composed-live-start-all-stop",
                 "target": "#liveAllStop",
                 "effect": "stop/reconnect/logout 후 session cleanup 확인",
                 "property": null,
                 "seedRequirements": [
                   {
-                    "kind": "live-session",
-                    "state": "active",
-                    "minimumCount": 1,
-                    "sessionId": "client-005-review4-session"
+                    "kind": "live-tile",
+                    "state": "idle",
+                    "minimumCount": 1
                   }
                 ],
                 "requiredRequests": [
                   {
                     "sequence": 1,
+                    "method": "POST",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session",
+                    "allowedStatuses": [
+                      200
+                    ]
+                  },
+                  {
+                    "sequence": 2,
+                    "method": "POST",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
+                    "allowedStatuses": [
+                      200
+                    ]
+                  },
+                  {
+                    "sequence": 3,
                     "method": "DELETE",
-                    "urlPath": "/client/api/views/client-005-review4-fixture/webrtc/session/client-005-review4-session",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}",
                     "allowedStatuses": [
                       200
                     ]
@@ -234940,13 +235529,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "[data-testid=\"client-safe-followup-digest\"]",
+        "selector": "[data-mode-action=\"va-overlay\"]",
         "requestedSelector": "[data-testid=\"client-safe-followup-digest\"]",
         "canonicalSelector": "[data-testid=\"client-safe-followup-digest\"]",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-local-mutation-control-override",
         "actionAnchor": "ClientShellPageHtml",
         "actionRoute": "/client/live",
-        "targetSelector": "[data-testid=\"client-safe-followup-digest\"]"
+        "targetSelector": "[data-mode-action=\"va-overlay\"]"
       },
       "actions": [
         {
@@ -235007,37 +235596,71 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "CLIENT-021:wait-visible",
-          "selector": "[data-testid=\"client-safe-followup-digest\"]",
-          "selectorSource": "review4-canonical-product-control"
+          "selector": "[data-mode-action=\"va-overlay\"]",
+          "selectorSource": "review4-local-mutation-control-override"
         },
         {
-          "kind": "assert-visible-read-model",
+          "kind": "activate-control",
           "dispatch": "playwright-native",
-          "actionId": "CLIENT-021:assert-visible-read-model",
-          "selector": "[data-testid=\"client-safe-followup-digest\"]",
+          "actionId": "CLIENT-021:activate-control",
+          "selector": "[data-mode-action=\"va-overlay\"]",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "CLIENT-021:assert-visible-read-model",
-            "actionKind": "assert-visible-read-model",
-            "controlSelector": "[data-testid=\"client-safe-followup-digest\"]",
+            "actionId": "CLIENT-021:activate-control",
+            "actionKind": "activate-control",
+            "controlSelector": "[data-mode-action=\"va-overlay\"]",
             "linkedPrimaryActionId": null,
-            "requiredSource": "endpoint-dom",
-            "correlationId": "CLIENT-021:assert-visible-read-model:completion",
-            "request": {
-              "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "CLIENT-021:assert-visible-read-model:completion",
-              "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/client/live",
-              "urlPath": "/client/live",
-              "pathParameters": {},
-              "allowedStatuses": [
-                200
+            "requiredSource": "local-transition-readback",
+            "correlationId": "CLIENT-021:activate-control:completion",
+            "request": null,
+            "localTransition": {
+              "selector": "[data-mode-action=\"va-overlay\"]",
+              "type": "composed-va-overlay-session",
+              "target": "[data-mode-action=\"va-overlay\"]",
+              "effect": "overlay toggle/status/metadata 일치",
+              "property": null,
+              "seedRequirements": [
+                {
+                  "kind": "live-tile",
+                  "state": "idle",
+                  "minimumCount": 1
+                }
+              ],
+              "requiredRequests": [
+                {
+                  "sequence": 1,
+                  "method": "POST",
+                  "urlPath": "/client/api/views/{assignedViewId}/webrtc/session",
+                  "allowedStatuses": [
+                    200
+                  ]
+                },
+                {
+                  "sequence": 2,
+                  "method": "POST",
+                  "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
+                  "allowedStatuses": [
+                    200
+                  ]
+                }
+              ],
+              "postconditions": [
+                {
+                  "selector": "[data-mode-action=\"va-overlay\"]",
+                  "property": "ariaPressed",
+                  "operator": "equals",
+                  "value": "true"
+                },
+                {
+                  "selector": "[data-role=\"status\"]",
+                  "property": "text",
+                  "operator": "includes",
+                  "value": "온라인"
+                }
               ]
             },
-            "localTransition": null,
             "expectedBehaviorSha256": "76311cc49ab094757d66d3feb8097d4eadfc3fcc2f8f7c185cbb2c3d915fe35c",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_ops_client_ui_smoke.mjs#CLIENT-021:canonical-functional-readback#16b794c615aae15425ad8a96c9522ef6622c0bc86525fc93679ffc4d9529c8aa",
@@ -235053,8 +235676,20 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_ops_client_ui_smoke.mjs#CLIENT-021:canonical-functional-readback#16b794c615aae15425ad8a96c9522ef6622c0bc86525fc93679ffc4d9529c8aa",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "postconditions": [
+                {
+                  "selector": "[data-mode-action=\"va-overlay\"]",
+                  "property": "ariaPressed",
+                  "operator": "equals",
+                  "value": "true"
+                },
+                {
+                  "selector": "[data-role=\"status\"]",
+                  "property": "text",
+                  "operator": "includes",
+                  "value": "온라인"
+                }
+              ]
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -235085,7 +235720,7 @@
             "actionId": "CLIENT-021:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "CLIENT-021:assert-visible-read-model",
+            "linkedPrimaryActionId": "CLIENT-021:activate-control",
             "requiredSource": "endpoint-dom",
             "correlationId": "CLIENT-021:verify-independent-readback:completion",
             "request": null,
@@ -235121,7 +235756,7 @@
       "workflow": {
         "schema": "media-server.v390-ui-case-native-workflow.v2",
         "workflowId": "CLIENT-021:native-workflow",
-        "workflowClass": "read-only-state",
+        "workflowClass": "actionable",
         "semanticClassification": {
           "flowKind": "read-model",
           "operation": "read",
@@ -235138,7 +235773,7 @@
           {
             "kind": "seed-reviewed-state",
             "setupId": "CLIENT-021:reviewed-state",
-            "strategy": "read-only-state",
+            "strategy": "actionable",
             "route": "/client/live",
             "semanticCallChainSha256": "18639a3ec25204fd68cc2b6485085e83b292968901a81627d6cb2c5aafe8aaaa",
             "persistedMutation": false,
@@ -235154,42 +235789,39 @@
             "sensitive": false
           },
           {
-            "inputId": "CLIENT-021:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "CLIENT-021:local-control-input",
+            "kind": "local-control-input",
             "actualValue": {
-              "method": "GET",
-              "path": "/client/live",
-              "accountRole": "viewer"
+              "selector": "[data-mode-action=\"va-overlay\"]",
+              "operation": "composed-va-overlay-session"
             },
             "sensitive": false
           }
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "[data-testid=\"client-safe-followup-digest\"]",
+          "selector": "[data-mode-action=\"va-overlay\"]",
           "route": "/client/live",
           "accountRole": "viewer",
-          "source": "review4-canonical-product-control",
+          "source": "review4-local-mutation-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
-            "symbol": "renderClientSafeFollowUpDigest",
-            "anchor": "return `<section class=\"client-safe-followup-digest\" data-testid=\"client-safe-followup-digest\" data-client-followup-digest=\"viewer-safe\" aria-label=\"viewer-safe follow-up digest\">",
-            "anchorSha256": "a953c121380fce21c7e46d73b0549e497043a90b29b95d7c003e6ab07f338b57",
-            "contextSha256": "ea72d61055d1decfabd9ca4ab64baed543b1ae8489dd53dc26443fb8d794a132"
+            "symbol": "review4-primary-control:CLIENT-021",
+            "anchor": "<button type=\"button\" class=\"tile-mode-button\" data-mode-action=\"va-overlay\" aria-pressed=\"false\" title=\"VA 오버레이\">VA</button>",
+            "anchorSha256": "52faaaeb669da5586fed097185873915fb9cc3c88f22b5a09a40989773d23426",
+            "contextSha256": "52faaaeb669da5586fed097185873915fb9cc3c88f22b5a09a40989773d23426"
           }
         },
         "productAction": {
-          "kind": "product-state-read",
-          "endpoint": {
-            "method": "GET",
-            "path": "/client/live",
-            "allowedStatuses": [
-              200
-            ]
-          },
-          "localAction": null
+          "kind": "local-control-action",
+          "endpoint": null,
+          "localAction": {
+            "type": "composed-va-overlay-session",
+            "target": "[data-mode-action=\"va-overlay\"]",
+            "effect": "overlay toggle/status/metadata 일치"
+          }
         },
         "expectedProductState": {
           "identity": "product-state:src/ingress/product_ui_client_scripts.cpp#AppendClientShellScript#4f2954fbf658935ef68491f602df5a97d379839286a99d7b8fcfd29c968b2369",
@@ -235223,9 +235855,9 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "VA overlay toggle/status/metadata가 같은 mode에 결속",
-          "specSha256": "54273472727e369605db4cc001a2cb723b5a5242770874726b49edc9ba6921fd",
-          "requestCount": 1,
-          "domAssertionCount": 3,
+          "specSha256": "a45e8d61f58566cea5c1e9c7feb2f92f2ec0cf51cbf77863e0a59afb0ad2abab",
+          "requestCount": 2,
+          "domAssertionCount": 5,
           "stateSnapshotCount": 1,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -235289,37 +235921,71 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "CLIENT-021:wait-visible",
-            "selector": "[data-testid=\"client-safe-followup-digest\"]",
-            "selectorSource": "review4-canonical-product-control"
+            "selector": "[data-mode-action=\"va-overlay\"]",
+            "selectorSource": "review4-local-mutation-control-override"
           },
           {
-            "kind": "assert-visible-read-model",
+            "kind": "activate-control",
             "dispatch": "playwright-native",
-            "actionId": "CLIENT-021:assert-visible-read-model",
-            "selector": "[data-testid=\"client-safe-followup-digest\"]",
+            "actionId": "CLIENT-021:activate-control",
+            "selector": "[data-mode-action=\"va-overlay\"]",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "CLIENT-021:assert-visible-read-model",
-              "actionKind": "assert-visible-read-model",
-              "controlSelector": "[data-testid=\"client-safe-followup-digest\"]",
+              "actionId": "CLIENT-021:activate-control",
+              "actionKind": "activate-control",
+              "controlSelector": "[data-mode-action=\"va-overlay\"]",
               "linkedPrimaryActionId": null,
-              "requiredSource": "endpoint-dom",
-              "correlationId": "CLIENT-021:assert-visible-read-model:completion",
-              "request": {
-                "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "CLIENT-021:assert-visible-read-model:completion",
-                "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/client/live",
-                "urlPath": "/client/live",
-                "pathParameters": {},
-                "allowedStatuses": [
-                  200
+              "requiredSource": "local-transition-readback",
+              "correlationId": "CLIENT-021:activate-control:completion",
+              "request": null,
+              "localTransition": {
+                "selector": "[data-mode-action=\"va-overlay\"]",
+                "type": "composed-va-overlay-session",
+                "target": "[data-mode-action=\"va-overlay\"]",
+                "effect": "overlay toggle/status/metadata 일치",
+                "property": null,
+                "seedRequirements": [
+                  {
+                    "kind": "live-tile",
+                    "state": "idle",
+                    "minimumCount": 1
+                  }
+                ],
+                "requiredRequests": [
+                  {
+                    "sequence": 1,
+                    "method": "POST",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session",
+                    "allowedStatuses": [
+                      200
+                    ]
+                  },
+                  {
+                    "sequence": 2,
+                    "method": "POST",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
+                    "allowedStatuses": [
+                      200
+                    ]
+                  }
+                ],
+                "postconditions": [
+                  {
+                    "selector": "[data-mode-action=\"va-overlay\"]",
+                    "property": "ariaPressed",
+                    "operator": "equals",
+                    "value": "true"
+                  },
+                  {
+                    "selector": "[data-role=\"status\"]",
+                    "property": "text",
+                    "operator": "includes",
+                    "value": "온라인"
+                  }
                 ]
               },
-              "localTransition": null,
               "expectedBehaviorSha256": "76311cc49ab094757d66d3feb8097d4eadfc3fcc2f8f7c185cbb2c3d915fe35c",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_ops_client_ui_smoke.mjs#CLIENT-021:canonical-functional-readback#16b794c615aae15425ad8a96c9522ef6622c0bc86525fc93679ffc4d9529c8aa",
@@ -235335,8 +236001,20 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_client_ui_smoke.mjs#CLIENT-021:canonical-functional-readback#16b794c615aae15425ad8a96c9522ef6622c0bc86525fc93679ffc4d9529c8aa",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "postconditions": [
+                  {
+                    "selector": "[data-mode-action=\"va-overlay\"]",
+                    "property": "ariaPressed",
+                    "operator": "equals",
+                    "value": "true"
+                  },
+                  {
+                    "selector": "[data-role=\"status\"]",
+                    "property": "text",
+                    "operator": "includes",
+                    "value": "온라인"
+                  }
+                ]
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -235367,7 +236045,7 @@
               "actionId": "CLIENT-021:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "CLIENT-021:assert-visible-read-model",
+              "linkedPrimaryActionId": "CLIENT-021:activate-control",
               "requiredSource": "endpoint-dom",
               "correlationId": "CLIENT-021:verify-independent-readback:completion",
               "request": null,
@@ -235421,25 +236099,59 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "CLIENT-021:assert-visible-read-model",
-              "actionKind": "assert-visible-read-model",
-              "controlSelector": "[data-testid=\"client-safe-followup-digest\"]",
+              "actionId": "CLIENT-021:activate-control",
+              "actionKind": "activate-control",
+              "controlSelector": "[data-mode-action=\"va-overlay\"]",
               "linkedPrimaryActionId": null,
-              "requiredSource": "endpoint-dom",
-              "correlationId": "CLIENT-021:assert-visible-read-model:completion",
-              "request": {
-                "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "CLIENT-021:assert-visible-read-model:completion",
-                "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/client/live",
-                "urlPath": "/client/live",
-                "pathParameters": {},
-                "allowedStatuses": [
-                  200
+              "requiredSource": "local-transition-readback",
+              "correlationId": "CLIENT-021:activate-control:completion",
+              "request": null,
+              "localTransition": {
+                "selector": "[data-mode-action=\"va-overlay\"]",
+                "type": "composed-va-overlay-session",
+                "target": "[data-mode-action=\"va-overlay\"]",
+                "effect": "overlay toggle/status/metadata 일치",
+                "property": null,
+                "seedRequirements": [
+                  {
+                    "kind": "live-tile",
+                    "state": "idle",
+                    "minimumCount": 1
+                  }
+                ],
+                "requiredRequests": [
+                  {
+                    "sequence": 1,
+                    "method": "POST",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session",
+                    "allowedStatuses": [
+                      200
+                    ]
+                  },
+                  {
+                    "sequence": 2,
+                    "method": "POST",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
+                    "allowedStatuses": [
+                      200
+                    ]
+                  }
+                ],
+                "postconditions": [
+                  {
+                    "selector": "[data-mode-action=\"va-overlay\"]",
+                    "property": "ariaPressed",
+                    "operator": "equals",
+                    "value": "true"
+                  },
+                  {
+                    "selector": "[data-role=\"status\"]",
+                    "property": "text",
+                    "operator": "includes",
+                    "value": "온라인"
+                  }
                 ]
               },
-              "localTransition": null,
               "expectedBehaviorSha256": "76311cc49ab094757d66d3feb8097d4eadfc3fcc2f8f7c185cbb2c3d915fe35c",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_ops_client_ui_smoke.mjs#CLIENT-021:canonical-functional-readback#16b794c615aae15425ad8a96c9522ef6622c0bc86525fc93679ffc4d9529c8aa",
@@ -235455,8 +236167,20 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_client_ui_smoke.mjs#CLIENT-021:canonical-functional-readback#16b794c615aae15425ad8a96c9522ef6622c0bc86525fc93679ffc4d9529c8aa",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "postconditions": [
+                  {
+                    "selector": "[data-mode-action=\"va-overlay\"]",
+                    "property": "ariaPressed",
+                    "operator": "equals",
+                    "value": "true"
+                  },
+                  {
+                    "selector": "[data-role=\"status\"]",
+                    "property": "text",
+                    "operator": "includes",
+                    "value": "온라인"
+                  }
+                ]
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -235467,6 +236191,12 @@
           }
         ],
         "cleanup": [
+          {
+            "kind": "reset-local-ui-route",
+            "cleanupId": "CLIENT-021:reset-local-ui-route",
+            "route": "/client/live",
+            "assertion": "reload the product route to discard transient DOM and page-script state"
+          },
           {
             "kind": "no-op-cleanup",
             "cleanupId": "CLIENT-021:no-persisted-mutation",
@@ -235486,14 +236216,14 @@
         ],
         "completionRequired": true,
         "allowedCompletionSources": [
-          "endpoint-dom",
+          "local-transition-readback",
           "persisted-readback",
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "CLIENT-021:assert-visible-read-model",
-        "primaryActionCorrelationId": "CLIENT-021:assert-visible-read-model:completion",
-        "primaryControlSelector": "[data-testid=\"client-safe-followup-digest\"]",
+        "primaryActionId": "CLIENT-021:activate-control",
+        "primaryActionCorrelationId": "CLIENT-021:activate-control:completion",
+        "primaryControlSelector": "[data-mode-action=\"va-overlay\"]",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_client_ui_smoke.mjs#CLIENT-021:canonical-functional-readback#16b794c615aae15425ad8a96c9522ef6622c0bc86525fc93679ffc4d9529c8aa"
       },
       "artifacts": {
@@ -235526,7 +236256,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "[data-testid=\"client-safe-followup-digest\"]",
+          "selector": "[data-mode-action=\"va-overlay\"]",
           "applicability": "required",
           "exists": true,
           "visible": true,
@@ -243551,8 +244281,8 @@
       "featureId": "MEDIA-017",
       "disposition": "native-executable",
       "dispatch": "playwright-native",
-      "canonicalRoute": "/ops/sources",
-      "screenRoute": "/ops/sources",
+      "canonicalRoute": "/client/live",
+      "screenRoute": "/client/live",
       "accountRole": "viewer",
       "viewport": {
         "width": 390,
@@ -243565,7 +244295,7 @@
         "canonicalSelector": null,
         "selectorSource": "review4-explicit-control-not-applicable",
         "actionAnchor": "AppendClientShellScript",
-        "actionRoute": "/ops/sources",
+        "actionRoute": "/client/live",
         "targetSelector": null
       },
       "actions": [
@@ -243573,8 +244303,8 @@
           "kind": "navigate",
           "dispatch": "playwright-native",
           "actionId": "MEDIA-017:navigate",
-          "route": "/ops/sources",
-          "expectedCanonicalRoute": "/ops/sources",
+          "route": "/client/live",
+          "expectedCanonicalRoute": "/client/live",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
@@ -243590,8 +244320,8 @@
               "correlationId": "MEDIA-017:navigation",
               "correlationSource": "request-header",
               "method": "GET",
-              "urlPathTemplate": "/ops/sources",
-              "urlPath": "/ops/sources",
+              "urlPathTemplate": "/client/live",
+              "urlPath": "/client/live",
               "pathParameters": {},
               "allowedStatuses": [
                 200
@@ -243643,8 +244373,8 @@
               "correlationId": "MEDIA-017:assert-product-state:completion",
               "correlationSource": "request-header",
               "method": "GET",
-              "urlPathTemplate": "/ops/sources",
-              "urlPath": "/ops/sources",
+              "urlPathTemplate": "/client/live",
+              "urlPath": "/client/live",
               "pathParameters": {},
               "allowedStatuses": [
                 200
@@ -243752,7 +244482,7 @@
             "kind": "seed-reviewed-state",
             "setupId": "MEDIA-017:reviewed-state",
             "strategy": "read-only-state",
-            "route": "/ops/sources",
+            "route": "/client/live",
             "semanticCallChainSha256": "8f8454480652049ee9994bba6286f18b2c8d7a929eaba1de5f5c724c2eb4a7ef",
             "persistedMutation": false,
             "fixtureId": "media-017-review4-fixture",
@@ -243771,7 +244501,7 @@
             "kind": "product-state-request",
             "actualValue": {
               "method": "GET",
-              "path": "/ops/sources",
+              "path": "/client/live",
               "accountRole": "viewer"
             },
             "sensitive": false
@@ -243780,7 +244510,7 @@
         "primaryControl": {
           "applicability": "not-applicable",
           "selector": null,
-          "route": "/ops/sources",
+          "route": "/client/live",
           "accountRole": "viewer",
           "source": "review4-explicit-control-not-applicable",
           "expectedVisible": false,
@@ -243805,7 +244535,7 @@
           "kind": "product-state-read",
           "endpoint": {
             "method": "GET",
-            "path": "/ops/sources",
+            "path": "/client/live",
             "allowedStatuses": [
               200
             ]
@@ -243856,8 +244586,8 @@
             "kind": "navigate",
             "dispatch": "playwright-native",
             "actionId": "MEDIA-017:navigate",
-            "route": "/ops/sources",
-            "expectedCanonicalRoute": "/ops/sources",
+            "route": "/client/live",
+            "expectedCanonicalRoute": "/client/live",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
@@ -243873,8 +244603,8 @@
                 "correlationId": "MEDIA-017:navigation",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops/sources",
-                "urlPath": "/ops/sources",
+                "urlPathTemplate": "/client/live",
+                "urlPath": "/client/live",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -243926,8 +244656,8 @@
                 "correlationId": "MEDIA-017:assert-product-state:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops/sources",
-                "urlPath": "/ops/sources",
+                "urlPathTemplate": "/client/live",
+                "urlPath": "/client/live",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -244046,8 +244776,8 @@
                 "correlationId": "MEDIA-017:assert-product-state:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops/sources",
-                "urlPath": "/ops/sources",
+                "urlPathTemplate": "/client/live",
+                "urlPath": "/client/live",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -244118,7 +244848,7 @@
       },
       "requestedProjection": {
         "schema": "media-server.v390-ui-canonical-requested.v1",
-        "route": "/ops/sources",
+        "route": "/client/live",
         "accountRole": "viewer",
         "viewport": {
           "width": 390,
@@ -244132,7 +244862,7 @@
       },
       "observedProjection": {
         "schema": "media-server.v390-ui-runtime-observed.v1",
-        "screenRoute": "/ops/sources",
+        "screenRoute": "/client/live",
         "accountRole": "viewer",
         "viewport": {
           "width": 390,
@@ -244842,30 +245572,33 @@
           }
         },
         {
-          "kind": "assert-product-state",
+          "kind": "navigate-negative",
           "dispatch": "playwright-native",
-          "actionId": "SAFE-016:assert-product-state",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
+          "actionId": "SAFE-016:navigate-negative",
+          "route": "/__v390-undefined-route__",
+          "allowedStatuses": [
+            404
+          ],
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "SAFE-016:assert-product-state",
-            "actionKind": "assert-product-state",
+            "actionId": "SAFE-016:navigate-negative",
+            "actionKind": "navigate-negative",
             "controlSelector": null,
             "linkedPrimaryActionId": null,
-            "requiredSource": "endpoint-dom",
-            "correlationId": "SAFE-016:assert-product-state:completion",
+            "requiredSource": "negative-route-status",
+            "correlationId": "SAFE-016:navigate-negative:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "SAFE-016:assert-product-state:completion",
+              "correlationId": "SAFE-016:navigate-negative:completion",
               "correlationSource": "request-header",
               "method": "GET",
-              "urlPathTemplate": "/ops",
-              "urlPath": "/ops",
+              "urlPathTemplate": "/__v390-undefined-route__",
+              "urlPath": "/__v390-undefined-route__",
               "pathParameters": {},
               "allowedStatuses": [
-                200
+                404
               ]
             },
             "localTransition": null,
@@ -244884,75 +245617,16 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "navigationStatus": 404
             },
-            "attestedAlternatives": [
-              "persisted-readback",
-              "event-record",
-              "server-log"
-            ]
-          }
-        },
-        {
-          "kind": "verify-independent-readback",
-          "dispatch": "playwright-native",
-          "actionId": "SAFE-016:verify-independent-readback",
-          "expectedStateIdentity": "product-state:scripts/internal/verify_auth_workflow.sh#undefined_route_BuildHttpResponse_observed#e3c0af9058eb5c2e2a544601edf2de9b5db43b1c4abe9103fda4377b75790c44",
-          "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
-          "readbackLocator": {
-            "file": "scripts/internal/verify_auth_workflow.sh",
-            "symbol": "expect_eq",
-            "contextSha256": "0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c"
-          },
-          "verifierCommand": "verify-auth-routes",
-          "runtimeEvidenceRequired": true,
-          "staticLocatorIsNotRuntimePass": true,
-          "semanticCompletion": {
-            "schema": "media-server.v390-ui-action-completion.v2",
-            "required": true,
-            "phase": "independent-readback",
-            "actionId": "SAFE-016:verify-independent-readback",
-            "actionKind": "verify-independent-readback",
-            "controlSelector": null,
-            "linkedPrimaryActionId": "SAFE-016:assert-product-state",
-            "requiredSource": "endpoint-dom",
-            "correlationId": "SAFE-016:verify-independent-readback:completion",
-            "request": null,
-            "localTransition": null,
-            "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
-            "readback": {
-              "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
-              "expectedStateIdentity": "product-state:scripts/internal/verify_auth_workflow.sh#undefined_route_BuildHttpResponse_observed#e3c0af9058eb5c2e2a544601edf2de9b5db43b1c4abe9103fda4377b75790c44",
-              "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
-              "allowedObservationSources": [
-                "browser-dom",
-                "readback-request",
-                "event-record",
-                "server-log"
-              ],
-              "staticLocatorIsNotRuntimePass": true
-            },
-            "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
-            "readbackExpectation": {
-              "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
-              "expectedStateIdentity": "product-state:scripts/internal/verify_auth_workflow.sh#undefined_route_BuildHttpResponse_observed#e3c0af9058eb5c2e2a544601edf2de9b5db43b1c4abe9103fda4377b75790c44",
-              "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
-              "runtimeEvidenceRequired": true
-            },
-            "attestedAlternatives": [
-              "persisted-readback",
-              "event-record",
-              "server-log"
-            ]
+            "attestedAlternatives": []
           }
         }
       ],
       "workflow": {
         "schema": "media-server.v390-ui-case-native-workflow.v2",
         "workflowId": "SAFE-016:native-workflow",
-        "workflowClass": "read-only-state",
+        "workflowClass": "negative-route",
         "semanticClassification": {
           "flowKind": "read-model",
           "operation": "read",
@@ -244969,7 +245643,7 @@
           {
             "kind": "seed-reviewed-state",
             "setupId": "SAFE-016:reviewed-state",
-            "strategy": "read-only-state",
+            "strategy": "negative-route",
             "route": "/ops",
             "semanticCallChainSha256": "84d1fb7078f031a3277a0cae5bb73fd5a7c17018b3d55eaa8c49ee51b8320f6b",
             "persistedMutation": false,
@@ -244986,10 +245660,10 @@
           },
           {
             "inputId": "SAFE-016:product-read-input",
-            "kind": "product-state-request",
+            "kind": "negative-route-request",
             "actualValue": {
               "method": "GET",
-              "path": "/ops",
+              "path": "/__v390-undefined-route__",
               "accountRole": "operator"
             },
             "sensitive": false
@@ -245003,7 +245677,7 @@
           "source": "review4-explicit-control-not-applicable",
           "expectedVisible": false,
           "expectedEnabled": false,
-          "reason": "reviewed feature is exercised by exact endpoint/readback rather than a direct product control",
+          "reason": "negative route has no product control",
           "sourceLocator": {
             "file": "scripts/internal/verify_auth_workflow.sh",
             "symbol": "undefined_route_BuildHttpResponse_status",
@@ -245020,12 +245694,12 @@
           }
         },
         "productAction": {
-          "kind": "product-state-read",
+          "kind": "negative-route-request",
           "endpoint": {
             "method": "GET",
-            "path": "/ops",
+            "path": "/__v390-undefined-route__",
             "allowedStatuses": [
-              200
+              404
             ]
           },
           "localAction": null
@@ -245125,30 +245799,33 @@
             }
           },
           {
-            "kind": "assert-product-state",
+            "kind": "navigate-negative",
             "dispatch": "playwright-native",
-            "actionId": "SAFE-016:assert-product-state",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
+            "actionId": "SAFE-016:navigate-negative",
+            "route": "/__v390-undefined-route__",
+            "allowedStatuses": [
+              404
+            ],
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SAFE-016:assert-product-state",
-              "actionKind": "assert-product-state",
+              "actionId": "SAFE-016:navigate-negative",
+              "actionKind": "navigate-negative",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
-              "requiredSource": "endpoint-dom",
-              "correlationId": "SAFE-016:assert-product-state:completion",
+              "requiredSource": "negative-route-status",
+              "correlationId": "SAFE-016:navigate-negative:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SAFE-016:assert-product-state:completion",
+                "correlationId": "SAFE-016:navigate-negative:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/__v390-undefined-route__",
+                "urlPath": "/__v390-undefined-route__",
                 "pathParameters": {},
                 "allowedStatuses": [
-                  200
+                  404
                 ]
               },
               "localTransition": null,
@@ -245167,75 +245844,16 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "navigationStatus": 404
               },
-              "attestedAlternatives": [
-                "persisted-readback",
-                "event-record",
-                "server-log"
-              ]
-            }
-          },
-          {
-            "kind": "verify-independent-readback",
-            "dispatch": "playwright-native",
-            "actionId": "SAFE-016:verify-independent-readback",
-            "expectedStateIdentity": "product-state:scripts/internal/verify_auth_workflow.sh#undefined_route_BuildHttpResponse_observed#e3c0af9058eb5c2e2a544601edf2de9b5db43b1c4abe9103fda4377b75790c44",
-            "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
-            "readbackLocator": {
-              "file": "scripts/internal/verify_auth_workflow.sh",
-              "symbol": "expect_eq",
-              "contextSha256": "0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c"
-            },
-            "verifierCommand": "verify-auth-routes",
-            "runtimeEvidenceRequired": true,
-            "staticLocatorIsNotRuntimePass": true,
-            "semanticCompletion": {
-              "schema": "media-server.v390-ui-action-completion.v2",
-              "required": true,
-              "phase": "independent-readback",
-              "actionId": "SAFE-016:verify-independent-readback",
-              "actionKind": "verify-independent-readback",
-              "controlSelector": null,
-              "linkedPrimaryActionId": "SAFE-016:assert-product-state",
-              "requiredSource": "endpoint-dom",
-              "correlationId": "SAFE-016:verify-independent-readback:completion",
-              "request": null,
-              "localTransition": null,
-              "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
-              "readback": {
-                "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
-                "expectedStateIdentity": "product-state:scripts/internal/verify_auth_workflow.sh#undefined_route_BuildHttpResponse_observed#e3c0af9058eb5c2e2a544601edf2de9b5db43b1c4abe9103fda4377b75790c44",
-                "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
-                "allowedObservationSources": [
-                  "browser-dom",
-                  "readback-request",
-                  "event-record",
-                  "server-log"
-                ],
-                "staticLocatorIsNotRuntimePass": true
-              },
-              "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
-              "readbackExpectation": {
-                "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
-                "expectedStateIdentity": "product-state:scripts/internal/verify_auth_workflow.sh#undefined_route_BuildHttpResponse_observed#e3c0af9058eb5c2e2a544601edf2de9b5db43b1c4abe9103fda4377b75790c44",
-                "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
-                "runtimeEvidenceRequired": true
-              },
-              "attestedAlternatives": [
-                "persisted-readback",
-                "event-record",
-                "server-log"
-              ]
+              "attestedAlternatives": []
             }
           }
         ],
         "expectedResults": [
           {
             "resultId": "SAFE-016:semantic-result",
-            "kind": "reviewed-semantic-result",
+            "kind": "negative-route-status",
             "expectedBehavior": "정의하지 않은 route가 404 처리됨",
             "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
             "endpointHints": [],
@@ -245253,22 +245871,22 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SAFE-016:assert-product-state",
-              "actionKind": "assert-product-state",
+              "actionId": "SAFE-016:navigate-negative",
+              "actionKind": "navigate-negative",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
-              "requiredSource": "endpoint-dom",
-              "correlationId": "SAFE-016:assert-product-state:completion",
+              "requiredSource": "negative-route-status",
+              "correlationId": "SAFE-016:navigate-negative:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SAFE-016:assert-product-state:completion",
+                "correlationId": "SAFE-016:navigate-negative:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/__v390-undefined-route__",
+                "urlPath": "/__v390-undefined-route__",
                 "pathParameters": {},
                 "allowedStatuses": [
-                  200
+                  404
                 ]
               },
               "localTransition": null,
@@ -245287,14 +245905,9 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "navigationStatus": 404
               },
-              "attestedAlternatives": [
-                "persisted-readback",
-                "event-record",
-                "server-log"
-              ]
+              "attestedAlternatives": []
             }
           }
         ],
@@ -245309,7 +245922,7 @@
         ]
       },
       "oracle": {
-        "kind": "semantic-endpoint-readback",
+        "kind": "semantic-cross-route-negative-status",
         "sourceKind": "http-router-fallback-runtime-404",
         "expectedBehavior": "정의하지 않은 route가 404 처리됨",
         "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
@@ -245318,13 +245931,10 @@
         ],
         "completionRequired": true,
         "allowedCompletionSources": [
-          "endpoint-dom",
-          "persisted-readback",
-          "event-record",
-          "server-log"
+          "negative-route-status"
         ],
-        "primaryActionId": "SAFE-016:assert-product-state",
-        "primaryActionCorrelationId": "SAFE-016:assert-product-state:completion",
+        "primaryActionId": "SAFE-016:navigate-negative",
+        "primaryActionCorrelationId": "SAFE-016:navigate-negative:completion",
         "primaryControlSelector": null,
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#expect_eq#0a491c27dd38051fa182d0ceb2fa2bea8c24f417a781c0ce6710acfe1f52b87c"
       },
@@ -245867,9 +246477,9 @@
       "featureId": "SAFE-018",
       "disposition": "native-executable",
       "dispatch": "playwright-native",
-      "canonicalRoute": "/ops",
-      "screenRoute": "/ops",
-      "accountRole": "operator",
+      "canonicalRoute": "/client/live",
+      "screenRoute": "/client/live",
+      "accountRole": "viewer",
       "viewport": {
         "width": 390,
         "height": 844
@@ -245881,7 +246491,7 @@
         "canonicalSelector": null,
         "selectorSource": "review4-explicit-control-not-applicable",
         "actionAnchor": "ClientPublishedViewJson",
-        "actionRoute": "/ops",
+        "actionRoute": "/client/live",
         "targetSelector": null
       },
       "actions": [
@@ -245889,8 +246499,8 @@
           "kind": "navigate",
           "dispatch": "playwright-native",
           "actionId": "SAFE-018:navigate",
-          "route": "/ops",
-          "expectedCanonicalRoute": "/ops",
+          "route": "/client/live",
+          "expectedCanonicalRoute": "/client/live",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
@@ -245906,8 +246516,8 @@
               "correlationId": "SAFE-018:navigation",
               "correlationSource": "request-header",
               "method": "GET",
-              "urlPathTemplate": "/ops",
-              "urlPath": "/ops",
+              "urlPathTemplate": "/client/live",
+              "urlPath": "/client/live",
               "pathParameters": {},
               "allowedStatuses": [
                 200
@@ -245959,8 +246569,8 @@
               "correlationId": "SAFE-018:assert-product-boundary:completion",
               "correlationSource": "request-header",
               "method": "GET",
-              "urlPathTemplate": "/ops",
-              "urlPath": "/ops",
+              "urlPathTemplate": "/client/live",
+              "urlPath": "/client/live",
               "pathParameters": {},
               "allowedStatuses": [
                 200
@@ -246061,14 +246671,14 @@
           {
             "kind": "bind-role-session",
             "setupId": "SAFE-018:role-session",
-            "accountRole": "operator",
+            "accountRole": "viewer",
             "required": true
           },
           {
             "kind": "seed-reviewed-state",
             "setupId": "SAFE-018:reviewed-state",
             "strategy": "hidden-disabled",
-            "route": "/ops",
+            "route": "/client/live",
             "semanticCallChainSha256": "d444918709ed7af1f2ddd9475666d0781d799c800257550b4de7fd37e0953438",
             "persistedMutation": false,
             "fixtureId": "safe-018-review4-fixture",
@@ -246087,8 +246697,8 @@
             "kind": "product-state-request",
             "actualValue": {
               "method": "GET",
-              "path": "/ops",
-              "accountRole": "operator"
+              "path": "/client/live",
+              "accountRole": "viewer"
             },
             "sensitive": false
           }
@@ -246096,8 +246706,8 @@
         "primaryControl": {
           "applicability": "not-applicable",
           "selector": null,
-          "route": "/ops",
-          "accountRole": "operator",
+          "route": "/client/live",
+          "accountRole": "viewer",
           "source": "review4-explicit-control-not-applicable",
           "expectedVisible": false,
           "expectedEnabled": false,
@@ -246121,7 +246731,7 @@
           "kind": "product-boundary-read",
           "endpoint": {
             "method": "GET",
-            "path": "/ops",
+            "path": "/client/live",
             "allowedStatuses": [
               200
             ]
@@ -246172,8 +246782,8 @@
             "kind": "navigate",
             "dispatch": "playwright-native",
             "actionId": "SAFE-018:navigate",
-            "route": "/ops",
-            "expectedCanonicalRoute": "/ops",
+            "route": "/client/live",
+            "expectedCanonicalRoute": "/client/live",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
@@ -246189,8 +246799,8 @@
                 "correlationId": "SAFE-018:navigation",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/client/live",
+                "urlPath": "/client/live",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -246242,8 +246852,8 @@
                 "correlationId": "SAFE-018:assert-product-boundary:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/client/live",
+                "urlPath": "/client/live",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -246362,8 +246972,8 @@
                 "correlationId": "SAFE-018:assert-product-boundary:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/client/live",
+                "urlPath": "/client/live",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -246434,8 +247044,8 @@
       },
       "requestedProjection": {
         "schema": "media-server.v390-ui-canonical-requested.v1",
-        "route": "/ops",
-        "accountRole": "operator",
+        "route": "/client/live",
+        "accountRole": "viewer",
         "viewport": {
           "width": 390,
           "height": 844
@@ -246448,8 +247058,8 @@
       },
       "observedProjection": {
         "schema": "media-server.v390-ui-runtime-observed.v1",
-        "screenRoute": "/ops",
-        "accountRole": "operator",
+        "screenRoute": "/client/live",
+        "accountRole": "viewer",
         "viewport": {
           "width": 390,
           "height": 844
@@ -249521,9 +250131,9 @@
       "featureId": "SAFE-031",
       "disposition": "native-executable",
       "dispatch": "playwright-native",
-      "canonicalRoute": "/ops",
-      "screenRoute": "/ops",
-      "accountRole": "operator",
+      "canonicalRoute": "/client/live",
+      "screenRoute": "/client/live",
+      "accountRole": "viewer",
       "viewport": {
         "width": 390,
         "height": 844
@@ -249535,7 +250145,7 @@
         "canonicalSelector": null,
         "selectorSource": "review4-explicit-control-not-applicable",
         "actionAnchor": "OpsVlmRuleSuggestionDraftWorkflowJson",
-        "actionRoute": "/ops",
+        "actionRoute": "/client/live",
         "targetSelector": null
       },
       "actions": [
@@ -249543,8 +250153,8 @@
           "kind": "navigate",
           "dispatch": "playwright-native",
           "actionId": "SAFE-031:navigate",
-          "route": "/ops",
-          "expectedCanonicalRoute": "/ops",
+          "route": "/client/live",
+          "expectedCanonicalRoute": "/client/live",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
@@ -249560,8 +250170,8 @@
               "correlationId": "SAFE-031:navigation",
               "correlationSource": "request-header",
               "method": "GET",
-              "urlPathTemplate": "/ops",
-              "urlPath": "/ops",
+              "urlPathTemplate": "/client/live",
+              "urlPath": "/client/live",
               "pathParameters": {},
               "allowedStatuses": [
                 200
@@ -249613,8 +250223,8 @@
               "correlationId": "SAFE-031:assert-product-boundary:completion",
               "correlationSource": "request-header",
               "method": "GET",
-              "urlPathTemplate": "/ops",
-              "urlPath": "/ops",
+              "urlPathTemplate": "/client/live",
+              "urlPath": "/client/live",
               "pathParameters": {},
               "allowedStatuses": [
                 200
@@ -249715,14 +250325,14 @@
           {
             "kind": "bind-role-session",
             "setupId": "SAFE-031:role-session",
-            "accountRole": "operator",
+            "accountRole": "viewer",
             "required": true
           },
           {
             "kind": "seed-reviewed-state",
             "setupId": "SAFE-031:reviewed-state",
             "strategy": "hidden-disabled",
-            "route": "/ops",
+            "route": "/client/live",
             "semanticCallChainSha256": "beccdb1d388a75a163103678f147b292119d2a164781d0ccbe33079edb15e1c2",
             "persistedMutation": false,
             "fixtureId": "safe-031-review4-fixture",
@@ -249741,8 +250351,8 @@
             "kind": "product-state-request",
             "actualValue": {
               "method": "GET",
-              "path": "/ops",
-              "accountRole": "operator"
+              "path": "/client/live",
+              "accountRole": "viewer"
             },
             "sensitive": false
           }
@@ -249750,8 +250360,8 @@
         "primaryControl": {
           "applicability": "not-applicable",
           "selector": null,
-          "route": "/ops",
-          "accountRole": "operator",
+          "route": "/client/live",
+          "accountRole": "viewer",
           "source": "review4-explicit-control-not-applicable",
           "expectedVisible": false,
           "expectedEnabled": false,
@@ -249775,7 +250385,7 @@
           "kind": "product-boundary-read",
           "endpoint": {
             "method": "GET",
-            "path": "/ops",
+            "path": "/client/live",
             "allowedStatuses": [
               200
             ]
@@ -249826,8 +250436,8 @@
             "kind": "navigate",
             "dispatch": "playwright-native",
             "actionId": "SAFE-031:navigate",
-            "route": "/ops",
-            "expectedCanonicalRoute": "/ops",
+            "route": "/client/live",
+            "expectedCanonicalRoute": "/client/live",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
@@ -249843,8 +250453,8 @@
                 "correlationId": "SAFE-031:navigation",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/client/live",
+                "urlPath": "/client/live",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -249896,8 +250506,8 @@
                 "correlationId": "SAFE-031:assert-product-boundary:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/client/live",
+                "urlPath": "/client/live",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -250016,8 +250626,8 @@
                 "correlationId": "SAFE-031:assert-product-boundary:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/client/live",
+                "urlPath": "/client/live",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -250088,8 +250698,8 @@
       },
       "requestedProjection": {
         "schema": "media-server.v390-ui-canonical-requested.v1",
-        "route": "/ops",
-        "accountRole": "operator",
+        "route": "/client/live",
+        "accountRole": "viewer",
         "viewport": {
           "width": 390,
           "height": 844
@@ -250102,8 +250712,8 @@
       },
       "observedProjection": {
         "schema": "media-server.v390-ui-runtime-observed.v1",
-        "screenRoute": "/ops",
-        "accountRole": "operator",
+        "screenRoute": "/client/live",
+        "accountRole": "viewer",
         "viewport": {
           "width": 390,
           "height": 844
@@ -250420,10 +251030,10 @@
           "schema": "media-server.v390-ui-client-safe-exact-oracle.v1",
           "caseId": "SAFE-033",
           "classification": "case-specific-runtime-oracle",
-          "route": "/ops",
+          "route": "/ops/vlm",
           "role": "operator",
           "featureMeaning": "VLM diagnostic/raw details는 Ops details 안에만 존재",
-          "specSha256": "03e5184c35669957f279d8968a3964735afd4a8c4bab2ce17aedab2b33f8897d",
+          "specSha256": "876a25a4520f1f9c5818ac6528f263886d33aae601404093fb8652de83848e81",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 5,

@@ -601,6 +601,14 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
 });
 
 check("actual-mode fixture stops on first failure and still runs cleanup/report", () => {
+  const runActualStart = files.bundle.indexOf("const summary = await runActualBundle()");
+  const firstFailureClosure = files.bundle.indexOf("assertFirstFailureClosure(stages, failedStage)");
+  const nonZeroExit = files.bundle.indexOf('if (summary.result !== "PASS") process.exitCode = 1');
+  assert(runActualStart >= 0 && firstFailureClosure > runActualStart && nonZeroExit > firstFailureClosure,
+    "first-failure closure must run before the non-zero process result is assigned");
+  assert(!files.bundle.slice(runActualStart, firstFailureClosure).includes("process.exit(1)"),
+    "actual bundle exits before first-failure closure validation");
+
   const outputDir = fixtureDir("first-fail");
   const result = runBundle(["--output-dir", outputDir, "--fixture-fail-stage", "feature-gates"]);
   assert(result.status !== 0, "failure fixture must return non-zero");
@@ -615,6 +623,51 @@ check("actual-mode fixture stops on first failure and still runs cleanup/report"
   }
   assert(summary.stages.find(item => item.id === "cleanup")?.status === "PASS", "cleanup must run after failure");
   assert(summary.stages.find(item => item.id === "report")?.status === "PASS", "report must run after failure");
+  fs.rmSync(outputDir, { recursive: true, force: true });
+});
+
+check("standalone UI suite builds the current source before bootstrap and binds the binary", () => {
+  const outputDir = fixtureDir("ui-current-source-build");
+  const result = runBundle(["--output-dir", outputDir, "--suite", "ui", "--fixture-pass"]);
+  assert(result.status === 0, `UI build fixture must pass: ${result.stderr}`);
+  const summary = readJson(path.join(outputDir, "summary.json"));
+  const selected = ["preflight", "build", "ui-environment-bootstrap", "ui-exact-424", "ui-server-cleanup", "ui-fulltest-qualification", "cleanup", "report"];
+  for (const id of selected) {
+    assert(summary.stages.find(item => item.id === id)?.status === "PASS", `${id} must execute in the UI suite`);
+  }
+  for (const id of ["feature-gates", "server-longrun-30", "longrun-120-decision", "server-longrun-120", "final-integrity"]) {
+    assert(summary.stages.find(item => item.id === id)?.status === "not-run", `${id} must remain outside the UI suite`);
+  }
+  const buildStage = summary.stages.find(item => item.id === "build");
+  assert(buildStage?.details?.uiBuildBinding?.sourceCommitSha === summary.sourceProvenance?.commitSha,
+    "UI build binding did not retain the current source commit");
+  assert(buildStage.details.uiBuildBinding?.sourceWorktreeStatusSha256 === summary.sourceProvenance?.worktreeStatusSha256,
+    "UI build binding did not retain the current source worktree fingerprint");
+  assert(buildStage.details.uiBuildBinding?.buildSha256?.match(/^[a-f0-9]{64}$/),
+    "UI build binding did not retain the built binary hash");
+  assert(summary.uiBuildBinding?.buildSha256 === buildStage.details.uiBuildBinding.buildSha256,
+    "acceptance summary does not retain the build-stage binding");
+  assert(summary.uiEnvironment?.uiBuildBinding?.buildSha256 === buildStage.details.uiBuildBinding.buildSha256,
+    "UI environment was not bound to the completed build");
+  fs.rmSync(outputDir, { recursive: true, force: true });
+});
+
+check("standalone UI build failure stops bootstrap, exact cases, and qualification", () => {
+  const outputDir = fixtureDir("ui-build-first-failure");
+  const result = runBundle(["--output-dir", outputDir, "--suite", "ui", "--fixture-fail-stage", "build"]);
+  assert(result.status !== 0, "UI build failure fixture must return non-zero");
+  const summary = readJson(path.join(outputDir, "summary.json"));
+  assert(summary.failedStage === "build", "UI build failure must remain the first failure");
+  assert(summary.stages.find(item => item.id === "build")?.status === "FAIL", "UI build must be FAIL");
+  for (const id of ["ui-environment-bootstrap", "ui-exact-424", "ui-fulltest-qualification"]) {
+    const stage = summary.stages.find(item => item.id === id);
+    assert(stage?.status === "not-run" && stage.reason === "not run after build failure",
+      `${id} must be not-run after a UI build failure`);
+  }
+  assert(summary.stages.find(item => item.id === "cleanup")?.status === "PASS",
+    "UI build failure must still materialize cleanup");
+  assert(summary.stages.find(item => item.id === "report")?.status === "PASS",
+    "UI build failure must still materialize a report");
   fs.rmSync(outputDir, { recursive: true, force: true });
 });
 

@@ -228,10 +228,11 @@ const specs = [
     apiAssertions: [
       api("POST", "/ops/api/alerts/deliveries", body(["status", "string-non-empty", true], ["delivery.id", "equals-fixture", true])),
       api("POST", "/ops/api/alerts/deliveries/test", body(["status", "equals", "delivered"], ["mode", "equals", "fixture"], ["endpoint", "redacted", true])),
+      api("GET", "/ops/api/alerts/deliveries", body(["integrations", "contains-fixture-delivery", true], ["attempts", "contains-fixture-delivery", true])),
     ],
     domAssertions: [
       dom("#alertDeliveryRows", ["contains-fixture-delivery", "id", true]),
-      dom("#alertDeliveryDryRunResult", ["text-includes", "delivered · fixture", true], ["not-contains-sensitive-canary", "endpointToken", true]),
+      dom("#alertDeliveryRows tr:has([data-alert-delivery-test={fixtureId}])", ["text-includes", "delivered · fixture", true], ["not-contains-sensitive-canary", "endpointToken", true]),
     ],
     allowedStateChanges: ["alert-delivery-config", "alert-delivery-attempt", "ops-audit"],
     stateSnapshots: [snap("alert-delivery-config", "restore"), snap("alert-delivery-attempt", "restore"), snap("ops-audit", "restore"), ...STATE_BOUNDARIES.map(scope => snap(scope))],
@@ -404,7 +405,7 @@ specs.push(
     semanticTarget: "incident-action-persistence", seedKind: "event-and-baseline-review", seedFields: ["eventId", "incidentId", "incidentStatus", "actionTarget"], actionKind: "persisted-mutation",
     steps: ["capture-before-snapshots", "seed-event-and-review", "submit-incident-action-put", "capture-after-snapshots", "read-item", "read-audit", "restore-byte-exact"],
     apiAssertions: [
-      api("PUT", "/ops/api/events/reviews/evt-037-review4-fixture", body(["review.incidentWorkflow", "equals-request", true], ["audit.action", "equals", "incident-action-update"])),
+      api("PUT", "/ops/api/events/reviews/evt-037-review4-fixture", body(["review.incidentWorkflow", "equals-request", true], ["audit.action", "equals", "event-review-update"])),
       api("GET", "/ops/api/events/reviews/evt-037-review4-fixture", body(["review.incidentWorkflow", "equals-put-response", true], ["review.eventId", "equals-fixture", true])),
       api("GET", "/ops/api/audit?eventId=evt-037-review4-fixture", body(["items", "contains-action", "incident-action-update"], ["items", "contains-incident-id", true])),
     ],
@@ -541,7 +542,7 @@ specs.push(
     selector: "#opsV310OperatorFeatureCorrectionRows [data-operator-feature-correction-event=evt-061-review4-fixture]", semanticTarget: "operator-feature-correction", seedKind: "event-and-baseline-review", seedFields: ["correctedFeatureLabel", "featureAliases", "reanalysisRequested", "reanalysisReason"], actionKind: "persisted-mutation",
     steps: ["capture-before-snapshots", "seed-event-and-review", "submit-feature-correction-put", "capture-after-snapshots", "read-item", "read-audit", "restore-byte-exact"],
     apiAssertions: [
-      api("PUT", "/ops/api/events/reviews/evt-061-review4-fixture", body(["review.featureCorrection", "equals-request", true], ["audit.action", "equals", "operator-feature-correction-update"])),
+      api("PUT", "/ops/api/events/reviews/evt-061-review4-fixture", body(["review.featureCorrection", "equals-request", true], ["audit.action", "equals", "event-review-update"])),
       api("GET", "/ops/api/events/reviews/evt-061-review4-fixture", body(["review.featureCorrection", "equals-put-response", true], ["operatorFeatureCorrection", "equals-review-projection", true])),
       api("GET", "/ops/api/audit?eventId=evt-061-review4-fixture", body(["items", "contains-action", "operator-feature-correction-update"], ["items", "contains-fixture-event", true])),
     ],
@@ -582,7 +583,7 @@ specs.push(
     selector: "#v320OperatorResolutionFlowGrid [data-v320-operator-resolution-flow=evt-068-review4-fixture]", semanticTarget: "operator-resolution-flow", seedKind: "event-and-baseline-resolution", seedFields: ["assignmentTarget", "note", "resolutionStatus", "resolutionReason"], actionKind: "persisted-mutation",
     steps: ["capture-before-snapshots", "seed-event-and-resolution", "submit-resolution-flow-put", "capture-after-snapshots", "read-item", "read-audit", "restore-byte-exact"],
     apiAssertions: [
-      api("PUT", "/ops/api/events/reviews/evt-068-review4-fixture", body(["operatorResolutionFlow", "equals-requested-resolution", true], ["audit.action", "equals", "operator-resolution-flow-update"])),
+      api("PUT", "/ops/api/events/reviews/evt-068-review4-fixture", body(["operatorResolutionFlow", "equals-requested-resolution", true], ["audit.action", "equals", "event-review-update"])),
       api("GET", "/ops/api/events/reviews/evt-068-review4-fixture", body(["operatorResolutionFlow", "equals-put-response", true], ["operatorResolutionFlow.closeReopenAvailability", "object", true])),
       api("GET", "/ops/api/audit?eventId=evt-068-review4-fixture", body(["items", "contains-action", "operator-resolution-flow-update"], ["items", "contains-resolution-transition", true])),
     ],

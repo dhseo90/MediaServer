@@ -945,6 +945,16 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | AUTH-020 full product response projection | Source `82f83f30...` actual `126/125/1/298` FAIL은 축약 contract가 생략한 공개 lifecycle 필드를 key-name 민감 검사기가 거부해 발생했습니다. Current listener contract는 AUTH/source/view/ONVIF 5종의 실제 전체 product response shape를 사용하고, 공개 lifecycle 및 ONVIF 부재 증명은 path/type/invariant 검증 뒤 폐기하며 safe identity만 보존합니다. 거부 진단은 endpoint kind/method/path와 field path만 포함하고 raw body/value를 남기지 않습니다 | adapter 15/15, core 17/17, runtime 23/23, native 26/26, completion 22/22 PASS. Candidate `41870754...ae0`/986행/feature·status·sourceFlow 변경0, producer·generator·actual UI/Policy v4/30분/120분/release not-run |
 | Endpoint-owned canonical completion observation | Source `c8d76cc6...` actual은 response/store/list/session/login readback 뒤 wrapper shape 때문에 AUTH-020 `semantic-readback-observation-mismatch`, exact `126/125/1/298`로 fail-stop했습니다. Current builder는 다섯 endpoint case의 template/actual path와 fixture binding, correlation/request ID, status, Playwright safe response, authoritative readback을 함께 검증하고 canonical observation으로만 completion을 닫습니다 | RED completion 22/1, final completion 24/24, adapter 15/15, native 26/26, runtime 23/23, acceptance 19/19, launcher 17/17 PASS. Candidate `41870754...ae0`/986행/feature·pass·status·sourceFlow 변경0, producer·generator·actual UI/Policy v4/30분/120분/release not-run |
 
+## V390-REVIEW4-65 exact 잔여 147건 정적 전수 감사
+
+| evidence | verified result | boundary |
+| --- | --- | --- |
+| Preserved actual evidence | Source `536af3b447206d418701b2479bfd75a275c3a764`, run `v390-test-acceptance-20260724132006-90046`, exact `277/276/1/147`, RULE-093 source `93093` 404 | Actual browser 진행률 65.3%, FAIL 보존 |
+| Remaining-case audit | Position 278~424의 source route/role/control, fixture identity, endpoint/readback, semantic evidence, cleanup을 147/147 직접 대조 | Static audit 100%; actual PASS evidence 아님 |
+| Common corrections | RULE-093~101 numeric lifecycle, EVT 41-case evaluator binding/EVT-024 three requests, client/live viewer projection, SAFE-016 negative 404, EVT-004 redaction, EVT-018, CLIENT-005/021, current build/first-failure/atomic generator | Native exact 36/36, evaluator 17/17, event 12/12, runtime 31/31, client-safe 10/10, completion 25/25, adapter 16/16 PASS |
+| Semantic evidence | Candidate `126119d4fc5beef66ed75338c335a21a3807a2d03696d77b9d91ce8690518c5f`, 982 carry-forward+4 independent review, package `d8a09db09436c0838abd0fb6a8c92441240915c7accd1c44d84155b3b30dbf5b`, decision `81d520bf041e0244bfcd89cab2a97855ce37da617c890cc95e2c74dd2e861bc6` | Audit/approval/feature evidence 986/986 PASS; actual execution 대체 불가 |
+| Acceptance/Policy contracts | Acceptance 21/21, launcher 18/18, final integrity 12/12, Policy producer/independence/visual/eligibility 9/9·10/10·6/6·7/7, inventory/evidence/script/docs/build/code-comments PASS | Actual `./test_ui.sh`, Policy qualification, 30분, 120분, release not-run |
+
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 
 | evidence | verified result | boundary |

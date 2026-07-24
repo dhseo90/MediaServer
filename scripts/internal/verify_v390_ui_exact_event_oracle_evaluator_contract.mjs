@@ -2,6 +2,7 @@
 // 파일 용도: exact EVT runtime evaluator가 response/DOM/network/state assertion을 실제 평가하고 미지원 의미를 fail-closed 처리하는지 검증한다.
 
 import {
+  assertEventExactRuntimeBindings,
   createEventExactOracleEvaluationPlan,
   evaluateEventExactDomAssertion,
   evaluateEventExactForbiddenNetwork,
@@ -156,6 +157,44 @@ check("semantic evidence keys are deterministic and reject incomplete identities
   let message = "";
   try { eventExactSemanticEvidenceKey({ scope: "runtime", caseId: "EVT-030", operator: "x", subject: "y" }); } catch (error) { message = String(error?.message || error); }
   assert(message.includes("unsupported semantic evidence scope"), "invalid semantic key scope passed");
+});
+
+check("runtime binding contract accepts a complete representative EVT context", () => {
+  const caseId = "EVT-019";
+  const semanticEvidence = Object.fromEntries(
+    createEventExactOracleEvaluationPlan(caseId).semanticEvidenceKeys.map(key =>
+      [key, { pass: true, actual: key.startsWith("response:") ? [] : {
+        selector: "[data-event-review-row]",
+        exists: true,
+        visible: true,
+        text: "fixture",
+      } }]),
+  );
+  const requirements = assertEventExactRuntimeBindings(caseId, {
+    seedByPath: { "review.reviewStatus": "reviewing" },
+    requestByPath: {},
+    semanticEvidence,
+  });
+  assert(requirements.seedPaths.includes("review.reviewStatus") &&
+    requirements.semanticEvidenceKeys.length === 1,
+  "representative EVT runtime binding requirements drifted");
+});
+
+check("runtime binding contract rejects missing seed, request, semantic, and canary evidence", () => {
+  for (const [caseId, expected] of [
+    ["EVT-019", "seedByPath:review.reviewStatus"],
+    ["EVT-070", "requestByPath:unifiedResolutionWorkspace.resolutionSearchMetrics.activeFilters"],
+    ["EVT-030", "semanticEvidence:response:EVT-030:contains-matching-and-missing:records"],
+    ["EVT-031", "sensitiveCanaries"],
+  ]) {
+    let message = "";
+    try {
+      assertEventExactRuntimeBindings(caseId, {}, { requireSemanticEvidence: true });
+    } catch (error) {
+      message = String(error?.message || error);
+    }
+    assert(message.includes(expected), `${caseId} missing binding did not fail closed: ${expected}`);
+  }
 });
 
 check("full evaluator fails closed when runtime evidence is incomplete", () => {
