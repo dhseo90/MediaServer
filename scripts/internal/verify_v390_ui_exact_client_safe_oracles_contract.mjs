@@ -85,6 +85,13 @@ check("known canonical route/role false-PASS mappings are corrected", () => {
     safe016.requests.some(item => item.path === "/__v390-undefined-route__" &&
       JSON.stringify(item.allowedStatuses) === "[404]"),
   "SAFE-016 exact undefined route 404 correction missing");
+  const safe061 = clientSafeExactOracleFor("SAFE-061");
+  assert(safe061.route === "/ops/events" &&
+    safe061.visibleControl.selector === '[data-testid="ops-rule-what-if-preview"]' &&
+    safe061.action.kind === "assert-read-model" &&
+    safe061.action.target === '[data-testid="ops-rule-what-if-preview"]' &&
+    !safe061.dom.some(item => item.selector === "#opsEventRulePresetSelect"),
+  "SAFE-061 events read-model control correction missing");
 });
 
 check("media/session, scoped client projection, no-write and cleanup oracles are concrete", () => {
@@ -204,10 +211,14 @@ check("validator rejects missing, extra, generic GET200, existence-only, unbound
   expectInvalid("missing cleanup", candidate => { candidate["SAFE-038"].cleanup.assertions = []; }, "cleanup contract missing");
 });
 
-check("validator rejects three corrected route/role regressions", () => {
+check("validator rejects corrected route, role, and route-local control regressions", () => {
   expectInvalid("CLIENT-018 viewer regression", candidate => { candidate["CLIENT-018"].role = "viewer"; }, "CLIENT-018 admin preview route/role correction missing");
   expectInvalid("MEDIA-017 ops regression", candidate => { candidate["MEDIA-017"].route = "/ops/sources"; }, "MEDIA-017 client live viewer route/role correction missing");
   expectInvalid("SAFE-016 /ops regression", candidate => { candidate["SAFE-016"].route = "/ops"; }, "SAFE-016 undefined route 404 correction missing");
+  expectInvalid("SAFE-061 rules-page control regression", candidate => {
+    candidate["SAFE-061"].visibleControl.selector = "#opsEventRulePresetSelect";
+    candidate["SAFE-061"].action = { kind: "select", target: "#opsEventRulePresetSelect", value: "road" };
+  }, "SAFE-061 events read-model control correction missing");
 });
 
 for (const item of checks) {

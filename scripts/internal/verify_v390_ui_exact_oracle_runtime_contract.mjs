@@ -328,6 +328,47 @@ await check("required current-route primary control waits before its snapshot", 
   "async native primary control did not wait before snapshot");
 });
 
+await check("required hidden primary control waits for attachment without demanding visibility", async () => {
+  const selector = "#opsEventRuleIdInput";
+  const item = {
+    ...primaryControlItem(selector, "/ops/home"),
+    workflow: {
+      workflowClass: "hidden-disabled",
+      primaryControl: {
+        applicability: "required",
+        selector,
+        route: "/ops/home",
+        expectedVisible: false,
+        expectedEnabled: false,
+      },
+    },
+  };
+  const browser = coreBrowser();
+  const order = [];
+  browser.waitForSelector = async (requested, options) => {
+    order.push(`wait:${requested}:${options?.state || ""}`);
+    assert(requested === selector && options?.state === "attached",
+      "RULE-017 hidden primary selector did not use attached state");
+  };
+  const baseSnapshot = browser.snapshot;
+  browser.snapshot = async requested => {
+    if (requested !== selector) return baseSnapshot(requested);
+    order.push(`snapshot:${requested}`);
+    return { exists: true, visible: false, disabled: true, selector: requested };
+  };
+  const result = await executeCatalogRuntimeOracle({
+    browser,
+    item,
+    fixtureId: "rule-017-hidden-primary-contract",
+    correlationId: "UI-009:contract",
+  });
+  assert(result.nativePrimaryControl?.status === "PASS" &&
+    result.nativePrimaryControl?.visible === false &&
+    result.nativePrimaryControl?.enabled === false &&
+    order.slice(0, 2).join("|") === `wait:${selector}:attached|snapshot:${selector}`,
+  "RULE-017 hidden primary control was not observed as attached and hidden");
+});
+
 await check("required current-route primary control keeps timeout and post-wait failures fail-closed", async () => {
   const selector = "#async-primary-control-negative";
   const item = primaryControlItem(selector, "/ops/home");

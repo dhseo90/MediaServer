@@ -521,6 +521,12 @@ const readModelPrimaryOverrides = new Map([
   ["RULE-021", { selector: "#opsEventRuleDetailSummary", route: "/ops/rules" }],
   ["RULE-097", { selector: '[data-testid="client-live-source-tree"]', route: "/client/live" }],
   ["RULE-098", { selector: "#opsRulesValidationList", route: "/ops/rules" }],
+  ["EVT-003", { selector: "#dashRootCauseList", route: "/ops/dashboard" }],
+  ["EVT-018", { selector: "#alertDeliveryTest", route: "/ops/events" }],
+  ["EVT-022", { selector: "#event-review-audit-list", route: "/ops/events" }],
+  ["SAFE-053", { selector: "[data-incident-rule-draft-route]", route: "/ops/events" }],
+  ["SAFE-060", { selector: '[data-testid="ops-operational-action-pack"]', route: "/ops/events" }],
+  ["SAFE-061", { selector: '[data-testid="ops-rule-what-if-preview"]', route: "/ops/events" }],
 ]);
 
 const overrideControlSourceCatalog = new Map([
@@ -543,6 +549,10 @@ const overrideControlSourceCatalog = new Map([
   ["#dashIncidentTimeline", {
     file: "src/ingress/product_ui_server_pages.cpp",
     anchor: '<div id="dashIncidentTimeline" class="root-cause-list">',
+  }],
+  ["#dashRootCauseList", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<div id="dashRootCauseList" class="root-cause-list">',
   }],
   ["#eventRecordRows", {
     file: "src/ingress/product_ui_server_pages.cpp",
@@ -699,6 +709,14 @@ const overrideControlSourceCatalog = new Map([
   ["[data-incident-rule-draft-route]", {
     file: "src/ingress/product_ui_page_scripts.cpp",
     anchor: '<a class="button button-secondary button-compact" data-incident-rule-draft-route href="${escapeHtml(draftRoute)}">룰 draft 검토</a>',
+  }],
+  ['[data-testid="ops-operational-action-pack"]', {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<section class="section-card ops-workspace-wide operational-action-pack" data-testid="ops-operational-action-pack" data-operational-action-pack="manual-workflow-links">',
+  }],
+  ['[data-testid="ops-rule-what-if-preview"]', {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<section class="section-card ops-workspace-wide rule-what-if-preview" data-testid="ops-rule-what-if-preview" data-rule-what-if-preview="selected-incident-draft-only">',
   }],
   ["[data-approval-gated-rule-draft-route]", {
     file: "src/ingress/product_ui_page_scripts.cpp",
@@ -1820,10 +1838,10 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     manifest.cases.filter(item => item.workflow.workflowClass === workflowClass).length,
   ]));
   const expectedWorkflowClassCounts = {
-    actionable: 29,
+    actionable: 27,
     "form-submit": 16,
     "persisted-mutation": 97,
-    "read-only-state": 238,
+    "read-only-state": 240,
     "hidden-disabled": 42,
     "negative-route": 2,
   };
@@ -3039,14 +3057,15 @@ function distinctExpectedStateLocator(proof, readbackLocator) {
 function sourceLocatorFromAnchor(caseId, source) {
   const sourceText = fs.readFileSync(path.join(rootDir, source.file), "utf8");
   assert(sourceText.includes(source.anchor), `${caseId} primary control source anchor missing from ${source.file}`);
-  const sourceFileSha256 = sha256Text(sourceText);
+  assert(sourceText.split(source.anchor).length === 2,
+    `${caseId} primary control source anchor must be unique in ${source.file}`);
+  const anchorSha256 = sha256Text(source.anchor);
   return {
     file: source.file,
     symbol: `review4-primary-control:${caseId}`,
     anchor: source.anchor,
-    anchorSha256: sha256Text(source.anchor),
-    contextSha256: sourceFileSha256,
-    sourceFileSha256,
+    anchorSha256,
+    contextSha256: anchorSha256,
   };
 }
 

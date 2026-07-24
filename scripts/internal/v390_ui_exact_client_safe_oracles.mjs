@@ -546,8 +546,8 @@ const entries = [
   opsBoundary("SAFE-059", "decision scorecard deterministic reasons", "incidentDecisionScorecard", { route: "/ops/events", selector: "[data-testid=\"ops-incident-decision-scorecard\"]", fixtures: ["incident-scorecard"], requiredTokens: ["deterministic-priority-reasons", "sourceHealth", "reviewAge"] }),
   opsBoundary("SAFE-060", "operational action pack은 manual workflow links만 표시", "operationalActionPack", { route: "/ops/events", selector: '[data-testid="ops-operational-action-pack"]', requiredTokens: ["release-safe evidence bundle", "수동 workflow"], forbiddenNetwork: ["external:webhook", ...noWriteNetwork] }),
   exactSpec("SAFE-061", "rule what-if는 seeded incident/suggestion condition preview만 표시", {
-    route: "/ops/events", role: "operator", visibleControl: "#opsEventRulePresetSelect", action: { kind: "select", target: "#opsEventRulePresetSelect", value: "road" }, fixtures: ["incident-record", "rule-suggestion"],
-    apiAssertions: [api("GET", "/ops/api/events/reviews", [200], { requiredTokens: ["ruleWhatIfPreview", "conditionPreview"] })], domAssertions: [dom("#opsEventRulePresetSelect", "value", "equals", "road"), dom('[data-testid="ops-rule-what-if-preview"]', "text", "includes", "condition preview")],
+    route: "/ops/events", role: "operator", visibleControl: '[data-testid="ops-rule-what-if-preview"]', action: { kind: "assert-read-model", target: '[data-testid="ops-rule-what-if-preview"]' }, fixtures: ["incident-record", "rule-suggestion"],
+    apiAssertions: [api("GET", "/ops/api/events/reviews", [200], { requiredTokens: ["ruleWhatIfPreview", "conditionPreview"] })], domAssertions: [dom('[data-testid="ops-rule-what-if-preview"]', "text", "includes", "condition preview")],
     semanticKeys: ["rule-what-if", "conditionPreview"], forbiddenFields: viewerRawFields, forbiddenNetwork: ["full-replay", "PUT /lab/analysis/rules", "PUT /lab/analysis/va-rules"],
     forbiddenStateMutations: [...protocolMutations, "ruleRegistry", "profileRegistry", "eventRecord"], snapshotTargets: ["rule-registry", "event-record-store"], cleanupTargets: ["incident-record", "rule-suggestion"],
   }),
@@ -652,6 +652,11 @@ export function validateClientSafeExactOracleCatalog(candidate = catalog) {
   assert(candidate["SAFE-016"].route === "/__v390-undefined-route__" &&
     candidate["SAFE-016"].requests.some(item => item.allowedStatuses.length === 1 && item.allowedStatuses[0] === 404),
   "SAFE-016 undefined route 404 correction missing");
+  assert(candidate["SAFE-061"].route === "/ops/events" &&
+    candidate["SAFE-061"].visibleControl?.selector === '[data-testid="ops-rule-what-if-preview"]' &&
+    candidate["SAFE-061"].action?.kind === "assert-read-model" &&
+    candidate["SAFE-061"].action?.target === '[data-testid="ops-rule-what-if-preview"]',
+  "SAFE-061 events read-model control correction missing");
   return { caseCount: ids.length, immutable: Object.isFrozen(candidate), schema: "media-server.v390-ui-client-safe-exact-oracle.v1" };
 }
 

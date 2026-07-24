@@ -5,9 +5,9 @@
     "canonicalSha256": "56b9fa6f376664856e8df1a6434b8659e91675f5a7f3884fb4c865736824c80c",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "474207d58aa5550627dc8faad79d62e2ad96e5cac92dc654ec12e57a31345db2",
+    "implementationProjectionSha256": "6edf57d536cf063c995a18b880c56d0936007eee5d02a9a1297aa588763169d2",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "4113ba3939adb0b3c67910f1c972360c641ece2cbed16aafe79b5bdefd0147f6",
+    "runtimeOracleCatalogSha256": "e3914cf200ab185a112b1d9b5635f9f7ccde02c2db497721cd25d3fdccc50e06",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -948,8 +948,7 @@
             "symbol": "review4-primary-control:UI-002",
             "anchor": "out << R\"(    <form class=\"auth-form auth-form-grid\" method=\"post\" action=\"/setup\" data-testid=\"auth-setup-form\">",
             "anchorSha256": "167afdfb0494e54c6a5fe576c0fc9634ceb488ac222af85734690e72675f09da",
-            "contextSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014",
-            "sourceFileSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014"
+            "contextSha256": "167afdfb0494e54c6a5fe576c0fc9634ceb488ac222af85734690e72675f09da"
           }
         },
         "productAction": {
@@ -2456,8 +2455,7 @@
             "symbol": "review4-primary-control:UI-004",
             "anchor": "out << R\"(    <form class=\"auth-form auth-form-grid\" method=\"post\" action=\"/password/change\" data-testid=\"auth-password-change-form\">",
             "anchorSha256": "185f15f91fdbc9813951c24b8f1dd163a1b1685bbdb942c7218a6d8b935a57e0",
-            "contextSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014",
-            "sourceFileSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014"
+            "contextSha256": "185f15f91fdbc9813951c24b8f1dd163a1b1685bbdb942c7218a6d8b935a57e0"
           }
         },
         "productAction": {
@@ -3182,8 +3180,7 @@
             "symbol": "review4-primary-control:UI-005",
             "anchor": "<form method=\"post\" action=\"/logout\"><button class=\"button-secondary\" type=\"submit\">로그아웃</button></form>",
             "anchorSha256": "d1023dde5db5393c2b8a04193451116cc280c257d18a9c0b60c52df2a05cd7db",
-            "contextSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014",
-            "sourceFileSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014"
+            "contextSha256": "d1023dde5db5393c2b8a04193451116cc280c257d18a9c0b60c52df2a05cd7db"
           }
         },
         "productAction": {
@@ -4692,8 +4689,7 @@
             "symbol": "review4-primary-control:UI-008",
             "anchor": "<form id=\"request-form\" class=\"auth-form auth-form-grid\" data-testid=\"auth-access-request-form\" data-access-route=\"request-access\">",
             "anchorSha256": "84290d94de14b5989efdb40d54c797c31d3aa78e43f5120e21f3643c24330572",
-            "contextSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014",
-            "sourceFileSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014"
+            "contextSha256": "84290d94de14b5989efdb40d54c797c31d3aa78e43f5120e21f3643c24330572"
           }
         },
         "productAction": {
@@ -5407,8 +5403,7 @@
             "symbol": "review4-primary-control:UI-009",
             "anchor": "<section class=\"panel ops-workspace ops-workspace-home\" data-ops-panel=\"home\" data-testid=\"ops-home-page\">",
             "anchorSha256": "e175b8eb0834e372a10ee87a4141548e8a0473d77cc910519f099e07bf9d55e3",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "e175b8eb0834e372a10ee87a4141548e8a0473d77cc910519f099e07bf9d55e3"
           }
         },
         "productAction": {
@@ -10792,7 +10787,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "0eb14dfbeda46414b43f71ddee9ace4af492fabbc5dbc0f0090b7516dc97162c",
+            "semanticCallChainSha256": "14a89dc1ea9c38241519ebe69b0dae4145f3dd22f03a6a738b33c6a9a4871345",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -10874,7 +10869,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "0eb14dfbeda46414b43f71ddee9ace4af492fabbc5dbc0f0090b7516dc97162c"
+          "assertedSemanticDigest": "14a89dc1ea9c38241519ebe69b0dae4145f3dd22f03a6a738b33c6a9a4871345"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -10886,7 +10881,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "66caebdd3162e9189f206dfae2204bd140d0ad5651d117842d80002e8435957c",
+          "specSha256": "e722d5bb33d7d4c7d68a88602d53f5003a39b93a39ebff1041db5b1c61878cf3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11013,7 +11008,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "0eb14dfbeda46414b43f71ddee9ace4af492fabbc5dbc0f0090b7516dc97162c"
+            "semanticCallChainSha256": "14a89dc1ea9c38241519ebe69b0dae4145f3dd22f03a6a738b33c6a9a4871345"
           }
         ]
       },
@@ -13810,8 +13805,7 @@
             "symbol": "review4-primary-control:UI-023",
             "anchor": "<button id=\"opsVlmSaveProfile\" class=\"button-primary\" type=\"button\">profile 저장</button>",
             "anchorSha256": "f1a6d88cb0f2989f92f61df5d87091e1dd44d41d46a817694877c74d18639e5a",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "f1a6d88cb0f2989f92f61df5d87091e1dd44d41d46a817694877c74d18639e5a"
           }
         },
         "productAction": {
@@ -15774,8 +15768,7 @@
             "symbol": "review4-primary-control:UI-026",
             "anchor": "data-vlm-option-id=\"${escapeHtml(option.id)}\"",
             "anchorSha256": "5ae6a9b749a0aa752c93aab1ed6d8c6d4c9e1f23cbef095b8519b7bbd8473dd7",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "5ae6a9b749a0aa752c93aab1ed6d8c6d4c9e1f23cbef095b8519b7bbd8473dd7"
           }
         },
         "productAction": {
@@ -17760,8 +17753,7 @@
             "symbol": "review4-primary-control:UI-029",
             "anchor": "data-delete-vlm-profile=\"${escapeHtml(profile.id || '')}\"",
             "anchorSha256": "77344adf1a53e7b80c5d9edfc3ab38419509157155ced68ed3d11be339194f28",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "77344adf1a53e7b80c5d9edfc3ab38419509157155ced68ed3d11be339194f28"
           }
         },
         "productAction": {
@@ -22198,8 +22190,7 @@
             "symbol": "review4-primary-control:UI-036",
             "anchor": "data-vlm-rule-draft-index=\"${index}\"",
             "anchorSha256": "977ba315a8fce8ab798055ddef7344b3abe03972a31b7aeb2e79fec11a4b0e68",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "977ba315a8fce8ab798055ddef7344b3abe03972a31b7aeb2e79fec11a4b0e68"
           }
         },
         "productAction": {
@@ -28470,8 +28461,7 @@
             "symbol": "review4-primary-control:UI-046",
             "anchor": "<a class=\"button button-secondary button-compact\" data-incident-rule-draft-route href=\"${escapeHtml(draftRoute)}\">룰 draft 검토</a>",
             "anchorSha256": "0c41feb641bd8dbcd518b41a70038f2d911f00175716a21b2434b871ba1df8ff",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "0c41feb641bd8dbcd518b41a70038f2d911f00175716a21b2434b871ba1df8ff"
           }
         },
         "productAction": {
@@ -32178,7 +32168,7 @@
         "selector": "[data-testid=\"ops-operational-action-pack\"]",
         "requestedSelector": "[data-testid=\"ops-operational-action-pack\"]",
         "canonicalSelector": "[data-testid=\"ops-operational-action-pack\"]",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-exact-runtime-oracle-control-override",
         "actionAnchor": "renderOperationalActionPack",
         "actionRoute": "/ops/events",
         "targetSelector": "[data-testid=\"ops-operational-action-pack\"]"
@@ -32243,7 +32233,7 @@
           "dispatch": "playwright-native",
           "actionId": "UI-052:wait-visible",
           "selector": "[data-testid=\"ops-operational-action-pack\"]",
-          "selectorSource": "review4-canonical-product-control"
+          "selectorSource": "review4-exact-runtime-oracle-control-override"
         },
         {
           "kind": "assert-visible-read-model",
@@ -32412,15 +32402,15 @@
           "selector": "[data-testid=\"ops-operational-action-pack\"]",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-canonical-product-control",
+          "source": "review4-exact-runtime-oracle-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
             "file": "src/ingress/product_ui_server_pages.cpp",
-            "symbol": "AppendOpsEventsPage",
+            "symbol": "review4-primary-control:UI-052",
             "anchor": "<section class=\"section-card ops-workspace-wide operational-action-pack\" data-testid=\"ops-operational-action-pack\" data-operational-action-pack=\"manual-workflow-links\">",
             "anchorSha256": "8b6122fb5c508b52544735cd39c301c56fb9be043189e74791a166e68c9d7a24",
-            "contextSha256": "4cb2e0b481f6cbe97e998c0ab31dff66c3eb75e6572ff0c0cbb04834bcbedee4"
+            "contextSha256": "8b6122fb5c508b52544735cd39c301c56fb9be043189e74791a166e68c9d7a24"
           }
         },
         "productAction": {
@@ -32536,7 +32526,7 @@
             "dispatch": "playwright-native",
             "actionId": "UI-052:wait-visible",
             "selector": "[data-testid=\"ops-operational-action-pack\"]",
-            "selectorSource": "review4-canonical-product-control"
+            "selectorSource": "review4-exact-runtime-oracle-control-override"
           },
           {
             "kind": "assert-visible-read-model",
@@ -32820,7 +32810,7 @@
         "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
         "requestedSelector": "[data-testid=\"ops-rule-what-if-preview\"]",
         "canonicalSelector": "[data-testid=\"ops-rule-what-if-preview\"]",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-exact-runtime-oracle-control-override",
         "actionAnchor": "renderRuleWhatIfPreview",
         "actionRoute": "/ops/events",
         "targetSelector": "[data-testid=\"ops-rule-what-if-preview\"]"
@@ -32885,7 +32875,7 @@
           "dispatch": "playwright-native",
           "actionId": "UI-053:wait-visible",
           "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
-          "selectorSource": "review4-canonical-product-control"
+          "selectorSource": "review4-exact-runtime-oracle-control-override"
         },
         {
           "kind": "assert-visible-read-model",
@@ -33058,15 +33048,15 @@
           "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-canonical-product-control",
+          "source": "review4-exact-runtime-oracle-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
             "file": "src/ingress/product_ui_server_pages.cpp",
-            "symbol": "AppendOpsEventsPage",
+            "symbol": "review4-primary-control:UI-053",
             "anchor": "<section class=\"section-card ops-workspace-wide rule-what-if-preview\" data-testid=\"ops-rule-what-if-preview\" data-rule-what-if-preview=\"selected-incident-draft-only\">",
             "anchorSha256": "d248b1c976113ed37560d88cdb66380abd818663285aeb9053054d8a22048b9f",
-            "contextSha256": "50cb6c17605b6e12c5d7fb66f7ce00bf60ecc675a575358b4d91888a42cae2e1"
+            "contextSha256": "d248b1c976113ed37560d88cdb66380abd818663285aeb9053054d8a22048b9f"
           }
         },
         "productAction": {
@@ -33182,7 +33172,7 @@
             "dispatch": "playwright-native",
             "actionId": "UI-053:wait-visible",
             "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
-            "selectorSource": "review4-canonical-product-control"
+            "selectorSource": "review4-exact-runtime-oracle-control-override"
           },
           {
             "kind": "assert-visible-read-model",
@@ -68160,8 +68150,7 @@
             "symbol": "review4-primary-control:UI-109",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -73338,8 +73327,7 @@
             "symbol": "review4-primary-control:AUTH-005",
             "anchor": "out << R\"(    <form class=\"auth-form auth-form-grid\" method=\"post\" action=\"/setup\" data-testid=\"auth-setup-form\">",
             "anchorSha256": "167afdfb0494e54c6a5fe576c0fc9634ceb488ac222af85734690e72675f09da",
-            "contextSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014",
-            "sourceFileSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014"
+            "contextSha256": "167afdfb0494e54c6a5fe576c0fc9634ceb488ac222af85734690e72675f09da"
           }
         },
         "productAction": {
@@ -74103,8 +74091,7 @@
             "symbol": "review4-primary-control:AUTH-006",
             "anchor": "out << R\"(    <form class=\"auth-form auth-form-grid\" method=\"post\" action=\"/setup\" data-testid=\"auth-setup-form\">",
             "anchorSha256": "167afdfb0494e54c6a5fe576c0fc9634ceb488ac222af85734690e72675f09da",
-            "contextSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014",
-            "sourceFileSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014"
+            "contextSha256": "167afdfb0494e54c6a5fe576c0fc9634ceb488ac222af85734690e72675f09da"
           }
         },
         "productAction": {
@@ -76921,8 +76908,7 @@
             "symbol": "review4-primary-control:AUTH-014",
             "anchor": "<button id=\"user-save-selected\" class=\"button-primary\" type=\"submit\" form=\"user-form\">저장</button>",
             "anchorSha256": "1fab37e500802047d427e8213cf09bb44c8e0c6014f1f3af15bfe4f00d839237",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "1fab37e500802047d427e8213cf09bb44c8e0c6014f1f3af15bfe4f00d839237"
           }
         },
         "productAction": {
@@ -77834,8 +77820,7 @@
             "symbol": "review4-primary-control:AUTH-015",
             "anchor": "<form id=\"invite-create-form\" class=\"inline-form\">",
             "anchorSha256": "cae125edb28b14e7bcb8d7b03d780ec85795a7953665c5641ea0dc890c1f3ee2",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "cae125edb28b14e7bcb8d7b03d780ec85795a7953665c5641ea0dc890c1f3ee2"
           }
         },
         "productAction": {
@@ -79246,8 +79231,7 @@
             "symbol": "review4-primary-control:AUTH-018",
             "anchor": "<button id=\"user-save-selected\" class=\"button-primary\" type=\"submit\" form=\"user-form\">저장</button>",
             "anchorSha256": "1fab37e500802047d427e8213cf09bb44c8e0c6014f1f3af15bfe4f00d839237",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "1fab37e500802047d427e8213cf09bb44c8e0c6014f1f3af15bfe4f00d839237"
           }
         },
         "productAction": {
@@ -79955,8 +79939,7 @@
             "symbol": "review4-primary-control:AUTH-019",
             "anchor": "<button id=\"user-save-selected\" class=\"button-primary\" type=\"submit\" form=\"user-form\">저장</button>",
             "anchorSha256": "1fab37e500802047d427e8213cf09bb44c8e0c6014f1f3af15bfe4f00d839237",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "1fab37e500802047d427e8213cf09bb44c8e0c6014f1f3af15bfe4f00d839237"
           }
         },
         "productAction": {
@@ -87582,8 +87565,7 @@
             "symbol": "review4-primary-control:AUTH-033",
             "anchor": "<form id=\"invite-create-form\" class=\"inline-form\">",
             "anchorSha256": "cae125edb28b14e7bcb8d7b03d780ec85795a7953665c5641ea0dc890c1f3ee2",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "cae125edb28b14e7bcb8d7b03d780ec85795a7953665c5641ea0dc890c1f3ee2"
           }
         },
         "productAction": {
@@ -90013,8 +89995,7 @@
             "symbol": "review4-primary-control:AUTH-036",
             "anchor": "<form id=\"request-form\" class=\"auth-form auth-form-grid\" data-testid=\"auth-access-request-form\" data-access-route=\"request-access\">",
             "anchorSha256": "84290d94de14b5989efdb40d54c797c31d3aa78e43f5120e21f3643c24330572",
-            "contextSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014",
-            "sourceFileSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014"
+            "contextSha256": "84290d94de14b5989efdb40d54c797c31d3aa78e43f5120e21f3643c24330572"
           }
         },
         "productAction": {
@@ -90880,8 +90861,7 @@
             "symbol": "review4-primary-control:AUTH-037",
             "anchor": "data-request-approve=\"${escapeHtml(displayValue(request.requestId))}\"",
             "anchorSha256": "17487bd74fd06ec1389622fbd15c28d83237060b95382c74162c5dad0ff1574e",
-            "contextSha256": "5145370103462632b3cbcfa348f2b781b048dd44af538b8c7ed276d4fe55dbb0",
-            "sourceFileSha256": "5145370103462632b3cbcfa348f2b781b048dd44af538b8c7ed276d4fe55dbb0"
+            "contextSha256": "17487bd74fd06ec1389622fbd15c28d83237060b95382c74162c5dad0ff1574e"
           }
         },
         "productAction": {
@@ -91715,8 +91695,7 @@
             "symbol": "review4-primary-control:AUTH-038",
             "anchor": "data-request-reject=\"${escapeHtml(displayValue(request.requestId))}\"",
             "anchorSha256": "065ecac6a645a0d2a60e3bb68dc7e75e4677707d4694accc2dd2b14c1cb4b970",
-            "contextSha256": "5145370103462632b3cbcfa348f2b781b048dd44af538b8c7ed276d4fe55dbb0",
-            "sourceFileSha256": "5145370103462632b3cbcfa348f2b781b048dd44af538b8c7ed276d4fe55dbb0"
+            "contextSha256": "065ecac6a645a0d2a60e3bb68dc7e75e4677707d4694accc2dd2b14c1cb4b970"
           }
         },
         "productAction": {
@@ -92546,8 +92525,7 @@
             "symbol": "review4-primary-control:AUTH-039",
             "anchor": "<form id=\"request-form\" class=\"auth-form auth-form-grid\" data-testid=\"auth-access-request-form\" data-access-route=\"request-access\">",
             "anchorSha256": "84290d94de14b5989efdb40d54c797c31d3aa78e43f5120e21f3643c24330572",
-            "contextSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014",
-            "sourceFileSha256": "009a85cc516d2dbec9a2e04cd65033e13940d10e450de87d08e0280bce759014"
+            "contextSha256": "84290d94de14b5989efdb40d54c797c31d3aa78e43f5120e21f3643c24330572"
           }
         },
         "productAction": {
@@ -93934,8 +93912,7 @@
             "symbol": "review4-primary-control:SRC-001",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -94675,8 +94652,7 @@
             "symbol": "review4-primary-control:SRC-002",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -95416,8 +95392,7 @@
             "symbol": "review4-primary-control:SRC-003",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -96157,8 +96132,7 @@
             "symbol": "review4-primary-control:SRC-004",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -96898,8 +96872,7 @@
             "symbol": "review4-primary-control:SRC-005",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -99556,8 +99529,7 @@
             "symbol": "review4-primary-control:SRC-009",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -103462,8 +103434,7 @@
             "symbol": "review4-primary-control:SRC-017",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -104210,8 +104181,7 @@
             "symbol": "review4-primary-control:SRC-018",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -118255,8 +118225,7 @@
             "symbol": "review4-primary-control:SRC-066",
             "anchor": "<button id=\"channel-save-selected\" class=\"button-primary\" type=\"submit\" form=\"channel-form\">저장</button>",
             "anchorSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484",
-            "contextSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
-            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+            "contextSha256": "58ca0fcc21fdecaa09fd2940dc6c97e3f6ef56dd2ea79ea749523385ca60f484"
           }
         },
         "productAction": {
@@ -120170,8 +120139,7 @@
             "symbol": "review4-primary-control:RULE-001",
             "anchor": "<tbody id=\"opsVaRuleRows\"><tr><td colspan=\"9\">로딩 중</td></tr></tbody>",
             "anchorSha256": "45282916696177cee24ed092c9831730acbbc184b5578f28a30c1ffc171deec6",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "45282916696177cee24ed092c9831730acbbc184b5578f28a30c1ffc171deec6"
           }
         },
         "productAction": {
@@ -120789,8 +120757,7 @@
             "symbol": "review4-primary-control:RULE-002",
             "anchor": "<tbody id=\"opsEventRuleRows\"><tr><td colspan=\"6\">로딩 중</td></tr></tbody>",
             "anchorSha256": "bcc252dfb53b8904d0c987aa8c71962041840aa664f1e63806614bc6dcad0590",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "bcc252dfb53b8904d0c987aa8c71962041840aa664f1e63806614bc6dcad0590"
           }
         },
         "productAction": {
@@ -121408,8 +121375,7 @@
             "symbol": "review4-primary-control:RULE-003",
             "anchor": "<tbody id=\"opsProfileRows\"><tr><td colspan=\"7\">로딩 중</td></tr></tbody>",
             "anchorSha256": "29ef838bcb770bb11274939c96b350a4accb564ca9090a9015ade53afca6bacb",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "29ef838bcb770bb11274939c96b350a4accb564ca9090a9015ade53afca6bacb"
           }
         },
         "productAction": {
@@ -122061,8 +122027,7 @@
             "symbol": "review4-primary-control:RULE-004",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -122778,8 +122743,7 @@
             "symbol": "review4-primary-control:RULE-005",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -123495,8 +123459,7 @@
             "symbol": "review4-primary-control:RULE-006",
             "anchor": "opsRuleActionButton('삭제', 'delete-va', id, 'danger')",
             "anchorSha256": "f6cccb587ca06787474794759e0c128a9908f54ff4c020aedabab7fd78e0455d",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "f6cccb587ca06787474794759e0c128a9908f54ff4c020aedabab7fd78e0455d"
           }
         },
         "productAction": {
@@ -124824,8 +124787,7 @@
             "symbol": "review4-primary-control:RULE-008",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -125507,8 +125469,7 @@
             "symbol": "review4-primary-control:RULE-009",
             "anchor": "<div id=\"opsRulesValidationList\" class=\"validation-list\"></div>",
             "anchorSha256": "e23cc5816e961b3eec4d48ce8c85f599b7b98313c503cb5104646b7d2675991e",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "e23cc5816e961b3eec4d48ce8c85f599b7b98313c503cb5104646b7d2675991e"
           }
         },
         "productAction": {
@@ -126128,8 +126089,7 @@
             "symbol": "review4-primary-control:RULE-010",
             "anchor": "<select id=\"opsVaRuleTemplateSeedSelect\"></select>",
             "anchorSha256": "2fa0621872b627ff015d25dceed166239f8a64316e0542114d3bcbadfe3c2e41",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "2fa0621872b627ff015d25dceed166239f8a64316e0542114d3bcbadfe3c2e41"
           }
         },
         "productAction": {
@@ -126787,8 +126747,7 @@
             "symbol": "review4-primary-control:RULE-011",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -127528,8 +127487,7 @@
             "symbol": "review4-primary-control:RULE-012",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -128214,8 +128172,7 @@
             "symbol": "review4-primary-control:RULE-013",
             "anchor": "<p id=\"opsVaRuleGeometrySummary\" class=\"form-note\">미리보기 영역을 눌러 점을 추가합니다. 라인은 2점, 영역은 3점 이상이 필요합니다.</p>",
             "anchorSha256": "355e977c7f9721d74afc7372ab69f9d637fb326ab22a470926945d51915368ce",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "355e977c7f9721d74afc7372ab69f9d637fb326ab22a470926945d51915368ce"
           }
         },
         "productAction": {
@@ -130095,8 +130052,7 @@
             "symbol": "review4-primary-control:RULE-016",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -131414,8 +131370,7 @@
             "symbol": "review4-primary-control:RULE-018",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -132131,8 +132086,7 @@
             "symbol": "review4-primary-control:RULE-019",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -132848,8 +132802,7 @@
             "symbol": "review4-primary-control:RULE-020",
             "anchor": "opsRuleActionButton('삭제', 'delete-event-template', id, 'danger')",
             "anchorSha256": "97c57747225ecc31e234f4d007060a732276b24f5059f4b7adb0e4b51588a11d",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "97c57747225ecc31e234f4d007060a732276b24f5059f4b7adb0e4b51588a11d"
           }
         },
         "productAction": {
@@ -133536,8 +133489,7 @@
             "symbol": "review4-primary-control:RULE-021",
             "anchor": "<p id=\"opsEventRuleDetailSummary\" class=\"form-note\">조건, geometry, cooldown을 불러오는 중입니다.</p>",
             "anchorSha256": "b3cd6ec6dae0b6cdd8ec7ee3ff808e93fc59142adf0d086d5f6f99943bb036cf",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "b3cd6ec6dae0b6cdd8ec7ee3ff808e93fc59142adf0d086d5f6f99943bb036cf"
           }
         },
         "productAction": {
@@ -134199,8 +134151,7 @@
             "symbol": "review4-primary-control:RULE-022",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -134916,8 +134867,7 @@
             "symbol": "review4-primary-control:RULE-023",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -135633,8 +135583,7 @@
             "symbol": "review4-primary-control:RULE-024",
             "anchor": "builtIn ? '' : opsRuleActionButton('삭제', 'delete-profile', id, 'danger')",
             "anchorSha256": "072af26c2b24fbaccc91f5d32b6216bc11c6a1992bae4fdd2faf4cbe0f8a5eff",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "072af26c2b24fbaccc91f5d32b6216bc11c6a1992bae4fdd2faf4cbe0f8a5eff"
           }
         },
         "productAction": {
@@ -136963,8 +136912,7 @@
             "symbol": "review4-primary-control:RULE-026",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -137681,8 +137629,7 @@
             "symbol": "review4-primary-control:RULE-027",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -138400,8 +138347,7 @@
             "symbol": "review4-primary-control:RULE-028",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -139119,8 +139065,7 @@
             "symbol": "review4-primary-control:RULE-029",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -139838,8 +139783,7 @@
             "symbol": "review4-primary-control:RULE-030",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -140557,8 +140501,7 @@
             "symbol": "review4-primary-control:RULE-031",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -141277,8 +141220,7 @@
             "symbol": "review4-primary-control:RULE-032",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -141998,8 +141940,7 @@
             "symbol": "review4-primary-control:RULE-033",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -142717,8 +142658,7 @@
             "symbol": "review4-primary-control:RULE-034",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -143436,8 +143376,7 @@
             "symbol": "review4-primary-control:RULE-035",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -144155,8 +144094,7 @@
             "symbol": "review4-primary-control:RULE-036",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -144874,8 +144812,7 @@
             "symbol": "review4-primary-control:RULE-037",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -145593,8 +145530,7 @@
             "symbol": "review4-primary-control:RULE-038",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -146312,8 +146248,7 @@
             "symbol": "review4-primary-control:RULE-039",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -147641,8 +147576,7 @@
             "symbol": "review4-primary-control:RULE-041",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -148354,8 +148288,7 @@
             "symbol": "review4-primary-control:RULE-042",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -149067,8 +149000,7 @@
             "symbol": "review4-primary-control:RULE-043",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -149781,8 +149713,7 @@
             "symbol": "review4-primary-control:RULE-044",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -150495,8 +150426,7 @@
             "symbol": "review4-primary-control:RULE-045",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -151209,8 +151139,7 @@
             "symbol": "review4-primary-control:RULE-046",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -151923,8 +151852,7 @@
             "symbol": "review4-primary-control:RULE-047",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -152636,8 +152564,7 @@
             "symbol": "review4-primary-control:RULE-048",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -153349,8 +153276,7 @@
             "symbol": "review4-primary-control:RULE-049",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -154063,8 +153989,7 @@
             "symbol": "review4-primary-control:RULE-050",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -154777,8 +154702,7 @@
             "symbol": "review4-primary-control:RULE-051",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -155490,8 +155414,7 @@
             "symbol": "review4-primary-control:RULE-052",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -156203,8 +156126,7 @@
             "symbol": "review4-primary-control:RULE-053",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -156920,8 +156842,7 @@
             "symbol": "review4-primary-control:RULE-054",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -157637,8 +157558,7 @@
             "symbol": "review4-primary-control:RULE-055",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -158354,8 +158274,7 @@
             "symbol": "review4-primary-control:RULE-056",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -159071,8 +158990,7 @@
             "symbol": "review4-primary-control:RULE-057",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -159788,8 +159706,7 @@
             "symbol": "review4-primary-control:RULE-058",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -160505,8 +160422,7 @@
             "symbol": "review4-primary-control:RULE-059",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -161222,8 +161138,7 @@
             "symbol": "review4-primary-control:RULE-060",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -161939,8 +161854,7 @@
             "symbol": "review4-primary-control:RULE-061",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -162656,8 +162570,7 @@
             "symbol": "review4-primary-control:RULE-062",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -163373,8 +163286,7 @@
             "symbol": "review4-primary-control:RULE-063",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -164090,8 +164002,7 @@
             "symbol": "review4-primary-control:RULE-064",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -164811,8 +164722,7 @@
             "symbol": "review4-primary-control:RULE-065",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -165528,8 +165438,7 @@
             "symbol": "review4-primary-control:RULE-066",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -166246,8 +166155,7 @@
             "symbol": "review4-primary-control:RULE-067",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -166964,8 +166872,7 @@
             "symbol": "review4-primary-control:RULE-068",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -167682,8 +167589,7 @@
             "symbol": "review4-primary-control:RULE-069",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -168400,8 +168306,7 @@
             "symbol": "review4-primary-control:RULE-070",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -169115,8 +169020,7 @@
             "symbol": "review4-primary-control:RULE-071",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -169830,8 +169734,7 @@
             "symbol": "review4-primary-control:RULE-072",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -170545,8 +170448,7 @@
             "symbol": "review4-primary-control:RULE-073",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -171260,8 +171162,7 @@
             "symbol": "review4-primary-control:RULE-074",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -171976,8 +171877,7 @@
             "symbol": "review4-primary-control:RULE-075",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -172690,8 +172590,7 @@
             "symbol": "review4-primary-control:RULE-076",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -173405,8 +173304,7 @@
             "symbol": "review4-primary-control:RULE-077",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -174122,8 +174020,7 @@
             "symbol": "review4-primary-control:RULE-078",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -174837,8 +174734,7 @@
             "symbol": "review4-primary-control:RULE-079",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -175552,8 +175448,7 @@
             "symbol": "review4-primary-control:RULE-080",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -176267,8 +176162,7 @@
             "symbol": "review4-primary-control:RULE-081",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -176984,8 +176878,7 @@
             "symbol": "review4-primary-control:RULE-082",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -177699,8 +177592,7 @@
             "symbol": "review4-primary-control:RULE-083",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -178414,8 +178306,7 @@
             "symbol": "review4-primary-control:RULE-084",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -179129,8 +179020,7 @@
             "symbol": "review4-primary-control:RULE-085",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -179844,8 +179734,7 @@
             "symbol": "review4-primary-control:RULE-086",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -180559,8 +180448,7 @@
             "symbol": "review4-primary-control:RULE-087",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -181276,8 +181164,7 @@
             "symbol": "review4-primary-control:RULE-088",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -181991,8 +181878,7 @@
             "symbol": "review4-primary-control:RULE-089",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -182706,8 +182592,7 @@
             "symbol": "review4-primary-control:RULE-090",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -183421,8 +183306,7 @@
             "symbol": "review4-primary-control:RULE-091",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -184139,8 +184023,7 @@
             "symbol": "review4-primary-control:RULE-092",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -184884,8 +184767,7 @@
             "symbol": "review4-primary-control:RULE-093",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -185649,8 +185531,7 @@
             "symbol": "review4-primary-control:RULE-094",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -186401,8 +186282,7 @@
             "symbol": "review4-primary-control:RULE-095",
             "anchor": ")\" << RefreshIconButtonHtml(\"opsRulesRefresh\", \"button-secondary\", \"새로고침\") << R\"(",
             "anchorSha256": "c7b36b77c31c339fafe8e0f9ec6adc28e265764c265bdf958727dbec1212006b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "c7b36b77c31c339fafe8e0f9ec6adc28e265764c265bdf958727dbec1212006b"
           }
         },
         "productAction": {
@@ -187136,8 +187016,7 @@
             "symbol": "review4-primary-control:RULE-096",
             "anchor": ")\" << RefreshIconButtonHtml(\"opsRulesRefresh\", \"button-secondary\", \"새로고침\") << R\"(",
             "anchorSha256": "c7b36b77c31c339fafe8e0f9ec6adc28e265764c265bdf958727dbec1212006b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "c7b36b77c31c339fafe8e0f9ec6adc28e265764c265bdf958727dbec1212006b"
           }
         },
         "productAction": {
@@ -187898,8 +187777,7 @@
             "symbol": "review4-primary-control:RULE-097",
             "anchor": "<aside class=\"live-source-dock client-live-dock\" data-testid=\"client-live-source-tree\"",
             "anchorSha256": "0d0ebace4151beec2dd8156940c430b696b7553c8d0a1a92d18938153e8795bd",
-            "contextSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "sourceFileSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0"
+            "contextSha256": "0d0ebace4151beec2dd8156940c430b696b7553c8d0a1a92d18938153e8795bd"
           }
         },
         "productAction": {
@@ -188584,8 +188462,7 @@
             "symbol": "review4-primary-control:RULE-098",
             "anchor": "<div id=\"opsRulesValidationList\" class=\"validation-list\"></div>",
             "anchorSha256": "e23cc5816e961b3eec4d48ce8c85f599b7b98313c503cb5104646b7d2675991e",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "e23cc5816e961b3eec4d48ce8c85f599b7b98313c503cb5104646b7d2675991e"
           }
         },
         "productAction": {
@@ -189259,8 +189136,7 @@
             "symbol": "review4-primary-control:RULE-100",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -190034,8 +189910,7 @@
             "symbol": "review4-primary-control:RULE-101",
             "anchor": "<button id=\"opsRulesComposerSave\" class=\"button-primary\" type=\"button\">저장</button>",
             "anchorSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "919b7c65a29f663871b1438453da6fe71e3fb1745cdc505c0d46a70393b9558b"
           }
         },
         "productAction": {
@@ -190863,8 +190738,7 @@
             "symbol": "review4-primary-control:RULE-102",
             "anchor": "<select id=\"opsEventRuleTypeSelect\" aria-label=\"종류\"></select>",
             "anchorSha256": "edfc011742d17059b29ee761e331870556f8aa0cb85ea84a5788fd173b6fa11f",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "edfc011742d17059b29ee761e331870556f8aa0cb85ea84a5788fd173b6fa11f"
           }
         },
         "productAction": {
@@ -191761,8 +191635,7 @@
             "symbol": "review4-primary-control:RULE-103",
             "anchor": ")\" << RefreshIconButtonHtml(\"opsRulesRefresh\", \"button-secondary\", \"새로고침\") << R\"(",
             "anchorSha256": "c7b36b77c31c339fafe8e0f9ec6adc28e265764c265bdf958727dbec1212006b",
-            "contextSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51",
-            "sourceFileSha256": "c7fccca985d38cabcedf3ad96c033e2a30a55812d5fc120bef56a1d9e30cff51"
+            "contextSha256": "c7b36b77c31c339fafe8e0f9ec6adc28e265764c265bdf958727dbec1212006b"
           }
         },
         "productAction": {
@@ -192637,8 +192510,7 @@
             "symbol": "review4-primary-control:RULE-104",
             "anchor": "data-approval-gated-rule-draft-route=\"manual-approval-staged-only\"",
             "anchorSha256": "b452aafdcd080f124fdb5a11132d45762270ba5e95a1da32f2600bf171d64857",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "b452aafdcd080f124fdb5a11132d45762270ba5e95a1da32f2600bf171d64857"
           }
         },
         "productAction": {
@@ -193637,8 +193509,7 @@
             "symbol": "review4-primary-control:RULE-111",
             "anchor": "data-vlm-rule-draft-index=\"${index}\"",
             "anchorSha256": "977ba315a8fce8ab798055ddef7344b3abe03972a31b7aeb2e79fec11a4b0e68",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "977ba315a8fce8ab798055ddef7344b3abe03972a31b7aeb2e79fec11a4b0e68"
           }
         },
         "productAction": {
@@ -194876,13 +194747,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#dashRootCauseActionOutput",
+        "selector": "#dashRootCauseList",
         "requestedSelector": "#dashRootCauseActionOutput",
         "canonicalSelector": "#dashRootCauseActionOutput",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-read-model-control-override",
         "actionAnchor": "OpsSourceHealthJson",
         "actionRoute": "/ops/dashboard",
-        "targetSelector": "#dashRootCauseActionOutput"
+        "targetSelector": "#dashRootCauseList"
       },
       "actions": [
         {
@@ -194943,21 +194814,21 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "EVT-003:wait-visible",
-          "selector": "#dashRootCauseActionOutput",
-          "selectorSource": "review4-canonical-product-control"
+          "selector": "#dashRootCauseList",
+          "selectorSource": "review4-read-model-control-override"
         },
         {
           "kind": "assert-visible-read-model",
           "dispatch": "playwright-native",
           "actionId": "EVT-003:assert-visible-read-model",
-          "selector": "#dashRootCauseActionOutput",
+          "selector": "#dashRootCauseList",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
             "actionId": "EVT-003:assert-visible-read-model",
             "actionKind": "assert-visible-read-model",
-            "controlSelector": "#dashRootCauseActionOutput",
+            "controlSelector": "#dashRootCauseList",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
             "correlationId": "EVT-003:assert-visible-read-model:completion",
@@ -195102,18 +194973,18 @@
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "#dashRootCauseActionOutput",
+          "selector": "#dashRootCauseList",
           "route": "/ops/dashboard",
           "accountRole": "operator",
-          "source": "review4-canonical-product-control",
+          "source": "review4-read-model-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/product_ui_page_scripts.cpp",
-            "symbol": "renderRootCauseActionOutput",
-            "anchor": "const output = document.getElementById('dashRootCauseActionOutput');",
-            "anchorSha256": "73789f49d41fda48bc0c52876b853e61621fbea7faa6e5cc833ace0e4404917c",
-            "contextSha256": "492dccf7fb88aef4b7409c13fd0498cbe6f90cda08a6b7a1843905582767dcdd"
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "symbol": "review4-primary-control:EVT-003",
+            "anchor": "<div id=\"dashRootCauseList\" class=\"root-cause-list\">",
+            "anchorSha256": "389a7b2d0f2bc1b93f0f9092b491b66ca903b22e45de4a14e8a8b6718c8dfe32",
+            "contextSha256": "389a7b2d0f2bc1b93f0f9092b491b66ca903b22e45de4a14e8a8b6718c8dfe32"
           }
         },
         "productAction": {
@@ -195225,21 +195096,21 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "EVT-003:wait-visible",
-            "selector": "#dashRootCauseActionOutput",
-            "selectorSource": "review4-canonical-product-control"
+            "selector": "#dashRootCauseList",
+            "selectorSource": "review4-read-model-control-override"
           },
           {
             "kind": "assert-visible-read-model",
             "dispatch": "playwright-native",
             "actionId": "EVT-003:assert-visible-read-model",
-            "selector": "#dashRootCauseActionOutput",
+            "selector": "#dashRootCauseList",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
               "actionId": "EVT-003:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "#dashRootCauseActionOutput",
+              "controlSelector": "#dashRootCauseList",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-003:assert-visible-read-model:completion",
@@ -195359,7 +195230,7 @@
               "phase": "primary-action",
               "actionId": "EVT-003:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "#dashRootCauseActionOutput",
+              "controlSelector": "#dashRootCauseList",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-003:assert-visible-read-model:completion",
@@ -195429,7 +195300,7 @@
         ],
         "primaryActionId": "EVT-003:assert-visible-read-model",
         "primaryActionCorrelationId": "EVT-003:assert-visible-read-model:completion",
-        "primaryControlSelector": "#dashRootCauseActionOutput",
+        "primaryControlSelector": "#dashRootCauseList",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_ui_click_e2e.mjs#EVT-003:oracle#3e3b4b4c311de9fbf3cf4e6df11513f15e8df67672a517b34a36e1c736c6ee74"
       },
       "artifacts": {
@@ -195462,7 +195333,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "#dashRootCauseActionOutput",
+          "selector": "#dashRootCauseList",
           "applicability": "required",
           "exists": true,
           "visible": true,
@@ -197933,13 +197804,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#dashRuntimeOpsList",
+        "selector": "#alertDeliveryTest",
         "requestedSelector": "#dashRuntimeOpsList",
         "canonicalSelector": "#dashRuntimeOpsList",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-read-model-control-override",
         "actionAnchor": "DispatchOpsAlertDeliveryFixture",
         "actionRoute": "/ops/events",
-        "targetSelector": "#dashRuntimeOpsList"
+        "targetSelector": "#alertDeliveryTest"
       },
       "actions": [
         {
@@ -198000,21 +197871,21 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "EVT-018:wait-visible",
-          "selector": "#dashRuntimeOpsList",
-          "selectorSource": "review4-canonical-product-control"
+          "selector": "#alertDeliveryTest",
+          "selectorSource": "review4-read-model-control-override"
         },
         {
           "kind": "assert-visible-read-model",
           "dispatch": "playwright-native",
           "actionId": "EVT-018:assert-visible-read-model",
-          "selector": "#dashRuntimeOpsList",
+          "selector": "#alertDeliveryTest",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
             "actionId": "EVT-018:assert-visible-read-model",
             "actionKind": "assert-visible-read-model",
-            "controlSelector": "#dashRuntimeOpsList",
+            "controlSelector": "#alertDeliveryTest",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
             "correlationId": "EVT-018:assert-visible-read-model:completion",
@@ -198159,18 +198030,18 @@
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "#dashRuntimeOpsList",
+          "selector": "#alertDeliveryTest",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-canonical-product-control",
+          "source": "review4-read-model-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/product_ui_page_scripts.cpp",
-            "symbol": "renderDashboardRuntimeOpsEmpty",
-            "anchor": "const list = document.getElementById('dashRuntimeOpsList');",
-            "anchorSha256": "9b9fc8a0605deebf5d1316a3ffb68bf950c556428f8a2c297d924558ef3fc5a9",
-            "contextSha256": "e04a8a018353930fc525b2b0520b0dcf834c884d36373e3a44724cfbe7df8ccc"
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "symbol": "review4-primary-control:EVT-018",
+            "anchor": "<button id=\"alertDeliveryTest\" class=\"button-secondary\" type=\"button\">Fixture 전송</button>",
+            "anchorSha256": "415df2e2306b2bcb609eb17d8e464cd1cc2a1402a4501675a89e3be6697aed34",
+            "contextSha256": "415df2e2306b2bcb609eb17d8e464cd1cc2a1402a4501675a89e3be6697aed34"
           }
         },
         "productAction": {
@@ -198282,21 +198153,21 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "EVT-018:wait-visible",
-            "selector": "#dashRuntimeOpsList",
-            "selectorSource": "review4-canonical-product-control"
+            "selector": "#alertDeliveryTest",
+            "selectorSource": "review4-read-model-control-override"
           },
           {
             "kind": "assert-visible-read-model",
             "dispatch": "playwright-native",
             "actionId": "EVT-018:assert-visible-read-model",
-            "selector": "#dashRuntimeOpsList",
+            "selector": "#alertDeliveryTest",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
               "actionId": "EVT-018:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "#dashRuntimeOpsList",
+              "controlSelector": "#alertDeliveryTest",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-018:assert-visible-read-model:completion",
@@ -198416,7 +198287,7 @@
               "phase": "primary-action",
               "actionId": "EVT-018:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "#dashRuntimeOpsList",
+              "controlSelector": "#alertDeliveryTest",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-018:assert-visible-read-model:completion",
@@ -198486,7 +198357,7 @@
         ],
         "primaryActionId": "EVT-018:assert-visible-read-model",
         "primaryActionCorrelationId": "EVT-018:assert-visible-read-model:completion",
-        "primaryControlSelector": "#dashRuntimeOpsList",
+        "primaryControlSelector": "#alertDeliveryTest",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_alert_delivery_integrations.mjs#EVT-018:oracle#0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a"
       },
       "artifacts": {
@@ -198519,7 +198390,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "#dashRuntimeOpsList",
+          "selector": "#alertDeliveryTest",
           "applicability": "required",
           "exists": true,
           "visible": true,
@@ -200043,8 +199914,7 @@
             "symbol": "review4-primary-control:EVT-021",
             "anchor": "button type=\"button\" class=\"button button-secondary button-compact\" data-event-review-save",
             "anchorSha256": "0408ee51773a19a2153ed9c0450bd6cf3f16e2b56a89560cee635eaa2975c25b",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "0408ee51773a19a2153ed9c0450bd6cf3f16e2b56a89560cee635eaa2975c25b"
           }
         },
         "productAction": {
@@ -200486,13 +200356,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#dashRootCauseActionOutput",
+        "selector": "#event-review-audit-list",
         "requestedSelector": "#dashRootCauseActionOutput",
         "canonicalSelector": "#dashRootCauseActionOutput",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-read-model-control-override",
         "actionAnchor": "OpsAuditEntriesJson",
         "actionRoute": "/ops/events",
-        "targetSelector": "#dashRootCauseActionOutput"
+        "targetSelector": "#event-review-audit-list"
       },
       "actions": [
         {
@@ -200553,21 +200423,21 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "EVT-022:wait-visible",
-          "selector": "#dashRootCauseActionOutput",
-          "selectorSource": "review4-canonical-product-control"
+          "selector": "#event-review-audit-list",
+          "selectorSource": "review4-read-model-control-override"
         },
         {
           "kind": "assert-visible-read-model",
           "dispatch": "playwright-native",
           "actionId": "EVT-022:assert-visible-read-model",
-          "selector": "#dashRootCauseActionOutput",
+          "selector": "#event-review-audit-list",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
             "actionId": "EVT-022:assert-visible-read-model",
             "actionKind": "assert-visible-read-model",
-            "controlSelector": "#dashRootCauseActionOutput",
+            "controlSelector": "#event-review-audit-list",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
             "correlationId": "EVT-022:assert-visible-read-model:completion",
@@ -200712,18 +200582,18 @@
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "#dashRootCauseActionOutput",
+          "selector": "#event-review-audit-list",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-canonical-product-control",
+          "source": "review4-read-model-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/product_ui_page_scripts.cpp",
-            "symbol": "renderRootCauseActionOutput",
-            "anchor": "const output = document.getElementById('dashRootCauseActionOutput');",
-            "anchorSha256": "73789f49d41fda48bc0c52876b853e61621fbea7faa6e5cc833ace0e4404917c",
-            "contextSha256": "492dccf7fb88aef4b7409c13fd0498cbe6f90cda08a6b7a1843905582767dcdd"
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "symbol": "review4-primary-control:EVT-022",
+            "anchor": "<div id=\"event-review-audit-list\" class=\"audit-list\" data-audit-area=\"events\"></div>",
+            "anchorSha256": "e93cad59909264965ba00e42d51eeffaff610ba1c4d947a2b571b49add0f9ba3",
+            "contextSha256": "e93cad59909264965ba00e42d51eeffaff610ba1c4d947a2b571b49add0f9ba3"
           }
         },
         "productAction": {
@@ -200835,21 +200705,21 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "EVT-022:wait-visible",
-            "selector": "#dashRootCauseActionOutput",
-            "selectorSource": "review4-canonical-product-control"
+            "selector": "#event-review-audit-list",
+            "selectorSource": "review4-read-model-control-override"
           },
           {
             "kind": "assert-visible-read-model",
             "dispatch": "playwright-native",
             "actionId": "EVT-022:assert-visible-read-model",
-            "selector": "#dashRootCauseActionOutput",
+            "selector": "#event-review-audit-list",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
               "actionId": "EVT-022:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "#dashRootCauseActionOutput",
+              "controlSelector": "#event-review-audit-list",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-022:assert-visible-read-model:completion",
@@ -200969,7 +200839,7 @@
               "phase": "primary-action",
               "actionId": "EVT-022:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "#dashRootCauseActionOutput",
+              "controlSelector": "#event-review-audit-list",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "EVT-022:assert-visible-read-model:completion",
@@ -201039,7 +200909,7 @@
         ],
         "primaryActionId": "EVT-022:assert-visible-read-model",
         "primaryActionCorrelationId": "EVT-022:assert-visible-read-model:completion",
-        "primaryControlSelector": "#dashRootCauseActionOutput",
+        "primaryControlSelector": "#event-review-audit-list",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_ui_click_e2e.mjs#ops-audit-http-oracle#21bd11421ec7a14a7d5586436fd7104ccb81275779f79c380d68fe8d71178392"
       },
       "artifacts": {
@@ -201072,7 +200942,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "#dashRootCauseActionOutput",
+          "selector": "#event-review-audit-list",
           "applicability": "required",
           "exists": true,
           "visible": true,
@@ -202949,7 +202819,7 @@
         "selector": "#dashRootCauseList",
         "requestedSelector": "#dashRootCauseList",
         "canonicalSelector": "#dashRootCauseList",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-exact-runtime-oracle-control-override",
         "actionAnchor": "RuntimeStatusJson",
         "actionRoute": "/ops/dashboard",
         "targetSelector": "#dashRootCauseList"
@@ -203014,7 +202884,7 @@
           "dispatch": "playwright-native",
           "actionId": "EVT-026:wait-visible",
           "selector": "#dashRootCauseList",
-          "selectorSource": "review4-canonical-product-control"
+          "selectorSource": "review4-exact-runtime-oracle-control-override"
         },
         {
           "kind": "assert-visible-read-model",
@@ -203175,15 +203045,15 @@
           "selector": "#dashRootCauseList",
           "route": "/ops/dashboard",
           "accountRole": "operator",
-          "source": "review4-canonical-product-control",
+          "source": "review4-exact-runtime-oracle-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/product_ui_page_scripts.cpp",
-            "symbol": "warnCount",
-            "anchor": "const list = document.getElementById('dashRootCauseList');",
-            "anchorSha256": "29370f950585df246a795df47b492f1cae234205402d487985e75b86d91b024e",
-            "contextSha256": "606c3ffb9228f76240fe7bd28dbcf3596256473c90ee4e81239f4b4f32387c70"
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "symbol": "review4-primary-control:EVT-026",
+            "anchor": "<div id=\"dashRootCauseList\" class=\"root-cause-list\">",
+            "anchorSha256": "389a7b2d0f2bc1b93f0f9092b491b66ca903b22e45de4a14e8a8b6718c8dfe32",
+            "contextSha256": "389a7b2d0f2bc1b93f0f9092b491b66ca903b22e45de4a14e8a8b6718c8dfe32"
           }
         },
         "productAction": {
@@ -203296,7 +203166,7 @@
             "dispatch": "playwright-native",
             "actionId": "EVT-026:wait-visible",
             "selector": "#dashRootCauseList",
-            "selectorSource": "review4-canonical-product-control"
+            "selectorSource": "review4-exact-runtime-oracle-control-override"
           },
           {
             "kind": "assert-visible-read-model",
@@ -225225,8 +225095,7 @@
             "symbol": "review4-primary-control:CLIENT-002",
             "anchor": "data-action=\"toggle-playback\" title=\"타일 ${tile.index + 1} 재생\"",
             "anchorSha256": "397e399779fd5ec2332f4ce0dd4912beae484ed199cd9d8af1603905310cf043",
-            "contextSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "sourceFileSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0"
+            "contextSha256": "397e399779fd5ec2332f4ce0dd4912beae484ed199cd9d8af1603905310cf043"
           }
         },
         "productAction": {
@@ -225975,8 +225844,7 @@
             "symbol": "review4-primary-control:CLIENT-005",
             "anchor": "<button id=\"liveAllStop\" class=\"ghost danger\" type=\"button\">전체 연결 해제</button>",
             "anchorSha256": "6a5f656cfb302e83b735397fb537af1071eb2b787283e12bc5c3865f6cd17728",
-            "contextSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "sourceFileSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0"
+            "contextSha256": "6a5f656cfb302e83b735397fb537af1071eb2b787283e12bc5c3865f6cd17728"
           }
         },
         "productAction": {
@@ -227929,8 +227797,7 @@
             "symbol": "review4-primary-control:CLIENT-009",
             "anchor": "<button id=\"liveSaveLayoutPreference\" class=\"ghost\" type=\"button\">레이아웃 저장</button>",
             "anchorSha256": "8f4b1a60ec0a657b9aca4ffbf055ba2db063163748c311483088a4ab4120b264",
-            "contextSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "sourceFileSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0"
+            "contextSha256": "8f4b1a60ec0a657b9aca4ffbf055ba2db063163748c311483088a4ab4120b264"
           }
         },
         "productAction": {
@@ -251176,8 +251043,7 @@
             "symbol": "review4-primary-control:SAFE-038",
             "anchor": "data-vlm-rule-draft-index=\"${index}\"",
             "anchorSha256": "977ba315a8fce8ab798055ddef7344b3abe03972a31b7aeb2e79fec11a4b0e68",
-            "contextSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771",
-            "sourceFileSha256": "37e7283b7bc99d7003a5b434d5805229ed1efc36eb0e22fb0654489622cca771"
+            "contextSha256": "977ba315a8fce8ab798055ddef7344b3abe03972a31b7aeb2e79fec11a4b0e68"
           }
         },
         "productAction": {
@@ -257161,13 +257027,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsEventRulePresetSelect",
+        "selector": "[data-incident-rule-draft-route]",
         "requestedSelector": "#opsEventRulePresetSelect",
         "canonicalSelector": "#opsEventRulePresetSelect",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-read-model-control-override",
         "actionAnchor": "OpsVlmRuleSuggestionDraftWorkflowJson",
         "actionRoute": "/ops/events",
-        "targetSelector": "#opsEventRulePresetSelect"
+        "targetSelector": "[data-incident-rule-draft-route]"
       },
       "actions": [
         {
@@ -257228,33 +257094,37 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "SAFE-053:wait-visible",
-          "selector": "#opsEventRulePresetSelect",
-          "selectorSource": "review4-canonical-product-control"
+          "selector": "[data-incident-rule-draft-route]",
+          "selectorSource": "review4-read-model-control-override"
         },
         {
-          "kind": "select-control",
+          "kind": "assert-visible-read-model",
           "dispatch": "playwright-native",
-          "actionId": "SAFE-053:select-control",
-          "selector": "#opsEventRulePresetSelect",
-          "value": "road",
+          "actionId": "SAFE-053:assert-visible-read-model",
+          "selector": "[data-incident-rule-draft-route]",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "SAFE-053:select-control",
-            "actionKind": "select-control",
-            "controlSelector": "#opsEventRulePresetSelect",
+            "actionId": "SAFE-053:assert-visible-read-model",
+            "actionKind": "assert-visible-read-model",
+            "controlSelector": "[data-incident-rule-draft-route]",
             "linkedPrimaryActionId": null,
-            "requiredSource": "local-transition-readback",
-            "correlationId": "SAFE-053:select-control:completion",
-            "request": null,
-            "localTransition": {
-              "selector": "#opsEventRulePresetSelect",
-              "type": "select",
-              "target": "#opsEventRulePresetSelect",
-              "effect": "`/ops/events` incident-to-rule card는 matching rule suggestion을 표시하고 `/ops/rules` draft workflow로만 연결하며 Rule/Profile registry write, auto apply, client/viewer 노출, provider 호출, EventRecord/Event POST/WebRTC/SSE/WS/media path schema 변경을 만들지 않음",
-              "property": "selectedValues"
+            "requiredSource": "endpoint-dom",
+            "correlationId": "SAFE-053:assert-visible-read-model:completion",
+            "request": {
+              "correlationHeader": "x-media-server-correlation-id",
+              "correlationId": "SAFE-053:assert-visible-read-model:completion",
+              "correlationSource": "request-header",
+              "method": "GET",
+              "urlPathTemplate": "/ops/events",
+              "urlPath": "/ops/events",
+              "pathParameters": {},
+              "allowedStatuses": [
+                200
+              ]
             },
+            "localTransition": null,
             "expectedBehaviorSha256": "b2cd6b6369c07a08799236957ba9aeb1fbaea31436d519eb11fb92180df1985b",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#9af8a13abee78864604b88cd6db677538bbeb59888e2a9395b92876fd98f8f73",
@@ -257270,10 +257140,8 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#9af8a13abee78864604b88cd6db677538bbeb59888e2a9395b92876fd98f8f73",
             "readbackExpectation": {
-              "property": "selectedValues",
-              "value": [
-                "road"
-              ]
+              "exists": true,
+              "visible": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -257304,7 +257172,7 @@
             "actionId": "SAFE-053:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "SAFE-053:select-control",
+            "linkedPrimaryActionId": "SAFE-053:assert-visible-read-model",
             "requiredSource": "endpoint-dom",
             "correlationId": "SAFE-053:verify-independent-readback:completion",
             "request": null,
@@ -257340,7 +257208,7 @@
       "workflow": {
         "schema": "media-server.v390-ui-case-native-workflow.v2",
         "workflowId": "SAFE-053:native-workflow",
-        "workflowClass": "actionable",
+        "workflowClass": "read-only-state",
         "semanticClassification": {
           "flowKind": "read-model",
           "operation": "read",
@@ -257357,7 +257225,7 @@
           {
             "kind": "seed-reviewed-state",
             "setupId": "SAFE-053:reviewed-state",
-            "strategy": "actionable",
+            "strategy": "read-only-state",
             "route": "/ops/events",
             "semanticCallChainSha256": "bba3d40d8232fbc169548374cb112e18b838a713ed2317afb15c3c05672fd3c7",
             "persistedMutation": false,
@@ -257373,45 +257241,42 @@
             "sensitive": false
           },
           {
-            "inputId": "SAFE-053:local-control-input",
-            "kind": "local-control-input",
+            "inputId": "SAFE-053:product-read-input",
+            "kind": "product-state-request",
             "actualValue": {
-              "selector": "#opsEventRulePresetSelect",
-              "operation": "select"
+              "method": "GET",
+              "path": "/ops/events",
+              "accountRole": "operator"
             },
-            "sensitive": false
-          },
-          {
-            "inputId": "SAFE-053:select-value",
-            "kind": "literal-select-value",
-            "actualValue": "road",
             "sensitive": false
           }
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "#opsEventRulePresetSelect",
+          "selector": "[data-incident-rule-draft-route]",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-canonical-product-control",
+          "source": "review4-read-model-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
-            "symbol": "opsRulesReviewPresetImpact",
-            "anchor": "const presetId = String(scenario?.presetId || document.getElementById('opsEventRulePresetSelect')?.value || 'default').trim();",
-            "anchorSha256": "7bd1c5c4e4785bda24242263685eb7c4791699a7abf2b58a2e2dd987b6c67455",
-            "contextSha256": "3bbbf469cbc0fb3012d5affc55a90fef0516b1a36c9e524908a6bde4e3f2f72f"
+            "symbol": "review4-primary-control:SAFE-053",
+            "anchor": "<a class=\"button button-secondary button-compact\" data-incident-rule-draft-route href=\"${escapeHtml(draftRoute)}\">룰 draft 검토</a>",
+            "anchorSha256": "0c41feb641bd8dbcd518b41a70038f2d911f00175716a21b2434b871ba1df8ff",
+            "contextSha256": "0c41feb641bd8dbcd518b41a70038f2d911f00175716a21b2434b871ba1df8ff"
           }
         },
         "productAction": {
-          "kind": "local-control-action",
-          "endpoint": null,
-          "localAction": {
-            "type": "select",
-            "target": "#opsEventRulePresetSelect",
-            "effect": "`/ops/events` incident-to-rule card는 matching rule suggestion을 표시하고 `/ops/rules` draft workflow로만 연결하며 Rule/Profile registry write, auto apply, client/viewer 노출, provider 호출, EventRecord/Event POST/WebRTC/SSE/WS/media path schema 변경을 만들지 않음"
-          }
+          "kind": "product-state-read",
+          "endpoint": {
+            "method": "GET",
+            "path": "/ops/events",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "localAction": null
         },
         "expectedProductState": {
           "identity": "product-state:src/ingress/webrtc_http_server_ops_incidents.cpp#OpsVlmRuleSuggestionDraftWorkflowJson#d937a27471b68c1cc08a1a69e0db96fe2b7934668153eecab7e7237d6a5930b9",
@@ -257511,33 +257376,37 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "SAFE-053:wait-visible",
-            "selector": "#opsEventRulePresetSelect",
-            "selectorSource": "review4-canonical-product-control"
+            "selector": "[data-incident-rule-draft-route]",
+            "selectorSource": "review4-read-model-control-override"
           },
           {
-            "kind": "select-control",
+            "kind": "assert-visible-read-model",
             "dispatch": "playwright-native",
-            "actionId": "SAFE-053:select-control",
-            "selector": "#opsEventRulePresetSelect",
-            "value": "road",
+            "actionId": "SAFE-053:assert-visible-read-model",
+            "selector": "[data-incident-rule-draft-route]",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SAFE-053:select-control",
-              "actionKind": "select-control",
-              "controlSelector": "#opsEventRulePresetSelect",
+              "actionId": "SAFE-053:assert-visible-read-model",
+              "actionKind": "assert-visible-read-model",
+              "controlSelector": "[data-incident-rule-draft-route]",
               "linkedPrimaryActionId": null,
-              "requiredSource": "local-transition-readback",
-              "correlationId": "SAFE-053:select-control:completion",
-              "request": null,
-              "localTransition": {
-                "selector": "#opsEventRulePresetSelect",
-                "type": "select",
-                "target": "#opsEventRulePresetSelect",
-                "effect": "`/ops/events` incident-to-rule card는 matching rule suggestion을 표시하고 `/ops/rules` draft workflow로만 연결하며 Rule/Profile registry write, auto apply, client/viewer 노출, provider 호출, EventRecord/Event POST/WebRTC/SSE/WS/media path schema 변경을 만들지 않음",
-                "property": "selectedValues"
+              "requiredSource": "endpoint-dom",
+              "correlationId": "SAFE-053:assert-visible-read-model:completion",
+              "request": {
+                "correlationHeader": "x-media-server-correlation-id",
+                "correlationId": "SAFE-053:assert-visible-read-model:completion",
+                "correlationSource": "request-header",
+                "method": "GET",
+                "urlPathTemplate": "/ops/events",
+                "urlPath": "/ops/events",
+                "pathParameters": {},
+                "allowedStatuses": [
+                  200
+                ]
               },
+              "localTransition": null,
               "expectedBehaviorSha256": "b2cd6b6369c07a08799236957ba9aeb1fbaea31436d519eb11fb92180df1985b",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#9af8a13abee78864604b88cd6db677538bbeb59888e2a9395b92876fd98f8f73",
@@ -257553,10 +257422,8 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#9af8a13abee78864604b88cd6db677538bbeb59888e2a9395b92876fd98f8f73",
               "readbackExpectation": {
-                "property": "selectedValues",
-                "value": [
-                  "road"
-                ]
+                "exists": true,
+                "visible": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -257587,7 +257454,7 @@
               "actionId": "SAFE-053:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "SAFE-053:select-control",
+              "linkedPrimaryActionId": "SAFE-053:assert-visible-read-model",
               "requiredSource": "endpoint-dom",
               "correlationId": "SAFE-053:verify-independent-readback:completion",
               "request": null,
@@ -257641,20 +257508,25 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SAFE-053:select-control",
-              "actionKind": "select-control",
-              "controlSelector": "#opsEventRulePresetSelect",
+              "actionId": "SAFE-053:assert-visible-read-model",
+              "actionKind": "assert-visible-read-model",
+              "controlSelector": "[data-incident-rule-draft-route]",
               "linkedPrimaryActionId": null,
-              "requiredSource": "local-transition-readback",
-              "correlationId": "SAFE-053:select-control:completion",
-              "request": null,
-              "localTransition": {
-                "selector": "#opsEventRulePresetSelect",
-                "type": "select",
-                "target": "#opsEventRulePresetSelect",
-                "effect": "`/ops/events` incident-to-rule card는 matching rule suggestion을 표시하고 `/ops/rules` draft workflow로만 연결하며 Rule/Profile registry write, auto apply, client/viewer 노출, provider 호출, EventRecord/Event POST/WebRTC/SSE/WS/media path schema 변경을 만들지 않음",
-                "property": "selectedValues"
+              "requiredSource": "endpoint-dom",
+              "correlationId": "SAFE-053:assert-visible-read-model:completion",
+              "request": {
+                "correlationHeader": "x-media-server-correlation-id",
+                "correlationId": "SAFE-053:assert-visible-read-model:completion",
+                "correlationSource": "request-header",
+                "method": "GET",
+                "urlPathTemplate": "/ops/events",
+                "urlPath": "/ops/events",
+                "pathParameters": {},
+                "allowedStatuses": [
+                  200
+                ]
               },
+              "localTransition": null,
               "expectedBehaviorSha256": "b2cd6b6369c07a08799236957ba9aeb1fbaea31436d519eb11fb92180df1985b",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#9af8a13abee78864604b88cd6db677538bbeb59888e2a9395b92876fd98f8f73",
@@ -257670,10 +257542,8 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#9af8a13abee78864604b88cd6db677538bbeb59888e2a9395b92876fd98f8f73",
               "readbackExpectation": {
-                "property": "selectedValues",
-                "value": [
-                  "road"
-                ]
+                "exists": true,
+                "visible": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -257684,11 +257554,6 @@
           }
         ],
         "cleanup": [
-          {
-            "kind": "restore-local-control",
-            "cleanupId": "SAFE-053:restore-local-control",
-            "selector": "#opsEventRulePresetSelect"
-          },
           {
             "kind": "no-op-cleanup",
             "cleanupId": "SAFE-053:no-persisted-mutation",
@@ -257708,14 +257573,14 @@
         ],
         "completionRequired": true,
         "allowedCompletionSources": [
-          "local-transition-readback",
+          "endpoint-dom",
           "persisted-readback",
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "SAFE-053:select-control",
-        "primaryActionCorrelationId": "SAFE-053:select-control:completion",
-        "primaryControlSelector": "#opsEventRulePresetSelect",
+        "primaryActionId": "SAFE-053:assert-visible-read-model",
+        "primaryActionCorrelationId": "SAFE-053:assert-visible-read-model:completion",
+        "primaryControlSelector": "[data-incident-rule-draft-route]",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#9af8a13abee78864604b88cd6db677538bbeb59888e2a9395b92876fd98f8f73"
       },
       "artifacts": {
@@ -257748,7 +257613,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "#opsEventRulePresetSelect",
+          "selector": "[data-incident-rule-draft-route]",
           "applicability": "required",
           "exists": true,
           "visible": true,
@@ -260822,13 +260687,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#dashRuntimeOpsList",
+        "selector": "[data-testid=\"ops-operational-action-pack\"]",
         "requestedSelector": "#dashRuntimeOpsList",
         "canonicalSelector": "#dashRuntimeOpsList",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-read-model-control-override",
         "actionAnchor": "OpsOperationalActionPackViewJson",
         "actionRoute": "/ops/events",
-        "targetSelector": "#dashRuntimeOpsList"
+        "targetSelector": "[data-testid=\"ops-operational-action-pack\"]"
       },
       "actions": [
         {
@@ -260889,21 +260754,21 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "SAFE-060:wait-visible",
-          "selector": "#dashRuntimeOpsList",
-          "selectorSource": "review4-canonical-product-control"
+          "selector": "[data-testid=\"ops-operational-action-pack\"]",
+          "selectorSource": "review4-read-model-control-override"
         },
         {
           "kind": "assert-visible-read-model",
           "dispatch": "playwright-native",
           "actionId": "SAFE-060:assert-visible-read-model",
-          "selector": "#dashRuntimeOpsList",
+          "selector": "[data-testid=\"ops-operational-action-pack\"]",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
             "actionId": "SAFE-060:assert-visible-read-model",
             "actionKind": "assert-visible-read-model",
-            "controlSelector": "#dashRuntimeOpsList",
+            "controlSelector": "[data-testid=\"ops-operational-action-pack\"]",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
             "correlationId": "SAFE-060:assert-visible-read-model:completion",
@@ -261048,18 +260913,18 @@
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "#dashRuntimeOpsList",
+          "selector": "[data-testid=\"ops-operational-action-pack\"]",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-canonical-product-control",
+          "source": "review4-read-model-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/product_ui_page_scripts.cpp",
-            "symbol": "renderDashboardRuntimeOpsEmpty",
-            "anchor": "const list = document.getElementById('dashRuntimeOpsList');",
-            "anchorSha256": "9b9fc8a0605deebf5d1316a3ffb68bf950c556428f8a2c297d924558ef3fc5a9",
-            "contextSha256": "e04a8a018353930fc525b2b0520b0dcf834c884d36373e3a44724cfbe7df8ccc"
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "symbol": "review4-primary-control:SAFE-060",
+            "anchor": "<section class=\"section-card ops-workspace-wide operational-action-pack\" data-testid=\"ops-operational-action-pack\" data-operational-action-pack=\"manual-workflow-links\">",
+            "anchorSha256": "8b6122fb5c508b52544735cd39c301c56fb9be043189e74791a166e68c9d7a24",
+            "contextSha256": "8b6122fb5c508b52544735cd39c301c56fb9be043189e74791a166e68c9d7a24"
           }
         },
         "productAction": {
@@ -261171,21 +261036,21 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "SAFE-060:wait-visible",
-            "selector": "#dashRuntimeOpsList",
-            "selectorSource": "review4-canonical-product-control"
+            "selector": "[data-testid=\"ops-operational-action-pack\"]",
+            "selectorSource": "review4-read-model-control-override"
           },
           {
             "kind": "assert-visible-read-model",
             "dispatch": "playwright-native",
             "actionId": "SAFE-060:assert-visible-read-model",
-            "selector": "#dashRuntimeOpsList",
+            "selector": "[data-testid=\"ops-operational-action-pack\"]",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
               "actionId": "SAFE-060:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "#dashRuntimeOpsList",
+              "controlSelector": "[data-testid=\"ops-operational-action-pack\"]",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "SAFE-060:assert-visible-read-model:completion",
@@ -261305,7 +261170,7 @@
               "phase": "primary-action",
               "actionId": "SAFE-060:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "#dashRuntimeOpsList",
+              "controlSelector": "[data-testid=\"ops-operational-action-pack\"]",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "SAFE-060:assert-visible-read-model:completion",
@@ -261375,7 +261240,7 @@
         ],
         "primaryActionId": "SAFE-060:assert-visible-read-model",
         "primaryActionCorrelationId": "SAFE-060:assert-visible-read-model:completion",
-        "primaryControlSelector": "#dashRuntimeOpsList",
+        "primaryControlSelector": "[data-testid=\"ops-operational-action-pack\"]",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#bea2f15ac3b6c256fd601989be9139dd79fef5d3ade019b82b5adc97e33a89fa"
       },
       "artifacts": {
@@ -261408,7 +261273,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "#dashRuntimeOpsList",
+          "selector": "[data-testid=\"ops-operational-action-pack\"]",
           "applicability": "required",
           "exists": true,
           "visible": true,
@@ -261437,13 +261302,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsEventRulePresetSelect",
+        "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
         "requestedSelector": "#opsEventRulePresetSelect",
         "canonicalSelector": "#opsEventRulePresetSelect",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-read-model-control-override",
         "actionAnchor": "OpsRuleWhatIfPreviewViewJson",
         "actionRoute": "/ops/events",
-        "targetSelector": "#opsEventRulePresetSelect"
+        "targetSelector": "[data-testid=\"ops-rule-what-if-preview\"]"
       },
       "actions": [
         {
@@ -261504,33 +261369,37 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "SAFE-061:wait-visible",
-          "selector": "#opsEventRulePresetSelect",
-          "selectorSource": "review4-canonical-product-control"
+          "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
+          "selectorSource": "review4-read-model-control-override"
         },
         {
-          "kind": "select-control",
+          "kind": "assert-visible-read-model",
           "dispatch": "playwright-native",
-          "actionId": "SAFE-061:select-control",
-          "selector": "#opsEventRulePresetSelect",
-          "value": "road",
+          "actionId": "SAFE-061:assert-visible-read-model",
+          "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "SAFE-061:select-control",
-            "actionKind": "select-control",
-            "controlSelector": "#opsEventRulePresetSelect",
+            "actionId": "SAFE-061:assert-visible-read-model",
+            "actionKind": "assert-visible-read-model",
+            "controlSelector": "[data-testid=\"ops-rule-what-if-preview\"]",
             "linkedPrimaryActionId": null,
-            "requiredSource": "local-transition-readback",
-            "correlationId": "SAFE-061:select-control:completion",
-            "request": null,
-            "localTransition": {
-              "selector": "#opsEventRulePresetSelect",
-              "type": "select",
-              "target": "#opsEventRulePresetSelect",
-              "effect": "Rule What-if Preview는 selected incident/EventRecord와 rule suggestion 후보의 저장 전 condition preview만 `/ops/events`와 `/ops/rules` draft context에 표시하고 full replay engine, 자동 rule/profile 저장, 자동 적용, viewer/client route, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경을 만들지 않음",
-              "property": "selectedValues"
+            "requiredSource": "endpoint-dom",
+            "correlationId": "SAFE-061:assert-visible-read-model:completion",
+            "request": {
+              "correlationHeader": "x-media-server-correlation-id",
+              "correlationId": "SAFE-061:assert-visible-read-model:completion",
+              "correlationSource": "request-header",
+              "method": "GET",
+              "urlPathTemplate": "/ops/events",
+              "urlPath": "/ops/events",
+              "pathParameters": {},
+              "allowedStatuses": [
+                200
+              ]
             },
+            "localTransition": null,
             "expectedBehaviorSha256": "015670bbe7a7421d37982c25da05a353bfd34769081eb424a3efed5a645018e4",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#ea9b33296d0ad187edb7380ebb7f6a16f8501946bcb8bbb40f2d4e1cce8432e0",
@@ -261546,10 +261415,8 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#ea9b33296d0ad187edb7380ebb7f6a16f8501946bcb8bbb40f2d4e1cce8432e0",
             "readbackExpectation": {
-              "property": "selectedValues",
-              "value": [
-                "road"
-              ]
+              "exists": true,
+              "visible": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -261580,7 +261447,7 @@
             "actionId": "SAFE-061:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "SAFE-061:select-control",
+            "linkedPrimaryActionId": "SAFE-061:assert-visible-read-model",
             "requiredSource": "endpoint-dom",
             "correlationId": "SAFE-061:verify-independent-readback:completion",
             "request": null,
@@ -261616,7 +261483,7 @@
       "workflow": {
         "schema": "media-server.v390-ui-case-native-workflow.v2",
         "workflowId": "SAFE-061:native-workflow",
-        "workflowClass": "actionable",
+        "workflowClass": "read-only-state",
         "semanticClassification": {
           "flowKind": "read-model",
           "operation": "read",
@@ -261633,7 +261500,7 @@
           {
             "kind": "seed-reviewed-state",
             "setupId": "SAFE-061:reviewed-state",
-            "strategy": "actionable",
+            "strategy": "read-only-state",
             "route": "/ops/events",
             "semanticCallChainSha256": "0b96f091b86be6e1c32b7b0bc87a1cd901741f242ebed0eaefc2677ad3fa6c92",
             "persistedMutation": false,
@@ -261649,45 +261516,42 @@
             "sensitive": false
           },
           {
-            "inputId": "SAFE-061:local-control-input",
-            "kind": "local-control-input",
+            "inputId": "SAFE-061:product-read-input",
+            "kind": "product-state-request",
             "actualValue": {
-              "selector": "#opsEventRulePresetSelect",
-              "operation": "select"
+              "method": "GET",
+              "path": "/ops/events",
+              "accountRole": "operator"
             },
-            "sensitive": false
-          },
-          {
-            "inputId": "SAFE-061:select-value",
-            "kind": "literal-select-value",
-            "actualValue": "road",
             "sensitive": false
           }
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "#opsEventRulePresetSelect",
+          "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
           "route": "/ops/events",
           "accountRole": "operator",
-          "source": "review4-canonical-product-control",
+          "source": "review4-read-model-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/product_ui_page_scripts.cpp",
-            "symbol": "opsRulesReviewPresetImpact",
-            "anchor": "const presetId = String(scenario?.presetId || document.getElementById('opsEventRulePresetSelect')?.value || 'default').trim();",
-            "anchorSha256": "7bd1c5c4e4785bda24242263685eb7c4791699a7abf2b58a2e2dd987b6c67455",
-            "contextSha256": "3bbbf469cbc0fb3012d5affc55a90fef0516b1a36c9e524908a6bde4e3f2f72f"
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "symbol": "review4-primary-control:SAFE-061",
+            "anchor": "<section class=\"section-card ops-workspace-wide rule-what-if-preview\" data-testid=\"ops-rule-what-if-preview\" data-rule-what-if-preview=\"selected-incident-draft-only\">",
+            "anchorSha256": "d248b1c976113ed37560d88cdb66380abd818663285aeb9053054d8a22048b9f",
+            "contextSha256": "d248b1c976113ed37560d88cdb66380abd818663285aeb9053054d8a22048b9f"
           }
         },
         "productAction": {
-          "kind": "local-control-action",
-          "endpoint": null,
-          "localAction": {
-            "type": "select",
-            "target": "#opsEventRulePresetSelect",
-            "effect": "Rule What-if Preview는 selected incident/EventRecord와 rule suggestion 후보의 저장 전 condition preview만 `/ops/events`와 `/ops/rules` draft context에 표시하고 full replay engine, 자동 rule/profile 저장, 자동 적용, viewer/client route, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경을 만들지 않음"
-          }
+          "kind": "product-state-read",
+          "endpoint": {
+            "method": "GET",
+            "path": "/ops/events",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "localAction": null
         },
         "expectedProductState": {
           "identity": "product-state:src/ingress/webrtc_http_server_ops_incidents.cpp#OpsRuleWhatIfPreviewViewJson#4adac565692b077a25149fcfcd77f549259d881ab7888c6869226bd8dc2d6fea",
@@ -261721,9 +261585,9 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "rule what-if는 seeded incident/suggestion condition preview만 표시",
-          "specSha256": "ba325d41c94d87df6160647da88088d2330f6632805654af5686b9f31f320da7",
+          "specSha256": "16584deb89889f15c8fe8bfd4a713d4883fe6a12b6451d209cab8cfa35bd6a1d",
           "requestCount": 1,
-          "domAssertionCount": 2,
+          "domAssertionCount": 1,
           "stateSnapshotCount": 2,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -261787,33 +261651,37 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "SAFE-061:wait-visible",
-            "selector": "#opsEventRulePresetSelect",
-            "selectorSource": "review4-canonical-product-control"
+            "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
+            "selectorSource": "review4-read-model-control-override"
           },
           {
-            "kind": "select-control",
+            "kind": "assert-visible-read-model",
             "dispatch": "playwright-native",
-            "actionId": "SAFE-061:select-control",
-            "selector": "#opsEventRulePresetSelect",
-            "value": "road",
+            "actionId": "SAFE-061:assert-visible-read-model",
+            "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SAFE-061:select-control",
-              "actionKind": "select-control",
-              "controlSelector": "#opsEventRulePresetSelect",
+              "actionId": "SAFE-061:assert-visible-read-model",
+              "actionKind": "assert-visible-read-model",
+              "controlSelector": "[data-testid=\"ops-rule-what-if-preview\"]",
               "linkedPrimaryActionId": null,
-              "requiredSource": "local-transition-readback",
-              "correlationId": "SAFE-061:select-control:completion",
-              "request": null,
-              "localTransition": {
-                "selector": "#opsEventRulePresetSelect",
-                "type": "select",
-                "target": "#opsEventRulePresetSelect",
-                "effect": "Rule What-if Preview는 selected incident/EventRecord와 rule suggestion 후보의 저장 전 condition preview만 `/ops/events`와 `/ops/rules` draft context에 표시하고 full replay engine, 자동 rule/profile 저장, 자동 적용, viewer/client route, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경을 만들지 않음",
-                "property": "selectedValues"
+              "requiredSource": "endpoint-dom",
+              "correlationId": "SAFE-061:assert-visible-read-model:completion",
+              "request": {
+                "correlationHeader": "x-media-server-correlation-id",
+                "correlationId": "SAFE-061:assert-visible-read-model:completion",
+                "correlationSource": "request-header",
+                "method": "GET",
+                "urlPathTemplate": "/ops/events",
+                "urlPath": "/ops/events",
+                "pathParameters": {},
+                "allowedStatuses": [
+                  200
+                ]
               },
+              "localTransition": null,
               "expectedBehaviorSha256": "015670bbe7a7421d37982c25da05a353bfd34769081eb424a3efed5a645018e4",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#ea9b33296d0ad187edb7380ebb7f6a16f8501946bcb8bbb40f2d4e1cce8432e0",
@@ -261829,10 +261697,8 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#ea9b33296d0ad187edb7380ebb7f6a16f8501946bcb8bbb40f2d4e1cce8432e0",
               "readbackExpectation": {
-                "property": "selectedValues",
-                "value": [
-                  "road"
-                ]
+                "exists": true,
+                "visible": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -261863,7 +261729,7 @@
               "actionId": "SAFE-061:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "SAFE-061:select-control",
+              "linkedPrimaryActionId": "SAFE-061:assert-visible-read-model",
               "requiredSource": "endpoint-dom",
               "correlationId": "SAFE-061:verify-independent-readback:completion",
               "request": null,
@@ -261917,20 +261783,25 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SAFE-061:select-control",
-              "actionKind": "select-control",
-              "controlSelector": "#opsEventRulePresetSelect",
+              "actionId": "SAFE-061:assert-visible-read-model",
+              "actionKind": "assert-visible-read-model",
+              "controlSelector": "[data-testid=\"ops-rule-what-if-preview\"]",
               "linkedPrimaryActionId": null,
-              "requiredSource": "local-transition-readback",
-              "correlationId": "SAFE-061:select-control:completion",
-              "request": null,
-              "localTransition": {
-                "selector": "#opsEventRulePresetSelect",
-                "type": "select",
-                "target": "#opsEventRulePresetSelect",
-                "effect": "Rule What-if Preview는 selected incident/EventRecord와 rule suggestion 후보의 저장 전 condition preview만 `/ops/events`와 `/ops/rules` draft context에 표시하고 full replay engine, 자동 rule/profile 저장, 자동 적용, viewer/client route, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경을 만들지 않음",
-                "property": "selectedValues"
+              "requiredSource": "endpoint-dom",
+              "correlationId": "SAFE-061:assert-visible-read-model:completion",
+              "request": {
+                "correlationHeader": "x-media-server-correlation-id",
+                "correlationId": "SAFE-061:assert-visible-read-model:completion",
+                "correlationSource": "request-header",
+                "method": "GET",
+                "urlPathTemplate": "/ops/events",
+                "urlPath": "/ops/events",
+                "pathParameters": {},
+                "allowedStatuses": [
+                  200
+                ]
               },
+              "localTransition": null,
               "expectedBehaviorSha256": "015670bbe7a7421d37982c25da05a353bfd34769081eb424a3efed5a645018e4",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#ea9b33296d0ad187edb7380ebb7f6a16f8501946bcb8bbb40f2d4e1cce8432e0",
@@ -261946,10 +261817,8 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#ea9b33296d0ad187edb7380ebb7f6a16f8501946bcb8bbb40f2d4e1cce8432e0",
               "readbackExpectation": {
-                "property": "selectedValues",
-                "value": [
-                  "road"
-                ]
+                "exists": true,
+                "visible": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -261960,11 +261829,6 @@
           }
         ],
         "cleanup": [
-          {
-            "kind": "restore-local-control",
-            "cleanupId": "SAFE-061:restore-local-control",
-            "selector": "#opsEventRulePresetSelect"
-          },
           {
             "kind": "no-op-cleanup",
             "cleanupId": "SAFE-061:no-persisted-mutation",
@@ -261984,14 +261848,14 @@
         ],
         "completionRequired": true,
         "allowedCompletionSources": [
-          "local-transition-readback",
+          "endpoint-dom",
           "persisted-readback",
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "SAFE-061:select-control",
-        "primaryActionCorrelationId": "SAFE-061:select-control:completion",
-        "primaryControlSelector": "#opsEventRulePresetSelect",
+        "primaryActionId": "SAFE-061:assert-visible-read-model",
+        "primaryActionCorrelationId": "SAFE-061:assert-visible-read-model:completion",
+        "primaryControlSelector": "[data-testid=\"ops-rule-what-if-preview\"]",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_safe_product_projection_runtime_boundaries#ea9b33296d0ad187edb7380ebb7f6a16f8501946bcb8bbb40f2d4e1cce8432e0"
       },
       "artifacts": {
@@ -262024,7 +261888,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "#opsEventRulePresetSelect",
+          "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
           "applicability": "required",
           "exists": true,
           "visible": true,

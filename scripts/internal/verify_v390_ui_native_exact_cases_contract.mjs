@@ -25,6 +25,7 @@ import {
   runtimeObservedProjection,
   validateRequestedObservedEnvelope,
 } from "./v390_ui_requested_observed_schema.mjs";
+import { buildExactRuntimeOracleCatalog } from "./v390_ui_exact_oracle_catalog.mjs";
 import {
   assertAuthFixtureAbsentFromUsersFile,
   assertInactiveOrEqualBeforeCleanup,
@@ -72,6 +73,33 @@ check("builder is deterministic and preserves exact case order", () => {
   assert(JSON.stringify(rebuilt) === JSON.stringify(manifest), "generated manifest drift");
   assert(JSON.stringify(manifest.cases.map(item => item.caseId)) ===
     JSON.stringify(canonical.cases.map(item => item.testId)), "canonical ordered IDs drift");
+});
+
+check("audited route-local primary controls match their exact runtime oracles", () => {
+  const runtimeById = new Map(buildExactRuntimeOracleCatalog({ implementation })
+    .map(item => [item.caseId, item]));
+  const expected = new Map([
+    ["EVT-003", ["/ops/dashboard", "#dashRootCauseList"]],
+    ["EVT-018", ["/ops/events", "#alertDeliveryTest"]],
+    ["EVT-022", ["/ops/events", "#event-review-audit-list"]],
+    ["SAFE-053", ["/ops/events", "[data-incident-rule-draft-route]"]],
+    ["SAFE-060", ["/ops/events", '[data-testid="ops-operational-action-pack"]']],
+    ["SAFE-061", ["/ops/events", '[data-testid="ops-rule-what-if-preview"]']],
+  ]);
+  for (const [caseId, [route, selector]] of expected) {
+    const item = manifest.cases.find(candidate => candidate.caseId === caseId);
+    const runtime = runtimeById.get(caseId);
+    const runtimeSelector = typeof runtime?.visibleControl === "string"
+      ? runtime.visibleControl
+      : runtime?.visibleControl?.selector;
+    assert(runtime?.route === route && runtimeSelector === selector,
+      `${caseId} exact runtime route/control drift`);
+    assert(item?.workflow.workflowClass === "read-only-state" &&
+      item.workflow.primaryControl.route === route &&
+      item.workflow.primaryControl.selector === selector &&
+      item.workflow.primaryControl.expectedVisible === true,
+    `${caseId} generated route-local primary control drift`);
+  }
 });
 
 check("endpoint source fixtures intentionally cross the published canonical-media baseline without bypassing sourceId identity", () => {
@@ -518,10 +546,10 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
   }
   assert(new Set(workflowIds).size === 424, "workflow IDs must be unique");
   const expectedWorkflowClassCounts = {
-    "read-only-state": 238,
+    "read-only-state": 240,
     "form-submit": 16,
     "persisted-mutation": 97,
-    actionable: 29,
+    actionable: 27,
     "negative-route": 2,
     "hidden-disabled": 42,
   };
@@ -1766,6 +1794,11 @@ function assertSourceLocator(locator, label) {
   assert(source.includes(locator.anchor), `${label} source anchor missing from ${locator.file}`);
   assert(/^[a-f0-9]{64}$/.test(locator.contextSha256 || ""), `${label} context digest missing`);
   assert(locator.anchorSha256 === sha256Text(locator.anchor), `${label} source anchor digest drift`);
+  if (String(locator.symbol || "").startsWith("review4-primary-control:")) {
+    assert(source.split(locator.anchor).length === 2, `${label} source anchor must be unique`);
+    assert(!locator.sourceFileSha256 && locator.contextSha256 === locator.anchorSha256,
+      `${label} primary control must use row-local anchor binding`);
+  }
   if (locator.sourceFileSha256) {
     const sourceFileSha256 = sha256Text(source);
     assert(locator.sourceFileSha256 === sourceFileSha256, `${label} source file digest drift`);

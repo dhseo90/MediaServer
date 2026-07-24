@@ -2876,6 +2876,19 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 정적 검증 | Runtime 25/25, core 17/17, event 10/10·evaluator 15/15, client-safe 9/9, catalog 3/3, native 29/29, completion 24/24, adapter 16/16, Policy producer 9/9·independence 10/10·visual 6/6·eligibility 7/7, semantic audit 986/986 PASS | PASS |
 | 변경/미실행 경계 | Runtime, runtime contract, current not-run state와 기존 REVIEW4-65 문서만 변경합니다. 제품 C++/API/UI와 canonical/native/semantic fixture는 변경하지 않고 generator/producer를 실행하지 않습니다. Actual UI·Policy v4·30분·120분·release는 미실행입니다 | static rerun readiness / actual PASS 아님 |
 
+### REVIEW4-65 RULE-017 hidden/route-local primary-control correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 보존한 actual failure | Source `e1a62fb9e284dd3b447273811cd6d24ce53d3306`, run `v390-test-acceptance-20260724114940-68141`은 exact `201/200/1/223`에서 RULE-017 hidden `#opsEventRuleIdInput`을 visible로 기다리다 30초 timeout으로 중단됐습니다 | actual FAIL preserved |
+| Hidden control 원천 보정 | Required primary control의 `expectedVisible:false`는 `attached` wait 뒤 exists=true/visible=false/enabled=false를 검증하고, visible control은 기존 visible wait와 post-wait fail-closed를 유지합니다 | runtime 26/26 PASS |
+| 남은 route-local 전수 감사 | EVT-003/018/022와 SAFE-053/060/061의 stale primary control을 현재 route renderer에 결속했습니다. SAFE-061은 `[data-testid="ops-rule-what-if-preview"]` read-only assertion이며 preset mutation을 실행하지 않습니다 | client-safe 9/9, native 30/30 PASS |
+| 과대 무효화 방지 | Primary-control override 134건은 whole-file SHA 대신 unique exact anchor SHA로 row-local 결속합니다. Anchor 누락·중복·내용 변경은 거부하고 unrelated source 변경은 runtime spec을 흔들지 않습니다 | native negative contract PASS |
+| Workflow/semantic 원자 교체 | Workflow count를 read-only 240/actionable 27로 producer와 validator에 함께 고정했습니다. Candidate `8ca0b4bbda5bbacb8085ef0461e167740a3dd401be224981cf304995ef05af39`는 986행이며 UI-018만 독립 검토, 나머지 985행은 strict-equivalent carry-forward입니다 | producer 1회, audit/approval 986/986 PASS |
+| 독립 provenance | Migration/package/decision SHA는 `c9832a76a45bf22a2f16100e9950fcb47a6619697e1dc103cb59ae2b473c17c3`/`3329e83ec74a9e61f17a6dab776bdcd896face95c075bf9c6caece9024984521`/`8d972ec4e86c48fa48809012d5e85247407802eefd2440a360ff59fca7201bf8`입니다 | Terra/high independent review approved |
+| 정적 최종 gate | Completion 24/24, adapter 16/16, acceptance 19/19, launcher 17/17, final integrity 12/12, feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8, script inventory 11/11, docs links failure 0 | PASS |
+| 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | static rerun readiness / actual PASS 아님 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |
