@@ -82,6 +82,160 @@ await check("cross-route source and restore navigation failures are fail-closed"
   }), "catalog source route status mismatch");
 });
 
+await check("API source assertions run before restored screen DOM exactly once", async () => {
+  const navigations = [];
+  let route = "/ops/sources";
+  let fetches = 0;
+  let domReads = 0;
+  let primaryWaits = 0;
+  const selector = '[data-testid="ops-sources-page"]';
+  const browser = coreBrowser();
+  browser.evaluate = async script => {
+    if (script === "location.pathname + location.search + location.hash") return route;
+    if (script === "location.pathname") return new URL(route, "http://runtime.invalid").pathname;
+    if (String(script).startsWith("fetch(")) {
+      assert(route === "/ops/api/source-registry/onboarding-quality",
+        "SRC-034 request assertion did not run on the API source route");
+      fetches += 1;
+      const json = {
+        schema: "media-server.ops.v330-source-onboarding-quality-summary.v1",
+        onboardingQualitySummary: { inputKinds: ["ONVIF", "WHEP", "RTSP"] },
+      };
+      return {
+        status: 200,
+        text: JSON.stringify(json),
+        json,
+        contentType: "application/json",
+      };
+    }
+    assert(route === "/ops/sources",
+      "SRC-034 DOM assertion ran before the screen route was restored");
+    domReads += 1;
+    return {
+      count: 1,
+      visibleCount: 1,
+      text: "source onboarding quality",
+      attributes: [{ "data-testid": "ops-sources-page" }],
+      values: [""],
+      formControls: [],
+      descendantCount: 0,
+      properties: {},
+    };
+  };
+  browser.navigate = async target => {
+    navigations.push(target);
+    route = target;
+    return { status: 200, url: `http://runtime.invalid${target}` };
+  };
+  browser.waitForSelector = async requested => {
+    assert(route === "/ops/sources" && requested === selector,
+      "SRC-034 primary control was not verified on the restored screen route");
+    primaryWaits += 1;
+  };
+  browser.snapshot = async requested => ({
+    exists: true,
+    visible: true,
+    disabled: false,
+    selector: requested,
+  });
+  const result = await executeCatalogRuntimeOracleAtSourceRoute({
+    browser,
+    item: {
+      ...exactItem("SRC-034", "/ops/sources"),
+      workflow: {
+        workflowClass: "read-only-state",
+        primaryControl: {
+          applicability: "required",
+          selector,
+          route: "/ops/sources",
+          expectedVisible: true,
+          expectedEnabled: true,
+        },
+      },
+    },
+    fixtureId: "src-034-route-phase-contract",
+    correlationId: "SRC-034:contract",
+  });
+  assert(navigations.join("|") ===
+    "/ops/api/source-registry/onboarding-quality|/ops/sources",
+  "SRC-034 API/screen navigation order mismatch");
+  assert(fetches === 1 && domReads === 1 && primaryWaits === 1,
+    `SRC-034 phase cardinality mismatch: fetch=${fetches}, dom=${domReads}, wait=${primaryWaits}`);
+  assert(result.responses.length === 1 && result.dom.length === 1 &&
+    result.routeLifecycle?.splitApiAndScreen === true &&
+    result.nativePrimaryControl?.status === "PASS",
+  "SRC-034 split API/screen evidence missing");
+});
+
+await check("API source or screen restoration failures remain fail-closed and restore once", async () => {
+  const makeBrowser = ({ apiStatus = 200, restoreStatus = 200 } = {}) => {
+    let route = "/ops/sources";
+    const navigations = [];
+    let domReads = 0;
+    const browser = coreBrowser();
+    browser.evaluate = async script => {
+      if (script === "location.pathname + location.search + location.hash") return route;
+      if (script === "location.pathname") return new URL(route, "http://runtime.invalid").pathname;
+      if (String(script).startsWith("fetch(")) {
+        const json = {
+          schema: "media-server.ops.v330-source-onboarding-quality-summary.v1",
+          onboardingQualitySummary: {},
+        };
+        return {
+          status: apiStatus,
+          text: JSON.stringify(json),
+          json,
+          contentType: "application/json",
+        };
+      }
+      domReads += 1;
+      return {
+        count: 1,
+        visibleCount: 1,
+        text: "",
+        attributes: [{ "data-testid": "ops-sources-page" }],
+        values: [""],
+        formControls: [],
+        descendantCount: 0,
+        properties: {},
+      };
+    };
+    browser.navigate = async target => {
+      navigations.push(target);
+      route = target;
+      return {
+        status: target === "/ops/sources" ? restoreStatus : 200,
+        url: `http://runtime.invalid${target}`,
+      };
+    };
+    return { browser, navigations, domReads: () => domReads };
+  };
+  const item = exactItem("SRC-034", "/ops/sources");
+  const apiFailure = makeBrowser({ apiStatus: 500 });
+  await expectReject(() => executeCatalogRuntimeOracleAtSourceRoute({
+    browser: apiFailure.browser,
+    item,
+    fixtureId: "src-034-api-failure-contract",
+    correlationId: "SRC-034:contract",
+  }), "exact request status mismatch");
+  assert(apiFailure.navigations.join("|") ===
+    "/ops/api/source-registry/onboarding-quality|/ops/sources" &&
+    apiFailure.domReads() === 0,
+  "SRC-034 API failure did not restore once before stopping");
+
+  const restoreFailure = makeBrowser({ restoreStatus: 503 });
+  await expectReject(() => executeCatalogRuntimeOracleAtSourceRoute({
+    browser: restoreFailure.browser,
+    item,
+    fixtureId: "src-034-restore-failure-contract",
+    correlationId: "SRC-034:contract",
+  }), "catalog destination restore status mismatch");
+  assert(restoreFailure.navigations.join("|") ===
+    "/ops/api/source-registry/onboarding-quality|/ops/sources" &&
+    restoreFailure.domReads() === 0,
+  "SRC-034 restore failure executed DOM or retried navigation");
+});
+
 await check("already executed primary action is not dispatched twice", async () => {
   let clicks = 0;
   const browser = coreBrowser();

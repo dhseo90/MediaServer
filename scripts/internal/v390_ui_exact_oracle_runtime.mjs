@@ -46,6 +46,7 @@ export async function executeCatalogRuntimeOracle({
   correlationId,
   primaryAction = null,
   primaryNetworkEntries = [],
+  beforeDomAssertions = null,
 }) {
   const baseSpec = exactRuntimeOracleFor(item.caseId);
   assert(baseSpec?.caseId === item.caseId, `${item.caseId} runtime oracle spec missing`);
@@ -85,7 +86,7 @@ export async function executeCatalogRuntimeOracle({
   const networkStart = browser.networkEntries().length;
   await browser.setCorrelationId(correlationId);
   try {
-    const nativePrimaryControl = await observeNativePrimaryControl(browser, item);
+    let nativePrimaryControl = await observeNativePrimaryControl(browser, item);
     if (primaryAction && clientSafeCase) {
       const expectedExecutedKind = new Map([
         ["activate", "click"],
@@ -133,6 +134,12 @@ export async function executeCatalogRuntimeOracle({
       );
       responses.push(observation.evidence);
       responseBodies.push(observation.body);
+    }
+    if (beforeDomAssertions) {
+      await beforeDomAssertions();
+      if (nativePrimaryControl?.status === "verified-by-native-workflow-on-action-route") {
+        nativePrimaryControl = await observeNativePrimaryControl(browser, item);
+      }
     }
     const dom = [];
     for (const assertion of spec.dom) {
@@ -204,27 +211,43 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
   const sourceRoute = String(exactRuntimeOracleFor(item?.caseId)?.route || "");
   assert(sourceRoute.startsWith("/"), `${item?.caseId || "unknown"} catalog source route missing`);
   const currentRoute = await browser.evaluate("location.pathname + location.search + location.hash");
-  if (currentRoute === sourceRoute) return executeCatalogRuntimeOracle(args);
+  const screenRoute = String(item?.screenRoute || "");
+  const splitApiAndScreen = isApiRoute(sourceRoute) &&
+    screenRoute.startsWith("/") &&
+    screenRoute !== sourceRoute;
+  if (currentRoute === sourceRoute && !splitApiAndScreen) {
+    return executeCatalogRuntimeOracle(args);
+  }
 
   const sourceNavigation = await browser.navigate(sourceRoute);
   assert([200, 204].includes(sourceNavigation.status),
     `${item.caseId} catalog source route status mismatch: ${sourceNavigation.status}`);
+  const destinationRoute = currentRoute === sourceRoute ? screenRoute : currentRoute;
   let observation = null;
   let oracleError = null;
+  let restoreNavigation = null;
+  let restoreError = null;
+  let restoreAttempted = false;
+  const restoreDestination = async () => {
+    restoreAttempted = true;
+    restoreNavigation = await browser.navigate(destinationRoute);
+    assert([200, 204].includes(restoreNavigation.status),
+      `${item.caseId} catalog destination restore status mismatch: ${restoreNavigation.status}`);
+  };
   try {
-    observation = await executeCatalogRuntimeOracle(args);
+    observation = await executeCatalogRuntimeOracle({
+      ...args,
+      beforeDomAssertions: splitApiAndScreen ? restoreDestination : null,
+    });
   } catch (error) {
     oracleError = error;
   }
-
-  let restoreNavigation = null;
-  let restoreError = null;
-  try {
-    restoreNavigation = await browser.navigate(currentRoute);
-    assert([200, 204].includes(restoreNavigation.status),
-      `${item.caseId} catalog destination restore status mismatch: ${restoreNavigation.status}`);
-  } catch (error) {
-    restoreError = error;
+  if (!restoreAttempted) {
+    try {
+      await restoreDestination();
+    } catch (error) {
+      restoreError = error;
+    }
   }
   if (oracleError || restoreError) {
     const details = [oracleError, restoreError]
@@ -237,11 +260,16 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
     ...observation,
     routeLifecycle: {
       sourceRoute,
-      destinationRoute: currentRoute,
+      destinationRoute,
+      splitApiAndScreen,
       sourceNavigationStatus: sourceNavigation.status,
       restoreNavigationStatus: restoreNavigation.status,
     },
   };
+}
+
+function isApiRoute(route) {
+  return /^\/(?:ops|client)\/api(?:\/|$)/.test(String(route || ""));
 }
 
 async function cleanupTrustedInteraction(browser, item, spec, interaction, correlationId) {

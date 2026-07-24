@@ -2840,6 +2840,17 @@ evidence로 사용하지 않습니다.
 
 Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/270`으로 SRC-010의 unscoped viewer client detail 403에서 fail-stop했고, SRC-008은 201·authoritative readback·cleanup까지 PASS했습니다. Runtime은 SRC-010/SRC-019의 client boundary만 acceptance viewer `viewId`와 4개 fixture scope에 임시 결속하고 fresh login cookie를 사용하며, 성공·예외 모두 logout과 users-file byte restoration을 수행합니다. Auth-enabled focused verifier는 두 case의 unrelated viewer 403, scoped active 200, disable 후 404, operator setup/mutation, users-file/PID/port/temp cleanup을 실제 서버에서 PASS했습니다. Native exact 29/29, runtime 23/23, completion 24/24, adapter 16/16, acceptance 19/19, launcher 17/17, final-integrity 12/12가 PASS했고 424/423+1/unsupported 0과 ordered ID·route·role·viewport·theme·product action은 불변입니다. Candidate `2dfd32fa13d68ad9c33e3f24889cb8110fc7d5136b20a07241ec2160dc7a240c`는 986행, feature/pass/status 변경 0, sourceFlow 변경은 UI-018 `816f8659…`→`0eb14dfb…` 한 행입니다. Actual `./test_ui.sh`, Policy v4, 30분, 120분, release acceptance는 미실행이며 기존 SRC-010 FAIL을 PASS로 덮어쓰지 않습니다.
 
+### REVIEW4-65 SRC-034 API/screen oracle lifecycle correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 보존한 actual failure | Source `dee96939c3b9d2a9127c0f49f9966a7a8049ae5f`, run `v390-test-acceptance-20260723230534-21273`의 원본 summary는 PASS captured 173, FAIL 1, not-run 250으로 SRC-034에서 중단됐습니다. 전달 수치의 `173 executed/172 PASS` 대신 합계가 424인 원본 coverage를 사용합니다 | SRC-034 actual FAIL preserved |
+| 직접 확인한 원인 | Canonical API route는 `/ops/api/source-registry/onboarding-quality`, screen route는 `/ops/sources`입니다. API owner와 화면 `data-testid="ops-sources-page"` 및 onboarding script가 모두 존재하지만 runtime oracle이 JSON document에서 화면 selector를 검사했습니다 | 제품 결함 0 / oracle route-phase 결함 |
+| 원천 보정 | API source route와 screen route가 다른 경우 단일 oracle 실행 안에서 request→화면 복귀→DOM/primary-control→forbidden-network/cleanup 순서를 실행합니다. 일반 화면→화면 catalog는 기존 source 화면 DOM 검증을 유지합니다 | interaction/request/DOM/cleanup 중복 없음 |
+| Negative 계약 | API status failure 뒤 화면 복귀는 한 번 수행하고 DOM은 실행하지 않습니다. 화면 복귀 failure도 DOM과 자동 navigation retry 없이 fail-closed합니다 | PASS |
+| 정적 검증 | Runtime RED `21/23`에서 final `25/25`, native exact `29/29`, completion `24/24`, acceptance `19/19`, semantic audit `986/986`, 변경 MJS syntax PASS | PASS |
+| 변경/미실행 경계 | Runtime과 runtime contract 및 REVIEW4-65 문서만 변경했습니다. Native/canonical fixture와 제품 C++/API/UI는 변경하지 않았고 generator/producer, actual `./test_ui.sh`, Policy v4, 30분, 120분, release는 실행하지 않았습니다 | static rerun readiness / actual PASS 아님 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |
