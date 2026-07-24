@@ -46,7 +46,6 @@ export async function executeCatalogRuntimeOracle({
   correlationId,
   primaryAction = null,
   primaryNetworkEntries = [],
-  beforeDomAssertions = null,
 }) {
   const baseSpec = exactRuntimeOracleFor(item.caseId);
   assert(baseSpec?.caseId === item.caseId, `${item.caseId} runtime oracle spec missing`);
@@ -86,7 +85,7 @@ export async function executeCatalogRuntimeOracle({
   const networkStart = browser.networkEntries().length;
   await browser.setCorrelationId(correlationId);
   try {
-    let nativePrimaryControl = await observeNativePrimaryControl(browser, item);
+    const nativePrimaryControl = await observeNativePrimaryControl(browser, item);
     if (primaryAction && clientSafeCase) {
       const expectedExecutedKind = new Map([
         ["activate", "click"],
@@ -134,12 +133,6 @@ export async function executeCatalogRuntimeOracle({
       );
       responses.push(observation.evidence);
       responseBodies.push(observation.body);
-    }
-    if (beforeDomAssertions) {
-      await beforeDomAssertions();
-      if (nativePrimaryControl?.status === "verified-by-native-workflow-on-action-route") {
-        nativePrimaryControl = await observeNativePrimaryControl(browser, item);
-      }
     }
     const dom = [];
     for (const assertion of spec.dom) {
@@ -215,7 +208,29 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
   const splitApiAndScreen = isApiRoute(sourceRoute) &&
     screenRoute.startsWith("/") &&
     screenRoute !== sourceRoute;
-  if (currentRoute === sourceRoute && !splitApiAndScreen) {
+  if (splitApiAndScreen) {
+    let screenNavigation = null;
+    if (routePathname(currentRoute) !== routePathname(screenRoute)) {
+      await browser.setCorrelationId(`${item.caseId}:navigation`);
+      screenNavigation = await browser.navigate(screenRoute);
+      assert([200, 204].includes(screenNavigation.status),
+        `${item.caseId} catalog screen route status mismatch: ${screenNavigation.status}`);
+    }
+    const observation = await executeCatalogRuntimeOracle(args);
+    return {
+      ...observation,
+      routeLifecycle: {
+        sourceRoute,
+        destinationRoute: screenRoute,
+        splitApiAndScreen: true,
+        sourceObservation: "fresh-browser-fetch",
+        sourceNavigationStatus: null,
+        screenPreparationStatus: screenNavigation?.status ?? null,
+        restoreNavigationStatus: null,
+      },
+    };
+  }
+  if (currentRoute === sourceRoute) {
     return executeCatalogRuntimeOracle(args);
   }
 
@@ -235,10 +250,7 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
       `${item.caseId} catalog destination restore status mismatch: ${restoreNavigation.status}`);
   };
   try {
-    observation = await executeCatalogRuntimeOracle({
-      ...args,
-      beforeDomAssertions: splitApiAndScreen ? restoreDestination : null,
-    });
+    observation = await executeCatalogRuntimeOracle(args);
   } catch (error) {
     oracleError = error;
   }
@@ -261,7 +273,7 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
     routeLifecycle: {
       sourceRoute,
       destinationRoute,
-      splitApiAndScreen,
+      splitApiAndScreen: false,
       sourceNavigationStatus: sourceNavigation.status,
       restoreNavigationStatus: restoreNavigation.status,
     },
@@ -270,6 +282,14 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
 
 function isApiRoute(route) {
   return /^\/(?:ops|client)\/api(?:\/|$)/.test(String(route || ""));
+}
+
+function routePathname(route) {
+  try {
+    return new URL(String(route || ""), "http://runtime.invalid").pathname;
+  } catch {
+    return "";
+  }
 }
 
 async function cleanupTrustedInteraction(browser, item, spec, interaction, correlationId) {

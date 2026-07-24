@@ -2851,6 +2851,18 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 정적 검증 | Runtime RED `21/23`에서 final `25/25`, native exact `29/29`, completion `24/24`, acceptance `19/19`, semantic audit `986/986`, 변경 MJS syntax PASS | PASS |
 | 변경/미실행 경계 | Runtime과 runtime contract 및 REVIEW4-65 문서만 변경했습니다. Native/canonical fixture와 제품 C++/API/UI는 변경하지 않았고 generator/producer, actual `./test_ui.sh`, Policy v4, 30분, 120분, release는 실행하지 않았습니다 | static rerun readiness / actual PASS 아님 |
 
+### REVIEW4-65 SRC-034 duplicate exact-request lifecycle correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 보존한 두 번째 actual failure | 첫 correction을 반영한 source `2431caf5c7281726c6060128b570ff5beee59222`의 actual UI는 `/ops/sources` projection을 정상 관찰한 뒤 SRC-034 `ambiguous-exact-request`로 PASS captured 173, FAIL 1, not-run 250에서 중단됐습니다 | actual FAIL preserved |
+| 직접 확인한 원인 | API document navigation과 뒤이은 fresh browser fetch가 같은 `SRC-034:assert-product-state:completion` correlation에 서로 다른 두 response request ID를 남겼습니다. Completion oracle의 exactly-one exact request 거부는 유지해야 하는 올바른 판정입니다 | 제품 결함 0 / duplicate request lifecycle 결함 |
+| 공통 영향 범위 | Native API/screen 분리 사례는 Source 6, Event 23, Client 8, Audit 1로 총 38건입니다. 일반 UI→UI projection 3건은 별도 기존 lifecycle을 유지합니다 | SRC-034 전용 우회 없음 |
+| 원천 보정 | API document로 navigation하지 않고 현재 product screen을 유지하거나 navigation correlation으로 한 번 준비한 뒤, completion correlation에서 fresh fetch를 정확히 한 번 실행합니다. Response·DOM·required primary control·forbidden network·cleanup도 한 번씩 판정합니다 | exact request 1 / DOM 1 / cleanup 1 |
+| Negative/evidence 계약 | API fetch failure는 navigation·DOM·retry 없이, screen 준비 failure는 fetch·DOM·retry 없이 fail-closed합니다. `screenPreparationStatus`와 `restoreNavigationStatus=null`을 분리하고 ambiguity 검사는 완화하지 않습니다 | PASS |
+| 정적 검증 | Runtime RED 23 PASS/2 FAIL 뒤 25/25, native exact 29/29, completion 24/24, acceptance 19/19, semantic audit 986/986, 변경 MJS syntax PASS | PASS |
+| 변경/미실행 경계 | Runtime, runtime contract, REVIEW4-65 문서만 변경했습니다. Native/canonical fixture와 제품 C++/API/UI는 변경하지 않았고 generator/producer, actual UI, Policy v4, 30분, 120분, release는 실행하지 않았습니다 | static rerun readiness / actual PASS 아님 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |
