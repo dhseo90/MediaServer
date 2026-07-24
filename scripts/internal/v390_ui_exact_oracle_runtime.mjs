@@ -30,6 +30,14 @@ const endpointOwnedProjectionCases = new Set([
   "SRC-031",
 ]);
 
+const inactiveResponseAttestationKeys = new Set([
+  "autoApply",
+  "autoRuleApplied",
+  "viewerClientExposure",
+  "providerCall",
+  "registryWrite",
+]);
+
 export function isExistingSpecializedExactOracle(itemOrCaseId) {
   const item = typeof itemOrCaseId === "object" ? itemOrCaseId : null;
   const caseId = item?.caseId || String(itemOrCaseId || "");
@@ -725,11 +733,20 @@ function recursiveValuesForKey(value, wantedKey) {
 
 function containsForbiddenKeyOrValue(value, needle) {
   if (!needle) return false;
-  if (typeof value === "string") return value.toLowerCase().includes(needle.toLowerCase());
   if (Array.isArray(value)) return value.some(item => containsForbiddenKeyOrValue(item, needle));
   if (!value || typeof value !== "object") return false;
-  return Object.entries(value).some(([key, child]) =>
-    key.toLowerCase() === needle.toLowerCase() || containsForbiddenKeyOrValue(child, needle));
+  return Object.entries(value).some(([key, child]) => {
+    const exactKey = key.toLowerCase() === needle.toLowerCase();
+    if (exactKey && !isInactiveResponseAttestation(key, child)) return true;
+    return containsForbiddenKeyOrValue(child, needle);
+  });
+}
+
+function isInactiveResponseAttestation(key, value) {
+  if (value !== false) return false;
+  const normalizedKey = String(key || "");
+  return /(?:Included|Exposed|Performed|Changed|Added|Present)$/.test(normalizedKey) ||
+    inactiveResponseAttestationKeys.has(normalizedKey);
 }
 
 export function containsForbiddenResponseMaterial(value, needle, contentType) {

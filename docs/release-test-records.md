@@ -2863,6 +2863,19 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 정적 검증 | Runtime RED 23 PASS/2 FAIL 뒤 25/25, native exact 29/29, completion 24/24, acceptance 19/19, semantic audit 986/986, 변경 MJS syntax PASS | PASS |
 | 변경/미실행 경계 | Runtime, runtime contract, REVIEW4-65 문서만 변경했습니다. Native/canonical fixture와 제품 C++/API/UI는 변경하지 않았고 generator/producer, actual UI, Policy v4, 30분, 120분, release는 실행하지 않았습니다 | static rerun readiness / actual PASS 아님 |
 
+### REVIEW4-65 SRC-038 structured response material correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 보존한 actual failure | Source `74ac729eb7f4eeec0cae425b0e92673121307762`의 actual UI는 SRC-034를 통과해 executed 178, PASS captured 177, FAIL 1, not-run 246으로 전진한 뒤 SRC-038에서 `rawEvidenceIncluded:false`를 forbidden material로 오인했습니다 | actual FAIL preserved |
+| 직접 확인한 제품 경계 | `/client/api/views/{id}/events`의 incident/event/follow-up/resolution digest는 `rawEvidenceIncluded:false`를 반환하고 raw evidence·locator·source URL은 반환하지 않습니다. 기존 제품 verifier들도 false attestation과 실제 material 부재를 검증합니다 | 제품 leak 0 |
+| 179~424 독립 감사 | 두 서브 에이전트가 독립 확인한 추가 필수 후보는 SRC-065의 sanitized credential 설명과 RULE-104/RULE-111의 `autoRuleApplied:false`입니다. EVT 49개는 typed equals-false evaluator를 사용해 동일 오탐 경로가 없습니다 | 공통 보정 범위 확정 |
+| 원천 보정 | Response oracle은 arbitrary JSON string substring을 material로 취급하지 않고 exact structured key를 검사합니다. 명시된 inactive attestation은 boolean false만 허용합니다 | SRC-038/SRC-065/RULE-104/RULE-111 공통 적용 |
+| Negative 계약 | `true`, string `"false"`, null, object/array와 같은 응답의 실제 raw/credential/source URL field는 계속 fail-closed입니다. Embedded `application/json`도 같은 규칙을 사용합니다 | PASS |
+| Current evidence 결속 | 기존 current not-run state에 남은 stale canonical/native SHA를 실제 fixture SHA `e3151222...`/`b8473f94...`로 교정했습니다. 실행 상태는 pass 0/not-run 424로 유지합니다 | current evidence 7/7 재검증 대상 |
+| 정적 검증 | Runtime 25/25, core 17/17, event 10/10·evaluator 15/15, client-safe 9/9, catalog 3/3, native 29/29, completion 24/24, adapter 16/16, Policy producer 9/9·independence 10/10·visual 6/6·eligibility 7/7, semantic audit 986/986 PASS | PASS |
+| 변경/미실행 경계 | Runtime, runtime contract, current not-run state와 기존 REVIEW4-65 문서만 변경합니다. 제품 C++/API/UI와 canonical/native/semantic fixture는 변경하지 않고 generator/producer를 실행하지 않습니다. Actual UI·Policy v4·30분·120분·release는 미실행입니다 | static rerun readiness / actual PASS 아님 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

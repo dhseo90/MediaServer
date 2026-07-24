@@ -534,6 +534,71 @@ await check("response redaction separates UI-068 narrative labels from structure
     assert(!containsForbiddenResponseMaterial(safeJson, token, "application/json"),
       `UI-068 ${token} narrative JSON was treated as material`);
   }
+  assert(!containsForbiddenResponseMaterial(
+    { rawEvidenceIncluded: false },
+    "rawEvidenceIncluded",
+    "application/json",
+  ), "inactive rawEvidenceIncluded attestation was treated as response material");
+  assert(containsForbiddenResponseMaterial(
+    { rawEvidenceIncluded: true },
+    "rawEvidenceIncluded",
+    "application/json",
+  ), "active rawEvidenceIncluded attestation was not rejected");
+  for (const unsafeValue of ["false", null, { digest: "material" }, ["material"]]) {
+    assert(containsForbiddenResponseMaterial(
+      { rawEvidenceIncluded: unsafeValue },
+      "rawEvidenceIncluded",
+      "application/json",
+    ), `non-boolean rawEvidenceIncluded attestation was not rejected: ${JSON.stringify(unsafeValue)}`);
+  }
+  assert(containsForbiddenResponseMaterial(
+    { rawEvidenceIncluded: false, rawEvidence: { digest: "material" } },
+    "rawEvidence",
+    "application/json",
+  ), "inactive attestation concealed actual raw evidence material");
+  const safeEmbeddedAttestation =
+    '<script type="application/json">{"rawEvidenceIncluded":false}</script>';
+  const activeEmbeddedAttestation =
+    '<script type="application/json">{"rawEvidenceIncluded":true}</script>';
+  assert(!containsForbiddenResponseMaterial(
+    safeEmbeddedAttestation,
+    "rawEvidenceIncluded",
+    "text/html",
+  ), "inactive embedded rawEvidenceIncluded attestation was treated as material");
+  assert(containsForbiddenResponseMaterial(
+    activeEmbeddedAttestation,
+    "rawEvidenceIncluded",
+    "text/html",
+  ), "active embedded rawEvidenceIncluded attestation was not rejected");
+  for (const field of [
+    "autoApply",
+    "autoRuleApplied",
+    "viewerClientExposure",
+    "providerCall",
+    "registryWrite",
+  ]) {
+    assert(!containsForbiddenResponseMaterial({ [field]: false }, field, "application/json"),
+      `inactive ${field} response attestation was treated as material`);
+    assert(containsForbiddenResponseMaterial({ [field]: true }, field, "application/json"),
+      `active ${field} response attestation was not rejected`);
+    assert(containsForbiddenResponseMaterial({ [field]: "false" }, field, "application/json"),
+      `string ${field} response attestation was not rejected`);
+  }
+  const safeCredentialStatus = {
+    status: "sanitizedCredentialProviderStatusSummary",
+    route: "/ops/api/onvif/credential-provider-status",
+    operatorAnswer: "do not expose credential reference values or secret material",
+  };
+  assert(!containsForbiddenResponseMaterial(
+    safeCredentialStatus,
+    "credential",
+    "application/json",
+  ), "credential status narrative was treated as response material");
+  assert(containsForbiddenResponseMaterial(
+    { credential: "secret-material" },
+    "credential",
+    "application/json",
+  ), "structured credential field was not rejected");
   const ui068Material = [
     ["rawEvidence", "unredacted-value"],
     ["rawJson", { secret: "value" }],
