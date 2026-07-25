@@ -1170,6 +1170,7 @@ export function createV390UiCaseRuntime({
     const beforeRules = Array.isArray(before.json?.vaRules) ? before.json.vaRules : [];
     const endpoint = `/lab/analysis/va-rules/${fixture.vaRuleId}`;
     const rejected = [];
+    const productErrors = [];
     if (item.caseId === "RULE-101") {
       const analysisMismatch = structuredClone(fixture.vaRule);
       analysisMismatch.analysis.profileId = "9681";
@@ -1177,12 +1178,14 @@ export function createV390UiCaseRuntime({
       const analysisResponse = await request("PUT", endpoint, analysisMismatch, [400]);
       assert(String(analysisResponse.json?.error || "").includes("vaRule analysis.classes must include template analysis.classes"),
         `${item.caseId} analysis/template class rejection mismatch`);
+      productErrors.push("vaRule analysis.classes must include template analysis.classes");
       const profileMismatch = structuredClone(fixture.vaRule);
       profileMismatch.analysis.profileId = "9691";
       profileMismatch.analysis.classes = ["vehicle"];
       const profileResponse = await request("PUT", endpoint, profileMismatch, [400]);
       assert(String(profileResponse.json?.error || "").includes("vaRule profile classes must include template analysis.classes"),
         `${item.caseId} profile/template class rejection mismatch`);
+      productErrors.push("vaRule profile classes must include template analysis.classes");
       const afterRules = (await request("GET", "/lab/analysis/va-rules", null, [200])).json?.vaRules || [];
       assert(!afterRules.some(rule => String(rule?.id || "") === fixture.vaRuleId) &&
         stableJson(afterRules) === stableJson(beforeRules),
@@ -1196,6 +1199,8 @@ export function createV390UiCaseRuntime({
         profileTemplateMismatchRejected: true,
         rejectedRuleAbsent: true,
         registryUnchanged: true,
+        runtimeProductResponseObserved: true,
+        productErrors,
       };
     } else if (item.caseId === "RULE-097") {
       const assigned = await viewerRequest("GET", "/client/api/views", null, [200]);
@@ -1271,6 +1276,7 @@ export function createV390UiCaseRuntime({
       );
       assert(String(response.json?.error || "").includes("vaRule priority conflicts with existing rule on same source"),
         `${item.caseId} same-source priority rejection mismatch`);
+      productErrors.push("vaRule priority conflicts with existing rule on same source");
       const afterRules = (await request("GET", "/lab/analysis/va-rules", null, [200])).json?.vaRules || [];
       assert(!afterRules.some(rule => String(rule?.id || "") === fixture.conflictVaRuleId) &&
         stableJson(afterRules) === stableJson(beforeRules),
@@ -1283,6 +1289,8 @@ export function createV390UiCaseRuntime({
         errorMatched: true,
         rejectedRuleAbsent: true,
         registryUnchanged: true,
+        runtimeProductResponseObserved: true,
+        productErrors,
       };
     } else if (item.caseId === "RULE-093") {
       const missingProfile = structuredClone(fixture.vaRule);
@@ -1290,11 +1298,13 @@ export function createV390UiCaseRuntime({
       const profileResponse = await request("PUT", endpoint, missingProfile, [400]);
       assert(String(profileResponse.json?.error || "").includes("vaRule analysis.profileId does not exist"),
         `${item.caseId} missing-profile rejection mismatch`);
+      productErrors.push("vaRule analysis.profileId does not exist");
       const missingTemplate = structuredClone(fixture.vaRule);
       missingTemplate.templateStart.ruleId = "9998";
       const templateResponse = await request("PUT", endpoint, missingTemplate, [400]);
       assert(String(templateResponse.json?.error || "").includes("vaRule templateStart.ruleId does not exist"),
         `${item.caseId} missing-template rejection mismatch`);
+      productErrors.push("vaRule templateStart.ruleId does not exist");
       rejected.push(profileResponse, templateResponse);
     } else if (item.caseId === "RULE-094") {
       const inactiveProfile = structuredClone(fixture.vaRule);
@@ -1303,18 +1313,21 @@ export function createV390UiCaseRuntime({
       const profileResponse = await request("PUT", endpoint, inactiveProfile, [400]);
       assert(String(profileResponse.json?.error || "").includes("vaRule analysis.profileId is inactive"),
         `${item.caseId} inactive-profile rejection mismatch`);
+      productErrors.push("vaRule analysis.profileId is inactive");
       const inactiveTemplate = structuredClone(fixture.vaRule);
       inactiveTemplate.analysis.profileId = "9684";
       inactiveTemplate.templateStart.ruleId = "9794";
       const templateResponse = await request("PUT", endpoint, inactiveTemplate, [400]);
       assert(String(templateResponse.json?.error || "").includes("vaRule templateStart.ruleId is inactive"),
         `${item.caseId} inactive-template rejection mismatch`);
+      productErrors.push("vaRule templateStart.ruleId is inactive");
       rejected.push(profileResponse, templateResponse);
     } else if (item.caseId === "RULE-095") {
       const response = await request("POST", `/client/api/views/${fixture.viewId}/webrtc/session`,
         { overlayMode: "va-rule", ruleId: fixture.vaRuleId }, [400]);
       assert(String(response.json?.error || "").includes("vaRule source must match PublishedView source"),
         `${item.caseId} client source-mismatch rejection mismatch`);
+      productErrors.push("vaRule source must match PublishedView source");
       rejected.push(response);
     } else {
       await request("PUT", `/ops/api/sources/${fixture.sourceId}`, { ...fixture.source, enabled: true }, [200]);
@@ -1323,12 +1336,14 @@ export function createV390UiCaseRuntime({
         { overlayMode: "va-rule", ruleId: fixture.vaRuleId }, [404]);
       assert(String(inactiveView.json?.error || "").includes("PublishedView not found"),
         `${item.caseId} inactive-view rejection mismatch`);
+      productErrors.push("PublishedView not found");
       await request("PUT", `/ops/api/sources/${fixture.sourceId}`, { ...fixture.source, enabled: false }, [200]);
       await request("PUT", `/ops/api/views/${fixture.viewId}`, { ...fixture.view, enabled: true }, [200]);
       const inactiveChannel = await request("POST", `/client/api/views/${fixture.viewId}/webrtc/session`,
         { overlayMode: "va-rule", ruleId: fixture.vaRuleId }, [404]);
       assert(String(inactiveChannel.json?.error || "").includes("PublishedView source is not available"),
         `${item.caseId} inactive-channel rejection mismatch`);
+      productErrors.push("PublishedView source is not available");
       await request("PUT", `/ops/api/views/${fixture.viewId}`, { ...fixture.view, enabled: false }, [200]);
       rejected.push(inactiveView, inactiveChannel);
     }
@@ -1350,6 +1365,8 @@ export function createV390UiCaseRuntime({
       httpStatuses: rejected.map(value => value.status),
       errorMatched: true,
       registryUnchanged: true,
+      runtimeProductResponseObserved: true,
+      productErrors,
       cleanupMode: "api-delete-source-view-soft-disable-plus-file-snapshot-restore",
     };
   }

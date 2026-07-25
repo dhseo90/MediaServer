@@ -111,6 +111,8 @@ export function createNativeExactPreExecutionFailureSummary({
     coverage: {
       targetCount: requestedExactCases,
       obligationIds: caseIds,
+      attempted: 0,
+      pass: 0,
       captured: 0,
       fail: 0,
       notRun: requestedExactCases,
@@ -161,6 +163,9 @@ export function createNativeExactExecutionFailureSummary({
   const captured = cases.filter(item => item.rawOutcome === "completed").length;
   const fail = cases.filter(item => item.rawOutcome === "runner-error").length;
   const notRun = cases.filter(item => item.rawOutcome === "not-run-after-first-failure").length;
+  const attempted = captured + fail;
+  assert(attempted + notRun === manifestCases.length,
+    `native execution failure coverage total mismatch: ${attempted}+${notRun} != ${manifestCases.length}`);
   return {
     schema: "media-server.ui-automation-evidence.v4",
     contractFixture: false,
@@ -168,9 +173,9 @@ export function createNativeExactExecutionFailureSummary({
     executionStatus: nativeExactExecutionFailureStatus,
     executionKind: "actual-native-visible-dom",
     failure: { phase, error: message },
-    actualBrowserExecution: captured + fail > 0,
+    actualBrowserExecution: attempted > 0,
     requestedExactCases: manifestCases.length,
-    executed: captured + fail,
+    executed: attempted,
     notRun,
     unsupported: 0,
     uiFulltestPass: false,
@@ -183,6 +188,8 @@ export function createNativeExactExecutionFailureSummary({
     coverage: {
       targetCount: manifestCases.length,
       obligationIds: manifestCases.map(item => item.caseId),
+      attempted,
+      pass: captured,
       captured,
       fail,
       notRun,
@@ -207,6 +214,8 @@ export function validateNativeExactCaptureSummary(summary, expectedExactCases = 
     errors.push("raw capture native adapter mismatch");
   }
   if (Number(summary?.coverage?.targetCount) !== expectedExactCases ||
+      Number(summary?.coverage?.attempted) !== expectedExactCases ||
+      Number(summary?.coverage?.pass) !== expectedExactCases ||
       Number(summary?.coverage?.captured) !== expectedExactCases ||
       Number(summary?.coverage?.fail) !== 0 || Number(summary?.coverage?.notRun) !== 0 ||
       Number(summary?.coverage?.unsupported) !== 0 || Number(summary?.coverage?.unapprovedExclusions) !== 0 ||
@@ -229,6 +238,8 @@ export function validateNativeExactPreExecutionFailureSummary(summary, expectedE
   if (summary?.actualBrowserExecution !== false) errors.push("pre-execution summary cannot claim browser execution");
   if (Number(summary?.executed) !== 0 || Number(summary?.notRun) !== expectedExactCases) errors.push("pre-execution executed/notRun mismatch");
   if (Number(summary?.coverage?.targetCount) !== expectedExactCases ||
+      Number(summary?.coverage?.attempted) !== 0 ||
+      Number(summary?.coverage?.pass) !== 0 ||
       Number(summary?.coverage?.captured) !== 0 ||
       Number(summary?.coverage?.notRun) !== expectedExactCases ||
       Number(summary?.coverage?.fail) !== 0) {
@@ -969,6 +980,11 @@ const localCompletionContracts = new Map([
       { selector: "#opsRulesReviewConflictDetail", property: "text", operator: "includes", value: "룰 대상(사람)이 템플릿 대상(차량)을 모두 포함하지 않습니다" },
       { selector: "#opsRulesReviewConflictDetail", property: "text", operator: "includes", value: "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다" },
     ],
+    independentRejectedReadbackRequired: true,
+    independentProductErrors: [
+      "vaRule analysis.classes must include template analysis.classes",
+      "vaRule profile classes must include template analysis.classes",
+    ],
     forbiddenRequests: [
       { methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" },
     ],
@@ -988,6 +1004,11 @@ const localCompletionContracts = new Map([
       { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "분석 프로파일 9997 reference 없음" },
       { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "이벤트 템플릿 9998 reference 없음" },
     ],
+    independentRejectedReadbackRequired: true,
+    independentProductErrors: [
+      "vaRule analysis.profileId does not exist",
+      "vaRule templateStart.ruleId does not exist",
+    ],
     forbiddenRequests: [{ methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" }],
   }],
   ["RULE-094", {
@@ -996,19 +1017,33 @@ const localCompletionContracts = new Map([
       { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "분석 프로파일 9694 비활성" },
       { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "이벤트 템플릿 9794 비활성" },
     ],
+    independentRejectedReadbackRequired: true,
+    independentProductErrors: [
+      "vaRule analysis.profileId is inactive",
+      "vaRule templateStart.ruleId is inactive",
+    ],
     forbiddenRequests: [{ methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" }],
   }],
   ["RULE-095", {
+    postconditionObservationMode: "after-action-exact",
     postconditions: [
       { selector: "#opsRulesValidationList", property: "text", operator: "includes", value: "source-mismatch" },
       { selector: "#opsRulesValidationList", property: "text", operator: "includes", value: "PublishedView 소스와 다릅니다" },
     ],
+    independentRejectedReadbackRequired: true,
+    independentProductErrors: ["vaRule source must match PublishedView source"],
     forbiddenRequests: [{ methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/" }],
   }],
   ["RULE-096", {
+    postconditionObservationMode: "after-action-exact",
     postconditions: [
       { selector: "#opsRulesValidationList", property: "text", operator: "includes", value: "inactive-view" },
       { selector: "#opsRulesValidationList", property: "text", operator: "includes", value: "inactive-channel" },
+    ],
+    independentRejectedReadbackRequired: true,
+    independentProductErrors: [
+      "PublishedView not found",
+      "PublishedView source is not available",
     ],
     forbiddenRequests: [{ methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/" }],
   }],
@@ -1018,6 +1053,8 @@ const localCompletionContracts = new Map([
       { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "같은 채널에 priority" },
       { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "이미 있습니다" },
     ],
+    independentRejectedReadbackRequired: true,
+    independentProductErrors: ["vaRule priority conflicts with existing rule on same source"],
     forbiddenRequests: [{ methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" }],
   }],
   ["RULE-102", {
@@ -3346,7 +3383,18 @@ function buildActionSemanticCompletion({
     },
     readbackIdentity: primary || independent ? independentReadback.identity : `${caseId}:navigation`,
     readbackExpectation: localCompletionContract
-      ? { postconditions: structuredClone(localCompletionContract.postconditions || []) }
+      ? {
+          postconditions: structuredClone(localCompletionContract.postconditions || []),
+          postconditionObservationMode:
+            localCompletionContract.postconditionObservationMode || "transition-required",
+          ...(localCompletionContract.independentRejectedReadbackRequired
+            ? {
+                independentRejectedReadbackRequired: true,
+                independentProductErrors:
+                  structuredClone(localCompletionContract.independentProductErrors || []),
+              }
+            : {}),
+        }
       : (readModelCompletionContract
           ? structuredClone(readModelCompletionContract)
           : semanticReadbackExpectation(action)),

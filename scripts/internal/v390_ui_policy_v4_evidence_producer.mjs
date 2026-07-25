@@ -117,6 +117,9 @@ export function producePolicyV4Evidence({
   const fail = cases.filter(item => item.rawOutcome === "runner-error").length;
   const notRun = cases.filter(item => item.status === "not-run").length;
   const unsupported = cases.filter(item => item.status === "unsupported").length;
+  const attempted = captured + fail;
+  assert(attempted + notRun + unsupported === manifest.cases.length,
+    `Policy v4 coverage total mismatch: ${attempted}+${notRun}+${unsupported} != ${manifest.cases.length}`);
   const resolvedBuild = path.resolve(buildPath);
   const resolvedRunner = path.resolve(runnerPath);
   assert(fs.existsSync(resolvedBuild) && fs.statSync(resolvedBuild).isFile(), "Policy v4 build fingerprint file missing");
@@ -169,6 +172,8 @@ export function producePolicyV4Evidence({
     coverage: {
       targetCount: manifest.cases.length,
       obligationIds: caseIds,
+      attempted,
+      pass: captured,
       captured,
       fail,
       notRun,

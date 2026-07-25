@@ -2464,6 +2464,13 @@ async function executeIndependentReadback(
       runtimeFormSubmitReadback,
       runtimeEndpointActionReadback,
       rejectedActionReadback,
+      evidenceStages: rejectedActionReadback ? {
+        domValidationMatrix: {
+          beforeSnapshots: structuredClone(pending.beforePostconditionSnapshots || {}),
+          snapshots: structuredClone(postconditionSnapshots),
+        },
+        independentProductReadback: structuredClone(rejectedActionReadback),
+      } : null,
       status: "PASS",
     },
     completionOracle,
@@ -2675,6 +2682,9 @@ function semanticReadbackEvidence(action, actionEvidence, before, after, explici
       } : {}),
       ...(explicitObserved?.runtimeMutationReadback ? {
         runtimeMutationReadback: structuredClone(explicitObserved.runtimeMutationReadback),
+      } : {}),
+      ...(explicitObserved?.rejectedActionReadback ? {
+        rejectedActionReadback: structuredClone(explicitObserved.rejectedActionReadback),
       } : {}),
       ...(explicitObserved === null || explicitObserved?.snapshots
         ? {}
@@ -2950,6 +2960,10 @@ function printSummary(value, summaryPath) {
   console.log(`- result: ${value.result}`);
   console.log(`- executionStatus: ${value.executionStatus}`);
   console.log(`- exactCases: ${value.requestedExactCases || value.counts?.caseCount || value.coverage?.targetCount || 0}`);
+  console.log(`- attempted: ${value.executed ?? value.coverage?.attempted ?? 0}`);
+  console.log(`- pass: ${value.coverage?.pass ?? value.coverage?.captured ?? 0}`);
+  console.log(`- fail: ${value.coverage?.fail ?? 0}`);
+  console.log(`- notRun: ${value.notRun ?? value.coverage?.notRun ?? 0}`);
   console.log(`- unsupported: ${value.unsupported ?? value.coverage?.unsupported ?? 0}`);
   console.log(`- uiFulltestPass: ${value.uiFulltestPass}`);
   console.log(`- summaryPath: ${summaryPath}`);

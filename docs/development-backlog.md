@@ -6540,6 +6540,27 @@ REVIEW4-65 RULE-017 hidden/route-local primary-control correction(2026-07-24): s
 
 REVIEW4-65 exact 잔여 147건 정적 전수 감사와 실행 준비 보정(2026-07-24): source `536af3b447206d418701b2479bfd75a275c3a764`의 최신 actual `./test_ui.sh`는 exact `277/276/1/147`에서 RULE-093 source `93093` 조회 404로 중단됐으므로 실제 브라우저 진행률은 `277/424=65.3%`로 보존합니다. 이 actual FAIL 뒤 실행되지 않은 position 278~424를 source route, role, primary control, fixture identity, endpoint/readback, semantic evidence, cleanup 기준으로 `147/147` 직접 대조했습니다. RULE-093~101 numeric source identity/lifecycle, 41개 EVT evaluator seed/request/semantic/canary binding과 EVT-024 세 bounded request, MEDIA-017/SAFE-018/SAFE-031 `/client/live` viewer projection, SAFE-016 direct negative 404, EVT-004 diagnostic redaction, EVT-018 save+test, CLIENT-005/021 product session·VA metadata, acceptance current-source build, first-failure closure, canonical/native atomic generator를 공통 원인 단위로 보정했습니다. Workflow 분류는 actionable 28, form-submit 16, persisted-mutation 102, read-only-state 233, hidden-disabled 42, negative-route 3으로 고정했습니다. Sol/high 구현·전수 감사와 Sol/xhigh 독립 semantic 검토를 사용했고 candidate `126119d4fc5beef66ed75338c335a21a3807a2d03696d77b9d91ce8690518c5f`, 982 strict-equivalent carry-forward+UI-018/EVT-004/SAFE-212/OPS-179 독립 승인, review package/decision SHA `d8a09db09436c0838abd0fb6a8c92441240915c7accd1c44d84155b3b30dbf5b`/`81d520bf041e0244bfcd89cab2a97855ce37da617c890cc95e2c74dd2e861bc6`로 audit/approval 986/986을 구성했습니다. Native exact 36/36, event evaluator 17/17, event 12/12, runtime 31/31, client-safe 10/10, completion 25/25, adapter 16/16, acceptance 21/21, launcher 18/18, final integrity 12/12, Policy v4 producer/independence/visual/eligibility 9/9·10/10·6/6·7/7, feature evidence 986/986·negative 15/15, inventory/evidence/script/docs/build/code-comments gate가 PASS했습니다. `147/147`은 정적 감사와 발견 blocker 보정 완료를 뜻할 뿐 actual browser PASS가 아니며, 이번 작업에서는 `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않습니다.
 
+REVIEW4-65 RULE-095 runtime evidence와 exact 집계 lifecycle 보정(2026-07-25): source
+`a2d90a42edccf24c0f22ed5592bf0d9865e9d9ce`의 actual evidence는 424건 중
+`279 attempted / 278 PASS / RULE-095 FAIL 1 / 145 not-run`입니다. 기존 `coverage.captured=278`은
+PASS 수이며 attempted가 아닙니다. Summary, acceptance report, launcher는 attempted를
+`PASS + FAIL`로 계산하고 `attempted + not-run + unsupported = 424`를 fail-closed 검증합니다.
+RULE-095/096 refresh는 액션 뒤 DOM validation matrix를 정확히 확인하되 pre-existing 표시의
+false transition을 요구하지 않습니다. RULE-093/094/095/096/100/101은 이 DOM 증거와 별개로
+실제 rejected endpoint 제품 응답, 정확한 오류 문구, registry 불변 readback을 모두 요구합니다.
+DOM 또는 static verifier만으로 API runtime PASS를 만들 수 없습니다. Policy v4는 MEDIA-017의
+canonical/runtime screen route `/client/live`와 implementation backend owner route `/ops/sources`를
+typed `routeBinding`으로 분리하며 canonical/native route·role·workflow를 변경하지 않습니다.
+Final candidate `8a66ab228809bd9c96b2defb36fefd323fbc79020fbea1f694671dc05c41752f`는
+982 carry-forward와 `UI-018`, `SAFE-202`, `SAFE-212`, `OPS-169` 독립 검토로 승인됐습니다.
+Review package/decision SHA는 `bc5e1b8a011be8fbb19079708cd4247e184d59bb4b2b405613081ef4fc536f97` /
+`6ff29d0420093df65282f85d696eb67f4789f8232c72b11f9dc009b50f17822d`이며 producer 1회로
+audit/approval/implementation/native를 atomic 교체했습니다. Policy 21/21, acceptance 21/21,
+launcher 18/18, final integrity 12/12, semantic audit 51/51·986/986, approval 986/986,
+feature evidence 986/986, inventory/evidence/script/docs gate가 PASS했습니다. Actual `RULE-095`
+FAIL과 `279/278/1/145`는 보존하며 `./test_ui.sh`, Policy v4 qualification, 30분, 120분,
+`./test_release.sh`, 커밋, 푸시는 수행하지 않았습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

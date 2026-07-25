@@ -5,7 +5,7 @@
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
     "bindingSchema": "media-server.ui-fulltest-canonical-implementation-projection.v1",
-    "projectionSha256": "6993f9a3da10f34b8689198728c57bfb9490b4c6d33f7555f495bc615df559cf"
+    "projectionSha256": "fed32e49ff1de33363c8c8663896b64d9f2636453a1a01fdf4baa83d86426962"
   },
   "caseCount": 424,
   "cases": [

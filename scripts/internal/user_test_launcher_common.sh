@@ -161,8 +161,10 @@ if (uiSummaryPath && fs.existsSync(uiSummaryPath)) {
   const ui = JSON.parse(fs.readFileSync(uiSummaryPath, "utf8"));
   const coverage = ui.coverage || {};
   console.log(`[test] exactUiTarget=${coverage.targetCount ?? 424}`);
+  console.log(`[test] exactUiAttempted=${coverage.attempted ?? ui.executed ?? ""}`);
   console.log(`[test] exactUiPass=${coverage.pass ?? ui.pass ?? ""}`);
   console.log(`[test] exactUiFail=${coverage.fail ?? ui.fail ?? ""}`);
+  console.log(`[test] exactUiNotRun=${coverage.notRun ?? ui.notRun ?? ""}`);
   const failedCase = Array.isArray(ui.cases)
     ? ui.cases.find(item => item.status === "FAIL" || item.result === "FAIL")
     : null;

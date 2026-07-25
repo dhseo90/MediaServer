@@ -955,6 +955,18 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Semantic evidence | Candidate `126119d4fc5beef66ed75338c335a21a3807a2d03696d77b9d91ce8690518c5f`, 982 carry-forward+4 independent review, package `d8a09db09436c0838abd0fb6a8c92441240915c7accd1c44d84155b3b30dbf5b`, decision `81d520bf041e0244bfcd89cab2a97855ce37da617c890cc95e2c74dd2e861bc6` | Audit/approval/feature evidence 986/986 PASS; actual execution 대체 불가 |
 | Acceptance/Policy contracts | Acceptance 21/21, launcher 18/18, final integrity 12/12, Policy producer/independence/visual/eligibility 9/9·10/10·6/6·7/7, inventory/evidence/script/docs/build/code-comments PASS | Actual `./test_ui.sh`, Policy qualification, 30분, 120분, release not-run |
 
+## V390-REVIEW4-65 RULE-095 runtime evidence and exact aggregation
+
+| evidence | verified result | boundary |
+| --- | --- | --- |
+| Preserved actual ledger | Source `a2d90a42edccf24c0f22ed5592bf0d9865e9d9ce`, total 424, attempted 279, PASS 278, RULE-095 FAIL 1, not-run 145 | Actual FAIL이며 `captured=278`은 attempted가 아니라 PASS 수 |
+| Exact count invariant | Summary/acceptance report/launcher가 `attempted=pass+fail`과 `attempted+notRun+unsupported=target`을 fail-closed 검증 | Contract 집계이며 actual PASS 대체 불가 |
+| Two-stage RULE evidence | RULE-095/096 DOM matrix after-action evidence와 RULE-093/094/095/096/100/101 actual rejected product response/readback을 별도 필드로 요구 | Completion 26/26, native exact 36/36; DOM/static-only PASS 금지 |
+| Policy route binding | MEDIA-017 screen/canonical/runtime `/client/live`, backend owner `/ops/sources`를 typed `routeBinding`으로 분리 | Policy contract 21/21; canonical/native route·role·workflow 변경 없음 |
+| Semantic state | Candidate `8a66ab228809bd9c96b2defb36fefd323fbc79020fbea1f694671dc05c41752f`, 982 carry-forward, independent IDs `UI-018/SAFE-202/SAFE-212/OPS-169`; package `bc5e1b8a011be8fbb19079708cd4247e184d59bb4b2b405613081ef4fc536f97`, decision `6ff29d0420093df65282f85d696eb67f4789f8232c72b11f9dc009b50f17822d` | Producer 1회, audit/approval/implementation/native atomic 교체; audit/approval 986/986 |
+| Static closure | Acceptance 21/21, launcher 18/18, final integrity 12/12, feature evidence 986/986, inventory 17/17, release index 8/8, script 11/11, docs links failure 0 | Static checkpoint이며 actual PASS 대체 불가 |
+| Execution boundary | Actual UI, Policy v4 qualification, 30분, 120분, release, commit/push 미실행 | Actual RULE-095 FAIL과 `279/278/1/145` 보존 |
+
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 
 | evidence | verified result | boundary |

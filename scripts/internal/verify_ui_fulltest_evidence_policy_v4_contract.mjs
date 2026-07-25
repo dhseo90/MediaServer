@@ -134,7 +134,8 @@ try {
     candidate.sourceBinding.caseManifestSha256 = sha256File(manifestPath);
     const result = evaluate(candidate, tempRoot);
     assert(result.uiFulltestPass === false, "hash-valid noncanonical manifest became UI fulltest PASS");
-    assert(result.reasons.includes("canonical-case-manifest-implementation-route-drift"), "manifest implementation drift reason missing");
+    assert(result.reasons.includes("canonical-case-manifest-native-canonical-route-drift"),
+      "manifest/native canonical route drift reason missing");
   });
 
   check("canonical source binding ignores unrelated review metadata and rejects exact projection drift", () => {
@@ -144,6 +145,11 @@ try {
     });
     assert(!Object.hasOwn(baseline.implementationEvidence, "sha256"),
       "canonical manifest retained whole-file implementation fallback");
+    const media017 = baseline.cases.find(item => item.testId === "MEDIA-017");
+    assert(media017?.route === "/client/live" &&
+      media017.routeBinding?.screenRoute === "/client/live" &&
+      media017.routeBinding?.backendOwnerRoute === "/ops/sources",
+    "MEDIA-017 screen/backend route ownership was not typed separately");
 
     const metadataOnly = clone(implementationManifestSource);
     const unrelated = metadataOnly.items.find(item => item.manualUiCaseId === null);
@@ -167,6 +173,9 @@ try {
     assert(relevantRefresh.implementationEvidence.projectionSha256 !==
       baseline.implementationEvidence.projectionSha256,
     "exact route drift did not invalidate canonical projection");
+    assert(relevantRefresh.cases.find(item => item.testId === "UI-003")?.route ===
+      baseline.cases.find(item => item.testId === "UI-003")?.route,
+    "backend owner route drift changed the canonical screen route");
   });
 
   check("source file hashes remain mandatory when git source comparison is disabled", () => {
@@ -533,6 +542,9 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
     coverage: {
       targetCount: count,
       obligationIds: cases.map(item => item.testId),
+      attempted: count,
+      pass: count,
+      captured: count,
       fail: 0,
       notRun: 0,
       unsupported: 0,

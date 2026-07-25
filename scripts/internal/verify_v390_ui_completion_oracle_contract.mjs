@@ -437,11 +437,11 @@ check("REVIEW3-42 all 424 action plans close only with their exact endpoint and 
       evaluatedActions += 1;
     }
   }
-  assert(semanticActions === 1278, `semantic action plan count drift: ${semanticActions}`);
+  assert(semanticActions === 1277, `semantic action plan count drift: ${semanticActions}`);
   assert(evaluatedActions > 0, "non-primary semantic plan evaluation disappeared");
-  assert(primarySelfComparisonsRejected === 422,
+  assert(primarySelfComparisonsRejected === 421,
     `primary self-comparison rejection count drift: ${primarySelfComparisonsRejected}`);
-  assert(independentReadbacks === 422, `independent readback plan count drift: ${independentReadbacks}`);
+  assert(independentReadbacks === 421, `independent readback plan count drift: ${independentReadbacks}`);
 });
 
 check("REVIEW4-58 rejects initial navigation reuse for a primary action", () => {
@@ -878,6 +878,94 @@ check("REVIEW4-58 exact 424 primary completion contracts bind product action and
   }
   assert(!exactRunnerSource.includes("source locator metadata is not execution evidence"),
     "independent runtime readback remains an unconditional throw");
+});
+
+check("RULE-095 separates stable DOM validation from the actual rejected product response", () => {
+  const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
+  const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
+  const generated = buildNativeExactManifest({ canonical, implementation });
+  const item = generated.cases.find(candidate => candidate.caseId === "RULE-095");
+  const primary = item.workflow.controlSequence.find(candidate =>
+    candidate.actionId === item.oracle.primaryActionId);
+  const completion = primary.semanticCompletion;
+  const actionEvidence = {
+    ...primary,
+    kind: primary.kind,
+    executed: true,
+    dispatch: "playwright-native",
+    actionId: completion.actionId,
+    completionPhase: completion.phase,
+    controlSelector: completion.controlSelector,
+    correlationId: completion.correlationId,
+    semanticCompletionRequired: true,
+    expectedReadbackIdentity: completion.readbackIdentity,
+    expectedBehaviorSha256: completion.expectedBehaviorSha256,
+    expectedReadbackExpectation: structuredClone(completion.readbackExpectation),
+    expectedLocalTransition: structuredClone(completion.localTransition),
+    allowedCompletionSources: [completion.requiredSource, ...completion.attestedAlternatives],
+  };
+  const stableSnapshots = {
+    "#opsRulesValidationList": {
+      selector: "#opsRulesValidationList",
+      exists: true,
+      visible: true,
+      text: "source-mismatch PublishedView 소스와 다릅니다",
+    },
+  };
+  const observation = {
+    before: { ...snapshot("ready", "same"), selector: "#opsRulesRefresh" },
+    after: { ...snapshot("ready", "same"), selector: "#opsRulesRefresh" },
+    beforeSnapshots: structuredClone(stableSnapshots),
+    snapshots: structuredClone(stableSnapshots),
+    rejectedActionReadback: {
+      schema: "media-server.v390-ui-rejected-action-readback.v1",
+      runtimeProductResponseObserved: true,
+      registryUnchanged: true,
+      productErrors: ["vaRule source must match PublishedView source"],
+    },
+  };
+  const semanticReadback = semanticV2({
+    identity: completion.readbackIdentity,
+    correlationId: completion.correlationId,
+    actionId: completion.actionId,
+    expectedBehaviorSha256: completion.expectedBehaviorSha256,
+    observationSource: "browser-dom",
+    selector: completion.controlSelector,
+    observation,
+  });
+  const accepted = evaluateCompletionOracle({
+    action: actionEvidence,
+    before: observation.before,
+    after: observation.after,
+    semanticReadback,
+  });
+  assert(accepted.pass, `RULE-095 two-stage runtime evidence failed: ${accepted.reason}`);
+
+  const domOnly = structuredClone(semanticReadback);
+  delete domOnly.observation.rejectedActionReadback;
+  domOnly.observationSha256 = domSnapshotDigest(domOnly.observation);
+  const rejectedDomOnly = evaluateCompletionOracle({
+    action: actionEvidence,
+    before: observation.before,
+    after: observation.after,
+    semanticReadback: domOnly,
+  });
+  assert(!rejectedDomOnly.pass && rejectedDomOnly.reason === "semantic-readback-observation-mismatch",
+    "RULE-095 DOM evidence replaced the actual product response");
+
+  const wrongResponse = structuredClone(semanticReadback);
+  wrongResponse.observation.rejectedActionReadback.productErrors =
+    ["allowed vaRule is required for va-rule mode"];
+  wrongResponse.observationSha256 = domSnapshotDigest(wrongResponse.observation);
+  const rejectedWrongResponse = evaluateCompletionOracle({
+    action: actionEvidence,
+    before: observation.before,
+    after: observation.after,
+    semanticReadback: wrongResponse,
+  });
+  assert(!rejectedWrongResponse.pass &&
+    rejectedWrongResponse.reason === "semantic-readback-observation-mismatch",
+  "RULE-095 accepted a different product rejection");
 });
 
 check("REVIEW4-58 corrected all activate-control handlers with exact transaction or postcondition oracles", () => {

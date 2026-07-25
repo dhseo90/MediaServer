@@ -2,12 +2,12 @@
   "schema": "media-server.v390-ui-native-exact-cases.v2",
   "sourceBindings": {
     "canonicalSchema": "media-server.ui-fulltest-canonical-case-manifest.v1",
-    "canonicalSha256": "a9771e0261ca525c822161e348708c0993ed9c86c4fcfca360704cacbbc9421a",
+    "canonicalSha256": "1f93aeec4a632feb69f474a29d9e8b03460f96b94a7854e096666312b60d73db",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "7bf71787c8ae439745965a10e1d7829f806f3c406b26a4444806d7102426f493",
+    "implementationProjectionSha256": "60e8f71039e0a8abbe08077f69213935cb9dba035d5af7a1beb29eb4b08cf113",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "5c5eb4d65cd133c1b46e883576867494360c51a75bdfac08f86c0175c1eadd85",
+    "runtimeOracleCatalogSha256": "c977f306f8e7fa9a7fc3008387a69a0ad6cd4da14520f375455bf07457c0d655",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -10787,7 +10787,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "fe58f5d64a9925ccb279e669585a02287e4fd7103285ea110b285cfac7a74a9a",
+            "semanticCallChainSha256": "3b35bf188ddd195bd80b9770319a1817261253fa9088e93c9feeb7a7e5f811f4",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -10869,7 +10869,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "fe58f5d64a9925ccb279e669585a02287e4fd7103285ea110b285cfac7a74a9a"
+          "assertedSemanticDigest": "3b35bf188ddd195bd80b9770319a1817261253fa9088e93c9feeb7a7e5f811f4"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -10881,7 +10881,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "6cf4570b8ea41903197f2235feab307f31e53af2c3fdc328522226944451df09",
+          "specSha256": "722e8baee70250fcbb1931612fd2d765097e894552762bde4b5213d0dd824d29",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11008,7 +11008,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "fe58f5d64a9925ccb279e669585a02287e4fd7103285ea110b285cfac7a74a9a"
+            "semanticCallChainSha256": "3b35bf188ddd195bd80b9770319a1817261253fa9088e93c9feeb7a7e5f811f4"
           }
         ]
       },
@@ -15646,7 +15646,8 @@
                   "operator": "includes",
                   "value": "Qwen3-VL-4B"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -15977,7 +15978,8 @@
                     "operator": "includes",
                     "value": "Qwen3-VL-4B"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -16146,7 +16148,8 @@
                     "operator": "includes",
                     "value": "Qwen3-VL-4B"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -22068,7 +22071,8 @@
                   "operator": "includes",
                   "value": "저장"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -22401,7 +22405,8 @@
                     "operator": "includes",
                     "value": "저장"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -22572,7 +22577,8 @@
                     "operator": "includes",
                     "value": "저장"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -28339,7 +28345,8 @@
                   "operator": "includes",
                   "value": "/ops/rules"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -28660,7 +28667,8 @@
                     "operator": "includes",
                     "value": "/ops/rules"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -28819,7 +28827,8 @@
                     "operator": "includes",
                     "value": "/ops/rules"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -30320,7 +30329,8 @@
                   "operator": "includes",
                   "value": "A→B"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -30660,7 +30670,8 @@
                     "operator": "includes",
                     "value": "A→B"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -30831,7 +30842,8 @@
                     "operator": "includes",
                     "value": "A→B"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -107959,7 +107971,8 @@
                   "operator": "includes",
                   "value": "채널 추가"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -108283,7 +108296,8 @@
                     "operator": "includes",
                     "value": "채널 추가"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -108445,7 +108459,8 @@
                     "operator": "includes",
                     "value": "채널 추가"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -183892,7 +183907,8 @@
                   "operator": "includes",
                   "value": "이미 사용 중"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -184221,7 +184237,8 @@
                     "operator": "includes",
                     "value": "이미 사용 중"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -184372,7 +184389,8 @@
                     "operator": "includes",
                     "value": "이미 사용 중"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -184589,6 +184607,11 @@
                   "value": "이벤트 템플릿 9998 reference 없음"
                 }
               ],
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule analysis.profileId does not exist",
+                "vaRule templateStart.ruleId does not exist"
+              ],
               "forbiddenRequests": [
                 {
                   "methods": [
@@ -184632,6 +184655,12 @@
                   "operator": "includes",
                   "value": "이벤트 템플릿 9998 reference 없음"
                 }
+              ],
+              "postconditionObservationMode": "transition-required",
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule analysis.profileId does not exist",
+                "vaRule templateStart.ruleId does not exist"
               ]
             },
             "attestedAlternatives": [
@@ -184932,6 +184961,11 @@
                     "value": "이벤트 템플릿 9998 reference 없음"
                   }
                 ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.profileId does not exist",
+                  "vaRule templateStart.ruleId does not exist"
+                ],
                 "forbiddenRequests": [
                   {
                     "methods": [
@@ -184975,6 +185009,12 @@
                     "operator": "includes",
                     "value": "이벤트 템플릿 9998 reference 없음"
                   }
+                ],
+                "postconditionObservationMode": "transition-required",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.profileId does not exist",
+                  "vaRule templateStart.ruleId does not exist"
                 ]
               },
               "attestedAlternatives": [
@@ -185093,6 +185133,11 @@
                     "value": "이벤트 템플릿 9998 reference 없음"
                   }
                 ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.profileId does not exist",
+                  "vaRule templateStart.ruleId does not exist"
+                ],
                 "forbiddenRequests": [
                   {
                     "methods": [
@@ -185136,6 +185181,12 @@
                     "operator": "includes",
                     "value": "이벤트 템플릿 9998 reference 없음"
                   }
+                ],
+                "postconditionObservationMode": "transition-required",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.profileId does not exist",
+                  "vaRule templateStart.ruleId does not exist"
                 ]
               },
               "attestedAlternatives": [
@@ -185353,6 +185404,11 @@
                   "value": "이벤트 템플릿 9794 비활성"
                 }
               ],
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule analysis.profileId is inactive",
+                "vaRule templateStart.ruleId is inactive"
+              ],
               "forbiddenRequests": [
                 {
                   "methods": [
@@ -185396,6 +185452,12 @@
                   "operator": "includes",
                   "value": "이벤트 템플릿 9794 비활성"
                 }
+              ],
+              "postconditionObservationMode": "transition-required",
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule analysis.profileId is inactive",
+                "vaRule templateStart.ruleId is inactive"
               ]
             },
             "attestedAlternatives": [
@@ -185696,6 +185758,11 @@
                     "value": "이벤트 템플릿 9794 비활성"
                   }
                 ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.profileId is inactive",
+                  "vaRule templateStart.ruleId is inactive"
+                ],
                 "forbiddenRequests": [
                   {
                     "methods": [
@@ -185739,6 +185806,12 @@
                     "operator": "includes",
                     "value": "이벤트 템플릿 9794 비활성"
                   }
+                ],
+                "postconditionObservationMode": "transition-required",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.profileId is inactive",
+                  "vaRule templateStart.ruleId is inactive"
                 ]
               },
               "attestedAlternatives": [
@@ -185857,6 +185930,11 @@
                     "value": "이벤트 템플릿 9794 비활성"
                   }
                 ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.profileId is inactive",
+                  "vaRule templateStart.ruleId is inactive"
+                ],
                 "forbiddenRequests": [
                   {
                     "methods": [
@@ -185900,6 +185978,12 @@
                     "operator": "includes",
                     "value": "이벤트 템플릿 9794 비활성"
                   }
+                ],
+                "postconditionObservationMode": "transition-required",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.profileId is inactive",
+                  "vaRule templateStart.ruleId is inactive"
                 ]
               },
               "attestedAlternatives": [
@@ -186097,6 +186181,7 @@
               "target": "#opsRulesRefresh",
               "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
               "property": null,
+              "postconditionObservationMode": "after-action-exact",
               "postconditions": [
                 {
                   "selector": "#opsRulesValidationList",
@@ -186110,6 +186195,10 @@
                   "operator": "includes",
                   "value": "PublishedView 소스와 다릅니다"
                 }
+              ],
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule source must match PublishedView source"
               ],
               "forbiddenRequests": [
                 {
@@ -186150,6 +186239,11 @@
                   "operator": "includes",
                   "value": "PublishedView 소스와 다릅니다"
                 }
+              ],
+              "postconditionObservationMode": "after-action-exact",
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule source must match PublishedView source"
               ]
             },
             "attestedAlternatives": [
@@ -186427,6 +186521,7 @@
                 "target": "#opsRulesRefresh",
                 "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsRulesValidationList",
@@ -186440,6 +186535,10 @@
                     "operator": "includes",
                     "value": "PublishedView 소스와 다릅니다"
                   }
+                ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule source must match PublishedView source"
                 ],
                 "forbiddenRequests": [
                   {
@@ -186480,6 +186579,11 @@
                     "operator": "includes",
                     "value": "PublishedView 소스와 다릅니다"
                   }
+                ],
+                "postconditionObservationMode": "after-action-exact",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule source must match PublishedView source"
                 ]
               },
               "attestedAlternatives": [
@@ -186578,6 +186682,7 @@
                 "target": "#opsRulesRefresh",
                 "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsRulesValidationList",
@@ -186591,6 +186696,10 @@
                     "operator": "includes",
                     "value": "PublishedView 소스와 다릅니다"
                   }
+                ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule source must match PublishedView source"
                 ],
                 "forbiddenRequests": [
                   {
@@ -186631,6 +186740,11 @@
                     "operator": "includes",
                     "value": "PublishedView 소스와 다릅니다"
                   }
+                ],
+                "postconditionObservationMode": "after-action-exact",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule source must match PublishedView source"
                 ]
               },
               "attestedAlternatives": [
@@ -186828,6 +186942,7 @@
               "target": "#opsRulesRefresh",
               "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
               "property": null,
+              "postconditionObservationMode": "after-action-exact",
               "postconditions": [
                 {
                   "selector": "#opsRulesValidationList",
@@ -186841,6 +186956,11 @@
                   "operator": "includes",
                   "value": "inactive-channel"
                 }
+              ],
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "PublishedView not found",
+                "PublishedView source is not available"
               ],
               "forbiddenRequests": [
                 {
@@ -186881,6 +187001,12 @@
                   "operator": "includes",
                   "value": "inactive-channel"
                 }
+              ],
+              "postconditionObservationMode": "after-action-exact",
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "PublishedView not found",
+                "PublishedView source is not available"
               ]
             },
             "attestedAlternatives": [
@@ -187161,6 +187287,7 @@
                 "target": "#opsRulesRefresh",
                 "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsRulesValidationList",
@@ -187174,6 +187301,11 @@
                     "operator": "includes",
                     "value": "inactive-channel"
                   }
+                ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "PublishedView not found",
+                  "PublishedView source is not available"
                 ],
                 "forbiddenRequests": [
                   {
@@ -187214,6 +187346,12 @@
                     "operator": "includes",
                     "value": "inactive-channel"
                   }
+                ],
+                "postconditionObservationMode": "after-action-exact",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "PublishedView not found",
+                  "PublishedView source is not available"
                 ]
               },
               "attestedAlternatives": [
@@ -187312,6 +187450,7 @@
                 "target": "#opsRulesRefresh",
                 "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsRulesValidationList",
@@ -187325,6 +187464,11 @@
                     "operator": "includes",
                     "value": "inactive-channel"
                   }
+                ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "PublishedView not found",
+                  "PublishedView source is not available"
                 ],
                 "forbiddenRequests": [
                   {
@@ -187365,6 +187509,12 @@
                     "operator": "includes",
                     "value": "inactive-channel"
                   }
+                ],
+                "postconditionObservationMode": "after-action-exact",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "PublishedView not found",
+                  "PublishedView source is not available"
                 ]
               },
               "attestedAlternatives": [
@@ -188961,6 +189111,10 @@
                   "value": "이미 있습니다"
                 }
               ],
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule priority conflicts with existing rule on same source"
+              ],
               "forbiddenRequests": [
                 {
                   "methods": [
@@ -189004,6 +189158,11 @@
                   "operator": "includes",
                   "value": "이미 있습니다"
                 }
+              ],
+              "postconditionObservationMode": "transition-required",
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule priority conflicts with existing rule on same source"
               ]
             },
             "attestedAlternatives": [
@@ -189301,6 +189460,10 @@
                     "value": "이미 있습니다"
                   }
                 ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule priority conflicts with existing rule on same source"
+                ],
                 "forbiddenRequests": [
                   {
                     "methods": [
@@ -189344,6 +189507,11 @@
                     "operator": "includes",
                     "value": "이미 있습니다"
                   }
+                ],
+                "postconditionObservationMode": "transition-required",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule priority conflicts with existing rule on same source"
                 ]
               },
               "attestedAlternatives": [
@@ -189462,6 +189630,10 @@
                     "value": "이미 있습니다"
                   }
                 ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule priority conflicts with existing rule on same source"
+                ],
                 "forbiddenRequests": [
                   {
                     "methods": [
@@ -189505,6 +189677,11 @@
                     "operator": "includes",
                     "value": "이미 있습니다"
                   }
+                ],
+                "postconditionObservationMode": "transition-required",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule priority conflicts with existing rule on same source"
                 ]
               },
               "attestedAlternatives": [
@@ -189722,6 +189899,11 @@
                   "value": "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다"
                 }
               ],
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule analysis.classes must include template analysis.classes",
+                "vaRule profile classes must include template analysis.classes"
+              ],
               "forbiddenRequests": [
                 {
                   "methods": [
@@ -189765,6 +189947,12 @@
                   "operator": "includes",
                   "value": "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다"
                 }
+              ],
+              "postconditionObservationMode": "transition-required",
+              "independentRejectedReadbackRequired": true,
+              "independentProductErrors": [
+                "vaRule analysis.classes must include template analysis.classes",
+                "vaRule profile classes must include template analysis.classes"
               ]
             },
             "attestedAlternatives": [
@@ -190075,6 +190263,11 @@
                     "value": "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다"
                   }
                 ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.classes must include template analysis.classes",
+                  "vaRule profile classes must include template analysis.classes"
+                ],
                 "forbiddenRequests": [
                   {
                     "methods": [
@@ -190118,6 +190311,12 @@
                     "operator": "includes",
                     "value": "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다"
                   }
+                ],
+                "postconditionObservationMode": "transition-required",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.classes must include template analysis.classes",
+                  "vaRule profile classes must include template analysis.classes"
                 ]
               },
               "attestedAlternatives": [
@@ -190236,6 +190435,11 @@
                     "value": "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다"
                   }
                 ],
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.classes must include template analysis.classes",
+                  "vaRule profile classes must include template analysis.classes"
+                ],
                 "forbiddenRequests": [
                   {
                     "methods": [
@@ -190279,6 +190483,12 @@
                     "operator": "includes",
                     "value": "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다"
                   }
+                ],
+                "postconditionObservationMode": "transition-required",
+                "independentRejectedReadbackRequired": true,
+                "independentProductErrors": [
+                  "vaRule analysis.classes must include template analysis.classes",
+                  "vaRule profile classes must include template analysis.classes"
                 ]
               },
               "attestedAlternatives": [
@@ -190610,7 +190820,8 @@
                   "operator": "startsWith",
                   "value": "/ops/events#eventType="
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -191010,7 +191221,8 @@
                     "operator": "startsWith",
                     "value": "/ops/events#eventType="
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -191241,7 +191453,8 @@
                     "operator": "startsWith",
                     "value": "/ops/events#eventType="
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -191502,7 +191715,8 @@
                   "operator": "includes",
                   "value": "re-entry"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -191838,7 +192052,8 @@
                     "operator": "includes",
                     "value": "re-entry"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -192001,7 +192216,8 @@
                     "operator": "includes",
                     "value": "re-entry"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -192374,7 +192590,8 @@
                   "operator": "includes",
                   "value": "fullReplayEngineExecuted false"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -192824,7 +193041,8 @@
                     "operator": "includes",
                     "value": "fullReplayEngineExecuted false"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -193043,7 +193261,8 @@
                     "operator": "includes",
                     "value": "fullReplayEngineExecuted false"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -193381,7 +193600,8 @@
                   "operator": "includes",
                   "value": "ruleRegistryWrite=false"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -193788,7 +194008,8 @@
                     "operator": "includes",
                     "value": "ruleRegistryWrite=false"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -194027,7 +194248,8 @@
                     "operator": "includes",
                     "value": "ruleRegistryWrite=false"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -225517,7 +225739,8 @@
                   "operator": "equals",
                   "value": "■"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -225842,7 +226065,8 @@
                     "operator": "equals",
                     "value": "■"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -226008,7 +226232,8 @@
                     "operator": "equals",
                     "value": "■"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -226281,7 +226506,8 @@
                   "operator": "equals",
                   "value": "▶"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -226614,7 +226840,8 @@
                     "operator": "equals",
                     "value": "▶"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -226788,7 +227015,8 @@
                     "operator": "equals",
                     "value": "▶"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -235689,7 +235917,8 @@
                   "operator": "includes",
                   "value": "온라인"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -236014,7 +236243,8 @@
                     "operator": "includes",
                     "value": "온라인"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -236180,7 +236410,8 @@
                     "operator": "includes",
                     "value": "온라인"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -251531,7 +251762,8 @@
                   "operator": "includes",
                   "value": "저장"
                 }
-              ]
+              ],
+              "postconditionObservationMode": "transition-required"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -251869,7 +252101,8 @@
                     "operator": "includes",
                     "value": "저장"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -252048,7 +252281,8 @@
                     "operator": "includes",
                     "value": "저장"
                   }
-                ]
+                ],
+                "postconditionObservationMode": "transition-required"
               },
               "attestedAlternatives": [
                 "persisted-readback",

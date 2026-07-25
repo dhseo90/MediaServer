@@ -394,7 +394,22 @@ function evaluateSemanticExpectation(expected, observation) {
     const transitioned = expected.postconditions.some(condition =>
       !matchesPostcondition(beforeSnapshots[condition.selector], condition) &&
       matchesPostcondition(snapshots[condition.selector], condition));
-    return afterMatches && transitioned;
+    const observationMode = expected.postconditionObservationMode || "transition-required";
+    if (!["transition-required", "after-action-exact"].includes(observationMode)) return false;
+    if (!afterMatches || (observationMode === "transition-required" && !transitioned)) return false;
+    if (expected.independentRejectedReadbackRequired !== true) return true;
+  }
+  if (expected.independentRejectedReadbackRequired === true) {
+    const readback = observation.rejectedActionReadback;
+    const expectedErrors = Array.isArray(expected.independentProductErrors)
+      ? expected.independentProductErrors
+      : [];
+    return readback?.schema === "media-server.v390-ui-rejected-action-readback.v1" &&
+      readback.runtimeProductResponseObserved === true &&
+      readback.registryUnchanged === true &&
+      expectedErrors.length > 0 &&
+      Array.isArray(readback.productErrors) &&
+      stableStringify(readback.productErrors) === stableStringify(expectedErrors);
   }
   if (expected.persistedMutationObserved !== undefined) {
     const readback = observation.runtimeMutationReadback || observation.actual?.runtimeMutationReadback;

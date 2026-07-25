@@ -1487,7 +1487,28 @@ function stageStatus(id) { return stages.find(item => item.id === id)?.status ||
 function stageWasAttempted(id) { return ["PASS", "FAIL"].includes(stageStatus(id)); }
 
 function childEvidence(id, payload) {
-  return { status: stageStatus(id), summaryPath: payload?.summaryPath || "", reportPath: payload?.reportPath || "", result: payload?.result || "" };
+  const evidence = {
+    status: stageStatus(id),
+    summaryPath: payload?.summaryPath || "",
+    reportPath: payload?.reportPath || "",
+    result: payload?.result || "",
+  };
+  if (id === "ui-exact-424" && payload?.coverage) {
+    const target = Number(payload.coverage.targetCount);
+    const pass = Number(payload.coverage.pass);
+    const fail = Number(payload.coverage.fail);
+    const attempted = Number(payload.coverage.attempted);
+    const notRun = Number(payload.coverage.notRun);
+    const unsupported = Number(payload.coverage.unsupported);
+    assert([target, pass, fail, attempted, notRun, unsupported].every(Number.isInteger),
+      "exact UI coverage contains a non-integer count");
+    assert(attempted === pass + fail,
+      `exact UI attempted mismatch: ${attempted} != ${pass}+${fail}`);
+    assert(attempted + notRun + unsupported === target,
+      `exact UI coverage total mismatch: ${attempted}+${notRun}+${unsupported} != ${target}`);
+    evidence.coverage = { target, attempted, pass, fail, notRun, unsupported };
+  }
+  return evidence;
 }
 
 function command(file, args, env = {}) { return { file, args, env, id: args[0] || path.basename(file) }; }
@@ -1560,6 +1581,9 @@ function renderReport(payload) {
     `reproductionCommand: ${payload.firstFailure?.reproductionCommand || ""}`,
     `automatedAcceptanceStatus: ${payload.automatedAcceptanceStatus || "not-evaluated"}`,
     `evidenceBoundary: ${payload.evidenceBoundary || ""}`,
+    `exactUiCoverage: ${payload.uiAutomation?.coverage
+      ? `${payload.uiAutomation.coverage.attempted} attempted / ${payload.uiAutomation.coverage.pass} PASS / ${payload.uiAutomation.coverage.fail} FAIL / ${payload.uiAutomation.coverage.notRun} not-run / ${payload.uiAutomation.coverage.unsupported} unsupported / ${payload.uiAutomation.coverage.target} total`
+      : "not-run"}`,
     "",
     "| stage | status | command | log/summary |",
     "| --- | --- | --- | --- |",

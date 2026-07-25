@@ -2901,6 +2901,18 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 정적 최종 gate | Event evaluator 17/17, event 12/12, runtime 31/31, client-safe 10/10, completion 25/25, adapter 16/16, acceptance 21/21, launcher 18/18, final integrity 12/12, Policy v4 9/9·10/10·6/6·7/7, feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8, script 11/11, docs/build/code-comments PASS | static execution readiness 100% |
 | 미실행 경계 | `147/147`은 잔여 case의 정적 검토 완료이며 실제 browser PASS가 아닙니다. 이번 작업에서는 actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | REVIEW4-65 actual acceptance 미완료 |
 
+### REVIEW4-65 RULE-095 runtime evidence와 exact 집계 lifecycle
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 보존한 actual 경계 | Source `a2d90a42edccf24c0f22ed5592bf0d9865e9d9ce`의 exact ledger를 직접 집계하면 total 424, completed PASS 278, RULE-095 FAIL 1, not-run 145, attempted 279입니다. `coverage.captured=278`을 executed로 표기한 과거 보고는 1건 부족했습니다 | actual `279/278/1/145` FAIL preserved |
+| 집계 계약 | Raw summary와 acceptance report/launcher는 `attempted = pass + fail` 및 `attempted + notRun + unsupported = targetCount`를 정수로 검증합니다. RULE-095 경계 fixture는 정확히 `279/278/1/145`를 요구합니다 | focused contract 반영 |
+| RULE 관계 증거 분리 | RULE-095/096 refresh 뒤 DOM matrix는 after-action exact로 확인하고, RULE-093/094/095/096/100/101은 별도 actual rejected endpoint 응답, exact product error, registry 불변 readback을 요구합니다. DOM/static verifier는 API runtime evidence를 대체하지 않습니다 | completion 26/26, native exact 36/36 PASS |
+| Policy route 결속 | MEDIA-017의 canonical/runtime screen route `/client/live`와 backend owner route `/ops/sources`를 typed `routeBinding`으로 분리했습니다. 다른 case의 canonical/native route·role·workflow는 변경하지 않았습니다 | Policy contract 최초 18/21에서 최종 21/21 PASS |
+| Semantic closure | Final candidate `8a66ab228809bd9c96b2defb36fefd323fbc79020fbea1f694671dc05c41752f`, 986행, 982 carry-forward, independent review `UI-018/SAFE-202/SAFE-212/OPS-169`; package/decision `bc5e1b8a011be8fbb19079708cd4247e184d59bb4b2b405613081ef4fc536f97` / `6ff29d0420093df65282f85d696eb67f4789f8232c72b11f9dc009b50f17822d`입니다 | Producer 1회 성공, audit/approval 986/986 PASS |
+| 최종 정적 gate | Acceptance 21/21, launcher 18/18, final integrity 12/12, feature evidence 986/986, inventory 17/17, release index 8/8, script 11/11, docs links failure 0 | Static checkpoint PASS |
+| 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`, commit/push는 실행하지 않았습니다 | Actual RULE-095 FAIL과 `279/278/1/145` 보존 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

@@ -127,6 +127,26 @@ export function evaluateEvidence(policy, summary, options = {}) {
 
   const coverage = summary.coverage || {};
   const obligationIds = Array.isArray(coverage.obligationIds) ? coverage.obligationIds : [];
+  const coverageCounts = {
+    target: Number(coverage.targetCount),
+    attempted: Number(coverage.attempted),
+    pass: Number(coverage.pass),
+    captured: Number(coverage.captured),
+    fail: Number(coverage.fail),
+    notRun: Number(coverage.notRun),
+    unsupported: Number(coverage.unsupported),
+  };
+  if (!Object.values(coverageCounts).every(Number.isInteger)) {
+    reasons.push("coverage-count-must-be-integer");
+  } else {
+    if (coverageCounts.pass !== coverageCounts.captured) reasons.push("coverage-pass-captured-mismatch");
+    if (coverageCounts.attempted !== coverageCounts.pass + coverageCounts.fail) {
+      reasons.push("coverage-attempted-mismatch");
+    }
+    if (coverageCounts.attempted + coverageCounts.notRun + coverageCounts.unsupported !== coverageCounts.target) {
+      reasons.push("coverage-total-mismatch");
+    }
+  }
   if (coverage.targetCount !== obligationIds.length) reasons.push("coverage-target-count-mismatch");
   if (coverage.targetCount !== cases.length) reasons.push("coverage-case-count-mismatch");
   if (new Set(obligationIds).size !== obligationIds.length) reasons.push("coverage-obligation-id-duplicate");
@@ -374,7 +394,11 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
   let implementationCases = [];
   if (implementation) {
     try {
-      implementationCases = canonicalImplementationProjection({ implementation, orderedCaseIds: testIds });
+      implementationCases = canonicalImplementationProjection({
+        implementation,
+        orderedCaseIds: testIds,
+        canonicalCases: manifestCases,
+      });
       if (implementationRef.projectionSha256 !== sha256Text(JSON.stringify(implementationCases))) {
         reasons.push("canonical-implementation-evidence-projection-drift");
       }
@@ -391,6 +415,13 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
         if (JSON.stringify(manifestCase[field]) !== JSON.stringify(implementationCase[field])) {
           reasons.push(`canonical-case-manifest-implementation-${field}-drift`);
         }
+      }
+      if (implementationCase.routeBinding?.screenRoute !== manifestCase.route) {
+        reasons.push("canonical-case-manifest-implementation-screen-route-drift");
+      }
+      if (typeof implementationCase.routeBinding?.backendOwnerRoute !== "string" ||
+          !implementationCase.routeBinding.backendOwnerRoute.startsWith("/")) {
+        reasons.push("canonical-case-manifest-implementation-backend-owner-route-invalid");
       }
     }
   } else {
@@ -429,6 +460,12 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
   if (nativeCases.length !== manifestCases.length ||
       JSON.stringify(nativeCases.map(item => item.caseId)) !== JSON.stringify(testIds)) {
     reasons.push("native-exact-manifest-case-order-mismatch");
+  } else {
+    for (let index = 0; index < nativeCases.length; index += 1) {
+      if (nativeCases[index]?.canonicalRoute !== manifestCases[index]?.route) {
+        reasons.push("canonical-case-manifest-native-canonical-route-drift");
+      }
+    }
   }
   return {
     orderedTestIds: testIds,
@@ -437,12 +474,16 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
   };
 }
 
-export function canonicalImplementationProjection({ implementation, orderedCaseIds }) {
+export function canonicalImplementationProjection({ implementation, orderedCaseIds, canonicalCases }) {
   if (!implementation || implementation.schema !== "media-server.feature-implementation-evidence.v2") {
     throw new Error("unexpected implementation evidence schema");
   }
   if (!Array.isArray(orderedCaseIds) || orderedCaseIds.length !== 424 || new Set(orderedCaseIds).size !== 424) {
     throw new Error("canonical implementation projection requires exact ordered 424 IDs");
+  }
+  if (!Array.isArray(canonicalCases) || canonicalCases.length !== orderedCaseIds.length ||
+      JSON.stringify(canonicalCases.map(item => item?.testId)) !== JSON.stringify(orderedCaseIds)) {
+    throw new Error("canonical implementation projection requires ordered canonical screen routes");
   }
   const implementationByManualId = new Map(
     (implementation.items || [])
@@ -452,10 +493,11 @@ export function canonicalImplementationProjection({ implementation, orderedCaseI
   if (implementationByManualId.size !== orderedCaseIds.length) {
     throw new Error("canonical implementation exact case count drift");
   }
+  const canonicalById = new Map(canonicalCases.map(item => [item.testId, item]));
   return orderedCaseIds.map(testId => {
     const item = implementationByManualId.get(testId);
     if (!item) throw new Error(`${testId} implementation item missing`);
-    return implementationCanonicalCase(item);
+    return implementationCanonicalCase(item, canonicalById.get(testId)?.route);
   });
 }
 
@@ -467,7 +509,11 @@ export function refreshCanonicalCaseManifest({ canonical, implementation }) {
     throw new Error("unexpected implementation evidence schema");
   }
   const orderedCaseIds = canonical.cases.map(item => item.testId);
-  const projection = canonicalImplementationProjection({ implementation, orderedCaseIds });
+  const projection = canonicalImplementationProjection({
+    implementation,
+    orderedCaseIds,
+    canonicalCases: canonical.cases,
+  });
   const projectionById = new Map(projection.map(item => [item.testId, item]));
   const refreshed = structuredClone(canonical);
   refreshed.implementationEvidence = {
@@ -491,10 +537,16 @@ export function refreshCanonicalCaseManifest({ canonical, implementation }) {
   return refreshed;
 }
 
-function implementationCanonicalCase(item) {
+function implementationCanonicalCase(item, canonicalScreenRoute) {
   const semantic = item.semanticEvidence || {};
-  const route = semantic.controlSelector?.screenRoute ||
+  const backendOwnerRoute = semantic.controlSelector?.screenRoute ||
     (semantic.route?.applicability === "http-or-product-route" ? semantic.route.value : item.uiEvidence?.screenRoute);
+  if (typeof canonicalScreenRoute !== "string" || !canonicalScreenRoute.startsWith("/")) {
+    throw new Error(`${item.manualUiCaseId} canonical screen route missing`);
+  }
+  if (typeof backendOwnerRoute !== "string" || !backendOwnerRoute.startsWith("/")) {
+    throw new Error(`${item.manualUiCaseId} backend owner route missing`);
+  }
   const reviewedAction = semantic.actionHandler || {};
   const actionAnchor = typeof reviewedAction.anchor === "string" && reviewedAction.anchor.includes("/api/")
     ? reviewedAction.anchor
@@ -502,7 +554,11 @@ function implementationCanonicalCase(item) {
   return {
     testId: item.manualUiCaseId,
     featureId: item.id,
-    route,
+    route: canonicalScreenRoute,
+    routeBinding: {
+      screenRoute: canonicalScreenRoute,
+      backendOwnerRoute,
+    },
     controlAction: {
       selector: semantic.controlSelector?.value ?? null,
       actionAnchor,

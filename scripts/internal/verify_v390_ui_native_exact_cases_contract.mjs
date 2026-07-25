@@ -129,6 +129,33 @@ check("RULE relationship fixtures use one collision-free numeric identity contra
     assert(/^\d+$/.test(identity.sourceId) && /^\d+$/.test(identity.viewId),
       `${caseId} relationship identity is not numeric`);
   }
+  for (const caseId of ["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101"]) {
+    const item = byId.get(caseId);
+    const completion = item.workflow.expectedResults[0].completion;
+    assert(completion.readbackExpectation.independentRejectedReadbackRequired === true &&
+      completion.readbackExpectation.independentProductErrors.length > 0 &&
+      item.workflow.controlSequence.some(action =>
+        action.kind === "verify-independent-readback" &&
+        action.semanticCompletion.linkedPrimaryActionId === item.oracle.primaryActionId),
+    `${caseId} DOM and actual product rejection evidence are not both required`);
+  }
+  for (const caseId of ["RULE-095", "RULE-096"]) {
+    assert(byId.get(caseId).workflow.expectedResults[0].completion.readbackExpectation
+      .postconditionObservationMode === "after-action-exact",
+    `${caseId} refresh still requires an impossible pre/post DOM transition`);
+  }
+  for (const caseId of ["RULE-097", "RULE-098"]) {
+    const item = byId.get(caseId);
+    assert(item.workflow.inputs.some(input => input.kind === "rejected-endpoint-fixture") &&
+      item.workflow.controlSequence.some(action => action.kind === "verify-independent-readback"),
+    `${caseId} read-only relationship case lost actual runtime rejection evidence`);
+  }
+  assert(runnerSource.includes("explicitObserved?.rejectedActionReadback") &&
+    runnerSource.includes("domValidationMatrix") &&
+    runnerSource.includes("independentProductReadback") &&
+    runtimeSource.includes("runtimeProductResponseObserved: true") &&
+    runtimeSource.includes("productErrors"),
+  "relationship API response is not preserved as separate runtime evidence");
   let unsupportedRule099 = "";
   try {
     ruleRelationshipFixtureIdentity("RULE-099");
@@ -1884,6 +1911,8 @@ check("raw capture success and UI qualification remain separate lifecycle states
     selectedAdapter: { engine: "playwright-native", fallbackUsed: false },
     coverage: {
       targetCount: 424,
+      attempted: 424,
+      pass: 424,
       captured: 424,
       fail: 0,
       notRun: 0,
@@ -1921,8 +1950,27 @@ check("evidence producer failure always leaves an exact 424 failure ledger", () 
   });
   assert(summary.result === "FAIL" && summary.cases.length === 424,
     "execution failure summary did not preserve the exact ledger");
-  assert(summary.coverage.captured === 3 && summary.coverage.fail === 1 && summary.coverage.notRun === 420,
+  assert(summary.executed === 4 &&
+    summary.coverage.attempted === 4 && summary.coverage.pass === 3 &&
+    summary.coverage.captured === 3 && summary.coverage.fail === 1 && summary.coverage.notRun === 420,
     "execution failure coverage is not exact");
+  const actualBoundaryResults = manifest.cases.map((item, index) => ({
+    caseId: item.caseId,
+    featureId: item.featureId,
+    status: index < 278 ? "PASS" : (index === 278 ? "FAIL" : "not-run"),
+  }));
+  const actualBoundary = createNativeExactExecutionFailureSummary({
+    error: new Error("RULE-095 runtime failure"),
+    manifest,
+    results: actualBoundaryResults,
+  });
+  assert(actualBoundary.executed === 279 &&
+    actualBoundary.coverage.attempted === 279 &&
+    actualBoundary.coverage.pass === 278 &&
+    actualBoundary.coverage.fail === 1 &&
+    actualBoundary.coverage.notRun === 145 &&
+    actualBoundary.coverage.attempted + actualBoundary.coverage.notRun === 424,
+  "RULE-095 actual 279/278/1/145 boundary was aggregated incorrectly");
   assert(summary.policyV4Qualification.status === "not-run" && summary.uiFulltestPass === false,
     "producer failure became Policy v4 or UI PASS");
   assert(summary.childResourcesAcquired === true && summary.cleanupRequired === true,
