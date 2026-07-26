@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
   buildLiveSessionEvidence,
+  captureClientLiveSessionResponseProjection,
   captureEndpointOwnedResponseProjection,
   formatSafeResponseReadFailure,
   nativeCapabilities,
@@ -212,6 +213,52 @@ check("endpoint-owned full product responses are projected only through the Play
   }
 });
 
+check("client WebRTC session responses retain only the safe protocol completion shape", async () => {
+  const rawOffer = "v=0\r\no=- raw-offer-must-not-reach-evidence 1 1 IN IP4 127.0.0.1\r\n";
+  const rawSecret = "client-session-secret-must-not-reach-evidence";
+  const cases = [
+    ["POST", "/client/api/views/view-019/webrtc/session", 200,
+      { sessionId: "client-session-019", clientSessionId: "client-session-019", offer: rawOffer, sessionToken: rawSecret },
+      { sessionId: "client-session-019", offerReceived: true }, "client-live-session-create"],
+    ["POST", "/client/api/views/view-019/webrtc/session/client-session-019/answer", 200,
+      { ok: true, answerSdp: rawOffer, sessionToken: rawSecret },
+      { ok: true }, "client-live-session-answer"],
+    ["DELETE", "/client/api/views/view-020/webrtc/session/client-session-020", 200,
+      { ok: true, offer: rawOffer, sessionToken: rawSecret },
+      { ok: true }, "client-live-session-delete"],
+  ];
+  for (const [method, pathname, status, payload, expected, kind] of cases) {
+    const observed = await captureListenerProjection({ method, pathname, status, payload });
+    assert(observed.failures.length === 0, `${kind} projection failed: ${observed.failures.join(",")}`);
+    assert(observed.entry.safeResponseProjectionSource === "playwright-response-json",
+      `${kind} projection provenance missing`);
+    assert(observed.entry.safeResponseProjectionKind === kind,
+      `${kind} projection kind missing`);
+    assert(JSON.stringify(observed.entry.safeResponseBody) === JSON.stringify(expected),
+      `${kind} safe response projection drift`);
+    assert(!JSON.stringify(observed.entry).includes(rawOffer) && !JSON.stringify(observed.entry).includes(rawSecret),
+      `${kind} retained raw WebRTC response material`);
+  }
+});
+
+check("client WebRTC session projections reject wrong status and malformed success shapes", async () => {
+  const cases = [
+    ["POST", "/client/api/views/view-019/webrtc/session", 409, { error: "raw failure body" }, "client-live-session-create"],
+    ["POST", "/client/api/views/view-019/webrtc/session/client-session-019/answer", 200, { ok: false }, "client-live-session-answer"],
+    ["DELETE", "/client/api/views/view-020/webrtc/session/client-session-020", 200, { ok: "true" }, "client-live-session-delete"],
+  ];
+  for (const [method, pathname, status, payload, kind] of cases) {
+    const observed = await captureListenerProjection({ method, pathname, status, payload });
+    const failure = formatSafeResponseReadFailure(observed.failures);
+    assert(observed.failures.length === 1 && !observed.entry.safeResponseBody,
+      `${kind} malformed response did not fail closed`);
+    assert(failure.includes(kind) && failure.includes(`${method} ${pathname}`),
+      `${kind} redacted method/path diagnostic missing: ${failure}`);
+    assert(!failure.includes("raw failure body") && !JSON.stringify(observed.entry).includes("raw failure body"),
+      `${kind} error body leaked through diagnostics`);
+  }
+});
+
 check("endpoint-owned non-success responses fail before success-shape projection with redacted status diagnostics", async () => {
   const cases = [
     ["POST", "/ops/api/users/auth-020-fixture/disable", 403, 200],
@@ -291,13 +338,14 @@ check("live session evidence preserves request view and response session identit
     { phase: "request-start", requestId: "request-1", correlationId, method: "POST", url: "http://127.0.0.1/client/api/views/view-b/webrtc/session", requestBody: { overlayMode: "va-overlay" } },
     { phase: "response", requestId: "request-1", correlationId, method: "POST", status: 200, url: "http://127.0.0.1/client/api/views/view-b/webrtc/session", safeResponseBody: { sessionId: "session-b", offerReceived: true } },
     { phase: "request-start", requestId: "request-2", correlationId, method: "POST", url: "http://127.0.0.1/client/api/views/view-b/webrtc/session/session-b/answer" },
-    { phase: "response", requestId: "request-2", correlationId, method: "POST", status: 200, url: "http://127.0.0.1/client/api/views/view-b/webrtc/session/session-b/answer" },
+    { phase: "response", requestId: "request-2", correlationId, method: "POST", status: 200, url: "http://127.0.0.1/client/api/views/view-b/webrtc/session/session-b/answer", safeResponseBody: { ok: true } },
   ];
   const evidence = buildLiveSessionEvidence(entries, correlationId, "tile-0:view-a", "view-a");
   assert(evidence.tileViewId === "view-a", "tile view identity missing");
   assert(evidence.requestViewId === "view-b" && evidence.answerViewId === "view-b", "request view was overwritten by tile view");
   assert(evidence.responseSessionId === "session-b" && evidence.answerSessionId === "session-b", "response/answer session identity missing");
   assert(evidence.offerReceived === true, "safe offer response evidence missing");
+  assert(entries[3].safeResponseBody.ok === true, "safe answer response evidence missing");
 });
 
 check("UI runner selects native Playwright and rejects CDP promotion", () => {
@@ -571,7 +619,12 @@ async function captureListenerProjection({ method, pathname, status, payload }) 
       return structuredClone(payload);
     },
   };
-  const read = captureEndpointOwnedResponseProjection({
+  const read = captureClientLiveSessionResponseProjection({
+    response,
+    entry,
+    pendingSafeResponseReads: pending,
+    safeResponseReadFailures: failures,
+  }) || captureEndpointOwnedResponseProjection({
     response,
     entry,
     pendingSafeResponseReads: pending,

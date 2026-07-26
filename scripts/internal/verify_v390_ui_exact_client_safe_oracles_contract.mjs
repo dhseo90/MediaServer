@@ -53,6 +53,9 @@ check("all 87 specs own route role control action API DOM forbidden snapshots cl
     assert(spec.visibleControl.selector && spec.visibleControl.action.kind && spec.visibleControl.action.target,
       `${caseId} control/action missing`);
     assert(spec.requests.length > 0 && spec.dom.length > 0, `${caseId} API/DOM assertion missing`);
+    assert(spec.dom.every(item => Array.isArray(item.requiredTextTokens) &&
+      Array.isArray(item.forbiddenTextTokens) && Array.isArray(item.forbiddenMaterialTokens)),
+    `${caseId} DOM text/material boundary is not structured`);
     assert(spec.requests.every(item => item.requiredJsonPaths.length > 0 || item.requiredJsonValues.length > 0 ||
       item.requiredBodyTokens.length > 0 || item.forbiddenJsonKeys.length > 0 || item.forbiddenJsonValues.length > 0 ||
       item.allowedStatuses.some(status => status !== 200)), `${caseId} API assertion has no semantic/status boundary`);
@@ -92,6 +95,34 @@ check("known canonical route/role false-PASS mappings are corrected", () => {
     safe061.action.target === '[data-testid="ops-rule-what-if-preview"]' &&
     !safe061.dom.some(item => item.selector === "#opsEventRulePresetSelect"),
   "SAFE-061 events read-model control correction missing");
+});
+
+check("Ops API evidence tokens are not forced into route-local DOM prose", () => {
+  for (const caseId of [
+    "CLIENT-041", "SAFE-020", "SAFE-021", "SAFE-024", "SAFE-041", "SAFE-042",
+    "SAFE-046", "SAFE-047", "SAFE-048", "SAFE-049", "SAFE-055", "SAFE-056",
+    "SAFE-059", "SAFE-060", "SAFE-062", "SAFE-065", "SAFE-066", "SAFE-067",
+    "SAFE-068", "SAFE-069", "SAFE-098", "SAFE-105", "SAFE-106", "SAFE-107",
+    "SAFE-108", "SAFE-109", "SAFE-111", "SAFE-117", "SAFE-118", "SAFE-121",
+    "SAFE-122", "SAFE-129", "SAFE-130", "SAFE-131", "SAFE-132", "SAFE-140",
+  ]) {
+    const spec = clientSafeExactOracleFor(caseId);
+    const apiTokens = new Set(spec.requests.flatMap(request => [
+      ...request.requiredJsonPaths,
+      ...request.requiredBodyTokens,
+      ...request.requiredJsonValues.map(item => String(item.value)),
+    ]));
+    const domTokens = new Set(spec.dom.flatMap(assertion => assertion.requiredTextTokens));
+    assert([...apiTokens].some(Boolean), `${caseId} API evidence tokens are missing`);
+    assert([...apiTokens].every(token => !domTokens.has(token)),
+      `${caseId} API evidence token is still forced into DOM prose: ${[...apiTokens].find(token => domTokens.has(token))}`);
+    assert(spec.dom.some(assertion => assertion.selector === spec.visibleControl.selector),
+      `${caseId} route-local visible control assertion is missing`);
+    const bodyBoundary = spec.dom.find(assertion => assertion.selector === "body");
+    assert(bodyBoundary?.forbiddenTextTokens.length === 0 &&
+      bodyBoundary?.forbiddenMaterialTokens.length > 0,
+    `${caseId} forbidden fields must use structured DOM material boundaries`);
+  }
 });
 
 check("media/session, scoped client projection, no-write and cleanup oracles are concrete", () => {
@@ -163,6 +194,102 @@ check("CLIENT-005/021 require tile-owned UI sessions and actual product overlay 
     assertion.operator === "equals-fixture" &&
     assertion.value === "va-sample-21"),
   "CLIENT-021 materialized API binding is not tied to the seeded VA event");
+});
+
+check("CLIENT/SAFE projection contracts use renderer ownership and current response field names", () => {
+  const digestAttributes = {
+    "CLIENT-007": "data-client-incident-digest",
+    "CLIENT-023": "data-client-incident-digest",
+    "CLIENT-024": "data-client-followup-digest",
+    "CLIENT-025": "data-client-event-digest",
+    "CLIENT-027": "data-client-resolution-digest",
+    "CLIENT-028": "data-client-source-status-digest",
+    "CLIENT-029": "data-client-maintenance-digest",
+    "CLIENT-031": "data-client-impact-forecast",
+    "CLIENT-032": "data-client-operations-notice",
+    "CLIENT-040": "data-client-action-notice-preview",
+    "SAFE-110": "data-client-resolution-digest",
+    "SAFE-119": "data-client-source-status-digest",
+  };
+  for (const [caseId, attribute] of Object.entries(digestAttributes)) {
+    const spec = clientSafeExactOracleFor(caseId);
+    assert(spec.dom.some(item => item.requiredAttributes.some(item =>
+      item.name === attribute && item.value === "viewer-safe")),
+    `${caseId} must bind the actual viewer-safe renderer attribute`);
+    assert(!spec.dom.some(item => item.requiredTextTokens.includes("summaryText") ||
+      item.requiredTextTokens.includes("resolutionStatus") ||
+      item.requiredTextTokens.includes("sourceStatus")),
+    `${caseId} must not treat response keys as literal DOM prose`);
+  }
+  const followUp = clientSafeExactOracleFor("CLIENT-024");
+  assert(followUp.requests[0].requiredJsonPaths.includes("$..followUpStatus") &&
+    !followUp.requests[0].requiredJsonPaths.includes("$..status"),
+  "CLIENT-024 must use the published followUpStatus field");
+  const actionNotice = clientSafeExactOracleFor("CLIENT-040");
+  assert(actionNotice.requests[0].requiredJsonPaths.includes("$..noticeStatus") &&
+    !actionNotice.requests[0].requiredJsonPaths.includes("$..status"),
+  "CLIENT-040 must use the published noticeStatus field");
+});
+
+check("SAFE-038 separates API candidate identity from the DOM candidate index", () => {
+  const spec = clientSafeExactOracleFor("SAFE-038");
+  const request = spec.requests[0];
+  assert(request.jsonAssertions.some(item =>
+    item.path === "$..ruleSuggestion.candidateId" &&
+    item.operator === "equals-fixture" &&
+    item.fixtureRef === "vlm-rule-suggestion-draft"),
+  "SAFE-038 API candidate identity binding missing");
+  assert(spec.visibleControl.selector === '[data-vlm-rule-draft-index="0"]' &&
+    spec.action.target === '[data-vlm-rule-draft-index="0"]' &&
+    !JSON.stringify(spec).includes("$..draftId"),
+  "SAFE-038 DOM candidate index is still conflated with a nonexistent draftId");
+});
+
+check("tile controls and denied view reads use their actual product boundaries", () => {
+  const start = clientSafeExactOracleFor("CLIENT-002");
+  assert(start.action.kind === "start-live-tile" &&
+    start.action.target === '[data-tile="0"] [data-action="toggle-playback"]',
+  "CLIENT-002 must use the tile session lifecycle action");
+  const allStop = clientSafeExactOracleFor("CLIENT-005");
+  assert(allStop.dom.every(item => !item.selector.startsWith("[data-role=\"tile-playback-icon\"]")) &&
+    allStop.dom.some(item => item.selector.startsWith('[data-tile="0"]')),
+  "CLIENT-005 must inspect the exact first tile after all-stop");
+  const denied = clientSafeExactOracleFor("CLIENT-011");
+  const deniedRead = denied.requests.find(item => item.path.includes("{fixtureId}"));
+  assert(deniedRead?.allowedStatuses.includes(403) && deniedRead?.allowedStatuses.includes(404) &&
+    deniedRead.requiredJsonPaths.length === 0,
+  "CLIENT-011 must accept the authoritative forbidden/not-found status without inventing an error schema");
+  const dashboard = clientSafeExactOracleFor("CLIENT-006");
+  assert(dashboard.requests[0].jsonAssertions.some(item => item.path === "$..viewId" &&
+    item.operator === "equals-fixture" && item.fixtureRef === "assigned-view"),
+  "CLIENT-006 must bind the published dashboard viewId to its assigned fixture");
+});
+
+check("client live controls are tile-local and persisted controls keep their real product owners", () => {
+  for (const caseId of ["CLIENT-002", "CLIENT-019", "CLIENT-020", "MEDIA-016"]) {
+    const spec = clientSafeExactOracleFor(caseId);
+    const selectors = [
+      spec.visibleControl.selector,
+      spec.action.target,
+      ...spec.dom.map(item => item.selector),
+    ];
+    assert(selectors.some(selector => selector.includes('[data-tile="0"]')),
+      `${caseId} first actionable tile is not selected exactly`);
+    assert(!selectors.some(selector => selector === '[data-action="toggle-playback"]'),
+      `${caseId} retained a strict-multi playback selector`);
+  }
+  const overlay = clientSafeExactOracleFor("CLIENT-021");
+  assert(overlay.visibleControl.selector === '[data-tile="0"] [data-mode-action="va-overlay"]' &&
+    overlay.action.target === '[data-tile="0"] [data-mode-action="va-overlay"]',
+  "CLIENT-021 retained a strict-multi VA selector");
+  const layout = clientSafeExactOracleFor("CLIENT-010");
+  assert(layout.dom.some(item => item.selector === '[data-testid="client-live-drop-grid"]' &&
+    item.requiredAttributes.some(attribute => attribute.name === "data-density" && attribute.value === "compact")),
+  "CLIENT-010 density assertion is not owned by the live grid");
+  const multi = clientSafeExactOracleFor("MEDIA-017");
+  assert(multi.action.target === "[data-tile]" &&
+    multi.dom.some(item => item.selector === "[data-tile] video"),
+  "MEDIA-017 retained the nonexistent live-tile selector");
 });
 
 check("selector cardinality, fixture refs and JSONPath bindings are evaluator-ready", () => {
@@ -247,7 +374,10 @@ check("validator rejects missing, extra, generic GET200, existence-only, unbound
     const spec = candidate["CLIENT-001"];
     spec.semanticKeys = ["exists", "visible"];
     spec.requests = [{ method: "GET", path: "/client/live", fixtureRefs: [], allowedStatuses: [200], responseSchema: "html", requiredJsonPaths: [], jsonAssertions: [], requiredJsonValues: [], requiredBodyTokens: [], forbiddenJsonKeys: [], forbiddenJsonValues: [], cardinality: null }];
-    spec.dom = [{ selector: "body", fixtureRefs: [], requiredTextTokens: [], forbiddenTextTokens: [], cardinality: null, requiredAttributes: [{ name: "exists", operator: "equals", value: true }], propertyAssertions: [], valueFixtureRefs: [] }];
+    spec.dom = [{ selector: "body", fixtureRefs: [], requiredTextTokens: [], forbiddenTextTokens: [],
+      forbiddenMaterialTokens: [], cardinality: null,
+      requiredAttributes: [{ name: "exists", operator: "equals", value: true }],
+      propertyAssertions: [], valueFixtureRefs: [] }];
     spec.forbiddenFields = [];
     spec.forbiddenNetwork = [];
     spec.forbiddenStateMutations = [];

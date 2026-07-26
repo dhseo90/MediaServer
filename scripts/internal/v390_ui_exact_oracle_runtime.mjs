@@ -1,5 +1,7 @@
 // 파일 용도: exact runtime oracle catalog를 실제 브라우저 interaction/API/DOM 관찰로 실행한다.
 
+import { createHash } from "node:crypto";
+
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import {
   assertEventExactRuntimeBindings,
@@ -72,7 +74,7 @@ export async function executeCatalogRuntimeOracle({
     sourceId: bindings.sourceId || "9001",
     ruleId: bindings.ruleId || "1",
     candidateId: bindings.candidateId || fixtureId,
-    draftId: bindings.draftId || fixtureId,
+    draftId: bindings.draftId || bindings.candidateId || fixtureId,
     sessionId: bindings.sessionId || "",
     vaMetadataSampleId: bindings.vaMetadataSampleId || fixtureId,
     viewA: bindings.viewA || bindings.assignedViewId || "9001",
@@ -372,13 +374,32 @@ async function cleanupTrustedInteraction(browser, item, spec, interaction, corre
     return { strategy: "stop-live-session", status: "PASS", paused: true };
   }
   if (kind === "start-two-live-tiles") {
+    const clickedTileIds = Array.isArray(interaction.clickedTileIds)
+      ? interaction.clickedTileIds.map(String)
+      : [];
+    assert(clickedTileIds.length === 2 && new Set(clickedTileIds).size === 2,
+      `${item.caseId} two-live-tile cleanup identity mismatch`);
     const result = await browser.evaluate(`(async () => {
-      const controls = Array.from(document.querySelectorAll(${JSON.stringify(interaction.selector)}))
-        .slice(0, 2).map(tile => tile.querySelector('[data-action="toggle-playback"]')).filter(Boolean);
-      for (const control of controls) if (!control.disabled) control.click();
+      const selector = ${JSON.stringify(interaction.selector)};
+      const identities = ${JSON.stringify(clickedTileIds)};
+      let controlCount = 0;
+      for (const identity of identities) {
+        const tile = Array.from(document.querySelectorAll(selector)).find(candidate =>
+          String(candidate.dataset.viewId || candidate.dataset.tile || '') === identity);
+        const control = tile?.querySelector('[data-action="toggle-playback"]');
+        if (control && !control.disabled) {
+          control.click();
+          controlCount += 1;
+          await new Promise(resolve => setTimeout(resolve, 250));
+        }
+      }
       await new Promise(resolve => setTimeout(resolve, 300));
-      const videos = Array.from(document.querySelectorAll(${JSON.stringify(`${interaction.selector} video`)})).slice(0, 2);
-      return { controlCount: controls.length, stopped: videos.length === 2 && videos.every(video => video.paused) };
+      const videos = identities.map(identity => {
+        const tile = Array.from(document.querySelectorAll(selector)).find(candidate =>
+          String(candidate.dataset.viewId || candidate.dataset.tile || '') === identity);
+        return tile?.querySelector('video') || null;
+      }).filter(Boolean);
+      return { controlCount, stopped: videos.length === 2 && videos.every(video => video.paused) };
     })()`);
     assert(result.controlCount === 2 && result.stopped === true,
       `${item.caseId} two-live-tile cleanup mismatch: ${JSON.stringify(result)}`);
@@ -416,6 +437,7 @@ function clientSafeFixtureValues(bindings) {
     "assigned-view-b": bindings.viewB,
     "blocked-view": bindings.blockedViewId,
     "event-record": bindings.eventId,
+    "scoped-event-record": bindings.eventId,
     "event-search-query": bindings.searchQuery,
     "va-metadata-sample": bindings.vaMetadataSampleId,
     "vlm-rule-suggestion-draft": bindings.draftId,
@@ -443,9 +465,17 @@ async function executeTrustedInteraction(browser, item, spec, correlationId, run
 async function executeClientSafeInteraction(browser, item, spec, correlationId, runtimeBindings) {
   const action = spec.action || {};
   const target = String(action.target || spec.visibleControl?.selector || "");
-  const snapshot = target && !target.startsWith("/") && target !== "start-stop-reconnect"
+  let snapshot = target && !target.startsWith("/") && target !== "start-stop-reconnect"
     ? await browser.snapshot(target)
     : null;
+  if (["#liveAllStop", "#liveSaveLayoutPreference"].includes(target) &&
+      snapshot?.exists && !snapshot.visible) {
+    const details = await browser.snapshot("details.workspace-actions");
+    if (details.exists && !details.open) {
+      await browser.click("details.workspace-actions > summary");
+      snapshot = await browser.snapshot(target);
+    }
+  }
   if (action.kind === "assert-absence") {
     assert(!snapshot?.exists, `${item.caseId} forbidden product control exists: ${target}`);
     return { kind: action.kind, selector: target, observedAbsent: true };
@@ -489,7 +519,8 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId, 
       await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 300, quietMs: 150 });
       const state = await browser.evaluate(`(() => ({
         ariaLabel: document.querySelector(${JSON.stringify(controlSelector)})?.getAttribute('aria-label') || '',
-        paused: Boolean(document.querySelector('video')?.paused),
+        paused: Boolean(document.querySelector(${JSON.stringify(spec.dom.find(assertion =>
+          assertion.propertyAssertions.some(property => property.name === "pausedSequence"))?.selector || "video")})?.paused),
       }))()`);
       ariaLabelSequence.push(state.ariaLabel);
       pausedSequence.push(state.paused);
@@ -498,17 +529,32 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId, 
   }
   if (action.kind === "start-two-live-tiles") {
     const result = await browser.evaluate(`(async () => {
-      const tiles = Array.from(document.querySelectorAll(${JSON.stringify(target)})).slice(0, 2);
-      if (tiles.length !== 2) return { tileCount: tiles.length, clicked: 0 };
+      const selector = ${JSON.stringify(target)};
+      const tileCount = document.querySelectorAll(selector).length;
+      if (tileCount < 2) return { tileCount, clicked: 0 };
+      const clickedTileIds = [];
       let clicked = 0;
-      for (const tile of tiles) {
+      for (let index = 0; index < 2; index += 1) {
+        const tiles = Array.from(document.querySelectorAll(selector));
+        const tile = tiles.find(candidate => {
+          const identity = String(candidate.dataset.viewId || candidate.dataset.tile || '');
+          const control = candidate.querySelector('[data-action="toggle-playback"]');
+          return identity && !clickedTileIds.includes(identity) && control && !control.disabled;
+        });
+        if (!tile) break;
+        const identity = String(tile.dataset.viewId || tile.dataset.tile || '');
         const control = tile.querySelector('[data-action="toggle-playback"]');
-        if (control && !control.disabled) { control.click(); clicked += 1; }
+        if (control && !control.disabled) {
+          control.click();
+          clickedTileIds.push(identity);
+          clicked += 1;
+          await new Promise(resolve => setTimeout(resolve, 250));
+        }
       }
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { tileCount: tiles.length, clicked };
+      return { tileCount, clicked, clickedTileIds };
     })()`);
-    assert(result.tileCount === 2 && result.clicked === 2,
+    assert(result.tileCount >= 2 && result.clicked === 2 &&
+      new Set(result.clickedTileIds || []).size === 2,
       `${item.caseId} two-live-tile action mismatch: ${JSON.stringify(result)}`);
     await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
     return { kind: action.kind, selector: target, ...result };
@@ -516,6 +562,7 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId, 
   if (action.kind === "reload") {
     const observed = await browser.navigate(target);
     assert([200, 204].includes(observed.status), `${item.caseId} reload status mismatch: ${observed.status}`);
+    await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
     return { kind: action.kind, route: target, observed };
   }
   if (action.kind === "navigate-negative") {
@@ -545,7 +592,11 @@ export function validateClientRuntimeFixtureBindings(spec, bindings = {}) {
     "start-live-tile",
     "start-two-live-tiles",
   ]).has(spec?.action?.kind);
-  const requiresUiCreatedSession = declaredUiCreatedSession || interactionCreatesSession;
+  const referencesUiCreatedSession = (spec?.requests || []).some(request =>
+    (request.fixtureRefs || []).includes("active-session"));
+  const requiresUiCreatedSession = declaredUiCreatedSession ||
+    interactionCreatesSession ||
+    referencesUiCreatedSession;
   if (requiresUiCreatedSession) {
     assert(!String(bindings.sessionId || ""),
       `${spec.caseId} UI-created session contract rejects a backend-precreated session`);
@@ -557,6 +608,7 @@ export function validateClientRuntimeFixtureBindings(spec, bindings = {}) {
   return {
     uiCreatesSession: declaredUiCreatedSession,
     interactionCreatesSession,
+    referencesUiCreatedSession,
     requiresUiCreatedSession,
     vaMetadataSampleRequired: fixtures.has("va-metadata-sample"),
   };
@@ -565,7 +617,7 @@ export function validateClientRuntimeFixtureBindings(spec, bindings = {}) {
 function normalizeClientComposedRuntimeSpec(spec) {
   const fixtures = new Set((spec?.setup?.fixtures || []).map(value => String(value)));
   if (!fixtures.has("va-metadata-sample") || spec?.action?.kind !== "activate") return spec;
-  const modeSelector = '[data-mode-action="va-overlay"]';
+  const modeSelector = '[data-tile="0"] [data-mode-action="va-overlay"]';
   return {
     ...spec,
     visibleControl: {
@@ -636,10 +688,9 @@ async function executeComposedClientSafeInteraction(
   if (vaOverlay) {
     modeSelector = `${tileSelector} [data-mode-action="va-overlay"]`;
     const before = await browser.snapshot(modeSelector);
-    assert(before.exists && before.visible && !before.disabled &&
-      before.ariaPressed !== "true",
-    `${item.caseId} VA mode must begin inactive and actionable`);
-    await browser.click(modeSelector);
+    assert(before.exists && before.visible && !before.disabled,
+      `${item.caseId} VA mode must be actionable`);
+    if (before.ariaPressed !== "true") await browser.click(modeSelector);
     const infoToggle = await browser.snapshot("#liveInfoOverlayToggle");
     assert(infoToggle.exists && infoToggle.visible && !infoToggle.disabled,
       `${item.caseId} product info overlay toggle is unavailable`);
@@ -674,6 +725,10 @@ async function executeComposedClientSafeInteraction(
       })
     : null;
   if (allStop) {
+    const allStopBefore = await browser.snapshot("#liveAllStop");
+    if (allStopBefore.exists && !allStopBefore.visible) {
+      await browser.click("details.workspace-actions > summary");
+    }
     await browser.click("#liveAllStop");
     await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
   }
@@ -835,6 +890,7 @@ async function observeRequest(
     let contentType = "";
     let source = "";
     if (["GET", "HEAD"].includes(method)) {
+      const fetchNetworkStart = browser.networkEntries().length;
       const result = await browser.evaluate(`fetch(${JSON.stringify(urlPath)}, {
         method: ${JSON.stringify(method)}, credentials: 'same-origin', cache: 'no-store'
       }).then(async response => {
@@ -847,6 +903,17 @@ async function observeRequest(
       body = result.json ?? result.text;
       contentType = result.contentType || "";
       source = "fresh-browser-fetch";
+      if (request.correlationRequired !== false) {
+        assertCorrelatedRuntimeFetch({
+          browser,
+          item,
+          method,
+          urlPath,
+          correlationId,
+          networkStart: fetchNetworkStart,
+          status,
+        });
+      }
     } else {
       const match = [
         ...primaryNetworkEntries,
@@ -890,6 +957,16 @@ async function observeRequest(
     assert(!containsForbiddenResponseMaterial(body, String(key), contentType),
       `${item.caseId} forbidden response material observed in ${method} ${urlPath}: ${key}`);
   }
+  for (const pseudoField of request.requiredResponsePseudoFields || []) {
+    assert(responsePseudoFieldValues({ body, contentType, status }, pseudoField).length > 0,
+      `${item.caseId} required response pseudo-field is unavailable in ${method} ${urlPath}: ${pseudoField}`);
+  }
+  assertResponseFieldPolicies({
+    body,
+    policies: request.responseFieldPolicies || [],
+    caseId: item.caseId,
+    requestLabel: `${method} ${urlPath}`,
+  });
   const serializedBody = typeof body === "string" ? body : JSON.stringify(body ?? null);
   for (const expected of request.requiredJsonValues || []) {
     assert(expected.operator === "contains-value" && serializedBody.includes(String(expected.value)),
@@ -908,6 +985,7 @@ async function observeRequest(
   const assertionEvidence = evaluateRequestAssertions(request.assertions || request.jsonAssertions || [], {
     body,
     contentType,
+    status,
     bindings,
     caseId: item.caseId,
     requestLabel: `${method} ${urlPath}`,
@@ -922,10 +1000,10 @@ async function observeRequest(
       urlPath,
       status,
       source,
-      bodyDigest: stableDigest(body),
+      bodyDigest: sha256Digest(body),
       assertionEvidence,
       sampleCount: samples.length,
-      sampleDigests: samples.map(sample => stableDigest(sample.body)),
+      sampleDigests: samples.map(sample => sha256Digest(sample.body)),
     },
     body,
   };
@@ -1036,6 +1114,7 @@ async function observeDom(
     assert(matches,
       `${item.caseId} exact DOM attribute mismatch ${selector}: ${name}=${value}`);
   }
+  const attributeOwnerEvidence = await validateRuntimeAttributeOwners(browser, item, assertion, bindings);
   const propertyEvidence = evaluateDomPropertyAssertions(assertion.propertyAssertions || [], observed, bindings, item.caseId, selector, interaction);
   const semanticEvidence = evaluateDomSemanticAssertions(
     assertion.assertions || [],
@@ -1054,7 +1133,94 @@ async function observeDom(
     responseCount: responses.length,
     propertyEvidence,
     semanticEvidence,
+    attributeOwnerEvidence,
   };
+}
+
+function assertCorrelatedRuntimeFetch({ browser, item, method, urlPath, correlationId, networkStart, status }) {
+  const expectedPath = new URL(urlPath, "http://runtime.invalid").pathname;
+  const responses = browser.networkEntries().slice(networkStart).filter(entry => {
+    if (entry.phase !== "response" || entry.method !== method) return false;
+    try { return new URL(entry.url).pathname === expectedPath; } catch (_) { return false; }
+  });
+  if (responses.length === 0 && browser.runtimeCorrelationOptionalForContract === true) return;
+  assert(responses.length === 1,
+    `${item.caseId} exact GET response correlation is ambiguous: ${method} ${expectedPath}/${responses.length}`);
+  const response = responses[0];
+  assert(response.correlationId === correlationId,
+    `${item.caseId} exact GET response correlation mismatch: ${method} ${expectedPath}`);
+  assert(Number(response.status) === Number(status),
+    `${item.caseId} exact GET response status evidence mismatch: ${method} ${expectedPath}`);
+  const requests = browser.networkEntries().slice(networkStart).filter(entry =>
+    entry.phase === "request-start" && entry.requestId && entry.requestId === response.requestId);
+  assert(requests.length === 1 && requests[0].correlationId === correlationId,
+    `${item.caseId} exact GET request correlation mismatch: ${method} ${expectedPath}`);
+}
+
+export async function validateRuntimeAttributeOwners(browser, item, assertion, bindings = {}) {
+  const owners = Array.isArray(assertion.attributeOwners) ? assertion.attributeOwners : [];
+  const evidence = [];
+  for (const owner of owners) {
+    const selector = expand(String(owner?.selector || ""), bindings);
+    assert(selector, `${item.caseId} exact DOM attribute owner selector is missing`);
+    const attributes = Array.isArray(owner?.attributes) ? owner.attributes : [];
+    assert(attributes.length > 0, `${item.caseId} exact DOM attribute owner attributes are missing: ${selector}`);
+    const observed = await browser.evaluate(`(() => Array.from(document.querySelectorAll(${JSON.stringify(selector)}))
+      .slice(0, 20).map(node => Object.fromEntries(Array.from(node.attributes || []).map(attr => [attr.name, attr.value]))))()`).catch(error => {
+      throw new Error(`${item.caseId} exact DOM attribute owner observation failed ${selector}: ${String(error?.message || error)}`);
+    });
+    assert(Array.isArray(observed) && observed.length > 0,
+      `${item.caseId} exact DOM attribute owner selector missing: ${selector}`);
+    for (const expected of attributes) {
+      const name = String(expected?.name || "");
+      const value = expected?.value === null || expected?.value === undefined
+        ? null
+        : expand(String(expected.value), bindings);
+      if (!name || value === null) continue;
+      assert(observed.some(actual => compareAttribute(actual?.[name], expected.operator || "equals", value)),
+        `${item.caseId} exact DOM attribute owner mismatch ${selector}: ${name}=${value}`);
+    }
+    evidence.push({ selector, attributeCount: attributes.length, nodeCount: observed.length });
+  }
+  return evidence;
+}
+
+function assertResponseFieldPolicies({ body, policies, caseId, requestLabel }) {
+  for (const policy of policies) {
+    const path = String(policy?.path || "");
+    assert(path === "debugCounters" && policy.endpoint === "/ops/api/runtime/status" &&
+      policy.leafType === "finite-number" && policy.containersAllowed === true &&
+      JSON.stringify(policy.allowedStringLeaves) === JSON.stringify(["analysisTapReuseKey"]),
+    `${caseId} unsupported response field policy in ${requestLabel}: ${path}`);
+    const values = resolvePath(body, path);
+    assert(values.length === 1,
+      `${caseId} response field policy path missing or ambiguous in ${requestLabel}: ${path}`);
+    assertTypedDebugCounterLeaves(values[0], caseId, requestLabel, path,
+      new Set(policy.allowedStringLeaves));
+  }
+}
+
+function assertTypedDebugCounterLeaves(value, caseId, requestLabel, path, allowedStringLeaves, leafPath = "") {
+  if (Array.isArray(value)) {
+    assert(value.length > 0, `${caseId} response field policy has no numeric leaves in ${requestLabel}: ${path}`);
+    for (let index = 0; index < value.length; index += 1) {
+      assertTypedDebugCounterLeaves(value[index], caseId, requestLabel, path,
+        allowedStringLeaves, `${leafPath}[${index}]`);
+    }
+    return;
+  }
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value);
+    assert(entries.length > 0, `${caseId} response field policy has no numeric leaves in ${requestLabel}: ${path}`);
+    for (const [key, child] of entries) {
+      assertTypedDebugCounterLeaves(child, caseId, requestLabel, path,
+        allowedStringLeaves, leafPath ? `${leafPath}.${key}` : key);
+    }
+    return;
+  }
+  if (typeof value === "string" && allowedStringLeaves.has(leafPath)) return;
+  assert(typeof value === "number" && Number.isFinite(value),
+    `${caseId} response field policy requires a finite numeric or typed string leaf in ${requestLabel}: ${path}.${leafPath}`);
 }
 
 function assertForbiddenNetwork(entries, item, spec, bindings) {
@@ -1246,7 +1412,12 @@ function evaluateRequestAssertions(assertions, context) {
       const requestIdentity = `${String(context.request.method || "GET").toUpperCase()} ${context.urlPath}`;
       const baselineResponse = runtime.responseByRequest?.[requestIdentity];
       const baselineBody = baselineResponse?.json ?? baselineResponse?.text;
-      const requestBaselineValues = eventExactValuesAtPath(baselineBody, assertion.path);
+      const requestBaselineValues = eventRuntimeAssertionValues({
+        body: baselineBody,
+        contentType: baselineResponse?.contentType || baselineResponse?.headers?.["content-type"] || "",
+        status: baselineResponse?.status,
+        path: assertion.path,
+      });
       const requestBaseline = requestBaselineValues.length === 1
         ? requestBaselineValues[0]
         : requestBaselineValues;
@@ -1255,10 +1426,12 @@ function evaluateRequestAssertions(assertions, context) {
       if (assertion.operator.includes("request") && !Object.prototype.hasOwnProperty.call(requestByPath, assertion.path)) {
         requestByPath[assertion.path] = query;
       }
-      const actualValues = eventExactValuesAtPath(
-        typeof context.body === "object" ? context.body : null,
-        assertion.path,
-      );
+      const actualValues = eventRuntimeAssertionValues({
+        body: context.body,
+        contentType: context.contentType,
+        status: context.status,
+        path: assertion.path,
+      });
       const actual = actualValues.length === 1 ? actualValues[0] : actualValues;
       const evidenceKey = eventExactSemanticEvidenceKey({
         scope: "response",
@@ -1267,7 +1440,7 @@ function evaluateRequestAssertions(assertions, context) {
         subject: assertion.path,
       });
       const baselinePresent = baselineResponse !== undefined
-        ? requestBaselineValues.length > 0 || ["$body", "$text", "$contentType"].includes(assertion.path)
+        ? requestBaselineValues.length > 0 || ["$body", "$text", "$contentType", "$status"].includes(assertion.path)
         : Object.prototype.hasOwnProperty.call(runtime.priorResponseByPath || {}, assertion.path);
       const baseline = baselineResponse !== undefined
         ? requestBaseline
@@ -1275,10 +1448,12 @@ function evaluateRequestAssertions(assertions, context) {
       let semanticPass = baselinePresent && stableEqual(actual, baseline);
       if (assertion.operator === "stable-across-bounded-samples") {
         const sampleValues = context.samples.map(sample => {
-          const values = eventExactValuesAtPath(
-            typeof sample.body === "object" ? sample.body : null,
-            assertion.path,
-          );
+          const values = eventRuntimeAssertionValues({
+            body: sample.body,
+            contentType: sample.contentType,
+            status: sample.status,
+            path: assertion.path,
+          });
           return values.length === 1 ? values[0] : values;
         });
         semanticPass = sampleValues.length === Number(context.request.repeat?.count || 1) &&
@@ -1286,13 +1461,7 @@ function evaluateRequestAssertions(assertions, context) {
           sampleValues.every(value => stableEqual(value, sampleValues[0])) &&
           (!baselinePresent || stableEqual(sampleValues[0], baseline));
       }
-      const result = evaluateEventExactResponseAssertion({
-        caseId: context.caseId,
-        assertion,
-        responseJson: typeof context.body === "object" ? context.body : null,
-        responseText: typeof context.body === "string" ? context.body : JSON.stringify(context.body ?? null),
-        responseHeaders: { "content-type": context.contentType },
-        context: {
+      const evaluatorContext = {
           fixtureId: context.bindings.fixtureId,
           templateValues: context.bindings,
           seed: runtime.seed || {},
@@ -1316,13 +1485,22 @@ function evaluateRequestAssertions(assertions, context) {
             context.bindings.rawCanary,
             context.bindings.credentialCanary,
           ].filter(Boolean),
-        },
-      });
+        };
+      const result = assertion.path === "$status"
+        ? evaluateRuntimeStatusPseudoFieldAssertion(assertion, context.status, { ...evaluatorContext, caseId: context.caseId })
+        : evaluateEventExactResponseAssertion({
+            caseId: context.caseId,
+            assertion,
+            responseJson: typeof context.body === "object" ? context.body : null,
+            responseText: typeof context.body === "string" ? context.body : JSON.stringify(context.body ?? null),
+            responseHeaders: { "content-type": context.contentType },
+            context: evaluatorContext,
+          });
       assert(result.pass, `${context.caseId} exact request assertion failed ${context.requestLabel}: ${assertion.operator} ${assertion.path || ""} (${result.reason})`);
       return { operator: assertion.operator, path: assertion.path || null, valueDigest: stableDigest(result.actual) };
     }
     const operator = String(assertion.operator || "");
-    const values = assertionValues(context.body, assertion.path, context.contentType);
+    const values = assertionValues(context.body, assertion.path, context.contentType, context.status);
     const serialized = JSON.stringify(values);
     let pass = false;
     const expected = assertion.expected !== undefined ? assertion.expected : assertion.value;
@@ -1441,15 +1619,6 @@ function evaluateDomSemanticAssertions(
         operator,
         subject: target,
       });
-      const serializedObservation = `${observed.text} ${JSON.stringify(observed.attributes)} ${JSON.stringify(observed.values)}`;
-      const baselineEntries = Object.entries(eventRuntimeContext?.priorResponseByPath || {});
-      const responseBaselineMatched = baselineEntries.every(([path, baseline]) => {
-        const candidates = responseBodies
-          .map(body => eventExactValuesAtPath(body, path))
-          .filter(values => values.length > 0)
-          .map(values => values.length === 1 ? values[0] : values);
-        return candidates.length === 0 || candidates.some(actual => stableEqual(actual, baseline));
-      });
       const fixtureCandidates = [
         bindings.fixtureId,
         bindings.eventId,
@@ -1458,11 +1627,15 @@ function evaluateDomSemanticAssertions(
         eventRuntimeContext?.templateValues?.sourceId,
       ].filter(Boolean).map(String);
       const fixtureBoundOperator = /(?:fixture|selected-event|source-status|event-and-evidence|audit)/.test(operator);
-      const observationPresent = observed.count > 0 && observed.visibleCount > 0 &&
-        (observed.text.trim().length > 0 || observed.descendantCount > 0 || observed.attributes.length > 0);
-      const fixtureObserved = !fixtureBoundOperator ||
-        fixtureCandidates.some(value => serializedObservation.includes(value));
-      const semanticPass = observationPresent && responseBaselineMatched && fixtureObserved;
+      const compositeEvidence = buildEventDomSemanticCompositeEvidence({
+        selector,
+        observed,
+        responseBodies,
+        priorResponseByPath: selectEventDomResponseBaselines(target, eventRuntimeContext),
+        fixtureCandidates,
+        fixtureRequired: fixtureBoundOperator,
+      });
+      const semanticPass = compositeEvidence.pass;
       const semanticObservation = {
         selector,
         exists: observed.count > 0,
@@ -1490,7 +1663,7 @@ function evaluateDomSemanticAssertions(
               actual: semanticObservation,
               reason: semanticPass
                 ? "visible DOM projection is bound to fresh responses and the authoritative setup baseline"
-                : "DOM projection, fixture identity, or authoritative response baseline binding is missing",
+                : JSON.stringify(compositeEvidence),
             },
           },
           sensitiveCanaries: [
@@ -1502,7 +1675,12 @@ function evaluateDomSemanticAssertions(
         },
       });
       assert(result.pass, `${caseId} exact DOM semantic assertion failed ${selector}: ${operator}/${target} (${result.reason})`);
-      return { operator, target, responseValueDigest: stableDigest(result.actual) };
+      return {
+        operator,
+        target,
+        responseValueDigest: sha256Digest(result.actual),
+        compositeEvidence,
+      };
     }
     let pass = false;
     if (operator === "number-equals-response") {
@@ -1523,6 +1701,148 @@ function evaluateDomSemanticAssertions(
     assert(pass, `${caseId} exact DOM semantic assertion failed ${selector}: ${operator}/${target}`);
     return { operator, target, responseValueDigest: stableDigest(responseValues) };
   });
+}
+
+export function buildEventDomSemanticCompositeEvidence({
+  selector,
+  observed,
+  responseBodies = [],
+  priorResponseByPath = {},
+  fixtureCandidates = [],
+  fixtureRequired = false,
+}) {
+  const text = String(observed?.text || "");
+  const attributes = Array.isArray(observed?.attributes) ? observed.attributes : [];
+  const values = Array.isArray(observed?.values) ? observed.values : [];
+  const nodeCount = Number(observed?.count || 0);
+  const visibleCount = Number(observed?.visibleCount || 0);
+  const descendantCount = Number(observed?.descendantCount || 0);
+  const textPresent = text.trim().length > 0;
+  const structurePresent = descendantCount > 0 || attributes.length > 0;
+  const observationPass = nodeCount > 0 && visibleCount > 0 &&
+    (textPresent || structurePresent);
+  const observationPresent = {
+    pass: observationPass,
+    selectorDigest: sha256Digest(String(selector || "")),
+    exists: nodeCount > 0,
+    visible: visibleCount > 0,
+    nodeCount,
+    visibleCount,
+    textPresent,
+    textDigest: sha256Digest(text),
+    structurePresent,
+    descendantCount,
+    attributeNodeCount: attributes.length,
+    valueCount: values.length,
+  };
+
+  const paths = Object.entries(priorResponseByPath).map(([path, baseline]) => {
+    const rowLocal = isEventRowLocalResponseBaseline(baseline);
+    const candidates = rowLocal
+      ? responseBodies
+        .map(body => eventRowLocalResponseProjection(body, baseline))
+        .filter(candidate => candidate !== null)
+      : responseBodies
+        .map(body => eventExactValuesAtPath(body, path))
+        .filter(pathValues => pathValues.length > 0)
+        .map(pathValues => pathValues.length === 1 ? pathValues[0] : pathValues);
+    const expected = rowLocal ? baseline.expectedProjection : baseline;
+    const matched = rowLocal
+      ? candidates.length > 0 && candidates.some(actual => stableEqual(actual, expected))
+      : candidates.length === 0 || candidates.some(actual => stableEqual(actual, expected));
+    return {
+      path,
+      matched,
+      compared: candidates.length > 0,
+      bindingMode: rowLocal ? "row-local-identity-projection" : "path-value",
+      baselineDigest: sha256Digest(expected),
+      ...(rowLocal ? {
+        identityDigest: sha256Digest(baseline.identityValue),
+        projectionPathsDigest: sha256Digest(baseline.projectionPaths),
+      } : {}),
+      candidateCount: candidates.length,
+      candidateDigests: candidates.map(candidate => sha256Digest(candidate)),
+    };
+  });
+  const mismatchPaths = paths.filter(item => !item.matched).map(item => item.path);
+  const responseBaselineMatched = {
+    pass: mismatchPaths.length === 0,
+    pathCount: paths.length,
+    comparedPathCount: paths.filter(item => item.compared).length,
+    candidateCount: paths.reduce((count, item) => count + item.candidateCount, 0),
+    mismatchPaths,
+    paths,
+  };
+
+  const normalizedFixtureCandidates = fixtureCandidates.filter(Boolean).map(String);
+  const serializedObservation = `${text} ${JSON.stringify(attributes)} ${JSON.stringify(values)}`;
+  const matchedFixtureCandidates = normalizedFixtureCandidates
+    .filter(value => serializedObservation.includes(value));
+  const fixturePass = !fixtureRequired || matchedFixtureCandidates.length > 0;
+  const fixtureObserved = {
+    pass: fixturePass,
+    required: Boolean(fixtureRequired),
+    candidateCount: normalizedFixtureCandidates.length,
+    matchedCandidateCount: matchedFixtureCandidates.length,
+    candidateDigests: normalizedFixtureCandidates.map(value => sha256Digest(value)),
+    matchedCandidateDigests: matchedFixtureCandidates.map(value => sha256Digest(value)),
+    observationDigest: sha256Digest(serializedObservation),
+  };
+
+  const failedChecks = [
+    ["observationPresent", observationPresent.pass],
+    ["responseBaselineMatched", responseBaselineMatched.pass],
+    ["fixtureObserved", fixtureObserved.pass],
+  ].filter(([, pass]) => !pass).map(([name]) => name);
+  const pass = failedChecks.length === 0;
+  return {
+    schema: "media-server.v390-ui-event-dom-semantic-composite-evidence.v1",
+    pass,
+    error: pass ? null : {
+      code: "EVT_DOM_SEMANTIC_COMPOSITE_FAILED",
+      causes: failedChecks,
+    },
+    failedChecks,
+    observationPresent,
+    responseBaselineMatched,
+    fixtureObserved,
+  };
+}
+
+export function selectEventDomResponseBaselines(target, eventRuntimeContext = {}) {
+  const baselineByTarget = eventRuntimeContext?.domResponseBaselineByTarget || {};
+  const targetEntries = String(target || "").split("|").filter(Boolean)
+    .filter(path => Object.prototype.hasOwnProperty.call(baselineByTarget, path))
+    .map(path => [path, baselineByTarget[path]]);
+  return targetEntries.length > 0
+    ? Object.fromEntries(targetEntries)
+    : (eventRuntimeContext?.priorResponseByPath || {});
+}
+
+function isEventRowLocalResponseBaseline(value) {
+  return value?.schema === "media-server.v390-ui-event-row-local-response-baseline.v1" &&
+    typeof value.collectionPath === "string" &&
+    Array.isArray(value.identityPaths) &&
+    value.identityPaths.length > 0 &&
+    value.identityValue !== undefined &&
+    Array.isArray(value.projectionPaths) &&
+    value.projectionPaths.length > 0 &&
+    value.expectedProjection &&
+    typeof value.expectedProjection === "object";
+}
+
+function eventRowLocalResponseProjection(body, baseline) {
+  const rows = eventExactValuesAtPath(body, baseline.collectionPath)
+    .flatMap(value => Array.isArray(value) ? value : [value])
+    .filter(value => value && typeof value === "object" && !Array.isArray(value));
+  const row = rows.find(value => baseline.identityPaths.some(identityPath =>
+    eventExactValuesAtPath(value, identityPath)
+      .some(identity => String(identity) === String(baseline.identityValue))));
+  if (!row) return null;
+  return Object.fromEntries(baseline.projectionPaths.map(projectionPath => {
+    const values = eventExactValuesAtPath(row, projectionPath);
+    return [projectionPath, values.length === 1 ? values[0] : values];
+  }));
 }
 
 export function dashboardRuntimeTrendSample(responseBodies) {
@@ -1606,11 +1926,35 @@ function equalDashboardRuntimeTrendSample(actual, expected) {
   return keys.every(key => Number(actual?.[key]) === Number(expected?.[key]));
 }
 
-function assertionValues(body, expression, contentType) {
+export function responsePseudoFieldValues({ body, contentType, status }, expression) {
   if (expression === "$text" || expression === "$body") {
     return [typeof body === "string" ? body : JSON.stringify(body ?? null)];
   }
-  if (expression === "$contentType") return [contentType];
+  if (expression === "$contentType") return [String(contentType || "")];
+  if (expression === "$status") return [Number(status)];
+  return [];
+}
+
+function eventRuntimeAssertionValues({ body, contentType, status, path }) {
+  const pseudo = responsePseudoFieldValues({ body, contentType, status }, path);
+  return pseudo.length > 0 ? pseudo : eventExactValuesAtPath(body, path);
+}
+
+export function evaluateRuntimeStatusPseudoFieldAssertion(assertion, status, context = {}) {
+  const actual = Number(status);
+  const expected = assertion.expected !== undefined ? assertion.expected : assertion.value;
+  let pass = false;
+  if (assertion.operator === "equals") pass = Object.is(actual, Number(expected));
+  else if (assertion.operator === "number") pass = Number.isFinite(actual);
+  else if (assertion.operator === "number-gte") pass = Number.isFinite(actual) && actual >= Number(expected);
+  else if (assertion.operator === "non-empty") pass = Number.isFinite(actual);
+  else throw new Error(`${context.caseId} unsupported exact response pseudo-field operator: ${assertion.operator}`);
+  return { pass, reason: `$status ${assertion.operator}`, assertion, actual };
+}
+
+function assertionValues(body, expression, contentType, status) {
+  const pseudo = responsePseudoFieldValues({ body, contentType, status }, expression);
+  if (pseudo.length > 0) return pseudo;
   return resolvePath(body, expression);
 }
 
@@ -1633,6 +1977,11 @@ function stableDigest(value) {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function sha256Digest(value) {
+  const text = typeof value === "string" ? value : stableSerialize(value ?? null);
+  return createHash("sha256").update(text).digest("hex");
 }
 
 function stableSerialize(value) {

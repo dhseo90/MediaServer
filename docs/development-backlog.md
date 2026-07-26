@@ -6561,6 +6561,27 @@ feature evidence 986/986, inventory/evidence/script/docs gate가 PASS했습니�
 FAIL과 `279/278/1/145`는 보존하며 `./test_ui.sh`, Policy v4 qualification, 30분, 120분,
 `./test_release.sh`, 커밋, 푸시는 수행하지 않았습니다.
 
+REVIEW4-65 diagnostic sweep와 EVT-003 row-local source-health 보정(2026-07-26):
+source `00d515e6d4b9219f012f00ec321e63feb3059a02`의 actual `./test_ui.sh`는
+`281 attempted / 280 PASS / RULE-097 FAIL 1 / 143 not-run`으로 보존합니다.
+`run-v390-ui-native-diagnostic-sweep`은 RULE-097~canonical end 144건을 release/Policy v4
+evidence와 분리해 단건 또는 고정 순서로 실행하고, 자동 재시도 없이 case별 새 격리 환경,
+secret byte scan, PID/port/temp cleanup과 progress를 기록합니다. Bootstrap 실패는 raw URL,
+credential, secret을 저장하지 않고 phase/code와 reason/environment SHA-256 및 cleanup
+attestation만 기록합니다. EVT-003은 acceptance-owned source/view `39065003`/`39065004`를
+실제 registry와 `/ops/api/source-health`에 materialize하고 default source/view 불변과 teardown
+soft-disable readback을 검증합니다. DOM composite는 observation, response baseline, fixture
+identity를 분리하며, source-health baseline은 다른 source의 순서·상태 변화와 분리해
+`39065003` 행의 `status/reason`만 비교합니다. Fixture 행 누락 또는 status/reason drift는
+fail-closed입니다. Diagnostic actual 1회는 row-local 보정 전
+`responseBaselineMatched=false`, observation/fixture=true로 중단됐고 보정 뒤 actual 재실행은
+native static gate 선행 원칙 때문에 수행하지 않았습니다. Native manifest는 공식 generator
+1회로 424/423+1/unsupported0에 재결속했고 RULE-101은 profile mismatch UI no-write와
+analysis/profile API 400 독립 readback을 분리합니다. Diagnostic 12/12, runtime 35/35,
+event 22/22, evaluator 17/17, native 38/38, completion 29/29과 `git diff --check`가 PASS했습니다.
+Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 미실행이며
+이 static/diagnostic checkpoint는 actual UI PASS evidence가 아닙니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

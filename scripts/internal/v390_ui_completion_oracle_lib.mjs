@@ -178,7 +178,7 @@ export function evaluateCompletionOracle({
     }
     if (action.kind === "navigate-negative") {
       const requestMatch = action.semanticCompletionRequired
-        ? findCorrelatedEndpoint(base.networkResponses, action)
+        ? findCorrelatedEndpoint(base.networkResponses, action, semanticReadback)
         : { match: null, reason: "" };
       if (action.semanticCompletionRequired && !requestMatch.match) {
         return { ...base, reason: requestMatch.reason };
@@ -198,7 +198,7 @@ export function evaluateCompletionOracle({
       if (readbackReason) {
         return { ...base, reason: readbackReason };
       }
-      const requestMatch = findCorrelatedEndpoint(base.networkResponses, action);
+      const requestMatch = findCorrelatedEndpoint(base.networkResponses, action, semanticReadback);
       if (!requestMatch.match) {
         return { ...base, reason: requestMatch.reason };
       }
@@ -223,7 +223,7 @@ export function evaluateCompletionOracle({
       return alternative || { ...base, reason: readbackReason };
     }
     if (actionBound && action.expectedEndpoint) {
-      const requestMatch = findCorrelatedEndpoint(base.networkResponses, action);
+      const requestMatch = findCorrelatedEndpoint(base.networkResponses, action, semanticReadback);
       if (!requestMatch.match) {
         return { ...base, reason: requestMatch.reason };
       }
@@ -239,7 +239,7 @@ export function evaluateCompletionOracle({
     if (readbackReason) {
       return { ...base, reason: readbackReason };
     }
-    const requestMatch = findCorrelatedEndpoint(base.networkResponses, action);
+    const requestMatch = findCorrelatedEndpoint(base.networkResponses, action, semanticReadback);
     if (requestMatch.match) {
       return allowedResult(base, action, "endpoint-dom", { completionRequest: requestMatch.match });
     }
@@ -496,9 +496,15 @@ function requestPathname(rawUrl) {
   }
 }
 
-function findCorrelatedEndpoint(entries, action) {
+function findCorrelatedEndpoint(entries, action, semanticReadback = null) {
   const expected = action.expectedEndpoint;
   if (!expected || !Array.isArray(entries)) return { match: null, reason: "request-correlation-missing" };
+  const catalog = catalogRuntimeCompletionRequest(semanticReadback, action);
+  if (catalog.present) {
+    return catalog.match
+      ? { match: catalog.match, reason: "" }
+      : { match: null, reason: catalog.reason };
+  }
   const matches = entries.filter(item =>
     item?.correlationSource === "request-header" &&
     item?.correlationId === expected.correlationId &&
@@ -511,6 +517,86 @@ function findCorrelatedEndpoint(entries, action) {
   if (matches.length === 0) return { match: null, reason: "request-correlation-missing" };
   if (matches.length !== 1) return { match: null, reason: "ambiguous-exact-request" };
   return { match: structuredClone(matches[0]), reason: "" };
+}
+
+function catalogRuntimeCompletionRequest(semanticReadback, action) {
+  const exactRuntimeOracle = semanticReadback?.observation?.actual?.exactRuntimeOracle;
+  if (exactRuntimeOracle === undefined) return { present: false, match: null, reason: "" };
+  if (exactRuntimeOracle?.schema !== "media-server.v390-ui-exact-runtime-observation.v1" ||
+      exactRuntimeOracle.caseId !== String(action.actionId || "").split(":")[0] ||
+      !Array.isArray(exactRuntimeOracle.responses) ||
+      !Array.isArray(exactRuntimeOracle.dom) ||
+      typeof exactRuntimeOracle.requestedRoute !== "string" ||
+      typeof exactRuntimeOracle.observedRoute !== "string") {
+    return { present: true, match: null, reason: "catalog-runtime-readback-invalid" };
+  }
+  const expected = action.expectedEndpoint;
+  const allowedStatuses = Array.isArray(expected?.allowedStatuses) ? expected.allowedStatuses : [200];
+  const responses = exactRuntimeOracle.responses;
+  if (responses.length === 0) {
+    return { present: true, match: null, reason: "catalog-runtime-response-invalid:empty" };
+  }
+  const invalidResponse = responses.map((response, index) => {
+    const defects = [];
+    if (!response || typeof response !== "object") defects.push("shape");
+    if (!["fresh-browser-fetch", "correlated-browser-network"].includes(response?.source)) defects.push("source");
+    if (!/^[a-f0-9]{64}$/.test(String(response?.bodyDigest || ""))) defects.push("bodyDigest");
+    if (typeof response?.method !== "string" || !response.method) defects.push("method");
+    if (typeof response?.urlPath !== "string" || !response.urlPath) defects.push("urlPath");
+    if (!Number.isInteger(Number(response?.status))) defects.push("status");
+    return defects.length > 0 ? { index, defects } : null;
+  }).find(Boolean);
+  if (invalidResponse) {
+    return {
+      present: true,
+      match: null,
+      reason: `catalog-runtime-response-invalid:${invalidResponse.index}:${invalidResponse.defects.join("+")}`,
+    };
+  }
+  const exactResponses = responses.filter(response =>
+    String(response.method).toUpperCase() === String(expected.method || "GET").toUpperCase() &&
+    requestPathname(response.urlPath) === expected.urlPath &&
+    allowedStatuses.includes(Number(response.status)));
+  if (exactResponses.length > 1) {
+    return { present: true, match: null, reason: "ambiguous-exact-request" };
+  }
+  const routeBound = String(expected.method || "GET").toUpperCase() === "GET" &&
+    !/^\/(?:ops|client)\/api(?:\/|$)/.test(expected.urlPath) &&
+    requestPathname(exactRuntimeOracle.requestedRoute) === expected.urlPath &&
+    requestPathname(exactRuntimeOracle.observedRoute).startsWith("/");
+  if (exactResponses.length === 0 && !routeBound) {
+    return { present: true, match: null, reason: "request-correlation-missing" };
+  }
+  const exactResponse = exactResponses[0] || null;
+  const attestation = {
+    schema: exactRuntimeOracle.schema,
+    caseId: exactRuntimeOracle.caseId,
+    requestedRoute: exactRuntimeOracle.requestedRoute,
+    observedRoute: exactRuntimeOracle.observedRoute,
+    responses,
+    dom: exactRuntimeOracle.dom,
+  };
+  const attestationSha256 = crypto.createHash("sha256")
+    .update(stableStringify(attestation))
+    .digest("hex");
+  return {
+    present: true,
+    reason: "",
+    match: {
+      phase: "response",
+      requestId: `catalog-runtime-${attestationSha256.slice(0, 24)}`,
+      correlationId: action.correlationId,
+      correlationSource: "semantic-readback-catalog-runtime",
+      method: String(expected.method || "GET").toUpperCase(),
+      status: Number(exactResponse?.status ?? responses[0].status),
+      url: expected.urlPath,
+      source: exactResponse?.source || "fresh-browser-fetch",
+      bodyDigest: exactResponse?.bodyDigest || attestationSha256,
+      catalogRuntimeAttestationSha256: attestationSha256,
+      catalogRuntimeResponseCount: responses.length,
+      actualBrowserRequestObserved: true,
+    },
+  };
 }
 
 function endpointUrlMatches(rawUrl, expected) {

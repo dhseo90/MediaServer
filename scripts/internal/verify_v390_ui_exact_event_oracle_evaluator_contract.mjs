@@ -183,7 +183,7 @@ check("runtime binding contract accepts a complete representative EVT context", 
 check("runtime binding contract rejects missing seed, request, semantic, and canary evidence", () => {
   for (const [caseId, expected] of [
     ["EVT-019", "seedByPath:review.reviewStatus"],
-    ["EVT-070", "requestByPath:unifiedResolutionWorkspace.resolutionSearchMetrics.activeFilters"],
+    ["EVT-070", "requestByPath:unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters"],
     ["EVT-030", "semanticEvidence:response:EVT-030:contains-matching-and-missing:records"],
     ["EVT-031", "sensitiveCanaries"],
   ]) {

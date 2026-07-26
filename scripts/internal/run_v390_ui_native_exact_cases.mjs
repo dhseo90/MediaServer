@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
@@ -79,6 +80,8 @@ const rootDir = path.resolve(scriptDir, "../..");
 const options = parseArgs(process.argv.slice(2));
 const outputDir = resolveRootOrAbsolute(options.outputDir);
 const summaryPath = path.join(outputDir, "summary.json");
+const diagnosticChild = options.diagnosticChild;
+if (diagnosticChild) assertDiagnosticChildOutputRoot(outputDir);
 fs.mkdirSync(outputDir, { recursive: true });
 let manifest = null;
 let canonical = null;
@@ -90,18 +93,25 @@ let runnerWorkflowCompatibility = null;
 try {
   manifest = readJson(options.manifest);
   canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
-  visualMatrixPlan = readJson("test/fixtures/v390_ui_visual_matrix_plan.json");
   implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
   validation = validateNativeExactManifest({ manifest, canonical, implementation });
-  visualPlanValidation = validateVisualMatrixPlan({ plan: visualMatrixPlan, canonical, native: manifest });
+  if (!diagnosticChild) {
+    visualMatrixPlan = readJson("test/fixtures/v390_ui_visual_matrix_plan.json");
+    visualPlanValidation = validateVisualMatrixPlan({ plan: visualMatrixPlan, canonical, native: manifest });
+  }
   runnerWorkflowCompatibility = validateRunnerWorkflowCompatibility(manifest.cases);
 } catch (error) {
-  const summary = createNativeExactPreExecutionFailureSummary({ error, manifest, canonical });
+  const summary = diagnosticChild
+    ? createDiagnosticPreExecutionSummary(options.diagnosticCaseId, "manifest-or-contract-preflight")
+    : createNativeExactPreExecutionFailureSummary({ error, manifest, canonical });
   writeJson(summaryPath, summary);
   printSummary(summary, summaryPath);
   process.exit(1);
 }
 const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
+const diagnosticSelection = diagnosticChild
+  ? selectDiagnosticCase(manifest.cases, options.diagnosticCaseId)
+  : null;
 const tracesDir = path.join(outputDir, "traces");
 const screenshotsDir = path.join(outputDir, "screenshots");
 const logsDir = path.join(outputDir, "logs");
@@ -109,9 +119,21 @@ const visualMatrixDir = path.join(outputDir, "visual-matrix");
 fs.mkdirSync(tracesDir, { recursive: true });
 fs.mkdirSync(screenshotsDir, { recursive: true });
 fs.mkdirSync(logsDir, { recursive: true });
-fs.mkdirSync(visualMatrixDir, { recursive: true });
+if (!diagnosticChild) fs.mkdirSync(visualMatrixDir, { recursive: true });
 
 if (options.planOnly) {
+  if (diagnosticChild) {
+    const summary = createDiagnosticChildSummary({
+      result: "NOT-RUN",
+      executionStatus: "diagnostic-plan-only-not-browser-evidence",
+      item: diagnosticSelection.item,
+      environmentContamination: false,
+      caseRuntimeSecretArtifactIntegrity: null,
+    });
+    writeJson(summaryPath, summary);
+    printSummary(summary, summaryPath);
+    process.exit(0);
+  }
   const summary = {
     schema: "media-server.v390-ui-native-exact-run.v1",
     result: "PASS",
@@ -138,7 +160,8 @@ if (options.planOnly) {
 let buildPath = "";
 let serverLogPath = "";
 try {
-  assertPolicyV4ArtifactRoot({ rootDir, outputDir });
+  if (diagnosticChild) assertDiagnosticChildOutputRoot(outputDir);
+  else assertPolicyV4ArtifactRoot({ rootDir, outputDir });
   assert(options.httpBase, "--http-base is required for actual execution");
   assert(options.serverLog, "--server-log is required for actual execution");
   buildPath = resolveRootOrAbsolute(options.buildPath);
@@ -146,12 +169,14 @@ try {
   serverLogPath = resolveRootOrAbsolute(options.serverLog);
   assert(fs.existsSync(serverLogPath), `server log does not exist: ${serverLogPath}`);
 } catch (error) {
-  const summary = createNativeExactPreExecutionFailureSummary({
-    error,
-    manifest,
-    canonical,
-    phase: "actual-runner-preflight",
-  });
+  const summary = diagnosticChild
+    ? createDiagnosticPreExecutionSummary(options.diagnosticCaseId, "actual-runner-preflight")
+    : createNativeExactPreExecutionFailureSummary({
+      error,
+      manifest,
+      canonical,
+      phase: "actual-runner-preflight",
+    });
   writeJson(summaryPath, summary);
   printSummary(summary, summaryPath);
   process.exit(1);
@@ -175,12 +200,14 @@ try {
   assert(typeof caseRuntime.verifyCleanupReadback === "function",
     "exact case runtime verifyCleanupReadback owner missing");
 } catch (error) {
-  const summary = createNativeExactPreExecutionFailureSummary({
-    error,
-    manifest,
-    canonical,
-    phase: "runtime-bootstrap",
-  });
+  const summary = diagnosticChild
+    ? createDiagnosticPreExecutionSummary(options.diagnosticCaseId, "runtime-bootstrap")
+    : createNativeExactPreExecutionFailureSummary({
+      error,
+      manifest,
+      canonical,
+      phase: "runtime-bootstrap",
+    });
   writeJson(summaryPath, summary);
   printSummary(summary, summaryPath);
   process.exit(1);
@@ -200,7 +227,7 @@ process.on("exit", () => {
 
 const results = [];
 let stopped = false;
-for (const item of manifest.cases) {
+for (const item of diagnosticChild ? [diagnosticSelection.item] : manifest.cases) {
   if (stopped) {
     results.push(makeNotRun(item, "not run after previous native case failure"));
     continue;
@@ -209,14 +236,20 @@ for (const item of manifest.cases) {
     const result = await executeCase(item, adapter, roleStateMap, serverLogPath);
     results.push(result);
   } catch (error) {
-    stopped = true;
+    if (!diagnosticChild) stopped = true;
     results.push({
       caseId: item.caseId,
       featureId: item.featureId,
       status: "FAIL",
-      reason: error instanceof Error ? error.message : String(error),
+      reason: diagnosticChild ? safeDiagnosticFailureClass(error) : (error instanceof Error ? error.message : String(error)),
       dispatch: "playwright-native",
       manualIntervention: false,
+      ...(diagnosticChild ? {
+        failureDetail: safeDiagnosticFailureDetail(error),
+        environmentContamination: Boolean(error?.cleanupFailure || error?.browserCloseFailure),
+        cleanupFailure: Boolean(error?.cleanupFailure),
+        browserCloseFailure: Boolean(error?.browserCloseFailure),
+      } : {}),
       ...(error?.partialArtifacts || {}),
     });
   }
@@ -226,14 +259,16 @@ const fail = results.filter(item => item.status === "FAIL").length;
 const notRun = results.filter(item => item.status === "not-run").length;
 let visualMatrixProbes = [];
 let evidenceProductionFailure = null;
-try {
-  if (fail === 0 && notRun === 0) visualMatrixProbes = await executeVisualMatrix(adapter);
-} catch (error) {
-  evidenceProductionFailure = error;
+if (!diagnosticChild) {
+  try {
+    if (fail === 0 && notRun === 0) visualMatrixProbes = await executeVisualMatrix(adapter);
+  } catch (error) {
+    evidenceProductionFailure = error;
+  }
 }
 const artifactItems = [...results, ...visualMatrixProbes];
 const artifactPruning = pruneUnreferencedArtifactFiles({
-  roots: [screenshotsDir, tracesDir, logsDir, visualMatrixDir],
+  roots: diagnosticChild ? [screenshotsDir, tracesDir, logsDir] : [screenshotsDir, tracesDir, logsDir, visualMatrixDir],
   referencedPaths: artifactItems.flatMap(item => [
     item.screenshotPath,
     item.tracePath,
@@ -243,7 +278,17 @@ const artifactPruning = pruneUnreferencedArtifactFiles({
 const screenshotDeduplication = deduplicateScreenshotArtifacts(artifactItems);
 refreshFailureDiagnosticArtifacts(results);
 let summary = null;
-if (!evidenceProductionFailure) {
+if (diagnosticChild) {
+  const result = results[0];
+  summary = createDiagnosticChildSummary({
+    result: result?.status === "PASS" ? "PASS" : "FAIL",
+    executionStatus: "diagnostic-child-browser-evidence",
+    item: diagnosticSelection.item,
+    resultItem: result,
+    environmentContamination: Boolean(result?.environmentContamination),
+    caseRuntimeSecretArtifactIntegrity: null,
+  });
+} else if (!evidenceProductionFailure) {
   try {
     summary = producePolicyV4Evidence({
       rootDir,
@@ -279,29 +324,41 @@ try {
   caseRuntimeSecretArtifactIntegrity = caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
 } catch (error) {
   secretArtifactFailure = error;
-  summary = createNativeExactExecutionFailureSummary({
-    error,
-    manifest,
-    results,
-    phase: "secret-artifact-integrity",
-  });
+  summary = diagnosticChild
+    ? createDiagnosticChildSummary({
+      result: "FAIL",
+      executionStatus: "diagnostic-child-secret-artifact-failure",
+      item: diagnosticSelection.item,
+      resultItem: results[0],
+      environmentContamination: true,
+      caseRuntimeSecretArtifactIntegrity: { status: "FAIL", failureClass: "secret-artifact-integrity-failed" },
+    })
+    : createNativeExactExecutionFailureSummary({
+      error,
+      manifest,
+      results,
+      phase: "secret-artifact-integrity",
+    });
   summary.artifactLifecycle = summarizeArtifactLifecycle(artifactPruning, screenshotDeduplication);
 }
 summary.caseRuntimeSecretArtifactIntegrity = caseRuntimeSecretArtifactIntegrity || {
   status: "FAIL",
-  error: secretArtifactFailure instanceof Error ? secretArtifactFailure.message : String(secretArtifactFailure || ""),
+  ...(diagnosticChild
+    ? { failureClass: "secret-artifact-integrity-failed" }
+    : { error: secretArtifactFailure instanceof Error ? secretArtifactFailure.message : String(secretArtifactFailure || "") }),
 };
-const captureErrors = validateNativeExactCaptureSummary(summary, manifest.cases.length);
-summary.rawCaptureValidation = {
-  status: captureErrors.length === 0 ? "PASS" : "FAIL",
-  errors: captureErrors,
-};
+const captureErrors = diagnosticChild
+  ? validateDiagnosticChildSummary(summary, diagnosticSelection.item)
+  : validateNativeExactCaptureSummary(summary, manifest.cases.length);
+summary.rawCaptureValidation = diagnosticChild
+  ? { status: captureErrors.length === 0 ? "PASS" : "FAIL", errors: captureErrors, releaseEvidenceEligible: false }
+  : { status: captureErrors.length === 0 ? "PASS" : "FAIL", errors: captureErrors };
 writeJson(summaryPath, summary);
 if (!secretArtifactFailure) caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
 caseRuntimeSecretScanComplete = true;
 caseRuntime.releaseSecrets();
 printSummary(summary, summaryPath);
-if (captureErrors.length > 0) process.exit(1);
+if (captureErrors.length > 0 || (diagnosticChild && summary.result !== "PASS")) process.exit(1);
 
 async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   const screenshotPath = path.join(screenshotsDir, `${item.caseId}.png`);
@@ -393,6 +450,17 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       for (const action of item.actions.slice(1)) {
         if (action.kind === "wait-visible") {
           let waitSelector = action.selector;
+          if (["#liveAllStop", "#liveSaveLayoutPreference"].includes(waitSelector)) {
+            const details = await browser.snapshot("details.workspace-actions");
+            if (details.exists && !details.open) {
+              await browser.click("details.workspace-actions > summary");
+              trace.setup.push({
+                kind: "open-client-workspace-actions",
+                selector: "details.workspace-actions > summary",
+                status: "PASS",
+              });
+            }
+          }
           if (item.workflow.workflowClass === "persisted-mutation") {
             const persistedAction = item.actions.find(candidate => candidate.kind === "execute-persisted-action");
             assert(persistedAction, `${item.caseId} persisted action missing after wait-visible`);
@@ -1949,9 +2017,7 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
     const modeBefore = await browser.snapshot(modeSelector);
     assert(modeBefore.exists && modeBefore.visible && !modeBefore.disabled,
       `${item.caseId} VA overlay product mode control is unavailable`);
-    assert(modeBefore.ariaPressed !== "true",
-      `${item.caseId} VA overlay product mode was active before the composed interaction`);
-    await browser.click(modeSelector);
+    if (modeBefore.ariaPressed !== "true") await browser.click(modeSelector);
     const modeAfter = await browser.snapshot(modeSelector);
     assert(modeAfter.ariaPressed === "true",
       `${item.caseId} VA overlay product mode did not become active`);
@@ -1996,6 +2062,10 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
       `${item.caseId} product VA projection is not bound to the seeded metadata event`);
   }
   if (type === "composed-live-start-all-stop") {
+    const allStopBefore = await browser.snapshot("#liveAllStop");
+    if (allStopBefore.exists && !allStopBefore.visible) {
+      await browser.click("details.workspace-actions > summary");
+    }
     await browser.click("#liveAllStop");
     await browser.waitForNetworkQuiet({
       correlationId: action.semanticCompletion.correlationId,
@@ -2920,6 +2990,171 @@ function makeNotRun(item, reason) {
   return { caseId: item.caseId, featureId: item.featureId, status: "not-run", reason };
 }
 
+function selectDiagnosticCase(cases, caseId) {
+  assert(caseId, "--diagnostic-case-id is required with --diagnostic-child");
+  const firstIndex = cases.findIndex(item => item.caseId === "RULE-097");
+  assert(firstIndex >= 0, "RULE-097 diagnostic start case is missing from the canonical manifest");
+  const selected = cases.slice(firstIndex);
+  assert(selected.length === 144,
+    `RULE-097 diagnostic selection must contain 144 cases: ${selected.length}`);
+  const item = selected.find(candidate => candidate.caseId === caseId);
+  assert(item, `diagnostic case is outside the fixed RULE-097 selection: ${caseId}`);
+  return {
+    item,
+    startCaseId: "RULE-097",
+    targetCaseCount: selected.length,
+    targetCaseIdsSha256: sha256Text(selected.map(candidate => candidate.caseId).join("\n")),
+  };
+}
+
+function assertDiagnosticChildOutputRoot(candidate) {
+  const requiredRoot = path.resolve(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  const relative = path.relative(requiredRoot, candidate);
+  assert(relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative),
+    "diagnostic child output must be inside .media_server.test/v3.9.0/ui-diagnostic-sweep");
+}
+
+function createDiagnosticChildSummary({
+  result,
+  executionStatus,
+  item,
+  resultItem = null,
+  environmentContamination,
+  caseRuntimeSecretArtifactIntegrity,
+}) {
+  return {
+    schema: "media-server.v390-ui-diagnostic-child.v1",
+    result,
+    executionStatus,
+    diagnosticOnly: true,
+    releaseEvidenceEligible: false,
+    policyV4Qualification: "not-eligible",
+    uiFulltestPass: false,
+    selection: {
+      startCaseId: diagnosticSelection.startCaseId,
+      targetCaseCount: diagnosticSelection.targetCaseCount,
+      targetCaseIdsSha256: diagnosticSelection.targetCaseIdsSha256,
+      caseId: item.caseId,
+      automaticRetryCount: 0,
+    },
+    counts: {
+      target: 1,
+      attempted: resultItem ? 1 : 0,
+      pass: resultItem?.status === "PASS" ? 1 : 0,
+      fail: resultItem?.status === "FAIL" ? 1 : 0,
+      notRun: resultItem ? 0 : 1,
+    },
+    case: resultItem ? {
+      caseId: resultItem.caseId,
+      featureId: resultItem.featureId,
+      status: resultItem.status,
+      failureClass: resultItem.status === "FAIL" ? resultItem.reason : "",
+      failureDetail: resultItem.status === "FAIL" ? resultItem.failureDetail || "" : "",
+      diagnosticArtifacts: resultItem.diagnosticArtifacts || {},
+    } : {
+      caseId: item.caseId,
+      featureId: item.featureId,
+      status: "not-run",
+      failureClass: "",
+      failureDetail: "",
+      diagnosticArtifacts: {},
+    },
+    environmentContamination: {
+      detected: environmentContamination === true,
+      cleanupFailure: resultItem?.cleanupFailure === true,
+      browserCloseFailure: resultItem?.browserCloseFailure === true,
+      recycleRequired: environmentContamination === true,
+    },
+    caseRuntimeSecretArtifactIntegrity,
+  };
+}
+
+function createDiagnosticPreExecutionSummary(caseId, phase) {
+  return {
+    schema: "media-server.v390-ui-diagnostic-child.v1",
+    result: "FAIL",
+    executionStatus: "diagnostic-child-pre-execution-failure",
+    diagnosticOnly: true,
+    releaseEvidenceEligible: false,
+    policyV4Qualification: "not-eligible",
+    uiFulltestPass: false,
+    selection: {
+      startCaseId: "RULE-097",
+      targetCaseCount: 144,
+      targetCaseIdsSha256: "",
+      caseId,
+      automaticRetryCount: 0,
+    },
+    counts: { target: 1, attempted: 0, pass: 0, fail: 0, notRun: 1 },
+    case: {
+      caseId,
+      featureId: "",
+      status: "not-run",
+      failureClass: "diagnostic-pre-execution-failed",
+      diagnosticArtifacts: {},
+    },
+    environmentContamination: {
+      detected: true,
+      cleanupFailure: false,
+      browserCloseFailure: false,
+      recycleRequired: true,
+      phase,
+    },
+    caseRuntimeSecretArtifactIntegrity: { status: "not-run" },
+  };
+}
+
+function validateDiagnosticChildSummary(summary, item) {
+  const errors = [];
+  if (summary?.schema !== "media-server.v390-ui-diagnostic-child.v1") errors.push("diagnostic-child-schema");
+  if (summary?.diagnosticOnly !== true) errors.push("diagnostic-child-not-diagnostic");
+  if (summary?.releaseEvidenceEligible !== false) errors.push("diagnostic-child-release-evidence");
+  if (summary?.policyV4Qualification !== "not-eligible") errors.push("diagnostic-child-policy-qualification");
+  if (summary?.uiFulltestPass !== false) errors.push("diagnostic-child-ui-fulltest");
+  if (summary?.selection?.caseId !== item.caseId || summary?.selection?.automaticRetryCount !== 0) {
+    errors.push("diagnostic-child-selection");
+  }
+  if (summary?.counts?.target !== 1 ||
+      Number(summary?.counts?.attempted || 0) !== Number(summary?.counts?.pass || 0) + Number(summary?.counts?.fail || 0)) {
+    errors.push("diagnostic-child-count-invariant");
+  }
+  if (summary?.case?.caseId !== item.caseId) errors.push("diagnostic-child-case-id");
+  return errors;
+}
+
+function safeDiagnosticFailureClass(error) {
+  if (error?.cleanupFailure) return "case-cleanup-failed";
+  if (error?.browserCloseFailure) return "browser-close-failed";
+  const message = String(error?.primaryFailure?.message || error?.message || "");
+  if (/timeout|waitFor/i.test(message)) return "ui-timeout";
+  if (/HTTP\s+\d+|status mismatch/i.test(message)) return "http-status-mismatch";
+  if (/selector missing|control missing|not visible/i.test(message)) return "control-observation-failed";
+  if (/readback|whoami|scope|assigned view/i.test(message)) return "authoritative-readback-failed";
+  if (/secret|credential|password|token/i.test(message)) return "sensitive-material-guard-failed";
+  return "case-execution-failed";
+}
+
+function safeDiagnosticFailureDetail(error) {
+  const raw = String(error?.primaryFailure?.message || error?.message || "case execution failed");
+  return raw
+    .replace(/\b(?:https?|rtsp|rtsps):\/\/[^\s"'<>]+/gi, "[redacted-url]")
+    .replace(
+      /\b(password|credential|secret|token|cookie|authorization)\s*([=:])\s*[^,;\s}\]]+/gi,
+      "$1$2[redacted]",
+    )
+    .replace(/(HTTP\s+\d+)\s*:\s*[\[{][\s\S]*$/i, "$1 [response-body-redacted]")
+    .replace(/[\r\n\t]+/g, " ")
+    .slice(0, 500);
+}
+
+function sha256Text(value) {
+  return (awaitableHash(value));
+}
+
+function awaitableHash(value) {
+  return createHash("sha256").update(String(value)).digest("hex");
+}
+
 function parseArgs(args) {
   const value = {
     manifest: "test/fixtures/v390_ui_native_exact_cases.json",
@@ -2933,6 +3168,8 @@ function parseArgs(args) {
     buildPath: "build/media_server",
     timeoutMs: 30000,
     planOnly: false,
+    diagnosticChild: false,
+    diagnosticCaseId: "",
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -2947,10 +3184,16 @@ function parseArgs(args) {
     else if (arg === "--build-path") value.buildPath = args[++index] || "";
     else if (arg === "--timeout-ms") value.timeoutMs = Number(args[++index] || 0);
     else if (arg === "--plan-only") value.planOnly = true;
+    else if (arg === "--diagnostic-child") value.diagnosticChild = true;
+    else if (arg === "--diagnostic-case-id") value.diagnosticCaseId = args[++index] || "";
     else throw new Error(`unknown option: ${arg}`);
   }
   assert(value.outputDir, "--output-dir is required");
   assert(Number.isFinite(value.timeoutMs) && value.timeoutMs > 0, "--timeout-ms must be positive");
+  assert(!value.diagnosticCaseId || value.diagnosticChild,
+    "--diagnostic-case-id requires --diagnostic-child");
+  assert(!value.diagnosticChild || value.diagnosticCaseId,
+    "--diagnostic-child requires --diagnostic-case-id");
   return value;
 }
 

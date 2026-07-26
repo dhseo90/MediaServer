@@ -3,11 +3,16 @@
 
 import {
   bindDashboardRuntimeTrendBaseline,
+  buildEventDomSemanticCompositeEvidence,
   containsForbiddenResponseMaterial,
   containsForbiddenStructuredDomMaterial,
   dashboardRuntimeTrendSample,
   executeCatalogRuntimeOracle,
   executeCatalogRuntimeOracleAtSourceRoute,
+  evaluateRuntimeStatusPseudoFieldAssertion,
+  responsePseudoFieldValues,
+  selectEventDomResponseBaselines,
+  validateRuntimeAttributeOwners,
   validateClientRuntimeFixtureBindings,
   waitForClientVaOverlayProjection,
 } from "./v390_ui_exact_oracle_runtime.mjs";
@@ -15,6 +20,215 @@ import { usesEventExactRuntimeBindings } from "./v390_ui_case_runtime.mjs";
 import { captureEndpointOwnedResponseProjection } from "./v390_ui_native_adapter.mjs";
 
 const checks = [];
+
+await check("EVT DOM semantic composite distinguishes safe failure evidence without raw values", async () => {
+  const rawBaseline = "rtsp://baseline.invalid/live?token=raw-baseline-secret";
+  const rawCandidate = "https://candidate.invalid/source?credential=raw-candidate-secret";
+  const fixtureIdentity = "evt-003-credential-raw-fixture";
+  const matchingResponse = [{ sourceHealth: [{ status: rawBaseline }] }];
+  const matchingBaseline = { "sourceHealth[].status": rawBaseline };
+  const visibleObservation = {
+    count: 1,
+    visibleCount: 1,
+    text: `source health ${fixtureIdentity}`,
+    attributes: [],
+    values: [],
+    descendantCount: 1,
+  };
+
+  const domMissing = buildEventDomSemanticCompositeEvidence({
+    selector: "#dashHealthBadges",
+    observed: { ...visibleObservation, count: 0, visibleCount: 0 },
+    responseBodies: matchingResponse,
+    priorResponseByPath: matchingBaseline,
+    fixtureCandidates: [fixtureIdentity],
+    fixtureRequired: true,
+  });
+  assertCompositeFailure(domMissing, "observationPresent");
+
+  const baselineMismatch = buildEventDomSemanticCompositeEvidence({
+    selector: "#dashHealthBadges",
+    observed: visibleObservation,
+    responseBodies: [{ sourceHealth: [{ status: rawCandidate }] }],
+    priorResponseByPath: matchingBaseline,
+    fixtureCandidates: [fixtureIdentity],
+    fixtureRequired: true,
+  });
+  assertCompositeFailure(baselineMismatch, "responseBaselineMatched");
+  assert(baselineMismatch.responseBaselineMatched.mismatchPaths.join("|") === "sourceHealth[].status",
+    "response baseline mismatch path evidence is missing");
+
+  const fixtureMismatch = buildEventDomSemanticCompositeEvidence({
+    selector: "#dashRootCauseList [data-incident-unit]",
+    observed: { ...visibleObservation, text: "source health without fixture identity" },
+    responseBodies: matchingResponse,
+    priorResponseByPath: matchingBaseline,
+    fixtureCandidates: [fixtureIdentity],
+    fixtureRequired: true,
+  });
+  assertCompositeFailure(fixtureMismatch, "fixtureObserved");
+
+  for (const evidence of [domMissing, baselineMismatch, fixtureMismatch]) {
+    const serialized = JSON.stringify(evidence);
+    for (const raw of [rawBaseline, rawCandidate, fixtureIdentity]) {
+      assert(!serialized.includes(raw), "composite evidence exposed raw material");
+    }
+    assert(!serialized.includes("raw-baseline-secret") &&
+      !serialized.includes("raw-candidate-secret") &&
+      !serialized.includes("credential-raw-fixture"),
+    "composite error evidence exposed a raw secret, URL, or credential value");
+    assertCompositeDigestsAreSha256(evidence);
+  }
+});
+
+await check("EVT-003 source-health baseline is row-local to the acceptance-owned source", async () => {
+  const sourceId = "39065003";
+  const baseline = {
+    schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+    collectionPath: "sourceHealth",
+    identityPaths: ["sourceId", "id"],
+    identityValue: sourceId,
+    projectionPaths: ["status", "reason"],
+    expectedProjection: {
+      status: "offline",
+      reason: "acceptance-owned-source-unavailable",
+    },
+  };
+  const observed = {
+    count: 1,
+    visibleCount: 1,
+    text: "source health offline",
+    attributes: [],
+    values: [],
+    descendantCount: 1,
+  };
+  const evidenceFor = sourceHealth => buildEventDomSemanticCompositeEvidence({
+    selector: "#dashHealthBadges",
+    observed,
+    responseBodies: [{ sourceHealth }],
+    priorResponseByPath: {
+      "sourceHealth[].status": baseline,
+    },
+    fixtureCandidates: [sourceId],
+    fixtureRequired: false,
+  });
+  const selected = selectEventDomResponseBaselines("sourceHealth[].status", {
+    priorResponseByPath: {
+      sourceHealth: [{ sourceId: "unrelated" }],
+      "sourceHealth[].status": ["unrelated-status"],
+    },
+    domResponseBaselineByTarget: {
+      "sourceHealth[].status": baseline,
+    },
+  });
+  assert(Object.keys(selected).join("|") === "sourceHealth[].status" &&
+    selected["sourceHealth[].status"] === baseline,
+  "EVT-003 DOM assertion did not select only its row-local target baseline");
+
+  const unrelatedDrift = evidenceFor([
+    { sourceId, status: "offline", reason: "acceptance-owned-source-unavailable" },
+    { sourceId: "9001", status: "online", reason: "unrelated-source-drifted" },
+  ]);
+  assert(unrelatedDrift.pass === true,
+    "unrelated source-health drift invalidated the EVT-003 row-local baseline");
+  const rowEvidence = unrelatedDrift.responseBaselineMatched.paths[0];
+  assert(rowEvidence.bindingMode === "row-local-identity-projection" &&
+    /^[0-9a-f]{64}$/.test(rowEvidence.identityDigest) &&
+    /^[0-9a-f]{64}$/.test(rowEvidence.projectionPathsDigest),
+  "EVT-003 row-local binding evidence is incomplete");
+
+  const statusDrift = evidenceFor([
+    { sourceId, status: "online", reason: "acceptance-owned-source-unavailable" },
+  ]);
+  assertCompositeFailure(statusDrift, "responseBaselineMatched");
+
+  const reasonDrift = evidenceFor([
+    { sourceId, status: "offline", reason: "unexpected-reason" },
+  ]);
+  assertCompositeFailure(reasonDrift, "responseBaselineMatched");
+
+  const fixtureMissing = evidenceFor([
+    { sourceId: "9001", status: "offline", reason: "acceptance-owned-source-unavailable" },
+  ]);
+  assertCompositeFailure(fixtureMissing, "responseBaselineMatched");
+  assert(fixtureMissing.responseBaselineMatched.paths[0].compared === false,
+    "missing EVT-003 source row was not distinguished from a compared projection");
+
+  const serialized = JSON.stringify({
+    unrelatedDrift,
+    statusDrift,
+    reasonDrift,
+    fixtureMissing,
+  });
+  for (const raw of [
+    sourceId,
+    "acceptance-owned-source-unavailable",
+    "unrelated-source-drifted",
+    "unexpected-reason",
+  ]) {
+    assert(!serialized.includes(raw), "EVT-003 row-local evidence exposed a raw identity or value");
+  }
+});
+
+await check("response pseudo-fields include status and reject an invalid status assertion", async () => {
+  const body = { ok: true };
+  assert(JSON.stringify(responsePseudoFieldValues({ body, contentType: "application/json", status: 201 }, "$body")) === JSON.stringify([JSON.stringify(body)]),
+    "$body pseudo-field mismatch");
+  assert(responsePseudoFieldValues({ body, contentType: "application/json", status: 201 }, "$text")[0].includes('"ok":true'),
+    "$text pseudo-field mismatch");
+  assert(responsePseudoFieldValues({ body, contentType: "application/json", status: 201 }, "$contentType")[0] === "application/json",
+    "$contentType pseudo-field mismatch");
+  assert(responsePseudoFieldValues({ body, contentType: "application/json", status: 201 }, "$status")[0] === 201,
+    "$status pseudo-field mismatch");
+  assert(evaluateRuntimeStatusPseudoFieldAssertion({ path: "$status", operator: "equals", expected: 201 }, 201, { caseId: "EVT-CONTRACT" }).pass,
+    "$status exact assertion did not pass");
+  assert(!evaluateRuntimeStatusPseudoFieldAssertion({ path: "$status", operator: "equals", expected: 201 }, 500, { caseId: "EVT-CONTRACT" }).pass,
+    "$status exact assertion accepted the wrong status");
+});
+
+await check("GET response correlation, debug leaf policy, and nested attribute owners fail closed", async () => {
+  const uncorrelated = eventBrowser();
+  uncorrelated.setCorrelationId = async () => {};
+  await expectReject(() => executeCatalogRuntimeOracle({
+    browser: uncorrelated,
+    item: exactItem("EVT-001", "/ops/dashboard"),
+    fixtureId: "runtime-contract-event",
+    correlationId: "EVT-001:contract",
+  }), "exact GET response correlation mismatch");
+
+  await expectReject(() => executeCatalogRuntimeOracle({
+    browser: eventBrowser({ body: { ...eventBody(), debugCounters: { activeRequests: "two" } } }),
+    item: exactItem("EVT-001", "/ops/dashboard"),
+    fixtureId: "runtime-contract-event",
+    correlationId: "EVT-001:contract",
+  }), "response field policy requires a finite numeric or typed string leaf");
+  await expectReject(() => executeCatalogRuntimeOracle({
+    browser: eventBrowser({ body: { ...eventBody(), debugCounters: {
+      activeRequests: 2,
+      unexpectedMaterial: "rtsp://secret.example/live",
+    } } }),
+    item: exactItem("EVT-001", "/ops/dashboard"),
+    fixtureId: "runtime-contract-event",
+    correlationId: "EVT-001:contract",
+  }), "response field policy requires a finite numeric or typed string leaf");
+
+  const ownerBrowser = {
+    evaluate: async source => String(source).includes("[data-event-review-row]")
+      ? [{ "data-event-id": "evt-owner" }]
+      : [{ "data-testid": "event-review-item" }],
+  };
+  const ownerAssertion = {
+    attributeOwners: [
+      { selector: "[data-event-review-row]", attributes: [{ name: "data-event-id", value: "{fixtureId}" }] },
+      { selector: "[data-testid=event-review-item]", attributes: [{ name: "data-testid", value: "event-review-item" }] },
+    ],
+  };
+  const evidence = await validateRuntimeAttributeOwners(ownerBrowser, { caseId: "EVT-030" }, ownerAssertion, { fixtureId: "evt-owner" });
+  assert(evidence.length === 2, "nested selector attribute owners were not evaluated independently");
+  await expectReject(() => validateRuntimeAttributeOwners({
+    evaluate: async () => [{ "data-testid": "event-review-item" }],
+  }, { caseId: "EVT-030" }, ownerAssertion, { fixtureId: "evt-owner" }), "exact DOM attribute owner mismatch");
+});
 
 await check("EVT-001 actual response counts and DOM projections pass", async () => {
   const browser = eventBrowser();
@@ -924,7 +1138,7 @@ await check("CLIENT fixture materialization binds assigned and blocked views ind
   }), "forbidden response value observed");
 });
 
-await check("SAFE DOM property and external capability boundaries are enforced", async () => {
+await check("SAFE DOM structure/material and external capability boundaries are enforced", async () => {
   const makeBrowser = ({ domText = "payloadPreview deliveryAttempted=false", network = [] } = {}) => fakeBrowser({
     route: "/ops",
     status: 200,
@@ -942,8 +1156,11 @@ await check("SAFE DOM property and external capability boundaries are enforced",
     correlationId: "SAFE-042:contract",
   });
   const result = await execute(makeBrowser());
-  assert(result.dom.some(item => item.propertyEvidence.length > 0), "SAFE property assertion was not executed");
-  await expectReject(() => execute(makeBrowser({ domText: "payloadPreview" })), "exact DOM property assertion failed");
+  assert(result.dom.some(item => item.selector === '[data-testid="ops-home-page"]' && item.count === 1),
+    "SAFE route-local DOM structure assertion was not executed");
+  await expectReject(() => execute(makeBrowser({
+    domText: "payloadPreview deliveryAttempted=false endpointSecret=live-secret",
+  })), "forbidden DOM material observed");
   await expectReject(() => execute(makeBrowser({
     network: [{ phase: "request-start", method: "POST", url: "https://example.invalid/webhook/delivery" }],
   })), "forbidden external capability request observed");
@@ -957,7 +1174,8 @@ await check("CLIENT control sequence binds POST session id to DELETE and DOM his
     bindings: { assignedViewId: "9001" },
     correlationId: "CLIENT-020:contract",
   });
-  assert(result.interaction.propertyHistory.ariaLabelSequence.join("|") === "정지|재생|정지",
+  assert(result.interaction.propertyHistory.ariaLabelSequence.join("|") ===
+    "타일 1 정지|타일 1 재생|타일 1 정지",
     "CLIENT-020 aria-label sequence mismatch");
   assert(result.responses.some(item => item.method === "DELETE" && item.urlPath.endsWith("/live-session-1")),
     "CLIENT-020 DELETE was not rebound to the created session ID");
@@ -1202,6 +1420,11 @@ function primaryControlItem(selector, route) {
 function eventBody({ activeSessions = 2 } = {}) {
   return {
     ok: true,
+    debugCounters: {
+      activeRequests: 2,
+      completedRequests: 4,
+      analysisTapReuseKey: "profile:test|stream:test",
+    },
     sessionManager: {
       activeSessions,
       activeAnalysisTaps: 1,
@@ -1226,13 +1449,16 @@ function eventBrowser({ status = 200, body = eventBody(), domText = {}, network 
 
 function coreBrowser({ attributes = [{ "data-testid": "ops-home-page" }] } = {}) {
   const body = '<section class="ops-workspace-home" data-testid="ops-home-page">AppendOpsHomePage</section>';
-  return fakeBrowser({
+  return {
+    ...fakeBrowser({
     route: "/ops/home",
     status: 200,
     body,
     texts: { '[data-testid="ops-home-page"]': "ops-workspace-home" },
     attributes: { '[data-testid="ops-home-page"]': attributes },
-  });
+    }),
+    runtimeCorrelationOptionalForContract: true,
+  };
 }
 
 function authMutationBrowser() {
@@ -1264,16 +1490,39 @@ function clientLiveBrowser(body) {
 function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observations = {}, network = [] }) {
   const entries = [...network];
   let networkReads = 0;
+  let correlationId = "";
+  let requestSequence = 0;
   return {
     networkEntries: () => (++networkReads === 1 ? [] : entries),
-    setCorrelationId: async () => {},
+    setCorrelationId: async value => { correlationId = String(value || ""); },
     waitForSelector: async () => {},
     snapshot: async selector => ({ exists: true, visible: true, disabled: false, selector }),
     click: async () => {},
     waitForNetworkQuiet: async () => {},
     evaluate: async script => {
       if (script === "location.pathname") return route;
-      if (String(script).startsWith("fetch(")) return { status, text: typeof body === "string" ? body : JSON.stringify(body), json: typeof body === "object" ? body : null, contentType: typeof body === "object" ? "application/json" : "text/html" };
+      if (String(script).startsWith("fetch(")) {
+        const source = String(script);
+        const path = source.match(/^fetch\(("(?:[^"\\]|\\.)*")/s)?.[1];
+        const method = source.match(/method:\s*"([A-Z]+)"/)?.[1] || "GET";
+        const url = path ? JSON.parse(path) : "/contract-fetch-path-missing";
+        const requestId = `contract-request-${++requestSequence}`;
+        entries.push({
+          phase: "request-start",
+          requestId,
+          correlationId,
+          method,
+          url: `http://runtime.invalid${url}`,
+        }, {
+          phase: "response",
+          requestId,
+          correlationId,
+          method,
+          url: `http://runtime.invalid${url}`,
+          status,
+        });
+        return { status, text: typeof body === "string" ? body : JSON.stringify(body), json: typeof body === "object" ? body : null, contentType: typeof body === "object" ? "application/json" : "text/html" };
+      }
       const selector = [...Object.keys(observations), ...Object.keys(texts), ...Object.keys(attributes)].find(value => String(script).includes(JSON.stringify(value)));
       const observation = selector ? observations[selector] : null;
       return {
@@ -1293,7 +1542,7 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
 function clientSequenceBrowser() {
   const entries = [];
   let clickCount = 0;
-  let state = { ariaLabel: "재생", paused: true };
+  let state = { ariaLabel: "타일 1 재생", paused: true };
   const response = (method, path, body) => entries.push({
     phase: "response",
     method,
@@ -1310,16 +1559,16 @@ function clientSequenceBrowser() {
     click: async () => {
       clickCount += 1;
       if (clickCount === 1) {
-        state = { ariaLabel: "정지", paused: false };
+        state = { ariaLabel: "타일 1 정지", paused: false };
         response("POST", "/client/api/views/9001/webrtc/session", { sessionId: "live-session-1" });
       } else if (clickCount === 2) {
-        state = { ariaLabel: "재생", paused: true };
+        state = { ariaLabel: "타일 1 재생", paused: true };
         response("DELETE", "/client/api/views/9001/webrtc/session/live-session-1", { ok: true });
       } else if (clickCount === 3) {
-        state = { ariaLabel: "정지", paused: false };
+        state = { ariaLabel: "타일 1 정지", paused: false };
         response("POST", "/client/api/views/9001/webrtc/session", { sessionId: "live-session-2" });
       } else {
-        state = { ariaLabel: "재생", paused: true };
+        state = { ariaLabel: "타일 1 재생", paused: true };
         response("DELETE", "/client/api/views/9001/webrtc/session/live-session-2", { ok: true });
       }
     },
@@ -1344,6 +1593,32 @@ async function expectReject(fn, message) {
   let error = "";
   try { await fn(); } catch (caught) { error = String(caught?.message || caught); }
   assert(error.includes(message), `expected rejection '${message}', got '${error}'`);
+}
+
+function assertCompositeFailure(evidence, expectedCause) {
+  assert(evidence.pass === false, `${expectedCause} composite failure unexpectedly passed`);
+  assert(evidence.error?.code === "EVT_DOM_SEMANTIC_COMPOSITE_FAILED",
+    `${expectedCause} structured error code is missing`);
+  assert(evidence.failedChecks.length === 1 && evidence.failedChecks[0] === expectedCause,
+    `${expectedCause} was not isolated in structured failure evidence`);
+  assert(evidence.error.causes.length === 1 && evidence.error.causes[0] === expectedCause,
+    `${expectedCause} structured error cause is ambiguous`);
+}
+
+function assertCompositeDigestsAreSha256(evidence) {
+  const sha256 = /^[0-9a-f]{64}$/;
+  assert(sha256.test(evidence.observationPresent.selectorDigest) &&
+    sha256.test(evidence.observationPresent.textDigest) &&
+    sha256.test(evidence.fixtureObserved.observationDigest),
+  "observation/fixture evidence digest is not SHA-256");
+  for (const pathEvidence of evidence.responseBaselineMatched.paths) {
+    assert(sha256.test(pathEvidence.baselineDigest) &&
+      pathEvidence.candidateDigests.every(digest => sha256.test(digest)),
+    `response baseline evidence digest is not SHA-256: ${pathEvidence.path}`);
+  }
+  assert(evidence.fixtureObserved.candidateDigests.every(digest => sha256.test(digest)) &&
+    evidence.fixtureObserved.matchedCandidateDigests.every(digest => sha256.test(digest)),
+  "fixture identity evidence digest is not SHA-256");
 }
 
 async function check(name, fn) {

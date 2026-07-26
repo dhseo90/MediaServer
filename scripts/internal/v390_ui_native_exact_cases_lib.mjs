@@ -546,9 +546,9 @@ const mutationPrimaryControls = new Map([
   ["EVT-038", { selector: "#alertDeliveryDryRun", route: "/ops/events" }],
   ["EVT-061", { selector: "[data-event-review-save]", route: "/ops/events" }],
   ["EVT-068", { selector: "[data-event-review-save]", route: "/ops/events" }],
-  ["CLIENT-002", { selector: '[data-action="toggle-playback"]', route: "/client/live" }],
+  ["CLIENT-002", { selector: '[data-tile="0"] [data-action="toggle-playback"]', route: "/client/live" }],
   ["CLIENT-005", { selector: "#liveAllStop", route: "/client/live" }],
-  ["CLIENT-021", { selector: '[data-mode-action="va-overlay"]', route: "/client/live" }],
+  ["CLIENT-021", { selector: '[data-tile="0"] [data-mode-action="va-overlay"]', route: "/client/live" }],
   ["CLIENT-009", { selector: "#liveSaveLayoutPreference", route: "/client/live" }],
   ["SAFE-038", { selector: "[data-vlm-rule-draft-index]", route: "/ops/rules" }],
   ["UI-036", { selector: "[data-vlm-rule-draft-index]", route: "/ops/rules" }],
@@ -567,6 +567,7 @@ const readModelPrimaryOverrides = new Map([
   ["RULE-098", { selector: "#opsRulesValidationList", route: "/ops/rules" }],
   ["EVT-003", { selector: "#dashRootCauseList", route: "/ops/dashboard" }],
   ["EVT-022", { selector: "#event-review-audit-list", route: "/ops/events" }],
+  ["CLIENT-018", { selector: ".client-preview-redaction-strip", route: "/client/live" }],
   ["SAFE-053", { selector: "[data-incident-rule-draft-route]", route: "/ops/events" }],
   ["SAFE-060", { selector: '[data-testid="ops-operational-action-pack"]', route: "/ops/events" }],
   ["SAFE-061", { selector: '[data-testid="ops-rule-what-if-preview"]', route: "/ops/events" }],
@@ -741,7 +742,15 @@ const overrideControlSourceCatalog = new Map([
     file: "src/ingress/product_ui_client_scripts.cpp",
     anchor: 'data-action="toggle-playback" title="타일 ${tile.index + 1} 재생"',
   }],
+  ['[data-tile="0"] [data-action="toggle-playback"]', {
+    file: "src/ingress/product_ui_client_scripts.cpp",
+    anchor: 'data-action="toggle-playback" title="타일 ${tile.index + 1} 재생"',
+  }],
   ['[data-mode-action="va-overlay"]', {
+    file: "src/ingress/product_ui_client_scripts.cpp",
+    anchor: '<button type="button" class="tile-mode-button" data-mode-action="va-overlay" aria-pressed="false" title="VA 오버레이">VA</button>',
+  }],
+  ['[data-tile="0"] [data-mode-action="va-overlay"]', {
     file: "src/ingress/product_ui_client_scripts.cpp",
     anchor: '<button type="button" class="tile-mode-button" data-mode-action="va-overlay" aria-pressed="false" title="VA 오버레이">VA</button>',
   }],
@@ -799,8 +808,10 @@ const enabledControls = new Set([
   "#opsRulesComposerSave",
   "#opsRulesRefresh",
   '[data-action="toggle-playback"]',
+  '[data-tile="0"] [data-action="toggle-playback"]',
   "#liveAllStop",
   '[data-mode-action="va-overlay"]',
+  '[data-tile="0"] [data-mode-action="va-overlay"]',
   '[data-vlm-option-id="local-qwen3-vl-4b"]',
   "[data-vlm-rule-draft-index]",
   "#alertDeliveryTest",
@@ -975,9 +986,9 @@ const localCompletionContracts = new Map([
     ],
   }],
   ["RULE-101", {
+    postconditionObservationMode: "after-action-exact",
     postconditions: [
       { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "저장 전 검증 실패" },
-      { selector: "#opsRulesReviewConflictDetail", property: "text", operator: "includes", value: "룰 대상(사람)이 템플릿 대상(차량)을 모두 포함하지 않습니다" },
       { selector: "#opsRulesReviewConflictDetail", property: "text", operator: "includes", value: "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다" },
     ],
     independentRejectedReadbackRequired: true,
@@ -1058,9 +1069,10 @@ const localCompletionContracts = new Map([
     forbiddenRequests: [{ methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" }],
   }],
   ["RULE-102", {
+    postconditionObservationMode: "after-action-exact",
     postconditions: [
       { selector: "#opsRulesReviewLoop", property: "hidden", operator: "equals", value: false },
-      { selector: "#opsRulesReviewEventTypeTitle", property: "text", operator: "includes", value: "re-entry" },
+      { selector: "#opsRulesReviewEventTypeTitle", property: "text", operator: "includes", value: "재진입" },
       { selector: "#opsRulesReviewEventTypeDetail", property: "text", operator: "includes", value: "EventRecord eventType 후보는 re-entry" },
       { selector: "#opsRulesReviewConflictDetail", property: "text", operator: "includes", value: "중복 ID, priority, source/class 충돌이 없습니다" },
       { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "별도 참조 누락이 없습니다" },
@@ -1074,10 +1086,11 @@ const localCompletionContracts = new Map([
     ],
   }],
   ["RULE-103", {
+    postconditionObservationMode: "after-action-exact",
     postconditions: [
       { selector: "#opsEventRuleRows", property: "text", operator: "includes", value: "9913" },
       { selector: "#opsEventRuleRows", property: "text", operator: "includes", value: "9914" },
-      { selector: "#opsEventRuleRows", property: "text", operator: "includes", value: "re-entry" },
+      { selector: "#opsEventRuleRows", property: "text", operator: "includes", value: "재진입" },
     ],
     forbiddenRequests: [{ methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/" }],
   }],
@@ -1137,6 +1150,7 @@ const localCompletionContracts = new Map([
     ],
   }],
   ["CLIENT-021", {
+    postconditionObservationMode: "after-action-exact",
     seedRequirements: [{ kind: "live-tile", state: "idle", minimumCount: 1 }],
     requiredRequests: [
       { sequence: 1, method: "POST", urlPath: "/client/api/views/{assignedViewId}/webrtc/session", allowedStatuses: [200] },

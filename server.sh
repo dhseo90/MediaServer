@@ -194,6 +194,10 @@ Usage:
                  V390-REVIEW2-27 stale placeholder/current UI evidence binding 제거를 검증합니다.
   run-v390-ui-native-exact-cases
                  V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
+  run-v390-ui-native-diagnostic-sweep
+                 내부 전용: RULE-097 이후 144개 actual UI 진단 sweep을 release evidence와 분리해 실행합니다.
+  verify-v390-ui-native-diagnostic-sweep-contract
+                 내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
   verify-ui-fulltest-evidence-policy-v4
                  V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
   verify-ui-fulltest-evidence-policy-v4-contract
@@ -482,6 +486,10 @@ Usage:
                  V390-REVIEW2-27 stale placeholder/current UI evidence binding 제거를 검증합니다.
   run-v390-ui-native-exact-cases
                  V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
+  run-v390-ui-native-diagnostic-sweep
+                 내부 전용: RULE-097 이후 144개 actual UI 진단 sweep을 release evidence와 분리해 실행합니다.
+  verify-v390-ui-native-diagnostic-sweep-contract
+                 내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
   verify-ui-fulltest-evidence-policy-v4
                  V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
   verify-ui-fulltest-evidence-policy-v4-contract
@@ -2391,6 +2399,14 @@ case "${cmd}" in
   run-v390-ui-native-exact-cases)
     require_internal run_v390_ui_native_exact_cases.mjs
     exec "${INTERNAL_DIR}/run_v390_ui_native_exact_cases.mjs" "$@"
+    ;;
+  run-v390-ui-native-diagnostic-sweep)
+    require_internal run_v390_ui_native_diagnostic_sweep.mjs
+    exec "${INTERNAL_DIR}/run_v390_ui_native_diagnostic_sweep.mjs" "$@"
+    ;;
+  verify-v390-ui-native-diagnostic-sweep-contract)
+    require_internal verify_v390_ui_native_diagnostic_sweep_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_diagnostic_sweep_contract.mjs" "$@"
     ;;
   verify-ui-fulltest-evidence-policy-v4)
     require_internal verify_ui_fulltest_evidence_policy_v4.mjs

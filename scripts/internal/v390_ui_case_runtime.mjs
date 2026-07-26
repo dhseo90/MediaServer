@@ -76,8 +76,66 @@ const eventExactRuntimeBindingCaseIds = new Set([
   "EVT-067", "EVT-069", "EVT-070", "EVT-071", "EVT-072", "EVT-075",
 ]);
 
+// EVT catalog의 seed.kind는 제품 read model에 필요한 상태 조합을 선언한다. 이 registry는
+// fixture 이름을 해석하는 heuristic을 금지하고, 각 kind가 어떤 저장소 join을 요구하는지
+// runtime owner에 한 곳으로 고정한다.
+export const eventExactSeedMaterializerRegistry = Object.freeze({
+  "runtime-session-and-tap": { eventRecords: 0 },
+  "source-health-state": { eventRecords: 0, sourceHealthReadback: true },
+  "diagnostic-log-marker": { eventRecords: 0 },
+  "active-and-archived-event-records": { eventRecords: 2, archivedRecord: true, review: true },
+  "event-storage-status": { eventRecords: 1 },
+  "alert-delivery-integrations": { eventRecords: 0, alert: true },
+  "alert-delivery-form-input": { eventRecords: 0, alert: true, audit: true },
+  "event-record-and-review": { eventRecords: 1, review: true },
+  "event-review-with-evidence": { eventRecords: 1, review: true, evidence: true },
+  "event-and-baseline-review": { eventRecords: 1, review: true, audit: true },
+  "review-audit-actions": { eventRecords: 1, review: true, audit: true },
+  "published-view-event": { eventRecords: 1, review: true },
+  "stable-runtime-baseline": { eventRecords: 0 },
+  "source-and-channel": { eventRecords: 1, sourceHealth: true },
+  "va-tap-and-event": { eventRecords: 1 },
+  "event-evidence-and-vlm-sidecar": { eventRecords: 1, review: true, vlm: true, evidence: true },
+  "matching-and-missing-vlm-sidecars": { eventRecords: 2, review: true, vlm: true, related: true },
+  "vlm-explanation": { eventRecords: 1, review: true, vlm: true },
+  "vlm-rule-suggestion-sidecar": { eventRecords: 1, review: true, vlm: true },
+  "alert-delivery-dry-run": { eventRecords: 1, review: true, alert: true, audit: true },
+  "searchable-event-review": { eventRecords: 1, review: true },
+  "five-stage-incident-timeline": { eventRecords: 1, review: true, alert: true, audit: true, sourceHealth: true },
+  "incident-brief-slots": { eventRecords: 1, review: true },
+  "base-related-and-unrelated-incidents": { eventRecords: 3, review: true, related: true },
+  "vlm-summary-candidate-sidecar": { eventRecords: 1, review: true, vlm: true },
+  "matching-rule-suggestion-sidecar": { eventRecords: 1, review: true, vlm: true },
+  "dashboard-three-api-samples": { eventRecords: 1, sourceHealth: true },
+  "cross-zone-track-timeline": { eventRecords: 1, review: true },
+  "triage-lane-priority-fixtures": { eventRecords: 2, review: true, vlm: true, related: true },
+  "decision-scorecard-evidence": { eventRecords: 1, review: true, vlm: true, sourceHealth: true },
+  "action-pack-evidence": { eventRecords: 1, review: true, vlm: true, alert: true, sourceHealth: true },
+  "matching-rule-suggestion": { eventRecords: 1, review: true, vlm: true },
+  "review-outcome-history": { eventRecords: 2, review: true, audit: true, related: true },
+  "four-readiness-states": { eventRecords: 2, review: true, vlm: true, related: true },
+  "staged-rule-draft-candidate": { eventRecords: 1, review: true, vlm: true },
+  "field-evidence-readiness-states": { eventRecords: 2, review: true, vlm: true, related: true },
+  "incident-runtime-window": { eventRecords: 1, review: true },
+  "two-resolution-states": { eventRecords: 2, review: true, related: true },
+  "complete-and-incomplete-evidence": { eventRecords: 2, review: true, evidence: true, related: true },
+  "healthy-and-failed-source-events": { eventRecords: 2, review: true, sourceHealth: true, related: true },
+  "corrected-and-uncertain-review": { eventRecords: 1, review: true },
+  "event-and-baseline-resolution": { eventRecords: 1, review: true, audit: true },
+  "readiness-context-combinations": { eventRecords: 1, review: true, vlm: true, sourceHealth: true },
+  "filtered-resolution-search": { eventRecords: 1, review: true },
+  "source-failure-close-handoff": { eventRecords: 1, review: true, sourceHealth: true, audit: true },
+  "failed-and-healthy-recheck-candidates": { eventRecords: 2, review: true, sourceHealth: true, related: true },
+  "selected-command-handoff": { eventRecords: 1, review: true, sourceHealth: true, audit: true },
+});
+
 export function usesEventExactRuntimeBindings(caseId) {
   return eventExactRuntimeBindingCaseIds.has(String(caseId || ""));
+}
+
+export function eventExactUsesFixtureIdentityBaseline(operator) {
+  const value = String(operator || "");
+  return value.startsWith("contains-fixture") || value === "csv-contains-fixture";
 }
 
 // Oracle가 선언한 seed/fixture만 실제 runtime fixture로 물질화한다.
@@ -141,8 +199,10 @@ export function createV390UiCaseRuntime({
       relationshipFixture: null,
       exactRuntimeFixture: null,
       endpointActionFixture: null,
+      eventSourceHealthFixture: null,
       catalogBindings: {},
       transientSeedReadback: null,
+      eventExactSeedPrepared: false,
       prepared: false,
     };
     try {
@@ -150,6 +210,9 @@ export function createV390UiCaseRuntime({
         assert(descriptor, `${item.caseId} requires a self-contained runtime descriptor`);
         await prepareAuthFixture(item, context);
         await prepareEndpointActionFixture(item, context);
+        if (item.caseId.startsWith("EVT-")) {
+          await materializeEventExactSeed(item, context, exactRuntimeOracleFor(item.caseId));
+        }
         await preparePersistedFixture(item, context);
         if (["RULE-001", "RULE-002", "RULE-003"].includes(item.caseId)) {
           await seedRuleCatalogFixturesViaApi(
@@ -161,7 +224,7 @@ export function createV390UiCaseRuntime({
         } else if (ruleRelationshipFixtureCaseIds.has(item.caseId)) {
           await seedRuleRelationshipFixturesViaApi(item, context);
           context.transientStateSeeded = true;
-        } else if (["UI-036", "UI-046", "UI-053", "RULE-104", "RULE-111"].includes(item.caseId)) {
+        } else if (["UI-036", "UI-046", "UI-053", "RULE-104", "RULE-111", "SAFE-038"].includes(item.caseId)) {
           const observationPath = vlmObservationStoragePath(descriptor.eventStoragePath);
           context.snapshots.push(...snapshotStateFiles([observationPath]));
           if (["UI-046", "UI-053", "RULE-104"].includes(item.caseId)) {
@@ -199,7 +262,7 @@ export function createV390UiCaseRuntime({
         await seedRule103ReplayFixtures(item, context);
         context.transientStateSeeded = true;
       }
-      if (["UI-036", "RULE-111"].includes(item.caseId)) {
+      if (["UI-036", "RULE-111", "SAFE-038"].includes(item.caseId)) {
         const response = await requestEndpoint(
           "GET",
           "/ops/api/vlm/rule-suggestion-drafts?limit=10",
@@ -461,6 +524,9 @@ export function createV390UiCaseRuntime({
       activeCases.set(item.caseId, context);
       return context;
     } catch (error) {
+      if (context.eventSourceHealthFixture) {
+        await disableEvt003SourceHealthFixtureForTeardown(item, context);
+      }
       if (context.transientApiCleanup.length > 0) {
         await cleanupTransientApiSeeds(item, context);
       }
@@ -877,16 +943,39 @@ export function createV390UiCaseRuntime({
       },
     });
     const { cookie, whoami } = login;
-    assert(whoami.status === 200 && whoami.json?.role === role,
-      `fresh role whoami mismatch for ${role}: ${whoami.status}/${whoami.json?.role || ""}`);
+    assert(whoami.status === 200 && whoami.json?.authenticated === true &&
+      whoami.json?.username === username && whoami.json?.role === role,
+    `fresh role whoami mismatch for ${role}: ${whoami.status}/${whoami.json?.role || ""}`);
     if (role === "viewer") {
       const usersStore = JSON.parse(fs.readFileSync(descriptor.auth.usersFile, "utf8"));
       const expectedViewer = (usersStore.users || []).find(user => user.username === username);
       assert(expectedViewer?.role === "viewer", "fresh viewer account is unavailable in the authoritative store");
-      const expectedViewId = String(expectedViewer.viewId || "");
-      const observedViewId = String(whoami.json?.viewId || "");
-      assert(observedViewId === expectedViewId,
-        `fresh viewer assigned view mismatch: ${observedViewId}/${expectedViewId}`);
+      const expectedScopes = [...new Set((expectedViewer.scopes || []).map(String))].sort();
+      const observedScopes = [...new Set((whoami.json?.scopes || []).map(String))].sort();
+      assert(stableJson(observedScopes) === stableJson(expectedScopes),
+        `fresh viewer principal scopes differ from the authoritative store`);
+      const scopedViewIds = expectedScopes
+        .filter(scope => scope.startsWith("view:read:"))
+        .map(scope => scope.slice("view:read:".length))
+        .filter(Boolean);
+      assert(scopedViewIds.length === 1,
+        `fresh viewer requires exactly one authoritative view scope: ${scopedViewIds.length}`);
+      const storedViewId = String(expectedViewer.viewId || "");
+      const expectedViewId = storedViewId || scopedViewIds[0];
+      assert(!storedViewId || storedViewId === scopedViewIds[0],
+        "fresh viewer stored viewId differs from the authoritative view scope");
+      const views = await requestJson(`${httpBase}/client/api/views`, { cookie });
+      const visibleViews = Array.isArray(views.json?.views) ? views.json.views : [];
+      assert(views.status === 200 && visibleViews.length === 1 &&
+        String(visibleViews[0]?.viewId || "") === expectedViewId,
+      `fresh viewer assigned view list mismatch for ${expectedViewId}`);
+      const detail = await requestJson(
+        `${httpBase}/client/api/views/${encodeURIComponent(expectedViewId)}`,
+        { cookie },
+      );
+      assert(detail.status === 200 &&
+        String(detail.json?.view?.viewId || "") === expectedViewId,
+      `fresh viewer assigned view detail mismatch for ${expectedViewId}`);
     }
     const storagePath = path.join(descriptor.temporaryRoot, "role-states", `${safeName(label)}-${role}.json`);
     fs.mkdirSync(path.dirname(storagePath), { recursive: true });
@@ -922,6 +1011,15 @@ export function createV390UiCaseRuntime({
 
   async function restoreCase(item, caseContext, browser = null) {
     assert(caseContext?.prepared === true, `${item.caseId} case runtime was not prepared`);
+    if (caseContext.eventSourceHealthFixture) {
+      const readback = await disableEvt003SourceHealthFixtureForTeardown(item, caseContext);
+      caseContext.cleanupResults.push({
+        cleanupId: `${item.caseId}:source-health-registry-disable`,
+        status: "PASS",
+        source: "soft-disable-readback-before-isolated-runtime-teardown",
+        readback,
+      });
+    }
     for (const cleanup of item.workflow.cleanup || []) {
       if (["no-op-cleanup", "reset-local-ui-route", "restore-local-control"].includes(cleanup.kind)) continue;
       assert(["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind),
@@ -989,6 +1087,66 @@ export function createV390UiCaseRuntime({
         await cleanupTransientApiSeeds(item, caseContext);
       }
       restoreStateFiles(caseContext.snapshots);
+      const mutationEventIds = new Set(["EVT-021", "EVT-037", "EVT-038", "EVT-061", "EVT-068"]);
+      if (mutationEventIds.has(item.caseId)) {
+        for (const eventId of caseContext.catalogBindings.eventIds || []) {
+          await requestEndpoint(
+            "GET",
+            `/ops/api/events/reviews/${encodeURIComponent(eventId)}`,
+            null,
+            item,
+            caseContext,
+            [404],
+            { freshRole: true, roleOverride: "operator" },
+          );
+          const audit = await requestEndpoint(
+            "GET",
+            `/ops/api/audit?eventId=${encodeURIComponent(eventId)}`,
+            null,
+            item,
+            caseContext,
+            [200],
+            { freshRole: true, roleOverride: "operator" },
+          );
+          const entries = Array.isArray(audit.json?.entries) ? audit.json.entries : [];
+          assert(!entries.some(entry => String(entry?.eventId || entry?.targetId || "") === eventId),
+            `${item.caseId} mutation audit fixture remains after snapshot cleanup`);
+        }
+        caseContext.cleanupResults.push({
+          cleanupId: `${item.caseId}:mutation-api-readback`,
+          status: "PASS",
+          source: "fresh-review-and-audit-api-readback-after-snapshot-restore",
+        });
+      }
+      const alertIds = caseContext.catalogBindings.alertIds || [];
+      if (alertIds.length > 0) {
+        const alertReadback = await requestEndpoint(
+          "GET",
+          "/ops/api/alerts/deliveries",
+          null,
+          item,
+          caseContext,
+          [200],
+          { freshRole: true, roleOverride: "operator" },
+        );
+        const integrations = Array.isArray(alertReadback.json?.integrations)
+          ? alertReadback.json.integrations
+          : [];
+        const attempts = Array.isArray(alertReadback.json?.attempts)
+          ? alertReadback.json.attempts
+          : [];
+        for (const alertId of alertIds) {
+          assert(!integrations.some(value => String(value?.id || "") === alertId),
+            `${item.caseId} alert delivery fixture remains after snapshot cleanup`);
+          assert(!attempts.some(value => String(value?.deliveryId || value?.id || "") === alertId),
+            `${item.caseId} alert delivery attempt remains after snapshot cleanup`);
+        }
+        caseContext.cleanupResults.push({
+          cleanupId: `${item.caseId}:alert-api-readback`,
+          status: "PASS",
+          source: "fresh-alert-list-api-readback-after-snapshot-restore",
+        });
+      }
       caseContext.cleanupResults.push({
         cleanupId: `${item.caseId}:restore-transient-state`,
         status: "PASS",
@@ -1493,6 +1651,9 @@ export function createV390UiCaseRuntime({
 
   async function prepareCatalogRuntimeFixture(item, context) {
     const spec = exactRuntimeOracleFor(item.caseId);
+    if (item.caseId.startsWith("EVT-") && !context.eventExactSeedPrepared) {
+      await materializeEventExactSeed(item, context, spec);
+    }
     const fixturePlan = runtimeFixturePlanFor(spec);
     if (fixturePlan.length > 0) {
       await materializeExactRuntimeFixturePlan(item, context, spec, fixturePlan);
@@ -1505,7 +1666,12 @@ export function createV390UiCaseRuntime({
     const eventFixture = item.caseId.startsWith("EVT-") || fixtureNames.some(name =>
       /(?:event|incident|review|rule-suggestion|vlm-summary|resolution)/i.test(String(name)));
     if (!spec || !eventFixture) return;
-    if (item.caseId.startsWith("EVT-") && !usesEventExactRuntimeBindings(item.caseId)) return;
+    if (item.caseId.startsWith("EVT-")) {
+      if (usesEventExactRuntimeBindings(item.caseId)) {
+        await captureEventExactRuntimeBindings(item, context, spec);
+      }
+      return;
+    }
     if (!item.caseId.startsWith("EVT-") &&
         !["/ops/events", "/client/events", "/client/live"].includes(spec.route)) return;
     const eventPath = descriptor?.eventStoragePath;
@@ -1596,6 +1762,416 @@ export function createV390UiCaseRuntime({
     }
   }
 
+  async function materializeEventExactSeed(item, context, spec) {
+    assert(!context.eventExactSeedPrepared,
+      `${item.caseId} exact event seed materializer ran more than once`);
+    const kind = String(spec?.seed?.kind || "");
+    const plan = eventExactSeedMaterializerRegistry[kind];
+    assert(plan, `${item.caseId} exact event seed.kind is not registered: ${kind}`);
+    const eventPath = descriptor?.eventStoragePath;
+    assert(eventPath, `${item.caseId} EventRecord storage is unavailable`);
+    const observationPath = vlmObservationStoragePath(eventPath);
+    if (!context.snapshots.some(snapshot => snapshot.path === path.resolve(observationPath))) {
+      context.snapshots.push(...snapshotStateFiles([observationPath]));
+    }
+
+    const source = plan.sourceHealthReadback
+      ? await materializeEvt003SourceHealthFixture(item, context)
+      : defaultPublishedSourceIdentity(descriptor);
+    const searchQuery = String((item.workflow.inputs || []).find(input =>
+      input.kind === "literal-control-value" && typeof input.actualValue === "string")?.actualValue || context.fixtureId);
+    const eventIds = [];
+    const eventCount = Number(plan.eventRecords || 0);
+    if (plan.sourceHealthReadback) {
+      assert(item.caseId === "EVT-003" && eventCount === 0 && plan.sourceHealth !== true,
+        `${item.caseId} source-health readback cannot be represented by EventRecord metadata`);
+    }
+    for (let index = 0; index < eventCount; index += 1) {
+      const eventId = index === 0
+        ? context.fixtureId
+        : `${context.fixtureId}-${plan.related ? "related" : "state"}-${index}`;
+      eventIds.push(eventId);
+      const existing = fs.existsSync(eventPath) &&
+        fs.readFileSync(eventPath, "utf8").includes(`\"eventId\":\"${eventId}\"`);
+      assert(!existing, `${item.caseId} exact event seed already exists: ${eventId}`);
+      seedEventRecordFixture(eventPath, {
+        eventId,
+        sourceId: source.sourceId,
+        streamId: source.streamId,
+        status: index === 1 && plan.archivedRecord ? "archived" : "open",
+        eventType: index === 1 && plan.related ? "related-incident" : "presence",
+        scenarioName: plan.related ? "review4-related-incident" : "review4-exact",
+        snapshotPath: plan.evidence ? `snapshots/${eventId}.jpg` : "",
+        clipPath: plan.evidence ? `clips/${eventId}.mp4` : "",
+        metadata: {
+          sourceId: source.sourceId,
+          seedKind: kind,
+          relatedTo: index > 0 && plan.related ? context.fixtureId : "",
+          sourceHealth: plan.sourceHealth ? "degraded" : "available",
+        },
+      });
+    }
+
+    const observations = [];
+    if (plan.vlm) {
+      for (const eventId of eventIds) {
+        observations.push(seedVlmRuleSuggestionFixture(observationPath, {
+          eventId,
+          sourceId: source.sourceId,
+          searchTerm: searchQuery,
+        }));
+      }
+    }
+
+    const reviewPayload = {
+      reviewStatus: plan.audit ? "reviewed" : "reviewing",
+      classification: plan.sourceHealth ? "needs-source-recheck" : "needs-review",
+      note: `REVIEW4 ${item.caseId} ${kind} acceptance-owned review fixture`,
+      incidentStatus: plan.sourceHealth ? "investigating" : "open",
+    };
+    let reviewStatus = 0;
+    let recordCount = 0;
+    if (plan.review && eventIds.length > 0) {
+      for (const eventId of eventIds) {
+        const review = await requestEndpoint(
+          "PUT",
+          `/ops/api/events/reviews/${encodeURIComponent(eventId)}`,
+          { ...reviewPayload, note: `${reviewPayload.note} ${eventId}` },
+          item,
+          context,
+          [200, 201],
+          { roleOverride: "operator" },
+        );
+        reviewStatus = review.status;
+      }
+    }
+
+    let alertIds = [];
+    if (plan.alert) {
+      const deliveryId = `${context.fixtureId}-delivery`;
+      const delivery = await requestEndpoint(
+        "POST",
+        "/ops/api/alerts/deliveries",
+        {
+          id: deliveryId,
+          kind: "webhook",
+          label: `REVIEW4 ${item.caseId} delivery`,
+          enabled: true,
+          endpoint: `https://invalid.example/${encodeURIComponent(deliveryId)}`,
+          endpointToken: `REVIEW4-${context.fixtureId}-ENDPOINT-TOKEN`,
+        },
+        item,
+        context,
+        [200, 201],
+        { roleOverride: "operator" },
+      );
+      assert(String(delivery.json?.delivery?.id || delivery.json?.id || "") === deliveryId,
+        `${item.caseId} alert delivery seed identity is missing from the authoritative write response`);
+      alertIds = [deliveryId];
+    }
+
+    if (["operator", "admin"].includes(item.accountRole) && eventIds.length > 0) {
+      const readback = await requestEndpoint(
+        "GET",
+        `/ops/api/events/reviews?eventId=${encodeURIComponent(context.fixtureId)}&limit=100`,
+        null,
+        item,
+        context,
+        [200],
+        { roleOverride: "operator" },
+      );
+      const records = Array.isArray(readback.json?.records) ? readback.json.records : [];
+      assert(records.some(record => String(record?.event?.eventId || record?.eventId || "") === context.fixtureId),
+        `${item.caseId} exact event seed is missing from the authoritative review join readback`);
+      recordCount = records.length;
+    }
+
+    context.catalogBindings = {
+      ...context.catalogBindings,
+      eventId: context.fixtureId,
+      eventIds,
+      seedKind: kind,
+      candidateId: String(observations[0]?.ruleSuggestion?.candidateId || `${context.fixtureId}-candidate`),
+      searchQuery,
+      sourceId: source.sourceId,
+      viewId: source.viewId || descriptor.auth?.defaultViewId || "9001",
+      alertIds,
+      sourceHealth: plan.sourceHealthReadback
+        ? source.status
+        : (plan.sourceHealth ? "degraded" : "available"),
+      ...(plan.sourceHealthReadback ? {
+        status: source.status,
+        reason: source.reason,
+        sourceHealthStatus: source.status,
+        sourceHealthReason: source.reason,
+      } : {}),
+    };
+    context.transientStateSeeded = context.transientStateSeeded || eventIds.length > 0 || observations.length > 0 || alertIds.length > 0;
+    context.transientSeedReadback = {
+      status: 200,
+      reviewStatus,
+      matchedFixture: eventIds.length === 0 || recordCount > 0,
+      recordCount,
+      seedKind: kind,
+      joins: {
+        eventRecords: eventIds.length,
+        review: Boolean(plan.review),
+        vlm: observations.length,
+        audit: Boolean(plan.audit),
+        alert: alertIds.length,
+        sourceHealth: Boolean(plan.sourceHealth),
+        sourceHealthReadback: Boolean(plan.sourceHealthReadback),
+        related: Boolean(plan.related),
+      },
+    };
+    context.eventExactSeedPrepared = true;
+  }
+
+  async function materializeEvt003SourceHealthFixture(item, context) {
+    assert(item.caseId === "EVT-003", `${item.caseId} cannot own the EVT-003 source-health fixture`);
+    const baseline = defaultPublishedSourceIdentity(descriptor);
+    const defaultSourceId = String(baseline.sourceId || "");
+    const defaultViewId = String(descriptor.auth?.defaultViewId || "");
+    const sourceId = "39065003";
+    const viewId = "39065004";
+    assert(/^\d+$/.test(sourceId) && /^\d+$/.test(viewId),
+      "EVT-003 source-health fixture requires deterministic numeric sourceId/viewId");
+    assert(sourceId !== defaultSourceId && viewId !== defaultViewId,
+      "EVT-003 acceptance-owned source/view IDs must not target the default published source/view");
+    assert(descriptor.ownership === "self-contained-pid-port-artifact-ownership" &&
+      path.basename(path.resolve(descriptor.temporaryRoot)).startsWith("media_server_v390_ui-"),
+    "EVT-003 source/view fixture requires isolated runtime teardown ownership");
+
+    const sourceList = await requestEndpoint(
+      "GET", "/ops/api/sources", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const viewList = await requestEndpoint(
+      "GET", "/ops/api/views", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const sourcesBefore = Array.isArray(sourceList.json?.sources) ? sourceList.json.sources : [];
+    const viewsBefore = Array.isArray(viewList.json?.views) ? viewList.json.views : [];
+    const defaultSourceBefore = sourcesBefore.find(value =>
+      String(value?.sourceId || "") === defaultSourceId);
+    const defaultViewBefore = viewsBefore.find(value =>
+      String(value?.viewId || "") === defaultViewId);
+    assert(defaultSourceBefore && defaultViewBefore &&
+      String(defaultViewBefore?.sourceId || "") === defaultSourceId,
+    "EVT-003 default source/view baseline is absent from the authoritative registry");
+    assert(!sourcesBefore.some(value => String(value?.sourceId || "") === sourceId) &&
+      !viewsBefore.some(value => String(value?.viewId || "") === viewId),
+    "EVT-003 deterministic acceptance-owned sourceId/viewId collision");
+
+    const marker = `REVIEW4 ${item.caseId} source-health fixture`;
+    context.eventSourceHealthFixture = {
+      sourceId,
+      viewId,
+      marker,
+      defaultSourceId,
+      defaultViewId,
+      defaultSourceBefore: structuredClone(defaultSourceBefore),
+      defaultViewBefore: structuredClone(defaultViewBefore),
+      sourceCreated: false,
+      viewCreated: false,
+      disabledForTeardown: false,
+    };
+
+    const sourcePayload = {
+      ...defaultSourceBefore,
+      sourceId,
+      displayName: marker,
+      tags: [...new Set([...(defaultSourceBefore.tags || []), "review4", "evt-003", "acceptance-owned"])],
+      enabled: true,
+      allowDuplicateSource: true,
+    };
+    const sourceCreated = await requestEndpoint(
+      "POST",
+      "/ops/api/sources",
+      sourcePayload,
+      item,
+      context,
+      [201],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    context.eventSourceHealthFixture.sourceCreated = true;
+    assert(sourceCreated.json?.status === "created" &&
+      String(sourceCreated.json?.source?.sourceId || "") === sourceId &&
+      sourceCreated.json?.source?.enabled === true,
+    "EVT-003 acceptance-owned source create response identity mismatch");
+
+    const viewPayload = {
+      ...defaultViewBefore,
+      viewId,
+      sourceId,
+      displayName: marker,
+      enabled: true,
+    };
+    const viewCreated = await requestEndpoint(
+      "POST",
+      "/ops/api/views",
+      viewPayload,
+      item,
+      context,
+      [201],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    context.eventSourceHealthFixture.viewCreated = true;
+    assert(viewCreated.json?.status === "created" &&
+      String(viewCreated.json?.view?.viewId || "") === viewId &&
+      String(viewCreated.json?.view?.sourceId || "") === sourceId &&
+      viewCreated.json?.view?.enabled === true,
+    "EVT-003 acceptance-owned view create response identity mismatch");
+
+    const materializedSources = await requestEndpoint(
+      "GET", "/ops/api/sources", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const materializedViews = await requestEndpoint(
+      "GET", "/ops/api/views", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const sourceMatches = (materializedSources.json?.sources || []).filter(value =>
+      String(value?.sourceId || "") === sourceId);
+    const viewMatches = (materializedViews.json?.views || []).filter(value =>
+      String(value?.viewId || "") === viewId);
+    const materializedSource = sourceMatches[0];
+    const materializedView = viewMatches[0];
+    assert(sourceMatches.length === 1 && viewMatches.length === 1 &&
+      materializedSource?.enabled === true && materializedSource?.displayName === marker &&
+      materializedView?.enabled === true && materializedView?.displayName === marker &&
+      String(materializedView?.sourceId || "") === sourceId,
+    "EVT-003 acceptance-owned source/view fixture is absent from authoritative registry readback");
+    const defaultSourceAfterCreate = (materializedSources.json?.sources || []).find(value =>
+      String(value?.sourceId || "") === defaultSourceId);
+    const defaultViewAfterCreate = (materializedViews.json?.views || []).find(value =>
+      String(value?.viewId || "") === defaultViewId);
+    assert(stableJson(defaultSourceAfterCreate) === stableJson(defaultSourceBefore) &&
+      stableJson(defaultViewAfterCreate) === stableJson(defaultViewBefore),
+    "EVT-003 acceptance fixture creation mutated the default source/view");
+
+    const health = await requestEndpoint(
+      "GET", "/ops/api/source-health", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const healthItems = Array.isArray(health.json?.sourceHealth) ? health.json.sourceHealth : [];
+    const healthMatches = healthItems.filter(value => String(value?.sourceId || "") === sourceId);
+    const healthItem = healthMatches[0];
+    const status = String(healthItem?.status || "").trim();
+    const reason = String(healthItem?.reason || "").trim();
+    assert(health.json?.status === "source-health" && healthMatches.length === 1 &&
+      status.length > 0 && reason.length > 0,
+    "EVT-003 source-health fixture lacks authoritative sourceId/status/reason readback");
+
+    context.transientStateSeeded = true;
+    context.catalogBindings = {
+      ...context.catalogBindings,
+      sourceId,
+      viewId,
+      status,
+      reason,
+      sourceHealthStatus: status,
+      sourceHealthReason: reason,
+    };
+    return { sourceId, streamId: baseline.streamId, viewId, status, reason };
+  }
+
+  async function disableEvt003SourceHealthFixtureForTeardown(item, context) {
+    const fixture = context.eventSourceHealthFixture;
+    if (!fixture || fixture.disabledForTeardown) return { status: "already-disabled-for-teardown" };
+    assert(descriptor.ownership === "self-contained-pid-port-artifact-ownership" &&
+      path.basename(path.resolve(descriptor.temporaryRoot)).startsWith("media_server_v390_ui-"),
+    "EVT-003 fixture disposal requires isolated runtime teardown ownership");
+    try {
+      if (fixture.viewCreated) {
+        const disabledView = await requestEndpoint(
+          "DELETE",
+          `/ops/api/views/${encodeURIComponent(fixture.viewId)}`,
+          null,
+          item,
+          context,
+          [200],
+          { freshRole: true, roleOverride: "operator" },
+        );
+        assert(disabledView.json?.status === "disabled" &&
+          String(disabledView.json?.view?.viewId || "") === fixture.viewId &&
+          disabledView.json?.view?.enabled === false,
+        "EVT-003 acceptance-owned view soft-disable response mismatch");
+      }
+      if (fixture.sourceCreated) {
+        const disabledSource = await requestEndpoint(
+          "DELETE",
+          `/ops/api/sources/${encodeURIComponent(fixture.sourceId)}`,
+          null,
+          item,
+          context,
+          [200],
+          { freshRole: true, roleOverride: "operator" },
+        );
+        assert(disabledSource.json?.status === "disabled" &&
+          String(disabledSource.json?.source?.sourceId || "") === fixture.sourceId &&
+          disabledSource.json?.source?.enabled === false,
+        "EVT-003 acceptance-owned source soft-disable response mismatch");
+      }
+
+      const sourceList = await requestEndpoint(
+        "GET", "/ops/api/sources", null, item, context, [200],
+        { freshRole: true, roleOverride: "operator" },
+      );
+      const viewList = await requestEndpoint(
+        "GET", "/ops/api/views", null, item, context, [200],
+        { freshRole: true, roleOverride: "operator" },
+      );
+      const source = (sourceList.json?.sources || []).find(value =>
+        String(value?.sourceId || "") === fixture.sourceId);
+      const view = (viewList.json?.views || []).find(value =>
+        String(value?.viewId || "") === fixture.viewId);
+      if (fixture.sourceCreated) {
+        assert(source?.enabled === false,
+          "EVT-003 acceptance-owned source is not disabled in collection readback");
+      }
+      if (fixture.viewCreated) {
+        assert(view?.enabled === false && String(view?.sourceId || "") === fixture.sourceId,
+          "EVT-003 acceptance-owned view is not disabled in collection readback");
+      }
+      const defaultSource = (sourceList.json?.sources || []).find(value =>
+        String(value?.sourceId || "") === fixture.defaultSourceId);
+      const defaultView = (viewList.json?.views || []).find(value =>
+        String(value?.viewId || "") === fixture.defaultViewId);
+      assert(stableJson(defaultSource) === stableJson(fixture.defaultSourceBefore) &&
+        stableJson(defaultView) === stableJson(fixture.defaultViewBefore),
+      "EVT-003 cleanup mutated the default source/view");
+
+      const health = await requestEndpoint(
+        "GET", "/ops/api/source-health", null, item, context, [200],
+        { freshRole: true, roleOverride: "operator" },
+      );
+      const healthItem = (health.json?.sourceHealth || []).find(value =>
+        String(value?.sourceId || "") === fixture.sourceId);
+      if (fixture.sourceCreated) {
+        assert(healthItem && typeof healthItem.status === "string" && healthItem.status &&
+          healthItem.reason === "disabled",
+        "EVT-003 disabled source-health API readback is incomplete");
+      }
+      fixture.disabledForTeardown = true;
+      return {
+        status: "disabled-until-isolated-runtime-teardown",
+        sourceId: fixture.sourceId,
+        viewId: fixture.viewId,
+        sourceEnabled: source?.enabled ?? null,
+        viewEnabled: view?.enabled ?? null,
+        sourceHealthStatus: healthItem?.status || "",
+        sourceHealthReason: healthItem?.reason || "",
+        defaultSourceViewUnchanged: true,
+        physicalAbsenceClaimed: false,
+        teardownOwnership: descriptor.ownership,
+      };
+    } catch (error) {
+      fixture.disabledForTeardown = false;
+      throw error;
+    }
+  }
+
   async function captureEventExactRuntimeBindings(item, context, spec) {
     const requirements = eventExactRuntimeBindingRequirements(item.caseId);
     const valuesForKey = (value, wantedKey) => {
@@ -1620,7 +2196,7 @@ export function createV390UiCaseRuntime({
       id: context.fixtureId,
       viewId: context.catalogBindings.viewId || descriptor.auth?.defaultViewId || "9001",
       sourceId: context.catalogBindings.sourceId || defaultPublishedSourceIdentity(descriptor).sourceId,
-      ruleId: context.catalogBindings.ruleId || "1",
+      ruleId: context.catalogBindings.ruleId || "unmapped-rule",
       q: context.catalogBindings.searchQuery || context.fixtureId,
       evidence: "snapshot",
       incidentStatus: "open",
@@ -1634,6 +2210,7 @@ export function createV390UiCaseRuntime({
     const responseByPath = {};
     const requestByPath = {};
     const seedByPath = {};
+    const domResponseBaselineByTarget = {};
     const mergedQuery = {};
     const baselineBodies = [];
     for (const request of spec.requests) {
@@ -1673,8 +2250,13 @@ export function createV390UiCaseRuntime({
       for (const assertion of request.assertions) {
         const values = eventExactValuesAtPath(body, assertion.path);
         const actual = values.length === 1 ? values[0] : values;
-        if (values.length > 0 || ["$text", "$contentType", "$body"].includes(assertion.path)) {
+        const fixtureIdentityAssertion = eventExactUsesFixtureIdentityBaseline(assertion.operator);
+        if (values.length > 0 ||
+            ["$text", "$contentType", "$body"].includes(assertion.path)) {
           responseByPath[assertion.path] = actual;
+        }
+        if (fixtureIdentityAssertion) {
+          seedByPath[assertion.path] = context.fixtureId;
         }
         if (requirements.seedPaths.includes(assertion.path)) {
           seedByPath[assertion.path] = actual;
@@ -1705,15 +2287,36 @@ export function createV390UiCaseRuntime({
       const sourceHealth = responseByPath.sourceHealth;
       assert(Array.isArray(sourceHealth) &&
         sourceHealth.some(value => String(value?.sourceId || value?.id || "") === sourceId),
-      `${item.caseId} source-health fixture was not materialized for the default published source`);
+      `${item.caseId} source-health fixture was not materialized for runtime source ${sourceId}`);
       seedByPath.sourceHealth = sourceId;
-      const status = sourceHealth.find(value =>
-        String(value?.sourceId || value?.id || "") === sourceId)?.status;
-      assert(typeof status === "string" && status,
-        `${item.caseId} source-health fixture status is unavailable`);
+      const healthItem = sourceHealth.find(value =>
+        String(value?.sourceId || value?.id || "") === sourceId);
+      const status = String(healthItem?.status || "").trim();
+      const reason = String(healthItem?.reason || "").trim();
+      assert(status && reason,
+        `${item.caseId} source-health fixture status/reason is unavailable`);
+      if (item.caseId === "EVT-003") {
+        assert(context.catalogBindings.sourceId === sourceId &&
+          context.catalogBindings.viewId === templateValues.viewId &&
+          context.catalogBindings.status === status &&
+          context.catalogBindings.reason === reason,
+        "EVT-003 catalog sourceId/viewId/status/reason bindings drifted before runtime capture");
+        const rowLocalBaseline = {
+          schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+          collectionPath: "sourceHealth",
+          identityPaths: ["sourceId", "id"],
+          identityValue: sourceId,
+          projectionPaths: ["status", "reason"],
+          expectedProjection: { status, reason },
+        };
+        domResponseBaselineByTarget.sourceHealth = rowLocalBaseline;
+        domResponseBaselineByTarget["sourceHealth[].status"] = rowLocalBaseline;
+      }
       seedByPath["sourceHealth[].status"] = status;
+      seedByPath["sourceHealth[].reason"] = reason;
       templateValues.channelId = sourceId;
       templateValues.status = status;
+      templateValues.reason = reason;
     }
     const canaries = [
       context.catalogBindings.redactionCanary,
@@ -1732,6 +2335,7 @@ export function createV390UiCaseRuntime({
         seedByPath,
         requestByPath,
         priorResponseByPath: responseByPath,
+        domResponseBaselineByTarget,
         responseByRequest,
         responseSamplesByRequest,
         sensitiveCanaries: canaries,
@@ -1756,13 +2360,14 @@ export function createV390UiCaseRuntime({
       assert(eventPath, `${item.caseId} EventRecord storage is unavailable`);
       const existing = fs.existsSync(eventPath) &&
         fs.readFileSync(eventPath, "utf8").includes(`\"eventId\":\"${context.fixtureId}\"`);
-      assert(!existing, `${item.caseId} runtime EventRecord fixture already exists`);
-      seedEventRecordFixture(eventPath, {
-        eventId: context.fixtureId,
-        sourceId: source.sourceId,
-        streamId: source.streamId,
-        status: "open",
-      });
+      if (!existing) {
+        seedEventRecordFixture(eventPath, {
+          eventId: context.fixtureId,
+          sourceId: source.sourceId,
+          streamId: source.streamId,
+          status: "open",
+        });
+      }
       bindings.eventId = context.fixtureId;
       if (Array.isArray(spec?.setup?.fixtures) && spec.setup.fixtures.includes("va-metadata-sample")) {
         // CLIENT-021 메타데이터 출처는 seed하지만 세션은 브라우저 타일이 직접 생성해야 한다.
@@ -1804,6 +2409,7 @@ export function createV390UiCaseRuntime({
       assert(lines.filter(line => line.includes(marker)).every(line => line.includes("redacted")),
         `${item.caseId} diagnostic log-tail did not preserve the marker with redacted sensitive material`);
       bindings.logMarker = marker;
+      bindings.redactionCanary = redactionCanary;
     }
 
     if (plan.has("viewer-raw-session") || plan.has("viewer-va-overlay-session")) {
@@ -2094,17 +2700,6 @@ export function createV390UiCaseRuntime({
       );
       context.beforeRecord = await readEndpointRecord(expanded, item, context);
       assert(context.beforeRecord !== null, `${item.caseId} auth user fixture seed readback missing`);
-      return;
-    }
-    if (item.caseId === "EVT-021") {
-      seedEventRecordFixture(descriptor.eventStoragePath, {
-        eventId: context.fixtureId,
-        sourceId: descriptor.auth?.defaultViewId || "9001",
-      });
-      const payload = fixturePayload(item, context.fixtureId, fixtureInput?.actualValue || {});
-      await requestEndpoint("PUT", expanded, payload, item, context, [200, 201]);
-      context.beforeRecord = await readEndpointRecord(expanded, item, context);
-      assert(context.beforeRecord !== null, `${item.caseId} event review fixture row did not join to EventRecord`);
       return;
     }
     if (context.beforeRecord === null && ["PUT", "DELETE"].includes(endpoint.method)) {
@@ -3677,7 +4272,7 @@ async function validateV390Ui092To105Readback(
 
 function caseNeedsRuntimeOwner(item) {
   const exactSpec = exactRuntimeOracleFor(item.caseId);
-  return Boolean(exactSpec?.seed || exactSpec?.setup?.fixtures?.length) || ["RULE-103", "RULE-104", "RULE-111", "UI-036", "UI-046", "UI-052", "UI-053", "UI-064", "UI-065", "UI-066", "UI-067", "UI-068", "UI-069", "UI-070", "UI-071", "UI-072", "UI-073", "UI-074", "UI-075", "UI-080", "UI-088", "UI-089", "UI-090", "UI-091", "UI-092", "UI-093", "UI-094", "UI-095", "UI-096", "UI-097", "UI-098", "UI-099", "UI-100", "UI-101", "UI-102", "UI-103", "UI-104", "UI-105"].includes(item.caseId) ||
+  return Boolean(exactSpec?.seed || exactSpec?.setup?.fixtures?.length) || ["RULE-103", "RULE-104", "RULE-111", "SAFE-038", "UI-036", "UI-046", "UI-052", "UI-053", "UI-064", "UI-065", "UI-066", "UI-067", "UI-068", "UI-069", "UI-070", "UI-071", "UI-072", "UI-073", "UI-074", "UI-075", "UI-080", "UI-088", "UI-089", "UI-090", "UI-091", "UI-092", "UI-093", "UI-094", "UI-095", "UI-096", "UI-097", "UI-098", "UI-099", "UI-100", "UI-101", "UI-102", "UI-103", "UI-104", "UI-105"].includes(item.caseId) ||
     (item.workflow.inputs || []).some(input => input.kind === "rejected-endpoint-fixture") ||
     (item.workflow.inputs || []).some(input => input.kind === "exact-runtime-fixture") ||
     (item.workflow.setup || []).some(setup => setup.kind === "bind-action-role-session" ||
@@ -4111,6 +4706,12 @@ export function seedEventRecordFixture(eventStoragePath, {
   sourceId = "9001",
   streamId = sourceId,
   status = "recorded",
+  eventType = "presence",
+  className = "person",
+  scenarioName = "",
+  snapshotPath = "",
+  clipPath = "",
+  metadata = {},
 } = {}) {
   assert(eventStoragePath, "runtime event storage path is unavailable");
   assert(eventId, "runtime EventRecord fixture ID is required");
@@ -4123,22 +4724,22 @@ export function seedEventRecordFixture(eventStoragePath, {
     channelId: sourceId,
     trackId: 1,
     classId: 0,
-    eventType: "presence",
-    className: "person",
+    eventType,
+    className,
     status,
     startTime: timestampMs,
     updateTime: timestampMs,
     endTime: timestampMs,
     zoneId: "",
     lineId: "",
-    scenarioName: "",
+    scenarioName,
     scenarioPhase: "",
     confidence: 0.9,
-    snapshotPath: "",
-    clipPath: "",
+    snapshotPath,
+    clipPath,
     preEventMs: 0,
     postEventMs: 0,
-    metadata: { sourceId },
+    metadata: { sourceId, ...metadata },
     fixtureOwner: "v390-self-contained-acceptance",
   };
   fs.appendFileSync(eventStoragePath, `${JSON.stringify(record)}\n`, { mode: 0o600 });

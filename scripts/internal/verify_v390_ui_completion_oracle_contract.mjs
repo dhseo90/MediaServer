@@ -749,6 +749,209 @@ check("REVIEW4-65 endpoint-owned completion fails closed on every evidence bound
   expectThrow(() => build({ readback: null }), "endpoint-action-readback-shape-missing");
 });
 
+check("REVIEW4-65 catalog readback closes the exact request under the semantic correlation envelope", () => {
+  const completionAction = {
+    ...action("click"),
+    actionId: "EVT-001:assert-visible-read-model",
+    completionPhase: "primary-action",
+    controlSelector: "[data-testid=\"ops-dashboard-page\"]",
+    correlationId: "EVT-001:assert-visible-read-model:completion",
+    semanticCompletionRequired: true,
+    expectedReadbackIdentity: "EVT-001:catalog-readback",
+    expectedBehaviorSha256: "a".repeat(64),
+    expectedReadbackExpectation: { exists: true, visible: true },
+    expectedEndpoint: {
+      correlationId: "EVT-001:assert-visible-read-model:completion",
+      method: "GET",
+      urlPath: "/ops/dashboard",
+      allowedStatuses: [200],
+    },
+    allowedCompletionSources: ["endpoint-dom"],
+  };
+  const exactRuntimeOracle = {
+    schema: "media-server.v390-ui-exact-runtime-observation.v1",
+    caseId: "EVT-001",
+    requestedRoute: "/ops/dashboard",
+    observedRoute: "/ops/dashboard",
+    responses: [{
+      method: "GET",
+      urlPath: "/ops/api/events?limit=100",
+      status: 200,
+      source: "fresh-browser-fetch",
+      bodyDigest: "1".repeat(64),
+    }],
+    dom: [{ selector: "[data-testid=\"ops-dashboard-page\"]", status: "PASS" }],
+  };
+  const readback = semanticV2({
+    identity: completionAction.expectedReadbackIdentity,
+    correlationId: completionAction.correlationId,
+    actionId: completionAction.actionId,
+    expectedBehaviorSha256: completionAction.expectedBehaviorSha256,
+    observationSource: "browser-dom",
+    selector: completionAction.controlSelector,
+    observation: {
+      before: { ...snapshot("ready", "dashboard"), selector: completionAction.controlSelector },
+      after: { ...snapshot("ready", "dashboard"), selector: completionAction.controlSelector },
+      actual: {
+        exists: true,
+        visible: true,
+        exactRuntimeOracle,
+      },
+    },
+  });
+  const duplicatePriorNetwork = [{
+    requestId: "prior-1",
+    correlationId: completionAction.correlationId,
+    correlationSource: "request-header",
+    method: "GET",
+    status: 200,
+    url: "http://127.0.0.1/ops/dashboard",
+  }, {
+    requestId: "prior-2",
+    correlationId: completionAction.correlationId,
+    correlationSource: "request-header",
+    method: "GET",
+    status: 200,
+    url: "http://127.0.0.1/ops/dashboard",
+  }];
+  const accepted = evaluateCompletionOracle({
+    action: completionAction,
+    before: readback.observation.before,
+    after: readback.observation.after,
+    networkResponses: duplicatePriorNetwork,
+    semanticReadback: readback,
+  });
+  assert(accepted.pass && accepted.source === "endpoint-dom" &&
+    accepted.completionRequest?.correlationSource === "semantic-readback-catalog-runtime" &&
+    accepted.completionRequest?.correlationId === completionAction.correlationId &&
+    accepted.completionRequest?.catalogRuntimeResponseCount === 1 &&
+    /^[a-f0-9]{64}$/.test(accepted.completionRequest?.catalogRuntimeAttestationSha256 || ""),
+  `catalog runtime request attestation failed: ${accepted.reason}`);
+
+  const malformed = structuredClone(readback);
+  delete malformed.observation.actual.exactRuntimeOracle.responses[0].bodyDigest;
+  malformed.observationSha256 = domSnapshotDigest(malformed.observation);
+  const rejectedMalformed = evaluateCompletionOracle({
+    action: completionAction,
+    before: malformed.observation.before,
+    after: malformed.observation.after,
+    networkResponses: [],
+    semanticReadback: malformed,
+  });
+  assert(!rejectedMalformed.pass && rejectedMalformed.reason === "catalog-runtime-response-invalid:0:bodyDigest",
+    "catalog response without a body digest became authoritative completion");
+
+  const wrongCase = structuredClone(readback);
+  wrongCase.observation.actual.exactRuntimeOracle.caseId = "EVT-002";
+  wrongCase.observationSha256 = domSnapshotDigest(wrongCase.observation);
+  const rejectedWrongCase = evaluateCompletionOracle({
+    action: completionAction,
+    before: wrongCase.observation.before,
+    after: wrongCase.observation.after,
+    networkResponses: [],
+    semanticReadback: wrongCase,
+  });
+  assert(!rejectedWrongCase.pass && rejectedWrongCase.reason === "catalog-runtime-readback-invalid",
+    "another case catalog readback satisfied this action");
+
+  const wrongCorrelation = structuredClone(readback);
+  wrongCorrelation.correlationId = "OTHER:completion";
+  wrongCorrelation.observationSha256 = domSnapshotDigest(wrongCorrelation.observation);
+  const rejectedWrongCorrelation = evaluateCompletionOracle({
+    action: completionAction,
+    before: wrongCorrelation.observation.before,
+    after: wrongCorrelation.observation.after,
+    networkResponses: [],
+    semanticReadback: wrongCorrelation,
+  });
+  assert(!rejectedWrongCorrelation.pass && rejectedWrongCorrelation.reason === "semantic-readback-mismatch",
+    "catalog runtime evidence bypassed the action correlation");
+});
+
+check("REVIEW4-65 catalog API readback rejects duplicate or mismatched exact responses", () => {
+  const completionAction = {
+    ...action("click"),
+    actionId: "EVT-042:assert-product-state",
+    completionPhase: "primary-action",
+    controlSelector: "[data-testid=\"ops-events-page\"]",
+    correlationId: "EVT-042:assert-product-state:completion",
+    semanticCompletionRequired: true,
+    expectedReadbackIdentity: "EVT-042:catalog-readback",
+    expectedBehaviorSha256: "b".repeat(64),
+    expectedReadbackExpectation: { exists: true, visible: true },
+    expectedEndpoint: {
+      correlationId: "EVT-042:assert-product-state:completion",
+      method: "GET",
+      urlPath: "/ops/api/events/reviews",
+      allowedStatuses: [200],
+    },
+    allowedCompletionSources: ["endpoint-dom"],
+  };
+  const response = {
+    method: "GET",
+    urlPath: "/ops/api/events/reviews",
+    status: 200,
+    source: "fresh-browser-fetch",
+    bodyDigest: "2".repeat(64),
+  };
+  const makeReadback = responses => semanticV2({
+    identity: completionAction.expectedReadbackIdentity,
+    correlationId: completionAction.correlationId,
+    actionId: completionAction.actionId,
+    expectedBehaviorSha256: completionAction.expectedBehaviorSha256,
+    observationSource: "browser-dom",
+    selector: completionAction.controlSelector,
+    observation: {
+      before: { ...snapshot("ready", "events"), selector: completionAction.controlSelector },
+      after: { ...snapshot("ready", "events"), selector: completionAction.controlSelector },
+      actual: {
+        exists: true,
+        visible: true,
+        exactRuntimeOracle: {
+          schema: "media-server.v390-ui-exact-runtime-observation.v1",
+          caseId: "EVT-042",
+          requestedRoute: "/ops/api/events/reviews",
+          observedRoute: "/ops/events",
+          responses,
+          dom: [{ selector: "[data-testid=\"ops-events-page\"]", status: "PASS" }],
+        },
+      },
+    },
+  });
+  const acceptedReadback = makeReadback([response]);
+  const accepted = evaluateCompletionOracle({
+    action: completionAction,
+    before: acceptedReadback.observation.before,
+    after: acceptedReadback.observation.after,
+    networkResponses: [],
+    semanticReadback: acceptedReadback,
+  });
+  assert(accepted.pass && accepted.completionRequest?.url === "/ops/api/events/reviews",
+    `exact catalog API response failed: ${accepted.reason}`);
+
+  const duplicateReadback = makeReadback([response, { ...response, bodyDigest: "3".repeat(64) }]);
+  const duplicate = evaluateCompletionOracle({
+    action: completionAction,
+    before: duplicateReadback.observation.before,
+    after: duplicateReadback.observation.after,
+    networkResponses: [],
+    semanticReadback: duplicateReadback,
+  });
+  assert(!duplicate.pass && duplicate.reason === "ambiguous-exact-request",
+    "duplicate catalog API responses satisfied one exact request");
+
+  const mismatchedReadback = makeReadback([{ ...response, urlPath: "/ops/api/events/reviews/other" }]);
+  const mismatched = evaluateCompletionOracle({
+    action: completionAction,
+    before: mismatchedReadback.observation.before,
+    after: mismatchedReadback.observation.after,
+    networkResponses: [],
+    semanticReadback: mismatchedReadback,
+  });
+  assert(!mismatched.pass && mismatched.reason === "request-correlation-missing",
+    "mismatched catalog API response satisfied the exact endpoint");
+});
+
 check("REVIEW4-58 locks one exact request and rejects another fixture or duplicate request", () => {
   const completionAction = {
     ...action("click"),
@@ -988,19 +1191,131 @@ check("REVIEW4-58 corrected all activate-control handlers with exact transaction
     assert(completion.readbackExpectation.postconditions.length === completion.localTransition.postconditions.length,
       `${caseId} runtime postcondition readback drift`);
   }
-  const rule101 = manifest.cases.find(item => item.caseId === "RULE-101");
-  assert(rule101.workflow.expectedResults[0].completion.localTransition.forbiddenRequests.some(request =>
+  for (const caseId of ["RULE-101", "RULE-102", "RULE-103", "CLIENT-021"]) {
+    const completion = completionContractCase(caseId).workflow.expectedResults[0].completion;
+    assert(completion.readbackExpectation.postconditionObservationMode === "after-action-exact",
+      `${caseId} idempotent readback still requires a DOM transition`);
+  }
+  const rule101 = freshCompletionContractCase("RULE-101");
+  const rule101Transition = rule101.workflow.expectedResults[0].completion.localTransition;
+  assert(rule101Transition.forbiddenRequests.some(request =>
     request.methods.includes("PUT") && request.pathPrefix === "/lab/analysis/va-rules/"),
   "RULE-101 UI no-dispatch oracle missing");
-  const rule102 = manifest.cases.find(item => item.caseId === "RULE-102");
+  assert(rule101Transition.postconditions.some(condition =>
+    condition.selector === "#opsRulesReviewConflictDetail" &&
+    condition.value.includes("프로파일 대상(사람)")) &&
+    !rule101Transition.postconditions.some(condition =>
+      condition.value?.includes("룰 대상(사람)")),
+  "RULE-101 DOM contract does not separate UI profile validation from server-only analysis rejection");
+  const rule102 = freshCompletionContractCase("RULE-102");
   assert(rule102.workflow.primaryControl.selector === "#opsEventRuleTypeSelect" &&
-    rule102.workflow.expectedResults[0].completion.actionKind === "select-control",
+    rule102.workflow.expectedResults[0].completion.actionKind === "select-control" &&
+    rule102.workflow.expectedResults[0].completion.localTransition.postconditions.some(condition =>
+      condition.selector === "#opsRulesReviewEventTypeTitle" && condition.value === "재진입"),
   "RULE-102 review-loop cause remains bound to save click");
   for (const caseId of ["CLIENT-002", "CLIENT-005"]) {
     const completion = manifest.cases.find(item => item.caseId === caseId).workflow.expectedResults[0].completion;
     assert(completion.localTransition.seedRequirements?.length === 1 &&
       completion.localTransition.requiredRequests?.length >= 1,
     `${caseId} live session seed/request completion missing`);
+  }
+});
+
+check("REVIEW4-65 RULE-101/102/103 require exact after-action state and authoritative rejection where declared", () => {
+  for (const caseId of ["RULE-101", "RULE-102", "RULE-103"]) {
+    const item = completionContractCase(caseId);
+    const completion = item.workflow.expectedResults[0].completion;
+    const snapshots = {};
+    for (const condition of completion.readbackExpectation.postconditions) {
+      const current = snapshots[condition.selector] || {
+        ...snapshot("ready", ""),
+        selector: condition.selector,
+      };
+      if (condition.property === "text") {
+        current.text = [current.text, condition.value].filter(Boolean).join(" / ");
+      } else if (condition.property === "href") {
+        current.href = `${condition.value}review4`;
+      } else {
+        current[condition.property] = structuredClone(condition.value);
+      }
+      snapshots[condition.selector] = current;
+    }
+    const completionAction = {
+      ...action(completion.actionKind === "select-control" ? "select" : "click"),
+      actionId: completion.actionId,
+      completionPhase: "primary-action",
+      controlSelector: completion.controlSelector,
+      correlationId: completion.correlationId,
+      semanticCompletionRequired: true,
+      expectedReadbackIdentity: completion.readback.identity,
+      expectedBehaviorSha256: completion.expectedBehaviorSha256,
+      expectedReadbackExpectation: structuredClone(completion.readbackExpectation),
+      expectedLocalTransition: structuredClone(completion.localTransition),
+      allowedCompletionSources: [completion.requiredSource, ...completion.attestedAlternatives],
+    };
+    const primary = {
+      ...snapshot("ready", "primary"),
+      selector: completion.controlSelector,
+    };
+    const rejectedActionReadback = caseId === "RULE-101" ? {
+      schema: "media-server.v390-ui-rejected-action-readback.v1",
+      runtimeProductResponseObserved: true,
+      registryUnchanged: true,
+      productErrors: [...completion.readbackExpectation.independentProductErrors],
+    } : null;
+    const observation = {
+      before: structuredClone(primary),
+      after: structuredClone(primary),
+      beforeSnapshots: structuredClone(snapshots),
+      snapshots: structuredClone(snapshots),
+      ...(rejectedActionReadback ? { rejectedActionReadback } : {}),
+    };
+    const readback = semanticV2({
+      identity: completionAction.expectedReadbackIdentity,
+      correlationId: completionAction.correlationId,
+      actionId: completionAction.actionId,
+      expectedBehaviorSha256: completionAction.expectedBehaviorSha256,
+      observationSource: "browser-dom",
+      selector: completionAction.controlSelector,
+      observation,
+    });
+    const accepted = evaluateCompletionOracle({
+      action: completionAction,
+      before: primary,
+      after: primary,
+      semanticReadback: readback,
+    });
+    assert(accepted.pass && accepted.source === "local-transition-readback",
+      `${caseId} exact after-action authoritative readback failed: ${accepted.reason}`);
+
+    const wrongState = structuredClone(readback);
+    const firstCondition = completion.readbackExpectation.postconditions[0];
+    wrongState.observation.snapshots[firstCondition.selector][firstCondition.property] =
+      firstCondition.property === "hidden" ? !firstCondition.value : "wrong-state";
+    wrongState.observationSha256 = domSnapshotDigest(wrongState.observation);
+    const rejectedState = evaluateCompletionOracle({
+      action: completionAction,
+      before: primary,
+      after: primary,
+      semanticReadback: wrongState,
+    });
+    assert(!rejectedState.pass && rejectedState.reason === "semantic-readback-observation-mismatch",
+      `${caseId} accepted a mismatched after-action state`);
+
+    if (caseId === "RULE-101") {
+      const domOnly = structuredClone(readback);
+      delete domOnly.observation.rejectedActionReadback;
+      domOnly.observationSha256 = domSnapshotDigest(domOnly.observation);
+      const rejectedDomOnly = evaluateCompletionOracle({
+        action: completionAction,
+        before: primary,
+        after: primary,
+        semanticReadback: domOnly,
+      });
+      assert(!rejectedDomOnly.pass &&
+        rejectedDomOnly.reason === "semantic-readback-observation-mismatch",
+      "RULE-101 DOM state replaced the authoritative product rejection");
+    }
   }
 });
 
@@ -1031,7 +1346,7 @@ check("REVIEW4-65 event/client composed workflows bind exact product controls an
     client005Transition.type === "composed-live-start-all-stop" &&
     client005Transition.requiredRequests.map(request => request.method).join("|") === "POST|POST|DELETE",
   "CLIENT-005 composed playback/all-stop request contract drift");
-  assert(client021.workflow.primaryControl.selector === '[data-mode-action="va-overlay"]' &&
+  assert(client021.workflow.primaryControl.selector === '[data-tile="0"] [data-mode-action="va-overlay"]' &&
     client021Transition.type === "composed-va-overlay-session" &&
     client021Transition.requiredRequests.map(request => request.method).join("|") === "POST|POST",
   "CLIENT-021 composed VA overlay request contract drift");
@@ -1305,9 +1620,14 @@ function check(name, fn) {
 }
 
 function runChecks() {
+  const authoritativeOnly = process.argv.includes("--authoritative-completion-only");
+  const selected = authoritativeOnly
+    ? checks.filter(item => item.name.startsWith("REVIEW4-65 catalog ") ||
+        item.name.startsWith("REVIEW4-65 RULE-101/102/103 "))
+    : checks;
   let pass = 0;
   let fail = 0;
-  for (const item of checks) {
+  for (const item of selected) {
     try {
       item.fn();
       pass += 1;
@@ -1318,6 +1638,25 @@ function runChecks() {
     }
   }
   return { pass, fail };
+}
+
+function completionContractCase(caseId) {
+  const item = structuredClone(manifest.cases.find(candidate => candidate.caseId === caseId));
+  assert(item, `${caseId} stored completion case missing`);
+  const completion = item.workflow.expectedResults[0].completion;
+  completion.readbackExpectation.postconditionObservationMode = "after-action-exact";
+  completion.localTransition.postconditionObservationMode = "after-action-exact";
+  return item;
+}
+
+function freshCompletionContractCase(caseId) {
+  const generated = buildNativeExactManifest({
+    canonical: readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json"),
+    implementation: readJson("test/fixtures/project_feature_implementation_evidence.json"),
+  });
+  const item = generated.cases.find(candidate => candidate.caseId === caseId);
+  assert(item, `${caseId} fresh completion case missing`);
+  return item;
 }
 
 function readJson(relativePath) {

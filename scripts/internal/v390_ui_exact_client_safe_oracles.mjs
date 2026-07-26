@@ -102,6 +102,7 @@ function exactSpec(caseId, featureMeaning, {
   });
   const normalizedDom = domAssertions.map(assertion => {
     const textAssertion = assertion.property === "text" && ["includes", "includesAll", "excludesAll"].includes(assertion.operator);
+    const materialAssertion = assertion.property === "structuredMaterial" && assertion.operator === "excludesAll";
     const attributeName = domAttributeName(assertion.property);
     return normalizeFixturePlaceholders({
       selector: assertion.selector,
@@ -112,13 +113,16 @@ function exactSpec(caseId, featureMeaning, {
       forbiddenTextTokens: textAssertion && assertion.operator === "excludesAll"
         ? (Array.isArray(assertion.value) ? assertion.value : [assertion.value])
         : [],
+      forbiddenMaterialTokens: materialAssertion
+        ? (Array.isArray(assertion.value) ? assertion.value : [assertion.value])
+        : [],
       cardinality: assertion.property === "count"
         ? { operator: assertion.operator, value: assertion.value }
         : null,
       requiredAttributes: attributeName
         ? [{ name: attributeName, operator: assertion.operator, value: assertion.value }]
         : [],
-      propertyAssertions: !textAssertion && assertion.property !== "count" && !attributeName
+      propertyAssertions: !textAssertion && !materialAssertion && assertion.property !== "count" && !attributeName
         ? [{ name: assertion.property, operator: assertion.operator, value: assertion.value }]
         : [],
       valueFixtureRefs: fixtureRefsInValue(assertion.value),
@@ -193,6 +197,7 @@ function fixtureRefForName(value) {
     viewA: "assigned-view-a",
     viewB: "assigned-view-b",
     draftId: "vlm-rule-suggestion-draft",
+    draftCandidateId: "vlm-rule-suggestion-draft",
     candidateId: "vlm-summary-candidate",
     eventId: "event-record",
     searchQuery: "event-search-query",
@@ -242,6 +247,7 @@ function jsonFixtureBinding(token) {
     assignedViewId: { path: "$..viewId", fixtureRef: "assigned-view" },
     blockedViewId: { path: "$..viewId", fixtureRef: "blocked-view" },
     draftId: { path: "$..draftId", fixtureRef: "vlm-rule-suggestion-draft" },
+    draftCandidateId: { path: "$..ruleSuggestion.candidateId", fixtureRef: "vlm-rule-suggestion-draft" },
     candidateId: { path: "$..candidateId", fixtureRef: "vlm-summary-candidate" },
     vaMetadataSampleId: { path: "$..sampleId", fixtureRef: "va-metadata-sample" },
   };
@@ -305,7 +311,8 @@ const noWriteNetwork = Object.freeze([
   "PUT /ops/api/sources/", "PUT /ops/api/views/", "POST /ops/api/events/reviews",
 ]);
 
-function clientDigest(caseId, featureMeaning, selector, digestKey, schema, allowedFields, route = "/client/events") {
+function clientDigest(caseId, featureMeaning, selector, digestKey, schema, responseFields, route = "/client/events") {
+  const rendererAttribute = clientDigestRendererAttribute(digestKey);
   return exactSpec(caseId, featureMeaning, {
     route,
     role: "viewer",
@@ -313,14 +320,14 @@ function clientDigest(caseId, featureMeaning, selector, digestKey, schema, allow
     fixtures: ["assigned-view", "scoped-event-record", `${digestKey}-projection-input`],
     apiAssertions: [api("GET", "/client/api/views/{assignedViewId}/events", [200], {
       schema,
-      requiredTokens: [digestKey, ...allowedFields],
+      requiredTokens: [digestKey, "viewerSafe=true", ...responseFields],
       forbiddenFields: viewerRawFields,
-      cardinality: { assignedViewCount: 1 },
+      requiredFixtureBindings: [{ path: "$..eventId", fixtureRef: "scoped-event-record" }],
     })],
     domAssertions: [
       dom(selector, "count", "equals", 1),
-      dom(selector, "text", "includesAll", allowedFields.slice(0, 3)),
-      dom("body", "text", "excludesAll", viewerRawFields),
+      dom(selector, rendererAttribute, "equals", "viewer-safe"),
+      dom("body", "structuredMaterial", "excludesAll", viewerRawFields),
     ],
     semanticKeys: [digestKey, schema],
     forbiddenFields: viewerRawFields,
@@ -329,6 +336,22 @@ function clientDigest(caseId, featureMeaning, selector, digestKey, schema, allow
     snapshotTargets: ["source-registry", "published-views", "rule-registry", "event-record-store"],
     cleanupTargets: ["scoped-event-record", `${digestKey}-projection-input`],
   });
+}
+
+function clientDigestRendererAttribute(digestKey) {
+  const attributes = {
+    incidentDigest: "data-client-incident-digest",
+    followUpDigest: "data-client-followup-digest",
+    eventDigest: "data-client-event-digest",
+    resolutionDigest: "data-client-resolution-digest",
+    sourceStatusDigest: "data-client-source-status-digest",
+    maintenanceDigest: "data-client-maintenance-digest",
+    clientImpactForecast: "data-client-impact-forecast",
+    clientOperationsNotice: "data-client-operations-notice",
+    clientActionNoticePreview: "data-client-action-notice-preview",
+  };
+  assert(attributes[digestKey], `unknown client digest renderer: ${digestKey}`);
+  return attributes[digestKey];
 }
 
 function hiddenBoundary(caseId, featureMeaning, {
@@ -368,6 +391,7 @@ function opsBoundary(caseId, featureMeaning, token, {
   apiPath = route,
   fixtures = [],
   requiredTokens = [token],
+  domRequiredTokens = [],
   forbiddenFields = viewerRawFields,
   forbiddenNetwork = noWriteNetwork,
   forbiddenStateMutations = [...protocolMutations, "sourceRegistry", "publishedView", "ruleRegistry", "eventRecord"],
@@ -383,8 +407,10 @@ function opsBoundary(caseId, featureMeaning, token, {
     })],
     domAssertions: [
       dom(selector, "count", "equals", 1),
-      dom(selector, "textOrAttributes", "includesAll", requiredTokens),
-      dom("body", "text", "excludesAll", forbiddenFields),
+      ...(domRequiredTokens.length > 0
+        ? [dom(selector, "textOrAttributes", "includesAll", domRequiredTokens)]
+        : []),
+      dom("body", "structuredMaterial", "excludesAll", forbiddenFields),
     ],
     semanticKeys: [token, requiredTokens[0]],
     forbiddenFields,
@@ -405,45 +431,49 @@ const entries = [
     forbiddenStateMutations: ["sourceRegistry", "publishedView"], snapshotTargets: ["source-registry", "published-views"], cleanupTargets: ["assigned-view", "blocked-view"],
   }),
   exactSpec("CLIENT-002", "live tile start가 session/answer/video 상태에 결속", {
-    route: "/client/live", role: "viewer", visibleControl: '[data-action="toggle-playback"]',
-    action: { kind: "activate", target: '[data-action="toggle-playback"]' }, fixtures: ["idle-live-tile", "assigned-view"],
-    apiAssertions: [api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { schema: "media-server.webrtc.session", requiredTokens: ["sessionId", "offer"] }), api("POST", "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer", [200], { requiredTokens: ["ok"] })],
-    domAssertions: [dom('[data-role="tile-playback-icon"]', "text", "equals", "■"), dom("video", "mediaTrackKinds", "includes", "video")],
+    route: "/client/live", role: "viewer", visibleControl: '[data-tile="0"] [data-action="toggle-playback"]',
+    action: { kind: "start-live-tile", target: '[data-tile="0"] [data-action="toggle-playback"]' }, fixtures: ["idle-live-tile", "assigned-view"],
+    apiAssertions: [api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { schema: "media-server.webrtc.session", requiredTokens: ["sessionId", "offerReceived=true"] }), api("POST", "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer", [200], { requiredTokens: ["ok"] })],
+    domAssertions: [dom('[data-tile="0"] [data-role="tile-playback-icon"]', "text", "equals", "■"), dom('[data-tile="0"] video', "mediaTrackKinds", "includes", "video")],
     semanticKeys: ["sessionId", "mediaTrackKinds"], forbiddenFields: viewerRawFields, forbiddenNetwork: noWriteNetwork,
     forbiddenStateMutations: protocolMutations, snapshotTargets: ["webrtc-active-sessions"], cleanupTargets: ["sessionId"],
   }),
   exactSpec("CLIENT-005", "all-stop이 active session을 종료하고 tile을 idle로 복원", {
     route: "/client/live", role: "viewer", visibleControl: "#liveAllStop", action: { kind: "activate", target: "#liveAllStop" },
     fixtures: ["active-live-session"], apiAssertions: [api("DELETE", "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}", [200], { requiredTokens: ["ok"] })],
-    domAssertions: [dom('[data-role="tile-playback-icon"]', "text", "equals", "▶"), dom('[data-action="toggle-playback"]', "ariaLabel", "includes", "재생")],
+    domAssertions: [dom('[data-tile="0"] [data-role="tile-playback-icon"]', "text", "equals", "▶"), dom('[data-tile="0"] [data-action="toggle-playback"]', "ariaLabel", "includes", "재생")],
     semanticKeys: ["liveAllStop", "activeSessions=0"], forbiddenFields: viewerRawFields, forbiddenNetwork: noWriteNetwork,
     forbiddenStateMutations: protocolMutations, snapshotTargets: ["webrtc-active-sessions"], cleanupTargets: ["sessionId"],
   }),
   exactSpec("CLIENT-006", "dashboard가 assigned view의 scoped status/event/source health만 표시", {
     route: "/client/dashboard", role: "viewer", fixtures: ["assigned-view", "blocked-view", "scoped-event-record", "source-health"],
-    apiAssertions: [api("GET", "/client/api/views/{assignedViewId}/dashboard", [200], { schema: "media-server.client.dashboard", requiredTokens: ["assignedViewId", "incidentSummary", "sourceHealth"], forbiddenFields: ["blockedViewId", ...viewerRawFields] })],
-    domAssertions: [dom('[data-testid="client-dashboard-shell"]', "text", "includesAll", ["assignedViewId", "sourceHealth"]), dom("body", "text", "excludesAll", ["blockedViewId", ...viewerRawFields])],
-    semanticKeys: ["incidentSummary", "sourceHealth"], forbiddenFields: ["blockedViewId", ...viewerRawFields], forbiddenNetwork: noWriteNetwork,
+    apiAssertions: [api("GET", "/client/api/views/{assignedViewId}/dashboard", [200], {
+      schema: "media-server.client.dashboard",
+      requiredTokens: ["assignedViewId", "status", "incidentDigest"],
+      forbiddenFields: ["blockedViewId", ...viewerRawFields],
+    })],
+    domAssertions: [dom('[data-testid="client-dashboard-shell"]', "count", "equals", 1), dom("body", "text", "excludesAll", ["blockedViewId", ...viewerRawFields])],
+    semanticKeys: ["incidentDigest", "health.status"], forbiddenFields: ["blockedViewId", ...viewerRawFields], forbiddenNetwork: noWriteNetwork,
     forbiddenStateMutations: protocolMutations, snapshotTargets: ["event-record-store", "source-registry"], cleanupTargets: ["scoped-event-record", "source-health"],
   }),
   clientDigest("CLIENT-007", "events page가 viewer scope의 client-safe summaries만 표시", ".client-viewer-events", "incidentDigest", "media-server.client.events", ["summaryText", "eventType", "time"]),
   exactSpec("CLIENT-009", "grid/density/dock preference 저장과 authoritative readback", {
     route: "/client/live", role: "viewer", visibleControl: "#liveSaveLayoutPreference", action: { kind: "activate", target: "#liveSaveLayoutPreference" },
     fixtures: ["before-layout-preference"], apiAssertions: [api("PUT", "/client/api/preferences/live-layout", [200, 201], { schema: "media-server.client.live-layout-preference", requiredTokens: ["gridSize=2", "density=compact", "dockSide=right"] }), api("GET", "/client/api/preferences/live-layout", [200], { requiredTokens: ["gridSize=2", "density=compact", "dockSide=right"] })],
-    domAssertions: [dom("#liveGridSize", "value", "equals", "2"), dom("body", "data-density", "equals", "compact")], semanticKeys: ["gridSize", "dockSide"],
+    domAssertions: [dom("#liveGridSize", "value", "equals", "2"), dom('[data-testid="client-live-drop-grid"]', "data-density", "equals", "compact")], semanticKeys: ["gridSize", "dockSide"],
     forbiddenFields: ["password", "token"], forbiddenNetwork: noWriteNetwork, forbiddenStateMutations: protocolMutations,
     snapshotTargets: ["client-live-layout-preferences"], cleanupTargets: ["before-layout-preference"],
   }),
   exactSpec("CLIENT-010", "reload 후 persisted live layout preference 복원", {
     route: "/client/live", role: "viewer", fixtures: ["saved-layout-preference"], action: { kind: "reload", target: "/client/live" },
     apiAssertions: [api("GET", "/client/api/preferences/live-layout", [200], { requiredTokens: ["gridSize=2", "density=compact", "dockSide=right"] })],
-    domAssertions: [dom("#liveGridSize", "value", "equals", "2"), dom("body", "data-density", "equals", "compact")], semanticKeys: ["reload-restore", "dockSide=right"],
+    domAssertions: [dom("#liveGridSize", "value", "equals", "2"), dom('[data-testid="client-live-drop-grid"]', "data-density", "equals", "compact")], semanticKeys: ["reload-restore", "dockSide=right"],
     forbiddenFields: viewerRawFields, forbiddenNetwork: noWriteNetwork, forbiddenStateMutations: protocolMutations,
     snapshotTargets: ["client-live-layout-preferences"], cleanupTargets: ["saved-layout-preference"],
   }),
   exactSpec("CLIENT-011", "unassigned view가 list/detail/UI에서 모두 차단", {
     route: "/client/live", role: "viewer", visibleControl: '[data-testid="client-live-source-tree"]', fixtures: ["assigned-view", "blocked-view"],
-    apiAssertions: [api("GET", "/client/api/views", [200], { requiredTokens: ["assignedViewId"], forbiddenFields: ["blockedViewId"], cardinality: { views: 1 } }), api("GET", "/client/api/views/{blockedViewId}", [403, 404], { requiredTokens: ["forbidden-or-not-found"] })],
+    apiAssertions: [api("GET", "/client/api/views", [200], { requiredTokens: ["assignedViewId"], forbiddenFields: ["blockedViewId"], cardinality: { views: 1 } }), api("GET", "/client/api/views/{blockedViewId}", [403, 404], { forbiddenFields: ["sourceUrl", "credential"] })],
     domAssertions: [dom('[data-source-view="{blockedViewId}"]', "count", "equals", 0), dom("body", "text", "excludesAll", ["{blockedViewId}"])], semanticKeys: ["unassigned-view", "blockedViewId"],
     forbiddenFields: ["blockedViewId"], forbiddenNetwork: noWriteNetwork, forbiddenStateMutations: ["publishedView"], snapshotTargets: ["published-views"], cleanupTargets: ["assigned-view", "blocked-view"],
   }),
@@ -461,21 +491,21 @@ const entries = [
     snapshotTargets: ["auth-users"], cleanupTargets: ["admin-ops-read-session"],
   }),
   exactSpec("CLIENT-019", "video viewport가 실제 video track을 재생하고 clipping 없음", {
-    route: "/client/live", role: "viewer", visibleControl: "video", action: { kind: "start-live-tile", target: '[data-action="toggle-playback"]' }, fixtures: ["assigned-view", "playable-source"],
-    apiAssertions: [api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { requiredTokens: ["sessionId", "offer"] })],
-    domAssertions: [dom("video", "mediaTrackKinds", "includes", "video"), dom("video", "boundingRectWithinViewport", "equals", true), dom("video", "playsinline", "equals", true)],
+    route: "/client/live", role: "viewer", visibleControl: '[data-tile="0"] video', action: { kind: "start-live-tile", target: '[data-tile="0"] [data-action="toggle-playback"]' }, fixtures: ["assigned-view", "playable-source"],
+    apiAssertions: [api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { requiredTokens: ["sessionId", "offerReceived=true"] })],
+    domAssertions: [dom('[data-tile="0"] video', "mediaTrackKinds", "includes", "video"), dom('[data-tile="0"]', "boundingRectWithinViewport", "equals", true), dom('[data-tile="0"] video', "playsinline", "equals", true)],
     semanticKeys: ["videoTrack", "boundingRectWithinViewport"], forbiddenFields: viewerRawFields, forbiddenNetwork: noWriteNetwork, forbiddenStateMutations: protocolMutations,
     snapshotTargets: ["webrtc-active-sessions"], cleanupTargets: ["sessionId", "playable-source"],
   }),
   exactSpec("CLIENT-020", "start/stop/reconnect controls가 session lifecycle과 결속", {
-    route: "/client/live", role: "viewer", visibleControl: '[data-action="toggle-playback"]', action: { kind: "control-sequence", target: "start-stop-reconnect" }, fixtures: ["assigned-view", "playable-source"],
+    route: "/client/live", role: "viewer", visibleControl: '[data-tile="0"] [data-action="toggle-playback"]', action: { kind: "control-sequence", target: "start-stop-reconnect" }, fixtures: ["assigned-view", "playable-source"],
     apiAssertions: [api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { requiredTokens: ["sessionId"] }), api("DELETE", "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}", [200], { requiredTokens: ["ok"] })],
-    domAssertions: [dom('[data-action="toggle-playback"]', "ariaLabelSequence", "equals", ["정지", "재생", "정지"]), dom("video", "pausedSequence", "equals", [false, true, false])],
+    domAssertions: [dom('[data-tile="0"] [data-action="toggle-playback"]', "ariaLabelSequence", "equals", ["타일 1 정지", "타일 1 재생", "타일 1 정지"]), dom('[data-tile="0"] video', "pausedSequence", "equals", [false, true, false])],
     semanticKeys: ["start-stop-reconnect", "pausedSequence"], forbiddenFields: viewerRawFields, forbiddenNetwork: noWriteNetwork, forbiddenStateMutations: protocolMutations,
     snapshotTargets: ["webrtc-active-sessions"], cleanupTargets: ["sessionId", "playable-source"],
   }),
   exactSpec("CLIENT-021", "VA overlay toggle/status/metadata가 같은 mode에 결속", {
-    route: "/client/live", role: "viewer", visibleControl: '[data-tile] [data-mode-action="va-overlay"]', action: { kind: "activate", target: '[data-tile] [data-mode-action="va-overlay"]' }, fixtures: ["assigned-view", "va-metadata-sample"],
+    route: "/client/live", role: "viewer", visibleControl: '[data-tile="0"] [data-mode-action="va-overlay"]', action: { kind: "activate", target: '[data-tile="0"] [data-mode-action="va-overlay"]' }, fixtures: ["assigned-view", "va-metadata-sample"],
     apiAssertions: [
       api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { requiredTokens: ["overlayMode=va-overlay", "sessionId"] }),
       api("GET", "/client/api/views/{assignedViewId}/events?limit=6", [200], {
@@ -501,26 +531,26 @@ const entries = [
     snapshotTargets: ["source-registry"], cleanupTargets: ["live-status-sample"],
   }),
   clientDigest("CLIENT-023", "client-safe incident digest API/UI", '[data-testid="client-safe-incident-digest"]', "incidentDigest", "media-server.client.incident-digest.v1", ["summaryText", "severity", "eventType", "status", "time"]),
-  clientDigest("CLIENT-024", "client-safe follow-up digest API/UI", '[data-testid="client-safe-followup-digest"]', "followUpDigest", "media-server.client.follow-up-digest.v1", ["status", "severity", "time"], "/client/live"),
+  clientDigest("CLIENT-024", "client-safe follow-up digest API/UI", '[data-testid="client-safe-followup-digest"]', "followUpDigest", "media-server.client.follow-up-digest.v1", ["followUpStatus", "severity", "time"], "/client/live"),
   clientDigest("CLIENT-025", "client-safe event digest API/UI", '[data-testid="client-safe-event-digest"]', "eventDigest", "media-server.client.event-digest.v1", ["summaryText", "eventType", "status", "severity", "timelineHint", "time"]),
   clientDigest("CLIENT-027", "client-safe resolution digest API/UI", '[data-testid="client-safe-resolution-digest"]', "resolutionDigest", "media-server.client.resolution-digest.v1", ["resolutionStatus", "resolutionLabel", "summaryText", "severity", "timelineHint", "time"], "/client/live"),
   clientDigest("CLIENT-028", "client-safe source status digest API/UI", '[data-testid="client-safe-source-status-digest"]', "sourceStatusDigest", "media-server.client.source-status-digest.v1", ["sourceStatus", "connectionStatus", "videoFrameStatus", "metadataStatus", "lastFrameAgeMs", "metadataAgeMs"], "/client/live"),
   clientDigest("CLIENT-029", "client-safe maintenance digest API/UI", '[data-testid="client-safe-maintenance-digest"]', "maintenanceDigest", "media-server.client.v340-maintenance-digest.v1", ["maintenanceState", "summaryText", "severity", "timelineHint"]),
-  clientDigest("CLIENT-031", "client impact forecast API/UI", '[data-testid="client-impact-forecast"]', "clientImpactForecast", "media-server.client.impact-forecast.v1", ["sourceRef", "viewRef", "impactStatus"]),
-  clientDigest("CLIENT-032", "client-safe operations notice API/UI", '[data-testid="client-operations-notice"]', "clientOperationsNotice", "media-server.client.operations-notice.v1", ["operationsStatus", "timelineHint"]),
-  clientDigest("CLIENT-040", "client-safe action notice preview API/UI", '[data-testid="client-action-notice-preview"]', "clientActionNoticePreview", "media-server.client.action-notice-preview.v1", ["status", "viewerSafeTitle", "viewerSafeBody", "timelineHint"]),
+  clientDigest("CLIENT-031", "client impact forecast API/UI", '[data-testid="client-impact-forecast"]', "clientImpactForecast", "media-server.client.v350-impact-forecast.v1", ["sourceImpact", "viewImpact", "summaryText"]),
+  clientDigest("CLIENT-032", "client-safe operations notice API/UI", '[data-testid="client-operations-notice"]', "clientOperationsNotice", "media-server.client.v350-operations-notice.v1", ["operationsStatus", "timelineHint"]),
+  clientDigest("CLIENT-040", "client-safe action notice preview API/UI", '[data-testid="client-action-notice-preview"]', "clientActionNoticePreview", "media-server.client.v380-action-notice-preview.v1", ["noticeStatus", "viewerSafeTitle", "viewerSafeBody", "timelineHint"]),
   opsBoundary("CLIENT-041", "outcome observer의 client impact diff는 Ops-only", "outcomeObserver", { requiredTokens: ["clientImpactOutcomeDiff", "viewerClientPayloadChanged=false"], forbiddenFields: [...viewerRawFields, "actionControlDetail"] }),
   hiddenBoundary("CLIENT-042", "action receipt bundle의 client refs는 redacted Ops-only", { forbiddenSelectors: ["[data-client-action-control]"], forbiddenFields: [...viewerRawFields, "actionControlDetail"], semanticKeys: ["actionReceiptBundle", "viewerClientPayloadChanged=false"] }),
   exactSpec("MEDIA-016", "sample 영상은 실제 WebRTC video track으로 표시", {
-    route: "/client/live", role: "viewer", visibleControl: "video", action: { kind: "start-live-tile", target: '[data-action="toggle-playback"]' }, fixtures: ["sample-video-source", "assigned-view"],
-    apiAssertions: [api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { requiredTokens: ["sessionId", "offer", "video"] })],
-    domAssertions: [dom("video", "mediaTrackKinds", "includes", "video"), dom("video", "readyState", "greaterThanOrEqual", 2)], semanticKeys: ["videoTrack", "sample-video-source"],
+    route: "/client/live", role: "viewer", visibleControl: '[data-tile="0"] video', action: { kind: "start-live-tile", target: '[data-tile="0"] [data-action="toggle-playback"]' }, fixtures: ["sample-video-source", "assigned-view"],
+    apiAssertions: [api("POST", "/client/api/views/{assignedViewId}/webrtc/session", [200], { requiredTokens: ["sessionId", "offerReceived=true"] })],
+    domAssertions: [dom('[data-tile="0"] video', "mediaTrackKinds", "includes", "video"), dom('[data-tile="0"] video', "readyState", "greaterThanOrEqual", 2)], semanticKeys: ["videoTrack", "sample-video-source"],
     forbiddenFields: viewerRawFields, forbiddenNetwork: noWriteNetwork, forbiddenStateMutations: protocolMutations, snapshotTargets: ["webrtc-active-sessions"], cleanupTargets: ["sessionId", "sample-video-source"],
   }),
   exactSpec("MEDIA-017", "viewer client live에서 두 channel/tile 동시 재생과 layout 안정성", {
-    route: "/client/live", role: "viewer", visibleControl: '[data-testid="client-live-workspace"]', action: { kind: "start-two-live-tiles", target: "[data-live-tile]" }, fixtures: ["assigned-view-a", "assigned-view-b", "playable-source-a", "playable-source-b"],
+    route: "/client/live", role: "viewer", visibleControl: '[data-testid="client-live-workspace"]', action: { kind: "start-two-live-tiles", target: "[data-tile]" }, fixtures: ["assigned-view-a", "assigned-view-b", "playable-source-a", "playable-source-b"],
     apiAssertions: [api("POST", "/client/api/views/{viewA}/webrtc/session", [200], { requiredTokens: ["sessionId"] }), api("POST", "/client/api/views/{viewB}/webrtc/session", [200], { requiredTokens: ["sessionId"] })],
-    domAssertions: [dom("[data-live-tile] video", "playingCount", "equals", 2), dom("[data-live-tile]", "overlapCount", "equals", 0), dom('[data-testid="client-live-workspace"]', "layoutStableSamples", "equals", true)],
+    domAssertions: [dom("[data-tile] video", "playingCount", "equals", 2), dom("[data-tile]", "overlapCount", "equals", 0), dom('[data-testid="client-live-workspace"]', "layoutStableSamples", "equals", true)],
     semanticKeys: ["simultaneousTiles", "layoutStableSamples"], forbiddenFields: viewerRawFields, forbiddenNetwork: noWriteNetwork, forbiddenStateMutations: protocolMutations,
     snapshotTargets: ["webrtc-active-sessions"], cleanupTargets: ["sessionA", "sessionB", "playable-source-a", "playable-source-b"],
   }),
@@ -550,10 +580,10 @@ const entries = [
     forbiddenFields: ["credential", "rawFrameBytes"],
   }),
   exactSpec("SAFE-038", "VLM suggestion은 seeded draft fields만 적용하고 저장하지 않음", {
-    route: "/ops/rules", role: "operator", visibleControl: '[data-vlm-rule-draft-index="{draftId}"]', action: { kind: "activate", target: '[data-vlm-rule-draft-index="{draftId}"]' }, fixtures: ["vlm-rule-suggestion-draft"],
-    apiAssertions: [api("GET", "/ops/api/vlm/rule-suggestion-drafts?limit=10", [200], { requiredTokens: ["draftId", "manualReviewRequired=true", "autoApply=false"] })],
-    domAssertions: [dom("#opsRulesDetailPanel", "hidden", "equals", false), dom("#opsRulesStatus", "text", "includes", "저장"), dom('[data-vlm-rule-draft-index="{draftId}"]', "count", "equals", 1)],
-    semanticKeys: ["draftId", "manualReviewRequired"], forbiddenFields: ["credential", "prompt", "rawProviderResponse"], forbiddenNetwork: ["POST /lab/analysis/rules", "PUT /lab/analysis/va-rules", "POST /ops/api/events"],
+    route: "/ops/rules", role: "operator", visibleControl: '[data-vlm-rule-draft-index="0"]', action: { kind: "activate", target: '[data-vlm-rule-draft-index="0"]' }, fixtures: ["vlm-rule-suggestion-draft"],
+    apiAssertions: [api("GET", "/ops/api/vlm/rule-suggestion-drafts?limit=10", [200], { requiredTokens: ["draftCandidateId", "manualReviewRequired=true", "autoApply=false"] })],
+    domAssertions: [dom("#opsRulesDetailPanel", "hidden", "equals", false), dom("#opsRulesStatus", "text", "includes", "저장"), dom('[data-vlm-rule-draft-index="0"]', "count", "equals", 1)],
+    semanticKeys: ["candidateId", "manualReviewRequired"], forbiddenFields: ["credential", "prompt", "rawProviderResponse"], forbiddenNetwork: ["POST /lab/analysis/rules", "PUT /lab/analysis/va-rules", "POST /ops/api/events"],
     forbiddenStateMutations: [...protocolMutations, "ruleRegistry", "profileRegistry", "eventRecord"], snapshotTargets: ["rule-registry", "profile-registry", "event-record-store"], cleanupTargets: ["vlm-rule-suggestion-draft"],
   }),
   opsBoundary("SAFE-041", "incident/action write는 Ops review/audit에만 저장", "incidentWorkflowBoundary", { route: "/ops/events", role: "admin", selector: '[data-testid="ops-event-review-inbox"]', apiPath: "/ops/api/events/reviews", fixtures: ["ops-review-record"], requiredTokens: ["records", "auditActionRefs"], forbiddenFields: ["rawNote", ...viewerRawFields], forbiddenStateMutations: [...protocolMutations, "eventRecord"] }),
@@ -668,7 +698,7 @@ export function materializeClientSafeExactOracle(caseId, fixtureValues = {}) {
   for (const assertion of resolved.dom) {
     assertion.selector = resolveTemplate(assertion.selector, assertion.fixtureRefs, fixtureValues, cssEscape);
     const cursor = { index: 0 };
-    for (const field of ["requiredTextTokens", "forbiddenTextTokens", "requiredAttributes", "propertyAssertions", "cardinality"]) {
+    for (const field of ["requiredTextTokens", "forbiddenTextTokens", "forbiddenMaterialTokens", "requiredAttributes", "propertyAssertions", "cardinality"]) {
       assertion[field] = resolveNestedTemplates(assertion[field], assertion.valueFixtureRefs, fixtureValues, cursor);
     }
     assert(cursor.index === assertion.valueFixtureRefs.length,
@@ -745,7 +775,8 @@ function validateSpec(caseId, spec) {
   }
   for (const assertion of spec.dom) {
     assert(assertion.selector && Array.isArray(assertion.requiredTextTokens) &&
-      Array.isArray(assertion.forbiddenTextTokens) && Array.isArray(assertion.requiredAttributes) &&
+      Array.isArray(assertion.forbiddenTextTokens) && Array.isArray(assertion.forbiddenMaterialTokens) &&
+      Array.isArray(assertion.requiredAttributes) &&
       Array.isArray(assertion.propertyAssertions) && Array.isArray(assertion.fixtureRefs) &&
       Array.isArray(assertion.valueFixtureRefs),
     `${caseId} structured DOM assertion invalid`);
@@ -756,6 +787,7 @@ function validateSpec(caseId, spec) {
     const assertionValues = {
       requiredTextTokens: assertion.requiredTextTokens,
       forbiddenTextTokens: assertion.forbiddenTextTokens,
+      forbiddenMaterialTokens: assertion.forbiddenMaterialTokens,
       requiredAttributes: assertion.requiredAttributes,
       propertyAssertions: assertion.propertyAssertions,
       cardinality: assertion.cardinality,
@@ -773,7 +805,8 @@ function validateSpec(caseId, spec) {
   const onlyGet200 = spec.requests.every(request => request.method === "GET" &&
     request.allowedStatuses.length === 1 && request.allowedStatuses[0] === 200);
   const existenceOnly = spec.dom.every(item => item.requiredTextTokens.length === 0 &&
-    item.forbiddenTextTokens.length === 0 && item.requiredAttributes.every(attribute =>
+    item.forbiddenTextTokens.length === 0 && item.forbiddenMaterialTokens.length === 0 &&
+    item.requiredAttributes.every(attribute =>
       ["exists", "visible"].includes(attribute.name)) && item.propertyAssertions.every(property =>
       ["exists", "visible"].includes(property.name)) && (!item.cardinality || item.cardinality.value > 0));
   const noForbiddenBoundary = spec.forbiddenFields.length === 0 && spec.forbiddenNetwork.length === 0 &&

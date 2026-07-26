@@ -5,9 +5,9 @@
     "canonicalSha256": "1f93aeec4a632feb69f474a29d9e8b03460f96b94a7854e096666312b60d73db",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "60e8f71039e0a8abbe08077f69213935cb9dba035d5af7a1beb29eb4b08cf113",
+    "implementationProjectionSha256": "2d336d1468a08b89e60f6ad3b57c71eea237f4e7199b07fca6e68a27fc977a15",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "c977f306f8e7fa9a7fc3008387a69a0ad6cd4da14520f375455bf07457c0d655",
+    "runtimeOracleCatalogSha256": "0a0db7c263fea1769c9d7068f8d8a79307ad3f3fd43fdd86ae7bed4efcdc0961",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -10787,7 +10787,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "3b35bf188ddd195bd80b9770319a1817261253fa9088e93c9feeb7a7e5f811f4",
+            "semanticCallChainSha256": "21f9f55d304c71e93e5cb7410167e346d6c162f6016d74c6977859df35e8f913",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -10869,7 +10869,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "3b35bf188ddd195bd80b9770319a1817261253fa9088e93c9feeb7a7e5f811f4"
+          "assertedSemanticDigest": "21f9f55d304c71e93e5cb7410167e346d6c162f6016d74c6977859df35e8f913"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -10881,7 +10881,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "722e8baee70250fcbb1931612fd2d765097e894552762bde4b5213d0dd824d29",
+          "specSha256": "f3e03301f47a705280e0de938a9fc1eb5d12b5d328db8f6f93dcf10663e6b8cf",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11008,7 +11008,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "3b35bf188ddd195bd80b9770319a1817261253fa9088e93c9feeb7a7e5f811f4"
+            "semanticCallChainSha256": "21f9f55d304c71e93e5cb7410167e346d6c162f6016d74c6977859df35e8f913"
           }
         ]
       },
@@ -189879,18 +189879,13 @@
               "target": "#opsRulesComposerSave",
               "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
               "property": null,
+              "postconditionObservationMode": "after-action-exact",
               "postconditions": [
                 {
                   "selector": "#opsRulesStatus",
                   "property": "text",
                   "operator": "includes",
                   "value": "저장 전 검증 실패"
-                },
-                {
-                  "selector": "#opsRulesReviewConflictDetail",
-                  "property": "text",
-                  "operator": "includes",
-                  "value": "룰 대상(사람)이 템플릿 대상(차량)을 모두 포함하지 않습니다"
                 },
                 {
                   "selector": "#opsRulesReviewConflictDetail",
@@ -189939,16 +189934,10 @@
                   "selector": "#opsRulesReviewConflictDetail",
                   "property": "text",
                   "operator": "includes",
-                  "value": "룰 대상(사람)이 템플릿 대상(차량)을 모두 포함하지 않습니다"
-                },
-                {
-                  "selector": "#opsRulesReviewConflictDetail",
-                  "property": "text",
-                  "operator": "includes",
                   "value": "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다"
                 }
               ],
-              "postconditionObservationMode": "transition-required",
+              "postconditionObservationMode": "after-action-exact",
               "independentRejectedReadbackRequired": true,
               "independentProductErrors": [
                 "vaRule analysis.classes must include template analysis.classes",
@@ -190243,18 +190232,13 @@
                 "target": "#opsRulesComposerSave",
                 "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsRulesStatus",
                     "property": "text",
                     "operator": "includes",
                     "value": "저장 전 검증 실패"
-                  },
-                  {
-                    "selector": "#opsRulesReviewConflictDetail",
-                    "property": "text",
-                    "operator": "includes",
-                    "value": "룰 대상(사람)이 템플릿 대상(차량)을 모두 포함하지 않습니다"
                   },
                   {
                     "selector": "#opsRulesReviewConflictDetail",
@@ -190303,16 +190287,10 @@
                     "selector": "#opsRulesReviewConflictDetail",
                     "property": "text",
                     "operator": "includes",
-                    "value": "룰 대상(사람)이 템플릿 대상(차량)을 모두 포함하지 않습니다"
-                  },
-                  {
-                    "selector": "#opsRulesReviewConflictDetail",
-                    "property": "text",
-                    "operator": "includes",
                     "value": "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다"
                   }
                 ],
-                "postconditionObservationMode": "transition-required",
+                "postconditionObservationMode": "after-action-exact",
                 "independentRejectedReadbackRequired": true,
                 "independentProductErrors": [
                   "vaRule analysis.classes must include template analysis.classes",
@@ -190415,18 +190393,13 @@
                 "target": "#opsRulesComposerSave",
                 "effect": "block the UI save before dispatch and preserve the reviewed rule registry",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsRulesStatus",
                     "property": "text",
                     "operator": "includes",
                     "value": "저장 전 검증 실패"
-                  },
-                  {
-                    "selector": "#opsRulesReviewConflictDetail",
-                    "property": "text",
-                    "operator": "includes",
-                    "value": "룰 대상(사람)이 템플릿 대상(차량)을 모두 포함하지 않습니다"
                   },
                   {
                     "selector": "#opsRulesReviewConflictDetail",
@@ -190475,16 +190448,10 @@
                     "selector": "#opsRulesReviewConflictDetail",
                     "property": "text",
                     "operator": "includes",
-                    "value": "룰 대상(사람)이 템플릿 대상(차량)을 모두 포함하지 않습니다"
-                  },
-                  {
-                    "selector": "#opsRulesReviewConflictDetail",
-                    "property": "text",
-                    "operator": "includes",
                     "value": "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다"
                   }
                 ],
-                "postconditionObservationMode": "transition-required",
+                "postconditionObservationMode": "after-action-exact",
                 "independentRejectedReadbackRequired": true,
                 "independentProductErrors": [
                   "vaRule analysis.classes must include template analysis.classes",
@@ -190687,6 +190654,7 @@
               "target": "#opsEventRuleTypeSelect",
               "effect": "`/ops/rules` 상세 편집기가 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage link를 표시하고, `verify-rule-ui` 인앱 evidence `v240-s05-rule-scenario-review-loop`와 `verify-ops-rule-validation-matrix`가 확인",
               "property": null,
+              "postconditionObservationMode": "after-action-exact",
               "postconditions": [
                 {
                   "selector": "#opsRulesReviewLoop",
@@ -190698,7 +190666,7 @@
                   "selector": "#opsRulesReviewEventTypeTitle",
                   "property": "text",
                   "operator": "includes",
-                  "value": "re-entry"
+                  "value": "재진입"
                 },
                 {
                   "selector": "#opsRulesReviewEventTypeDetail",
@@ -190782,7 +190750,7 @@
                   "selector": "#opsRulesReviewEventTypeTitle",
                   "property": "text",
                   "operator": "includes",
-                  "value": "re-entry"
+                  "value": "재진입"
                 },
                 {
                   "selector": "#opsRulesReviewEventTypeDetail",
@@ -190821,7 +190789,7 @@
                   "value": "/ops/events#eventType="
                 }
               ],
-              "postconditionObservationMode": "transition-required"
+              "postconditionObservationMode": "after-action-exact"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -191088,6 +191056,7 @@
                 "target": "#opsEventRuleTypeSelect",
                 "effect": "`/ops/rules` 상세 편집기가 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage link를 표시하고, `verify-rule-ui` 인앱 evidence `v240-s05-rule-scenario-review-loop`와 `verify-ops-rule-validation-matrix`가 확인",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsRulesReviewLoop",
@@ -191099,7 +191068,7 @@
                     "selector": "#opsRulesReviewEventTypeTitle",
                     "property": "text",
                     "operator": "includes",
-                    "value": "re-entry"
+                    "value": "재진입"
                   },
                   {
                     "selector": "#opsRulesReviewEventTypeDetail",
@@ -191183,7 +191152,7 @@
                     "selector": "#opsRulesReviewEventTypeTitle",
                     "property": "text",
                     "operator": "includes",
-                    "value": "re-entry"
+                    "value": "재진입"
                   },
                   {
                     "selector": "#opsRulesReviewEventTypeDetail",
@@ -191222,7 +191191,7 @@
                     "value": "/ops/events#eventType="
                   }
                 ],
-                "postconditionObservationMode": "transition-required"
+                "postconditionObservationMode": "after-action-exact"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -191320,6 +191289,7 @@
                 "target": "#opsEventRuleTypeSelect",
                 "effect": "`/ops/rules` 상세 편집기가 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage link를 표시하고, `verify-rule-ui` 인앱 evidence `v240-s05-rule-scenario-review-loop`와 `verify-ops-rule-validation-matrix`가 확인",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsRulesReviewLoop",
@@ -191331,7 +191301,7 @@
                     "selector": "#opsRulesReviewEventTypeTitle",
                     "property": "text",
                     "operator": "includes",
-                    "value": "re-entry"
+                    "value": "재진입"
                   },
                   {
                     "selector": "#opsRulesReviewEventTypeDetail",
@@ -191415,7 +191385,7 @@
                     "selector": "#opsRulesReviewEventTypeTitle",
                     "property": "text",
                     "operator": "includes",
-                    "value": "re-entry"
+                    "value": "재진입"
                   },
                   {
                     "selector": "#opsRulesReviewEventTypeDetail",
@@ -191454,7 +191424,7 @@
                     "value": "/ops/events#eventType="
                   }
                 ],
-                "postconditionObservationMode": "transition-required"
+                "postconditionObservationMode": "after-action-exact"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -191650,6 +191620,7 @@
               "target": "#opsRulesRefresh",
               "effect": "저장 scenario payload의 `reEntryMode=configured-zones`와 `reEntryZoneIds`가 runtime ReEntryScenario source/destination zone 후보로 반영되고 기본 `same-zone` 동작과 event type `re-entry`는 유지",
               "property": null,
+              "postconditionObservationMode": "after-action-exact",
               "postconditions": [
                 {
                   "selector": "#opsEventRuleRows",
@@ -191667,7 +191638,7 @@
                   "selector": "#opsEventRuleRows",
                   "property": "text",
                   "operator": "includes",
-                  "value": "re-entry"
+                  "value": "재진입"
                 }
               ],
               "forbiddenRequests": [
@@ -191713,10 +191684,10 @@
                   "selector": "#opsEventRuleRows",
                   "property": "text",
                   "operator": "includes",
-                  "value": "re-entry"
+                  "value": "재진입"
                 }
               ],
-              "postconditionObservationMode": "transition-required"
+              "postconditionObservationMode": "after-action-exact"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -191987,6 +191958,7 @@
                 "target": "#opsRulesRefresh",
                 "effect": "저장 scenario payload의 `reEntryMode=configured-zones`와 `reEntryZoneIds`가 runtime ReEntryScenario source/destination zone 후보로 반영되고 기본 `same-zone` 동작과 event type `re-entry`는 유지",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsEventRuleRows",
@@ -192004,7 +191976,7 @@
                     "selector": "#opsEventRuleRows",
                     "property": "text",
                     "operator": "includes",
-                    "value": "re-entry"
+                    "value": "재진입"
                   }
                 ],
                 "forbiddenRequests": [
@@ -192050,10 +192022,10 @@
                     "selector": "#opsEventRuleRows",
                     "property": "text",
                     "operator": "includes",
-                    "value": "re-entry"
+                    "value": "재진입"
                   }
                 ],
-                "postconditionObservationMode": "transition-required"
+                "postconditionObservationMode": "after-action-exact"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -192151,6 +192123,7 @@
                 "target": "#opsRulesRefresh",
                 "effect": "저장 scenario payload의 `reEntryMode=configured-zones`와 `reEntryZoneIds`가 runtime ReEntryScenario source/destination zone 후보로 반영되고 기본 `same-zone` 동작과 event type `re-entry`는 유지",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "postconditions": [
                   {
                     "selector": "#opsEventRuleRows",
@@ -192168,7 +192141,7 @@
                     "selector": "#opsEventRuleRows",
                     "property": "text",
                     "operator": "includes",
-                    "value": "re-entry"
+                    "value": "재진입"
                   }
                 ],
                 "forbiddenRequests": [
@@ -192214,10 +192187,10 @@
                     "selector": "#opsEventRuleRows",
                     "property": "text",
                     "operator": "includes",
-                    "value": "re-entry"
+                    "value": "재진입"
                   }
                 ],
-                "postconditionObservationMode": "transition-required"
+                "postconditionObservationMode": "after-action-exact"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -194637,7 +194610,7 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "runtime status values are identical across the ops dashboard and home summary",
-          "specSha256": "d01b739e64ca74e88d16f907ce2f095a1e4356693d67091c3cd4c8a1dd9b7b75",
+          "specSha256": "66b557af474cf5629929cdaf3808de42525eefb324b8c9e4da617cf5a9de2ae3",
           "requestCount": 1,
           "domAssertionCount": 4,
           "stateSnapshotCount": 11,
@@ -195252,7 +195225,7 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "source health API state is rendered with the same source id, status, and reason",
-          "specSha256": "e3b60915b35a5a4524d960fb958574c062cc36c563534314ac2eba6f42f416b3",
+          "specSha256": "89033b5e5234c2371cd190971d6efe29d513e867f1274c91e6e8038cf8458ab6",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 10,
@@ -195868,7 +195841,7 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "diagnostic log tail is rendered on dashboard and sensitive authentication material is redacted",
-          "specSha256": "c093f2b6412cb681cea0479af0060b0e2efe73dfeef6e7ff771d0ce3ed300584",
+          "specSha256": "5de6eca20243fe46ee3dde7ad5545e2614dec33da966e9bd72178eb8a3113ba3",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 10,
@@ -196477,7 +196450,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "event rows, filters, pagination, and archives match rule/scenario EventRecord history",
-          "specSha256": "1228371209b224376a6a18796817b680fbe45e79e9fb44fcdb4fa838c5497fde",
+          "specSha256": "37c3ceb206d692aa50af70f83642fe3a3bfdd9c2ad89797a9fdd7e86e847ef75",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 10,
@@ -197085,7 +197058,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "event storage and Event POST status panels exactly match the events status API",
-          "specSha256": "2371a8fe6ec8d34e274c3e4d8051efaa085e6a15135aadfb0376bd7193c1e3ac",
+          "specSha256": "61e75835ee6c265ff89e23ffe305973eab8ad568b0e219bc965489f6ca7f3762",
           "requestCount": 1,
           "domAssertionCount": 4,
           "stateSnapshotCount": 10,
@@ -197701,7 +197674,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "alert delivery search, kind, enabled-state filters and empty state match persisted integrations",
-          "specSha256": "9384901d9b93286f5323fcec387fbbad5385869a56de7edb94dcc841fa9ed529",
+          "specSha256": "40bdb8d9893bb256d3282d2d09159927bd00091403f4582ba075628e6805d759",
           "requestCount": 1,
           "domAssertionCount": 4,
           "stateSnapshotCount": 10,
@@ -198358,7 +198331,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "saving and testing an alert integration records delivered fixture while endpoint credentials remain redacted",
-          "specSha256": "4de4737faaddb140e15ce1f791a0c7bd34043896263886bc2bb14537760e693a",
+          "specSha256": "28c77249c476818bc2cfa20b9a49d2ed10afb054a3847b28e68695adb3efe4ec",
           "requestCount": 3,
           "domAssertionCount": 2,
           "stateSnapshotCount": 13,
@@ -199044,7 +199017,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "review inbox joins EventRecord with a separate review state by eventId without mutating the EventRecord",
-          "specSha256": "0bcdc149e0f93b25a4325b0e2854592fa0c549cd91589929a9515a4765db5b17",
+          "specSha256": "0c826dfd66fc7e907eeb434fe0430d79f37bcd5801804e97acafec624a3569db",
           "requestCount": 2,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -199660,7 +199633,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "event list and review detail expose evidence references, review status, and operator note",
-          "specSha256": "c0f271dc2f70684733c7ca12cc03efd1c734b39e6b02db8b8b4accc50ae673ac",
+          "specSha256": "13e875e3c3c6375fba81fc4812b39f3752a80de3d8b4f76b0fd29688a46fc76d",
           "requestCount": 2,
           "domAssertionCount": 2,
           "stateSnapshotCount": 10,
@@ -200303,7 +200276,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "review status, classification, note, incident and VLM action persist and emit exact audit actions",
-          "specSha256": "94a0f6ea00fcb5ffd4c3b84d60315afaafc33128b12b632eb630e347acdd9432",
+          "specSha256": "5a4f2af020b846b5c6098751dc343f14042dbc27daa0acdb32cd41ce7000f724",
           "requestCount": 3,
           "domAssertionCount": 1,
           "stateSnapshotCount": 12,
@@ -200981,7 +200954,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "audit list filtering, detail, and JSON/CSV/diff export represent the same audit events",
-          "specSha256": "98fb7802eba8293086abde126b3e4097024510175a991b4e1a830a533e4f9d81",
+          "specSha256": "f6a53053be79f4b640f920dc72437a6fb9393c284d9ce284e0aaca293a623887",
           "requestCount": 3,
           "domAssertionCount": 3,
           "stateSnapshotCount": 10,
@@ -201596,7 +201569,7 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "ops dashboard event summary and viewer-scoped incident digest agree while raw/debug/locator/provider material stays hidden",
-          "specSha256": "995730481f8571810e5247d1e3da3766a5ce2b50ae6f6a21e823590710516c59",
+          "specSha256": "d26f8b70bfc4969bd079ab84903accdd2a673683f506d120936abeb670416dee",
           "requestCount": 2,
           "domAssertionCount": 3,
           "stateSnapshotCount": 10,
@@ -202211,7 +202184,7 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "runtime summary remains internally consistent across repeated bounded samples without claiming a 30/120 minute gate",
-          "specSha256": "b7cea550a68de2394b3bd6d585bd11a73a03efc4e59db810d0421065f42e9e06",
+          "specSha256": "1dad2ea530b4bc8827b44789b76fc491d26995b6556be041492f1cabb15be036",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 11,
@@ -202826,7 +202799,7 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "dashboard source and channel counts and status equal runtime and source-health responses",
-          "specSha256": "642626c283db91764c4f4b510b4d131ff4f9bfe854a2cc01512a46af1ebe5ae8",
+          "specSha256": "6c6acc13c0e704058228626ac2f55c7366ec224f3d1220d7b66bf3a7c4f9cbdf",
           "requestCount": 2,
           "domAssertionCount": 2,
           "stateSnapshotCount": 10,
@@ -203441,7 +203414,7 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "VA tap and event summary is stable and equal to runtime and events APIs",
-          "specSha256": "32c701865a9d8501eb2a30bedc83642b426f5627d46de39aae6cc44077aed593",
+          "specSha256": "d7043d5468b5a371b9b9947c115ac5418ab35baf258a03b2fd11fb772f838884",
           "requestCount": 2,
           "domAssertionCount": 2,
           "stateSnapshotCount": 11,
@@ -204057,7 +204030,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "Ops-only review renders EventRecord evidence and VLM explanation while client and transport schemas remain unchanged",
-          "specSha256": "52eaadf7ac91d7c173aaed81e4e48b20e48883adaa939d84934c9e3d7844f595",
+          "specSha256": "2722442d5202fd6a75e62bf502ae2b814cdaf338634e00fa24a79ce4af03e066",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -204666,7 +204639,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "VLM sidecar joins only by eventId and exposes exact matching and missing states without EventRecord schema mutation",
-          "specSha256": "6a6c0442c6f71e94daa9811c44d618227b26f7dbc070a3968385a562241bf969",
+          "specSha256": "103b1dca1b386504eaf386bbc498fdbc3c65365cd8f5fac5a5009897027d8d8d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -205274,7 +205247,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "VLM summary, explanation, false-positive hints, and operator questions render without raw provider prompt or response",
-          "specSha256": "097006558b2b9b51e73f04d1e90881c46ae5461a76c4c6aa47cfc58f8493bc1a",
+          "specSha256": "678519444a3d557ec01f9571f67715ccd7436a51731f38fe673278afce1049dc",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -205890,7 +205863,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "rule suggestion draft wraps a sidecar sourceCandidateReport and never writes product registries or transport payloads",
-          "specSha256": "41aed3e3aa4ae0a87d97e242ecf8025b9dc3a7c45f1fe1bbf9dd99691784da3d",
+          "specSha256": "a8bef84fe05d3bd6c405b48088db7911c50994bceb8711acda72f8ec9ea211c8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -206535,7 +206508,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident action state persists only to Ops review and audit and is correlated by eventId and incidentId",
-          "specSha256": "06a491b4b9215d09b757860b0e6beb8f754bfe4bed774ad0038cabe09523a425",
+          "specSha256": "555e995222a8d354da1456558b262589ca765dc834f27062e06091fa85ed719a",
           "requestCount": 3,
           "domAssertionCount": 1,
           "stateSnapshotCount": 12,
@@ -207252,7 +207225,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "alert delivery dry-run writes only attempt and audit evidence and never changes event or transport schemas",
-          "specSha256": "2f157bd537e5f2ecd0c8aa745b9777de9a71a7829bffe496b0b45926c636aa36",
+          "specSha256": "fbdc2815143d8f143fb6b41a3daf1e9b6717b0edba126371aaeddffb0fedf728",
           "requestCount": 2,
           "domAssertionCount": 2,
           "stateSnapshotCount": 12,
@@ -207932,7 +207905,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident memory search applies query, rule, source, status, and time filters and returns exact matched terms and highlights",
-          "specSha256": "f66802145c71209a65746f71ea2558a28079ed71ffbfb32bd1cc15f9a78cf45a",
+          "specSha256": "7612a1d13a2f1b6f898ed6316e01101e2f665ce27dfce73391d8de204ebd9390",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -208543,7 +208516,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident timeline graph contains source, event, operator action, alert dry-run, and close nodes with ordered edges",
-          "specSha256": "1cd965ad8a1b6705c9d01d0f695d7ee83ead8881ff1c47bb24e1265ecbf9ba64",
+          "specSha256": "58932341c4b5b9b4f9410318722f03f3b6bdf3431478910e8ffd44f857e3fbd4",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -209154,7 +209127,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "explainable incident brief renders action, object, context, and environment slots with provider enrichment default-off",
-          "specSha256": "fa80a3001a26004e1a88a22de91ca98a9afcae1dabd2451d56b00b4c8ef784a2",
+          "specSha256": "b83f93407318e43dd05773fd330a391cd019ea711b214958439d23295a0b8ced",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -209765,7 +209738,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "similar incident lookup returns deterministic ordered scores and explanation terms for related incidents only",
-          "specSha256": "05d4169fc34e9904047fffe3a12194865c047125c6240eb2c2ed47cb4bc94930",
+          "specSha256": "eee3b3870c001b22ba9756fbcf9d3a91a4b21fcd9e46e51295c34494da748a6c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -210376,7 +210349,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "VLM summary candidate review wraps the existing sourceCandidateReport without changing client or transport boundaries",
-          "specSha256": "342973c5efaec52f357b1108db221beef71d55988d84bb7973cccb62f5c507e8",
+          "specSha256": "6e40e6362948f9ba37493eb0e02583f92eb25382dfb9b7c362e089f3b38e8ddb",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -210987,7 +210960,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident rule suggestion review wraps matching rule suggestion and candidate report as an Ops-only manual draft",
-          "specSha256": "c2b74ce297ad94d72eaeb5358d6dd23f7520a36736f1c03dd36dc3d028a34b8b",
+          "specSha256": "01747f82dcd16b1789cb8ebc3e1eb70143f6cf2e72e65c334e44f8f2633bddcf",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -211598,7 +211571,7 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "dashboard trend is derived from runtime, source-health, and events responses with exact bounded baseline deltas",
-          "specSha256": "5de9f16ad5b24f83096c23705371c9e92cbc15171840a157f2ff82efdd18aa4d",
+          "specSha256": "106f91ddc6ce588282df367c9a7fe2c0d7e7dd285b1a11b94178012348b4bfc3",
           "requestCount": 3,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -212207,7 +212180,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "an actual A-zone exit followed by B-zone entry replay creates the expected re-entry EventRecord",
-          "specSha256": "b8446070779340dcacbfae52a631d94a45f625d463c30b29ef4aa6cb0fc516d9",
+          "specSha256": "2be387987dd5005fafd1b53cfa6244ed48a9e748b64de01d1fa254aa82b5663b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 12,
@@ -212823,7 +212796,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident triage board cards and filters exactly summarize EventRecord, review, and VLM state",
-          "specSha256": "4ef40637fed60d8e5faeaac7a84a3dff541cf5d18b77bb4812293bbeb9c0c333",
+          "specSha256": "39bd252716b5a6e098ec90aa394ce4ba6bd9e093cb32dbf83bde00aa2f7199dd",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -213434,7 +213407,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident decision scorecard deterministically explains priority from source, similar, VLM, review age, and EventRecord evidence",
-          "specSha256": "afd56da1dfbd46b91a6afb2cc7faa60d761bea0dc7b93a38238ccf80f832b5d5",
+          "specSha256": "ed1c29d65495123727b58e2c4202338e1ff136e60f3f2318e77d7cf6f0a86401",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -214045,7 +214018,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "operational action pack exposes only manual release-safe bundle, rule draft, alert dry-run, and source recheck links",
-          "specSha256": "5f1d2652bf32ffda905e08d4c3980ee930f7233f76647f903f27c3cd1a63788b",
+          "specSha256": "797e1e39ae2c8e7eab64e71f1d4f78c7da050fa8a09332ce1bd5b51e3d868ff4",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -214656,7 +214629,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "rule what-if preview compares selected incident conditions with a matching suggestion without auto-saving or applying",
-          "specSha256": "9fbbc11a6001fea2b48509285148e929414e1e882cc592395f89e28e64241282",
+          "specSha256": "bc150f6bae22bace627e7077d343a846b3f4105d151869e5ddb61a91ef5df5c0",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -215267,7 +215240,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "operator outcome memory deterministically summarizes accept, dismiss, and review-needed history from review and audit state",
-          "specSha256": "f735b0df13e20af288deacd325fbf3ac1dde58dcec6ea87de58774af826037d2",
+          "specSha256": "9be66d27c7e368c5df27d3bc384dc12a3dcfda917962721539de07c53557cdca",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -215878,7 +215851,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "action readiness queue keeps ready, blocked, field-smoke-needed, and not-run states distinct",
-          "specSha256": "490a0d3e1a9f47cf6cbc76f63942c0120448f2655102730f83c658a68b0c3326",
+          "specSha256": "ab6146a848c4a13d788f75d7fffdcaa4e10417eefc860ec8ea7e4b2a142c0126",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -216488,7 +216461,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "approval-gated draft readiness exposes approval and validation only and performs no Rule/Profile registry write",
-          "specSha256": "943ac99d37a083c0ab29785d12544391dd694695d13aeea22cb14063f850eca5",
+          "specSha256": "9acadbdc9ab00c791fecfac53aeea8c9e030ba61b50ec7ddd8d0c3c203c00b9f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -217104,7 +217077,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "evidence intake readiness distinguishes passed, failed, blocked, and not-run without exposing credentials or raw provider material",
-          "specSha256": "1f99d45863013a438ce85df4e122bca29bd07a14ebc5664b1eaa20b307b03bf8",
+          "specSha256": "826dc14bdedfbeb326b0bf31d7c01e572b9b4c824f3bb99af5adeb4ac33511aa",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -217712,7 +217685,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident-linked runtime evidence window renders only bounded samples and never claims long-run PASS",
-          "specSha256": "4fb12862cb00cf2d88d8550c68490c7045bd04f3ce02e611ea330e3041c57b6e",
+          "specSha256": "0c86deaf073b05ee8d77d0d5dad55ca30eddb471e8625bd97e8eb44a5fcdc25e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -218367,7 +218340,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "operator feature correction persists only in review and audit and renders exact correction and reanalysis state",
-          "specSha256": "4cfc3da7e601cdb46a1b377b8587266c2e60143dc56c9f085ded941f77c44910",
+          "specSha256": "a97cea37a3609e2f41012d32526c496b6aae9be0c3d8f6083a4f97aa32fe41d0",
           "requestCount": 3,
           "domAssertionCount": 1,
           "stateSnapshotCount": 12,
@@ -219045,7 +219018,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "unified resolution queue, selected detail, and timeline exactly project EventRecord and Ops resolution state",
-          "specSha256": "a834dff7b80498929bde41a1cad1f57d62d1ac1129914e2cfdf260440d19dd8d",
+          "specSha256": "2930e8a657df0fca46e7689918244396755577ef038d745f35011603fea45390",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 10,
@@ -219656,7 +219629,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "evidence quality derives completeness, confidence, and replay coverage only from EventRecord evidence and review state",
-          "specSha256": "96c141bbd3883ec66cdd13140aad4adeb66eeafe9506d53a89bf508688fa789d",
+          "specSha256": "3ab398ca30bb67e31d0c09645ae8261112e77f58440d6ead5f08cd5057273b31",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -220267,7 +220240,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "source reliability joins SourceRegistry health and EventRecord source id and exposes exact failure context and recheck hint",
-          "specSha256": "eab6bc8e06d7b3d1516a43a41464803e881dfeb0a636598043998cb1b801a9d6",
+          "specSha256": "463d57f43feac2a5964fa8a4c50a156131f99fc5ec97fee8e1a0f5015b062db0",
           "requestCount": 2,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -220878,7 +220851,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "AI review quality derives correction signal, uncertainty reason, and quality badge from review and event context",
-          "specSha256": "e635611803de4d96e3297b52bbe446ae877084619a5dc5a6455a16c82df195b3",
+          "specSha256": "28609ecec1d739725aedbfa59f4c9b874fae07741a2759ec9cd6ad7f0b919136",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -221525,7 +221498,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "operator resolution flow persists assignment, note, close/reopen state and exact audit actions only to review and audit",
-          "specSha256": "5e2e7636fe84c837f91c3d65ec185271f13b98625835c1886bbe32a52463749a",
+          "specSha256": "499dd9ea567f2e33feaa553c794cd750bde8caa918c295315d766c966d2935f1",
           "requestCount": 3,
           "domAssertionCount": 1,
           "stateSnapshotCount": 12,
@@ -222203,7 +222176,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "action readiness checklist derives rule draft, evidence bundle, and notification blockers from exact resolution context",
-          "specSha256": "5245c336a4386fc0b0665965f8b034f34438da033e532921b2573b53c29a3eb0",
+          "specSha256": "723db27c65b949a14857f625f98ffe431a9e9cbe3f33425eb8934ebf694c77d9",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -222814,7 +222787,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "resolution search metrics exactly summarize active filters, saved-view matches, and operational counts from the reviews query",
-          "specSha256": "67161c0e222f35805a3790e6051f3b72249d0b5a127e1b1f526d8550e58b8028",
+          "specSha256": "3f9dc2e13f7211a1986c84bf175bd398e67b2437b0cbbce493b42f05b308b3c0",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -223423,7 +223396,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident source correlation derives source cause, closure impact, and correlation signal from resolution and source audit state",
-          "specSha256": "21ff9d5b232d1982fdce9a1b4140c1de31d2590381bb25b8ca7a3bf90697fcdc",
+          "specSha256": "870e8fd352d0603e8475dd6b2a9516ca1e0d7c6151e461fbbd8b4d0a63f11d95",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -224034,7 +224007,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "operator recheck recovery queue contains failed sources only with retry, recovery, dry-run, and note linkage",
-          "specSha256": "ca5d99b845b29d69b992d2979077f4081f85b35cb66f2763f3e591fe9f64fb9e",
+          "specSha256": "624302fabeb8cbac47d31c9ed1475b4bac15f5d9cd383532dd3889ceb51c3f4d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -224643,7 +224616,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "selected resolution detail exposes a read-only incident-to-command handoff without EventRecord or audit writes",
-          "specSha256": "1c7f7af691009551eb760e653c69e0d5c3aee2911acbe5d00da65901084312ef",
+          "specSha256": "ac108565e6654302825e5f8110fb45da4cdc26e8db1b80b45970ea46bc93af67",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 11,
@@ -225254,7 +225227,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "viewer assigned view만 source tree/API에 표시",
-          "specSha256": "4188ade3764801a634bfbcefb7cc6a2956a46ac430a21aa2e4b57ff768178078",
+          "specSha256": "6953bcb4338a5490353f449654d70508b06dd497ceeab244deb97db626301be6",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 2,
@@ -225579,13 +225552,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "[data-action=\"toggle-playback\"]",
+        "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
         "requestedSelector": null,
         "canonicalSelector": null,
         "selectorSource": "review4-local-mutation-control-override",
         "actionAnchor": "WebRtcHttpServer::Start",
         "actionRoute": "/client/live",
-        "targetSelector": "[data-action=\"toggle-playback\"]"
+        "targetSelector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]"
       },
       "actions": [
         {
@@ -225646,29 +225619,29 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "CLIENT-002:wait-visible",
-          "selector": "[data-action=\"toggle-playback\"]",
+          "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
           "selectorSource": "review4-local-mutation-control-override"
         },
         {
           "kind": "activate-control",
           "dispatch": "playwright-native",
           "actionId": "CLIENT-002:activate-control",
-          "selector": "[data-action=\"toggle-playback\"]",
+          "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
             "actionId": "CLIENT-002:activate-control",
             "actionKind": "activate-control",
-            "controlSelector": "[data-action=\"toggle-playback\"]",
+            "controlSelector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
             "linkedPrimaryActionId": null,
             "requiredSource": "local-transition-readback",
             "correlationId": "CLIENT-002:activate-control:completion",
             "request": null,
             "localTransition": {
-              "selector": "[data-action=\"toggle-playback\"]",
+              "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
               "type": "activate",
-              "target": "[data-action=\"toggle-playback\"]",
+              "target": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
               "effect": "tile start 후 video/status/session 생성 확인",
               "property": null,
               "seedRequirements": [
@@ -225843,7 +225816,7 @@
             "inputId": "CLIENT-002:local-control-input",
             "kind": "local-control-input",
             "actualValue": {
-              "selector": "[data-action=\"toggle-playback\"]",
+              "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
               "operation": "activate"
             },
             "sensitive": false
@@ -225851,7 +225824,7 @@
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "[data-action=\"toggle-playback\"]",
+          "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
           "route": "/client/live",
           "accountRole": "viewer",
           "source": "review4-local-mutation-control-override",
@@ -225870,7 +225843,7 @@
           "endpoint": null,
           "localAction": {
             "type": "activate",
-            "target": "[data-action=\"toggle-playback\"]",
+            "target": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
             "effect": "tile start 후 video/status/session 생성 확인"
           }
         },
@@ -225906,7 +225879,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "live tile start가 session/answer/video 상태에 결속",
-          "specSha256": "f6c4a5c3fdf8cfe1b9425c7dbd3e355650e798a380c0b4e1aadec68663a96465",
+          "specSha256": "a7589b2cd96eafcf667101835a18cf5d520f8ae954b63b1db2d723190fbfe643",
           "requestCount": 2,
           "domAssertionCount": 2,
           "stateSnapshotCount": 1,
@@ -225972,29 +225945,29 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "CLIENT-002:wait-visible",
-            "selector": "[data-action=\"toggle-playback\"]",
+            "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
             "selectorSource": "review4-local-mutation-control-override"
           },
           {
             "kind": "activate-control",
             "dispatch": "playwright-native",
             "actionId": "CLIENT-002:activate-control",
-            "selector": "[data-action=\"toggle-playback\"]",
+            "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
               "actionId": "CLIENT-002:activate-control",
               "actionKind": "activate-control",
-              "controlSelector": "[data-action=\"toggle-playback\"]",
+              "controlSelector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
               "linkedPrimaryActionId": null,
               "requiredSource": "local-transition-readback",
               "correlationId": "CLIENT-002:activate-control:completion",
               "request": null,
               "localTransition": {
-                "selector": "[data-action=\"toggle-playback\"]",
+                "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
                 "type": "activate",
-                "target": "[data-action=\"toggle-playback\"]",
+                "target": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
                 "effect": "tile start 후 video/status/session 생성 확인",
                 "property": null,
                 "seedRequirements": [
@@ -226153,15 +226126,15 @@
               "phase": "primary-action",
               "actionId": "CLIENT-002:activate-control",
               "actionKind": "activate-control",
-              "controlSelector": "[data-action=\"toggle-playback\"]",
+              "controlSelector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
               "linkedPrimaryActionId": null,
               "requiredSource": "local-transition-readback",
               "correlationId": "CLIENT-002:activate-control:completion",
               "request": null,
               "localTransition": {
-                "selector": "[data-action=\"toggle-playback\"]",
+                "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
                 "type": "activate",
-                "target": "[data-action=\"toggle-playback\"]",
+                "target": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
                 "effect": "tile start 후 video/status/session 생성 확인",
                 "property": null,
                 "seedRequirements": [
@@ -226276,7 +226249,7 @@
         ],
         "primaryActionId": "CLIENT-002:activate-control",
         "primaryActionCorrelationId": "CLIENT-002:activate-control:completion",
-        "primaryControlSelector": "[data-action=\"toggle-playback\"]",
+        "primaryControlSelector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_ui_click_e2e.mjs#client-live-primary-video-status-session-oracle#92098fc57c652a9a5fdc400094e0a038eb5a0e09842c936b700371e7956fe305"
       },
       "artifacts": {
@@ -226309,7 +226282,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "[data-action=\"toggle-playback\"]",
+          "selector": "[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
           "applicability": "required",
           "exists": true,
           "visible": true,
@@ -226673,7 +226646,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "all-stop이 active session을 종료하고 tile을 idle로 복원",
-          "specSha256": "789646040ad64424596fa03cb14b887626b08e7c82838d7676233eccb4043adc",
+          "specSha256": "854693601c08949f10b12414da18085736241c72c2c9846e21e850e47434e933",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 1,
@@ -227405,7 +227378,7 @@
           "route": "/client/dashboard",
           "role": "viewer",
           "featureMeaning": "dashboard가 assigned view의 scoped status/event/source health만 표시",
-          "specSha256": "6f8fa7d66ec4b12fa1ed3bcd66f48354e3abfd35663636390b84dab84241d039",
+          "specSha256": "384467da3e7273f4a1eea400aa93381f8c8e9b757f0a0c78d493601f7ced554c",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 2,
@@ -228013,7 +227986,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "events page가 viewer scope의 client-safe summaries만 표시",
-          "specSha256": "a64de2b1b8fb59d42a01ccba561b6cf5eedc4f691ab03c1b3bfc876bad6fcc9d",
+          "specSha256": "969949c169abfbc988d257c5d0e43d0f21804fc5fcd903db755f0a246db2d425",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -228661,7 +228634,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "grid/density/dock preference 저장과 authoritative readback",
-          "specSha256": "0cf56771d8d627305b560ccd407d7c174bb4d0e5b5798db0b221d895442660a9",
+          "specSha256": "74dc847eb22949992fcbf5b810f172d374fc71f2d89203e89d40a9be069ba181",
           "requestCount": 2,
           "domAssertionCount": 2,
           "stateSnapshotCount": 1,
@@ -229336,7 +229309,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "reload 후 persisted live layout preference 복원",
-          "specSha256": "e48b5359919a995ddece85e9c52ce9f35fc813b1c084faee6f26e02c52526ec3",
+          "specSha256": "a22845b9ff76eb1077efd72405e58196d6b7be639ff405867f3ea9ce3f2b24bd",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 1,
@@ -229945,7 +229918,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "unassigned view가 list/detail/UI에서 모두 차단",
-          "specSha256": "0a5eaf89e0b98a22f514b764a62f67d722ca54d99680886ebbcc68f2acfe4fe6",
+          "specSha256": "23f91cd7471a61430790e1c311e5c59718fc6a0251d4eb60c7beee6862d5e69a",
           "requestCount": 2,
           "domAssertionCount": 2,
           "stateSnapshotCount": 1,
@@ -230554,7 +230527,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "viewer client shell에 Ops navigation 비노출",
-          "specSha256": "b42f2f46f473d9385d4f08c23397425d05989d81cd28fc6d7f8cebaed0d5bfad",
+          "specSha256": "f95a07c621ea4a093ca3bb6f176854630d9438c61b74d9fea2470b49f8f89eda",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 4,
@@ -231163,7 +231136,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "viewer client shell에 Lab navigation 비노출",
-          "specSha256": "71814071cf42d279c4911263a63e99e5aef27021eb5ffe6015055c36d477078c",
+          "specSha256": "5c741dbf41a5f6d1d87c4b0a0cb20a09a27edb50bd60395437bc57ad8155277e",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 4,
@@ -231772,7 +231745,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "client raw JSON/debug details 비노출",
-          "specSha256": "e7db88184260719e5313b39aa53e1bfb937f639a067fc37392763c56187edac9",
+          "specSha256": "a7f12fbfe08fda81369f094e5452829053a4ac2a3f258eb9e15d9ea6b10876cc",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -232381,7 +232354,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "client debugCounters/source URL 비노출",
-          "specSha256": "d1bf1c5652b0dfc2b82b54a434ea5772c5dd40d95b67de8a9df641f6b803e7ac",
+          "specSha256": "42f17780cbf573c717542df825e61cd5a74b88b416cc8bd2f16c461345f79a33",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -232990,7 +232963,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "client BBox diagnostics 비노출",
-          "specSha256": "d3135d8fe6dc68f9b4d75a29bc01fdf68cdf65eebda20a021b044eeb632c487e",
+          "specSha256": "1ffcaa62a7917322295be9be3773e68b1fdccd67539456c631a4972392b583b1",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -233599,7 +233572,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "client rule/profile editor controls 비노출",
-          "specSha256": "2d1638b05ad2ee2f70dfcce31085a5db78aca63935689e972c95d3411da11c0f",
+          "specSha256": "6d80f426fce3b55a2a0111a1e749e00dcfc6157715675304c6faa0d970cf3d33",
           "requestCount": 1,
           "domAssertionCount": 4,
           "stateSnapshotCount": 4,
@@ -233924,13 +233897,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "[data-testid=\"client-dashboard-shell\"]",
+        "selector": ".client-preview-redaction-strip",
         "requestedSelector": "[data-testid=\"client-dashboard-shell\"]",
         "canonicalSelector": "[data-testid=\"client-dashboard-shell\"]",
-        "selectorSource": "review4-canonical-product-control",
+        "selectorSource": "review4-read-model-control-override",
         "actionAnchor": "ClientShellPageHtml",
         "actionRoute": "/client/live",
-        "targetSelector": "[data-testid=\"client-dashboard-shell\"]"
+        "targetSelector": ".client-preview-redaction-strip"
       },
       "actions": [
         {
@@ -233991,21 +233964,21 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "CLIENT-018:wait-visible",
-          "selector": "[data-testid=\"client-dashboard-shell\"]",
-          "selectorSource": "review4-canonical-product-control"
+          "selector": ".client-preview-redaction-strip",
+          "selectorSource": "review4-read-model-control-override"
         },
         {
           "kind": "assert-visible-read-model",
           "dispatch": "playwright-native",
           "actionId": "CLIENT-018:assert-visible-read-model",
-          "selector": "[data-testid=\"client-dashboard-shell\"]",
+          "selector": ".client-preview-redaction-strip",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
             "actionId": "CLIENT-018:assert-visible-read-model",
             "actionKind": "assert-visible-read-model",
-            "controlSelector": "[data-testid=\"client-dashboard-shell\"]",
+            "controlSelector": ".client-preview-redaction-strip",
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
             "correlationId": "CLIENT-018:assert-visible-read-model:completion",
@@ -234150,18 +234123,18 @@
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "[data-testid=\"client-dashboard-shell\"]",
+          "selector": ".client-preview-redaction-strip",
           "route": "/client/live",
           "accountRole": "admin",
-          "source": "review4-canonical-product-control",
+          "source": "review4-read-model-control-override",
           "expectedVisible": true,
           "expectedEnabled": true,
           "sourceLocator": {
-            "file": "src/ingress/product_ui_client_scripts.cpp",
-            "symbol": "renderDashboard",
-            "anchor": "<div class=\"client-dashboard-shell client-viewer-dashboard\" data-testid=\"client-dashboard-shell\" data-viewer-flow=\"status-events\" data-client-redaction-review=\"viewer-safe-no-locator-debug\" data-admin-preview-review=\"preview-aware\">",
-            "anchorSha256": "ab643b47331e6bca5d722dfc56bc659ccfff1123f514dca5c658d0772bf10c5c",
-            "contextSha256": "eb30e079975b205754db5eb5c293803382790ba7e99356c696c8cbc6f4f60542"
+            "file": "src/ingress/webrtc_http_server.cpp",
+            "symbol": "review4-primary-control:CLIENT-018",
+            "anchor": "<div class=\"client-preview-redaction-strip\" data-client-review=\"admin-preview\" data-admin-preview-state=\"",
+            "anchorSha256": "2a20e9ae17f73d91afb03665a37c7aa8dff5d4b742c3a328b6c1947d5f5da893",
+            "contextSha256": "2a20e9ae17f73d91afb03665a37c7aa8dff5d4b742c3a328b6c1947d5f5da893"
           }
         },
         "productAction": {
@@ -234207,7 +234180,7 @@
           "route": "/client/live",
           "role": "admin",
           "featureMeaning": "admin client preview banner/state 표시",
-          "specSha256": "3f718396ec7c24fbadf1ffcf546ec347e4093f4c696a65887629b9508ad2a69b",
+          "specSha256": "685bfd5c7c40cc81894b4d1be2f7b17c391d59ade7c5500178a4083230511869",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 1,
@@ -234273,21 +234246,21 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "CLIENT-018:wait-visible",
-            "selector": "[data-testid=\"client-dashboard-shell\"]",
-            "selectorSource": "review4-canonical-product-control"
+            "selector": ".client-preview-redaction-strip",
+            "selectorSource": "review4-read-model-control-override"
           },
           {
             "kind": "assert-visible-read-model",
             "dispatch": "playwright-native",
             "actionId": "CLIENT-018:assert-visible-read-model",
-            "selector": "[data-testid=\"client-dashboard-shell\"]",
+            "selector": ".client-preview-redaction-strip",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
               "actionId": "CLIENT-018:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "[data-testid=\"client-dashboard-shell\"]",
+              "controlSelector": ".client-preview-redaction-strip",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "CLIENT-018:assert-visible-read-model:completion",
@@ -234407,7 +234380,7 @@
               "phase": "primary-action",
               "actionId": "CLIENT-018:assert-visible-read-model",
               "actionKind": "assert-visible-read-model",
-              "controlSelector": "[data-testid=\"client-dashboard-shell\"]",
+              "controlSelector": ".client-preview-redaction-strip",
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
               "correlationId": "CLIENT-018:assert-visible-read-model:completion",
@@ -234477,7 +234450,7 @@
         ],
         "primaryActionId": "CLIENT-018:assert-visible-read-model",
         "primaryActionCorrelationId": "CLIENT-018:assert-visible-read-model:completion",
-        "primaryControlSelector": "[data-testid=\"client-dashboard-shell\"]",
+        "primaryControlSelector": ".client-preview-redaction-strip",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_v220_client_preview_redaction_review.mjs#CLIENT-018:canonical-functional-readback#6f90fc1eab44fbfaf96448f48e4f72ebf7a2dcde75bce31f224213df6a3f85f2"
       },
       "artifacts": {
@@ -234510,7 +234483,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "[data-testid=\"client-dashboard-shell\"]",
+          "selector": ".client-preview-redaction-strip",
           "applicability": "required",
           "exists": true,
           "visible": true,
@@ -234823,7 +234796,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "video viewport가 실제 video track을 재생하고 clipping 없음",
-          "specSha256": "397fa42929053458111de8a7634cc7b7b1daaea5ab722ecf6913dbd3802f85de",
+          "specSha256": "c36fb59bf2956db815e24f6d4b2734eabee76d0ce2d554dd9dbe1079afc52195",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 1,
@@ -235432,7 +235405,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "start/stop/reconnect controls가 session lifecycle과 결속",
-          "specSha256": "b5bf7e1725d82898662a3257e80f30e4b8e4d5b5c7ff51b17a474841e43804f4",
+          "specSha256": "16b34f2c50b754201c6eef2ee45c268aee107f44f8d76f2670b86ebad9f92843",
           "requestCount": 2,
           "domAssertionCount": 2,
           "stateSnapshotCount": 1,
@@ -235757,13 +235730,13 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "[data-mode-action=\"va-overlay\"]",
+        "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
         "requestedSelector": "[data-testid=\"client-safe-followup-digest\"]",
         "canonicalSelector": "[data-testid=\"client-safe-followup-digest\"]",
         "selectorSource": "review4-local-mutation-control-override",
         "actionAnchor": "ClientShellPageHtml",
         "actionRoute": "/client/live",
-        "targetSelector": "[data-mode-action=\"va-overlay\"]"
+        "targetSelector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]"
       },
       "actions": [
         {
@@ -235824,31 +235797,32 @@
           "kind": "wait-visible",
           "dispatch": "playwright-native",
           "actionId": "CLIENT-021:wait-visible",
-          "selector": "[data-mode-action=\"va-overlay\"]",
+          "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
           "selectorSource": "review4-local-mutation-control-override"
         },
         {
           "kind": "activate-control",
           "dispatch": "playwright-native",
           "actionId": "CLIENT-021:activate-control",
-          "selector": "[data-mode-action=\"va-overlay\"]",
+          "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
             "actionId": "CLIENT-021:activate-control",
             "actionKind": "activate-control",
-            "controlSelector": "[data-mode-action=\"va-overlay\"]",
+            "controlSelector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
             "linkedPrimaryActionId": null,
             "requiredSource": "local-transition-readback",
             "correlationId": "CLIENT-021:activate-control:completion",
             "request": null,
             "localTransition": {
-              "selector": "[data-mode-action=\"va-overlay\"]",
+              "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
               "type": "composed-va-overlay-session",
-              "target": "[data-mode-action=\"va-overlay\"]",
+              "target": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
               "effect": "overlay toggle/status/metadata 일치",
               "property": null,
+              "postconditionObservationMode": "after-action-exact",
               "seedRequirements": [
                 {
                   "kind": "live-tile",
@@ -235918,7 +235892,7 @@
                   "value": "온라인"
                 }
               ],
-              "postconditionObservationMode": "transition-required"
+              "postconditionObservationMode": "after-action-exact"
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -236021,7 +235995,7 @@
             "inputId": "CLIENT-021:local-control-input",
             "kind": "local-control-input",
             "actualValue": {
-              "selector": "[data-mode-action=\"va-overlay\"]",
+              "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
               "operation": "composed-va-overlay-session"
             },
             "sensitive": false
@@ -236029,7 +236003,7 @@
         ],
         "primaryControl": {
           "applicability": "required",
-          "selector": "[data-mode-action=\"va-overlay\"]",
+          "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
           "route": "/client/live",
           "accountRole": "viewer",
           "source": "review4-local-mutation-control-override",
@@ -236048,7 +236022,7 @@
           "endpoint": null,
           "localAction": {
             "type": "composed-va-overlay-session",
-            "target": "[data-mode-action=\"va-overlay\"]",
+            "target": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
             "effect": "overlay toggle/status/metadata 일치"
           }
         },
@@ -236084,7 +236058,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "VA overlay toggle/status/metadata가 같은 mode에 결속",
-          "specSha256": "a45e8d61f58566cea5c1e9c7feb2f92f2ec0cf51cbf77863e0a59afb0ad2abab",
+          "specSha256": "d42bed99d8ed1b0ba9a853ed9e49c0e05ba07ecf0debbd199db0dccdf1f55dec",
           "requestCount": 2,
           "domAssertionCount": 5,
           "stateSnapshotCount": 1,
@@ -236150,31 +236124,32 @@
             "kind": "wait-visible",
             "dispatch": "playwright-native",
             "actionId": "CLIENT-021:wait-visible",
-            "selector": "[data-mode-action=\"va-overlay\"]",
+            "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
             "selectorSource": "review4-local-mutation-control-override"
           },
           {
             "kind": "activate-control",
             "dispatch": "playwright-native",
             "actionId": "CLIENT-021:activate-control",
-            "selector": "[data-mode-action=\"va-overlay\"]",
+            "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
               "actionId": "CLIENT-021:activate-control",
               "actionKind": "activate-control",
-              "controlSelector": "[data-mode-action=\"va-overlay\"]",
+              "controlSelector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
               "linkedPrimaryActionId": null,
               "requiredSource": "local-transition-readback",
               "correlationId": "CLIENT-021:activate-control:completion",
               "request": null,
               "localTransition": {
-                "selector": "[data-mode-action=\"va-overlay\"]",
+                "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
                 "type": "composed-va-overlay-session",
-                "target": "[data-mode-action=\"va-overlay\"]",
+                "target": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
                 "effect": "overlay toggle/status/metadata 일치",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "seedRequirements": [
                   {
                     "kind": "live-tile",
@@ -236244,7 +236219,7 @@
                     "value": "온라인"
                   }
                 ],
-                "postconditionObservationMode": "transition-required"
+                "postconditionObservationMode": "after-action-exact"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -236331,17 +236306,18 @@
               "phase": "primary-action",
               "actionId": "CLIENT-021:activate-control",
               "actionKind": "activate-control",
-              "controlSelector": "[data-mode-action=\"va-overlay\"]",
+              "controlSelector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
               "linkedPrimaryActionId": null,
               "requiredSource": "local-transition-readback",
               "correlationId": "CLIENT-021:activate-control:completion",
               "request": null,
               "localTransition": {
-                "selector": "[data-mode-action=\"va-overlay\"]",
+                "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
                 "type": "composed-va-overlay-session",
-                "target": "[data-mode-action=\"va-overlay\"]",
+                "target": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
                 "effect": "overlay toggle/status/metadata 일치",
                 "property": null,
+                "postconditionObservationMode": "after-action-exact",
                 "seedRequirements": [
                   {
                     "kind": "live-tile",
@@ -236411,7 +236387,7 @@
                     "value": "온라인"
                   }
                 ],
-                "postconditionObservationMode": "transition-required"
+                "postconditionObservationMode": "after-action-exact"
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -236454,7 +236430,7 @@
         ],
         "primaryActionId": "CLIENT-021:activate-control",
         "primaryActionCorrelationId": "CLIENT-021:activate-control:completion",
-        "primaryControlSelector": "[data-mode-action=\"va-overlay\"]",
+        "primaryControlSelector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_client_ui_smoke.mjs#CLIENT-021:canonical-functional-readback#16b794c615aae15425ad8a96c9522ef6622c0bc86525fc93679ffc4d9529c8aa"
       },
       "artifacts": {
@@ -236487,7 +236463,7 @@
         },
         "theme": "light",
         "controlAction": {
-          "selector": "[data-mode-action=\"va-overlay\"]",
+          "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
           "applicability": "required",
           "exists": true,
           "visible": true,
@@ -236800,7 +236776,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "caption/status가 viewport를 가리지 않는 a11y 상태",
-          "specSha256": "cbfc882b48f9d6c4440afcf45ec1fc439840de24bd91d42aa5991fc81bc0a489",
+          "specSha256": "2f9e4bb58e7a92c9def8917cd213a74f5b832bcc3b1be33f1472fca3cc8422d7",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 1,
@@ -237410,7 +237386,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "client-safe incident digest API/UI",
-          "specSha256": "86463477703dc341931efa27005f17997226b61071d103f7da056b0dfb675826",
+          "specSha256": "62001d30e4ac727c657337b7d5017598b1d845e6485d4f963387569b8413c4a4",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -238032,7 +238008,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "client-safe follow-up digest API/UI",
-          "specSha256": "5fe0619715be34448acba0b3efe2fe6496a5bb9da3dc14067dfbebc90493ff27",
+          "specSha256": "18f523b6351d450b8a47d8857c9e036efdeb58151a3aeb9ca930fa070cc7f629",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -238640,7 +238616,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "client-safe event digest API/UI",
-          "specSha256": "19b70a0183fca1a925b4a55789d45ce3cc75498f916e19bf31fdb13f6a31295e",
+          "specSha256": "6533fc499de3e0ad589cc28a5ce5f3a5b3988d9f2f3857cc9491161d14059934",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -239255,7 +239231,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "client-safe resolution digest API/UI",
-          "specSha256": "b93b50d2360f5cd1e871c6c077c33ab49dd2894cc5aabeb8e09d6da323bf2950",
+          "specSha256": "ec69769b3ef616c2ee6d6b44fd86ec0ea7d0e67bfe744f74508a714c9897c2dc",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -239870,7 +239846,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "client-safe source status digest API/UI",
-          "specSha256": "3c9eef4a7317f0a19e0119b93b54a5428b9859240f978e40844b39a3ac9b8295",
+          "specSha256": "8954977546bfb2b04b165a636529345c2931c70514e1525e74e94b2ffe0ab607",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -240487,7 +240463,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "client-safe maintenance digest API/UI",
-          "specSha256": "b78613660d16e29a05b2d57c36e43ab55dd7ba8cb4e78a80d5ea96a9ad85ff1a",
+          "specSha256": "76e574af28f7c5c44504b7dd2a522e9b9a02876818303add5c0f9654241f6aab",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -241110,7 +241086,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "client impact forecast API/UI",
-          "specSha256": "65b1fd0dcee05ff768f40e1bf4b4b5ca91daa421eacb12d90af3eb3ae7208edf",
+          "specSha256": "82ea839da953790c1142a695773f34ead81344647543ab93ddb265d982ca68d5",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -241733,7 +241709,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "client-safe operations notice API/UI",
-          "specSha256": "06c7680c904a3758d1115b0dd0135d930177f92d65d10b2179428aa24180551b",
+          "specSha256": "c5ae678ee7da8ab4bfe68cd715239e156757710c471779d5eb160f9a871f614b",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -242356,7 +242332,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "client-safe action notice preview API/UI",
-          "specSha256": "49924c16ec0f79a00a1a9009ef070100bff599da08c7244b70d0b3dc85bfd4de",
+          "specSha256": "e4a89c6d9fb9356e9ca4f7334930035a339e23502dc30d6f55a442062635461d",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -242978,9 +242954,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "outcome observer의 client impact diff는 Ops-only",
-          "specSha256": "d8bd1188bdd13c1d1c8e7139a89a0ec07bf4d5bec00bd23b2e970987952d28d0",
+          "specSha256": "5e235e285f9adbf18c9f630f38f83066c15e12a2ac5d6743a7189993477391f4",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -243587,7 +243563,7 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "action receipt bundle의 client refs는 redacted Ops-only",
-          "specSha256": "e7c2cc799fcc84198eab3039e2fc2b05bee900e4d9974e78b79430a2be080b5d",
+          "specSha256": "b97dff0a0c98881c9080e94f48dfc6ed879f9d76776125f743324627d4f4c0f9",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 4,
@@ -244196,7 +244172,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "sample 영상은 실제 WebRTC video track으로 표시",
-          "specSha256": "e091142eb684af9ee97648ac5880d5e1f29bda4fb89919023561d9339ac5d4a6",
+          "specSha256": "f6628940e7ae4ef2b9485f653b29e59ce0c765df1a238b21e6417a0135982145",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 1,
@@ -244805,7 +244781,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "viewer client live에서 두 channel/tile 동시 재생과 layout 안정성",
-          "specSha256": "aa92e1c9f8f58aae2c6e215e5eea3fb9b3d2599ceb3cf2c7a7ea6561b8e25c9b",
+          "specSha256": "5ac04efdeecffc279ec844273100a61657f94dad71368901a907ccb6971b2790",
           "requestCount": 2,
           "domAssertionCount": 3,
           "stateSnapshotCount": 1,
@@ -245414,7 +245390,7 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "ops/client 제품 화면에 lab editor embed 금지",
-          "specSha256": "c68b6cbd621e199000a16e03d642bc877016c43883afa1b6d8077023d816afef",
+          "specSha256": "478ff934a8e21ae7bed0a9295efa205fc1637ede9842281e1c84aacf026c3bfb",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -245967,7 +245943,7 @@
           "route": "/__v390-undefined-route__",
           "role": "operator",
           "featureMeaning": "정의하지 않은 route는 정확히 404",
-          "specSha256": "1dd96785276e7de60eb2bb081fb06f573d8b592aff0d9592001dcde0bb3247a9",
+          "specSha256": "240b277801f79521ff5806d771897a9cbaa59b75c76b06ca05448c28db0b2e8e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 1,
@@ -246456,7 +246432,7 @@
           "route": "/lab",
           "role": "operator",
           "featureMeaning": "legacy /lab 제품 route는 정확히 404",
-          "specSha256": "f33034be519a282a73d2fc31576c017e686f431192665b3a2bbb840b64202215",
+          "specSha256": "3d7c70c2186c3e3fd10fd9f59a8d91530626e88828bea542939314583a95a702",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 1,
@@ -247001,7 +246977,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "client API/UI debug/source/raw 정보 비노출",
-          "specSha256": "59ac628c74481a8737e93b8fa6b32c691259858bc8f8e0e54524de04ee619371",
+          "specSha256": "107d220c03c15b9089fd361805210a9bd3bffb9a6246486d1e2f0198a636fe74",
           "requestCount": 1,
           "domAssertionCount": 4,
           "stateSnapshotCount": 4,
@@ -247610,7 +247586,7 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "password/token/session material artifact/UI/API 비노출",
-          "specSha256": "f25cd48f422dfff25680b7ae35f26118c25bfbe6b90ce7a84f7e286b8d4e3ea9",
+          "specSha256": "8fb72f471559ca7023c0b1d085aa987526cef7dee2613e8989a98d14ce95967f",
           "requestCount": 1,
           "domAssertionCount": 4,
           "stateSnapshotCount": 4,
@@ -248219,9 +248195,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "ops/client nav route action guard role matrix",
-          "specSha256": "6cabdf30594b2da535acec4a7bd0d12c5777322dea28a84f41632bd277c6400a",
+          "specSha256": "3354960888624aa483a2d908f3bb7f64ffceccc7b66004b61a8d5711eef2b50a",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -248828,9 +248804,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "UI blocking dialog policy",
-          "specSha256": "1e85f0a3e3c7cc8c260789e6f38a8c655cc47d590ba5722d6413d01f7eb4da32",
+          "specSha256": "b4938444e74e8e0cf0ac4b7ff0d23478bc06ae6350a13096b202151625b70e17",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -249437,9 +249413,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "VLM privacy/external transfer guard",
-          "specSha256": "21dacf6e975eccd7fccc8ca0b3b30f1869f1306ab5dd38531e700e084e9e97c6",
+          "specSha256": "1b63eb01f140e125fe0e10e928388cd34b94b9400404601f95b4b1ab7af0e66e",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -250046,7 +250022,7 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "VLM prompt/raw response/credential/source redaction",
-          "specSha256": "ed21b8d14b3a997077e1cbed77418ccb7a90df811208389451b51f0554c70b17",
+          "specSha256": "c629aaa417ade95262e76b3f9cbda71c2ec7bfa1431aa58d6fa0f31f58894f34",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -250655,7 +250631,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "viewer/client VLM internal material 비노출",
-          "specSha256": "6b40c247fe4b262d63ba40d3eb5ff9404f17645e2ec3935e597029edddcb71a0",
+          "specSha256": "1d3545c401e6dbac43d69cda604e8a647ac71daf0fa1e889fd0b88c6c7e7e66d",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -251264,9 +251240,9 @@
           "route": "/ops/vlm",
           "role": "operator",
           "featureMeaning": "VLM diagnostic/raw details는 Ops details 안에만 존재",
-          "specSha256": "876a25a4520f1f9c5818ac6528f263886d33aae601404093fb8652de83848e81",
+          "specSha256": "12bda8dfdb6962d88f4721252b7d1de3ed4b079bd1c38a7d1b331a68de62d98b",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -251929,7 +251905,7 @@
           "route": "/ops/rules",
           "role": "operator",
           "featureMeaning": "VLM suggestion은 seeded draft fields만 적용하고 저장하지 않음",
-          "specSha256": "74852965b4b21d6760a5bbdc6121dee019e616eda7d3e070a6d3fe22af3d30b6",
+          "specSha256": "77e615d80e4a75037774c9e0ba4c014e91a031655944bcbf98272362f2fa5e7b",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 3,
@@ -252671,9 +252647,9 @@
           "route": "/ops/events",
           "role": "admin",
           "featureMeaning": "incident/action write는 Ops review/audit에만 저장",
-          "specSha256": "c87db4137949e48ce98158fcb0af9ff25f83959f423d66e452219d0f81f217b6",
+          "specSha256": "ec44c13a7b19b932a42b78238690c35ed3b2911e7fecca8f055dc031cf676663",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -253282,9 +253258,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "alert dry-run은 preview/log만 만들고 외부 전송하지 않음",
-          "specSha256": "1c6fe61414c3f7a83805004f2c02c74d1256e4d3b81703bf64f3ff6d6c451247",
+          "specSha256": "10799d45608eca3c1d90a9e7c952b08fc498d69e135647a1b7431cff0cdea5b9",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -253891,7 +253867,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident semantic search UI redacted projection",
-          "specSha256": "35b2f5d137a86867d8b67748a9518f78750cfb48a910c07660793a2567d66202",
+          "specSha256": "d5b9e72b9c7d4da09b7b450802037bff2f63d74186139197046c6d4e210f5925",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 4,
@@ -254500,9 +254476,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "incident timeline graph Ops-only summary",
-          "specSha256": "68f35fc3b6798d67aea3d8f300a7c6aab2f0081129235f3f6e0e5c002ba76766",
+          "specSha256": "a6b94c48f75af0acbf3b1bbf7a003f46d1fc219503c400278ed6a3c1a6fe02b8",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -255109,9 +255085,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "explainable incident brief redacted/default-off",
-          "specSha256": "7d1337f0671a6260bb11e72c87bf9f1409a798d373912543c384c03e04c4163e",
+          "specSha256": "3a8cb104f4cb5634417486d624d8896e32d41bb19fe1f9700702e4971db75891",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -255718,9 +255694,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "similar incident deterministic lookup",
-          "specSha256": "b99888a78a86a4d58e76348af260ac47b3c27697dcf8cd7c147d023079da2b91",
+          "specSha256": "5ac684056499f5731bc1b5f3967f909362586887f8f49ce2df04baa7fb633e5d",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -256327,9 +256303,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "client-safe incident digest boundary",
-          "specSha256": "1f87827d5726688f2f1538e22fc2e490dae7b322785b7ab53e68dc7b4f4a7265",
+          "specSha256": "e7057e8ed9f9531d681c854559ae545505ee2e7cbc43d0beb11fb77dbac39321",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -256936,7 +256912,7 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "redacted incident evidence bundle boundary",
-          "specSha256": "bd188c2a0c5cb2b9de5bd8bb06794f4ef0f1aac6da1d73497d97fe680e94861e",
+          "specSha256": "e4fc50ee0628573435332b1f6d4c782583b2bcb8768438d68095b91c1ea8ab3f",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -257543,7 +257519,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "VLM summary candidate review는 manual Ops wrapper/no-call",
-          "specSha256": "bc153ac362a1a613a942a1eb726a7f22b610c73b2b9b0b397c5441a5a88c68a4",
+          "specSha256": "d4ded3afff196de39fbba191b19311dff3ef09a60a5c24fa2a7ad90bd2c16243",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 2,
@@ -258154,7 +258130,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident-to-rule은 seeded suggestion에서 draft-only handoff",
-          "specSha256": "20f3ba2ef0f1dc6c27a9e77d90a7214c51142ee3863e05c316e40de160990be0",
+          "specSha256": "4837773fbf6b7b204b3d7bce5163f68589b293c53ffb5bb7b1a49afe7990482e",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 2,
@@ -258770,7 +258746,7 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "ONVIF credential gate redaction",
-          "specSha256": "86be196ccf3aa4165ca7883a20e56856ef1a269235f1c7f1f1b7b2bbcaca25d4",
+          "specSha256": "0ecc5230c9ad3a3b398cf27c91dc832bc00698b024325828b8609636de4a33d1",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -259379,9 +259355,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "runtime trend는 current page session sample만 사용",
-          "specSha256": "0daa11ebb2e38b87bb6c68a53c4f4b3937698de15a6e9845d64d67ef5608b44f",
+          "specSha256": "a1f2d90e2563543329bb4a3625d9ef875ec48bd1bea81326041ad1b4af0a4f6b",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -259988,9 +259964,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "cross-zone re-entry는 기존 scenario schema만 사용",
-          "specSha256": "4a90ce29987d57a7861bc44571f1131947b5f21e612144c758356d3a94186794",
+          "specSha256": "4b78f10dbf90808f662778a0ce4fd161ad6de4a88dabe7fae4515e2bb42e6d99",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -260597,9 +260573,9 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident triage board Ops-only/no-auto-action",
-          "specSha256": "1a16530282c0d68189a3e01b42ab203d7179fa654f9c5c7efeb4110a209aea3f",
+          "specSha256": "d418d6843736522f6c9787e4d11e493a30a6e76fc351e19dbb2f3bfff8d40f76",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -261206,9 +261182,9 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "decision scorecard deterministic reasons",
-          "specSha256": "ac266b2cda6a781a882729080be18133e29e3e7a5e14da9be4eb3a1f73f9dd14",
+          "specSha256": "46fbb2d0e40253a1acb347f59742ce6b0b7f868ac02228ecea98db17fce1e8e9",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -261814,9 +261790,9 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "operational action pack은 manual workflow links만 표시",
-          "specSha256": "d06038ee6a89f4baef70648c4136c351b9880dfc29455999113cef68fbdc2936",
+          "specSha256": "707c6018fc20b0be8565a716a78af162889ff48e6ede046a1652ad0f3e21bfe7",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -262429,7 +262405,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "rule what-if는 seeded incident/suggestion condition preview만 표시",
-          "specSha256": "16584deb89889f15c8fe8bfd4a713d4883fe6a12b6451d209cab8cfa35bd6a1d",
+          "specSha256": "ea9e86936f4a5e29316ede9f6d0f4200771ac68a89cf375448966fd4f6828609",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -263045,9 +263021,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "operator outcome memory는 existing review/audit read-only hint",
-          "specSha256": "f1eeaa119e65852de343f39bfe4aa8d780b1b42635aa8e699b1669ee23ed583f",
+          "specSha256": "7da3f2a6441eaa9bd34acfe2b0647edc92c5feb9aac579ab409f95699da43050",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -263654,9 +263630,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "incident action readiness queue는 read-only status",
-          "specSha256": "6f615b4d236b710b7a5f7d3b2187861989e8026d35bfd708d7bdfcba07aed5c5",
+          "specSha256": "251bf9e36886646b73a9e9893a0b8cd360057e6755be1ddb69457260d54475e0",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -264263,9 +264239,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "approval-gated rule draft는 manual approval 전 no-write",
-          "specSha256": "36c24bd2624a852394ee0105588ca87f2a5891b24c0a1b31af78a8f9065cde05",
+          "specSha256": "32b511cdf40300b209ae4a086a6ce2706c33a2786746b4ca0731552302d8777a",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -264872,9 +264848,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "evidence intake/field readiness는 conditional-not-run",
-          "specSha256": "b972b0f6aa7f32b2e1b92d072e6b986bf42de1b1294183e9e1a456199cdde9a9",
+          "specSha256": "b2b6d613ff9b1a74781960d4584079d705a21fa82ef69990e6a7cdca419cebc3",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -265481,9 +265457,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "runtime evidence window는 bounded/no-longrun-claim",
-          "specSha256": "8d9eb9b1b28ab781554430b4f4f24a78387b0b033a8298d19eb30c54fbd1bb60",
+          "specSha256": "743e76898ba4bbdf727a3454d9e609d6da657e16a06e15bba14f5164df7a59d9",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -266090,9 +266066,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "client-safe follow-up digest boundary",
-          "specSha256": "3621b0227ae2cb6f4eb191afd830aa973eef0ab2ee95aa4e046223db2a651420",
+          "specSha256": "cc25b5654c670939ad1093854012bb362429e139b0381272f452c1c1862f1d2d",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -266699,9 +266675,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "operator correction은 review/audit에만 저장",
-          "specSha256": "a75d938d405cda2f97b7945a0b671ab74ad61d809ca9ad33ccc72a656de4e170",
+          "specSha256": "7fb302bf535cee590f21527ea0c66d35629302f6e43f2268f2350afd6dc9235a",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -267308,7 +267284,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "unified workspace가 schema/client/raw boundary를 보존",
-          "specSha256": "819eabeb4ebc9c4cbf4a8aa0ab3bc31473ef68a678f6a80c25bc9226bc980ee1",
+          "specSha256": "7968890e7fc925c3197e13c4b0bfc74b98f8973f3c3d1ff687d815aea4af0de2",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 4,
@@ -267917,9 +267893,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "evidence quality deterministic hint/no raw evidence",
-          "specSha256": "122a48acd668d3790611729901c1f86d9b1459b8881526b91c1834a3ded02141",
+          "specSha256": "02b1894cdc496ea1074bf9f0cbbfdc774a4d1838162a7a6111122e650ffef95b",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -268526,9 +268502,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "source reliability deterministic context/no source write",
-          "specSha256": "0a42e773877c6f15bbc60e1478c0a2e3bbca648c24be8c05a4f8718aa924a8f5",
+          "specSha256": "ea6c88b3c6d5cf1c4174da109dd2490b2d70fa2cfe72868f93d26c5dbed380dc",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -269135,9 +269111,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "AI review quality context/no provider call",
-          "specSha256": "87a3ec94a497aa93b5f824cbace4c66c4fbcf581a7e391068d4392a27d016345",
+          "specSha256": "3dd0dffd307c998c378f2eec12dd57ce153fd362a0beddda862383d3e4553f4c",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -269744,9 +269720,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "operator resolution write는 review JSONL/audit에만 결속",
-          "specSha256": "937e5fcee763d45f44e6f29b9885754302f9405de9b5b53e2a763c43d1f11978",
+          "specSha256": "6ad7c677e18eb0f690721fdbcba5c91e583885528b3528c7c3be82887cfeb5c5",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -270353,9 +270329,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "action readiness checklist는 deterministic/no action",
-          "specSha256": "be00f160f581462836557dd0ae56c71396801aa3b3fcd3ac3e7b428ac5b9f900",
+          "specSha256": "b3cfcf705e984b7e96b545bbbc14019765081b660073768dac5767895618d2af",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -270964,7 +270940,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "resolution digest boundary가 raw/provider/operator/action을 숨김",
-          "specSha256": "8a6f3df730748d684ed6059a31b476726115b9eec8e21a95566838981ddc68b5",
+          "specSha256": "2f44f934dd20166779a267bf16b5f01df1adc61373c52e6919864b52f193a6c6",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -271579,9 +271555,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "resolution search metrics는 read-only/no saved-view write",
-          "specSha256": "7e8b61cef8262222818bc79554806fefda8de086341985461d10aef7265a47c4",
+          "specSha256": "bbd48c8aae6482fb4d799d1b7eb1e0c389ad19ca9788c396f7951a98331c095b",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -272188,9 +272164,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "incident source correlation deterministic/no recovery",
-          "specSha256": "c05dbdf72bc10b22d6c18181ac65f122a1917ed86de87854a58aa8aac320ccb3",
+          "specSha256": "7d4823d452082742c871253c82caa612f019e7d9e61b3805f5dace4fe5ff277f",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -272797,9 +272773,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "operator recheck recovery queue는 non-persistent hint",
-          "specSha256": "14d2614dfb820c80e44275598f7205606497c7ac59d05238178962d6c5a945d8",
+          "specSha256": "d6740dfdd38d34341b2510b9a327e071889a1c4b28ec7d158506b7f1f170aa64",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -273408,7 +273384,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "source status digest boundary가 raw/credential/operator/action을 숨김",
-          "specSha256": "57a505b487673674246452146059e90587db0a133eb35a9ebb45dd4133d12500",
+          "specSha256": "22401374b0514f338ccbfe202407c4dd6668fa8292f06639590173ef33e016ff",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -274023,9 +273999,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "source reliability search metrics no saved/source write",
-          "specSha256": "7552554108944fbbcac37cd23ad1f067384de20218d0a1d23ecd383acc22e7ed",
+          "specSha256": "64f73c1879fee283bf3b3fa42bf009a16afa25b67fb687107922e011ae5a631b",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -274632,9 +274608,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "backup recovery source handoff는 validation plan input only",
-          "specSha256": "db20cfd3e4e8429e9333e2ae19a71df34922f52c523da405f09a3cb301f12407",
+          "specSha256": "023f9c0d092584e04f063403f5bb9b3f7852c6aa2e3d1cc443363e058d3c927d",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -275241,9 +275217,9 @@
           "route": "/ops/sources",
           "role": "operator",
           "featureMeaning": "continuity drill workspace read-only blocked/ready",
-          "specSha256": "bf388b5adf0ae6d87df69c17e1781f2f9d2271da64eb5e0160c5a3e3cdd74b7d",
+          "specSha256": "f275e111e121375e6e0f686aff549c8f59f0859ff7a5d8fdf5b4b20c65ba3ee1",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -275850,9 +275826,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "approval-gated recovery checklist/audit no-auto",
-          "specSha256": "b28c0a2bbea2b57d247aa55112932f7561cc9961bcf05866b3837dd90ef4f01f",
+          "specSha256": "89723af48aabf3e299b38b444761cd676d8bbfb6d5f67b61c0b12e970e6515e7",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -276459,9 +276435,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "maintenance digest redaction/no recovery action",
-          "specSha256": "5188f839a5c9defc33a8dbfa4a51a5dda271fbb273fa4c012bd18069c240cbbd",
+          "specSha256": "59c9265c1754a005badd5599c53760bc57271659d20c89e14ae8e0bc3308c0f3",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true
@@ -277068,9 +277044,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "drill evidence export/cleanup manifest is plan-only",
-          "specSha256": "fa0ad76b1d1418f8429fe2de7fc628d95e7893032fb6ffe04ce176b9708648f2",
+          "specSha256": "84e0b360298b09edb8475c5abf3beacba4a3cc570bb293f466f07ae2b384da2b",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "restore-owned-fixtures-and-assert-absence",
           "staticCatalogIsNotRuntimePass": true
@@ -277677,7 +277653,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident-to-command handoff는 read-only/draft-only",
-          "specSha256": "12b7955e610213d7486c7a395484e265867d5982d3bd9bf44f62802a916e5fae",
+          "specSha256": "2fe3fc36c3a087eb706051827a50e06b75d45eb0ef5845d25767093f3f62f486",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 4,
@@ -278286,9 +278262,9 @@
           "route": "/ops",
           "role": "operator",
           "featureMeaning": "Ops command workspace는 staged plan/client impact read-only",
-          "specSha256": "6c834be4ed51f4ac8759b0c0756f2d1f5f820e275ea07393e77d0d37e2892a5d",
+          "specSha256": "e87687ab41a8548c73f390acdd432da03678ab5c275612f4494326f87bf3c7b2",
           "requestCount": 1,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 5,
           "cleanupStrategy": "assert-no-owned-state-remains",
           "staticCatalogIsNotRuntimePass": true

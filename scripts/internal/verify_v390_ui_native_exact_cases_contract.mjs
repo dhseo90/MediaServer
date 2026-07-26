@@ -32,6 +32,7 @@ import {
   assertAuthFixtureAbsentFromUsersFile,
   assertInactiveOrEqualBeforeCleanup,
   createV390UiCaseRuntime,
+  eventExactSeedMaterializerRegistry,
   fixtureViewerScopes,
   formReadbackProfiles,
   runtimeFixturePlanFor,
@@ -39,6 +40,10 @@ import {
   seedExactAccessRequestFixture,
   seedEventRecordFixture,
 } from "./v390_ui_case_runtime.mjs";
+import {
+  eventExactOracleCaseIds,
+  eventExactOracleFor,
+} from "./v390_ui_exact_event_oracles.mjs";
 import {
   deduplicateScreenshotArtifacts,
   pruneUnreferencedArtifactFiles,
@@ -139,7 +144,7 @@ check("RULE relationship fixtures use one collision-free numeric identity contra
         action.semanticCompletion.linkedPrimaryActionId === item.oracle.primaryActionId),
     `${caseId} DOM and actual product rejection evidence are not both required`);
   }
-  for (const caseId of ["RULE-095", "RULE-096"]) {
+  for (const caseId of ["RULE-095", "RULE-096", "RULE-101", "RULE-102", "RULE-103"]) {
     assert(byId.get(caseId).workflow.expectedResults[0].completion.readbackExpectation
       .postconditionObservationMode === "after-action-exact",
     `${caseId} refresh still requires an impossible pre/post DOM transition`);
@@ -224,6 +229,27 @@ check("declared exact runtime seeds materialize through the shared deterministic
   ]) assert(runtimeSource.includes(snippet), `shared runtime fixture registry contract missing ${snippet}`);
 });
 
+check("every exact EVT seed.kind has a declarative store and join materializer", () => {
+  const seedKinds = new Set(eventExactOracleCaseIds().map(caseId => eventExactOracleFor(caseId).seed.kind));
+  assert(seedKinds.size > 0, "exact EVT seed catalog is empty");
+  for (const seedKind of seedKinds) {
+    const plan = eventExactSeedMaterializerRegistry[seedKind];
+    assert(plan && Number.isInteger(plan.eventRecords) && plan.eventRecords >= 0,
+      `exact EVT seed kind is not materialized declaratively: ${seedKind}`);
+    assert(Object.keys(plan).every(key => [
+      "eventRecords", "archivedRecord", "review", "vlm", "audit", "alert", "sourceHealth",
+      "sourceHealthReadback", "related", "evidence",
+    ].includes(key)), `exact EVT seed registry contains an unsupported field: ${seedKind}`);
+  }
+  assert(runtimeSource.includes("async function materializeEventExactSeed") &&
+    runtimeSource.includes("eventExactSeedMaterializerRegistry[kind]") &&
+    runtimeSource.includes("exact event seed is missing from the authoritative review join readback"),
+  "exact EVT runtime does not resolve seed.kind through the shared materializer");
+  for (const scope of ["eventRecords", "review", "vlm", "audit", "alert", "sourceHealth", "related"]) {
+    assert(runtimeSource.includes(`${scope}:`), `exact EVT runtime seed join evidence is missing: ${scope}`);
+  }
+});
+
 check("EVT-004 diagnostic log evidence is redacted and byte-restored before native execution", () => {
   const verifier = path.join(rootDir, "scripts/internal/verify_v390_evt004_diagnostic_log_redaction_contract.mjs");
   const run = spawnSync(process.execPath, [verifier], {
@@ -247,6 +273,9 @@ check("audited route-local primary controls match their exact runtime oracles", 
     ["SAFE-053", ["/ops/events", "[data-incident-rule-draft-route]", "read-only-state"]],
     ["SAFE-060", ["/ops/events", '[data-testid="ops-operational-action-pack"]', "read-only-state"]],
     ["SAFE-061", ["/ops/events", '[data-testid="ops-rule-what-if-preview"]', "read-only-state"]],
+    ["CLIENT-002", ["/client/live", '[data-tile="0"] [data-action="toggle-playback"]', "actionable"]],
+    ["CLIENT-018", ["/client/live", ".client-preview-redaction-strip", "read-only-state"]],
+    ["CLIENT-021", ["/client/live", '[data-tile="0"] [data-mode-action="va-overlay"]', "actionable"]],
   ]);
   for (const [caseId, [route, selector, workflowClass]] of expected) {
     const item = manifest.cases.find(candidate => candidate.caseId === caseId);
@@ -962,19 +991,26 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
   "RULE-100 UI no-PUT/API-400/absence split contract missing");
   const rule101 = manifest.cases.find(item => item.caseId === "RULE-101");
   const rule101Fixture = rule101.workflow.inputs.find(input => input.kind === "rejected-endpoint-fixture");
-  const rule101Postconditions = rule101.workflow.expectedResults[0].completion.localTransition.postconditions;
+  const rule101Completion = rule101.workflow.expectedResults[0].completion;
+  const rule101Postconditions = rule101Completion.localTransition.postconditions;
   assert(rule101.workflow.productAction.localAction?.verificationEndpoint?.path ===
     "/lab/analysis/va-rules/9891" &&
     JSON.stringify(rule101.workflow.productAction.localAction.verificationEndpoint.allowedStatuses) === "[400]" &&
+    JSON.stringify(rule101Fixture?.actualValue?.body?.variants) ===
+      '["analysis-template-mismatch","profile-template-mismatch"]' &&
     rule101Fixture?.actualValue?.body?.analysisClasses?.includes("person") &&
     rule101Fixture?.actualValue?.body?.profileClasses?.includes("person") &&
     rule101Fixture?.actualValue?.body?.templateClasses?.includes("vehicle") &&
     rule101Fixture?.actualValue?.body?.alternateProfileClasses?.includes("vehicle") &&
-    rule101Postconditions.some(condition => String(condition.value).includes("룰 대상(사람)")) &&
     rule101Postconditions.some(condition => String(condition.value).includes("프로파일 대상(사람)")) &&
-    rule101.workflow.expectedResults[0].completion.localTransition.forbiddenRequests.some(request =>
+    !rule101Postconditions.some(condition => String(condition.value).includes("룰 대상(사람)")) &&
+    JSON.stringify(rule101Completion.readbackExpectation.independentProductErrors) === JSON.stringify([
+      "vaRule analysis.classes must include template analysis.classes",
+      "vaRule profile classes must include template analysis.classes",
+    ]) &&
+    rule101Completion.localTransition.forbiddenRequests.some(request =>
       request.methods.includes("PUT") && request.pathPrefix === "/lab/analysis/va-rules/"),
-  "RULE-101 UI no-write/API-400 split contract missing");
+  "RULE-101 UI profile no-write/server-only analysis API-400 split contract missing");
   const rule102 = manifest.cases.find(item => item.caseId === "RULE-102");
   const rule102Postconditions = rule102.workflow.expectedResults[0].completion.localTransition.postconditions;
   for (const token of [
@@ -1242,7 +1278,7 @@ check("self-contained runtime closes invite, auth readback, preference, and visu
     "seedVlmRuleSuggestionFixture",
     "defaultPublishedSourceIdentity",
     "canonicalSourceKey",
-    '["RULE-103", "RULE-104", "RULE-111", "UI-036", "UI-046", "UI-052", "UI-053", "UI-064", "UI-065", "UI-066", "UI-067", "UI-068", "UI-069", "UI-070", "UI-071", "UI-072", "UI-073", "UI-074", "UI-075", "UI-080", "UI-088", "UI-089", "UI-090", "UI-091", "UI-092", "UI-093", "UI-094", "UI-095", "UI-096", "UI-097", "UI-098", "UI-099", "UI-100", "UI-101", "UI-102", "UI-103", "UI-104", "UI-105"].includes(item.caseId)',
+    '["RULE-103", "RULE-104", "RULE-111", "SAFE-038", "UI-036", "UI-046", "UI-052", "UI-053", "UI-064", "UI-065", "UI-066", "UI-067", "UI-068", "UI-069", "UI-070", "UI-071", "UI-072", "UI-073", "UI-074", "UI-075", "UI-080", "UI-088", "UI-089", "UI-090", "UI-091", "UI-092", "UI-093", "UI-094", "UI-095", "UI-096", "UI-097", "UI-098", "UI-099", "UI-100", "UI-101", "UI-102", "UI-103", "UI-104", "UI-105"].includes(item.caseId)',
     'item.caseId === "UI-052"',
     "transient operational action pack is missing from the authoritative API readback",
     'item.caseId === "UI-053"',
@@ -1296,6 +1332,22 @@ check("self-contained runtime closes invite, auth readback, preference, and visu
       Number.isFinite(eventRecord.updateTime) &&
       Number.isFinite(eventRecord.endTime),
     "EventRecord transient seed is not accepted by the canonical event-store parser");
+    const enrichedPath = path.join(accessStoreRoot, "enriched-events.jsonl");
+    seedEventRecordFixture(enrichedPath, {
+      eventId: "reviewed-related-event-id",
+      sourceId: "9001",
+      eventType: "related-incident",
+      scenarioName: "review4-related-incident",
+      snapshotPath: "snapshots/reviewed-related-event-id.jpg",
+      clipPath: "clips/reviewed-related-event-id.mp4",
+      metadata: { relatedTo: "reviewed-event-id", sourceHealth: "degraded" },
+    });
+    const enriched = JSON.parse(fs.readFileSync(enrichedPath, "utf8").trim());
+    assert(enriched.eventType === "related-incident" &&
+      enriched.scenarioName === "review4-related-incident" &&
+      enriched.snapshotPath.endsWith(".jpg") && enriched.clipPath.endsWith(".mp4") &&
+      enriched.metadata?.relatedTo === "reviewed-event-id" && enriched.metadata?.sourceHealth === "degraded",
+    "EventRecord seed does not preserve related/evidence/source-health join material");
     const usersFile = path.join(accessStoreRoot, "users.json");
     fs.writeFileSync(usersFile, '{"users":[],"invites":[],"accessRequests":[]}\n', { mode: 0o600 });
     const seeded = seedExactAccessRequestFixture(usersFile, {
@@ -1675,7 +1727,11 @@ check("fresh role session restores login audit writes before a read-only case", 
         });
       }
       if (url.pathname === "/auth/whoami") {
-        return new Response(JSON.stringify({ authenticated: true, role: "operator" }), {
+        return new Response(JSON.stringify({
+          authenticated: true,
+          username: "operator",
+          role: "operator",
+        }), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
@@ -1695,6 +1751,109 @@ check("fresh role session restores login audit writes before a read-only case", 
       "fresh role session did not preserve the issued session cookie");
     assert(fs.readFileSync(stateFile).equals(baseline),
       "fresh role session left login audit fields changed before read-only case execution");
+  } finally {
+    globalThis.fetch = originalFetch;
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+check("fresh viewer session uses scope and client view readback instead of a nonexistent whoami viewId", async () => {
+  const temporaryRoot = fs.mkdtempSync("/private/tmp/media_server_v390_ui-fresh-viewer-");
+  const stateFile = path.join(temporaryRoot, "users.json");
+  const roleMapPath = path.join(temporaryRoot, "roles.json");
+  const descriptorPath = path.join(temporaryRoot, "descriptor.json");
+  const serverLogPath = path.join(temporaryRoot, "server.log");
+  const eventStoragePath = path.join(temporaryRoot, "events.jsonl");
+  const viewId = "94097";
+  const scopes = fixtureViewerScopes(viewId);
+  const baseline = Buffer.from(`${JSON.stringify({
+    users: [{
+      username: "viewer",
+      role: "viewer",
+      scopes,
+      lastLoginAt: "",
+      lastLoginIp: "",
+    }],
+  })}\n`);
+  const originalFetch = globalThis.fetch;
+  try {
+    fs.writeFileSync(stateFile, baseline, { mode: 0o600 });
+    fs.writeFileSync(roleMapPath,
+      `${JSON.stringify({ schema: "media-server.v390-ui-role-state-map.v1", roles: {} })}\n`,
+      { mode: 0o600 });
+    fs.writeFileSync(serverLogPath, "", { mode: 0o600 });
+    fs.writeFileSync(eventStoragePath, "", { mode: 0o600 });
+    fs.writeFileSync(descriptorPath, `${JSON.stringify({
+      schema: "media-server.v390-ui-runtime-descriptor.v1",
+      temporaryRoot,
+      httpBase: "http://127.0.0.1:1",
+      httpPort: 1,
+      roleStateMapPath: roleMapPath,
+      serverLogPath,
+      eventStoragePath,
+      registrySeedPayloadPaths: {},
+      artifactPaths: {},
+      stateFiles: [stateFile],
+      auth: {
+        usersFile: stateFile,
+        usernames: { viewer: "viewer" },
+        storageStatePaths: {},
+      },
+    })}\n`, { mode: 0o600 });
+    globalThis.fetch = async input => {
+      const url = new URL(String(input));
+      if (url.pathname === "/login") {
+        fs.writeFileSync(stateFile, Buffer.from(`${JSON.stringify({
+          users: [{
+            username: "viewer",
+            role: "viewer",
+            scopes,
+            lastLoginAt: "changed",
+            lastLoginIp: "127.0.0.1",
+          }],
+        })}\n`));
+        return new Response("", {
+          status: 302,
+          headers: { location: "/client/live", "set-cookie": "media_session=viewer-cookie; Path=/; HttpOnly" },
+        });
+      }
+      if (url.pathname === "/auth/whoami") {
+        return new Response(JSON.stringify({
+          authenticated: true,
+          username: "viewer",
+          role: "viewer",
+          scopes,
+        }), { status: 200, headers: { "content-type": "application/json" } });
+      }
+      if (url.pathname === "/client/api/views") {
+        return new Response(JSON.stringify({ views: [{ viewId }] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.pathname === `/client/api/views/${viewId}`) {
+        return new Response(JSON.stringify({ view: { viewId } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      throw new Error(`unexpected fresh-viewer contract request: ${url.pathname}`);
+    };
+    const runtime = createV390UiCaseRuntime({
+      rootDir,
+      httpBase: "http://127.0.0.1:1",
+      runtimeDescriptorPath: descriptorPath,
+      roleStateMapPath: roleMapPath,
+      roleSecretsJson: JSON.stringify({ roles: { viewer: "contract-current-secret" }, refs: {} }),
+    });
+    const storageStatePath = await runtime.freshRoleStorageState("viewer", "RULE-097");
+    const storageState = JSON.parse(fs.readFileSync(storageStatePath, "utf8"));
+    assert(storageState.cookies?.[0]?.value === "viewer-cookie",
+      "fresh viewer session did not preserve the issued session cookie");
+    assert(fs.readFileSync(stateFile).equals(baseline),
+      "fresh viewer session left login audit fields changed");
+    assert(!runtimeSource.includes("whoami.json?.viewId"),
+      "fresh viewer session still depends on the nonexistent whoami viewId field");
   } finally {
     globalThis.fetch = originalFetch;
     fs.rmSync(temporaryRoot, { recursive: true, force: true });

@@ -217,7 +217,13 @@ async function openNativePlaywrightPage(playwright, {
       },
     };
     networkEntries.push(entry);
-    const endpointOwnedProjection = captureEndpointOwnedResponseProjection({
+    const clientLiveSessionProjection = captureClientLiveSessionResponseProjection({
+      response,
+      entry,
+      pendingSafeResponseReads,
+      safeResponseReadFailures,
+    });
+    const endpointOwnedProjection = clientLiveSessionProjection || captureEndpointOwnedResponseProjection({
       response,
       entry,
       pendingSafeResponseReads,
@@ -935,10 +941,86 @@ const endpointOwnedResponsePatterns = Object.freeze([
   Object.freeze({ kind: "onvif-import-draft", method: "POST", expectedStatus: 200, pattern: /^\/ops\/api\/onvif\/import-draft$/ }),
 ]);
 
+const clientLiveSessionResponsePatterns = Object.freeze([
+  Object.freeze({
+    kind: "client-live-session-create",
+    method: "POST",
+    expectedStatus: 200,
+    pattern: /^\/client\/api\/views\/[^/]+\/webrtc\/session$/,
+  }),
+  Object.freeze({
+    kind: "client-live-session-answer",
+    method: "POST",
+    expectedStatus: 200,
+    pattern: /^\/client\/api\/views\/[^/]+\/webrtc\/session\/[^/]+\/answer$/,
+  }),
+  Object.freeze({
+    kind: "client-live-session-delete",
+    method: "DELETE",
+    expectedStatus: 200,
+    pattern: /^\/client\/api\/views\/[^/]+\/webrtc\/session\/[^/]+$/,
+  }),
+]);
+
 export function formatSafeResponseReadFailure(failures = []) {
   const reasons = [...new Set(failures.map(value => String(value || "").trim()).filter(Boolean))];
   const suffix = reasons.length > 0 ? `: ${reasons.join("; ")}` : "";
   return `safe response projection or runtime secret registration failed${suffix}`;
+}
+
+export function captureClientLiveSessionResponseProjection({
+  response,
+  entry,
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  const request = response?.request?.();
+  const method = String(request?.method?.() || "").toUpperCase();
+  const pathname = urlPath(response?.url?.() || "");
+  const descriptor = clientLiveSessionResponsePatterns.find(candidate =>
+    candidate.method === method && candidate.pattern.test(pathname));
+  if (!descriptor) return null;
+
+  const actualStatus = Number(entry?.status || 0);
+  entry.safeResponseProjectionKind = descriptor.kind;
+  entry.safeResponseExpectedStatus = descriptor.expectedStatus;
+  if (actualStatus !== descriptor.expectedStatus) {
+    safeResponseReadFailures.push(
+      `client live session response status mismatch [${descriptor.kind}] ${method} ${pathname}: expected status ${descriptor.expectedStatus}, actual status ${actualStatus}`,
+    );
+    delete entry.safeResponseBody;
+    delete entry.safeResponseProjectionSource;
+    return Promise.resolve();
+  }
+
+  const read = Promise.resolve()
+    .then(() => response.json())
+    .then(payload => {
+      entry.safeResponseBody = clientLiveSessionSafeResponseProjection(descriptor.kind, payload);
+      entry.safeResponseProjectionSource = "playwright-response-json";
+    })
+    .catch(error => {
+      safeResponseReadFailures.push(
+        `client live session response projection failed [${descriptor.kind}] ${method} ${pathname}: ${redactedEndpointProjectionFailure(error)}`,
+      );
+      delete entry.safeResponseBody;
+      delete entry.safeResponseProjectionSource;
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+function clientLiveSessionSafeResponseProjection(kind, payload) {
+  const value = requireResponseObject(payload, `${kind} response`);
+  if (kind === "client-live-session-create") {
+    const sessionId = requireResponseIdentity(value.sessionId, "", "client session create sessionId", { nonEmpty: true });
+    const offer = requireResponseIdentity(value.offer, "", "client session create offer", { nonEmpty: true });
+    void offer;
+    return { sessionId, offerReceived: true };
+  }
+  requireResponseBoolean(value.ok, true, `${kind} ok`);
+  return { ok: true };
 }
 
 export function captureEndpointOwnedResponseProjection({
