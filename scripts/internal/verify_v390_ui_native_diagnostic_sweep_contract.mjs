@@ -92,6 +92,11 @@ check("diagnostic child output is constrained and failure reasons are safe class
   assert(sweepSource.includes("assertDiagnosticOutputRoot(outputDir)") &&
     sweepSource.includes("environment.assertSecretsAbsentFromArtifacts(childDir)"),
   "diagnostic sweep output/secret scan boundary missing");
+  assert(runnerSource.includes("if (primaryFailure?.eventDomSemanticEvidence)") &&
+    runnerSource.includes("error.partialArtifacts.eventDomSemanticEvidence") &&
+    runnerSource.includes("eventDomSemanticEvidence: resultItem.eventDomSemanticEvidence || null") &&
+    sweepSource.includes("eventDomSemanticEvidence: childSummary?.case?.eventDomSemanticEvidence || null"),
+  "structured EVT DOM evidence is not preserved through child and sweep summaries");
 });
 
 check("diagnostic sweep reports durable progress and treats cleanup failure as failure", () => {
@@ -212,6 +217,16 @@ check("plan-only diagnostic output preserves count invariants without browser ex
   "diagnostic plan-only count invariant mismatch");
   assert(summary.cases.length === 144 && summary.cases.every(item => item.automaticRetryCount === 0),
     "diagnostic plan-only retry/case count mismatch");
+  assert(summary.actualBrowserExecution === false &&
+    /^[0-9a-f]{40}$/.test(summary.sourceBinding?.gitCommit || "") &&
+    /^[0-9a-f]{64}$/.test(summary.sourceBinding?.manifestSha256 || "") &&
+    summary.sourceBinding?.selectionIdsSha256 === summary.selection?.targetCaseIdsSha256,
+  "diagnostic plan-only source/selection/browser binding mismatch");
+  assert(sweepSource.includes("runtimeOwnershipAttestation(environment.runtime)") &&
+    sweepSource.includes("runtimeRootCleanup: {") &&
+    sweepSource.includes("runtimeRootSha256: runtimeOwnership.runtimeRootSha256") &&
+    sweepSource.includes("temporaryArtifactsRemoved: result.temporaryArtifactsRemoved === true"),
+  "diagnostic runtime PID/port/root cleanup attestation is incomplete");
 });
 
 check("diagnostic child plan-only reports only its selected case and cannot emit a release summary", () => {
@@ -245,6 +260,9 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
   assert(summary.releaseEvidenceEligible === false && summary.policyV4Qualification === "not-eligible" &&
     summary.uiFulltestPass === false,
   "diagnostic child plan-only entered a release or Policy v4 state");
+  assert(summary.case?.actualBrowserExecution === false &&
+    summary.case?.eventDomSemanticEvidence === null,
+  "diagnostic child plan-only claims browser or EVT DOM evidence");
 });
 
 check("server dispatch exposes only the internal run and verification commands", () => {

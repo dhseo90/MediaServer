@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { createHash } from "node:crypto";
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -37,6 +37,7 @@ const diagnosticManifestPath = path.join(outputDir, "diagnostic-native-manifest.
 writeJson(diagnosticManifestPath, manifest);
 const fullSelection = fixedSelection(manifest.cases);
 const selection = selectedDiagnosticCases(fullSelection, options.caseId);
+const sourceCommit = currentGitCommit();
 
 if (options.bootstrapFailureContractFixture) {
   const bootstrapError = bootstrapFailureContractFixture(options.bootstrapFailureContractFixture);
@@ -102,7 +103,11 @@ for (const [selectionIndex, item] of selection.entries()) {
         playwrightModulePath: options.playwrightModulePath,
         chromePath: options.chromePath,
       });
-      environments.push({ generation: environmentGeneration, status: "started" });
+      environments.push({
+        generation: environmentGeneration,
+        status: "started",
+        runtimeOwnership: runtimeOwnershipAttestation(environment.runtime),
+      });
     } catch (error) {
       const bootstrapFailure = buildBootstrapFailureEvidence(error);
       cases.push(caseResult(item, "FAIL", "environment-bootstrap-failed", environmentGeneration, {
@@ -140,6 +145,10 @@ for (const [selectionIndex, item] of selection.entries()) {
     childSummary?.case?.failureClass || (child.summary ? "diagnostic-child-invalid" : "diagnostic-child-missing"),
     environmentGeneration, {
       failureDetail: childSummary?.case?.failureDetail || "",
+      actualBrowserExecution: childSummary?.case?.actualBrowserExecution === true,
+      requested: childSummary?.case?.requested || null,
+      observed: childSummary?.case?.observed || null,
+      eventDomSemanticEvidence: childSummary?.case?.eventDomSemanticEvidence || null,
       childExitCode: child.exitCode,
       environmentContamination: contaminated || secretScan.status !== "PASS",
       childCleanupFailure: childSummary?.environmentContamination?.cleanupFailure === true,
@@ -202,6 +211,7 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
 }
 
 async function recycleEnvironment(handle, generation, reason) {
+  const runtimeOwnership = runtimeOwnershipAttestation(handle.runtime);
   let result;
   try {
     result = await stopSelfContainedUiEnvironment(handle);
@@ -219,6 +229,16 @@ async function recycleEnvironment(handle, generation, reason) {
     portsClean: result.portsClean === true,
     temporaryArtifactsRemoved: result.temporaryArtifactsRemoved === true,
     verificationSource: result.verificationSource || "environment-cleanup-failed",
+    runtimeOwnership,
+    runtimeRootCleanup: {
+      runtimeRoot: runtimeOwnership.runtimeRoot,
+      runtimeRootSha256: runtimeOwnership.runtimeRootSha256,
+      existedBefore: result.measurement?.artifacts?.[0]?.existedBefore === true,
+      bytesBefore: Number(result.measurement?.artifacts?.[0]?.bytesBefore || 0),
+      existsAfter: result.measurement?.artifacts?.[0]?.existsAfter === true,
+      bytesAfter: Number(result.measurement?.artifacts?.[0]?.bytesAfter || 0),
+      removed: result.temporaryArtifactsRemoved === true,
+    },
   };
 }
 
@@ -255,6 +275,13 @@ function buildSummary({ result, executionStatus, cases, environments, cleanup })
     releaseEvidenceEligible: false,
     policyV4Qualification: "not-eligible",
     uiFulltestPass: false,
+    actualBrowserExecution: cases.some(item => item.actualBrowserExecution === true),
+    sourceBinding: {
+      gitCommit: sourceCommit,
+      manifestSha256: sha256(stableJson(manifest)),
+      selectionIdsSha256: sha256(selection.map(item => item.caseId).join("\n")),
+      runId,
+    },
     selection: {
       startCaseId: selection[0].caseId,
       endCaseId: selection.at(-1).caseId,
@@ -438,11 +465,35 @@ function validateChildSummary(summary, item) {
   assert(summary.selection?.caseId === item.caseId && summary.selection?.automaticRetryCount === 0,
     "diagnostic child selection/retry mismatch");
   assert(summary.case?.caseId === item.caseId, "diagnostic child case mismatch");
+  assert(summary.case?.actualBrowserExecution === Boolean(summary.counts?.attempted),
+    "diagnostic child actual browser execution mismatch");
+  if (summary.case?.eventDomSemanticEvidence) {
+    const evidence = summary.case.eventDomSemanticEvidence;
+    assert(evidence.schema === "media-server.v390-ui-event-dom-semantic-composite-evidence.v1" &&
+      evidence.actualBrowserExecution === true &&
+      typeof evidence.observationPresent?.pass === "boolean" &&
+      typeof evidence.responseBaselineMatched?.pass === "boolean" &&
+      Array.isArray(evidence.responseBaselineMatched?.mismatchPaths) &&
+      Array.isArray(evidence.responseBaselineMatched?.paths) &&
+      typeof evidence.fixtureObserved?.pass === "boolean",
+    "diagnostic child structured EVT DOM evidence mismatch");
+  }
   assert(!/(?:https?|rtsp|rtsps):\/\//i.test(String(summary.case?.failureDetail || "")),
     "diagnostic child failure detail contains a raw URL");
   assert(!/\b(?:password|credential|secret|token|cookie|authorization)\s*[=:]\s*(?!\[redacted\])/i.test(
     String(summary.case?.failureDetail || ""),
   ), "diagnostic child failure detail contains sensitive material");
+}
+
+function runtimeOwnershipAttestation(runtime = {}) {
+  const runtimeRoot = String(runtime.temporaryRoot || "");
+  return {
+    pid: Number(runtime.serverPid || 0),
+    httpPort: Number(runtime.httpPort || 0),
+    rtspPort: Number(runtime.rtspPort || 0),
+    runtimeRoot,
+    runtimeRootSha256: sha256(runtimeRoot),
+  };
 }
 
 function assertDiagnosticOutputRoot(candidate) {
@@ -516,6 +567,16 @@ function timestampId() {
 
 function sha256(value) {
   return createHash("sha256").update(String(value)).digest("hex");
+}
+
+function currentGitCommit() {
+  const commit = execFileSync("git", ["rev-parse", "HEAD"], {
+    cwd: rootDir,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
+  assert(/^[0-9a-f]{40}$/.test(commit), "diagnostic source git commit is invalid");
+  return commit;
 }
 
 function stableJson(value) {

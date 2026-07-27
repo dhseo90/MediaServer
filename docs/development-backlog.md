@@ -6592,6 +6592,20 @@ parse와 `git diff --check`가 PASS했습니다.
 Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 미실행이며
 이 static/diagnostic checkpoint는 actual UI PASS evidence가 아닙니다.
 
+EVT-003 structured diagnostic evidence lifecycle 보정(2026-07-27)은
+`v390_ui_exact_oracle_runtime.mjs`에서 DOM 관찰, fixture binding/source 행/status·reason,
+fixture identity 실패를 서로 다른 reason code와 digest/count/path evidence로 보존하고,
+`run_v390_ui_native_exact_cases.mjs`와 `run_v390_ui_native_diagnostic_sweep.mjs`가 이를
+case/상위 summary로 전달하도록 구현했습니다. 상위 summary는 현재 git commit과 source-built
+manifest, 선택 ID digest, actual browser 실행 여부, PID/HTTP/RTSP/runtime-root cleanup
+attestation을 분리합니다. Raw response body, URL credential, password/token/secret는 기록하지
+않습니다. Diagnostic 13/13, runtime 35/35, event 22/22, evaluator 17/17, native 38/38,
+completion 29/29, adapter 18/18, semantic audit/approval 986/986, feature evidence 986/986와
+inventory/evidence/script/docs gate가 PASS했습니다. Native projection과 semantic candidate
+`7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`는 불변이므로
+generator와 producer는 모두 0회입니다. Actual EVT-003 diagnostic, `./test_ui.sh`, Policy v4,
+30분, 120분, `./test_release.sh`는 미실행이며 기존 actual FAIL은 그대로 보존합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

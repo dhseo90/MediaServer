@@ -338,7 +338,12 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
       .filter(Boolean)
       .map(error => String(error?.message || error))
       .join("; ");
-    throw new Error(details);
+    const error = new Error(details);
+    if (oracleError?.eventDomSemanticEvidence) {
+      error.eventDomSemanticEvidence =
+        structuredClone(oracleError.eventDomSemanticEvidence);
+    }
+    throw error;
   }
   return {
     ...observation,
@@ -1634,6 +1639,7 @@ function evaluateDomSemanticAssertions(
         priorResponseByPath: selectEventDomResponseBaselines(target, eventRuntimeContext),
         fixtureCandidates,
         fixtureRequired: fixtureBoundOperator,
+        actualBrowserExecution: true,
       });
       const semanticPass = compositeEvidence.pass;
       const semanticObservation = {
@@ -1663,7 +1669,7 @@ function evaluateDomSemanticAssertions(
               actual: semanticObservation,
               reason: semanticPass
                 ? "visible DOM projection is bound to fresh responses and the authoritative setup baseline"
-                : JSON.stringify(compositeEvidence),
+                : "structured event DOM semantic evidence failed",
             },
           },
           sensitiveCanaries: [
@@ -1674,7 +1680,13 @@ function evaluateDomSemanticAssertions(
           ].filter(Boolean),
         },
       });
-      assert(result.pass, `${caseId} exact DOM semantic assertion failed ${selector}: ${operator}/${target} (${result.reason})`);
+      if (!result.pass) {
+        const error = new Error(
+          `${caseId} exact DOM semantic assertion failed ${selector}: ${operator}/${target} (${result.reason})`,
+        );
+        error.eventDomSemanticEvidence = structuredClone(compositeEvidence);
+        throw error;
+      }
       return {
         operator,
         target,
@@ -1710,6 +1722,7 @@ export function buildEventDomSemanticCompositeEvidence({
   priorResponseByPath = {},
   fixtureCandidates = [],
   fixtureRequired = false,
+  actualBrowserExecution = false,
 }) {
   const text = String(observed?.text || "");
   const attributes = Array.isArray(observed?.attributes) ? observed.attributes : [];
@@ -1723,6 +1736,7 @@ export function buildEventDomSemanticCompositeEvidence({
     (textPresent || structurePresent);
   const observationPresent = {
     pass: observationPass,
+    reasonCode: observationPass ? "PASS" : "DOM_OBSERVATION_MISSING",
     selectorDigest: sha256Digest(String(selector || "")),
     exists: nodeCount > 0,
     visible: visibleCount > 0,
@@ -1750,17 +1764,33 @@ export function buildEventDomSemanticCompositeEvidence({
     const matched = rowLocal
       ? candidates.length > 0 && candidates.some(actual => stableEqual(actual, expected))
       : candidates.length === 0 || candidates.some(actual => stableEqual(actual, expected));
+    const mismatchProjectionPaths = rowLocal && candidates.length > 0 && !matched
+      ? baseline.projectionPaths.filter(projectionPath =>
+        candidates.every(candidate =>
+          !stableEqual(candidate?.[projectionPath], expected?.[projectionPath])))
+      : [];
+    const reasonCode = matched
+      ? "PASS"
+      : (rowLocal && candidates.length === 0
+        ? "FIXTURE_SOURCE_ROW_MISSING"
+        : (rowLocal
+          ? "FIXTURE_ROW_PROJECTION_MISMATCH"
+          : "RESPONSE_BASELINE_MISMATCH"));
     return {
       path,
       matched,
       compared: candidates.length > 0,
+      reasonCode,
       bindingMode: rowLocal ? "row-local-identity-projection" : "path-value",
-      baselineDigest: sha256Digest(expected),
+      baselineDigest: sha256Digest(baseline),
+      projectionDigest: sha256Digest(expected),
       ...(rowLocal ? {
         identityDigest: sha256Digest(baseline.identityValue),
         projectionPathsDigest: sha256Digest(baseline.projectionPaths),
+        mismatchProjectionPaths,
       } : {}),
       candidateCount: candidates.length,
+      candidateDigest: sha256Digest(candidates),
       candidateDigests: candidates.map(candidate => sha256Digest(candidate)),
     };
   });
@@ -1771,6 +1801,7 @@ export function buildEventDomSemanticCompositeEvidence({
     comparedPathCount: paths.filter(item => item.compared).length,
     candidateCount: paths.reduce((count, item) => count + item.candidateCount, 0),
     mismatchPaths,
+    reasonCodes: [...new Set(paths.filter(item => !item.matched).map(item => item.reasonCode))],
     paths,
   };
 
@@ -1781,9 +1812,16 @@ export function buildEventDomSemanticCompositeEvidence({
   const fixturePass = !fixtureRequired || matchedFixtureCandidates.length > 0;
   const fixtureObserved = {
     pass: fixturePass,
+    reasonCode: fixturePass
+      ? "PASS"
+      : (normalizedFixtureCandidates.length === 0
+        ? "FIXTURE_BINDING_MISSING"
+        : "DOM_FIXTURE_IDENTITY_NOT_OBSERVED"),
     required: Boolean(fixtureRequired),
     candidateCount: normalizedFixtureCandidates.length,
     matchedCandidateCount: matchedFixtureCandidates.length,
+    candidateDigest: sha256Digest(normalizedFixtureCandidates),
+    matchedCandidateDigest: sha256Digest(matchedFixtureCandidates),
     candidateDigests: normalizedFixtureCandidates.map(value => sha256Digest(value)),
     matchedCandidateDigests: matchedFixtureCandidates.map(value => sha256Digest(value)),
     observationDigest: sha256Digest(serializedObservation),
@@ -1794,15 +1832,23 @@ export function buildEventDomSemanticCompositeEvidence({
     ["responseBaselineMatched", responseBaselineMatched.pass],
     ["fixtureObserved", fixtureObserved.pass],
   ].filter(([, pass]) => !pass).map(([name]) => name);
+  const causeCodes = [
+    ...(observationPresent.pass ? [] : [observationPresent.reasonCode]),
+    ...responseBaselineMatched.reasonCodes,
+    ...(fixtureObserved.pass ? [] : [fixtureObserved.reasonCode]),
+  ];
   const pass = failedChecks.length === 0;
   return {
     schema: "media-server.v390-ui-event-dom-semantic-composite-evidence.v1",
     pass,
+    actualBrowserExecution: Boolean(actualBrowserExecution),
     error: pass ? null : {
       code: "EVT_DOM_SEMANTIC_COMPOSITE_FAILED",
       causes: failedChecks,
+      causeCodes,
     },
     failedChecks,
+    causeCodes,
     observationPresent,
     responseBaselineMatched,
     fixtureObserved,

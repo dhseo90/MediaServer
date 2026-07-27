@@ -807,13 +807,26 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       cleanupFailure,
       browserCloseFailure,
       artifactPaths: { screenshotPath, tracePath, consolePath },
+      requestedObserved: runtimeState.get("__requestedObservedEnvelope") || {
+        requested,
+        observed: null,
+      },
     });
   }
   assert(caseResult, `${item.caseId} completed without a result`);
   return caseResult;
 }
 
-function caseExecutionFailure(caseId, { primaryFailure, cleanupFailure, browserCloseFailure, artifactPaths = {} }) {
+function caseExecutionFailure(
+  caseId,
+  {
+    primaryFailure,
+    cleanupFailure,
+    browserCloseFailure,
+    artifactPaths = {},
+    requestedObserved = null,
+  },
+) {
   const messageFor = value => value instanceof Error ? value.message : (value ? String(value) : "");
   const parts = [
     primaryFailure ? `primary=${messageFor(primaryFailure)}` : "",
@@ -829,6 +842,16 @@ function caseExecutionFailure(caseId, { primaryFailure, cleanupFailure, browserC
     tracePath: artifactPaths.tracePath,
     browserConsolePath: artifactPaths.consolePath,
   }).filter(([, filePath]) => filePath && fs.existsSync(filePath)));
+  if (requestedObserved?.requested) {
+    error.partialArtifacts.requested = structuredClone(requestedObserved.requested);
+  }
+  if (requestedObserved?.observed) {
+    error.partialArtifacts.observed = structuredClone(requestedObserved.observed);
+  }
+  if (primaryFailure?.eventDomSemanticEvidence) {
+    error.partialArtifacts.eventDomSemanticEvidence =
+      structuredClone(primaryFailure.eventDomSemanticEvidence);
+  }
   return error;
 }
 
@@ -3032,6 +3055,7 @@ function createDiagnosticChildSummary({
     releaseEvidenceEligible: false,
     policyV4Qualification: "not-eligible",
     uiFulltestPass: false,
+    actualBrowserExecution: Boolean(resultItem),
     selection: {
       startCaseId: item.caseId,
       endCaseId: item.caseId,
@@ -3054,6 +3078,10 @@ function createDiagnosticChildSummary({
       status: resultItem.status,
       failureClass: resultItem.status === "FAIL" ? resultItem.reason : "",
       failureDetail: resultItem.status === "FAIL" ? resultItem.failureDetail || "" : "",
+      actualBrowserExecution: true,
+      requested: resultItem.requested || null,
+      observed: resultItem.observed || null,
+      eventDomSemanticEvidence: resultItem.eventDomSemanticEvidence || null,
       diagnosticArtifacts: resultItem.diagnosticArtifacts || {},
     } : {
       caseId: item.caseId,
@@ -3061,6 +3089,10 @@ function createDiagnosticChildSummary({
       status: "not-run",
       failureClass: "",
       failureDetail: "",
+      actualBrowserExecution: false,
+      requested: null,
+      observed: null,
+      eventDomSemanticEvidence: null,
       diagnosticArtifacts: {},
     },
     environmentContamination: {
@@ -3082,6 +3114,7 @@ function createDiagnosticPreExecutionSummary(caseId, phase) {
     releaseEvidenceEligible: false,
     policyV4Qualification: "not-eligible",
     uiFulltestPass: false,
+    actualBrowserExecution: false,
     selection: {
       startCaseId: caseId,
       endCaseId: caseId,
@@ -3097,6 +3130,11 @@ function createDiagnosticPreExecutionSummary(caseId, phase) {
       featureId: "",
       status: "not-run",
       failureClass: "diagnostic-pre-execution-failed",
+      failureDetail: "",
+      actualBrowserExecution: false,
+      requested: null,
+      observed: null,
+      eventDomSemanticEvidence: null,
       diagnosticArtifacts: {},
     },
     environmentContamination: {
@@ -3130,6 +3168,23 @@ function validateDiagnosticChildSummary(summary, item) {
     errors.push("diagnostic-child-count-invariant");
   }
   if (summary?.case?.caseId !== item.caseId) errors.push("diagnostic-child-case-id");
+  if (summary?.case?.actualBrowserExecution !== Boolean(summary?.counts?.attempted)) {
+    errors.push("diagnostic-child-browser-execution");
+  }
+  if (summary?.actualBrowserExecution !== summary?.case?.actualBrowserExecution) {
+    errors.push("diagnostic-child-browser-execution-summary");
+  }
+  if (summary?.case?.eventDomSemanticEvidence) {
+    const evidence = summary.case.eventDomSemanticEvidence;
+    if (evidence.schema !== "media-server.v390-ui-event-dom-semantic-composite-evidence.v1" ||
+        evidence.actualBrowserExecution !== true ||
+        typeof evidence.observationPresent?.pass !== "boolean" ||
+        typeof evidence.responseBaselineMatched?.pass !== "boolean" ||
+        !Array.isArray(evidence.responseBaselineMatched?.mismatchPaths) ||
+        typeof evidence.fixtureObserved?.pass !== "boolean") {
+      errors.push("diagnostic-child-event-dom-semantic-evidence");
+    }
+  }
   return errors;
 }
 

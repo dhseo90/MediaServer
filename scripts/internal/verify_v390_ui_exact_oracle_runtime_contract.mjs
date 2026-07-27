@@ -45,6 +45,8 @@ await check("EVT DOM semantic composite distinguishes safe failure evidence with
     fixtureRequired: true,
   });
   assertCompositeFailure(domMissing, "observationPresent");
+  assert(domMissing.observationPresent.reasonCode === "DOM_OBSERVATION_MISSING",
+    "DOM absence did not retain its structured reason code");
 
   const baselineMismatch = buildEventDomSemanticCompositeEvidence({
     selector: "#dashHealthBadges",
@@ -57,6 +59,8 @@ await check("EVT DOM semantic composite distinguishes safe failure evidence with
   assertCompositeFailure(baselineMismatch, "responseBaselineMatched");
   assert(baselineMismatch.responseBaselineMatched.mismatchPaths.join("|") === "sourceHealth[].status",
     "response baseline mismatch path evidence is missing");
+  assert(baselineMismatch.responseBaselineMatched.reasonCodes.includes("RESPONSE_BASELINE_MISMATCH"),
+    "response baseline mismatch did not retain its structured reason code");
 
   const fixtureMismatch = buildEventDomSemanticCompositeEvidence({
     selector: "#dashRootCauseList .root-cause-item",
@@ -67,8 +71,24 @@ await check("EVT DOM semantic composite distinguishes safe failure evidence with
     fixtureRequired: true,
   });
   assertCompositeFailure(fixtureMismatch, "fixtureObserved");
+  assert(fixtureMismatch.fixtureObserved.reasonCode === "DOM_FIXTURE_IDENTITY_NOT_OBSERVED",
+    "DOM fixture identity absence did not retain its structured reason code");
 
-  for (const evidence of [domMissing, baselineMismatch, fixtureMismatch]) {
+  const fixtureBindingMissing = buildEventDomSemanticCompositeEvidence({
+    selector: "#dashRootCauseList .root-cause-item",
+    observed: visibleObservation,
+    responseBodies: matchingResponse,
+    priorResponseByPath: matchingBaseline,
+    fixtureCandidates: [],
+    fixtureRequired: true,
+  });
+  assertCompositeFailure(fixtureBindingMissing, "fixtureObserved");
+  assert(fixtureBindingMissing.fixtureObserved.reasonCode === "FIXTURE_BINDING_MISSING" &&
+    fixtureBindingMissing.fixtureObserved.candidateCount === 0 &&
+    fixtureBindingMissing.fixtureObserved.matchedCandidateCount === 0,
+  "missing fixture binding did not retain its distinct structured evidence");
+
+  for (const evidence of [domMissing, baselineMismatch, fixtureMismatch, fixtureBindingMissing]) {
     const serialized = JSON.stringify(evidence);
     for (const raw of [rawBaseline, rawCandidate, fixtureIdentity]) {
       assert(!serialized.includes(raw), "composite evidence exposed raw material");
@@ -141,11 +161,19 @@ await check("EVT-003 source-health baseline is row-local to the acceptance-owned
     { sourceId, status: "online", reason: "acceptance-owned-source-unavailable" },
   ]);
   assertCompositeFailure(statusDrift, "responseBaselineMatched");
+  assert(statusDrift.responseBaselineMatched.paths[0].reasonCode ===
+    "FIXTURE_ROW_PROJECTION_MISMATCH" &&
+    statusDrift.responseBaselineMatched.paths[0].mismatchProjectionPaths.includes("status"),
+  "fixture status mismatch did not retain its row-local structured reason");
 
   const reasonDrift = evidenceFor([
     { sourceId, status: "offline", reason: "unexpected-reason" },
   ]);
   assertCompositeFailure(reasonDrift, "responseBaselineMatched");
+  assert(reasonDrift.responseBaselineMatched.paths[0].reasonCode ===
+    "FIXTURE_ROW_PROJECTION_MISMATCH" &&
+    reasonDrift.responseBaselineMatched.paths[0].mismatchProjectionPaths.includes("reason"),
+  "fixture reason mismatch did not retain its row-local structured reason");
 
   const fixtureMissing = evidenceFor([
     { sourceId: "9001", status: "offline", reason: "acceptance-owned-source-unavailable" },
@@ -153,6 +181,9 @@ await check("EVT-003 source-health baseline is row-local to the acceptance-owned
   assertCompositeFailure(fixtureMissing, "responseBaselineMatched");
   assert(fixtureMissing.responseBaselineMatched.paths[0].compared === false,
     "missing EVT-003 source row was not distinguished from a compared projection");
+  assert(fixtureMissing.responseBaselineMatched.paths[0].reasonCode ===
+    "FIXTURE_SOURCE_ROW_MISSING",
+  "missing EVT-003 source row did not retain its distinct structured reason");
 
   const serialized = JSON.stringify({
     unrelatedDrift,
@@ -1613,10 +1644,14 @@ function assertCompositeDigestsAreSha256(evidence) {
   "observation/fixture evidence digest is not SHA-256");
   for (const pathEvidence of evidence.responseBaselineMatched.paths) {
     assert(sha256.test(pathEvidence.baselineDigest) &&
+      sha256.test(pathEvidence.projectionDigest) &&
+      sha256.test(pathEvidence.candidateDigest) &&
       pathEvidence.candidateDigests.every(digest => sha256.test(digest)),
     `response baseline evidence digest is not SHA-256: ${pathEvidence.path}`);
   }
-  assert(evidence.fixtureObserved.candidateDigests.every(digest => sha256.test(digest)) &&
+  assert(sha256.test(evidence.fixtureObserved.candidateDigest) &&
+    sha256.test(evidence.fixtureObserved.matchedCandidateDigest) &&
+    evidence.fixtureObserved.candidateDigests.every(digest => sha256.test(digest)) &&
     evidence.fixtureObserved.matchedCandidateDigests.every(digest => sha256.test(digest)),
   "fixture identity evidence digest is not SHA-256");
 }
