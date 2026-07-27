@@ -3001,9 +3001,11 @@ function selectDiagnosticCase(cases, caseId) {
   assert(item, `diagnostic case is outside the fixed RULE-097 selection: ${caseId}`);
   return {
     item,
-    startCaseId: "RULE-097",
-    targetCaseCount: selected.length,
-    targetCaseIdsSha256: sha256Text(selected.map(candidate => candidate.caseId).join("\n")),
+    startCaseId: item.caseId,
+    endCaseId: item.caseId,
+    selectedIds: [item.caseId],
+    targetCaseCount: 1,
+    targetCaseIdsSha256: sha256Text(item.caseId),
   };
 }
 
@@ -3031,9 +3033,11 @@ function createDiagnosticChildSummary({
     policyV4Qualification: "not-eligible",
     uiFulltestPass: false,
     selection: {
-      startCaseId: diagnosticSelection.startCaseId,
-      targetCaseCount: diagnosticSelection.targetCaseCount,
-      targetCaseIdsSha256: diagnosticSelection.targetCaseIdsSha256,
+      startCaseId: item.caseId,
+      endCaseId: item.caseId,
+      selectedIds: [item.caseId],
+      targetCaseCount: 1,
+      targetCaseIdsSha256: sha256Text(item.caseId),
       caseId: item.caseId,
       automaticRetryCount: 0,
     },
@@ -3079,9 +3083,11 @@ function createDiagnosticPreExecutionSummary(caseId, phase) {
     policyV4Qualification: "not-eligible",
     uiFulltestPass: false,
     selection: {
-      startCaseId: "RULE-097",
-      targetCaseCount: 144,
-      targetCaseIdsSha256: "",
+      startCaseId: caseId,
+      endCaseId: caseId,
+      selectedIds: [caseId],
+      targetCaseCount: 1,
+      targetCaseIdsSha256: sha256Text(caseId),
       caseId,
       automaticRetryCount: 0,
     },
@@ -3111,7 +3117,12 @@ function validateDiagnosticChildSummary(summary, item) {
   if (summary?.releaseEvidenceEligible !== false) errors.push("diagnostic-child-release-evidence");
   if (summary?.policyV4Qualification !== "not-eligible") errors.push("diagnostic-child-policy-qualification");
   if (summary?.uiFulltestPass !== false) errors.push("diagnostic-child-ui-fulltest");
-  if (summary?.selection?.caseId !== item.caseId || summary?.selection?.automaticRetryCount !== 0) {
+  if (summary?.selection?.caseId !== item.caseId ||
+      summary?.selection?.startCaseId !== item.caseId ||
+      summary?.selection?.endCaseId !== item.caseId ||
+      JSON.stringify(summary?.selection?.selectedIds) !== JSON.stringify([item.caseId]) ||
+      summary?.selection?.targetCaseCount !== 1 ||
+      summary?.selection?.automaticRetryCount !== 0) {
     errors.push("diagnostic-child-selection");
   }
   if (summary?.counts?.target !== 1 ||

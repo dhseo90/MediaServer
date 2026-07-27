@@ -256,7 +256,9 @@ function buildSummary({ result, executionStatus, cases, environments, cleanup })
     policyV4Qualification: "not-eligible",
     uiFulltestPass: false,
     selection: {
-      startCaseId: "RULE-097",
+      startCaseId: selection[0].caseId,
+      endCaseId: selection.at(-1).caseId,
+      selectedIds: selection.map(item => item.caseId),
       targetCaseCount: selection.length,
       targetCaseIdsSha256: sha256(selection.map(item => item.caseId).join("\n")),
       automaticRetryCount: 0,

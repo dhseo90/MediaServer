@@ -340,7 +340,7 @@ const specs = [
     ))],
     domAssertions: [
       dom("#dashHealthBadges", ["text-derived-from-response", "sourceHealth[].status", true]),
-      dom("#dashRootCauseList [data-incident-unit]", ["contains-fixture-source", "sourceId/status/reason", true]),
+      dom("#dashRootCauseList .root-cause-item", ["contains-fixture-source", "sourceId/status/reason", true]),
     ],
   }),
   eventSpec("EVT-004", {

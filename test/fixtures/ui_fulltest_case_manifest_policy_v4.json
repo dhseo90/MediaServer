@@ -22,6 +22,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/",
+        "backendOwnerRoute": "/"
       }
     },
     {
@@ -37,6 +41,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-setup-form\"]",
         "actionAnchor": "SetupPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/setup",
+        "backendOwnerRoute": "/setup"
       }
     },
     {
@@ -52,6 +60,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-login-form\"]",
         "actionAnchor": "LoginPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/login",
+        "backendOwnerRoute": "/login"
       }
     },
     {
@@ -67,6 +79,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-password-change-form\"]",
         "actionAnchor": "ChangeUserPassword"
+      },
+      "routeBinding": {
+        "screenRoute": "/password/change",
+        "backendOwnerRoute": "/password/change"
       }
     },
     {
@@ -82,6 +98,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-password-change-form\"]",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/logout",
+        "backendOwnerRoute": "/logout"
       }
     },
     {
@@ -97,6 +117,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
         "actionAnchor": "InviteSetupPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/invite/setup",
+        "backendOwnerRoute": "/invite/setup"
       }
     },
     {
@@ -112,6 +136,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "CreateAccessRequestFromJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/request-access",
+        "backendOwnerRoute": "/client/request-access"
       }
     },
     {
@@ -127,6 +155,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-home-page\"]",
         "actionAnchor": "AppendOpsHomePage"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/home",
+        "backendOwnerRoute": "/ops/home"
       }
     },
     {
@@ -142,6 +174,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AppendOpsDashboardPage"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -157,6 +193,10 @@
       "controlAction": {
         "selector": "[data-testid=\"source-reliability-search-metrics\"]",
         "actionAnchor": "BuildOpsSourcesPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -172,6 +212,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AppendOpsRulesPage"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -187,6 +231,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "BuildOpsUsersPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -202,6 +250,10 @@
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
         "actionAnchor": "bindEventReviewActions"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -217,6 +269,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-live-action-reduction\"]",
         "actionAnchor": "liveMonitorHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -232,6 +288,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-dashboard-shell\"]",
         "actionAnchor": "renderDashboard"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/dashboard",
+        "backendOwnerRoute": "/client/dashboard"
       }
     },
     {
@@ -247,6 +307,10 @@
       "controlAction": {
         "selector": ".client-viewer-events",
         "actionAnchor": "renderEventPage"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/events",
+        "backendOwnerRoute": "/client/events"
       }
     },
     {
@@ -262,6 +326,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "request-dispatch-lambda"
+      },
+      "routeBinding": {
+        "screenRoute": "/lab",
+        "backendOwnerRoute": "/lab"
       }
     },
     {
@@ -277,6 +345,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AppendProductThemeScript"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -292,6 +364,10 @@
       "controlAction": {
         "selector": ".ops-workspace-diagnostic-grid",
         "actionAnchor": "ProductUiCss"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -307,6 +383,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ProductUiCss"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -322,6 +402,10 @@
       "controlAction": {
         "selector": "#opsVlmExternalTransferWarningAck",
         "actionAnchor": "wireOpsVlmControls"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -337,6 +421,10 @@
       "controlAction": {
         "selector": "#opsVlmProfileEnabled",
         "actionAnchor": "const saved = await requestJson(`/ops/api/vlm/profiles/${encodeURIComponent(payload.id)}`, {"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -352,6 +440,10 @@
       "controlAction": {
         "selector": "#opsVlmPrivacyGuardList",
         "actionAnchor": "wireOpsVlmControls"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -367,6 +459,10 @@
       "controlAction": {
         "selector": "#opsVlmDisabledReason",
         "actionAnchor": "opsVlmRuntimeStatusSummary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -382,6 +478,10 @@
       "controlAction": {
         "selector": "[data-vlm-option-id=\"local-qwen3-vl-4b\"]",
         "actionAnchor": "wireOpsVlmControls"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -397,6 +497,10 @@
       "controlAction": {
         "selector": "#opsVlmRuntimeStatusList",
         "actionAnchor": "opsVlmRuntimeStatusSummary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -412,6 +516,10 @@
       "controlAction": {
         "selector": "#opsVlmProfileEnabled",
         "actionAnchor": "renderOpsVlmProfiles"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -427,6 +535,10 @@
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
         "actionAnchor": "await requestJson(`/ops/api/vlm/profiles/${encodeURIComponent(id)}`, { method: 'DELETE' });"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -442,6 +554,10 @@
       "controlAction": {
         "selector": "#opsVlmEvaluationRows",
         "actionAnchor": "opsVlmEvaluationDimensionText"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -457,6 +573,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "const payload = await requestJson(`/ops/api/vlm/install-connection/dry-run?${params.toString()}`);"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -472,6 +592,10 @@
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
         "actionAnchor": "eventReviewVlmHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -487,6 +611,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderOpsVlmRuntimeStatus"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -502,6 +630,10 @@
       "controlAction": {
         "selector": "#opsVlmEvaluationRows",
         "actionAnchor": "renderOpsVlmEvaluationResults"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -517,6 +649,10 @@
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
         "actionAnchor": "bindEventReviewActions"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -532,6 +668,10 @@
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
         "actionAnchor": "applyOpsVlmRuleSuggestionDraft"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -547,6 +687,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "bindEventReviewActions"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -562,6 +706,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderAlertDeliveryDryRun"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -577,6 +725,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderIncidentMemorySearch"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -592,6 +744,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderIncidentTimelineGraph"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -607,6 +763,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderExplainableIncidentBrief"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -622,6 +782,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderSimilarIncidentLookup"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -637,6 +801,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "BuildEventEvidenceBundleZip"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -652,6 +820,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderIncidentMemorySearch"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -667,6 +839,10 @@
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
         "actionAnchor": "renderVlmSummaryCandidateReview"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -682,6 +858,10 @@
       "controlAction": {
         "selector": "[data-incident-rule-draft-route]",
         "actionAnchor": "renderIncidentRuleSuggestionReview"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -697,6 +877,10 @@
       "controlAction": {
         "selector": "[data-testid=\"source-backup-recovery-handoff\"]",
         "actionAnchor": "renderOnvifCredentialGate"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -712,6 +896,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "refreshDashboard"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -727,6 +915,10 @@
       "controlAction": {
         "selector": "#opsScenarioBuilderType",
         "actionAnchor": "opsRulesPresetWarningText"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -742,6 +934,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderIncidentTriageBoard"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -757,6 +953,10 @@
       "controlAction": {
         "selector": "#opsIncidentTriageBoardRows",
         "actionAnchor": "renderIncidentDecisionScorecard"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -772,6 +972,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-operational-action-pack\"]",
         "actionAnchor": "renderOperationalActionPack"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -787,6 +991,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
         "actionAnchor": "renderRuleWhatIfPreview"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -802,6 +1010,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderOperatorOutcomeMemory"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -817,6 +1029,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderIncidentActionReadinessQueue"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -832,6 +1048,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderOpsApprovalGatedRuleDraftContext"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -847,6 +1067,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderEvidenceIntakeFieldReadiness"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -862,6 +1086,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderRuntimeEvidenceWindow"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -877,6 +1105,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV300EventEvidenceSearchUi"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -892,6 +1124,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV310ReplayTimelineUi"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -907,6 +1143,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV310OperatorFeatureCorrection"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -922,6 +1162,10 @@
       "controlAction": {
         "selector": "#opsV320ResolutionTimeline",
         "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -937,6 +1181,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV320EvidenceQualityLayer"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -952,6 +1200,10 @@
       "controlAction": {
         "selector": "#v320SourceReliabilityGrid",
         "actionAnchor": "renderV320SourceReliabilityContext"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -967,6 +1219,10 @@
       "controlAction": {
         "selector": "#v320AiReviewQualityGrid",
         "actionAnchor": "renderV320AiReviewQualityContext"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -982,6 +1238,10 @@
       "controlAction": {
         "selector": "#v320OperatorResolutionFlowGrid",
         "actionAnchor": "renderV320OperatorResolutionFlow"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -997,6 +1257,10 @@
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
         "actionAnchor": "renderV320ActionReadinessChecklist"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -1012,6 +1276,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-resolution-digest\"]",
         "actionAnchor": "renderClientSafeResolutionDigest"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -1027,6 +1295,10 @@
       "controlAction": {
         "selector": "#v320ResolutionSearchMetricsGrid",
         "actionAnchor": "renderV320ResolutionSearchMetrics"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -1042,6 +1314,10 @@
       "controlAction": {
         "selector": "#v330IncidentSourceCorrelationGrid",
         "actionAnchor": "renderV330IncidentSourceCorrelationLayer"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -1057,6 +1333,10 @@
       "controlAction": {
         "selector": "#v330OperatorRecheckRecoveryQueueGrid",
         "actionAnchor": "renderV330OperatorRecheckRecoveryQueue"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -1072,6 +1352,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-source-status-digest\"]",
         "actionAnchor": "renderClientSafeSourceStatusDigest"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -1087,6 +1371,10 @@
       "controlAction": {
         "selector": "[data-testid=\"source-reliability-search-metrics\"]",
         "actionAnchor": "renderSourceReliabilitySearchMetrics"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -1102,6 +1390,10 @@
       "controlAction": {
         "selector": "[data-testid=\"source-backup-recovery-handoff\"]",
         "actionAnchor": "renderBackupRecoverySourceHandoff"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -1117,6 +1409,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-continuity-drill-workspace\"]",
         "actionAnchor": "renderOpsContinuityDrillWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -1132,6 +1428,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderApprovalGatedRecoveryChecklistAudit"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -1147,6 +1447,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-maintenance-digest\"]",
         "actionAnchor": "renderClientSafeMaintenanceDigest"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -1162,6 +1466,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderDrillEvidenceExportCleanupManifest"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -1177,6 +1485,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderFieldBridgeConditionGates"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -1192,6 +1504,10 @@
       "controlAction": {
         "selector": "#v350IncidentCommandHandoffGrid",
         "actionAnchor": "renderV350IncidentCommandHandoff"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -1207,6 +1523,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV350OpsCommandWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1222,6 +1542,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV350OpsCommandWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1237,6 +1561,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-impact-forecast\"]",
         "actionAnchor": "renderClientImpactForecast"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -1252,6 +1580,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-operations-notice\"]",
         "actionAnchor": "renderClientOperationsNotice"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -1267,6 +1599,10 @@
       "controlAction": {
         "selector": "#dashCommandWorkspaceExportBundleMap",
         "actionAnchor": "renderV350OpsCommandWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1282,6 +1618,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV350OpsCommandWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1297,6 +1637,10 @@
       "controlAction": {
         "selector": "#dashCommandWorkspaceVlmAssistedExplanation",
         "actionAnchor": "renderV350OpsCommandWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1312,6 +1656,10 @@
       "controlAction": {
         "selector": "[data-v360-simulation-workspace-entry=\"simulation-route-family\"]",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1327,6 +1675,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceLedgerList > [data-v360-simulation-run-ledger-entry]:nth-child(2)",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1342,6 +1694,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceNoticePreviewList > [data-v360-client-notice-preview-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1357,6 +1713,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceWhatIfReplayList > [data-v360-rule-va-what-if-replay-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1372,6 +1732,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceExportBundleList > [data-v360-simulation-export-bundle-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1387,6 +1751,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceFieldEvidenceAdapterList > [data-v360-field-evidence-simulation-adapter-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1402,6 +1770,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList > [data-v360-vlm-assisted-simulation-explanation-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1417,6 +1789,10 @@
       "controlAction": {
         "selector": "#dashSiteOperationsSiteList > [data-v370-site-operations-workspace-entry]:first-child",
         "actionAnchor": "renderV370SiteOperationsWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1432,6 +1808,10 @@
       "controlAction": {
         "selector": "#dashSiteClientNoticePreviewList > [data-v370-client-notice-by-site-view-group-entry]:first-child",
         "actionAnchor": "renderV370ClientNoticeBySiteViewGroup"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1447,6 +1827,10 @@
       "controlAction": {
         "selector": "#dashSiteRuleVaWhatIfCandidateList > [data-v370-rule-va-what-if-by-site-entry]:first-child",
         "actionAnchor": "renderV370RuleVaWhatIfBySite"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1462,6 +1846,10 @@
       "controlAction": {
         "selector": "#dashSiteFieldEvidenceAttachmentList > [data-v370-field-evidence-attachment-entry]:first-child",
         "actionAnchor": "renderV370FieldEvidenceAttachment"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1477,6 +1865,10 @@
       "controlAction": {
         "selector": "#dashSiteLimitedSafeExecutionPilotList > [data-v370-limited-safe-execution-pilot-entry]:first-child",
         "actionAnchor": "renderV370LimitedSafeExecutionPilot"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1492,6 +1884,10 @@
       "controlAction": {
         "selector": "#dashSiteOutcomeReconciliationSourceList > [data-v370-outcome-reconciliation-entry]:first-child",
         "actionAnchor": "renderV370OutcomeReconciliation"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1507,6 +1903,10 @@
       "controlAction": {
         "selector": "#dashSiteExportHandoffBundleList > [data-v370-export-handoff-bundle-entry]:first-child",
         "actionAnchor": "renderV370ExportHandoffBundle"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1522,6 +1922,10 @@
       "controlAction": {
         "selector": "#dashActionControlRequestList > [data-v380-action-control-entry]:first-child",
         "actionAnchor": "renderV380OpsActionControlWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1537,6 +1941,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-action-notice-preview\"] .client-action-notice-item:first-child",
         "actionAnchor": "renderClientActionNoticePreview"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/dashboard",
+        "backendOwnerRoute": "/client/dashboard"
       }
     },
     {
@@ -1552,6 +1960,10 @@
       "controlAction": {
         "selector": "#dashActionOutcomeSourceList > [data-v380-outcome-observer-entry]:first-child",
         "actionAnchor": "renderV380OutcomeObserverReconciliation"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1567,6 +1979,10 @@
       "controlAction": {
         "selector": "#dashActionReceiptBundleList > [data-v380-action-receipt-entry]:first-child",
         "actionAnchor": "renderV380ActionReceiptBundle"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1582,6 +1998,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV380FieldConnectorEvidencePackage"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1597,6 +2017,10 @@
       "controlAction": {
         "selector": "#opsIncidentActionReadinessQueueRows",
         "actionAnchor": "renderV380DefaultOffActionExplanation"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1612,6 +2036,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderOnvifCredentialProviderStatus"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -1627,6 +2055,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "saveChannelSourceViewPair"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -1642,6 +2074,10 @@
       "controlAction": {
         "selector": "#opsVlmRuleDraftBridgeStatus",
         "actionAnchor": "renderOpsVlmRuleSuggestionDraftBridge"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -1657,6 +2093,10 @@
       "controlAction": {
         "selector": "#opsVlmExternalTransferWarningAck",
         "actionAnchor": "buildOpsVlmProfilePayload"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/vlm",
+        "backendOwnerRoute": "/ops/vlm"
       }
     },
     {
@@ -1672,6 +2112,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderStagingRestoreValidationHandoff"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -1687,6 +2131,10 @@
       "controlAction": {
         "selector": "#dashActionExecutionDeferralList",
         "actionAnchor": "renderV390ActionExecutionDeferralDecision"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1702,6 +2150,10 @@
       "controlAction": {
         "selector": "#dashFieldEvidenceBridgeList",
         "actionAnchor": "renderV390FieldEvidenceBridgeDecision"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1717,6 +2169,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV390ReidAssistDecision"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -1732,6 +2188,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-login-form\"]",
         "actionAnchor": "AuthenticateUserPassword"
+      },
+      "routeBinding": {
+        "screenRoute": "/login",
+        "backendOwnerRoute": "/login"
       }
     },
     {
@@ -1747,6 +2207,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-login-form\"]",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/setup",
+        "backendOwnerRoute": "/setup"
       }
     },
     {
@@ -1762,6 +2226,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-setup-form\"]",
         "actionAnchor": "SaveBootstrapAdmin"
+      },
+      "routeBinding": {
+        "screenRoute": "/setup",
+        "backendOwnerRoute": "/setup"
       }
     },
     {
@@ -1777,6 +2245,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-password-policy\"]",
         "actionAnchor": "AuthenticateUserPassword"
+      },
+      "routeBinding": {
+        "screenRoute": "/login",
+        "backendOwnerRoute": "/login"
       }
     },
     {
@@ -1792,6 +2264,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "UsersJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1807,6 +2283,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "UsersJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1822,6 +2302,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-login-form\"]",
         "actionAnchor": "UsersJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/login",
+        "backendOwnerRoute": "/login"
       }
     },
     {
@@ -1837,6 +2321,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
         "actionAnchor": "InvitesJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/invite/setup",
+        "backendOwnerRoute": "/invite/setup"
       }
     },
     {
@@ -1852,6 +2340,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1867,6 +2359,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "CreateAuthUser"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1882,6 +2378,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "UpdateAuthUser"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1897,6 +2397,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SetAuthUserEnabled"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1912,6 +2416,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SetAuthUserEnabled"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1927,6 +2435,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ResetAuthUserPassword"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1942,6 +2454,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SetAuthUserEnabled"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1957,6 +2473,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "require_admin_principal"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1972,6 +2492,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "BuildPrincipalFromRequest"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -1987,6 +2511,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ScopeTemplateForRole"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -2002,6 +2530,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "BuildPrincipalFromRequest"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -2017,6 +2549,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "require_ops_principal"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -2032,6 +2568,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -2047,6 +2587,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewApplicationService::ClientViewsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -2062,6 +2606,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
         "actionAnchor": "CreateInviteFromJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/invite/setup",
+        "backendOwnerRoute": "/invite/setup"
       }
     },
     {
@@ -2077,6 +2625,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
         "actionAnchor": "CompleteInvitePasswordSetup"
+      },
+      "routeBinding": {
+        "screenRoute": "/invite/setup",
+        "backendOwnerRoute": "/invite/setup"
       }
     },
     {
@@ -2092,6 +2644,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
         "actionAnchor": "CompleteInvitePasswordSetup"
+      },
+      "routeBinding": {
+        "screenRoute": "/invite/setup",
+        "backendOwnerRoute": "/invite/setup"
       }
     },
     {
@@ -2107,6 +2663,10 @@
       "controlAction": {
         "selector": "#request-form",
         "actionAnchor": "CreateAccessRequestFromJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/login",
+        "backendOwnerRoute": "/login"
       }
     },
     {
@@ -2122,6 +2682,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
         "actionAnchor": "ApproveAccessRequestFromJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/invite/setup",
+        "backendOwnerRoute": "/invite/setup"
       }
     },
     {
@@ -2137,6 +2701,10 @@
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
         "actionAnchor": "RejectAccessRequest"
+      },
+      "routeBinding": {
+        "screenRoute": "/invite/setup",
+        "backendOwnerRoute": "/invite/setup"
       }
     },
     {
@@ -2152,6 +2720,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "CreateAccessRequestFromJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -2167,6 +2739,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "client-view-dashboard-route-guard"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/users",
+        "backendOwnerRoute": "/ops/users"
       }
     },
     {
@@ -2182,6 +2758,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewApplicationService::CreateSource"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2197,6 +2777,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ParseSourceRecord"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2212,6 +2796,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ParseSourceRecord"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2227,6 +2815,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ParseSourceRecord"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2242,6 +2834,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ParseSourceRecord"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2257,6 +2853,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::SourcesJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2272,6 +2872,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2287,6 +2891,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::CreateSource"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2302,6 +2910,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "saveChannelSourceViewPair"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2317,6 +2929,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::DisableSource"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2332,6 +2948,10 @@
       "controlAction": {
         "selector": "#channelScopePolicy",
         "actionAnchor": "SourceViewRegistry::ResolveClientViewAccess"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2347,6 +2967,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsSourceHealthJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2362,6 +2986,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "BuildOnvifLiveImportDraft"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2377,6 +3005,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::ViewsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2392,6 +3024,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::CreateView"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2407,6 +3043,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::UpsertView"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2422,6 +3062,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::DisableView"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2437,6 +3081,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::DisableView"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2452,6 +3100,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ParsePublishedViewRecord"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2467,6 +3119,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientPublishedViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2482,6 +3138,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewApplicationService::ClientViewsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2497,6 +3157,10 @@
       "controlAction": {
         "selector": "#add-channel",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2512,6 +3176,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2527,6 +3195,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2542,6 +3214,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2557,6 +3233,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewApplicationService::ClientViewsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2572,6 +3252,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2587,6 +3271,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "BuildOnvifLiveImportDraft"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/onvif/import-draft",
+        "backendOwnerRoute": "/ops/api/onvif/import-draft"
       }
     },
     {
@@ -2602,6 +3290,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsEvidenceIntakeFieldReadinessViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2617,6 +3309,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::SourceOnboardingQualitySummaryJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/source-registry/onboarding-quality",
+        "backendOwnerRoute": "/ops/api/source-registry/onboarding-quality"
       }
     },
     {
@@ -2632,6 +3328,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV330ReliabilityTimelineHealthHistoryJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/source-registry/reliability-timeline",
+        "backendOwnerRoute": "/ops/api/source-registry/reliability-timeline"
       }
     },
     {
@@ -2647,6 +3347,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedOpsEventsWorkspaceJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -2662,6 +3366,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedOpsEventsWorkspaceJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -2677,6 +3385,10 @@
       "controlAction": {
         "selector": "[data-testid=\"${escapeHtml(testId)}\"]",
         "actionAnchor": "AppendClientSafeSourceStatusDigestJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/api/views/{id}/events",
+        "backendOwnerRoute": "/client/api/views/{id}/events"
       }
     },
     {
@@ -2692,6 +3404,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV330SourceReliabilitySearchMetricsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/source-registry/reliability-search-metrics",
+        "backendOwnerRoute": "/ops/api/source-registry/reliability-search-metrics"
       }
     },
     {
@@ -2707,6 +3423,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV330BackupRecoverySourceHandoffJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/source-registry/backup-recovery-handoff",
+        "backendOwnerRoute": "/ops/api/source-registry/backup-recovery-handoff"
       }
     },
     {
@@ -2722,6 +3442,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV390OnvifCredentialProviderStatusSummaryJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/onvif/credential-provider-status",
+        "backendOwnerRoute": "/ops/api/onvif/credential-provider-status"
       }
     },
     {
@@ -2737,6 +3461,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::UpsertOnvifSourceView"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2752,6 +3480,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV390StagingRestoreValidationHandoffJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2767,6 +3499,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV390FieldEvidenceBridgeDecisionJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -2782,6 +3518,10 @@
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
         "actionAnchor": "refreshRules:vaRules-assignment"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2797,6 +3537,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "refreshRules:rules-assignment"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2812,6 +3556,10 @@
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
         "actionAnchor": "refreshRules:profiles-assignment"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2827,6 +3575,10 @@
       "controlAction": {
         "selector": "#opsVaRuleIdInput",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2842,6 +3594,10 @@
       "controlAction": {
         "selector": "#opsVaRuleTemplateSeedSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2857,6 +3613,10 @@
       "controlAction": {
         "selector": "#opsVaRuleTemplateSeedSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2872,6 +3632,10 @@
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2887,6 +3651,10 @@
       "controlAction": {
         "selector": "#opsVaRuleTemplateSeedSelect",
         "actionAnchor": "opsRulesReadVaRuleForm"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2902,6 +3670,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2917,6 +3689,10 @@
       "controlAction": {
         "selector": "#opsVaRuleTrackingSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2932,6 +3708,10 @@
       "controlAction": {
         "selector": "#opsVaRuleIdInput",
         "actionAnchor": "opsRulesReadVaRuleForm"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2947,6 +3727,10 @@
       "controlAction": {
         "selector": "#opsVaRuleIdInput",
         "actionAnchor": "opsRulesReadVaRuleForm"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2962,6 +3746,10 @@
       "controlAction": {
         "selector": "#opsVaRuleGeometryMinimumText",
         "actionAnchor": "opsRulesReadVaRuleForm"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2977,6 +3765,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderOpsVaRules"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -2992,6 +3784,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderOpsVaRules"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3007,6 +3803,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "opsRulesNextNumericId"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3022,6 +3822,10 @@
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
         "actionAnchor": "AppendOpsRulesPage"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3037,6 +3841,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3052,6 +3860,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3067,6 +3879,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3082,6 +3898,10 @@
       "controlAction": {
         "selector": "#opsEvidenceIntakeFieldReadinessRows",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3097,6 +3917,10 @@
       "controlAction": {
         "selector": "#opsVaRuleReidSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3112,6 +3936,10 @@
       "controlAction": {
         "selector": "#opsVaRuleIdInput",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3127,6 +3955,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3142,6 +3974,10 @@
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3157,6 +3993,10 @@
       "controlAction": {
         "selector": "#opsProfileDetectorSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3172,6 +4012,10 @@
       "controlAction": {
         "selector": "#opsProfileDetectorSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3187,6 +4031,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3202,6 +4050,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3217,6 +4069,10 @@
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3232,6 +4088,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3247,6 +4107,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3262,6 +4126,10 @@
       "controlAction": {
         "selector": "#opsEventRuleModeSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3277,6 +4145,10 @@
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3292,6 +4164,10 @@
       "controlAction": {
         "selector": "#dashIncidentTimeline",
         "actionAnchor": "ResolveAnalysisProfileForContext"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3307,6 +4183,10 @@
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
         "actionAnchor": "ResolveAnalysisProfileForContext"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3322,6 +4202,10 @@
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
         "actionAnchor": "ResolveAnalysisProfileForContext"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3337,6 +4221,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ResolveAnalysisProfileForContext"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3352,6 +4240,10 @@
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
         "actionAnchor": "ResolveAnalysisProfileForContext"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3367,6 +4259,10 @@
       "controlAction": {
         "selector": "#dashReidAssistDecisionList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3382,6 +4278,10 @@
       "controlAction": {
         "selector": "#dashRootCauseList",
         "actionAnchor": "EvaluateSceneContextRule"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3397,6 +4297,10 @@
       "controlAction": {
         "selector": "#dashRootCauseList",
         "actionAnchor": "EvaluateSceneContextRule"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3412,6 +4316,10 @@
       "controlAction": {
         "selector": "#dashRootCauseList",
         "actionAnchor": "EvaluateSceneContextRule"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3427,6 +4335,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "EvaluateSceneContextRule"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3442,6 +4354,10 @@
       "controlAction": {
         "selector": "#opsScenarioBuilderClasses",
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3457,6 +4373,10 @@
       "controlAction": {
         "selector": "#opsEventRuleTriggerDirectionSelect",
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3472,6 +4392,10 @@
       "controlAction": {
         "selector": "#opsScenarioBuilderClasses",
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3487,6 +4411,10 @@
       "controlAction": {
         "selector": "#opsEventRuleTypeSelect",
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3502,6 +4430,10 @@
       "controlAction": {
         "selector": "#opsScenarioBuilderType",
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3517,6 +4449,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-scenario-builder\"]",
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3532,6 +4468,10 @@
       "controlAction": {
         "selector": "#opsEventRuleSettingsHeading",
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3547,6 +4487,10 @@
       "controlAction": {
         "selector": "#opsScenarioBuilderType",
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3562,6 +4506,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3577,6 +4525,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3592,6 +4544,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3607,6 +4563,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3622,6 +4582,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3637,6 +4601,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3652,6 +4620,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3667,6 +4639,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3682,6 +4658,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3697,6 +4677,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3712,6 +4696,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3727,6 +4715,10 @@
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3742,6 +4734,10 @@
       "controlAction": {
         "selector": "#dashVaQualityFilterInput",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3757,6 +4753,10 @@
       "controlAction": {
         "selector": "#opsEventRuleTypeSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3772,6 +4772,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3787,6 +4791,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3802,6 +4810,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3817,6 +4829,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3832,6 +4848,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3847,6 +4867,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3862,6 +4886,10 @@
       "controlAction": {
         "selector": "#opsRulesComposerSave",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3877,6 +4905,10 @@
       "controlAction": {
         "selector": "#opsVaRuleTemplateSeedSelect",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3892,6 +4924,10 @@
       "controlAction": {
         "selector": "#opsRulesComposerSave",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3907,6 +4943,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3922,6 +4962,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3937,6 +4981,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-scenario-builder\"]",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3952,6 +5000,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3967,6 +5019,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3982,6 +5038,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -3997,6 +5057,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-scenario-builder\"]",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4012,6 +5076,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4027,6 +5095,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4042,6 +5114,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4057,6 +5133,10 @@
       "controlAction": {
         "selector": "#opsRulesValidationList",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4072,6 +5152,10 @@
       "controlAction": {
         "selector": "#opsEventRuleLoiteringGroundPlaneToggle",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4087,6 +5171,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-scenario-builder\"]",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4102,6 +5190,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4117,6 +5209,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4132,6 +5228,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4147,6 +5247,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4162,6 +5266,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4177,6 +5285,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4192,6 +5304,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "BuildClientLiveWebRtcQuery"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4207,6 +5323,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
         "actionAnchor": "SourceViewRegistry::ResolveClientViewAccess"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4222,6 +5342,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewApplicationService::ClientViewsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4237,6 +5361,10 @@
       "controlAction": {
         "selector": "#opsVlmRuleDraftKindSelect",
         "actionAnchor": "BuildClientLiveWebRtcQuery"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4252,6 +5380,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4267,6 +5399,10 @@
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4282,6 +5418,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
         "actionAnchor": "opsRulesUpdateReviewLoop"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4297,6 +5437,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ApplyEventRulesToResult"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4312,6 +5456,10 @@
       "controlAction": {
         "selector": "#opsOperatorOutcomeMemoryRows",
         "actionAnchor": "OpsApprovalGatedRuleDraftReadinessViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4327,6 +5475,10 @@
       "controlAction": {
         "selector": "#opsVlmRuleDraftKindSelect",
         "actionAnchor": "OpsV390VlmRuleSuggestionDraftBridgeJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -4342,6 +5494,10 @@
       "controlAction": {
         "selector": "#dashRuntimeTrendSparkline",
         "actionAnchor": "runtime_status_body"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -4357,6 +5513,10 @@
       "controlAction": {
         "selector": "#dashRootCauseActionOutput",
         "actionAnchor": "OpsSourceHealthJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -4372,6 +5532,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsDiagnosticLogTailJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4387,6 +5551,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AnalysisEventRecordsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4402,6 +5570,10 @@
       "controlAction": {
         "selector": "#opsV320ResolutionTimeline",
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4417,6 +5589,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsAlertDeliveryListJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4432,6 +5608,10 @@
       "controlAction": {
         "selector": "#dashRuntimeOpsList",
         "actionAnchor": "DispatchOpsAlertDeliveryFixture"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4447,6 +5627,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-vlm-event-review-card\"]",
         "actionAnchor": "OpsEventReviewInboxJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4462,6 +5646,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsEventReviewInboxJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4477,6 +5665,10 @@
       "controlAction": {
         "selector": "#eventReviewRows",
         "actionAnchor": "UpsertOpsEventReviewState"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4492,6 +5684,10 @@
       "controlAction": {
         "selector": "#dashRootCauseActionOutput",
         "actionAnchor": "OpsAuditEntriesJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4507,6 +5703,10 @@
       "controlAction": {
         "selector": "#dashCommandWorkspaceLedgerList",
         "actionAnchor": "OpsEventReviewInboxJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -4522,6 +5722,10 @@
       "controlAction": {
         "selector": "#dashRuntimeTrendSparkline",
         "actionAnchor": "runtime_status_body"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -4537,6 +5741,10 @@
       "controlAction": {
         "selector": "#dashRuntimeTrendSparkline",
         "actionAnchor": "RuntimeStatusJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -4552,6 +5760,10 @@
       "controlAction": {
         "selector": "#dashRootCauseList",
         "actionAnchor": "RuntimeStatusJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -4567,6 +5779,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsVlmEventReviewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4582,6 +5798,10 @@
       "controlAction": {
         "selector": "#opsRulesReviewEventRecordLink",
         "actionAnchor": "BuildVlmObservationCorrelationReportJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4597,6 +5817,10 @@
       "controlAction": {
         "selector": "[data-testid=\"ops-vlm-event-review-card\"]",
         "actionAnchor": "OpsVlmEventReviewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4612,6 +5836,10 @@
       "controlAction": {
         "selector": "#opsRulesDetailPanel",
         "actionAnchor": "OpsVlmRuleSuggestionDraftWorkflowJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4627,6 +5855,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsEventReviewStateJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4642,6 +5874,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "DispatchOpsAlertDeliveryDryRun"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4657,6 +5893,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentMemorySearchViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4672,6 +5912,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentTimelineGraphViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4687,6 +5931,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsExplainableIncidentBriefViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4702,6 +5950,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsSimilarIncidentLookupViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4717,6 +5969,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentMemorySearchViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4732,6 +5988,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsEventReviewInboxItemJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4747,6 +6007,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderDashboardRuntimeTrend"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -4762,6 +6026,10 @@
       "controlAction": {
         "selector": "#eventRecordsEvidenceSelect",
         "actionAnchor": "ReEntryScenario::Evaluate"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4777,6 +6045,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentTriageBoardViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4792,6 +6064,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentDecisionScorecardViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4807,6 +6083,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsOperationalActionPackViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4822,6 +6102,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsRuleWhatIfPreviewViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4837,6 +6121,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsOperatorOutcomeMemoryViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4852,6 +6140,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentActionReadinessQueueViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4867,6 +6159,10 @@
       "controlAction": {
         "selector": "#opsApprovalGatedRuleDraftReadinessRows",
         "actionAnchor": "OpsApprovalGatedRuleDraftReadinessViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4882,6 +6178,10 @@
       "controlAction": {
         "selector": "#opsEvidenceIntakeFieldReadinessRows",
         "actionAnchor": "OpsEvidenceIntakeFieldReadinessViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -4897,6 +6197,10 @@
       "controlAction": {
         "selector": "#dashRuntimeTrendSparkline",
         "actionAnchor": "OpsRuntimeEvidenceWindowViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/dashboard",
+        "backendOwnerRoute": "/ops/dashboard"
       }
     },
     {
@@ -4912,6 +6216,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsEventReviewStateJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4927,6 +6235,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedOpsEventsWorkspaceJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4942,6 +6254,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedResolutionWorkspaceItemJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4957,6 +6273,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedResolutionWorkspaceItemJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4972,6 +6292,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedResolutionWorkspaceItemJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -4987,6 +6311,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320OperatorResolutionFlowInfoFor"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -5002,6 +6330,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedResolutionWorkspaceItemJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -5017,6 +6349,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedResolutionWorkspaceItemJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -5032,6 +6368,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedResolutionWorkspaceItemJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -5047,6 +6387,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedResolutionWorkspaceItemJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -5062,6 +6406,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320UnifiedResolutionWorkspaceItemJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/events/reviews",
+        "backendOwnerRoute": "/ops/api/events/reviews"
       }
     },
     {
@@ -5077,6 +6425,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::ClientViewsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5092,6 +6444,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "WebRtcHttpServer::Start"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5107,6 +6463,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "close_webrtc_session"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5122,6 +6482,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientViewDashboardJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/dashboard",
+        "backendOwnerRoute": "/client/dashboard"
       }
     },
     {
@@ -5137,6 +6501,10 @@
       "controlAction": {
         "selector": "[data-testid=\"${escapeHtml(testId)}\"]",
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/events",
+        "backendOwnerRoute": "/client/events"
       }
     },
     {
@@ -5152,6 +6520,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "UpsertClientLiveLayoutPreference"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5167,6 +6539,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientLiveLayoutPreferencesJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5182,6 +6558,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "SourceViewRegistry::ClientViewsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5197,6 +6577,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AppendClientShellScript"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5212,6 +6596,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5227,6 +6615,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-live-dock-event-feed\"]",
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5242,6 +6634,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5257,6 +6653,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5272,6 +6672,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-live-va-overlay-toggle\"]",
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5287,6 +6691,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-dashboard-shell\"]",
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5302,6 +6710,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5317,6 +6729,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5332,6 +6748,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-followup-digest\"]",
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5347,6 +6767,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientShellPageHtml"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5362,6 +6786,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-incident-digest\"]",
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/api/views/{id}/events",
+        "backendOwnerRoute": "/client/api/views/{id}/events"
       }
     },
     {
@@ -5377,6 +6805,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5392,6 +6824,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-event-digest\"]",
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/events",
+        "backendOwnerRoute": "/client/events"
       }
     },
     {
@@ -5407,6 +6843,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-resolution-digest\"]",
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5422,6 +6862,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-source-status-digest\"]",
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5437,6 +6881,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-maintenance-digest\"]",
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/api/views/{id}/events",
+        "backendOwnerRoute": "/client/api/views/{id}/events"
       }
     },
     {
@@ -5452,6 +6900,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-impact-forecast\"]",
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/api/views/{id}/events",
+        "backendOwnerRoute": "/client/api/views/{id}/events"
       }
     },
     {
@@ -5467,6 +6919,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-operations-notice\"]",
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/api/views/{id}/events",
+        "backendOwnerRoute": "/client/api/views/{id}/events"
       }
     },
     {
@@ -5482,6 +6938,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-action-notice-preview\"]",
         "actionAnchor": "ClientViewEventsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/api/views/{id}/events",
+        "backendOwnerRoute": "/client/api/views/{id}/events"
       }
     },
     {
@@ -5497,6 +6957,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV380OutcomeObserverReconciliationJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5512,6 +6976,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV380ActionReceiptBundleJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5527,6 +6995,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "create_webrtc_session_response"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/client/live"
       }
     },
     {
@@ -5542,6 +7014,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AppendClientShellScript"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -5557,6 +7033,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AppendOpsHomePage"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5572,6 +7052,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "undefined_route_BuildHttpResponse_status"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5587,6 +7071,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "legacy_lab_BuildHttpResponse_status"
+      },
+      "routeBinding": {
+        "screenRoute": "/lab",
+        "backendOwnerRoute": "/lab"
       }
     },
     {
@@ -5602,6 +7090,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ClientPublishedViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5617,6 +7109,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "WhoamiJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5632,6 +7128,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "require_ops_principal"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5647,6 +7147,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AppendClientShellScript"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5662,6 +7166,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "canonical-action:SAFE-024"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5677,6 +7185,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ValidateVlmPrivacyGuardContract"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5692,6 +7204,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsVlmRuleSuggestionDraftWorkflowJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/live",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5707,6 +7223,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "run_routes"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5722,6 +7242,10 @@
       "controlAction": {
         "selector": "#opsVlmRuleDraftKindSelect",
         "actionAnchor": "OpsVlmRuleSuggestionDraftWorkflowJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/rules",
+        "backendOwnerRoute": "/ops/rules"
       }
     },
     {
@@ -5737,6 +7261,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsEventReviewStateJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/api/audit",
+        "backendOwnerRoute": "/ops/api/audit"
       }
     },
     {
@@ -5752,6 +7280,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsAlertDeliveryPayloadPreviewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5767,6 +7299,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentMemorySearchViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -5782,6 +7318,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentTimelineGraphViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5797,6 +7337,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsExplainableIncidentBriefViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5812,6 +7356,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsSimilarIncidentLookupViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5827,6 +7375,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "run_routes"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5842,6 +7394,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "BuildReleaseSafeIncidentEvidenceBundleManifest"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5857,6 +7413,10 @@
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
         "actionAnchor": "OpsVlmSummaryCandidateReviewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -5872,6 +7432,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
         "actionAnchor": "OpsVlmRuleSuggestionDraftWorkflowJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -5887,6 +7451,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "BuildOnvifLiveImportDraft"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5902,6 +7470,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderDashboardRuntimeTrend"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5917,6 +7489,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "ReEntryScenario::ConfiguredZoneMode"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -5932,6 +7508,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentTriageBoardViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -5947,6 +7527,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentDecisionScorecardViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -5962,6 +7546,10 @@
       "controlAction": {
         "selector": "#dashRuntimeOpsList",
         "actionAnchor": "OpsOperationalActionPackViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -5977,6 +7565,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
         "actionAnchor": "OpsRuleWhatIfPreviewViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -5992,6 +7584,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsOperatorOutcomeMemoryViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6007,6 +7603,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsIncidentActionReadinessQueueViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6022,6 +7622,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsApprovalGatedRuleDraftReadinessViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6037,6 +7641,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsEvidenceIntakeFieldReadinessViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6052,6 +7660,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsRuntimeEvidenceWindowViewJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6067,6 +7679,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AppendClientSafeFollowUpDigestJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6082,6 +7698,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "safe098BoundaryObserved"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6097,6 +7717,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "check:SAFE-104 canonical unified workspace boundary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -6112,6 +7736,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "check:SAFE-105 canonical evidence quality boundary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6127,6 +7755,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "check:SAFE-106 canonical source reliability boundary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6142,6 +7774,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "check:SAFE-107 canonical AI review quality boundary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6157,6 +7793,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "check:SAFE-108 canonical operator resolution write boundary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6172,6 +7812,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320ActionReadinessChecklistJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6187,6 +7831,10 @@
       "controlAction": {
         "selector": "[data-testid=\"client-safe-resolution-digest\"]",
         "actionAnchor": "AppendClientSafeResolutionDigestJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/api/views/{id}/events",
+        "backendOwnerRoute": "/client/api/views/{id}/events"
       }
     },
     {
@@ -6202,6 +7850,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV320ResolutionSearchMetricsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6217,6 +7869,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV330IncidentSourceCorrelationJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6232,6 +7888,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "canonical-owner:SAFE-118"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6247,6 +7907,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "AppendClientSafeSourceStatusDigestJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/client/api/views/{id}/events",
+        "backendOwnerRoute": "/client/api/views/{id}/events"
       }
     },
     {
@@ -6262,6 +7926,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV330SourceReliabilitySearchMetricsJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6277,6 +7945,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "OpsV330BackupRecoverySourceHandoffJson"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6292,6 +7964,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderOpsContinuityDrillWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/sources",
+        "backendOwnerRoute": "/ops/sources"
       }
     },
     {
@@ -6307,6 +7983,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "check:SAFE-130 canonical approval-gated no-auto boundary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6322,6 +8002,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "check:SAFE-131 canonical client maintenance digest boundary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6337,6 +8021,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "check:SAFE-132 canonical drill evidence cleanup manifest boundary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     },
     {
@@ -6352,6 +8040,10 @@
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
         "actionAnchor": "check:SAFE-138 canonical incident handoff read-only boundary"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops/events",
+        "backendOwnerRoute": "/ops/events"
       }
     },
     {
@@ -6367,6 +8059,10 @@
       "controlAction": {
         "selector": null,
         "actionAnchor": "renderV350OpsCommandWorkspace"
+      },
+      "routeBinding": {
+        "screenRoute": "/ops",
+        "backendOwnerRoute": "/ops"
       }
     }
   ]

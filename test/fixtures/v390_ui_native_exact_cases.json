@@ -2,12 +2,12 @@
   "schema": "media-server.v390-ui-native-exact-cases.v2",
   "sourceBindings": {
     "canonicalSchema": "media-server.ui-fulltest-canonical-case-manifest.v1",
-    "canonicalSha256": "1f93aeec4a632feb69f474a29d9e8b03460f96b94a7854e096666312b60d73db",
+    "canonicalSha256": "3b3b85556d4efc78e6cea00f9e7e8199b22ed58931ea5cc40f524ba18bdf936f",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "2d336d1468a08b89e60f6ad3b57c71eea237f4e7199b07fca6e68a27fc977a15",
+    "implementationProjectionSha256": "6c3dbd662d44b2e989049c67838897caae7934ac19adf8284be2aa81885bb78e",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "0a0db7c263fea1769c9d7068f8d8a79307ad3f3fd43fdd86ae7bed4efcdc0961",
+    "runtimeOracleCatalogSha256": "f2136e6a9183a4fbea870269724a00b5b409794d78c4b908a25f26733b6a8dfa",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -195225,7 +195225,7 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "source health API state is rendered with the same source id, status, and reason",
-          "specSha256": "89033b5e5234c2371cd190971d6efe29d513e867f1274c91e6e8038cf8458ab6",
+          "specSha256": "89a83970116b8ebbac65d33ba35d8e16d2b622199ec43e69a6434ff0aac92fef",
           "requestCount": 1,
           "domAssertionCount": 2,
           "stateSnapshotCount": 10,

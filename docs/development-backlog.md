@@ -6577,8 +6577,18 @@ fail-closed입니다. Diagnostic actual 1회는 row-local 보정 전
 `responseBaselineMatched=false`, observation/fixture=true로 중단됐고 보정 뒤 actual 재실행은
 native static gate 선행 원칙 때문에 수행하지 않았습니다. Native manifest는 공식 generator
 1회로 424/423+1/unsupported0에 재결속했고 RULE-101은 profile mismatch UI no-write와
-analysis/profile API 400 독립 readback을 분리합니다. Diagnostic 12/12, runtime 35/35,
+analysis/profile API 400 독립 readback을 분리합니다. Diagnostic 13/13, runtime 35/35,
 event 22/22, evaluator 17/17, native 38/38, completion 29/29과 `git diff --check`가 PASS했습니다.
+Same-directory source-built manifest drift follow-up에서는 공식 dispatch
+`./server.sh verify-v390-ui-native-exact-cases --update-canonical-binding`을 정확히 1회 실행해
+canonical/native fixture를 현재 source에 재결속했습니다. 결과는 canonical 424,
+native 424/positive 423/negative 1/unsupported 0, ordered ID 불변이며 native에서 의미 변경된
+case는 EVT-003의 runtime oracle spec hash 1건뿐입니다. Canonical `route/accountRole/controlAction`
+projection은 불변이고 새 `routeBinding`은 screen/backend owner route 결속 metadata입니다. Semantic
+candidate `7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`는 audit/approval
+986/986으로 확인했고 producer는 실행하지 않았습니다. Feature evidence 986/986, project inventory
+17/17, release evidence index 8/8, script inventory 11/11, docs links failure 0, 변경 MJS syntax/JSON
+parse와 `git diff --check`가 PASS했습니다.
 Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 미실행이며
 이 static/diagnostic checkpoint는 actual UI PASS evidence가 아닙니다.
 

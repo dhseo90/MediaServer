@@ -2918,12 +2918,13 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
 | 보존한 actual 경계 | Source `00d515e6d4b9219f012f00ec321e63feb3059a02` actual UI는 `281 attempted / 280 PASS / RULE-097 FAIL 1 / 143 not-run`입니다 | actual FAIL preserved |
-| Diagnostic 실행 경계 | `run-v390-ui-native-diagnostic-sweep`은 RULE-097 이후 144건을 단건 또는 고정 순서로 실행하며 release/Policy v4 evidence로 사용할 수 없습니다. 자동 재시도 0, case별 격리 환경, durable progress, secret byte scan과 cleanup을 요구합니다 | diagnostic contract 12/12 PASS |
+| Diagnostic 실행 경계 | `run-v390-ui-native-diagnostic-sweep`은 RULE-097 이후 144건을 단건 또는 고정 순서로 실행하며 release/Policy v4 evidence로 사용할 수 없습니다. 자동 재시도 0, case별 격리 환경, durable progress, secret byte scan과 cleanup을 요구합니다 | diagnostic contract 13/13 PASS |
 | Bootstrap evidence | 환경 시작 실패는 code/phase, reason/environment SHA-256, cleanup status·server·port·temp 측정만 보존합니다. Raw URL·credential·secret은 fixture negative contract로 거부합니다 | syntax/contract PASS |
 | EVT-003 fixture | Source/view `39065003`/`39065004`를 실제 registry와 source-health API에 생성하고 default source/view 불변, authoritative readback, soft-disable와 isolated teardown을 검증합니다 | event 22/22, evaluator 17/17 PASS |
 | Composite 원인 분리 | `observationPresent`, `responseBaselineMatched`, `fixtureObserved`를 별도 evidence로 기록합니다. 보정 전 diagnostic actual 1회는 observation/fixture PASS, full-array baseline FAIL이었습니다 | diagnostic FAIL preserved, release evidence 아님 |
 | Row-local baseline | 다른 source 행 변화는 무시하고 fixture source `39065003`의 status/reason만 비교합니다. Fixture 행 누락, status drift, reason drift는 각각 fail-closed입니다 | runtime 35/35 PASS |
 | Native/RULE-101 정합성 | 공식 native generator 1회로 424/423+1/unsupported0을 재생성했습니다. RULE-101은 profile mismatch UI no-write와 analysis/profile API 400 독립 readback을 분리합니다 | native 38/38, completion 29/29 PASS |
+| Source-built manifest drift follow-up | Same-directory checkpoint에서 공식 dispatch `./server.sh verify-v390-ui-native-exact-cases --update-canonical-binding`을 정확히 1회 실행했습니다. Canonical/native fixture SHA는 각각 `9648c686f300a6ad74c3d0b05df6655a6e6046cced476da9141cb141c92bb478`/`d612e2065ecf6e90a96d0e6198db6bb8a6c1b3e747855e9099e070153f3a7459`로 재결속됐습니다. Canonical/native ordered ID, canonical route/accountRole/controlAction, native 424/423+1/unsupported0은 불변이고 native 의미 변경 case는 EVT-003 runtime oracle spec hash 1건뿐입니다. Semantic candidate `7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`는 audit/approval 986/986으로 통과했고 producer는 실행하지 않았습니다 | generator 1회 PASS, semantic producer 0회, actual not-run |
 | 미실행 경계 | Row-local 보정 뒤 actual `EVT-003`, 전체 `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 실행하지 않았습니다 | static checkpoint / actual PASS 아님 |
 
 ### REVIEW4-65 SAFE-211 completion/current graph correction

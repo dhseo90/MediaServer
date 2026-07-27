@@ -37,7 +37,7 @@ check("diagnostic selection is fixed to RULE-097 through the canonical end", () 
   assert(manifest.cases.slice(index).length === 144, "RULE-097 diagnostic target is not exactly 144 cases");
   assert(sweepSource.includes('const selected = cases.slice(index);') &&
     sweepSource.includes('selected.length === 144') &&
-    sweepSource.includes('startCaseId: "RULE-097"'),
+    sweepSource.includes("const fullSelection = fixedSelection(manifest.cases)"),
   "diagnostic selection is not fixed to the expected 144 cases");
 });
 
@@ -161,6 +161,34 @@ check("single-case diagnostics stay inside the fixed remaining selection", () =>
     "diagnostic selection mode missing");
   assert(sweepSource.includes("diagnostic case is outside the fixed RULE-097 selection"),
     "diagnostic single-case range guard missing");
+  assert(sweepSource.includes("startCaseId: selection[0].caseId") &&
+    sweepSource.includes("endCaseId: selection.at(-1).caseId") &&
+    sweepSource.includes("selectedIds: selection.map(item => item.caseId)"),
+  "diagnostic summary does not bind selection metadata to the actual selected cases");
+  assert(runnerSource.includes("startCaseId: item.caseId") &&
+    runnerSource.includes("endCaseId: item.caseId") &&
+    runnerSource.includes("selectedIds: [item.caseId]"),
+  "diagnostic child summary retains the RULE-097 fallback for a single case");
+});
+
+check("single-case plan metadata names only the requested case", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "single-case-contract-"));
+  temporaryDirs.push(outputDir);
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--case-id", "EVT-003",
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0, `diagnostic single-case plan failed: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  assert(summary.selection?.startCaseId === "EVT-003" &&
+    summary.selection?.endCaseId === "EVT-003" &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(["EVT-003"]) &&
+    summary.selection?.targetCaseCount === 1,
+  "diagnostic single-case metadata is not bound to EVT-003");
 });
 
 check("plan-only diagnostic output preserves count invariants without browser execution", () => {
@@ -186,7 +214,7 @@ check("plan-only diagnostic output preserves count invariants without browser ex
     "diagnostic plan-only retry/case count mismatch");
 });
 
-check("diagnostic child plan-only keeps the fixed selection and cannot emit a release summary", () => {
+check("diagnostic child plan-only reports only its selected case and cannot emit a release summary", () => {
   const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
   fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
   const outputDir = fs.mkdtempSync(path.join(parent, "child-contract-"));
@@ -208,9 +236,12 @@ check("diagnostic child plan-only keeps the fixed selection and cannot emit a re
   assert(run.status === 0, `diagnostic child plan-only failed: ${run.stderr || run.stdout}`);
   const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
   assert(summary.schema === "media-server.v390-ui-diagnostic-child.v1", "diagnostic child plan-only schema mismatch");
-  assert(summary.selection?.startCaseId === "RULE-097" && summary.selection?.targetCaseCount === 144 &&
+  assert(summary.selection?.startCaseId === "RULE-097" &&
+    summary.selection?.endCaseId === "RULE-097" &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(["RULE-097"]) &&
+    summary.selection?.targetCaseCount === 1 &&
     summary.selection?.caseId === "RULE-097" && summary.selection?.automaticRetryCount === 0,
-  "diagnostic child fixed selection/retry mismatch");
+  "diagnostic child selected-case/retry mismatch");
   assert(summary.releaseEvidenceEligible === false && summary.policyV4Qualification === "not-eligible" &&
     summary.uiFulltestPass === false,
   "diagnostic child plan-only entered a release or Policy v4 state");

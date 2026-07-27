@@ -368,6 +368,16 @@ check("EVT mutation baselines are seeded once before persisted readback", () => 
 });
 
 check("EVT-003 requires authoritative source-health readback without metadata fixture substitution", () => {
+  const spec = eventExactOracleFor("EVT-003");
+  const rootCauseAssertion = spec.domAssertions.find(item =>
+    item.selector === "#dashRootCauseList .root-cause-item");
+  assert(rootCauseAssertion &&
+    rootCauseAssertion.assertions.some(item =>
+      item.operator === "contains-fixture-source" && item.target === "sourceId/status/reason"),
+  "EVT-003 root-cause assertion is not bound to the current root-cause item renderer");
+  assert(!spec.domAssertions.some(item =>
+    item.selector === "#dashRootCauseList [data-incident-unit]"),
+  "EVT-003 still expects the incident-timeline owner attribute inside the root-cause list");
   const plan = eventExactSeedMaterializerRegistry["source-health-state"];
   assert(plan?.eventRecords === 0, "EVT-003 source-health seed still creates a metadata EventRecord");
   assert(plan?.sourceHealthReadback === true, "EVT-003 authoritative source-health readback requirement is missing");

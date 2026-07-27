@@ -59,7 +59,7 @@ await check("EVT DOM semantic composite distinguishes safe failure evidence with
     "response baseline mismatch path evidence is missing");
 
   const fixtureMismatch = buildEventDomSemanticCompositeEvidence({
-    selector: "#dashRootCauseList [data-incident-unit]",
+    selector: "#dashRootCauseList .root-cause-item",
     observed: { ...visibleObservation, text: "source health without fixture identity" },
     responseBodies: matchingResponse,
     priorResponseByPath: matchingBaseline,
