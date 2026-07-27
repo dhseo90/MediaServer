@@ -1833,29 +1833,59 @@ export function buildEventDomSemanticCompositeEvidence({
     : normalizedFixtureCandidates;
   const matchedFixtureCandidates = normalizedFixtureCandidates
     .filter(value => serializedObservation.includes(value));
-  const matchedNodeTexts = nodeTexts.filter(nodeText =>
-    exactFixtureIdentity &&
-    expectedNodeTokens.length > 0 &&
-    expectedNodeTokens.every(value => nodeText.includes(value)));
+  const rendererIdentity = exactFixtureIdentity
+    ? eventDomRendererIdentityProjection(exactFixtureIdentity)
+    : null;
+  const nodeIdentityMatches = rendererIdentity
+    ? nodeTexts.map(nodeText => eventDomNodeIdentityMatch(nodeText, rendererIdentity))
+    : [];
+  const matchedNodeTexts = rendererIdentity
+    ? nodeTexts.filter((_nodeText, index) => nodeIdentityMatches[index]?.pass)
+    : [];
+  const fieldMatches = rendererIdentity
+    ? Object.fromEntries(["sourceId", "status", "reason"].map(field => {
+      const matchingNodeCount = nodeIdentityMatches.filter(item => item.fields[field]).length;
+      return [field, {
+        pass: matchingNodeCount > 0,
+        matchingNodeCount,
+        candidateDigest: rendererIdentity.fieldDigests[field],
+      }];
+    }))
+    : {};
   const fixtureEvaluated = !fixtureRequired || observationPass;
   const fixturePass = !fixtureRequired || !fixtureEvaluated || (exactFixtureIdentity
     ? apiFixtureIdentityMatched && matchedNodeTexts.length === 1
     : matchedFixtureCandidates.length > 0);
-  const fixtureObserved = {
-    pass: fixturePass,
-    reasonCode: fixturePass
-      ? "PASS"
+  const fixtureReasonCode = fixturePass
+    ? "PASS"
+    : (!exactFixtureIdentity
+      ? (expectedNodeTokens.length === 0
+        ? "FIXTURE_BINDING_MISSING"
+        : "DOM_FIXTURE_IDENTITY_NOT_OBSERVED")
       : (!apiFixtureIdentityMatched
         ? "API_DOM_FIXTURE_IDENTITY_MISMATCH"
         : (expectedNodeTokens.length === 0
-        ? "FIXTURE_BINDING_MISSING"
-        : "DOM_FIXTURE_IDENTITY_NOT_OBSERVED")),
+          ? "FIXTURE_BINDING_MISSING"
+          : (matchedNodeTexts.length > 1
+            ? "DOM_FIXTURE_IDENTITY_DUPLICATE"
+            : (!fieldMatches.sourceId?.pass
+              ? "DOM_FIXTURE_SOURCE_ID_NOT_OBSERVED"
+              : (!fieldMatches.status?.pass
+                ? "DOM_FIXTURE_STATUS_NOT_OBSERVED"
+                : (!fieldMatches.reason?.pass
+                  ? "DOM_FIXTURE_REASON_NOT_OBSERVED"
+                  : "DOM_FIXTURE_IDENTITY_DISTRIBUTED")))))));
+  const fixtureObserved = {
+    pass: fixturePass,
+    reasonCode: fixtureReasonCode,
+    failureCode: fixtureReasonCode,
     required: Boolean(fixtureRequired),
     evaluated: fixtureEvaluated,
     bindingMode: exactFixtureIdentity
       ? "api-row-to-single-dom-node"
       : "generic-fixture-candidate",
     apiFixtureIdentityMatched,
+    domCandidateCount: nodeTexts.length,
     candidateCount: expectedNodeTokens.length,
     matchedCandidateCount: exactFixtureIdentity
       ? (matchedNodeTexts.length === 1 ? expectedNodeTokens.length : 0)
@@ -1871,6 +1901,9 @@ export function buildEventDomSemanticCompositeEvidence({
     matchedCandidateDigests: (exactFixtureIdentity
       ? (matchedNodeTexts.length === 1 ? expectedNodeTokens : [])
       : matchedFixtureCandidates).map(value => sha256Digest(value)),
+    nodeDigests: nodeTexts.map(value => sha256Digest(value)),
+    matchedNodeDigests: matchedNodeTexts.map(value => sha256Digest(value)),
+    fieldMatches,
     identityDigest: exactFixtureIdentity
       ? sha256Digest({
         sourceId: exactFixtureIdentity.sourceId,
@@ -1964,6 +1997,98 @@ function validEventDomFixtureIdentity(value) {
     value.expectedNodeTokens.every(token => typeof token === "string" && token.length > 0);
 }
 
+const eventDomRendererStatusLabels = {
+  live: ["live", "수신", "receiving"],
+  connecting: ["connecting", "연결 중"],
+  stale: ["stale", "지연"],
+  offline: ["offline", "오프라인"],
+  unknown: ["unknown", "미확인"],
+};
+
+const eventDomRendererReasonLabels = {
+  receiving: ["receiving", "수신 중"],
+  initializing: ["initializing", "초기 수신 대기"],
+  "last-frame-aged": ["last-frame-aged", "프레임 지연"],
+  "metadata-aged": ["metadata-aged", "메타데이터 지연"],
+  disabled: ["disabled", "비활성"],
+  unreachable: ["unreachable", "연결 불가"],
+  "no-subscriber": ["no-subscriber", "구독 세션 없음", "no subscriber session"],
+  "no-egress-session": ["no-egress-session", "WebRTC 송출 세션 없음", "no WebRTC egress session"],
+};
+
+function normalizeEventDomRendererSegment(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[：:.,;!?/|，。；！？]+/gu, " ")
+    .replace(/[()[\]{}]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function eventDomRendererIdentityProjection(identity) {
+  const sourceId = String(identity.sourceId);
+  const status = String(identity.status);
+  const reason = String(identity.reason);
+  const sourceLabels = [`#${sourceId}`];
+  const statusLabels = [...new Set([
+    status,
+    ...(eventDomRendererStatusLabels[status] || []),
+  ])];
+  const reasonLabels = [...new Set([
+    reason,
+    ...(eventDomRendererReasonLabels[reason] || []),
+  ])];
+  const tupleSegments = new Set(sourceLabels.flatMap(sourceLabel =>
+    statusLabels.flatMap(statusLabel =>
+      reasonLabels.map(reasonLabel =>
+        normalizeEventDomRendererSegment(`${sourceLabel} ${statusLabel}: ${reasonLabel}`)))));
+  return {
+    sourceId,
+    sourceLabels: sourceLabels.map(normalizeEventDomRendererSegment),
+    statusLabels: statusLabels.map(normalizeEventDomRendererSegment),
+    reasonLabels: reasonLabels.map(normalizeEventDomRendererSegment),
+    tupleSegments,
+    fieldDigests: {
+      sourceId: sha256Digest(sourceLabels),
+      status: sha256Digest(statusLabels),
+      reason: sha256Digest(reasonLabels),
+    },
+  };
+}
+
+function eventDomNodeIdentityMatch(nodeText, projection) {
+  const segments = String(nodeText || "")
+    .split(/[\n\r·]+/u)
+    .map(normalizeEventDomRendererSegment)
+    .filter(Boolean);
+  const sourcePattern = new RegExp(
+    `(?:^|\\s)#\\s*${escapeRegex(projection.sourceId)}(?=$|\\s)`,
+    "u",
+  );
+  const fields = {
+    sourceId: segments.some(segment => sourcePattern.test(segment)),
+    status: segments.some(segment => projection.statusLabels.some(label =>
+      exactNormalizedPhrasePresent(segment, label))),
+    reason: segments.some(segment => projection.reasonLabels.some(label =>
+      exactNormalizedPhrasePresent(segment, label))),
+  };
+  return {
+    pass: segments.some(segment => [...projection.tupleSegments]
+      .some(tuple => exactNormalizedPhrasePresent(segment, tuple))),
+    fields,
+  };
+}
+
+function exactNormalizedPhrasePresent(segment, phrase) {
+  const escaped = escapeRegex(phrase);
+  return new RegExp(`(?:^|\\s)${escaped}(?=$|\\s)`, "u").test(segment);
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function validateEventDomSemanticCompositeEvidence(evidence) {
   assert(evidence?.schema === "media-server.v390-ui-event-dom-semantic-composite-evidence.v1",
     "EVT DOM semantic evidence schema mismatch");
@@ -1975,9 +2100,20 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
     Array.isArray(evidence.responseBaselineMatched?.paths) &&
     typeof evidence.fixtureObserved?.pass === "boolean" &&
     typeof evidence.fixtureObserved?.evaluated === "boolean" &&
+    typeof evidence.fixtureObserved?.failureCode === "string" &&
+    Number.isInteger(evidence.fixtureObserved?.domCandidateCount) &&
     Number.isInteger(evidence.fixtureObserved?.candidateCount) &&
     Number.isInteger(evidence.fixtureObserved?.matchedCandidateCount) &&
     Number.isInteger(evidence.fixtureObserved?.matchedNodeCount) &&
+    Array.isArray(evidence.fixtureObserved?.nodeDigests) &&
+    evidence.fixtureObserved.nodeDigests.every(digest => /^[0-9a-f]{64}$/.test(digest)) &&
+    Array.isArray(evidence.fixtureObserved?.matchedNodeDigests) &&
+    evidence.fixtureObserved.matchedNodeDigests.every(digest => /^[0-9a-f]{64}$/.test(digest)) &&
+    (evidence.fixtureObserved?.bindingMode !== "api-row-to-single-dom-node" ||
+      ["sourceId", "status", "reason"].every(field =>
+        typeof evidence.fixtureObserved?.fieldMatches?.[field]?.pass === "boolean" &&
+        Number.isInteger(evidence.fixtureObserved.fieldMatches[field].matchingNodeCount) &&
+        /^[0-9a-f]{64}$/.test(evidence.fixtureObserved.fieldMatches[field].candidateDigest || ""))) &&
     /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.candidateDigest || "") &&
     /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.matchedCandidateDigest || "") &&
     /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.identityDigest || "") &&

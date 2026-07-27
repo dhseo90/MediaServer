@@ -264,17 +264,116 @@ await check("EVT-003 API row and DOM identity bind to the same degraded source",
   assert(passing.pass === true &&
     passing.fixtureObserved.bindingMode === "api-row-to-single-dom-node" &&
     passing.fixtureObserved.apiFixtureIdentityMatched === true &&
+    passing.fixtureObserved.domCandidateCount === 1 &&
     passing.fixtureObserved.candidateCount === 3 &&
     passing.fixtureObserved.matchedCandidateCount === 3 &&
-    passing.fixtureObserved.matchedNodeCount === 1,
+    passing.fixtureObserved.matchedNodeCount === 1 &&
+    Object.values(passing.fixtureObserved.fieldMatches).every(field => field.pass),
   "EVT-003 API/DOM row-local identity did not pass with one exact DOM node");
 
-  const domIdentityMissing = evidenceFor({
-    dom: { ...observed, text: "라이브 소스 상태 정상", nodeTexts: ["라이브 소스 상태 정상"] },
+  const englishPunctuation = evidenceFor({
+    dom: {
+      ...observed,
+      text: `Live source status needs attention\n#${sourceId}   Offline :  No subscriber session.`,
+      nodeTexts: [`Live source status needs attention\n#${sourceId}   Offline :  No subscriber session.`],
+    },
   });
-  assertCompositeFailure(domIdentityMissing, "fixtureObserved");
-  assert(domIdentityMissing.fixtureObserved.reasonCode === "DOM_FIXTURE_IDENTITY_NOT_OBSERVED",
-    "missing EVT-003 DOM identity did not fail distinctly");
+  assert(englishPunctuation.pass === true &&
+    englishPunctuation.fixtureObserved.matchedNodeCount === 1,
+  "allowed renderer language, punctuation, and whitespace did not preserve exact identity");
+
+  const sourceIdMissing = evidenceFor({
+    dom: { ...observed, text: "오프라인:구독 세션 없음", nodeTexts: ["오프라인:구독 세션 없음"] },
+  });
+  assertCompositeFailure(sourceIdMissing, "fixtureObserved");
+  assert(sourceIdMissing.fixtureObserved.reasonCode === "DOM_FIXTURE_SOURCE_ID_NOT_OBSERVED",
+    "missing EVT-003 sourceId did not fail distinctly");
+
+  const statusMissing = evidenceFor({
+    dom: { ...observed, text: `#${sourceId} 구독 세션 없음`, nodeTexts: [`#${sourceId} 구독 세션 없음`] },
+  });
+  assertCompositeFailure(statusMissing, "fixtureObserved");
+  assert(statusMissing.fixtureObserved.reasonCode === "DOM_FIXTURE_STATUS_NOT_OBSERVED",
+    "missing EVT-003 status did not fail distinctly");
+
+  const statusDrift = evidenceFor({
+    dom: {
+      ...observed,
+      text: `#${sourceId} 지연:구독 세션 없음`,
+      nodeTexts: [`#${sourceId} 지연:구독 세션 없음`],
+    },
+  });
+  assertCompositeFailure(statusDrift, "fixtureObserved");
+  assert(statusDrift.fixtureObserved.reasonCode === "DOM_FIXTURE_STATUS_NOT_OBSERVED",
+    "drifted EVT-003 status did not fail distinctly");
+
+  const reasonMissing = evidenceFor({
+    dom: { ...observed, text: `#${sourceId} 오프라인`, nodeTexts: [`#${sourceId} 오프라인`] },
+  });
+  assertCompositeFailure(reasonMissing, "fixtureObserved");
+  assert(reasonMissing.fixtureObserved.reasonCode === "DOM_FIXTURE_REASON_NOT_OBSERVED",
+    "missing EVT-003 reason did not fail distinctly");
+
+  const reasonDrift = evidenceFor({
+    dom: {
+      ...observed,
+      text: `#${sourceId} 오프라인:연결 불가`,
+      nodeTexts: [`#${sourceId} 오프라인:연결 불가`],
+    },
+  });
+  assertCompositeFailure(reasonDrift, "fixtureObserved");
+  assert(reasonDrift.fixtureObserved.reasonCode === "DOM_FIXTURE_REASON_NOT_OBSERVED",
+    "drifted EVT-003 reason did not fail distinctly");
+
+  const distributedIdentity = evidenceFor({
+    dom: {
+      ...observed,
+      count: 3,
+      visibleCount: 3,
+      text: `#${sourceId}\n오프라인\n구독 세션 없음`,
+      nodeTexts: [`#${sourceId}`, "오프라인", "구독 세션 없음"],
+    },
+  });
+  assertCompositeFailure(distributedIdentity, "fixtureObserved");
+  assert(distributedIdentity.fixtureObserved.reasonCode === "DOM_FIXTURE_IDENTITY_DISTRIBUTED" &&
+    distributedIdentity.fixtureObserved.matchedNodeCount === 0,
+  "distributed EVT-003 identity fields were combined across DOM nodes");
+
+  const duplicateIdentity = evidenceFor({
+    dom: {
+      ...observed,
+      count: 2,
+      visibleCount: 2,
+      text: `${observed.nodeTexts[0]}\n${observed.nodeTexts[0]}`,
+      nodeTexts: [observed.nodeTexts[0], observed.nodeTexts[0]],
+    },
+  });
+  assertCompositeFailure(duplicateIdentity, "fixtureObserved");
+  assert(duplicateIdentity.fixtureObserved.reasonCode === "DOM_FIXTURE_IDENTITY_DUPLICATE" &&
+    duplicateIdentity.fixtureObserved.matchedNodeCount === 2,
+  "duplicate EVT-003 identity nodes did not fail closed");
+
+  const unrelatedOnly = evidenceFor({
+    dom: {
+      ...observed,
+      text: "#39065999 오프라인:구독 세션 없음",
+      nodeTexts: ["#39065999 오프라인:구독 세션 없음"],
+    },
+  });
+  assertCompositeFailure(unrelatedOnly, "fixtureObserved");
+  assert(unrelatedOnly.fixtureObserved.reasonCode === "DOM_FIXTURE_SOURCE_ID_NOT_OBSERVED",
+    "unrelated root-cause node satisfied EVT-003 identity");
+
+  const partialSourceId = evidenceFor({
+    dom: {
+      ...observed,
+      text: `#${sourceId}7 오프라인:구독 세션 없음`,
+      nodeTexts: [`#${sourceId}7 오프라인:구독 세션 없음`],
+    },
+  });
+  assertCompositeFailure(partialSourceId, "fixtureObserved");
+  assert(partialSourceId.fixtureObserved.reasonCode === "DOM_FIXTURE_SOURCE_ID_NOT_OBSERVED",
+    "partial sourceId substring satisfied EVT-003 identity");
 
   const domControlMissing = evidenceFor({
     dom: { ...observed, count: 0, visibleCount: 0, text: "", nodeTexts: [], descendantCount: 0 },
@@ -289,6 +388,19 @@ await check("EVT-003 API row and DOM identity bind to the same degraded source",
   assertCompositeFailure(apiDomMismatch, "fixtureObserved");
   assert(apiDomMismatch.fixtureObserved.reasonCode === "API_DOM_FIXTURE_IDENTITY_MISMATCH",
     "EVT-003 API/DOM identity mismatch did not fail distinctly");
+
+  const sensitiveDom = evidenceFor({
+    dom: {
+      ...observed,
+      text: `${observed.nodeTexts[0]}\nrtsp://user:password@example.invalid/live?token=secret`,
+      nodeTexts: [`${observed.nodeTexts[0]}\nrtsp://user:password@example.invalid/live?token=secret`],
+    },
+  });
+  const sensitiveSerialized = JSON.stringify(sensitiveDom);
+  for (const raw of ["rtsp://", "password", "token=secret", sourceId, "오프라인", "구독 세션 없음"]) {
+    assert(!sensitiveSerialized.includes(raw),
+      `EVT-003 structured identity evidence exposed raw material: ${raw}`);
+  }
 
   const missingStructuredField = structuredClone(passing);
   delete missingStructuredField.fixtureObserved.identityDigest;

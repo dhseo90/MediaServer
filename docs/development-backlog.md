@@ -6622,6 +6622,21 @@ inventory/evidence/script/docs gate가 PASS했습니다. Source-built manifest�
 generator와 producer는 모두 0회입니다. Actual 테스트는 미실행이며 기존 FAIL evidence를
 PASS로 변경하지 않았습니다.
 
+EVT-003 dashboard fixture identity canonical projection 보정(2026-07-27)은
+실제 `dashboardRootCauseItems`/`renderDashboardRootCause`가 detail에 출력하는
+`#sourceId status:reason` 형식과 `opsText()`의 한국어/영어 label 변환을 직접 대조했습니다.
+`v390_ui_exact_oracle_runtime.mjs`는 공백·punctuation과 명시된 한국어/영어 label만 정규화한 뒤 한 DOM node의 동일
+detail segment에서 정확한 sourceId/status/reason tuple이 한 번만 일치할 때 PASS합니다.
+필드 분산, 중복 node, unrelated/부분 sourceId, status/reason 누락·drift는 별도 reason code로
+fail-closed 처리하며 evidence에는 필드별 일치 count와 candidate/node digest만 남깁니다.
+Product renderer/API/fixture materialization은 변경하지 않았습니다. Diagnostic 13/13,
+runtime 36/36, event 22/22, evaluator 17/17, native 38/38, completion 29/29, adapter 18/18,
+semantic audit/approval 986/986, feature evidence 986/986, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0이 PASS했습니다. Source-built manifest와 stored
+fixture, semantic candidate `7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`가
+불변이므로 generator/producer는 각 0회입니다. Actual EVT-003와 전체 UI/장시간/release
+테스트는 미실행이고 기존 actual FAIL은 그대로 보존합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary
