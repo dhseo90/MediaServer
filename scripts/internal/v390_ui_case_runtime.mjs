@@ -1978,12 +1978,13 @@ export function createV390UiCaseRuntime({
     };
 
     const sourcePayload = {
-      ...defaultSourceBefore,
       sourceId,
       displayName: marker,
-      tags: [...new Set([...(defaultSourceBefore.tags || []), "review4", "evt-003", "acceptance-owned"])],
+      kind: "file",
+      file: "review4_evt_003_acceptance_unavailable.mp4",
+      tags: ["review4", "evt-003", "acceptance-owned", "deterministic-degraded"],
       enabled: true,
-      allowDuplicateSource: true,
+      allowDuplicateSource: false,
     };
     const sourceCreated = await requestEndpoint(
       "POST",
@@ -1997,6 +1998,8 @@ export function createV390UiCaseRuntime({
     context.eventSourceHealthFixture.sourceCreated = true;
     assert(sourceCreated.json?.status === "created" &&
       String(sourceCreated.json?.source?.sourceId || "") === sourceId &&
+      sourceCreated.json?.source?.kind === "file" &&
+      sourceCreated.json?.source?.file === sourcePayload.file &&
       sourceCreated.json?.source?.enabled === true,
     "EVT-003 acceptance-owned source create response identity mismatch");
 
@@ -2060,7 +2063,7 @@ export function createV390UiCaseRuntime({
     const status = String(healthItem?.status || "").trim();
     const reason = String(healthItem?.reason || "").trim();
     assert(health.json?.status === "source-health" && healthMatches.length === 1 &&
-      status.length > 0 && reason.length > 0,
+      status === "offline" && reason === "no-subscriber",
     "EVT-003 source-health fixture lacks authoritative sourceId/status/reason readback");
 
     context.transientStateSeeded = true;
@@ -2211,6 +2214,8 @@ export function createV390UiCaseRuntime({
     const requestByPath = {};
     const seedByPath = {};
     const domResponseBaselineByTarget = {};
+    const domFixtureIdentityByTarget = {};
+    const rowLocalResponseTargets = [];
     const mergedQuery = {};
     const baselineBodies = [];
     for (const request of spec.requests) {
@@ -2311,6 +2316,15 @@ export function createV390UiCaseRuntime({
         };
         domResponseBaselineByTarget.sourceHealth = rowLocalBaseline;
         domResponseBaselineByTarget["sourceHealth[].status"] = rowLocalBaseline;
+        domResponseBaselineByTarget["sourceId/status/reason"] = rowLocalBaseline;
+        rowLocalResponseTargets.push("sourceId/status/reason");
+        domFixtureIdentityByTarget["sourceId/status/reason"] = {
+          schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+          sourceId,
+          status,
+          reason,
+          expectedNodeTokens: [`#${sourceId}`, "오프라인", "구독 세션 없음"],
+        };
       }
       seedByPath["sourceHealth[].status"] = status;
       seedByPath["sourceHealth[].reason"] = reason;
@@ -2336,6 +2350,8 @@ export function createV390UiCaseRuntime({
         requestByPath,
         priorResponseByPath: responseByPath,
         domResponseBaselineByTarget,
+        domFixtureIdentityByTarget,
+        rowLocalResponseTargets,
         responseByRequest,
         responseSamplesByRequest,
         sensitiveCanaries: canaries,

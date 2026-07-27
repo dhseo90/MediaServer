@@ -16,6 +16,7 @@ import {
   buildNativeExactManifest,
   validateNativeExactManifest,
 } from "./v390_ui_native_exact_cases_lib.mjs";
+import { validateEventDomSemanticCompositeEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -469,14 +470,9 @@ function validateChildSummary(summary, item) {
     "diagnostic child actual browser execution mismatch");
   if (summary.case?.eventDomSemanticEvidence) {
     const evidence = summary.case.eventDomSemanticEvidence;
-    assert(evidence.schema === "media-server.v390-ui-event-dom-semantic-composite-evidence.v1" &&
-      evidence.actualBrowserExecution === true &&
-      typeof evidence.observationPresent?.pass === "boolean" &&
-      typeof evidence.responseBaselineMatched?.pass === "boolean" &&
-      Array.isArray(evidence.responseBaselineMatched?.mismatchPaths) &&
-      Array.isArray(evidence.responseBaselineMatched?.paths) &&
-      typeof evidence.fixtureObserved?.pass === "boolean",
-    "diagnostic child structured EVT DOM evidence mismatch");
+    validateEventDomSemanticCompositeEvidence(evidence);
+    assert(evidence.actualBrowserExecution === true,
+      "diagnostic child structured EVT DOM evidence did not execute a browser");
   }
   assert(!/(?:https?|rtsp|rtsps):\/\//i.test(String(summary.case?.failureDetail || "")),
     "diagnostic child failure detail contains a raw URL");

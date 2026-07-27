@@ -465,6 +465,7 @@ check("EVT-003 requires authoritative source-health readback without metadata fi
     '"GET", "/ops/api/source-health"',
     "const status = String(healthItem?.status",
     "const reason = String(healthItem?.reason",
+    'status === "offline" && reason === "no-subscriber"',
     "context.catalogBindings = {",
     "return { sourceId, streamId: baseline.streamId, viewId, status, reason }",
   ], "EVT-003 create/readback/binding order drift");
@@ -472,8 +473,11 @@ check("EVT-003 requires authoritative source-health readback without metadata fi
     "EVT-003 materializer can mutate an existing/default source or view");
   assert(!/const status = ["']/.test(materializerBody),
     "EVT-003 source-health status is hardcoded instead of captured");
-  assert(/status\.length > 0 && reason\.length > 0/.test(materializerBody),
-    "EVT-003 actual source-health status/reason nonempty guard is missing");
+  assert(/file:\s*"review4_evt_003_acceptance_unavailable\.mp4"/.test(materializerBody) &&
+    /allowDuplicateSource:\s*false/.test(materializerBody),
+  "EVT-003 source fixture is not a unique deterministic unavailable file source");
+  assert(/status === "offline" && reason === "no-subscriber"/.test(materializerBody),
+    "EVT-003 degraded source-health status/reason guard is missing");
 
   assertOrdered(captureBody, [
     'if (item.caseId === "EVT-003")',
@@ -487,6 +491,10 @@ check("EVT-003 requires authoritative source-health readback without metadata fi
     "expectedProjection: { status, reason }",
     "domResponseBaselineByTarget.sourceHealth = rowLocalBaseline",
     'domResponseBaselineByTarget["sourceHealth[].status"] = rowLocalBaseline',
+    'domResponseBaselineByTarget["sourceId/status/reason"] = rowLocalBaseline',
+    'rowLocalResponseTargets.push("sourceId/status/reason")',
+    'domFixtureIdentityByTarget["sourceId/status/reason"] = {',
+    'expectedNodeTokens: [`#${sourceId}`, "오프라인", "구독 세션 없음"]',
     'seedByPath["sourceHealth[].status"] = status',
     'seedByPath["sourceHealth[].reason"] = reason',
     "templateValues.status = status",
@@ -494,6 +502,8 @@ check("EVT-003 requires authoritative source-health readback without metadata fi
     "context.catalogBindings = {",
     "...templateValues",
     "domResponseBaselineByTarget",
+    "domFixtureIdentityByTarget",
+    "rowLocalResponseTargets",
   ], "EVT-003 sourceId/viewId/status/reason capture propagation drift");
 
   assertOrdered(cleanupBody, [

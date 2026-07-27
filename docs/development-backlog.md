@@ -6606,6 +6606,22 @@ inventory/evidence/script/docs gate가 PASS했습니다. Native projection과 se
 generator와 producer는 모두 0회입니다. Actual EVT-003 diagnostic, `./test_ui.sh`, Policy v4,
 30분, 120분, `./test_release.sh`는 미실행이며 기존 actual FAIL은 그대로 보존합니다.
 
+EVT-003 row-local identity closure 보정(2026-07-27)은
+`v390_ui_case_runtime.mjs`에서 acceptance-owned source를 고유 file identity로 materialize하고
+registry와 `/ops/api/source-health` readback에서 해당 `sourceId`가 정확히 1개이며
+`offline/no-subscriber`인지 확인합니다. `v390_ui_exact_oracle_runtime.mjs`는 이 API 행의
+`sourceId/status/reason`과 동일한 세 값을 한 root-cause DOM 항목에서 확인합니다. 관련 contract는
+unrelated source 변화는 허용하되 fixture 행 누락·중복·status/reason drift, DOM identity/control
+누락, API/DOM identity 불일치, whole-array fallback, structured evidence 필드 누락을 각각
+fail-closed로 거부합니다. Product C++/API schema/UI renderer는 변경하지 않았습니다.
+Diagnostic 13/13, runtime 36/36, event 22/22, evaluator 17/17, native 38/38,
+completion 29/29, adapter 18/18, semantic audit/approval 986/986, feature evidence 986/986와
+inventory/evidence/script/docs gate가 PASS했습니다. Source-built manifest가 stored fixture와
+동일하고 semantic candidate
+`7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`가 불변이므로
+generator와 producer는 모두 0회입니다. Actual 테스트는 미실행이며 기존 FAIL evidence를
+PASS로 변경하지 않았습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

@@ -12,6 +12,7 @@ import {
   evaluateRuntimeStatusPseudoFieldAssertion,
   responsePseudoFieldValues,
   selectEventDomResponseBaselines,
+  validateEventDomSemanticCompositeEvidence,
   validateRuntimeAttributeOwners,
   validateClientRuntimeFixtureBindings,
   waitForClientVaOverlayProjection,
@@ -111,13 +112,14 @@ await check("EVT-003 source-health baseline is row-local to the acceptance-owned
     projectionPaths: ["status", "reason"],
     expectedProjection: {
       status: "offline",
-      reason: "acceptance-owned-source-unavailable",
+      reason: "no-subscriber",
     },
   };
   const observed = {
     count: 1,
     visibleCount: 1,
     text: "source health offline",
+    nodeTexts: ["source health offline"],
     attributes: [],
     values: [],
     descendantCount: 1,
@@ -132,21 +134,30 @@ await check("EVT-003 source-health baseline is row-local to the acceptance-owned
     fixtureCandidates: [sourceId],
     fixtureRequired: false,
   });
-  const selected = selectEventDomResponseBaselines("sourceHealth[].status", {
+  const selected = selectEventDomResponseBaselines("sourceId/status/reason", {
     priorResponseByPath: {
       sourceHealth: [{ sourceId: "unrelated" }],
       "sourceHealth[].status": ["unrelated-status"],
     },
     domResponseBaselineByTarget: {
-      "sourceHealth[].status": baseline,
+      "sourceId/status/reason": baseline,
     },
+    rowLocalResponseTargets: ["sourceId/status/reason"],
   });
-  assert(Object.keys(selected).join("|") === "sourceHealth[].status" &&
-    selected["sourceHealth[].status"] === baseline,
+  assert(Object.keys(selected).join("|") === "sourceId/status/reason" &&
+    selected["sourceId/status/reason"] === baseline,
   "EVT-003 DOM assertion did not select only its row-local target baseline");
+  await expectReject(() => Promise.resolve(selectEventDomResponseBaselines(
+    "sourceId/status/reason",
+    {
+      priorResponseByPath: { sourceHealth: [{ sourceId: "whole-array-fallback" }] },
+      domResponseBaselineByTarget: {},
+      rowLocalResponseTargets: ["sourceId/status/reason"],
+    },
+  )), "row-local response baseline is missing or invalid");
 
   const unrelatedDrift = evidenceFor([
-    { sourceId, status: "offline", reason: "acceptance-owned-source-unavailable" },
+    { sourceId, status: "offline", reason: "no-subscriber" },
     { sourceId: "9001", status: "online", reason: "unrelated-source-drifted" },
   ]);
   assert(unrelatedDrift.pass === true,
@@ -158,7 +169,7 @@ await check("EVT-003 source-health baseline is row-local to the acceptance-owned
   "EVT-003 row-local binding evidence is incomplete");
 
   const statusDrift = evidenceFor([
-    { sourceId, status: "online", reason: "acceptance-owned-source-unavailable" },
+    { sourceId, status: "online", reason: "no-subscriber" },
   ]);
   assertCompositeFailure(statusDrift, "responseBaselineMatched");
   assert(statusDrift.responseBaselineMatched.paths[0].reasonCode ===
@@ -176,7 +187,7 @@ await check("EVT-003 source-health baseline is row-local to the acceptance-owned
   "fixture reason mismatch did not retain its row-local structured reason");
 
   const fixtureMissing = evidenceFor([
-    { sourceId: "9001", status: "offline", reason: "acceptance-owned-source-unavailable" },
+    { sourceId: "9001", status: "offline", reason: "no-subscriber" },
   ]);
   assertCompositeFailure(fixtureMissing, "responseBaselineMatched");
   assert(fixtureMissing.responseBaselineMatched.paths[0].compared === false,
@@ -184,21 +195,107 @@ await check("EVT-003 source-health baseline is row-local to the acceptance-owned
   assert(fixtureMissing.responseBaselineMatched.paths[0].reasonCode ===
     "FIXTURE_SOURCE_ROW_MISSING",
   "missing EVT-003 source row did not retain its distinct structured reason");
+  const fixtureDuplicate = evidenceFor([
+    { sourceId, status: "offline", reason: "no-subscriber" },
+    { sourceId, status: "offline", reason: "no-subscriber" },
+  ]);
+  assertCompositeFailure(fixtureDuplicate, "responseBaselineMatched");
+  assert(fixtureDuplicate.responseBaselineMatched.paths[0].reasonCode ===
+    "FIXTURE_SOURCE_ROW_DUPLICATE" &&
+    fixtureDuplicate.responseBaselineMatched.paths[0].candidateCount === 2,
+  "duplicate EVT-003 source rows did not fail closed");
 
   const serialized = JSON.stringify({
     unrelatedDrift,
     statusDrift,
     reasonDrift,
     fixtureMissing,
+    fixtureDuplicate,
   });
   for (const raw of [
     sourceId,
-    "acceptance-owned-source-unavailable",
+    "no-subscriber",
     "unrelated-source-drifted",
     "unexpected-reason",
   ]) {
     assert(!serialized.includes(raw), "EVT-003 row-local evidence exposed a raw identity or value");
   }
+});
+
+await check("EVT-003 API row and DOM identity bind to the same degraded source", async () => {
+  const sourceId = "39065003";
+  const baseline = {
+    schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+    collectionPath: "sourceHealth",
+    identityPaths: ["sourceId", "id"],
+    identityValue: sourceId,
+    projectionPaths: ["status", "reason"],
+    expectedProjection: { status: "offline", reason: "no-subscriber" },
+  };
+  const fixtureIdentity = {
+    schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+    sourceId,
+    status: "offline",
+    reason: "no-subscriber",
+    expectedNodeTokens: [`#${sourceId}`, "오프라인", "구독 세션 없음"],
+  };
+  const observed = {
+    count: 1,
+    visibleCount: 1,
+    text: `라이브 소스 상태 확인 필요 #${sourceId} 오프라인:구독 세션 없음`,
+    nodeTexts: [`라이브 소스 상태 확인 필요 #${sourceId} 오프라인:구독 세션 없음`],
+    attributes: [],
+    values: [],
+    descendantCount: 4,
+  };
+  const evidenceFor = ({ row = baseline.expectedProjection, identity = fixtureIdentity, dom = observed } = {}) =>
+    buildEventDomSemanticCompositeEvidence({
+      selector: "#dashRootCauseList .root-cause-item",
+      observed: dom,
+      responseBodies: [{ sourceHealth: [{ sourceId, ...row }] }],
+      priorResponseByPath: { "sourceId/status/reason": baseline },
+      fixtureCandidates: [sourceId],
+      fixtureIdentity: identity,
+      fixtureRequired: true,
+      actualBrowserExecution: true,
+    });
+
+  const passing = evidenceFor();
+  assert(passing.pass === true &&
+    passing.fixtureObserved.bindingMode === "api-row-to-single-dom-node" &&
+    passing.fixtureObserved.apiFixtureIdentityMatched === true &&
+    passing.fixtureObserved.candidateCount === 3 &&
+    passing.fixtureObserved.matchedCandidateCount === 3 &&
+    passing.fixtureObserved.matchedNodeCount === 1,
+  "EVT-003 API/DOM row-local identity did not pass with one exact DOM node");
+
+  const domIdentityMissing = evidenceFor({
+    dom: { ...observed, text: "라이브 소스 상태 정상", nodeTexts: ["라이브 소스 상태 정상"] },
+  });
+  assertCompositeFailure(domIdentityMissing, "fixtureObserved");
+  assert(domIdentityMissing.fixtureObserved.reasonCode === "DOM_FIXTURE_IDENTITY_NOT_OBSERVED",
+    "missing EVT-003 DOM identity did not fail distinctly");
+
+  const domControlMissing = evidenceFor({
+    dom: { ...observed, count: 0, visibleCount: 0, text: "", nodeTexts: [], descendantCount: 0 },
+  });
+  assertCompositeFailure(domControlMissing, "observationPresent");
+  assert(domControlMissing.observationPresent.reasonCode === "DOM_OBSERVATION_MISSING",
+    "missing EVT-003 DOM control did not fail distinctly");
+
+  const apiDomMismatch = evidenceFor({
+    identity: { ...fixtureIdentity, status: "stale" },
+  });
+  assertCompositeFailure(apiDomMismatch, "fixtureObserved");
+  assert(apiDomMismatch.fixtureObserved.reasonCode === "API_DOM_FIXTURE_IDENTITY_MISMATCH",
+    "EVT-003 API/DOM identity mismatch did not fail distinctly");
+
+  const missingStructuredField = structuredClone(passing);
+  delete missingStructuredField.fixtureObserved.identityDigest;
+  await expectReject(
+    () => Promise.resolve(validateEventDomSemanticCompositeEvidence(missingStructuredField)),
+    "required structured fields are missing",
+  );
 });
 
 await check("response pseudo-fields include status and reject an invalid status assertion", async () => {

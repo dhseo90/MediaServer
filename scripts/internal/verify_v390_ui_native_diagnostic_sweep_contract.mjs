@@ -95,7 +95,9 @@ check("diagnostic child output is constrained and failure reasons are safe class
   assert(runnerSource.includes("if (primaryFailure?.eventDomSemanticEvidence)") &&
     runnerSource.includes("error.partialArtifacts.eventDomSemanticEvidence") &&
     runnerSource.includes("eventDomSemanticEvidence: resultItem.eventDomSemanticEvidence || null") &&
-    sweepSource.includes("eventDomSemanticEvidence: childSummary?.case?.eventDomSemanticEvidence || null"),
+    sweepSource.includes("eventDomSemanticEvidence: childSummary?.case?.eventDomSemanticEvidence || null") &&
+    sweepSource.includes('import { validateEventDomSemanticCompositeEvidence }') &&
+    sweepSource.includes("validateEventDomSemanticCompositeEvidence(evidence)"),
   "structured EVT DOM evidence is not preserved through child and sweep summaries");
 });
 

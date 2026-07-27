@@ -1044,6 +1044,8 @@ async function observeDom(
         return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
       }).length,
       text: nodes.map(node => String(node.innerText || node.textContent || '')).join(' ').replace(/\\s+/g, ' ').trim().slice(0, 24000),
+      nodeTexts: nodes.slice(0, 20).map(node =>
+        String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
       attributes: nodes.slice(0, 20).map(node => Object.fromEntries(Array.from(node.attributes || []).map(attr => [attr.name, attr.value]))),
       values: nodes.slice(0, 20).map(node => String(node.value ?? '')),
       formControls: nodes.flatMap(node => [
@@ -1638,6 +1640,7 @@ function evaluateDomSemanticAssertions(
         responseBodies,
         priorResponseByPath: selectEventDomResponseBaselines(target, eventRuntimeContext),
         fixtureCandidates,
+        fixtureIdentity: eventRuntimeContext?.domFixtureIdentityByTarget?.[target] || null,
         fixtureRequired: fixtureBoundOperator,
         actualBrowserExecution: true,
       });
@@ -1721,6 +1724,7 @@ export function buildEventDomSemanticCompositeEvidence({
   responseBodies = [],
   priorResponseByPath = {},
   fixtureCandidates = [],
+  fixtureIdentity = null,
   fixtureRequired = false,
   actualBrowserExecution = false,
 }) {
@@ -1754,15 +1758,14 @@ export function buildEventDomSemanticCompositeEvidence({
     const rowLocal = isEventRowLocalResponseBaseline(baseline);
     const candidates = rowLocal
       ? responseBodies
-        .map(body => eventRowLocalResponseProjection(body, baseline))
-        .filter(candidate => candidate !== null)
+        .flatMap(body => eventRowLocalResponseProjections(body, baseline))
       : responseBodies
         .map(body => eventExactValuesAtPath(body, path))
         .filter(pathValues => pathValues.length > 0)
         .map(pathValues => pathValues.length === 1 ? pathValues[0] : pathValues);
     const expected = rowLocal ? baseline.expectedProjection : baseline;
     const matched = rowLocal
-      ? candidates.length > 0 && candidates.some(actual => stableEqual(actual, expected))
+      ? candidates.length === 1 && stableEqual(candidates[0], expected)
       : candidates.length === 0 || candidates.some(actual => stableEqual(actual, expected));
     const mismatchProjectionPaths = rowLocal && candidates.length > 0 && !matched
       ? baseline.projectionPaths.filter(projectionPath =>
@@ -1773,9 +1776,11 @@ export function buildEventDomSemanticCompositeEvidence({
       ? "PASS"
       : (rowLocal && candidates.length === 0
         ? "FIXTURE_SOURCE_ROW_MISSING"
+        : (rowLocal && candidates.length > 1
+          ? "FIXTURE_SOURCE_ROW_DUPLICATE"
         : (rowLocal
           ? "FIXTURE_ROW_PROJECTION_MISMATCH"
-          : "RESPONSE_BASELINE_MISMATCH"));
+          : "RESPONSE_BASELINE_MISMATCH")));
     return {
       path,
       matched,
@@ -1806,24 +1811,74 @@ export function buildEventDomSemanticCompositeEvidence({
   };
 
   const normalizedFixtureCandidates = fixtureCandidates.filter(Boolean).map(String);
+  const nodeTexts = Array.isArray(observed?.nodeTexts) && observed.nodeTexts.length > 0
+    ? observed.nodeTexts.map(String)
+    : [text];
   const serializedObservation = `${text} ${JSON.stringify(attributes)} ${JSON.stringify(values)}`;
+  const exactFixtureIdentity = validEventDomFixtureIdentity(fixtureIdentity)
+    ? fixtureIdentity
+    : null;
+  const rowLocalBaselines = Object.values(priorResponseByPath)
+    .filter(isEventRowLocalResponseBaseline);
+  const apiFixtureIdentityMatched = exactFixtureIdentity
+    ? rowLocalBaselines.length === 1 &&
+      String(rowLocalBaselines[0].identityValue) === String(exactFixtureIdentity.sourceId) &&
+      stableEqual(rowLocalBaselines[0].expectedProjection, {
+        status: exactFixtureIdentity.status,
+        reason: exactFixtureIdentity.reason,
+      })
+    : true;
+  const expectedNodeTokens = exactFixtureIdentity
+    ? exactFixtureIdentity.expectedNodeTokens.map(String)
+    : normalizedFixtureCandidates;
   const matchedFixtureCandidates = normalizedFixtureCandidates
     .filter(value => serializedObservation.includes(value));
-  const fixturePass = !fixtureRequired || matchedFixtureCandidates.length > 0;
+  const matchedNodeTexts = nodeTexts.filter(nodeText =>
+    exactFixtureIdentity &&
+    expectedNodeTokens.length > 0 &&
+    expectedNodeTokens.every(value => nodeText.includes(value)));
+  const fixtureEvaluated = !fixtureRequired || observationPass;
+  const fixturePass = !fixtureRequired || !fixtureEvaluated || (exactFixtureIdentity
+    ? apiFixtureIdentityMatched && matchedNodeTexts.length === 1
+    : matchedFixtureCandidates.length > 0);
   const fixtureObserved = {
     pass: fixturePass,
     reasonCode: fixturePass
       ? "PASS"
-      : (normalizedFixtureCandidates.length === 0
+      : (!apiFixtureIdentityMatched
+        ? "API_DOM_FIXTURE_IDENTITY_MISMATCH"
+        : (expectedNodeTokens.length === 0
         ? "FIXTURE_BINDING_MISSING"
-        : "DOM_FIXTURE_IDENTITY_NOT_OBSERVED"),
+        : "DOM_FIXTURE_IDENTITY_NOT_OBSERVED")),
     required: Boolean(fixtureRequired),
-    candidateCount: normalizedFixtureCandidates.length,
-    matchedCandidateCount: matchedFixtureCandidates.length,
-    candidateDigest: sha256Digest(normalizedFixtureCandidates),
-    matchedCandidateDigest: sha256Digest(matchedFixtureCandidates),
-    candidateDigests: normalizedFixtureCandidates.map(value => sha256Digest(value)),
-    matchedCandidateDigests: matchedFixtureCandidates.map(value => sha256Digest(value)),
+    evaluated: fixtureEvaluated,
+    bindingMode: exactFixtureIdentity
+      ? "api-row-to-single-dom-node"
+      : "generic-fixture-candidate",
+    apiFixtureIdentityMatched,
+    candidateCount: expectedNodeTokens.length,
+    matchedCandidateCount: exactFixtureIdentity
+      ? (matchedNodeTexts.length === 1 ? expectedNodeTokens.length : 0)
+      : matchedFixtureCandidates.length,
+    matchedNodeCount: matchedNodeTexts.length,
+    candidateDigest: sha256Digest(expectedNodeTokens),
+    matchedCandidateDigest: sha256Digest(
+      exactFixtureIdentity
+        ? (matchedNodeTexts.length === 1 ? expectedNodeTokens : [])
+        : matchedFixtureCandidates,
+    ),
+    candidateDigests: expectedNodeTokens.map(value => sha256Digest(value)),
+    matchedCandidateDigests: (exactFixtureIdentity
+      ? (matchedNodeTexts.length === 1 ? expectedNodeTokens : [])
+      : matchedFixtureCandidates).map(value => sha256Digest(value)),
+    identityDigest: exactFixtureIdentity
+      ? sha256Digest({
+        sourceId: exactFixtureIdentity.sourceId,
+        status: exactFixtureIdentity.status,
+        reason: exactFixtureIdentity.reason,
+      })
+      : sha256Digest(normalizedFixtureCandidates),
+    expectedNodeTokensDigest: sha256Digest(expectedNodeTokens),
     observationDigest: sha256Digest(serializedObservation),
   };
 
@@ -1838,7 +1893,7 @@ export function buildEventDomSemanticCompositeEvidence({
     ...(fixtureObserved.pass ? [] : [fixtureObserved.reasonCode]),
   ];
   const pass = failedChecks.length === 0;
-  return {
+  const evidence = {
     schema: "media-server.v390-ui-event-dom-semantic-composite-evidence.v1",
     pass,
     actualBrowserExecution: Boolean(actualBrowserExecution),
@@ -1853,6 +1908,8 @@ export function buildEventDomSemanticCompositeEvidence({
     responseBaselineMatched,
     fixtureObserved,
   };
+  validateEventDomSemanticCompositeEvidence(evidence);
+  return evidence;
 }
 
 export function selectEventDomResponseBaselines(target, eventRuntimeContext = {}) {
@@ -1860,6 +1917,13 @@ export function selectEventDomResponseBaselines(target, eventRuntimeContext = {}
   const targetEntries = String(target || "").split("|").filter(Boolean)
     .filter(path => Object.prototype.hasOwnProperty.call(baselineByTarget, path))
     .map(path => [path, baselineByTarget[path]]);
+  const rowLocalRequired = new Set(eventRuntimeContext?.rowLocalResponseTargets || []);
+  if (rowLocalRequired.has(target)) {
+    assert(targetEntries.length === 1 &&
+      isEventRowLocalResponseBaseline(targetEntries[0][1]),
+    `row-local response baseline is missing or invalid for target: ${target}`);
+    return Object.fromEntries(targetEntries);
+  }
   return targetEntries.length > 0
     ? Object.fromEntries(targetEntries)
     : (eventRuntimeContext?.priorResponseByPath || {});
@@ -1877,18 +1941,60 @@ function isEventRowLocalResponseBaseline(value) {
     typeof value.expectedProjection === "object";
 }
 
-function eventRowLocalResponseProjection(body, baseline) {
+function eventRowLocalResponseProjections(body, baseline) {
   const rows = eventExactValuesAtPath(body, baseline.collectionPath)
     .flatMap(value => Array.isArray(value) ? value : [value])
     .filter(value => value && typeof value === "object" && !Array.isArray(value));
-  const row = rows.find(value => baseline.identityPaths.some(identityPath =>
+  const matchingRows = rows.filter(value => baseline.identityPaths.some(identityPath =>
     eventExactValuesAtPath(value, identityPath)
       .some(identity => String(identity) === String(baseline.identityValue))));
-  if (!row) return null;
-  return Object.fromEntries(baseline.projectionPaths.map(projectionPath => {
+  return matchingRows.map(row => Object.fromEntries(baseline.projectionPaths.map(projectionPath => {
     const values = eventExactValuesAtPath(row, projectionPath);
     return [projectionPath, values.length === 1 ? values[0] : values];
-  }));
+  })));
+}
+
+function validEventDomFixtureIdentity(value) {
+  return value?.schema === "media-server.v390-ui-event-dom-fixture-identity.v1" &&
+    typeof value.sourceId === "string" && value.sourceId.length > 0 &&
+    typeof value.status === "string" && value.status.length > 0 &&
+    typeof value.reason === "string" && value.reason.length > 0 &&
+    Array.isArray(value.expectedNodeTokens) &&
+    value.expectedNodeTokens.length === 3 &&
+    value.expectedNodeTokens.every(token => typeof token === "string" && token.length > 0);
+}
+
+export function validateEventDomSemanticCompositeEvidence(evidence) {
+  assert(evidence?.schema === "media-server.v390-ui-event-dom-semantic-composite-evidence.v1",
+    "EVT DOM semantic evidence schema mismatch");
+  assert(typeof evidence.pass === "boolean" &&
+    typeof evidence.actualBrowserExecution === "boolean" &&
+    typeof evidence.observationPresent?.pass === "boolean" &&
+    typeof evidence.responseBaselineMatched?.pass === "boolean" &&
+    Array.isArray(evidence.responseBaselineMatched?.mismatchPaths) &&
+    Array.isArray(evidence.responseBaselineMatched?.paths) &&
+    typeof evidence.fixtureObserved?.pass === "boolean" &&
+    typeof evidence.fixtureObserved?.evaluated === "boolean" &&
+    Number.isInteger(evidence.fixtureObserved?.candidateCount) &&
+    Number.isInteger(evidence.fixtureObserved?.matchedCandidateCount) &&
+    Number.isInteger(evidence.fixtureObserved?.matchedNodeCount) &&
+    /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.candidateDigest || "") &&
+    /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.matchedCandidateDigest || "") &&
+    /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.identityDigest || "") &&
+    /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.expectedNodeTokensDigest || ""),
+  "EVT DOM semantic evidence required structured fields are missing");
+  for (const item of evidence.responseBaselineMatched.paths) {
+    assert(typeof item.path === "string" &&
+      typeof item.matched === "boolean" &&
+      typeof item.compared === "boolean" &&
+      typeof item.bindingMode === "string" &&
+      Number.isInteger(item.candidateCount) &&
+      /^[0-9a-f]{64}$/.test(item.baselineDigest || "") &&
+      /^[0-9a-f]{64}$/.test(item.projectionDigest || "") &&
+      /^[0-9a-f]{64}$/.test(item.candidateDigest || ""),
+    "EVT DOM semantic path evidence required fields are missing");
+  }
+  return evidence;
 }
 
 export function dashboardRuntimeTrendSample(responseBodies) {
