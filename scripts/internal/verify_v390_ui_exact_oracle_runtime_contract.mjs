@@ -4,6 +4,7 @@
 import {
   bindDashboardRuntimeTrendBaseline,
   buildEventDomSemanticCompositeEvidence,
+  buildEventMarkerFlowEvidence,
   containsForbiddenResponseMaterial,
   containsForbiddenStructuredDomMaterial,
   dashboardRuntimeTrendSample,
@@ -21,6 +22,74 @@ import { usesEventExactRuntimeBindings } from "./v390_ui_case_runtime.mjs";
 import { captureEndpointOwnedResponseProjection } from "./v390_ui_native_adapter.mjs";
 
 const checks = [];
+
+await check("EVT-004 marker flow binds one authoritative response row to one visible timeline node", async () => {
+  const marker = "REVIEW4-evt-004-review4-fixture-LOG-MARKER";
+  const matching = buildEventMarkerFlowEvidence({
+    marker,
+    responseBodies: [{ lines: [`[review4] auth incident ${marker} [redacted]`] }],
+    observed: {
+      semanticNodeTexts: [`로그 단서 ${marker} diagnostics log-tail`],
+      visibleSemanticNodeTexts: [`로그 단서 ${marker} diagnostics log-tail`],
+    },
+  });
+  assert(matching.pass && matching.responseMarkerObserved.matchedCount === 1 &&
+    matching.timelineProjectionObserved.matchedCount === 1 &&
+    matching.domMarkerObserved.matchedCount === 1,
+  "exact response/timeline/DOM marker binding did not pass");
+
+  const failureCases = [
+    ["materialization", { marker: "", responseBodies: [], observed: {} },
+      "FIXTURE_MARKER_NOT_MATERIALIZED"],
+    ["response missing", { marker, responseBodies: [{ lines: ["auth unrelated"] }],
+      observed: { semanticNodeTexts: [marker], visibleSemanticNodeTexts: [marker] } },
+    "RESPONSE_MARKER_NOT_OBSERVED"],
+    ["projection missing", { marker, responseBodies: [{ lines: [marker] }],
+      observed: { semanticNodeTexts: [], visibleSemanticNodeTexts: [] } },
+    "TIMELINE_MARKER_NOT_PROJECTED"],
+    ["DOM missing", { marker, responseBodies: [{ lines: [marker] }],
+      observed: { semanticNodeTexts: [marker], visibleSemanticNodeTexts: [] } },
+    "DOM_MARKER_NOT_OBSERVED"],
+    ["different marker", { marker, responseBodies: [{ lines: [marker] }],
+      observed: { semanticNodeTexts: [`${marker}-other`], visibleSemanticNodeTexts: [`${marker}-other`] } },
+    "TIMELINE_MARKER_NOT_PROJECTED"],
+    ["partial marker", { marker, responseBodies: [{ lines: [marker] }],
+      observed: { semanticNodeTexts: [marker.slice(0, -7)], visibleSemanticNodeTexts: [marker.slice(0, -7)] } },
+    "TIMELINE_MARKER_NOT_PROJECTED"],
+    ["duplicate response", { marker, responseBodies: [{ lines: [marker, marker] }],
+      observed: { semanticNodeTexts: [marker], visibleSemanticNodeTexts: [marker] } },
+    "RESPONSE_MARKER_DUPLICATE"],
+    ["duplicate node", { marker, responseBodies: [{ lines: [marker] }],
+      observed: { semanticNodeTexts: [marker, marker], visibleSemanticNodeTexts: [marker, marker] } },
+    "TIMELINE_MARKER_DUPLICATE"],
+    ["unrelated row", { marker, responseBodies: [{ lines: [marker] }],
+      observed: { semanticNodeTexts: ["auth unrelated"], visibleSemanticNodeTexts: ["auth unrelated"] } },
+    "TIMELINE_MARKER_NOT_PROJECTED"],
+    ["distributed fragments", { marker, responseBodies: [{ lines: [marker] }],
+      observed: {
+        semanticNodeTexts: [marker.slice(0, 20), marker.slice(20)],
+        visibleSemanticNodeTexts: [marker.slice(0, 20), marker.slice(20)],
+      } },
+    "TIMELINE_MARKER_NOT_PROJECTED"],
+  ];
+  for (const [label, input, failureCode] of failureCases) {
+    const evidence = buildEventMarkerFlowEvidence(input);
+    assert(!evidence.pass && evidence.failureCode === failureCode,
+      `${label} marker boundary did not fail closed: ${evidence.failureCode}`);
+  }
+  const escaped = buildEventMarkerFlowEvidence({
+    marker,
+    responseBodies: [{ lines: [`auth (${marker})`] }],
+    observed: {
+      semanticNodeTexts: [`로그 단서 · ${marker}.`],
+      visibleSemanticNodeTexts: [`로그 단서 · ${marker}.`],
+    },
+  });
+  assert(escaped.pass, "allowed punctuation/localization around the exact marker did not pass");
+  assert(!JSON.stringify(matching).includes("auth incident") &&
+    !JSON.stringify(matching).includes("diagnostics log-tail"),
+  "marker evidence exposed raw response or DOM text");
+});
 
 await check("EVT DOM semantic composite distinguishes safe failure evidence without raw values", async () => {
   const rawBaseline = "rtsp://baseline.invalid/live?token=raw-baseline-secret";

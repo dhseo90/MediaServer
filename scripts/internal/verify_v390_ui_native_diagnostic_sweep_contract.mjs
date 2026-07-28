@@ -97,8 +97,13 @@ check("diagnostic child output is constrained and failure reasons are safe class
     runnerSource.includes("eventDomSemanticEvidence: resultItem.eventDomSemanticEvidence || null") &&
     sweepSource.includes("eventDomSemanticEvidence: childSummary?.case?.eventDomSemanticEvidence || null") &&
     sweepSource.includes('import { validateEventDomSemanticCompositeEvidence }') &&
-    sweepSource.includes("validateEventDomSemanticCompositeEvidence(evidence)"),
+    sweepSource.includes("validateEventDomSemanticCompositeEvidence(evidence)") &&
+    runnerSource.includes("eventDomSemanticEvidence"),
   "structured EVT DOM evidence is not preserved through child and sweep summaries");
+  assert(runnerSource.includes("markerFlow") ||
+    fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_exact_oracle_runtime.mjs"), "utf8")
+      .includes('schema: "media-server.v390-ui-event-marker-flow-evidence.v1"'),
+  "EVT-004 marker-flow evidence is not part of the structured event evidence envelope");
 });
 
 check("diagnostic sweep reports durable progress and treats cleanup failure as failure", () => {

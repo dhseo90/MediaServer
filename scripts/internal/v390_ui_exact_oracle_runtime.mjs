@@ -1046,6 +1046,16 @@ async function observeDom(
       text: nodes.map(node => String(node.innerText || node.textContent || '')).join(' ').replace(/\\s+/g, ' ').trim().slice(0, 24000),
       nodeTexts: nodes.slice(0, 20).map(node =>
         String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
+      semanticNodeTexts: nodes.flatMap(node => Array.from(node.querySelectorAll('.root-cause-item')))
+        .slice(0, 20)
+        .map(node => String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
+      visibleSemanticNodeTexts: nodes.flatMap(node => Array.from(node.querySelectorAll('.root-cause-item')))
+        .filter(node => {
+          const rect = node.getBoundingClientRect(); const style = getComputedStyle(node);
+          return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+        })
+        .slice(0, 20)
+        .map(node => String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
       attributes: nodes.slice(0, 20).map(node => Object.fromEntries(Array.from(node.attributes || []).map(attr => [attr.name, attr.value]))),
       values: nodes.slice(0, 20).map(node => String(node.value ?? '')),
       formControls: nodes.flatMap(node => [
@@ -1627,6 +1637,7 @@ function evaluateDomSemanticAssertions(
         subject: target,
       });
       const fixtureCandidates = [
+        bindings.logMarker,
         bindings.fixtureId,
         bindings.eventId,
         bindings.sourceId,
@@ -1642,6 +1653,7 @@ function evaluateDomSemanticAssertions(
         fixtureCandidates,
         fixtureIdentity: eventRuntimeContext?.domFixtureIdentityByTarget?.[target] || null,
         fixtureRequired: fixtureBoundOperator,
+        marker: caseId === "EVT-004" ? bindings.logMarker : "",
         actualBrowserExecution: true,
       });
       const semanticPass = compositeEvidence.pass;
@@ -1683,7 +1695,7 @@ function evaluateDomSemanticAssertions(
           ].filter(Boolean),
         },
       });
-      if (!result.pass) {
+      if (!result.pass || !semanticPass) {
         const error = new Error(
           `${caseId} exact DOM semantic assertion failed ${selector}: ${operator}/${target} (${result.reason})`,
         );
@@ -1726,6 +1738,7 @@ export function buildEventDomSemanticCompositeEvidence({
   fixtureCandidates = [],
   fixtureIdentity = null,
   fixtureRequired = false,
+  marker = "",
   actualBrowserExecution = false,
 }) {
   const text = String(observed?.text || "");
@@ -1914,16 +1927,21 @@ export function buildEventDomSemanticCompositeEvidence({
     expectedNodeTokensDigest: sha256Digest(expectedNodeTokens),
     observationDigest: sha256Digest(serializedObservation),
   };
+  const markerFlow = marker
+    ? buildEventMarkerFlowEvidence({ marker, observed, responseBodies })
+    : null;
 
   const failedChecks = [
     ["observationPresent", observationPresent.pass],
     ["responseBaselineMatched", responseBaselineMatched.pass],
     ["fixtureObserved", fixtureObserved.pass],
+    ...(markerFlow ? [["markerFlow", markerFlow.pass]] : []),
   ].filter(([, pass]) => !pass).map(([name]) => name);
   const causeCodes = [
     ...(observationPresent.pass ? [] : [observationPresent.reasonCode]),
     ...responseBaselineMatched.reasonCodes,
     ...(fixtureObserved.pass ? [] : [fixtureObserved.reasonCode]),
+    ...(markerFlow?.pass ? [] : [markerFlow?.failureCode].filter(Boolean)),
   ];
   const pass = failedChecks.length === 0;
   const evidence = {
@@ -1940,9 +1958,70 @@ export function buildEventDomSemanticCompositeEvidence({
     observationPresent,
     responseBaselineMatched,
     fixtureObserved,
+    ...(markerFlow ? { markerFlow } : {}),
   };
   validateEventDomSemanticCompositeEvidence(evidence);
   return evidence;
+}
+
+export function buildEventMarkerFlowEvidence({ marker, observed, responseBodies = [] }) {
+  const canonicalMarker = String(marker || "").normalize("NFKC").trim();
+  const markerDigest = sha256Digest(canonicalMarker);
+  const markerMatches = value => {
+    const normalized = String(value || "").normalize("NFKC").replace(/\s+/gu, " ").trim();
+    if (!canonicalMarker || !normalized) return false;
+    const escaped = escapeRegex(canonicalMarker);
+    return new RegExp(`(?:^|[\\s([{:<])${escaped}(?=$|[\\s)\\]},.:;>])`, "u").test(normalized);
+  };
+  const responseLines = responseBodies.flatMap(body =>
+    Array.isArray(body?.lines) ? body.lines.map(String) : []);
+  const responseMatches = responseLines.filter(markerMatches);
+  const timelineNodes = Array.isArray(observed?.semanticNodeTexts)
+    ? observed.semanticNodeTexts.map(String)
+    : [];
+  const timelineMatches = timelineNodes.filter(markerMatches);
+  const visibleNodes = Array.isArray(observed?.visibleSemanticNodeTexts)
+    ? observed.visibleSemanticNodeTexts.map(String)
+    : [];
+  const visibleMatches = visibleNodes.filter(markerMatches);
+  const fixtureMarkerMaterialized = {
+    pass: canonicalMarker.length > 0,
+    markerDigest,
+  };
+  const responseMarkerObserved = markerEvidenceCounts(responseLines, responseMatches);
+  const timelineProjectionObserved = markerEvidenceCounts(timelineNodes, timelineMatches);
+  const domMarkerObserved = markerEvidenceCounts(visibleNodes, visibleMatches);
+  const failed = [
+    ["fixture-marker-materialization", fixtureMarkerMaterialized.pass,
+      "FIXTURE_MARKER_NOT_MATERIALIZED"],
+    ["authoritative-response", responseMarkerObserved.pass,
+      responseMarkerObserved.matchedCount > 1 ? "RESPONSE_MARKER_DUPLICATE" : "RESPONSE_MARKER_NOT_OBSERVED"],
+    ["timeline-projection", timelineProjectionObserved.pass,
+      timelineProjectionObserved.matchedCount > 1 ? "TIMELINE_MARKER_DUPLICATE" : "TIMELINE_MARKER_NOT_PROJECTED"],
+    ["dom-render", domMarkerObserved.pass,
+      domMarkerObserved.matchedCount > 1 ? "DOM_MARKER_DUPLICATE" : "DOM_MARKER_NOT_OBSERVED"],
+  ].find(([, pass]) => !pass);
+  return {
+    schema: "media-server.v390-ui-event-marker-flow-evidence.v1",
+    pass: !failed,
+    failurePhase: failed?.[0] || "",
+    failureCode: failed?.[2] || "PASS",
+    markerDigest,
+    fixtureMarkerMaterialized,
+    responseMarkerObserved,
+    timelineProjectionObserved,
+    domMarkerObserved,
+  };
+}
+
+function markerEvidenceCounts(candidates, matched) {
+  return {
+    pass: matched.length === 1,
+    candidateCount: candidates.length,
+    matchedCount: matched.length,
+    candidateDigest: sha256Digest(candidates),
+    matchedDigest: sha256Digest(matched),
+  };
 }
 
 export function selectEventDomResponseBaselines(target, eventRuntimeContext = {}) {
@@ -2129,6 +2208,22 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
       /^[0-9a-f]{64}$/.test(item.projectionDigest || "") &&
       /^[0-9a-f]{64}$/.test(item.candidateDigest || ""),
     "EVT DOM semantic path evidence required fields are missing");
+  }
+  if (evidence.markerFlow) {
+    const marker = evidence.markerFlow;
+    assert(marker.schema === "media-server.v390-ui-event-marker-flow-evidence.v1" &&
+      typeof marker.pass === "boolean" &&
+      typeof marker.failurePhase === "string" &&
+      typeof marker.failureCode === "string" &&
+      /^[0-9a-f]{64}$/.test(marker.markerDigest || "") &&
+      typeof marker.fixtureMarkerMaterialized?.pass === "boolean" &&
+      ["responseMarkerObserved", "timelineProjectionObserved", "domMarkerObserved"].every(key =>
+        typeof marker[key]?.pass === "boolean" &&
+        Number.isInteger(marker[key]?.candidateCount) &&
+        Number.isInteger(marker[key]?.matchedCount) &&
+        /^[0-9a-f]{64}$/.test(marker[key]?.candidateDigest || "") &&
+        /^[0-9a-f]{64}$/.test(marker[key]?.matchedDigest || "")),
+    "EVT marker-flow structured evidence is incomplete");
   }
   return evidence;
 }

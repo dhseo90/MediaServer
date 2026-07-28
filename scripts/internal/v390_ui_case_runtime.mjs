@@ -2378,13 +2378,11 @@ export function createV390UiCaseRuntime({
       }
       const marker = `REVIEW4-${context.fixtureId}-LOG-MARKER`;
       const redactionCanary = `REVIEW4-${context.fixtureId}-REDACTION-CANARY`;
-      fs.appendFileSync(logPath, [
-        `[review4] ${marker} password=${redactionCanary}`,
-        `[review4] ${marker} \"token\":\"${redactionCanary}\"`,
-        `[review4] ${marker} Authorization: Bearer ${redactionCanary}`,
-        `[review4] ${marker} cookie=${redactionCanary}`,
-        `[review4] ${marker} session_secret=${redactionCanary}`,
-      ].join("\n") + "\n", { mode: 0o600 });
+      fs.appendFileSync(
+        logPath,
+        `[review4] auth incident ${marker} password=${redactionCanary}\n`,
+        { mode: 0o600 },
+      );
       fs.chmodSync(logPath, 0o600);
       const logTail = await requestEndpoint(
         "GET",
@@ -2396,11 +2394,12 @@ export function createV390UiCaseRuntime({
         { roleOverride: "operator" },
       );
       const lines = Array.isArray(logTail.json?.lines) ? logTail.json.lines.map(value => String(value)) : [];
-      assert(lines.some(line => line.includes(marker)),
+      const markerLines = lines.filter(line => line.split(/\s+/u).includes(marker));
+      assert(markerLines.length === 1,
         `${item.caseId} diagnostic marker is missing from the authoritative log-tail readback`);
       assert(!lines.some(line => line.includes(redactionCanary)),
         `${item.caseId} diagnostic log-tail did not redact the fixture canary`);
-      assert(lines.filter(line => line.includes(marker)).every(line => line.includes("redacted")),
+      assert(markerLines.every(line => line.includes("redacted")),
         `${item.caseId} diagnostic log-tail did not preserve the marker with redacted sensitive material`);
       bindings.logMarker = marker;
       bindings.redactionCanary = redactionCanary;

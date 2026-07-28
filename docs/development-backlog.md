@@ -6655,6 +6655,24 @@ feature/pass/status/sourceFlowDigest는 모두 불변이고, UI-014 trust bindin
 원자 갱신했습니다. Actual EVT-003, `./test_ui.sh`, Policy v4, 30분, 120분,
 `./test_release.sh`는 이 checkpoint에서 미실행이며 기존 actual FAIL은 PASS로 변경하지 않습니다.
 
+EVT-004 incident timeline marker 경계 보정(2026-07-28)은 acceptance-owned marker가
+`OpsDiagnosticLogTailJson`의 redacted response에는 존재하지만, redaction 뒤 남은 marker 행에
+timeline이 유지하는 incident classifier가 없어 view-model filter에서 제거되던 단일 유실
+경계를 수정합니다. `materializeEventExactSeed`는 marker와 redaction canary를 포함한 하나의
+test-owned `auth incident` 행만 생성하고, API readback은 해당 marker가 정확히 한 redacted
+행에만 존재함을 확인합니다. Runtime은 fixture materialization, response, timeline projection,
+단일 DOM node를 분리한 structured evidence와 count/digest/failure code만 보존하며 raw log,
+URL, credential, token, secret은 기록하지 않습니다. Product C++/API schema/UI renderer는
+변경하지 않았습니다. Diagnostic 13/13, runtime 37/37, event 23/23, evaluator 17/17,
+native 38/38, completion 29/29, adapter 18/18, semantic audit/approval 986/986,
+approval negative 11/11, migration contract, feature evidence 986/986·negative 15/15,
+inventory 17/17, release index 8/8, script inventory 11/11, docs links failure 0이
+PASS했습니다. Native 424/423+1/unsupported 0과 ordered ID, semantic candidate
+`7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`가
+불변이므로 generator/producer는 각 0회입니다. Actual EVT-004 diagnostic,
+`./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`는 미실행이고 기존
+EVT-004 actual FAIL은 그대로 보존합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary
