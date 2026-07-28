@@ -255,6 +255,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         const counts = dashboardSourceHealthCounts(sourceHealth);
         return `수신 ${counts.live}/${counts.total} · 연결 중 ${counts.connecting} · 지연 ${counts.stale} · 오프라인 ${counts.offline}`;
       };
+      const dashboardDegradedSourceIdentitySegments = degradedSources =>
+        degradedSources.slice(0, 3).map(item =>
+          `#${String(item?.sourceId ?? '').trim() || '-'} ${dashboardSourceHealthStatusLabel(item?.status)}:${dashboardSourceHealthReason(item?.reason)}`);
       const dashboardSourceHealthIncidentId = item => {
         const sourceId = String(item?.sourceId || '').trim() || 'unknown';
         const status = String(item?.status || 'unknown').trim() || 'unknown';
@@ -318,7 +321,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             level: degradedSources.length > 0 ? (healthCounts.offline > 0 ? 'bad' : 'warn') : 'info',
             title: degradedSources.length > 0 ? '라이브 소스 상태 확인 필요' : '라이브 소스 상태',
             detail: degradedSources.length > 0
-              ? degradedSources.slice(0, 3).map(item => `#${item.sourceId || '-'} ${dashboardSourceHealthStatusLabel(item.status)}:${dashboardSourceHealthReason(item.reason)}`).join(' · ')
+              ? dashboardDegradedSourceIdentitySegments(degradedSources).join(' · ')
               : dashboardSourceHealthStatusText(sourceHealth),
             evidence: degradedSources.length > 0
               ? degradedSources.slice(0, 2).map(item => `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`).join(' · ')

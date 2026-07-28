@@ -6637,6 +6637,24 @@ fixture, semantic candidate `7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f
 불변이므로 generator/producer는 각 0회입니다. Actual EVT-003와 전체 UI/장시간/release
 테스트는 미실행이고 기존 actual FAIL은 그대로 보존합니다.
 
+EVT-003 dashboard source identity 경계 보정(2026-07-28)은 제품의
+`degradedSources.slice(0, 3)` 제한이 초기 구현과 actual evidence에서 유지된 모바일 dashboard
+UX임을 독립 감사해, 전체 degraded source를 DOM에 펼치는 변경을 채택하지 않았습니다.
+`dashboardDegradedSourceIdentitySegments`는 상위 3개 각각의 `#sourceId status:reason`
+segment를 유지하고, `materializeEventExactSeed`는 이미 published된 top-3 source-health 중
+정확히 한 enabled source/view를 가진 행만 읽기 전용으로 선택해 API와 DOM identity를 결속합니다.
+일반 source ordering과 API schema는 불변이며 setup/cleanup은 source/view bytes와 선택 행의
+status/reason 불변을 검증합니다. Native projection은 424/423+1/unsupported 0과 ordered ID가
+동일해 generator는 0회입니다. Semantic candidate
+`7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`의
+feature/pass/status/sourceFlowDigest는 모두 불변이고, UI-014 trust binding만 Sol/high 독립
+검토로 승인했습니다. Review package/decision SHA는
+`6dae74fa1dfe70da4618378bd04718466e2ccdb4b019e9660788fa5c62d2dc87`/
+`f29bd482ef051bf3d36ae27e2bb0ec07d9f69d477188c620f9a82edf3904bdc6`이며 공식 producer는
+정확히 1회 실행해 985 carry-forward+UI-014 independent review로 audit/approval 986/986을
+원자 갱신했습니다. Actual EVT-003, `./test_ui.sh`, Policy v4, 30분, 120분,
+`./test_release.sh`는 이 checkpoint에서 미실행이며 기존 actual FAIL은 PASS로 변경하지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

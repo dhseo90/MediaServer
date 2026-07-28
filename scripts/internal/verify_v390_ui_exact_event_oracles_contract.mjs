@@ -448,36 +448,28 @@ check("EVT-003 requires authoritative source-health readback without metadata fi
   assert(/item\.caseId === "EVT-003" && eventCount === 0 && plan\.sourceHealth !== true/.test(seedBody),
     "EVT-003 metadata substitution does not fail closed in the seed function");
 
-  assert(/const sourceId = "\d+";\s*const viewId = "\d+";/s.test(materializerBody),
-    "EVT-003 acceptance-owned sourceId/viewId are not deterministic numeric literals");
-  assert(/sourceId !== defaultSourceId && viewId !== defaultViewId/.test(materializerBody),
-    "EVT-003 acceptance-owned IDs can target the default source/view");
   assertOrdered(materializerBody, [
     '"GET", "/ops/api/sources"',
     '"GET", "/ops/api/views"',
-    "deterministic acceptance-owned sourceId/viewId collision",
-    '"POST",',
-    '"/ops/api/sources"',
-    '"POST",',
-    '"/ops/api/views"',
-    "sourceMatches.length === 1 && viewMatches.length === 1",
-    "stableJson(defaultSourceAfterCreate) === stableJson(defaultSourceBefore)",
     '"GET", "/ops/api/source-health"',
+    ".filter(value => String(value?.status || \"\") !== \"live\")",
+    ".slice(0, 3)",
+    "throwaway published-seed fixture is absent from the dashboard top-three degraded rows",
+    "displayIndex >= 0 && displayIndex < 3",
+    "sourceMatches.length === 1 && viewMatches.length === 1",
     "const status = String(healthItem?.status",
     "const reason = String(healthItem?.reason",
-    'status === "offline" && reason === "no-subscriber"',
+    'status && status !== "live" && reason',
+    "reusedPublishedSeed: true",
     "context.catalogBindings = {",
     "return { sourceId, streamId: baseline.streamId, viewId, status, reason }",
-  ], "EVT-003 create/readback/binding order drift");
-  assert(!/"PUT"/.test(materializerBody),
-    "EVT-003 materializer can mutate an existing/default source or view");
+  ], "EVT-003 published-seed selection/readback/binding order drift");
+  assert(!/"POST"|"PUT"|"DELETE"/.test(materializerBody),
+    "EVT-003 materializer mutates the published seed or registry ordering");
   assert(!/const status = ["']/.test(materializerBody),
     "EVT-003 source-health status is hardcoded instead of captured");
-  assert(/file:\s*"review4_evt_003_acceptance_unavailable\.mp4"/.test(materializerBody) &&
-    /allowDuplicateSource:\s*false/.test(materializerBody),
-  "EVT-003 source fixture is not a unique deterministic unavailable file source");
-  assert(/status === "offline" && reason === "no-subscriber"/.test(materializerBody),
-    "EVT-003 degraded source-health status/reason guard is missing");
+  assert(/status && status !== "live" && reason/.test(materializerBody),
+    "EVT-003 degraded published-seed status/reason guard is missing");
 
   assertOrdered(captureBody, [
     'if (item.caseId === "EVT-003")',
@@ -507,25 +499,60 @@ check("EVT-003 requires authoritative source-health readback without metadata fi
   ], "EVT-003 sourceId/viewId/status/reason capture propagation drift");
 
   assertOrdered(cleanupBody, [
-    '"DELETE",',
-    "`/ops/api/views/${encodeURIComponent(fixture.viewId)}`",
-    '"DELETE",',
-    "`/ops/api/sources/${encodeURIComponent(fixture.sourceId)}`",
+    "if (fixture.reusedPublishedSeed)",
     '"GET", "/ops/api/sources"',
     '"GET", "/ops/api/views"',
-    "source?.enabled === false",
-    "view?.enabled === false",
-    "stableJson(defaultSource) === stableJson(fixture.defaultSourceBefore)",
     '"GET", "/ops/api/source-health"',
-    'healthItem.reason === "disabled"',
-    'status: "disabled-until-isolated-runtime-teardown"',
+    "stableJson(sourceList.json?.sources || []) === stableJson(fixture.sourcesBefore)",
+    "stableJson(viewList.json?.views || []) === stableJson(fixture.viewsBefore)",
+    "String(healthItem.status || \"\") === String(healthBefore.status || \"\")",
+    "String(healthItem.reason || \"\") === String(healthBefore.reason || \"\")",
+    'status: "published-seed-baseline-unchanged"',
+    "registryOrderingUnchanged: true",
     "physicalAbsenceClaimed: false",
-  ], "EVT-003 soft-disable/readback/teardown order drift");
+  ], "EVT-003 published-seed invariant/readback/teardown order drift");
   assert(/self-contained-pid-port-artifact-ownership/.test(cleanupBody) &&
     /media_server_v390_ui-/.test(cleanupBody),
   "EVT-003 cleanup is not bound to isolated runtime teardown ownership");
   assert(!/fixtureMaterialRemaining:\s*false|physical(?:ly)? absent/i.test(cleanupBody),
     "EVT-003 cleanup makes a false physical-absence claim after soft-disable");
+});
+
+check("EVT-003 dashboard renderer keeps the bounded three-source identity projection", () => {
+  const pageScript = fs.readFileSync("src/ingress/product_ui_page_scripts.cpp", "utf8");
+  const sourceHealthStart = pageScript.indexOf(
+    "const dashboardDegradedSourceIdentitySegments = degradedSources =>",
+  );
+  const sourceHealthEnd = pageScript.indexOf(
+    "const dashboardSourceHealthIncidentId = item =>",
+    sourceHealthStart,
+  );
+  assert(sourceHealthStart >= 0 && sourceHealthEnd > sourceHealthStart,
+    "dashboard degraded source identity projection is missing");
+  const sourceHealthProjection = pageScript.slice(sourceHealthStart, sourceHealthEnd);
+  assert(sourceHealthProjection.includes("degradedSources.slice(0, 3).map(item =>") &&
+    sourceHealthProjection.includes("String(item?.sourceId ?? '').trim()") &&
+    sourceHealthProjection.includes("dashboardSourceHealthStatusLabel(item?.status)") &&
+    sourceHealthProjection.includes("dashboardSourceHealthReason(item?.reason)"),
+  "dashboard degraded source identity projection does not preserve sourceId/status/reason");
+  assert(!sourceHealthProjection.includes("degradedSources.map(item =>"),
+    "dashboard degraded source identity projection is unbounded");
+
+  const rootCauseStart = pageScript.indexOf(
+    "const dashboardRootCauseItems = (runtime, principal",
+  );
+  const rootCauseEnd = pageScript.indexOf(
+    "const rootCauseLogFilter =",
+    rootCauseStart,
+  );
+  assert(rootCauseStart >= 0 && rootCauseEnd > rootCauseStart,
+    "dashboard root-cause item projection boundary is missing");
+  const rootCauseBody = pageScript.slice(rootCauseStart, rootCauseEnd);
+  assert(rootCauseBody.includes(
+    "dashboardDegradedSourceIdentitySegments(degradedSources).join(' · ')",
+  ), "dashboard root-cause detail is not bound to the bounded degraded source identities");
+  assert(!/sourceUrl|credential|password|token/i.test(sourceHealthProjection),
+    "dashboard source identity segment includes sensitive source material");
 });
 
 check("fixture contains assertions use identity baselines and diagnostic canaries stay bound", () => {

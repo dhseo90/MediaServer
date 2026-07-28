@@ -1932,15 +1932,9 @@ export function createV390UiCaseRuntime({
     const baseline = defaultPublishedSourceIdentity(descriptor);
     const defaultSourceId = String(baseline.sourceId || "");
     const defaultViewId = String(descriptor.auth?.defaultViewId || "");
-    const sourceId = "39065003";
-    const viewId = "39065004";
-    assert(/^\d+$/.test(sourceId) && /^\d+$/.test(viewId),
-      "EVT-003 source-health fixture requires deterministic numeric sourceId/viewId");
-    assert(sourceId !== defaultSourceId && viewId !== defaultViewId,
-      "EVT-003 acceptance-owned source/view IDs must not target the default published source/view");
     assert(descriptor.ownership === "self-contained-pid-port-artifact-ownership" &&
       path.basename(path.resolve(descriptor.temporaryRoot)).startsWith("media_server_v390_ui-"),
-    "EVT-003 source/view fixture requires isolated runtime teardown ownership");
+    "EVT-003 published-seed fixture requires isolated runtime teardown ownership");
 
     const sourceList = await requestEndpoint(
       "GET", "/ops/api/sources", null, item, context, [200],
@@ -1959,113 +1953,59 @@ export function createV390UiCaseRuntime({
     assert(defaultSourceBefore && defaultViewBefore &&
       String(defaultViewBefore?.sourceId || "") === defaultSourceId,
     "EVT-003 default source/view baseline is absent from the authoritative registry");
-    assert(!sourcesBefore.some(value => String(value?.sourceId || "") === sourceId) &&
-      !viewsBefore.some(value => String(value?.viewId || "") === viewId),
-    "EVT-003 deterministic acceptance-owned sourceId/viewId collision");
-
-    const marker = `REVIEW4 ${item.caseId} source-health fixture`;
-    context.eventSourceHealthFixture = {
-      sourceId,
-      viewId,
-      marker,
-      defaultSourceId,
-      defaultViewId,
-      defaultSourceBefore: structuredClone(defaultSourceBefore),
-      defaultViewBefore: structuredClone(defaultViewBefore),
-      sourceCreated: false,
-      viewCreated: false,
-      disabledForTeardown: false,
-    };
-
-    const sourcePayload = {
-      sourceId,
-      displayName: marker,
-      kind: "file",
-      file: "review4_evt_003_acceptance_unavailable.mp4",
-      tags: ["review4", "evt-003", "acceptance-owned", "deterministic-degraded"],
-      enabled: true,
-      allowDuplicateSource: false,
-    };
-    const sourceCreated = await requestEndpoint(
-      "POST",
-      "/ops/api/sources",
-      sourcePayload,
-      item,
-      context,
-      [201],
-      { freshRole: true, roleOverride: "operator" },
-    );
-    context.eventSourceHealthFixture.sourceCreated = true;
-    assert(sourceCreated.json?.status === "created" &&
-      String(sourceCreated.json?.source?.sourceId || "") === sourceId &&
-      sourceCreated.json?.source?.kind === "file" &&
-      sourceCreated.json?.source?.file === sourcePayload.file &&
-      sourceCreated.json?.source?.enabled === true,
-    "EVT-003 acceptance-owned source create response identity mismatch");
-
-    const viewPayload = {
-      ...defaultViewBefore,
-      viewId,
-      sourceId,
-      displayName: marker,
-      enabled: true,
-    };
-    const viewCreated = await requestEndpoint(
-      "POST",
-      "/ops/api/views",
-      viewPayload,
-      item,
-      context,
-      [201],
-      { freshRole: true, roleOverride: "operator" },
-    );
-    context.eventSourceHealthFixture.viewCreated = true;
-    assert(viewCreated.json?.status === "created" &&
-      String(viewCreated.json?.view?.viewId || "") === viewId &&
-      String(viewCreated.json?.view?.sourceId || "") === sourceId &&
-      viewCreated.json?.view?.enabled === true,
-    "EVT-003 acceptance-owned view create response identity mismatch");
-
-    const materializedSources = await requestEndpoint(
-      "GET", "/ops/api/sources", null, item, context, [200],
-      { freshRole: true, roleOverride: "operator" },
-    );
-    const materializedViews = await requestEndpoint(
-      "GET", "/ops/api/views", null, item, context, [200],
-      { freshRole: true, roleOverride: "operator" },
-    );
-    const sourceMatches = (materializedSources.json?.sources || []).filter(value =>
-      String(value?.sourceId || "") === sourceId);
-    const viewMatches = (materializedViews.json?.views || []).filter(value =>
-      String(value?.viewId || "") === viewId);
-    const materializedSource = sourceMatches[0];
-    const materializedView = viewMatches[0];
-    assert(sourceMatches.length === 1 && viewMatches.length === 1 &&
-      materializedSource?.enabled === true && materializedSource?.displayName === marker &&
-      materializedView?.enabled === true && materializedView?.displayName === marker &&
-      String(materializedView?.sourceId || "") === sourceId,
-    "EVT-003 acceptance-owned source/view fixture is absent from authoritative registry readback");
-    const defaultSourceAfterCreate = (materializedSources.json?.sources || []).find(value =>
-      String(value?.sourceId || "") === defaultSourceId);
-    const defaultViewAfterCreate = (materializedViews.json?.views || []).find(value =>
-      String(value?.viewId || "") === defaultViewId);
-    assert(stableJson(defaultSourceAfterCreate) === stableJson(defaultSourceBefore) &&
-      stableJson(defaultViewAfterCreate) === stableJson(defaultViewBefore),
-    "EVT-003 acceptance fixture creation mutated the default source/view");
 
     const health = await requestEndpoint(
       "GET", "/ops/api/source-health", null, item, context, [200],
       { freshRole: true, roleOverride: "operator" },
     );
     const healthItems = Array.isArray(health.json?.sourceHealth) ? health.json.sourceHealth : [];
+    const displayedDegradedItems = healthItems
+      .filter(value => String(value?.status || "") !== "live")
+      .slice(0, 3);
+    const healthItem = displayedDegradedItems.find(value => {
+      const candidateSourceId = String(value?.sourceId || "");
+      const sourceMatches = sourcesBefore.filter(source =>
+        String(source?.sourceId || "") === candidateSourceId && source?.enabled === true);
+      const viewMatches = viewsBefore.filter(view =>
+        String(view?.sourceId || "") === candidateSourceId && view?.enabled === true);
+      return sourceMatches.length === 1 && viewMatches.length === 1;
+    });
+    assert(healthItem,
+      "EVT-003 throwaway published-seed fixture is absent from the dashboard top-three degraded rows");
+    const sourceId = String(healthItem.sourceId || "").trim();
+    const sourceMatches = sourcesBefore.filter(value => String(value?.sourceId || "") === sourceId);
+    const viewMatches = viewsBefore.filter(value =>
+      String(value?.sourceId || "") === sourceId && value?.enabled === true);
+    const source = sourceMatches[0];
+    const view = viewMatches[0];
+    const displayIndex = displayedDegradedItems.findIndex(value =>
+      String(value?.sourceId || "") === sourceId);
+    assert(/^\d+$/.test(sourceId) && displayIndex >= 0 && displayIndex < 3 &&
+      sourceMatches.length === 1 && viewMatches.length === 1 &&
+      source?.enabled === true && view?.enabled === true,
+    "EVT-003 published-seed fixture identity is not uniquely bound inside the dashboard top-three");
+    const viewId = String(view.viewId || "").trim();
+    assert(/^\d+$/.test(viewId),
+      "EVT-003 published-seed fixture requires a deterministic numeric viewId");
     const healthMatches = healthItems.filter(value => String(value?.sourceId || "") === sourceId);
-    const healthItem = healthMatches[0];
     const status = String(healthItem?.status || "").trim();
     const reason = String(healthItem?.reason || "").trim();
     assert(health.json?.status === "source-health" && healthMatches.length === 1 &&
-      status === "offline" && reason === "no-subscriber",
+      status && status !== "live" && reason,
     "EVT-003 source-health fixture lacks authoritative sourceId/status/reason readback");
 
+    context.eventSourceHealthFixture = {
+      sourceId,
+      viewId,
+      displayIndex,
+      defaultSourceId,
+      defaultViewId,
+      sourcesBefore: structuredClone(sourcesBefore),
+      viewsBefore: structuredClone(viewsBefore),
+      sourceHealthBefore: structuredClone(healthItems),
+      reusedPublishedSeed: true,
+      disabledForTeardown: false,
+    };
     context.transientStateSeeded = true;
     context.catalogBindings = {
       ...context.catalogBindings,
@@ -2086,6 +2026,44 @@ export function createV390UiCaseRuntime({
       path.basename(path.resolve(descriptor.temporaryRoot)).startsWith("media_server_v390_ui-"),
     "EVT-003 fixture disposal requires isolated runtime teardown ownership");
     try {
+      if (fixture.reusedPublishedSeed) {
+        const sourceList = await requestEndpoint(
+          "GET", "/ops/api/sources", null, item, context, [200],
+          { freshRole: true, roleOverride: "operator" },
+        );
+        const viewList = await requestEndpoint(
+          "GET", "/ops/api/views", null, item, context, [200],
+          { freshRole: true, roleOverride: "operator" },
+        );
+        const health = await requestEndpoint(
+          "GET", "/ops/api/source-health", null, item, context, [200],
+          { freshRole: true, roleOverride: "operator" },
+        );
+        assert(stableJson(sourceList.json?.sources || []) === stableJson(fixture.sourcesBefore) &&
+          stableJson(viewList.json?.views || []) === stableJson(fixture.viewsBefore),
+        "EVT-003 published-seed registry changed before cleanup");
+        const healthItems = Array.isArray(health.json?.sourceHealth) ? health.json.sourceHealth : [];
+        const healthItem = healthItems.find(value =>
+          String(value?.sourceId || "") === fixture.sourceId);
+        const healthBefore = fixture.sourceHealthBefore.find(value =>
+          String(value?.sourceId || "") === fixture.sourceId);
+        assert(healthItem && healthBefore &&
+          String(healthItem.status || "") === String(healthBefore.status || "") &&
+          String(healthItem.reason || "") === String(healthBefore.reason || ""),
+        "EVT-003 published-seed source-health identity changed before cleanup");
+        fixture.disabledForTeardown = true;
+        return {
+          status: "published-seed-baseline-unchanged",
+          sourceId: fixture.sourceId,
+          viewId: fixture.viewId,
+          displayIndex: fixture.displayIndex,
+          sourceHealthStatus: healthItem.status,
+          sourceHealthReason: healthItem.reason,
+          registryOrderingUnchanged: true,
+          physicalAbsenceClaimed: false,
+          teardownOwnership: descriptor.ownership,
+        };
+      }
       if (fixture.viewCreated) {
         const disabledView = await requestEndpoint(
           "DELETE",
