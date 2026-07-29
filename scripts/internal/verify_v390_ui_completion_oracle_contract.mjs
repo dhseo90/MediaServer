@@ -364,6 +364,169 @@ check("document navigation trust rejects correlation and request reissue", () =>
   }
 });
 
+check("UI-001 binds the exact root redirect chain without application correlation", () => {
+  const navigationBinding = {
+    schema: "media-server.v390-ui-navigation-trust-binding.v1",
+    requestKind: "document-navigation",
+    invocationId: "UI-001:initial-document-navigation",
+    method: "GET",
+    requestedPath: "/",
+    expectedCanonicalRoute: "/",
+    expectedObservedPath: "/login",
+    exactRequestSequence: 1,
+    exactRedirectCount: 1,
+    correlationRequired: false,
+    allowedStatuses: [200],
+    caseLifecycleNavigationSequence: [
+      {
+        purpose: "requested-root-document",
+        method: "GET",
+        path: "/",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationRequired: false,
+        redirected: false,
+        responseStatus: 302,
+      },
+      {
+        purpose: "anonymous-login-document",
+        method: "GET",
+        path: "/login",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationRequired: false,
+        redirected: true,
+        responseStatus: 200,
+      },
+    ],
+    authoritativeReadback: null,
+  };
+  const navigation = {
+    status: 200,
+    url: "http://127.0.0.1/login",
+    invocationId: navigationBinding.invocationId,
+    requestKind: "document-navigation",
+    resourceType: "document",
+    method: "GET",
+    requestedPath: "/",
+    observedPath: "/login",
+    sameOrigin: true,
+    requestAttemptCount: 1,
+    requestCandidateCount: 1,
+    responseCandidateCount: 1,
+    requestResponseBound: true,
+    correlationObserved: false,
+    redirectCount: 1,
+    retryCount: 0,
+    reloadCount: 0,
+    unownedNavigationCount: 0,
+    additionalFetchCount: 0,
+    requestReissued: false,
+    totalDocumentNavigationCount: 2,
+    orderedDocumentNavigations: navigationBinding.caseLifecycleNavigationSequence.map((entry, index) => ({
+      sequence: index * 2 + 2,
+      responseSequence: index * 2 + 3,
+      invocationId: navigationBinding.invocationId,
+      navigationKind: "initial-document-navigation",
+      method: entry.method,
+      path: entry.path,
+      resourceType: entry.resourceType,
+      sameOrigin: entry.sameOrigin,
+      correlationPresent: false,
+      correlationDigest: "",
+      redirected: entry.redirected,
+      responseStatus: entry.responseStatus,
+      responseBound: true,
+    })),
+    listenerStartSequence: 1,
+    listenerEndSequence: null,
+    listenerActive: true,
+    listenerInstalledBeforeFirstNavigation: true,
+    navigationAfterListenerEndCount: 0,
+  };
+  const completionAction = {
+    ...action("navigate"),
+    actionId: "UI-001:navigate",
+    completionPhase: "initial-navigation",
+    controlSelector: null,
+    correlationId: "UI-001:navigation",
+    semanticCompletionRequired: true,
+    expectedReadbackIdentity: "UI-001:navigation",
+    expectedBehaviorSha256: "",
+    expectedReadbackExpectation: { exists: true, visible: true },
+    expectedNavigationBinding: navigationBinding,
+    allowedCompletionSources: ["navigation-network-dom"],
+  };
+  const after = { ...snapshot("ready", "login"), selector: "body" };
+  const readback = {
+    schema: "media-server.v390-ui-semantic-readback.v1",
+    identity: completionAction.expectedReadbackIdentity,
+    correlationId: completionAction.correlationId,
+    actionId: completionAction.actionId,
+    observationSource: "browser-dom",
+    selector: null,
+    expected: { exists: true, visible: true },
+    observed: { exists: true, visible: true },
+  };
+  const accepted = evaluateCompletionOracle({
+    action: completionAction,
+    after,
+    navigation,
+    allowedStatuses: [200],
+    semanticReadback: readback,
+  });
+  assert(accepted.pass &&
+    accepted.completionMode === "navigationBinding" &&
+    accepted.navigationTrustEvidence?.pass === true,
+  `UI-001 exact redirect navigation did not pass: ${accepted.reason}`);
+  for (const [label, mutate, failureCode] of [
+    ["unexpected target", value => { value.observedPath = "/setup"; }, "NAVIGATION_ROUTE_MISMATCH"],
+    ["correlation leak", value => {
+      value.correlationObserved = true;
+      value.orderedDocumentNavigations[0].correlationPresent = true;
+    }, "NAVIGATION_LIFECYCLE_MISMATCH"],
+    ["extra reload", value => { value.reloadCount = 1; }, "NAVIGATION_RELOADED"],
+    ["retry", value => { value.retryCount = 1; }, "NAVIGATION_REQUEST_REISSUED"],
+    ["extra redirect", value => {
+      value.redirectCount = 2;
+      value.orderedDocumentNavigations.push({
+        ...value.orderedDocumentNavigations[1],
+        sequence: 6,
+        responseSequence: 7,
+        path: "/setup",
+      });
+      value.totalDocumentNavigationCount = 3;
+    }, "NAVIGATION_LIFECYCLE_MISMATCH"],
+  ]) {
+    const rejectedNavigation = structuredClone(navigation);
+    mutate(rejectedNavigation);
+    const rejected = buildNavigationTrustEvidence({
+      navigation: rejectedNavigation,
+      expected: navigationBinding,
+    });
+    assert(rejected.failureCode === failureCode,
+      `${label} failure mismatch: ${rejected.failureCode}/${failureCode}`);
+  }
+  const requestBound = structuredClone(completionAction);
+  delete requestBound.expectedNavigationBinding;
+  requestBound.expectedEndpoint = {
+    correlationId: completionAction.correlationId,
+    method: "GET",
+    urlPath: "/",
+    allowedStatuses: [200, 302],
+  };
+  const rejectedRequestMode = evaluateCompletionOracle({
+    action: requestBound,
+    after,
+    navigation,
+    allowedStatuses: [200],
+    semanticReadback: readback,
+  });
+  assert(!rejectedRequestMode.pass &&
+    rejectedRequestMode.reason === "request-correlation-missing",
+  "UI-001 document navigation accepted application request correlation mode");
+});
+
 check("EVT-004 navigation completion is exclusive and keeps authoritative correlation separate", () => {
   const actionId = "EVT-004:assert-product-state";
   const correlationId = `${actionId}:completion`;
@@ -1012,9 +1175,11 @@ check("REVIEW3-42 all 424 action plans close only with their exact endpoint and 
         ...actionItem,
         kind: negative ? "navigate-negative" : actionItem.kind,
         executed: true,
-        executedKind: actionItem.kind === "fill-control"
-          ? "fill"
-          : (actionItem.kind === "select-control" ? "select" : "click"),
+        executedKind: ["navigate", "navigate-action-route", "navigate-negative"].includes(actionItem.kind)
+          ? "navigate"
+          : (actionItem.kind === "fill-control"
+              ? "fill"
+              : (actionItem.kind === "select-control" ? "select" : "click")),
         correlationId: completion.correlationId,
         dispatch: "playwright-native",
         completionPhase: completion.phase,
@@ -1045,7 +1210,8 @@ check("REVIEW3-42 all 424 action plans close only with their exact endpoint and 
         observed: structuredClone(completion.readbackExpectation),
       };
       const status = completion.request?.allowedStatuses?.[0] ||
-        (completion.navigationBinding ? 200 : 0);
+        completion.navigationBinding?.allowedStatuses?.[0] ||
+        0;
       const networkResponses = completion.request ? [{
         requestId: `${item.caseId}:${evaluatedActions}`,
         correlationId: completion.request.correlationId,
@@ -1074,60 +1240,77 @@ check("REVIEW3-42 all 424 action plans close only with their exact endpoint and 
         primarySelfComparisonsRejected += 1;
         continue;
       }
+      const navigationLifecycle = completion.navigationBinding
+        ? (completion.navigationBinding.caseLifecycleNavigationSequence || [{
+            purpose: "exact-document-navigation",
+            method: "GET",
+            path: completion.navigationBinding.requestedPath,
+            resourceType: "document",
+            sameOrigin: true,
+            correlationRequired: false,
+            redirected: false,
+            responseStatus: status,
+          }])
+        : [];
+      const navigationEvidence = completion.navigationBinding ? {
+        status,
+        url: `http://127.0.0.1${completion.navigationBinding.expectedObservedPath}`,
+        invocationId: completion.navigationBinding.invocationId,
+        requestKind: "document-navigation",
+        resourceType: "document",
+        method: "GET",
+        requestedPath: completion.navigationBinding.requestedPath,
+        observedPath: completion.navigationBinding.expectedObservedPath,
+        sameOrigin: true,
+        requestAttemptCount: 1,
+        requestCandidateCount: 1,
+        responseCandidateCount: 1,
+        requestResponseBound: true,
+        correlationObserved: false,
+        redirectCount: completion.navigationBinding.exactRedirectCount,
+        retryCount: 0,
+        reloadCount: 0,
+        unownedNavigationCount: 0,
+        additionalFetchCount: 0,
+        requestReissued: false,
+        totalDocumentNavigationCount: navigationLifecycle.length,
+        orderedDocumentNavigations: navigationLifecycle.map((entry, index) => ({
+          sequence: index * 2 + 2,
+          responseSequence: index * 2 + 3,
+          invocationId: completion.navigationBinding.invocationId,
+          navigationKind: completion.phase === "initial-navigation"
+            ? "initial-document-navigation"
+            : "explicit-navigation",
+          method: entry.method,
+          path: entry.path,
+          resourceType: entry.resourceType,
+          sameOrigin: entry.sameOrigin,
+          correlationPresent: false,
+          correlationDigest: "",
+          redirected: entry.redirected === true,
+          responseStatus: entry.responseStatus ?? status,
+          responseBound: true,
+        })),
+        listenerStartSequence: 1,
+        listenerEndSequence: null,
+        listenerActive: true,
+        listenerInstalledBeforeFirstNavigation: true,
+        navigationAfterListenerEndCount: 0,
+      } : null;
       const evaluated = evaluateCompletionOracle({
         action: evidenceAction,
         before,
         after,
-        navigation: ["navigate", "navigate-negative"].includes(evidenceAction.kind)
-          ? (completion.navigationBinding ? {
-              status,
-              url: `http://127.0.0.1${completion.navigationBinding.requestedPath}`,
-              invocationId: completion.navigationBinding.invocationId,
-              requestKind: "document-navigation",
-              resourceType: "document",
-              method: "GET",
-              requestedPath: completion.navigationBinding.requestedPath,
-              observedPath: completion.navigationBinding.requestedPath,
-              sameOrigin: true,
-              requestAttemptCount: 1,
-              requestCandidateCount: 1,
-              responseCandidateCount: 1,
-              requestResponseBound: true,
-              correlationObserved: false,
-              redirectCount: 0,
-              retryCount: 0,
-              reloadCount: 0,
-              unownedNavigationCount: 0,
-              additionalFetchCount: 0,
-              requestReissued: false,
-              totalDocumentNavigationCount: 1,
-              orderedDocumentNavigations: [{
-                sequence: 2,
-                responseSequence: 3,
-                invocationId: completion.navigationBinding.invocationId,
-                navigationKind: "initial-document-navigation",
-                method: "GET",
-                path: completion.navigationBinding.requestedPath,
-                resourceType: "document",
-                sameOrigin: true,
-                correlationPresent: false,
-                correlationDigest: "",
-                redirected: false,
-                responseStatus: status,
-                responseBound: true,
-              }],
-              listenerStartSequence: 1,
-              listenerEndSequence: null,
-              listenerActive: true,
-              listenerInstalledBeforeFirstNavigation: true,
-              navigationAfterListenerEndCount: 0,
-            } : {
+        navigation: ["navigate", "navigate-negative"].includes(evidenceAction.kind) ||
+            evidenceAction.executedKind === "navigate"
+          ? (navigationEvidence || {
               status,
               url: networkResponses[0]?.url || `http://127.0.0.1${item.screenRoute}`,
             })
           : null,
         allowedStatuses: completion.request?.allowedStatuses ||
-          (completion.navigationBinding ? [200] : []),
+          completion.navigationBinding?.allowedStatuses ||
+          [],
         networkResponses,
         semanticReadback,
       });
@@ -1762,25 +1945,51 @@ check("REVIEW4-58 exact 424 primary completion contracts bind product action and
     assert(bindingModes.filter(Boolean).length === 1,
       `${item.caseId} action binding must be exclusive`);
     if (completion.navigationBinding) {
-      assert(item.caseId === "EVT-004" &&
-        completion.navigationBinding.requestKind === "document-navigation" &&
+      const binding = completion.navigationBinding;
+      assert(binding.requestKind === "document-navigation" &&
         completion.navigationBinding.method === "GET" &&
-        completion.navigationBinding.requestedPath === "/ops/events" &&
-        completion.navigationBinding.expectedCanonicalRoute === "/ops/events" &&
         completion.navigationBinding.exactRequestSequence === 1 &&
-        completion.navigationBinding.correlationRequired === false &&
-        completion.navigationBinding.caseLifecycleNavigationSequence?.length === 2 &&
-        completion.navigationBinding.caseLifecycleNavigationSequence[0]?.path === "/ops/events" &&
-        completion.navigationBinding.caseLifecycleNavigationSequence[1]?.path === "/ops/dashboard" &&
-        completion.navigationBinding.caseLifecycleNavigationSequence.every(entry =>
-          entry.method === "GET" &&
-          entry.resourceType === "document" &&
-          entry.sameOrigin === true &&
-          entry.correlationRequired === false) &&
-        completion.navigationBinding.authoritativeReadback?.method === "GET" &&
-        completion.navigationBinding.authoritativeReadback.urlPath ===
-          "/ops/api/diagnostics/log-tail?limit=50",
+        completion.navigationBinding.correlationRequired === false,
       `${item.caseId} navigation completion binding mismatch`);
+      if (item.caseId === "EVT-004") {
+        assert(binding.requestedPath === "/ops/events" &&
+          binding.expectedCanonicalRoute === "/ops/events" &&
+          binding.expectedObservedPath === "/ops/events" &&
+          binding.exactRedirectCount === 0 &&
+          binding.caseLifecycleNavigationSequence?.length === 2 &&
+          binding.caseLifecycleNavigationSequence[0]?.path === "/ops/events" &&
+          binding.caseLifecycleNavigationSequence[1]?.path === "/ops/dashboard" &&
+          binding.caseLifecycleNavigationSequence.every(entry =>
+            entry.method === "GET" &&
+            entry.resourceType === "document" &&
+            entry.sameOrigin === true &&
+            entry.correlationRequired === false &&
+            entry.redirected === false &&
+            entry.responseStatus === 200) &&
+          binding.authoritativeReadback?.method === "GET" &&
+          binding.authoritativeReadback.urlPath ===
+            "/ops/api/diagnostics/log-tail?limit=50",
+        `${item.caseId} diagnostic navigation completion binding mismatch`);
+      } else if (item.caseId === "UI-001") {
+        assert(binding.requestedPath === "/" &&
+          binding.expectedObservedPath === "/login" &&
+          binding.exactRedirectCount === 1 &&
+          binding.caseLifecycleNavigationSequence?.length === 2 &&
+          binding.caseLifecycleNavigationSequence[0]?.responseStatus === 302 &&
+          binding.caseLifecycleNavigationSequence[1]?.path === "/login" &&
+          binding.caseLifecycleNavigationSequence[1]?.redirected === true &&
+          binding.authoritativeReadback === null,
+        `${item.caseId} root redirect completion binding mismatch`);
+      } else {
+        assert(["UI-018", "SAFE-016", "SAFE-017"].includes(item.caseId) &&
+          ["navigate", "navigate-negative"].includes(
+            item.workflow.controlSequence.find(action =>
+              action.actionId === completion.actionId)?.kind,
+          ) &&
+          binding.exactRedirectCount === 0 &&
+          binding.authoritativeReadback === null,
+        `${item.caseId} negative document navigation completion binding mismatch`);
+      }
     } else if (endpoint) {
       assert(completion.request.correlationId === completion.correlationId,
         `${item.caseId} request is not action-correlated`);

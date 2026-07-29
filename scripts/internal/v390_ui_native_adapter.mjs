@@ -500,50 +500,54 @@ async function openNativePlaywrightPage(playwright, {
     allowCorrelation: Boolean(navigationCorrelationId),
   });
   activeCorrelationId = "";
-  const buildNavigationEvidence = () => {
-    const candidates = documentNavigationLedger.filter(entry =>
+  const buildNavigationEvidence = ({
+    requestedPath = navigationRequestedPath,
+    invocationId = String(navigationInvocationId),
+    response = navigationResponse,
+    ledger = documentNavigationLedger,
+    scopedNetworkEntries = networkEntries,
+  } = {}) => {
+    const candidates = ledger.filter(entry =>
       entry.method === "GET" &&
-      entry.path === navigationRequestedPath &&
-      entry.navigationKind === "initial-document-navigation" &&
-      (!navigationInvocationId ||
-        entry.invocationId === String(navigationInvocationId)));
+      entry.path === requestedPath &&
+      (!invocationId || entry.invocationId === invocationId));
     const responses = candidates.filter(entry => entry.responseBound);
     const first = candidates[0] || null;
-    const redirectCount = documentNavigationLedger.filter(entry => entry.redirected).length;
-    const unownedNavigationCount = documentNavigationLedger.filter(entry =>
+    const redirectCount = ledger.filter(entry => entry.redirected).length;
+    const unownedNavigationCount = ledger.filter(entry =>
       entry.navigationKind === "unowned-document-navigation").length;
-    const reloadCount = documentNavigationLedger.filter(entry =>
+    const reloadCount = ledger.filter(entry =>
       entry.navigationKind === "reload").length;
-    const additionalFetchCount = networkEntries.filter(entry =>
+    const additionalFetchCount = scopedNetworkEntries.filter(entry =>
       entry.phase === "request-start" &&
       entry.requestKind === "application-fetch" &&
-      urlTarget(entry.url) === navigationRequestedPath).length;
+      urlTarget(entry.url) === requestedPath).length;
     return {
-      status: first?.responseStatus || navigationResponse.status || 0,
-      url: first ? new URL(first.path, `${httpBase}/`).toString() : navigationResponse.url,
-      invocationId: String(navigationInvocationId),
+      status: response.status || first?.responseStatus || 0,
+      url: response.url || (first ? new URL(first.path, `${httpBase}/`).toString() : ""),
+      invocationId,
       requestKind: "document-navigation",
       resourceType: candidates.length === 1 ? String(first?.resourceType || "") : "",
       method: "GET",
-      requestedPath: navigationRequestedPath,
-      observedPath: first?.path || "",
+      requestedPath,
+      observedPath: urlTarget(response.url),
       sameOrigin: Boolean(navigationOrigin) &&
-        documentNavigationLedger.every(entry => entry.sameOrigin === true),
+        ledger.every(entry => entry.sameOrigin === true),
       requestAttemptCount: candidates.length,
       requestCandidateCount: candidates.length,
       responseCandidateCount: responses.length,
       requestResponseBound: candidates.length === 1 &&
         responses.length === 1 &&
         candidates[0].requestId === responses[0].requestId,
-      correlationObserved: candidates.some(entry => entry.correlationPresent),
+      correlationObserved: ledger.some(entry => entry.correlationPresent),
       redirectCount,
       retryCount: 0,
       reloadCount,
       unownedNavigationCount,
       additionalFetchCount,
       requestReissued: candidates.length !== 1,
-      totalDocumentNavigationCount: documentNavigationLedger.length,
-      orderedDocumentNavigations: documentNavigationLedger.map(entry => ({
+      totalDocumentNavigationCount: ledger.length,
+      orderedDocumentNavigations: ledger.map(entry => ({
         sequence: entry.sequence,
         responseSequence: entry.responseSequence,
         invocationId: entry.invocationId,
@@ -580,10 +584,24 @@ async function openNativePlaywrightPage(playwright, {
     },
     finalizeNavigationLedger,
     waitForSelector: (selector, options = {}) => page.locator(selector).waitFor({ state: options.state || "visible", timeout: options.timeout || timeoutMs }),
-    navigate: async (nextPagePath) => {
-      return performNavigation(nextPagePath, {
-        kind: "explicit-navigation",
-        allowCorrelation: Boolean(activeCorrelationId),
+    navigate: async (nextPagePath, {
+      invocationId = "",
+      kind = "explicit-navigation",
+    } = {}) => {
+      const ledgerStart = documentNavigationLedger.length;
+      const networkStart = networkEntries.length;
+      const response = await performNavigation(nextPagePath, {
+        invocationId,
+        kind,
+        allowCorrelation: false,
+      });
+      const observedInvocationId = response.invocationId;
+      return buildNavigationEvidence({
+        requestedPath: urlTarget(new URL(nextPagePath, `${httpBase}/`).toString()),
+        invocationId: observedInvocationId,
+        response,
+        ledger: documentNavigationLedger.slice(ledgerStart),
+        scopedNetworkEntries: networkEntries.slice(networkStart),
       });
     },
     setCorrelationId: async (correlationId) => {

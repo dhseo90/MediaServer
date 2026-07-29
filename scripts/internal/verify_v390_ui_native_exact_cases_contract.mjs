@@ -84,6 +84,52 @@ check("builder is deterministic and preserves exact case order", () => {
     JSON.stringify(canonical.cases.map(item => item.testId)), "canonical ordered IDs drift");
 });
 
+check("all 424 completion modes separate document navigation from application requests", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const bindingMode = completion => [
+    ["requestBinding", Boolean(completion?.request)],
+    ["localTransitionBinding", Boolean(completion?.localTransition)],
+    ["navigationBinding", Boolean(completion?.navigationBinding)],
+  ].filter(([, present]) => present).map(([mode]) => mode);
+  const documentActions = rebuilt.cases.flatMap(item => item.actions
+    .filter(action => ["navigate", "navigate-action-route", "navigate-negative"].includes(action.kind))
+    .map(action => ({ caseId: item.caseId, action })));
+  assert(documentActions.length === 435,
+    `document navigation action count drift: ${documentActions.length}`);
+  for (const { caseId, action } of documentActions) {
+    const modes = bindingMode(action.semanticCompletion);
+    assert(JSON.stringify(modes) === JSON.stringify(["navigationBinding"]) &&
+      action.semanticCompletion.navigationBinding.correlationRequired === false,
+    `${caseId} ${action.actionId} document navigation mode drift: ${modes.join("+")}`);
+  }
+  const primaryModes = rebuilt.cases.map(item => ({
+    caseId: item.caseId,
+    modes: bindingMode(item.workflow.expectedResults[0].completion),
+  }));
+  assert(primaryModes.every(item => item.modes.length === 1),
+    "primary completion binding is missing or ambiguous");
+  const primaryCounts = Object.fromEntries(
+    ["requestBinding", "localTransitionBinding", "navigationBinding"].map(mode => [
+      mode,
+      primaryModes.filter(item => item.modes[0] === mode).length,
+    ]),
+  );
+  assert(JSON.stringify(primaryCounts) === JSON.stringify({
+    requestBinding: 391,
+    localTransitionBinding: 28,
+    navigationBinding: 5,
+  }), `primary completion mode count drift: ${JSON.stringify(primaryCounts)}`);
+  assert(JSON.stringify(primaryModes
+    .filter(item => item.modes[0] === "navigationBinding")
+    .map(item => item.caseId)) ===
+    JSON.stringify(["UI-001", "UI-018", "EVT-004", "SAFE-016", "SAFE-017"]),
+  "primary navigation binding case IDs drift");
+  assert(rebuilt.cases.every(item => item.actions
+    .filter(action => action.semanticCompletion?.request)
+    .every(action => !["navigate", "navigate-action-route", "navigate-negative"].includes(action.kind))),
+  "application request binding leaked into a document navigation action");
+});
+
 check("EVT-004 reuses one document navigation and correlates only the authoritative API fetch", () => {
   const rebuilt = buildNativeExactManifest({ canonical, implementation });
   const item = rebuilt.cases.find(value => value.caseId === "EVT-004");
@@ -93,30 +139,21 @@ check("EVT-004 reuses one document navigation and correlates only the authoritat
     navigation.correlationRequired === false &&
     navigation.exactRequestSequence === 1 &&
     navigation.requestedPath === "/ops/events" &&
+    navigation.expectedObservedPath === "/ops/events" &&
+    navigation.exactRedirectCount === 0 &&
     navigation.authoritativeReadback === null,
   "EVT-004 initial document navigation trust binding drift");
   assert(primary?.request === null &&
     primary?.navigationBinding?.requestKind === "document-navigation" &&
     primary.navigationBinding.correlationRequired === false &&
     primary.navigationBinding.exactRequestSequence === 1 &&
-    JSON.stringify(primary.navigationBinding.caseLifecycleNavigationSequence) === JSON.stringify([
-      {
-        purpose: "initial-events-document",
-        method: "GET",
-        path: "/ops/events",
-        resourceType: "document",
-        sameOrigin: true,
-        correlationRequired: false,
-      },
-      {
-        purpose: "required-product-dashboard-dom",
-        method: "GET",
-        path: "/ops/dashboard",
-        resourceType: "document",
-        sameOrigin: true,
-        correlationRequired: false,
-      },
-    ]) &&
+    primary.navigationBinding.expectedObservedPath === "/ops/events" &&
+    primary.navigationBinding.exactRedirectCount === 0 &&
+    primary.navigationBinding.caseLifecycleNavigationSequence?.length === 2 &&
+    primary.navigationBinding.caseLifecycleNavigationSequence[0]?.path === "/ops/events" &&
+    primary.navigationBinding.caseLifecycleNavigationSequence[1]?.path === "/ops/dashboard" &&
+    primary.navigationBinding.caseLifecycleNavigationSequence.every(entry =>
+      entry.redirected === false && entry.responseStatus === 200) &&
     primary.navigationBinding.authoritativeReadback?.source === "catalog-runtime-fresh-browser-fetch" &&
     primary.navigationBinding.authoritativeReadback.method === "GET" &&
     primary.navigationBinding.authoritativeReadback.urlPath ===
@@ -550,11 +587,24 @@ check("API ownership routes normalize to product screens", () => {
     "UI-001 canonical root request and setup-complete anonymous login observation are not separated");
   assert(rootEntry.workflow?.productAction?.endpoint?.path === "/" &&
     JSON.stringify(rootEntry.workflow.productAction.endpoint.allowedStatuses) === JSON.stringify([200, 302]),
-  "UI-001 root redirect chain must bind the correlated 302 and followed login 200 responses");
+  "UI-001 root product contract must preserve the 302 and followed login 200 statuses");
+  const rootNavigation = rootEntry.actions?.[0]?.semanticCompletion;
   const rootPrimary = rootEntry.workflow?.controlSequence?.find(action => action.kind === "assert-product-state");
-  assert(rootPrimary?.semanticCompletion?.request?.urlPath === "/" &&
-    JSON.stringify(rootPrimary.semanticCompletion.request.allowedStatuses) === JSON.stringify([200, 302]),
-  "UI-001 root completion request does not preserve the redirect-chain status contract");
+  for (const completion of [rootNavigation, rootPrimary?.semanticCompletion]) {
+    assert(completion?.request === null &&
+      completion?.localTransition === null &&
+      completion?.navigationBinding?.requestedPath === "/" &&
+      completion.navigationBinding.expectedObservedPath === "/login" &&
+      completion.navigationBinding.correlationRequired === false &&
+      completion.navigationBinding.exactRedirectCount === 1 &&
+      completion.navigationBinding.caseLifecycleNavigationSequence?.length === 2 &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[0]?.path === "/" &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[0]?.responseStatus === 302 &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[1]?.path === "/login" &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[1]?.redirected === true &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[1]?.responseStatus === 200,
+    "UI-001 exact root document redirect navigation binding drift");
+  }
   const logoutEntry = manifest.cases.find(item => item.caseId === "UI-005");
   assert(logoutEntry?.canonicalRoute === "/logout" && logoutEntry?.screenRoute === "/ops/home" &&
     logoutEntry.workflow?.primaryControl?.route === "/ops/home" &&

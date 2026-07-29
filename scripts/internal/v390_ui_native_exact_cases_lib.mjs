@@ -1605,6 +1605,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
       ...(action.kind === "wait-visible" ? {} : {
         semanticCompletion: buildActionSemanticCompletion({
           caseId: canonicalCase.testId,
+          canonicalRoute: canonicalCase.route,
           screenRoute,
           action,
           negativeRoute,
@@ -1917,6 +1918,20 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
       primaryCompletion.readback.identity === item.oracle.independentReadbackIdentity &&
       primaryCompletion.readback.staticLocatorIsNotRuntimePass === true,
     `${item.caseId} independent readback binding drift`);
+    for (const navigationAction of item.actions.filter(action =>
+      ["navigate", "navigate-action-route", "navigate-negative"].includes(action.kind))) {
+      const completion = navigationAction.semanticCompletion;
+      assert(completion?.navigationBinding &&
+        !completion.request &&
+        !completion.localTransition &&
+        completion.navigationBinding.requestKind === "document-navigation" &&
+        completion.navigationBinding.correlationRequired === false &&
+        completion.navigationBinding.method === "GET" &&
+        completion.navigationBinding.exactRequestSequence === 1 &&
+        Number.isInteger(completion.navigationBinding.exactRedirectCount) &&
+        Array.isArray(completion.navigationBinding.allowedStatuses),
+      `${item.caseId} ${navigationAction.actionId} document navigation binding drift`);
+    }
     assert([
       Boolean(primaryCompletion.request),
       Boolean(primaryCompletion.localTransition),
@@ -1926,45 +1941,54 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     if (primaryCompletion.navigationBinding) {
       const binding = primaryCompletion.navigationBinding;
       const endpoint = item.workflow.productAction.endpoint;
-      assert(item.caseId === "EVT-004" &&
-        item.screenRoute === "/ops/events" &&
-        item.workflow.workflowClass === "read-only-state" &&
-        item.workflow.primaryControl.applicability === "not-applicable" &&
-        endpoint?.method === "GET" &&
-        endpoint.path === item.screenRoute &&
-        binding.schema === "media-server.v390-ui-navigation-trust-binding.v1" &&
+      const primaryAction = item.actions.find(action =>
+        action.actionId === primaryCompletion.actionId);
+      assert(binding.schema === "media-server.v390-ui-navigation-trust-binding.v1" &&
         binding.requestKind === "document-navigation" &&
-        binding.invocationId === `${item.caseId}:initial-document-navigation` &&
         binding.method === "GET" &&
-        binding.requestedPath === item.screenRoute &&
-        binding.expectedCanonicalRoute === item.screenRoute &&
         binding.exactRequestSequence === 1 &&
-        binding.correlationRequired === false &&
-        JSON.stringify(binding.caseLifecycleNavigationSequence) === JSON.stringify([
-          {
-            purpose: "initial-events-document",
-            method: "GET",
-            path: "/ops/events",
-            resourceType: "document",
-            sameOrigin: true,
-            correlationRequired: false,
-          },
-          {
-            purpose: "required-product-dashboard-dom",
-            method: "GET",
-            path: "/ops/dashboard",
-            resourceType: "document",
-            sameOrigin: true,
-            correlationRequired: false,
-          },
-        ]) &&
+        binding.correlationRequired === false,
+      `${item.caseId} navigation-bound primary completion drift`);
+      if (item.caseId === "EVT-004") {
+        assert(item.screenRoute === "/ops/events" &&
+          item.workflow.workflowClass === "read-only-state" &&
+          item.workflow.primaryControl.applicability === "not-applicable" &&
+          endpoint?.method === "GET" &&
+          endpoint.path === item.screenRoute &&
+          binding.invocationId === `${item.caseId}:initial-document-navigation` &&
+          binding.requestedPath === item.screenRoute &&
+          binding.expectedCanonicalRoute === item.screenRoute &&
+          binding.expectedObservedPath === item.screenRoute &&
+          binding.exactRedirectCount === 0 &&
+          binding.caseLifecycleNavigationSequence?.length === 2 &&
+          binding.caseLifecycleNavigationSequence.every(entry =>
+            entry.redirected === false && entry.responseStatus === 200) &&
         binding.authoritativeReadback?.source === "catalog-runtime-fresh-browser-fetch" &&
         binding.authoritativeReadback.actionId === primaryCompletion.actionId &&
         binding.authoritativeReadback.correlationId === primaryCompletion.correlationId &&
         binding.authoritativeReadback.method === "GET" &&
         binding.authoritativeReadback.urlPath ===
           "/ops/api/diagnostics/log-tail?limit=50",
-      `${item.caseId} navigation-bound read model completion drift`);
+        `${item.caseId} diagnostic navigation-bound read model completion drift`);
+      } else if (item.canonicalRoute === "/" && item.screenRoute === "/login") {
+        assert(binding.invocationId === `${item.caseId}:initial-document-navigation` &&
+          binding.requestedPath === "/" &&
+          binding.expectedCanonicalRoute === "/" &&
+          binding.expectedObservedPath === "/login" &&
+          binding.exactRedirectCount === 1 &&
+          binding.caseLifecycleNavigationSequence?.length === 2 &&
+          binding.caseLifecycleNavigationSequence[0]?.path === "/" &&
+          binding.caseLifecycleNavigationSequence[0]?.responseStatus === 302 &&
+          binding.caseLifecycleNavigationSequence[1]?.path === "/login" &&
+          binding.caseLifecycleNavigationSequence[1]?.redirected === true &&
+          binding.caseLifecycleNavigationSequence[1]?.responseStatus === 200 &&
+          binding.authoritativeReadback === null,
+        `${item.caseId} root redirect navigation binding drift`);
+      } else {
+        assert(["navigate", "navigate-negative"].includes(primaryAction?.kind) &&
+          binding.authoritativeReadback === null,
+        `${item.caseId} non-navigation primary unexpectedly uses navigation binding`);
+      }
     } else if (item.workflow.productAction.endpoint) {
       const endpoint = item.workflow.productAction.endpoint;
       assert(primaryCompletion.request.correlationId === primaryCompletion.correlationId &&
@@ -3369,6 +3393,7 @@ function sha256Text(value) {
 
 function buildActionSemanticCompletion({
   caseId,
+  canonicalRoute,
   screenRoute,
   action,
   negativeRoute = false,
@@ -3385,6 +3410,9 @@ function buildActionSemanticCompletion({
   const negative = action.kind === "navigate-negative" || (action.kind === "navigate" && negativeRoute);
   const initialNavigation = action.kind === "navigate" && !primary;
   const setupNavigation = action.kind === "navigate-action-route";
+  const documentNavigation = action.kind === "navigate" ||
+    setupNavigation ||
+    action.kind === "navigate-negative";
   const independent = action.kind === "verify-independent-readback";
   const phase = primary
     ? "primary-action"
@@ -3395,7 +3423,7 @@ function buildActionSemanticCompletion({
   let request = null;
   let localTransition = null;
   let navigationBinding = null;
-  const navigationBoundReadModel = caseId === "EVT-004" &&
+  const diagnosticNavigationBoundReadModel = caseId === "EVT-004" &&
     screenRoute === "/ops/events" &&
     workflowClass === "read-only-state" &&
     primaryControl.applicability === "not-applicable" &&
@@ -3407,18 +3435,85 @@ function buildActionSemanticCompletion({
     exactRuntimeOracle.requests[0]?.method === "GET" &&
     exactRuntimeOracle.requests[0]?.path ===
       "/ops/api/diagnostics/log-tail?limit=50";
-  if (navigationBoundReadModel && (primary || initialNavigation)) {
-    const authoritativeRequest = primary ? exactRuntimeOracle.requests[0] : null;
+  const rootRedirectNavigationBoundReadModel =
+    canonicalRoute === "/" &&
+    screenRoute === "/login" &&
+    workflowClass === "read-only-state" &&
+    primaryControl.applicability === "not-applicable" &&
+    productAction.kind === "product-state-read" &&
+    productAction.endpoint?.method === "GET" &&
+    productAction.endpoint.path === canonicalRoute &&
+    JSON.stringify(productAction.endpoint.allowedStatuses) === JSON.stringify([200, 302]);
+  const navigationBoundReadModel =
+    diagnosticNavigationBoundReadModel || rootRedirectNavigationBoundReadModel;
+  const rootRedirectLifecycle = [
+    {
+      purpose: "requested-root-document",
+      method: "GET",
+      path: "/",
+      resourceType: "document",
+      sameOrigin: true,
+      correlationRequired: false,
+      redirected: false,
+      responseStatus: 302,
+    },
+    {
+      purpose: "anonymous-login-document",
+      method: "GET",
+      path: "/login",
+      resourceType: "document",
+      sameOrigin: true,
+      correlationRequired: false,
+      redirected: true,
+      responseStatus: 200,
+    },
+  ];
+  if (documentNavigation) {
+    const requestedPath = setupNavigation || action.kind === "navigate-negative"
+      ? action.route
+      : (rootRedirectNavigationBoundReadModel ? canonicalRoute : screenRoute);
+    const expectedObservedPath = rootRedirectNavigationBoundReadModel && action.kind === "navigate"
+      ? screenRoute
+      : requestedPath;
+    navigationBinding = {
+      schema: "media-server.v390-ui-navigation-trust-binding.v1",
+      requestKind: "document-navigation",
+      invocationId: initialNavigation || (primary && action.kind === "navigate")
+        ? `${caseId}:initial-document-navigation`
+        : `${action.actionId}:document-navigation`,
+      method: "GET",
+      requestedPath,
+      expectedCanonicalRoute: requestedPath,
+      expectedObservedPath,
+      exactRequestSequence: 1,
+      exactRedirectCount: rootRedirectNavigationBoundReadModel && action.kind === "navigate" ? 1 : 0,
+      correlationRequired: false,
+      allowedStatuses: negative
+        ? [...(action.allowedStatuses || [404])]
+        : [200],
+      ...(rootRedirectNavigationBoundReadModel && action.kind === "navigate"
+        ? { caseLifecycleNavigationSequence: structuredClone(rootRedirectLifecycle) }
+        : {}),
+      authoritativeReadback: null,
+    };
+  }
+  if (navigationBoundReadModel && primary && !documentNavigation) {
+    const authoritativeRequest = diagnosticNavigationBoundReadModel
+      ? exactRuntimeOracle.requests[0]
+      : null;
     navigationBinding = {
       schema: "media-server.v390-ui-navigation-trust-binding.v1",
       requestKind: "document-navigation",
       invocationId: `${caseId}:initial-document-navigation`,
       method: "GET",
-      requestedPath: screenRoute,
-      expectedCanonicalRoute: screenRoute,
+      requestedPath: rootRedirectNavigationBoundReadModel ? canonicalRoute : screenRoute,
+      expectedCanonicalRoute: rootRedirectNavigationBoundReadModel ? canonicalRoute : screenRoute,
+      expectedObservedPath: screenRoute,
       exactRequestSequence: 1,
+      exactRedirectCount: rootRedirectNavigationBoundReadModel ? 1 : 0,
       correlationRequired: false,
-      ...(primary ? {
+      allowedStatuses: [200],
+      ...(diagnosticNavigationBoundReadModel ? {
         caseLifecycleNavigationSequence: [
           {
             purpose: "initial-events-document",
@@ -3427,6 +3522,8 @@ function buildActionSemanticCompletion({
             resourceType: "document",
             sameOrigin: true,
             correlationRequired: false,
+            redirected: false,
+            responseStatus: 200,
           },
           {
             purpose: "required-product-dashboard-dom",
@@ -3435,9 +3532,13 @@ function buildActionSemanticCompletion({
             resourceType: "document",
             sameOrigin: true,
             correlationRequired: false,
+            redirected: false,
+            responseStatus: 200,
           },
         ],
-      } : {}),
+      } : {
+        caseLifecycleNavigationSequence: structuredClone(rootRedirectLifecycle),
+      }),
       authoritativeReadback: authoritativeRequest ? {
         source: "catalog-runtime-fresh-browser-fetch",
         actionId: action.actionId,
@@ -3471,7 +3572,7 @@ function buildActionSemanticCompletion({
       path: screenRoute,
       allowedStatuses: [200],
     });
-  } else if (setupNavigation) {
+  } else if (setupNavigation && !navigationBinding) {
     request = actionRequestContract(correlationId, {
       method: "GET",
       path: action.route,

@@ -204,6 +204,9 @@ export function buildRequestCorrelationEvidence({
 export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } = {}) {
   navigation = navigation && typeof navigation === "object" ? navigation : {};
   const expectedPath = requestTarget(expected.requestedPath);
+  const expectedObservedPath = requestTarget(
+    expected.expectedObservedPath || expected.expectedCanonicalRoute,
+  );
   const observedPath = requestTarget(navigation.observedPath || navigation.url);
   const requestCandidateCount = Number(navigation.requestCandidateCount || 0);
   const responseCandidateCount = Number(navigation.responseCandidateCount || 0);
@@ -240,6 +243,10 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
           entry.sameOrigin === observed.sameOrigin &&
           entry.correlationRequired === false &&
           observed.correlationPresent !== true &&
+          (entry.redirected === undefined ||
+            entry.redirected === observed.redirected) &&
+          (entry.responseStatus === undefined ||
+            Number(entry.responseStatus) === Number(observed.responseStatus)) &&
           observed.responseBound === true;
       })
     : totalDocumentNavigationCount === 1;
@@ -281,7 +288,8 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
     failureCode = "NAVIGATION_METHOD_MISMATCH";
   } else if (!expectedPath ||
       requestTarget(expected.expectedCanonicalRoute) !== expectedPath ||
-      observedPath !== expectedPath ||
+      !expectedObservedPath ||
+      observedPath !== expectedObservedPath ||
       requestTarget(navigation.requestedPath) !== expectedPath) {
     failureCode = "NAVIGATION_ROUTE_MISMATCH";
   } else if (requestAttemptCount !== 1 ||
@@ -289,7 +297,7 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
       retryCount !== 0 ||
       additionalFetchCount !== 0) {
     failureCode = "NAVIGATION_REQUEST_REISSUED";
-  } else if (redirectCount !== 0) {
+  } else if (redirectCount !== Number(expected.exactRedirectCount || 0)) {
     failureCode = "NAVIGATION_REDIRECTED";
   } else if (requestCandidateCount !== 1) {
     failureCode = requestCandidateCount === 0
@@ -313,6 +321,7 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
     resourceType: String(navigation.resourceType || ""),
     sameOrigin: navigation.sameOrigin === true,
     requestedPath: expectedPath,
+    expectedObservedPath,
     observedPath,
     correlationRequired: false,
     correlationObserved: navigation.correlationObserved === true,
@@ -502,11 +511,28 @@ export function evaluateCompletionOracle({
     if (binding.count !== 1) return { ...base, reason: "completion-binding-ambiguous" };
   }
 
-  if (action.kind === "navigate" || action.kind === "navigate-negative") {
+  const actualKind = action.executedKind || action.kind;
+  if (actualKind === "navigate" || action.kind === "navigate-negative") {
     if (!navigation || !allowedStatuses.includes(Number(navigation.status))) {
       return { ...base, reason: "navigation-status-mismatch" };
     }
     if (action.kind === "navigate-negative") {
+      if (action.semanticCompletionRequired && action.expectedNavigationBinding) {
+        const navigationTrustEvidence = buildNavigationTrustEvidence({
+          navigation,
+          expected: action.expectedNavigationBinding,
+        });
+        if (!navigationTrustEvidence.pass) {
+          return { ...base, reason: navigationTrustEvidence.failureCode };
+        }
+        return {
+          ...base,
+          pass: true,
+          source: "negative-route-status",
+          reason: "",
+          navigationTrustEvidence,
+        };
+      }
       const requestMatch = action.semanticCompletionRequired
         ? findCorrelatedEndpoint(base.networkResponses, action, semanticReadback)
         : { match: null, reason: "" };
@@ -547,7 +573,6 @@ export function evaluateCompletionOracle({
     return { ...base, pass: true, source: "navigation-network-dom", reason: "" };
   }
 
-  const actualKind = action.executedKind || action.kind;
   if (action.semanticCompletionRequired) {
     const readbackReason = validateSemanticReadback(semanticReadback, action, actionBound);
     if (actionBound && action.expectedNavigationBinding) {
@@ -558,18 +583,26 @@ export function evaluateCompletionOracle({
       if (!navigationTrustEvidence.pass) {
         return { ...base, reason: navigationTrustEvidence.failureCode };
       }
-      const authoritativeReadback = catalogRuntimeAuthoritativeReadback(
-        semanticReadback,
-        action.expectedNavigationBinding.authoritativeReadback,
-      );
-      if (!authoritativeReadback.pass) {
-        return { ...base, reason: authoritativeReadback.reason };
+      const authoritativeContract =
+        action.expectedNavigationBinding.authoritativeReadback;
+      let authoritativeReadback = { pass: true, reason: "", evidence: null };
+      if (authoritativeContract) {
+        authoritativeReadback = catalogRuntimeAuthoritativeReadback(
+          semanticReadback,
+          authoritativeContract,
+        );
+        if (!authoritativeReadback.pass) {
+          return { ...base, reason: authoritativeReadback.reason };
+        }
       }
       if (!readbackReason) {
-        return allowedResult(base, action, "navigation-network-dom", {
+        const navigationResult = {
           navigationTrustEvidence,
-          authoritativeReadbackEvidence: authoritativeReadback.evidence,
-        });
+          ...(authoritativeReadback.evidence
+            ? { authoritativeReadbackEvidence: authoritativeReadback.evidence }
+            : {}),
+        };
+        return allowedResult(base, action, "navigation-network-dom", navigationResult);
       }
       const alternative = actionBoundAlternative(base, action, persistedReadback, eventRecord, serverLog);
       return alternative || { ...base, reason: readbackReason };

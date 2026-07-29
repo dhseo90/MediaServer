@@ -124,12 +124,13 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   }
   assert(exactRunnerSource.includes("buildRequestCorrelationEvidence") &&
     exactRunnerSource.includes("requestCorrelationEvidence") &&
-    exactRunnerSource.includes("navigationCorrelationId: item.actions[0].semanticCompletion.navigationBinding") &&
+    exactRunnerSource.includes('navigationCorrelationId: ""') &&
     exactRunnerSource.includes("navigationInvocationId: item.actions[0].semanticCompletion.navigationBinding"),
   "exact runner does not preserve application-fetch correlation evidence");
   assert(adapterSource.includes('await context.route("**/*"') &&
     adapterSource.includes("activeNavigationOperation?.allowCorrelation === true") &&
     adapterSource.includes('delete headers["x-media-server-correlation-id"]') &&
+    adapterSource.includes("allowCorrelation: false") &&
     !adapterSource.includes("context.setExtraHTTPHeaders"),
   "adapter does not keep correlation injection request/document scoped");
   assert(exactRunnerSource.includes("finalNavigation = await browser.close()") &&

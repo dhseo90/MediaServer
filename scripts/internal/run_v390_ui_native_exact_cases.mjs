@@ -385,16 +385,15 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   try {
     browser = await adapter.openPage({
       httpBase: options.httpBase,
-      pagePath: item.screenRoute,
+      pagePath: item.actions[0].semanticCompletion.navigationBinding?.requestedPath ||
+        item.screenRoute,
       timeoutMs: options.timeoutMs,
       width: item.viewport.width,
       height: item.viewport.height,
       storageStatePath,
       colorScheme: item.theme,
       caseId: item.caseId,
-      navigationCorrelationId: item.actions[0].semanticCompletion.navigationBinding?.correlationRequired === false
-        ? ""
-        : item.actions[0].semanticCompletion.correlationId,
+      navigationCorrelationId: "",
       navigationInvocationId: item.actions[0].semanticCompletion.navigationBinding?.invocationId || "",
       onRuntimeSecret: ({ kind, value }) =>
         caseRuntime.registerObservedSecret(item, caseContext, kind, value),
@@ -680,9 +679,12 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         } else if (action.kind === "navigate-negative") {
           const before = await browser.snapshot(item.controlAction.targetSelector);
           const networkStart = browser.networkEntries().length;
-          await browser.setCorrelationId(action.semanticCompletion.request.correlationId);
-          const observed = await browser.navigate(action.route);
-          await browser.setCorrelationId(`${item.caseId}:navigation`);
+          const navigationBinding = action.semanticCompletion.navigationBinding;
+          await browser.setCorrelationId("");
+          const observed = await browser.navigate(action.route, {
+            invocationId: navigationBinding.invocationId,
+            kind: "negative-document-navigation",
+          });
           assert(action.allowedStatuses.includes(observed.status),
             `${item.caseId} negative navigation status ${observed.status} not in ${action.allowedStatuses.join(",")}`);
           const after = await browser.snapshot("body");
@@ -1154,7 +1156,7 @@ async function executeVisualMatrix(adapter) {
         height: variant.height,
         storageStatePath,
         colorScheme: variant.theme,
-        navigationCorrelationId: `${id}:navigation`,
+        navigationCorrelationId: "",
       });
       const screenshotPath = path.join(visualMatrixDir, `${id}.png`);
       try {
@@ -2954,10 +2956,13 @@ async function executeWorkflowCleanup(browser, item, runtimeState, caseRuntimeOw
 async function executeCaseNativeNavigation(browser, item, action) {
   const before = await browser.snapshot("body");
   const networkStart = browser.networkEntries().length;
-  await browser.setCorrelationId(action.semanticCompletion.request.correlationId);
-  const observed = await browser.navigate(action.route);
-  await browser.setCorrelationId(`${item.caseId}:navigation`);
-  const allowedStatuses = action.semanticCompletion.request.allowedStatuses;
+  const navigationBinding = action.semanticCompletion.navigationBinding;
+  await browser.setCorrelationId("");
+  const observed = await browser.navigate(action.route, {
+    invocationId: navigationBinding.invocationId,
+    kind: "setup-document-navigation",
+  });
+  const allowedStatuses = navigationBinding.allowedStatuses;
   assert(allowedStatuses.includes(observed.status),
     `${item.caseId} action-route navigation status ${observed.status} not in ${allowedStatuses.join(",")}`);
   const after = await browser.snapshot("body");

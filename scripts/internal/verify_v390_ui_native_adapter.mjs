@@ -66,18 +66,21 @@ try {
   server = await startReproductionServer();
   const address = server.address();
   const httpBase = `http://127.0.0.1:${address.port}`;
-  const navigationCorrelationId = "NATIVE-ADAPTER:navigation";
   page = await adapter.openPage({
     httpBase,
     pagePath: "/",
     timeoutMs: 15000,
     width: 720,
     height: 640,
-    navigationCorrelationId,
+    navigationCorrelationId: "",
   });
   const navigationEntry = page.networkEntries().find(entry =>
-    entry.correlationId === navigationCorrelationId && new URL(entry.url).pathname === "/");
-  assert(navigationEntry?.correlationSource === "request-header", "navigation request header correlation missing");
+    entry.phase === "request-start" &&
+    entry.requestKind === "document-navigation" &&
+    new URL(entry.url).pathname === "/");
+  assert(navigationEntry?.correlationSource === "none" &&
+    navigationEntry.correlationId === "",
+  "document navigation unexpectedly contains application correlation");
   assert(navigationEntry?.requestId && navigationEntry.method === "GET" && navigationEntry.status === 200,
     "navigation request identity/method/status mismatch");
   navigationCorrelation = navigationEntry;

@@ -6754,6 +6754,37 @@ match이고 feature/pass/status/sourceFlowDigest 변경은 모두 0이므로 gen
 변경하지 않았습니다. 이 정적 checkpoint에서 actual은 미실행이며 clean commit/push 뒤
 EVT-004 단건을 정확히 1회 실행합니다.
 
+UI-001 document navigation/correlation mode 보정(2026-07-30)은 generic initial
+`navigate`가 EVT-004 한 건을 제외하고 모두 correlated application `requestBinding`으로
+생성되던 경계를 닫습니다. UI-001은 canonical `GET /`의 302 `/login` redirect와 최종
+`GET /login` 200을 exact `navigationBinding` ledger로 검증하며 document request에는
+correlation header를 주입하지 않습니다. 허용되지 않은 target/status, 추가
+reload/retry/reissue, document correlation은 fail-closed입니다. 전체 canonical 424건의
+모든 document action을 감사한 결과 기존 initial navigate 423건, setup navigate 9건,
+negative navigate 2건이 request mode였고, 총 435개 document action을 공통
+navigation abstraction으로 재분류했습니다. Primary completion mode는
+request/navigation/local `391/5/28`이며 중복·누락은 0입니다. Primary navigation case는
+`UI-001`, `UI-018`, `EVT-004`, `SAFE-016`, `SAFE-017`이고 API fetch의
+navigation 오분류는 0입니다. EVT-004의 `/ops/events`→`/ops/dashboard` ledger,
+log-tail request identity/correlation, marker lifecycle은 그대로 유지합니다.
+Diagnostic 15/15, runtime 39/39, event 23/23, evaluator 17/17, native 40/40,
+completion 34/34, adapter 20/20, acceptance 21/21, final integrity 12/12,
+semantic audit 51/51·approval 986/986, approval negative 11/11, migration,
+feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0과 changed MJS 8/JSON 4 syntax 및
+diff gate가 PASS했습니다. Source-built/stored binding drift를 확인한 뒤 공식 native
+generator를 정확히 1회 실행했고, candidate
+`678facc450219d02db3ceb1990f9eef76ddcdf68977ed2911f613e8e2b2b56d9`의
+feature/pass/status 변경은 0입니다. Verifier source SHA에 따른 UI-018 sourceFlow 한
+행만 독립 검토해 985 carry-forward+1 independent로 producer를 정확히 1회 실행했으며
+migration/review/decision SHA는
+`0aaf869afd609382f77df2c90ce22736e2d2ec40a0081cef3a234490eaa753f7`/
+`13ab85228d1743515c8304830d195a7438b57a407f85f79f3ba3c164ac697ec3`/
+`74aea2c944850a650e9fea60241e0284afead41da34b9ff1eca373485f55cb36`입니다.
+제품 route·role·viewport·theme·control projection과 C++·API schema·UI는 변경하지
+않았습니다. 이 정적 checkpoint에서 actual UI-001은 미실행이며 clean commit/push 뒤
+단건 diagnostic을 정확히 1회 실행합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

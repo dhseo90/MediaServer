@@ -3952,7 +3952,7 @@
           "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
           "symbol": "negative-route-oracle:UI-018",
           "anchor": "assert(JSON.stringify(item.oracle.allowedStatuses) === JSON.stringify([404]), \"UI-018 must accept exactly status 404\");",
-          "line": 589,
+          "line": 639,
           "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
         },
         "verifier": {
@@ -3994,14 +3994,14 @@
           "kind": "structural-producer-assertion",
           "witness": "the unmatched-route 404 producer is bound to the exact UI-018 negative status oracle",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:4967",
-          "target": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:589"
+          "target": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:639"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-ui-native-exact-cases-contract",
-          "source": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:589",
+          "source": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:639",
           "target": "server.sh:2343"
         }
       ],
@@ -4051,7 +4051,7 @@
           "sha256": "a07299ae9edbc3ed6cd247785383c48072eeba409eb86d7bd767264665cb36ff"
         }
       },
-      "sourceFlowDigest": "f374e85e333fd8a2d3aeb30d5f9a54daff383f571acd7eba1e67a002e7b59178",
+      "sourceFlowDigest": "2954b4806f22d745011a28a7f6c3f3b6593eb27cad0951df61d42d46918a1549",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -4094,10 +4094,10 @@
           "readback": {
             "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
             "symbol": "negative-route-oracle:UI-018",
-            "trackedBlobSha256": "073f3fca8fc6fbefb48e29d558726aa6e2e2127510a4f8dedd225a2f98d630b6",
+            "trackedBlobSha256": "21a3be4e4b831ebe56e6707e167e5a0240a262c6a206914b46e84bfcdc09e8e4",
             "enclosingBodySha256": "921631115ed367215c0b7738f8fc3e64ec1184f87686dbc717424f2f273b6bb7",
-            "enclosingBodyStartLine": 583,
-            "enclosingBodyEndLine": 598,
+            "enclosingBodyStartLine": 633,
+            "enclosingBodyEndLine": 648,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -4109,7 +4109,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "073f3fca8fc6fbefb48e29d558726aa6e2e2127510a4f8dedd225a2f98d630b6",
+        "verifierFileSha256": "21a3be4e4b831ebe56e6707e167e5a0240a262c6a206914b46e84bfcdc09e8e4",
         "dispatch": {
           "command": "verify-v390-ui-native-exact-cases-contract",
           "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
@@ -235277,5 +235277,5 @@
       }
     }
   ],
-  "candidateDigest": "1bbc5bcc68ba954d50b445f7db56292e718e58105c13be97203de4b345c16bd1"
+  "candidateDigest": "678facc450219d02db3ceb1990f9eef76ddcdf68977ed2911f613e8e2b2b56d9"
 }
