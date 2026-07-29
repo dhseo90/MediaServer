@@ -16,6 +16,9 @@ import {
   buildNativeExactManifest,
   validateNativeExactManifest,
 } from "./v390_ui_native_exact_cases_lib.mjs";
+import {
+  validateEvt004LifecycleEvidence,
+} from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import { validateEventDomSemanticCompositeEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -155,6 +158,10 @@ for (const [selectionIndex, item] of selection.entries()) {
         childSummary?.case?.requestCorrelationScopeEvidence || null,
       navigationLifecycleEvidence:
         childSummary?.case?.navigationLifecycleEvidence || null,
+      markerEvidence: childSummary?.case?.markerEvidence || null,
+      markerEvidenceLifecycle:
+        childSummary?.case?.markerEvidenceLifecycle || null,
+      cleanupAttestation: childSummary?.case?.cleanupAttestation || null,
       childExitCode: child.exitCode,
       environmentContamination: contaminated || secretScan.status !== "PASS",
       childCleanupFailure: childSummary?.environmentContamination?.cleanupFailure === true,
@@ -484,6 +491,19 @@ function validateChildSummary(summary, item) {
     assert(evidence.schema === "media-server.v390-ui-request-correlation-evidence.v1" &&
       typeof evidence.pass === "boolean" &&
       evidence.requestKind === "application-fetch" &&
+      typeof evidence.expectedCorrelationDigest === "string" &&
+      typeof evidence.initiatingRequestCorrelationDigest === "string" &&
+      typeof evidence.responseRequestCorrelationDigest === "string" &&
+      typeof evidence.caseRequestIdentity === "string" &&
+      (evidence.caseRequestSequence === null ||
+        Number.isInteger(evidence.caseRequestSequence)) &&
+      typeof evidence.responseRequestObjectObserved === "boolean" &&
+      typeof evidence.responseRequestMethod === "string" &&
+      typeof evidence.responseRequestPath === "string" &&
+      typeof evidence.responseRequestHeaderDigest === "string" &&
+      Number.isInteger(evidence.responseStatus) &&
+      typeof evidence.responseEchoHeaderRequired === "boolean" &&
+      typeof evidence.responseEchoHeaderObserved === "boolean" &&
       typeof evidence.failureCode === "string",
     "diagnostic child request correlation evidence is invalid");
   }
@@ -494,6 +514,7 @@ function validateChildSummary(summary, item) {
       evidence.requestKind === "application-fetch" &&
       Number.isInteger(evidence.logTailRequestCount) &&
       Number.isInteger(evidence.correlationLeakRequestCount) &&
+      Array.isArray(evidence.orderedLedger) &&
       typeof evidence.failureCode === "string",
     "diagnostic child request correlation scope evidence is invalid");
   }
@@ -507,6 +528,28 @@ function validateChildSummary(summary, item) {
       Number.isInteger(evidence.navigationAfterListenerEndCount) &&
       typeof evidence.failureCode === "string",
     "diagnostic child navigation lifecycle evidence is invalid");
+  }
+  if (summary.case?.markerEvidenceLifecycle) {
+    assert(["reached", "not-reached"].includes(summary.case.markerEvidenceLifecycle.phase),
+      "diagnostic child marker lifecycle evidence is invalid");
+  }
+  if (summary.case?.cleanupAttestation) {
+    const evidence = summary.case.cleanupAttestation;
+    assert(evidence.schema === "media-server.v390-ui-case-cleanup-attestation.v1" &&
+      typeof evidence.pass === "boolean" &&
+      typeof evidence.primaryFailurePresent === "boolean" &&
+      typeof evidence.primaryFailurePreserved === "boolean" &&
+      typeof evidence.caseRuntimeRestored === "boolean" &&
+      typeof evidence.browserCloseAttempted === "boolean" &&
+      typeof evidence.browserContextClosed === "boolean" &&
+      Number.isInteger(evidence.cleanupEntryCount) &&
+      typeof evidence.failureCode === "string",
+    "diagnostic child cleanup attestation is invalid");
+  }
+  if (item.caseId === "EVT-004" && summary.case.actualBrowserExecution === true) {
+    const lifecycleErrors = validateEvt004LifecycleEvidence(summary.case);
+    assert(lifecycleErrors.length === 0,
+      `EVT-004 lifecycle evidence invalid: ${lifecycleErrors.join(",")}`);
   }
   assert(!/(?:https?|rtsp|rtsps):\/\//i.test(String(summary.case?.failureDetail || "")),
     "diagnostic child failure detail contains a raw URL");

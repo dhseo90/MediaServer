@@ -8,9 +8,12 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
+  bindFixtureResponseToInitiatingRequest,
+  bindPlaywrightResponseToInitiatingRequest,
   buildLiveSessionEvidence,
   captureClientLiveSessionResponseProjection,
   captureEndpointOwnedResponseProjection,
+  createCaseOwnedRequestIdentityRegistry,
   formatSafeResponseReadFailure,
   nativeCapabilities,
   resolvePlaywrightModule,
@@ -82,6 +85,19 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   for (const snippet of ["x-media-server-correlation-id", "requestId", "correlationSource", "setCorrelationId"]) {
     assert(adapterSource.includes(snippet), `adapter correlation source missing ${snippet}`);
   }
+  for (const snippet of [
+    "caseRequestIdentity",
+    "caseRequestSequence",
+    '"playwright-response-request"',
+    "responseRequestObjectObserved: Boolean(initiatingRequest)",
+    '"initiating-request-identity"',
+    '"not-required"',
+    "pendingRequests.get(request)",
+  ]) {
+    assert(adapterSource.includes(snippet), `adapter exact response request binding missing ${snippet}`);
+  }
+  assert(!adapterSource.includes('response.headers()["x-media-server-correlation-id"]'),
+    "adapter invents a response correlation echo contract");
   for (const snippet of ["page.on(\"request\"", "pendingRequests", "correlatedEntryCount", "entry.correlationId === correlationId"]) {
     assert(adapterSource.includes(snippet), `adapter action-window source missing ${snippet}`);
   }
@@ -133,6 +149,84 @@ check("adapter exposes native wait click fill type select screenshot", () => {
     adapterSource.includes("if (!closePromise)") &&
     adapterSource.includes("return closePromise"),
   "adapter browser close is not a single idempotent lifecycle boundary");
+});
+
+check("Playwright response events bind only to the exact initiating request object", () => {
+  const firstRequest = {};
+  const secondRequest = {};
+  const registry = createCaseOwnedRequestIdentityRegistry({
+    caseId: "EVT-004",
+  });
+  const firstIdentity = registry.registerPlaywrightRequest(firstRequest);
+  const secondIdentity = registry.registerPlaywrightRequest(secondRequest);
+  const pendingRequests = new Map([
+    [firstRequest, firstIdentity],
+    [secondRequest, secondIdentity],
+  ]);
+  const firstBinding = bindPlaywrightResponseToInitiatingRequest(
+    { request: () => firstRequest },
+    pendingRequests,
+    registry,
+  );
+  const secondBinding = bindPlaywrightResponseToInitiatingRequest(
+    { request: () => secondRequest },
+    pendingRequests,
+    registry,
+  );
+  const missingBinding = bindPlaywrightResponseToInitiatingRequest(
+    { request: () => ({}) },
+    pendingRequests,
+    registry,
+  );
+  assert(firstBinding.request === firstRequest &&
+    firstBinding.initiatingRequest === firstIdentity &&
+    secondBinding.request === secondRequest &&
+    secondBinding.initiatingRequest === secondIdentity,
+  "response event did not retain exact Playwright request object identity");
+  assert(missingBinding.initiatingRequest === null,
+    "method/path-equivalent request object was accepted without identity");
+});
+
+check("fixture responses use an exact opaque initiating request handle", () => {
+  const registry = createCaseOwnedRequestIdentityRegistry({
+    caseId: "EVT-004",
+    requestIdPrefix: "fixture-request",
+  });
+  const firstHandle = {};
+  const otherHandle = {};
+  const firstIdentity = registry.registerFixtureRequestHandle(firstHandle);
+  const otherIdentity = registry.registerFixtureRequestHandle(otherHandle);
+  const exact = bindFixtureResponseToInitiatingRequest(
+    { initiatingRequestHandle: firstHandle },
+    registry,
+  );
+  const wrong = bindFixtureResponseToInitiatingRequest(
+    { initiatingRequestHandle: {} },
+    registry,
+  );
+  const missing = bindFixtureResponseToInitiatingRequest({}, registry);
+  assert(firstIdentity.caseRequestIdentity === "EVT-004:request-1" &&
+    firstIdentity.caseRequestSequence === 1 &&
+    otherIdentity.caseRequestIdentity === "EVT-004:request-2" &&
+    otherIdentity.caseRequestSequence === 2 &&
+    exact.initiatingRequest === firstIdentity,
+  "fixture response did not resolve the registered initiating handle");
+  assert(wrong.initiatingRequest === null && missing.initiatingRequest === null,
+    "fixture response accepted a different or missing initiating handle");
+  let duplicateRejected = false;
+  try {
+    registry.registerFixtureRequestHandle(firstHandle);
+  } catch (error) {
+    duplicateRejected = error?.message === "duplicate fixture request handle";
+  }
+  assert(duplicateRejected, "duplicate fixture request handle was accepted");
+  let stringRejected = false;
+  try {
+    registry.registerFixtureRequestHandle("arbitrary-request-id");
+  } catch (error) {
+    stringRejected = error?.message?.includes("opaque object handle");
+  }
+  assert(stringRejected, "arbitrary string request ID was trusted as fixture identity");
 });
 
 check("whoami observation keeps setup-required and unauthorized sessions anonymous", () => {

@@ -34,6 +34,15 @@ import {
   sha256File,
 } from "./evidence_integrity_lib.mjs";
 import {
+  buildCaseCleanupAttestation,
+  buildFallbackFailureLifecycleEvidence,
+  buildFailureLifecycleEvidence,
+  captureBoundedCorrelationWindow,
+  closeBrowserForFailureLifecycle,
+  finalizeFailedCaseLifecycle,
+  validateEvt004LifecycleEvidence,
+} from "./v390_ui_diagnostic_lifecycle_lib.mjs";
+import {
   executeCatalogRuntimeOracle,
   executeCatalogRuntimeOracleAtSourceRoute,
   isExistingSpecializedExactOracle,
@@ -378,6 +387,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       height: item.viewport.height,
       storageStatePath,
       colorScheme: item.theme,
+      caseId: item.caseId,
       navigationCorrelationId: item.actions[0].semanticCompletion.navigationBinding?.correlationRequired === false
         ? ""
         : item.actions[0].semanticCompletion.correlationId,
@@ -421,7 +431,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   let primaryFailure = null;
   let cleanupFailure = null;
   let browserCloseFailure = null;
+  let lifecycleFinalizationFailure = null;
   let browserCloseAttempted = false;
+  let failureLifecycleEvidence = null;
   try {
     await executeWorkflowSetup(item, storageStatePath, roleStateMap, caseRuntime, caseContext, trace);
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
@@ -812,6 +824,19 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       requestCorrelationEvidence: runtimeState.get("__requestCorrelationEvidence") || null,
       requestCorrelationScopeEvidence:
         runtimeState.get("__requestCorrelationScopeEvidence") || null,
+      markerEvidence:
+        runtimeState.get("__eventDomSemanticEvidence")?.markerFlow || null,
+      markerEvidenceLifecycle: runtimeState.get("__eventDomSemanticEvidence")?.markerFlow
+        ? { phase: "reached" }
+        : { phase: "not-reached" },
+      cleanupAttestation: buildCaseCleanupAttestation({
+        primaryFailure: null,
+        cleanupFailure: null,
+        browserCloseFailure: null,
+        browserCloseAttempted,
+        caseRuntimeRestored: runtimeState.has("__caseRuntimeRestored"),
+        cleanupEntries: trace.cleanup,
+      }),
       oracleSeed: item.oracle,
       completionOracle: trace.completionEvents,
       screenshotPath,
@@ -821,38 +846,122 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     };
   } catch (error) {
     primaryFailure = error;
+    const correlationWindow = runtimeState.get("__requestCorrelationWindow");
+    if (correlationWindow && !Number.isInteger(correlationWindow.networkEnd)) {
+      runtimeState.set("__requestCorrelationWindow", {
+        ...correlationWindow,
+        networkEnd: browser.networkEntries().length,
+      });
+    }
   } finally {
-    if (!runtimeState.has("__caseRuntimeRestored")) {
-      try {
+    const finalized = await finalizeFailedCaseLifecycle({
+      primaryFailure,
+      captureEvidence: () => {
+        const entries = browser.networkEntries();
+        const correlationWindow = runtimeState.get("__requestCorrelationWindow") || null;
+        const closedWindow = correlationWindow
+          ? { ...correlationWindow, networkEnd: entries.length }
+          : null;
+        if (closedWindow) {
+          runtimeState.set("__requestCorrelationWindow", closedWindow);
+        }
+        return captureBoundedCorrelationWindow({
+          entries,
+          window: closedWindow,
+        });
+      },
+      restoreCase: async () => {
+        if (runtimeState.has("__caseRuntimeRestored")) return;
         const cleanupResults = await caseRuntime.restoreCase(item, caseContext, browser);
         trace.cleanup.push(...cleanupResults.map(result => ({ ...result, status: "PASS", fallbackAfterFailure: true })));
         runtimeState.set("__caseRuntimeRestored", true);
-      } catch (error) {
-        cleanupFailure = error;
-      }
+      },
+      closeBrowser: async () => {
+        browserCloseAttempted = true;
+        return closeBrowserForFailureLifecycle({ browser, trace });
+      },
+      finalizeEvidence: ({
+        primaryFailure: preservedPrimaryFailure,
+        cleanupFailure: finalCleanupFailure,
+        browserCloseFailure: finalBrowserCloseFailure,
+        finalNavigation,
+        capturedEvidence,
+      }) => {
+        if (finalNavigation) trace.navigation = structuredClone(finalNavigation);
+        return buildFailureLifecycleEvidence({
+          item,
+          trace,
+          runtimeState,
+          primaryFailure: preservedPrimaryFailure,
+          cleanupFailure: finalCleanupFailure,
+          browserCloseFailure: finalBrowserCloseFailure,
+          browserCloseAttempted,
+          capturedCorrelationWindow: capturedEvidence,
+        });
+      },
+    });
+    cleanupFailure ||= finalized.cleanupFailure;
+    browserCloseFailure ||= finalized.browserCloseFailure;
+    lifecycleFinalizationFailure ||= finalized.lifecycleFinalizationFailure;
+    failureLifecycleEvidence = finalized.failureLifecycleEvidence ||
+      buildFallbackFailureLifecycleEvidence({
+        primaryFailure,
+        cleanupFailure,
+        browserCloseFailure,
+        browserCloseAttempted,
+        caseRuntimeRestored: runtimeState.has("__caseRuntimeRestored"),
+        cleanupEntries: trace.cleanup,
+        navigation: trace.navigation,
+      });
+    if (caseResult && failureLifecycleEvidence) {
+      caseResult.navigationLifecycleEvidence =
+        structuredClone(failureLifecycleEvidence.navigationLifecycleEvidence);
+      caseResult.requestCorrelationScopeEvidence =
+        structuredClone(failureLifecycleEvidence.requestCorrelationScopeEvidence);
+      caseResult.markerEvidence =
+        structuredClone(failureLifecycleEvidence.markerEvidence);
+      caseResult.markerEvidenceLifecycle =
+        structuredClone(failureLifecycleEvidence.markerEvidenceLifecycle);
+      caseResult.cleanupAttestation =
+        structuredClone(failureLifecycleEvidence.cleanupAttestation);
+      trace.failureLifecycleEvidence = structuredClone(failureLifecycleEvidence);
     }
-    if (!browserCloseAttempted) {
-      browserCloseAttempted = true;
+    if (primaryFailure || cleanupFailure || browserCloseFailure ||
+        lifecycleFinalizationFailure) {
+      trace.failureLifecycleEvidence = structuredClone(failureLifecycleEvidence);
       try {
-        trace.navigation = await browser.close();
+        writeJson(consolePath, {
+          schema: "media-server.v390-ui-native-browser-console.v1",
+          caseId: item.caseId,
+          entries: browser.consoleEntries(),
+        });
+        writeJson(tracePath, trace);
       } catch (error) {
-        browserCloseFailure = error;
-        if (error?.navigationLifecycleEvidence) {
-          trace.navigation = structuredClone(error.navigationLifecycleEvidence);
-        }
+        cleanupFailure ||= error;
+        failureLifecycleEvidence.cleanupAttestation = buildCaseCleanupAttestation({
+          primaryFailure,
+          cleanupFailure,
+          browserCloseFailure,
+          browserCloseAttempted,
+          caseRuntimeRestored: runtimeState.has("__caseRuntimeRestored"),
+          cleanupEntries: trace.cleanup,
+        });
       }
     }
   }
-  if (primaryFailure || cleanupFailure || browserCloseFailure) {
+  if (primaryFailure || cleanupFailure || browserCloseFailure ||
+      lifecycleFinalizationFailure) {
     throw caseExecutionFailure(item.caseId, {
       primaryFailure,
       cleanupFailure,
       browserCloseFailure,
+      lifecycleFinalizationFailure,
       artifactPaths: { screenshotPath, tracePath, consolePath },
       requestedObserved: runtimeState.get("__requestedObservedEnvelope") || {
         requested,
         observed: null,
       },
+      failureLifecycleEvidence,
     });
   }
   assert(caseResult, `${item.caseId} completed without a result`);
@@ -865,8 +974,10 @@ function caseExecutionFailure(
     primaryFailure,
     cleanupFailure,
     browserCloseFailure,
+    lifecycleFinalizationFailure,
     artifactPaths = {},
     requestedObserved = null,
+    failureLifecycleEvidence = null,
   },
 ) {
   const messageFor = value => value instanceof Error ? value.message : (value ? String(value) : "");
@@ -874,11 +985,17 @@ function caseExecutionFailure(
     primaryFailure ? `primary=${messageFor(primaryFailure)}` : "",
     cleanupFailure ? `cleanup=${messageFor(cleanupFailure)}` : "",
     browserCloseFailure ? `browser-close=${messageFor(browserCloseFailure)}` : "",
+    lifecycleFinalizationFailure
+      ? `lifecycle-finalization=${messageFor(lifecycleFinalizationFailure)}`
+      : "",
   ].filter(Boolean);
   const error = new Error(`${caseId} native execution failed: ${parts.join("; ")}`);
   error.primaryFailure = primaryFailure ? { message: messageFor(primaryFailure) } : null;
   error.cleanupFailure = cleanupFailure ? { message: messageFor(cleanupFailure) } : null;
   error.browserCloseFailure = browserCloseFailure ? { message: messageFor(browserCloseFailure) } : null;
+  error.lifecycleFinalizationFailure = lifecycleFinalizationFailure
+    ? { message: messageFor(lifecycleFinalizationFailure) }
+    : null;
   error.partialArtifacts = Object.fromEntries(Object.entries({
     screenshotPath: artifactPaths.screenshotPath,
     tracePath: artifactPaths.tracePath,
@@ -905,6 +1022,19 @@ function caseExecutionFailure(
   if (primaryFailure?.navigationLifecycleEvidence) {
     error.partialArtifacts.navigationLifecycleEvidence =
       structuredClone(primaryFailure.navigationLifecycleEvidence);
+  }
+  if (failureLifecycleEvidence) {
+    for (const key of [
+      "navigationLifecycleEvidence",
+      "requestCorrelationScopeEvidence",
+      "markerEvidence",
+      "markerEvidenceLifecycle",
+      "cleanupAttestation",
+    ]) {
+      if (Object.hasOwn(failureLifecycleEvidence, key)) {
+        error.partialArtifacts[key] = structuredClone(failureLifecycleEvidence[key]);
+      }
+    }
   }
   return error;
 }
@@ -2340,7 +2470,17 @@ async function semanticAssertionResult(
   let requestCorrelationEvidence = null;
   const catalogObservation = isExistingSpecializedExactOracle(item)
     ? null
-    : await executeCatalogRuntimeOracleAtSourceRoute({
+    : await (async () => {
+      if (item.caseId === "EVT-004") {
+        runtimeState.set("__requestCorrelationWindow", {
+          networkStart,
+          correlationId: completion.correlationId,
+          actionId: completion.actionId,
+          method: "GET",
+          urlPath: "/ops/api/diagnostics/log-tail?limit=50",
+        });
+      }
+      return executeCatalogRuntimeOracleAtSourceRoute({
         browser,
         item,
         fixtureId: caseContext?.fixtureId || exactFixtureId(item),
@@ -2349,6 +2489,14 @@ async function semanticAssertionResult(
         correlationId: completion.correlationId,
         catalogBindings: caseContext?.catalogBindings || null,
       });
+    })();
+  if (item.caseId === "EVT-004") {
+    const correlationWindow = runtimeState.get("__requestCorrelationWindow");
+    runtimeState.set("__requestCorrelationWindow", {
+      ...correlationWindow,
+      networkEnd: browser.networkEntries().length,
+    });
+  }
   if (catalogObservation) {
     exactObserved = { ...observed, exactRuntimeOracle: catalogObservation };
     requestCorrelationEvidence = catalogObservation.responses
@@ -2468,6 +2616,7 @@ async function semanticAssertionResult(
           entries: browser.networkEntries().slice(networkStart),
           actionId: completion.actionId,
           expected: {
+            caseId: item.caseId,
             method: completion.request.method,
             urlPath: completion.request.urlPath,
             correlationId: completion.correlationId,
@@ -3197,6 +3346,9 @@ function createDiagnosticChildSummary({
       requestCorrelationEvidence: resultItem.requestCorrelationEvidence || null,
       requestCorrelationScopeEvidence: resultItem.requestCorrelationScopeEvidence || null,
       navigationLifecycleEvidence: resultItem.navigationLifecycleEvidence || null,
+      markerEvidence: resultItem.markerEvidence || null,
+      markerEvidenceLifecycle: resultItem.markerEvidenceLifecycle || null,
+      cleanupAttestation: resultItem.cleanupAttestation || null,
       diagnosticArtifacts: resultItem.diagnosticArtifacts || {},
     } : {
       caseId: item.caseId,
@@ -3211,6 +3363,9 @@ function createDiagnosticChildSummary({
       requestCorrelationEvidence: null,
       requestCorrelationScopeEvidence: null,
       navigationLifecycleEvidence: null,
+      markerEvidence: null,
+      markerEvidenceLifecycle: null,
+      cleanupAttestation: null,
       diagnosticArtifacts: {},
     },
     environmentContamination: {
@@ -3256,6 +3411,9 @@ function createDiagnosticPreExecutionSummary(caseId, phase) {
       requestCorrelationEvidence: null,
       requestCorrelationScopeEvidence: null,
       navigationLifecycleEvidence: null,
+      markerEvidence: null,
+      markerEvidenceLifecycle: null,
+      cleanupAttestation: null,
       diagnosticArtifacts: {},
     },
     environmentContamination: {
@@ -3317,6 +3475,19 @@ function validateDiagnosticChildSummary(summary, item) {
         typeof evidence.correlationAttached !== "boolean" ||
         typeof evidence.correlationObserved !== "boolean" ||
         typeof evidence.correlationMatched !== "boolean" ||
+        typeof evidence.expectedCorrelationDigest !== "string" ||
+        typeof evidence.initiatingRequestCorrelationDigest !== "string" ||
+        typeof evidence.responseRequestCorrelationDigest !== "string" ||
+        typeof evidence.caseRequestIdentity !== "string" ||
+        !(evidence.caseRequestSequence === null ||
+          Number.isInteger(evidence.caseRequestSequence)) ||
+        typeof evidence.responseRequestObjectObserved !== "boolean" ||
+        typeof evidence.responseRequestMethod !== "string" ||
+        typeof evidence.responseRequestPath !== "string" ||
+        typeof evidence.responseRequestHeaderDigest !== "string" ||
+        !Number.isInteger(evidence.responseStatus) ||
+        typeof evidence.responseEchoHeaderRequired !== "boolean" ||
+        typeof evidence.responseEchoHeaderObserved !== "boolean" ||
         !Number.isInteger(evidence.requestCandidateCount) ||
         !Number.isInteger(evidence.matchedRequestCount) ||
         !Number.isInteger(evidence.responseCandidateCount) ||
@@ -3331,6 +3502,7 @@ function validateDiagnosticChildSummary(summary, item) {
         evidence.requestKind !== "application-fetch" ||
         !Number.isInteger(evidence.logTailRequestCount) ||
         !Number.isInteger(evidence.correlationLeakRequestCount) ||
+        !Array.isArray(evidence.orderedLedger) ||
         typeof evidence.failureCode !== "string") {
       errors.push("diagnostic-child-request-correlation-scope-evidence");
     }
@@ -3346,6 +3518,28 @@ function validateDiagnosticChildSummary(summary, item) {
         typeof evidence.failureCode !== "string") {
       errors.push("diagnostic-child-navigation-lifecycle-evidence");
     }
+  }
+  if (summary?.case?.markerEvidenceLifecycle &&
+      !["reached", "not-reached"].includes(summary.case.markerEvidenceLifecycle.phase)) {
+    errors.push("diagnostic-child-marker-evidence-lifecycle");
+  }
+  if (summary?.case?.cleanupAttestation) {
+    const evidence = summary.case.cleanupAttestation;
+    if (evidence.schema !== "media-server.v390-ui-case-cleanup-attestation.v1" ||
+        typeof evidence.pass !== "boolean" ||
+        typeof evidence.primaryFailurePresent !== "boolean" ||
+        typeof evidence.primaryFailurePreserved !== "boolean" ||
+        typeof evidence.caseRuntimeRestored !== "boolean" ||
+        typeof evidence.browserCloseAttempted !== "boolean" ||
+        typeof evidence.browserContextClosed !== "boolean" ||
+        !Number.isInteger(evidence.cleanupEntryCount) ||
+        typeof evidence.failureCode !== "string") {
+      errors.push("diagnostic-child-cleanup-attestation");
+    }
+  }
+  if (item.caseId === "EVT-004" && summary?.case?.actualBrowserExecution === true) {
+    errors.push(...validateEvt004LifecycleEvidence(summary.case)
+      .map(code => `diagnostic-child-${code}`));
   }
   return errors;
 }

@@ -571,6 +571,11 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
     "throwaway role secret source must be the acceptance generator");
   assert(summary.uiEnvironment?.roleSecretLifecycle === "fixture-not-generated",
     "fixture must not claim actual role secret generation");
+  assert(summary.uiBuildBinding?.fixtureMode === true &&
+    summary.uiBuildBinding?.bindingKind === "tracked-fixture-fingerprint" &&
+    summary.uiBuildBinding?.buildPath ===
+      path.join(rootDir, "test/fixtures/v390_ui_native_exact_cases.json"),
+  "fixture build binding must use only the tracked native-case manifest");
   assert(!JSON.stringify(summary).includes("fixture-password-value"),
     "acceptance summary serialized a fixture password");
   assert(summary.stages.find(item => item.id === "ui-fulltest-qualification")?.status === "PASS",
@@ -645,6 +650,9 @@ check("standalone UI suite builds the current source before bootstrap and binds 
     "UI build binding did not retain the current source worktree fingerprint");
   assert(buildStage.details.uiBuildBinding?.buildSha256?.match(/^[a-f0-9]{64}$/),
     "UI build binding did not retain the built binary hash");
+  assert(buildStage.details.uiBuildBinding?.bindingKind ===
+    "tracked-fixture-fingerprint",
+  "UI fixture build binding did not remain independent of untracked build output");
   assert(summary.uiBuildBinding?.buildSha256 === buildStage.details.uiBuildBinding.buildSha256,
     "acceptance summary does not retain the build-stage binding");
   assert(summary.uiEnvironment?.uiBuildBinding?.buildSha256 === buildStage.details.uiBuildBinding.buildSha256,

@@ -15,6 +15,10 @@ export const allowedCompletionSources = [
 ];
 
 const trustedUserActions = new Set(["click", "select", "fill", "type"]);
+const trustedResponseRequestIdentitySources = new Set([
+  "playwright-response-request",
+  "fixture-initiating-request-handle",
+]);
 
 export function domSnapshotDigest(snapshot) {
   if (snapshot === null || snapshot === undefined) return "";
@@ -31,6 +35,7 @@ export function buildRequestCorrelationEvidence({
   const method = String(expected.method || "GET").toUpperCase();
   const urlPath = requestTarget(expected.urlPath);
   const expectedActionId = String(actionId || "");
+  const expectedCaseId = String(expected.caseId || expectedActionId.split(":")[0] || "");
   const correlationId = String(expected.correlationId || "");
   const correlationRequired = expected.correlationRequired !== false;
   const requestKind = String(expected.requestKind || "");
@@ -43,22 +48,39 @@ export function buildRequestCorrelationEvidence({
   const exactResponseCandidates = responses.filter(entry =>
     String(entry?.method || "").toUpperCase() === method &&
     requestTarget(entry?.url) === urlPath);
+  const requestIdentityPresent = entry =>
+    typeof entry?.requestId === "string" && Boolean(entry.requestId) &&
+    typeof entry?.caseRequestIdentity === "string" && Boolean(entry.caseRequestIdentity) &&
+    Number.isInteger(entry?.caseRequestSequence) && entry.caseRequestSequence > 0;
+  const requestIdentityOwnedByCase = entry =>
+    Boolean(expectedCaseId) &&
+    entry?.caseRequestIdentity ===
+      `${expectedCaseId}:request-${entry?.caseRequestSequence}`;
   const matchedRequests = exactRequestCandidates.filter(entry =>
     entry?.correlationSource === "request-header" &&
     entry?.correlationId === correlationId &&
-    typeof entry?.requestId === "string" && entry.requestId);
+    requestIdentityPresent(entry) &&
+    requestIdentityOwnedByCase(entry));
+  const matchedRequest = matchedRequests.length === 1 ? matchedRequests[0] : null;
   const matchedResponses = exactResponseCandidates.filter(entry =>
+    entry?.responseRequestObjectObserved === true &&
+    trustedResponseRequestIdentitySources.has(entry?.requestIdentitySource) &&
+    entry?.responseCorrelationSource === "initiating-request-identity" &&
     entry?.correlationSource === "request-header" &&
     entry?.correlationId === correlationId &&
-    typeof entry?.requestId === "string" && entry.requestId &&
+    requestIdentityPresent(entry) &&
+    requestIdentityOwnedByCase(entry) &&
+    matchedRequest &&
+    entry.requestId === matchedRequest.requestId &&
+    entry.caseRequestIdentity === matchedRequest.caseRequestIdentity &&
+    entry.caseRequestSequence === matchedRequest.caseRequestSequence &&
     (expected.allowedStatuses || [200]).includes(Number(entry.status)));
-  const requestIds = new Set(matchedRequests.map(entry => entry.requestId));
-  const responseIds = new Set(matchedResponses.map(entry => entry.requestId));
+  const matchedResponse = matchedResponses.length === 1 ? matchedResponses[0] : null;
   const requestResponseBound = matchedRequests.length === 1 &&
     matchedResponses.length === 1 &&
-    requestIds.size === 1 &&
-    responseIds.size === 1 &&
-    [...requestIds][0] === [...responseIds][0];
+    matchedResponse.requestId === matchedRequest.requestId &&
+    matchedResponse.caseRequestIdentity === matchedRequest.caseRequestIdentity &&
+    matchedResponse.caseRequestSequence === matchedRequest.caseRequestSequence;
   const correlationGenerated = Boolean(correlationId);
   const correlationAttached = exactRequestCandidates.some(entry =>
     entry?.correlationSource === "request-header" && Boolean(entry?.correlationId));
@@ -81,12 +103,43 @@ export function buildRequestCorrelationEvidence({
   } else if (exactRequestCandidates.length !== 1) failureCode = "DUPLICATE_REQUEST";
   else if (correlationRequired && !correlationAttached) failureCode = "CORRELATION_NOT_ATTACHED";
   else if (correlationRequired && !correlationObserved) failureCode = "CORRELATION_NOT_OBSERVED";
+  else if (!requestIdentityPresent(exactRequestCandidates[0])) failureCode = "REQUEST_IDENTITY_MISSING";
+  else if (!requestIdentityOwnedByCase(exactRequestCandidates[0])) {
+    failureCode = "REQUEST_CASE_OWNERSHIP_MISMATCH";
+  }
   else if (matchedRequests.length === 0) failureCode = "CORRELATION_MISMATCH";
   else if (matchedRequests.length !== 1) failureCode = "DUPLICATE_REQUEST";
   else if (exactResponseCandidates.length === 0) failureCode = "RESPONSE_NOT_OBSERVED";
-  else if (exactResponseCandidates.length !== 1 || matchedResponses.length !== 1) {
-    failureCode = matchedResponses.length > 1 ? "DUPLICATE_RESPONSE" : "RESPONSE_BINDING_MISMATCH";
-  } else if (!requestResponseBound) failureCode = "REQUEST_RESPONSE_ID_MISMATCH";
+  else if (exactResponseCandidates.length !== 1) failureCode = "DUPLICATE_RESPONSE";
+  else if (exactResponseCandidates[0]?.responseRequestObjectObserved !== true ||
+      !trustedResponseRequestIdentitySources.has(
+        exactResponseCandidates[0]?.requestIdentitySource,
+      )) {
+    failureCode = "RESPONSE_REQUEST_OBJECT_MISSING";
+  } else if (!requestIdentityPresent(exactResponseCandidates[0])) {
+    failureCode = "RESPONSE_REQUEST_IDENTITY_MISSING";
+  } else if (expected.responseEchoHeaderRequired === true &&
+      (exactResponseCandidates[0]?.responseEchoHeaderContract !== "required" ||
+        exactResponseCandidates[0]?.responseEchoHeaderObserved !== true ||
+        exactResponseCandidates[0]?.responseEchoCorrelationId !== correlationId)) {
+    failureCode = "RESPONSE_ECHO_MISMATCH";
+  } else if (!(expected.allowedStatuses || [200]).includes(Number(exactResponseCandidates[0]?.status))) {
+    failureCode = "RESPONSE_STATUS_MISMATCH";
+  } else if (matchedResponses.length !== 1 || !requestResponseBound) {
+    failureCode = "RESPONSE_BINDING_MISMATCH";
+  }
+  const expectedCorrelationDigest = correlationId
+    ? crypto.createHash("sha256").update(correlationId).digest("hex")
+    : "";
+  const initiatingRequestCorrelationDigest = matchedRequest?.correlationId
+    ? crypto.createHash("sha256").update(matchedRequest.correlationId).digest("hex")
+    : "";
+  const responseCandidate = exactResponseCandidates.length === 1
+    ? exactResponseCandidates[0]
+    : null;
+  const responseRequestCorrelationDigest = responseCandidate?.correlationId
+    ? crypto.createHash("sha256").update(responseCandidate.correlationId).digest("hex")
+    : "";
   return {
     schema: "media-server.v390-ui-request-correlation-evidence.v1",
     pass: failureCode === "",
@@ -96,6 +149,7 @@ export function buildRequestCorrelationEvidence({
     expectedMethod: method,
     expectedPath: urlPath,
     expectedActionId,
+    expectedCaseId,
     observedMethod: exactRequestCandidates.length === 1
       ? String(exactRequestCandidates[0].method || "").toUpperCase()
       : "",
@@ -108,9 +162,34 @@ export function buildRequestCorrelationEvidence({
     correlationAttached,
     correlationObserved,
     correlationMatched: requestResponseBound,
-    correlationDigest: correlationId
-      ? crypto.createHash("sha256").update(correlationId).digest("hex")
+    correlationDigest: expectedCorrelationDigest,
+    expectedCorrelationDigest,
+    initiatingRequestCorrelationDigest,
+    responseRequestCorrelationDigest,
+    caseRequestIdentity: matchedRequest?.caseRequestIdentity || "",
+    caseRequestSequence: matchedRequest?.caseRequestSequence || null,
+    responseRequestIdentity: responseCandidate?.caseRequestIdentity || "",
+    responseRequestSequence: responseCandidate?.caseRequestSequence || null,
+    requestIdentityMatched: requestResponseBound,
+    responseRequestObjectObserved:
+      exactResponseCandidates.length === 1 &&
+      exactResponseCandidates[0]?.responseRequestObjectObserved === true,
+    responseRequestMethod: exactResponseCandidates.length === 1
+      ? String(exactResponseCandidates[0]?.method || "").toUpperCase()
       : "",
+    responseRequestPath: exactResponseCandidates.length === 1
+      ? requestTarget(exactResponseCandidates[0]?.url)
+      : "",
+    responseRequestHeaderDigest: exactResponseCandidates.length === 1
+      ? String(exactResponseCandidates[0]?.requestHeaderDigest || "")
+      : "",
+    responseStatus: exactResponseCandidates.length === 1
+      ? Number(exactResponseCandidates[0]?.status || 0)
+      : 0,
+    responseEchoHeaderRequired: expected.responseEchoHeaderRequired === true,
+    responseEchoHeaderObserved:
+      exactResponseCandidates.length === 1 &&
+      exactResponseCandidates[0]?.responseEchoHeaderObserved === true,
     requestCandidateCount: exactRequestCandidates.length,
     matchedRequestCount: matchedRequests.length,
     responseCandidateCount: exactResponseCandidates.length,

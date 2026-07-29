@@ -1236,6 +1236,7 @@ function assertCorrelatedRuntimeFetch({
     entries,
     actionId,
     expected: {
+      caseId: item.caseId,
       method,
       urlPath,
       correlationId,
@@ -1268,6 +1269,30 @@ export function assertExclusiveRequestScopedCorrelation({
   urlPath,
 }) {
   const entries = browser.networkEntries().slice(networkStart);
+  const evidence = buildExclusiveRequestScopedCorrelationEvidence({
+    entries,
+    correlationId,
+    actionId,
+    method,
+    urlPath,
+  });
+  if (!evidence.pass) {
+    const error = new Error(
+      `${item.caseId} request-scoped correlation failed: ${evidence.failureCode}`,
+    );
+    error.requestCorrelationScopeEvidence = structuredClone(evidence);
+    throw error;
+  }
+  return evidence;
+}
+
+export function buildExclusiveRequestScopedCorrelationEvidence({
+  entries = [],
+  correlationId,
+  actionId,
+  method,
+  urlPath,
+}) {
   const expectedPath = runtimeRequestTarget(urlPath);
   const correlatedRequests = entries.filter(entry =>
     entry?.phase === "request-start" &&
@@ -1276,6 +1301,7 @@ export function assertExclusiveRequestScopedCorrelation({
   const correlatedResponses = entries.filter(entry =>
     entry?.phase === "response" &&
     entry?.correlationSource === "request-header" &&
+    entry?.responseCorrelationSource === "initiating-request-identity" &&
     Boolean(entry?.correlationId));
   const exactRequests = correlatedRequests.filter(entry =>
     entry.correlationId === correlationId &&
@@ -1289,13 +1315,62 @@ export function assertExclusiveRequestScopedCorrelation({
   const leakedResponses = correlatedResponses.filter(entry => !exactResponses.includes(entry));
   const requestIds = new Set(exactRequests.map(entry => entry.requestId));
   const responseIds = new Set(exactResponses.map(entry => entry.requestId));
+  const requestIdentities = new Set(exactRequests.map(entry => entry.caseRequestIdentity));
+  const responseIdentities = new Set(exactResponses.map(entry => entry.caseRequestIdentity));
+  const requestSequences = new Set(exactRequests.map(entry => entry.caseRequestSequence));
+  const responseSequences = new Set(exactResponses.map(entry => entry.caseRequestSequence));
+  const expectedCaseId = String(actionId || "").split(":")[0];
+  const identityOwnedByCase = entry =>
+    Boolean(expectedCaseId) &&
+    Number.isInteger(entry?.caseRequestSequence) &&
+    entry.caseRequestIdentity ===
+      `${expectedCaseId}:request-${entry.caseRequestSequence}`;
+  const caseIdentityOwned = exactRequests.every(identityOwnedByCase) &&
+    exactResponses.every(identityOwnedByCase);
+  const responseIdentityTrusted = exactResponses.every(entry =>
+    entry.responseRequestObjectObserved === true &&
+    ["playwright-response-request", "fixture-initiating-request-handle"]
+      .includes(entry.requestIdentitySource));
   const pass = exactRequests.length === 1 &&
     exactResponses.length === 1 &&
     requestIds.size === 1 &&
     responseIds.size === 1 &&
     [...requestIds][0] === [...responseIds][0] &&
+    requestIdentities.size === 1 &&
+    responseIdentities.size === 1 &&
+    Boolean([...requestIdentities][0]) &&
+    [...requestIdentities][0] === [...responseIdentities][0] &&
+    requestSequences.size === 1 &&
+    responseSequences.size === 1 &&
+    Number.isInteger([...requestSequences][0]) &&
+    [...requestSequences][0] > 0 &&
+    [...requestSequences][0] === [...responseSequences][0] &&
+    caseIdentityOwned &&
+    responseIdentityTrusted &&
     leakedRequests.length === 0 &&
     leakedResponses.length === 0;
+  const orderedLedger = entries
+    .filter(entry => ["request-start", "response"].includes(entry?.phase))
+    .map(entry => ({
+      phase: entry.phase,
+      requestId: String(entry.requestId || ""),
+      caseRequestIdentity: String(entry.caseRequestIdentity || ""),
+      caseRequestSequence: Number.isInteger(entry.caseRequestSequence)
+        ? entry.caseRequestSequence
+        : null,
+      requestKind: String(entry.requestKind || ""),
+      method: String(entry.method || "").toUpperCase(),
+      path: safeEvidenceRequestTarget(entry.url),
+      status: Number(entry.status || 0),
+      correlationDigest: entry.correlationId
+        ? createHash("sha256").update(entry.correlationId).digest("hex")
+        : "",
+      requestHeaderDigest: String(entry.requestHeaderDigest || ""),
+      responseRequestObjectObserved: entry.responseRequestObjectObserved === true,
+      requestIdentitySource: String(entry.requestIdentitySource || ""),
+      correlationSource: String(entry.correlationSource || ""),
+      responseCorrelationSource: String(entry.responseCorrelationSource || ""),
+    }));
   const evidence = {
     schema: "media-server.v390-ui-request-correlation-scope-evidence.v1",
     pass,
@@ -1310,26 +1385,36 @@ export function assertExclusiveRequestScopedCorrelation({
       : "",
     correlationLeakRequestCount: leakedRequests.length,
     correlationLeakResponseCount: leakedResponses.length,
+    orderedLedger,
     failurePhase: pass ? "" : "application-fetch-correlation-scope",
     failureCode: pass
       ? ""
-      : (leakedRequests.length || leakedResponses.length
+      : (!caseIdentityOwned
+          ? "REQUEST_CASE_OWNERSHIP_MISMATCH"
+          : (leakedRequests.length || leakedResponses.length
           ? "CORRELATION_SCOPE_LEAK"
-          : "AUTHORITATIVE_REQUEST_BINDING_MISMATCH"),
+          : "AUTHORITATIVE_REQUEST_BINDING_MISMATCH")),
   };
-  if (!pass) {
-    const error = new Error(
-      `${item.caseId} request-scoped correlation failed: ${evidence.failureCode}`,
-    );
-    error.requestCorrelationScopeEvidence = structuredClone(evidence);
-    throw error;
-  }
   return evidence;
 }
 
 function runtimeRequestTarget(value) {
   try {
     const url = new URL(String(value || ""), "http://runtime.invalid");
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return "";
+  }
+}
+
+function safeEvidenceRequestTarget(value) {
+  try {
+    const url = new URL(String(value || ""), "http://runtime.invalid");
+    for (const key of [...url.searchParams.keys()]) {
+      if (/(?:token|secret|password|credential|authorization|api[-_]?key|code)/i.test(key)) {
+        url.searchParams.set(key, "[REDACTED]");
+      }
+    }
     return `${url.pathname}${url.search}`;
   } catch {
     return "";

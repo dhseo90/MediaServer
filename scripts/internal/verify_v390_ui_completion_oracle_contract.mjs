@@ -27,6 +27,7 @@ const checks = [];
 
 check("application fetch request correlation evidence distinguishes fail-closed boundaries", () => {
   const expected = {
+    caseId: "EVT-004",
     method: "GET",
     urlPath: "/ops/api/diagnostics/log-tail?limit=50",
     correlationId: "EVT-004:assert-product-state:completion",
@@ -37,13 +38,25 @@ check("application fetch request correlation evidence distinguishes fail-closed 
   const request = {
     phase: "request-start",
     requestId: "native-request-1",
+    caseRequestIdentity: "EVT-004:request-1",
+    caseRequestSequence: 1,
     correlationId: expected.correlationId,
     correlationSource: "request-header",
     method: "GET",
     status: 0,
     url: "http://127.0.0.1/ops/api/diagnostics/log-tail?limit=50",
   };
-  const response = { ...request, phase: "response", status: 200 };
+  const response = {
+    ...request,
+    phase: "response",
+    status: 200,
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+    correlationSource: "request-header",
+    responseCorrelationSource: "initiating-request-identity",
+    responseEchoHeaderContract: "not-required",
+    responseEchoHeaderObserved: false,
+  };
   const requestResult = {
     actionId: "EVT-004:assert-product-state",
     requestAttemptCount: 1,
@@ -110,6 +123,162 @@ check("application fetch request correlation evidence distinguishes fail-closed 
   const passed = evaluate([request, response]);
   assert(passed.correlationDigest && !JSON.stringify(passed).includes(expected.correlationId),
     "raw correlation value reached structured evidence");
+  const fixtureResponse = {
+    ...response,
+    requestIdentitySource: "fixture-initiating-request-handle",
+  };
+  assert(evaluate([request, fixtureResponse]).pass,
+    "registered fixture initiating request handle did not pass the common matcher");
+  assert(evaluate([
+    request,
+    { ...fixtureResponse, requestIdentitySource: "fixture-string-request-id" },
+  ]).failureCode === "RESPONSE_REQUEST_OBJECT_MISSING",
+  "untrusted fixture request identity source was accepted");
+});
+
+check("EVT-004 binds a response to the exact case-owned Playwright request without inventing an echo contract", () => {
+  const actionId = "EVT-004:assert-product-state";
+  const correlationId = `${actionId}:completion`;
+  const method = "GET";
+  const urlPath = "/ops/api/diagnostics/log-tail?limit=50";
+  const requestId = "native-request-1";
+  const caseRequestIdentity = "EVT-004:request-1";
+  const request = {
+    phase: "request-start",
+    requestId,
+    caseRequestIdentity,
+    caseRequestSequence: 1,
+    requestKind: "application-fetch",
+    responseRequestObjectObserved: false,
+    correlationId,
+    correlationSource: "request-header",
+    method,
+    status: 0,
+    url: `http://127.0.0.1${urlPath}`,
+  };
+  const response = {
+    ...request,
+    phase: "response",
+    status: 200,
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+    correlationSource: "request-header",
+    responseCorrelationSource: "initiating-request-identity",
+    responseEchoHeaderContract: "not-required",
+    responseEchoHeaderObserved: false,
+  };
+  const evaluate = (entries, expectedOverrides = {}, resultOverrides = {}) =>
+    buildRequestCorrelationEvidence({
+      entries,
+      actionId,
+      expected: {
+        method,
+        urlPath,
+        correlationId,
+        caseId: "EVT-004",
+        correlationRequired: true,
+        responseEchoHeaderRequired: false,
+        allowedStatuses: [200],
+        requestKind: "application-fetch",
+        ...expectedOverrides,
+      },
+      requestResult: {
+        actionId,
+        requestAttemptCount: 1,
+        requestReissued: false,
+        ...resultOverrides,
+      },
+      listenerInstalledBeforeRequest: true,
+    });
+
+  const exact = evaluate([request, response]);
+  assert(exact.pass &&
+    exact.requestIdentityMatched === true &&
+    exact.caseRequestIdentity === caseRequestIdentity &&
+    exact.caseRequestSequence === 1 &&
+    exact.responseRequestObjectObserved === true &&
+    exact.responseEchoHeaderRequired === false &&
+    exact.responseEchoHeaderObserved === false,
+  `exact Playwright request/response identity did not pass: ${exact.failureCode}`);
+  assert(exact.expectedCorrelationDigest === exact.initiatingRequestCorrelationDigest &&
+    exact.responseRequestCorrelationDigest === exact.expectedCorrelationDigest,
+  "request/response correlation digests are not bound to the initiating request");
+
+  for (const [label, entries, failureCode, expectedOverrides = {}, resultOverrides = {}] of [
+    ["same-path-other-request", [
+      request,
+      { ...response, requestId: "native-request-2", caseRequestIdentity: "EVT-004:request-2", caseRequestSequence: 2 },
+    ], "RESPONSE_BINDING_MISMATCH"],
+    ["other-request-correlation", [
+      request,
+      { ...response, correlationId: "OTHER" },
+    ], "RESPONSE_BINDING_MISMATCH"],
+    ["wrong-case-request-identity", [
+      { ...request, caseRequestIdentity: "OTHER-CASE:request-1" },
+      { ...response, caseRequestIdentity: "OTHER-CASE:request-1" },
+    ], "REQUEST_CASE_OWNERSHIP_MISMATCH"],
+    ["missing-request-identity", [
+      { ...request, caseRequestIdentity: "" },
+      response,
+    ], "REQUEST_IDENTITY_MISSING"],
+    ["missing-request-sequence", [
+      { ...request, caseRequestSequence: null },
+      response,
+    ], "REQUEST_IDENTITY_MISSING"],
+    ["missing-response-request-object", [
+      request,
+      { ...response, responseRequestObjectObserved: false, requestIdentitySource: "" },
+    ], "RESPONSE_REQUEST_OBJECT_MISSING"],
+    ["missing-response-identity", [
+      request,
+      { ...response, caseRequestIdentity: "" },
+    ], "RESPONSE_REQUEST_IDENTITY_MISSING"],
+    ["missing-response-sequence", [
+      request,
+      { ...response, caseRequestSequence: null },
+    ], "RESPONSE_REQUEST_IDENTITY_MISSING"],
+    ["response-method-mismatch", [
+      request,
+      { ...response, method: "POST" },
+    ], "RESPONSE_NOT_OBSERVED"],
+    ["response-path-mismatch", [
+      request,
+      { ...response, url: "http://127.0.0.1/ops/api/diagnostics/log-tail?limit=51" },
+    ], "RESPONSE_NOT_OBSERVED"],
+    ["response-status-mismatch", [
+      request,
+      { ...response, status: 500 },
+    ], "RESPONSE_STATUS_MISMATCH"],
+    ["duplicate-response", [
+      request,
+      response,
+      { ...response },
+    ], "DUPLICATE_RESPONSE"],
+    ["timestamp-only-binding", [
+      request,
+      {
+        ...response,
+        requestId: "",
+        caseRequestIdentity: "",
+        caseRequestSequence: null,
+        requestIdentitySource: "",
+        responseRequestObjectObserved: false,
+        observedAtMs: 1001,
+      },
+    ], "RESPONSE_REQUEST_OBJECT_MISSING"],
+    ["response-echo-contract-mismatch", [
+      request,
+      { ...response, responseEchoHeaderContract: "required", responseEchoHeaderObserved: false },
+    ], "RESPONSE_ECHO_MISMATCH", { responseEchoHeaderRequired: true }],
+    ["retry-reissue", [
+      request,
+      response,
+    ], "REQUEST_REISSUED", {}, { requestAttemptCount: 2, requestReissued: true }],
+  ]) {
+    const rejected = evaluate(entries, expectedOverrides, resultOverrides);
+    assert(rejected.pass === false && rejected.failureCode === failureCode,
+      `${label} response binding failure mismatch: ${rejected.failureCode}/${failureCode}`);
+  }
 });
 
 check("document navigation trust rejects correlation and request reissue", () => {
@@ -298,6 +467,8 @@ check("EVT-004 navigation completion is exclusive and keeps authoritative correl
   const correlationRequest = {
     phase: "request-start",
     requestId: "evt-004-log-tail",
+    caseRequestIdentity: "EVT-004:request-1",
+    caseRequestSequence: 1,
     requestKind: "application-fetch",
     correlationId,
     correlationSource: "request-header",
@@ -308,11 +479,22 @@ check("EVT-004 navigation completion is exclusive and keeps authoritative correl
   const requestCorrelationEvidence = buildRequestCorrelationEvidence({
     entries: [
       correlationRequest,
-      { ...correlationRequest, phase: "response", status: 200 },
+      {
+        ...correlationRequest,
+        phase: "response",
+        status: 200,
+        responseRequestObjectObserved: true,
+        requestIdentitySource: "playwright-response-request",
+        correlationSource: "request-header",
+        responseCorrelationSource: "initiating-request-identity",
+        responseEchoHeaderContract: "not-required",
+        responseEchoHeaderObserved: false,
+      },
     ],
     actionId,
     expected: {
       ...navigationBinding.authoritativeReadback,
+      caseId: "EVT-004",
       requestKind: "application-fetch",
       correlationRequired: true,
     },

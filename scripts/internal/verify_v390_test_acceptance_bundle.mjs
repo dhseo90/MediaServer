@@ -529,7 +529,10 @@ async function runFixtureStage(stageId) {
     return;
   }
   if (stageId === "build") {
-    uiBuildBinding = { ...attestUiBuildBinding(), fixtureMode: true };
+    uiBuildBinding = {
+      ...attestUiBuildBinding({ fixtureMode: true }),
+      fixtureMode: true,
+    };
     stages.push(passStage(stageId, "fixture current-source UI build binding", { uiBuildBinding }));
     return;
   }
@@ -539,7 +542,7 @@ async function runFixtureStage(stageId) {
       rootDir,
       runId,
       fixtureMode: true,
-      buildPath: options.uiBuildPath,
+      buildPath: uiBuildBinding.buildPath,
     });
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
     uiEnvironmentSummary.uiBuildBinding = uiBuildBinding;
@@ -1441,8 +1444,10 @@ function stageSelectedForSuite(stageId) {
   ].includes(stageId);
 }
 
-function attestUiBuildBinding() {
-  const resolvedBuildPath = path.resolve(rootDir, options.uiBuildPath);
+function attestUiBuildBinding({ fixtureMode: fixtureBinding = false } = {}) {
+  const resolvedBuildPath = fixtureBinding
+    ? path.join(rootDir, "test/fixtures/v390_ui_native_exact_cases.json")
+    : path.resolve(rootDir, options.uiBuildPath);
   assert(fs.existsSync(resolvedBuildPath), `UI build output is missing after build: ${resolvedBuildPath}`);
   const metadata = fs.statSync(resolvedBuildPath);
   assert(metadata.isFile(), `UI build output is not a regular file: ${resolvedBuildPath}`);
@@ -1454,6 +1459,9 @@ function attestUiBuildBinding() {
     buildPath: resolvedBuildPath,
     buildSha256: sha256File(resolvedBuildPath),
     buildBytes: metadata.size,
+    bindingKind: fixtureBinding
+      ? "tracked-fixture-fingerprint"
+      : "built-media-server-binary",
   };
 }
 
@@ -1463,7 +1471,9 @@ function assertCurrentUiBuildBinding() {
     "UI build binding source commit drifted before environment bootstrap");
   assert(uiBuildBinding.sourceWorktreeStatusSha256 === sourceProvenance.worktreeStatusSha256,
     "UI build binding source worktree drifted before environment bootstrap");
-  const resolvedBuildPath = path.resolve(rootDir, options.uiBuildPath);
+  const resolvedBuildPath = uiBuildBinding.fixtureMode === true
+    ? path.join(rootDir, "test/fixtures/v390_ui_native_exact_cases.json")
+    : path.resolve(rootDir, options.uiBuildPath);
   assert(uiBuildBinding.buildPath === resolvedBuildPath,
     "UI environment build path differs from the completed build path");
   assert(fs.existsSync(resolvedBuildPath), `UI build output disappeared before UI execution: ${resolvedBuildPath}`);

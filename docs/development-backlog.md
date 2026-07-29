@@ -6700,6 +6700,36 @@ feature/pass/status 변경 0, UI-018 sourceFlow 한 행 변경이며 985 carry-f
 이 정적 checkpoint 시점에는 actual EVT-004를 아직 실행하지 않았고, clean commit 이후
 단건 diagnostic을 정확히 1회 실행하도록 분리합니다.
 
+EVT-004 exact response identity/lifecycle 보정(2026-07-29)은 이전 actual
+`RESPONSE_BINDING_MISMATCH`의 request candidate/matched `1/1`, response `1/0`을
+method/path·시간 근접성이 아니라 Playwright `response.request()` 객체로 닫습니다.
+각 request는 `EVT-004:request-N` identity/sequence를 가지며 initiating request의
+correlation/header digest와 response method/path/status를 같은 객체에 결속합니다.
+서버에는 correlation response echo 계약이 없으므로 echo header를 요구하거나 생성하지
+않습니다. 실패 finally는 restore→context/browser close→bounded ledger capture→evidence
+finalize 순서로 navigation/correlation/cleanup을 보존하고 marker 미도달은
+`markerEvidence=null`, `not-reached`로 기록합니다. Diagnostic 14/14, runtime 38/38,
+event 23/23, evaluator 17/17, native 39/39, completion 33/33, adapter 20/20,
+semantic audit 51/51·approval 986/986, approval negative 11/11, migration,
+feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0과 MJS 12/12·JSON 3/3·diff,
+acceptance 21/21, final integrity 12/12가 PASS했습니다. Actual-mode fixture는
+untracked `build-gst-onnx/media_server` 대신 tracked native manifest fingerprint를
+사용하고, actual mode의 binary attestation은 유지합니다. Runtime fixture는 임의 문자열
+ID가 아니라 opaque `initiatingRequestHandle`을 공통 case-owned registry에 등록합니다.
+Source-built/stored native manifest와 semantic candidate
+`1bbc5bcc68ba954d50b445f7db56292e718e58105c13be97203de4b345c16bd1`는 exact
+match입니다. Feature/pass/status 변경 0, sourceFlow 변경은 `SAFE-212`/`OPS-179`
+두 행이며 984 carry-forward+2 independent review로 producer를 정확히 1회 실행했습니다.
+Migration/package/decision SHA는
+`77c8f99abcb09f75519afb44f8b7f49c0a43c3f1740a6e6f103dd888c0967387`/
+`4b84f539eee8a09b8257b9f318b610a9d68bdf20c743fe328993e5e0ea5d8d11`/
+`a3d59462342c079856508d216b3ca5f20b4ea3838c7e081ca9e2ae942bad8f6b`이며
+native generator는 0회입니다.
+제품 C++·API schema·UI·marker fixture/response/timeline/DOM은 변경하지 않았습니다.
+이 checkpoint에서 actual은 미실행이며 clean commit/push 뒤 EVT-004 단건을 정확히
+1회 실행합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

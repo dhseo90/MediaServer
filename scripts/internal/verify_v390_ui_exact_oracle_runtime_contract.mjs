@@ -4,6 +4,7 @@
 import {
   bindDashboardRuntimeTrendBaseline,
   assertExclusiveRequestScopedCorrelation,
+  buildExclusiveRequestScopedCorrelationEvidence,
   buildEventDomSemanticCompositeEvidence,
   buildEventMarkerFlowEvidence,
   containsForbiddenResponseMaterial,
@@ -20,7 +21,11 @@ import {
   waitForClientVaOverlayProjection,
 } from "./v390_ui_exact_oracle_runtime.mjs";
 import { usesEventExactRuntimeBindings } from "./v390_ui_case_runtime.mjs";
-import { captureEndpointOwnedResponseProjection } from "./v390_ui_native_adapter.mjs";
+import {
+  bindFixtureResponseToInitiatingRequest,
+  captureEndpointOwnedResponseProjection,
+  createCaseOwnedRequestIdentityRegistry,
+} from "./v390_ui_native_adapter.mjs";
 
 const checks = [];
 
@@ -30,6 +35,8 @@ await check("EVT-004 correlation is request-scoped to one authoritative log-tail
   const request = {
     phase: "request-start",
     requestId: "evt-004-log-tail",
+    caseRequestIdentity: "EVT-004:request-1",
+    caseRequestSequence: 1,
     requestKind: "application-fetch",
     correlationId,
     correlationSource: "request-header",
@@ -38,7 +45,15 @@ await check("EVT-004 correlation is request-scoped to one authoritative log-tail
   };
   const exactEntries = [
     request,
-    { ...request, phase: "response", status: 200 },
+    {
+      ...request,
+      phase: "response",
+      status: 200,
+      responseRequestObjectObserved: true,
+      requestIdentitySource: "playwright-response-request",
+      correlationSource: "request-header",
+      responseCorrelationSource: "initiating-request-identity",
+    },
   ];
   const evaluate = entries => assertExclusiveRequestScopedCorrelation({
     browser: { networkEntries: () => entries },
@@ -57,6 +72,54 @@ await check("EVT-004 correlation is request-scoped to one authoritative log-tail
     passed.correlationDigest &&
     !JSON.stringify(passed).includes(correlationId),
   "exact request-scoped log-tail correlation did not pass safely");
+  const fixtureRegistry = createCaseOwnedRequestIdentityRegistry({
+    caseId: "EVT-004",
+    requestIdPrefix: "fixture-request",
+  });
+  const fixtureRequestHandle = {};
+  const fixtureIdentity =
+    fixtureRegistry.registerFixtureRequestHandle(fixtureRequestHandle);
+  const fixtureResponseBinding = bindFixtureResponseToInitiatingRequest({
+    initiatingRequestHandle: fixtureRequestHandle,
+  }, fixtureRegistry);
+  const fixtureEntries = [{
+    ...request,
+    ...fixtureIdentity,
+  }, {
+    ...request,
+    ...fixtureResponseBinding.initiatingRequest,
+    phase: "response",
+    status: 200,
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "fixture-initiating-request-handle",
+    correlationSource: "request-header",
+    responseCorrelationSource: "initiating-request-identity",
+  }];
+  const fixturePassed = evaluate(fixtureEntries);
+  assert(fixturePassed.pass === true &&
+    fixturePassed.orderedLedger[1]?.requestIdentitySource ===
+      "fixture-initiating-request-handle",
+  "fixture initiating request handle did not use the common identity matcher");
+  for (const [label, initiatingRequestHandle] of [
+    ["different fixture handle", {}],
+    ["missing fixture handle", undefined],
+  ]) {
+    const binding = bindFixtureResponseToInitiatingRequest({
+      initiatingRequestHandle,
+    }, fixtureRegistry);
+    await expectReject(() => Promise.resolve(evaluate([
+      fixtureEntries[0],
+      {
+        ...fixtureEntries[1],
+        requestId: binding.initiatingRequest?.requestId || "",
+        caseRequestIdentity:
+          binding.initiatingRequest?.caseRequestIdentity || "",
+        caseRequestSequence:
+          binding.initiatingRequest?.caseRequestSequence || null,
+        responseRequestObjectObserved: Boolean(binding.initiatingRequest),
+      },
+    ])), "request-scoped correlation failed", label);
+  }
   for (const [label, entries, code] of [
     ["document leak", [
       ...exactEntries,
@@ -77,12 +140,81 @@ await check("EVT-004 correlation is request-scoped to one authoritative log-tail
     ], "CORRELATION_SCOPE_LEAK"],
     ["duplicate log-tail", [
       ...exactEntries,
-      { ...request, requestId: "evt-004-log-tail-2" },
-      { ...request, phase: "response", requestId: "evt-004-log-tail-2", status: 200 },
+      {
+        ...request,
+        requestId: "evt-004-log-tail-2",
+        caseRequestIdentity: "EVT-004:request-2",
+        caseRequestSequence: 2,
+      },
+      {
+        ...request,
+        phase: "response",
+        requestId: "evt-004-log-tail-2",
+        caseRequestIdentity: "EVT-004:request-2",
+        caseRequestSequence: 2,
+        status: 200,
+        responseRequestObjectObserved: true,
+        requestIdentitySource: "playwright-response-request",
+        correlationSource: "request-header",
+        responseCorrelationSource: "initiating-request-identity",
+      },
     ], "AUTHORITATIVE_REQUEST_BINDING_MISMATCH"],
+    ["other-case identity", [
+      { ...request, caseRequestIdentity: "OTHER-CASE:request-1" },
+      {
+        ...exactEntries[1],
+        caseRequestIdentity: "OTHER-CASE:request-1",
+      },
+    ], "REQUEST_CASE_OWNERSHIP_MISMATCH"],
   ]) {
     await expectReject(() => Promise.resolve(evaluate(entries)), code);
   }
+  const fullLedger = buildExclusiveRequestScopedCorrelationEvidence({
+    entries: [
+      ...exactEntries,
+      {
+        ...request,
+        requestId: "evt-004-other-api",
+        caseRequestIdentity: "EVT-004:request-2",
+        caseRequestSequence: 2,
+        correlationId: "OTHER-CORRELATION",
+        url: "http://runtime.invalid/ops/api/events/status",
+      },
+    ],
+    correlationId,
+    actionId: "EVT-004:assert-product-state",
+    method: "GET",
+    urlPath: path,
+  });
+  assert(fullLedger.pass === false &&
+    fullLedger.orderedLedger.length === 3 &&
+    fullLedger.orderedLedger.some(entry =>
+      entry.path === "/ops/api/events/status" &&
+      entry.caseRequestIdentity === "EVT-004:request-2"),
+  "correlation scope failure did not preserve the full bounded request ledger");
+  const redactedLedger = buildExclusiveRequestScopedCorrelationEvidence({
+    entries: [
+      ...exactEntries,
+      {
+        ...request,
+        requestId: "safe-query-projection",
+        caseRequestIdentity: "EVT-004:request-2",
+        caseRequestSequence: 2,
+        correlationId: "",
+        correlationSource: "none",
+        url: "http://runtime.invalid/cleanup?token=raw-secret&limit=1",
+      },
+    ],
+    correlationId,
+    actionId: "EVT-004:assert-product-state",
+    method: "GET",
+    urlPath: path,
+  });
+  assert(!JSON.stringify(redactedLedger).includes("raw-secret") &&
+    redactedLedger.orderedLedger.some(entry =>
+      entry.path.includes("token=%5BREDACTED%5D") &&
+      entry.path.includes("limit=1")),
+  "bounded correlation ledger retained a sensitive query value");
 });
 
 await check("EVT-004 marker flow binds one authoritative response row to one visible timeline node", async () => {
@@ -980,7 +1112,7 @@ await check("required current-route primary control waits before its snapshot", 
     item,
     actionId: "UI-009:assert-visible-read-model",
     fixtureId: "async-primary-control-contract",
-    correlationId: "UI-046:contract",
+    correlationId: "UI-009:contract",
   });
   assert(result.nativePrimaryControl?.status === "PASS" &&
     order.slice(0, 2).join("|") === `wait:${selector}|snapshot:${selector}`,
@@ -1095,7 +1227,7 @@ await check("route mismatch and not-applicable primary controls do not wait or r
     item: primaryControlItem(selector, "/ops/home"),
     actionId: "UI-009:assert-visible-read-model",
     fixtureId: "route-mismatch-primary-contract",
-    correlationId: "UI-046:contract",
+    correlationId: "UI-009:contract",
   });
   assert(mismatchResult.nativePrimaryControl?.status === "verified-by-native-workflow-on-action-route" &&
     mismatchWaits === 0, "route mismatch replayed the primary control");
@@ -1111,7 +1243,7 @@ await check("route mismatch and not-applicable primary controls do not wait or r
     },
     actionId: "UI-009:assert-visible-read-model",
     fixtureId: "not-applicable-primary-contract",
-    correlationId: "UI-046:contract",
+    correlationId: "UI-009:contract",
   });
   assert(notApplicableResult.nativePrimaryControl?.status === "PASS" && notApplicableWaits === 0,
     "not-applicable primary control waited unexpectedly");
@@ -1909,7 +2041,57 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
   const entries = [...network];
   let networkReads = 0;
   let correlationId = "";
-  let requestSequence = 0;
+  const fixtureIdentityRegistries = new Map();
+  const appendFixtureRequestResponse = ({
+    caseId,
+    method,
+    urlPath,
+    requestCorrelationId,
+    requestKind = "application-fetch",
+  }) => {
+    let registry = fixtureIdentityRegistries.get(caseId);
+    if (!registry) {
+      registry = createCaseOwnedRequestIdentityRegistry({
+        caseId,
+        requestIdPrefix: "contract-request",
+      });
+      fixtureIdentityRegistries.set(caseId, registry);
+    }
+    const requestHandle = {};
+    const requestIdentity =
+      registry.registerFixtureRequestHandle(requestHandle);
+    const responseBinding = bindFixtureResponseToInitiatingRequest({
+      initiatingRequestHandle: requestHandle,
+    }, registry);
+    if (responseBinding.initiatingRequest !== requestIdentity) {
+      throw new Error("fixture initiating request handle binding failed");
+    }
+    entries.push({
+      phase: "request-start",
+      ...requestIdentity,
+      requestKind,
+      correlationId: String(requestCorrelationId || ""),
+      correlationSource: requestCorrelationId ? "request-header" : "none",
+      method,
+      url: `http://runtime.invalid${urlPath}`,
+    }, {
+      phase: "response",
+      ...responseBinding.initiatingRequest,
+      requestKind,
+      correlationId: String(requestCorrelationId || ""),
+      correlationSource: requestCorrelationId ? "request-header" : "none",
+      responseCorrelationSource: requestCorrelationId
+        ? "initiating-request-identity"
+        : "none",
+      responseRequestObjectObserved: true,
+      requestIdentitySource: "fixture-initiating-request-handle",
+      responseEchoHeaderContract: "not-required",
+      responseEchoHeaderObserved: false,
+      method,
+      url: `http://runtime.invalid${urlPath}`,
+      status,
+    });
+  };
   return {
     networkEntries: () => (++networkReads === 1 ? [] : entries),
     requestListenersInstalled: () => true,
@@ -1924,25 +2106,13 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
       actionId = "",
       correlationId: requestCorrelationId = "",
     }) => {
-      const requestId = `contract-request-${++requestSequence}`;
+      const caseId = String(actionId || requestCorrelationId || "CONTRACT").split(":")[0];
       const requestMethod = String(method).toUpperCase();
-      entries.push({
-        phase: "request-start",
-        requestId,
-        requestKind: "application-fetch",
-        correlationId: String(requestCorrelationId || ""),
-        correlationSource: requestCorrelationId ? "request-header" : "none",
+      appendFixtureRequestResponse({
+        caseId,
         method: requestMethod,
-        url: `http://runtime.invalid${urlPath}`,
-      }, {
-        phase: "response",
-        requestId,
-        requestKind: "application-fetch",
-        correlationId: String(requestCorrelationId || ""),
-        correlationSource: requestCorrelationId ? "request-header" : "none",
-        method: requestMethod,
-        url: `http://runtime.invalid${urlPath}`,
-        status,
+        urlPath,
+        requestCorrelationId,
       });
       return {
         status,
@@ -1965,22 +2135,12 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
         const path = source.match(/^fetch\(("(?:[^"\\]|\\.)*")/s)?.[1];
         const method = source.match(/method:\s*"([A-Z]+)"/)?.[1] || "GET";
         const url = path ? JSON.parse(path) : "/contract-fetch-path-missing";
-        const requestId = `contract-request-${++requestSequence}`;
-        entries.push({
-          phase: "request-start",
-          requestId,
-          correlationId,
-          correlationSource: correlationId ? "request-header" : "none",
+        const caseId = String(correlationId || "CONTRACT").split(":")[0];
+        appendFixtureRequestResponse({
+          caseId,
           method,
-          url: `http://runtime.invalid${url}`,
-        }, {
-          phase: "response",
-          requestId,
-          correlationId,
-          correlationSource: correlationId ? "request-header" : "none",
-          method,
-          url: `http://runtime.invalid${url}`,
-          status,
+          urlPath: url,
+          requestCorrelationId: correlationId,
         });
         return { status, text: typeof body === "string" ? body : JSON.stringify(body), json: typeof body === "object" ? body : null, contentType: typeof body === "object" ? "application/json" : "text/html" };
       }

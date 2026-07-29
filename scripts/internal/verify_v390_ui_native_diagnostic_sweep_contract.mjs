@@ -114,10 +114,273 @@ check("diagnostic child output is constrained and failure reasons are safe class
     sweepSource.includes("navigationLifecycleEvidence:") &&
     sweepSource.includes("media-server.v390-ui-navigation-trust-evidence.v1"),
   "full-lifecycle navigation evidence is not preserved through diagnostic summaries");
+  for (const snippet of [
+    "buildFailureLifecycleEvidence",
+    "closeBrowserForFailureLifecycle",
+    "captureBoundedCorrelationWindow",
+    "requestCorrelationScopeEvidence",
+    "navigationLifecycleEvidence",
+    "cleanupAttestation",
+    "markerEvidence",
+    'phase: "not-reached"',
+  ]) {
+    assert(runnerSource.includes(snippet),
+      `failure lifecycle evidence finalization missing ${snippet}`);
+  }
+  assert(runnerSource.includes("primaryFailure") &&
+    runnerSource.includes("failureLifecycleEvidence"),
+  "failure lifecycle evidence does not preserve the primary failure");
+  assert(runnerSource.includes("finalizeFailedCaseLifecycle({"),
+    "runner does not use the executable failure-finally lifecycle helper");
   assert(runnerSource.includes("markerFlow") ||
     fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_exact_oracle_runtime.mjs"), "utf8")
       .includes('schema: "media-server.v390-ui-event-marker-flow-evidence.v1"'),
   "EVT-004 marker-flow evidence is not part of the structured event evidence envelope");
+});
+
+check("response binding failure closes before preserving complete lifecycle evidence", () => {
+  const script = `
+    import {
+      buildFailureLifecycleEvidence,
+      buildFallbackFailureLifecycleEvidence,
+      captureBoundedCorrelationWindow,
+      closeBrowserForFailureLifecycle,
+      finalizeFailedCaseLifecycle,
+      validateEvt004LifecycleEvidence,
+    } from "./scripts/internal/v390_ui_diagnostic_lifecycle_lib.mjs";
+    const events = [];
+    const primaryFailure = new Error("RESPONSE_BINDING_MISMATCH");
+    const correlationId = "EVT-004:assert-product-state:completion";
+    const entries = [{
+      phase: "request-start",
+      requestId: "native-request-1",
+      caseRequestIdentity: "EVT-004:request-1",
+      caseRequestSequence: 1,
+      requestKind: "application-fetch",
+      correlationId,
+      correlationSource: "request-header",
+      method: "GET",
+      url: "http://runtime.invalid/ops/api/diagnostics/log-tail?limit=50",
+    }, {
+      phase: "response",
+      requestId: "native-request-1",
+      caseRequestIdentity: "EVT-004:request-1",
+      caseRequestSequence: 1,
+      requestKind: "application-fetch",
+      correlationId,
+      correlationSource: "request-header",
+      responseCorrelationSource: "initiating-request-identity",
+      responseRequestObjectObserved: true,
+      requestIdentitySource: "playwright-response-request",
+      method: "GET",
+      url: "http://runtime.invalid/ops/api/diagnostics/log-tail?limit=50",
+      status: 200,
+    }, {
+      phase: "request-start",
+      requestId: "cleanup-request",
+      caseRequestIdentity: "EVT-004:request-2",
+      caseRequestSequence: 2,
+      correlationId: "",
+      method: "GET",
+      url: "http://runtime.invalid/cleanup",
+    }];
+    const runtimeState = new Map([[
+      "__requestCorrelationWindow",
+      {
+        networkStart: 0,
+        networkEnd: 2,
+        correlationId,
+        actionId: "EVT-004:assert-product-state",
+        method: "GET",
+        urlPath: "/ops/api/diagnostics/log-tail?limit=50",
+      },
+    ]]);
+    const trace = { cleanup: [], navigation: null };
+    let browserContextClosed = false;
+    const browser = {
+      close: async () => {
+        events.push("close");
+        browserContextClosed = true;
+        return {
+          orderedDocumentNavigations: [{ sequence: 2, path: "/ops/events" }],
+          totalDocumentNavigationCount: 1,
+        };
+      },
+    };
+    const finalized = await finalizeFailedCaseLifecycle({
+      primaryFailure,
+      captureEvidence: () => {
+        events.push("capture");
+        const closedWindow = {
+          ...runtimeState.get("__requestCorrelationWindow"),
+          networkEnd: entries.length,
+        };
+        runtimeState.set("__requestCorrelationWindow", closedWindow);
+        return captureBoundedCorrelationWindow({
+          entries,
+          window: closedWindow,
+        });
+      },
+      restoreCase: async () => {
+        events.push("restore");
+        trace.cleanup.push({ status: "PASS" });
+        runtimeState.set("__caseRuntimeRestored", true);
+      },
+      closeBrowser: () => closeBrowserForFailureLifecycle({ browser, trace }),
+      finalizeEvidence: ({
+        primaryFailure: observedPrimaryFailure,
+        cleanupFailure,
+        browserCloseFailure,
+        capturedEvidence,
+      }) => {
+        events.push("finalize");
+        return buildFailureLifecycleEvidence({
+          item: { actions: [] },
+          trace,
+          runtimeState,
+          primaryFailure: observedPrimaryFailure,
+          cleanupFailure,
+          browserCloseFailure,
+          browserCloseAttempted: true,
+          capturedCorrelationWindow: capturedEvidence,
+        });
+      },
+    });
+    const validationErrors = validateEvt004LifecycleEvidence({
+      status: "FAIL",
+      actualBrowserExecution: true,
+      requestCorrelationEvidence: { pass: false },
+      ...finalized.failureLifecycleEvidence,
+    });
+    const invalidPassMarkerErrors = validateEvt004LifecycleEvidence({
+      status: "PASS",
+      actualBrowserExecution: true,
+      requestCorrelationEvidence: { pass: true },
+      requestCorrelationScopeEvidence: { pass: true },
+      navigationLifecycleEvidence: { pass: true },
+      cleanupAttestation: { pass: true },
+      markerEvidence: { pass: false },
+      markerEvidenceLifecycle: { phase: "reached" },
+    });
+    const unboundedPassErrors = validateEvt004LifecycleEvidence({
+      status: "PASS",
+      actualBrowserExecution: true,
+      requestCorrelationEvidence: { pass: true },
+      requestCorrelationScopeEvidence: {
+        pass: true,
+        orderedLedger: [{ phase: "request-start" }, { phase: "response" }],
+      },
+      navigationLifecycleEvidence: { pass: true },
+      cleanupAttestation: { pass: true },
+      markerEvidence: { pass: true },
+      markerEvidenceLifecycle: { phase: "reached" },
+    });
+    const invalidFailMarkerErrors = validateEvt004LifecycleEvidence({
+      status: "FAIL",
+      actualBrowserExecution: true,
+      requestCorrelationEvidence: { pass: false },
+      requestCorrelationScopeEvidence: { pass: false },
+      navigationLifecycleEvidence: { pass: true },
+      cleanupAttestation: { pass: true, primaryFailurePreserved: true },
+      markerEvidence: { pass: true },
+      markerEvidenceLifecycle: { phase: "not-reached" },
+    });
+    const secondaryOnlyFailureErrors = validateEvt004LifecycleEvidence({
+      status: "FAIL",
+      actualBrowserExecution: true,
+      requestCorrelationEvidence: { pass: true },
+      requestCorrelationScopeEvidence: { pass: true },
+      navigationLifecycleEvidence: { pass: true },
+      cleanupAttestation: {
+        pass: false,
+        primaryFailurePresent: false,
+        primaryFailurePreserved: false,
+      },
+      markerEvidence: null,
+      markerEvidenceLifecycle: { phase: "not-reached" },
+    });
+    const failedFinalizer = await finalizeFailedCaseLifecycle({
+      primaryFailure,
+      restoreCase: async () => {},
+      closeBrowser: async () => ({ orderedDocumentNavigations: [] }),
+      finalizeEvidence: () => { throw new Error("finalizer-broken"); },
+    });
+    const fallbackEvidence = failedFinalizer.failureLifecycleEvidence ||
+      buildFallbackFailureLifecycleEvidence({
+        primaryFailure: failedFinalizer.primaryFailure,
+        cleanupFailure: failedFinalizer.cleanupFailure,
+        browserCloseFailure: failedFinalizer.browserCloseFailure,
+        browserCloseAttempted: true,
+        caseRuntimeRestored: true,
+        cleanupEntries: [],
+        navigation: failedFinalizer.finalNavigation,
+      });
+    console.log(JSON.stringify({
+      events,
+      browserContextClosed,
+      primaryFailurePreserved: finalized.primaryFailure === primaryFailure,
+      cleanupFailure: finalized.cleanupFailure,
+      browserCloseFailure: finalized.browserCloseFailure,
+      evidence: finalized.failureLifecycleEvidence,
+      validationErrors,
+      invalidPassMarkerErrors,
+      unboundedPassErrors,
+      invalidFailMarkerErrors,
+      secondaryOnlyFailureErrors,
+      failedFinalizerPrimaryPreserved: failedFinalizer.primaryFailure === primaryFailure,
+      failedFinalizerCleanupFailure: failedFinalizer.cleanupFailure,
+      failedFinalizerLifecycleMessage:
+        failedFinalizer.lifecycleFinalizationFailure?.message || "",
+      fallbackEvidence,
+    }));
+  `;
+  const run = spawnSync(process.execPath, [
+    "--input-type=module",
+    "--eval",
+    script,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0, `failure lifecycle helper execution failed: ${run.stderr || run.stdout}`);
+  const result = JSON.parse(run.stdout);
+  assert(JSON.stringify(result.events) === JSON.stringify(["restore", "close", "capture", "finalize"]),
+    `failure lifecycle order mismatch: ${JSON.stringify(result.events)}`);
+  assert(result.browserContextClosed === true &&
+    result.primaryFailurePreserved === true &&
+    result.cleanupFailure === null &&
+    result.browserCloseFailure === null,
+  "primary response binding failure was replaced by lifecycle cleanup");
+  assert(result.evidence.navigationLifecycleEvidence?.orderedDocumentNavigations?.length === 1 &&
+    result.evidence.requestCorrelationScopeEvidence?.orderedLedger?.length === 3 &&
+    result.evidence.requestCorrelationScopeEvidence?.windowAttestation?.pass === true &&
+    result.evidence.requestCorrelationScopeEvidence?.windowAttestation?.networkEnd === 3 &&
+    result.evidence.requestCorrelationScopeEvidence?.windowAttestation?.truncated === false &&
+    result.evidence.markerEvidence === null &&
+    result.evidence.markerEvidenceLifecycle?.phase === "not-reached" &&
+    result.evidence.cleanupAttestation?.pass === true &&
+    result.evidence.cleanupAttestation?.primaryFailurePreserved === true &&
+    result.validationErrors.length === 0 &&
+    result.invalidPassMarkerErrors.includes("EVT-004-marker-not-reached") &&
+    result.unboundedPassErrors.includes("EVT-004-correlation-window-not-bounded") &&
+    result.invalidFailMarkerErrors.includes("EVT-004-marker-lifecycle-invalid") &&
+    !result.secondaryOnlyFailureErrors.includes("EVT-004-primary-failure-not-preserved") &&
+    result.failedFinalizerPrimaryPreserved === true &&
+    result.failedFinalizerCleanupFailure === null &&
+    result.failedFinalizerLifecycleMessage === "finalizer-broken" &&
+    result.fallbackEvidence.cleanupAttestation?.primaryFailurePreserved === true &&
+    result.fallbackEvidence.cleanupAttestation?.primaryFailurePresent === true &&
+    result.fallbackEvidence.cleanupAttestation?.failureCode === "" &&
+    Number.isInteger(
+      result.fallbackEvidence.navigationLifecycleEvidence?.totalDocumentNavigationCount,
+    ) &&
+    typeof result.fallbackEvidence.navigationLifecycleEvidence
+      ?.listenerInstalledBeforeFirstNavigation === "boolean" &&
+    result.fallbackEvidence.requestCorrelationScopeEvidence?.requestKind ===
+      "application-fetch" &&
+    Number.isInteger(
+      result.fallbackEvidence.requestCorrelationScopeEvidence?.logTailRequestCount,
+    ) &&
+    result.fallbackEvidence.requestCorrelationScopeEvidence?.failureCode ===
+      "LIFECYCLE_EVIDENCE_FINALIZATION_FAILED",
+  "failure lifecycle structured evidence is incomplete");
 });
 
 check("diagnostic sweep reports durable progress and treats cleanup failure as failure", () => {

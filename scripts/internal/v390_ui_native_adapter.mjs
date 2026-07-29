@@ -134,6 +134,93 @@ export function secretStrippedBrowserEnv(sourceEnv = process.env) {
   return env;
 }
 
+export function createCaseOwnedRequestIdentityRegistry({
+  caseId = "",
+  requestIdPrefix = "native-request",
+} = {}) {
+  let requestSequence = 0;
+  const playwrightRequests = new WeakMap();
+  const fixtureRequestHandles = new WeakMap();
+  const issueIdentity = () => {
+    const caseRequestSequence = ++requestSequence;
+    return Object.freeze({
+      requestId: `${requestIdPrefix}-${caseRequestSequence}`,
+      caseRequestIdentity:
+        `${String(caseId || "unbound-case")}:request-${caseRequestSequence}`,
+      caseRequestSequence,
+    });
+  };
+  const requireOpaqueObject = (value, label) => {
+    if ((typeof value !== "object" && typeof value !== "function") ||
+        value === null) {
+      throw new Error(`${label} must be an opaque object handle`);
+    }
+  };
+  return {
+    registerPlaywrightRequest(request) {
+      requireOpaqueObject(request, "Playwright request");
+      const existing = playwrightRequests.get(request);
+      if (existing) return existing;
+      const identity = issueIdentity();
+      playwrightRequests.set(request, identity);
+      return identity;
+    },
+    resolvePlaywrightRequest(request) {
+      if ((typeof request !== "object" && typeof request !== "function") ||
+          request === null) return null;
+      return playwrightRequests.get(request) || null;
+    },
+    registerFixtureRequestHandle(requestHandle) {
+      requireOpaqueObject(requestHandle, "fixture request handle");
+      if (fixtureRequestHandles.has(requestHandle)) {
+        throw new Error("duplicate fixture request handle");
+      }
+      const identity = issueIdentity();
+      fixtureRequestHandles.set(requestHandle, identity);
+      return identity;
+    },
+    resolveFixtureRequestHandle(requestHandle) {
+      if ((typeof requestHandle !== "object" &&
+          typeof requestHandle !== "function") || requestHandle === null) {
+        return null;
+      }
+      return fixtureRequestHandles.get(requestHandle) || null;
+    },
+  };
+}
+
+export function bindPlaywrightResponseToInitiatingRequest(
+  response,
+  pendingRequests,
+  requestIdentityRegistry = null,
+) {
+  const request = response.request();
+  const registeredIdentity =
+    requestIdentityRegistry?.resolvePlaywrightRequest(request) || null;
+  const pendingRequest = pendingRequests.get(request) || null;
+  const initiatingRequest = pendingRequest &&
+    (!requestIdentityRegistry ||
+      (registeredIdentity &&
+       registeredIdentity.requestId === pendingRequest.requestId &&
+       registeredIdentity.caseRequestIdentity ===
+         pendingRequest.caseRequestIdentity &&
+       registeredIdentity.caseRequestSequence ===
+         pendingRequest.caseRequestSequence))
+    ? pendingRequest
+    : null;
+  return { request, initiatingRequest };
+}
+
+export function bindFixtureResponseToInitiatingRequest(
+  response,
+  requestIdentityRegistry,
+) {
+  const requestHandle = response?.initiatingRequestHandle;
+  const initiatingRequest =
+    requestIdentityRegistry?.resolveFixtureRequestHandle(requestHandle) || null;
+  return { requestHandle, initiatingRequest };
+}
+
 async function openNativePlaywrightPage(playwright, {
   httpBase,
   pagePath,
@@ -143,14 +230,16 @@ async function openNativePlaywrightPage(playwright, {
   executablePath = "",
   storageStatePath = "",
   colorScheme = "light",
+  caseId = "",
   navigationCorrelationId = "",
   navigationInvocationId = "",
   onRuntimeSecret = null,
 }) {
   const consoleEntries = [];
   const networkEntries = [];
-  let requestSequence = 0;
-  const requestIds = new WeakMap();
+  const requestIdentityRegistry = createCaseOwnedRequestIdentityRegistry({
+    caseId,
+  });
   const pendingRequests = new Map();
   const pendingSafeResponseReads = new Set();
   const safeResponseReadFailures = [];
@@ -203,29 +292,41 @@ async function openNativePlaywrightPage(playwright, {
     consoleEntries.push({ level: "error", text: error instanceof Error ? error.message : String(error) });
   });
   const requestIdentity = request => {
-    const existing = requestIds.get(request);
-    if (existing) return existing;
-    const requestId = `native-request-${++requestSequence}`;
-    requestIds.set(request, requestId);
-    return requestId;
+    return requestIdentityRegistry.registerPlaywrightRequest(request);
   };
   requestListenerStartSequence = ++lifecycleSequence;
   page.on("request", request => {
     const correlationId = String(request.headers()["x-media-server-correlation-id"] || "");
-    const requestId = requestIdentity(request);
+    const identity = requestIdentity(request);
+    const requestId = identity.requestId;
     const redirectedFrom = request.redirectedFrom();
     const requestKind = request.isNavigationRequest() && request.frame() === page.mainFrame()
       ? "document-navigation"
       : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
-    pendingRequests.set(request, { requestId, correlationId, requestKind });
+    const requestHeaderDigest = correlationId
+      ? createHash("sha256").update(JSON.stringify({
+          "x-media-server-correlation-id": correlationId,
+        })).digest("hex")
+      : "";
+    pendingRequests.set(request, {
+      ...identity,
+      correlationId,
+      requestHeaderDigest,
+      requestKind,
+      method: request.method(),
+      path: urlTarget(request.url()),
+    });
     networkEntries.push({
       phase: "request-start",
       requestId,
+      caseRequestIdentity: identity.caseRequestIdentity,
+      caseRequestSequence: identity.caseRequestSequence,
       requestKind,
       resourceType: request.resourceType(),
-      redirectedFromRequestId: redirectedFrom ? requestIdentity(redirectedFrom) : "",
+      redirectedFromRequestId: redirectedFrom ? requestIdentity(redirectedFrom).requestId : "",
       correlationId,
       correlationSource: correlationId ? 'request-header' : 'none',
+      requestHeaderDigest,
       method: request.method(),
       status: 0,
       url: request.url(),
@@ -264,18 +365,33 @@ async function openNativePlaywrightPage(playwright, {
     }
   });
   page.on("response", response => {
-    const request = response.request();
-    const correlationId = String(request.headers()["x-media-server-correlation-id"] || "");
+    const { request, initiatingRequest } =
+      bindPlaywrightResponseToInitiatingRequest(
+        response,
+        pendingRequests,
+        requestIdentityRegistry,
+      );
+    const correlationId = String(initiatingRequest?.correlationId || "");
     const requestKind = request.isNavigationRequest() && request.frame() === page.mainFrame()
       ? "document-navigation"
       : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
     const entry = {
       phase: "response",
-      requestId: requestIdentity(request),
+      requestId: String(initiatingRequest?.requestId || ""),
+      caseRequestIdentity: String(initiatingRequest?.caseRequestIdentity || ""),
+      caseRequestSequence: initiatingRequest?.caseRequestSequence || null,
+      responseRequestObjectObserved: Boolean(initiatingRequest),
+      requestIdentitySource: initiatingRequest ? "playwright-response-request" : "",
       requestKind,
       resourceType: request.resourceType(),
       correlationId,
-      correlationSource: correlationId ? 'request-header' : 'none',
+      correlationSource: correlationId ? "request-header" : "none",
+      responseCorrelationSource: correlationId
+        ? "initiating-request-identity"
+        : "none",
+      requestHeaderDigest: String(initiatingRequest?.requestHeaderDigest || ""),
+      responseEchoHeaderContract: "not-required",
+      responseEchoHeaderObserved: false,
       method: request.method(),
       status: response.status(),
       httpOk: response.ok(),
