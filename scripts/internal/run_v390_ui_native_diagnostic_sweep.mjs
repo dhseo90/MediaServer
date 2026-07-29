@@ -17,6 +17,8 @@ import {
   validateNativeExactManifest,
 } from "./v390_ui_native_exact_cases_lib.mjs";
 import {
+  aggregateDiagnosticChildOutcome,
+  diagnosticChildSourceBindingErrors,
   validateEvt004LifecycleEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import { validateEventDomSemanticCompositeEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
@@ -42,6 +44,7 @@ writeJson(diagnosticManifestPath, manifest);
 const fullSelection = fixedSelection(manifest.cases);
 const selection = selectedDiagnosticCases(fullSelection, options.caseId);
 const sourceCommit = currentGitCommit();
+const sourceManifestSha256 = sha256(stableJson(manifest));
 
 if (options.bootstrapFailureContractFixture) {
   const bootstrapError = bootstrapFailureContractFixture(options.bootstrapFailureContractFixture);
@@ -144,24 +147,34 @@ for (const [selectionIndex, item] of selection.entries()) {
   } catch {
     secretScan = { status: "FAIL", failureClass: "secret-artifact-integrity-failed" };
   }
-  const caseStatus = childSummary?.case?.status === "PASS" ? "PASS" : "FAIL";
-  cases.push(caseResult(item, caseStatus,
-    childSummary?.case?.failureClass || (child.summary ? "diagnostic-child-invalid" : "diagnostic-child-missing"),
+  const childOutcome = aggregateDiagnosticChildOutcome({
+    summary: childSummary,
+    exitCode: child.exitCode,
+  });
+  cases.push(caseResult(item, childOutcome.status,
+    childOutcome.failureClass,
     environmentGeneration, {
       failureDetail: childSummary?.case?.failureDetail || "",
-      actualBrowserExecution: childSummary?.case?.actualBrowserExecution === true,
-      requested: childSummary?.case?.requested || null,
-      observed: childSummary?.case?.observed || null,
-      eventDomSemanticEvidence: childSummary?.case?.eventDomSemanticEvidence || null,
-      requestCorrelationEvidence: childSummary?.case?.requestCorrelationEvidence || null,
+      failurePhase: childOutcome.failurePhase,
+      failureCode: childOutcome.failureCode,
+      actualBrowserExecution: childOutcome.actualBrowserExecution,
+      requested: childOutcome.requested || null,
+      observed: childOutcome.observed || null,
+      eventDomSemanticEvidence: childOutcome.eventDomSemanticEvidence || null,
+      requestCorrelationEvidence: childOutcome.requestCorrelationEvidence || null,
       requestCorrelationScopeEvidence:
-        childSummary?.case?.requestCorrelationScopeEvidence || null,
+        childOutcome.requestCorrelationScopeEvidence || null,
       navigationLifecycleEvidence:
-        childSummary?.case?.navigationLifecycleEvidence || null,
-      markerEvidence: childSummary?.case?.markerEvidence || null,
+        childOutcome.navigationLifecycleEvidence || null,
+      markerEvidence: childOutcome.markerEvidence || null,
       markerEvidenceLifecycle:
-        childSummary?.case?.markerEvidenceLifecycle || null,
-      cleanupAttestation: childSummary?.case?.cleanupAttestation || null,
+        childOutcome.markerEvidenceLifecycle || null,
+      cleanupAttestation: childOutcome.cleanupAttestation || null,
+      childExecutionStatus: childOutcome.childExecutionStatus || "",
+      childResult: childOutcome.childResult || "",
+      childRawCaptureValidation:
+        childOutcome.childRawCaptureValidation || null,
+      childSourceBinding: childOutcome.childSourceBinding || null,
       childExitCode: child.exitCode,
       environmentContamination: contaminated || secretScan.status !== "PASS",
       childCleanupFailure: childSummary?.environmentContamination?.cleanupFailure === true,
@@ -208,6 +221,9 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
     "--runtime-descriptor", handle.runtimeDescriptorPath,
     "--build-path", options.buildPath,
     "--timeout-ms", String(options.timeoutMs),
+    "--diagnostic-source-commit", sourceCommit,
+    "--diagnostic-manifest-sha256", sourceManifestSha256,
+    "--diagnostic-run-id", runId,
   ];
   if (options.playwrightModulePath) args.push("--playwright-module-path", options.playwrightModulePath);
   if (options.chromePath) args.push("--chrome-path", options.chromePath);
@@ -216,7 +232,13 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
   let summary = null;
   try {
     summary = readJsonAbsolute(childSummaryPath);
-    validateChildSummary(summary, item);
+    validateChildSummary(summary, item, {
+      gitCommit: sourceCommit,
+      manifestSha256: sourceManifestSha256,
+      runId,
+      caseId: item.caseId,
+      caseIdsSha256: sha256(item.caseId),
+    });
   } catch {
     summary = null;
   }
@@ -469,7 +491,7 @@ function writeProgress(selectionIndex, item) {
   );
 }
 
-function validateChildSummary(summary, item) {
+function validateChildSummary(summary, item, expectedSourceBinding) {
   assert(summary?.schema === "media-server.v390-ui-diagnostic-child.v1", "diagnostic child schema mismatch");
   assert(summary.diagnosticOnly === true && summary.releaseEvidenceEligible === false,
     "diagnostic child release-evidence boundary mismatch");
@@ -478,6 +500,10 @@ function validateChildSummary(summary, item) {
   assert(summary.selection?.caseId === item.caseId && summary.selection?.automaticRetryCount === 0,
     "diagnostic child selection/retry mismatch");
   assert(summary.case?.caseId === item.caseId, "diagnostic child case mismatch");
+  const sourceBindingErrors =
+    diagnosticChildSourceBindingErrors(summary, expectedSourceBinding);
+  assert(sourceBindingErrors.length === 0,
+    `diagnostic child source binding invalid: ${sourceBindingErrors.join(",")}`);
   assert(summary.case?.actualBrowserExecution === Boolean(summary.counts?.attempted),
     "diagnostic child actual browser execution mismatch");
   if (summary.case?.eventDomSemanticEvidence) {
@@ -530,8 +556,24 @@ function validateChildSummary(summary, item) {
     "diagnostic child navigation lifecycle evidence is invalid");
   }
   if (summary.case?.markerEvidenceLifecycle) {
-    assert(["reached", "not-reached"].includes(summary.case.markerEvidenceLifecycle.phase),
+    const lifecycle = summary.case.markerEvidenceLifecycle;
+    assert(["reached", "not-reached"].includes(lifecycle.phase) &&
+      (lifecycle.phase !== "reached" ||
+        (Number.isInteger(lifecycle.evaluatorInvocationCount) &&
+          typeof lifecycle.correlationResponseBound === "boolean" &&
+          typeof lifecycle.domReadinessConfirmed === "boolean")),
       "diagnostic child marker lifecycle evidence is invalid");
+  }
+  if (summary.case?.markerEvidence) {
+    const evidence = summary.case.markerEvidence;
+    assert(evidence.schema === "media-server.v390-ui-event-marker-flow-evidence.v1" &&
+      typeof evidence.pass === "boolean" &&
+      typeof evidence.failurePhase === "string" &&
+      typeof evidence.failureCode === "string" &&
+      Number.isInteger(evidence.evaluatorInvocationCount) &&
+      typeof evidence.correlationResponseBound === "boolean" &&
+      typeof evidence.domReadinessConfirmed === "boolean",
+    "diagnostic child marker evidence is invalid");
   }
   if (summary.case?.cleanupAttestation) {
     const evidence = summary.case.cleanupAttestation;

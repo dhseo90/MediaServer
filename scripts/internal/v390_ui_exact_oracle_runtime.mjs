@@ -118,6 +118,13 @@ export async function executeCatalogRuntimeOracle({
   let latestRequestCorrelationEvidence = null;
   const requestScopedCorrelationOnly = item.caseId === "EVT-004";
   let correlationScopeEvidence = null;
+  const markerEvaluationTracker = item.caseId === "EVT-004"
+    ? {
+        invocationCount: 0,
+        correlationResponseBound: false,
+        domReadinessConfirmed: false,
+      }
+    : null;
   if (!requestScopedCorrelationOnly) await browser.setCorrelationId(correlationId);
   try {
     const nativePrimaryControl = await observeNativePrimaryControl(browser, item);
@@ -197,6 +204,11 @@ export async function executeCatalogRuntimeOracle({
       }
       responseBodies.push(observation.body);
     }
+    if (markerEvaluationTracker) {
+      assert(latestRequestCorrelationEvidence?.pass === true,
+        `${item.caseId} marker evaluation requires correlated response binding`);
+      markerEvaluationTracker.correlationResponseBound = true;
+    }
     if (baseSpec.seed?.kind === "dashboard-three-api-samples") {
       bindDashboardRuntimeTrendBaseline({
         item,
@@ -216,7 +228,28 @@ export async function executeCatalogRuntimeOracle({
         responseBodies,
         interaction,
         eventRuntimeContext,
+        markerEvaluationTracker,
       ));
+    }
+    if (markerEvaluationTracker &&
+        markerEvaluationTracker.invocationCount !== 1) {
+      const markerEvidence = buildMarkerEvaluatorLifecycleFailureEvidence({
+        marker: runtimeBindings.logMarker,
+        invocationCount: markerEvaluationTracker?.invocationCount || 0,
+        correlationResponseBound:
+          markerEvaluationTracker?.correlationResponseBound === true,
+        domReadinessConfirmed:
+          markerEvaluationTracker?.domReadinessConfirmed === true,
+        failureCode: markerEvaluationTracker?.invocationCount === 0
+          ? "MARKER_EVALUATOR_NOT_INVOKED"
+          : "MARKER_EVALUATOR_DUPLICATE_INVOCATION",
+      });
+      const error = new Error(
+        `${item.caseId} marker evaluator invocation mismatch: ` +
+        `${markerEvaluationTracker?.invocationCount || 0}`,
+      );
+      error.markerEvidence = markerEvidence;
+      throw error;
     }
     if (requestScopedCorrelationOnly) {
       correlationScopeEvidence = assertExclusiveRequestScopedCorrelation({
@@ -1088,8 +1121,16 @@ async function observeDom(
   responseBodies,
   interaction,
   eventRuntimeContext = null,
+  markerEvaluationTracker = null,
 ) {
   const selector = expand(String(assertion.selector || ""), bindings);
+  const markerAssertion = item.caseId === "EVT-004" &&
+    (assertion.assertions || []).some(candidate =>
+      candidate.operator === "contains-fixture-marker" &&
+      candidate.target === "marker");
+  if (markerAssertion) {
+    await browser.waitForSelector(selector, { state: "visible" });
+  }
   const observed = await browser.evaluate(`(async () => {
     const nodes = Array.from(document.querySelectorAll(${JSON.stringify(selector)}));
     const rects = nodes.map(node => node.getBoundingClientRect());
@@ -1163,6 +1204,11 @@ async function observeDom(
   const zeroCardinalityExpected = assertion.cardinality?.operator === "equals" && Number(assertion.cardinality?.value) === 0;
   assert(observed.count > 0 || assertion.expectedExists === false || zeroCardinalityExpected,
     `${item.caseId} exact DOM selector missing: ${selector}`);
+  if (markerAssertion) {
+    assert(observed.count > 0 && observed.visibleCount > 0,
+      `${item.caseId} marker DOM readiness failed: ${selector}`);
+    markerEvaluationTracker.domReadinessConfirmed = true;
+  }
   if (assertion.expectedExists === false) {
     assert(observed.count === 0, `${item.caseId} forbidden DOM selector exists: ${selector}`);
   }
@@ -1206,6 +1252,7 @@ async function observeDom(
     item.caseId,
     selector,
     eventRuntimeContext,
+    markerEvaluationTracker,
   );
   return {
     selector,
@@ -1833,6 +1880,7 @@ function evaluateDomSemanticAssertions(
   caseId,
   selector,
   eventRuntimeContext = null,
+  markerEvaluationTracker = null,
 ) {
   return assertions.map(assertion => {
     const operator = String(assertion.operator || "");
@@ -1892,6 +1940,12 @@ function evaluateDomSemanticAssertions(
         eventRuntimeContext?.templateValues?.sourceId,
       ].filter(Boolean).map(String);
       const fixtureBoundOperator = /(?:fixture|selected-event|source-status|event-and-evidence|audit)/.test(operator);
+      const markerEvaluationRequired = caseId === "EVT-004" &&
+        operator === "contains-fixture-marker" &&
+        assertion.target === "marker";
+      if (markerEvaluationRequired) {
+        markerEvaluationTracker.invocationCount += 1;
+      }
       const compositeEvidence = buildEventDomSemanticCompositeEvidence({
         selector,
         observed,
@@ -1900,7 +1954,17 @@ function evaluateDomSemanticAssertions(
         fixtureCandidates,
         fixtureIdentity: eventRuntimeContext?.domFixtureIdentityByTarget?.[target] || null,
         fixtureRequired: fixtureBoundOperator,
-        marker: caseId === "EVT-004" ? bindings.logMarker : "",
+        marker: markerEvaluationRequired ? bindings.logMarker : "",
+        markerEvaluation: markerEvaluationRequired
+          ? {
+              invocationCount: markerEvaluationTracker.invocationCount,
+              correlationResponseBound:
+                markerEvaluationTracker.correlationResponseBound === true,
+              domReadinessConfirmed:
+                markerEvaluationTracker.domReadinessConfirmed === true,
+              selector,
+            }
+          : null,
         actualBrowserExecution: true,
       });
       const semanticPass = compositeEvidence.pass;
@@ -1986,6 +2050,8 @@ export function buildEventDomSemanticCompositeEvidence({
   fixtureIdentity = null,
   fixtureRequired = false,
   marker = "",
+  markerEvaluation = null,
+  markerEvaluator = buildEventMarkerFlowEvidence,
   actualBrowserExecution = false,
 }) {
   const text = String(observed?.text || "");
@@ -2174,8 +2240,14 @@ export function buildEventDomSemanticCompositeEvidence({
     expectedNodeTokensDigest: sha256Digest(expectedNodeTokens),
     observationDigest: sha256Digest(serializedObservation),
   };
-  const markerFlow = marker
-    ? buildEventMarkerFlowEvidence({ marker, observed, responseBodies })
+  const markerFlow = markerEvaluation
+    ? evaluateEventMarkerFlowEvidence({
+        marker,
+        observed,
+        responseBodies,
+        markerEvaluation,
+        markerEvaluator,
+      })
     : null;
 
   const failedChecks = [
@@ -2258,6 +2330,93 @@ export function buildEventMarkerFlowEvidence({ marker, observed, responseBodies 
     responseMarkerObserved,
     timelineProjectionObserved,
     domMarkerObserved,
+  };
+}
+
+export function evaluateEventMarkerFlowEvidence({
+  marker,
+  observed,
+  responseBodies = [],
+  markerEvaluation = {},
+  markerEvaluator = buildEventMarkerFlowEvidence,
+}) {
+  const lifecycle = {
+    evaluatorInvocationCount: Number(markerEvaluation.invocationCount || 0),
+    correlationResponseBound:
+      markerEvaluation.correlationResponseBound === true,
+    domReadinessConfirmed:
+      markerEvaluation.domReadinessConfirmed === true,
+    selectorDigest: sha256Digest(String(markerEvaluation.selector || "")),
+    evaluationOrder: [
+      "correlation-response-bound",
+      "dashboard-dom-ready",
+      "marker-evaluated",
+    ],
+  };
+  if (lifecycle.evaluatorInvocationCount !== 1 ||
+      lifecycle.correlationResponseBound !== true ||
+      lifecycle.domReadinessConfirmed !== true) {
+    return buildMarkerEvaluatorLifecycleFailureEvidence({
+      marker,
+      invocationCount: lifecycle.evaluatorInvocationCount,
+      correlationResponseBound: lifecycle.correlationResponseBound,
+      domReadinessConfirmed: lifecycle.domReadinessConfirmed,
+      selectorDigest: lifecycle.selectorDigest,
+      failureCode: lifecycle.evaluatorInvocationCount !== 1
+        ? (lifecycle.evaluatorInvocationCount === 0
+            ? "MARKER_EVALUATOR_NOT_INVOKED"
+            : "MARKER_EVALUATOR_DUPLICATE_INVOCATION")
+        : (lifecycle.correlationResponseBound !== true
+            ? "MARKER_CORRELATION_PREREQUISITE_NOT_MET"
+            : "MARKER_DOM_NOT_READY"),
+    });
+  }
+  try {
+    const evidence = markerEvaluator({ marker, observed, responseBodies });
+    return { ...evidence, ...lifecycle };
+  } catch {
+    return buildMarkerEvaluatorLifecycleFailureEvidence({
+      marker,
+      invocationCount: lifecycle.evaluatorInvocationCount,
+      correlationResponseBound: lifecycle.correlationResponseBound,
+      domReadinessConfirmed: lifecycle.domReadinessConfirmed,
+      selectorDigest: lifecycle.selectorDigest,
+      failureCode: "MARKER_EVALUATOR_EXCEPTION",
+    });
+  }
+}
+
+export function buildMarkerEvaluatorLifecycleFailureEvidence({
+  marker = "",
+  invocationCount = 0,
+  correlationResponseBound = false,
+  domReadinessConfirmed = false,
+  selectorDigest = sha256Digest(""),
+  failureCode = "MARKER_EVALUATOR_NOT_INVOKED",
+} = {}) {
+  const emptyCounts = markerEvidenceCounts([], []);
+  return {
+    schema: "media-server.v390-ui-event-marker-flow-evidence.v1",
+    pass: false,
+    failurePhase: "marker-evaluator",
+    failureCode,
+    markerDigest: sha256Digest(String(marker || "").normalize("NFKC").trim()),
+    fixtureMarkerMaterialized: {
+      pass: String(marker || "").normalize("NFKC").trim().length > 0,
+      markerDigest: sha256Digest(String(marker || "").normalize("NFKC").trim()),
+    },
+    responseMarkerObserved: structuredClone(emptyCounts),
+    timelineProjectionObserved: structuredClone(emptyCounts),
+    domMarkerObserved: structuredClone(emptyCounts),
+    evaluatorInvocationCount: Number(invocationCount || 0),
+    correlationResponseBound: correlationResponseBound === true,
+    domReadinessConfirmed: domReadinessConfirmed === true,
+    selectorDigest,
+    evaluationOrder: [
+      "correlation-response-bound",
+      "dashboard-dom-ready",
+      "marker-evaluated",
+    ],
   };
 }
 
@@ -2464,6 +2623,15 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
       typeof marker.failureCode === "string" &&
       /^[0-9a-f]{64}$/.test(marker.markerDigest || "") &&
       typeof marker.fixtureMarkerMaterialized?.pass === "boolean" &&
+      Number.isInteger(marker.evaluatorInvocationCount) &&
+      typeof marker.correlationResponseBound === "boolean" &&
+      typeof marker.domReadinessConfirmed === "boolean" &&
+      /^[0-9a-f]{64}$/.test(marker.selectorDigest || "") &&
+      JSON.stringify(marker.evaluationOrder) === JSON.stringify([
+        "correlation-response-bound",
+        "dashboard-dom-ready",
+        "marker-evaluated",
+      ]) &&
       ["responseMarkerObserved", "timelineProjectionObserved", "domMarkerObserved"].every(key =>
         typeof marker[key]?.pass === "boolean" &&
         Number.isInteger(marker[key]?.candidateCount) &&

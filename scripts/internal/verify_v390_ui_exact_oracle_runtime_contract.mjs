@@ -7,11 +7,13 @@ import {
   buildExclusiveRequestScopedCorrelationEvidence,
   buildEventDomSemanticCompositeEvidence,
   buildEventMarkerFlowEvidence,
+  buildMarkerEvaluatorLifecycleFailureEvidence,
   containsForbiddenResponseMaterial,
   containsForbiddenStructuredDomMaterial,
   dashboardRuntimeTrendSample,
   executeCatalogRuntimeOracle,
   executeCatalogRuntimeOracleAtSourceRoute,
+  evaluateEventMarkerFlowEvidence,
   evaluateRuntimeStatusPseudoFieldAssertion,
   responsePseudoFieldValues,
   selectEventDomResponseBaselines,
@@ -283,6 +285,100 @@ await check("EVT-004 marker flow binds one authoritative response row to one vis
   assert(!JSON.stringify(matching).includes("auth incident") &&
     !JSON.stringify(matching).includes("diagnostics log-tail"),
   "marker evidence exposed raw response or DOM text");
+});
+
+await check("EVT-004 marker evaluator is single-shot after correlation and DOM readiness", async () => {
+  const marker = "REVIEW4-evt-004-review4-fixture-LOG-MARKER";
+  const input = {
+    marker,
+    responseBodies: [{ lines: [marker] }],
+    observed: {
+      semanticNodeTexts: [marker],
+      visibleSemanticNodeTexts: [marker],
+    },
+  };
+  let evaluatorCalls = 0;
+  const evaluate = markerEvaluation => evaluateEventMarkerFlowEvidence({
+    ...input,
+    markerEvaluation: {
+      selector: "#dashIncidentTimeline",
+      ...markerEvaluation,
+    },
+    markerEvaluator: args => {
+      evaluatorCalls += 1;
+      return buildEventMarkerFlowEvidence(args);
+    },
+  });
+  const passed = evaluate({
+    invocationCount: 1,
+    correlationResponseBound: true,
+    domReadinessConfirmed: true,
+  });
+  assert(passed.pass === true &&
+    passed.evaluatorInvocationCount === 1 &&
+    passed.correlationResponseBound === true &&
+    passed.domReadinessConfirmed === true &&
+    evaluatorCalls === 1,
+  "marker evaluator did not run exactly once after its prerequisites");
+
+  for (const [label, markerEvaluation, failureCode] of [
+    ["zero invocation", {
+      invocationCount: 0,
+      correlationResponseBound: true,
+      domReadinessConfirmed: true,
+    }, "MARKER_EVALUATOR_NOT_INVOKED"],
+    ["duplicate invocation", {
+      invocationCount: 2,
+      correlationResponseBound: true,
+      domReadinessConfirmed: true,
+    }, "MARKER_EVALUATOR_DUPLICATE_INVOCATION"],
+    ["before correlation", {
+      invocationCount: 1,
+      correlationResponseBound: false,
+      domReadinessConfirmed: true,
+    }, "MARKER_CORRELATION_PREREQUISITE_NOT_MET"],
+    ["before DOM readiness", {
+      invocationCount: 1,
+      correlationResponseBound: true,
+      domReadinessConfirmed: false,
+    }, "MARKER_DOM_NOT_READY"],
+  ]) {
+    const before = evaluatorCalls;
+    const evidence = evaluate(markerEvaluation);
+    assert(evidence.pass === false &&
+      evidence.failureCode === failureCode &&
+      evaluatorCalls === before,
+    `${label} marker lifecycle did not fail before evaluator execution`);
+  }
+
+  const exceptionEvidence = evaluateEventMarkerFlowEvidence({
+    ...input,
+    markerEvaluation: {
+      invocationCount: 1,
+      correlationResponseBound: true,
+      domReadinessConfirmed: true,
+      selector: "#dashIncidentTimeline",
+    },
+    markerEvaluator: () => {
+      throw new Error("raw marker exception must not escape");
+    },
+  });
+  assert(exceptionEvidence.pass === false &&
+    exceptionEvidence.failurePhase === "marker-evaluator" &&
+    exceptionEvidence.failureCode === "MARKER_EVALUATOR_EXCEPTION" &&
+    exceptionEvidence.evaluatorInvocationCount === 1,
+  "marker evaluator exception did not produce structured failure evidence");
+
+  const missingEvidence = buildMarkerEvaluatorLifecycleFailureEvidence({
+    marker,
+    invocationCount: 0,
+    correlationResponseBound: true,
+    domReadinessConfirmed: true,
+  });
+  assert(missingEvidence.pass === false &&
+    missingEvidence.failureCode === "MARKER_EVALUATOR_NOT_INVOKED" &&
+    !JSON.stringify(missingEvidence).includes(marker),
+  "zero-invocation marker evidence was missing or exposed the raw marker");
 });
 
 await check("EVT DOM semantic composite distinguishes safe failure evidence without raw values", async () => {

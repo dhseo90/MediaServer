@@ -4,9 +4,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { buildNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
+import {
+  aggregateDiagnosticChildOutcome,
+  diagnosticChildSourceBindingErrors,
+} from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -95,7 +100,7 @@ check("diagnostic child output is constrained and failure reasons are safe class
   assert(runnerSource.includes("if (primaryFailure?.eventDomSemanticEvidence)") &&
     runnerSource.includes("error.partialArtifacts.eventDomSemanticEvidence") &&
     runnerSource.includes("eventDomSemanticEvidence: resultItem.eventDomSemanticEvidence || null") &&
-    sweepSource.includes("eventDomSemanticEvidence: childSummary?.case?.eventDomSemanticEvidence || null") &&
+    sweepSource.includes("eventDomSemanticEvidence: childOutcome.eventDomSemanticEvidence || null") &&
     sweepSource.includes('import { validateEventDomSemanticCompositeEvidence }') &&
     sweepSource.includes("validateEventDomSemanticCompositeEvidence(evidence)") &&
     runnerSource.includes("eventDomSemanticEvidence"),
@@ -103,7 +108,7 @@ check("diagnostic child output is constrained and failure reasons are safe class
   assert(runnerSource.includes("if (primaryFailure?.requestCorrelationEvidence)") &&
     runnerSource.includes("error.partialArtifacts.requestCorrelationEvidence") &&
     runnerSource.includes("requestCorrelationEvidence: resultItem.requestCorrelationEvidence || null") &&
-    sweepSource.includes("requestCorrelationEvidence: childSummary?.case?.requestCorrelationEvidence || null") &&
+    sweepSource.includes("requestCorrelationEvidence: childOutcome.requestCorrelationEvidence || null") &&
     sweepSource.includes("media-server.v390-ui-request-correlation-evidence.v1"),
   "structured request correlation evidence is not preserved through child and sweep summaries");
   assert(runnerSource.includes("requestCorrelationScopeEvidence: resultItem.requestCorrelationScopeEvidence || null") &&
@@ -383,6 +388,98 @@ check("response binding failure closes before preserving complete lifecycle evid
   "failure lifecycle structured evidence is incomplete");
 });
 
+check("valid failed child evidence is aggregated without a missing-child downgrade", () => {
+  const sourceBinding = {
+    gitCommit: "1".repeat(40),
+    manifestSha256: "2".repeat(64),
+    runId: "current-diagnostic-run",
+    caseId: "EVT-004",
+    caseIdsSha256: "3".repeat(64),
+  };
+  const markerEvidence = {
+    schema: "media-server.v390-ui-event-marker-flow-evidence.v1",
+    pass: false,
+    failurePhase: "dom-render",
+    failureCode: "DOM_MARKER_NOT_OBSERVED",
+    markerDigest: "4".repeat(64),
+    evaluatorInvocationCount: 1,
+    correlationResponseBound: true,
+    domReadinessConfirmed: true,
+  };
+  const summary = {
+    schema: "media-server.v390-ui-diagnostic-child.v1",
+    result: "FAIL",
+    executionStatus: "diagnostic-child-browser-evidence",
+    sourceBinding,
+    rawCaptureValidation: { status: "PASS", errors: [] },
+    case: {
+      caseId: "EVT-004",
+      status: "FAIL",
+      failureClass: "case-execution-failed",
+      actualBrowserExecution: true,
+      requestCorrelationEvidence: { pass: true },
+      requestCorrelationScopeEvidence: { pass: true },
+      navigationLifecycleEvidence: { pass: true },
+      markerEvidence,
+      markerEvidenceLifecycle: {
+        phase: "reached",
+        evaluatorInvocationCount: 1,
+        correlationResponseBound: true,
+        domReadinessConfirmed: true,
+      },
+      cleanupAttestation: { pass: true },
+    },
+  };
+  const outcome = aggregateDiagnosticChildOutcome({
+    summary,
+    exitCode: 1,
+  });
+  assert(outcome.status === "FAIL" &&
+    outcome.failureClass !== "diagnostic-child-missing" &&
+    outcome.failurePhase === "dom-render" &&
+    outcome.failureCode === "DOM_MARKER_NOT_OBSERVED" &&
+    outcome.actualBrowserExecution === true &&
+    outcome.markerEvidence === markerEvidence &&
+    outcome.navigationLifecycleEvidence ===
+      summary.case.navigationLifecycleEvidence &&
+    outcome.requestCorrelationEvidence ===
+      summary.case.requestCorrelationEvidence,
+  "valid child FAIL evidence was not preserved");
+  assert(aggregateDiagnosticChildOutcome({
+    summary: null,
+    exitCode: 1,
+  }).failureClass === "diagnostic-child-missing",
+  "missing child summary did not retain the missing classification");
+  assert(diagnosticChildSourceBindingErrors(summary, sourceBinding).length === 0,
+    "current child source binding was rejected");
+  for (const [label, replacement, expectedCode] of [
+    ["stale commit", { gitCommit: "5".repeat(40) },
+      "diagnostic-child-source-commit-mismatch"],
+    ["wrong manifest", { manifestSha256: "6".repeat(64) },
+      "diagnostic-child-manifest-digest-mismatch"],
+    ["stale run", { runId: "stale-run" },
+      "diagnostic-child-run-id-mismatch"],
+    ["wrong case", { caseId: "EVT-003" },
+      "diagnostic-child-source-case-mismatch"],
+    ["wrong selection", { caseIdsSha256: "7".repeat(64) },
+      "diagnostic-child-source-selection-mismatch"],
+  ]) {
+    const stale = {
+      ...summary,
+      sourceBinding: { ...sourceBinding, ...replacement },
+    };
+    assert(diagnosticChildSourceBindingErrors(stale, sourceBinding)
+      .includes(expectedCode),
+    `${label} child evidence was not rejected`);
+  }
+  const falsePass = aggregateDiagnosticChildOutcome({
+    summary: { ...summary, result: "PASS" },
+    exitCode: 1,
+  });
+  assert(falsePass.status === "FAIL",
+    "child exit 1 was promoted to PASS");
+});
+
 check("diagnostic sweep reports durable progress and treats cleanup failure as failure", () => {
   assert(sweepSource.includes('const progressPath = path.join(outputDir, "progress.json")') &&
     sweepSource.includes("[diagnostic-progress]") &&
@@ -521,14 +618,22 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
   const canonical = JSON.parse(read("test/fixtures/ui_fulltest_case_manifest_policy_v4.json"));
   const implementation = JSON.parse(read("test/fixtures/project_feature_implementation_evidence.json"));
   const diagnosticManifestPath = path.join(outputDir, "diagnostic-native-manifest.json");
+  const nativeManifest = buildNativeExactManifest({ canonical, implementation });
   fs.writeFileSync(diagnosticManifestPath,
-    `${JSON.stringify(buildNativeExactManifest({ canonical, implementation }), null, 2)}\n`,
+    `${JSON.stringify(nativeManifest, null, 2)}\n`,
     "utf8");
+  const sourceCommit = "0".repeat(40);
+  const manifestSha256 = createHash("sha256")
+    .update(stableJson(nativeManifest)).digest("hex");
+  const diagnosticRunId = "diagnostic-child-contract";
   const run = spawnSync(path.join(rootDir, "server.sh"), [
     "run-v390-ui-native-exact-cases",
     "--diagnostic-child",
     "--diagnostic-case-id", "RULE-097",
     "--manifest", diagnosticManifestPath,
+    "--diagnostic-source-commit", sourceCommit,
+    "--diagnostic-manifest-sha256", manifestSha256,
+    "--diagnostic-run-id", diagnosticRunId,
     "--plan-only",
     "--output-dir", outputDir,
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
@@ -544,6 +649,11 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
   assert(summary.releaseEvidenceEligible === false && summary.policyV4Qualification === "not-eligible" &&
     summary.uiFulltestPass === false,
   "diagnostic child plan-only entered a release or Policy v4 state");
+  assert(summary.sourceBinding?.gitCommit === sourceCommit &&
+    summary.sourceBinding?.manifestSha256 === manifestSha256 &&
+    summary.sourceBinding?.runId === diagnosticRunId &&
+    summary.sourceBinding?.caseId === "RULE-097",
+  "diagnostic child plan-only source binding mismatch");
   assert(summary.case?.actualBrowserExecution === false &&
     summary.case?.eventDomSemanticEvidence === null,
   "diagnostic child plan-only claims browser or EVT DOM evidence");
@@ -576,4 +686,13 @@ function read(relativePath) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort()
+      .map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }

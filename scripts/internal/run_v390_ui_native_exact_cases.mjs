@@ -103,6 +103,10 @@ let visualPlanValidation = null;
 let runnerWorkflowCompatibility = null;
 try {
   manifest = readJson(options.manifest);
+  if (diagnosticChild) {
+    assert(options.diagnosticManifestSha256 === sha256Text(stableJson(manifest)),
+      "diagnostic child manifest source binding mismatch");
+  }
   canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
   implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
   validation = validateNativeExactManifest({ manifest, canonical, implementation });
@@ -824,10 +828,22 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       requestCorrelationEvidence: runtimeState.get("__requestCorrelationEvidence") || null,
       requestCorrelationScopeEvidence:
         runtimeState.get("__requestCorrelationScopeEvidence") || null,
-      markerEvidence:
+      markerEvidence: runtimeState.get("__markerEvidence") ||
         runtimeState.get("__eventDomSemanticEvidence")?.markerFlow || null,
-      markerEvidenceLifecycle: runtimeState.get("__eventDomSemanticEvidence")?.markerFlow
-        ? { phase: "reached" }
+      markerEvidenceLifecycle: (runtimeState.get("__markerEvidence") ||
+        runtimeState.get("__eventDomSemanticEvidence")?.markerFlow)
+        ? {
+            phase: "reached",
+            evaluatorInvocationCount: Number((runtimeState.get("__markerEvidence") ||
+              runtimeState.get("__eventDomSemanticEvidence")?.markerFlow)
+              ?.evaluatorInvocationCount || 0),
+            correlationResponseBound: (runtimeState.get("__markerEvidence") ||
+              runtimeState.get("__eventDomSemanticEvidence")?.markerFlow)
+              ?.correlationResponseBound === true,
+            domReadinessConfirmed: (runtimeState.get("__markerEvidence") ||
+              runtimeState.get("__eventDomSemanticEvidence")?.markerFlow)
+              ?.domReadinessConfirmed === true,
+          }
         : { phase: "not-reached" },
       cleanupAttestation: buildCaseCleanupAttestation({
         primaryFailure: null,
@@ -846,6 +862,21 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     };
   } catch (error) {
     primaryFailure = error;
+    if (error?.eventDomSemanticEvidence) {
+      runtimeState.set("__eventDomSemanticEvidence",
+        structuredClone(error.eventDomSemanticEvidence));
+      if (error.eventDomSemanticEvidence.markerFlow) {
+        runtimeState.set("__markerEvidence",
+          structuredClone(error.eventDomSemanticEvidence.markerFlow));
+      }
+    }
+    if (error?.markerEvidence) {
+      runtimeState.set("__markerEvidence", structuredClone(error.markerEvidence));
+    }
+    if (error?.requestCorrelationEvidence) {
+      runtimeState.set("__requestCorrelationEvidence",
+        structuredClone(error.requestCorrelationEvidence));
+    }
     const correlationWindow = runtimeState.get("__requestCorrelationWindow");
     if (correlationWindow && !Number.isInteger(correlationWindow.networkEnd)) {
       runtimeState.set("__requestCorrelationWindow", {
@@ -2502,12 +2533,21 @@ async function semanticAssertionResult(
     requestCorrelationEvidence = catalogObservation.responses
       ?.map(response => response.requestCorrelationEvidence)
       .find(Boolean) || null;
-    const eventDomSemanticEvidence = catalogObservation.dom
+    const markerEvidenceCandidates = catalogObservation.dom
       ?.flatMap(dom => dom.semanticEvidence || [])
       .map(evidence => evidence.compositeEvidence)
-      .find(evidence => evidence?.markerFlow) || null;
+      .filter(evidence => evidence?.markerFlow) || [];
+    if (item.caseId === "EVT-004") {
+      assert(requestCorrelationEvidence?.pass === true,
+        `${item.caseId} marker evaluation preceded correlated response binding`);
+      assert(markerEvidenceCandidates.length === 1,
+        `${item.caseId} marker evaluator evidence count mismatch: ${markerEvidenceCandidates.length}`);
+    }
+    const eventDomSemanticEvidence = markerEvidenceCandidates[0] || null;
     if (eventDomSemanticEvidence) {
       runtimeState.set("__eventDomSemanticEvidence", structuredClone(eventDomSemanticEvidence));
+      runtimeState.set("__markerEvidence",
+        structuredClone(eventDomSemanticEvidence.markerFlow));
     }
     if (requestCorrelationEvidence) {
       runtimeState.set("__requestCorrelationEvidence", structuredClone(requestCorrelationEvidence));
@@ -2856,6 +2896,8 @@ function exactOracleBindings(caseRuntimeOwner, caseContext) {
     sessionId: catalog.sessionId || "",
     vaMetadataSampleId: catalog.vaMetadataSampleId || "",
     runtimeTrendBaseline: catalog.runtimeTrendBaseline || null,
+    logMarker: catalog.logMarker || "",
+    redactionCanary: catalog.redactionCanary || "",
   };
 }
 
@@ -3317,6 +3359,7 @@ function createDiagnosticChildSummary({
     policyV4Qualification: "not-eligible",
     uiFulltestPass: false,
     actualBrowserExecution: Boolean(resultItem),
+    sourceBinding: diagnosticChildSourceBinding(item.caseId),
     selection: {
       startCaseId: item.caseId,
       endCaseId: item.caseId,
@@ -3388,6 +3431,7 @@ function createDiagnosticPreExecutionSummary(caseId, phase) {
     policyV4Qualification: "not-eligible",
     uiFulltestPass: false,
     actualBrowserExecution: false,
+    sourceBinding: diagnosticChildSourceBinding(caseId),
     selection: {
       startCaseId: caseId,
       endCaseId: caseId,
@@ -3434,6 +3478,18 @@ function validateDiagnosticChildSummary(summary, item) {
   if (summary?.releaseEvidenceEligible !== false) errors.push("diagnostic-child-release-evidence");
   if (summary?.policyV4Qualification !== "not-eligible") errors.push("diagnostic-child-policy-qualification");
   if (summary?.uiFulltestPass !== false) errors.push("diagnostic-child-ui-fulltest");
+  const expectedSourceBinding = diagnosticChildSourceBinding(item.caseId);
+  for (const field of [
+    "gitCommit",
+    "manifestSha256",
+    "runId",
+    "caseId",
+    "caseIdsSha256",
+  ]) {
+    if (summary?.sourceBinding?.[field] !== expectedSourceBinding[field]) {
+      errors.push(`diagnostic-child-source-binding-${field}`);
+    }
+  }
   if (summary?.selection?.caseId !== item.caseId ||
       summary?.selection?.startCaseId !== item.caseId ||
       summary?.selection?.endCaseId !== item.caseId ||
@@ -3520,8 +3576,24 @@ function validateDiagnosticChildSummary(summary, item) {
     }
   }
   if (summary?.case?.markerEvidenceLifecycle &&
-      !["reached", "not-reached"].includes(summary.case.markerEvidenceLifecycle.phase)) {
+      (!["reached", "not-reached"].includes(summary.case.markerEvidenceLifecycle.phase) ||
+        (summary.case.markerEvidenceLifecycle.phase === "reached" &&
+          (!Number.isInteger(summary.case.markerEvidenceLifecycle.evaluatorInvocationCount) ||
+            typeof summary.case.markerEvidenceLifecycle.correlationResponseBound !== "boolean" ||
+            typeof summary.case.markerEvidenceLifecycle.domReadinessConfirmed !== "boolean")))) {
     errors.push("diagnostic-child-marker-evidence-lifecycle");
+  }
+  if (summary?.case?.markerEvidence) {
+    const evidence = summary.case.markerEvidence;
+    if (evidence.schema !== "media-server.v390-ui-event-marker-flow-evidence.v1" ||
+        typeof evidence.pass !== "boolean" ||
+        typeof evidence.failurePhase !== "string" ||
+        typeof evidence.failureCode !== "string" ||
+        !Number.isInteger(evidence.evaluatorInvocationCount) ||
+        typeof evidence.correlationResponseBound !== "boolean" ||
+        typeof evidence.domReadinessConfirmed !== "boolean") {
+      errors.push("diagnostic-child-marker-evidence");
+    }
   }
   if (summary?.case?.cleanupAttestation) {
     const evidence = summary.case.cleanupAttestation;
@@ -3592,6 +3664,9 @@ function parseArgs(args) {
     planOnly: false,
     diagnosticChild: false,
     diagnosticCaseId: "",
+    diagnosticSourceCommit: "",
+    diagnosticManifestSha256: "",
+    diagnosticRunId: "",
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -3608,6 +3683,9 @@ function parseArgs(args) {
     else if (arg === "--plan-only") value.planOnly = true;
     else if (arg === "--diagnostic-child") value.diagnosticChild = true;
     else if (arg === "--diagnostic-case-id") value.diagnosticCaseId = args[++index] || "";
+    else if (arg === "--diagnostic-source-commit") value.diagnosticSourceCommit = args[++index] || "";
+    else if (arg === "--diagnostic-manifest-sha256") value.diagnosticManifestSha256 = args[++index] || "";
+    else if (arg === "--diagnostic-run-id") value.diagnosticRunId = args[++index] || "";
     else throw new Error(`unknown option: ${arg}`);
   }
   assert(value.outputDir, "--output-dir is required");
@@ -3616,6 +3694,12 @@ function parseArgs(args) {
     "--diagnostic-case-id requires --diagnostic-child");
   assert(!value.diagnosticChild || value.diagnosticCaseId,
     "--diagnostic-child requires --diagnostic-case-id");
+  assert(!value.diagnosticChild || /^[0-9a-f]{40}$/.test(value.diagnosticSourceCommit),
+    "--diagnostic-child requires --diagnostic-source-commit");
+  assert(!value.diagnosticChild || /^[0-9a-f]{64}$/.test(value.diagnosticManifestSha256),
+    "--diagnostic-child requires --diagnostic-manifest-sha256");
+  assert(!value.diagnosticChild || value.diagnosticRunId,
+    "--diagnostic-child requires --diagnostic-run-id");
   return value;
 }
 
@@ -3644,6 +3728,25 @@ function readJson(relativePath) {
 
 function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+function diagnosticChildSourceBinding(caseId) {
+  return {
+    gitCommit: options.diagnosticSourceCommit,
+    manifestSha256: options.diagnosticManifestSha256,
+    runId: options.diagnosticRunId,
+    caseId,
+    caseIdsSha256: sha256Text(caseId),
+  };
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort()
+      .map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function assert(condition, message) {

@@ -6730,6 +6730,30 @@ native generator는 0회입니다.
 이 checkpoint에서 actual은 미실행이며 clean commit/push 뒤 EVT-004 단건을 정확히
 1회 실행합니다.
 
+EVT-004 marker finalize/child evidence 보정(2026-07-29)은 exact runner가
+`catalogBindings.logMarker`/`redactionCanary`를 runtime oracle에 전달하지 않아 correlation
+response와 `/ops/dashboard` DOM assertion이 PASS한 뒤에도 marker flow 자체가 생성되지
+않던 0-call 경계를 닫습니다. EVT-004 marker evaluator는 correlation response binding과
+dashboard marker selector의 visible readiness 뒤 정확히 1회만 실행하며, PASS/FAIL/예외를
+모두 invocation count와 prerequisite attestation을 포함한 구조화 `markerEvidence`로
+기록합니다. Marker 평가가 끝난 뒤에만 raw-capture validation을 수행하고,
+restore→browser/context close→bounded ledger finalize 순서를 유지합니다. Parent는 child
+exit 1이어도 current commit/manifest/run/case/selection source binding이 exact한 summary를
+유효한 child FAIL로 집계해 `actualBrowserExecution`, 최초 failure phase/code,
+navigation/correlation/marker/cleanup evidence를 보존합니다. Summary가 실제 누락됐거나
+parse/source identity 검증에 실패한 경우에만 `diagnostic-child-missing`을 사용하며 child
+FAIL을 PASS로 승격하지 않습니다. Diagnostic 15/15, runtime 39/39, event 23/23,
+evaluator 17/17, native 39/39, completion 33/33, adapter 20/20, acceptance 21/21,
+final integrity 12/12, semantic audit 51/51·approval 986/986, approval negative 11/11,
+migration, feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0과 MJS/diff gate가 PASS했습니다. Source-built와
+stored semantic candidate
+`1bbc5bcc68ba954d50b445f7db56292e718e58105c13be97203de4b345c16bd1`는 exact
+match이고 feature/pass/status/sourceFlowDigest 변경은 모두 0이므로 generator/producer는
+각 0회입니다. 제품 C++·API schema·UI와 marker fixture/response/timeline/DOM 계약은
+변경하지 않았습니다. 이 정적 checkpoint에서 actual은 미실행이며 clean commit/push 뒤
+EVT-004 단건을 정확히 1회 실행합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

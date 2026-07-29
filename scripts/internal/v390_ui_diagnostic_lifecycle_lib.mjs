@@ -165,14 +165,22 @@ export function buildFailureLifecycleEvidence({
         : correlationWindow.attestation.failureCode,
     };
   }
-  const markerEvidence =
+  const markerEvidence = runtimeState.get("__markerEvidence") ||
     runtimeState.get("__eventDomSemanticEvidence")?.markerFlow || null;
   return {
     navigationLifecycleEvidence,
     requestCorrelationScopeEvidence,
     markerEvidence,
     markerEvidenceLifecycle: markerEvidence
-      ? { phase: "reached" }
+      ? {
+          phase: "reached",
+          evaluatorInvocationCount:
+            Number(markerEvidence.evaluatorInvocationCount || 0),
+          correlationResponseBound:
+            markerEvidence.correlationResponseBound === true,
+          domReadinessConfirmed:
+            markerEvidence.domReadinessConfirmed === true,
+        }
       : { phase: "not-reached" },
     cleanupAttestation: buildCaseCleanupAttestation({
       primaryFailure,
@@ -300,15 +308,27 @@ export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
     }
     if (!caseEvidence.markerEvidence ||
         caseEvidence.markerEvidence.pass !== true ||
-        caseEvidence.markerEvidenceLifecycle?.phase !== "reached") {
+        caseEvidence.markerEvidence.evaluatorInvocationCount !== 1 ||
+        caseEvidence.markerEvidence.correlationResponseBound !== true ||
+        caseEvidence.markerEvidence.domReadinessConfirmed !== true ||
+        caseEvidence.markerEvidenceLifecycle?.phase !== "reached" ||
+        caseEvidence.markerEvidenceLifecycle?.evaluatorInvocationCount !== 1) {
       errors.push("EVT-004-marker-not-reached");
     }
   } else if (!caseEvidence.markerEvidence) {
     if (caseEvidence.markerEvidenceLifecycle?.phase !== "not-reached") {
       errors.push("EVT-004-marker-phase-missing");
     }
-  } else if (caseEvidence.markerEvidence.pass !== true ||
-      caseEvidence.markerEvidenceLifecycle?.phase !== "reached") {
+    if (caseEvidence.requestCorrelationEvidence?.pass === true &&
+        caseEvidence.navigationLifecycleEvidence?.pass === true) {
+      errors.push("EVT-004-marker-evidence-required-after-prerequisites");
+    }
+  } else if (caseEvidence.markerEvidenceLifecycle?.phase !== "reached" ||
+      !Number.isInteger(caseEvidence.markerEvidence.evaluatorInvocationCount) ||
+      caseEvidence.markerEvidenceLifecycle?.evaluatorInvocationCount !==
+        caseEvidence.markerEvidence.evaluatorInvocationCount ||
+      caseEvidence.markerEvidence.correlationResponseBound !== true ||
+      caseEvidence.markerEvidence.domReadinessConfirmed !== true) {
     errors.push("EVT-004-marker-lifecycle-invalid");
   }
   if (caseEvidence.status === "FAIL" &&
@@ -318,4 +338,82 @@ export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
     errors.push("EVT-004-primary-failure-not-preserved");
   }
   return errors;
+}
+
+export function diagnosticChildSourceBindingErrors(summary, expected = {}) {
+  const binding = summary?.sourceBinding;
+  const errors = [];
+  if (!binding || typeof binding !== "object") {
+    return ["diagnostic-child-source-binding-missing"];
+  }
+  for (const [field, code] of [
+    ["gitCommit", "diagnostic-child-source-commit-mismatch"],
+    ["manifestSha256", "diagnostic-child-manifest-digest-mismatch"],
+    ["runId", "diagnostic-child-run-id-mismatch"],
+    ["caseId", "diagnostic-child-source-case-mismatch"],
+    ["caseIdsSha256", "diagnostic-child-source-selection-mismatch"],
+  ]) {
+    if (String(binding[field] || "") !== String(expected[field] || "")) {
+      errors.push(code);
+    }
+  }
+  return errors;
+}
+
+export function aggregateDiagnosticChildOutcome({
+  summary,
+  exitCode,
+} = {}) {
+  if (!summary?.case) {
+    return {
+      status: "FAIL",
+      failureClass: "diagnostic-child-missing",
+      failurePhase: "child-evidence-ingestion",
+      failureCode: "DIAGNOSTIC_CHILD_SUMMARY_MISSING_OR_INVALID",
+      actualBrowserExecution: false,
+    };
+  }
+  const childCase = summary.case;
+  const rawCaptureErrors = Array.isArray(summary.rawCaptureValidation?.errors)
+    ? summary.rawCaptureValidation.errors.map(String)
+    : [];
+  const markerFailure = childCase.markerEvidence?.pass === false
+    ? childCase.markerEvidence
+    : null;
+  const pass = exitCode === 0 &&
+    summary.result === "PASS" &&
+    childCase.status === "PASS" &&
+    summary.rawCaptureValidation?.status === "PASS";
+  const fallbackCode = rawCaptureErrors[0] ||
+    (exitCode === 0
+      ? "DIAGNOSTIC_CHILD_RESULT_FAILED"
+      : "DIAGNOSTIC_CHILD_EXIT_NONZERO");
+  return {
+    status: pass ? "PASS" : "FAIL",
+    failureClass: pass
+      ? ""
+      : String(childCase.failureClass || markerFailure?.failureCode || fallbackCode),
+    failurePhase: pass
+      ? ""
+      : String(markerFailure?.failurePhase || "child-execution"),
+    failureCode: pass
+      ? ""
+      : String(markerFailure?.failureCode || childCase.failureClass || fallbackCode),
+    actualBrowserExecution: childCase.actualBrowserExecution === true,
+    requested: childCase.requested || null,
+    observed: childCase.observed || null,
+    eventDomSemanticEvidence: childCase.eventDomSemanticEvidence || null,
+    requestCorrelationEvidence: childCase.requestCorrelationEvidence || null,
+    requestCorrelationScopeEvidence:
+      childCase.requestCorrelationScopeEvidence || null,
+    navigationLifecycleEvidence:
+      childCase.navigationLifecycleEvidence || null,
+    markerEvidence: childCase.markerEvidence || null,
+    markerEvidenceLifecycle: childCase.markerEvidenceLifecycle || null,
+    cleanupAttestation: childCase.cleanupAttestation || null,
+    childExecutionStatus: String(summary.executionStatus || ""),
+    childResult: String(summary.result || ""),
+    childRawCaptureValidation: summary.rawCaptureValidation || null,
+    childSourceBinding: summary.sourceBinding || null,
+  };
 }
