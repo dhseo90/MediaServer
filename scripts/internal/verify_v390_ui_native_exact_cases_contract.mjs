@@ -84,6 +84,50 @@ check("builder is deterministic and preserves exact case order", () => {
     JSON.stringify(canonical.cases.map(item => item.testId)), "canonical ordered IDs drift");
 });
 
+check("EVT-004 reuses one document navigation and correlates only the authoritative API fetch", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const item = rebuilt.cases.find(value => value.caseId === "EVT-004");
+  const navigation = item?.actions?.[0]?.semanticCompletion?.navigationBinding;
+  const primary = item?.workflow?.expectedResults?.[0]?.completion;
+  assert(navigation?.requestKind === "document-navigation" &&
+    navigation.correlationRequired === false &&
+    navigation.exactRequestSequence === 1 &&
+    navigation.requestedPath === "/ops/events" &&
+    navigation.authoritativeReadback === null,
+  "EVT-004 initial document navigation trust binding drift");
+  assert(primary?.request === null &&
+    primary?.navigationBinding?.requestKind === "document-navigation" &&
+    primary.navigationBinding.correlationRequired === false &&
+    primary.navigationBinding.exactRequestSequence === 1 &&
+    JSON.stringify(primary.navigationBinding.caseLifecycleNavigationSequence) === JSON.stringify([
+      {
+        purpose: "initial-events-document",
+        method: "GET",
+        path: "/ops/events",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationRequired: false,
+      },
+      {
+        purpose: "required-product-dashboard-dom",
+        method: "GET",
+        path: "/ops/dashboard",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationRequired: false,
+      },
+    ]) &&
+    primary.navigationBinding.authoritativeReadback?.source === "catalog-runtime-fresh-browser-fetch" &&
+    primary.navigationBinding.authoritativeReadback.method === "GET" &&
+    primary.navigationBinding.authoritativeReadback.urlPath ===
+      "/ops/api/diagnostics/log-tail?limit=50" &&
+    primary.navigationBinding.authoritativeReadback.correlationId === primary.correlationId,
+  "EVT-004 primary completion did not separate navigation from authoritative API correlation");
+  assert(item.actions.filter(action =>
+    action.semanticCompletion?.request?.urlPath === "/ops/events").length === 0,
+  "EVT-004 retained an additional /ops/events application fetch contract");
+});
+
 check("canonical and native generator writes are one validated atomic transaction", () => {
   assert(generatorSource.includes("replaceJsonFixturesAtomically") &&
     generatorSource.includes("[canonicalPath, canonical]") &&

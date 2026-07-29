@@ -6673,6 +6673,33 @@ PASS했습니다. Native 424/423+1/unsupported 0과 ordered ID, semantic candida
 `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`는 미실행이고 기존
 EVT-004 actual FAIL은 그대로 보존합니다.
 
+EVT-004 전체 navigation/correlation lifecycle 보정(2026-07-29)은 최초
+`/ops/events`만 보던 navigation window와 page-wide `extraHTTPHeaders`, catalog helper의
+`/ops/dashboard` 이동 뒤 `/ops/events` 복귀가 결합해 두 번째 document navigation과
+correlation 누출을 놓치던 false PASS 경계를 제거합니다. Listener는 첫 `page.goto` 전에
+설치되고 context/browser close가 모두 끝날 때까지 전체 main-frame document ledger를
+수집하며, runner는 `await browser.close()`가 반환한 최종 ledger만 PASS 판정에 사용합니다.
+정상 ordered sequence는 correlation 없는 same-origin document
+`GET /ops/events` → `GET /ops/dashboard`이고, dashboard 이동은 기존 incident timeline
+제품 DOM assertion에만 필요하며 `/ops/events` 복귀는 없습니다. Authoritative
+`GET /ops/api/diagnostics/log-tail?limit=50` correlation은 해당 fetch의 명시적 action ID와
+request-scoped header에만 결속되고 다른 document/API request에는 주입되지 않습니다.
+Redirect/reload/reissue/retry, 중복 `/ops/events`, unowned/outside-window navigation과
+correlation 누출은 fail-closed입니다. Marker fixture→response→timeline→DOM 경계와 제품
+C++/API schema/UI renderer는 변경하지 않았습니다. Diagnostic 13/13, runtime 38/38,
+event 23/23, evaluator 17/17, native 39/39, completion 32/32, adapter 18/18,
+semantic audit 51/51·approval 986/986, feature evidence 986/986·negative 15/15,
+inventory 17/17, release index 8/8, script inventory 11/11, docs links failure 0 및
+syntax/diff gate가 PASS했습니다. 공식 native generator는 1회, migration-aware producer는
+1회 실행했습니다. Candidate
+`7121cf24896a825d3bd5b0f325df40d06aa98c486c1157ac8242aca27d24fcdf`는
+feature/pass/status 변경 0, UI-018 sourceFlow 한 행 변경이며 985 carry-forward+UI-018
+독립 승인으로 audit/approval 986/986을 원자 갱신했습니다. Package/decision SHA는
+`00ff209177310f256206c72ec98a07d57759e2c14f4120e479a9bedaf302a344`/
+`45cb08631d4b6cf3788be29f44e1982bdda25d4deeb2e4b54af47721e67275e8`입니다.
+이 정적 checkpoint 시점에는 actual EVT-004를 아직 실행하지 않았고, clean commit 이후
+단건 diagnostic을 정확히 1회 실행하도록 분리합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

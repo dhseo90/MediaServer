@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 import {
   allowedCompletionSources,
   buildEndpointActionSemanticReadback,
+  buildNavigationTrustEvidence,
+  buildRequestCorrelationEvidence,
   domSnapshotDigest,
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
@@ -22,6 +24,469 @@ const legacyRunnerSource = readText("scripts/internal/verify_v390_ui_automation.
 const adapterSource = readText("scripts/internal/v390_ui_native_adapter.mjs");
 const completionOracleSource = readText("scripts/internal/v390_ui_completion_oracle_lib.mjs");
 const checks = [];
+
+check("application fetch request correlation evidence distinguishes fail-closed boundaries", () => {
+  const expected = {
+    method: "GET",
+    urlPath: "/ops/api/diagnostics/log-tail?limit=50",
+    correlationId: "EVT-004:assert-product-state:completion",
+    correlationRequired: true,
+    allowedStatuses: [200],
+    requestKind: "application-fetch",
+  };
+  const request = {
+    phase: "request-start",
+    requestId: "native-request-1",
+    correlationId: expected.correlationId,
+    correlationSource: "request-header",
+    method: "GET",
+    status: 0,
+    url: "http://127.0.0.1/ops/api/diagnostics/log-tail?limit=50",
+  };
+  const response = { ...request, phase: "response", status: 200 };
+  const requestResult = {
+    actionId: "EVT-004:assert-product-state",
+    requestAttemptCount: 1,
+    requestReissued: false,
+  };
+  const evaluate = (
+    entries,
+    overrides = {},
+    resultOverrides = {},
+    listener = true,
+    actionId = "EVT-004:assert-product-state",
+  ) =>
+    buildRequestCorrelationEvidence({
+      entries,
+      actionId,
+      expected: { ...expected, ...overrides },
+      requestResult: { ...requestResult, ...resultOverrides },
+      listenerInstalledBeforeRequest: listener,
+    });
+  assert(evaluate([request, response]).pass, "exact application fetch correlation did not pass");
+  assert(evaluate([], {}, {}, false).failureCode === "LISTENER_INSTALLED_AFTER_REQUEST",
+    "late listener was not distinguished");
+  assert(evaluate([], { correlationId: "" }).failureCode === "CORRELATION_NOT_GENERATED",
+    "missing generated correlation was not distinguished");
+  assert(evaluate([
+    { ...request, correlationId: "", correlationSource: "none" },
+    { ...response, correlationId: "", correlationSource: "none" },
+  ]).failureCode === "CORRELATION_NOT_ATTACHED", "missing request header was not distinguished");
+  assert(evaluate([
+    { ...request, correlationId: "OTHER" },
+    { ...response, correlationId: "OTHER" },
+  ]).failureCode === "CORRELATION_MISMATCH", "different correlation was not rejected");
+  assert(evaluate([
+    { ...request, method: "POST" },
+    { ...response, method: "POST" },
+  ]).failureCode === "REQUEST_METHOD_MISMATCH", "method mismatch was not distinguished");
+  assert(evaluate([
+    { ...request, url: "http://127.0.0.1/ops/other" },
+    { ...response, url: "http://127.0.0.1/ops/other" },
+  ]).failureCode === "REQUEST_PATH_MISMATCH", "path mismatch was not distinguished");
+  assert(evaluate([request, response], {}, {}, true, "").failureCode === "ACTION_ID_MISMATCH",
+    "missing explicit action ID was not rejected");
+  assert(evaluate([request, response], {}, {}, true, "OTHER").failureCode === "ACTION_ID_MISMATCH",
+    "different explicit action ID was not rejected");
+  assert(evaluate([request, response], {}, { actionId: "OTHER" }).failureCode === "ACTION_ID_MISMATCH",
+    "action ID mismatch was not rejected");
+  assert(evaluate([
+    request,
+    { ...request, requestId: "native-request-2" },
+    response,
+  ]).failureCode === "DUPLICATE_REQUEST", "duplicate request was not rejected");
+  assert(evaluate([
+    request,
+    response,
+    { ...response, requestId: "native-request-2" },
+  ]).failureCode === "DUPLICATE_RESPONSE", "duplicate response was not rejected");
+  assert(evaluate([request, response], {}, {
+    requestAttemptCount: 2,
+    requestReissued: true,
+  }).failureCode === "REQUEST_REISSUED", "request reissue was not rejected");
+  assert(evaluate([request, response], {
+    requestKind: "document-navigation",
+  }).failureCode === "REQUEST_KIND_INVALID", "navigation was accepted as application correlation");
+  const passed = evaluate([request, response]);
+  assert(passed.correlationDigest && !JSON.stringify(passed).includes(expected.correlationId),
+    "raw correlation value reached structured evidence");
+});
+
+check("document navigation trust rejects correlation and request reissue", () => {
+  const expected = {
+    schema: "media-server.v390-ui-navigation-trust-binding.v1",
+    requestKind: "document-navigation",
+    invocationId: "EVT-004:initial-document-navigation",
+    method: "GET",
+    requestedPath: "/ops/events",
+    expectedCanonicalRoute: "/ops/events",
+    exactRequestSequence: 1,
+    correlationRequired: false,
+  };
+  const navigation = {
+    invocationId: expected.invocationId,
+    requestKind: "document-navigation",
+    resourceType: "document",
+    method: "GET",
+    requestedPath: "/ops/events",
+    observedPath: "/ops/events",
+    sameOrigin: true,
+    requestAttemptCount: 1,
+    requestCandidateCount: 1,
+    responseCandidateCount: 1,
+    requestResponseBound: true,
+    correlationObserved: false,
+    redirectCount: 0,
+    retryCount: 0,
+    reloadCount: 0,
+    unownedNavigationCount: 0,
+    additionalFetchCount: 0,
+    requestReissued: false,
+    totalDocumentNavigationCount: 1,
+    orderedDocumentNavigations: [{
+      sequence: 2,
+      responseSequence: 3,
+      invocationId: expected.invocationId,
+      navigationKind: "initial-document-navigation",
+      method: "GET",
+      path: "/ops/events",
+      resourceType: "document",
+      sameOrigin: true,
+      correlationPresent: false,
+      correlationDigest: "",
+      redirected: false,
+      responseStatus: 200,
+      responseBound: true,
+    }],
+    listenerStartSequence: 1,
+    listenerEndSequence: null,
+    listenerActive: true,
+    listenerInstalledBeforeFirstNavigation: true,
+    navigationAfterListenerEndCount: 0,
+  };
+  assert(buildNavigationTrustEvidence({ navigation, expected }).pass,
+    "exact document navigation trust did not pass");
+  assert(buildNavigationTrustEvidence({
+    navigation: { ...navigation, requestCandidateCount: 2 },
+    expected,
+  }).failureCode === "NAVIGATION_REQUEST_REISSUED",
+  "reissued document navigation was not rejected");
+  assert(buildNavigationTrustEvidence({
+    navigation: { ...navigation, correlationObserved: true },
+    expected,
+  }).failureCode === "NAVIGATION_CORRELATION_FORBIDDEN",
+  "document navigation accepted an application correlation");
+  assert(buildNavigationTrustEvidence({
+    navigation: { ...navigation, observedPath: "/ops/dashboard" },
+    expected,
+  }).failureCode === "NAVIGATION_ROUTE_MISMATCH",
+  "document navigation route drift was not rejected");
+  for (const [label, mutation, failureCode] of [
+    ["resource type", { resourceType: "fetch" }, "NAVIGATION_RESOURCE_TYPE_MISMATCH"],
+    ["same origin", { sameOrigin: false }, "NAVIGATION_ORIGIN_MISMATCH"],
+    ["redirect", { redirectCount: 1 }, "NAVIGATION_REDIRECTED"],
+    ["retry", { retryCount: 1 }, "NAVIGATION_REQUEST_REISSUED"],
+    ["additional fetch", { additionalFetchCount: 1 }, "NAVIGATION_REQUEST_REISSUED"],
+  ]) {
+    assert(buildNavigationTrustEvidence({
+      navigation: { ...navigation, ...mutation },
+      expected,
+    }).failureCode === failureCode, `${label} document navigation was not rejected`);
+  }
+});
+
+check("EVT-004 navigation completion is exclusive and keeps authoritative correlation separate", () => {
+  const actionId = "EVT-004:assert-product-state";
+  const correlationId = `${actionId}:completion`;
+  const authoritativePath = "/ops/api/diagnostics/log-tail?limit=50";
+  const navigationBinding = {
+    schema: "media-server.v390-ui-navigation-trust-binding.v1",
+    requestKind: "document-navigation",
+    invocationId: "EVT-004:initial-document-navigation",
+    method: "GET",
+    requestedPath: "/ops/events",
+    expectedCanonicalRoute: "/ops/events",
+    exactRequestSequence: 1,
+    correlationRequired: false,
+    caseLifecycleNavigationSequence: [
+      {
+        purpose: "initial-events-document",
+        method: "GET",
+        path: "/ops/events",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationRequired: false,
+      },
+      {
+        purpose: "required-product-dashboard-dom",
+        method: "GET",
+        path: "/ops/dashboard",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationRequired: false,
+      },
+    ],
+    authoritativeReadback: {
+      source: "catalog-runtime-fresh-browser-fetch",
+      actionId,
+      correlationId,
+      method: "GET",
+      urlPath: authoritativePath,
+      allowedStatuses: [200],
+    },
+  };
+  const navigation = {
+    status: 200,
+    url: "http://127.0.0.1/ops/events",
+    invocationId: navigationBinding.invocationId,
+    requestKind: "document-navigation",
+    resourceType: "document",
+    method: "GET",
+    requestedPath: navigationBinding.requestedPath,
+    observedPath: navigationBinding.expectedCanonicalRoute,
+    sameOrigin: true,
+    requestAttemptCount: 1,
+    requestCandidateCount: 1,
+    responseCandidateCount: 1,
+    requestResponseBound: true,
+    correlationObserved: false,
+    redirectCount: 0,
+    retryCount: 0,
+    reloadCount: 0,
+    unownedNavigationCount: 0,
+    additionalFetchCount: 0,
+    requestReissued: false,
+    totalDocumentNavigationCount: 2,
+    orderedDocumentNavigations: [
+      {
+        sequence: 2,
+        responseSequence: 3,
+        invocationId: navigationBinding.invocationId,
+        navigationKind: "initial-document-navigation",
+        method: "GET",
+        path: "/ops/events",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationPresent: false,
+        correlationDigest: "",
+        redirected: false,
+        responseStatus: 200,
+        responseBound: true,
+      },
+      {
+        sequence: 4,
+        responseSequence: 5,
+        invocationId: "native-document-navigation-1",
+        navigationKind: "explicit-navigation",
+        method: "GET",
+        path: "/ops/dashboard",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationPresent: false,
+        correlationDigest: "",
+        redirected: false,
+        responseStatus: 200,
+        responseBound: true,
+      },
+    ],
+    listenerStartSequence: 1,
+    listenerEndSequence: null,
+    listenerActive: true,
+    listenerInstalledBeforeFirstNavigation: true,
+    navigationAfterListenerEndCount: 0,
+  };
+  const correlationRequest = {
+    phase: "request-start",
+    requestId: "evt-004-log-tail",
+    requestKind: "application-fetch",
+    correlationId,
+    correlationSource: "request-header",
+    method: "GET",
+    status: 0,
+    url: `http://127.0.0.1${authoritativePath}`,
+  };
+  const requestCorrelationEvidence = buildRequestCorrelationEvidence({
+    entries: [
+      correlationRequest,
+      { ...correlationRequest, phase: "response", status: 200 },
+    ],
+    actionId,
+    expected: {
+      ...navigationBinding.authoritativeReadback,
+      requestKind: "application-fetch",
+      correlationRequired: true,
+    },
+    requestResult: {
+      actionId,
+      requestAttemptCount: 1,
+      requestReissued: false,
+    },
+    listenerInstalledBeforeRequest: true,
+  });
+  const completionAction = {
+    ...action("click"),
+    actionId,
+    completionPhase: "primary-action",
+    controlSelector: "[data-testid=\"ops-events-page\"]",
+    correlationId,
+    semanticCompletionRequired: true,
+    expectedReadbackIdentity: "EVT-004:independent-readback",
+    expectedBehaviorSha256: "4".repeat(64),
+    expectedReadbackExpectation: { exists: true },
+    expectedNavigationBinding: navigationBinding,
+    allowedCompletionSources: ["navigation-network-dom"],
+  };
+  const makeReadback = responses => semanticV2({
+    identity: completionAction.expectedReadbackIdentity,
+    correlationId,
+    actionId,
+    expectedBehaviorSha256: completionAction.expectedBehaviorSha256,
+    observationSource: "browser-dom",
+    selector: completionAction.controlSelector,
+    observation: {
+      actual: {
+        exists: true,
+        exactRuntimeOracle: {
+          schema: "media-server.v390-ui-exact-runtime-observation.v1",
+          caseId: "EVT-004",
+          requestedRoute: "/ops/dashboard",
+          observedRoute: "/ops/dashboard",
+          responses,
+          dom: [{
+            selector: "[data-testid=\"event-correlation-marker\"]",
+            status: "PASS",
+          }],
+        },
+      },
+    },
+  });
+  const authoritativeResponse = {
+    method: "GET",
+    urlPath: authoritativePath,
+    status: 200,
+    source: "fresh-browser-fetch",
+    bodyDigest: "5".repeat(64),
+    requestCorrelationEvidence,
+  };
+  const evaluate = (actionValue = completionAction, readback = makeReadback([authoritativeResponse])) =>
+    evaluateCompletionOracle({
+      action: actionValue,
+      navigation,
+      semanticReadback: readback,
+    });
+  const accepted = evaluate();
+  assert(accepted.pass &&
+    accepted.completionMode === "navigationBinding" &&
+    accepted.navigationTrustEvidence?.pass === true &&
+    accepted.authoritativeReadbackEvidence?.pass === true,
+  `EVT-004 navigation/correlation completion failed: ${accepted.reason}`);
+  assert(makeReadback([authoritativeResponse]).observation.actual.exactRuntimeOracle.dom[0].status === "PASS",
+    "EVT-004 marker evidence stage was not reachable after navigation/correlation");
+  const secondEventsNavigation = structuredClone(navigation);
+  secondEventsNavigation.totalDocumentNavigationCount = 3;
+  secondEventsNavigation.orderedDocumentNavigations.push({
+    ...secondEventsNavigation.orderedDocumentNavigations[0],
+    sequence: 6,
+    responseSequence: 7,
+    invocationId: "native-document-navigation-2",
+    navigationKind: "explicit-navigation",
+  });
+  assert(buildNavigationTrustEvidence({
+    navigation: secondEventsNavigation,
+    expected: navigationBinding,
+  }).failureCode === "NAVIGATION_LIFECYCLE_MISMATCH",
+  "second /ops/events navigation outside the initial window was accepted");
+  const correlatedDashboard = structuredClone(navigation);
+  correlatedDashboard.orderedDocumentNavigations[1].correlationPresent = true;
+  correlatedDashboard.orderedDocumentNavigations[1].correlationDigest = "7".repeat(64);
+  assert(buildNavigationTrustEvidence({
+    navigation: correlatedDashboard,
+    expected: navigationBinding,
+  }).failureCode === "NAVIGATION_LIFECYCLE_MISMATCH",
+  "log-tail correlation leaked into the dashboard document navigation");
+  for (const [label, mutation, failureCode] of [
+    ["listener installed after navigation", {
+      listenerInstalledBeforeFirstNavigation: false,
+    }, "LISTENER_INSTALLED_AFTER_NAVIGATION"],
+    ["navigation after listener end", {
+      listenerActive: false,
+      listenerEndSequence: 5,
+      navigationAfterListenerEndCount: 1,
+    }, "NAVIGATION_AFTER_LISTENER_END"],
+    ["reload", { reloadCount: 1 }, "NAVIGATION_RELOADED"],
+    ["unowned navigation", { unownedNavigationCount: 1 }, "NAVIGATION_UNOWNED"],
+  ]) {
+    assert(buildNavigationTrustEvidence({
+      navigation: { ...navigation, ...mutation },
+      expected: navigationBinding,
+    }).failureCode === failureCode, `${label} was accepted`);
+  }
+
+  const missing = structuredClone(completionAction);
+  delete missing.expectedNavigationBinding;
+  assert(evaluate(missing).reason === "completion-binding-missing",
+    "completion without a binding was accepted");
+  const requestBinding = {
+    correlationId,
+    method: "GET",
+    urlPath: authoritativePath,
+    allowedStatuses: [200],
+  };
+  const localTransitionBinding = {
+    selector: completionAction.controlSelector,
+    property: "text",
+  };
+  for (const [label, endpoint, local] of [
+    ["request+navigation", requestBinding, null],
+    ["local+navigation", null, localTransitionBinding],
+    ["request+local+navigation", requestBinding, localTransitionBinding],
+  ]) {
+    const ambiguous = {
+      ...structuredClone(completionAction),
+      expectedEndpoint: endpoint,
+      expectedLocalTransition: local,
+    };
+    assert(evaluate(ambiguous).reason === "completion-binding-ambiguous",
+      `${label} completion bindings were accepted`);
+  }
+  const requestAndLocal = {
+    ...structuredClone(completionAction),
+    expectedNavigationBinding: null,
+    expectedEndpoint: requestBinding,
+    expectedLocalTransition: localTransitionBinding,
+  };
+  assert(evaluate(requestAndLocal).reason === "completion-binding-ambiguous",
+    "request+local completion bindings were accepted");
+
+  const navigationAsReadback = makeReadback([{
+    ...authoritativeResponse,
+    urlPath: "/ops/events",
+    requestCorrelationEvidence: {
+      schema: "media-server.v390-ui-navigation-trust-evidence.v1",
+      pass: true,
+    },
+  }]);
+  assert(evaluate(completionAction, navigationAsReadback).reason ===
+    "catalog-authoritative-readback-request-missing",
+  "document navigation became the authoritative API readback");
+  const missingCorrelation = makeReadback([{
+    ...authoritativeResponse,
+    requestCorrelationEvidence: null,
+  }]);
+  assert(evaluate(completionAction, missingCorrelation).reason ===
+    "catalog-authoritative-correlation-invalid",
+  "authoritative log-tail without correlation was accepted");
+  const mismatchedCorrelation = makeReadback([{
+    ...authoritativeResponse,
+    requestCorrelationEvidence: {
+      ...requestCorrelationEvidence,
+      correlationDigest: "6".repeat(64),
+    },
+  }]);
+  assert(evaluate(completionAction, mismatchedCorrelation).reason ===
+    "catalog-authoritative-correlation-invalid",
+  "authoritative log-tail with a different correlation was accepted");
+});
 
 check("DOM snapshot digest is stable and state-sensitive", () => {
   const before = snapshot("ready", "alpha");
@@ -197,6 +662,7 @@ check("REVIEW3-42 rejects DOM-only completion and requires observed request corr
           `${item.caseId} ${actionItem.kind} request correlation source drift`);
       } else {
         assert(actionItem.semanticCompletion.localTransition ||
+          actionItem.semanticCompletion.navigationBinding ||
           actionItem.semanticCompletion.phase === "independent-readback",
         `${item.caseId} ${actionItem.kind} request/local/readback binding missing`);
       }
@@ -250,7 +716,8 @@ check("REVIEW3-42 accepts only header-correlated endpoint plus exact semantic re
     networkResponses: [endpoint],
     semanticReadback,
   });
-  assert(pass.pass && pass.source === "endpoint-dom", `semantic endpoint failed: ${pass.reason}`);
+  assert(pass.pass && pass.source === "endpoint-dom" && pass.completionMode === "requestBinding",
+    `semantic endpoint failed: ${pass.reason}`);
 
   for (const [label, mutateEvidence] of [
     ["synthetic-correlation", value => { value.networkResponses[0].correlationSource = "post-hoc"; }],
@@ -380,6 +847,9 @@ check("REVIEW3-42 all 424 action plans close only with their exact endpoint and 
           allowedStatuses: completion.request.allowedStatuses,
         } : null,
         expectedLocalTransition: completion.localTransition,
+        expectedNavigationBinding: completion.navigationBinding
+          ? structuredClone(completion.navigationBinding)
+          : null,
         allowedCompletionSources: [completion.requiredSource, ...completion.attestedAlternatives],
       };
       const semanticReadback = {
@@ -392,7 +862,8 @@ check("REVIEW3-42 all 424 action plans close only with their exact endpoint and 
         expected: structuredClone(completion.readbackExpectation),
         observed: structuredClone(completion.readbackExpectation),
       };
-      const status = completion.request?.allowedStatuses?.[0] || 0;
+      const status = completion.request?.allowedStatuses?.[0] ||
+        (completion.navigationBinding ? 200 : 0);
       const networkResponses = completion.request ? [{
         requestId: `${item.caseId}:${evaluatedActions}`,
         correlationId: completion.request.correlationId,
@@ -426,9 +897,55 @@ check("REVIEW3-42 all 424 action plans close only with their exact endpoint and 
         before,
         after,
         navigation: ["navigate", "navigate-negative"].includes(evidenceAction.kind)
-          ? { status, url: networkResponses[0]?.url || `http://127.0.0.1${item.screenRoute}` }
+          ? (completion.navigationBinding ? {
+              status,
+              url: `http://127.0.0.1${completion.navigationBinding.requestedPath}`,
+              invocationId: completion.navigationBinding.invocationId,
+              requestKind: "document-navigation",
+              resourceType: "document",
+              method: "GET",
+              requestedPath: completion.navigationBinding.requestedPath,
+              observedPath: completion.navigationBinding.requestedPath,
+              sameOrigin: true,
+              requestAttemptCount: 1,
+              requestCandidateCount: 1,
+              responseCandidateCount: 1,
+              requestResponseBound: true,
+              correlationObserved: false,
+              redirectCount: 0,
+              retryCount: 0,
+              reloadCount: 0,
+              unownedNavigationCount: 0,
+              additionalFetchCount: 0,
+              requestReissued: false,
+              totalDocumentNavigationCount: 1,
+              orderedDocumentNavigations: [{
+                sequence: 2,
+                responseSequence: 3,
+                invocationId: completion.navigationBinding.invocationId,
+                navigationKind: "initial-document-navigation",
+                method: "GET",
+                path: completion.navigationBinding.requestedPath,
+                resourceType: "document",
+                sameOrigin: true,
+                correlationPresent: false,
+                correlationDigest: "",
+                redirected: false,
+                responseStatus: status,
+                responseBound: true,
+              }],
+              listenerStartSequence: 1,
+              listenerEndSequence: null,
+              listenerActive: true,
+              listenerInstalledBeforeFirstNavigation: true,
+              navigationAfterListenerEndCount: 0,
+            } : {
+              status,
+              url: networkResponses[0]?.url || `http://127.0.0.1${item.screenRoute}`,
+            })
           : null,
-        allowedStatuses: completion.request?.allowedStatuses || [],
+        allowedStatuses: completion.request?.allowedStatuses ||
+          (completion.navigationBinding ? [200] : []),
         networkResponses,
         semanticReadback,
       });
@@ -609,7 +1126,8 @@ check("REVIEW4-58 accepts only an action-bound local transition plus runtime rea
       },
     }),
   });
-  assert(result.pass && result.source === "local-transition-readback",
+  assert(result.pass && result.source === "local-transition-readback" &&
+    result.completionMode === "localTransitionBinding",
     `action-bound local transition failed: ${result.reason}`);
   assert(result.completionPhase === "primary-action" && result.actionId === "CASE-1:select" &&
     result.controlSelector === "#target", "action completion identity missing");
@@ -1054,9 +1572,34 @@ check("REVIEW4-58 exact 424 primary completion contracts bind product action and
       `${item.caseId} static readback locator became runtime evidence`);
     const endpoint = item.workflow.productAction.endpoint;
     const localAction = item.workflow.productAction.localAction;
-    assert(Boolean(completion.request) !== Boolean(completion.localTransition),
+    const bindingModes = [
+      Boolean(completion.request),
+      Boolean(completion.localTransition),
+      Boolean(completion.navigationBinding),
+    ];
+    assert(bindingModes.filter(Boolean).length === 1,
       `${item.caseId} action binding must be exclusive`);
-    if (endpoint) {
+    if (completion.navigationBinding) {
+      assert(item.caseId === "EVT-004" &&
+        completion.navigationBinding.requestKind === "document-navigation" &&
+        completion.navigationBinding.method === "GET" &&
+        completion.navigationBinding.requestedPath === "/ops/events" &&
+        completion.navigationBinding.expectedCanonicalRoute === "/ops/events" &&
+        completion.navigationBinding.exactRequestSequence === 1 &&
+        completion.navigationBinding.correlationRequired === false &&
+        completion.navigationBinding.caseLifecycleNavigationSequence?.length === 2 &&
+        completion.navigationBinding.caseLifecycleNavigationSequence[0]?.path === "/ops/events" &&
+        completion.navigationBinding.caseLifecycleNavigationSequence[1]?.path === "/ops/dashboard" &&
+        completion.navigationBinding.caseLifecycleNavigationSequence.every(entry =>
+          entry.method === "GET" &&
+          entry.resourceType === "document" &&
+          entry.sameOrigin === true &&
+          entry.correlationRequired === false) &&
+        completion.navigationBinding.authoritativeReadback?.method === "GET" &&
+        completion.navigationBinding.authoritativeReadback.urlPath ===
+          "/ops/api/diagnostics/log-tail?limit=50",
+      `${item.caseId} navigation completion binding mismatch`);
+    } else if (endpoint) {
       assert(completion.request.correlationId === completion.correlationId,
         `${item.caseId} request is not action-correlated`);
       assert(completion.request.correlationId !== `${item.caseId}:navigation`,

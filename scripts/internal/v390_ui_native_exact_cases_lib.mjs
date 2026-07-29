@@ -1614,6 +1614,8 @@ export function buildNativeExactManifest({ canonical, implementation }) {
           expectedProductState: workflowParts.expectedProductState,
           independentReadback: workflowParts.independentReadback,
           workflowInputs: workflowParts.inputs,
+          workflowClass,
+          exactRuntimeOracle,
         }),
       }),
     }));
@@ -1915,9 +1917,55 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
       primaryCompletion.readback.identity === item.oracle.independentReadbackIdentity &&
       primaryCompletion.readback.staticLocatorIsNotRuntimePass === true,
     `${item.caseId} independent readback binding drift`);
-    assert(Boolean(primaryCompletion.request) !== Boolean(primaryCompletion.localTransition),
-      `${item.caseId} primary request/local transition must be exclusive`);
-    if (item.workflow.productAction.endpoint) {
+    assert([
+      Boolean(primaryCompletion.request),
+      Boolean(primaryCompletion.localTransition),
+      Boolean(primaryCompletion.navigationBinding),
+    ].filter(Boolean).length === 1,
+    `${item.caseId} primary request/local transition/navigation binding must be exclusive`);
+    if (primaryCompletion.navigationBinding) {
+      const binding = primaryCompletion.navigationBinding;
+      const endpoint = item.workflow.productAction.endpoint;
+      assert(item.caseId === "EVT-004" &&
+        item.screenRoute === "/ops/events" &&
+        item.workflow.workflowClass === "read-only-state" &&
+        item.workflow.primaryControl.applicability === "not-applicable" &&
+        endpoint?.method === "GET" &&
+        endpoint.path === item.screenRoute &&
+        binding.schema === "media-server.v390-ui-navigation-trust-binding.v1" &&
+        binding.requestKind === "document-navigation" &&
+        binding.invocationId === `${item.caseId}:initial-document-navigation` &&
+        binding.method === "GET" &&
+        binding.requestedPath === item.screenRoute &&
+        binding.expectedCanonicalRoute === item.screenRoute &&
+        binding.exactRequestSequence === 1 &&
+        binding.correlationRequired === false &&
+        JSON.stringify(binding.caseLifecycleNavigationSequence) === JSON.stringify([
+          {
+            purpose: "initial-events-document",
+            method: "GET",
+            path: "/ops/events",
+            resourceType: "document",
+            sameOrigin: true,
+            correlationRequired: false,
+          },
+          {
+            purpose: "required-product-dashboard-dom",
+            method: "GET",
+            path: "/ops/dashboard",
+            resourceType: "document",
+            sameOrigin: true,
+            correlationRequired: false,
+          },
+        ]) &&
+        binding.authoritativeReadback?.source === "catalog-runtime-fresh-browser-fetch" &&
+        binding.authoritativeReadback.actionId === primaryCompletion.actionId &&
+        binding.authoritativeReadback.correlationId === primaryCompletion.correlationId &&
+        binding.authoritativeReadback.method === "GET" &&
+        binding.authoritativeReadback.urlPath ===
+          "/ops/api/diagnostics/log-tail?limit=50",
+      `${item.caseId} navigation-bound read model completion drift`);
+    } else if (item.workflow.productAction.endpoint) {
       const endpoint = item.workflow.productAction.endpoint;
       assert(primaryCompletion.request.correlationId === primaryCompletion.correlationId &&
         primaryCompletion.request.correlationId !== `${item.caseId}:navigation` &&
@@ -3330,6 +3378,8 @@ function buildActionSemanticCompletion({
   expectedProductState,
   independentReadback,
   workflowInputs,
+  workflowClass,
+  exactRuntimeOracle,
 }) {
   const primary = action.actionId === primaryActionId;
   const negative = action.kind === "navigate-negative" || (action.kind === "navigate" && negativeRoute);
@@ -3344,10 +3394,66 @@ function buildActionSemanticCompletion({
     : `${action.actionId}:completion`;
   let request = null;
   let localTransition = null;
+  let navigationBinding = null;
+  const navigationBoundReadModel = caseId === "EVT-004" &&
+    screenRoute === "/ops/events" &&
+    workflowClass === "read-only-state" &&
+    primaryControl.applicability === "not-applicable" &&
+    productAction.kind === "product-state-read" &&
+    productAction.endpoint?.method === "GET" &&
+    productAction.endpoint.path === screenRoute &&
+    Array.isArray(exactRuntimeOracle?.requests) &&
+    exactRuntimeOracle.requests.length === 1 &&
+    exactRuntimeOracle.requests[0]?.method === "GET" &&
+    exactRuntimeOracle.requests[0]?.path ===
+      "/ops/api/diagnostics/log-tail?limit=50";
+  if (navigationBoundReadModel && (primary || initialNavigation)) {
+    const authoritativeRequest = primary ? exactRuntimeOracle.requests[0] : null;
+    navigationBinding = {
+      schema: "media-server.v390-ui-navigation-trust-binding.v1",
+      requestKind: "document-navigation",
+      invocationId: `${caseId}:initial-document-navigation`,
+      method: "GET",
+      requestedPath: screenRoute,
+      expectedCanonicalRoute: screenRoute,
+      exactRequestSequence: 1,
+      correlationRequired: false,
+      ...(primary ? {
+        caseLifecycleNavigationSequence: [
+          {
+            purpose: "initial-events-document",
+            method: "GET",
+            path: "/ops/events",
+            resourceType: "document",
+            sameOrigin: true,
+            correlationRequired: false,
+          },
+          {
+            purpose: "required-product-dashboard-dom",
+            method: "GET",
+            path: "/ops/dashboard",
+            resourceType: "document",
+            sameOrigin: true,
+            correlationRequired: false,
+          },
+        ],
+      } : {}),
+      authoritativeReadback: authoritativeRequest ? {
+        source: "catalog-runtime-fresh-browser-fetch",
+        actionId: action.actionId,
+        correlationId,
+        method: authoritativeRequest.method,
+        urlPath: authoritativeRequest.path,
+        allowedStatuses: [...(authoritativeRequest.allowedStatuses || authoritativeRequest.statuses || [200])],
+      } : null,
+    };
+  }
   const localCompletionContract = primary ? localCompletionContracts.get(caseId) || null : null;
   const readModelCompletionContract = primary ? readModelCompletionContracts.get(caseId) || null : null;
   if (primary) {
-    if (productAction.endpoint) {
+    if (navigationBinding) {
+      // Route-owned read models reuse the initial document navigation and bind their API through the catalog runtime.
+    } else if (productAction.endpoint) {
       request = actionRequestContract(correlationId, productAction.endpoint, workflowInputs, caseId);
     } else {
       localTransition = {
@@ -3359,7 +3465,7 @@ function buildActionSemanticCompletion({
         ...(localCompletionContract ? structuredClone(localCompletionContract) : {}),
       };
     }
-  } else if (initialNavigation) {
+  } else if (initialNavigation && !navigationBinding) {
     request = actionRequestContract(correlationId, {
       method: "GET",
       path: screenRoute,
@@ -3374,7 +3480,9 @@ function buildActionSemanticCompletion({
   }
   const requiredSource = negative
     ? "negative-route-status"
-    : (localTransition ? "local-transition-readback" : "endpoint-dom");
+    : (navigationBinding
+        ? "navigation-network-dom"
+        : (localTransition ? "local-transition-readback" : "endpoint-dom"));
   return {
     schema: "media-server.v390-ui-action-completion.v2",
     required: true,
@@ -3387,6 +3495,7 @@ function buildActionSemanticCompletion({
     correlationId,
     request,
     localTransition,
+    ...(navigationBinding ? { navigationBinding } : {}),
     expectedBehaviorSha256: primary || independent ? expectedProductState.expectedBehaviorSha256 : "",
     readback: {
       identity: primary || independent ? independentReadback.identity : `${caseId}:navigation`,

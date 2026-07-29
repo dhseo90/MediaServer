@@ -21,6 +21,250 @@ export function domSnapshotDigest(snapshot) {
   return crypto.createHash("sha256").update(stableStringify(snapshot)).digest("hex");
 }
 
+export function buildRequestCorrelationEvidence({
+  entries = [],
+  actionId,
+  expected = {},
+  requestResult = {},
+  listenerInstalledBeforeRequest = false,
+} = {}) {
+  const method = String(expected.method || "GET").toUpperCase();
+  const urlPath = requestTarget(expected.urlPath);
+  const expectedActionId = String(actionId || "");
+  const correlationId = String(expected.correlationId || "");
+  const correlationRequired = expected.correlationRequired !== false;
+  const requestKind = String(expected.requestKind || "");
+  const values = Array.isArray(entries) ? entries : [];
+  const requests = values.filter(entry => entry?.phase === "request-start");
+  const responses = values.filter(entry => entry?.phase === "response");
+  const exactRequestCandidates = requests.filter(entry =>
+    String(entry?.method || "").toUpperCase() === method &&
+    requestTarget(entry?.url) === urlPath);
+  const exactResponseCandidates = responses.filter(entry =>
+    String(entry?.method || "").toUpperCase() === method &&
+    requestTarget(entry?.url) === urlPath);
+  const matchedRequests = exactRequestCandidates.filter(entry =>
+    entry?.correlationSource === "request-header" &&
+    entry?.correlationId === correlationId &&
+    typeof entry?.requestId === "string" && entry.requestId);
+  const matchedResponses = exactResponseCandidates.filter(entry =>
+    entry?.correlationSource === "request-header" &&
+    entry?.correlationId === correlationId &&
+    typeof entry?.requestId === "string" && entry.requestId &&
+    (expected.allowedStatuses || [200]).includes(Number(entry.status)));
+  const requestIds = new Set(matchedRequests.map(entry => entry.requestId));
+  const responseIds = new Set(matchedResponses.map(entry => entry.requestId));
+  const requestResponseBound = matchedRequests.length === 1 &&
+    matchedResponses.length === 1 &&
+    requestIds.size === 1 &&
+    responseIds.size === 1 &&
+    [...requestIds][0] === [...responseIds][0];
+  const correlationGenerated = Boolean(correlationId);
+  const correlationAttached = exactRequestCandidates.some(entry =>
+    entry?.correlationSource === "request-header" && Boolean(entry?.correlationId));
+  const correlationObserved = [...exactRequestCandidates, ...exactResponseCandidates].some(entry =>
+    typeof entry?.correlationId === "string" && entry.correlationId);
+  const requestAttemptCount = Number(requestResult?.requestAttemptCount || 0);
+  let failureCode = "";
+  if (requestKind !== "application-fetch") failureCode = "REQUEST_KIND_INVALID";
+  else if (!expectedActionId || requestResult?.actionId !== expectedActionId) failureCode = "ACTION_ID_MISMATCH";
+  else if (requestAttemptCount !== 1 || requestResult?.requestReissued === true) failureCode = "REQUEST_REISSUED";
+  else if (!listenerInstalledBeforeRequest) failureCode = "LISTENER_INSTALLED_AFTER_REQUEST";
+  else if (correlationRequired && !correlationGenerated) failureCode = "CORRELATION_NOT_GENERATED";
+  else if (exactRequestCandidates.length === 0) {
+    const methodCandidates = requests.filter(entry => requestTarget(entry?.url) === urlPath);
+    const pathCandidates = requests.filter(entry =>
+      String(entry?.method || "").toUpperCase() === method);
+    failureCode = methodCandidates.length > 0
+      ? "REQUEST_METHOD_MISMATCH"
+      : (pathCandidates.length > 0 ? "REQUEST_PATH_MISMATCH" : "REQUEST_NOT_OBSERVED");
+  } else if (exactRequestCandidates.length !== 1) failureCode = "DUPLICATE_REQUEST";
+  else if (correlationRequired && !correlationAttached) failureCode = "CORRELATION_NOT_ATTACHED";
+  else if (correlationRequired && !correlationObserved) failureCode = "CORRELATION_NOT_OBSERVED";
+  else if (matchedRequests.length === 0) failureCode = "CORRELATION_MISMATCH";
+  else if (matchedRequests.length !== 1) failureCode = "DUPLICATE_REQUEST";
+  else if (exactResponseCandidates.length === 0) failureCode = "RESPONSE_NOT_OBSERVED";
+  else if (exactResponseCandidates.length !== 1 || matchedResponses.length !== 1) {
+    failureCode = matchedResponses.length > 1 ? "DUPLICATE_RESPONSE" : "RESPONSE_BINDING_MISMATCH";
+  } else if (!requestResponseBound) failureCode = "REQUEST_RESPONSE_ID_MISMATCH";
+  return {
+    schema: "media-server.v390-ui-request-correlation-evidence.v1",
+    pass: failureCode === "",
+    requestExpected: true,
+    requestObserved: exactRequestCandidates.length > 0,
+    requestKind,
+    expectedMethod: method,
+    expectedPath: urlPath,
+    expectedActionId,
+    observedMethod: exactRequestCandidates.length === 1
+      ? String(exactRequestCandidates[0].method || "").toUpperCase()
+      : "",
+    observedPath: exactRequestCandidates.length === 1
+      ? requestTarget(exactRequestCandidates[0].url)
+      : "",
+    listenerInstalledBeforeRequest: listenerInstalledBeforeRequest === true,
+    correlationRequired,
+    correlationGenerated,
+    correlationAttached,
+    correlationObserved,
+    correlationMatched: requestResponseBound,
+    correlationDigest: correlationId
+      ? crypto.createHash("sha256").update(correlationId).digest("hex")
+      : "",
+    requestCandidateCount: exactRequestCandidates.length,
+    matchedRequestCount: matchedRequests.length,
+    responseCandidateCount: exactResponseCandidates.length,
+    matchedResponseCount: matchedResponses.length,
+    requestAttemptCount,
+    requestReissued: requestResult?.requestReissued === true,
+    failurePhase: failureCode ? "application-fetch-correlation" : "",
+    failureCode,
+  };
+}
+
+export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } = {}) {
+  navigation = navigation && typeof navigation === "object" ? navigation : {};
+  const expectedPath = requestTarget(expected.requestedPath);
+  const observedPath = requestTarget(navigation.observedPath || navigation.url);
+  const requestCandidateCount = Number(navigation.requestCandidateCount || 0);
+  const responseCandidateCount = Number(navigation.responseCandidateCount || 0);
+  const requestAttemptCount = Number(navigation.requestAttemptCount || 0);
+  const redirectCount = Number(navigation.redirectCount || 0);
+  const retryCount = Number(navigation.retryCount || 0);
+  const reloadCount = Number(navigation.reloadCount || 0);
+  const unownedNavigationCount = Number(navigation.unownedNavigationCount || 0);
+  const additionalFetchCount = Number(navigation.additionalFetchCount || 0);
+  const orderedDocumentNavigations = Array.isArray(navigation.orderedDocumentNavigations)
+    ? navigation.orderedDocumentNavigations
+    : [];
+  const expectedLifecycle = Array.isArray(expected.caseLifecycleNavigationSequence)
+    ? expected.caseLifecycleNavigationSequence
+    : null;
+  const totalDocumentNavigationCount =
+    Number(navigation.totalDocumentNavigationCount || orderedDocumentNavigations.length || 0);
+  const listenerStartSequence = Number(navigation.listenerStartSequence || 0);
+  const listenerEndSequence = navigation.listenerEndSequence === null ||
+      navigation.listenerEndSequence === undefined
+    ? null
+    : Number(navigation.listenerEndSequence);
+  const listenerActive = navigation.listenerActive === true;
+  const navigationAfterListenerEndCount =
+    Number(navigation.navigationAfterListenerEndCount || 0);
+  const lifecycleMatches = expectedLifecycle
+    ? expectedLifecycle.length === orderedDocumentNavigations.length &&
+      expectedLifecycle.every((entry, index) => {
+        const observed = orderedDocumentNavigations[index] || {};
+        return String(entry.method || "").toUpperCase() ===
+            String(observed.method || "").toUpperCase() &&
+          requestTarget(entry.path) === requestTarget(observed.path) &&
+          entry.resourceType === observed.resourceType &&
+          entry.sameOrigin === observed.sameOrigin &&
+          entry.correlationRequired === false &&
+          observed.correlationPresent !== true &&
+          observed.responseBound === true;
+      })
+    : totalDocumentNavigationCount === 1;
+  const lastNavigationSequence = orderedDocumentNavigations.reduce(
+    (maximum, entry) => Math.max(maximum, Number(entry?.responseSequence || entry?.sequence || 0)),
+    0,
+  );
+  let failureCode = "";
+  if (expected.schema !== "media-server.v390-ui-navigation-trust-binding.v1" ||
+      expected.requestKind !== "document-navigation") {
+    failureCode = "NAVIGATION_KIND_INVALID";
+  }
+  else if (expected.correlationRequired !== false) failureCode = "NAVIGATION_CORRELATION_FORBIDDEN";
+  else if (expected.exactRequestSequence !== 1) failureCode = "NAVIGATION_SEQUENCE_INVALID";
+  else if (navigation.listenerInstalledBeforeFirstNavigation !== true ||
+      listenerStartSequence <= 0 ||
+      orderedDocumentNavigations.some(entry => Number(entry?.sequence || 0) <= listenerStartSequence)) {
+    failureCode = "LISTENER_INSTALLED_AFTER_NAVIGATION";
+  } else if (navigationAfterListenerEndCount !== 0 ||
+      (!listenerActive && (listenerEndSequence === null ||
+        listenerEndSequence <= lastNavigationSequence))) {
+    failureCode = "NAVIGATION_AFTER_LISTENER_END";
+  } else if (reloadCount !== 0) {
+    failureCode = "NAVIGATION_RELOADED";
+  } else if (unownedNavigationCount !== 0) {
+    failureCode = "NAVIGATION_UNOWNED";
+  } else if (!lifecycleMatches) {
+    failureCode = "NAVIGATION_LIFECYCLE_MISMATCH";
+  }
+  else if (!expected.invocationId || navigation.invocationId !== expected.invocationId) {
+    failureCode = "NAVIGATION_INVOCATION_MISMATCH";
+  } else if (navigation.requestKind !== "document-navigation" ||
+      navigation.resourceType !== "document") {
+    failureCode = "NAVIGATION_RESOURCE_TYPE_MISMATCH";
+  } else if (navigation.sameOrigin !== true) {
+    failureCode = "NAVIGATION_ORIGIN_MISMATCH";
+  } else if (String(expected.method || "").toUpperCase() !== "GET" ||
+      String(navigation.method || "").toUpperCase() !== "GET") {
+    failureCode = "NAVIGATION_METHOD_MISMATCH";
+  } else if (!expectedPath ||
+      requestTarget(expected.expectedCanonicalRoute) !== expectedPath ||
+      observedPath !== expectedPath ||
+      requestTarget(navigation.requestedPath) !== expectedPath) {
+    failureCode = "NAVIGATION_ROUTE_MISMATCH";
+  } else if (requestAttemptCount !== 1 ||
+      navigation.requestReissued === true ||
+      retryCount !== 0 ||
+      additionalFetchCount !== 0) {
+    failureCode = "NAVIGATION_REQUEST_REISSUED";
+  } else if (redirectCount !== 0) {
+    failureCode = "NAVIGATION_REDIRECTED";
+  } else if (requestCandidateCount !== 1) {
+    failureCode = requestCandidateCount === 0
+      ? "NAVIGATION_REQUEST_MISSING"
+      : "NAVIGATION_REQUEST_REISSUED";
+  } else if (responseCandidateCount !== 1) {
+    failureCode = responseCandidateCount === 0
+      ? "NAVIGATION_RESPONSE_MISSING"
+      : "NAVIGATION_RESPONSE_DUPLICATE";
+  } else if (navigation.requestResponseBound !== true) {
+    failureCode = "NAVIGATION_REQUEST_RESPONSE_MISMATCH";
+  } else if (navigation.correlationObserved === true) {
+    failureCode = "NAVIGATION_CORRELATION_FORBIDDEN";
+  }
+  return {
+    schema: "media-server.v390-ui-navigation-trust-evidence.v1",
+    pass: failureCode === "",
+    requestKind: String(expected.requestKind || ""),
+    invocationId: String(expected.invocationId || ""),
+    method: "GET",
+    resourceType: String(navigation.resourceType || ""),
+    sameOrigin: navigation.sameOrigin === true,
+    requestedPath: expectedPath,
+    observedPath,
+    correlationRequired: false,
+    correlationObserved: navigation.correlationObserved === true,
+    requestAttemptCount,
+    requestCandidateCount,
+    responseCandidateCount,
+    requestResponseBound: navigation.requestResponseBound === true,
+    redirectCount,
+    retryCount,
+    reloadCount,
+    unownedNavigationCount,
+    additionalFetchCount,
+    requestReissued: navigation.requestReissued === true ||
+      requestAttemptCount !== 1 ||
+      requestCandidateCount > 1 ||
+      retryCount !== 0 ||
+      additionalFetchCount !== 0,
+    totalDocumentNavigationCount,
+    orderedDocumentNavigations: structuredClone(orderedDocumentNavigations),
+    listenerStartSequence,
+    listenerEndSequence,
+    listenerActive,
+    listenerInstalledBeforeFirstNavigation:
+      navigation.listenerInstalledBeforeFirstNavigation === true,
+    navigationAfterListenerEndCount,
+    expectedLifecycleNavigationCount: expectedLifecycle?.length || 1,
+    failurePhase: failureCode ? "document-navigation-binding" : "",
+    failureCode,
+  };
+}
+
 export function buildEndpointActionSemanticReadback({
   action,
   actionEvidence,
@@ -154,6 +398,8 @@ export function evaluateCompletionOracle({
     completionRequest: null,
     semanticReadback,
     expectedEndpoint: action?.expectedEndpoint || null,
+    expectedNavigationBinding: action?.expectedNavigationBinding || null,
+    completionMode: completionBindingMode(action).mode,
     completionPhase: action?.completionPhase || "legacy",
     actionId: action?.actionId || "",
     actionKind: action?.actionKind || action?.kind || "",
@@ -170,6 +416,11 @@ export function evaluateCompletionOracle({
     if (action.expectedEndpoint && action.expectedEndpoint.correlationId !== action.correlationId) {
       return { ...base, reason: "action-request-correlation-mismatch" };
     }
+  }
+  if (action.semanticCompletionRequired && action.completionPhase !== "independent-readback") {
+    const binding = completionBindingMode(action);
+    if (binding.count === 0) return { ...base, reason: "completion-binding-missing" };
+    if (binding.count !== 1) return { ...base, reason: "completion-binding-ambiguous" };
   }
 
   if (action.kind === "navigate" || action.kind === "navigate-negative") {
@@ -198,6 +449,16 @@ export function evaluateCompletionOracle({
       if (readbackReason) {
         return { ...base, reason: readbackReason };
       }
+      if (action.expectedNavigationBinding) {
+        const navigationTrustEvidence = buildNavigationTrustEvidence({
+          navigation,
+          expected: action.expectedNavigationBinding,
+        });
+        if (!navigationTrustEvidence.pass) {
+          return { ...base, reason: navigationTrustEvidence.failureCode };
+        }
+        return allowedResult(base, action, "navigation-network-dom", { navigationTrustEvidence });
+      }
       const requestMatch = findCorrelatedEndpoint(base.networkResponses, action, semanticReadback);
       if (!requestMatch.match) {
         return { ...base, reason: requestMatch.reason };
@@ -210,6 +471,30 @@ export function evaluateCompletionOracle({
   const actualKind = action.executedKind || action.kind;
   if (action.semanticCompletionRequired) {
     const readbackReason = validateSemanticReadback(semanticReadback, action, actionBound);
+    if (actionBound && action.expectedNavigationBinding) {
+      const navigationTrustEvidence = buildNavigationTrustEvidence({
+        navigation,
+        expected: action.expectedNavigationBinding,
+      });
+      if (!navigationTrustEvidence.pass) {
+        return { ...base, reason: navigationTrustEvidence.failureCode };
+      }
+      const authoritativeReadback = catalogRuntimeAuthoritativeReadback(
+        semanticReadback,
+        action.expectedNavigationBinding.authoritativeReadback,
+      );
+      if (!authoritativeReadback.pass) {
+        return { ...base, reason: authoritativeReadback.reason };
+      }
+      if (!readbackReason) {
+        return allowedResult(base, action, "navigation-network-dom", {
+          navigationTrustEvidence,
+          authoritativeReadbackEvidence: authoritativeReadback.evidence,
+        });
+      }
+      const alternative = actionBoundAlternative(base, action, persistedReadback, eventRecord, serverLog);
+      return alternative || { ...base, reason: readbackReason };
+    }
     if (actionBound && action.expectedLocalTransition) {
       const transitionReason = validateLocalTransition(before, after, action);
       if (transitionReason) return { ...base, reason: transitionReason };
@@ -496,6 +781,27 @@ function requestPathname(rawUrl) {
   }
 }
 
+function completionBindingMode(action) {
+  const modes = [
+    ["requestBinding", Boolean(action?.expectedEndpoint)],
+    ["localTransitionBinding", Boolean(action?.expectedLocalTransition)],
+    ["navigationBinding", Boolean(action?.expectedNavigationBinding)],
+  ].filter(([, present]) => present);
+  return {
+    count: modes.length,
+    mode: modes.length === 1 ? modes[0][0] : "",
+  };
+}
+
+function requestTarget(rawUrl) {
+  try {
+    const parsed = new URL(String(rawUrl || ""), "http://localhost");
+    return `${parsed.pathname}${parsed.search}`;
+  } catch {
+    return "";
+  }
+}
+
 function findCorrelatedEndpoint(entries, action, semanticReadback = null) {
   const expected = action.expectedEndpoint;
   if (!expected || !Array.isArray(entries)) return { match: null, reason: "request-correlation-missing" };
@@ -517,6 +823,59 @@ function findCorrelatedEndpoint(entries, action, semanticReadback = null) {
   if (matches.length === 0) return { match: null, reason: "request-correlation-missing" };
   if (matches.length !== 1) return { match: null, reason: "ambiguous-exact-request" };
   return { match: structuredClone(matches[0]), reason: "" };
+}
+
+function catalogRuntimeAuthoritativeReadback(semanticReadback, expected) {
+  if (!expected || expected.source !== "catalog-runtime-fresh-browser-fetch") {
+    return { pass: false, reason: "catalog-authoritative-readback-contract-missing", evidence: null };
+  }
+  const exactRuntimeOracle = semanticReadback?.observation?.actual?.exactRuntimeOracle;
+  if (exactRuntimeOracle?.schema !== "media-server.v390-ui-exact-runtime-observation.v1" ||
+      !Array.isArray(exactRuntimeOracle.responses)) {
+    return { pass: false, reason: "catalog-authoritative-readback-missing", evidence: null };
+  }
+  if (exactRuntimeOracle.responses.length !== 1) {
+    return {
+      pass: false,
+      reason: exactRuntimeOracle.responses.length === 0
+        ? "catalog-authoritative-readback-request-missing"
+        : "catalog-authoritative-readback-request-duplicate",
+      evidence: null,
+    };
+  }
+  const matches = exactRuntimeOracle.responses.filter(response =>
+    String(response?.method || "").toUpperCase() === String(expected.method || "").toUpperCase() &&
+    requestTarget(response?.urlPath) === requestTarget(expected.urlPath) &&
+    (expected.allowedStatuses || [200]).includes(Number(response?.status)));
+  if (matches.length !== 1) {
+    return {
+      pass: false,
+      reason: matches.length === 0
+        ? "catalog-authoritative-readback-request-missing"
+        : "catalog-authoritative-readback-request-duplicate",
+      evidence: null,
+    };
+  }
+  const evidence = matches[0].requestCorrelationEvidence;
+  const expectedDigest = crypto.createHash("sha256")
+    .update(String(expected.correlationId || ""))
+    .digest("hex");
+  if (evidence?.schema !== "media-server.v390-ui-request-correlation-evidence.v1" ||
+      evidence.pass !== true ||
+      evidence.requestKind !== "application-fetch" ||
+      evidence.expectedActionId !== expected.actionId ||
+      evidence.expectedMethod !== String(expected.method || "").toUpperCase() ||
+      requestTarget(evidence.expectedPath) !== requestTarget(expected.urlPath) ||
+      evidence.correlationDigest !== expectedDigest ||
+      evidence.requestAttemptCount !== 1 ||
+      evidence.requestReissued !== false ||
+      evidence.requestCandidateCount !== 1 ||
+      evidence.matchedRequestCount !== 1 ||
+      evidence.responseCandidateCount !== 1 ||
+      evidence.matchedResponseCount !== 1) {
+    return { pass: false, reason: "catalog-authoritative-correlation-invalid", evidence: evidence || null };
+  }
+  return { pass: true, reason: "", evidence: structuredClone(evidence) };
 }
 
 function catalogRuntimeCompletionRequest(semanticReadback, action) {

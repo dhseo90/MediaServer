@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
@@ -143,6 +144,7 @@ async function openNativePlaywrightPage(playwright, {
   storageStatePath = "",
   colorScheme = "light",
   navigationCorrelationId = "",
+  navigationInvocationId = "",
   onRuntimeSecret = null,
 }) {
   const consoleEntries = [];
@@ -153,6 +155,17 @@ async function openNativePlaywrightPage(playwright, {
   const pendingSafeResponseReads = new Set();
   const safeResponseReadFailures = [];
   const observedRuntimeSecrets = new Set();
+  let requestListenersInstalled = false;
+  let requestListenerStartSequence = 0;
+  let requestListenerEndSequence = null;
+  let lifecycleSequence = 0;
+  let navigationOperationSequence = 0;
+  let activeNavigationOperation = null;
+  let activeCorrelationId = String(navigationCorrelationId || "");
+  const documentNavigationLedger = [];
+  const documentNavigationByRequestId = new Map();
+  let documentNavigationAfterListenerEndCount = 0;
+  let closePromise = null;
   const browser = await playwright.chromium.launch({
     headless: true,
     env: secretStrippedBrowserEnv(),
@@ -162,9 +175,20 @@ async function openNativePlaywrightPage(playwright, {
     viewport: { width, height },
     colorScheme,
     ...(storageStatePath ? { storageState: storageStatePath } : {}),
-    ...(navigationCorrelationId ? {
-      extraHTTPHeaders: { "x-media-server-correlation-id": navigationCorrelationId },
-    } : {}),
+  });
+  await context.route("**/*", async route => {
+    const request = route.request();
+    const headers = { ...request.headers() };
+    const documentNavigation = request.isNavigationRequest() &&
+      request.resourceType() === "document";
+    const correlationAllowed = !documentNavigation ||
+      activeNavigationOperation?.allowCorrelation === true;
+    if (activeCorrelationId && correlationAllowed) {
+      headers["x-media-server-correlation-id"] = activeCorrelationId;
+    } else if (documentNavigation) {
+      delete headers["x-media-server-correlation-id"];
+    }
+    await route.continue({ headers });
   });
   await context.addInitScript(theme => {
     localStorage.setItem("mediaServerTheme", theme);
@@ -185,13 +209,21 @@ async function openNativePlaywrightPage(playwright, {
     requestIds.set(request, requestId);
     return requestId;
   };
+  requestListenerStartSequence = ++lifecycleSequence;
   page.on("request", request => {
     const correlationId = String(request.headers()["x-media-server-correlation-id"] || "");
     const requestId = requestIdentity(request);
-    pendingRequests.set(request, { requestId, correlationId });
+    const redirectedFrom = request.redirectedFrom();
+    const requestKind = request.isNavigationRequest() && request.frame() === page.mainFrame()
+      ? "document-navigation"
+      : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
+    pendingRequests.set(request, { requestId, correlationId, requestKind });
     networkEntries.push({
       phase: "request-start",
       requestId,
+      requestKind,
+      resourceType: request.resourceType(),
+      redirectedFromRequestId: redirectedFrom ? requestIdentity(redirectedFrom) : "",
       correlationId,
       correlationSource: correlationId ? 'request-header' : 'none',
       method: request.method(),
@@ -199,13 +231,49 @@ async function openNativePlaywrightPage(playwright, {
       url: request.url(),
       requestBody: safeRequestBodyProjection(request),
     });
+    if (requestKind === "document-navigation") {
+      const operation = activeNavigationOperation;
+      const navigationKind = operation?.kind ||
+        (urlTarget(request.url()) === urlTarget(page.url())
+          ? "reload"
+          : "unowned-document-navigation");
+      const ledgerEntry = {
+        sequence: ++lifecycleSequence,
+        responseSequence: null,
+        invocationId: String(operation?.invocationId || ""),
+        navigationKind: String(navigationKind),
+        method: request.method(),
+        path: urlTarget(request.url()),
+        resourceType: request.resourceType(),
+        sameOrigin: urlOrigin(request.url()) === urlOrigin(httpBase),
+        correlationPresent: Boolean(correlationId),
+        correlationDigest: correlationId
+          ? createHash("sha256").update(correlationId).digest("hex")
+          : "",
+        redirected: Boolean(redirectedFrom),
+        requestId,
+        responseStatus: 0,
+        responseBound: false,
+        listenerActive: requestListenerEndSequence === null,
+      };
+      if (requestListenerEndSequence !== null) {
+        documentNavigationAfterListenerEndCount += 1;
+      }
+      documentNavigationLedger.push(ledgerEntry);
+      documentNavigationByRequestId.set(requestId, ledgerEntry);
+    }
   });
   page.on("response", response => {
     const request = response.request();
     const correlationId = String(request.headers()["x-media-server-correlation-id"] || "");
+    const requestKind = request.isNavigationRequest() && request.frame() === page.mainFrame()
+      ? "document-navigation"
+      : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
     const entry = {
       phase: "response",
       requestId: requestIdentity(request),
+      requestKind,
+      resourceType: request.resourceType(),
       correlationId,
       correlationSource: correlationId ? 'request-header' : 'none',
       method: request.method(),
@@ -217,6 +285,14 @@ async function openNativePlaywrightPage(playwright, {
       },
     };
     networkEntries.push(entry);
+    if (requestKind === "document-navigation") {
+      const ledgerEntry = documentNavigationByRequestId.get(entry.requestId);
+      if (ledgerEntry) {
+        ledgerEntry.responseSequence = ++lifecycleSequence;
+        ledgerEntry.responseStatus = response.status();
+        ledgerEntry.responseBound = true;
+      }
+    }
     const clientLiveSessionProjection = captureClientLiveSessionResponseProjection({
       response,
       entry,
@@ -275,27 +351,127 @@ async function openNativePlaywrightPage(playwright, {
   });
   page.on("requestfinished", request => pendingRequests.delete(request));
   page.on("requestfailed", request => pendingRequests.delete(request));
-  const navigationResponse = await page.goto(new URL(pagePath, `${httpBase}/`).toString(), {
-    waitUntil: "load",
-    timeout: timeoutMs,
-  });
-  return {
-    navigation: {
-      status: navigationResponse?.status() || 0,
-      url: page.url(),
-    },
-    waitForSelector: (selector, options = {}) => page.locator(selector).waitFor({ state: options.state || "visible", timeout: options.timeout || timeoutMs }),
-    navigate: async (nextPagePath) => {
+  requestListenersInstalled = true;
+  const navigationRequestedPath = urlTarget(new URL(pagePath, `${httpBase}/`).toString());
+  const navigationOrigin = urlOrigin(new URL(pagePath, `${httpBase}/`).toString());
+  const performNavigation = async (nextPagePath, {
+    invocationId = "",
+    kind = "explicit-navigation",
+    allowCorrelation = Boolean(activeCorrelationId),
+  } = {}) => {
+    if (requestListenerEndSequence !== null) {
+      throw new Error(`document navigation attempted after listener end: ${nextPagePath}`);
+    }
+    const operation = {
+      invocationId: String(invocationId || `native-document-navigation-${++navigationOperationSequence}`),
+      kind,
+      allowCorrelation,
+    };
+    activeNavigationOperation = operation;
+    try {
       const response = await page.goto(new URL(nextPagePath, `${httpBase}/`).toString(), {
         waitUntil: "load",
         timeout: timeoutMs,
       });
-      return { status: response?.status() || 0, url: page.url() };
+      return { status: response?.status() || 0, url: page.url(), invocationId: operation.invocationId };
+    } finally {
+      activeNavigationOperation = null;
+    }
+  };
+  const navigationResponse = await performNavigation(pagePath, {
+    invocationId: String(navigationInvocationId),
+    kind: "initial-document-navigation",
+    allowCorrelation: Boolean(navigationCorrelationId),
+  });
+  activeCorrelationId = "";
+  const buildNavigationEvidence = () => {
+    const candidates = documentNavigationLedger.filter(entry =>
+      entry.method === "GET" &&
+      entry.path === navigationRequestedPath &&
+      entry.navigationKind === "initial-document-navigation" &&
+      (!navigationInvocationId ||
+        entry.invocationId === String(navigationInvocationId)));
+    const responses = candidates.filter(entry => entry.responseBound);
+    const first = candidates[0] || null;
+    const redirectCount = documentNavigationLedger.filter(entry => entry.redirected).length;
+    const unownedNavigationCount = documentNavigationLedger.filter(entry =>
+      entry.navigationKind === "unowned-document-navigation").length;
+    const reloadCount = documentNavigationLedger.filter(entry =>
+      entry.navigationKind === "reload").length;
+    const additionalFetchCount = networkEntries.filter(entry =>
+      entry.phase === "request-start" &&
+      entry.requestKind === "application-fetch" &&
+      urlTarget(entry.url) === navigationRequestedPath).length;
+    return {
+      status: first?.responseStatus || navigationResponse.status || 0,
+      url: first ? new URL(first.path, `${httpBase}/`).toString() : navigationResponse.url,
+      invocationId: String(navigationInvocationId),
+      requestKind: "document-navigation",
+      resourceType: candidates.length === 1 ? String(first?.resourceType || "") : "",
+      method: "GET",
+      requestedPath: navigationRequestedPath,
+      observedPath: first?.path || "",
+      sameOrigin: Boolean(navigationOrigin) &&
+        documentNavigationLedger.every(entry => entry.sameOrigin === true),
+      requestAttemptCount: candidates.length,
+      requestCandidateCount: candidates.length,
+      responseCandidateCount: responses.length,
+      requestResponseBound: candidates.length === 1 &&
+        responses.length === 1 &&
+        candidates[0].requestId === responses[0].requestId,
+      correlationObserved: candidates.some(entry => entry.correlationPresent),
+      redirectCount,
+      retryCount: 0,
+      reloadCount,
+      unownedNavigationCount,
+      additionalFetchCount,
+      requestReissued: candidates.length !== 1,
+      totalDocumentNavigationCount: documentNavigationLedger.length,
+      orderedDocumentNavigations: documentNavigationLedger.map(entry => ({
+        sequence: entry.sequence,
+        responseSequence: entry.responseSequence,
+        invocationId: entry.invocationId,
+        navigationKind: entry.navigationKind,
+        method: entry.method,
+        path: entry.path,
+        resourceType: entry.resourceType,
+        sameOrigin: entry.sameOrigin,
+        correlationPresent: entry.correlationPresent,
+        correlationDigest: entry.correlationDigest,
+        redirected: entry.redirected,
+        responseStatus: entry.responseStatus,
+        responseBound: entry.responseBound,
+      })),
+      listenerStartSequence: requestListenerStartSequence,
+      listenerEndSequence: requestListenerEndSequence,
+      listenerActive: requestListenerEndSequence === null,
+      listenerInstalledBeforeFirstNavigation: Boolean(first) &&
+        requestListenerStartSequence > 0 &&
+        first.sequence > requestListenerStartSequence,
+      navigationAfterListenerEndCount: documentNavigationAfterListenerEndCount,
+    };
+  };
+  const finalizeNavigationLedger = () => {
+    if (requestListenerEndSequence === null) {
+      requestListenerEndSequence = ++lifecycleSequence;
+      requestListenersInstalled = false;
+    }
+    return buildNavigationEvidence();
+  };
+  return {
+    get navigation() {
+      return buildNavigationEvidence();
+    },
+    finalizeNavigationLedger,
+    waitForSelector: (selector, options = {}) => page.locator(selector).waitFor({ state: options.state || "visible", timeout: options.timeout || timeoutMs }),
+    navigate: async (nextPagePath) => {
+      return performNavigation(nextPagePath, {
+        kind: "explicit-navigation",
+        allowCorrelation: Boolean(activeCorrelationId),
+      });
     },
     setCorrelationId: async (correlationId) => {
-      await context.setExtraHTTPHeaders(correlationId
-        ? { "x-media-server-correlation-id": String(correlationId) }
-        : {});
+      activeCorrelationId = String(correlationId || "");
     },
     replaceStorageState: async (storageStatePath = "") => {
       await context.clearCookies();
@@ -312,21 +488,80 @@ async function openNativePlaywrightPage(playwright, {
         }, origin.localStorage);
       }
     },
-    request: async ({ method = "GET", urlPath }) => page.evaluate(async ({ requestMethod, requestPath }) => {
-      const response = await fetch(requestPath, {
-        method: requestMethod,
-        credentials: "same-origin",
-        cache: "no-store",
-        redirect: "follow",
+    request: async ({
+      method = "GET",
+      urlPath,
+      actionId = "",
+      correlationId = "",
+    }) => {
+      const requestMethod = String(method).toUpperCase();
+      const requestPath = String(urlPath);
+      const expectedPath = urlTarget(requestPath);
+      const networkStart = networkEntries.length;
+      const startedAt = Date.now();
+      const response = await page.evaluate(async ({
+        requestMethod: evaluatedMethod,
+        requestPath: evaluatedPath,
+        requestCorrelationId,
+      }) => {
+        const result = await fetch(evaluatedPath, {
+          method: evaluatedMethod,
+          credentials: "same-origin",
+          cache: "no-store",
+          redirect: "follow",
+          headers: requestCorrelationId
+            ? { "x-media-server-correlation-id": requestCorrelationId }
+            : {},
+        });
+        const text = await result.text();
+        let json = null;
+        try { json = text ? JSON.parse(text) : null; } catch (_) {}
+        return {
+          status: result.status,
+          url: result.url,
+          text,
+          json,
+          contentType: result.headers.get("content-type") || "",
+        };
+      }, {
+        requestMethod,
+        requestPath,
+        requestCorrelationId: String(correlationId || ""),
       });
+      const deadline = Date.now() + Math.min(timeoutMs, 1000);
+      let ledgerSettled = false;
+      while (Date.now() <= deadline) {
+        const window = networkEntries.slice(networkStart);
+        const requests = window.filter(entry =>
+          entry.phase === "request-start" &&
+          entry.method === requestMethod &&
+          urlTarget(entry.url) === expectedPath);
+        const responses = window.filter(entry =>
+          entry.phase === "response" &&
+          entry.method === requestMethod &&
+          urlTarget(entry.url) === expectedPath);
+        if (requests.length > 0 && responses.length > 0) {
+          ledgerSettled = true;
+          break;
+        }
+        await page.waitForTimeout(10);
+      }
       return {
         status: response.status,
         url: response.url,
+        text: response.text,
+        json: response.json,
+        contentType: response.contentType,
+        actionId: String(actionId),
+        requestKind: "application-fetch",
+        requestAttemptCount: 1,
+        requestReissued: false,
+        listenerInstalledBeforeRequest: requestListenersInstalled,
+        ledgerSettled,
+        ledgerWaitMs: Date.now() - startedAt,
       };
-    }, {
-      requestMethod: String(method).toUpperCase(),
-      requestPath: String(urlPath),
-    }),
+    },
+    requestListenersInstalled: () => requestListenersInstalled,
     waitForNetworkQuiet: async ({ correlationId, minimumObservationMs = 750, quietMs = 250 } = {}) => {
       const startedAt = Date.now();
       const deadline = startedAt + timeoutMs;
@@ -807,8 +1042,28 @@ async function openNativePlaywrightPage(playwright, {
     consoleEntries: () => sanitizeEvidenceValue(consoleEntries, observedRuntimeSecrets),
     networkEntries: () => sanitizeEvidenceValue(networkEntries.map(item => ({ ...item })), observedRuntimeSecrets),
     close: async () => {
-      await context.close();
-      await browser.close();
+      if (!closePromise) {
+        closePromise = (async () => {
+          let closeFailure = null;
+          try {
+            await context.close();
+          } catch (error) {
+            closeFailure = error;
+          }
+          try {
+            await browser.close();
+          } catch (error) {
+            closeFailure ||= error;
+          }
+          const finalNavigation = finalizeNavigationLedger();
+          if (closeFailure) {
+            closeFailure.navigationLifecycleEvidence = structuredClone(finalNavigation);
+            throw closeFailure;
+          }
+          return finalNavigation;
+        })();
+      }
+      return closePromise;
     },
   };
 }
@@ -1303,4 +1558,21 @@ function decodePathSegment(value) {
 function urlPath(value) {
   try { return new URL(String(value)).pathname; }
   catch { return ""; }
+}
+
+function urlTarget(value) {
+  try {
+    const parsed = new URL(String(value), "http://localhost");
+    return `${parsed.pathname}${parsed.search}`;
+  } catch {
+    return "";
+  }
+}
+
+function urlOrigin(value) {
+  try {
+    return new URL(String(value), "http://localhost").origin;
+  } catch {
+    return "";
+  }
 }

@@ -5,9 +5,9 @@
     "canonicalSha256": "3b3b85556d4efc78e6cea00f9e7e8199b22ed58931ea5cc40f524ba18bdf936f",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "6c3dbd662d44b2e989049c67838897caae7934ac19adf8284be2aa81885bb78e",
+    "implementationProjectionSha256": "f7f244c1ad62a5bf3cb566b9eca347cb65a2fe0b2c8512b857ccfb481af7d159",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "f2136e6a9183a4fbea870269724a00b5b409794d78c4b908a25f26733b6a8dfa",
+    "runtimeOracleCatalogSha256": "c07c38025bfeec964337847797d80f513b51f6a1a90712c983e1ae68447a8ddf",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -10787,7 +10787,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "21f9f55d304c71e93e5cb7410167e346d6c162f6016d74c6977859df35e8f913",
+            "semanticCallChainSha256": "f374e85e333fd8a2d3aeb30d5f9a54daff383f571acd7eba1e67a002e7b59178",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -10869,7 +10869,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "21f9f55d304c71e93e5cb7410167e346d6c162f6016d74c6977859df35e8f913"
+          "assertedSemanticDigest": "f374e85e333fd8a2d3aeb30d5f9a54daff383f571acd7eba1e67a002e7b59178"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -10881,7 +10881,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "f3e03301f47a705280e0de938a9fc1eb5d12b5d328db8f6f93dcf10663e6b8cf",
+          "specSha256": "5252a42d41f2784560893db604df1d24df1fbabe2760805690b6b366c5feaae2",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11008,7 +11008,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "21f9f55d304c71e93e5cb7410167e346d6c162f6016d74c6977859df35e8f913"
+            "semanticCallChainSha256": "f374e85e333fd8a2d3aeb30d5f9a54daff383f571acd7eba1e67a002e7b59178"
           }
         ]
       },
@@ -195580,21 +195580,21 @@
             "actionKind": "navigate",
             "controlSelector": null,
             "linkedPrimaryActionId": null,
-            "requiredSource": "endpoint-dom",
+            "requiredSource": "navigation-network-dom",
             "correlationId": "EVT-004:navigation",
-            "request": {
-              "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "EVT-004:navigation",
-              "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/events",
-              "urlPath": "/ops/events",
-              "pathParameters": {},
-              "allowedStatuses": [
-                200
-              ]
-            },
+            "request": null,
             "localTransition": null,
+            "navigationBinding": {
+              "schema": "media-server.v390-ui-navigation-trust-binding.v1",
+              "requestKind": "document-navigation",
+              "invocationId": "EVT-004:initial-document-navigation",
+              "method": "GET",
+              "requestedPath": "/ops/events",
+              "expectedCanonicalRoute": "/ops/events",
+              "exactRequestSequence": 1,
+              "correlationRequired": false,
+              "authoritativeReadback": null
+            },
             "expectedBehaviorSha256": "",
             "readback": {
               "identity": "EVT-004:navigation",
@@ -195633,21 +195633,48 @@
             "actionKind": "assert-product-state",
             "controlSelector": null,
             "linkedPrimaryActionId": null,
-            "requiredSource": "endpoint-dom",
+            "requiredSource": "navigation-network-dom",
             "correlationId": "EVT-004:assert-product-state:completion",
-            "request": {
-              "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "EVT-004:assert-product-state:completion",
-              "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/events",
-              "urlPath": "/ops/events",
-              "pathParameters": {},
-              "allowedStatuses": [
-                200
-              ]
-            },
+            "request": null,
             "localTransition": null,
+            "navigationBinding": {
+              "schema": "media-server.v390-ui-navigation-trust-binding.v1",
+              "requestKind": "document-navigation",
+              "invocationId": "EVT-004:initial-document-navigation",
+              "method": "GET",
+              "requestedPath": "/ops/events",
+              "expectedCanonicalRoute": "/ops/events",
+              "exactRequestSequence": 1,
+              "correlationRequired": false,
+              "caseLifecycleNavigationSequence": [
+                {
+                  "purpose": "initial-events-document",
+                  "method": "GET",
+                  "path": "/ops/events",
+                  "resourceType": "document",
+                  "sameOrigin": true,
+                  "correlationRequired": false
+                },
+                {
+                  "purpose": "required-product-dashboard-dom",
+                  "method": "GET",
+                  "path": "/ops/dashboard",
+                  "resourceType": "document",
+                  "sameOrigin": true,
+                  "correlationRequired": false
+                }
+              ],
+              "authoritativeReadback": {
+                "source": "catalog-runtime-fresh-browser-fetch",
+                "actionId": "EVT-004:assert-product-state",
+                "correlationId": "EVT-004:assert-product-state:completion",
+                "method": "GET",
+                "urlPath": "/ops/api/diagnostics/log-tail?limit=50",
+                "allowedStatuses": [
+                  200
+                ]
+              }
+            },
             "expectedBehaviorSha256": "29362e7bc5add4b32ecb79c53cb50b7aa27d82ef9a2d80c72eaeaf487f32381f",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_ops_ui_click_e2e.mjs#EVT-004:oracle#c127b4251e7787da8460210c60a22a9d7d827f173d469e8962300bbbb9cb68de",
@@ -195863,21 +195890,21 @@
               "actionKind": "navigate",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
-              "requiredSource": "endpoint-dom",
+              "requiredSource": "navigation-network-dom",
               "correlationId": "EVT-004:navigation",
-              "request": {
-                "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-004:navigation",
-                "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/events",
-                "urlPath": "/ops/events",
-                "pathParameters": {},
-                "allowedStatuses": [
-                  200
-                ]
-              },
+              "request": null,
               "localTransition": null,
+              "navigationBinding": {
+                "schema": "media-server.v390-ui-navigation-trust-binding.v1",
+                "requestKind": "document-navigation",
+                "invocationId": "EVT-004:initial-document-navigation",
+                "method": "GET",
+                "requestedPath": "/ops/events",
+                "expectedCanonicalRoute": "/ops/events",
+                "exactRequestSequence": 1,
+                "correlationRequired": false,
+                "authoritativeReadback": null
+              },
               "expectedBehaviorSha256": "",
               "readback": {
                 "identity": "EVT-004:navigation",
@@ -195916,21 +195943,48 @@
               "actionKind": "assert-product-state",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
-              "requiredSource": "endpoint-dom",
+              "requiredSource": "navigation-network-dom",
               "correlationId": "EVT-004:assert-product-state:completion",
-              "request": {
-                "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-004:assert-product-state:completion",
-                "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/events",
-                "urlPath": "/ops/events",
-                "pathParameters": {},
-                "allowedStatuses": [
-                  200
-                ]
-              },
+              "request": null,
               "localTransition": null,
+              "navigationBinding": {
+                "schema": "media-server.v390-ui-navigation-trust-binding.v1",
+                "requestKind": "document-navigation",
+                "invocationId": "EVT-004:initial-document-navigation",
+                "method": "GET",
+                "requestedPath": "/ops/events",
+                "expectedCanonicalRoute": "/ops/events",
+                "exactRequestSequence": 1,
+                "correlationRequired": false,
+                "caseLifecycleNavigationSequence": [
+                  {
+                    "purpose": "initial-events-document",
+                    "method": "GET",
+                    "path": "/ops/events",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false
+                  },
+                  {
+                    "purpose": "required-product-dashboard-dom",
+                    "method": "GET",
+                    "path": "/ops/dashboard",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false
+                  }
+                ],
+                "authoritativeReadback": {
+                  "source": "catalog-runtime-fresh-browser-fetch",
+                  "actionId": "EVT-004:assert-product-state",
+                  "correlationId": "EVT-004:assert-product-state:completion",
+                  "method": "GET",
+                  "urlPath": "/ops/api/diagnostics/log-tail?limit=50",
+                  "allowedStatuses": [
+                    200
+                  ]
+                }
+              },
               "expectedBehaviorSha256": "29362e7bc5add4b32ecb79c53cb50b7aa27d82ef9a2d80c72eaeaf487f32381f",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_ops_ui_click_e2e.mjs#EVT-004:oracle#c127b4251e7787da8460210c60a22a9d7d827f173d469e8962300bbbb9cb68de",
@@ -196036,21 +196090,48 @@
               "actionKind": "assert-product-state",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
-              "requiredSource": "endpoint-dom",
+              "requiredSource": "navigation-network-dom",
               "correlationId": "EVT-004:assert-product-state:completion",
-              "request": {
-                "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "EVT-004:assert-product-state:completion",
-                "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/events",
-                "urlPath": "/ops/events",
-                "pathParameters": {},
-                "allowedStatuses": [
-                  200
-                ]
-              },
+              "request": null,
               "localTransition": null,
+              "navigationBinding": {
+                "schema": "media-server.v390-ui-navigation-trust-binding.v1",
+                "requestKind": "document-navigation",
+                "invocationId": "EVT-004:initial-document-navigation",
+                "method": "GET",
+                "requestedPath": "/ops/events",
+                "expectedCanonicalRoute": "/ops/events",
+                "exactRequestSequence": 1,
+                "correlationRequired": false,
+                "caseLifecycleNavigationSequence": [
+                  {
+                    "purpose": "initial-events-document",
+                    "method": "GET",
+                    "path": "/ops/events",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false
+                  },
+                  {
+                    "purpose": "required-product-dashboard-dom",
+                    "method": "GET",
+                    "path": "/ops/dashboard",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false
+                  }
+                ],
+                "authoritativeReadback": {
+                  "source": "catalog-runtime-fresh-browser-fetch",
+                  "actionId": "EVT-004:assert-product-state",
+                  "correlationId": "EVT-004:assert-product-state:completion",
+                  "method": "GET",
+                  "urlPath": "/ops/api/diagnostics/log-tail?limit=50",
+                  "allowedStatuses": [
+                    200
+                  ]
+                }
+              },
               "expectedBehaviorSha256": "29362e7bc5add4b32ecb79c53cb50b7aa27d82ef9a2d80c72eaeaf487f32381f",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_ops_ui_click_e2e.mjs#EVT-004:oracle#c127b4251e7787da8460210c60a22a9d7d827f173d469e8962300bbbb9cb68de",
@@ -196097,7 +196178,7 @@
         ],
         "completionRequired": true,
         "allowedCompletionSources": [
-          "endpoint-dom",
+          "navigation-network-dom",
           "persisted-readback",
           "event-record",
           "server-log"

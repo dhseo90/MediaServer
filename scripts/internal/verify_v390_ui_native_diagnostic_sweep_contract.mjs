@@ -100,6 +100,20 @@ check("diagnostic child output is constrained and failure reasons are safe class
     sweepSource.includes("validateEventDomSemanticCompositeEvidence(evidence)") &&
     runnerSource.includes("eventDomSemanticEvidence"),
   "structured EVT DOM evidence is not preserved through child and sweep summaries");
+  assert(runnerSource.includes("if (primaryFailure?.requestCorrelationEvidence)") &&
+    runnerSource.includes("error.partialArtifacts.requestCorrelationEvidence") &&
+    runnerSource.includes("requestCorrelationEvidence: resultItem.requestCorrelationEvidence || null") &&
+    sweepSource.includes("requestCorrelationEvidence: childSummary?.case?.requestCorrelationEvidence || null") &&
+    sweepSource.includes("media-server.v390-ui-request-correlation-evidence.v1"),
+  "structured request correlation evidence is not preserved through child and sweep summaries");
+  assert(runnerSource.includes("requestCorrelationScopeEvidence: resultItem.requestCorrelationScopeEvidence || null") &&
+    sweepSource.includes("requestCorrelationScopeEvidence:") &&
+    sweepSource.includes("media-server.v390-ui-request-correlation-scope-evidence.v1"),
+  "request-scoped correlation leak evidence is not preserved through diagnostic summaries");
+  assert(runnerSource.includes("navigationLifecycleEvidence: resultItem.navigationLifecycleEvidence || null") &&
+    sweepSource.includes("navigationLifecycleEvidence:") &&
+    sweepSource.includes("media-server.v390-ui-navigation-trust-evidence.v1"),
+  "full-lifecycle navigation evidence is not preserved through diagnostic summaries");
   assert(runnerSource.includes("markerFlow") ||
     fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_exact_oracle_runtime.mjs"), "utf8")
       .includes('schema: "media-server.v390-ui-event-marker-flow-evidence.v1"'),

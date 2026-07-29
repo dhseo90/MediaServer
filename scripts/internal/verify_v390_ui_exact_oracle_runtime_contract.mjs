@@ -3,6 +3,7 @@
 
 import {
   bindDashboardRuntimeTrendBaseline,
+  assertExclusiveRequestScopedCorrelation,
   buildEventDomSemanticCompositeEvidence,
   buildEventMarkerFlowEvidence,
   containsForbiddenResponseMaterial,
@@ -22,6 +23,67 @@ import { usesEventExactRuntimeBindings } from "./v390_ui_case_runtime.mjs";
 import { captureEndpointOwnedResponseProjection } from "./v390_ui_native_adapter.mjs";
 
 const checks = [];
+
+await check("EVT-004 correlation is request-scoped to one authoritative log-tail fetch", async () => {
+  const correlationId = "EVT-004:assert-product-state:completion";
+  const path = "/ops/api/diagnostics/log-tail?limit=50";
+  const request = {
+    phase: "request-start",
+    requestId: "evt-004-log-tail",
+    requestKind: "application-fetch",
+    correlationId,
+    correlationSource: "request-header",
+    method: "GET",
+    url: `http://runtime.invalid${path}`,
+  };
+  const exactEntries = [
+    request,
+    { ...request, phase: "response", status: 200 },
+  ];
+  const evaluate = entries => assertExclusiveRequestScopedCorrelation({
+    browser: { networkEntries: () => entries },
+    item: { caseId: "EVT-004" },
+    correlationId,
+    actionId: "EVT-004:assert-product-state",
+    networkStart: 0,
+    method: "GET",
+    urlPath: path,
+  });
+  const passed = evaluate(exactEntries);
+  assert(passed.pass &&
+    passed.logTailRequestCount === 1 &&
+    passed.logTailResponseCount === 1 &&
+    passed.correlationLeakRequestCount === 0 &&
+    passed.correlationDigest &&
+    !JSON.stringify(passed).includes(correlationId),
+  "exact request-scoped log-tail correlation did not pass safely");
+  for (const [label, entries, code] of [
+    ["document leak", [
+      ...exactEntries,
+      {
+        ...request,
+        requestId: "evt-004-document",
+        requestKind: "document-navigation",
+        url: "http://runtime.invalid/ops/events",
+      },
+    ], "CORRELATION_SCOPE_LEAK"],
+    ["other API leak", [
+      ...exactEntries,
+      {
+        ...request,
+        requestId: "evt-004-other-api",
+        url: "http://runtime.invalid/ops/api/events/status",
+      },
+    ], "CORRELATION_SCOPE_LEAK"],
+    ["duplicate log-tail", [
+      ...exactEntries,
+      { ...request, requestId: "evt-004-log-tail-2" },
+      { ...request, phase: "response", requestId: "evt-004-log-tail-2", status: 200 },
+    ], "AUTHORITATIVE_REQUEST_BINDING_MISMATCH"],
+  ]) {
+    await expectReject(() => Promise.resolve(evaluate(entries)), code);
+  }
+});
 
 await check("EVT-004 marker flow binds one authoritative response row to one visible timeline node", async () => {
   const marker = "REVIEW4-evt-004-review4-fixture-LOG-MARKER";
@@ -496,18 +558,29 @@ await check("response pseudo-fields include status and reject an invalid status 
 });
 
 await check("GET response correlation, debug leaf policy, and nested attribute owners fail closed", async () => {
-  const uncorrelated = eventBrowser();
-  uncorrelated.setCorrelationId = async () => {};
   await expectReject(() => executeCatalogRuntimeOracle({
-    browser: uncorrelated,
+    browser: eventBrowser(),
     item: exactItem("EVT-001", "/ops/dashboard"),
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
-  }), "exact GET response correlation mismatch");
+  }), "ACTION_ID_MISMATCH");
+
+  const uncorrelated = eventBrowser();
+  uncorrelated.setCorrelationId = async () => {};
+  const correlatedRequest = uncorrelated.request;
+  uncorrelated.request = input => correlatedRequest({ ...input, correlationId: "" });
+  await expectReject(() => executeCatalogRuntimeOracle({
+    browser: uncorrelated,
+    item: exactItem("EVT-001", "/ops/dashboard"),
+    actionId: "EVT-001:assert-visible-read-model",
+    fixtureId: "runtime-contract-event",
+    correlationId: "EVT-001:contract",
+  }), "CORRELATION_NOT_ATTACHED");
 
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: eventBrowser({ body: { ...eventBody(), debugCounters: { activeRequests: "two" } } }),
     item: exactItem("EVT-001", "/ops/dashboard"),
+    actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
   }), "response field policy requires a finite numeric or typed string leaf");
@@ -517,6 +590,7 @@ await check("GET response correlation, debug leaf policy, and nested attribute o
       unexpectedMaterial: "rtsp://secret.example/live",
     } } }),
     item: exactItem("EVT-001", "/ops/dashboard"),
+    actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
   }), "response field policy requires a finite numeric or typed string leaf");
@@ -544,6 +618,7 @@ await check("EVT-001 actual response counts and DOM projections pass", async () 
   const result = await executeCatalogRuntimeOracle({
     browser,
     item: exactItem("EVT-001", "/ops/dashboard"),
+    actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
   });
@@ -567,6 +642,7 @@ await check("EVT-024 executes all three bounded samples with authoritative basel
   const result = await executeCatalogRuntimeOracle({
     browser,
     item: exactItem("EVT-024", "/ops/dashboard"),
+    actionId: "EVT-024:assert-visible-read-model",
     fixtureId: "evt-024-runtime-contract",
     correlationId: "EVT-024:contract",
     catalogBindings: {
@@ -632,6 +708,7 @@ await check("cross-route primary action verifies source catalog and restores des
   const result = await executeCatalogRuntimeOracleAtSourceRoute({
     browser,
     item: { ...exactItem("UI-009", "/ops/home"), screenRoute: "/ops/home" },
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "source-route-contract",
     correlationId: "UI-009:contract",
   });
@@ -651,6 +728,7 @@ await check("cross-route source and restore navigation failures are fail-closed"
   await expectReject(() => executeCatalogRuntimeOracleAtSourceRoute({
     browser: sourceFailure,
     item: { ...exactItem("UI-009", "/ops/home"), screenRoute: "/ops/home" },
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "source-route-negative-contract",
     correlationId: "UI-009:contract",
   }), "catalog source route status mismatch");
@@ -726,6 +804,7 @@ await check("API source assertions use one fetch on the current screen without d
         },
       },
     },
+    actionId: "SRC-034:assert-product-state",
     fixtureId: "src-034-route-phase-contract",
     correlationId: "SRC-034:contract",
   });
@@ -792,6 +871,7 @@ await check("API fetch and screen preparation failures remain fail-closed withou
   await expectReject(() => executeCatalogRuntimeOracleAtSourceRoute({
     browser: apiFailure.browser,
     item,
+    actionId: "SRC-034:assert-product-state",
     fixtureId: "src-034-api-failure-contract",
     correlationId: "SRC-034:contract",
   }), "exact request status mismatch");
@@ -804,6 +884,7 @@ await check("API fetch and screen preparation failures remain fail-closed withou
   await expectReject(() => executeCatalogRuntimeOracleAtSourceRoute({
     browser: screenFailure.browser,
     item,
+    actionId: "SRC-034:assert-product-state",
     fixtureId: "src-034-screen-failure-contract",
     correlationId: "SRC-034:contract",
   }), "catalog screen route status mismatch");
@@ -820,6 +901,7 @@ await check("already executed primary action is not dispatched twice", async () 
   const result = await executeCatalogRuntimeOracle({
     browser,
     item: exactItem("UI-009", "/ops/home"),
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "single-primary-contract",
     correlationId: "UI-009:contract",
     primaryAction: {
@@ -855,6 +937,7 @@ await check("native primary control binding is enforced independently of route r
   const result = await executeCatalogRuntimeOracle({
     browser,
     item,
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "native-control-contract",
     correlationId: "UI-009:contract",
   });
@@ -870,6 +953,7 @@ await check("native primary control binding is enforced independently of route r
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: missing,
     item,
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "native-control-negative-contract",
     correlationId: "UI-009:contract",
   }), "native primary control missing");
@@ -894,6 +978,7 @@ await check("required current-route primary control waits before its snapshot", 
   const result = await executeCatalogRuntimeOracle({
     browser,
     item,
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "async-primary-control-contract",
     correlationId: "UI-046:contract",
   });
@@ -933,6 +1018,7 @@ await check("required hidden primary control waits for attachment without demand
   const result = await executeCatalogRuntimeOracle({
     browser,
     item,
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "rule-017-hidden-primary-contract",
     correlationId: "UI-009:contract",
   });
@@ -956,6 +1042,7 @@ await check("required current-route primary control keeps timeout and post-wait 
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: timeout,
     item,
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "async-primary-timeout-contract",
     correlationId: "UI-046:contract",
   }), "adapter timeout");
@@ -968,6 +1055,7 @@ await check("required current-route primary control keeps timeout and post-wait 
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: missing,
     item,
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "async-primary-missing-contract",
     correlationId: "UI-046:contract",
   }), "native primary control missing");
@@ -988,6 +1076,7 @@ await check("required current-route primary control still rejects hidden and dis
     await expectReject(() => executeCatalogRuntimeOracle({
       browser,
       item,
+      actionId: "UI-009:assert-visible-read-model",
       fixtureId: `async-primary-${label}-contract`,
       correlationId: "UI-046:contract",
     }), expected);
@@ -1004,6 +1093,7 @@ await check("route mismatch and not-applicable primary controls do not wait or r
   const mismatchResult = await executeCatalogRuntimeOracle({
     browser: mismatch,
     item: primaryControlItem(selector, "/ops/home"),
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "route-mismatch-primary-contract",
     correlationId: "UI-046:contract",
   });
@@ -1019,6 +1109,7 @@ await check("route mismatch and not-applicable primary controls do not wait or r
       ...exactItem("UI-009", "/ops/home"),
       workflow: { primaryControl: { applicability: "not-applicable" } },
     },
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "not-applicable-primary-contract",
     correlationId: "UI-046:contract",
   });
@@ -1068,6 +1159,7 @@ await check("source-route navigation waits for async primary control and restore
   const result = await executeCatalogRuntimeOracleAtSourceRoute({
     browser: passing.browser,
     item,
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "source-route-async-primary-contract",
     correlationId: "UI-046:contract",
   });
@@ -1079,6 +1171,7 @@ await check("source-route navigation waits for async primary control and restore
   await expectReject(() => executeCatalogRuntimeOracleAtSourceRoute({
     browser: failing.browser,
     item,
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "source-route-async-primary-timeout-contract",
     correlationId: "UI-046:contract",
   }), "adapter timeout");
@@ -1091,6 +1184,7 @@ await check("core object-form requiredAttributes are enforced", async () => {
   const result = await executeCatalogRuntimeOracle({
     browser,
     item: exactItem("UI-009", "/ops/home"),
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "runtime-contract-core",
     correlationId: "UI-009:contract",
   });
@@ -1099,6 +1193,7 @@ await check("core object-form requiredAttributes are enforced", async () => {
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: broken,
     item: exactItem("UI-009", "/ops/home"),
+    actionId: "UI-009:assert-visible-read-model",
     fixtureId: "runtime-contract-core",
     correlationId: "UI-009:contract",
   }), "exact DOM attribute mismatch");
@@ -1115,6 +1210,7 @@ await check("HTML redaction code is distinct from embedded forbidden response fi
   const execute = body => executeCatalogRuntimeOracle({
     browser: clientLiveBrowser(body),
     item: exactItem("UI-015", "/client/live"),
+    actionId: "UI-015:assert-visible-read-model",
     fixtureId: "client-live-html-redaction-contract",
     correlationId: "UI-015:contract",
   });
@@ -1135,6 +1231,7 @@ await check("response redaction separates UI-068 narrative labels from structure
   const execute = body => executeCatalogRuntimeOracle({
     browser: clientLiveBrowser(body),
     item: exactItem("UI-068", "/client/live"),
+    actionId: "UI-068:assert-visible-read-model",
     fixtureId: "client-live-response-redaction-contract",
     correlationId: "UI-068:contract",
   });
@@ -1246,6 +1343,7 @@ await check("endpoint-owned mutation requires the actual method/path/status/corr
   const execute = entries => executeCatalogRuntimeOracle({
     browser: authMutationBrowser(),
     item: exactItem("AUTH-020", "/ops/users"),
+    actionId: "AUTH-020:execute-endpoint-action",
     fixtureId,
     correlationId,
     primaryNetworkEntries: entries,
@@ -1292,6 +1390,7 @@ await check("DOM redaction labels are distinct from exposed credential values", 
       },
     }),
     item: exactItem("UI-027", "/ops/vlm"),
+    actionId: "UI-027:assert-visible-read-model",
     fixtureId: "ops-vlm-dom-redaction-contract",
     correlationId: "UI-027:contract",
   });
@@ -1324,6 +1423,7 @@ await check("client/viewer boundary labels are distinct from enabled exposure ma
       },
     }),
     item: exactItem("UI-033", "/ops/vlm"),
+    actionId: "UI-033:assert-product-state",
     fixtureId: "ops-vlm-client-viewer-boundary-contract",
     correlationId: "UI-033:contract",
   });
@@ -1350,6 +1450,7 @@ await check("no-write/provider labels are distinct from enabled capability mater
       },
     }),
     item: exactItem("UI-036", "/ops/rules"),
+    actionId: "UI-036:activate-control",
     fixtureId: "ops-rules-no-write-boundary-contract",
     correlationId: "UI-036:contract",
   });
@@ -1386,12 +1487,14 @@ await check("status and response semantic drift are rejected", async () => {
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: eventBrowser({ status: 503 }),
     item: exactItem("EVT-001", "/ops/dashboard"),
+    actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
   }), "exact request status mismatch");
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: eventBrowser({ body: eventBody({ activeSessions: 0 }) }),
     item: exactItem("EVT-001", "/ops/dashboard"),
+    actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
   }), "exact request assertion failed");
@@ -1401,12 +1504,14 @@ await check("DOM response mismatch and forbidden network are rejected", async ()
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: eventBrowser({ domText: { "#dashActiveSessions": "99" } }),
     item: exactItem("EVT-001", "/ops/dashboard"),
+    actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
   }), "exact DOM semantic assertion failed");
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: eventBrowser({ network: [{ phase: "request-start", method: "POST", url: "http://runtime.invalid/events/leak" }] }),
     item: exactItem("EVT-001", "/ops/dashboard"),
+    actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
   }), "forbidden network request observed");
@@ -1425,6 +1530,7 @@ await check("CLIENT fixture materialization binds assigned and blocked views ind
   const result = await executeCatalogRuntimeOracle({
     browser,
     item: exactItem("CLIENT-001", "/client/live"),
+    actionId: "CLIENT-001:assert-product-state",
     fixtureId: "client-runtime-contract",
     bindings: { assignedViewId: "9001", blockedViewId: "99002" },
     correlationId: "CLIENT-001:contract",
@@ -1441,6 +1547,7 @@ await check("CLIENT fixture materialization binds assigned and blocked views ind
       },
     }),
     item: exactItem("CLIENT-001", "/client/live"),
+    actionId: "CLIENT-001:assert-product-state",
     fixtureId: "client-runtime-contract",
     bindings: { assignedViewId: "9001", blockedViewId: "99002" },
     correlationId: "CLIENT-001:contract",
@@ -1461,6 +1568,7 @@ await check("SAFE DOM structure/material and external capability boundaries are 
   const execute = browser => executeCatalogRuntimeOracle({
     browser,
     item: exactItem("SAFE-042", "/ops"),
+    actionId: "SAFE-042:assert-product-state",
     fixtureId: "safe-runtime-contract",
     correlationId: "SAFE-042:contract",
   });
@@ -1479,6 +1587,7 @@ await check("CLIENT control sequence binds POST session id to DELETE and DOM his
   const result = await executeCatalogRuntimeOracle({
     browser: clientSequenceBrowser(),
     item: exactItem("CLIENT-020", "/client/live"),
+    actionId: "CLIENT-020:assert-product-state",
     fixtureId: "client-sequence-contract",
     bindings: { assignedViewId: "9001" },
     correlationId: "CLIENT-020:contract",
@@ -1803,11 +1912,52 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
   let requestSequence = 0;
   return {
     networkEntries: () => (++networkReads === 1 ? [] : entries),
+    requestListenersInstalled: () => true,
     setCorrelationId: async value => { correlationId = String(value || ""); },
     waitForSelector: async () => {},
     snapshot: async selector => ({ exists: true, visible: true, disabled: false, selector }),
     click: async () => {},
     waitForNetworkQuiet: async () => {},
+    request: async ({
+      method = "GET",
+      urlPath,
+      actionId = "",
+      correlationId: requestCorrelationId = "",
+    }) => {
+      const requestId = `contract-request-${++requestSequence}`;
+      const requestMethod = String(method).toUpperCase();
+      entries.push({
+        phase: "request-start",
+        requestId,
+        requestKind: "application-fetch",
+        correlationId: String(requestCorrelationId || ""),
+        correlationSource: requestCorrelationId ? "request-header" : "none",
+        method: requestMethod,
+        url: `http://runtime.invalid${urlPath}`,
+      }, {
+        phase: "response",
+        requestId,
+        requestKind: "application-fetch",
+        correlationId: String(requestCorrelationId || ""),
+        correlationSource: requestCorrelationId ? "request-header" : "none",
+        method: requestMethod,
+        url: `http://runtime.invalid${urlPath}`,
+        status,
+      });
+      return {
+        status,
+        url: `http://runtime.invalid${urlPath}`,
+        text: typeof body === "string" ? body : JSON.stringify(body),
+        json: typeof body === "object" ? body : null,
+        contentType: typeof body === "object" ? "application/json" : "text/html",
+        actionId: String(actionId),
+        requestKind: "application-fetch",
+        requestAttemptCount: 1,
+        requestReissued: false,
+        listenerInstalledBeforeRequest: true,
+        ledgerSettled: true,
+      };
+    },
     evaluate: async script => {
       if (script === "location.pathname") return route;
       if (String(script).startsWith("fetch(")) {
@@ -1820,12 +1970,14 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
           phase: "request-start",
           requestId,
           correlationId,
+          correlationSource: correlationId ? "request-header" : "none",
           method,
           url: `http://runtime.invalid${url}`,
         }, {
           phase: "response",
           requestId,
           correlationId,
+          correlationSource: correlationId ? "request-header" : "none",
           method,
           url: `http://runtime.invalid${url}`,
           status,

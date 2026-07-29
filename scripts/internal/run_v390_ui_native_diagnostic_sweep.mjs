@@ -150,6 +150,11 @@ for (const [selectionIndex, item] of selection.entries()) {
       requested: childSummary?.case?.requested || null,
       observed: childSummary?.case?.observed || null,
       eventDomSemanticEvidence: childSummary?.case?.eventDomSemanticEvidence || null,
+      requestCorrelationEvidence: childSummary?.case?.requestCorrelationEvidence || null,
+      requestCorrelationScopeEvidence:
+        childSummary?.case?.requestCorrelationScopeEvidence || null,
+      navigationLifecycleEvidence:
+        childSummary?.case?.navigationLifecycleEvidence || null,
       childExitCode: child.exitCode,
       environmentContamination: contaminated || secretScan.status !== "PASS",
       childCleanupFailure: childSummary?.environmentContamination?.cleanupFailure === true,
@@ -473,6 +478,35 @@ function validateChildSummary(summary, item) {
     validateEventDomSemanticCompositeEvidence(evidence);
     assert(evidence.actualBrowserExecution === true,
       "diagnostic child structured EVT DOM evidence did not execute a browser");
+  }
+  if (summary.case?.requestCorrelationEvidence) {
+    const evidence = summary.case.requestCorrelationEvidence;
+    assert(evidence.schema === "media-server.v390-ui-request-correlation-evidence.v1" &&
+      typeof evidence.pass === "boolean" &&
+      evidence.requestKind === "application-fetch" &&
+      typeof evidence.failureCode === "string",
+    "diagnostic child request correlation evidence is invalid");
+  }
+  if (summary.case?.requestCorrelationScopeEvidence) {
+    const evidence = summary.case.requestCorrelationScopeEvidence;
+    assert(evidence.schema === "media-server.v390-ui-request-correlation-scope-evidence.v1" &&
+      typeof evidence.pass === "boolean" &&
+      evidence.requestKind === "application-fetch" &&
+      Number.isInteger(evidence.logTailRequestCount) &&
+      Number.isInteger(evidence.correlationLeakRequestCount) &&
+      typeof evidence.failureCode === "string",
+    "diagnostic child request correlation scope evidence is invalid");
+  }
+  if (summary.case?.navigationLifecycleEvidence) {
+    const evidence = summary.case.navigationLifecycleEvidence;
+    assert(evidence.schema === "media-server.v390-ui-navigation-trust-evidence.v1" &&
+      typeof evidence.pass === "boolean" &&
+      Number.isInteger(evidence.totalDocumentNavigationCount) &&
+      Array.isArray(evidence.orderedDocumentNavigations) &&
+      typeof evidence.listenerInstalledBeforeFirstNavigation === "boolean" &&
+      Number.isInteger(evidence.navigationAfterListenerEndCount) &&
+      typeof evidence.failureCode === "string",
+    "diagnostic child navigation lifecycle evidence is invalid");
   }
   assert(!/(?:https?|rtsp|rtsps):\/\//i.test(String(summary.case?.failureDetail || "")),
     "diagnostic child failure detail contains a raw URL");

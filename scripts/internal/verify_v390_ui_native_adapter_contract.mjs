@@ -85,6 +85,54 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   for (const snippet of ["page.on(\"request\"", "pendingRequests", "correlatedEntryCount", "entry.correlationId === correlationId"]) {
     assert(adapterSource.includes(snippet), `adapter action-window source missing ${snippet}`);
   }
+  for (const snippet of [
+    "requestListenersInstalled = true",
+    'requestKind = request.isNavigationRequest()',
+    'requestKind: "document-navigation"',
+    "navigationInvocationId",
+    "documentNavigationLedger",
+    "orderedDocumentNavigations",
+    "totalDocumentNavigationCount",
+    "listenerStartSequence",
+    "listenerEndSequence",
+    "navigationAfterListenerEndCount",
+    "requestCandidateCount: candidates.length",
+    "requestResponseBound:",
+    'requestKind: "application-fetch"',
+    "requestAttemptCount: 1",
+    "requestReissued: false",
+    "listenerInstalledBeforeRequest: requestListenersInstalled",
+    "ledgerSettled",
+  ]) {
+    assert(adapterSource.includes(snippet), `adapter application-fetch evidence missing ${snippet}`);
+  }
+  assert(exactRunnerSource.includes("buildRequestCorrelationEvidence") &&
+    exactRunnerSource.includes("requestCorrelationEvidence") &&
+    exactRunnerSource.includes("navigationCorrelationId: item.actions[0].semanticCompletion.navigationBinding") &&
+    exactRunnerSource.includes("navigationInvocationId: item.actions[0].semanticCompletion.navigationBinding"),
+  "exact runner does not preserve application-fetch correlation evidence");
+  assert(adapterSource.includes('await context.route("**/*"') &&
+    adapterSource.includes("activeNavigationOperation?.allowCorrelation === true") &&
+    adapterSource.includes('delete headers["x-media-server-correlation-id"]') &&
+    !adapterSource.includes("context.setExtraHTTPHeaders"),
+  "adapter does not keep correlation injection request/document scoped");
+  assert(exactRunnerSource.includes("finalNavigation = await browser.close()") &&
+    !exactRunnerSource.includes("browser.finalizeNavigationLedger()") &&
+    exactRunnerSource.includes("final navigation lifecycle failed"),
+  "exact runner does not validate the authoritative ledger returned after browser close");
+  const closeBlockStart = adapterSource.indexOf("close: async () => {");
+  const contextClose = adapterSource.indexOf("await context.close()", closeBlockStart);
+  const browserClose = adapterSource.indexOf("await browser.close()", closeBlockStart);
+  const finalLedger = adapterSource.indexOf("const finalNavigation = finalizeNavigationLedger()", closeBlockStart);
+  assert(closeBlockStart >= 0 &&
+    contextClose > closeBlockStart &&
+    browserClose > contextClose &&
+    finalLedger > browserClose,
+  "adapter finalizes the navigation ledger before the browser lifecycle is closed");
+  assert(adapterSource.includes("let closePromise = null") &&
+    adapterSource.includes("if (!closePromise)") &&
+    adapterSource.includes("return closePromise"),
+  "adapter browser close is not a single idempotent lifecycle boundary");
 });
 
 check("whoami observation keeps setup-required and unauthorized sessions anonymous", () => {

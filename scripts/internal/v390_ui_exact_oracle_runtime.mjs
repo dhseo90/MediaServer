@@ -11,6 +11,7 @@ import {
   eventExactValuesAtPath,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import { materializeClientSafeExactOracle } from "./v390_ui_exact_client_safe_oracles.mjs";
+import { buildRequestCorrelationEvidence } from "./v390_ui_completion_oracle_lib.mjs";
 
 const refreshControls = Object.freeze({
   "/ops": "#opsHomeRefresh",
@@ -55,6 +56,7 @@ export async function executeCatalogRuntimeOracle({
   item,
   fixtureId,
   bindings = {},
+  actionId,
   correlationId,
   primaryAction = null,
   primaryNetworkEntries = [],
@@ -113,7 +115,10 @@ export async function executeCatalogRuntimeOracle({
     });
   }
   const networkStart = browser.networkEntries().length;
-  await browser.setCorrelationId(correlationId);
+  let latestRequestCorrelationEvidence = null;
+  const requestScopedCorrelationOnly = item.caseId === "EVT-004";
+  let correlationScopeEvidence = null;
+  if (!requestScopedCorrelationOnly) await browser.setCorrelationId(correlationId);
   try {
     const nativePrimaryControl = await observeNativePrimaryControl(browser, item);
     if (primaryAction && clientSafeCase) {
@@ -179,12 +184,17 @@ export async function executeCatalogRuntimeOracle({
         item,
         request,
         runtimeBindings,
+        actionId,
         correlationId,
         networkStart,
         primaryNetworkEntries,
         eventRuntimeContext,
       );
       responses.push(observation.evidence);
+      if (observation.evidence.requestCorrelationEvidence) {
+        latestRequestCorrelationEvidence =
+          structuredClone(observation.evidence.requestCorrelationEvidence);
+      }
       responseBodies.push(observation.body);
     }
     if (baseSpec.seed?.kind === "dashboard-three-api-samples") {
@@ -208,6 +218,17 @@ export async function executeCatalogRuntimeOracle({
         eventRuntimeContext,
       ));
     }
+    if (requestScopedCorrelationOnly) {
+      correlationScopeEvidence = assertExclusiveRequestScopedCorrelation({
+        browser,
+        item,
+        correlationId,
+        actionId,
+        networkStart,
+        method: "GET",
+        urlPath: "/ops/api/diagnostics/log-tail?limit=50",
+      });
+    }
     assertForbiddenNetwork([
       ...primaryNetworkEntries,
       ...browser.networkEntries().slice(networkStart),
@@ -222,12 +243,18 @@ export async function executeCatalogRuntimeOracle({
       dom,
       cleanup,
       nativePrimaryControl,
+      ...(correlationScopeEvidence ? { correlationScopeEvidence } : {}),
       forbiddenNetworkObserved: 0,
       requestedRoute: spec.route,
       observedRoute: await browser.evaluate("location.pathname"),
     };
+  } catch (error) {
+    if (latestRequestCorrelationEvidence && !error.requestCorrelationEvidence) {
+      error.requestCorrelationEvidence = latestRequestCorrelationEvidence;
+    }
+    throw error;
   } finally {
-    await browser.setCorrelationId(`${item.caseId}:navigation`);
+    await browser.setCorrelationId("");
   }
 }
 
@@ -309,6 +336,22 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
   const sourceNavigation = await browser.navigate(sourceRoute);
   assert([200, 204].includes(sourceNavigation.status),
     `${item.caseId} catalog source route status mismatch: ${sourceNavigation.status}`);
+  if (item.caseId === "EVT-004") {
+    const observation = await executeCatalogRuntimeOracle(args);
+    return {
+      ...observation,
+      routeLifecycle: {
+        sourceRoute,
+        destinationRoute: currentRoute,
+        splitApiAndScreen: false,
+        sourceObservation: "required-product-dashboard-dom",
+        sourceNavigationStatus: sourceNavigation.status,
+        restoreNavigationStatus: null,
+        restoreAttempted: false,
+        retainedRoute: sourceRoute,
+      },
+    };
+  }
   const destinationRoute = currentRoute === sourceRoute ? screenRoute : currentRoute;
   let observation = null;
   let oracleError = null;
@@ -342,6 +385,10 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
     if (oracleError?.eventDomSemanticEvidence) {
       error.eventDomSemanticEvidence =
         structuredClone(oracleError.eventDomSemanticEvidence);
+    }
+    if (oracleError?.requestCorrelationEvidence) {
+      error.requestCorrelationEvidence =
+        structuredClone(oracleError.requestCorrelationEvidence);
     }
     throw error;
   }
@@ -874,6 +921,7 @@ async function observeRequest(
   item,
   request,
   bindings,
+  actionId,
   correlationId,
   networkStart,
   primaryNetworkEntries = [],
@@ -894,29 +942,45 @@ async function observeRequest(
     let body = null;
     let contentType = "";
     let source = "";
+    let requestCorrelationEvidence = null;
     if (["GET", "HEAD"].includes(method)) {
       const fetchNetworkStart = browser.networkEntries().length;
-      const result = await browser.evaluate(`fetch(${JSON.stringify(urlPath)}, {
-        method: ${JSON.stringify(method)}, credentials: 'same-origin', cache: 'no-store'
-      }).then(async response => {
-        const text = await response.text();
-        let json = null;
-        try { json = JSON.parse(text); } catch (_) {}
-        return { status: response.status, text, json, contentType: response.headers.get('content-type') || '' };
-      })`);
+      const result = item.caseId === "EVT-004"
+        ? await browser.request({
+            method,
+            urlPath,
+            actionId,
+            correlationId: request.correlationRequired === false ? "" : correlationId,
+          })
+        : await browser.evaluate(`fetch(${JSON.stringify(urlPath)}, {
+            method: ${JSON.stringify(method)}, credentials: 'same-origin', cache: 'no-store'
+          }).then(async response => {
+            const text = await response.text();
+            let json = null;
+            try { json = JSON.parse(text); } catch (_) {}
+            return { status: response.status, text, json, contentType: response.headers.get('content-type') || '' };
+          })`);
       status = result.status;
       body = result.json ?? result.text;
       contentType = result.contentType || "";
       source = "fresh-browser-fetch";
       if (request.correlationRequired !== false) {
-        assertCorrelatedRuntimeFetch({
+        requestCorrelationEvidence = assertCorrelatedRuntimeFetch({
           browser,
           item,
+          actionId,
           method,
           urlPath,
           correlationId,
           networkStart: fetchNetworkStart,
           status,
+          requestResult: item.caseId === "EVT-004"
+            ? result
+            : {
+                actionId,
+                requestAttemptCount: 1,
+                requestReissued: false,
+              },
         });
       }
     } else {
@@ -942,7 +1006,7 @@ async function observeRequest(
           `${item.caseId} exact mutation response correlation mismatch: ${method} ${urlPath}`);
       }
     }
-    return { status, body, contentType, source };
+    return { status, body, contentType, source, requestCorrelationEvidence };
   };
   for (let index = 0; index < repeatCount; index += 1) {
     samples.push(await observeOnce());
@@ -950,7 +1014,7 @@ async function observeRequest(
       await new Promise(resolve => setTimeout(resolve, repeatIntervalMs));
     }
   }
-  const { status, body, contentType, source } = samples.at(-1);
+  const { status, body, contentType, source, requestCorrelationEvidence } = samples.at(-1);
   assert(allowedStatuses.includes(status),
     `${item.caseId} exact request status mismatch ${method} ${urlPath}: ${status}/${allowedStatuses.join(",")}`);
   const required = request.requiredJsonPaths || request.requiredBodyTokens || [];
@@ -1009,6 +1073,7 @@ async function observeRequest(
       assertionEvidence,
       sampleCount: samples.length,
       sampleDigests: samples.map(sample => sha256Digest(sample.body)),
+      ...(requestCorrelationEvidence ? { requestCorrelationEvidence } : {}),
     },
     body,
   };
@@ -1154,24 +1219,121 @@ async function observeDom(
   };
 }
 
-function assertCorrelatedRuntimeFetch({ browser, item, method, urlPath, correlationId, networkStart, status }) {
-  const expectedPath = new URL(urlPath, "http://runtime.invalid").pathname;
-  const responses = browser.networkEntries().slice(networkStart).filter(entry => {
-    if (entry.phase !== "response" || entry.method !== method) return false;
-    try { return new URL(entry.url).pathname === expectedPath; } catch (_) { return false; }
+function assertCorrelatedRuntimeFetch({
+  browser,
+  item,
+  actionId,
+  method,
+  urlPath,
+  correlationId,
+  networkStart,
+  status,
+  requestResult,
+}) {
+  const entries = browser.networkEntries().slice(networkStart);
+  if (entries.length === 0 && browser.runtimeCorrelationOptionalForContract === true) return null;
+  const evidence = buildRequestCorrelationEvidence({
+    entries,
+    actionId,
+    expected: {
+      method,
+      urlPath,
+      correlationId,
+      correlationRequired: true,
+      allowedStatuses: [status],
+      requestKind: "application-fetch",
+    },
+    requestResult,
+    listenerInstalledBeforeRequest: typeof browser.requestListenersInstalled === "function"
+      ? browser.requestListenersInstalled() === true
+      : browser.runtimeCorrelationOptionalForContract === true,
   });
-  if (responses.length === 0 && browser.runtimeCorrelationOptionalForContract === true) return;
-  assert(responses.length === 1,
-    `${item.caseId} exact GET response correlation is ambiguous: ${method} ${expectedPath}/${responses.length}`);
-  const response = responses[0];
-  assert(response.correlationId === correlationId,
-    `${item.caseId} exact GET response correlation mismatch: ${method} ${expectedPath}`);
-  assert(Number(response.status) === Number(status),
-    `${item.caseId} exact GET response status evidence mismatch: ${method} ${expectedPath}`);
-  const requests = browser.networkEntries().slice(networkStart).filter(entry =>
-    entry.phase === "request-start" && entry.requestId && entry.requestId === response.requestId);
-  assert(requests.length === 1 && requests[0].correlationId === correlationId,
-    `${item.caseId} exact GET request correlation mismatch: ${method} ${expectedPath}`);
+  if (!evidence.pass) {
+    const error = new Error(
+      `${item.caseId} exact runtime fetch correlation failed: ${method} ${urlPath}/${evidence.failureCode}`,
+    );
+    error.requestCorrelationEvidence = structuredClone(evidence);
+    throw error;
+  }
+  return evidence;
+}
+
+export function assertExclusiveRequestScopedCorrelation({
+  browser,
+  item,
+  correlationId,
+  actionId,
+  networkStart,
+  method,
+  urlPath,
+}) {
+  const entries = browser.networkEntries().slice(networkStart);
+  const expectedPath = runtimeRequestTarget(urlPath);
+  const correlatedRequests = entries.filter(entry =>
+    entry?.phase === "request-start" &&
+    entry?.correlationSource === "request-header" &&
+    Boolean(entry?.correlationId));
+  const correlatedResponses = entries.filter(entry =>
+    entry?.phase === "response" &&
+    entry?.correlationSource === "request-header" &&
+    Boolean(entry?.correlationId));
+  const exactRequests = correlatedRequests.filter(entry =>
+    entry.correlationId === correlationId &&
+    String(entry.method || "").toUpperCase() === method &&
+    runtimeRequestTarget(entry.url) === expectedPath);
+  const exactResponses = correlatedResponses.filter(entry =>
+    entry.correlationId === correlationId &&
+    String(entry.method || "").toUpperCase() === method &&
+    runtimeRequestTarget(entry.url) === expectedPath);
+  const leakedRequests = correlatedRequests.filter(entry => !exactRequests.includes(entry));
+  const leakedResponses = correlatedResponses.filter(entry => !exactResponses.includes(entry));
+  const requestIds = new Set(exactRequests.map(entry => entry.requestId));
+  const responseIds = new Set(exactResponses.map(entry => entry.requestId));
+  const pass = exactRequests.length === 1 &&
+    exactResponses.length === 1 &&
+    requestIds.size === 1 &&
+    responseIds.size === 1 &&
+    [...requestIds][0] === [...responseIds][0] &&
+    leakedRequests.length === 0 &&
+    leakedResponses.length === 0;
+  const evidence = {
+    schema: "media-server.v390-ui-request-correlation-scope-evidence.v1",
+    pass,
+    actionId: String(actionId || ""),
+    method,
+    path: expectedPath,
+    requestKind: "application-fetch",
+    logTailRequestCount: exactRequests.length,
+    logTailResponseCount: exactResponses.length,
+    correlationDigest: correlationId
+      ? createHash("sha256").update(correlationId).digest("hex")
+      : "",
+    correlationLeakRequestCount: leakedRequests.length,
+    correlationLeakResponseCount: leakedResponses.length,
+    failurePhase: pass ? "" : "application-fetch-correlation-scope",
+    failureCode: pass
+      ? ""
+      : (leakedRequests.length || leakedResponses.length
+          ? "CORRELATION_SCOPE_LEAK"
+          : "AUTHORITATIVE_REQUEST_BINDING_MISMATCH"),
+  };
+  if (!pass) {
+    const error = new Error(
+      `${item.caseId} request-scoped correlation failed: ${evidence.failureCode}`,
+    );
+    error.requestCorrelationScopeEvidence = structuredClone(evidence);
+    throw error;
+  }
+  return evidence;
+}
+
+function runtimeRequestTarget(value) {
+  try {
+    const url = new URL(String(value || ""), "http://runtime.invalid");
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return "";
+  }
 }
 
 export async function validateRuntimeAttributeOwners(browser, item, assertion, bindings = {}) {
