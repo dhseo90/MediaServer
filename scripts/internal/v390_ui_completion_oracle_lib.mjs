@@ -917,6 +917,12 @@ function requestTarget(rawUrl) {
 function findCorrelatedEndpoint(entries, action, semanticReadback = null) {
   const expected = action.expectedEndpoint;
   if (!expected || !Array.isArray(entries)) return { match: null, reason: "request-correlation-missing" };
+  const documentForm = findDocumentFormSubmission(entries, action);
+  if (documentForm.present) {
+    return documentForm.match
+      ? { match: documentForm.match, reason: "" }
+      : { match: null, reason: documentForm.reason };
+  }
   const catalog = catalogRuntimeCompletionRequest(semanticReadback, action);
   if (catalog.present) {
     return catalog.match
@@ -935,6 +941,68 @@ function findCorrelatedEndpoint(entries, action, semanticReadback = null) {
   if (matches.length === 0) return { match: null, reason: "request-correlation-missing" };
   if (matches.length !== 1) return { match: null, reason: "ambiguous-exact-request" };
   return { match: structuredClone(matches[0]), reason: "" };
+}
+
+function findDocumentFormSubmission(entries, action) {
+  const expected = action.expectedEndpoint;
+  const binding = action?.formResponseIdentity;
+  if (!binding) return { present: false, match: null, reason: "" };
+  if (binding.schema !== "media-server.v390-ui-document-form-submit-binding.v1" ||
+      binding.requestKind !== "document-navigation" ||
+      binding.resourceType !== "document" ||
+      binding.sameOrigin !== true ||
+      binding.correlationObserved !== false ||
+      binding.responseRequestObjectObserved !== true ||
+      binding.requestAttemptCount !== 1 ||
+      binding.responseCandidateCount !== 1 ||
+      binding.reissueCount !== 0 ||
+      typeof binding.requestId !== "string" || !binding.requestId ||
+      typeof binding.caseRequestIdentity !== "string" || !binding.caseRequestIdentity ||
+      !Number.isInteger(binding.caseRequestSequence) || binding.caseRequestSequence < 1 ||
+      String(binding.method || "").toUpperCase() !== String(expected?.method || "").toUpperCase() ||
+      requestTarget(binding.path) !== requestTarget(expected?.urlPath) ||
+      !(expected?.allowedStatuses || []).includes(Number(binding.status))) {
+    return { present: true, match: null, reason: "document-form-binding-invalid" };
+  }
+  const requestEntries = entries.filter(entry =>
+    entry?.phase === "request-start" &&
+    entry.requestId === binding.requestId &&
+    entry.caseRequestIdentity === binding.caseRequestIdentity &&
+    entry.caseRequestSequence === binding.caseRequestSequence &&
+    entry.requestKind === "document-navigation" &&
+    entry.resourceType === "document" &&
+    entry.sameOrigin === true &&
+    entry.correlationId === "" &&
+    String(entry.method || "").toUpperCase() === String(expected.method || "").toUpperCase() &&
+    requestTarget(entry.url) === requestTarget(expected.urlPath),
+  );
+  const responseEntries = entries.filter(entry =>
+    entry?.phase === "response" &&
+    entry.requestId === binding.requestId &&
+    entry.caseRequestIdentity === binding.caseRequestIdentity &&
+    entry.caseRequestSequence === binding.caseRequestSequence &&
+    entry.requestKind === "document-navigation" &&
+    entry.resourceType === "document" &&
+    entry.sameOrigin === true &&
+    entry.correlationId === "" &&
+    entry.responseRequestObjectObserved === true &&
+    String(entry.method || "").toUpperCase() === String(expected.method || "").toUpperCase() &&
+    requestTarget(entry.url) === requestTarget(expected.urlPath) &&
+    Number(entry.status) === Number(binding.status),
+  );
+  if (requestEntries.length !== 1 || responseEntries.length !== 1) {
+    return { present: true, match: null, reason: "document-form-request-response-mismatch" };
+  }
+  return {
+    present: true,
+    match: {
+      ...structuredClone(responseEntries[0]),
+      correlationId: action.correlationId,
+      correlationSource: "document-form-request-response-identity",
+      documentFormResponseIdentity: structuredClone(binding),
+    },
+    reason: "",
+  };
 }
 
 function catalogRuntimeAuthoritativeReadback(semanticReadback, expected) {

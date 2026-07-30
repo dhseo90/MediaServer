@@ -6821,6 +6821,16 @@ approval 986/986와 audit/approval/implementation/native fixture 원자 갱신�
 (`POST /setup` response unique binding 0)는 historical FAIL evidence로 보존하며,
 이번 checkpoint에서는 actual UI/diagnostic/30분/120분/release를 재실행하지 않습니다.
 
+후속 actual `b7510aeb7cd8ab489c43d1eb4387d19241211bbd`의 `./test_ui.sh` 1회는
+UI-001 PASS 뒤 UI-002의 `POST /setup` 302와 `/login` redirect를 exact document
+form binding으로 캡처했지만, independent completion이 이를 header-correlated API로
+재해석해 `request-correlation-missing`으로 중단했습니다. completion oracle은
+document form의 request/response object identity, request ID/sequence, same-origin,
+method/path/status, no-correlation, one-attempt/no-reissue를 network ledger와 다시
+대조하는 전용 경로로 보정했습니다. 다른 application fetch correlation 경로는
+변경하지 않았고, actual 재실행 전 정적 completion/adapter/native/semantic gate만
+통과했습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

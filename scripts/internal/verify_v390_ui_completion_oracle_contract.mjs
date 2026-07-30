@@ -2316,6 +2316,87 @@ check("REVIEW4-58 form readback snapshots the exact submit control and never rel
     "runtime v2 readback does not verify raw snapshot selectors");
 });
 
+check("document form completion requires one exact uncorrelated request and response identity", () => {
+  const action = {
+    actionId: "UI-002:submit-form",
+    actionKind: "submit-form",
+    dispatch: "playwright-native",
+    executed: true,
+    executedKind: "submit",
+    completionPhase: "primary-action",
+    semanticCompletionRequired: true,
+    correlationId: "UI-002:submit-form:completion",
+    controlSelector: "[data-testid=auth-setup-form] button[type=submit]",
+    expectedReadbackIdentity: "document-form-readback",
+    expectedBehaviorSha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    expectedReadbackExpectation: { submitted: true },
+    allowedCompletionSources: ["endpoint-dom"],
+    expectedEndpoint: {
+      correlationId: "UI-002:submit-form:completion",
+      method: "POST",
+      urlPath: "/setup",
+      allowedStatuses: [302],
+    },
+    formResponseIdentity: {
+      schema: "media-server.v390-ui-document-form-submit-binding.v1",
+      requestId: "native-request-3",
+      caseRequestIdentity: "UI-002:request-3",
+      caseRequestSequence: 3,
+      method: "POST",
+      path: "/setup",
+      status: 302,
+      requestKind: "document-navigation",
+      resourceType: "document",
+      sameOrigin: true,
+      correlationObserved: false,
+      responseRequestObjectObserved: true,
+      redirectCount: 1,
+      redirectPath: "/login",
+      requestAttemptCount: 1,
+      responseCandidateCount: 1,
+      reissueCount: 0,
+    },
+  };
+  const request = {
+    phase: "request-start", requestId: "native-request-3", caseRequestIdentity: "UI-002:request-3",
+    caseRequestSequence: 3, requestKind: "document-navigation", resourceType: "document",
+    sameOrigin: true, correlationId: "", method: "POST", url: "http://127.0.0.1/setup",
+  };
+  const response = {
+    ...request, phase: "response", status: 302, responseRequestObjectObserved: true,
+  };
+  const observation = {
+    before: { selector: action.controlSelector, submitted: false },
+    after: { selector: action.controlSelector, submitted: true },
+  };
+  const semanticReadback = {
+    schema: "media-server.v390-ui-semantic-readback.v2",
+    actionId: action.actionId,
+    correlationId: action.correlationId,
+    identity: action.expectedReadbackIdentity,
+    expectedBehaviorSha256: action.expectedBehaviorSha256,
+    observationSource: "browser-dom",
+    selector: action.controlSelector,
+    observation,
+    observationSha256: domSnapshotDigest(observation),
+  };
+  const evaluate = entries => evaluateCompletionOracle({
+    action,
+    before: { selector: action.controlSelector, exists: true, visible: true },
+    after: { selector: action.controlSelector, exists: false, visible: false },
+    networkResponses: entries,
+    semanticReadback,
+  });
+  const result = evaluate([request, response]);
+  assert(result.pass && result.source === "endpoint-dom" &&
+    result.completionRequest?.correlationSource === "document-form-request-response-identity",
+  `exact document form request/response identity did not pass: ${result.reason}`);
+  assert(evaluate([request]).reason === "document-form-request-response-mismatch",
+    "missing document form response was accepted");
+  assert(evaluate([{ ...request, correlationId: "unexpected" }, response]).reason === "document-form-request-response-mismatch",
+    "document form correlation was accepted");
+});
+
 check("REVIEW4-58 rejects pre-existing postconditions and in-flight forbidden dispatch", () => {
   const postconditions = [
     { selector: "#panel", property: "hidden", operator: "equals", value: false },
