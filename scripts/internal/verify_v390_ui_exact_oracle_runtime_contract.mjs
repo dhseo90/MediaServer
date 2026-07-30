@@ -7,6 +7,7 @@ import {
   buildExclusiveRequestScopedCorrelationEvidence,
   buildEventDomSemanticCompositeEvidence,
   buildEventMarkerFlowEvidence,
+  buildEvt004MarkerStageEvidence,
   buildMarkerEvaluatorLifecycleFailureEvidence,
   containsForbiddenResponseMaterial,
   containsForbiddenStructuredDomMaterial,
@@ -22,14 +23,95 @@ import {
   validateClientRuntimeFixtureBindings,
   waitForClientVaOverlayProjection,
 } from "./v390_ui_exact_oracle_runtime.mjs";
-import { usesEventExactRuntimeBindings } from "./v390_ui_case_runtime.mjs";
+import {
+  buildDiagnosticMarkerFileStageEvidence,
+  usesEventExactRuntimeBindings,
+} from "./v390_ui_case_runtime.mjs";
 import {
   bindFixtureResponseToInitiatingRequest,
+  buildDiagnosticMarkerResponseStageEvidence,
   captureEndpointOwnedResponseProjection,
   createCaseOwnedRequestIdentityRegistry,
 } from "./v390_ui_native_adapter.mjs";
 
 const checks = [];
+
+await check("EVT-004 marker lifecycle distinguishes hook, file, response, timeline, and DOM failures", async () => {
+  const marker = "REVIEW4-EVT-004-LOG-MARKER";
+  const file = overrides => buildDiagnosticMarkerFileStageEvidence({
+    invocationCount: 1,
+    ownedLogPath: "/tmp/owned/.media_server.log",
+    productLogPath: "/tmp/owned/.media_server.log",
+    marker,
+    lines: ["prior", `[review4] auth incident ${marker} password=redacted`],
+    ...overrides,
+  });
+  assert(file({}).pass === true, "exact marker file stage did not pass");
+  assert(file({ invocationCount: 0 }).failureCode ===
+    "MARKER_RELOCATION_HOOK_INVOCATION_MISMATCH",
+  "missing hook was not isolated");
+  assert(file({ productLogPath: "/tmp/wrong/.media_server.log" }).failureCode ===
+    "MARKER_LOG_FILE_IDENTITY_MISMATCH",
+  "wrong product log identity was not isolated");
+  assert(file({ lines: ["prior"] }).failureCode === "MARKER_LOG_FILE_MISSING",
+    "missing file marker was not isolated");
+  assert(file({ lines: [marker, marker] }).failureCode ===
+    "MARKER_LOG_FILE_DUPLICATE",
+  "duplicate file marker was not isolated");
+
+  const response = captures => buildDiagnosticMarkerResponseStageEvidence({
+    marker,
+    method: "GET",
+    urlPath: "/ops/api/diagnostics/log-tail?limit=80",
+    captures,
+  });
+  assert(response([]).failureCode === "DASHBOARD_MARKER_RESPONSE_MISSING",
+    "missing dashboard response was not isolated");
+  assert(response([{
+    requestId: "request-1",
+    responseRequestObjectObserved: true,
+    status: 200,
+    markerCount: 0,
+  }]).failureCode === "DASHBOARD_MARKER_RESPONSE_MARKER_MISSING",
+  "dashboard response marker omission was not isolated");
+  assert(response([{
+    requestId: "request-1",
+    responseRequestObjectObserved: true,
+    status: 200,
+    markerCount: 2,
+  }]).failureCode === "DASHBOARD_MARKER_RESPONSE_MARKER_DUPLICATE",
+  "dashboard response marker duplication was not isolated");
+
+  const timelineMissing = buildEventMarkerFlowEvidence({
+    marker,
+    responseBodies: [{ lines: [marker] }],
+    observed: { semanticNodeTexts: [], visibleSemanticNodeTexts: [] },
+  });
+  assert(timelineMissing.failureCode === "TIMELINE_MARKER_NOT_PROJECTED",
+    "timeline marker omission was not isolated");
+  const domMissing = buildEventMarkerFlowEvidence({
+    marker,
+    responseBodies: [{ lines: [marker] }],
+    observed: { semanticNodeTexts: [marker], visibleSemanticNodeTexts: [] },
+  });
+  assert(domMissing.failureCode === "DOM_MARKER_NOT_OBSERVED",
+    "DOM marker omission was not isolated");
+
+  const stage = buildEvt004MarkerStageEvidence({
+    fileStageEvidence: file({}),
+    dashboardResponseEvidence: response([{
+      requestId: "request-1",
+      responseRequestObjectObserved: true,
+      status: 200,
+      markerCount: 1,
+      lineCount: 1,
+    }]),
+  });
+  assert(stage.pass === true, "complete EVT-004 marker stage did not pass");
+  assert(!JSON.stringify(stage).includes("/tmp/owned") &&
+    !JSON.stringify(stage).includes(marker),
+  "marker stage evidence exposed a path or raw marker");
+});
 
 await check("EVT-004 correlation is request-scoped to one authoritative log-tail fetch", async () => {
   const correlationId = "EVT-004:assert-product-state:completion";

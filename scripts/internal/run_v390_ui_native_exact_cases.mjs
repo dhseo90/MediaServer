@@ -846,6 +846,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       requestCorrelationEvidence: runtimeState.get("__requestCorrelationEvidence") || null,
       requestCorrelationScopeEvidence:
         runtimeState.get("__requestCorrelationScopeEvidence") || null,
+      markerStageEvidence:
+        runtimeState.get("__markerStageEvidence") || null,
       markerEvidence: runtimeState.get("__markerEvidence") ||
         runtimeState.get("__eventDomSemanticEvidence")?.markerFlow || null,
       markerEvidenceLifecycle: (runtimeState.get("__markerEvidence") ||
@@ -890,6 +892,10 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     }
     if (error?.markerEvidence) {
       runtimeState.set("__markerEvidence", structuredClone(error.markerEvidence));
+    }
+    if (error?.markerStageEvidence) {
+      runtimeState.set("__markerStageEvidence",
+        structuredClone(error.markerStageEvidence));
     }
     if (error?.requestCorrelationEvidence) {
       runtimeState.set("__requestCorrelationEvidence",
@@ -971,6 +977,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         structuredClone(failureLifecycleEvidence.markerEvidence);
       caseResult.markerEvidenceLifecycle =
         structuredClone(failureLifecycleEvidence.markerEvidenceLifecycle);
+      caseResult.markerStageEvidence =
+        structuredClone(failureLifecycleEvidence.markerStageEvidence);
       caseResult.cleanupAttestation =
         structuredClone(failureLifecycleEvidence.cleanupAttestation);
       trace.failureLifecycleEvidence = structuredClone(failureLifecycleEvidence);
@@ -1076,6 +1084,7 @@ function caseExecutionFailure(
     for (const key of [
       "navigationLifecycleEvidence",
       "requestCorrelationScopeEvidence",
+      "markerStageEvidence",
       "markerEvidence",
       "markerEvidenceLifecycle",
       "cleanupAttestation",
@@ -2600,6 +2609,10 @@ async function semanticAssertionResult(
       runtimeState.set("__requestCorrelationScopeEvidence",
         structuredClone(catalogObservation.correlationScopeEvidence));
     }
+    if (catalogObservation.markerStageEvidence) {
+      runtimeState.set("__markerStageEvidence",
+        structuredClone(catalogObservation.markerStageEvidence));
+    }
   }
   if (completion.request && !catalogObservation) {
     await browser.setCorrelationId(completion.correlationId);
@@ -3455,6 +3468,7 @@ function createDiagnosticChildSummary({
       requestCorrelationEvidence: resultItem.requestCorrelationEvidence || null,
       requestCorrelationScopeEvidence: resultItem.requestCorrelationScopeEvidence || null,
       navigationLifecycleEvidence: resultItem.navigationLifecycleEvidence || null,
+      markerStageEvidence: resultItem.markerStageEvidence || null,
       markerEvidence: resultItem.markerEvidence || null,
       markerEvidenceLifecycle: resultItem.markerEvidenceLifecycle || null,
       cleanupAttestation: resultItem.cleanupAttestation || null,
@@ -3472,6 +3486,7 @@ function createDiagnosticChildSummary({
       requestCorrelationEvidence: null,
       requestCorrelationScopeEvidence: null,
       navigationLifecycleEvidence: null,
+      markerStageEvidence: null,
       markerEvidence: null,
       markerEvidenceLifecycle: null,
       cleanupAttestation: null,
@@ -3522,6 +3537,7 @@ function createDiagnosticPreExecutionSummary(caseId, phase) {
       requestCorrelationEvidence: null,
       requestCorrelationScopeEvidence: null,
       navigationLifecycleEvidence: null,
+      markerStageEvidence: null,
       markerEvidence: null,
       markerEvidenceLifecycle: null,
       cleanupAttestation: null,

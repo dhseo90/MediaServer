@@ -152,6 +152,56 @@ export function runtimeFixturePlanFor(spec) {
   return Object.freeze([...plan]);
 }
 
+export function buildDiagnosticMarkerFileStageEvidence({
+  invocationCount = 0,
+  ownedLogPath = "",
+  productLogPath = "",
+  marker = "",
+  lines = [],
+} = {}) {
+  const normalizedMarker = String(marker).normalize("NFKC").trim();
+  const normalizedLines = Array.isArray(lines)
+    ? lines.map(value => String(value)).filter(Boolean)
+    : [];
+  const markerMatches = normalizedLines.filter(line =>
+    line.split(/\s+/u).includes(normalizedMarker));
+  const fileIdentityMatched = Boolean(ownedLogPath && productLogPath) &&
+    path.resolve(ownedLogPath) === path.resolve(productLogPath);
+  const markerPositionFromTail = markerMatches.length === 1
+    ? normalizedLines.length - 1 - normalizedLines.lastIndexOf(markerMatches[0])
+    : -1;
+  const failureCode = Number(invocationCount) !== 1
+    ? "MARKER_RELOCATION_HOOK_INVOCATION_MISMATCH"
+    : (!fileIdentityMatched
+        ? "MARKER_LOG_FILE_IDENTITY_MISMATCH"
+        : (!normalizedMarker || markerMatches.length === 0
+            ? "MARKER_LOG_FILE_MISSING"
+            : (markerMatches.length > 1
+                ? "MARKER_LOG_FILE_DUPLICATE"
+                : (markerPositionFromTail !== 0
+                    ? "MARKER_LOG_FILE_NOT_AT_TAIL"
+                    : "PASS"))));
+  return {
+    schema: "media-server.v390-ui-marker-file-stage-evidence.v1",
+    pass: failureCode === "PASS",
+    failurePhase: "marker-file-relocation",
+    failureCode,
+    hookInvocationCount: Number(invocationCount || 0),
+    fileOwner: "acceptance-owned-product-root-log",
+    ownedPathDigest: crypto.createHash("sha256")
+      .update(path.resolve(String(ownedLogPath || "."))).digest("hex"),
+    productReadPathDigest: crypto.createHash("sha256")
+      .update(path.resolve(String(productLogPath || "."))).digest("hex"),
+    fileIdentityMatched,
+    markerDigest: crypto.createHash("sha256").update(normalizedMarker).digest("hex"),
+    markerCount: markerMatches.length,
+    lineCount: normalizedLines.length,
+    markerPositionFromTail,
+    lineDigest: crypto.createHash("sha256")
+      .update(markerMatches.length === 1 ? markerMatches[0] : "").digest("hex"),
+  };
+}
+
 export function createV390UiCaseRuntime({
   rootDir,
   httpBase,
@@ -1656,8 +1706,13 @@ export function createV390UiCaseRuntime({
     const marker = String(context?.catalogBindings?.logMarker || "");
     assert(marker, "EVT-004 diagnostic marker binding is missing before dashboard navigation");
     const logPath = path.join(rootDir, ".media_server.log");
+    const productLogPath = path.resolve(process.cwd(), ".media_server.log");
     assert(path.resolve(logPath) === path.resolve(rootDir, ".media_server.log"),
       "EVT-004 diagnostic marker refresh escaped the product log boundary");
+    context.markerRefreshInvocationCount =
+      Number(context.markerRefreshInvocationCount || 0) + 1;
+    assert(context.markerRefreshInvocationCount === 1,
+      "EVT-004 diagnostic marker refresh hook must run exactly once");
     const raw = fs.readFileSync(logPath, "utf8");
     const lines = raw.split(/\r?\n/u);
     const matches = lines.filter(line => line.split(/\s+/u).includes(marker));
@@ -1668,14 +1723,26 @@ export function createV390UiCaseRuntime({
     retained.push(matches[0]);
     fs.writeFileSync(logPath, `${retained.join("\n")}\n`, { mode: 0o600 });
     fs.chmodSync(logPath, 0o600);
-    const refreshed = fs.readFileSync(logPath, "utf8").split(/\r?\n/u)
+    const refreshedLines = fs.readFileSync(logPath, "utf8").split(/\r?\n/u)
+      .filter(Boolean);
+    const refreshed = refreshedLines
       .filter(line => line.split(/\s+/u).includes(marker));
     assert(refreshed.length === 1 && refreshed[0] === matches[0],
       "EVT-004 diagnostic marker refresh did not preserve one exact marker line");
+    const fileStageEvidence = buildDiagnosticMarkerFileStageEvidence({
+      invocationCount: context.markerRefreshInvocationCount,
+      ownedLogPath: logPath,
+      productLogPath,
+      marker,
+      lines: refreshedLines,
+    });
+    assert(fileStageEvidence.pass,
+      `EVT-004 diagnostic marker file stage failed: ${fileStageEvidence.failureCode}`);
     return {
       status: "PASS",
       source: "test-owned-log-marker-tail-prioritization",
       markerDigest: crypto.createHash("sha256").update(marker).digest("hex"),
+      fileStageEvidence,
     };
   }
 

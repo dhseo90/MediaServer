@@ -167,9 +167,12 @@ export function buildFailureLifecycleEvidence({
   }
   const markerEvidence = runtimeState.get("__markerEvidence") ||
     runtimeState.get("__eventDomSemanticEvidence")?.markerFlow || null;
+  const markerStageEvidence =
+    runtimeState.get("__markerStageEvidence") || null;
   return {
     navigationLifecycleEvidence,
     requestCorrelationScopeEvidence,
+    markerStageEvidence,
     markerEvidence,
     markerEvidenceLifecycle: markerEvidence
       ? {
@@ -263,6 +266,7 @@ export function buildFallbackFailureLifecycleEvidence({
       failureCode: "LIFECYCLE_EVIDENCE_FINALIZATION_FAILED",
     },
     markerEvidence: null,
+    markerStageEvidence: null,
     markerEvidenceLifecycle: { phase: "not-reached" },
     cleanupAttestation: buildCaseCleanupAttestation({
       primaryFailure,
@@ -291,6 +295,7 @@ export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
       ["requestCorrelationEvidence", "EVT-004-request-correlation-not-pass"],
       ["requestCorrelationScopeEvidence", "EVT-004-correlation-scope-not-pass"],
       ["navigationLifecycleEvidence", "EVT-004-navigation-lifecycle-not-pass"],
+      ["markerStageEvidence", "EVT-004-marker-stage-not-pass"],
       ["cleanupAttestation", "EVT-004-cleanup-attestation-not-pass"],
     ]) {
       if (caseEvidence[field]?.pass !== true) errors.push(code);
@@ -314,6 +319,10 @@ export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
         caseEvidence.markerEvidenceLifecycle?.phase !== "reached" ||
         caseEvidence.markerEvidenceLifecycle?.evaluatorInvocationCount !== 1) {
       errors.push("EVT-004-marker-not-reached");
+    }
+    if (caseEvidence.markerStageEvidence?.fileStageEvidence?.pass !== true ||
+        caseEvidence.markerStageEvidence?.dashboardResponseEvidence?.pass !== true) {
+      errors.push("EVT-004-marker-stage-incomplete");
     }
   } else if (!caseEvidence.markerEvidence) {
     if (caseEvidence.markerEvidenceLifecycle?.phase !== "not-reached") {
@@ -409,6 +418,7 @@ export function aggregateDiagnosticChildOutcome({
     navigationLifecycleEvidence:
       childCase.navigationLifecycleEvidence || null,
     markerEvidence: childCase.markerEvidence || null,
+    markerStageEvidence: childCase.markerStageEvidence || null,
     markerEvidenceLifecycle: childCase.markerEvidenceLifecycle || null,
     cleanupAttestation: childCase.cleanupAttestation || null,
     childExecutionStatus: String(summary.executionStatus || ""),

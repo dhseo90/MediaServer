@@ -328,6 +328,99 @@ export function bindDocumentFormSubmission(entries, {
   };
 }
 
+export function captureDiagnosticMarkerResponseProjection({
+  response,
+  entry,
+  probe,
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  if (!probe?.armed ||
+      entry?.method !== probe.method ||
+      urlTarget(entry?.url) !== probe.urlPath) {
+    return null;
+  }
+  const read = response.json()
+    .then(payload => {
+      const lines = Array.isArray(payload?.lines) ? payload.lines.map(String) : [];
+      const normalizedMarker = String(probe.marker || "").normalize("NFKC").trim();
+      const markerMatches = lines.filter(line =>
+        line.split(/\s+/u).includes(normalizedMarker));
+      probe.captures.push({
+        requestId: String(entry.requestId || ""),
+        caseRequestIdentity: String(entry.caseRequestIdentity || ""),
+        caseRequestSequence: Number(entry.caseRequestSequence || 0),
+        responseRequestObjectObserved:
+          entry.responseRequestObjectObserved === true,
+        method: String(entry.method || ""),
+        path: urlTarget(entry.url),
+        status: Number(entry.status || 0),
+        markerCount: markerMatches.length,
+        lineCount: lines.length,
+        candidateDigest: createHash("sha256")
+          .update(JSON.stringify(lines.map(line =>
+            createHash("sha256").update(line).digest("hex"))))
+          .digest("hex"),
+        matchedDigest: createHash("sha256")
+          .update(JSON.stringify(markerMatches.map(line =>
+            createHash("sha256").update(line).digest("hex"))))
+          .digest("hex"),
+      });
+    })
+    .catch(() => {
+      safeResponseReadFailures.push(
+        `diagnostic marker response projection failed for ${probe.method} ${probe.urlPath}`,
+      );
+      probe.readFailureCount += 1;
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+export function buildDiagnosticMarkerResponseStageEvidence(probe = {}) {
+  const captures = Array.isArray(probe.captures) ? probe.captures : [];
+  const capture = captures.length === 1 ? captures[0] : null;
+  const failureCode = Number(probe.readFailureCount || 0) > 0
+    ? "DASHBOARD_MARKER_RESPONSE_PARSE_FAILED"
+    : (captures.length === 0
+        ? "DASHBOARD_MARKER_RESPONSE_MISSING"
+        : (captures.length > 1
+            ? "DASHBOARD_MARKER_RESPONSE_DUPLICATE"
+            : (!capture.responseRequestObjectObserved || !capture.requestId
+                ? "DASHBOARD_MARKER_RESPONSE_REQUEST_IDENTITY_MISSING"
+                : (capture.status !== 200
+                    ? "DASHBOARD_MARKER_RESPONSE_STATUS_MISMATCH"
+                    : (capture.markerCount === 0
+                        ? "DASHBOARD_MARKER_RESPONSE_MARKER_MISSING"
+                        : (capture.markerCount > 1
+                            ? "DASHBOARD_MARKER_RESPONSE_MARKER_DUPLICATE"
+                            : "PASS"))))));
+  return {
+    schema: "media-server.v390-ui-dashboard-marker-response-stage-evidence.v1",
+    pass: failureCode === "PASS",
+    failurePhase: "dashboard-owned-log-tail-response",
+    failureCode,
+    method: String(probe.method || ""),
+    path: String(probe.urlPath || ""),
+    markerDigest: createHash("sha256")
+      .update(String(probe.marker || "").normalize("NFKC").trim())
+      .digest("hex"),
+    responseCandidateCount: captures.length,
+    responseMatchedCount: capture?.markerCount === 1 ? 1 : 0,
+    requestId: String(capture?.requestId || ""),
+    caseRequestIdentity: String(capture?.caseRequestIdentity || ""),
+    caseRequestSequence: Number(capture?.caseRequestSequence || 0),
+    responseRequestObjectObserved:
+      capture?.responseRequestObjectObserved === true,
+    status: Number(capture?.status || 0),
+    lineCount: Number(capture?.lineCount || 0),
+    markerCount: Number(capture?.markerCount || 0),
+    candidateDigest: String(capture?.candidateDigest || ""),
+    matchedDigest: String(capture?.matchedDigest || ""),
+  };
+}
+
 async function openNativePlaywrightPage(playwright, {
   httpBase,
   pagePath,
@@ -351,6 +444,7 @@ async function openNativePlaywrightPage(playwright, {
   const routeInjectedCorrelations = new WeakMap();
   const pendingSafeResponseReads = new Set();
   const safeResponseReadFailures = [];
+  let diagnosticMarkerProbe = null;
   const observedRuntimeSecrets = new Set();
   let requestListenersInstalled = false;
   let requestListenerStartSequence = 0;
@@ -560,6 +654,14 @@ async function openNativePlaywrightPage(playwright, {
     });
     if (endpointOwnedProjection) {
       // 공용 response listener projection이 endpoint-action evidence를 소유한다.
+    } else if (captureDiagnosticMarkerResponseProjection({
+      response,
+      entry,
+      probe: diagnosticMarkerProbe,
+      pendingSafeResponseReads,
+      safeResponseReadFailures,
+    })) {
+      // dashboard 소유 log-tail 응답은 marker 원문 없이 stage evidence만 보존한다.
     } else if (request.method() === "POST" && /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(urlPath(response.url()))) {
       const read = response.json()
         .then(payload => {
@@ -744,6 +846,35 @@ async function openNativePlaywrightPage(playwright, {
     setCorrelationId: async (correlationId, { inject = true } = {}) => {
       activeCorrelationId = String(correlationId || "");
       activeCorrelationInjectionEnabled = Boolean(activeCorrelationId) && inject === true;
+    },
+    armDiagnosticMarkerProbe: ({
+      caseId: probeCaseId,
+      marker,
+      method = "GET",
+      urlPath: probePath,
+    } = {}) => {
+      if (probeCaseId !== "EVT-004") {
+        throw new Error("diagnostic marker response probe is limited to EVT-004");
+      }
+      if (diagnosticMarkerProbe?.armed) {
+        throw new Error("diagnostic marker response probe was armed more than once");
+      }
+      diagnosticMarkerProbe = {
+        armed: true,
+        caseId: probeCaseId,
+        marker: String(marker || ""),
+        method: String(method || "").toUpperCase(),
+        urlPath: urlTarget(probePath),
+        captures: [],
+        readFailureCount: 0,
+      };
+    },
+    diagnosticMarkerProbeEvidence: async () => {
+      await Promise.all([...pendingSafeResponseReads]);
+      if (!diagnosticMarkerProbe?.armed) {
+        return buildDiagnosticMarkerResponseStageEvidence({});
+      }
+      return buildDiagnosticMarkerResponseStageEvidence(diagnosticMarkerProbe);
     },
     replaceStorageState: async (storageStatePath = "") => {
       await context.clearCookies();

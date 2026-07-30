@@ -43,6 +43,28 @@ const inactiveResponseAttestationKeys = new Set([
   "registryWrite",
 ]);
 
+export function buildEvt004MarkerStageEvidence({
+  fileStageEvidence = null,
+  dashboardResponseEvidence = null,
+} = {}) {
+  const failure = [
+    [fileStageEvidence, "MARKER_FILE_STAGE_NOT_REACHED"],
+    [dashboardResponseEvidence, "DASHBOARD_MARKER_RESPONSE_STAGE_NOT_REACHED"],
+  ].find(([evidence]) => evidence?.pass !== true);
+  return {
+    schema: "media-server.v390-ui-evt004-marker-stage-evidence.v1",
+    pass: !failure,
+    failurePhase: failure?.[0]?.failurePhase || (failure ? "marker-stage" : ""),
+    failureCode: failure?.[0]?.failureCode || failure?.[1] || "PASS",
+    fileStageEvidence: fileStageEvidence
+      ? structuredClone(fileStageEvidence)
+      : null,
+    dashboardResponseEvidence: dashboardResponseEvidence
+      ? structuredClone(dashboardResponseEvidence)
+      : null,
+  };
+}
+
 export function isExistingSpecializedExactOracle(itemOrCaseId) {
   const item = typeof itemOrCaseId === "object" ? itemOrCaseId : null;
   const caseId = item?.caseId || String(itemOrCaseId || "");
@@ -342,56 +364,79 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
     screenRoute !== sourceRoute;
   if (splitApiAndScreen) {
     let screenNavigation = null;
+    let markerStageEvidence = null;
     if (routePathname(currentRoute) !== routePathname(screenRoute)) {
       if (item.caseId === "EVT-004") {
-        assert(typeof args.beforeScreenNavigation === "function",
-          "EVT-004 dashboard navigation requires a test-owned marker refresh hook");
-        const markerRefresh = await args.beforeScreenNavigation();
-        assert(markerRefresh?.status === "PASS" &&
-          markerRefresh.source === "test-owned-log-marker-tail-prioritization",
-        "EVT-004 dashboard marker refresh failed before navigation");
+        markerStageEvidence =
+          await prepareEvt004MarkerDashboardNavigation(args);
       }
       await browser.setCorrelationId(`${item.caseId}:navigation`, { inject: false });
       screenNavigation = await browser.navigate(screenRoute);
       assert([200, 204].includes(screenNavigation.status),
         `${item.caseId} catalog screen route status mismatch: ${screenNavigation.status}`);
+      if (item.caseId === "EVT-004") {
+        markerStageEvidence =
+          await completeEvt004MarkerDashboardNavigation(args, markerStageEvidence);
+      }
     }
-    const observation = await executeCatalogRuntimeOracle(args);
-    return {
-      ...observation,
-      routeLifecycle: {
-        sourceRoute,
-        destinationRoute: screenRoute,
-        splitApiAndScreen: true,
-        sourceObservation: "fresh-browser-fetch",
-        sourceNavigationStatus: null,
-        screenPreparationStatus: screenNavigation?.status ?? null,
-        restoreNavigationStatus: null,
-      },
-    };
+    try {
+      const observation = await executeCatalogRuntimeOracle(args);
+      return {
+        ...observation,
+        ...(markerStageEvidence ? { markerStageEvidence } : {}),
+        routeLifecycle: {
+          sourceRoute,
+          destinationRoute: screenRoute,
+          splitApiAndScreen: true,
+          sourceObservation: "fresh-browser-fetch",
+          sourceNavigationStatus: null,
+          screenPreparationStatus: screenNavigation?.status ?? null,
+          restoreNavigationStatus: null,
+        },
+      };
+    } catch (error) {
+      if (markerStageEvidence && !error.markerStageEvidence) {
+        error.markerStageEvidence = structuredClone(markerStageEvidence);
+      }
+      throw error;
+    }
   }
   if (currentRoute === sourceRoute) {
     return executeCatalogRuntimeOracle(args);
   }
 
+  let markerStageEvidence = null;
+  if (item.caseId === "EVT-004") {
+    markerStageEvidence = await prepareEvt004MarkerDashboardNavigation(args);
+  }
   const sourceNavigation = await browser.navigate(sourceRoute);
   assert([200, 204].includes(sourceNavigation.status),
     `${item.caseId} catalog source route status mismatch: ${sourceNavigation.status}`);
   if (item.caseId === "EVT-004") {
-    const observation = await executeCatalogRuntimeOracle(args);
-    return {
-      ...observation,
-      routeLifecycle: {
-        sourceRoute,
-        destinationRoute: currentRoute,
-        splitApiAndScreen: false,
-        sourceObservation: "required-product-dashboard-dom",
-        sourceNavigationStatus: sourceNavigation.status,
-        restoreNavigationStatus: null,
-        restoreAttempted: false,
-        retainedRoute: sourceRoute,
-      },
-    };
+    markerStageEvidence =
+      await completeEvt004MarkerDashboardNavigation(args, markerStageEvidence);
+    try {
+      const observation = await executeCatalogRuntimeOracle(args);
+      return {
+        ...observation,
+        markerStageEvidence,
+        routeLifecycle: {
+          sourceRoute,
+          destinationRoute: currentRoute,
+          splitApiAndScreen: false,
+          sourceObservation: "required-product-dashboard-dom",
+          sourceNavigationStatus: sourceNavigation.status,
+          restoreNavigationStatus: null,
+          restoreAttempted: false,
+          retainedRoute: sourceRoute,
+        },
+      };
+    } catch (error) {
+      if (!error.markerStageEvidence) {
+        error.markerStageEvidence = structuredClone(markerStageEvidence);
+      }
+      throw error;
+    }
   }
   const destinationRoute = currentRoute === sourceRoute ? screenRoute : currentRoute;
   let observation = null;
@@ -443,6 +488,52 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
       restoreNavigationStatus: restoreNavigation.status,
     },
   };
+}
+
+async function prepareEvt004MarkerDashboardNavigation(args) {
+  const { browser } = args;
+  assert(typeof args.beforeScreenNavigation === "function",
+    "EVT-004 dashboard navigation requires a test-owned marker refresh hook");
+  const markerRefresh = await args.beforeScreenNavigation();
+  assert(markerRefresh?.status === "PASS" &&
+    markerRefresh.source === "test-owned-log-marker-tail-prioritization",
+  "EVT-004 dashboard marker refresh failed before navigation");
+  const markerStageEvidence = buildEvt004MarkerStageEvidence({
+    fileStageEvidence: markerRefresh.fileStageEvidence || null,
+  });
+  assert(markerRefresh.fileStageEvidence?.pass === true,
+    `EVT-004 marker file stage failed: ${markerStageEvidence.failureCode}`);
+  assert(typeof browser.armDiagnosticMarkerProbe === "function" &&
+    typeof browser.diagnosticMarkerProbeEvidence === "function",
+  "EVT-004 dashboard marker response probe is unavailable");
+  browser.armDiagnosticMarkerProbe({
+    caseId: "EVT-004",
+    marker: String(args.catalogBindings?.logMarker || ""),
+    method: "GET",
+    urlPath: "/ops/api/diagnostics/log-tail?limit=80",
+  });
+  return markerStageEvidence;
+}
+
+async function completeEvt004MarkerDashboardNavigation(args, markerStageEvidence) {
+  await args.browser.waitForNetworkQuiet({
+    minimumObservationMs: 750,
+    quietMs: 250,
+  });
+  const dashboardResponseEvidence =
+    await args.browser.diagnosticMarkerProbeEvidence();
+  const completed = buildEvt004MarkerStageEvidence({
+    fileStageEvidence: markerStageEvidence?.fileStageEvidence || null,
+    dashboardResponseEvidence,
+  });
+  if (!completed.pass) {
+    const error = new Error(
+      `EVT-004 marker stage failed: ${completed.failureCode}`,
+    );
+    error.markerStageEvidence = completed;
+    throw error;
+  }
+  return completed;
 }
 
 function isApiRoute(route) {

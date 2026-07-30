@@ -6869,6 +6869,16 @@ C++/API/UI는 변경하지 않았습니다. UI-018만 독립 승인한 뒤 migra
 EVT-004 FAIL은 historical evidence로 보존하며, 이번 checkpoint에서는 actual UI 재실행,
 diagnostic, Policy v4, 30분, 120분, release를 실행하지 않습니다.
 
+EVT-004 full-run marker lifecycle 보정(2026-07-31)은 `5b2d891` actual full UI가
+`291 attempted / 290 PASS / 1 FAIL / 133 not-run`에서 다시 marker assertion으로 멈춘
+원인을 닫습니다. 기존 relocation hook은 API source-route 분기에만 연결되어 full runner의
+`/ops/dashboard` source route에서는 호출되지 않았습니다. 공통 dashboard navigation 직전에
+hook을 정확히 한 번 호출하고 acceptance-owned log file identity, marker count/tail digest,
+dashboard 소유 `GET /ops/api/diagnostics/log-tail?limit=80` response의 initiating request
+identity를 각각 구조화해 file/response/timeline/DOM 실패를 fail-closed로 분리합니다.
+Focused EVT-004는 이 경로에서 PASS했지만, canonical `./test_ui.sh` 재실행은 이 checkpoint
+이후 별도 실행이며 제품 C++/API/UI/fixture와 generator/producer는 변경·실행하지 않았습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

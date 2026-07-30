@@ -11,8 +11,10 @@ import {
   bindDocumentFormSubmission,
   bindFixtureResponseToInitiatingRequest,
   bindPlaywrightResponseToInitiatingRequest,
+  buildDiagnosticMarkerResponseStageEvidence,
   buildLiveSessionEvidence,
   captureClientLiveSessionResponseProjection,
+  captureDiagnosticMarkerResponseProjection,
   captureEndpointOwnedResponseProjection,
   createCaseOwnedRequestIdentityRegistry,
   formatSafeResponseReadFailure,
@@ -671,6 +673,52 @@ check("current UI suite state does not reuse stale native evidence", () => {
     "current UI evidence state must be explicit not-run");
   assert(state.automatedCaseCount === 0 && state.uiFulltestPass === false,
     "current UI evidence state invented suite PASS");
+});
+
+check("dashboard marker response projection keeps only digests and fails closed", async () => {
+  const marker = "REVIEW4-EVT-004-LOG-MARKER";
+  const probe = {
+    armed: true,
+    marker,
+    method: "GET",
+    urlPath: "/ops/api/diagnostics/log-tail?limit=80",
+    captures: [],
+    readFailureCount: 0,
+  };
+  const pending = new Set();
+  const failures = [];
+  const read = captureDiagnosticMarkerResponseProjection({
+    response: {
+      json: async () => ({
+        lines: [`[review4] auth incident ${marker} password=redacted`],
+      }),
+    },
+    entry: {
+      requestId: "native-request-80",
+      caseRequestIdentity: "EVT-004:request-80",
+      caseRequestSequence: 80,
+      responseRequestObjectObserved: true,
+      method: "GET",
+      status: 200,
+      url: "http://runtime.invalid/ops/api/diagnostics/log-tail?limit=80",
+    },
+    probe,
+    pendingSafeResponseReads: pending,
+    safeResponseReadFailures: failures,
+  });
+  assert(read, "dashboard marker response did not enter the safe projection");
+  await read;
+  const evidence = buildDiagnosticMarkerResponseStageEvidence(probe);
+  assert(evidence.pass === true &&
+    evidence.responseCandidateCount === 1 &&
+    evidence.markerCount === 1 &&
+    evidence.responseRequestObjectObserved === true,
+  "dashboard marker response projection did not preserve exact safe identity");
+  const serialized = JSON.stringify(evidence);
+  assert(!serialized.includes(marker) &&
+    !serialized.includes("[review4]") &&
+    !serialized.includes("password="),
+  "dashboard marker response projection retained raw response material");
 });
 
 let pass = 0;
