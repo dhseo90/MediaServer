@@ -161,6 +161,9 @@ check("route-injected application correlation survives request-start to response
     "const routeInjectedCorrelation = routeInjectedCorrelations.get(request)",
     'correlationInjectionSource: "route-continue"',
     "Object.assign(pending, applied)",
+    "let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId)",
+    "activeCorrelationInjectionEnabled && correlationAllowed",
+    "setCorrelationId: async (correlationId, { inject = true } = {})",
   ]) {
     assert(adapterSource.includes(snippet),
       `route-injected correlation is not preserved through response binding: ${snippet}`);

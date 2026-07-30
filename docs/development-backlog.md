@@ -6849,6 +6849,16 @@ application form은 exact request-header correlation/response object 경로를 �
 schema 위장 document binding은 계속 fail-closed이며 제품 C++/API/UI와 generator/producer는
 변경/실행하지 않았습니다.
 
+EVT-004 request-scoped correlation injection 보정(2026-07-30)은 navigation과 schema
+observation용 correlation이 route interceptor를 통해 `/ops/dashboard`의 background fetch에
+전파되어 authoritative log-tail 한 건 외 107건을 누출시키던 경계를 닫습니다. 추적용
+correlation은 `{ inject: false }`로 보존하고, `GET /ops/api/diagnostics/log-tail?limit=50`
+만 자체 request header로 correlation을 소유합니다. application request의 exact
+header/response identity는 계속 검증하며, 전역 header·재시도·재발행·제품 C++/API/UI 변경과
+generator/producer 실행은 없습니다. native 40/40, completion 36/36, adapter 22/22,
+semantic audit/approval 986/986 정적 PASS이며, 기존 `7df74cbd` actual EVT-004 FAIL은
+historical evidence로 보존하고 새 clean commit 뒤 전체 UI를 정확히 1회 실행합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

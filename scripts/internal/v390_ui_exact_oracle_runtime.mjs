@@ -343,7 +343,7 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
   if (splitApiAndScreen) {
     let screenNavigation = null;
     if (routePathname(currentRoute) !== routePathname(screenRoute)) {
-      await browser.setCorrelationId(`${item.caseId}:navigation`);
+      await browser.setCorrelationId(`${item.caseId}:navigation`, { inject: false });
       screenNavigation = await browser.navigate(screenRoute);
       assert([200, 204].includes(screenNavigation.status),
         `${item.caseId} catalog screen route status mismatch: ${screenNavigation.status}`);

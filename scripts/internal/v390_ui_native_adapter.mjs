@@ -359,6 +359,7 @@ async function openNativePlaywrightPage(playwright, {
   let navigationOperationSequence = 0;
   let activeNavigationOperation = null;
   let activeCorrelationId = String(navigationCorrelationId || "");
+  let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId);
   const documentNavigationLedger = [];
   const documentNavigationByRequestId = new Map();
   let documentNavigationAfterListenerEndCount = 0;
@@ -404,7 +405,7 @@ async function openNativePlaywrightPage(playwright, {
       request.resourceType() === "document";
     const correlationAllowed = !documentNavigation ||
       activeNavigationOperation?.allowCorrelation === true;
-    if (activeCorrelationId && correlationAllowed) {
+    if (activeCorrelationId && activeCorrelationInjectionEnabled && correlationAllowed) {
       headers["x-media-server-correlation-id"] = activeCorrelationId;
       applyRouteInjectedCorrelation(request, activeCorrelationId);
     } else if (documentNavigation) {
@@ -740,8 +741,9 @@ async function openNativePlaywrightPage(playwright, {
         scopedNetworkEntries: networkEntries.slice(networkStart),
       });
     },
-    setCorrelationId: async (correlationId) => {
+    setCorrelationId: async (correlationId, { inject = true } = {}) => {
       activeCorrelationId = String(correlationId || "");
+      activeCorrelationInjectionEnabled = Boolean(activeCorrelationId) && inject === true;
     },
     replaceStorageState: async (storageStatePath = "") => {
       await context.clearCookies();

@@ -1140,12 +1140,12 @@ async function observePrimaryControlContext(browser, item, requested, runtimeSta
   const primaryControl = item.workflow.primaryControl;
   const primarySelector = primaryControl.selector ?? null;
   if (primaryControl.applicability === "required" && candidateSelector !== primarySelector) return;
-  await browser.setCorrelationId(`${item.caseId}:schema-observation`);
+  await browser.setCorrelationId(`${item.caseId}:schema-observation`, { inject: false });
   const rawObserved = await browser.observeRequestedObservedState({
     selector: primarySelector,
     applicability: primaryControl.applicability,
   });
-  await browser.setCorrelationId(`${item.caseId}:navigation`);
+  await browser.setCorrelationId(`${item.caseId}:navigation`, { inject: false });
   const observed = runtimeObservedProjection(rawObserved);
   const envelope = assertRequestedObservedEnvelope({
     requested,
