@@ -2946,6 +2946,15 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | EVT-004 scoped EVT-001 session-residue isolation | `2ffdff63356246bd78b627e46fdb83ae95d08134` actual `./test_ui.sh`의 `291 attempted / 290 PASS / 1 FAIL / 133 not-run` marker assertion FAIL은 historical evidence로 보존합니다. 원인은 EVT-001 VA-overlay session 종료 뒤 idle grace 동안 남은 acceptance-owned file/VOD stream root-cause가 timeline 8개 window에서 marker를 밀어낸 것입니다 | Runtime은 EVT-001 session 전 runtime identity를 저장하고 EVT-004에서 그 owner residue만 bounded polling으로 baseline까지 drain합니다. baseline non-owned 후보 root 2/source 3/rule 3은 제거하거나 변경하지 않습니다. provenance/count/digest와 post-cleanup state identity를 fail-closed로 기록합니다. Focused EVT-004 PASS는 존재하지만 canonical UI 재실행과 Policy v4/30분/120분/release는 이 checkpoint에서 미실행입니다 |
 | 미실행 경계 | Row-local 보정 뒤 actual `EVT-003`, 전체 `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 실행하지 않았습니다 | static checkpoint / actual PASS 아님 |
 
+### REVIEW4-65 EVT-007 event-record fixture dispatcher checkpoint
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| Historical actual UI | `7a221e44`에서 `292 attempted / 291 PASS / 1 FAIL / 132 not-run`, EVT-007 `contains-fixture-events records.records` FAIL | `evidence=snapshot` filter가 direct JSONL append seed를 제외했습니다. 이 FAIL은 PASS로 변경하지 않았습니다 |
+| Fixture materialization | `DispatchEventRecordsForApplication` -> queue drain -> `QueryEventRecordsForApplication` | EVT-007/020/023/026/048/049에서 eventId/source/route/status/cardinality readback과 cleanup을 fail-closed로 결속합니다 |
+| Semantic | candidate `f69b71ff3b4d6a9c57ab24334b3addea36d6700cd44db412a8e153fbf4cdfa25`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 1회, native generator 0회 |
+| 미실행 경계 | actual UI/diagnostic/Policy v4/30분/120분/release | 이번 static checkpoint는 actual acceptance PASS가 아닙니다 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

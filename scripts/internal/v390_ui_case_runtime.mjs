@@ -87,7 +87,7 @@ export const eventExactSeedMaterializerRegistry = Object.freeze({
   "runtime-session-and-tap": { eventRecords: 0 },
   "source-health-state": { eventRecords: 0, sourceHealthReadback: true },
   "diagnostic-log-marker": { eventRecords: 0 },
-  "active-and-archived-event-records": { eventRecords: 2, archivedRecord: true, review: true },
+  "active-and-archived-event-records": { eventRecords: 2, archivedRecord: true, review: true, evidence: true },
   "event-storage-status": { eventRecords: 1 },
   "alert-delivery-integrations": { eventRecords: 0, alert: true },
   "alert-delivery-form-input": { eventRecords: 0, alert: true, audit: true },
@@ -132,6 +132,10 @@ export const eventExactSeedMaterializerRegistry = Object.freeze({
   "failed-and-healthy-recheck-candidates": { eventRecords: 2, review: true, sourceHealth: true, related: true },
   "selected-command-handoff": { eventRecords: 1, review: true, sourceHealth: true, audit: true },
 });
+
+export const eventRecordFixtureFamilyCaseIds = Object.freeze([
+  "EVT-007", "EVT-020", "EVT-023", "EVT-026", "EVT-048", "EVT-049",
+]);
 
 export function usesEventExactRuntimeBindings(caseId) {
   return eventExactRuntimeBindingCaseIds.has(String(caseId || ""));
@@ -414,6 +418,8 @@ export function createV390UiCaseRuntime({
       eventSourceHealthFixture: null,
       catalogBindings: {},
       transientSeedReadback: null,
+      eventRecordFixtureArtifacts: [],
+      eventRecordFixtureDispatches: [],
       eventExactSeedPrepared: false,
       prepared: false,
     };
@@ -742,6 +748,7 @@ export function createV390UiCaseRuntime({
       if (context.transientApiCleanup.length > 0) {
         await cleanupTransientApiSeeds(item, context);
       }
+      cleanupEventRecordFixtureArtifacts(context);
       restoreStateFiles(context.snapshots);
       const failure = error instanceof Error ? error : new Error(String(error));
       failure.runtimeCleanup = {
@@ -1359,6 +1366,7 @@ export function createV390UiCaseRuntime({
           source: "fresh-alert-list-api-readback-after-snapshot-restore",
         });
       }
+      cleanupEventRecordFixtureArtifacts(caseContext);
       caseContext.cleanupResults.push({
         cleanupId: `${item.caseId}:restore-transient-state`,
         status: "PASS",
@@ -2342,22 +2350,19 @@ export function createV390UiCaseRuntime({
       const existing = fs.existsSync(eventPath) &&
         fs.readFileSync(eventPath, "utf8").includes(`\"eventId\":\"${eventId}\"`);
       assert(!existing, `${item.caseId} exact event seed already exists: ${eventId}`);
-      seedEventRecordFixture(eventPath, {
+      const dispatch = dispatchEventRecordFixtureViaProductStorage({
+        rootDir,
+        descriptor,
+        context,
         eventId,
         sourceId: source.sourceId,
         streamId: source.streamId,
         status: index === 1 && plan.archivedRecord ? "archived" : "open",
         eventType: index === 1 && plan.related ? "related-incident" : "presence",
+        route: spec.route,
         scenarioName: plan.related ? "review4-related-incident" : "review4-exact",
-        snapshotPath: plan.evidence ? `snapshots/${eventId}.jpg` : "",
-        clipPath: plan.evidence ? `clips/${eventId}.mp4` : "",
-        metadata: {
-          sourceId: source.sourceId,
-          seedKind: kind,
-          relatedTo: index > 0 && plan.related ? context.fixtureId : "",
-          sourceHealth: plan.sourceHealth ? "degraded" : "available",
-        },
       });
+      context.eventRecordFixtureDispatches.push(dispatch.summary);
     }
 
     const observations = [];
@@ -2432,6 +2437,43 @@ export function createV390UiCaseRuntime({
       assert(records.some(record => String(record?.event?.eventId || record?.eventId || "") === context.fixtureId),
         `${item.caseId} exact event seed is missing from the authoritative review join readback`);
       recordCount = records.length;
+    }
+    if (eventRecordFixtureFamilyCaseIds.includes(item.caseId)) {
+      const exactRecordRequest = spec.requests.find(request =>
+        (request.assertions || []).some(assertion =>
+          assertion.path === "records.records" &&
+          String(assertion.operator || "").startsWith("contains-fixture")));
+      assert(exactRecordRequest, `${item.caseId} records.records fixture readback request is missing`);
+      const endpoint = materializeEventExactTemplate(exactRecordRequest.path, {
+        fixtureId: context.fixtureId,
+        eventId: context.fixtureId,
+        sourceId: source.sourceId,
+        evidence: "snapshot",
+        limit: "100",
+        offset: "0",
+      });
+      const readback = await requestEndpoint(
+        exactRecordRequest.method,
+        endpoint,
+        null,
+        item,
+        context,
+        exactRecordRequest.allowedStatuses,
+        { roleOverride: "operator" },
+      );
+      const expectedRecords = eventIds.map((eventId, index) => ({
+        eventId,
+        sourceId: source.sourceId,
+        route: spec.route,
+        status: index === 1 && plan.archivedRecord ? "archived" : "open",
+      }));
+      const exact = validateEventRecordFixtureFamilyReadback({
+        caseId: item.caseId,
+        fixtureId: context.fixtureId,
+        expectedRecords,
+        response: readback.json,
+      });
+      recordCount = exact.matchedCount;
     }
 
     context.catalogBindings = {
@@ -5260,6 +5302,156 @@ function defaultPublishedSourceIdentity(descriptor) {
   assert(view && sourceId && streamId,
     "default PublishedView source identity is unavailable for viewer-scoped EventRecord seed");
   return { sourceId, streamId };
+}
+
+export function validateEventRecordFixtureFamilyReadback({
+  caseId,
+  fixtureId,
+  expectedRecords = [],
+  response,
+} = {}) {
+  assert(eventRecordFixtureFamilyCaseIds.includes(caseId),
+    `${caseId} is not a records.records fixture family case`);
+  assert(fixtureId && expectedRecords.length > 0,
+    `${caseId} fixture readback identity is incomplete`);
+  const records = response?.records?.records;
+  assert(Array.isArray(records), `${caseId} authoritative records.records readback is missing`);
+  const expectedIds = new Set(expectedRecords.map(record => String(record.eventId || "")));
+  const matches = records.filter(record => expectedIds.has(String(record?.eventId || "")));
+  assert(matches.length === expectedRecords.length,
+    `${caseId} fixture readback filtered or missing: expected ${expectedRecords.length}, got ${matches.length}`);
+  assert(new Set(matches.map(record => String(record?.eventId || ""))).size === matches.length,
+    `${caseId} duplicate fixture EventRecord observed`);
+  for (const expected of expectedRecords) {
+    const candidates = matches.filter(record => String(record?.eventId || "") === expected.eventId);
+    assert(candidates.length === 1, `${caseId} wrong fixture EventRecord identity: ${expected.eventId}`);
+    const record = candidates[0];
+    const sourceId = String(record?.sourceId || record?.streamId || record?.metadata?.sourceId || "");
+    const route = String(record?.metadata?.route || "");
+    assert(sourceId === expected.sourceId,
+      `${caseId} fixture EventRecord source mismatch: ${expected.eventId}`);
+    assert(route === expected.route,
+      `${caseId} fixture EventRecord route mismatch: ${expected.eventId}`);
+    assert(String(record?.status || "") === expected.status,
+      `${caseId} fixture EventRecord status mismatch: ${expected.eventId}`);
+  }
+  return {
+    status: "PASS",
+    fixtureId,
+    expectedCount: expectedRecords.length,
+    matchedCount: matches.length,
+  };
+}
+
+function dispatchEventRecordFixtureViaProductStorage({
+  rootDir,
+  descriptor,
+  context,
+  eventId,
+  sourceId,
+  streamId,
+  status,
+  eventType,
+  route,
+  scenarioName,
+}) {
+  assert(descriptor?.temporaryRoot && descriptor?.eventStoragePath,
+    "product EventRecord fixture dispatch requires the isolated runtime descriptor");
+  const helperSource = path.join(rootDir, "scripts/internal/v390_ui_event_record_fixture_dispatch.cpp");
+  const helperRoot = path.join(descriptor.temporaryRoot, "fixture-tools");
+  const helperBinary = path.join(helperRoot, "v390-ui-event-record-fixture-dispatch");
+  fs.mkdirSync(helperRoot, { recursive: true, mode: 0o700 });
+  if (!fs.existsSync(helperBinary)) {
+    const compiler = process.env.CXX || "c++";
+    execFileSync(compiler, [
+      "-std=c++17",
+      "-pthread",
+      "-DMEDIA_SERVER_USE_GSTREAMER=0",
+      `-I${path.join(rootDir, "include")}`,
+      helperSource,
+      path.join(rootDir, "src/ingress/event_storage_application_service.cpp"),
+      path.join(rootDir, "src/analysis/event_storage.cpp"),
+      path.join(rootDir, "src/analysis/snapshot_encoder.cpp"),
+      "-o",
+      helperBinary,
+    ], { cwd: rootDir, stdio: "pipe" });
+    fs.chmodSync(helperBinary, 0o700);
+  }
+  const beforeArtifacts = new Set([
+    ...listFilesRecursively(descriptor.artifactPaths?.snapshots || ""),
+    ...listFilesRecursively(descriptor.artifactPaths?.clips || ""),
+  ]);
+  let output = "";
+  try {
+    output = execFileSync(helperBinary, [
+      descriptor.eventStoragePath,
+      descriptor.artifactPaths.snapshots,
+      descriptor.artifactPaths.clips,
+      eventId,
+      sourceId,
+      streamId,
+      status,
+      eventType,
+      route,
+      scenarioName || "",
+    ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  } finally {
+    const afterArtifacts = [
+      ...listFilesRecursively(descriptor.artifactPaths?.snapshots || ""),
+      ...listFilesRecursively(descriptor.artifactPaths?.clips || ""),
+    ];
+    const created = afterArtifacts.filter(filePath => !beforeArtifacts.has(filePath));
+    context.eventRecordFixtureArtifacts.push(...created);
+  }
+  const summary = JSON.parse(String(output || "").trim());
+  assert(summary.schema === "media-server.v390-ui-event-record-fixture-dispatch.v1" &&
+    summary.result === "PASS" &&
+    summary.eventId === eventId &&
+    summary.sourceId === sourceId &&
+    summary.streamId === streamId &&
+    summary.route === route &&
+    summary.status === status &&
+    summary.storedDelta === 1 &&
+    summary.queueDrained === true &&
+    summary.queryMatched === 1 &&
+    summary.processStateDisposed === true,
+  `product EventRecord fixture dispatch evidence mismatch: ${eventId}`);
+  const createdArtifacts = [...new Set(context.eventRecordFixtureArtifacts)]
+    .filter(filePath => !beforeArtifacts.has(filePath));
+  assert(createdArtifacts.length >= 2,
+    `product EventRecord fixture evidence artifacts are missing: ${eventId}`);
+  return { summary, createdArtifacts };
+}
+
+function cleanupEventRecordFixtureArtifacts(context) {
+  const artifacts = [...new Set(context.eventRecordFixtureArtifacts || [])];
+  for (const artifact of artifacts) fs.rmSync(artifact, { recursive: true, force: true });
+  const residue = artifacts.filter(artifact => fs.existsSync(artifact));
+  assert(residue.length === 0,
+    `${context.caseId} product EventRecord fixture artifact cleanup residue remains`);
+  context.eventRecordFixtureArtifacts = [];
+  if (artifacts.length > 0) {
+    context.cleanupResults.push({
+      cleanupId: `${context.caseId}:event-record-fixture-artifacts`,
+      status: "PASS",
+      source: "product-dispatch-artifact-exact-removal",
+      removedCount: artifacts.length,
+    });
+  }
+}
+
+function listFilesRecursively(rootPath) {
+  if (!rootPath || !fs.existsSync(rootPath)) return [];
+  const files = [];
+  const visit = current => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const candidate = path.join(current, entry.name);
+      if (entry.isDirectory()) visit(candidate);
+      else if (entry.isFile()) files.push(path.resolve(candidate));
+    }
+  };
+  visit(path.resolve(rootPath));
+  return files.sort();
 }
 
 export function seedEventRecordFixture(eventStoragePath, {

@@ -943,6 +943,15 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Generated binding | Canonical SHA `e3151222...989` 불변, native 288개 core 행 SHA/digest/provenance 변경, ordered product/workflow non-hash 변경 0. Native SHA `b1ff5464...cc01` | actual browser not-run / unsupported 0 |
 | 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 이번 correction에서 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+## V390-REVIEW4-65 EVT-007 product event-record fixture boundary
+
+| evidence | current result | boundary |
+| --- | --- | --- |
+| Historical canonical failure | `7a221e44` actual UI `292 attempted / 291 PASS / 1 FAIL / 132 not-run`, EVT-007 `records.records` snapshot filter FAIL | historical FAIL이며 current PASS로 승격하지 않음 |
+| Product fixture dispatch | `DispatchEventRecordsForApplication` -> queue drain -> `QueryEventRecordsForApplication` | EVT-007/020/023/026/048/049의 eventId/source/route/status/cardinality 및 snapshot/clip cleanup을 fail-closed로 검증 |
+| Semantic ledger | candidate `f69b71ff3b4d6a9c57ab24334b3addea36d6700cd44db412a8e153fbf4cdfa25`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 1회, native generator 0회 |
+| Actual boundary | UI/diagnostic/Policy v4/30분/120분/release 재실행 없음 | static checkpoint PASS는 actual acceptance evidence가 아님 |
+
 ## V390-REVIEW4-65 UI-046~424 runtime source audit
 
 | evidence | current boundary | 판정 |

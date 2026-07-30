@@ -32,6 +32,7 @@ import {
   assertAuthFixtureAbsentFromUsersFile,
   assertInactiveOrEqualBeforeCleanup,
   createV390UiCaseRuntime,
+  eventRecordFixtureFamilyCaseIds,
   eventExactSeedMaterializerRegistry,
   fixtureViewerScopes,
   formReadbackProfiles,
@@ -39,6 +40,7 @@ import {
   runAuthoritativeReadbackWithSnapshotRestore,
   seedExactAccessRequestFixture,
   seedEventRecordFixture,
+  validateEventRecordFixtureFamilyReadback,
 } from "./v390_ui_case_runtime.mjs";
 import {
   eventExactOracleCaseIds,
@@ -340,6 +342,83 @@ check("every exact EVT seed.kind has a declarative store and join materializer",
   for (const scope of ["eventRecords", "review", "vlm", "audit", "alert", "sourceHealth", "related"]) {
     assert(runtimeSource.includes(`${scope}:`), `exact EVT runtime seed join evidence is missing: ${scope}`);
   }
+});
+
+check("records.records fixture family uses product dispatch with exact readback and cleanup", () => {
+  assert(JSON.stringify(eventRecordFixtureFamilyCaseIds) ===
+    JSON.stringify(["EVT-007", "EVT-020", "EVT-023", "EVT-026", "EVT-048", "EVT-049"]),
+  "records.records fixture family audit drift");
+  assert(eventExactSeedMaterializerRegistry["active-and-archived-event-records"].evidence === true,
+    "EVT-007 snapshot-filtered records must materialize product evidence");
+  for (const caseId of eventRecordFixtureFamilyCaseIds) {
+    const spec = eventExactOracleFor(caseId);
+    assert(spec.requests.some(request => (request.assertions || []).some(assertion =>
+      assertion.path === "records.records" &&
+      String(assertion.operator || "").startsWith("contains-fixture"))),
+    `${caseId} records.records family assertion missing`);
+  }
+  for (const snippet of [
+    "dispatchEventRecordFixtureViaProductStorage",
+    "v390_ui_event_record_fixture_dispatch.cpp",
+    "validateEventRecordFixtureFamilyReadback",
+    "cleanupEventRecordFixtureArtifacts",
+    "processStateDisposed",
+  ]) assert(runtimeSource.includes(snippet), `product EventRecord fixture lifecycle missing: ${snippet}`);
+  const helperSource = fs.readFileSync(
+    path.join(rootDir, "scripts/internal/v390_ui_event_record_fixture_dispatch.cpp"), "utf8");
+  assert(helperSource.includes("DispatchEventRecordsForApplication(request)") &&
+    helperSource.includes("QueryEventRecordsForApplication(query, &result, &error)") &&
+    helperSource.includes("StopEventStorage()"),
+  "test-owned helper does not use the product EventRecord dispatch/query lifecycle");
+
+  const expected = [
+    { eventId: "evt-fixture", sourceId: "9001", route: "/ops/events", status: "open" },
+    { eventId: "evt-fixture-state-1", sourceId: "9001", route: "/ops/events", status: "archived" },
+  ];
+  const validResponse = {
+    records: {
+      records: expected.map(record => ({
+        eventId: record.eventId,
+        streamId: record.sourceId,
+        status: record.status,
+        metadata: { sourceId: record.sourceId, route: record.route },
+      })),
+    },
+  };
+  assert(validateEventRecordFixtureFamilyReadback({
+    caseId: "EVT-007",
+    fixtureId: "evt-fixture",
+    expectedRecords: expected,
+    response: validResponse,
+  }).matchedCount === 2, "valid records.records family readback rejected");
+  const rejected = mutation => {
+    let failed = false;
+    try {
+      validateEventRecordFixtureFamilyReadback({
+        caseId: "EVT-007",
+        fixtureId: "evt-fixture",
+        expectedRecords: expected,
+        response: mutation(structuredClone(validResponse)),
+      });
+    } catch {
+      failed = true;
+    }
+    return failed;
+  };
+  assert(rejected(value => { value.records.records.pop(); return value; }),
+    "missing/readback-filtered fixture EventRecord produced false PASS");
+  assert(rejected(value => { value.records.records.push(structuredClone(value.records.records[0])); return value; }),
+    "duplicate fixture EventRecord produced false PASS");
+  assert(rejected(value => { value.records.records[0].eventId = "wrong"; return value; }),
+    "wrong fixture identity produced false PASS");
+  assert(rejected(value => { value.records.records[0].streamId = "wrong"; return value; }),
+    "wrong fixture source produced false PASS");
+  assert(rejected(value => { value.records.records[0].status = "wrong"; return value; }),
+    "wrong fixture status produced false PASS");
+  assert(rejected(value => { value.records.records[0].metadata.route = "/wrong"; return value; }),
+    "wrong fixture route produced false PASS");
+  assert(runtimeSource.includes("product EventRecord fixture artifact cleanup residue remains"),
+    "fixture cleanup residue is not fail-closed");
 });
 
 check("EVT-004 diagnostic log evidence is redacted and byte-restored before native execution", () => {
