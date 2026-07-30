@@ -6831,6 +6831,16 @@ method/path/status, no-correlation, one-attempt/no-reissue를 network ledger와 
 변경하지 않았고, actual 재실행 전 정적 completion/adapter/native/semantic gate만
 통과했습니다.
 
+UI-008 application-fetch correlation evidence 보정(2026-07-30)은 Playwright
+`request` 이벤트가 route header 주입보다 먼저 관찰될 때 request-start와 response가
+동일한 실제 fetch를 correlation 없이 기록하던 lifecycle을 고칩니다. route가 exact
+intercepted request 객체에 적용한 correlation ID와 header digest를 request-start
+ledger와 response-bound initiating request에 함께 반영하며, document navigation은
+계속 correlation을 제거합니다. global extra header, 재요청, 제품 C++/API/UI 변경은
+추가하지 않았습니다. adapter/native/completion 및 semantic audit/approval 986/986을
+정적으로 재검증했고, 기존 `866378d2` actual UI-008 FAIL은 historical evidence로
+보존합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

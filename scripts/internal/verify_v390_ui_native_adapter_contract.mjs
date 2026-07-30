@@ -153,6 +153,22 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   "adapter browser close is not a single idempotent lifecycle boundary");
 });
 
+check("route-injected application correlation survives request-start to response binding", () => {
+  for (const snippet of [
+    "const routeInjectedCorrelations = new WeakMap()",
+    "const applyRouteInjectedCorrelation = (request, correlationId) =>",
+    "applyRouteInjectedCorrelation(request, activeCorrelationId)",
+    "const routeInjectedCorrelation = routeInjectedCorrelations.get(request)",
+    'correlationInjectionSource: "route-continue"',
+    "Object.assign(pending, applied)",
+  ]) {
+    assert(adapterSource.includes(snippet),
+      `route-injected correlation is not preserved through response binding: ${snippet}`);
+  }
+  assert(!adapterSource.includes("context.setExtraHTTPHeaders"),
+    "route-injected correlation widened beyond the exact intercepted request");
+});
+
 check("Playwright response events bind only to the exact initiating request object", () => {
   const firstRequest = {};
   const secondRequest = {};

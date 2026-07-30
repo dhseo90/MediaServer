@@ -348,6 +348,7 @@ async function openNativePlaywrightPage(playwright, {
     caseId,
   });
   const pendingRequests = new Map();
+  const routeInjectedCorrelations = new WeakMap();
   const pendingSafeResponseReads = new Set();
   const safeResponseReadFailures = [];
   const observedRuntimeSecrets = new Set();
@@ -362,6 +363,30 @@ async function openNativePlaywrightPage(playwright, {
   const documentNavigationByRequestId = new Map();
   let documentNavigationAfterListenerEndCount = 0;
   let closePromise = null;
+  const correlationHeaderDigest = correlationId => correlationId
+    ? createHash("sha256").update(JSON.stringify({
+        "x-media-server-correlation-id": correlationId,
+      })).digest("hex")
+    : "";
+  const applyRouteInjectedCorrelation = (request, correlationId) => {
+    const applied = {
+      correlationId,
+      requestHeaderDigest: correlationHeaderDigest(correlationId),
+      correlationInjectionSource: "route-continue",
+    };
+    routeInjectedCorrelations.set(request, applied);
+    const pending = pendingRequests.get(request);
+    if (pending) Object.assign(pending, applied);
+    const requestId = pending?.requestId;
+    if (!requestId) return;
+    for (const entry of networkEntries) {
+      if (entry.phase === "request-start" && entry.requestId === requestId) {
+        Object.assign(entry, applied, {
+          correlationSource: "request-header",
+        });
+      }
+    }
+  };
   const browser = await playwright.chromium.launch({
     headless: true,
     env: secretStrippedBrowserEnv(),
@@ -381,6 +406,7 @@ async function openNativePlaywrightPage(playwright, {
       activeNavigationOperation?.allowCorrelation === true;
     if (activeCorrelationId && correlationAllowed) {
       headers["x-media-server-correlation-id"] = activeCorrelationId;
+      applyRouteInjectedCorrelation(request, activeCorrelationId);
     } else if (documentNavigation) {
       delete headers["x-media-server-correlation-id"];
     }
@@ -403,22 +429,22 @@ async function openNativePlaywrightPage(playwright, {
   };
   requestListenerStartSequence = ++lifecycleSequence;
   page.on("request", request => {
-    const correlationId = String(request.headers()["x-media-server-correlation-id"] || "");
+    const routeInjectedCorrelation = routeInjectedCorrelations.get(request);
+    const correlationId = String(routeInjectedCorrelation?.correlationId ||
+      request.headers()["x-media-server-correlation-id"] || "");
     const identity = requestIdentity(request);
     const requestId = identity.requestId;
     const redirectedFrom = request.redirectedFrom();
     const requestKind = request.isNavigationRequest() && request.frame() === page.mainFrame()
       ? "document-navigation"
       : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
-    const requestHeaderDigest = correlationId
-      ? createHash("sha256").update(JSON.stringify({
-          "x-media-server-correlation-id": correlationId,
-        })).digest("hex")
-      : "";
+    const requestHeaderDigest = String(routeInjectedCorrelation?.requestHeaderDigest ||
+      correlationHeaderDigest(correlationId));
     pendingRequests.set(request, {
       ...identity,
       correlationId,
       requestHeaderDigest,
+      correlationInjectionSource: String(routeInjectedCorrelation?.correlationInjectionSource || ""),
       requestKind,
       method: request.method(),
       path: urlTarget(request.url()),
@@ -434,6 +460,7 @@ async function openNativePlaywrightPage(playwright, {
       redirectedFromRequestId: redirectedFrom ? requestIdentity(redirectedFrom).requestId : "",
       correlationId,
       correlationSource: correlationId ? 'request-header' : 'none',
+      correlationInjectionSource: String(routeInjectedCorrelation?.correlationInjectionSource || ""),
       requestHeaderDigest,
       method: request.method(),
       status: 0,
