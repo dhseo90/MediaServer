@@ -174,10 +174,14 @@ for (const [selectionIndex, item] of selection.entries()) {
         childOutcome.requestCorrelationScopeEvidence || null,
       navigationLifecycleEvidence:
         childOutcome.navigationLifecycleEvidence || null,
+      markerStageEvidence:
+        childOutcome.markerStageEvidence || null,
       markerEvidence: childOutcome.markerEvidence || null,
       markerEvidenceLifecycle:
         childOutcome.markerEvidenceLifecycle || null,
       cleanupAttestation: childOutcome.cleanupAttestation || null,
+      failureLifecycleEvidence:
+        childOutcome.failureLifecycleEvidence || null,
       childExecutionStatus: childOutcome.childExecutionStatus || "",
       childResult: childOutcome.childResult || "",
       childRawCaptureValidation:

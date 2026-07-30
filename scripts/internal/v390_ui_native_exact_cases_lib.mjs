@@ -16,6 +16,7 @@ import {
   exactRuntimeOracleCaseIds,
   validateExactRuntimeOracleCatalog,
 } from "./v390_ui_exact_oracle_catalog.mjs";
+import { serializeFailureLifecycleEvidence } from "./v390_ui_failure_lifecycle_evidence.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -148,6 +149,9 @@ export function createNativeExactExecutionFailureSummary({
       reason: "not run after native execution failure",
     };
     const status = result.status === "PASS" ? "captured" : result.status;
+    const failureLifecycleEvidence = result.status === "FAIL"
+      ? serializeFailureLifecycleEvidence(result)
+      : null;
     return {
       testId: item.caseId,
       caseId: item.caseId,
@@ -157,6 +161,17 @@ export function createNativeExactExecutionFailureSummary({
         ? "completed"
         : (result.status === "FAIL" ? "runner-error" : "not-run-after-first-failure"),
       reason: result.reason || (result.status === "PASS" ? "" : message),
+      ...(failureLifecycleEvidence ? {
+        failureLifecycleEvidence,
+        markerStageEvidence:
+          failureLifecycleEvidence.markerStageEvidence,
+        markerEvidence:
+          failureLifecycleEvidence.markerEvidence,
+        markerEvidenceLifecycle:
+          failureLifecycleEvidence.markerEvidenceLifecycle,
+        cleanupAttestation:
+          failureLifecycleEvidence.cleanupAttestation,
+      } : {}),
       diagnosticArtifacts: result.diagnosticArtifacts || undefined,
     };
   });

@@ -13,6 +13,12 @@ import {
   assertPolicyV4ArtifactRoot,
   producePolicyV4Evidence,
 } from "./v390_ui_policy_v4_evidence_producer.mjs";
+import {
+  buildEventMarkerFlowEvidence,
+  buildEvt004MarkerStageEvidence,
+} from "./v390_ui_exact_oracle_runtime.mjs";
+import { buildDiagnosticMarkerFileStageEvidence } from "./v390_ui_case_runtime.mjs";
+import { buildDiagnosticMarkerResponseStageEvidence } from "./v390_ui_native_adapter.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const tempParent = path.join(rootDir, ".tmp-v390-policy-producer-contract");
@@ -31,6 +37,11 @@ const item = manifestSource.cases.find(value => value.caseId === "UI-002");
 const canonicalCase = canonicalSource.cases.find(value => value.testId === item.caseId);
 const canonical = { ...canonicalSource, cases: [canonicalCase] };
 const manifest = { ...manifestSource, cases: [item] };
+const evt004Item = manifestSource.cases.find(value => value.caseId === "EVT-004");
+const evt004CanonicalCase =
+  canonicalSource.cases.find(value => value.testId === evt004Item.caseId);
+const evt004Canonical = { ...canonicalSource, cases: [evt004CanonicalCase] };
+const evt004Manifest = { ...manifestSource, cases: [evt004Item] };
 const completion = item.workflow.expectedResults[0].completion;
 const screenshotPath = path.join(outputDir, "screenshots", `${item.caseId}.png`);
 const tracePath = path.join(outputDir, "traces", `${item.caseId}.json`);
@@ -56,6 +67,123 @@ check("producer emits captured raw envelope without qualification claims", () =>
   }
   assert(value.rawEvidence.actionId === completion.actionId && value.rawEvidence.correlationId === completion.correlationId,
     "raw primary reference binding missing");
+});
+
+check("canonical failed-case envelope preserves typed EVT-004 lifecycle failures", () => {
+  const marker = "REVIEW4-EVT-004-LOG-MARKER";
+  const goodFile = buildDiagnosticMarkerFileStageEvidence({
+    invocationCount: 1,
+    ownedLogPath: "/tmp/owned/.media_server.log",
+    productLogPath: "/tmp/owned/.media_server.log",
+    marker,
+    lines: [`[review4] auth incident ${marker} password=redacted`],
+  });
+  const goodResponse = buildDiagnosticMarkerResponseStageEvidence({
+    marker,
+    method: "GET",
+    urlPath: "/ops/api/diagnostics/log-tail?limit=80",
+    captures: [{
+      requestId: "request-1",
+      caseRequestIdentity: "EVT-004:request-1",
+      caseRequestSequence: 1,
+      responseRequestObjectObserved: true,
+      status: 200,
+      lines: [marker],
+      markerCount: 1,
+    }],
+  });
+  const goodStage = buildEvt004MarkerStageEvidence({
+    fileStageEvidence: goodFile,
+    dashboardResponseEvidence: goodResponse,
+  });
+  const cases = [
+    ["hook-missing", {
+      markerStageEvidence: buildEvt004MarkerStageEvidence({
+        fileStageEvidence: buildDiagnosticMarkerFileStageEvidence({
+          invocationCount: 0,
+          ownedLogPath: "/tmp/owned/.media_server.log",
+          productLogPath: "/tmp/owned/.media_server.log",
+          marker,
+          lines: [marker],
+        }),
+      }),
+    }, "MARKER_RELOCATION_HOOK_INVOCATION_MISMATCH"],
+    ["wrong-file", {
+      markerStageEvidence: buildEvt004MarkerStageEvidence({
+        fileStageEvidence: buildDiagnosticMarkerFileStageEvidence({
+          invocationCount: 1,
+          ownedLogPath: "/tmp/owned/.media_server.log",
+          productLogPath: "/tmp/wrong/.media_server.log",
+          marker,
+          lines: [marker],
+        }),
+      }),
+    }, "MARKER_LOG_FILE_IDENTITY_MISMATCH"],
+    ["response-missing", {
+      markerStageEvidence: buildEvt004MarkerStageEvidence({
+        fileStageEvidence: goodFile,
+        dashboardResponseEvidence: buildDiagnosticMarkerResponseStageEvidence({
+          marker,
+          method: "GET",
+          urlPath: "/ops/api/diagnostics/log-tail?limit=80",
+          captures: [],
+        }),
+      }),
+    }, "DASHBOARD_MARKER_RESPONSE_MISSING"],
+    ["timeline-missing", {
+      markerStageEvidence: goodStage,
+      markerEvidence: buildEventMarkerFlowEvidence({
+        marker,
+        responseBodies: [{ lines: [marker] }],
+        observed: {
+          semanticNodeTexts: [],
+          visibleSemanticNodeTexts: [],
+        },
+      }),
+    }, "TIMELINE_MARKER_NOT_PROJECTED"],
+    ["dom-missing", {
+      markerStageEvidence: goodStage,
+      markerEvidence: buildEventMarkerFlowEvidence({
+        marker,
+        responseBodies: [{ lines: [marker] }],
+        observed: {
+          semanticNodeTexts: [marker],
+          visibleSemanticNodeTexts: [],
+        },
+      }),
+    }, "DOM_MARKER_NOT_OBSERVED"],
+  ];
+  for (const [label, evidence, expectedCode] of cases) {
+    const result = {
+      caseId: evt004Item.caseId,
+      featureId: evt004Item.featureId,
+      status: "FAIL",
+      reason: `contract-${label}`,
+      cleanupAttestation: {
+        schema: "media-server.v390-ui-case-cleanup-attestation.v1",
+        pass: true,
+      },
+      ...evidence,
+    };
+    const value = produce(result, evt004Manifest, evt004Canonical).summary.cases[0];
+    assert(value.rawOutcome === "runner-error",
+      `${label} did not traverse the canonical failed-case path`);
+    assert(value.failureLifecycleEvidence?.schema ===
+      "media-server.v390-ui-failure-lifecycle-evidence.v1",
+    `${label} lifecycle schema missing`);
+    assert(value.failureLifecycleEvidence.failureCode === expectedCode,
+      `${label} failure code drift: ${value.failureLifecycleEvidence.failureCode}`);
+    assert(JSON.stringify(value.markerStageEvidence) ===
+      JSON.stringify(value.failureLifecycleEvidence.markerStageEvidence) &&
+      JSON.stringify(value.markerEvidence) ===
+      JSON.stringify(value.failureLifecycleEvidence.markerEvidence),
+    `${label} canonical/focused lifecycle serialization drift`);
+    const serialized = JSON.stringify(value.failureLifecycleEvidence);
+    assert(!serialized.includes(marker) &&
+      !serialized.includes("/tmp/owned") &&
+      !serialized.includes("/tmp/wrong"),
+    `${label} lifecycle evidence exposed raw marker or file paths`);
+  }
 });
 
 check("producer preserves the native trace byte-for-byte", () => {
@@ -171,12 +299,12 @@ console.log("- actualExact424BrowserExecution: not-run-by-this-contract");
 cleanup();
 process.exit(failed.length === 0 ? 0 : 1);
 
-function produce(result) {
+function produce(result, manifestValue = manifest, canonicalValue = canonical) {
   return producePolicyV4Evidence({
     rootDir,
     outputDir,
-    manifest,
-    canonical,
+    manifest: manifestValue,
+    canonical: canonicalValue,
     results: [result],
     selectedAdapter: {
       tool: "playwright",

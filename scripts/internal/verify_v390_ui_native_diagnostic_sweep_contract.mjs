@@ -420,6 +420,19 @@ check("valid failed child evidence is aggregated without a missing-child downgra
       requestCorrelationEvidence: { pass: true },
       requestCorrelationScopeEvidence: { pass: true },
       navigationLifecycleEvidence: { pass: true },
+      markerStageEvidence: {
+        schema: "media-server.v390-ui-evt004-marker-stage-evidence.v1",
+        pass: true,
+        fileStageEvidence: {
+          pass: true,
+          hookInvocationCount: 1,
+          fileIdentityMatched: true,
+        },
+        dashboardResponseEvidence: {
+          pass: true,
+          markerCount: 1,
+        },
+      },
       markerEvidence,
       markerEvidenceLifecycle: {
         phase: "reached",
@@ -440,6 +453,11 @@ check("valid failed child evidence is aggregated without a missing-child downgra
     outcome.failureCode === "DOM_MARKER_NOT_OBSERVED" &&
     outcome.actualBrowserExecution === true &&
     outcome.markerEvidence === markerEvidence &&
+    outcome.markerStageEvidence === summary.case.markerStageEvidence &&
+    outcome.failureLifecycleEvidence?.schema ===
+      "media-server.v390-ui-failure-lifecycle-evidence.v1" &&
+    outcome.failureLifecycleEvidence.failureCode ===
+      "DOM_MARKER_NOT_OBSERVED" &&
     outcome.navigationLifecycleEvidence ===
       summary.case.navigationLifecycleEvidence &&
     outcome.requestCorrelationEvidence ===

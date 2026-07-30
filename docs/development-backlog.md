@@ -6879,6 +6879,15 @@ identity를 각각 구조화해 file/response/timeline/DOM 실패를 fail-closed
 Focused EVT-004는 이 경로에서 PASS했지만, canonical `./test_ui.sh` 재실행은 이 checkpoint
 이후 별도 실행이며 제품 C++/API/UI/fixture와 generator/producer는 변경·실행하지 않았습니다.
 
+EVT-004 canonical failure lifecycle/order 보정(2026-07-31)은 `16618615` actual full UI의
+`291 attempted / 290 PASS / 1 FAIL / 133 not-run` EVT-004 FAIL을 historical evidence로
+보존합니다. Canonical trace는 marker hook/file/`limit=80`/`limit=50`은 통과했지만 timeline과
+visible DOM 후보가 각각 `8/0`인 `TIMELINE_MARKER_NOT_PROJECTED`였음을 밝혔습니다. Focused와
+canonical은 공통 failure serializer로 typed phase/code와 not-reached 상태를 보존하며, fixture는
+test-owned noise 96행 뒤 marker 한 행을 유지해 API oldest-to-newest index `79`와 renderer reverse
+window index `0`을 회귀 계약으로 고정합니다. 이 checkpoint에서는 focused actual과 canonical UI,
+Policy v4, 30분, 120분, release를 실행하지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

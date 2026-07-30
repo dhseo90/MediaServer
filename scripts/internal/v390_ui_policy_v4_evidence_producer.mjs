@@ -6,6 +6,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 import { assertRequestedObservedEnvelope } from "./v390_ui_requested_observed_schema.mjs";
+import { serializeFailureLifecycleEvidence } from "./v390_ui_failure_lifecycle_evidence.mjs";
 
 const evidenceSchema = "media-server.ui-automation-evidence.v4";
 const evidenceRefSchema = "media-server.ui-evidence-ref.v1";
@@ -205,12 +206,23 @@ export function assertPolicyV4ArtifactRoot({ rootDir, outputDir }) {
 function produceCase({ outputDir, policyRoot, policy, result, manifestCase, canonicalCase, serverLogPath }) {
   assert(manifestCase && canonicalCase, `${result.caseId} canonical/manifest binding missing`);
   if (result.status !== "PASS") {
+    const failureLifecycleEvidence =
+      serializeFailureLifecycleEvidence(result);
     return {
       testId: result.caseId,
       featureId: result.featureId || canonicalCase.featureId,
       rawOutcome: result.status === "not-run" ? "not-run-after-first-failure" : "runner-error",
       status: result.status,
       reason: result.reason || "case did not pass actual execution",
+      failureLifecycleEvidence,
+      markerStageEvidence:
+        failureLifecycleEvidence.markerStageEvidence,
+      markerEvidence:
+        failureLifecycleEvidence.markerEvidence,
+      markerEvidenceLifecycle:
+        failureLifecycleEvidence.markerEvidenceLifecycle,
+      cleanupAttestation:
+        failureLifecycleEvidence.cleanupAttestation,
       diagnosticArtifacts: result.diagnosticArtifacts || undefined,
     };
   }

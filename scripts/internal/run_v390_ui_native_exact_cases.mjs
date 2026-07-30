@@ -43,6 +43,7 @@ import {
   captureBoundedCorrelationWindow,
   closeBrowserForFailureLifecycle,
   finalizeFailedCaseLifecycle,
+  serializeFailureLifecycleEvidence,
   validateEvt004LifecycleEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import {
@@ -968,6 +969,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         cleanupEntries: trace.cleanup,
         navigation: trace.navigation,
       });
+    failureLifecycleEvidence =
+      serializeFailureLifecycleEvidence(failureLifecycleEvidence);
     if (caseResult && failureLifecycleEvidence) {
       caseResult.navigationLifecycleEvidence =
         structuredClone(failureLifecycleEvidence.navigationLifecycleEvidence);
@@ -1081,6 +1084,8 @@ function caseExecutionFailure(
       structuredClone(primaryFailure.navigationLifecycleEvidence);
   }
   if (failureLifecycleEvidence) {
+    error.partialArtifacts.failureLifecycleEvidence =
+      serializeFailureLifecycleEvidence(failureLifecycleEvidence);
     for (const key of [
       "navigationLifecycleEvidence",
       "requestCorrelationScopeEvidence",
@@ -3472,6 +3477,8 @@ function createDiagnosticChildSummary({
       markerEvidence: resultItem.markerEvidence || null,
       markerEvidenceLifecycle: resultItem.markerEvidenceLifecycle || null,
       cleanupAttestation: resultItem.cleanupAttestation || null,
+      failureLifecycleEvidence:
+        serializeFailureLifecycleEvidence(resultItem),
       diagnosticArtifacts: resultItem.diagnosticArtifacts || {},
     } : {
       caseId: item.caseId,
@@ -3490,6 +3497,8 @@ function createDiagnosticChildSummary({
       markerEvidence: null,
       markerEvidenceLifecycle: null,
       cleanupAttestation: null,
+      failureLifecycleEvidence:
+        serializeFailureLifecycleEvidence({}),
       diagnosticArtifacts: {},
     },
     environmentContamination: {

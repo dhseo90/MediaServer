@@ -329,7 +329,10 @@ check("every exact EVT seed.kind has a declarative store and join materializer",
   "exact EVT runtime does not resolve seed.kind through the shared materializer");
   assert(runtimeSource.includes("refreshDiagnosticMarkerForDashboard") &&
     runtimeSource.includes("test-owned-log-marker-tail-prioritization") &&
-    runtimeSource.includes("requires one existing marker"),
+    runtimeSource.includes("requires one existing marker") &&
+    runtimeSource.includes("evt004OwnedNoiseCount") &&
+    runtimeSource.includes("isolateEvt004LeakedAnalysisFixtures") &&
+    runtimeSource.includes("EVT004_OWNED_ANALYSIS_ISOLATION_INCOMPLETE"),
   "EVT-004 diagnostic marker tail prioritization is not exact and fail-closed");
   assert(runnerSource.includes("beforeScreenNavigation: item.caseId === \"EVT-004\"") &&
     runtimeOracleSource.includes("EVT-004 dashboard navigation requires a test-owned marker refresh hook"),
@@ -2260,6 +2263,78 @@ check("evidence producer failure always leaves an exact 424 failure ledger", () 
     "producer failure became Policy v4 or UI PASS");
   assert(summary.childResourcesAcquired === true && summary.cleanupRequired === true,
     "execution failure lost the acquired-resource cleanup boundary");
+});
+
+check("full exact failure ledger preserves the typed EVT-004 lifecycle envelope", () => {
+  const evt004Index = manifest.cases.findIndex(item => item.caseId === "EVT-004");
+  assert(evt004Index >= 0, "EVT-004 is missing from the exact manifest");
+  const markerStageEvidence = {
+    schema: "media-server.v390-ui-evt004-marker-stage-evidence.v1",
+    pass: true,
+    failurePhase: "",
+    failureCode: "PASS",
+    fileStageEvidence: {
+      schema: "media-server.v390-ui-marker-file-stage-evidence.v1",
+      pass: true,
+      hookInvocationCount: 1,
+      fileIdentityMatched: true,
+      markerCount: 1,
+      markerPositionFromTail: 0,
+    },
+    dashboardResponseEvidence: {
+      schema: "media-server.v390-ui-dashboard-marker-response-stage-evidence.v1",
+      pass: true,
+      path: "/ops/api/diagnostics/log-tail?limit=80",
+      responseCandidateCount: 1,
+      responseMatchedCount: 1,
+      markerCount: 1,
+    },
+  };
+  const markerEvidence = {
+    schema: "media-server.v390-ui-event-marker-flow-evidence.v1",
+    pass: false,
+    failurePhase: "timeline-projection",
+    failureCode: "TIMELINE_MARKER_NOT_PROJECTED",
+    responseMarkerObserved: { candidateCount: 29, matchedCount: 1 },
+    timelineProjectionObserved: { candidateCount: 8, matchedCount: 0 },
+    domMarkerObserved: { candidateCount: 8, matchedCount: 0 },
+    evaluatorInvocationCount: 1,
+    correlationResponseBound: true,
+    domReadinessConfirmed: true,
+  };
+  const results = manifest.cases.map((item, index) => ({
+    caseId: item.caseId,
+    featureId: item.featureId,
+    status: index < evt004Index
+      ? "PASS"
+      : (index === evt004Index ? "FAIL" : "not-run"),
+    ...(index === evt004Index ? {
+      markerStageEvidence,
+      markerEvidence,
+      cleanupAttestation: {
+        schema: "media-server.v390-ui-case-cleanup-attestation.v1",
+        pass: true,
+      },
+    } : {}),
+  }));
+  const summary = createNativeExactExecutionFailureSummary({
+    error: new Error("EVT-004 marker projection failed"),
+    manifest,
+    results,
+  });
+  const failedCase = summary.cases.find(item => item.testId === "EVT-004");
+  assert(failedCase?.failureLifecycleEvidence?.schema ===
+    "media-server.v390-ui-failure-lifecycle-evidence.v1",
+  "full exact failure ledger omitted the lifecycle schema");
+  assert(failedCase.failureLifecycleEvidence.failureCode ===
+    "TIMELINE_MARKER_NOT_PROJECTED",
+  "full exact failure ledger lost the marker failure code");
+  assert(failedCase.markerStageEvidence?.fileStageEvidence?.hookInvocationCount === 1 &&
+    failedCase.markerStageEvidence?.dashboardResponseEvidence?.markerCount === 1 &&
+    failedCase.markerEvidence?.responseMarkerObserved?.matchedCount === 1 &&
+    failedCase.markerEvidence?.timelineProjectionObserved?.matchedCount === 0 &&
+    failedCase.markerEvidence?.domMarkerObserved?.matchedCount === 0,
+  "full exact failure ledger lost bounded marker lifecycle counts");
 });
 
 check("failed case partial artifacts are referenced, deduplicated, and orphan-free", () => {

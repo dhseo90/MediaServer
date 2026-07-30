@@ -511,6 +511,7 @@ async function prepareEvt004MarkerDashboardNavigation(args) {
     marker: String(args.catalogBindings?.logMarker || ""),
     method: "GET",
     urlPath: "/ops/api/diagnostics/log-tail?limit=80",
+    ownedNoisePrefix: String(args.catalogBindings?.diagnosticNoisePrefix || ""),
   });
   return markerStageEvidence;
 }
@@ -1254,6 +1255,9 @@ async function observeDom(
       semanticNodeTexts: nodes.flatMap(node => Array.from(node.querySelectorAll('.root-cause-item')))
         .slice(0, 20)
         .map(node => String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
+      semanticNodeKinds: nodes.flatMap(node => Array.from(node.querySelectorAll('.root-cause-item')))
+        .slice(0, 20)
+        .map(node => String(node.getAttribute('data-incident-unit') || '')),
       visibleSemanticNodeTexts: nodes.flatMap(node => Array.from(node.querySelectorAll('.root-cause-item')))
         .filter(node => {
           const rect = node.getBoundingClientRect(); const style = getComputedStyle(node);
@@ -1261,6 +1265,13 @@ async function observeDom(
         })
         .slice(0, 20)
         .map(node => String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
+      visibleSemanticNodeKinds: nodes.flatMap(node => Array.from(node.querySelectorAll('.root-cause-item')))
+        .filter(node => {
+          const rect = node.getBoundingClientRect(); const style = getComputedStyle(node);
+          return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+        })
+        .slice(0, 20)
+        .map(node => String(node.getAttribute('data-incident-unit') || '')),
       attributes: nodes.slice(0, 20).map(node => Object.fromEntries(Array.from(node.attributes || []).map(attr => [attr.name, attr.value]))),
       values: nodes.slice(0, 20).map(node => String(node.value ?? '')),
       formControls: nodes.flatMap(node => [
@@ -2398,10 +2409,22 @@ export function buildEventMarkerFlowEvidence({ marker, observed, responseBodies 
     ? observed.semanticNodeTexts.map(String)
     : [];
   const timelineMatches = timelineNodes.filter(markerMatches);
+  const timelineMatchedIndices = timelineNodes
+    .map((value, index) => markerMatches(value) ? index : -1)
+    .filter(index => index >= 0);
   const visibleNodes = Array.isArray(observed?.visibleSemanticNodeTexts)
     ? observed.visibleSemanticNodeTexts.map(String)
     : [];
   const visibleMatches = visibleNodes.filter(markerMatches);
+  const domMatchedIndices = visibleNodes
+    .map((value, index) => markerMatches(value) ? index : -1)
+    .filter(index => index >= 0);
+  const timelineKinds = Array.isArray(observed?.semanticNodeKinds)
+    ? observed.semanticNodeKinds.map(String)
+    : [];
+  const visibleKinds = Array.isArray(observed?.visibleSemanticNodeKinds)
+    ? observed.visibleSemanticNodeKinds.map(String)
+    : [];
   const fixtureMarkerMaterialized = {
     pass: canonicalMarker.length > 0,
     markerDigest,
@@ -2409,6 +2432,19 @@ export function buildEventMarkerFlowEvidence({ marker, observed, responseBodies 
   const responseMarkerObserved = markerEvidenceCounts(responseLines, responseMatches);
   const timelineProjectionObserved = markerEvidenceCounts(timelineNodes, timelineMatches);
   const domMarkerObserved = markerEvidenceCounts(visibleNodes, visibleMatches);
+  timelineProjectionObserved.selectedIndices = timelineMatchedIndices;
+  timelineProjectionObserved.selectedKind =
+    timelineMatchedIndices.length === 1
+      ? String(timelineKinds[timelineMatchedIndices[0]] || "")
+      : "";
+  timelineProjectionObserved.candidateKindCounts =
+    countEvidenceKinds(timelineKinds);
+  domMarkerObserved.selectedIndices = domMatchedIndices;
+  domMarkerObserved.selectedKind =
+    domMatchedIndices.length === 1
+      ? String(visibleKinds[domMatchedIndices[0]] || "")
+      : "";
+  domMarkerObserved.candidateKindCounts = countEvidenceKinds(visibleKinds);
   const failed = [
     ["fixture-marker-materialization", fixtureMarkerMaterialized.pass,
       "FIXTURE_MARKER_NOT_MATERIALIZED"],
@@ -2527,6 +2563,17 @@ function markerEvidenceCounts(candidates, matched) {
     candidateDigest: sha256Digest(candidates),
     matchedDigest: sha256Digest(matched),
   };
+}
+
+function countEvidenceKinds(kinds) {
+  const counts = {};
+  for (const kind of kinds) {
+    const normalized = String(kind || "unknown")
+      .replace(/[^a-z0-9-]/gi, "")
+      .slice(0, 64) || "unknown";
+    counts[normalized] = Number(counts[normalized] || 0) + 1;
+  }
+  return counts;
 }
 
 export function selectEventDomResponseBaselines(target, eventRuntimeContext = {}) {

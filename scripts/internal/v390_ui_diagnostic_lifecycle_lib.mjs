@@ -2,6 +2,12 @@
 
 import { buildNavigationTrustEvidence } from "./v390_ui_completion_oracle_lib.mjs";
 import { buildExclusiveRequestScopedCorrelationEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
+import {
+  failureLifecycleEvidenceSchema,
+  serializeFailureLifecycleEvidence,
+} from "./v390_ui_failure_lifecycle_evidence.mjs";
+
+export { serializeFailureLifecycleEvidence } from "./v390_ui_failure_lifecycle_evidence.mjs";
 
 const maxCorrelationWindowEntries = 256;
 
@@ -170,6 +176,7 @@ export function buildFailureLifecycleEvidence({
   const markerStageEvidence =
     runtimeState.get("__markerStageEvidence") || null;
   return {
+    schema: failureLifecycleEvidenceSchema,
     navigationLifecycleEvidence,
     requestCorrelationScopeEvidence,
     markerStageEvidence,
@@ -238,6 +245,7 @@ export function buildFallbackFailureLifecycleEvidence({
   navigation = null,
 } = {}) {
   return {
+    schema: failureLifecycleEvidenceSchema,
     navigationLifecycleEvidence: {
       schema: "media-server.v390-ui-navigation-trust-evidence.v1",
       pass: false,
@@ -421,6 +429,8 @@ export function aggregateDiagnosticChildOutcome({
     markerStageEvidence: childCase.markerStageEvidence || null,
     markerEvidenceLifecycle: childCase.markerEvidenceLifecycle || null,
     cleanupAttestation: childCase.cleanupAttestation || null,
+    failureLifecycleEvidence:
+      serializeFailureLifecycleEvidence(childCase),
     childExecutionStatus: String(summary.executionStatus || ""),
     childResult: String(summary.result || ""),
     childRawCaptureValidation: summary.rawCaptureValidation || null,

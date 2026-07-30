@@ -58,6 +58,24 @@ await check("EVT-004 marker lifecycle distinguishes hook, file, response, timeli
   assert(file({ lines: [marker, marker] }).failureCode ===
     "MARKER_LOG_FILE_DUPLICATE",
   "duplicate file marker was not isolated");
+  const deterministicNoise = Array.from({ length: 96 }, (_, index) =>
+    `[review4-noise] EVT-004-OWNED-${String(index).padStart(3, "0")}`);
+  const noisyFile = file({
+    lines: [...deterministicNoise, `[review4] auth incident ${marker} password=redacted`],
+    ownedNoisePrefix: "[review4-noise] EVT-004-OWNED-",
+    analysisIsolationEvidence: {
+      schema: "media-server.v390-ui-evt004-analysis-isolation-evidence.v1",
+      pass: true,
+      failureCode: "PASS",
+    },
+  });
+  assert(noisyFile.pass === true &&
+    noisyFile.ownedNoiseCount === 96 &&
+    noisyFile.apiWindowStartIndex === 17 &&
+    noisyFile.markerApiWindowIndex === 79 &&
+    noisyFile.markerReverseIndex === 0 &&
+    noisyFile.rendererLogSelectedIndex === 0,
+  "EVT-004 deterministic accumulated-log window did not retain the marker as the newest matching row");
 
   const response = captures => buildDiagnosticMarkerResponseStageEvidence({
     marker,
@@ -81,6 +99,14 @@ await check("EVT-004 marker lifecycle distinguishes hook, file, response, timeli
     markerCount: 2,
   }]).failureCode === "DASHBOARD_MARKER_RESPONSE_MARKER_DUPLICATE",
   "dashboard response marker duplication was not isolated");
+  assert(response([{
+    requestId: "request-1",
+    responseRequestObjectObserved: true,
+    status: 200,
+    markerCount: 1,
+    rendererLogSelectedIndex: -1,
+  }]).failureCode === "DASHBOARD_MARKER_RENDERER_WINDOW_MISMATCH",
+  "marker outside the renderer log window was not isolated");
 
   const timelineMissing = buildEventMarkerFlowEvidence({
     marker,
@@ -105,6 +131,7 @@ await check("EVT-004 marker lifecycle distinguishes hook, file, response, timeli
       status: 200,
       markerCount: 1,
       lineCount: 1,
+      rendererLogSelectedIndex: 0,
     }]),
   });
   assert(stage.pass === true, "complete EVT-004 marker stage did not pass");
@@ -308,12 +335,17 @@ await check("EVT-004 marker flow binds one authoritative response row to one vis
     responseBodies: [{ lines: [`[review4] auth incident ${marker} [redacted]`] }],
     observed: {
       semanticNodeTexts: [`로그 단서 ${marker} diagnostics log-tail`],
+      semanticNodeKinds: ["log-tail"],
       visibleSemanticNodeTexts: [`로그 단서 ${marker} diagnostics log-tail`],
+      visibleSemanticNodeKinds: ["log-tail"],
     },
   });
   assert(matching.pass && matching.responseMarkerObserved.matchedCount === 1 &&
     matching.timelineProjectionObserved.matchedCount === 1 &&
-    matching.domMarkerObserved.matchedCount === 1,
+    matching.timelineProjectionObserved.selectedIndices[0] === 0 &&
+    matching.timelineProjectionObserved.selectedKind === "log-tail" &&
+    matching.domMarkerObserved.matchedCount === 1 &&
+    matching.domMarkerObserved.selectedIndices[0] === 0,
   "exact response/timeline/DOM marker binding did not pass");
 
   const failureCases = [

@@ -17,6 +17,10 @@ import { ruleRelationshipFixtureIdentity } from "./v390_ui_native_exact_cases_li
 
 const descriptorSchema = "media-server.v390-ui-runtime-descriptor.v1";
 const roleMapSchema = "media-server.v390-ui-role-state-map.v1";
+const evt004DashboardLogLimit = 80;
+const evt004RendererLogWindow = 3;
+const evt004OwnedNoiseCount = evt004DashboardLogLimit + 16;
+const evt004OwnedNoisePrefix = "[review4-noise] EVT-004-OWNED-";
 
 export const formReadbackProfiles = Object.freeze({
   "UI-008": profile("369115bd854774b2872b93c2c631149ca84758a1b153e4301716a85c6533d969", ["responsePending", "storePending", "listPending", "noUserOrInvite", "pendingLoginDenied", "uiPending"]),
@@ -158,6 +162,8 @@ export function buildDiagnosticMarkerFileStageEvidence({
   productLogPath = "",
   marker = "",
   lines = [],
+  ownedNoisePrefix = "",
+  analysisIsolationEvidence = null,
 } = {}) {
   const normalizedMarker = String(marker).normalize("NFKC").trim();
   const normalizedLines = Array.isArray(lines)
@@ -170,6 +176,26 @@ export function buildDiagnosticMarkerFileStageEvidence({
   const markerPositionFromTail = markerMatches.length === 1
     ? normalizedLines.length - 1 - normalizedLines.lastIndexOf(markerMatches[0])
     : -1;
+  const markerFileIndex = markerMatches.length === 1
+    ? normalizedLines.lastIndexOf(markerMatches[0])
+    : -1;
+  const apiWindowStartIndex = Math.max(0, normalizedLines.length - evt004DashboardLogLimit);
+  const markerApiWindowIndex = markerFileIndex >= apiWindowStartIndex
+    ? markerFileIndex - apiWindowStartIndex
+    : -1;
+  const markerReverseIndex = markerApiWindowIndex >= 0
+    ? Math.min(evt004DashboardLogLimit, normalizedLines.length) - 1 - markerApiWindowIndex
+    : -1;
+  const markerClassifierMatched = markerMatches.length === 1 &&
+    /source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP/i
+      .test(markerMatches[0]);
+  const rendererLogSelectedIndex = markerClassifierMatched &&
+    markerReverseIndex >= 0 && markerReverseIndex < evt004RendererLogWindow
+    ? markerReverseIndex
+    : -1;
+  const ownedNoiseCount = ownedNoisePrefix
+    ? normalizedLines.filter(line => line.startsWith(ownedNoisePrefix)).length
+    : 0;
   const failureCode = Number(invocationCount) !== 1
     ? "MARKER_RELOCATION_HOOK_INVOCATION_MISMATCH"
     : (!fileIdentityMatched
@@ -180,7 +206,14 @@ export function buildDiagnosticMarkerFileStageEvidence({
                 ? "MARKER_LOG_FILE_DUPLICATE"
                 : (markerPositionFromTail !== 0
                     ? "MARKER_LOG_FILE_NOT_AT_TAIL"
-                    : "PASS"))));
+                    : (!markerClassifierMatched
+                        ? "MARKER_LOG_FILE_CLASSIFIER_MISMATCH"
+                        : (rendererLogSelectedIndex !== 0
+                            ? "MARKER_LOG_RENDERER_WINDOW_MISMATCH"
+                            : (analysisIsolationEvidence &&
+                                analysisIsolationEvidence.pass !== true
+                                ? analysisIsolationEvidence.failureCode
+                                : "PASS")))))));
   return {
     schema: "media-server.v390-ui-marker-file-stage-evidence.v1",
     pass: failureCode === "PASS",
@@ -196,9 +229,24 @@ export function buildDiagnosticMarkerFileStageEvidence({
     markerDigest: crypto.createHash("sha256").update(normalizedMarker).digest("hex"),
     markerCount: markerMatches.length,
     lineCount: normalizedLines.length,
+    fileOrder: "oldest-to-newest",
+    apiOrder: "oldest-to-newest",
+    rendererLogOrder: "newest-matching-first",
+    apiWindowLimit: evt004DashboardLogLimit,
+    rendererLogWindow: evt004RendererLogWindow,
+    apiWindowStartIndex,
+    markerFileIndex,
+    markerApiWindowIndex,
+    markerReverseIndex,
+    rendererLogSelectedIndex,
+    markerClassifierMatched,
+    ownedNoiseCount,
     markerPositionFromTail,
     lineDigest: crypto.createHash("sha256")
       .update(markerMatches.length === 1 ? markerMatches[0] : "").digest("hex"),
+    analysisIsolationEvidence: analysisIsolationEvidence
+      ? structuredClone(analysisIsolationEvidence)
+      : null,
   };
 }
 
@@ -1713,13 +1761,20 @@ export function createV390UiCaseRuntime({
       Number(context.markerRefreshInvocationCount || 0) + 1;
     assert(context.markerRefreshInvocationCount === 1,
       "EVT-004 diagnostic marker refresh hook must run exactly once");
+    const analysisIsolationEvidence =
+      await isolateEvt004LeakedAnalysisFixtures(item, context);
     const raw = fs.readFileSync(logPath, "utf8");
     const lines = raw.split(/\r?\n/u);
     const matches = lines.filter(line => line.split(/\s+/u).includes(marker));
     assert(matches.length === 1,
       `EVT-004 diagnostic marker refresh requires one existing marker, got ${matches.length}`);
-    const retained = lines.filter(line => !line.split(/\s+/u).includes(marker));
+    const retained = lines.filter(line =>
+      !line.split(/\s+/u).includes(marker) &&
+      !line.startsWith(evt004OwnedNoisePrefix));
     while (retained.length > 0 && retained.at(-1) === "") retained.pop();
+    for (let index = 0; index < evt004OwnedNoiseCount; index += 1) {
+      retained.push(`${evt004OwnedNoisePrefix}${String(index).padStart(3, "0")}`);
+    }
     retained.push(matches[0]);
     fs.writeFileSync(logPath, `${retained.join("\n")}\n`, { mode: 0o600 });
     fs.chmodSync(logPath, 0o600);
@@ -1735,6 +1790,8 @@ export function createV390UiCaseRuntime({
       productLogPath,
       marker,
       lines: refreshedLines,
+      ownedNoisePrefix: evt004OwnedNoisePrefix,
+      analysisIsolationEvidence,
     });
     assert(fileStageEvidence.pass,
       `EVT-004 diagnostic marker file stage failed: ${fileStageEvidence.failureCode}`);
@@ -1743,6 +1800,88 @@ export function createV390UiCaseRuntime({
       source: "test-owned-log-marker-tail-prioritization",
       markerDigest: crypto.createHash("sha256").update(marker).digest("hex"),
       fileStageEvidence,
+    };
+  }
+
+  async function isolateEvt004LeakedAnalysisFixtures(item, context) {
+    const analysisPath = descriptor?.registrySeedPayloadPaths?.analysis || "";
+    assert(analysisPath, "EVT-004 analysis registry path is unavailable");
+    const baseline = readJson(analysisPath);
+    const catalog = await requestEndpoint(
+      "GET", "/ops/api/rules/catalog", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const kinds = [
+      ["vaRules", "/lab/analysis/va-rules/"],
+      ["rules", "/lab/analysis/rules/"],
+      ["profiles", "/lab/analysis/profiles/"],
+    ];
+    const idFor = value => String(value?.id || value?.ruleId ||
+      value?.vaRuleId || value?.profileId || "");
+    const baselineIds = Object.fromEntries(kinds.map(([kind]) => [
+      kind,
+      new Set((baseline?.[kind] || []).map(idFor).filter(Boolean)),
+    ]));
+    const extras = Object.fromEntries(kinds.map(([kind]) => [
+      kind,
+      (catalog.json?.[kind] || []).filter(value => {
+        const id = idFor(value);
+        return id && !baselineIds[kind].has(id);
+      }),
+    ]));
+    const ownedVaRules = extras.vaRules.filter(value =>
+      /review4/i.test(stableJson(value)));
+    const referencedProfileIds = new Set(ownedVaRules.map(value =>
+      String(value?.profileId || value?.analysis?.profileId || "")).filter(Boolean));
+    const referencedRuleIds = new Set(ownedVaRules.map(value =>
+      String(value?.eventRuleId || value?.templateRuleId ||
+        value?.templateStart?.ruleId || "")).filter(Boolean));
+    const owned = {
+      vaRules: ownedVaRules,
+      rules: extras.rules.filter(value =>
+        /review4/i.test(stableJson(value)) || referencedRuleIds.has(idFor(value))),
+      profiles: extras.profiles.filter(value =>
+        /review4/i.test(stableJson(value)) || referencedProfileIds.has(idFor(value))),
+    };
+    const removedIds = [];
+    for (const [kind, prefix] of kinds) {
+      for (const value of owned[kind]) {
+        const id = idFor(value);
+        await requestEndpoint(
+          "DELETE", `${prefix}${encodeURIComponent(id)}`, null,
+          item, context, [200], { freshRole: true, roleOverride: "operator" },
+        );
+        removedIds.push(`${kind}:${id}`);
+      }
+    }
+    const readback = await requestEndpoint(
+      "GET", "/ops/api/rules/catalog", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const remainingOwned = kinds.flatMap(([kind]) =>
+      (readback.json?.[kind] || []).map(idFor)
+        .filter(id => owned[kind].some(value => idFor(value) === id))
+        .map(id => `${kind}:${id}`));
+    context.transientStateSeeded = context.transientStateSeeded ||
+      removedIds.length > 0;
+    const failureCode = remainingOwned.length > 0
+      ? "EVT004_OWNED_ANALYSIS_ISOLATION_INCOMPLETE"
+      : "PASS";
+    return {
+      schema: "media-server.v390-ui-evt004-analysis-isolation-evidence.v1",
+      pass: failureCode === "PASS",
+      failureCode,
+      baselineCounts: Object.fromEntries(kinds.map(([kind]) =>
+        [kind, baselineIds[kind].size])),
+      extraCounts: Object.fromEntries(kinds.map(([kind]) =>
+        [kind, extras[kind].length])),
+      removedCounts: Object.fromEntries(kinds.map(([kind]) =>
+        [kind, owned[kind].length])),
+      remainingOwnedCount: remainingOwned.length,
+      removedIdentityDigest: crypto.createHash("sha256")
+        .update(JSON.stringify([...removedIds].sort())).digest("hex"),
+      nonOwnedExtraCount: kinds.reduce((count, [kind]) =>
+        count + extras[kind].length - owned[kind].length, 0),
     };
   }
 
@@ -2475,9 +2614,11 @@ export function createV390UiCaseRuntime({
       }
       const marker = `REVIEW4-${context.fixtureId}-LOG-MARKER`;
       const redactionCanary = `REVIEW4-${context.fixtureId}-REDACTION-CANARY`;
+      const noiseLines = Array.from({ length: evt004OwnedNoiseCount }, (_, index) =>
+        `${evt004OwnedNoisePrefix}${String(index).padStart(3, "0")}`);
       fs.appendFileSync(
         logPath,
-        `[review4] auth incident ${marker} password=${redactionCanary}\n`,
+        `${noiseLines.join("\n")}\n[review4] auth incident ${marker} password=${redactionCanary}\n`,
         { mode: 0o600 },
       );
       fs.chmodSync(logPath, 0o600);
@@ -2500,6 +2641,7 @@ export function createV390UiCaseRuntime({
         `${item.caseId} diagnostic log-tail did not preserve the marker with redacted sensitive material`);
       bindings.logMarker = marker;
       bindings.redactionCanary = redactionCanary;
+      bindings.diagnosticNoisePrefix = evt004OwnedNoisePrefix;
     }
 
     if (plan.has("viewer-raw-session") || plan.has("viewer-va-overlay-session")) {

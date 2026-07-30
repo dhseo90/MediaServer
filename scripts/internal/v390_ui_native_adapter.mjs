@@ -346,6 +346,18 @@ export function captureDiagnosticMarkerResponseProjection({
       const normalizedMarker = String(probe.marker || "").normalize("NFKC").trim();
       const markerMatches = lines.filter(line =>
         line.split(/\s+/u).includes(normalizedMarker));
+      const markerResponseIndex = markerMatches.length === 1
+        ? lines.lastIndexOf(markerMatches[0])
+        : -1;
+      const markerReverseIndex = markerResponseIndex >= 0
+        ? lines.length - 1 - markerResponseIndex
+        : -1;
+      const classifierMatches = [...lines].reverse().filter(line =>
+        /source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP/i
+          .test(line));
+      const rendererLogSelectedIndex = markerMatches.length === 1
+        ? classifierMatches.indexOf(markerMatches[0])
+        : -1;
       probe.captures.push({
         requestId: String(entry.requestId || ""),
         caseRequestIdentity: String(entry.caseRequestIdentity || ""),
@@ -357,6 +369,16 @@ export function captureDiagnosticMarkerResponseProjection({
         status: Number(entry.status || 0),
         markerCount: markerMatches.length,
         lineCount: lines.length,
+        responseOrder: "oldest-to-newest",
+        rendererLogOrder: "newest-matching-first",
+        markerResponseIndex,
+        markerReverseIndex,
+        classifierCandidateCount: classifierMatches.length,
+        rendererLogSelectedIndex,
+        rendererLogWindow: 3,
+        ownedNoiseCount: String(probe.ownedNoisePrefix || "")
+          ? lines.filter(line => line.startsWith(probe.ownedNoisePrefix)).length
+          : 0,
         candidateDigest: createHash("sha256")
           .update(JSON.stringify(lines.map(line =>
             createHash("sha256").update(line).digest("hex"))))
@@ -395,7 +417,9 @@ export function buildDiagnosticMarkerResponseStageEvidence(probe = {}) {
                         ? "DASHBOARD_MARKER_RESPONSE_MARKER_MISSING"
                         : (capture.markerCount > 1
                             ? "DASHBOARD_MARKER_RESPONSE_MARKER_DUPLICATE"
-                            : "PASS"))))));
+                            : (capture.rendererLogSelectedIndex !== 0
+                                ? "DASHBOARD_MARKER_RENDERER_WINDOW_MISMATCH"
+                                : "PASS")))))));
   return {
     schema: "media-server.v390-ui-dashboard-marker-response-stage-evidence.v1",
     pass: failureCode === "PASS",
@@ -416,6 +440,21 @@ export function buildDiagnosticMarkerResponseStageEvidence(probe = {}) {
     status: Number(capture?.status || 0),
     lineCount: Number(capture?.lineCount || 0),
     markerCount: Number(capture?.markerCount || 0),
+    responseOrder: String(capture?.responseOrder || ""),
+    rendererLogOrder: String(capture?.rendererLogOrder || ""),
+    markerResponseIndex: Number.isInteger(capture?.markerResponseIndex)
+      ? capture.markerResponseIndex
+      : -1,
+    markerReverseIndex: Number.isInteger(capture?.markerReverseIndex)
+      ? capture.markerReverseIndex
+      : -1,
+    classifierCandidateCount: Number(capture?.classifierCandidateCount || 0),
+    rendererLogSelectedIndex:
+      Number.isInteger(capture?.rendererLogSelectedIndex)
+        ? capture.rendererLogSelectedIndex
+        : -1,
+    rendererLogWindow: Number(capture?.rendererLogWindow || 0),
+    ownedNoiseCount: Number(capture?.ownedNoiseCount || 0),
     candidateDigest: String(capture?.candidateDigest || ""),
     matchedDigest: String(capture?.matchedDigest || ""),
   };
@@ -852,6 +891,7 @@ async function openNativePlaywrightPage(playwright, {
       marker,
       method = "GET",
       urlPath: probePath,
+      ownedNoisePrefix = "",
     } = {}) => {
       if (probeCaseId !== "EVT-004") {
         throw new Error("diagnostic marker response probe is limited to EVT-004");
@@ -865,6 +905,7 @@ async function openNativePlaywrightPage(playwright, {
         marker: String(marker || ""),
         method: String(method || "").toUpperCase(),
         urlPath: urlTarget(probePath),
+        ownedNoisePrefix: String(ownedNoisePrefix || ""),
         captures: [],
         readFailureCount: 0,
       };

@@ -682,6 +682,7 @@ check("dashboard marker response projection keeps only digests and fails closed"
     marker,
     method: "GET",
     urlPath: "/ops/api/diagnostics/log-tail?limit=80",
+    ownedNoisePrefix: "[review4-noise] EVT-004-OWNED-",
     captures: [],
     readFailureCount: 0,
   };
@@ -690,7 +691,11 @@ check("dashboard marker response projection keeps only digests and fails closed"
   const read = captureDiagnosticMarkerResponseProjection({
     response: {
       json: async () => ({
-        lines: [`[review4] auth incident ${marker} password=redacted`],
+        lines: [
+          ...Array.from({ length: 79 }, (_, index) =>
+            `[review4-noise] EVT-004-OWNED-${String(index).padStart(3, "0")}`),
+          `[review4] auth incident ${marker} password=redacted`,
+        ],
       }),
     },
     entry: {
@@ -712,7 +717,12 @@ check("dashboard marker response projection keeps only digests and fails closed"
   assert(evidence.pass === true &&
     evidence.responseCandidateCount === 1 &&
     evidence.markerCount === 1 &&
-    evidence.responseRequestObjectObserved === true,
+    evidence.responseRequestObjectObserved === true &&
+    evidence.lineCount === 80 &&
+    evidence.markerResponseIndex === 79 &&
+    evidence.markerReverseIndex === 0 &&
+    evidence.rendererLogSelectedIndex === 0 &&
+    evidence.ownedNoiseCount === 79,
   "dashboard marker response projection did not preserve exact safe identity");
   const serialized = JSON.stringify(evidence);
   assert(!serialized.includes(marker) &&
