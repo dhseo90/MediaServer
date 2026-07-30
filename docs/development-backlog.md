@@ -6859,6 +6859,16 @@ generator/producer 실행은 없습니다. native 40/40, completion 36/36, adapt
 semantic audit/approval 986/986 정적 PASS이며, 기존 `7df74cbd` actual EVT-004 FAIL은
 historical evidence로 보존하고 새 clean commit 뒤 전체 UI를 정확히 1회 실행합니다.
 
+EVT-004 marker recency stabilization(2026-07-31)은 authoritative log-tail에는 marker가
+있지만 dashboard가 최신 세 행만 표시해 marker가 timeline 밖으로 밀리던 test-owned fixture
+순서를 보정합니다. marker는 EVT-004 dashboard navigation 직전에 정확히 한 줄을 log tail의
+마지막으로 이동하며, 중복·누락·다른 case 호출·경로 이탈은 fail-closed입니다. 제품
+C++/API/UI는 변경하지 않았습니다. UI-018만 독립 승인한 뒤 migration-aware producer를
+정확히 한 번 실행해 985 carry-forward+1 independent, audit/approval 986/986을 갱신합니다.
+기존 `fec6a251` actual `./test_ui.sh`의 `291 attempted / 290 PASS / 1 FAIL / 133 not-run`
+EVT-004 FAIL은 historical evidence로 보존하며, 이번 checkpoint에서는 actual UI 재실행,
+diagnostic, Policy v4, 30분, 120분, release를 실행하지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

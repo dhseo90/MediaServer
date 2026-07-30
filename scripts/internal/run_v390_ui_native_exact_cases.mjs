@@ -2560,6 +2560,9 @@ async function semanticAssertionResult(
         actionId: completion.actionId,
         correlationId: completion.correlationId,
         catalogBindings: caseContext?.catalogBindings || null,
+        beforeScreenNavigation: item.caseId === "EVT-004"
+          ? () => caseRuntimeOwner.refreshDiagnosticMarkerForDashboard(item, caseContext)
+          : null,
       });
     })();
   if (item.caseId === "EVT-004") {
@@ -2800,6 +2803,9 @@ async function executeIndependentReadback(
         actionId: pending.action.semanticCompletion.actionId,
         correlationId: pending.action.semanticCompletion.correlationId,
         catalogBindings: caseContext?.catalogBindings || null,
+        beforeScreenNavigation: item.caseId === "EVT-004"
+          ? () => caseRuntimeOwner.refreshDiagnosticMarkerForDashboard(item, caseContext)
+          : null,
         primaryAction: item.workflow.workflowClass === "actionable"
           ? pending.actionEvidence
           : null,

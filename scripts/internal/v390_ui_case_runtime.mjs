@@ -1632,6 +1632,7 @@ export function createV390UiCaseRuntime({
     enabled: Boolean(descriptor),
     descriptor,
     prepareCase,
+    refreshDiagnosticMarkerForDashboard,
     freshRoleStorageState,
     resolveSecretRef,
     registerObservedSecret,
@@ -1648,6 +1649,35 @@ export function createV390UiCaseRuntime({
     assertSecretsAbsentFromArtifacts,
     releaseSecrets,
   };
+
+  async function refreshDiagnosticMarkerForDashboard(item, context) {
+    assert(item.caseId === "EVT-004",
+      `${item.caseId} cannot refresh the EVT-004 diagnostic marker`);
+    const marker = String(context?.catalogBindings?.logMarker || "");
+    assert(marker, "EVT-004 diagnostic marker binding is missing before dashboard navigation");
+    const logPath = path.join(rootDir, ".media_server.log");
+    assert(path.resolve(logPath) === path.resolve(rootDir, ".media_server.log"),
+      "EVT-004 diagnostic marker refresh escaped the product log boundary");
+    const raw = fs.readFileSync(logPath, "utf8");
+    const lines = raw.split(/\r?\n/u);
+    const matches = lines.filter(line => line.split(/\s+/u).includes(marker));
+    assert(matches.length === 1,
+      `EVT-004 diagnostic marker refresh requires one existing marker, got ${matches.length}`);
+    const retained = lines.filter(line => !line.split(/\s+/u).includes(marker));
+    while (retained.length > 0 && retained.at(-1) === "") retained.pop();
+    retained.push(matches[0]);
+    fs.writeFileSync(logPath, `${retained.join("\n")}\n`, { mode: 0o600 });
+    fs.chmodSync(logPath, 0o600);
+    const refreshed = fs.readFileSync(logPath, "utf8").split(/\r?\n/u)
+      .filter(line => line.split(/\s+/u).includes(marker));
+    assert(refreshed.length === 1 && refreshed[0] === matches[0],
+      "EVT-004 diagnostic marker refresh did not preserve one exact marker line");
+    return {
+      status: "PASS",
+      source: "test-owned-log-marker-tail-prioritization",
+      markerDigest: crypto.createHash("sha256").update(marker).digest("hex"),
+    };
+  }
 
   async function prepareCatalogRuntimeFixture(item, context) {
     const spec = exactRuntimeOracleFor(item.caseId);

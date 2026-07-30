@@ -343,6 +343,14 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
   if (splitApiAndScreen) {
     let screenNavigation = null;
     if (routePathname(currentRoute) !== routePathname(screenRoute)) {
+      if (item.caseId === "EVT-004") {
+        assert(typeof args.beforeScreenNavigation === "function",
+          "EVT-004 dashboard navigation requires a test-owned marker refresh hook");
+        const markerRefresh = await args.beforeScreenNavigation();
+        assert(markerRefresh?.status === "PASS" &&
+          markerRefresh.source === "test-owned-log-marker-tail-prioritization",
+        "EVT-004 dashboard marker refresh failed before navigation");
+      }
       await browser.setCorrelationId(`${item.caseId}:navigation`, { inject: false });
       screenNavigation = await browser.navigate(screenRoute);
       assert([200, 204].includes(screenNavigation.status),

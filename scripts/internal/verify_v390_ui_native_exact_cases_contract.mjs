@@ -59,6 +59,7 @@ const runnerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/run_v3
 const generatorSource = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_v390_ui_native_exact_cases.mjs"), "utf8");
 const nativeLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_exact_cases_lib.mjs"), "utf8");
 const runtimeSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_case_runtime.mjs"), "utf8");
+const runtimeOracleSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_exact_oracle_runtime.mjs"), "utf8");
 const environmentSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_acceptance_ui_environment.mjs"), "utf8");
 const producerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_policy_v4_evidence_producer.mjs"), "utf8");
 const policyLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs"), "utf8");
@@ -326,6 +327,13 @@ check("every exact EVT seed.kind has a declarative store and join materializer",
     runtimeSource.includes("eventExactSeedMaterializerRegistry[kind]") &&
     runtimeSource.includes("exact event seed is missing from the authoritative review join readback"),
   "exact EVT runtime does not resolve seed.kind through the shared materializer");
+  assert(runtimeSource.includes("refreshDiagnosticMarkerForDashboard") &&
+    runtimeSource.includes("test-owned-log-marker-tail-prioritization") &&
+    runtimeSource.includes("requires one existing marker"),
+  "EVT-004 diagnostic marker tail prioritization is not exact and fail-closed");
+  assert(runnerSource.includes("beforeScreenNavigation: item.caseId === \"EVT-004\"") &&
+    runtimeOracleSource.includes("EVT-004 dashboard navigation requires a test-owned marker refresh hook"),
+  "EVT-004 dashboard navigation is not bound to the marker refresh hook");
   for (const scope of ["eventRecords", "review", "vlm", "audit", "alert", "sourceHealth", "related"]) {
     assert(runtimeSource.includes(`${scope}:`), `exact EVT runtime seed join evidence is missing: ${scope}`);
   }
