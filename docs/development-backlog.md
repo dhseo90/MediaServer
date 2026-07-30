@@ -6785,6 +6785,25 @@ migration/review/decision SHA는
 않았습니다. 이 정적 checkpoint에서 actual UI-001은 미실행이며 clean commit/push 뒤
 단건 diagnostic을 정확히 1회 실행합니다.
 
+UI-001 exact diagnostic selection checkpoint(2026-07-30)은 기본 무인자
+`RULE-097`~canonical end 144건 selection을 유지하면서 명시적
+`--case-id UI-001`에만 canonical positive `native-executable` 단건 override를
+허용합니다. Parent/child는 `explicit-positive-case`, start/end `UI-001`,
+selectedIds `[UI-001]`, target 1을 source binding과 summary에 함께 결속하며
+EVT-004 override도 동일하게 유지합니다. Unknown, negative `UI-018`, unsupported,
+duplicate `--case-id`, selection metadata drift와 다른 case 동반 실행은 browser
+lifecycle 전 fail-closed입니다. Diagnostic 18/18, runtime 39/39, native 40/40,
+completion 34/34, adapter 20/20, acceptance 21/21, 올바른 final-integrity
+contract 12/12, semantic audit 51/51·approval 986/986, negative 11/11, migration,
+feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0과 changed MJS/diff gate가 PASS했습니다.
+Source-built/stored native manifest와 semantic candidate
+`678facc450219d02db3ceb1990f9eef76ddcdf68977ed2911f613e8e2b2b56d9`는 exact
+match이고 feature/pass/status/sourceFlowDigest 변경은 0이므로 generator/producer는
+각 0회입니다. 제품 C++·API schema·UI와 canonical 424 navigation/correlation 계약은
+변경하지 않았습니다. 이 정적 checkpoint에서 actual UI-001은 미실행이며 clean
+commit/push 뒤 explicit 단건을 정확히 1회 실행합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

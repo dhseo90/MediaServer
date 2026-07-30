@@ -42,7 +42,15 @@ validateNativeExactManifest({ manifest, canonical, implementation });
 const diagnosticManifestPath = path.join(outputDir, "diagnostic-native-manifest.json");
 writeJson(diagnosticManifestPath, manifest);
 const fullSelection = fixedSelection(manifest.cases);
-const selection = selectedDiagnosticCases(fullSelection, options.caseId);
+const selectionMode = options.caseId
+  ? "explicit-positive-case"
+  : "fixed-remaining-sweep";
+const selection = selectedDiagnosticCases({
+  fullSelection,
+  manifestCases: manifest.cases,
+  caseId: options.caseId,
+  selectionMode,
+});
 const sourceCommit = currentGitCommit();
 const sourceManifestSha256 = sha256(stableJson(manifest));
 
@@ -213,6 +221,7 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
     "run-v390-ui-native-exact-cases",
     "--diagnostic-child",
     "--diagnostic-case-id", item.caseId,
+    "--diagnostic-selection-mode", selectionMode,
     "--manifest", diagnosticManifestPath,
     "--output-dir", childDir,
     "--http-base", handle.runtime.httpBase,
@@ -238,6 +247,7 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
       runId,
       caseId: item.caseId,
       caseIdsSha256: sha256(item.caseId),
+      selectionMode,
     });
   } catch {
     summary = null;
@@ -285,11 +295,19 @@ function fixedSelection(cases) {
   return selected;
 }
 
-function selectedDiagnosticCases(cases, caseId) {
-  if (!caseId) return cases;
-  const selected = cases.find(item => item.caseId === caseId);
-  assert(selected, `diagnostic case is outside the fixed RULE-097 selection: ${caseId}`);
-  return [selected];
+function selectedDiagnosticCases({ fullSelection, manifestCases, caseId, selectionMode }) {
+  if (selectionMode === "fixed-remaining-sweep") {
+    assert(!caseId, "fixed diagnostic selection cannot receive --case-id");
+    return fullSelection;
+  }
+  assert(selectionMode === "explicit-positive-case", "unsupported diagnostic selection mode");
+  assert(caseId, "explicit diagnostic selection requires --case-id");
+  const matches = manifestCases.filter(item => item.caseId === caseId);
+  assert(matches.length === 1, `diagnostic explicit case ID is unknown or duplicated: ${caseId}`);
+  const [item] = matches;
+  assert(item.disposition === "native-executable",
+    `diagnostic explicit case must be a positive native-executable case: ${caseId}`);
+  return [item];
 }
 
 function buildSummary({ result, executionStatus, cases, environments, cleanup }) {
@@ -316,6 +334,7 @@ function buildSummary({ result, executionStatus, cases, environments, cleanup })
       manifestSha256: sha256(stableJson(manifest)),
       selectionIdsSha256: sha256(selection.map(item => item.caseId).join("\n")),
       runId,
+      selectionMode,
     },
     selection: {
       startCaseId: selection[0].caseId,
@@ -324,7 +343,7 @@ function buildSummary({ result, executionStatus, cases, environments, cleanup })
       targetCaseCount: selection.length,
       targetCaseIdsSha256: sha256(selection.map(item => item.caseId).join("\n")),
       automaticRetryCount: 0,
-      mode: options.caseId ? "single-case-diagnostic" : "fixed-remaining-sweep",
+      mode: selectionMode,
     },
     counts,
     environments,
@@ -499,11 +518,19 @@ function validateChildSummary(summary, item, expectedSourceBinding) {
     "diagnostic child Policy v4 boundary mismatch");
   assert(summary.selection?.caseId === item.caseId && summary.selection?.automaticRetryCount === 0,
     "diagnostic child selection/retry mismatch");
+  assert(summary.selection?.startCaseId === item.caseId &&
+    summary.selection?.endCaseId === item.caseId &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify([item.caseId]) &&
+    summary.selection?.targetCaseCount === 1 &&
+    summary.selection?.mode === selectionMode,
+  "diagnostic child selection metadata mismatch");
   assert(summary.case?.caseId === item.caseId, "diagnostic child case mismatch");
   const sourceBindingErrors =
     diagnosticChildSourceBindingErrors(summary, expectedSourceBinding);
   assert(sourceBindingErrors.length === 0,
     `diagnostic child source binding invalid: ${sourceBindingErrors.join(",")}`);
+  assert(summary.sourceBinding?.selectionMode === expectedSourceBinding.selectionMode,
+    "diagnostic child selection mode source binding mismatch");
   assert(summary.case?.actualBrowserExecution === Boolean(summary.counts?.attempted),
     "diagnostic child actual browser execution mismatch");
   if (summary.case?.eventDomSemanticEvidence) {
@@ -640,6 +667,7 @@ function parseArgs(args) {
     chromePath: "",
     planOnly: false,
     caseId: "",
+    caseIdSpecified: false,
     bootstrapFailureContractFixture: "",
   };
   for (let index = 0; index < args.length; index += 1) {
@@ -650,7 +678,11 @@ function parseArgs(args) {
     else if (arg === "--timeout-ms") parsed.timeoutMs = Number(args[++index] || 0);
     else if (arg === "--playwright-module-path") parsed.playwrightModulePath = args[++index] || "";
     else if (arg === "--chrome-path") parsed.chromePath = args[++index] || "";
-    else if (arg === "--case-id") parsed.caseId = args[++index] || "";
+    else if (arg === "--case-id") {
+      assert(!parsed.caseIdSpecified, "duplicate --case-id is not allowed");
+      parsed.caseIdSpecified = true;
+      parsed.caseId = args[++index] || "";
+    }
     else if (arg === "--contract-bootstrap-failure-fixture") {
       parsed.bootstrapFailureContractFixture = args[++index] || "";
     }

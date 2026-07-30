@@ -125,7 +125,7 @@ try {
 }
 const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
 const diagnosticSelection = diagnosticChild
-  ? selectDiagnosticCase(manifest.cases, options.diagnosticCaseId)
+  ? selectDiagnosticCase(manifest.cases, options.diagnosticCaseId, options.diagnosticSelectionMode)
   : null;
 const tracesDir = path.join(outputDir, "traces");
 const screenshotsDir = path.join(outputDir, "screenshots");
@@ -3321,8 +3321,18 @@ function makeNotRun(item, reason) {
   return { caseId: item.caseId, featureId: item.featureId, status: "not-run", reason };
 }
 
-function selectDiagnosticCase(cases, caseId) {
+function selectDiagnosticCase(cases, caseId, selectionMode) {
   assert(caseId, "--diagnostic-case-id is required with --diagnostic-child");
+  assert(["fixed-remaining-sweep", "explicit-positive-case"].includes(selectionMode),
+    "unsupported diagnostic child selection mode");
+  if (selectionMode === "explicit-positive-case") {
+    const matches = cases.filter(item => item.caseId === caseId);
+    assert(matches.length === 1, `diagnostic explicit case ID is unknown or duplicated: ${caseId}`);
+    const [item] = matches;
+    assert(item.disposition === "native-executable",
+      `diagnostic explicit case must be a positive native-executable case: ${caseId}`);
+    return diagnosticSingleCaseSelection(item, selectionMode);
+  }
   const firstIndex = cases.findIndex(item => item.caseId === "RULE-097");
   assert(firstIndex >= 0, "RULE-097 diagnostic start case is missing from the canonical manifest");
   const selected = cases.slice(firstIndex);
@@ -3330,6 +3340,10 @@ function selectDiagnosticCase(cases, caseId) {
     `RULE-097 diagnostic selection must contain 144 cases: ${selected.length}`);
   const item = selected.find(candidate => candidate.caseId === caseId);
   assert(item, `diagnostic case is outside the fixed RULE-097 selection: ${caseId}`);
+  return diagnosticSingleCaseSelection(item, selectionMode);
+}
+
+function diagnosticSingleCaseSelection(item, mode) {
   return {
     item,
     startCaseId: item.caseId,
@@ -3337,6 +3351,7 @@ function selectDiagnosticCase(cases, caseId) {
     selectedIds: [item.caseId],
     targetCaseCount: 1,
     targetCaseIdsSha256: sha256Text(item.caseId),
+    mode,
   };
 }
 
@@ -3373,6 +3388,7 @@ function createDiagnosticChildSummary({
       targetCaseIdsSha256: sha256Text(item.caseId),
       caseId: item.caseId,
       automaticRetryCount: 0,
+      mode: options.diagnosticSelectionMode,
     },
     counts: {
       target: 1,
@@ -3445,6 +3461,7 @@ function createDiagnosticPreExecutionSummary(caseId, phase) {
       targetCaseIdsSha256: sha256Text(caseId),
       caseId,
       automaticRetryCount: 0,
+      mode: options.diagnosticSelectionMode,
     },
     counts: { target: 1, attempted: 0, pass: 0, fail: 0, notRun: 1 },
     case: {
@@ -3490,6 +3507,7 @@ function validateDiagnosticChildSummary(summary, item) {
     "runId",
     "caseId",
     "caseIdsSha256",
+    "selectionMode",
   ]) {
     if (summary?.sourceBinding?.[field] !== expectedSourceBinding[field]) {
       errors.push(`diagnostic-child-source-binding-${field}`);
@@ -3500,7 +3518,8 @@ function validateDiagnosticChildSummary(summary, item) {
       summary?.selection?.endCaseId !== item.caseId ||
       JSON.stringify(summary?.selection?.selectedIds) !== JSON.stringify([item.caseId]) ||
       summary?.selection?.targetCaseCount !== 1 ||
-      summary?.selection?.automaticRetryCount !== 0) {
+      summary?.selection?.automaticRetryCount !== 0 ||
+      summary?.selection?.mode !== options.diagnosticSelectionMode) {
     errors.push("diagnostic-child-selection");
   }
   if (summary?.counts?.target !== 1 ||
@@ -3669,6 +3688,7 @@ function parseArgs(args) {
     planOnly: false,
     diagnosticChild: false,
     diagnosticCaseId: "",
+    diagnosticSelectionMode: "fixed-remaining-sweep",
     diagnosticSourceCommit: "",
     diagnosticManifestSha256: "",
     diagnosticRunId: "",
@@ -3688,6 +3708,7 @@ function parseArgs(args) {
     else if (arg === "--plan-only") value.planOnly = true;
     else if (arg === "--diagnostic-child") value.diagnosticChild = true;
     else if (arg === "--diagnostic-case-id") value.diagnosticCaseId = args[++index] || "";
+    else if (arg === "--diagnostic-selection-mode") value.diagnosticSelectionMode = args[++index] || "";
     else if (arg === "--diagnostic-source-commit") value.diagnosticSourceCommit = args[++index] || "";
     else if (arg === "--diagnostic-manifest-sha256") value.diagnosticManifestSha256 = args[++index] || "";
     else if (arg === "--diagnostic-run-id") value.diagnosticRunId = args[++index] || "";
@@ -3697,6 +3718,11 @@ function parseArgs(args) {
   assert(Number.isFinite(value.timeoutMs) && value.timeoutMs > 0, "--timeout-ms must be positive");
   assert(!value.diagnosticCaseId || value.diagnosticChild,
     "--diagnostic-case-id requires --diagnostic-child");
+  assert(value.diagnosticSelectionMode === "fixed-remaining-sweep" ||
+    value.diagnosticSelectionMode === "explicit-positive-case",
+  "--diagnostic-selection-mode must be a supported diagnostic child mode");
+  assert(value.diagnosticSelectionMode === "fixed-remaining-sweep" || value.diagnosticChild,
+    "--diagnostic-selection-mode requires --diagnostic-child");
   assert(!value.diagnosticChild || value.diagnosticCaseId,
     "--diagnostic-child requires --diagnostic-case-id");
   assert(!value.diagnosticChild || /^[0-9a-f]{40}$/.test(value.diagnosticSourceCommit),
@@ -3742,6 +3768,7 @@ function diagnosticChildSourceBinding(caseId) {
     runId: options.diagnosticRunId,
     caseId,
     caseIdsSha256: sha256Text(caseId),
+    selectionMode: options.diagnosticSelectionMode,
   };
 }
 

@@ -540,21 +540,23 @@ check("bootstrap failure preserves safe phase, cause digest, and cleanup attesta
   "bootstrap failure summary exposed a raw URL or secret");
 });
 
-check("single-case diagnostics stay inside the fixed remaining selection", () => {
-  assert(sweepSource.includes('else if (arg === "--case-id") parsed.caseId = args[++index] || "";'),
+check("default diagnostics retain the fixed RULE-097 selection while explicit diagnostics use validated positives", () => {
+  assert(sweepSource.includes('else if (arg === "--case-id") {') &&
+    sweepSource.includes('parsed.caseId = args[++index] || "";'),
     "diagnostic single-case parser missing");
-  assert(sweepSource.includes('mode: options.caseId ? "single-case-diagnostic" : "fixed-remaining-sweep"'),
-    "diagnostic selection mode missing");
-  assert(sweepSource.includes("diagnostic case is outside the fixed RULE-097 selection"),
-    "diagnostic single-case range guard missing");
+  assert(sweepSource.includes('assert(!parsed.caseIdSpecified, "duplicate --case-id is not allowed")') &&
+    sweepSource.includes('selectionMode === "explicit-positive-case"') &&
+    sweepSource.includes('item.disposition === "native-executable"') &&
+    sweepSource.includes('manifestCases.filter(item => item.caseId === caseId)') &&
+    sweepSource.includes('mode: selectionMode'),
+  "explicit positive diagnostic selection contract missing");
   assert(sweepSource.includes("startCaseId: selection[0].caseId") &&
     sweepSource.includes("endCaseId: selection.at(-1).caseId") &&
     sweepSource.includes("selectedIds: selection.map(item => item.caseId)"),
   "diagnostic summary does not bind selection metadata to the actual selected cases");
-  assert(runnerSource.includes("startCaseId: item.caseId") &&
-    runnerSource.includes("endCaseId: item.caseId") &&
-    runnerSource.includes("selectedIds: [item.caseId]"),
-  "diagnostic child summary retains the RULE-097 fallback for a single case");
+  assert(sweepSource.includes('"--diagnostic-case-id", item.caseId') &&
+    sweepSource.includes('"--diagnostic-selection-mode", selectionMode'),
+  "diagnostic parent does not forward the requested case and explicit selection mode to its child");
 });
 
 check("single-case plan metadata names only the requested case", () => {
@@ -575,6 +577,60 @@ check("single-case plan metadata names only the requested case", () => {
     JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(["EVT-003"]) &&
     summary.selection?.targetCaseCount === 1,
   "diagnostic single-case metadata is not bound to EVT-003");
+  assert(summary.selection?.mode === "explicit-positive-case" &&
+    summary.sourceBinding?.selectionMode === "explicit-positive-case" &&
+    summary.counts.target === 1 && summary.cases.length === 1 &&
+    summary.cases[0]?.automaticRetryCount === 0,
+  "diagnostic explicit case selection mode/source binding drift");
+});
+
+check("explicit positive cases support UI-001 and preserve EVT-004 as exact one-case selections", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  for (const caseId of ["UI-001", "EVT-004"]) {
+    const outputDir = fs.mkdtempSync(path.join(parent, "explicit-positive-contract-"));
+    temporaryDirs.push(outputDir);
+    const run = spawnSync(path.join(rootDir, "server.sh"), [
+      "run-v390-ui-native-diagnostic-sweep",
+      "--case-id", caseId,
+      "--plan-only",
+      "--output-dir", outputDir,
+    ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    assert(run.status === 0, `explicit ${caseId} plan failed: ${run.stderr || run.stdout}`);
+    const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+    assert(summary.selection?.startCaseId === caseId &&
+      summary.selection?.endCaseId === caseId &&
+      JSON.stringify(summary.selection?.selectedIds) === JSON.stringify([caseId]) &&
+      summary.selection?.targetCaseCount === 1 &&
+      summary.selection?.mode === "explicit-positive-case" &&
+      summary.sourceBinding?.selectionMode === "explicit-positive-case" &&
+      summary.counts.target === 1 && summary.counts.notRun === 1 &&
+      summary.cases.length === 1 && summary.cases[0]?.caseId === caseId &&
+      summary.cases[0]?.automaticRetryCount === 0,
+    `explicit ${caseId} selection metadata drifted or selected another case`);
+  }
+});
+
+check("explicit diagnostic selection rejects duplicate, unknown, negative, and unsupported case inputs before browser execution", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  for (const args of [
+    ["--case-id", "UI-001", "--case-id", "EVT-004"],
+    ["--case-id", "UI-999"],
+    ["--case-id", "UI-018"],
+  ]) {
+    const outputDir = fs.mkdtempSync(path.join(parent, "invalid-explicit-positive-contract-"));
+    temporaryDirs.push(outputDir);
+    const run = spawnSync(path.join(rootDir, "server.sh"), [
+      "run-v390-ui-native-diagnostic-sweep",
+      ...args,
+      "--plan-only",
+      "--output-dir", outputDir,
+    ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    assert(run.status === 1, `invalid explicit diagnostic input unexpectedly passed: ${args.join(" ")}`);
+    assert(!fs.existsSync(path.join(outputDir, "summary.json")),
+      `invalid explicit diagnostic input reached summary/browser lifecycle: ${args.join(" ")}`);
+  }
 });
 
 check("plan-only diagnostic output preserves count invariants without browser execution", () => {
@@ -657,6 +713,47 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
   assert(summary.case?.actualBrowserExecution === false &&
     summary.case?.eventDomSemanticEvidence === null,
   "diagnostic child plan-only claims browser or EVT DOM evidence");
+});
+
+check("diagnostic child explicit-positive mode revalidates UI-001 identity and selection binding", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "child-explicit-positive-contract-"));
+  temporaryDirs.push(outputDir);
+  const canonical = JSON.parse(read("test/fixtures/ui_fulltest_case_manifest_policy_v4.json"));
+  const implementation = JSON.parse(read("test/fixtures/project_feature_implementation_evidence.json"));
+  const diagnosticManifestPath = path.join(outputDir, "diagnostic-native-manifest.json");
+  const nativeManifest = buildNativeExactManifest({ canonical, implementation });
+  fs.writeFileSync(diagnosticManifestPath,
+    `${JSON.stringify(nativeManifest, null, 2)}\n`,
+    "utf8");
+  const manifestSha256 = createHash("sha256")
+    .update(stableJson(nativeManifest)).digest("hex");
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-exact-cases",
+    "--diagnostic-child",
+    "--diagnostic-case-id", "UI-001",
+    "--diagnostic-selection-mode", "explicit-positive-case",
+    "--manifest", diagnosticManifestPath,
+    "--diagnostic-source-commit", "1".repeat(40),
+    "--diagnostic-manifest-sha256", manifestSha256,
+    "--diagnostic-run-id", "diagnostic-child-explicit-positive-contract",
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0, `explicit positive child plan failed: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  assert(summary.selection?.caseId === "UI-001" &&
+    summary.selection?.startCaseId === "UI-001" &&
+    summary.selection?.endCaseId === "UI-001" &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(["UI-001"]) &&
+    summary.selection?.targetCaseCount === 1 &&
+    summary.selection?.automaticRetryCount === 0 &&
+    summary.selection?.mode === "explicit-positive-case" &&
+    summary.sourceBinding?.selectionMode === "explicit-positive-case" &&
+    summary.sourceBinding?.manifestSha256 === manifestSha256 &&
+    summary.actualBrowserExecution === false,
+  "explicit positive child selection/source binding drift");
 });
 
 check("server dispatch exposes only the internal run and verification commands", () => {
