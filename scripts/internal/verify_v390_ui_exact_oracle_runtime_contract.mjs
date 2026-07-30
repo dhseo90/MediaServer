@@ -25,6 +25,7 @@ import {
 } from "./v390_ui_exact_oracle_runtime.mjs";
 import {
   buildDiagnosticMarkerFileStageEvidence,
+  buildEvt004TimelineOwnershipEvidence,
   usesEventExactRuntimeBindings,
 } from "./v390_ui_case_runtime.mjs";
 import {
@@ -138,6 +139,81 @@ await check("EVT-004 marker lifecycle distinguishes hook, file, response, timeli
   assert(!JSON.stringify(stage).includes("/tmp/owned") &&
     !JSON.stringify(stage).includes(marker),
   "marker stage evidence exposed a path or raw marker");
+});
+
+await check("EVT-004 removes only acceptance-owned canonical timeline residue", async () => {
+  const owned = (kind, index) => ({
+    stableIdentity: `${kind}:review4-owned-${index}`,
+    owned: true,
+    ownerLabel: `review4-owned-${kind}`,
+    firstCreatorCase: kind === "root-cause" ? "EVT-001" : `PRIOR-${index}`,
+    originRoute: `/ops/api/${kind}`,
+    originService: `${kind}-service`,
+    backingOwner: `${kind}-registry`,
+  });
+  const evidence = buildEvt004TimelineOwnershipEvidence({
+    rootCandidates: [owned("root-cause", 1), owned("root-cause", 2)],
+    sourceCandidates: [
+      owned("source-health", 1),
+      owned("source-health", 2),
+      owned("source-health", 3),
+    ],
+    ruleCandidates: [
+      owned("rule-warning", 1),
+      owned("rule-warning", 2),
+      owned("rule-warning", 3),
+    ],
+    logCandidates: [{
+      stableIdentity: "log-tail:evt004-marker",
+      owned: false,
+      ownerLabel: "evt004-marker-fixture",
+      firstCreatorCase: "EVT-004",
+      originRoute: "/ops/api/diagnostics/log-tail?limit=80",
+      originService: "OpsDiagnosticLogTailJson",
+      backingOwner: "acceptance-owned product root log snapshot",
+      marker: true,
+    }, {
+      stableIdentity: "log-tail:product-baseline",
+      owned: false,
+      ownerLabel: "product-baseline",
+      firstCreatorCase: "baseline-server-start",
+      originRoute: "/ops/api/diagnostics/log-tail?limit=80",
+      originService: "OpsDiagnosticLogTailJson",
+      backingOwner: "product log",
+    }],
+    stateIdentityBefore: "baseline-state",
+    stateIdentityAfter: "baseline-state",
+  });
+  assert(evidence.pass === true &&
+    evidence.markerInitiallyDisplaced === true &&
+    evidence.markerSelectedAfterIsolation === true &&
+    evidence.nonOwnedPreserved === true &&
+    evidence.ownedKindCounts["root-cause"] === 2 &&
+    evidence.ownedKindCounts["source-health"] === 3 &&
+    evidence.ownedKindCounts["rule-warning"] === 3,
+  "canonical root/source/rule residue was not isolated before marker selection");
+  assert(evidence.candidateProvenance.every(candidate =>
+    /^[a-f0-9]{64}$/u.test(candidate.identityDigest)) &&
+    !JSON.stringify(evidence).includes("review4-owned-1"),
+  "timeline ownership evidence exposed a stable identity instead of its digest");
+
+  const nonOwnedRemoval = buildEvt004TimelineOwnershipEvidence({
+    rootCandidates: [{
+      stableIdentity: "root:product",
+      owned: true,
+      ownerLabel: "product-baseline",
+      firstCreatorCase: "baseline-server-start",
+    }],
+    logCandidates: [{
+      stableIdentity: "log:marker",
+      owned: false,
+      marker: true,
+    }],
+    stateIdentityBefore: "baseline-state",
+    stateIdentityAfter: "baseline-state",
+  });
+  assert(nonOwnedRemoval.pass === false,
+    "a product-baseline candidate mislabeled as owned did not fail closed");
 });
 
 await check("EVT-004 correlation is request-scoped to one authoritative log-tail fetch", async () => {

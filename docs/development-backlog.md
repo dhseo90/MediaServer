@@ -6888,6 +6888,16 @@ test-owned noise 96행 뒤 marker 한 행을 유지해 API oldest-to-newest inde
 window index `0`을 회귀 계약으로 고정합니다. 이 checkpoint에서는 focused actual과 canonical UI,
 Policy v4, 30분, 120분, release를 실행하지 않습니다.
 
+EVT-004 scoped EVT-001 session-residue isolation(2026-07-31)은 `2ffdff63356246bd78b627e46fdb83ae95d08134`
+actual full UI의 `291 attempted / 290 PASS / 1 FAIL / 133 not-run` marker assertion FAIL을 historical
+evidence로 보존합니다. EVT-001 viewer VA-overlay session은 종료 뒤 idle grace 중 file/VOD stream
+root-cause를 남길 수 있으며, 이 acceptance-owned residue가 timeline window에서 EVT-004 marker를
+밀어냈습니다. Runtime은 session 전 state identity와 owner를 기록하고 EVT-004에서 해당 owner만 bounded
+polling으로 baseline까지 drain합니다. baseline non-owned root 2/source 3/rule 3 후보와 제품 registry,
+timeline limit/priority/filter는 유지합니다. 후보별 provenance와 digest, removed/restored/post-cleanup
+identity는 fail-closed로 검증하며 broad clear와 제품 C++/API/UI 변경은 없습니다. Focused EVT-004는 PASS했지만
+canonical UI 재실행, Policy v4, 30분, 120분, release는 이 checkpoint에서 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

@@ -164,6 +164,7 @@ export function buildDiagnosticMarkerFileStageEvidence({
   lines = [],
   ownedNoisePrefix = "",
   analysisIsolationEvidence = null,
+  timelineIsolationEvidence = null,
 } = {}) {
   const normalizedMarker = String(marker).normalize("NFKC").trim();
   const normalizedLines = Array.isArray(lines)
@@ -196,24 +197,26 @@ export function buildDiagnosticMarkerFileStageEvidence({
   const ownedNoiseCount = ownedNoisePrefix
     ? normalizedLines.filter(line => line.startsWith(ownedNoisePrefix)).length
     : 0;
-  const failureCode = Number(invocationCount) !== 1
-    ? "MARKER_RELOCATION_HOOK_INVOCATION_MISMATCH"
-    : (!fileIdentityMatched
-        ? "MARKER_LOG_FILE_IDENTITY_MISMATCH"
-        : (!normalizedMarker || markerMatches.length === 0
-            ? "MARKER_LOG_FILE_MISSING"
-            : (markerMatches.length > 1
-                ? "MARKER_LOG_FILE_DUPLICATE"
-                : (markerPositionFromTail !== 0
-                    ? "MARKER_LOG_FILE_NOT_AT_TAIL"
-                    : (!markerClassifierMatched
-                        ? "MARKER_LOG_FILE_CLASSIFIER_MISMATCH"
-                        : (rendererLogSelectedIndex !== 0
-                            ? "MARKER_LOG_RENDERER_WINDOW_MISMATCH"
-                            : (analysisIsolationEvidence &&
-                                analysisIsolationEvidence.pass !== true
-                                ? analysisIsolationEvidence.failureCode
-                                : "PASS")))))));
+  let failureCode = "PASS";
+  if (Number(invocationCount) !== 1) {
+    failureCode = "MARKER_RELOCATION_HOOK_INVOCATION_MISMATCH";
+  } else if (!fileIdentityMatched) {
+    failureCode = "MARKER_LOG_FILE_IDENTITY_MISMATCH";
+  } else if (!normalizedMarker || markerMatches.length === 0) {
+    failureCode = "MARKER_LOG_FILE_MISSING";
+  } else if (markerMatches.length > 1) {
+    failureCode = "MARKER_LOG_FILE_DUPLICATE";
+  } else if (markerPositionFromTail !== 0) {
+    failureCode = "MARKER_LOG_FILE_NOT_AT_TAIL";
+  } else if (!markerClassifierMatched) {
+    failureCode = "MARKER_LOG_FILE_CLASSIFIER_MISMATCH";
+  } else if (rendererLogSelectedIndex !== 0) {
+    failureCode = "MARKER_LOG_RENDERER_WINDOW_MISMATCH";
+  } else if (analysisIsolationEvidence && analysisIsolationEvidence.pass !== true) {
+    failureCode = analysisIsolationEvidence.failureCode;
+  } else if (timelineIsolationEvidence && timelineIsolationEvidence.pass !== true) {
+    failureCode = timelineIsolationEvidence.failureCode;
+  }
   return {
     schema: "media-server.v390-ui-marker-file-stage-evidence.v1",
     pass: failureCode === "PASS",
@@ -247,6 +250,116 @@ export function buildDiagnosticMarkerFileStageEvidence({
     analysisIsolationEvidence: analysisIsolationEvidence
       ? structuredClone(analysisIsolationEvidence)
       : null,
+    timelineIsolationEvidence: timelineIsolationEvidence
+      ? structuredClone(timelineIsolationEvidence)
+      : null,
+  };
+}
+
+export function buildEvt004TimelineOwnershipEvidence({
+  rootCandidates = [],
+  sourceCandidates = [],
+  ruleCandidates = [],
+  logCandidates = [],
+  stateIdentityBefore = "",
+  stateIdentityAfter = "",
+} = {}) {
+  const normalize = (value, expectedKind) => {
+    const stableIdentity = String(value?.stableIdentity || "");
+    const ownerLabel = String(value?.ownerLabel || "product-baseline");
+    const firstCreatorCase = String(value?.firstCreatorCase || "baseline-server-start");
+    assert(stableIdentity, `EVT-004 ${expectedKind} candidate identity is missing`);
+    return {
+      kind: expectedKind,
+      owned: value?.owned === true,
+      ownerLabel,
+      firstCreatorCase,
+      originRoute: String(value?.originRoute || ""),
+      originService: String(value?.originService || ""),
+      backingOwner: String(value?.backingOwner || ""),
+      identityDigest: crypto.createHash("sha256").update(stableIdentity).digest("hex"),
+      marker: value?.marker === true,
+    };
+  };
+  const groups = {
+    "root-cause": rootCandidates.map(value => normalize(value, "root-cause")),
+    "source-health": sourceCandidates.map(value => normalize(value, "source-health")),
+    "rule-warning": ruleCandidates.map(value => normalize(value, "rule-warning")),
+    "log-tail": logCandidates.map(value => normalize(value, "log-tail")),
+  };
+  const before = [
+    ...groups["root-cause"],
+    ...groups["source-health"],
+    ...groups["rule-warning"],
+    ...groups["log-tail"],
+  ];
+  const removed = before.filter(value => value.owned);
+  const preserved = before.filter(value => !value.owned);
+  const invalidOwnership = before.some(value => value.owned &&
+    (value.ownerLabel === "product-baseline" ||
+      value.ownerLabel === "published-seed-baseline" ||
+      value.firstCreatorCase === "baseline-server-start"));
+  const after = [...preserved];
+  const selectedBefore = before.slice(0, 8);
+  const selectedAfter = after.slice(0, 8);
+  const countByKind = values => Object.fromEntries(
+    Object.keys(groups).map(kind => [kind, values.filter(value => value.kind === kind).length]),
+  );
+  const digestIdentities = values => crypto.createHash("sha256")
+    .update(JSON.stringify(values.map(value => value.identityDigest).sort())).digest("hex");
+  const markerInitiallyDisplaced = before.some(value => value.marker) &&
+    !selectedBefore.some(value => value.marker);
+  const markerInitiallySelected = selectedBefore.some(value => value.marker);
+  const markerSelectedAfterIsolation = selectedAfter.some(value => value.marker);
+  const nonOwnedPreserved = preserved.every(value =>
+    after.some(candidate => candidate.identityDigest === value.identityDigest));
+  const stateRestored = Boolean(stateIdentityAfter) &&
+    stateIdentityAfter === stateIdentityBefore;
+  const failureCode = invalidOwnership
+    ? "EVT004_NON_OWNED_CANDIDATE_MISCLASSIFIED"
+    : (!markerInitiallyDisplaced && !markerInitiallySelected
+    ? "EVT004_MARKER_NOT_PRESENT_BEFORE_ISOLATION"
+    : (markerInitiallyDisplaced && removed.length === 0
+        ? "EVT004_ACCEPTANCE_OWNED_RESIDUE_MISSING"
+        : (!nonOwnedPreserved
+            ? "EVT004_NON_OWNED_CANDIDATE_REMOVED"
+            : (!markerSelectedAfterIsolation
+                ? "EVT004_MARKER_NOT_SELECTED_AFTER_ISOLATION"
+                : (!stateRestored
+                    ? "EVT004_POST_ISOLATION_STATE_IDENTITY_MISMATCH"
+                    : "PASS")))));
+  return {
+    schema: "media-server.v390-ui-evt004-timeline-ownership-evidence.v1",
+    pass: failureCode === "PASS",
+    failureCode,
+    beforeKindCounts: countByKind(before),
+    ownedKindCounts: countByKind(removed),
+    nonOwnedKindCounts: countByKind(preserved),
+    removedKindCounts: countByKind(removed),
+    selectedBeforeKindCounts: countByKind(selectedBefore),
+    selectedAfterKindCounts: countByKind(selectedAfter),
+    candidateProvenance: before.map((value, index) => ({
+      ordinal: index,
+      kind: value.kind,
+      owned: value.owned,
+      ownerLabel: value.ownerLabel,
+      firstCreatorCase: value.firstCreatorCase,
+      originRoute: value.originRoute,
+      originService: value.originService,
+      backingOwner: value.backingOwner,
+      identityDigest: value.identityDigest,
+    })),
+    markerInitiallyDisplaced,
+    markerInitiallySelected,
+    markerSelectedAfterIsolation,
+    nonOwnedPreserved,
+    invalidOwnership,
+    removedIdentityDigest: digestIdentities(removed),
+    restoredIdentityDigest: crypto.createHash("sha256")
+      .update(String(stateIdentityAfter || "")).digest("hex"),
+    postCleanupStateIdentityDigest: crypto.createHash("sha256")
+      .update(String(stateIdentityAfter || "")).digest("hex"),
+    stateRestored,
   };
 }
 
@@ -273,6 +386,7 @@ export function createV390UiCaseRuntime({
   delete process.env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
   const runtimeSecrets = new Map();
   const activeCases = new Map();
+  const acceptanceOwnedRuntimeResidues = [];
 
   async function prepareCase(item) {
     assert(!activeCases.has(item.caseId), `${item.caseId} case runtime already active`);
@@ -1251,6 +1365,33 @@ export function createV390UiCaseRuntime({
         source: "test-owned-transient-api-delete-and-file-snapshot-restore",
       });
     }
+    if (item.caseId === "EVT-004" && caseContext.evt004TimelineIsolationEvidence) {
+      const runtime = await requestEndpoint(
+        "GET", "/ops/api/runtime/status", null, item, caseContext, [200],
+        { freshRole: true, roleOverride: "operator" },
+      );
+      const observedIdentity = evt004RuntimeStateIdentity(evt004RuntimeState(runtime.json));
+      assert(observedIdentity === caseContext.evt004TimelineTargetStateIdentity,
+        "EVT-004 post-cleanup runtime state identity differs from the isolated baseline");
+      caseContext.cleanupResults.push({
+        cleanupId: `${item.caseId}:timeline-residue-state-identity`,
+        status: "PASS",
+        source: "acceptance-owned-runtime-residue-scoped-isolation",
+        readback: {
+          ownedKindCounts: structuredClone(
+            caseContext.evt004TimelineIsolationEvidence.ownedKindCounts),
+          nonOwnedKindCounts: structuredClone(
+            caseContext.evt004TimelineIsolationEvidence.nonOwnedKindCounts),
+          removedIdentityDigest:
+            caseContext.evt004TimelineIsolationEvidence.removedIdentityDigest,
+          restoredIdentityDigest:
+            caseContext.evt004TimelineIsolationEvidence.restoredIdentityDigest,
+          postCleanupStateIdentityDigest: crypto.createHash("sha256")
+            .update(observedIdentity).digest("hex"),
+          finalStateRestored: true,
+        },
+      });
+    }
     const unexpectedStateChange = !stateFilesEqual(caseContext.snapshots);
     if (unexpectedStateChange) restoreStateFiles(caseContext.snapshots);
     const finalStateRestored = stateFilesEqual(caseContext.snapshots);
@@ -1748,6 +1889,174 @@ export function createV390UiCaseRuntime({
     releaseSecrets,
   };
 
+  function evt004RuntimeState(runtime = {}) {
+    const lifecycle = runtime?.sourceLifecycle || runtime?.sessionManager || {};
+    return {
+      activeSessions: Number(lifecycle.activeSessions || 0),
+      resourceActiveStreams: Number(lifecycle.resourceActiveStreams || 0),
+      registryActiveStreams: Number(lifecycle.registryActiveStreams || 0),
+      activeAnalysisTaps: Number(lifecycle.activeAnalysisTaps || 0),
+    };
+  }
+
+  function evt004RuntimeStateIdentity(state = {}) {
+    return stableJson({
+      activeSessions: Number(state.activeSessions || 0),
+      resourceActiveStreams: Number(state.resourceActiveStreams || 0),
+      registryActiveStreams: Number(state.registryActiveStreams || 0),
+      activeAnalysisTaps: Number(state.activeAnalysisTaps || 0),
+    });
+  }
+
+  async function evt004TimelineCandidates(item, context, runtimeJson) {
+    const sourceHealth = await requestEndpoint(
+      "GET", "/ops/api/source-health", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const catalog = await requestEndpoint(
+      "GET", "/ops/api/rules/catalog", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const sourcesPath = descriptor?.registrySeedPayloadPaths?.sources || "";
+    const analysisPath = descriptor?.registrySeedPayloadPaths?.analysis || "";
+    assert(sourcesPath && analysisPath,
+      "EVT-004 published source/rule baseline paths are unavailable");
+    const baselineSources = readJson(sourcesPath);
+    const baselineAnalysis = readJson(analysisPath);
+    const baselineSourceIds = new Set((baselineSources?.sources || [])
+      .map(value => String(value?.sourceId || "")).filter(Boolean));
+    const baselineRuleIds = new Set((baselineAnalysis?.vaRules || [])
+      .map(value => String(value?.id || value?.ruleId || value?.vaRuleId || "")).filter(Boolean));
+    const sourceItems = Array.isArray(sourceHealth.json?.sourceHealth)
+      ? sourceHealth.json.sourceHealth
+      : [];
+    const degraded = sourceItems.filter(value => String(value?.status || "") !== "live");
+    const rootCandidates = [];
+    if (degraded.length > 0) {
+      const first = degraded[0];
+      const sourceId = String(first?.sourceId || "");
+      rootCandidates.push({
+        stableIdentity: `root-cause:source-health:${sourceId}:${String(first?.status || "")}:${String(first?.reason || "")}`,
+        owned: !baselineSourceIds.has(sourceId),
+        ownerLabel: baselineSourceIds.has(sourceId)
+          ? "published-seed-baseline"
+          : "review4-source-fixture",
+        firstCreatorCase: baselineSourceIds.has(sourceId)
+          ? "baseline-server-start"
+          : evt004SourceOwnerCase(sourceId),
+        originRoute: "/ops/api/source-health",
+        originService: "BuildOpsSourceHealthSnapshot",
+        backingOwner: "SourceViewApplicationService",
+      });
+    }
+    const runtimeState = evt004RuntimeState(runtimeJson);
+    const stalledRuntime = runtimeState.activeSessions === 0 &&
+      (runtimeState.resourceActiveStreams > 0 ||
+        runtimeState.registryActiveStreams > 0 ||
+        runtimeState.activeAnalysisTaps > 0);
+    const runtimeOwner = acceptanceOwnedRuntimeResidues.find(value =>
+      value.ownerCaseId === "EVT-001");
+    if (stalledRuntime) {
+      rootCandidates.push({
+        stableIdentity: `root-cause:runtime-stalled:${evt004RuntimeStateIdentity(runtimeState)}`,
+        owned: Boolean(runtimeOwner),
+        ownerLabel: runtimeOwner?.ownerLabel || "unowned-runtime-state",
+        firstCreatorCase: runtimeOwner?.ownerCaseId || "baseline-server-start",
+        originRoute: "/ops/api/runtime/status",
+        originService: "RuntimeStatusJson",
+        backingOwner: "SessionManager/StreamRegistry",
+      });
+    }
+    const sourceCandidates = degraded.slice(0, 3).map(value => {
+      const sourceId = String(value?.sourceId || "");
+      const baseline = baselineSourceIds.has(sourceId);
+      return {
+        stableIdentity: `source-health:${sourceId}:${String(value?.status || "")}:${String(value?.reason || "")}`,
+        owned: !baseline,
+        ownerLabel: baseline ? "published-seed-baseline" : "review4-source-fixture",
+        firstCreatorCase: baseline ? "baseline-server-start" : evt004SourceOwnerCase(sourceId),
+        originRoute: "/ops/api/source-health",
+        originService: "BuildOpsSourceHealthSnapshot",
+        backingOwner: "SourceViewApplicationService",
+      };
+    });
+    const ruleCandidates = (catalog.json?.vaRules || []).slice(0, 3).map(value => {
+      const ruleId = String(value?.id || value?.ruleId || value?.vaRuleId || "");
+      const baseline = baselineRuleIds.has(ruleId);
+      return {
+        stableIdentity: `rule-warning:${ruleId}`,
+        owned: !baseline,
+        ownerLabel: baseline ? "published-seed-baseline" : "review4-rule-fixture",
+        firstCreatorCase: baseline ? "baseline-server-start" : "prior-rule-case",
+        originRoute: "/ops/api/rules/catalog",
+        originService: "OpsRuleCatalogJson",
+        backingOwner: "analysis registry file/in-memory catalog",
+      };
+    });
+    return { rootCandidates, sourceCandidates, ruleCandidates, runtimeState };
+  }
+
+  function evt004SourceOwnerCase(sourceId) {
+    return ({
+      "3900008": "SRC-008",
+      "3900010": "SRC-010",
+      "3900019": "SRC-019",
+    })[String(sourceId || "")] || "prior-exact-case";
+  }
+
+  async function isolateEvt004TimelineResidue(item, context) {
+    const runtimeBefore = await requestEndpoint(
+      "GET", "/ops/api/runtime/status", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const before = await evt004TimelineCandidates(item, context, runtimeBefore.json);
+    const ownedRuntime = acceptanceOwnedRuntimeResidues.find(value =>
+      value.ownerCaseId === "EVT-001" &&
+      before.rootCandidates.some(candidate =>
+        candidate.owned && candidate.firstCreatorCase === value.ownerCaseId));
+    let runtimeAfter = runtimeBefore;
+    if (ownedRuntime) {
+      const targetIdentity = evt004RuntimeStateIdentity(ownedRuntime.baselineState);
+      const deadline = Date.now() + 15000;
+      while (evt004RuntimeStateIdentity(evt004RuntimeState(runtimeAfter.json)) !==
+        targetIdentity && Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        runtimeAfter = await requestEndpoint(
+          "GET", "/ops/api/runtime/status", null, item, context, [200],
+          { freshRole: true, roleOverride: "operator" },
+        );
+      }
+      assert(evt004RuntimeStateIdentity(evt004RuntimeState(runtimeAfter.json)) ===
+        targetIdentity,
+      "EVT-004 acceptance-owned EVT-001 runtime residue did not drain to its pre-session baseline");
+    }
+    const after = await evt004TimelineCandidates(item, context, runtimeAfter.json);
+    const marker = String(context?.catalogBindings?.logMarker || "");
+    const evidence = buildEvt004TimelineOwnershipEvidence({
+      rootCandidates: before.rootCandidates,
+      sourceCandidates: before.sourceCandidates,
+      ruleCandidates: before.ruleCandidates,
+      logCandidates: [{
+        stableIdentity: `log-tail:${crypto.createHash("sha256").update(marker).digest("hex")}`,
+        owned: false,
+        ownerLabel: "evt004-marker-fixture",
+        firstCreatorCase: "EVT-004",
+        originRoute: "/ops/api/diagnostics/log-tail?limit=80",
+        originService: "OpsDiagnosticLogTailJson",
+        backingOwner: "acceptance-owned product root log snapshot",
+        marker: true,
+      }],
+      stateIdentityBefore: evt004RuntimeStateIdentity(ownedRuntime?.baselineState || after.runtimeState),
+      stateIdentityAfter: evt004RuntimeStateIdentity(after.runtimeState),
+    });
+    context.evt004TimelineIsolationEvidence = evidence;
+    context.evt004TimelineTargetStateIdentity =
+      evt004RuntimeStateIdentity(ownedRuntime?.baselineState || after.runtimeState);
+    assert(evidence.pass,
+      `EVT-004 timeline residue isolation failed: ${evidence.failureCode}`);
+    return evidence;
+  }
+
   async function refreshDiagnosticMarkerForDashboard(item, context) {
     assert(item.caseId === "EVT-004",
       `${item.caseId} cannot refresh the EVT-004 diagnostic marker`);
@@ -1763,6 +2072,8 @@ export function createV390UiCaseRuntime({
       "EVT-004 diagnostic marker refresh hook must run exactly once");
     const analysisIsolationEvidence =
       await isolateEvt004LeakedAnalysisFixtures(item, context);
+    const timelineIsolationEvidence =
+      await isolateEvt004TimelineResidue(item, context);
     const raw = fs.readFileSync(logPath, "utf8");
     const lines = raw.split(/\r?\n/u);
     const matches = lines.filter(line => line.split(/\s+/u).includes(marker));
@@ -1792,6 +2103,7 @@ export function createV390UiCaseRuntime({
       lines: refreshedLines,
       ownedNoisePrefix: evt004OwnedNoisePrefix,
       analysisIsolationEvidence,
+      timelineIsolationEvidence,
     });
     assert(fileStageEvidence.pass,
       `EVT-004 diagnostic marker file stage failed: ${fileStageEvidence.failureCode}`);
@@ -2646,6 +2958,15 @@ export function createV390UiCaseRuntime({
 
     if (plan.has("viewer-raw-session") || plan.has("viewer-va-overlay-session")) {
       const overlayMode = plan.has("viewer-va-overlay-session") ? "va-overlay" : "raw";
+      const runtimeBefore = await requestEndpoint(
+        "GET",
+        "/ops/api/runtime/status",
+        null,
+        item,
+        context,
+        [200],
+        { roleOverride: "operator" },
+      );
       const created = await requestEndpoint(
         "POST",
         `/client/api/views/${encodeURIComponent(viewId)}/webrtc/session`,
@@ -2661,6 +2982,14 @@ export function createV390UiCaseRuntime({
       context.transientApiCleanup.push({
         endpoint: `/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`,
         roleOverride: "viewer",
+      });
+      acceptanceOwnedRuntimeResidues.push({
+        ownerCaseId: item.caseId,
+        ownerLabel: `${item.caseId}:viewer-${overlayMode}-session`,
+        sessionId,
+        cleanupEndpoint:
+          `/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`,
+        baselineState: evt004RuntimeState(runtimeBefore.json),
       });
       const runtime = await requestEndpoint(
         "GET",
