@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
+  bindDocumentFormSubmission,
   bindFixtureResponseToInitiatingRequest,
   bindPlaywrightResponseToInitiatingRequest,
   buildLiveSessionEvidence,
@@ -186,6 +187,120 @@ check("Playwright response events bind only to the exact initiating request obje
   "response event did not retain exact Playwright request object identity");
   assert(missingBinding.initiatingRequest === null,
     "method/path-equivalent request object was accepted without identity");
+});
+
+check("document form responses bind exact request identity and redirect chain", () => {
+  const request = {
+    phase: "request-start",
+    requestId: "native-request-1",
+    caseRequestIdentity: "UI-002:request-1",
+    caseRequestSequence: 1,
+    requestKind: "document-navigation",
+    resourceType: "document",
+    sameOrigin: true,
+    redirectedFromRequestId: "",
+    correlationId: "",
+    method: "POST",
+    status: 0,
+    url: "http://127.0.0.1:8081/setup",
+  };
+  const response = {
+    phase: "response",
+    requestId: request.requestId,
+    caseRequestIdentity: request.caseRequestIdentity,
+    caseRequestSequence: request.caseRequestSequence,
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+    requestKind: "document-navigation",
+    resourceType: "document",
+    sameOrigin: true,
+    correlationId: "",
+    method: "POST",
+    status: 302,
+    url: "http://127.0.0.1:8081/setup",
+  };
+  const redirectRequest = {
+    ...request,
+    requestId: "native-request-2",
+    caseRequestIdentity: "UI-002:request-2",
+    caseRequestSequence: 2,
+    redirectedFromRequestId: request.requestId,
+    method: "GET",
+    url: "http://127.0.0.1:8081/login",
+  };
+  const redirectResponse = {
+    ...response,
+    requestId: redirectRequest.requestId,
+    caseRequestIdentity: redirectRequest.caseRequestIdentity,
+    caseRequestSequence: redirectRequest.caseRequestSequence,
+    method: "GET",
+    status: 200,
+    url: redirectRequest.url,
+  };
+  const entries = [request, response, redirectRequest, redirectResponse];
+  const binding = bindDocumentFormSubmission(entries, {
+    method: "POST",
+    path: "/setup",
+    allowedStatuses: [302],
+    expectedRedirectPath: "/login",
+  });
+  assert(binding.requestId === request.requestId &&
+    binding.caseRequestIdentity === request.caseRequestIdentity &&
+    binding.redirectCount === 1 &&
+    binding.redirectPath === "/login" &&
+    binding.correlationObserved === false,
+  "exact document form response binding did not pass");
+
+  const expectRejected = (label, nextEntries, overrides = {}) => {
+    let failed = false;
+    try {
+      bindDocumentFormSubmission(nextEntries, {
+        method: "POST",
+        path: "/setup",
+        allowedStatuses: [302],
+        expectedRedirectPath: "/login",
+        ...overrides,
+      });
+    } catch {
+      failed = true;
+    }
+    assert(failed, `${label} document form submission was accepted`);
+  };
+  expectRejected("duplicate submit", [...entries, { ...request, requestId: "native-request-3" }]);
+  expectRejected("reload/reissue", [...entries, {
+    ...redirectRequest,
+    requestId: "native-request-3",
+    caseRequestIdentity: "UI-002:request-3",
+    caseRequestSequence: 3,
+    redirectedFromRequestId: "",
+    url: "http://127.0.0.1:8081/setup",
+  }]);
+  expectRejected("different response request object", entries.map(entry =>
+    entry === response ? { ...entry, requestId: "native-request-other" } : entry));
+  expectRejected("correlated document request", entries.map(entry =>
+    entry === request ? { ...entry, correlationId: "forbidden" } : entry));
+  expectRejected("wrong method", entries, { method: "PUT" });
+  expectRejected("wrong path", entries, { path: "/other" });
+  expectRejected("wrong status", entries.map(entry =>
+    entry === response ? { ...entry, status: 200 } : entry));
+  expectRejected("unexpected redirect target", entries, { expectedRedirectPath: "/ops/home" });
+
+  const rejected = bindDocumentFormSubmission([
+    { ...request, caseRequestIdentity: "AUTH-007:request-1", url: "http://127.0.0.1:8081/login" },
+    {
+      ...response,
+      caseRequestIdentity: "AUTH-007:request-1",
+      status: 403,
+      url: "http://127.0.0.1:8081/login",
+    },
+  ], {
+    method: "POST",
+    path: "/login",
+    allowedStatuses: [403],
+    expectedRedirectPath: null,
+  });
+  assert(rejected.status === 403 && rejected.redirectCount === 0,
+    "non-redirect document form rejection binding did not pass");
 });
 
 check("fixture responses use an exact opaque initiating request handle", () => {

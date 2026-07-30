@@ -221,6 +221,113 @@ export function bindFixtureResponseToInitiatingRequest(
   return { requestHandle, initiatingRequest };
 }
 
+export function bindDocumentFormSubmission(entries, {
+  method = "POST",
+  path: expectedPath,
+  allowedStatuses = [],
+  expectedRedirectPath = null,
+} = {}) {
+  const expectedMethod = String(method).toUpperCase();
+  const documentRequests = entries.filter(entry =>
+    entry.phase === "request-start" &&
+    entry.requestKind === "document-navigation");
+  const primaryRequests = documentRequests.filter(entry =>
+    entry.method === expectedMethod &&
+    urlTarget(entry.url) === expectedPath);
+  if (primaryRequests.length !== 1) {
+    throw new Error(`document form submit request count mismatch: ${primaryRequests.length}`);
+  }
+  const primaryRequest = primaryRequests[0];
+  if (primaryRequest.resourceType !== "document" ||
+      primaryRequest.sameOrigin !== true ||
+      primaryRequest.correlationId ||
+      primaryRequest.redirectedFromRequestId) {
+    throw new Error("document form submit request trust binding mismatch");
+  }
+  const primaryResponses = entries.filter(entry =>
+    entry.phase === "response" &&
+    entry.requestKind === "document-navigation" &&
+    entry.requestId === primaryRequest.requestId);
+  if (primaryResponses.length !== 1) {
+    throw new Error(`document form submit response count mismatch: ${primaryResponses.length}`);
+  }
+  const primaryResponse = primaryResponses[0];
+  if (primaryResponse.responseRequestObjectObserved !== true ||
+      primaryResponse.requestIdentitySource !== "playwright-response-request" ||
+      primaryResponse.caseRequestIdentity !== primaryRequest.caseRequestIdentity ||
+      primaryResponse.caseRequestSequence !== primaryRequest.caseRequestSequence ||
+      primaryResponse.method !== expectedMethod ||
+      urlTarget(primaryResponse.url) !== expectedPath ||
+      primaryResponse.resourceType !== "document" ||
+      primaryResponse.sameOrigin !== true ||
+      primaryResponse.correlationId ||
+      !allowedStatuses.includes(primaryResponse.status)) {
+    throw new Error("document form submit response trust binding mismatch");
+  }
+
+  const redirectRequests = documentRequests.filter(entry =>
+    entry.redirectedFromRequestId === primaryRequest.requestId);
+  const expectedRedirectCount = expectedRedirectPath ? 1 : 0;
+  if (redirectRequests.length !== expectedRedirectCount ||
+      documentRequests.length !== 1 + expectedRedirectCount) {
+    throw new Error(`document form submit redirect/reissue count mismatch: ${redirectRequests.length}/${documentRequests.length}`);
+  }
+
+  let redirectResponse = null;
+  if (expectedRedirectPath) {
+    const redirectRequest = redirectRequests[0];
+    if (primaryResponse.status !== 302 ||
+        redirectRequest.method !== "GET" ||
+        urlTarget(redirectRequest.url) !== expectedRedirectPath ||
+        redirectRequest.resourceType !== "document" ||
+        redirectRequest.sameOrigin !== true ||
+        redirectRequest.correlationId) {
+      throw new Error("document form submit redirect request trust binding mismatch");
+    }
+    const redirectResponses = entries.filter(entry =>
+      entry.phase === "response" &&
+      entry.requestKind === "document-navigation" &&
+      entry.requestId === redirectRequest.requestId);
+    if (redirectResponses.length !== 1) {
+      throw new Error(`document form submit redirect response count mismatch: ${redirectResponses.length}`);
+    }
+    redirectResponse = redirectResponses[0];
+    if (redirectResponse.responseRequestObjectObserved !== true ||
+        redirectResponse.requestIdentitySource !== "playwright-response-request" ||
+        redirectResponse.caseRequestIdentity !== redirectRequest.caseRequestIdentity ||
+        redirectResponse.caseRequestSequence !== redirectRequest.caseRequestSequence ||
+        redirectResponse.method !== "GET" ||
+        urlTarget(redirectResponse.url) !== expectedRedirectPath ||
+        redirectResponse.resourceType !== "document" ||
+        redirectResponse.sameOrigin !== true ||
+        redirectResponse.correlationId ||
+        redirectResponse.status !== 200) {
+      throw new Error("document form submit redirect response trust binding mismatch");
+    }
+  }
+
+  return {
+    schema: "media-server.v390-ui-document-form-submit-binding.v1",
+    requestId: primaryRequest.requestId,
+    caseRequestIdentity: primaryRequest.caseRequestIdentity,
+    caseRequestSequence: primaryRequest.caseRequestSequence,
+    method: expectedMethod,
+    path: expectedPath,
+    status: primaryResponse.status,
+    requestKind: "document-navigation",
+    resourceType: "document",
+    sameOrigin: true,
+    correlationObserved: false,
+    responseRequestObjectObserved: true,
+    redirectCount: expectedRedirectCount,
+    redirectPath: expectedRedirectPath,
+    redirectRequestId: redirectResponse?.requestId || null,
+    requestAttemptCount: primaryRequests.length,
+    responseCandidateCount: primaryResponses.length,
+    reissueCount: 0,
+  };
+}
+
 async function openNativePlaywrightPage(playwright, {
   httpBase,
   pagePath,
@@ -323,6 +430,7 @@ async function openNativePlaywrightPage(playwright, {
       caseRequestSequence: identity.caseRequestSequence,
       requestKind,
       resourceType: request.resourceType(),
+      sameOrigin: urlOrigin(request.url()) === urlOrigin(httpBase),
       redirectedFromRequestId: redirectedFrom ? requestIdentity(redirectedFrom).requestId : "",
       correlationId,
       correlationSource: correlationId ? 'request-header' : 'none',
@@ -384,6 +492,7 @@ async function openNativePlaywrightPage(playwright, {
       requestIdentitySource: initiatingRequest ? "playwright-response-request" : "",
       requestKind,
       resourceType: request.resourceType(),
+      sameOrigin: urlOrigin(response.url()) === urlOrigin(httpBase),
       correlationId,
       correlationSource: correlationId ? "request-header" : "none",
       responseCorrelationSource: correlationId
@@ -729,6 +838,25 @@ async function openNativePlaywrightPage(playwright, {
     },
     click: async (selector) => {
       await page.locator(selector).click();
+    },
+    submitDocumentForm: async (selector, {
+      invocationId = "",
+    } = {}) => {
+      if (requestListenerEndSequence !== null) {
+        throw new Error(`document form submission attempted after listener end: ${selector}`);
+      }
+      const operation = {
+        invocationId: String(invocationId || `native-document-form-${++navigationOperationSequence}`),
+        kind: "form-submit-document-navigation",
+        allowCorrelation: false,
+      };
+      activeNavigationOperation = operation;
+      try {
+        await page.locator(selector).click();
+        return { invocationId: operation.invocationId };
+      } finally {
+        activeNavigationOperation = null;
+      }
     },
     fill: async (selector, value) => {
       await page.locator(selector).fill(String(value));

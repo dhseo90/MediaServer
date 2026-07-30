@@ -1538,6 +1538,30 @@ check("self-contained runtime closes invite, auth readback, preference, and visu
   const formProfileIds = Object.keys(formReadbackProfiles).sort();
   assert(JSON.stringify(formCaseIds) === JSON.stringify(formProfileIds),
     "manifest form cases and authoritative runtime profiles must be an exact set");
+  const documentFormCaseIds = [
+    "AUTH-004", "AUTH-005", "AUTH-006", "AUTH-007", "AUTH-034", "AUTH-035",
+    "UI-002", "UI-003", "UI-004", "UI-005", "UI-007",
+  ];
+  const applicationFormCaseIds = ["AUTH-014", "AUTH-015", "AUTH-033", "AUTH-036", "UI-008"];
+  assert(JSON.stringify(formCaseIds) ===
+    JSON.stringify([...documentFormCaseIds, ...applicationFormCaseIds].sort()),
+  "form-submit transport audit does not cover the exact 16-case set");
+  for (const caseId of documentFormCaseIds) {
+    assert(runnerSource.includes(`["${caseId}", {`),
+      `${caseId} document form navigation contract missing`);
+  }
+  assert(runnerSource.includes("browser.submitDocumentForm") &&
+    runnerSource.includes("bindDocumentFormSubmission") &&
+    runnerSource.includes("documentFormSubmitContracts.has(item.caseId)"),
+  "document form submit runner does not use exact request-object navigation binding");
+  for (const caseId of applicationFormCaseIds) {
+    const item = formCases.find(candidate => candidate.caseId === caseId);
+    const request = item?.workflow.controlSequence.find(action => action.kind === "submit-form")
+      ?.semanticCompletion?.request;
+    assert(request?.urlPath.includes("/api/") &&
+      !documentFormCaseIds.includes(caseId),
+    `${caseId} application form transport classification drift`);
+  }
   for (const item of formCases) {
     const profile = formReadbackProfiles[item.caseId];
     assert(profile.expectedBehaviorSha256 === item.oracle.expectedBehaviorSha256,

@@ -6804,6 +6804,23 @@ match이고 feature/pass/status/sourceFlowDigest 변경은 0이므로 generator/
 변경하지 않았습니다. 이 정적 checkpoint에서 actual UI-001은 미실행이며 clean
 commit/push 뒤 explicit 단건을 정확히 1회 실행합니다.
 
+UI-002 및 동형 form-navigation response binding 보정(2026-07-30)은 document
+form submit을 application correlation fetch로 취급해 initiating submit과 response를
+유일하게 결속하지 못하던 경계를 고칩니다. `UI-002/003/004/005/007`,
+`AUTH-004/005/006/007/034/035`는 correlation 없는 same-origin document
+request/response object, method/path/status, redirect chain을 exact 결속하고,
+`UI-008`, `AUTH-014/015/033/036`의 application fetch는 header correlation과
+unique response를 계속 요구합니다. 중복 submit, 다른 request object, reload/retry/reissue,
+path/status/redirect drift는 fail-closed입니다. 제품 C++/API/UI와 native generator는
+변경/실행하지 않았습니다. Fresh candidate
+`16da57b8a1c48ff0cefec398119a4b7b402af8997c54f26435bf8a550a3a5aba`에서
+feature/pass/status 변경은 0이고 UI-018 sourceFlow 한 행만 독립 검토 승인되어,
+migration-aware producer를 정확히 1회 실행해 985 carry-forward+UI-018 independent
+approval 986/986와 audit/approval/implementation/native fixture 원자 갱신을 구성했습니다.
+기존 source `5018860c8189642fd8090f5a741b2e207a604716`의 actual UI-002 FAIL
+(`POST /setup` response unique binding 0)는 historical FAIL evidence로 보존하며,
+이번 checkpoint에서는 actual UI/diagnostic/30분/120분/release를 재실행하지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

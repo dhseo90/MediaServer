@@ -7,7 +7,10 @@ import process from "node:process";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
-import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
+import {
+  bindDocumentFormSubmission,
+  createNativePlaywrightAdapter,
+} from "./v390_ui_native_adapter.mjs";
 import { createV390UiCaseRuntime } from "./v390_ui_case_runtime.mjs";
 import {
   buildEndpointActionSemanticReadback,
@@ -84,6 +87,19 @@ const supportedCleanupKinds = Object.freeze([
   "reset-local-ui-route",
   "restore-fixture-state",
   "restore-local-control",
+]);
+const documentFormSubmitContracts = new Map([
+  ["UI-002", { path: "/setup", statuses: [302], redirectPath: "/login" }],
+  ["UI-003", { path: "/login", statuses: [302], redirectPath: "/client/live" }],
+  ["UI-004", { path: "/password/change", statuses: [302], redirectPath: "/login" }],
+  ["UI-005", { path: "/logout", statuses: [302], redirectPath: "/login" }],
+  ["UI-007", { path: "/invite/setup", statuses: [302], redirectPath: "/login" }],
+  ["AUTH-004", { path: "/login", statuses: [302], redirectPath: "/client/live" }],
+  ["AUTH-005", { path: "/setup", statuses: [302], redirectPath: "/login" }],
+  ["AUTH-006", { path: "/setup", statuses: [302], redirectPath: "/login" }],
+  ["AUTH-007", { path: "/login", statuses: [403], redirectPath: null }],
+  ["AUTH-034", { path: "/invite/setup", statuses: [302], redirectPath: "/login" }],
+  ["AUTH-035", { path: "/invite/setup", statuses: [401], redirectPath: null }],
 ]);
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -1940,6 +1956,23 @@ async function applyTypedFormInputs(
 function captureFormResponseIdentity(networkResponses, action, lifecycle, caseId, submittedInput) {
   const request = action.semanticCompletion?.request;
   assert(request && lifecycle?.adapter, `${caseId} form response identity contract missing`);
+  const documentContract = documentFormSubmitContracts.get(caseId) || null;
+  if (documentContract) {
+    assert(request.method === "POST" &&
+      request.urlPath === documentContract.path &&
+      JSON.stringify(request.allowedStatuses) === JSON.stringify(documentContract.statuses),
+    `${caseId} document form submit contract drift`);
+    return {
+      ...bindDocumentFormSubmission(networkResponses, {
+        method: request.method,
+        path: request.urlPath,
+        allowedStatuses: request.allowedStatuses,
+        expectedRedirectPath: documentContract.redirectPath,
+      }),
+      adapter: lifecycle.adapter,
+      productIdentity: null,
+    };
+  }
   const matches = networkResponses.filter(entry => {
     let pathname = "";
     try { pathname = new URL(entry.url, "http://127.0.0.1").pathname; } catch { pathname = ""; }
@@ -2127,7 +2160,13 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
           originalSessionCookie,
         );
       }
-      await browser.click(formLifecycle.submitSelector);
+      if (documentFormSubmitContracts.has(item.caseId)) {
+        await browser.submitDocumentForm(formLifecycle.submitSelector, {
+          invocationId: `${item.caseId}:form-submit-document-navigation`,
+        });
+      } else {
+        await browser.click(formLifecycle.submitSelector);
+      }
       executedKind = "submit";
     } else if (action.kind === "execute-persisted-action") {
       workflowInput(item, action.inputId, "reversible-fixture-record");
