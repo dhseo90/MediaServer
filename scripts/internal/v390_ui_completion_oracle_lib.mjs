@@ -946,8 +946,10 @@ function findCorrelatedEndpoint(entries, action, semanticReadback = null) {
 function findDocumentFormSubmission(entries, action) {
   const expected = action.expectedEndpoint;
   const binding = action?.formResponseIdentity;
-  if (!binding) return { present: false, match: null, reason: "" };
-  if (binding.schema !== "media-server.v390-ui-document-form-submit-binding.v1" ||
+  if (!binding || binding.schema !== "media-server.v390-ui-document-form-submit-binding.v1") {
+    return { present: false, match: null, reason: "" };
+  }
+  if (
       binding.requestKind !== "document-navigation" ||
       binding.resourceType !== "document" ||
       binding.sameOrigin !== true ||

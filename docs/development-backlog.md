@@ -6841,6 +6841,14 @@ ledger와 response-bound initiating request에 함께 반영하며, document nav
 정적으로 재검증했고, 기존 `866378d2` actual UI-008 FAIL은 historical evidence로
 보존합니다.
 
+UI-008 application form completion 분기 보정(2026-07-30)은 generic
+`media-server.v390-ui-form-response-identity.v1`를 document-only identity로
+잘못 해석해 independent readback이 `document-form-binding-invalid`로 멈추던 오류를
+고칩니다. document schema인 경우에만 uncorrelated navigation binding을 검증하고,
+application form은 exact request-header correlation/response object 경로를 사용합니다.
+schema 위장 document binding은 계속 fail-closed이며 제품 C++/API/UI와 generator/producer는
+변경/실행하지 않았습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

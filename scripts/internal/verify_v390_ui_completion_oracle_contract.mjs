@@ -2397,6 +2397,73 @@ check("document form completion requires one exact uncorrelated request and resp
     "document form correlation was accepted");
 });
 
+check("application form response identity stays on the correlated endpoint path", () => {
+  const action = {
+    actionId: "UI-008:submit-form",
+    actionKind: "submit-form",
+    dispatch: "playwright-native",
+    executed: true,
+    executedKind: "submit",
+    completionPhase: "primary-action",
+    semanticCompletionRequired: true,
+    correlationId: "UI-008:submit-form:completion",
+    controlSelector: "#request-form button[type=submit]",
+    expectedReadbackIdentity: "application-form-readback",
+    expectedBehaviorSha256: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    expectedReadbackExpectation: { submitted: true },
+    allowedCompletionSources: ["endpoint-dom"],
+    expectedEndpoint: {
+      correlationId: "UI-008:submit-form:completion",
+      method: "POST",
+      urlPath: "/client/api/access-requests",
+      allowedStatuses: [201],
+    },
+    formResponseIdentity: {
+      schema: "media-server.v390-ui-form-response-identity.v1",
+      method: "POST",
+      urlPath: "/client/api/access-requests",
+      status: 201,
+      requestId: "native-request-8",
+      correlationId: "UI-008:submit-form:completion",
+    },
+  };
+  const request = {
+    phase: "request-start", requestId: "native-request-8", caseRequestIdentity: "UI-008:request-8",
+    caseRequestSequence: 8, requestKind: "application-fetch", resourceType: "fetch", sameOrigin: true,
+    correlationId: action.correlationId, correlationSource: "request-header", method: "POST",
+    status: 0, url: "http://127.0.0.1/client/api/access-requests",
+  };
+  const response = {
+    ...request, phase: "response", status: 201, responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+  };
+  const observation = {
+    before: { selector: action.controlSelector, submitted: false },
+    after: { selector: action.controlSelector, submitted: true },
+  };
+  const semanticReadback = {
+    schema: "media-server.v390-ui-semantic-readback.v2",
+    actionId: action.actionId,
+    correlationId: action.correlationId,
+    identity: action.expectedReadbackIdentity,
+    expectedBehaviorSha256: action.expectedBehaviorSha256,
+    observationSource: "browser-dom",
+    selector: action.controlSelector,
+    observation,
+    observationSha256: domSnapshotDigest(observation),
+  };
+  const result = evaluateCompletionOracle({
+    action,
+    before: { selector: action.controlSelector, exists: true, visible: true },
+    after: { selector: action.controlSelector, exists: false, visible: false },
+    networkResponses: [request, response],
+    semanticReadback,
+  });
+  assert(result.pass && result.source === "endpoint-dom" &&
+    result.completionRequest?.correlationSource === "request-header",
+  `application form response was misclassified as a document form: ${result.reason}`);
+});
+
 check("REVIEW4-58 rejects pre-existing postconditions and in-flight forbidden dispatch", () => {
   const postconditions = [
     { selector: "#panel", property: "hidden", operator: "equals", value: false },
