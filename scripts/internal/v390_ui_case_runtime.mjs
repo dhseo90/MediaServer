@@ -181,6 +181,114 @@ export const eventRecordFixtureFamilyExpectations = Object.freeze({
   }),
 });
 
+export const eventReviewSeedSiblingCaseIds = Object.freeze([
+  "EVT-019", "EVT-020", "EVT-021", "EVT-037", "EVT-061", "EVT-066", "EVT-068",
+]);
+
+export function validateEventReviewSeedWriteReceipt({
+  caseId = "",
+  eventId = "",
+  requestedReview = null,
+  putStatus = 0,
+  putEnvelope = null,
+  storageStatus = 0,
+  storageEnvelope = null,
+  eventRecordBeforeSha256 = "",
+  eventRecordAfterSha256 = "",
+} = {}) {
+  const missingPaths = [];
+  const requirePath = (condition, fieldPath) => {
+    if (!condition) missingPaths.push(fieldPath);
+  };
+  const expected = requestedReview && typeof requestedReview === "object"
+    ? requestedReview
+    : {};
+  const responseReview = putEnvelope?.review;
+
+  requirePath(caseId.length > 0, "binding.caseId");
+  requirePath(eventId.length > 0, "binding.eventId");
+  requirePath([200, 201].includes(putStatus), "put.status");
+  requirePath(putEnvelope?.status === "ops-event-review", "put.body.status");
+  requirePath(putEnvelope?.persistent === true, "put.body.persistent");
+  requirePath(responseReview && typeof responseReview === "object" && !Array.isArray(responseReview),
+    "put.body.review");
+  requirePath(responseReview?.eventId === eventId, "put.body.review.eventId");
+  requirePath(responseReview?.reviewStatus === expected.reviewStatus,
+    "put.body.review.reviewStatus");
+  requirePath(responseReview?.classification === expected.classification,
+    "put.body.review.classification");
+  requirePath(responseReview?.note === expected.note, "put.body.review.note");
+  requirePath(responseReview?.incidentStatus === expected.incidentStatus,
+    "put.body.review.incidentStatus");
+
+  requirePath(storageStatus === 200, "storage.status");
+  requirePath(storageEnvelope && typeof storageEnvelope === "object" &&
+    !Array.isArray(storageEnvelope), "storage.body");
+  requirePath(storageEnvelope?.status === "ops-event-review-inbox",
+    "storage.body.status");
+  requirePath(storageEnvelope?.schema === "media-server.ops.event-review-inbox.v1",
+    "storage.body.schema");
+  requirePath(Array.isArray(storageEnvelope?.records), "storage.body.records");
+
+  const records = Array.isArray(storageEnvelope?.records) ? storageEnvelope.records : [];
+  const joined = records.filter(row =>
+    String(row?.event?.eventId || "") === eventId &&
+    String(row?.review?.eventId || "") === eventId);
+  requirePath(joined.length === 1, "storage.body.records[joined-identity]");
+  const storedReview = joined.length === 1 ? joined[0]?.review : null;
+  requirePath(storedReview?.reviewStatus === expected.reviewStatus,
+    "storage.body.records[].review.reviewStatus");
+  requirePath(storedReview?.classification === expected.classification,
+    "storage.body.records[].review.classification");
+  requirePath(storedReview?.note === expected.note,
+    "storage.body.records[].review.note");
+  requirePath(storedReview?.incidentStatus === expected.incidentStatus,
+    "storage.body.records[].review.incidentStatus");
+
+  requirePath(/^[a-f0-9]{64}$/.test(eventRecordBeforeSha256),
+    "eventRecord.beforeSha256");
+  requirePath(/^[a-f0-9]{64}$/.test(eventRecordAfterSha256),
+    "eventRecord.afterSha256");
+  requirePath(eventRecordBeforeSha256 === eventRecordAfterSha256,
+    "eventRecord.byteIdentity");
+
+  if (missingPaths.length > 0) {
+    throw new Error(
+      `${caseId || "case"} exact review seed write receipt is incomplete: ` +
+      `${eventId || "event"}; missingPaths=${[...new Set(missingPaths)].sort().join(",")}`,
+    );
+  }
+
+  const responseObservation = {
+    eventId: responseReview.eventId,
+    reviewStatus: responseReview.reviewStatus,
+    classification: responseReview.classification,
+    note: responseReview.note,
+    incidentStatus: responseReview.incidentStatus,
+  };
+  const storageObservation = {
+    eventId: storedReview.eventId,
+    reviewStatus: storedReview.reviewStatus,
+    classification: storedReview.classification,
+    note: storedReview.note,
+    incidentStatus: storedReview.incidentStatus,
+  };
+  return Object.freeze({
+    eventId,
+    reviewStatus: storageObservation.reviewStatus,
+    classification: storageObservation.classification,
+    note: storageObservation.note,
+    incidentStatus: storageObservation.incidentStatus,
+    putStatus,
+    storageStatus,
+    putResponseSha256: sha256Text(`put-response:${stableJson(responseObservation)}`),
+    storageReadbackSha256: sha256Text(`storage-readback:${stableJson(storageObservation)}`),
+    eventRecordBeforeSha256,
+    eventRecordAfterSha256,
+    eventRecordUnchanged: true,
+  });
+}
+
 export function validateEventReviewCollectionAbsence({
   caseId = "",
   eventId = "",
@@ -598,7 +706,7 @@ export function createV390UiCaseRuntime({
           null,
           item,
           context,
-          [200],
+          [200, 201],
         );
         const candidates = response.json?.sourceCandidateReport?.candidates;
         const candidate = Array.isArray(candidates)
@@ -2566,10 +2674,10 @@ export function createV390UiCaseRuntime({
     }
 
     const reviewPayload = {
-      reviewStatus: plan.audit ? "reviewed" : "reviewing",
-      classification: plan.sourceHealth ? "needs-source-recheck" : "needs-review",
+      reviewStatus: plan.audit ? "confirmed" : "reviewing",
+      classification: plan.sourceHealth ? "needs-tuning" : "unclassified",
       note: `REVIEW4 ${item.caseId} ${kind} acceptance-owned review fixture`,
-      incidentStatus: plan.sourceHealth ? "investigating" : "open",
+      incidentStatus: plan.sourceHealth ? "in-progress" : "new",
     };
     const eventRecordBeforeReviewSha256 = fs.existsSync(eventPath)
       ? crypto.createHash("sha256").update(fs.readFileSync(eventPath)).digest("hex")
@@ -2583,29 +2691,42 @@ export function createV390UiCaseRuntime({
           ...reviewPayload,
           note: `${reviewPayload.note} ${eventId}`,
         };
+        const eventRecordBeforePutSha256 = fs.existsSync(eventPath)
+          ? crypto.createHash("sha256").update(fs.readFileSync(eventPath)).digest("hex")
+          : "";
         const review = await requestEndpoint(
           "PUT",
           `/ops/api/events/reviews/${encodeURIComponent(eventId)}`,
           requestedReview,
           item,
           context,
-          [200, 201],
+          [200],
           { roleOverride: "operator" },
         );
-        assert(review.json?.status === "ops-event-review" &&
-          review.json?.persistent === true &&
-          review.json?.review?.eventId === eventId &&
-          review.json?.review?.reviewStatus === requestedReview.reviewStatus &&
-          review.json?.review?.classification === requestedReview.classification &&
-          review.json?.review?.note === requestedReview.note,
-        `${item.caseId} exact review seed write receipt is incomplete: ${eventId}`);
-        reviewSeeds[eventId] = Object.freeze({
+        const storageReadback = await requestEndpoint(
+          "GET",
+          `/ops/api/events/reviews/${encodeURIComponent(eventId)}`,
+          null,
+          item,
+          context,
+          [200],
+          { roleOverride: "operator" },
+        );
+        const eventRecordAfterPutSha256 = fs.existsSync(eventPath)
+          ? crypto.createHash("sha256").update(fs.readFileSync(eventPath)).digest("hex")
+          : "";
+        const receipt = validateEventReviewSeedWriteReceipt({
+          caseId: item.caseId,
           eventId,
-          reviewStatus: requestedReview.reviewStatus,
-          classification: requestedReview.classification,
-          note: requestedReview.note,
-          incidentStatus: requestedReview.incidentStatus,
+          requestedReview,
+          putStatus: review.status,
+          putEnvelope: review.json,
+          storageStatus: storageReadback.status,
+          storageEnvelope: storageReadback.json,
+          eventRecordBeforeSha256: eventRecordBeforePutSha256,
+          eventRecordAfterSha256: eventRecordAfterPutSha256,
         });
+        reviewSeeds[eventId] = receipt;
         reviewStatus = review.status;
       }
     }
@@ -2722,6 +2843,14 @@ export function createV390UiCaseRuntime({
         : {},
       eventReviewSeedEvidence: {
         writeReceiptValidated: !plan.review || Object.keys(reviewSeeds).length === eventIds.length,
+        putResponseDigests: Object.fromEntries(
+          Object.entries(reviewSeeds).map(([eventId, receipt]) =>
+            [eventId, receipt.putResponseSha256]),
+        ),
+        storageReadbackDigests: Object.fromEntries(
+          Object.entries(reviewSeeds).map(([eventId, receipt]) =>
+            [eventId, receipt.storageReadbackSha256]),
+        ),
         eventRecordBeforeReviewSha256,
         eventRecordAfterReviewSha256,
         eventRecordUnchanged: eventRecordAfterReviewSha256 === eventRecordBeforeReviewSha256,
@@ -6138,6 +6267,10 @@ function safeName(value) {
 
 function stableJson(value) {
   return JSON.stringify(sortValue(value));
+}
+
+function sha256Text(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
 }
 
 function sortValue(value) {

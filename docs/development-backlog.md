@@ -6910,18 +6910,19 @@ candidate `dc6e092af5c02c0a04cb488afec84ffbd6c9e0b759146f2eb69bd453b2680a7e`,
 actual `292 attempted / 291 PASS / 1 FAIL / 132 not-run` EVT-007 FAIL은 historical evidence로
 보존하며, 이번 checkpoint에서는 actual UI/diagnostic/Policy v4/30분/120분/release를 재실행하지 않습니다.
 
-EVT-019 review collection readback correction(2026-07-31)은 `3e2f98a9` actual
+EVT-019 review write-receipt correction(2026-07-31)은 `3e2f98a9` actual
 `./test_ui.sh`의 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`을 historical FAIL로
-보존합니다. `GET /ops/api/events/reviews/{eventId}`는 PUT response의 top-level `review`가
-아닌 inbox collection을 반환하므로, runtime은 `records[].event.eventId`와
-`records[].review.eventId`를 함께 결속합니다. Mutation cleanup은 restore 뒤 `404`를
-기대하지 않고 `200` collection envelope, `records=[]`, `recordCount=0`, EventRecord/review
-storage byte restore를 독립 검증합니다. malformed/missing/residual/wrong/duplicate row는
-fail-closed입니다. UI-018 독립 승인과 기존 producer의 원자 fixture 갱신으로 candidate
-`f409c31546795343b1454bc4afa721e55fc2478ce3867c011743bc2d444c1062`, 985 carry-forward +
-1 independent, audit/approval 986/986을 확인했습니다. 이 checkpoint에서는 generator와
-producer를 재실행하지 않고 actual UI/diagnostic/Policy v4/30분/120분/release도 실행하지
-않습니다.
+보존합니다. Review seed는 제품 허용 enum인 `reviewing/confirmed`,
+`unclassified/needs-tuning`, `new/in-progress`만 사용하며, PUT response와 authoritative
+GET collection storage readback, EventRecord 전후 SHA-256을 독립 관측합니다. GET
+`/ops/api/events/reviews/{eventId}`는 `records[].event.eventId`와
+`records[].review.eventId`를 joined identity로 결속하고, restore 뒤에는 `200` empty
+collection envelope와 두 storage byte restore를 요구합니다. `missingPaths`만 기록해
+raw 값을 남기지 않으며 malformed/missing/residual/wrong/duplicate row는 fail-closed입니다.
+UI-018 독립 승인과 producer exit 0의 atomic fixture 갱신으로 candidate
+`40cbe8d4d271c804a493b9bc0427ee22beb26241950832907a2d27116506183c`, 985 carry-forward +
+1 independent, audit/approval 986/986을 확인했습니다. generator와 producer, actual
+UI/diagnostic/Policy v4/30분/120분/release는 이 checkpoint에서 재실행하지 않습니다.
 
 ## 후속 이슈 추천 규칙
 

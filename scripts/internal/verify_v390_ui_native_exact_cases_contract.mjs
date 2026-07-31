@@ -35,6 +35,7 @@ import {
   eventRecordFixtureFamilyCaseIds,
   eventRecordFixtureFamilyExpectations,
   eventRecordFixtureFamilyExpectedRecords,
+  eventReviewSeedSiblingCaseIds,
   eventExactSeedMaterializerRegistry,
   fixtureViewerScopes,
   formReadbackProfiles,
@@ -43,6 +44,7 @@ import {
   seedExactAccessRequestFixture,
   seedEventRecordFixture,
   validateEventReviewCollectionAbsence,
+  validateEventReviewSeedWriteReceipt,
   validateEventRecordFixtureFamilyReadback,
 } from "./v390_ui_case_runtime.mjs";
 import {
@@ -81,6 +83,106 @@ check("generated manifest validates against canonical exact ordered 424", () => 
   assert(result.unsupported === 0, `unsupported must be zero: ${result.unsupported}`);
   assert(result.positiveNative === 423, `positiveNative mismatch: ${result.positiveNative}`);
   assert(result.negativeRoute === 1, `negativeRoute mismatch: ${result.negativeRoute}`);
+});
+
+check("event review seed receipts bind PUT response, storage readback, and EventRecord identity", () => {
+  assert(JSON.stringify(eventReviewSeedSiblingCaseIds) === JSON.stringify([
+    "EVT-019", "EVT-020", "EVT-021", "EVT-037", "EVT-061", "EVT-066", "EVT-068",
+  ]), "event review seed sibling audit scope drift");
+  const eventId = "evt-019-review4-fixture";
+  const requestedReview = {
+    reviewStatus: "reviewing",
+    classification: "unclassified",
+    note: "REVIEW4 EVT-019 fixture",
+    incidentStatus: "new",
+  };
+  const review = {
+    schema: "media-server.ops.event-review-state.v1",
+    present: true,
+    eventId,
+    ...requestedReview,
+  };
+  const putEnvelope = {
+    status: "ops-event-review",
+    persistent: true,
+    review,
+  };
+  const storageEnvelope = {
+    status: "ops-event-review-inbox",
+    schema: "media-server.ops.event-review-inbox.v1",
+    recordCount: 1,
+    records: [{ event: { eventId }, review }],
+  };
+  const eventRecordSha256 = "a".repeat(64);
+  const receipt = validateEventReviewSeedWriteReceipt({
+    caseId: "EVT-019",
+    eventId,
+    requestedReview,
+    putStatus: 200,
+    putEnvelope,
+    storageStatus: 200,
+    storageEnvelope,
+    eventRecordBeforeSha256: eventRecordSha256,
+    eventRecordAfterSha256: eventRecordSha256,
+  });
+  assert(receipt.putResponseSha256 !== receipt.storageReadbackSha256,
+    "review seed response and storage observations were not independently digested");
+  assert(receipt.eventRecordUnchanged === true,
+    "review seed receipt did not preserve EventRecord byte identity");
+  const negatives = [
+    ["put.body.review.classification", {
+      putEnvelope: { ...putEnvelope, review: { ...review, classification: "needs-review" } },
+    }],
+    ["storage.body.records[].review.reviewStatus", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        records: [{
+          event: { eventId },
+          review: { ...review, reviewStatus: "confirmed" },
+        }],
+      },
+    }],
+    ["storage.body.records[joined-identity]", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        recordCount: 1,
+        records: [{ event: { eventId: "other" }, review: { ...review, eventId: "other" } }],
+      },
+    }],
+    ["eventRecord.byteIdentity", {
+      eventRecordAfterSha256: "b".repeat(64),
+    }],
+    ["put.body.review", {
+      putEnvelope: { status: "ops-event-review", persistent: true },
+    }],
+    ["storage.body.records", {
+      storageEnvelope: {
+        status: "ops-event-review-inbox",
+        schema: "media-server.ops.event-review-inbox.v1",
+      },
+    }],
+  ];
+  for (const [missingPath, override] of negatives) {
+    let message = "";
+    try {
+      validateEventReviewSeedWriteReceipt({
+        caseId: "EVT-019",
+        eventId,
+        requestedReview,
+        putStatus: 200,
+        putEnvelope,
+        storageStatus: 200,
+        storageEnvelope,
+        eventRecordBeforeSha256: eventRecordSha256,
+        eventRecordAfterSha256: eventRecordSha256,
+        ...override,
+      });
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    assert(message.includes(`missingPaths=`) && message.includes(missingPath),
+      `review seed negative did not identify ${missingPath}: ${message || "passed"}`);
+  }
 });
 
 check("builder is deterministic and preserves exact case order", () => {

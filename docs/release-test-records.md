@@ -2962,7 +2962,7 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Historical actual UI | `3e2f98a9`에서 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`, EVT-019 `review.eventId` stale top-level response path FAIL | historical FAIL은 PASS로 변경하지 않았습니다 |
 | GET collection schema | `GET /ops/api/events/reviews/{eventId}`는 `OpsEventReviewInboxJson` collection이며 `records[].event.eventId`와 `records[].review.eventId`를 joined identity로 검증합니다 | PUT response shape나 generic response path는 허용하지 않습니다 |
 | Mutation cleanup | restore 뒤 `200` collection envelope, `records=[]`, `recordCount=0`, EventRecord/review storage byte restore를 각각 요구합니다 | malformed/missing/residual/wrong/duplicate row와 non-200 status는 fail-closed입니다 |
-| Semantic | candidate `f409c31546795343b1454bc4afa721e55fc2478ce3867c011743bc2d444c1062`, 985 carry-forward + UI-018 independent, 986/986 | 기존 producer의 원자 audit/approval/implementation 갱신을 fixture 검증으로 확인했고 producer/generator는 재실행하지 않았습니다 |
+| Write receipt and semantic | Review seed는 제품 enum `reviewing/confirmed`, `unclassified/needs-tuning`, `new/in-progress`만 사용하며 PUT response, authoritative GET storage readback, EventRecord 전후 SHA를 독립 검증합니다. Candidate `40cbe8d4d271c804a493b9bc0427ee22beb26241950832907a2d27116506183c`, 985 carry-forward + UI-018 independent, 986/986 | producer exit 0의 atomic audit/approval/implementation 갱신을 fixture로 검증했고 producer/generator는 재실행하지 않았습니다 |
 | 미실행 경계 | actual UI/diagnostic/Policy v4/30분/120분/release | 이번 static checkpoint는 actual acceptance PASS가 아닙니다 |
 
 ### REVIEW4-65 SAFE-211 completion/current graph correction
