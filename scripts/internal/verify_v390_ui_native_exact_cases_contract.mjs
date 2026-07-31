@@ -101,6 +101,9 @@ check("event review seed receipts bind PUT response, storage readback, and Event
     present: true,
     eventId,
     ...requestedReview,
+    updatedAtMs: 1722412800000,
+    actor: "review4-operator",
+    role: "operator",
   };
   const putEnvelope = {
     status: "ops-event-review",
@@ -129,7 +132,30 @@ check("event review seed receipts bind PUT response, storage readback, and Event
     "review seed response and storage observations were not independently digested");
   assert(receipt.eventRecordUnchanged === true,
     "review seed receipt did not preserve EventRecord byte identity");
+  assert(receipt.notePresent === true && /^[a-f0-9]{64}$/.test(receipt.noteSha256),
+    "review seed receipt did not preserve the operator note digest");
+  assert(!JSON.stringify(receipt).includes(requestedReview.note),
+    "review seed receipt retained raw operator note material");
   const negatives = [
+    ["put.body.review.note[type]", {
+      putEnvelope: {
+        ...putEnvelope,
+        note: requestedReview.note,
+        review: { ...review, note: undefined },
+      },
+    }],
+    ["put.body.review.note[digest]", {
+      putEnvelope: { ...putEnvelope, review: { ...review, note: "drifted-note" } },
+    }],
+    ["storage.body.records[].review.note[digest]", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        records: [{
+          event: { eventId },
+          review: { ...review, note: "storage-drifted-note" },
+        }],
+      },
+    }],
     ["put.body.review.classification", {
       putEnvelope: { ...putEnvelope, review: { ...review, classification: "needs-review" } },
     }],
@@ -151,6 +177,15 @@ check("event review seed receipts bind PUT response, storage readback, and Event
     }],
     ["eventRecord.byteIdentity", {
       eventRecordAfterSha256: "b".repeat(64),
+    }],
+    ["storage.body.records[].review.actor", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        records: [{
+          event: { eventId },
+          review: { ...review, actor: "different-operator" },
+        }],
+      },
     }],
     ["put.body.review", {
       putEnvelope: { status: "ops-event-review", persistent: true },

@@ -2965,6 +2965,16 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Write receipt and semantic | Review seed는 제품 enum `reviewing/confirmed`, `unclassified/needs-tuning`, `new/in-progress`만 사용하며 PUT response, authoritative GET storage readback, EventRecord 전후 SHA를 독립 검증합니다. Candidate `40cbe8d4d271c804a493b9bc0427ee22beb26241950832907a2d27116506183c`, 985 carry-forward + UI-018 independent, 986/986 | producer exit 0의 atomic audit/approval/implementation 갱신을 fixture로 검증했고 producer/generator는 재실행하지 않았습니다 |
 | 미실행 경계 | actual UI/diagnostic/Policy v4/30분/120분/release | 이번 static checkpoint는 actual acceptance PASS가 아닙니다 |
 
+### REVIEW4-65 EVT-019 note-digest receipt checkpoint
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| Historical actual UI | `3e2f98a9`에서 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`, EVT-019 note receipt incomplete FAIL | historical FAIL은 PASS로 변경하지 않았습니다 |
+| Receipt boundary | PUT `review.note`와 GET `records[].review.note`는 raw note 대신 presence+SHA-256으로 독립 검증하고 `updatedAtMs`/actor/role 및 EventRecord byte identity를 결속합니다 | missing/non-string, digest drift, storage metadata drift, malformed identity는 fail-closed입니다 |
+| Semantic transaction | candidate `413415d5561595ca65ed626ec587deba5c690d3f2ed9632947f06897381bcf90`, 985 carry-forward + UI-018 independent, audit/approval 986/986 | migration-aware producer 정확히 1회, generator 0회, audit/approval/implementation/native를 atomic replacement했습니다 |
+| Static gate | evaluator 18, native 44, event 25, runtime 41, completion 36, adapter 23, diagnostic 18 및 semantic/feature/inventory/index/script/docs PASS | actual acceptance evidence가 아닙니다 |
+| 미실행 경계 | actual UI/diagnostic/Policy v4/30분/120분/release | 이번 checkpoint에서 실행하지 않았습니다 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

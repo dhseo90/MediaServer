@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // 파일 용도: exact EVT runtime evaluator가 response/DOM/network/state assertion을 실제 평가하고 미지원 의미를 fail-closed 처리하는지 검증한다.
 
+import crypto from "node:crypto";
+
 import {
   assertEventExactRuntimeBindings,
   createEventExactOracleEvaluationPlan,
@@ -102,6 +104,47 @@ check("DOM evaluator executes number-equals-response and fails without response 
   assert(evaluateEventExactDomAssertion({ caseId: "EVT-001", assertion, observation, context: { fixtureId: "fixture", responseValues: { "sessionManager.activeSessions": 2 } } }).pass, "DOM number/response comparison failed");
   assert(!evaluateEventExactDomAssertion({ caseId: "EVT-001", assertion, observation, context: { fixtureId: "fixture", responseValues: {} } }).pass, "DOM number comparison passed without response evidence");
   assert(!evaluateEventExactDomAssertion({ caseId: "EVT-001", assertion, observation, context: { fixtureId: "fixture", responseValues: { "sessionManager.activeSessions": 3 } } }).pass, "wrong DOM number passed");
+});
+
+check("review note seed equality uses presence and digest without retaining raw note", () => {
+  const note = "review4 safe operator note";
+  const assertion = {
+    path: "records[].review.note",
+    operator: "equals-seed",
+    required: true,
+  };
+  const digest = crypto.createHash("sha256").update(note).digest("hex");
+  const context = {
+    seedByPath: {
+      "records[].review.note": { present: true, sha256: digest },
+    },
+  };
+  const pass = evaluateEventExactResponseAssertion({
+    caseId: "EVT-020",
+    assertion,
+    responseJson: { records: [{ review: { note } }] },
+    context,
+  });
+  assert(pass.pass === true && pass.reason === "equals-seed-digest",
+    "review note digest seed did not pass");
+  assert(!JSON.stringify(pass).includes(note),
+    "review note digest evidence retained raw note");
+
+  const drift = evaluateEventExactResponseAssertion({
+    caseId: "EVT-020",
+    assertion,
+    responseJson: { records: [{ review: { note: "different" } }] },
+    context,
+  });
+  assert(drift.pass === false, "review note digest drift did not fail closed");
+
+  const missing = evaluateEventExactResponseAssertion({
+    caseId: "EVT-020",
+    assertion,
+    responseJson: { records: [{ review: {} }] },
+    context,
+  });
+  assert(missing.pass === false, "missing review note path did not fail closed");
 });
 
 check("domain-specific DOM operators require keyed semantic evidence", () => {

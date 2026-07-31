@@ -1,5 +1,7 @@
 // 파일 용도: exact EVT oracle catalog의 response/DOM/network/state assertion을 누락 없이 fail-closed로 평가한다.
 
+import crypto from "node:crypto";
+
 import {
   eventExactOracleFor,
 } from "./v390_ui_exact_event_oracles.mjs";
@@ -16,6 +18,10 @@ const DIRECT_DOM_OPERATORS = new Set([
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function sha256Text(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
 }
 
 function stable(value) {
@@ -304,6 +310,20 @@ export function evaluateEventExactResponseAssertion({ caseId, assertion, respons
   if (["equals-seed", "equals-request", "equals-requested-fields", "equals-requested-resolution", "equals-put-response", "equals-put-response-review", "equals-review-projection", "equals-seed-counts", "equals-seed-derivation"].includes(assertion.operator)) {
     const expected = expectedValueFor(context, assertion, "response");
     if (expected === undefined) return { pass: false, reason: `expected value missing for ${assertion.operator}:${assertion.path}`, assertion, actual };
+    if (assertion.operator === "equals-seed" &&
+        expected && typeof expected === "object" &&
+        /^[a-f0-9]{64}$/.test(String(expected.sha256 || "")) &&
+        typeof expected.present === "boolean") {
+      const actualPresent = typeof actual === "string" && actual.length > 0;
+      const actualSha256 = sha256Text(typeof actual === "string" ? actual : "");
+      return {
+        pass: actualPresent === expected.present && actualSha256 === expected.sha256,
+        reason: "equals-seed-digest",
+        assertion,
+        actual: { present: actualPresent, sha256: actualSha256 },
+        expected,
+      };
+    }
     return { pass: deepEqual(actual, expected), reason: assertion.operator, assertion, actual, expected };
   }
   if (assertion.operator === "contains-stages") {

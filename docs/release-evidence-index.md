@@ -962,6 +962,15 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Semantic ledger | candidate `f409c31546795343b1454bc4afa721e55fc2478ce3867c011743bc2d444c1062`, 985 carry-forward + UI-018 independent, approval 986/986 | existing producer atomic output을 audit/approval/implementation fixture로 검증; producer/generator 재실행 없음 |
 | Actual boundary | UI/diagnostic/Policy v4/30분/120분/release 재실행 없음 | static checkpoint PASS는 actual acceptance evidence가 아님 |
 
+## V390-REVIEW4-65 EVT-019 note-digest receipt boundary
+
+| evidence | current result | boundary |
+| --- | --- | --- |
+| Historical canonical failure | `3e2f98a9` actual UI `296 attempted / 295 PASS / 1 FAIL / 128 not-run`, EVT-019 note receipt incomplete FAIL | historical FAIL이며 current PASS로 승격하지 않음 |
+| Receipt projection | PUT `review.note`와 authoritative GET `records[].review.note`는 presence+SHA-256과 `updatedAtMs`/actor/role로 각각 결속 | raw note, malformed/non-string, digest/metadata/identity drift는 fail-closed |
+| Semantic ledger | candidate `413415d5561595ca65ed626ec587deba5c690d3f2ed9632947f06897381bcf90`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 정확히 1회, native generator 0회, four-fixture atomic readback PASS |
+| Static verification | evaluator18/native44/event25/runtime41/completion36/adapter23/diagnostic18, semantic/feature/inventory/index/script/docs PASS | actual UI와 Policy v4는 미실행 |
+
 ## V390-REVIEW4-65 UI-046~424 runtime source audit
 
 | evidence | current boundary | 판정 |

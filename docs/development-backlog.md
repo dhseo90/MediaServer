@@ -6924,6 +6924,17 @@ UI-018 독립 승인과 producer exit 0의 atomic fixture 갱신으로 candidate
 1 independent, audit/approval 986/986을 확인했습니다. generator와 producer, actual
 UI/diagnostic/Policy v4/30분/120분/release는 이 checkpoint에서 재실행하지 않습니다.
 
+EVT-019 note-digest receipt checkpoint(2026-07-31)는 동일 historical `3e2f98a9`
+actual UI의 `296 attempted / 295 PASS / 1 FAIL / 128 not-run` note receipt incomplete FAIL을
+그대로 보존합니다. PUT `review.note`와 authoritative collection
+`records[].review.note`는 raw 값을 evidence에 남기지 않고 문자열 존재 여부와 SHA-256으로
+독립 비교하며, `updatedAtMs`/actor/role 및 EventRecord byte identity도 응답과 storage 사이에서
+결속합니다. malformed note, digest/metadata drift, missing storage row는 fail-closed입니다.
+독립 UI-018 승인 뒤 migration-aware producer를 정확히 한 번 실행해 candidate
+`413415d5561595ca65ed626ec587deba5c690d3f2ed9632947f06897381bcf90`,
+985 carry-forward + 1 independent, audit/approval/implementation/native 986/986을 원자 갱신했습니다.
+generator와 actual UI/diagnostic/Policy v4/30분/120분/release는 이 checkpoint에서 실행하지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

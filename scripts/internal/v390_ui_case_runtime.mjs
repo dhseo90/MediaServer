@@ -204,6 +204,8 @@ export function validateEventReviewSeedWriteReceipt({
     ? requestedReview
     : {};
   const responseReview = putEnvelope?.review;
+  const expectedNote = typeof expected.note === "string" ? expected.note : "";
+  const responseNote = typeof responseReview?.note === "string" ? responseReview.note : null;
 
   requirePath(caseId.length > 0, "binding.caseId");
   requirePath(eventId.length > 0, "binding.eventId");
@@ -217,9 +219,17 @@ export function validateEventReviewSeedWriteReceipt({
     "put.body.review.reviewStatus");
   requirePath(responseReview?.classification === expected.classification,
     "put.body.review.classification");
-  requirePath(responseReview?.note === expected.note, "put.body.review.note");
+  requirePath(responseNote !== null, "put.body.review.note[type]");
+  requirePath(responseNote !== null && sha256Text(responseNote) === sha256Text(expectedNote),
+    "put.body.review.note[digest]");
   requirePath(responseReview?.incidentStatus === expected.incidentStatus,
     "put.body.review.incidentStatus");
+  requirePath(Number.isInteger(responseReview?.updatedAtMs) && responseReview.updatedAtMs > 0,
+    "put.body.review.updatedAtMs");
+  requirePath(typeof responseReview?.actor === "string" && responseReview.actor.length > 0,
+    "put.body.review.actor");
+  requirePath(typeof responseReview?.role === "string" && responseReview.role.length > 0,
+    "put.body.review.role");
 
   requirePath(storageStatus === 200, "storage.status");
   requirePath(storageEnvelope && typeof storageEnvelope === "object" &&
@@ -240,10 +250,18 @@ export function validateEventReviewSeedWriteReceipt({
     "storage.body.records[].review.reviewStatus");
   requirePath(storedReview?.classification === expected.classification,
     "storage.body.records[].review.classification");
-  requirePath(storedReview?.note === expected.note,
-    "storage.body.records[].review.note");
+  const storedNote = typeof storedReview?.note === "string" ? storedReview.note : null;
+  requirePath(storedNote !== null, "storage.body.records[].review.note[type]");
+  requirePath(storedNote !== null && sha256Text(storedNote) === sha256Text(expectedNote),
+    "storage.body.records[].review.note[digest]");
   requirePath(storedReview?.incidentStatus === expected.incidentStatus,
     "storage.body.records[].review.incidentStatus");
+  requirePath(storedReview?.updatedAtMs === responseReview?.updatedAtMs,
+    "storage.body.records[].review.updatedAtMs");
+  requirePath(storedReview?.actor === responseReview?.actor,
+    "storage.body.records[].review.actor");
+  requirePath(storedReview?.role === responseReview?.role,
+    "storage.body.records[].review.role");
 
   requirePath(/^[a-f0-9]{64}$/.test(eventRecordBeforeSha256),
     "eventRecord.beforeSha256");
@@ -263,22 +281,34 @@ export function validateEventReviewSeedWriteReceipt({
     eventId: responseReview.eventId,
     reviewStatus: responseReview.reviewStatus,
     classification: responseReview.classification,
-    note: responseReview.note,
+    notePresent: responseNote !== null && responseNote.length > 0,
+    noteSha256: sha256Text(responseNote || ""),
     incidentStatus: responseReview.incidentStatus,
+    updatedAtMs: responseReview.updatedAtMs,
+    actor: responseReview.actor,
+    role: responseReview.role,
   };
   const storageObservation = {
     eventId: storedReview.eventId,
     reviewStatus: storedReview.reviewStatus,
     classification: storedReview.classification,
-    note: storedReview.note,
+    notePresent: storedNote !== null && storedNote.length > 0,
+    noteSha256: sha256Text(storedNote || ""),
     incidentStatus: storedReview.incidentStatus,
+    updatedAtMs: storedReview.updatedAtMs,
+    actor: storedReview.actor,
+    role: storedReview.role,
   };
   return Object.freeze({
     eventId,
     reviewStatus: storageObservation.reviewStatus,
     classification: storageObservation.classification,
-    note: storageObservation.note,
+    notePresent: storageObservation.notePresent,
+    noteSha256: storageObservation.noteSha256,
     incidentStatus: storageObservation.incidentStatus,
+    updatedAtMs: storageObservation.updatedAtMs,
+    actor: storageObservation.actor,
+    role: storageObservation.role,
     putStatus,
     storageStatus,
     putResponseSha256: sha256Text(`put-response:${stableJson(responseObservation)}`),
@@ -2781,7 +2811,11 @@ export function createV390UiCaseRuntime({
           String(joined[0]?.review?.eventId || "") === context.fixtureId &&
           joined[0]?.review?.reviewStatus === expectedReview.reviewStatus &&
           joined[0]?.review?.classification === expectedReview.classification &&
-          joined[0]?.review?.note === expectedReview.note,
+          typeof joined[0]?.review?.note === "string" &&
+          sha256Text(joined[0].review.note) === expectedReview.noteSha256 &&
+          joined[0]?.review?.updatedAtMs === expectedReview.updatedAtMs &&
+          joined[0]?.review?.actor === expectedReview.actor &&
+          joined[0]?.review?.role === expectedReview.role,
         `${item.caseId} exact review identity is missing from the authoritative join readback`);
       }
       recordCount = records.length;
@@ -2838,7 +2872,10 @@ export function createV390UiCaseRuntime({
             "records[].review.eventId": reviewSeeds[context.fixtureId].eventId,
             "records[].review.reviewStatus": reviewSeeds[context.fixtureId].reviewStatus,
             "records[].review.classification": reviewSeeds[context.fixtureId].classification,
-            "records[].review.note": reviewSeeds[context.fixtureId].note,
+            "records[].review.note": {
+              sha256: reviewSeeds[context.fixtureId].noteSha256,
+              present: reviewSeeds[context.fixtureId].notePresent,
+            },
           }
         : {},
       eventReviewSeedEvidence: {
