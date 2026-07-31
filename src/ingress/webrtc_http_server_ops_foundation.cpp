@@ -4193,88 +4193,186 @@ bool OpsFeatureCorrectionHasContent(const OpsEventReviewState& state) {
            state.reanalysis_requested || !state.reanalysis_reason.empty();
 }
 
+bool ParseOpsEventReviewStructuredNotes(const std::string& line,
+                                        OpsEventReviewStructuredNotes* notes,
+                                        std::string* error_message) {
+    if (notes == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "event review structured notes output is required";
+        }
+        return false;
+    }
+    *notes = OpsEventReviewStructuredNotes{};
+
+    VlmProfileJsonDocument document;
+    if (!VlmProfileJsonDocument::Parse(line, &document, error_message)) {
+        return false;
+    }
+    if (document.HasTopLevelField("note") && !document.StringField("note").has_value()) {
+        if (error_message != nullptr) {
+            *error_message = "event review top-level note must be a string";
+        }
+        return false;
+    }
+    notes->review_note = document.StringField("note");
+
+    if (document.HasTopLevelField("resolution")) {
+        const auto resolution_json = document.ObjectField("resolution");
+        if (!resolution_json.has_value()) {
+            if (error_message != nullptr) {
+                *error_message = "event review resolution must be an object";
+            }
+            return false;
+        }
+        VlmProfileJsonDocument resolution;
+        if (!VlmProfileJsonDocument::Parse(*resolution_json, &resolution, error_message)) {
+            return false;
+        }
+        if (resolution.HasTopLevelField("note") &&
+            !resolution.StringField("note").has_value()) {
+            if (error_message != nullptr) {
+                *error_message = "event review resolution.note must be a string";
+            }
+            return false;
+        }
+        notes->resolution_note = resolution.StringField("note");
+    }
+    if (document.HasTopLevelField("resolutionNote")) {
+        const auto legacy_resolution_note = document.StringField("resolutionNote");
+        if (!legacy_resolution_note.has_value()) {
+            if (error_message != nullptr) {
+                *error_message = "event review resolutionNote must be a string";
+            }
+            return false;
+        }
+        notes->resolution_note = legacy_resolution_note;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13207 function
-OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
-    OpsEventReviewState state;
-    state.event_id = Trim(ParseStringField(line, "eventId").value_or(""));
-    state.review_status = NormalizeOpsEventReviewStatus(
+bool OpsEventReviewStateFromJsonLine(const std::string& line,
+                                     OpsEventReviewState* state,
+                                     std::string* error_message) {
+    if (state == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "event review state output is required";
+        }
+        return false;
+    }
+    *state = OpsEventReviewState{};
+
+    OpsEventReviewStructuredNotes structured_notes;
+    std::string structured_notes_error;
+    if (!ParseOpsEventReviewStructuredNotes(
+            line, &structured_notes, &structured_notes_error)) {
+        if (error_message != nullptr) {
+            *error_message = "invalid event review persisted JSON record";
+        }
+        return false;
+    }
+    VlmProfileJsonDocument persisted_document;
+    if (!VlmProfileJsonDocument::Parse(line, &persisted_document, nullptr) ||
+        !persisted_document.StringField("eventId").has_value()) {
+        if (error_message != nullptr) {
+            *error_message = "invalid event review persisted JSON record";
+        }
+        return false;
+    }
+
+    OpsEventReviewState parsed_state;
+    parsed_state.event_id = Trim(ParseStringField(line, "eventId").value_or(""));
+    parsed_state.review_status = NormalizeOpsEventReviewStatus(
         ParseStringField(line, "reviewStatus").value_or("new"));
-    state.classification = NormalizeOpsEventReviewClassification(
+    parsed_state.classification = NormalizeOpsEventReviewClassification(
         ParseStringField(line, "classification").value_or("unclassified"));
     if (const auto incident = ExtractObjectField(line, "incidentWorkflow"); incident.has_value()) {
-        state.incident_id = NormalizeOpsIncidentId(
-            ParseStringField(*incident, "incidentId").value_or(""), state.event_id);
-        state.incident_status = NormalizeOpsIncidentStatus(
+        parsed_state.incident_id = NormalizeOpsIncidentId(
+            ParseStringField(*incident, "incidentId").value_or(""), parsed_state.event_id);
+        parsed_state.incident_status = NormalizeOpsIncidentStatus(
             ParseStringField(*incident, "status").value_or("new"));
-        state.action_target =
+        parsed_state.action_target =
             NormalizeOpsEventActionTarget(ParseStringField(*incident, "actionTarget").value_or(""));
     }
-    state.incident_id = NormalizeOpsIncidentId(
-        ParseStringField(line, "incidentId").value_or(state.incident_id), state.event_id);
-    state.incident_status = NormalizeOpsIncidentStatus(
-        ParseStringField(line, "incidentStatus").value_or(state.incident_status));
-    state.action_target =
-        NormalizeOpsEventActionTarget(ParseStringField(line, "actionTarget").value_or(state.action_target));
+    parsed_state.incident_id = NormalizeOpsIncidentId(
+        ParseStringField(line, "incidentId").value_or(parsed_state.incident_id),
+        parsed_state.event_id);
+    parsed_state.incident_status = NormalizeOpsIncidentStatus(
+        ParseStringField(line, "incidentStatus").value_or(parsed_state.incident_status));
+    parsed_state.action_target = NormalizeOpsEventActionTarget(
+        ParseStringField(line, "actionTarget").value_or(parsed_state.action_target));
     if (const auto resolution = ExtractObjectField(line, "resolution"); resolution.has_value()) {
-        state.resolution_status = NormalizeOpsResolutionStatus(
-            ParseStringField(*resolution, "status").value_or(state.resolution_status));
-        state.resolution_reason = NormalizeOpsResolutionReason(
-            ParseStringField(*resolution, "reason").value_or(state.resolution_reason));
-        state.resolution_note =
-            NormalizeOpsResolutionNote(ParseStringField(*resolution, "note").value_or(""));
-        state.resolution_transition = NormalizeOpsResolutionTransition(
-            ParseStringField(*resolution, "transition").value_or(state.resolution_transition));
-        state.resolution_closed_at_ms =
-            ParseInt64Field(*resolution, "closedAtMs").value_or(state.resolution_closed_at_ms);
-        state.resolution_reopened_at_ms =
-            ParseInt64Field(*resolution, "reopenedAtMs").value_or(state.resolution_reopened_at_ms);
+        parsed_state.resolution_status = NormalizeOpsResolutionStatus(
+            ParseStringField(*resolution, "status").value_or(parsed_state.resolution_status));
+        parsed_state.resolution_reason = NormalizeOpsResolutionReason(
+            ParseStringField(*resolution, "reason").value_or(parsed_state.resolution_reason));
+        parsed_state.resolution_transition = NormalizeOpsResolutionTransition(
+            ParseStringField(*resolution, "transition").value_or(
+                parsed_state.resolution_transition));
+        parsed_state.resolution_closed_at_ms = ParseInt64Field(*resolution, "closedAtMs")
+                                                    .value_or(
+                                                        parsed_state.resolution_closed_at_ms);
+        parsed_state.resolution_reopened_at_ms =
+            ParseInt64Field(*resolution, "reopenedAtMs")
+                .value_or(parsed_state.resolution_reopened_at_ms);
     }
-    state.resolution_status = NormalizeOpsResolutionStatus(
-        ParseStringField(line, "resolutionStatus").value_or(state.resolution_status));
-    state.resolution_reason = NormalizeOpsResolutionReason(
-        ParseStringField(line, "resolutionReason").value_or(state.resolution_reason));
-    state.resolution_note = NormalizeOpsResolutionNote(
-        ParseStringField(line, "resolutionNote").value_or(state.resolution_note));
-    state.resolution_transition = NormalizeOpsResolutionTransition(
-        ParseStringField(line, "resolutionTransition").value_or(state.resolution_transition));
-    state.resolution_closed_at_ms =
-        ParseInt64Field(line, "resolutionClosedAtMs").value_or(state.resolution_closed_at_ms);
-    state.resolution_reopened_at_ms =
-        ParseInt64Field(line, "resolutionReopenedAtMs").value_or(state.resolution_reopened_at_ms);
-    state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));
+    parsed_state.resolution_status = NormalizeOpsResolutionStatus(
+        ParseStringField(line, "resolutionStatus").value_or(parsed_state.resolution_status));
+    parsed_state.resolution_reason = NormalizeOpsResolutionReason(
+        ParseStringField(line, "resolutionReason").value_or(parsed_state.resolution_reason));
+    parsed_state.resolution_note = NormalizeOpsResolutionNote(
+        structured_notes.resolution_note.value_or(""));
+    parsed_state.resolution_transition = NormalizeOpsResolutionTransition(
+        ParseStringField(line, "resolutionTransition")
+            .value_or(parsed_state.resolution_transition));
+    parsed_state.resolution_closed_at_ms = ParseInt64Field(line, "resolutionClosedAtMs")
+                                               .value_or(parsed_state.resolution_closed_at_ms);
+    parsed_state.resolution_reopened_at_ms =
+        ParseInt64Field(line, "resolutionReopenedAtMs")
+            .value_or(parsed_state.resolution_reopened_at_ms);
+    parsed_state.note =
+        NormalizeOpsEventReviewNote(structured_notes.review_note.value_or(""));
     if (const auto vlm_action = ExtractObjectField(line, "vlmAction"); vlm_action.has_value()) {
-        state.vlm_action = NormalizeOpsVlmReviewAction(
+        parsed_state.vlm_action = NormalizeOpsVlmReviewAction(
             ParseStringField(*vlm_action, "action").value_or("not-reviewed"));
-        state.vlm_action_target = NormalizeOpsVlmReviewActionTarget(
+        parsed_state.vlm_action_target = NormalizeOpsVlmReviewActionTarget(
             ParseStringField(*vlm_action, "target").value_or("eventExplanation"));
-        state.vlm_action_note =
+        parsed_state.vlm_action_note =
             NormalizeOpsEventReviewNote(ParseStringField(*vlm_action, "note").value_or(""));
     }
     if (const auto feature_correction = ExtractObjectField(line, "featureCorrection");
         feature_correction.has_value()) {
-        state.corrected_feature_label = NormalizeOpsFeatureCorrectionValue(
+        parsed_state.corrected_feature_label = NormalizeOpsFeatureCorrectionValue(
             ParseStringField(*feature_correction, "correctedFeatureLabel").value_or(""));
-        state.feature_aliases =
+        parsed_state.feature_aliases =
             NormalizeOpsFeatureAliases(StringArrayFieldValues(*feature_correction, "featureAliases"));
-        state.reanalysis_requested =
+        parsed_state.reanalysis_requested =
             ParseBoolField(*feature_correction, "reanalysisRequested").value_or(false);
-        state.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(
+        parsed_state.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(
             ParseStringField(*feature_correction, "reanalysisReason").value_or(""));
     }
-    state.corrected_feature_label = NormalizeOpsFeatureCorrectionValue(
-        ParseStringField(line, "correctedFeatureLabel").value_or(state.corrected_feature_label));
+    parsed_state.corrected_feature_label = NormalizeOpsFeatureCorrectionValue(
+        ParseStringField(line, "correctedFeatureLabel")
+            .value_or(parsed_state.corrected_feature_label));
     if (auto aliases = StringArrayFieldValues(line, "featureAliases"); !aliases.empty()) {
-        state.feature_aliases = NormalizeOpsFeatureAliases(std::move(aliases));
+        parsed_state.feature_aliases = NormalizeOpsFeatureAliases(std::move(aliases));
     }
-    state.reanalysis_requested =
-        ParseBoolField(line, "reanalysisRequested").value_or(state.reanalysis_requested);
-    state.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(
-        ParseStringField(line, "reanalysisReason").value_or(state.reanalysis_reason));
-    state.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
-    state.actor = Trim(ParseStringField(line, "actor").value_or(""));
-    state.role = Trim(ParseStringField(line, "role").value_or(""));
-    state.present = OpsEventReviewEventIdAllowed(state.event_id);
-    return state;
+    parsed_state.reanalysis_requested =
+        ParseBoolField(line, "reanalysisRequested").value_or(parsed_state.reanalysis_requested);
+    parsed_state.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(
+        ParseStringField(line, "reanalysisReason").value_or(parsed_state.reanalysis_reason));
+    parsed_state.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
+    parsed_state.actor = Trim(ParseStringField(line, "actor").value_or(""));
+    parsed_state.role = Trim(ParseStringField(line, "role").value_or(""));
+    parsed_state.present = OpsEventReviewEventIdAllowed(parsed_state.event_id);
+    *state = std::move(parsed_state);
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13290 function
@@ -4415,15 +4513,30 @@ bool LoadOpsEventReviewStatesLocked(const std::filesystem::path& path,
         return false;
     }
     std::string line;
+    std::size_t line_number = 0;
     while (std::getline(in, line)) {
+        ++line_number;
         line = Trim(std::move(line));
         if (line.empty()) {
             continue;
         }
-        OpsEventReviewState state = OpsEventReviewStateFromJsonLine(line);
+        OpsEventReviewState state;
+        std::string row_error;
+        if (!OpsEventReviewStateFromJsonLine(line, &state, &row_error)) {
+            states->clear();
+            if (error_message != nullptr) {
+                *error_message =
+                    "invalid event review persisted JSON record at line " +
+                    std::to_string(line_number);
+            }
+            return false;
+        }
         if (state.present) {
             (*states)[state.event_id] = std::move(state);
         }
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
     }
     return true;
 }

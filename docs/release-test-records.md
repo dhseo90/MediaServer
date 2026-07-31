@@ -2985,6 +2985,19 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Semantic transaction | candidate `4f6c7a05828e0ddf2edfe6806da6cfa4c08f820a0aa29a4481c6e199fd3141c4`, 985 carry-forward + UI-018 independent, audit/approval 986/986 | migration-aware producer 정확히 1회, audit/approval/implementation/native four-fixture atomic replacement, generator 0회 |
 | 미실행 경계 | actual EVT-019/UI, Policy v4, 30분/120분/release | 이번 static checkpoint는 actual acceptance PASS가 아닙니다 |
 
+### REVIEW4-65 EVT-019 structured product note loader/current graph checkpoint
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| Product root cause | Persisted JSON의 비구조적 첫 `"note"` 검색이 nested `resolution.note`를 top-level review note로 오인했습니다. 두 필드 mirror 우회는 독립 검토에서 거부했습니다 | Strict object parser가 top-level `note`, nested `resolution.note`, legacy `resolutionNote`를 구조적으로 분리하며 공식 UI/seed는 top-level note-only입니다 |
+| Fail-closed storage | malformed/duplicate/type-invalid row와 non-string `eventId`는 state를 만들지 않고 locked loader는 partial map을 비웁니다 | Raw row를 기록하지 않고 실패 행 번호만 보존합니다 |
+| Production harness | 실제 foundation translation unit에서 parser/locked loader/serializer를 실행하고 parsed-note discard, parse-failure ignore, nested promotion, invalid-row acceptance mutation을 각각 RED로 확인했습니다 | Review 500-byte/resolution 240-byte 경계, quote/backslash/Unicode, legacy 호환은 PASS입니다 |
+| Completion/current graph | Completion `215ce928…`, 215/103/edge16, 최대 10,156줄은 immutable. Current `9dcb0169…`, 215/103/edge16, 최대 10,176줄, violation/SCC 0/0 | Completion historical metrics는 변경하지 않고 current graph만 공식 writer 1회로 갱신했습니다 |
+| Source bundle/physical split | Current bundle `933692c5…`, 2,261,525 bytes/47,076줄, split 1,198/`d1fe5017…`; completion bundle `d2dc01ef…`, 2,252,961 bytes, split 1,190 불변 | Completion/current 교환, executable/source/offset/order drift는 fail-closed입니다 |
+| Canonical source owner | Review storage/state는 foundation, inbox는 incidents, mutation/audit는 runtime, HTML은 server-pages, behavior는 page-scripts, CSS는 CSS owner에서 직접 검증합니다 | Owner 누락·교환·stale combined product-UI input을 거부합니다 |
+| Semantic transaction | Candidate `7010fa49efc887f9cfb7983f9e4dc7e3b5a436e89770197d4df647f12b74af3f`, 973 carry-forward + 13 independent, 986/986 | Migration report/evidence `3f7bfe45…`/`7c175839…`, package/decision `f5a12633…`/`165a1105…`, producer 정확히 1회 exit 0, log `18f7bf68…` |
+| Historical actual | Canonical `296 attempted / 295 PASS / 1 FAIL / 128 not-run` 및 focused EVT-019 note digest FAIL | Actual EVT-019/UI, Policy v4, 30분/120분/release는 이번 checkpoint에서 미실행이며 기존 FAIL을 PASS로 변경하지 않습니다 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

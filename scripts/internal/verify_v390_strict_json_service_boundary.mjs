@@ -22,7 +22,7 @@ Checks:
   - transport의 domain/strict_json.h 및 StrictJson* 직접 사용 제거
   - dependency-light opaque VlmProfileJsonDocument API와 parse 상태 계약
   - domain strict JSON 구현은 VLM profile application-service implementation TU에만 한정
-  - CMake/owner/current graph 175/86/17/3/SCC0 및 domain witness 3 -> 2
+  - CMake/owner/current graph 215/103/16/0/SCC0 및 transport-domain witness 제거
   - umbrella/re-export, relabel, alias, source-text hiding, policy exception mutation 차단
 `);
 }
@@ -49,6 +49,10 @@ const transportFiles = [
   "src/ingress/webrtc_http_server_ops_incidents.cpp",
   "src/ingress/webrtc_http_server_runtime.cpp",
   "src/ingress/webrtc_http_server_detail.h",
+];
+const currentTransportFiles = [
+  ...transportFiles,
+  "include/ingress/webrtc_http_analysis_rule_declarations.h",
 ];
 
 function assert(condition, message) { if (!condition) throw new Error(message); }
@@ -240,25 +244,25 @@ function inspectOwnersAndGraph(graph, policy) {
   const errors = [];
   const transport = graph.moduleClassifiers.find(item => item.id === "transport-and-auth-adapter");
   const appService = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-  if (!transport || transport.expectedFileCount !== 10 || transport.expectedCppCount !== 6 ||
+  if (!transport || transport.expectedFileCount !== 11 || transport.expectedCppCount !== 6 ||
       transport.prefixes.length !== 0 ||
-      JSON.stringify([...transport.exactFiles].sort()) !== JSON.stringify([...transportFiles].sort()))
-    errors.push("graph:transport-owner-exact-10");
-  if (!appService || appService.expectedFileCount !== 10 || appService.expectedCppCount !== 3 ||
+      JSON.stringify([...transport.exactFiles].sort()) !== JSON.stringify([...currentTransportFiles].sort()))
+    errors.push("graph:transport-owner-exact-11");
+  if (!appService || appService.expectedFileCount !== 48 || appService.expectedCppCount !== 19 ||
       !appService.exactFiles.includes(headerPath) || !appService.exactFiles.includes(sourcePath) ||
       appService.prefixes.length !== 0)
-    errors.push("graph:application-service-owner-exact-addition");
+    errors.push("graph:application-service-owner-current-exact");
   const edge = graph.observedModuleEdges.find(item =>
     item.direction === "transport-and-auth-adapter -> domain-and-registry-owners");
-  if (!edge || edge.witnessCount !== 2 || edge.allowedByTarget !== false ||
-      edge.witnessSha256 === oldTransportDomainWitnessSha256)
-    errors.push("graph:domain-witness-not-reduced-and-rebound");
+  if (edge || graph.observedModuleEdges.some(item =>
+      item.witnessSha256 === oldTransportDomainWitnessSha256))
+    errors.push("graph:transport-domain-witness-not-removed");
   const actualEdges = collectObservedEdges(graph, policy);
   if (JSON.stringify(actualEdges) !== JSON.stringify(graph.observedModuleEdges))
     errors.push("graph:stored-edge-or-digest-drift");
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  if (graph.expectedProductionFiles !== 175 || graph.expectedCppFiles !== 86 ||
-      graph.observedModuleEdges.length !== 17 || violations.length !== 3 ||
+  if (graph.expectedProductionFiles !== 215 || graph.expectedCppFiles !== 103 ||
+      graph.observedModuleEdges.length !== 16 || violations.length !== 0 ||
       graph.stronglyConnectedComponents.length !== 0)
     errors.push(`graph:metrics:${graph.expectedProductionFiles}/${graph.expectedCppFiles}/` +
       `${graph.observedModuleEdges.length}/${violations.length}/${graph.stronglyConnectedComponents.length}`);

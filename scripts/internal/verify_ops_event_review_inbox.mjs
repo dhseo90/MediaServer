@@ -2,7 +2,11 @@
 // 파일 용도: Rule Event Review Inbox의 state/API/UI/audit 경계를 검증한다.
 
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import process from "node:process";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
@@ -10,6 +14,7 @@ import { resolveWebRtcHttpServerSource } from "./webrtc_http_server_source_bundl
 
 const args = parseArgs(process.argv.slice(2));
 const failures = [];
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 const reviewInboxSource = resolveWebRtcHttpServerSource(undefined, {
   tokens: ["bool OpsEventReviewInboxJson("],
@@ -42,6 +47,107 @@ check("server stores review state outside event payloads", () => {
   assertIncludes(reviewInboxBlock, "media-server.ops.vlm-review-action-state.v1", "VLM review action state");
   assertIncludes(reviewStorageSource.source, '\\"vlmAction\\":{', "VLM review action JSON");
   assertIncludes(reviewInboxBlock, "vlmReviewActionSchema", "VLM review action storage contract");
+});
+
+check("event review persistence parses review and resolution notes as distinct JSON fields", () => {
+  const parserBlock = extractCppFunctionBlock(
+    reviewStorageSource.source, "bool ParseOpsEventReviewStructuredNotes(");
+  const loaderBlock = extractCppFunctionBlock(
+    reviewStorageSource.source, "bool OpsEventReviewStateFromJsonLine(");
+  const storageLoaderBlock = extractCppFunctionBlock(
+    reviewStorageSource.source, "bool LoadOpsEventReviewStatesLocked(");
+  const serializerBlock = extractCppFunctionBlock(
+    reviewStorageSource.source, "std::string OpsEventReviewStateJson(");
+  assertIncludes(parserBlock, "VlmProfileJsonDocument::Parse(line", "structured root parser");
+  assertIncludes(parserBlock, 'document.StringField("note")', "top-level review note");
+  assertIncludes(parserBlock, 'document.ObjectField("resolution")', "nested resolution object");
+  assertIncludes(parserBlock, 'resolution.StringField("note")', "nested resolution note");
+  assertIncludes(parserBlock, 'document.StringField("resolutionNote")',
+    "legacy top-level resolution note compatibility");
+  assertIncludes(loaderBlock,
+    "ParseOpsEventReviewStructuredNotes(", "review-state structured parser call");
+  assertIncludes(loaderBlock,
+    "line, &structured_notes, &structured_notes_error",
+    "review-state structured parser call");
+  assertIncludes(loaderBlock,
+    "if (!ParseOpsEventReviewStructuredNotes(", "structured parser fail-closed branch");
+  assertIncludes(loaderBlock,
+    "structured_notes.review_note.value_or(\"\")", "review note structured readback");
+  assertIncludes(loaderBlock,
+    "structured_notes.resolution_note.value_or(\"\")", "resolution note structured readback");
+  assertIncludes(loaderBlock,
+    "*error_message = \"invalid event review persisted JSON record\"",
+    "persisted row redacted parse error");
+  assertIncludes(storageLoaderBlock,
+    "if (!OpsEventReviewStateFromJsonLine(line, &state, &row_error))",
+    "storage loader rejects invalid row");
+  assertIncludes(storageLoaderBlock, "states->clear()", "storage loader atomic failure");
+  assertIncludes(storageLoaderBlock, "std::to_string(line_number)",
+    "storage loader reports bounded line identity");
+  assert(!loaderBlock.includes('ParseStringField(line, "note")'),
+    "review loader still scans nested note fields by substring");
+  assertIncludes(serializerBlock, '<< "\\"resolution\\":" << OpsResolutionStateJson(resolution_state)',
+    "nested resolution serialization");
+  assertIncludes(serializerBlock, '<< "\\"note\\":\\"" << JsonEscape(state.note)',
+    "top-level review note serialization");
+  assertIncludes(reviewStorageSource.source,
+    "constexpr std::size_t kMaxReviewNoteBytes = 500", "review note normalization boundary");
+  assertIncludes(reviewStorageSource.source,
+    "constexpr std::size_t kMaxResolutionNoteBytes = 240", "resolution note normalization boundary");
+  assertIncludes(loaderBlock, "NormalizeOpsEventReviewNote(", "review note normalizer");
+  assertIncludes(loaderBlock, "NormalizeOpsResolutionNote(", "resolution note normalizer");
+
+  const bindStart = pageScript.indexOf("function bindEventReviewActions()");
+  const bindEnd = pageScript.indexOf("function bindEvidenceBundleActions()", bindStart);
+  const bindBlock = pageScript.slice(bindStart, bindEnd);
+  assert(bindStart >= 0 && bindEnd > bindStart, "event review UI payload function missing");
+  assertIncludes(bindBlock,
+    "note: row.querySelector('[data-event-review-field=\"note\"]')?.value || ''",
+    "official top-level review note payload");
+  assert(!bindBlock.includes("resolution:") && !bindBlock.includes("resolutionNote:"),
+    "official review UI mirrors note into the resolution contract");
+
+  const productionRun = compileAndRunReviewLoaderHarness(
+    reviewStorageSource.source, "production");
+  assert(productionRun.status === 0 &&
+      String(productionRun.stdout || "").trim() === "event-review-production-loader-ok",
+    `event review production loader roundtrip failed:\n` +
+      `${productionRun.stdout}\n${productionRun.stderr}`);
+
+  const mutations = [
+    {
+      name: "discard-parsed-review-note",
+      find: `parsed_state.note =
+        NormalizeOpsEventReviewNote(structured_notes.review_note.value_or(""));`,
+      replace: "parsed_state.note.clear();",
+    },
+    {
+      name: "ignore-structured-parse-failure",
+      find: `if (!ParseOpsEventReviewStructuredNotes(
+            line, &structured_notes, &structured_notes_error)) {`,
+      replace: `if (false && !ParseOpsEventReviewStructuredNotes(
+            line, &structured_notes, &structured_notes_error)) {`,
+    },
+    {
+      name: "promote-resolution-note-to-review-note",
+      find: "structured_notes.review_note.value_or(\"\")",
+      replace: "structured_notes.resolution_note.value_or(\"\")",
+    },
+    {
+      name: "accept-invalid-storage-row",
+      find: "if (!OpsEventReviewStateFromJsonLine(line, &state, &row_error)) {",
+      replace: "if (false && !OpsEventReviewStateFromJsonLine(line, &state, &row_error)) {",
+    },
+  ];
+  for (const mutation of mutations) {
+    const mutated = replaceExactlyOnce(
+      reviewStorageSource.source, mutation.find, mutation.replace, mutation.name);
+    const result = compileAndRunReviewLoaderHarness(mutated, mutation.name);
+    assert(result.compiled === true,
+      `${mutation.name} mutation did not compile:\n${result.stdout}\n${result.stderr}`);
+    assert(result.status !== 0,
+      `${mutation.name} mutation unexpectedly passed the production executable contract`);
+  }
 });
 
 check("event payload storage excludes review fields", () => {
@@ -113,6 +219,259 @@ if (failures.length > 0) {
 
 console.log("");
 console.log("== Event Review Inbox 통과 ==");
+
+function compileAndRunReviewLoaderHarness(foundationSource, label) {
+  const buildDir = path.join(rootDir, process.env.MEDIA_SERVER_BUILD_DIR || "build-gst-onnx");
+  const flagsPath = path.join(
+    buildDir, "CMakeFiles/media_server_runtime.dir/flags.make");
+  const linkPath = path.join(buildDir, "CMakeFiles/media_server.dir/link.txt");
+  const runtimeLibrary = path.join(buildDir, "libmedia_server_runtime.a");
+  assert(fs.existsSync(flagsPath), `CMake flags missing: ${flagsPath}`);
+  assert(fs.existsSync(linkPath), `CMake link command missing: ${linkPath}`);
+  assert(fs.existsSync(runtimeLibrary), `runtime library missing: ${runtimeLibrary}`);
+
+  const flags = fs.readFileSync(flagsPath, "utf8");
+  const compileArgs = [
+    ...cmakeAssignmentArgs(flags, "CXX_DEFINES"),
+    ...cmakeAssignmentArgs(flags, "CXX_INCLUDES"),
+    ...cmakeAssignmentArgs(flags, "CXX_FLAGS"),
+    "-I", path.join(rootDir, "src/ingress"),
+  ];
+  const linkTokens = splitCommandArgs(fs.readFileSync(linkPath, "utf8"));
+  const libraryIndex = linkTokens.findIndex((token) =>
+    token.endsWith("libmedia_server_runtime.a"));
+  assert(libraryIndex >= 0, "runtime library missing from CMake link command");
+  const runtimeLinkArgs = linkTokens.slice(libraryIndex);
+  runtimeLinkArgs[0] = runtimeLibrary;
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), `event-review-loader-${label}-`));
+  const sourcePath = path.join(tempRoot, "webrtc_http_server_ops_foundation.cpp");
+  const harnessPath = path.join(tempRoot, "main.cpp");
+  const sourceObject = path.join(tempRoot, "foundation.o");
+  const harnessObject = path.join(tempRoot, "main.o");
+  const binaryPath = path.join(tempRoot, "verify");
+  const harness = `#include "webrtc_http_server_detail.h"
+
+namespace detail = ingress::webrtc_http_server_detail;
+
+namespace {
+
+bool ParseState(const std::string& json,
+                detail::OpsEventReviewState* state,
+                std::string* error) {
+    return detail::OpsEventReviewStateFromJsonLine(json, state, error);
+}
+
+bool ExpectInvalid(const std::string& json) {
+    detail::OpsEventReviewState state;
+    state.present = true;
+    state.note = "must-be-cleared";
+    std::string error;
+    return !ParseState(json, &state, &error) &&
+           !state.present &&
+           state.note.empty() &&
+           error == "invalid event review persisted JSON record" &&
+           error.find("leak-marker") == std::string::npos;
+}
+
+bool WriteRows(const std::filesystem::path& path,
+               const std::vector<std::string>& rows) {
+    std::ofstream out(path, std::ios::trunc);
+    if (!out) return false;
+    for (const auto& row : rows) out << row << "\\n";
+    return static_cast<bool>(out);
+}
+
+bool ExpectInvalidStorageRow(const std::filesystem::path& path,
+                             const std::string& invalid) {
+    if (!WriteRows(path, {
+            R"({"eventId":"valid-before-invalid","note":"kept-only-on-success"})",
+            invalid,
+        })) return false;
+    std::unordered_map<std::string, detail::OpsEventReviewState> states;
+    states["preexisting"].present = true;
+    std::string error;
+    return !detail::LoadOpsEventReviewStatesLocked(path, &states, &error) &&
+           states.empty() &&
+           error == "invalid event review persisted JSON record at line 2" &&
+           error.find("leak-marker") == std::string::npos;
+}
+
+}  // namespace
+
+int main() {
+    detail::OpsEventReviewState state;
+    std::string error;
+
+    if (!ParseState(R"({"eventId":"top-level","note":"review-only"})", &state, &error) ||
+        !state.present || state.note != "review-only" || !state.resolution_note.empty()) return 1;
+    if (!ParseState(
+            R"({"eventId":"nested-only","resolution":{"note":"resolution-only"}})",
+            &state, &error) ||
+        !state.present || !state.note.empty() ||
+        state.resolution_note != "resolution-only") return 2;
+    if (!ParseState(
+            R"({"eventId":"distinct","note":"review","resolution":{"note":"resolution"}})",
+            &state, &error) ||
+        state.note != "review" || state.resolution_note != "resolution") return 3;
+    if (!ParseState(
+            R"({"eventId":"same","note":"same","resolution":{"note":"same"}})",
+            &state, &error) ||
+        state.note != "same" || state.resolution_note != "same") return 4;
+    if (!ParseState(
+            R"({"eventId":"legacy","note":"review","resolution":{"note":"nested"},"resolutionNote":"legacy"})",
+            &state, &error) ||
+        state.note != "review" || state.resolution_note != "legacy") return 5;
+    if (!ParseState(
+            R"({"eventId":"escaped","note":"quote \\" slash \\\\ unicode \\uD55C","resolution":{"note":"해결 \\" 경로 \\\\"}})",
+            &state, &error) ||
+        state.note != "quote \\" slash \\\\ unicode 한" ||
+        state.resolution_note != "해결 \\" 경로 \\\\") return 6;
+
+    const std::string review(520, 'r');
+    const std::string resolution(260, 's');
+    if (!ParseState(
+            "{\\"eventId\\":\\"bounded\\",\\"note\\":\\"" + review +
+                "\\",\\"resolution\\":{\\"note\\":\\"" + resolution + "\\"}}",
+            &state, &error) ||
+        state.note.size() != 500 || state.resolution_note.size() != 240) return 7;
+
+    detail::OpsEventReviewState official;
+    official.present = true;
+    official.event_id = "official-ui";
+    official.note = "official top-level note";
+    official.resolution_note = "independent resolution";
+    const std::string official_json = detail::OpsEventReviewStateJson(official);
+    if (!ParseState(official_json, &state, &error) ||
+        state.note != "official top-level note" ||
+        state.resolution_note != "independent resolution") return 8;
+
+    for (const std::string invalid : {
+             std::string(R"({"eventId":"malformed","note":"leak-marker")"),
+             std::string(R"({"eventId":"duplicate","note":"a","note":"leak-marker"})"),
+             std::string(R"({"eventId":"type-invalid","note":{"value":"leak-marker"}})"),
+             std::string(R"({"eventId":"nested-type","resolution":{"note":false}})"),
+             std::string(R"({"eventId":17,"note":"leak-marker"})"),
+         }) {
+        if (!ExpectInvalid(invalid)) return 9;
+    }
+    if (ParseState(R"({"eventId":"null-output","note":"review"})", nullptr, &error) ||
+        error != "event review state output is required") return 10;
+
+    const auto root = std::filesystem::temp_directory_path() /
+        ("event-review-production-loader-" + std::to_string(::getpid()));
+    std::error_code ec;
+    std::filesystem::remove_all(root, ec);
+    std::filesystem::create_directories(root, ec);
+    if (ec) return 11;
+    const auto storage = root / "reviews.jsonl";
+    if (!WriteRows(storage, {
+            R"({"eventId":"load-a","note":"review-a"})",
+            R"({"eventId":"load-b","resolution":{"note":"resolution-b"}})",
+        })) return 12;
+    std::unordered_map<std::string, detail::OpsEventReviewState> states;
+    if (!detail::LoadOpsEventReviewStatesLocked(storage, &states, &error) ||
+        states.size() != 2 ||
+        states.at("load-a").note != "review-a" ||
+        !states.at("load-a").resolution_note.empty() ||
+        !states.at("load-b").note.empty() ||
+        states.at("load-b").resolution_note != "resolution-b" ||
+        !error.empty()) return 13;
+
+    for (const std::string invalid : {
+             std::string(R"({"eventId":"malformed","note":"leak-marker")"),
+             std::string(R"({"eventId":"duplicate","note":"a","note":"leak-marker"})"),
+             std::string(R"({"eventId":"type-invalid","note":false})"),
+         }) {
+        if (!ExpectInvalidStorageRow(storage, invalid)) return 14;
+    }
+    states["stale"].present = true;
+    if (!detail::LoadOpsEventReviewStatesLocked(root / "missing.jsonl", &states, &error) ||
+        !states.empty()) return 15;
+    std::filesystem::remove_all(root, ec);
+    if (ec) return 16;
+
+    std::cout << "event-review-production-loader-ok\\n";
+    return 0;
+}
+`;
+  try {
+    fs.writeFileSync(sourcePath, foundationSource);
+    fs.writeFileSync(harnessPath, harness);
+
+    const sourceCompile = spawnSync(process.env.CXX || "/usr/bin/c++", [
+      ...compileArgs,
+      "-c", sourcePath,
+      "-o", sourceObject,
+    ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    if (sourceCompile.status !== 0) {
+      return {
+        compiled: false,
+        status: sourceCompile.status,
+        stdout: sourceCompile.stdout,
+        stderr: sourceCompile.stderr,
+      };
+    }
+    const harnessCompile = spawnSync(process.env.CXX || "/usr/bin/c++", [
+      ...compileArgs,
+      "-c", harnessPath,
+      "-o", harnessObject,
+    ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    if (harnessCompile.status !== 0) {
+      return {
+        compiled: false,
+        status: harnessCompile.status,
+        stdout: harnessCompile.stdout,
+        stderr: harnessCompile.stderr,
+      };
+    }
+    const link = spawnSync(process.env.CXX || "/usr/bin/c++", [
+      harnessObject,
+      sourceObject,
+      "-o", binaryPath,
+      ...runtimeLinkArgs,
+    ], { cwd: buildDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    if (link.status !== 0) {
+      return {
+        compiled: false,
+        status: link.status,
+        stdout: link.stdout,
+        stderr: link.stderr,
+      };
+    }
+    const run = spawnSync(binaryPath, [], {
+      cwd: rootDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    return {
+      compiled: true,
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+    };
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function cmakeAssignmentArgs(text, name) {
+  const match = text.match(new RegExp(`^${name} = (.*)$`, "m"));
+  assert(match, `CMake assignment missing: ${name}`);
+  return splitCommandArgs(match[1]);
+}
+
+function splitCommandArgs(text) {
+  return String(text || "").trim().split(/\s+/).filter(Boolean);
+}
+
+function replaceExactlyOnce(source, find, replacement, label) {
+  const first = source.indexOf(find);
+  assert(first >= 0, `${label} mutation target missing`);
+  assert(source.indexOf(find, first + find.length) < 0,
+    `${label} mutation target is not unique`);
+  return source.slice(0, first) + replacement + source.slice(first + find.length);
+}
 
 function readText(path) {
   return fs.readFileSync(path, "utf8");

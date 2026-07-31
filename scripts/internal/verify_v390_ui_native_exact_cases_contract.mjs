@@ -171,12 +171,24 @@ check("event review seed receipts bind PUT response, storage readback, and Event
     ["put.body.review.note[digest]", {
       putEnvelope: { ...putEnvelope, review: { ...review, note: "drifted-note" } },
     }],
+    ["put.body.review.note[digest]", {
+      putEnvelope: { ...putEnvelope, review: { ...review, note: "" } },
+    }],
     ["storage.body.records[].review.note[digest]", {
       storageEnvelope: {
         ...storageEnvelope,
         records: [{
           event: { eventId },
           review: { ...review, note: "storage-drifted-note" },
+        }],
+      },
+    }],
+    ["storage.body.records[].review.note[digest]", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        records: [{
+          event: { eventId },
+          review: { ...review, note: "" },
         }],
       },
     }],
@@ -822,6 +834,48 @@ check("event review mutation cleanup validates an empty 200 collection and byte 
     "            caseContext,\n" +
     "            [404],"),
   "event review mutation cleanup still expects a stale 404 response");
+});
+
+check("event review seed keeps the official top-level note schema and uses structured reload", () => {
+  const runtimeHandler = fs.readFileSync(
+    path.join(rootDir, "src/ingress/webrtc_http_server_runtime.cpp"), "utf8");
+  const storageOwner = fs.readFileSync(
+    path.join(rootDir, "src/ingress/webrtc_http_server_ops_foundation.cpp"), "utf8");
+  const pageScript = fs.readFileSync(
+    path.join(rootDir, "src/ingress/product_ui_page_scripts.cpp"), "utf8");
+  assert(runtimeHandler.includes(
+    'next.note = ParseStringField(request.body, "note").value_or("");') &&
+    runtimeHandler.includes('ExtractObjectField(request.body, "resolution")') &&
+    runtimeHandler.includes('ParseStringField(*resolution, "note")'),
+  "event review PUT parser no longer preserves independent note and resolution.note fields");
+  assert(storageOwner.includes("bool ParseOpsEventReviewStructuredNotes(") &&
+    storageOwner.includes("VlmProfileJsonDocument::Parse(line") &&
+    storageOwner.includes('document.StringField("note")') &&
+    storageOwner.includes('document.ObjectField("resolution")') &&
+    storageOwner.includes('resolution.StringField("note")'),
+  "event review persisted loader is not structurally bound to top-level and nested notes");
+  assert(storageOwner.includes(
+    "structured_notes.review_note.value_or(\"\")") &&
+    storageOwner.includes("structured_notes.resolution_note.value_or(\"\")") &&
+    !storageOwner.includes(
+      'state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));'),
+  "event review loader still permits nested note collision");
+  assert(!runtimeSource.includes("buildEventReviewSeedRequestPayload({") &&
+    runtimeSource.includes("const requestedReview = {") &&
+    runtimeSource.includes("note: `${reviewPayload.note} ${eventId}`"),
+  "event review seed no longer sends only the official top-level review note");
+  const bindStart = pageScript.indexOf("function bindEventReviewActions()");
+  const bindEnd = pageScript.indexOf("function bindEvidenceBundleActions()", bindStart);
+  const bindBlock = pageScript.slice(bindStart, bindEnd);
+  assert(bindBlock.includes(
+    "note: row.querySelector('[data-event-review-field=\"note\"]')?.value || ''") &&
+    !bindBlock.includes("resolution:") &&
+    !bindBlock.includes("resolutionNote:"),
+  "official Ops event review UI payload mirrors review note into resolution state");
+  assert(eventReviewSeedSiblingCaseIds.length === 7 &&
+    JSON.stringify(eventReviewSeedSiblingCaseIds) === JSON.stringify(
+      ["EVT-019", "EVT-020", "EVT-021", "EVT-037", "EVT-061", "EVT-066", "EVT-068"]),
+  "event review note sibling audit scope drift");
 });
 
 check("records.records fixture family uses product dispatch with exact readback and cleanup", () => {

@@ -33,7 +33,7 @@ const expectedSuccessorDefinitionSha256 =
 const expectedGraphSha256 =
   "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
 const expectedCurrentGraphSha256 =
-  "fd34ace24775ec0ffbd6617bc1ddcee661f50630471626ff57604e5955eebc24";
+  "9dcb0169d84c330371b60dde08781c29cf48b501131beab0493bbfd8a78299ea";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const completionGraphPath = "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json";
 const currentGraphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
@@ -328,7 +328,7 @@ check("private detail declarations keep shared state and singleton ownership ODR
   const headerDefinitions = definitionInventory(header);
   const headerDefaults = markedDeclarationInventory(header, "prototype", value => value.includes("="));
   const headerConstants = markedDeclarationInventory(header, "constant");
-  assert(header.startsWith("#pragma once\n") && headerDefinitions.length === 151,
+  assert(header.startsWith("#pragma once\n") && headerDefinitions.length === 152,
     `private detail header type/declaration inventory drift: definitions=${headerDefinitions.length}`);
   assert(JSON.stringify(headerDefaults) === JSON.stringify(rollbackDefaultArguments),
     "private detail default-argument inventory drift");
@@ -408,24 +408,39 @@ check("CMake and owner classifier include every translation unit exactly once", 
 });
 
 check("Slice 32 completion graph keeps direction debt stable while closing the mixed-owner limit", () => {
-  const graphText = read(completionGraphPath);
-  const graph = JSON.parse(graphText);
-  const trackedSplit = graph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
-  const appCore = graph.observedModuleEdges.find(item =>
+  const completionGraphText = read(completionGraphPath);
+  const completionGraph = JSON.parse(completionGraphText);
+  const completionSplit = completionGraph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
+  const appCore = completionGraph.observedModuleEdges.find(item =>
     item.direction === "application-service-interfaces -> core-media-interfaces");
-  const transportCore = graph.observedModuleEdges.filter(item =>
+  const transportCore = completionGraph.observedModuleEdges.filter(item =>
     item.direction === "transport-and-auth-adapter -> core-media-interfaces" ||
     item.direction === "transport-and-auth-adapter -> core-utilities");
-  assert(sha256(graphText) === expectedGraphSha256 &&
-    graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
-    graph.observedModuleEdges.length === 16 &&
-    graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 0 &&
+  assert(sha256(completionGraphText) === expectedGraphSha256 &&
+    completionGraph.expectedProductionFiles === 215 && completionGraph.expectedCppFiles === 103 &&
+    completionGraph.observedModuleEdges.length === 16 &&
+    completionGraph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 0 &&
     appCore?.witnessCount === 4 && appCore.allowedByTarget === true &&
     transportCore.length === 0 &&
-    graph.stronglyConnectedComponents.length === 0 && graph.cmake.targets.length === 2 &&
-    graph.cmake.internalTargetSeparation === true && trackedSplit.length === splitPaths.length &&
-    trackedSplit.every(item => item.lineCount === lineCount(read(item.file)) && item.lineCount <= 15000),
+    completionGraph.stronglyConnectedComponents.length === 0 && completionGraph.cmake.targets.length === 2 &&
+    completionGraph.cmake.internalTargetSeparation === true &&
+    completionSplit.length === splitPaths.length &&
+    completionSplit.every(item =>
+      item.lineCount === lineCount(gitText(completionSourceCommit, item.file)) && item.lineCount <= 15000),
   "physical split graph or mixed-owner metrics drift");
+
+  const currentGraphText = read(currentGraphPath);
+  const currentGraph = JSON.parse(currentGraphText);
+  const currentSplit = currentGraph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
+  assert(sha256(currentGraphText) === expectedCurrentGraphSha256 &&
+    currentGraph.completionGraphBinding?.sha256 === expectedGraphSha256 &&
+    currentGraph.expectedProductionFiles === 215 && currentGraph.expectedCppFiles === 103 &&
+    currentGraph.observedModuleEdges.length === 16 &&
+    currentGraph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 0 &&
+    currentGraph.stronglyConnectedComponents.length === 0 &&
+    currentSplit.length === splitPaths.length &&
+    currentSplit.every(item => item.lineCount === lineCount(read(item.file)) && item.lineCount <= 15000),
+  "current physical split graph or mixed-owner metrics drift");
 });
 
 function copyInputs(targetRoot) {

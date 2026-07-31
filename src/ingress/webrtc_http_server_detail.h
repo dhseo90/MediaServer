@@ -3514,6 +3514,15 @@ struct OpsEventReviewState {
     std::string role;
 };
 
+struct OpsEventReviewStructuredNotes {
+    std::optional<std::string> review_note;
+    std::optional<std::string> resolution_note;
+};
+
+bool ParseOpsEventReviewStructuredNotes(const std::string& line,
+                                        OpsEventReviewStructuredNotes* notes,
+                                        std::string* error_message);
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12804 prototype
 std::filesystem::path OpsEventReviewStoragePath(const WebRtcHttpRuntimeConfig& config);
 
@@ -3603,7 +3612,9 @@ std::vector<std::string> NormalizeOpsFeatureAliases(std::vector<std::string> val
 bool OpsFeatureCorrectionHasContent(const OpsEventReviewState& state);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13207 prototype
-OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line);
+bool OpsEventReviewStateFromJsonLine(const std::string& line,
+                                     OpsEventReviewState* state,
+                                     std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13290 prototype
 std::string OpsEventReviewStateJson(const OpsEventReviewState& state);

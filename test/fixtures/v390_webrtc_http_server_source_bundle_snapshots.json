@@ -98,17 +98,17 @@
   "current": {
     "sourceBaselineCommit": "72c74f4f71bcb3e212082139077aaf8ed3d478fd",
     "generatedFrom": "working-tree-six-file-source",
-    "bundleSha256": "31f3613d0c56c2a455c1e8e9232a60200557dea7195ed90c90a3f7fc6c1198a9",
+    "bundleSha256": "933692c5494823bc958793be53fc87735b025a5d3eb33c210a4207b88c842453",
     "logicalOffsets": [
-      747236,
-      752309,
+      751943,
+      757016,
       453271,
       453652
     ],
     "metrics": {
       "fileCount": 6,
-      "totalBytes": 2253063,
-      "totalLines": 46853,
+      "totalBytes": 2261525,
+      "totalLines": 47076,
       "largestFileLines": 10150,
       "files": [
         {
@@ -121,9 +121,9 @@
         {
           "id": "ops-foundation",
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
-          "sha256": "f1877e71124d52cf053ba9b1c3424f7ae3761dc0810ce124b19df074e5f2f6d1",
-          "bytes": 345860,
-          "lines": 7849
+          "sha256": "9d50fbae07a2255a7fb2d4204851f4f84b48193e9da7285b21aa4f4f62dd8a60",
+          "bytes": 350219,
+          "lines": 7962
         },
         {
           "id": "ops-workflows",
@@ -135,9 +135,9 @@
         {
           "id": "ops-incidents",
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
-          "sha256": "c444db1b1450210e4e88e6412c49a7c9f70f40f3f0c6cb808f7b0ecf4596f7b7",
-          "bytes": 375384,
-          "lines": 7888
+          "sha256": "1bb7fdec0063274b3d32c402e59bf70cd7da4c73aa6c89aff1056a010ae350e1",
+          "bytes": 379024,
+          "lines": 7987
         },
         {
           "id": "transport-runtime",
@@ -149,19 +149,19 @@
         {
           "id": "private-detail",
           "file": "src/ingress/webrtc_http_server_detail.h",
-          "sha256": "47b42d956e6826db04e29b58dd4da10edf1e10416a2d2eb9a8c3190086486a0a",
-          "bytes": 352572,
-          "lines": 7996
+          "sha256": "61ff6bd5198d807847a002d4f201642e3e4e062363c275367f1e2aa3edb9b317",
+          "bytes": 353035,
+          "lines": 8007
         }
       ]
     },
     "graphBinding": {
       "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
-      "sha256": "fd34ace24775ec0ffbd6617bc1ddcee661f50630471626ff57604e5955eebc24"
+      "sha256": "9dcb0169d84c330371b60dde08781c29cf48b501131beab0493bbfd8a78299ea"
     },
     "physicalSplitBinding": {
-      "definitionCount": 1190,
-      "definitionSha256": "b056d09b26537aa79403204f84d9ae21498557c275108d85998bbbe2f8baf5c6"
+      "definitionCount": 1198,
+      "definitionSha256": "d1fe50179075949dff9056a0cd12561ecb66af4d1921739ec04e2dd8713382b2"
     }
   },
   "commentOnlyTransition": {

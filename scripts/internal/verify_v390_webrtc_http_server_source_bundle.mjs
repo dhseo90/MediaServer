@@ -47,7 +47,7 @@ const currentGraphPath = "test/fixtures/v390_structure_stabilization_current_gra
 const completionSourceCommit = "b9a45740e60f087cff6ff6d8358994855db8651f";
 const currentSourceBaselineCommit = "72c74f4f71bcb3e212082139077aaf8ed3d478fd";
 const completionGraphSha256 = "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
-const currentGraphSha256 = "fd34ace24775ec0ffbd6617bc1ddcee661f50630471626ff57604e5955eebc24";
+const currentGraphSha256 = "9dcb0169d84c330371b60dde08781c29cf48b501131beab0493bbfd8a78299ea";
 const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
@@ -57,6 +57,30 @@ const currentOwnerRebindings = new Map([
     removedBundleReads: 1,
     owner: "src/ingress/product_ui_server_pages.cpp",
     tokens: ['data-testid="ops-vlm-rule-draft-workflow"', 'data-vlm-rule-draft-contract="draft-only-manual-save"'],
+  }],
+  ["scripts/internal/verify_ops_event_action_incident_workflow.mjs", {
+    removedBundleReads: 1,
+    resolverCalls: 4,
+    owners: [
+      {
+        owner: "src/ingress/webrtc_http_server_ops_foundation.cpp",
+        tokens: [".media_server.event_reviews.jsonl", "std::string OpsEventReviewStateJson("],
+      },
+      {
+        owner: "src/ingress/webrtc_http_server_ops_incidents.cpp",
+        tokens: ["bool OpsEventReviewInboxJson(", "incidentActionSchema"],
+      },
+      {
+        owner: "src/ingress/webrtc_http_server_runtime.cpp",
+        tokens: ["incident-action-update", "previous.present ? OpsEventReviewStateJson(previous)"],
+      },
+    ],
+  }],
+]);
+const additionalResolverConsumers = new Map([
+  ["scripts/internal/verify_ops_event_review_inbox.mjs", {
+    resolverCalls: 2,
+    tokens: ["bool OpsEventReviewInboxJson(", ".media_server.event_reviews.jsonl"],
   }],
 ]);
 const checks = [];
@@ -232,6 +256,8 @@ const migratedPatterns = [
   /\breadWebRtcHttpServerBundle\(\s*file\s*=>\s*(?:fs\.)?readFileSync\(\s*file\s*,\s*["']utf8["']\s*\)\s*\)/g,
 ];
 const importPattern = /import\s*\{\s*readWebRtcHttpServerBundle\s*\}\s*from\s*["']\.\/webrtc_http_server_source_bundle\.mjs["'];/g;
+const helperImportPattern =
+  /import\s*\{[^}]*\b(?:readWebRtcHttpServerBundle|resolveWebRtcHttpServerSource)\b[^}]*\}\s*from\s*["']\.\/webrtc_http_server_source_bundle\.mjs["'];/g;
 
 function legacyExpressionCount(text) {
   return legacyPatterns.reduce((total, pattern) => total + [...text.matchAll(pattern)].length, 0);
@@ -270,30 +296,46 @@ check("source bundle helper exposes an ordered fail-closed API", () => {
   ]) assert(helper.includes(token), `source bundle helper API missing: ${token}`);
 });
 
-check("all 170 readers use the bundle exactly and no unregistered reader is migrated", () => {
+check("all 170 readers use the canonical source helper or an exact registered owner", () => {
   const migrated = [];
   for (const item of baseline) {
     const current = read(item.file);
-    const imports = [...current.matchAll(importPattern)].length;
+    const imports = [...current.matchAll(helperImportPattern)].length;
     const calls = (current.match(/\breadWebRtcHttpServerBundle\s*\(/g) || []).length;
+    const resolverCalls = (current.match(/\bresolveWebRtcHttpServerSource\s*\(/g) || []).length;
     const migratedKinds = migratedPatterns.map(pattern => [...current.matchAll(pattern)].length);
     const rebinding = currentOwnerRebindings.get(item.file);
     const removed = rebinding?.removedBundleReads || 0;
     assert(imports === 1 && calls === item.expressions - removed &&
+      resolverCalls === (rebinding?.resolverCalls || 0) &&
       (removed > 0 || JSON.stringify(migratedKinds) === JSON.stringify(item.expressionKinds)) &&
       migratedKinds.reduce((sum, count) => sum + count, 0) === calls && legacyExpressionCount(current) === 0,
       `consumer is not exactly migrated: ${item.file}`);
     if (rebinding) {
-      const owner = read(rebinding.owner);
-      assert(rebinding.tokens.every(token => owner.includes(token)),
-        `consumer current owner rebinding drift: ${item.file}`);
+      const owners = rebinding.owners || [rebinding];
+      for (const binding of owners) {
+        const owner = read(binding.owner);
+        assert(binding.tokens.every(token => owner.includes(token)),
+          `consumer current owner rebinding drift: ${item.file}:${binding.owner}`);
+      }
     }
     migrated.push(item.file);
   }
+  for (const [file, binding] of additionalResolverConsumers) {
+    const current = read(file);
+    assert([...current.matchAll(helperImportPattern)].length === 1 &&
+      (current.match(/\bresolveWebRtcHttpServerSource\s*\(/g) || []).length === binding.resolverCalls &&
+      legacyExpressionCount(current) === 0 &&
+      binding.tokens.every(token => current.includes(token)),
+    `additional resolver consumer drift: ${file}`);
+    migrated.push(file);
+  }
+  migrated.sort();
   const currentImports = fs.readdirSync(path.join(sourceRoot, "scripts/internal"))
     .filter(file => file.endsWith(".mjs"))
     .map(file => `scripts/internal/${file}`)
-    .filter(file => [...read(file).matchAll(importPattern)].length > 0)
+    .filter(file => file !== "scripts/internal/verify_v390_webrtc_http_server_source_bundle.mjs")
+    .filter(file => [...read(file).matchAll(helperImportPattern)].length > 0)
     .sort();
   assert(JSON.stringify(currentImports) === JSON.stringify(migrated),
     "unregistered source bundle consumer migration detected");
@@ -315,7 +357,7 @@ check("completion and current six-file source bundle snapshots are exact", () =>
   `current logical source bundle order, bytes, resolver, or metrics drift: ${JSON.stringify(result)}`);
 });
 
-check("completion-to-current delta is limited to two exact comment regions", () => {
+check("completion-to-baseline delta is limited to two exact comment regions", () => {
   const transition = snapshot.commentOnlyTransition;
   assert(transition.fromCommit === completionSourceCommit &&
     transition.toCommit === currentSourceBaselineCommit &&
@@ -330,32 +372,30 @@ check("completion-to-current delta is limited to two exact comment regions", () 
   for (const file of sourcePaths) {
     const completionText = gitText(completionSourceCommit, file);
     const baselineText = gitText(currentSourceBaselineCommit, file);
-    const currentText = read(file);
-    assert(currentText === baselineText, `current source is not bound to the reviewed baseline commit: ${file}`);
     const item = transition.files.find(entry => entry.file === file);
     if (!item) {
-      assert(completionText === currentText, `unreviewed source bundle file changed: ${file}`);
+      assert(completionText === baselineText, `unreviewed historical baseline source changed: ${file}`);
       unchanged += 1;
       continue;
     }
     const completionBounded = extractBoundedRegion(completionText, item, `${file}:completion`);
-    const currentBounded = extractBoundedRegion(currentText, item, `${file}:current`);
-    const actualByteDelta = Buffer.byteLength(currentText) - Buffer.byteLength(completionText);
-    const actualLineDelta = lineCount(currentText) - lineCount(completionText);
+    const baselineBounded = extractBoundedRegion(baselineText, item, `${file}:baseline`);
+    const actualByteDelta = Buffer.byteLength(baselineText) - Buffer.byteLength(completionText);
+    const actualLineDelta = lineCount(baselineText) - lineCount(completionText);
     assert(sha256Text(completionText) === item.completionSha256 &&
-      sha256Text(currentText) === item.currentSha256 &&
+      sha256Text(baselineText) === item.currentSha256 &&
       actualByteDelta === item.byteDelta && actualLineDelta === item.lineDelta &&
       completionBounded.region === item.completionRegion &&
-      currentBounded.region === item.currentRegion &&
+      baselineBounded.region === item.currentRegion &&
       sha256Text(completionBounded.region) === item.completionRegionSha256 &&
-      sha256Text(currentBounded.region) === item.currentRegionSha256,
+      sha256Text(baselineBounded.region) === item.currentRegionSha256,
     `reviewed comment region digest or metric drift: ${file}`);
-    for (const region of [completionBounded.region, currentBounded.region]) {
+    for (const region of [completionBounded.region, baselineBounded.region]) {
       assert(region.split("\n").filter(line => line.trim().length > 0)
         .every(line => line.trimStart().startsWith("//")),
       `reviewed region contains executable text: ${file}`);
     }
-    assert(completionBounded.executableSource === currentBounded.executableSource &&
+    assert(completionBounded.executableSource === baselineBounded.executableSource &&
       sha256Text(completionBounded.executableSource) === item.executableSourceSha256,
     `executable source changed outside the reviewed comment region: ${file}`);
     byteDelta += actualByteDelta;
@@ -408,8 +448,10 @@ check("current snapshot generator preserves completion and historical evidence",
 });
 
 function copyInputs(targetRoot) {
-  for (const file of [...baselineFiles, helperPath, ...sourcePaths,
-    ...new Set([...currentOwnerRebindings.values()].map(item => item.owner)),
+  const reboundOwners = [...currentOwnerRebindings.values()].flatMap(item =>
+    (item.owners || [item]).map(binding => binding.owner));
+  for (const file of [...baselineFiles, ...additionalResolverConsumers.keys(), helperPath, ...sourcePaths,
+    ...new Set(reboundOwners),
     snapshotPath, completionGraphPath, currentGraphPath,
     "scripts/internal/script_arg_utils.mjs"]) {
     const target = path.join(targetRoot, file);
@@ -449,14 +491,14 @@ if (!skipMutations) {
     rejectMutation("legacy-reader", consumer,
       text => text.replace(/readWebRtcHttpServerBundle\(readText\)/,
         'readText("src/ingress/webrtc_http_server.cpp")'),
-      "all 170 readers use the bundle exactly");
+      "all 170 readers use the canonical source helper or an exact registered owner");
     rejectMutation("missing-import", consumer,
       text => text.replace(importPattern, ""),
-      "all 170 readers use the bundle exactly");
+      "all 170 readers use the canonical source helper or an exact registered owner");
     rejectMutation("callback-removal", consumer,
       text => text.replace(/readWebRtcHttpServerBundle\(readText\)/,
         "readWebRtcHttpServerBundle()"),
-      "all 170 readers use the bundle exactly");
+      "all 170 readers use the canonical source helper or an exact registered owner");
     rejectMutation("empty-bundle", helperPath,
       text => text.replace("  return `${prefix.trimEnd()}\\n\\n${chunks.map(item => item.source).join(\"\\n\\n\")}\\n`;", '  return "";'),
       "completion and current six-file source bundle snapshots");
@@ -510,7 +552,7 @@ if (!skipMutations) {
     }, "completion and current six-file source bundle snapshots");
     rejectMutation("executable-token", serverPath,
       text => text.replace("const bool parent_exists =", "const bool parent_exists_changed ="),
-      "completion-to-current delta is limited to two exact comment regions");
+      "completion and current six-file source bundle snapshots");
     rejectMutation("completion-graph-bound-to-current", snapshotPath, text => {
       const value = JSON.parse(text);
       value.completion.graphBinding = structuredClone(value.current.graphBinding);

@@ -981,6 +981,18 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Semantic ledger | candidate `4f6c7a05828e0ddf2edfe6806da6cfa4c08f820a0aa29a4481c6e199fd3141c4`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 1회, audit/approval/implementation/native four-fixture atomic replacement, generator 0회 |
 | Actual boundary | actual EVT-019/UI, Policy v4, 30분/120분/release 미실행 | static checkpoint PASS는 actual acceptance evidence가 아님 |
 
+## V390-REVIEW4-65 EVT-019 structured note loader/current source boundary
+
+| evidence | current result | boundary |
+| --- | --- | --- |
+| Product loader | Strict JSON 구조로 top-level review `note`, nested `resolution.note`, legacy `resolutionNote`를 분리하고 malformed/duplicate/type-invalid/non-string identity row를 fail-closed 처리 | Mirror seed나 serializer 순서 변경으로 제품 결함을 숨기지 않음 |
+| Production mutation harness | 실제 parser/locked loader/serializer 실행과 parsed-note discard, parse-ignore, nested promotion, invalid-row acceptance mutation RED | Raw record/note 비보존, review 500B/resolution 240B 및 Unicode/escape 호환 |
+| Current graph | SHA `9dcb0169…`, production/C++ 215/103, edge 16, max mixed-owner 10,176, violation/SCC 0/0 | Completion SHA `215ce928…`, max 10,156와 historical Slice 32 metrics 불변 |
+| Current bundle/split | `933692c5…`, 2,261,525 bytes/47,076줄, physical split 1,198/`d1fe5017…` | Completion `d2dc01ef…`, 2,252,961 bytes/split 1,190과 분리 |
+| Source owner | foundation/incidents/runtime/server-pages/page-scripts/CSS canonical owner를 직접 검증 | Owner 누락·교환·stale combined input 거부 |
+| Semantic ledger | Candidate `7010fa49…`, 973 carry-forward + 13 independent, audit/approval/implementation 986/986, native 424=423+1 | Migration `3f7bfe45…`/`7c175839…`, package/decision `f5a12633…`/`165a1105…`, producer 1회 exit 0, log `18f7bf68…` |
+| Actual boundary | Canonical `296/295/1/128`과 focused EVT-019 FAIL 보존; actual EVT-019/UI, Policy v4, 30분/120분/release 미실행 | Static/semantic checkpoint를 actual PASS로 승격하지 않음 |
+
 ## V390-REVIEW4-65 UI-046~424 runtime source audit
 
 | evidence | current boundary | 판정 |

@@ -274,8 +274,8 @@ check("Slice 32 completion and current graph separation is fail-closed", () => {
   const currentDebt = new Map(currentGraph.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
   assert(currentGraph.completionGraphBinding?.path === ledger.completionGraph.path &&
     currentGraph.completionGraphBinding?.sha256 === ledger.completionGraph.sha256 &&
-    currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10173 &&
-    ledger.currentGraph.metrics?.largestMixedOwnerFileLines === 10173 &&
+    currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10176 &&
+    ledger.currentGraph.metrics?.largestMixedOwnerFileLines === 10176 &&
     ledger.currentGraph.sha256 !== ledger.completionGraph.sha256,
   "current graph is not independently bound to the current source");
 
@@ -321,7 +321,7 @@ check("Slice 32 completion and current graph separation is fail-closed", () => {
 
   const historicalMetricRewrite = structuredClone(ledger);
   historicalMetricRewrite.currentContinuation.orderedSlices[31]
-    .after.largestMixedOwnerFileLines = 10173;
+    .after.largestMixedOwnerFileLines = 10176;
   assert(validateCompletionGraphBinding(historicalMetricRewrite, completionGraph)
     .some(error => error.includes("historical")), "historical Slice 32 metric rewrite was accepted");
 

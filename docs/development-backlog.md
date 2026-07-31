@@ -6948,6 +6948,38 @@ implementation/native four-fixture atomic replacement를 확인합니다. 기존
 FAIL과 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`은 historical evidence로 보존하며,
 이번 checkpoint에서는 actual EVT-019/UI, Policy v4, 30분, 120분, release를 실행하지 않습니다.
 
+EVT-019 structured product note loader/current graph checkpoint(2026-07-31)는 persisted
+review JSON에서 비구조적 첫 `"note"` 검색이 nested `resolution.note`를 top-level review note로
+오인하던 제품 결함을 닫습니다. Test seed가 두 필드에 같은 값을 쓰는 mirror 우회는 독립 검토에서
+거부했고, production loader가 strict JSON object 구조로 top-level `note`, nested
+`resolution.note`, legacy top-level `resolutionNote`를 분리합니다. Malformed/duplicate/type-invalid
+row와 non-string `eventId`는 fail-closed이며 locked load는 partial state를 비우고 raw record 대신
+행 번호만 기록합니다. Production translation unit harness는 parsed note 폐기, parse failure 무시,
+nested note 승격, invalid row 수용 mutation을 각각 RED로 검증하고 review 500-byte/resolution
+240-byte 경계와 escape/Unicode roundtrip을 보존합니다.
+
+Current graph는 production 215/C++ 103/module edge 16/violation 0/SCC 0, 최대 mixed-owner
+10,176줄, SHA `9dcb0169d84c330371b60dde08781c29cf48b501131beab0493bbfd8a78299ea`로
+현재 source에만 재결속했습니다. Slice 32 completion graph SHA
+`215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a`와 최대
+10,156줄, historical metrics는 변경하지 않았습니다. Current source bundle은
+`933692c5494823bc958793be53fc87735b025a5d3eb33c210a4207b88c842453`,
+2,261,525 bytes/47,076줄, physical split 1,198/`d1fe5017…`이고 completion bundle
+`d2dc01ef…`/2,252,961 bytes와 split 1,190은 immutable입니다. Incident workflow verifier는
+foundation/incidents/runtime/server-pages/page-scripts/CSS canonical owner를 각각 직접 읽으며
+owner 누락·교환·stale combined input을 거부합니다.
+
+Semantic candidate `7010fa49efc887f9cfb7983f9e4dc7e3b5a436e89770197d4df647f12b74af3f`는
+feature/pass/status 변경 0, 973 strict-equivalence carry-forward와
+`UI-014`, `UI-018`, `UI-035`, `UI-037`, `EVT-019`, `EVT-020`, `EVT-021`,
+`EVT-035`, `EVT-037`, `SAFE-211`, `SAFE-215`, `OPS-178`, `OPS-182` 독립 승인으로
+986/986입니다. Migration report/evidence SHA는 `3f7bfe45…`/`7c175839…`, 재정렬된
+package/decision SHA는 `f5a12633…`/`165a1105…`입니다. Migration-aware producer는 durable
+wrapper에서 정확히 1회 exit 0으로 audit/approval/implementation/native를 원자 교체했고 log SHA는
+`18f7bf68…`입니다. 이번 checkpoint에서는 actual EVT-019, `./test_ui.sh`, Policy v4, 30분,
+120분, release acceptance를 실행하지 않으며 기존 canonical
+`296 attempted / 295 PASS / 1 FAIL / 128 not-run`과 focused EVT-019 FAIL을 PASS로 바꾸지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary
