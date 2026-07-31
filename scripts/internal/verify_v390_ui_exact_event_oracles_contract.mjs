@@ -196,6 +196,186 @@ check("review PUT responses and independent audit readbacks keep distinct action
   }
 });
 
+check("review item GET siblings use the collection envelope and reject stale PUT-response paths", () => {
+  const expected = {
+    "EVT-019": [
+      "records[].event.eventId",
+      "records[].review.eventId",
+      "records[].review.reviewStatus",
+      "records[].review.classification",
+    ],
+    "EVT-020": ["records[].review.reviewStatus", "records[].review.note"],
+    "EVT-021": [
+      "records[].review",
+      "unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow",
+    ],
+    "EVT-037": ["records[].review.incidentWorkflow", "records[].review.eventId"],
+    "EVT-061": ["records[].review.featureCorrection", "operatorFeatureCorrection"],
+    "EVT-066": [
+      "unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.sourceId",
+      "unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.operatorRecheckHint",
+    ],
+    "EVT-068": [
+      "unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow",
+      "unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow.closeReopenAvailability",
+    ],
+  };
+  const stale = {
+    "EVT-019": ["review.eventId", "review.reviewStatus", "review.classification"],
+    "EVT-020": ["review.reviewStatus", "review.note"],
+    "EVT-021": ["review", "operatorResolutionFlow"],
+    "EVT-037": ["review.incidentWorkflow", "review.eventId"],
+    "EVT-061": ["review.featureCorrection"],
+    "EVT-066": ["sourceReliability.sourceId", "sourceReliability.recheckHint"],
+    "EVT-068": ["operatorResolutionFlow", "operatorResolutionFlow.closeReopenAvailability"],
+  };
+  const replacement = {
+    "EVT-019": {
+      "review.eventId": "records[].review.eventId",
+      "review.reviewStatus": "records[].review.reviewStatus",
+      "review.classification": "records[].review.classification",
+    },
+    "EVT-020": {
+      "review.reviewStatus": "records[].review.reviewStatus",
+      "review.note": "records[].review.note",
+    },
+    "EVT-021": {
+      review: "records[].review",
+      operatorResolutionFlow: "unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow",
+    },
+    "EVT-037": {
+      "review.incidentWorkflow": "records[].review.incidentWorkflow",
+      "review.eventId": "records[].review.eventId",
+    },
+    "EVT-061": {
+      "review.featureCorrection": "records[].review.featureCorrection",
+    },
+    "EVT-066": {
+      "sourceReliability.sourceId": "unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.sourceId",
+      "sourceReliability.recheckHint": "unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.operatorRecheckHint",
+    },
+    "EVT-068": {
+      operatorResolutionFlow: "unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow",
+      "operatorResolutionFlow.closeReopenAvailability":
+        "unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow.closeReopenAvailability",
+    },
+  };
+  for (const [caseId, requiredPaths] of Object.entries(expected)) {
+    const itemGet = eventExactOracleFor(caseId).apiAssertions.find(item =>
+      item.method === "GET" && /^\/ops\/api\/events\/reviews\/[^?]+$/.test(item.path));
+    const actualPaths = itemGet?.bodyAssertions.map(item => item.path) || [];
+    assert(requiredPaths.every(path => actualPaths.includes(path)),
+      `${caseId} collection-envelope item readback path is incomplete`);
+    assert(stale[caseId].every(path => !actualPaths.includes(path)),
+      `${caseId} stale PUT-response path remains in item GET`);
+    for (const stalePath of stale[caseId]) {
+      const currentPath = replacement[caseId][stalePath];
+      assert(currentPath, `${caseId} stale path has no current replacement: ${stalePath}`);
+      const catalog = cloneCatalog();
+      const itemGet = catalog[caseId].apiAssertions.find(item =>
+        item.method === "GET" && /^\/ops\/api\/events\/reviews\/[^?]+$/.test(item.path));
+      const assertion = itemGet.bodyAssertions.find(item => item.path === currentPath);
+      assert(assertion, `${caseId} current item GET path missing: ${currentPath}`);
+      assertion.path = stalePath;
+      const staleResponse = {
+        records: [{
+          event: { eventId: "fixture" },
+          review: { eventId: "fixture", reviewStatus: "reviewing" },
+        }],
+        unifiedResolutionWorkspace: { resolutionQueue: [] },
+      };
+      const result = evaluateEventExactResponseAssertion({
+        caseId,
+        assertion,
+        responseJson: staleResponse,
+        context: { fixtureId: "fixture" },
+      });
+      assert(!result.pass && result.reason.startsWith("required response path missing:"),
+        `${caseId} stale item GET path passed: ${stalePath}`);
+    }
+  }
+});
+
+check("EVT-019 GET item route is structurally a filtered inbox envelope, not a PUT response", () => {
+  const runtime = fs.readFileSync(
+    new URL("../../src/ingress/webrtc_http_server_runtime.cpp", import.meta.url),
+    "utf8",
+  );
+  const incidents = fs.readFileSync(
+    new URL("../../src/ingress/webrtc_http_server_ops_incidents.cpp", import.meta.url),
+    "utf8",
+  );
+  const itemRoute = boundedFunctionSource(
+    runtime,
+    "if (IsOpsEventReviewItemRoute(request.path))",
+    'if (request.path == "/ops/api/audit")',
+  );
+  const inboxBuilder = boundedFunctionSource(
+    incidents,
+    "bool OpsEventReviewInboxJson(",
+    "std::string AnalysisEventRecordCompactionJson(",
+  );
+  const itemProjection = boundedFunctionSource(
+    incidents,
+    "std::string OpsEventReviewInboxItemJson(",
+    "std::string OpsIncidentMemoryStringArrayJson(",
+  );
+  assertOrdered(itemRoute, [
+    'if (request.method == "GET")',
+    'review_query["eventId"] = event_id',
+    "OpsEventReviewInboxJson(config",
+    'JsonResponse(200, "OK", body)',
+  ], "review item GET must delegate to the filtered inbox builder");
+  assert(inboxBuilder.includes('<< "\\"status\\":\\"ops-event-review-inbox\\","') &&
+    inboxBuilder.includes('<< "\\"schema\\":\\"media-server.ops.event-review-inbox.v1\\","') &&
+    inboxBuilder.includes("items.push_back(OpsEventReviewInboxItemJson") &&
+    inboxBuilder.includes('<< "\\"records\\":["'),
+  "inbox builder no longer owns the collection envelope and joined records");
+  assert(itemProjection.includes('out << ",\\"review\\":" << OpsEventReviewStateJson(review)') &&
+    itemProjection.includes('<< "\\"event\\":"'),
+  "review identity is not nested in the joined records[] item projection");
+  assert(!/out\s*<<\s*"\{\\"\s*review/i.test(inboxBuilder),
+    "GET inbox builder unexpectedly gained a top-level PUT-style review response");
+
+  const response = {
+    status: "ops-event-review-inbox",
+    schema: "media-server.ops.event-review-inbox.v1",
+    records: [{
+      event: { eventId: "evt-019-review4-fixture" },
+      review: {
+        eventId: "evt-019-review4-fixture",
+        reviewStatus: "reviewing",
+        classification: "needs-review",
+      },
+    }],
+  };
+  const current = eventExactOracleFor("EVT-019").apiAssertions.find(item =>
+    item.path === "/ops/api/events/reviews/{fixtureId}");
+  for (const assertion of current.bodyAssertions) {
+    const result = evaluateEventExactResponseAssertion({
+      caseId: "EVT-019",
+      assertion,
+      responseJson: response,
+      context: {
+        fixtureId: "evt-019-review4-fixture",
+        seedByPath: {
+          "records[].review.reviewStatus": "reviewing",
+          "records[].review.classification": "needs-review",
+        },
+      },
+    });
+    assert(result.pass, `EVT-019 current response contract failed: ${assertion.path}`);
+  }
+  const stale = evaluateEventExactResponseAssertion({
+    caseId: "EVT-019",
+    assertion: { path: "review.eventId", operator: "equals-fixture", expected: true },
+    responseJson: response,
+    context: { fixtureId: "evt-019-review4-fixture" },
+  });
+  assert(!stale.pass && stale.reason === "required response path missing: review.eventId",
+    "EVT-019 stale top-level review.eventId negative boundary did not fail closed");
+});
+
 check("EVT-018 test binds POST, refreshed attempt row, and redaction without dry-run UI", () => {
   const spec = eventExactOracleFor("EVT-018");
   assert(spec.action.steps.includes("click-test") && !spec.action.steps.includes("click-dry-run"),
@@ -570,6 +750,23 @@ check("fixture contains assertions use identity baselines and diagnostic canarie
   const runtimeSource = fs.readFileSync(new URL("./v390_ui_case_runtime.mjs", import.meta.url), "utf8");
   assert(runtimeSource.includes("seedByPath[assertion.path] = context.fixtureId"),
     "fixture identity baseline binding is missing");
+  assert(runtimeSource.includes('assertion.path.startsWith("records[].review.")') &&
+    runtimeSource.includes("context.catalogBindings.eventReviewSeedByPath") &&
+    runtimeSource.includes("exact review seed binding is not independent") &&
+    runtimeSource.includes("eventRecordAfterReviewSha256 === eventRecordBeforeReviewSha256"),
+  "review seed bindings are not independent from the GET response or EventRecord no-write boundary");
+  const reviewSeedBranch = boundedFunctionSource(
+    runtimeSource,
+    'if (requirements.seedPaths.includes(assertion.path))',
+    'if (requirements.requestPaths.includes(assertion.path))',
+  );
+  const independentReviewBranch = reviewSeedBranch.slice(
+    reviewSeedBranch.indexOf('if (assertion.path.startsWith("records[].review."))'),
+    reviewSeedBranch.indexOf("} else {"),
+  );
+  assert(independentReviewBranch.length > 0 &&
+    !independentReviewBranch.includes("seedByPath[assertion.path] = actual"),
+    "review seed path regressed to response self-comparison");
   assert(runtimeSource.includes("bindings.redactionCanary = redactionCanary"),
     "diagnostic redaction canary is not propagated to runtime bindings");
 });

@@ -952,6 +952,16 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Semantic ledger | candidate `dc6e092af5c02c0a04cb488afec84ffbd6c9e0b759146f2eb69bd453b2680a7e`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 1회, native generator 0회 |
 | Actual boundary | UI/diagnostic/Policy v4/30분/120분/release 재실행 없음 | static checkpoint PASS는 actual acceptance evidence가 아님 |
 
+## V390-REVIEW4-65 EVT-019 review collection readback boundary
+
+| evidence | current result | boundary |
+| --- | --- | --- |
+| Historical canonical failure | `3e2f98a9` actual UI `296 attempted / 295 PASS / 1 FAIL / 128 not-run`, EVT-019 stale `review.eventId` response path FAIL | historical FAIL이며 current PASS로 승격하지 않음 |
+| Authoritative GET schema | `GET /ops/api/events/reviews/{eventId}` collection의 `records[].event.eventId`와 `records[].review.eventId` joined identity | PUT top-level review path, missing/wrong/duplicate identity는 fail-closed |
+| Cleanup readback | restore 후 HTTP 200 collection envelope, empty `records`, `recordCount=0`, EventRecord/review bytes 각각 복원 | non-200, malformed/missing/residual/wrong/duplicate row를 거부 |
+| Semantic ledger | candidate `f409c31546795343b1454bc4afa721e55fc2478ce3867c011743bc2d444c1062`, 985 carry-forward + UI-018 independent, approval 986/986 | existing producer atomic output을 audit/approval/implementation fixture로 검증; producer/generator 재실행 없음 |
+| Actual boundary | UI/diagnostic/Policy v4/30분/120분/release 재실행 없음 | static checkpoint PASS는 actual acceptance evidence가 아님 |
+
 ## V390-REVIEW4-65 UI-046~424 runtime source audit
 
 | evidence | current boundary | 판정 |

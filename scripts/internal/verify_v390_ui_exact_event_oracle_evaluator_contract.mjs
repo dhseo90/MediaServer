@@ -171,18 +171,22 @@ check("runtime binding contract accepts a complete representative EVT context", 
       } }]),
   );
   const requirements = assertEventExactRuntimeBindings(caseId, {
-    seedByPath: { "review.reviewStatus": "reviewing" },
+    seedByPath: {
+      "records[].review.reviewStatus": "reviewing",
+      "records[].review.classification": "needs-review",
+    },
     requestByPath: {},
     semanticEvidence,
   });
-  assert(requirements.seedPaths.includes("review.reviewStatus") &&
+  assert(requirements.seedPaths.includes("records[].review.reviewStatus") &&
+    requirements.seedPaths.includes("records[].review.classification") &&
     requirements.semanticEvidenceKeys.length === 1,
   "representative EVT runtime binding requirements drifted");
 });
 
 check("runtime binding contract rejects missing seed, request, semantic, and canary evidence", () => {
   for (const [caseId, expected] of [
-    ["EVT-019", "seedByPath:review.reviewStatus"],
+    ["EVT-019", "seedByPath:records[].review.reviewStatus"],
     ["EVT-070", "requestByPath:unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters"],
     ["EVT-030", "semanticEvidence:response:EVT-030:contains-matching-and-missing:records"],
     ["EVT-031", "sensitiveCanaries"],

@@ -42,6 +42,7 @@ import {
   runAuthoritativeReadbackWithSnapshotRestore,
   seedExactAccessRequestFixture,
   seedEventRecordFixture,
+  validateEventReviewCollectionAbsence,
   validateEventRecordFixtureFamilyReadback,
 } from "./v390_ui_case_runtime.mjs";
 import {
@@ -329,7 +330,9 @@ check("every exact EVT seed.kind has a declarative store and join materializer",
   }
   assert(runtimeSource.includes("async function materializeEventExactSeed") &&
     runtimeSource.includes("eventExactSeedMaterializerRegistry[kind]") &&
-    runtimeSource.includes("exact event seed is missing from the authoritative review join readback"),
+    runtimeSource.includes("exact EventRecord identity is missing from the authoritative join readback") &&
+    runtimeSource.includes("exact review identity is missing from the authoritative join readback") &&
+    runtimeSource.includes("eventReviewSeedByPath"),
   "exact EVT runtime does not resolve seed.kind through the shared materializer");
   assert(runtimeSource.includes("refreshDiagnosticMarkerForDashboard") &&
     runtimeSource.includes("test-owned-log-marker-tail-prioritization") &&
@@ -344,6 +347,121 @@ check("every exact EVT seed.kind has a declarative store and join materializer",
   for (const scope of ["eventRecords", "review", "vlm", "audit", "alert", "sourceHealth", "related"]) {
     assert(runtimeSource.includes(`${scope}:`), `exact EVT runtime seed join evidence is missing: ${scope}`);
   }
+});
+
+check("event review mutation cleanup validates an empty 200 collection and byte restore", () => {
+  const valid = {
+    status: "ops-event-review-inbox",
+    schema: "media-server.ops.event-review-inbox.v1",
+    records: [],
+    recordCount: 0,
+  };
+  const result = validateEventReviewCollectionAbsence({
+    caseId: "EVT-021",
+    eventId: "evt-021-review4-fixture",
+    phase: "after-restore",
+    status: 200,
+    envelope: valid,
+  });
+  assert(result.fixtureAbsent === true && result.recordCount === 0,
+    "empty review collection cleanup evidence mismatch");
+
+  const rejects = [
+    ["status-only", { status: 404, envelope: valid }, "status mismatch"],
+    ["malformed-envelope", { status: 200, envelope: [] }, "envelope is malformed"],
+    ["missing-records", {
+      status: 200,
+      envelope: { ...valid, records: undefined, recordCount: 0 },
+    }, "records are missing"],
+    ["record-count-drift", {
+      status: 200,
+      envelope: { ...valid, recordCount: 1 },
+    }, "recordCount mismatch"],
+    ["residual-joined-identity", {
+      status: 200,
+      envelope: {
+        ...valid,
+        records: [{
+          event: { eventId: "evt-021-review4-fixture" },
+          review: { eventId: "evt-021-review4-fixture" },
+        }],
+        recordCount: 1,
+      },
+    }, "retains the acceptance-owned fixture"],
+    ["wrong-event-identity", {
+      status: 200,
+      envelope: {
+        ...valid,
+        records: [{
+          event: { eventId: "wrong-event" },
+          review: { eventId: "evt-021-review4-fixture" },
+        }],
+        recordCount: 1,
+      },
+    }, "identity mismatch"],
+    ["wrong-review-identity", {
+      status: 200,
+      envelope: {
+        ...valid,
+        records: [{
+          event: { eventId: "evt-021-review4-fixture" },
+          review: { eventId: "wrong-review" },
+        }],
+        recordCount: 1,
+      },
+    }, "identity mismatch"],
+    ["duplicate-row", {
+      status: 200,
+      envelope: {
+        ...valid,
+        records: [
+          {
+            event: { eventId: "evt-021-review4-fixture" },
+            review: { eventId: "evt-021-review4-fixture" },
+          },
+          {
+            event: { eventId: "evt-021-review4-fixture" },
+            review: { eventId: "evt-021-review4-fixture" },
+          },
+        ],
+        recordCount: 2,
+      },
+    }, "duplicate fixture rows"],
+  ];
+  for (const [label, value, expected] of rejects) {
+    let failed = false;
+    try {
+      validateEventReviewCollectionAbsence({
+        caseId: "EVT-021",
+        eventId: "evt-021-review4-fixture",
+        phase: label,
+        ...value,
+      });
+    } catch (error) {
+      failed = true;
+      assert(String(error.message).includes(expected),
+        `${label} returned an unexpected cleanup error: ${error.message}`);
+    }
+    assert(failed, `${label} cleanup evidence must fail closed`);
+  }
+  for (const snippet of [
+    "phase: \"before-seed\"",
+    "phase: \"after-restore\"",
+    "eventReviewMutationCaseIds",
+    "EventRecord storage byte restoration failed",
+    "review storage byte restoration failed",
+    "reviewCollectionStatus: 200",
+  ]) {
+    assert(runtimeSource.includes(snippet),
+      `event review mutation cleanup lifecycle missing: ${snippet}`);
+  }
+  assert(!runtimeSource.includes(
+    '`/ops/api/events/reviews/${encodeURIComponent(eventId)}`,\n' +
+    "            null,\n" +
+    "            item,\n" +
+    "            caseContext,\n" +
+    "            [404],"),
+  "event review mutation cleanup still expects a stale 404 response");
 });
 
 check("records.records fixture family uses product dispatch with exact readback and cleanup", () => {

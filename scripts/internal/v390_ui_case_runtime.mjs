@@ -80,6 +80,10 @@ const eventExactRuntimeBindingCaseIds = new Set([
   "EVT-067", "EVT-069", "EVT-070", "EVT-071", "EVT-072", "EVT-075",
 ]);
 
+const eventReviewMutationCaseIds = new Set([
+  "EVT-021", "EVT-037", "EVT-038", "EVT-061", "EVT-068",
+]);
+
 // EVT catalog의 seed.kind는 제품 read model에 필요한 상태 조합을 선언한다. 이 registry는
 // fixture 이름을 해석하는 heuristic을 금지하고, 각 kind가 어떤 저장소 join을 요구하는지
 // runtime owner에 한 곳으로 고정한다.
@@ -176,6 +180,53 @@ export const eventRecordFixtureFamilyExpectations = Object.freeze({
     ]),
   }),
 });
+
+export function validateEventReviewCollectionAbsence({
+  caseId = "",
+  eventId = "",
+  phase = "",
+  status = 0,
+  envelope = null,
+} = {}) {
+  assert(caseId && eventId && phase, "review collection absence binding is incomplete");
+  assert(status === 200,
+    `${caseId} ${phase} review collection status mismatch: ${status}`);
+  assert(envelope && typeof envelope === "object" && !Array.isArray(envelope),
+    `${caseId} ${phase} review collection envelope is malformed`);
+  assert(envelope.status === "ops-event-review-inbox" &&
+    envelope.schema === "media-server.ops.event-review-inbox.v1",
+  `${caseId} ${phase} review collection identity is malformed`);
+  assert(Array.isArray(envelope.records),
+    `${caseId} ${phase} review collection records are missing`);
+  assert(Number.isInteger(envelope.recordCount) &&
+    envelope.recordCount === envelope.records.length,
+  `${caseId} ${phase} review collection recordCount mismatch`);
+
+  const identities = envelope.records.map((row, index) => {
+    assert(row && typeof row === "object" && !Array.isArray(row),
+      `${caseId} ${phase} review collection row ${index} is malformed`);
+    const eventIdentity = String(row?.event?.eventId || "");
+    const reviewIdentity = String(row?.review?.eventId || "");
+    assert(eventIdentity || reviewIdentity,
+      `${caseId} ${phase} review collection row ${index} identity is missing`);
+    assert((!eventIdentity || eventIdentity === eventId) &&
+      (!reviewIdentity || reviewIdentity === eventId) &&
+      !(eventIdentity && reviewIdentity && eventIdentity !== reviewIdentity),
+    `${caseId} ${phase} review collection row ${index} identity mismatch`);
+    return { eventIdentity, reviewIdentity };
+  });
+  assert(identities.length <= 1,
+    `${caseId} ${phase} review collection contains duplicate fixture rows`);
+  assert(identities.length === 0,
+    `${caseId} ${phase} review collection retains the acceptance-owned fixture`);
+  return Object.freeze({
+    status: "PASS",
+    phase,
+    eventId,
+    recordCount: 0,
+    fixtureAbsent: true,
+  });
+}
 
 export function eventRecordFixtureFamilyExpectedRecords({
   caseId,
@@ -1366,18 +1417,34 @@ export function createV390UiCaseRuntime({
         await cleanupTransientApiSeeds(item, caseContext);
       }
       restoreStateFiles(caseContext.snapshots);
-      const mutationEventIds = new Set(["EVT-021", "EVT-037", "EVT-038", "EVT-061", "EVT-068"]);
-      if (mutationEventIds.has(item.caseId)) {
+      if (eventReviewMutationCaseIds.has(item.caseId)) {
+        const eventSnapshot = caseContext.snapshots.find(snapshot =>
+          snapshot.path === path.resolve(descriptor.eventStoragePath));
+        const reviewSnapshot = caseContext.snapshots.find(snapshot =>
+          path.basename(snapshot.path) === ".media_server.event_reviews.jsonl");
+        assert(eventSnapshot && reviewSnapshot,
+          `${item.caseId} mutation storage snapshots are incomplete`);
+        assert(stateSnapshotEqual(eventSnapshot),
+          `${item.caseId} EventRecord storage byte restoration failed`);
+        assert(stateSnapshotEqual(reviewSnapshot),
+          `${item.caseId} review storage byte restoration failed`);
         for (const eventId of caseContext.catalogBindings.eventIds || []) {
-          await requestEndpoint(
+          const review = await requestEndpoint(
             "GET",
             `/ops/api/events/reviews/${encodeURIComponent(eventId)}`,
             null,
             item,
             caseContext,
-            [404],
+            [200],
             { freshRole: true, roleOverride: "operator" },
           );
+          validateEventReviewCollectionAbsence({
+            caseId: item.caseId,
+            eventId,
+            phase: "after-restore",
+            status: review.status,
+            envelope: review.json,
+          });
           const audit = await requestEndpoint(
             "GET",
             `/ops/api/audit?eventId=${encodeURIComponent(eventId)}`,
@@ -1395,6 +1462,12 @@ export function createV390UiCaseRuntime({
           cleanupId: `${item.caseId}:mutation-api-readback`,
           status: "PASS",
           source: "fresh-review-and-audit-api-readback-after-snapshot-restore",
+          readback: {
+            reviewCollectionStatus: 200,
+            fixtureAbsent: true,
+            eventRecordBytesRestored: true,
+            reviewStorageBytesRestored: true,
+          },
         });
       }
       const alertIds = caseContext.catalogBindings.alertIds || [];
@@ -2410,18 +2483,40 @@ export function createV390UiCaseRuntime({
       assert(Number(plan.eventRecords || 0) === familyExpectedRecords.length,
         `${item.caseId} records.records cardinality contract drift`);
     }
-    const eventIds = [];
     const eventCount = familyExpectedRecords.length || Number(plan.eventRecords || 0);
     if (plan.sourceHealthReadback) {
       assert(item.caseId === "EVT-003" && eventCount === 0 && plan.sourceHealth !== true,
         `${item.caseId} source-health readback cannot be represented by EventRecord metadata`);
     }
-    for (let index = 0; index < eventCount; index += 1) {
+    const eventIds = Array.from({ length: eventCount }, (_, index) => {
       const familyRecord = familyExpectedRecords[index] || null;
-      const eventId = familyRecord?.eventId || (index === 0
+      return familyRecord?.eventId || (index === 0
         ? context.fixtureId
         : `${context.fixtureId}-${plan.related ? "related" : "state"}-${index}`);
-      eventIds.push(eventId);
+    });
+    if (eventReviewMutationCaseIds.has(item.caseId)) {
+      for (const eventId of eventIds) {
+        const before = await requestEndpoint(
+          "GET",
+          `/ops/api/events/reviews/${encodeURIComponent(eventId)}`,
+          null,
+          item,
+          context,
+          [200],
+          { freshRole: true, roleOverride: "operator" },
+        );
+        validateEventReviewCollectionAbsence({
+          caseId: item.caseId,
+          eventId,
+          phase: "before-seed",
+          status: before.status,
+          envelope: before.json,
+        });
+      }
+    }
+    for (let index = 0; index < eventCount; index += 1) {
+      const familyRecord = familyExpectedRecords[index] || null;
+      const eventId = eventIds[index];
       const existing = fs.existsSync(eventPath) &&
         fs.readFileSync(eventPath, "utf8").includes(`\"eventId\":\"${eventId}\"`);
       assert(!existing, `${item.caseId} exact event seed already exists: ${eventId}`);
@@ -2476,22 +2571,49 @@ export function createV390UiCaseRuntime({
       note: `REVIEW4 ${item.caseId} ${kind} acceptance-owned review fixture`,
       incidentStatus: plan.sourceHealth ? "investigating" : "open",
     };
+    const eventRecordBeforeReviewSha256 = fs.existsSync(eventPath)
+      ? crypto.createHash("sha256").update(fs.readFileSync(eventPath)).digest("hex")
+      : "";
+    const reviewSeeds = {};
     let reviewStatus = 0;
     let recordCount = 0;
     if (plan.review && eventIds.length > 0) {
       for (const eventId of eventIds) {
+        const requestedReview = {
+          ...reviewPayload,
+          note: `${reviewPayload.note} ${eventId}`,
+        };
         const review = await requestEndpoint(
           "PUT",
           `/ops/api/events/reviews/${encodeURIComponent(eventId)}`,
-          { ...reviewPayload, note: `${reviewPayload.note} ${eventId}` },
+          requestedReview,
           item,
           context,
           [200, 201],
           { roleOverride: "operator" },
         );
+        assert(review.json?.status === "ops-event-review" &&
+          review.json?.persistent === true &&
+          review.json?.review?.eventId === eventId &&
+          review.json?.review?.reviewStatus === requestedReview.reviewStatus &&
+          review.json?.review?.classification === requestedReview.classification &&
+          review.json?.review?.note === requestedReview.note,
+        `${item.caseId} exact review seed write receipt is incomplete: ${eventId}`);
+        reviewSeeds[eventId] = Object.freeze({
+          eventId,
+          reviewStatus: requestedReview.reviewStatus,
+          classification: requestedReview.classification,
+          note: requestedReview.note,
+          incidentStatus: requestedReview.incidentStatus,
+        });
         reviewStatus = review.status;
       }
     }
+    const eventRecordAfterReviewSha256 = fs.existsSync(eventPath)
+      ? crypto.createHash("sha256").update(fs.readFileSync(eventPath)).digest("hex")
+      : "";
+    assert(eventRecordAfterReviewSha256 === eventRecordBeforeReviewSha256,
+      `${item.caseId} review seed mutated the authoritative EventRecord storage`);
 
     let alertIds = [];
     if (plan.alert) {
@@ -2528,8 +2650,19 @@ export function createV390UiCaseRuntime({
         { roleOverride: "operator" },
       );
       const records = Array.isArray(readback.json?.records) ? readback.json.records : [];
-      assert(records.some(record => String(record?.event?.eventId || record?.eventId || "") === context.fixtureId),
-        `${item.caseId} exact event seed is missing from the authoritative review join readback`);
+      const joined = records.filter(record =>
+        String(record?.event?.eventId || "") === context.fixtureId);
+      const expectedReview = reviewSeeds[context.fixtureId];
+      assert(joined.length === 1,
+        `${item.caseId} exact EventRecord identity is missing from the authoritative join readback`);
+      if (plan.review) {
+        assert(expectedReview &&
+          String(joined[0]?.review?.eventId || "") === context.fixtureId &&
+          joined[0]?.review?.reviewStatus === expectedReview.reviewStatus &&
+          joined[0]?.review?.classification === expectedReview.classification &&
+          joined[0]?.review?.note === expectedReview.note,
+        `${item.caseId} exact review identity is missing from the authoritative join readback`);
+      }
       recordCount = records.length;
     }
     if (eventRecordFixtureFamilyCaseIds.includes(item.caseId)) {
@@ -2578,6 +2711,21 @@ export function createV390UiCaseRuntime({
       sourceHealth: plan.sourceHealthReadback
         ? source.status
         : (plan.sourceHealth ? "degraded" : "available"),
+      eventReviewSeeds: reviewSeeds,
+      eventReviewSeedByPath: reviewSeeds[context.fixtureId]
+        ? {
+            "records[].review.eventId": reviewSeeds[context.fixtureId].eventId,
+            "records[].review.reviewStatus": reviewSeeds[context.fixtureId].reviewStatus,
+            "records[].review.classification": reviewSeeds[context.fixtureId].classification,
+            "records[].review.note": reviewSeeds[context.fixtureId].note,
+          }
+        : {},
+      eventReviewSeedEvidence: {
+        writeReceiptValidated: !plan.review || Object.keys(reviewSeeds).length === eventIds.length,
+        eventRecordBeforeReviewSha256,
+        eventRecordAfterReviewSha256,
+        eventRecordUnchanged: eventRecordAfterReviewSha256 === eventRecordBeforeReviewSha256,
+      },
       ...(plan.sourceHealthReadback ? {
         status: source.status,
         reason: source.reason,
@@ -2921,7 +3069,14 @@ export function createV390UiCaseRuntime({
           seedByPath[assertion.path] = context.fixtureId;
         }
         if (requirements.seedPaths.includes(assertion.path)) {
-          seedByPath[assertion.path] = actual;
+          const independentReviewSeeds = context.catalogBindings.eventReviewSeedByPath || {};
+          if (assertion.path.startsWith("records[].review.")) {
+            assert(Object.prototype.hasOwnProperty.call(independentReviewSeeds, assertion.path),
+              `${item.caseId} exact review seed binding is not independent: ${assertion.path}`);
+            seedByPath[assertion.path] = independentReviewSeeds[assertion.path];
+          } else {
+            seedByPath[assertion.path] = actual;
+          }
         }
         if (requirements.requestPaths.includes(assertion.path)) {
           requestByPath[assertion.path] = { ...mergedQuery };
@@ -5010,10 +5165,14 @@ function restoreStateFiles(snapshots) {
 
 function stateFilesEqual(snapshots) {
   return snapshots.every(snapshot => {
-    if (fs.existsSync(snapshot.path) !== snapshot.exists) return false;
-    if (!snapshot.exists) return true;
-    return fs.readFileSync(snapshot.path).toString("base64") === snapshot.bytes;
+    return stateSnapshotEqual(snapshot);
   });
+}
+
+function stateSnapshotEqual(snapshot) {
+  if (fs.existsSync(snapshot.path) !== snapshot.exists) return false;
+  if (!snapshot.exists) return true;
+  return fs.readFileSync(snapshot.path).toString("base64") === snapshot.bytes;
 }
 
 function sha256FileOrMissing(filePath) {

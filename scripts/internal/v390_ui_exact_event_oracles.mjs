@@ -37,9 +37,30 @@ const AUDITED_RESPONSE_PATH_BINDINGS = Object.freeze({
     required: ["integrations", "integrations[].endpointMasked", "integrations[].endpointRedacted"],
     stale: ["items", "items[].endpoint", "integrations[].endpoint"],
   },
+  "EVT-019": {
+    required: [
+      "records[].event.eventId",
+      "records[].review.eventId",
+      "records[].review.reviewStatus",
+      "records[].review.classification",
+    ],
+    stale: ["review.eventId", "review.reviewStatus", "review.classification"],
+  },
   "EVT-020": {
-    required: ["records.records[].snapshotPath", "records.records[].clipPath"],
-    stale: ["records.records[].evidence"],
+    required: [
+      "records.records[].snapshotPath",
+      "records.records[].clipPath",
+      "records[].review.reviewStatus",
+      "records[].review.note",
+    ],
+    stale: ["records.records[].evidence", "review.reviewStatus", "review.note"],
+  },
+  "EVT-021": {
+    required: [
+      "records[].review",
+      "unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow",
+    ],
+    stale: [],
   },
   "EVT-022": {
     required: ["entries", "entries[].action", "entries[].after"],
@@ -48,6 +69,10 @@ const AUDITED_RESPONSE_PATH_BINDINGS = Object.freeze({
   "EVT-050": {
     required: ["incidentTriageBoard.cards"],
     stale: ["incidentTriageBoard.items"],
+  },
+  "EVT-037": {
+    required: ["records[].review.incidentWorkflow", "records[].review.eventId"],
+    stale: [],
   },
   "EVT-051": {
     required: ["incidentDecisionScorecard.scorecards", "incidentDecisionScorecard.scorecards[].priorityReasonChips"],
@@ -77,6 +102,10 @@ const AUDITED_RESPONSE_PATH_BINDINGS = Object.freeze({
       "runtimeEvidenceWindow.contract.longrunPassClaimed",
     ],
   },
+  "EVT-061": {
+    required: ["records[].review.featureCorrection", "operatorFeatureCorrection"],
+    stale: [],
+  },
   "EVT-064": {
     required: ["unifiedResolutionWorkspace.selectedDetail", "unifiedResolutionWorkspace.resolutionTimeline"],
     stale: ["unifiedResolutionWorkspace.resolutionDetail"],
@@ -97,8 +126,12 @@ const AUDITED_RESPONSE_PATH_BINDINGS = Object.freeze({
     required: [
       "unifiedResolutionWorkspace.resolutionQueue[].sourceReliability",
       "unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.recentFailureContext",
+      "unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.sourceId",
+      "unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.operatorRecheckHint",
     ],
     stale: [
+      "sourceReliability.sourceId",
+      "sourceReliability.recheckHint",
       "unifiedResolutionWorkspace.sourceReliability",
       "unifiedResolutionWorkspace.sourceReliability[].recentFailureContext",
     ],
@@ -114,6 +147,13 @@ const AUDITED_RESPONSE_PATH_BINDINGS = Object.freeze({
       "unifiedResolutionWorkspace.aiReviewQuality[].uncertaintyReason",
       "unifiedResolutionWorkspace.aiReviewQuality[].qualityBadge",
     ],
+  },
+  "EVT-068": {
+    required: [
+      "unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow",
+      "unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow.closeReopenAvailability",
+    ],
+    stale: [],
   },
   "EVT-069": {
     required: [
@@ -428,7 +468,12 @@ const specs = [
     action: { kind: "join-readback", steps: ["seed-event", "seed-review", "capture-record-hash", "load-inbox", "compare-joined-row", "assert-record-unchanged"] },
     apiAssertions: [
       api("GET", "/ops/api/events/reviews", body(["records", "contains-fixture-review", true], ["storage.separateFromEventRecords", "equals", true])),
-      api("GET", "/ops/api/events/reviews/evt-019-review4-fixture", body(["review.eventId", "equals-fixture", true], ["review.reviewStatus", "equals-seed", true])),
+      api("GET", "/ops/api/events/reviews/evt-019-review4-fixture", body(
+        ["records[].event.eventId", "equals-fixture", true],
+        ["records[].review.eventId", "equals-fixture", true],
+        ["records[].review.reviewStatus", "equals-seed", true],
+        ["records[].review.classification", "equals-seed", true]
+      )),
     ],
     domAssertions: [dom("[data-event-review-row][data-event-id=evt-019-review4-fixture]", ["fields-equal-response", "event/review", true], ["contains-descendant", "[data-testid=ops-vlm-event-review-card]", true])],
   }),
@@ -443,7 +488,7 @@ const specs = [
         ["records.records[].snapshotPath", "contains-seed-refs", true],
         ["records.records[].clipPath", "contains-seed-refs", true]
       )),
-      api("GET", "/ops/api/events/reviews/evt-020-review4-fixture", body(["review.reviewStatus", "equals-seed", true], ["review.note", "equals-seed", true])),
+      api("GET", "/ops/api/events/reviews/evt-020-review4-fixture", body(["records[].review.reviewStatus", "equals-seed", true], ["records[].review.note", "equals-seed", true])),
     ],
     domAssertions: [
       dom("#eventRecordRows", ["contains-event-and-evidence", "evt-020-review4-fixture", true]),
@@ -457,7 +502,7 @@ const specs = [
     action: { kind: "persisted-mutation", steps: ["capture-before-snapshots", "edit-fields", "click-save", "capture-put", "capture-after-snapshots", "read-item", "read-audit", "restore-byte-exact"] },
     apiAssertions: [
       api("PUT", "/ops/api/events/reviews/evt-021-review4-fixture", body(["status", "equals", "ops-event-review"], ["persistent", "equals", true], ["review", "equals-requested-fields", true], ["audit.action", "equals", "event-review-update"])),
-      api("GET", "/ops/api/events/reviews/evt-021-review4-fixture", body(["review", "equals-put-response-review", true], ["operatorResolutionFlow", "object", true])),
+      api("GET", "/ops/api/events/reviews/evt-021-review4-fixture", body(["records[].review", "equals-put-response-review", true], ["unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow", "object", true])),
       api("GET", "/ops/api/audit?eventId=evt-021-review4-fixture", body(["entries", "contains-action", "event-review-update"], ["entries", "contains-fixture-event", true])),
     ],
     domAssertions: [dom("[data-event-review-row][data-event-id=evt-021-review4-fixture]", ["field-value-equals-readback", "reviewStatus/classification/note/incidentStatus/vlmAction/vlmActionTarget", true], ["save-completion-bound-to-put", "evt-021-review4-fixture", true])],
@@ -593,7 +638,7 @@ specs.push(
     steps: ["capture-before-snapshots", "seed-event-and-review", "submit-incident-action-put", "capture-after-snapshots", "read-item", "read-audit", "restore-byte-exact"],
     apiAssertions: [
       api("PUT", "/ops/api/events/reviews/evt-037-review4-fixture", body(["review.incidentWorkflow", "equals-request", true], ["audit.action", "equals", "event-review-update"])),
-      api("GET", "/ops/api/events/reviews/evt-037-review4-fixture", body(["review.incidentWorkflow", "equals-put-response", true], ["review.eventId", "equals-fixture", true])),
+      api("GET", "/ops/api/events/reviews/evt-037-review4-fixture", body(["records[].review.incidentWorkflow", "equals-put-response", true], ["records[].review.eventId", "equals-fixture", true])),
       api("GET", "/ops/api/audit?eventId=evt-037-review4-fixture", body(["entries", "contains-action", "incident-action-update"], ["entries", "contains-incident-id", true])),
     ],
     domAssertions: [dom("[data-event-review-row][data-event-id=evt-037-review4-fixture]", ["field-value-equals-readback", "incidentId/incidentStatus/actionTarget", true], ["save-completion-bound-to-put", "evt-037-review4-fixture", true])],
@@ -731,7 +776,7 @@ specs.push(
     steps: ["capture-before-snapshots", "seed-event-and-review", "submit-feature-correction-put", "capture-after-snapshots", "read-item", "read-audit", "restore-byte-exact"],
     apiAssertions: [
       api("PUT", "/ops/api/events/reviews/evt-061-review4-fixture", body(["review.featureCorrection", "equals-request", true], ["audit.action", "equals", "event-review-update"])),
-      api("GET", "/ops/api/events/reviews/evt-061-review4-fixture", body(["review.featureCorrection", "equals-put-response", true], ["operatorFeatureCorrection", "equals-review-projection", true])),
+      api("GET", "/ops/api/events/reviews/evt-061-review4-fixture", body(["records[].review.featureCorrection", "equals-put-response", true], ["operatorFeatureCorrection", "equals-review-projection", true])),
       api("GET", "/ops/api/audit?eventId=evt-061-review4-fixture", body(["entries", "contains-action", "operator-feature-correction-update"], ["entries", "contains-fixture-event", true])),
     ],
     domAssertions: [dom("#opsV310OperatorFeatureCorrectionRows [data-operator-feature-correction-event=evt-061-review4-fixture]", ["fields-equal-readback", "label/aliases/reanalysis/reason", true], ["audit-action-observed", "operator-feature-correction-update", true])],
@@ -755,7 +800,7 @@ specs.push(
     selector: "#v320SourceReliabilityGrid [data-v320-source-reliability=evt-066-review4-fixture]", semanticTarget: "source-reliability", seedKind: "healthy-and-failed-source-events", seedFields: ["sourceId", "sourceHealth", "recentFailureContext", "recheckHint"],
     apiAssertions: [
       api("GET", "/ops/api/events/reviews", body(["unifiedResolutionWorkspace.resolutionQueue[].sourceReliability", "contains-fixture-source", true], ["unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.recentFailureContext", "equals-seed", true])),
-      api("GET", "/ops/api/events/reviews/evt-066-review4-fixture", body(["sourceReliability.sourceId", "equals-seed", true], ["sourceReliability.recheckHint", "equals-seed", true])),
+      api("GET", "/ops/api/events/reviews/evt-066-review4-fixture", body(["unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.sourceId", "equals-seed", true], ["unifiedResolutionWorkspace.resolutionQueue[].sourceReliability.operatorRecheckHint", "equals-seed", true])),
     ],
     domAssertions: [dom("#v320SourceReliabilityGrid [data-v320-source-reliability=evt-066-review4-fixture]", ["fields-equal-item-readback", "health/failureContext/recheckHint", true], ["collection-item-consistent", "sourceReliability", true])],
   }),
@@ -772,7 +817,7 @@ specs.push(
     steps: ["capture-before-snapshots", "seed-event-and-resolution", "submit-resolution-flow-put", "capture-after-snapshots", "read-item", "read-audit", "restore-byte-exact"],
     apiAssertions: [
       api("PUT", "/ops/api/events/reviews/evt-068-review4-fixture", body(["operatorResolutionFlow", "equals-requested-resolution", true], ["audit.action", "equals", "event-review-update"])),
-      api("GET", "/ops/api/events/reviews/evt-068-review4-fixture", body(["operatorResolutionFlow", "equals-put-response", true], ["operatorResolutionFlow.closeReopenAvailability", "object", true])),
+      api("GET", "/ops/api/events/reviews/evt-068-review4-fixture", body(["unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow", "equals-put-response", true], ["unifiedResolutionWorkspace.resolutionQueue[].operatorResolutionFlow.closeReopenAvailability", "object", true])),
       api("GET", "/ops/api/audit?eventId=evt-068-review4-fixture", body(["entries", "contains-action", "operator-resolution-flow-update"], ["entries", "contains-resolution-transition", true])),
     ],
     domAssertions: [dom("#v320OperatorResolutionFlowGrid [data-v320-operator-resolution-flow=evt-068-review4-fixture]", ["fields-equal-readback", "assignment/note/closeReopen/auditActions", true], ["save-completion-bound-to-put", "evt-068-review4-fixture", true])],
