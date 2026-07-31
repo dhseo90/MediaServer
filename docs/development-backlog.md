@@ -6935,6 +6935,19 @@ actual UI의 `296 attempted / 295 PASS / 1 FAIL / 128 not-run` note receipt inco
 985 carry-forward + 1 independent, audit/approval/implementation/native 986/986을 원자 갱신했습니다.
 generator와 actual UI/diagnostic/Policy v4/30분/120분/release는 이 checkpoint에서 실행하지 않습니다.
 
+EVT-019 note diagnostic serializer checkpoint(2026-07-31)는 production
+`validateEventReviewSeedWriteReceipt -> caseExecutionFailure -> createFailedCaseResult ->
+createDiagnosticChildSummary -> aggregateDiagnosticChildOutcome` 경로에서 safe receipt
+evidence가 보존되는지를 고정합니다. Evidence는 note의 `present`/type/SHA-256과 equality
+matrix만 포함하며 raw note는 보존하지 않습니다. 최초 두 independent review는 production
+serializer 경로를 직접 실행하지 않아 거부됐고, serializer field 제거가 실제 RED가 되는
+regression을 보강한 뒤 UI-018 독립 승인을 받았습니다. Candidate
+`4f6c7a05828e0ddf2edfe6806da6cfa4c08f820a0aa29a4481c6e199fd3141c4`,
+985 carry-forward + UI-018 independent review와 producer 1회의 audit/approval/
+implementation/native four-fixture atomic replacement를 확인합니다. 기존 actual EVT-019
+FAIL과 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`은 historical evidence로 보존하며,
+이번 checkpoint에서는 actual EVT-019/UI, Policy v4, 30분, 120분, release를 실행하지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

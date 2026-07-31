@@ -18,7 +18,9 @@ import {
 } from "./v390_ui_native_exact_cases_lib.mjs";
 import {
   aggregateDiagnosticChildOutcome,
+  copyEventReviewSeedWriteEvidence,
   diagnosticChildSourceBindingErrors,
+  eventReviewSeedDiagnosticCaseIds,
   validateEvt004LifecycleEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import { validateEventDomSemanticCompositeEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
@@ -180,6 +182,8 @@ for (const [selectionIndex, item] of selection.entries()) {
       markerEvidenceLifecycle:
         childOutcome.markerEvidenceLifecycle || null,
       cleanupAttestation: childOutcome.cleanupAttestation || null,
+      eventReviewSeedWriteEvidence:
+        childOutcome.eventReviewSeedWriteEvidence || null,
       failureLifecycleEvidence:
         childOutcome.failureLifecycleEvidence || null,
       childExecutionStatus: childOutcome.childExecutionStatus || "",
@@ -618,6 +622,16 @@ function validateChildSummary(summary, item, expectedSourceBinding) {
       Number.isInteger(evidence.cleanupEntryCount) &&
       typeof evidence.failureCode === "string",
     "diagnostic child cleanup attestation is invalid");
+  }
+  const eventReviewSeedFailure =
+    eventReviewSeedDiagnosticCaseIds.includes(item.caseId) &&
+    String(summary.case?.failureDetail || "")
+      .includes("exact review seed write receipt is incomplete");
+  if (summary.case?.eventReviewSeedWriteEvidence || eventReviewSeedFailure) {
+    copyEventReviewSeedWriteEvidence(
+      summary.case?.eventReviewSeedWriteEvidence,
+      { caseId: item.caseId },
+    );
   }
   if (item.caseId === "EVT-004" && summary.case.actualBrowserExecution === true) {
     const lifecycleErrors = validateEvt004LifecycleEvidence(summary.case);

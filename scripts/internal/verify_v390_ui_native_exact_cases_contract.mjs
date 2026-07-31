@@ -52,6 +52,12 @@ import {
   eventExactOracleFor,
 } from "./v390_ui_exact_event_oracles.mjs";
 import {
+  aggregateDiagnosticChildOutcome,
+  copyEventReviewSeedWriteEvidence,
+  eventReviewSeedDiagnosticCaseIds,
+  serializeFailureLifecycleEvidence,
+} from "./v390_ui_diagnostic_lifecycle_lib.mjs";
+import {
   deduplicateScreenshotArtifacts,
   pruneUnreferencedArtifactFiles,
   scanArtifactTree,
@@ -89,6 +95,19 @@ check("event review seed receipts bind PUT response, storage readback, and Event
   assert(JSON.stringify(eventReviewSeedSiblingCaseIds) === JSON.stringify([
     "EVT-019", "EVT-020", "EVT-021", "EVT-037", "EVT-061", "EVT-066", "EVT-068",
   ]), "event review seed sibling audit scope drift");
+  assert(JSON.stringify(eventReviewSeedDiagnosticCaseIds) ===
+    JSON.stringify(eventReviewSeedSiblingCaseIds),
+  "event review seed diagnostic sibling scope drift");
+  for (const caseId of eventReviewSeedSiblingCaseIds) {
+    const spec = eventExactOracleFor(caseId);
+    const plan = eventExactSeedMaterializerRegistry[spec?.seed?.kind];
+    assert(spec?.caseId === caseId && plan?.review === true &&
+      Number(plan.eventRecords || 0) > 0,
+    `${caseId} does not use the shared persisted review seed materializer`);
+  }
+  assert(runtimeSource.includes("const receipt = validateEventReviewSeedWriteReceipt({") &&
+    !runtimeSource.includes('caseId === "EVT-019" ? validateEventReviewSeedWriteReceipt'),
+  "event review seed receipt is not shared by the audited sibling family");
   const eventId = "evt-019-review4-fixture";
   const requestedReview = {
     reviewStatus: "reviewing",
@@ -134,6 +153,11 @@ check("event review seed receipts bind PUT response, storage readback, and Event
     "review seed receipt did not preserve EventRecord byte identity");
   assert(receipt.notePresent === true && /^[a-f0-9]{64}$/.test(receipt.noteSha256),
     "review seed receipt did not preserve the operator note digest");
+  assert(receipt.noteDigestEvidence?.matches?.requestExpected === true &&
+    receipt.noteDigestEvidence?.matches?.putExpected === true &&
+    receipt.noteDigestEvidence?.matches?.storageExpected === true &&
+    receipt.noteDigestEvidence?.matches?.putStorage === true,
+  "review seed receipt note digest evidence did not bind all stages");
   assert(!JSON.stringify(receipt).includes(requestedReview.note),
     "review seed receipt retained raw operator note material");
   const negatives = [
@@ -199,6 +223,7 @@ check("event review seed receipts bind PUT response, storage readback, and Event
   ];
   for (const [missingPath, override] of negatives) {
     let message = "";
+    let noteDigestEvidence = null;
     try {
       validateEventReviewSeedWriteReceipt({
         caseId: "EVT-019",
@@ -214,9 +239,207 @@ check("event review seed receipts bind PUT response, storage readback, and Event
       });
     } catch (error) {
       message = error instanceof Error ? error.message : String(error);
+      noteDigestEvidence = error?.eventReviewSeedWriteEvidence || null;
     }
     assert(message.includes(`missingPaths=`) && message.includes(missingPath),
       `review seed negative did not identify ${missingPath}: ${message || "passed"}`);
+    assert(noteDigestEvidence?.schema ===
+      "media-server.v390-ui-event-review-note-digest-evidence.v1" &&
+      !JSON.stringify(noteDigestEvidence).includes(requestedReview.note),
+    `review seed negative did not preserve safe digest-only evidence for ${missingPath}`);
+  }
+});
+
+check("event review note evidence survives the production failure rewrap and parent aggregation", () => {
+  const eventId = "evt-019-review4-fixture";
+  const rawNote = "REVIEW4 EVT-019 acceptance-owned review fixture";
+  const requestedReview = {
+    reviewStatus: "reviewing",
+    classification: "unclassified",
+    note: rawNote,
+    incidentStatus: "new",
+  };
+  const review = {
+    schema: "media-server.ops.event-review-state.v1",
+    present: true,
+    eventId,
+    ...requestedReview,
+    updatedAtMs: 1722412800000,
+    actor: "review4-operator",
+    role: "operator",
+  };
+  let primaryFailure = null;
+  try {
+    validateEventReviewSeedWriteReceipt({
+      caseId: "EVT-019",
+      eventId,
+      requestedReview,
+      putStatus: 200,
+      putEnvelope: {
+        status: "ops-event-review",
+        persistent: true,
+        review: { ...review, note: "put-note-drift" },
+      },
+      storageStatus: 200,
+      storageEnvelope: {
+        status: "ops-event-review-inbox",
+        schema: "media-server.ops.event-review-inbox.v1",
+        recordCount: 1,
+        records: [{ event: { eventId }, review }],
+      },
+      eventRecordBeforeSha256: "a".repeat(64),
+      eventRecordAfterSha256: "a".repeat(64),
+    });
+  } catch (error) {
+    primaryFailure = error;
+  }
+  assert(primaryFailure instanceof Error &&
+    primaryFailure.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+  "review seed mismatch did not produce the expected primary failure evidence");
+
+  const functionStart = runnerSource.indexOf("function caseExecutionFailure(");
+  const functionEnd = runnerSource.indexOf(
+    "\nfunction refreshFailureDiagnosticArtifacts",
+    functionStart,
+  );
+  assert(functionStart >= 0 && functionEnd > functionStart,
+    "production caseExecutionFailure source is unavailable");
+  const productionCaseExecutionFailure = new Function(
+    "fs",
+    "structuredClone",
+    "serializeFailureLifecycleEvidence",
+    "copyEventReviewSeedWriteEvidence",
+    "eventReviewSeedDiagnosticCaseIds",
+    `${runnerSource.slice(functionStart, functionEnd)}
+     return caseExecutionFailure;`,
+  )(
+    fs,
+    structuredClone,
+    serializeFailureLifecycleEvidence,
+    copyEventReviewSeedWriteEvidence,
+    eventReviewSeedDiagnosticCaseIds,
+  );
+  const wrapped = productionCaseExecutionFailure("EVT-019", {
+    primaryFailure,
+    cleanupFailure: null,
+    browserCloseFailure: null,
+    lifecycleFinalizationFailure: null,
+  });
+  assert(wrapped instanceof Error &&
+    wrapped.eventReviewSeedWriteEvidence?.matches?.putExpected === false &&
+    wrapped.partialArtifacts?.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+  "production failure rewrap did not preserve mismatch evidence");
+  assert(!JSON.stringify(wrapped.eventReviewSeedWriteEvidence).includes(rawNote),
+    "production failure rewrap retained raw note material");
+
+  const failedResultStart = runnerSource.indexOf("function createFailedCaseResult(");
+  const failedResultEnd = runnerSource.indexOf(
+    "\nfunction caseExecutionFailure",
+    failedResultStart,
+  );
+  assert(failedResultStart >= 0 && failedResultEnd > failedResultStart,
+    "production failed result serializer source is unavailable");
+  const productionCreateFailedCaseResult = new Function(
+    "structuredClone",
+    "safeDiagnosticFailureClass",
+    "safeDiagnosticFailureDetail",
+    `${runnerSource.slice(failedResultStart, failedResultEnd)}
+     return createFailedCaseResult;`,
+  )(
+    structuredClone,
+    () => "case-execution-failed",
+    error => String(error?.primaryFailure?.message || error?.message || ""),
+  );
+  const item = { caseId: "EVT-019", featureId: "EVT-019" };
+  const resultItem = productionCreateFailedCaseResult(item, wrapped, true);
+  assert(resultItem.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+    "production failed result serializer dropped mismatch evidence");
+
+  const childSummaryStart = runnerSource.indexOf(
+    "function createDiagnosticChildSummary(",
+  );
+  const childSummaryEnd = runnerSource.indexOf(
+    "\nfunction createDiagnosticPreExecutionSummary",
+    childSummaryStart,
+  );
+  assert(childSummaryStart >= 0 && childSummaryEnd > childSummaryStart,
+    "production diagnostic child serializer source is unavailable");
+  const productionCreateDiagnosticChildSummary = new Function(
+    "options",
+    "diagnosticChildSourceBinding",
+    "sha256Text",
+    "serializeFailureLifecycleEvidence",
+    `${runnerSource.slice(childSummaryStart, childSummaryEnd)}
+     return createDiagnosticChildSummary;`,
+  )(
+    { diagnosticSelectionMode: "explicit-positive-case" },
+    caseId => ({
+      gitCommit: "1".repeat(40),
+      manifestSha256: "2".repeat(64),
+      runId: "contract-run",
+      caseId,
+      caseIdsSha256: sha256Text(caseId),
+      selectionMode: "explicit-positive-case",
+    }),
+    sha256Text,
+    serializeFailureLifecycleEvidence,
+  );
+  const childSummary = productionCreateDiagnosticChildSummary({
+    result: "FAIL",
+    executionStatus: "diagnostic-child-case-failed",
+    item,
+    resultItem,
+    environmentContamination: false,
+    caseRuntimeSecretArtifactIntegrity: { status: "PASS" },
+  });
+  childSummary.rawCaptureValidation = {
+    status: "FAIL",
+    errors: ["case-execution-failed"],
+  };
+  assert(childSummary.case.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+    "production diagnostic child serializer dropped mismatch evidence");
+  const parentOutcome = aggregateDiagnosticChildOutcome({
+    summary: childSummary,
+    exitCode: 1,
+  });
+  assert(parentOutcome.status === "FAIL" &&
+    parentOutcome.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+  "parent diagnostic aggregation lost or promoted mismatch evidence");
+  assert(copyEventReviewSeedWriteEvidence(
+    parentOutcome.eventReviewSeedWriteEvidence,
+    { caseId: "EVT-019" },
+  ).matches.putExpected === false,
+  "parent diagnostic evidence did not remain fail-closed");
+
+  for (const [label, mutate] of [
+    ["missing", () => null],
+    ["stale-schema", evidence => ({ ...evidence, schema: "stale.v0" })],
+    ["wrong-case", evidence => ({ ...evidence, caseId: "EVT-020" })],
+    ["raw-field", evidence => ({ ...evidence, rawNote })],
+    ["false-pass", evidence => ({
+      ...evidence,
+      matches: { ...evidence.matches, putExpected: true },
+    })],
+  ]) {
+    const invalidPrimary = new Error(primaryFailure.message);
+    invalidPrimary.eventReviewSeedWriteEvidence = mutate(
+      structuredClone(primaryFailure.eventReviewSeedWriteEvidence),
+    );
+    let message = "";
+    try {
+      productionCaseExecutionFailure("EVT-019", {
+        primaryFailure: invalidPrimary,
+        cleanupFailure: null,
+        browserCloseFailure: null,
+        lifecycleFinalizationFailure: null,
+      });
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    assert(message.includes("event review note digest evidence invalid"),
+      `${label} event review evidence did not fail closed`);
+    assert(!message.includes(rawNote),
+      `${label} event review evidence failure exposed raw note material`);
   }
 });
 

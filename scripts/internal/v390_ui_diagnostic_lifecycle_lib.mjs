@@ -10,6 +10,112 @@ import {
 export { serializeFailureLifecycleEvidence } from "./v390_ui_failure_lifecycle_evidence.mjs";
 
 const maxCorrelationWindowEntries = 256;
+export const eventReviewSeedDiagnosticCaseIds = Object.freeze([
+  "EVT-019",
+  "EVT-020",
+  "EVT-021",
+  "EVT-037",
+  "EVT-061",
+  "EVT-066",
+  "EVT-068",
+]);
+const eventReviewNoteDigestEvidenceSchema =
+  "media-server.v390-ui-event-review-note-digest-evidence.v1";
+const eventReviewNoteStages = Object.freeze([
+  "request",
+  "expected",
+  "put",
+  "storage",
+]);
+const eventReviewNoteMatches = Object.freeze([
+  "requestExpected",
+  "putExpected",
+  "storageExpected",
+  "putStorage",
+]);
+
+export function copyEventReviewSeedWriteEvidence(evidence, { caseId = "" } = {}) {
+  const fail = code => {
+    throw new Error(`event review note digest evidence invalid: ${code}`);
+  };
+  if (!evidence || typeof evidence !== "object" || Array.isArray(evidence)) {
+    fail("missing");
+  }
+  if (JSON.stringify(Object.keys(evidence).sort()) !== JSON.stringify([
+    "caseId",
+    "eventId",
+    "expected",
+    "matches",
+    "put",
+    "request",
+    "schema",
+    "storage",
+  ])) {
+    fail("top-level-shape");
+  }
+  if (evidence.schema !== eventReviewNoteDigestEvidenceSchema) fail("schema");
+  if (!caseId || evidence.caseId !== caseId) fail("case-id");
+  if (typeof evidence.eventId !== "string" || evidence.eventId.length === 0) {
+    fail("event-id");
+  }
+
+  const copied = {
+    schema: evidence.schema,
+    caseId: evidence.caseId,
+    eventId: evidence.eventId,
+  };
+  for (const stageName of eventReviewNoteStages) {
+    const stage = evidence[stageName];
+    if (!stage || typeof stage !== "object" || Array.isArray(stage) ||
+        JSON.stringify(Object.keys(stage).sort()) !==
+          JSON.stringify(["present", "sha256", "type"])) {
+      fail(`${stageName}-shape`);
+    }
+    if (typeof stage.present !== "boolean" || typeof stage.type !== "string" ||
+        typeof stage.sha256 !== "string") {
+      fail(`${stageName}-types`);
+    }
+    if (stage.type === "string") {
+      if (stage.present !== true || !/^[a-f0-9]{64}$/.test(stage.sha256)) {
+        fail(`${stageName}-digest`);
+      }
+    } else if (stage.sha256 !== "") {
+      fail(`${stageName}-non-string-digest`);
+    }
+    copied[stageName] = {
+      present: stage.present,
+      type: stage.type,
+      sha256: stage.sha256,
+    };
+  }
+
+  const matches = evidence.matches;
+  if (!matches || typeof matches !== "object" || Array.isArray(matches) ||
+      JSON.stringify(Object.keys(matches).sort()) !==
+        JSON.stringify([...eventReviewNoteMatches].sort())) {
+    fail("matches-shape");
+  }
+  const digestMatches = (left, right) =>
+    left.present === true &&
+    right.present === true &&
+    left.type === "string" &&
+    right.type === "string" &&
+    left.sha256 !== "" &&
+    left.sha256 === right.sha256;
+  const expectedMatches = {
+    requestExpected: digestMatches(copied.request, copied.expected),
+    putExpected: digestMatches(copied.put, copied.expected),
+    storageExpected: digestMatches(copied.storage, copied.expected),
+    putStorage: digestMatches(copied.put, copied.storage),
+  };
+  for (const key of eventReviewNoteMatches) {
+    if (typeof matches[key] !== "boolean" || matches[key] !== expectedMatches[key]) {
+      fail(`matches-${key}`);
+    }
+  }
+  copied.matches = expectedMatches;
+  return Object.freeze(copied);
+}
 
 export async function finalizeFailedCaseLifecycle({
   primaryFailure = null,
@@ -429,6 +535,8 @@ export function aggregateDiagnosticChildOutcome({
     markerStageEvidence: childCase.markerStageEvidence || null,
     markerEvidenceLifecycle: childCase.markerEvidenceLifecycle || null,
     cleanupAttestation: childCase.cleanupAttestation || null,
+    eventReviewSeedWriteEvidence:
+      childCase.eventReviewSeedWriteEvidence || null,
     failureLifecycleEvidence:
       serializeFailureLifecycleEvidence(childCase),
     childExecutionStatus: String(summary.executionStatus || ""),

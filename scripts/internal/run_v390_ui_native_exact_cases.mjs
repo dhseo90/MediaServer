@@ -42,6 +42,8 @@ import {
   buildFailureLifecycleEvidence,
   captureBoundedCorrelationWindow,
   closeBrowserForFailureLifecycle,
+  copyEventReviewSeedWriteEvidence,
+  eventReviewSeedDiagnosticCaseIds,
   finalizeFailedCaseLifecycle,
   serializeFailureLifecycleEvidence,
   validateEvt004LifecycleEvidence,
@@ -269,21 +271,7 @@ for (const item of diagnosticChild ? [diagnosticSelection.item] : manifest.cases
     results.push(result);
   } catch (error) {
     if (!diagnosticChild) stopped = true;
-    results.push({
-      caseId: item.caseId,
-      featureId: item.featureId,
-      status: "FAIL",
-      reason: diagnosticChild ? safeDiagnosticFailureClass(error) : (error instanceof Error ? error.message : String(error)),
-      dispatch: "playwright-native",
-      manualIntervention: false,
-      ...(diagnosticChild ? {
-        failureDetail: safeDiagnosticFailureDetail(error),
-        environmentContamination: Boolean(error?.cleanupFailure || error?.browserCloseFailure),
-        cleanupFailure: Boolean(error?.cleanupFailure),
-        browserCloseFailure: Boolean(error?.browserCloseFailure),
-      } : {}),
-      ...(error?.partialArtifacts || {}),
-    });
+    results.push(createFailedCaseResult(item, error, diagnosticChild));
   }
 }
 
@@ -1028,6 +1016,30 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   return caseResult;
 }
 
+function createFailedCaseResult(item, error, diagnosticChild) {
+  return {
+    caseId: item.caseId,
+    featureId: item.featureId,
+    status: "FAIL",
+    reason: diagnosticChild
+      ? safeDiagnosticFailureClass(error)
+      : (error instanceof Error ? error.message : String(error)),
+    dispatch: "playwright-native",
+    manualIntervention: false,
+    ...(diagnosticChild ? {
+      failureDetail: safeDiagnosticFailureDetail(error),
+      environmentContamination: Boolean(error?.cleanupFailure || error?.browserCloseFailure),
+      cleanupFailure: Boolean(error?.cleanupFailure),
+      browserCloseFailure: Boolean(error?.browserCloseFailure),
+      eventReviewSeedWriteEvidence:
+        error?.eventReviewSeedWriteEvidence
+          ? structuredClone(error.eventReviewSeedWriteEvidence)
+          : null,
+    } : {}),
+    ...(error?.partialArtifacts || {}),
+  };
+}
+
 function caseExecutionFailure(
   caseId,
   {
@@ -1082,6 +1094,18 @@ function caseExecutionFailure(
   if (primaryFailure?.navigationLifecycleEvidence) {
     error.partialArtifacts.navigationLifecycleEvidence =
       structuredClone(primaryFailure.navigationLifecycleEvidence);
+  }
+  const eventReviewSeedFailure =
+    eventReviewSeedDiagnosticCaseIds.includes(caseId) &&
+    messageFor(primaryFailure).includes("exact review seed write receipt is incomplete");
+  if (primaryFailure?.eventReviewSeedWriteEvidence || eventReviewSeedFailure) {
+    const evidence = copyEventReviewSeedWriteEvidence(
+      primaryFailure?.eventReviewSeedWriteEvidence,
+      { caseId },
+    );
+    error.eventReviewSeedWriteEvidence = structuredClone(evidence);
+    error.partialArtifacts.eventReviewSeedWriteEvidence =
+      structuredClone(evidence);
   }
   if (failureLifecycleEvidence) {
     error.partialArtifacts.failureLifecycleEvidence =
@@ -3479,6 +3503,8 @@ function createDiagnosticChildSummary({
       cleanupAttestation: resultItem.cleanupAttestation || null,
       failureLifecycleEvidence:
         serializeFailureLifecycleEvidence(resultItem),
+      eventReviewSeedWriteEvidence:
+        resultItem.eventReviewSeedWriteEvidence || null,
       diagnosticArtifacts: resultItem.diagnosticArtifacts || {},
     } : {
       caseId: item.caseId,
@@ -3701,6 +3727,20 @@ function validateDiagnosticChildSummary(summary, item) {
         !Number.isInteger(evidence.cleanupEntryCount) ||
         typeof evidence.failureCode !== "string") {
       errors.push("diagnostic-child-cleanup-attestation");
+    }
+  }
+  const eventReviewSeedFailure =
+    eventReviewSeedDiagnosticCaseIds.includes(item.caseId) &&
+    String(summary?.case?.failureDetail || "")
+      .includes("exact review seed write receipt is incomplete");
+  if (summary?.case?.eventReviewSeedWriteEvidence || eventReviewSeedFailure) {
+    try {
+      copyEventReviewSeedWriteEvidence(
+        summary?.case?.eventReviewSeedWriteEvidence,
+        { caseId: item.caseId },
+      );
+    } catch {
+      errors.push("diagnostic-child-event-review-seed-write-evidence");
     }
   }
   if (item.caseId === "EVT-004" && summary?.case?.actualBrowserExecution === true) {

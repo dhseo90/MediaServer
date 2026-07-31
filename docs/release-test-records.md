@@ -2975,6 +2975,16 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Static gate | evaluator 18, native 44, event 25, runtime 41, completion 36, adapter 23, diagnostic 18 및 semantic/feature/inventory/index/script/docs PASS | actual acceptance evidence가 아닙니다 |
 | 미실행 경계 | actual UI/diagnostic/Policy v4/30분/120분/release | 이번 checkpoint에서 실행하지 않았습니다 |
 
+### REVIEW4-65 EVT-019 note diagnostic serializer checkpoint
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| Historical actual UI | `3e2f98a9`에서 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`, EVT-019 note receipt incomplete FAIL | historical FAIL은 PASS로 변경하지 않았습니다 |
+| Production evidence path | `validateEventReviewSeedWriteReceipt` -> `caseExecutionFailure` -> failed result -> child summary -> parent aggregation | safe `present`/type/SHA-256/equality matrix만 보존하며 raw note는 남기지 않습니다 |
+| Independent approval | 최초 두 review는 child serializer를 수동 summary로 우회한 결함으로 거부됐고, production serializer field 제거가 RED가 되는 regression 뒤 UI-018을 승인했습니다 | missing/stale/wrong/raw/false-pass evidence는 fail-closed입니다 |
+| Semantic transaction | candidate `4f6c7a05828e0ddf2edfe6806da6cfa4c08f820a0aa29a4481c6e199fd3141c4`, 985 carry-forward + UI-018 independent, audit/approval 986/986 | migration-aware producer 정확히 1회, audit/approval/implementation/native four-fixture atomic replacement, generator 0회 |
+| 미실행 경계 | actual EVT-019/UI, Policy v4, 30분/120분/release | 이번 static checkpoint는 actual acceptance PASS가 아닙니다 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

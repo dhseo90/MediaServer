@@ -10,7 +10,9 @@ import { fileURLToPath } from "node:url";
 import { buildNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 import {
   aggregateDiagnosticChildOutcome,
+  copyEventReviewSeedWriteEvidence,
   diagnosticChildSourceBindingErrors,
+  eventReviewSeedDiagnosticCaseIds,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -135,6 +137,14 @@ check("diagnostic child output is constrained and failure reasons are safe class
   assert(runnerSource.includes("primaryFailure") &&
     runnerSource.includes("failureLifecycleEvidence"),
   "failure lifecycle evidence does not preserve the primary failure");
+  assert(runnerSource.includes("copyEventReviewSeedWriteEvidence(") &&
+    runnerSource.includes("error.eventReviewSeedWriteEvidence =") &&
+    runnerSource.includes("error.partialArtifacts.eventReviewSeedWriteEvidence =") &&
+    runnerSource.includes("results.push(createFailedCaseResult(item, error, diagnosticChild))") &&
+    runnerSource.includes("function createDiagnosticChildSummary(") &&
+    runnerSource.includes("resultItem.eventReviewSeedWriteEvidence || null") &&
+    sweepSource.includes("copyEventReviewSeedWriteEvidence("),
+  "event review seed evidence is not preserved through the production rewrap");
   assert(runnerSource.includes("finalizeFailedCaseLifecycle({"),
     "runner does not use the executable failure-finally lifecycle helper");
   assert(runnerSource.includes("markerFlow") ||
@@ -441,6 +451,21 @@ check("valid failed child evidence is aggregated without a missing-child downgra
         domReadinessConfirmed: true,
       },
       cleanupAttestation: { pass: true },
+      eventReviewSeedWriteEvidence: {
+        schema: "media-server.v390-ui-event-review-note-digest-evidence.v1",
+        caseId: "EVT-004",
+        eventId: "evt-004-review4-fixture",
+        request: { present: true, type: "string", sha256: "1".repeat(64) },
+        expected: { present: true, type: "string", sha256: "1".repeat(64) },
+        put: { present: true, type: "string", sha256: "2".repeat(64) },
+        storage: { present: true, type: "string", sha256: "2".repeat(64) },
+        matches: {
+          requestExpected: true,
+          putExpected: false,
+          storageExpected: false,
+          putStorage: true,
+        },
+      },
     },
   };
   const outcome = aggregateDiagnosticChildOutcome({
@@ -461,7 +486,9 @@ check("valid failed child evidence is aggregated without a missing-child downgra
     outcome.navigationLifecycleEvidence ===
       summary.case.navigationLifecycleEvidence &&
     outcome.requestCorrelationEvidence ===
-      summary.case.requestCorrelationEvidence,
+      summary.case.requestCorrelationEvidence &&
+    outcome.eventReviewSeedWriteEvidence ===
+      summary.case.eventReviewSeedWriteEvidence,
   "valid child FAIL evidence was not preserved");
   assert(aggregateDiagnosticChildOutcome({
     summary: null,
@@ -496,6 +523,46 @@ check("valid failed child evidence is aggregated without a missing-child downgra
   });
   assert(falsePass.status === "FAIL",
     "child exit 1 was promoted to PASS");
+});
+
+check("event review note evidence validation rejects missing, stale, wrong, and raw shapes", () => {
+  assert(JSON.stringify(eventReviewSeedDiagnosticCaseIds) === JSON.stringify([
+    "EVT-019", "EVT-020", "EVT-021", "EVT-037", "EVT-061", "EVT-066", "EVT-068",
+  ]), "event review diagnostic sibling scope drift");
+  const digest = "1".repeat(64);
+  const valid = {
+    schema: "media-server.v390-ui-event-review-note-digest-evidence.v1",
+    caseId: "EVT-019",
+    eventId: "evt-019-review4-fixture",
+    request: { present: true, type: "string", sha256: digest },
+    expected: { present: true, type: "string", sha256: digest },
+    put: { present: true, type: "string", sha256: "2".repeat(64) },
+    storage: { present: true, type: "string", sha256: "2".repeat(64) },
+    matches: {
+      requestExpected: true,
+      putExpected: false,
+      storageExpected: false,
+      putStorage: true,
+    },
+  };
+  assert(copyEventReviewSeedWriteEvidence(valid, { caseId: "EVT-019" })
+    .matches.putExpected === false,
+  "valid mismatch evidence was promoted");
+  for (const [label, evidence, caseId] of [
+    ["missing", null, "EVT-019"],
+    ["stale", { ...valid, schema: "stale.v0" }, "EVT-019"],
+    ["wrong", valid, "EVT-020"],
+    ["raw", { ...valid, rawNote: "forbidden" }, "EVT-019"],
+  ]) {
+    let message = "";
+    try {
+      copyEventReviewSeedWriteEvidence(evidence, { caseId });
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    assert(message.includes("event review note digest evidence invalid"),
+      `${label} event review evidence did not fail closed`);
+  }
 });
 
 check("diagnostic sweep reports durable progress and treats cleanup failure as failure", () => {

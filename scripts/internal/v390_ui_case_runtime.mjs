@@ -185,6 +185,40 @@ export const eventReviewSeedSiblingCaseIds = Object.freeze([
   "EVT-019", "EVT-020", "EVT-021", "EVT-037", "EVT-061", "EVT-066", "EVT-068",
 ]);
 
+export function buildEventReviewNoteDigestEvidence({
+  caseId = "",
+  eventId = "",
+  requestNote,
+  expectedNote,
+  putNote,
+  storageNote,
+} = {}) {
+  const stage = value => ({
+    present: value !== undefined && value !== null,
+    type: value === null ? "null" : Array.isArray(value) ? "array" : typeof value,
+    sha256: typeof value === "string" ? sha256Text(value) : "",
+  });
+  const request = stage(requestNote);
+  const expected = stage(expectedNote);
+  const put = stage(putNote);
+  const storage = stage(storageNote);
+  return Object.freeze({
+    schema: "media-server.v390-ui-event-review-note-digest-evidence.v1",
+    caseId,
+    eventId,
+    request,
+    expected,
+    put,
+    storage,
+    matches: Object.freeze({
+      requestExpected: request.sha256 !== "" && request.sha256 === expected.sha256,
+      putExpected: put.sha256 !== "" && put.sha256 === expected.sha256,
+      storageExpected: storage.sha256 !== "" && storage.sha256 === expected.sha256,
+      putStorage: put.sha256 !== "" && put.sha256 === storage.sha256,
+    }),
+  });
+}
+
 export function validateEventReviewSeedWriteReceipt({
   caseId = "",
   eventId = "",
@@ -270,11 +304,21 @@ export function validateEventReviewSeedWriteReceipt({
   requirePath(eventRecordBeforeSha256 === eventRecordAfterSha256,
     "eventRecord.byteIdentity");
 
+  const noteDigestEvidence = buildEventReviewNoteDigestEvidence({
+    caseId,
+    eventId,
+    requestNote: requestedReview?.note,
+    expectedNote,
+    putNote: responseReview?.note,
+    storageNote: storedReview?.note,
+  });
   if (missingPaths.length > 0) {
-    throw new Error(
+    const error = new Error(
       `${caseId || "case"} exact review seed write receipt is incomplete: ` +
       `${eventId || "event"}; missingPaths=${[...new Set(missingPaths)].sort().join(",")}`,
     );
+    error.eventReviewSeedWriteEvidence = noteDigestEvidence;
+    throw error;
   }
 
   const responseObservation = {
@@ -305,6 +349,7 @@ export function validateEventReviewSeedWriteReceipt({
     classification: storageObservation.classification,
     notePresent: storageObservation.notePresent,
     noteSha256: storageObservation.noteSha256,
+    noteDigestEvidence,
     incidentStatus: storageObservation.incidentStatus,
     updatedAtMs: storageObservation.updatedAtMs,
     actor: storageObservation.actor,

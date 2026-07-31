@@ -971,6 +971,16 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Semantic ledger | candidate `413415d5561595ca65ed626ec587deba5c690d3f2ed9632947f06897381bcf90`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 정확히 1회, native generator 0회, four-fixture atomic readback PASS |
 | Static verification | evaluator18/native44/event25/runtime41/completion36/adapter23/diagnostic18, semantic/feature/inventory/index/script/docs PASS | actual UI와 Policy v4는 미실행 |
 
+## V390-REVIEW4-65 EVT-019 note diagnostic serializer boundary
+
+| evidence | current result | boundary |
+| --- | --- | --- |
+| Historical canonical failure | `3e2f98a9` actual UI `296 attempted / 295 PASS / 1 FAIL / 128 not-run`, EVT-019 note receipt incomplete FAIL | historical FAIL이며 current PASS로 승격하지 않음 |
+| Production evidence propagation | `validateEventReviewSeedWriteReceipt` -> `caseExecutionFailure` -> failed result -> child summary -> parent aggregation | `present`/type/SHA-256/equality matrix만 보존하고 raw note는 보존하지 않음 |
+| Independent semantic review | 최초 두 review는 production child serializer 미실행으로 거부됐고, serializer field mutation이 RED가 되는 production regression 뒤 UI-018 승인 | missing/stale/wrong/raw/false-pass는 fail-closed |
+| Semantic ledger | candidate `4f6c7a05828e0ddf2edfe6806da6cfa4c08f820a0aa29a4481c6e199fd3141c4`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 1회, audit/approval/implementation/native four-fixture atomic replacement, generator 0회 |
+| Actual boundary | actual EVT-019/UI, Policy v4, 30분/120분/release 미실행 | static checkpoint PASS는 actual acceptance evidence가 아님 |
+
 ## V390-REVIEW4-65 UI-046~424 runtime source audit
 
 | evidence | current boundary | 판정 |
