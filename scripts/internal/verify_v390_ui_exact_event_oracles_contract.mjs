@@ -160,6 +160,38 @@ check("audited route and selector corrections stay feature-specific", () => {
   assert(eventExactOracleFor("EVT-049").action.kind === "runtime-replay", "EVT-049 is not an actual replay");
 });
 
+check("event review DOM siblings remain on the canonical route and identity-owned rows", () => {
+  const reviewCases = [
+    "EVT-019", "EVT-020", "EVT-021", "EVT-028", "EVT-030", "EVT-031",
+    "EVT-036", "EVT-037", "EVT-047", "EVT-061", "EVT-068",
+  ];
+  for (const id of reviewCases) {
+    const spec = eventExactOracleFor(id);
+    assert(spec.route === "/ops/events", `${id} event review route drift`);
+    const identitySelector =
+      "[data-event-review-row][data-event-id={fixtureId}]";
+    const selectors = [spec.visibleControl.selector,
+      ...spec.domAssertions.map(item => item.selector)];
+    assert(selectors.some(selector => selector.includes(identitySelector)),
+      `${id} event review DOM is not bound to its exact row identity`);
+  }
+
+  const evt019 = eventExactOracleFor("EVT-019");
+  assert(evt019.visibleControl.selector ===
+    "[data-event-review-row][data-event-id={fixtureId}]",
+  "EVT-019 visible control is not the canonical identity row");
+  const rowAssertion = evt019.domAssertions.find(item =>
+    item.selector === evt019.visibleControl.selector);
+  const wrapperAssertion = rowAssertion?.assertions.find(item =>
+    item.operator === "contains-descendant");
+  assert(wrapperAssertion?.target === "[data-testid=ops-vlm-event-review-card]",
+    "EVT-019 canonical row/card ownership drift");
+  assert(!JSON.stringify(evt019).includes("ops-vlm-event-review-old-card"),
+    "EVT-019 stale wrapper selector was accepted");
+  assert(!eventExactOracleCaseIds().includes("EVT-035"),
+    "semantic-only EVT-035 was silently added to the exact event catalog");
+});
+
 check("mutation cases bind request, independent readback, audit, before/after, and byte-exact restore", () => {
   for (const id of ["EVT-021", "EVT-037", "EVT-038", "EVT-061", "EVT-068"]) {
     const spec = eventExactOracleFor(id);

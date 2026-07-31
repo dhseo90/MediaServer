@@ -156,6 +156,45 @@ check("domain-specific DOM operators require keyed semantic evidence", () => {
   assert(evaluateEventExactDomAssertion({ caseId: "EVT-019", assertion, observation, context: { fixtureId: "fixture", semanticEvidence: { [key]: { pass: true, actual: observation } } } }).pass, "DOM semantic evidence did not execute");
 });
 
+check("event review descendant binding requires one visible identity row and one canonical card", () => {
+  const assertion = {
+    operator: "contains-descendant",
+    target: "[data-testid=ops-vlm-event-review-card]",
+    expected: true,
+  };
+  const selector = assertion.target;
+  const valid = {
+    rootCount: 1,
+    visibleRootCount: 1,
+    descendants: [selector],
+    descendantMatches: [{ selector, count: 1, visibleCount: 1, ownerNodeCount: 1 }],
+  };
+  assert(evaluateEventExactDomAssertion({
+    caseId: "EVT-019",
+    assertion,
+    observation: valid,
+    context: {},
+  }).pass, "canonical event review row/card binding failed");
+
+  for (const [label, observation] of [
+    ["stale-wrapper", { ...valid, descendants: [], descendantMatches: [] }],
+    ["row-without-identity", { ...valid, rootCount: 0, visibleRootCount: 0 }],
+    ["duplicate-row", { ...valid, rootCount: 2, visibleRootCount: 2,
+      descendantMatches: [{ selector, count: 2, visibleCount: 2, ownerNodeCount: 2 }] }],
+    ["duplicate-card", { ...valid,
+      descendantMatches: [{ selector, count: 2, visibleCount: 2, ownerNodeCount: 1 }] }],
+    ["hidden-card", { ...valid,
+      descendantMatches: [{ selector, count: 1, visibleCount: 0, ownerNodeCount: 1 }] }],
+  ]) {
+    assert(!evaluateEventExactDomAssertion({
+      caseId: "EVT-019",
+      assertion,
+      observation,
+      context: {},
+    }).pass, `${label} event review descendant passed`);
+  }
+});
+
 check("visible control evaluator binds both selector presence and semantic action", () => {
   const spec = eventExactOracleFor("EVT-021");
   const selector = "[data-event-review-row][data-event-id=fixture] [data-event-review-save]";

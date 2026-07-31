@@ -412,8 +412,25 @@ function evaluateDirectDom({ assertion, observation, context }) {
   switch (assertion.operator) {
     case "text-includes":
       return { pass: text.includes(String(assertion.target)), reason: "text-includes" };
-    case "contains-descendant":
-      return { pass: (observation.descendants || []).includes(materializeEventExactTemplate(assertion.target, context.templateValues || { fixtureId: context.fixtureId })), reason: "contains-descendant" };
+    case "contains-descendant": {
+      const selector = materializeEventExactTemplate(
+        assertion.target,
+        context.templateValues || { fixtureId: context.fixtureId },
+      );
+      const match = (observation.descendantMatches || [])
+        .find(candidate => candidate?.selector === selector);
+      const pass = observation.rootCount === 1 &&
+        observation.visibleRootCount === 1 &&
+        (observation.descendants || []).includes(selector) &&
+        match?.ownerNodeCount === 1 && match?.count === 1 &&
+        match?.visibleCount === 1;
+      return {
+        pass,
+        reason: pass
+          ? "contains-exact-visible-descendant"
+          : "exact visible descendant cardinality mismatch",
+      };
+    }
     case "contains-fixture-event":
     case "contains-fixture-marker":
       return { pass: recursiveContains(observation, context.fixtureId), reason: assertion.operator };

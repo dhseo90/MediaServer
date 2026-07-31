@@ -2998,6 +2998,16 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Semantic transaction | Candidate `7010fa49efc887f9cfb7983f9e4dc7e3b5a436e89770197d4df647f12b74af3f`, 973 carry-forward + 13 independent, 986/986 | Migration report/evidence `3f7bfe45…`/`7c175839…`, package/decision `f5a12633…`/`165a1105…`, producer 정확히 1회 exit 0, log `18f7bf68…` |
 | Historical actual | Canonical `296 attempted / 295 PASS / 1 FAIL / 128 not-run` 및 focused EVT-019 note digest FAIL | Actual EVT-019/UI, Policy v4, 30분/120분/release는 이번 checkpoint에서 미실행이며 기존 FAIL을 PASS로 변경하지 않습니다 |
 
+### REVIEW4-65 EVT-019 event-review DOM descendant checkpoint
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| Historical actual failure | Focused EVT-019은 fixture-owned review row 안의 canonical review card semantic assertion에서 FAIL했습니다 | Canonical `296 attempted / 295 PASS / 1 FAIL / 128 not-run` historical evidence를 변경하지 않습니다 |
+| Root cause | Runtime이 `descendantCount`만 evaluator에 전달하고 requested descendant selector의 owner/count/visibility 결속을 전달하지 않았습니다 | 제품 DOM/route/API 결함으로 해석하지 않습니다 |
+| Exact DOM binding | fixture eventId와 일치하는 visible row 1개 안에 visible canonical card 1개가 selector로 exact 결속돼야 합니다 | stale selector, identity 없는 row, duplicate/hidden row 또는 card, wrong route는 fail-closed입니다 |
+| Sibling audit | EVT-019/020/021/028/030/031/036/037/047/061/068을 동일 `/ops/events` fixture-owned row boundary로 점검합니다 | EVT-035는 canonical event DOM catalog 비대상 semantic-only row입니다 |
+| Static gate | Event oracle/evaluator, runtime/native/diagnostic/completion/adapter, event-review source/UI 및 build를 검증합니다 | Actual EVT-019/UI, Policy v4, 30분/120분/release는 미실행입니다 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

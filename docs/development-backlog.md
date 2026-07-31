@@ -6980,6 +6980,20 @@ wrapper에서 정확히 1회 exit 0으로 audit/approval/implementation/native�
 120분, release acceptance를 실행하지 않으며 기존 canonical
 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`과 focused EVT-019 FAIL을 PASS로 바꾸지 않습니다.
 
+EVT-019 DOM descendant checkpoint(2026-07-31)는 historical focused actual의
+`[data-event-review-row][data-event-id=evt-019-review4-fixture]` 안
+`[data-testid=ops-vlm-event-review-card]` assertion failure를 정적 경계에서 보정합니다.
+제품 DOM에는 fixture-owned row와 card가 있었지만 runtime은 `descendantCount`만 evaluator에
+넘기고 실제 descendant selector 결속을 전달하지 않아 존재하는 card를 빈 descendant로
+오인했습니다. Runtime과 evaluator는 이제 fixture eventId와 일치하는 visible row 하나 안의
+visible canonical card 하나를 같은 selector로 확인합니다. identity 없는 row, duplicate/hidden
+row 또는 card, stale selector와 wrong route는 계속 fail-closed입니다. `EVT-019`, `EVT-020`,
+`EVT-021`, `EVT-028`, `EVT-030`, `EVT-031`, `EVT-036`, `EVT-037`, `EVT-047`, `EVT-061`,
+`EVT-068` sibling audit은 같은 fixture-owned `/ops/events` row boundary를 확인합니다.
+이번 checkpoint는 static gate만 실행하며 actual EVT-019/UI, Policy v4, 30분, 120분,
+release acceptance를 실행하지 않고 historical canonical `296 attempted / 295 PASS / 1 FAIL /
+128 not-run`과 focused EVT-019 DOM FAIL을 PASS로 바꾸지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

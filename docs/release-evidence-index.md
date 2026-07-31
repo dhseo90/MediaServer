@@ -993,6 +993,15 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Semantic ledger | Candidate `7010fa49…`, 973 carry-forward + 13 independent, audit/approval/implementation 986/986, native 424=423+1 | Migration `3f7bfe45…`/`7c175839…`, package/decision `f5a12633…`/`165a1105…`, producer 1회 exit 0, log `18f7bf68…` |
 | Actual boundary | Canonical `296/295/1/128`과 focused EVT-019 FAIL 보존; actual EVT-019/UI, Policy v4, 30분/120분/release 미실행 | Static/semantic checkpoint를 actual PASS로 승격하지 않음 |
 
+## V390-REVIEW4-65 EVT-019 event-review DOM descendant boundary
+
+| evidence | current result | boundary |
+| --- | --- | --- |
+| Historical focused failure | Fixture review row 내부 canonical card assertion이 FAIL했고 canonical은 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`입니다 | Historical FAIL을 current PASS로 변경하지 않습니다 |
+| Runtime/evaluator correction | `contains-descendant`는 visible fixture row 1개, selector-matched canonical card 1개, card visibility 1개를 exact 결속합니다 | `descendantCount`만으로 PASS하지 않으며 stale selector/duplicate/hidden/identity drift는 fail-closed입니다 |
+| Sibling audit | EVT-019/020/021/028/030/031/036/037/047/061/068이 동일 fixture-owned `/ops/events` boundary에 결속됩니다 | EVT-035는 semantic-only이며 canonical DOM case가 아닙니다 |
+| Execution boundary | Static contracts와 checkpoint gate만 대상입니다 | Actual EVT-019/UI, Policy v4, 30분/120분/release는 미실행입니다 |
+
 ## V390-REVIEW4-65 UI-046~424 runtime source audit
 
 | evidence | current boundary | 판정 |

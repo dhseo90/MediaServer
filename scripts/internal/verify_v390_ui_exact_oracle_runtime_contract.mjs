@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // 파일 용도: exact 424 runtime oracle 실행기가 status/DOM/network 누락을 거짓 PASS로 처리하지 않는지 검증한다.
 
+import fs from "node:fs";
+
 import {
   bindDashboardRuntimeTrendBaseline,
   assertExclusiveRequestScopedCorrelation,
@@ -36,6 +38,51 @@ import {
 } from "./v390_ui_native_adapter.mjs";
 
 const checks = [];
+const runtimeSource = fs.readFileSync(
+  new URL("./v390_ui_exact_oracle_runtime.mjs", import.meta.url),
+  "utf8",
+);
+
+function assertExactDescendantCaptureContract(source) {
+  for (const token of [
+    "const descendantSelectors = [...new Set((assertion.assertions || [])",
+    "descendantMatches: descendantSelectors.map(descendantSelector =>",
+    "const ownerNodes = nodes.filter(node => node.querySelector(descendantSelector))",
+    "matches.length === 1 && visibleCount === 1",
+    "rootCount: observed.count",
+    "visibleRootCount: observed.visibleCount",
+    "descendants: observed.descendants",
+    "descendantMatches: observed.descendantMatches",
+  ]) {
+    assert(source.includes(token), `exact descendant capture contract missing: ${token}`);
+  }
+}
+
+await check("event review descendant capture reaches the semantic evaluator and mutations fail closed", () => {
+  assertExactDescendantCaptureContract(runtimeSource);
+  for (const [label, mutated] of [
+    ["owner-cardinality", runtimeSource.replaceAll(
+      "const ownerNodes = nodes.filter(node => node.querySelector(descendantSelector))",
+      "const ownerNodes = nodes",
+    )],
+    ["exact-cardinality", runtimeSource.replaceAll(
+      "matches.length === 1 && visibleCount === 1",
+      "matches.length > 0 && visibleCount > 0",
+    )],
+    ["semantic-forwarding", runtimeSource.replaceAll(
+      "descendantMatches: observed.descendantMatches",
+      "descendantMatches: []",
+    )],
+  ]) {
+    let rejected = false;
+    try {
+      assertExactDescendantCaptureContract(mutated);
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, `${label} descendant capture mutation passed`);
+  }
+});
 
 await check("EVT-004 marker lifecycle distinguishes hook, file, response, timeline, and DOM failures", async () => {
   const marker = "REVIEW4-EVT-004-LOG-MARKER";
@@ -2439,7 +2486,9 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
         attributes: observation?.attributes ?? (selector ? (attributes[selector] || [{}]) : []),
         values: [""],
         formControls: observation?.formControls ?? [],
-        descendantCount: 0,
+        descendants: observation?.descendants ?? [],
+        descendantMatches: observation?.descendantMatches ?? [],
+        descendantCount: observation?.descendantCount ?? 0,
         properties: {},
       };
     },

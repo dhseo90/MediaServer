@@ -1224,6 +1224,10 @@ async function observeDom(
   markerEvaluationTracker = null,
 ) {
   const selector = expand(String(assertion.selector || ""), bindings);
+  const descendantSelectors = [...new Set((assertion.assertions || [])
+    .filter(candidate => candidate.operator === "contains-descendant")
+    .map(candidate => expand(String(candidate.target || ""), bindings))
+    .filter(Boolean))];
   const markerAssertion = item.caseId === "EVT-004" &&
     (assertion.assertions || []).some(candidate =>
       candidate.operator === "contains-fixture-marker" &&
@@ -1233,6 +1237,7 @@ async function observeDom(
   }
   const observed = await browser.evaluate(`(async () => {
     const nodes = Array.from(document.querySelectorAll(${JSON.stringify(selector)}));
+    const descendantSelectors = ${JSON.stringify(descendantSelectors)};
     const rects = nodes.map(node => node.getBoundingClientRect());
     const overlaps = rects.flatMap((left, index) => rects.slice(index + 1).map(right =>
       left.left < right.right && left.right > right.left && left.top < right.bottom && left.bottom > right.top)).filter(Boolean).length;
@@ -1285,6 +1290,32 @@ async function observeDom(
         type: String(control.getAttribute('type') || control.tagName || '').toLowerCase(),
         value: String(control.value ?? ''),
       })),
+      descendantMatches: descendantSelectors.map(descendantSelector => {
+        const ownerNodes = nodes.filter(node => node.querySelector(descendantSelector));
+        const matches = [...new Set(nodes.flatMap(node =>
+          Array.from(node.querySelectorAll(descendantSelector))))];
+        const visibleCount = matches.filter(node => {
+          const rect = node.getBoundingClientRect(); const style = getComputedStyle(node);
+          return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+        }).length;
+        return {
+          selector: descendantSelector,
+          count: matches.length,
+          visibleCount,
+          ownerNodeCount: ownerNodes.length,
+        };
+      }),
+      descendants: descendantSelectors.filter(descendantSelector => {
+        const ownerNodes = nodes.filter(node => node.querySelector(descendantSelector));
+        const matches = [...new Set(nodes.flatMap(node =>
+          Array.from(node.querySelectorAll(descendantSelector))))];
+        const visibleCount = matches.filter(node => {
+          const rect = node.getBoundingClientRect(); const style = getComputedStyle(node);
+          return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+        }).length;
+        return nodes.length === 1 && ownerNodes.length === 1 &&
+          matches.length === 1 && visibleCount === 1;
+      }),
       descendantCount: nodes.reduce((count, node) => count + node.querySelectorAll('*').length, 0),
       properties: {
         text: nodes.map(node => String(node.innerText || node.textContent || '')).join(' ').replace(/\\s+/g, ' ').trim(),
@@ -2085,6 +2116,10 @@ function evaluateDomSemanticAssertions(
         text: observed.text,
         number: Number(observed.text.replace(/[^0-9.-]/g, "")),
         attributes: observed.attributes,
+        rootCount: observed.count,
+        visibleRootCount: observed.visibleCount,
+        descendants: observed.descendants,
+        descendantMatches: observed.descendantMatches,
         descendantCount: observed.descendantCount,
         formControls: observed.formControls,
       };
@@ -2136,7 +2171,11 @@ function evaluateDomSemanticAssertions(
     } else if (operator === "text-includes") {
       pass = observed.text.includes(target);
     } else if (operator === "contains-descendant") {
-      pass = observed.descendantCount > 0;
+      const match = (observed.descendantMatches || [])
+        .find(candidate => candidate.selector === target);
+      pass = observed.count === 1 && observed.visibleCount === 1 &&
+        match?.ownerNodeCount === 1 && match?.count === 1 &&
+        match?.visibleCount === 1;
     } else if (operator.startsWith("contains-fixture")) {
       const candidates = fixtureBindingValues(bindings);
       pass = candidates.length > 0 && candidates.some(value => observed.text.includes(value) || JSON.stringify(observed.attributes).includes(value));
