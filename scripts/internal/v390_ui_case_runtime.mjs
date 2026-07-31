@@ -137,6 +137,66 @@ export const eventRecordFixtureFamilyCaseIds = Object.freeze([
   "EVT-007", "EVT-020", "EVT-023", "EVT-026", "EVT-048", "EVT-049",
 ]);
 
+export const eventRecordFixtureFamilyExpectations = Object.freeze({
+  "EVT-007": Object.freeze({
+    route: "/ops/events",
+    records: Object.freeze([
+      Object.freeze({ eventIdSuffix: "", status: "open", evidence: "snapshot-and-clip" }),
+      Object.freeze({ eventIdSuffix: "-state-1", status: "archived", evidence: "snapshot-and-clip" }),
+    ]),
+  }),
+  "EVT-020": Object.freeze({
+    route: "/ops/events",
+    records: Object.freeze([
+      Object.freeze({ eventIdSuffix: "", status: "open", evidence: "snapshot-and-clip" }),
+    ]),
+  }),
+  "EVT-023": Object.freeze({
+    route: "/ops/dashboard",
+    records: Object.freeze([
+      Object.freeze({ eventIdSuffix: "", status: "open", evidence: "snapshot-and-clip" }),
+    ]),
+  }),
+  "EVT-026": Object.freeze({
+    route: "/ops/dashboard",
+    records: Object.freeze([
+      Object.freeze({ eventIdSuffix: "", status: "open", evidence: "snapshot-and-clip" }),
+    ]),
+  }),
+  "EVT-048": Object.freeze({
+    route: "/ops/dashboard",
+    records: Object.freeze([
+      Object.freeze({ eventIdSuffix: "", status: "open", evidence: "snapshot-and-clip" }),
+    ]),
+  }),
+  "EVT-049": Object.freeze({
+    route: "/ops/events",
+    records: Object.freeze([
+      Object.freeze({ eventIdSuffix: "", status: "open", evidence: "snapshot-and-clip" }),
+    ]),
+  }),
+});
+
+export function eventRecordFixtureFamilyExpectedRecords({
+  caseId,
+  fixtureId,
+  sourceId,
+  streamId,
+} = {}) {
+  const expectation = eventRecordFixtureFamilyExpectations[String(caseId || "")];
+  assert(expectation, `${caseId} is not a records.records fixture family case`);
+  assert(fixtureId && sourceId && streamId,
+    `${caseId} records.records expected identity is incomplete`);
+  return expectation.records.map(record => Object.freeze({
+    eventId: `${fixtureId}${record.eventIdSuffix}`,
+    sourceId,
+    streamId,
+    route: expectation.route,
+    status: record.status,
+    evidence: record.evidence,
+  }));
+}
+
 export function usesEventExactRuntimeBindings(caseId) {
   return eventExactRuntimeBindingCaseIds.has(String(caseId || ""));
 }
@@ -2336,33 +2396,67 @@ export function createV390UiCaseRuntime({
       : defaultPublishedSourceIdentity(descriptor);
     const searchQuery = String((item.workflow.inputs || []).find(input =>
       input.kind === "literal-control-value" && typeof input.actualValue === "string")?.actualValue || context.fixtureId);
+    const familyExpectedRecords = eventRecordFixtureFamilyCaseIds.includes(item.caseId)
+      ? eventRecordFixtureFamilyExpectedRecords({
+        caseId: item.caseId,
+        fixtureId: context.fixtureId,
+        sourceId: source.sourceId,
+        streamId: source.streamId,
+      })
+      : [];
+    if (familyExpectedRecords.length > 0) {
+      assert(spec.route === eventRecordFixtureFamilyExpectations[item.caseId].route,
+        `${item.caseId} records.records route contract drift`);
+      assert(Number(plan.eventRecords || 0) === familyExpectedRecords.length,
+        `${item.caseId} records.records cardinality contract drift`);
+    }
     const eventIds = [];
-    const eventCount = Number(plan.eventRecords || 0);
+    const eventCount = familyExpectedRecords.length || Number(plan.eventRecords || 0);
     if (plan.sourceHealthReadback) {
       assert(item.caseId === "EVT-003" && eventCount === 0 && plan.sourceHealth !== true,
         `${item.caseId} source-health readback cannot be represented by EventRecord metadata`);
     }
     for (let index = 0; index < eventCount; index += 1) {
-      const eventId = index === 0
+      const familyRecord = familyExpectedRecords[index] || null;
+      const eventId = familyRecord?.eventId || (index === 0
         ? context.fixtureId
-        : `${context.fixtureId}-${plan.related ? "related" : "state"}-${index}`;
+        : `${context.fixtureId}-${plan.related ? "related" : "state"}-${index}`);
       eventIds.push(eventId);
       const existing = fs.existsSync(eventPath) &&
         fs.readFileSync(eventPath, "utf8").includes(`\"eventId\":\"${eventId}\"`);
       assert(!existing, `${item.caseId} exact event seed already exists: ${eventId}`);
-      const dispatch = dispatchEventRecordFixtureViaProductStorage({
-        rootDir,
-        descriptor,
-        context,
-        eventId,
-        sourceId: source.sourceId,
-        streamId: source.streamId,
-        status: index === 1 && plan.archivedRecord ? "archived" : "open",
-        eventType: index === 1 && plan.related ? "related-incident" : "presence",
-        route: spec.route,
-        scenarioName: plan.related ? "review4-related-incident" : "review4-exact",
-      });
-      context.eventRecordFixtureDispatches.push(dispatch.summary);
+      if (familyRecord) {
+        const dispatch = dispatchEventRecordFixtureViaProductStorage({
+          rootDir,
+          descriptor,
+          context,
+          eventId,
+          sourceId: familyRecord.sourceId,
+          streamId: familyRecord.streamId,
+          status: familyRecord.status,
+          eventType: index === 1 && plan.related ? "related-incident" : "presence",
+          route: familyRecord.route,
+          scenarioName: plan.related ? "review4-related-incident" : "review4-exact",
+        });
+        context.eventRecordFixtureDispatches.push(dispatch.identityEvidence);
+      } else {
+        seedEventRecordFixture(eventPath, {
+          eventId,
+          sourceId: source.sourceId,
+          streamId: source.streamId,
+          status: index === 1 && plan.archivedRecord ? "archived" : "open",
+          eventType: index === 1 && plan.related ? "related-incident" : "presence",
+          scenarioName: plan.related ? "review4-related-incident" : "review4-exact",
+          snapshotPath: plan.evidence ? `snapshots/${eventId}.jpg` : "",
+          clipPath: plan.evidence ? `clips/${eventId}.mp4` : "",
+          metadata: {
+            sourceId: source.sourceId,
+            seedKind: kind,
+            relatedTo: index > 0 && plan.related ? context.fixtureId : "",
+            sourceHealth: plan.sourceHealth ? "degraded" : "available",
+          },
+        });
+      }
     }
 
     const observations = [];
@@ -2461,12 +2555,7 @@ export function createV390UiCaseRuntime({
         exactRecordRequest.allowedStatuses,
         { roleOverride: "operator" },
       );
-      const expectedRecords = eventIds.map((eventId, index) => ({
-        eventId,
-        sourceId: source.sourceId,
-        route: spec.route,
-        status: index === 1 && plan.archivedRecord ? "archived" : "open",
-      }));
+      const expectedRecords = familyExpectedRecords;
       const exact = validateEventRecordFixtureFamilyReadback({
         caseId: item.caseId,
         fixtureId: context.fixtureId,
@@ -5316,30 +5405,62 @@ export function validateEventRecordFixtureFamilyReadback({
     `${caseId} fixture readback identity is incomplete`);
   const records = response?.records?.records;
   assert(Array.isArray(records), `${caseId} authoritative records.records readback is missing`);
+  assert(expectedRecords.every(record =>
+    record &&
+    typeof record.eventId === "string" && record.eventId.length > 0 &&
+    typeof record.sourceId === "string" && record.sourceId.length > 0 &&
+    typeof record.streamId === "string" && record.streamId.length > 0 &&
+    typeof record.route === "string" && record.route.length > 0 &&
+    typeof record.status === "string" && record.status.length > 0),
+  `${caseId} fixture expected record structure is incomplete`);
   const expectedIds = new Set(expectedRecords.map(record => String(record.eventId || "")));
   const matches = records.filter(record => expectedIds.has(String(record?.eventId || "")));
   assert(matches.length === expectedRecords.length,
     `${caseId} fixture readback filtered or missing: expected ${expectedRecords.length}, got ${matches.length}`);
   assert(new Set(matches.map(record => String(record?.eventId || ""))).size === matches.length,
     `${caseId} duplicate fixture EventRecord observed`);
+  const digest = value => crypto.createHash("sha256").update(String(value || "")).digest("hex");
+  const assertField = (fieldPath, expectedValue, actualValue) => {
+    assert(String(actualValue || "") === String(expectedValue || ""),
+      `${caseId} fixture EventRecord field mismatch [${fieldPath}]: ` +
+      `expectedSha256=${digest(expectedValue)} actualSha256=${digest(actualValue)}`);
+  };
   for (const expected of expectedRecords) {
     const candidates = matches.filter(record => String(record?.eventId || "") === expected.eventId);
     assert(candidates.length === 1, `${caseId} wrong fixture EventRecord identity: ${expected.eventId}`);
     const record = candidates[0];
-    const sourceId = String(record?.sourceId || record?.streamId || record?.metadata?.sourceId || "");
-    const route = String(record?.metadata?.route || "");
-    assert(sourceId === expected.sourceId,
-      `${caseId} fixture EventRecord source mismatch: ${expected.eventId}`);
-    assert(route === expected.route,
-      `${caseId} fixture EventRecord route mismatch: ${expected.eventId}`);
-    assert(String(record?.status || "") === expected.status,
-      `${caseId} fixture EventRecord status mismatch: ${expected.eventId}`);
+    assertField("eventId", expected.eventId, record?.eventId);
+    assertField("streamId", expected.streamId, record?.streamId);
+    assertField("metadata.sourceId", expected.sourceId, record?.metadata?.sourceId);
+    assertField("metadata.route", expected.route, record?.metadata?.route);
+    assertField("status", expected.status, record?.status);
+    if (expected.evidence === "snapshot-and-clip") {
+      const snapshotPresent = record && Object.hasOwn(record, "snapshotPath") &&
+        typeof record.snapshotPath === "string" && record.snapshotPath.length > 0;
+      const clipPresent = record && Object.hasOwn(record, "clipPath") &&
+        typeof record.clipPath === "string" && record.clipPath.length > 0;
+      assert(snapshotPresent && clipPresent,
+        `${caseId} fixture EventRecord evidence mismatch [snapshotPath/clipPath]: ` +
+        `expected=non-empty actualSha256=${digest(`${record?.snapshotPath || ""}|${record?.clipPath || ""}`)}`);
+    }
   }
   return {
     status: "PASS",
     fixtureId,
     expectedCount: expectedRecords.length,
     matchedCount: matches.length,
+    identityEvidence: expectedRecords.map(expected => ({
+      eventIdSha256: digest(expected.eventId),
+      sourceIdFieldPath: "metadata.sourceId",
+      sourceIdSha256: digest(expected.sourceId),
+      streamIdFieldPath: "streamId",
+      streamIdSha256: digest(expected.streamId),
+      routeFieldPath: "metadata.route",
+      routeSha256: digest(expected.route),
+      statusFieldPath: "status",
+      statusSha256: digest(expected.status),
+      evidence: expected.evidence,
+    })),
   };
 }
 
@@ -5372,6 +5493,7 @@ function dispatchEventRecordFixtureViaProductStorage({
       path.join(rootDir, "src/ingress/event_storage_application_service.cpp"),
       path.join(rootDir, "src/analysis/event_storage.cpp"),
       path.join(rootDir, "src/analysis/snapshot_encoder.cpp"),
+      path.join(rootDir, "src/domain/strict_json.cpp"),
       "-o",
       helperBinary,
     ], { cwd: rootDir, stdio: "pipe" });
@@ -5411,6 +5533,21 @@ function dispatchEventRecordFixtureViaProductStorage({
     summary.streamId === streamId &&
     summary.route === route &&
     summary.status === status &&
+    summary.productDispatch?.observedEventId === eventId &&
+    summary.productDispatch?.observedSourceId === sourceId &&
+    summary.productDispatch?.observedStreamId === streamId &&
+    summary.productDispatch?.observedRoute === route &&
+    summary.productDispatch?.observedStatus === status &&
+    summary.productDispatch?.storedDelta === 1 &&
+    summary.productDispatch?.queueDrained === true &&
+    summary.canonicalQuery?.observedEventId === eventId &&
+    summary.canonicalQuery?.observedSourceId === sourceId &&
+    summary.canonicalQuery?.observedStreamId === streamId &&
+    summary.canonicalQuery?.observedRoute === route &&
+    summary.canonicalQuery?.observedStatus === status &&
+    summary.canonicalQuery?.snapshotPathPresent === true &&
+    summary.canonicalQuery?.clipPathPresent === true &&
+    summary.canonicalQuery?.queryMatched === 1 &&
     summary.storedDelta === 1 &&
     summary.queueDrained === true &&
     summary.queryMatched === 1 &&
@@ -5420,7 +5557,53 @@ function dispatchEventRecordFixtureViaProductStorage({
     .filter(filePath => !beforeArtifacts.has(filePath));
   assert(createdArtifacts.length >= 2,
     `product EventRecord fixture evidence artifacts are missing: ${eventId}`);
-  return { summary, createdArtifacts };
+  const digest = value => crypto.createHash("sha256").update(String(value || "")).digest("hex");
+  const identityEvidence = {
+    schema: "media-server.v390-ui-event-record-fixture-identity-evidence.v1",
+    helperInput: {
+      eventIdSha256: digest(eventId),
+      sourceIdFieldPath: "metadata.sourceId",
+      sourceIdSha256: digest(sourceId),
+      streamIdFieldPath: "streamId",
+      streamIdSha256: digest(streamId),
+      routeFieldPath: "metadata.route",
+      routeSha256: digest(route),
+      statusFieldPath: "status",
+      statusSha256: digest(status),
+    },
+    productDispatch: {
+      eventIdSha256: digest(summary.productDispatch.observedEventId),
+      sourceIdFieldPath: summary.productDispatch.sourceIdFieldPath,
+      sourceIdSha256: digest(summary.productDispatch.observedSourceId),
+      streamIdFieldPath: summary.productDispatch.streamIdFieldPath,
+      streamIdSha256: digest(summary.productDispatch.observedStreamId),
+      routeFieldPath: summary.productDispatch.routeFieldPath,
+      routeSha256: digest(summary.productDispatch.observedRoute),
+      statusFieldPath: summary.productDispatch.statusFieldPath,
+      statusSha256: digest(summary.productDispatch.observedStatus),
+      execution: {
+        storedDelta: summary.productDispatch.storedDelta,
+        queueDrained: summary.productDispatch.queueDrained,
+      },
+    },
+    canonicalQuery: {
+      eventIdSha256: digest(summary.canonicalQuery.observedEventId),
+      sourceIdFieldPath: summary.canonicalQuery.sourceIdFieldPath,
+      sourceIdSha256: digest(summary.canonicalQuery.observedSourceId),
+      streamIdFieldPath: summary.canonicalQuery.streamIdFieldPath,
+      streamIdSha256: digest(summary.canonicalQuery.observedStreamId),
+      routeFieldPath: summary.canonicalQuery.routeFieldPath,
+      routeSha256: digest(summary.canonicalQuery.observedRoute),
+      statusFieldPath: summary.canonicalQuery.statusFieldPath,
+      statusSha256: digest(summary.canonicalQuery.observedStatus),
+      evidence: {
+        snapshotPathPresent: summary.canonicalQuery.snapshotPathPresent,
+        clipPathPresent: summary.canonicalQuery.clipPathPresent,
+      },
+      queryMatched: summary.canonicalQuery.queryMatched,
+    },
+  };
+  return { summary, identityEvidence, createdArtifacts };
 }
 
 function cleanupEventRecordFixtureArtifacts(context) {

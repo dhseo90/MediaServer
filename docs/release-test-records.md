@@ -2951,8 +2951,8 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 항목 | 결과 | 경계 |
 | --- | --- | --- |
 | Historical actual UI | `7a221e44`에서 `292 attempted / 291 PASS / 1 FAIL / 132 not-run`, EVT-007 `contains-fixture-events records.records` FAIL | `evidence=snapshot` filter가 direct JSONL append seed를 제외했습니다. 이 FAIL은 PASS로 변경하지 않았습니다 |
-| Fixture materialization | `DispatchEventRecordsForApplication` -> queue drain -> `QueryEventRecordsForApplication` | EVT-007/020/023/026/048/049에서 eventId/source/route/status/cardinality readback과 cleanup을 fail-closed로 결속합니다 |
-| Semantic | candidate `f69b71ff3b4d6a9c57ab24334b3addea36d6700cd44db412a8e153fbf4cdfa25`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 1회, native generator 0회 |
+| Fixture materialization | `DispatchEventRecordsForApplication` -> queue drain -> `QueryEventRecordsForApplication` | EVT-007/020/023/026/048/049에서 `streamId`와 `metadata.sourceId`를 strict JSON field로 분리하고 eventId/source/route/status/cardinality readback과 cleanup을 fail-closed로 결속합니다 |
+| Semantic | candidate `dc6e092af5c02c0a04cb488afec84ffbd6c9e0b759146f2eb69bd453b2680a7e`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 1회, native generator 0회 |
 | 미실행 경계 | actual UI/diagnostic/Policy v4/30분/120분/release | 이번 static checkpoint는 actual acceptance PASS가 아닙니다 |
 
 ### REVIEW4-65 SAFE-211 completion/current graph correction

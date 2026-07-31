@@ -6902,9 +6902,10 @@ EVT-007 exact event-record fixture materialization(2026-07-31)은 `evidence=snap
 filter가 direct JSONL append seed를 제외하던 actual failure를 보정합니다. Test-owned helper는
 제품 `DispatchEventRecordsForApplication` dispatch, queue drain, `QueryEventRecordsForApplication`
 readback 경계를 사용하며 EVT-007/020/023/026/048/049에서 eventId/source/route/status/cardinality를
-fail-closed로 결속합니다. 성공과 예외 모두 storage bytes를 복원하고 fixture snapshot/clip을
+fail-closed로 결속합니다. top-level `streamId`와 nested `metadata.sourceId`는 별도 strict JSON
+field로 비교해 source identity를 혼용하지 않습니다. 성공과 예외 모두 storage bytes를 복원하고 fixture snapshot/clip을
 삭제합니다. 제품 C++/API/UI는 변경하지 않았습니다. Independent UI-018 approval 뒤 producer 1회로
-candidate `f69b71ff3b4d6a9c57ab24334b3addea36d6700cd44db412a8e153fbf4cdfa25`,
+candidate `dc6e092af5c02c0a04cb488afec84ffbd6c9e0b759146f2eb69bd453b2680a7e`,
 985 carry-forward + 1 independent, audit/approval 986/986을 갱신합니다. 기존 `7a221e44`
 actual `292 attempted / 291 PASS / 1 FAIL / 132 not-run` EVT-007 FAIL은 historical evidence로
 보존하며, 이번 checkpoint에서는 actual UI/diagnostic/Policy v4/30분/120분/release를 재실행하지 않습니다.

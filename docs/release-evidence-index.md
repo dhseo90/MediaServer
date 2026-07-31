@@ -948,8 +948,8 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | evidence | current result | boundary |
 | --- | --- | --- |
 | Historical canonical failure | `7a221e44` actual UI `292 attempted / 291 PASS / 1 FAIL / 132 not-run`, EVT-007 `records.records` snapshot filter FAIL | historical FAIL이며 current PASS로 승격하지 않음 |
-| Product fixture dispatch | `DispatchEventRecordsForApplication` -> queue drain -> `QueryEventRecordsForApplication` | EVT-007/020/023/026/048/049의 eventId/source/route/status/cardinality 및 snapshot/clip cleanup을 fail-closed로 검증 |
-| Semantic ledger | candidate `f69b71ff3b4d6a9c57ab24334b3addea36d6700cd44db412a8e153fbf4cdfa25`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 1회, native generator 0회 |
+| Product fixture dispatch | `DispatchEventRecordsForApplication` -> queue drain -> `QueryEventRecordsForApplication` | EVT-007/020/023/026/048/049의 top-level `streamId`와 nested `metadata.sourceId`, eventId/route/status/cardinality 및 snapshot/clip cleanup을 fail-closed로 검증 |
+| Semantic ledger | candidate `dc6e092af5c02c0a04cb488afec84ffbd6c9e0b759146f2eb69bd453b2680a7e`, 985 carry-forward + UI-018 independent, 986/986 | migration-aware producer 1회, native generator 0회 |
 | Actual boundary | UI/diagnostic/Policy v4/30분/120분/release 재실행 없음 | static checkpoint PASS는 actual acceptance evidence가 아님 |
 
 ## V390-REVIEW4-65 UI-046~424 runtime source audit

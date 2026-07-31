@@ -33,6 +33,8 @@ import {
   assertInactiveOrEqualBeforeCleanup,
   createV390UiCaseRuntime,
   eventRecordFixtureFamilyCaseIds,
+  eventRecordFixtureFamilyExpectations,
+  eventRecordFixtureFamilyExpectedRecords,
   eventExactSeedMaterializerRegistry,
   fixtureViewerScopes,
   formReadbackProfiles,
@@ -348,6 +350,44 @@ check("records.records fixture family uses product dispatch with exact readback 
   assert(JSON.stringify(eventRecordFixtureFamilyCaseIds) ===
     JSON.stringify(["EVT-007", "EVT-020", "EVT-023", "EVT-026", "EVT-048", "EVT-049"]),
   "records.records fixture family audit drift");
+  const eventRecordCases = eventExactOracleCaseIds().filter(caseId => {
+    const seedKind = eventExactOracleFor(caseId)?.seed?.kind;
+    return Number(eventExactSeedMaterializerRegistry[seedKind]?.eventRecords || 0) > 0;
+  });
+  assert(eventRecordCases.length === 43,
+    `EventRecord materializer case-count drift: ${eventRecordCases.length}`);
+  assert(eventRecordCases.filter(caseId => eventRecordFixtureFamilyCaseIds.includes(caseId)).length === 6,
+    "product dispatcher scope is not exactly the six records.records cases");
+  const expectedFamilyTable = {
+    "EVT-007": { route: "/ops/events", count: 2, statuses: ["open", "archived"] },
+    "EVT-020": { route: "/ops/events", count: 1, statuses: ["open"] },
+    "EVT-023": { route: "/ops/dashboard", count: 1, statuses: ["open"] },
+    "EVT-026": { route: "/ops/dashboard", count: 1, statuses: ["open"] },
+    "EVT-048": { route: "/ops/dashboard", count: 1, statuses: ["open"] },
+    "EVT-049": { route: "/ops/events", count: 1, statuses: ["open"] },
+  };
+  for (const [caseId, expectedFamily] of Object.entries(expectedFamilyTable)) {
+    const expectation = eventRecordFixtureFamilyExpectations[caseId];
+    assert(expectation?.route === expectedFamily.route &&
+      expectation.records.length === expectedFamily.count &&
+      JSON.stringify(expectation.records.map(record => record.status)) ===
+        JSON.stringify(expectedFamily.statuses) &&
+      expectation.records.every(record => record.evidence === "snapshot-and-clip"),
+    `${caseId} records.records expected identity table drift`);
+    const expectedRecords = eventRecordFixtureFamilyExpectedRecords({
+      caseId,
+      fixtureId: `${caseId.toLowerCase()}-review4-fixture`,
+      sourceId: `${caseId.toLowerCase()}-source`,
+      streamId: `${caseId.toLowerCase()}-canonical-source`,
+    });
+    assert(expectedRecords.every((record, index) =>
+      record.eventId.startsWith(`${caseId.toLowerCase()}-review4-fixture`) &&
+      record.sourceId === `${caseId.toLowerCase()}-source` &&
+      record.streamId === `${caseId.toLowerCase()}-canonical-source` &&
+      record.route === expectedFamily.route &&
+      record.status === expectedFamily.statuses[index]),
+    `${caseId} case-specific EventRecord dispatcher identity drift`);
+  }
   assert(eventExactSeedMaterializerRegistry["active-and-archived-event-records"].evidence === true,
     "EVT-007 snapshot-filtered records must materialize product evidence");
   for (const caseId of eventRecordFixtureFamilyCaseIds) {
@@ -364,24 +404,47 @@ check("records.records fixture family uses product dispatch with exact readback 
     "cleanupEventRecordFixtureArtifacts",
     "processStateDisposed",
   ]) assert(runtimeSource.includes(snippet), `product EventRecord fixture lifecycle missing: ${snippet}`);
+  const materializerStart = runtimeSource.indexOf("async function materializeEventExactSeed(");
+  const materializerEnd = runtimeSource.indexOf("\n  async function ", materializerStart + 1);
+  const materializerSource = runtimeSource.slice(materializerStart, materializerEnd);
+  const dispatchBranchStart = materializerSource.indexOf("if (familyRecord) {");
+  const directSeedBranchStart = materializerSource.indexOf("} else {", dispatchBranchStart);
+  const dispatchBranch = materializerSource.slice(dispatchBranchStart, directSeedBranchStart);
+  const directSeedBranch = materializerSource.slice(directSeedBranchStart,
+    materializerSource.indexOf("\n      }", directSeedBranchStart) + 8);
+  assert(dispatchBranchStart >= 0 &&
+    dispatchBranch.includes("dispatchEventRecordFixtureViaProductStorage({") &&
+    !dispatchBranch.includes("seedEventRecordFixture(eventPath, {") &&
+    directSeedBranch.includes("seedEventRecordFixture(eventPath, {") &&
+    !directSeedBranch.includes("dispatchEventRecordFixtureViaProductStorage({"),
+  "EventRecord product dispatcher is not limited to the six records.records cases");
   const helperSource = fs.readFileSync(
     path.join(rootDir, "scripts/internal/v390_ui_event_record_fixture_dispatch.cpp"), "utf8");
   assert(helperSource.includes("DispatchEventRecordsForApplication(request)") &&
     helperSource.includes("QueryEventRecordsForApplication(query, &result, &error)") &&
-    helperSource.includes("StopEventStorage()"),
+    helperSource.includes("StopEventStorage()") &&
+    helperSource.includes("ParseStrictJsonObjectDocument(record_json") &&
+    helperSource.includes("StrictJsonObjectField(record, \"metadata\")") &&
+    helperSource.includes("StrictJsonStringField(metadata, \"sourceId\")") &&
+    helperSource.includes("StrictJsonStringField(record, \"streamId\")") &&
+    helperSource.includes("StrictJsonHasTopLevelField(record, \"snapshotPath\")") &&
+    helperSource.includes("StrictJsonHasTopLevelField(record, \"clipPath\")") &&
+    !helperSource.includes("ContainsJsonString"),
   "test-owned helper does not use the product EventRecord dispatch/query lifecycle");
 
   const expected = [
-    { eventId: "evt-fixture", sourceId: "9001", route: "/ops/events", status: "open" },
-    { eventId: "evt-fixture-state-1", sourceId: "9001", route: "/ops/events", status: "archived" },
+    { eventId: "evt-fixture", sourceId: "9001", streamId: "source-9001", route: "/ops/events", status: "open", evidence: "snapshot-and-clip" },
+    { eventId: "evt-fixture-state-1", sourceId: "9001", streamId: "source-9001", route: "/ops/events", status: "archived", evidence: "snapshot-and-clip" },
   ];
   const validResponse = {
     records: {
       records: expected.map(record => ({
         eventId: record.eventId,
-        streamId: record.sourceId,
+        streamId: record.streamId,
         status: record.status,
         metadata: { sourceId: record.sourceId, route: record.route },
+        snapshotPath: `/snapshot/${record.eventId}.jpg`,
+        clipPath: `/clip/${record.eventId}.mp4`,
       })),
     },
   };
@@ -412,11 +475,94 @@ check("records.records fixture family uses product dispatch with exact readback 
   assert(rejected(value => { value.records.records[0].eventId = "wrong"; return value; }),
     "wrong fixture identity produced false PASS");
   assert(rejected(value => { value.records.records[0].streamId = "wrong"; return value; }),
-    "wrong fixture source produced false PASS");
+    "wrong fixture canonical stream source produced false PASS");
+  assert(rejected(value => { value.records.records[0].metadata.sourceId = "wrong"; return value; }),
+    "wrong fixture registry source produced false PASS");
   assert(rejected(value => { value.records.records[0].status = "wrong"; return value; }),
     "wrong fixture status produced false PASS");
   assert(rejected(value => { value.records.records[0].metadata.route = "/wrong"; return value; }),
     "wrong fixture route produced false PASS");
+  assert(rejected(value => { value.records.records[0].snapshotPath = ""; return value; }),
+    "empty fixture snapshot evidence produced false PASS");
+  assert(rejected(value => { delete value.records.records[0].snapshotPath; return value; }),
+    "missing fixture snapshot field produced false PASS");
+  assert(rejected(value => { value.records.records[0].clipPath = ""; return value; }),
+    "empty fixture clip evidence produced false PASS");
+  assert(rejected(value => { delete value.records.records[0].clipPath; return value; }),
+    "missing fixture clip field produced false PASS");
+  let mismatch = "";
+  try {
+    validateEventRecordFixtureFamilyReadback({
+      caseId: "EVT-007",
+      fixtureId: "evt-fixture",
+      expectedRecords: expected,
+      response: (() => {
+        const value = structuredClone(validResponse);
+        value.records.records[0].metadata.sourceId = "wrong";
+        return value;
+      })(),
+    });
+  } catch (error) {
+    mismatch = String(error?.message || error);
+  }
+  assert(mismatch.includes("[metadata.sourceId]") &&
+    mismatch.includes("expectedSha256=") &&
+    mismatch.includes("actualSha256=") &&
+    !mismatch.includes("wrong"),
+  "source mismatch diagnostic is not field-specific and raw-safe");
+
+  const helperRoot = fs.mkdtempSync(path.join(os.tmpdir(), "v390-event-record-helper-"));
+  temporaryDirs.push(helperRoot);
+  const helperBinary = path.join(helperRoot, "fixture-dispatch");
+  const compile = spawnSync(process.env.CXX || "c++", [
+    "-std=c++17",
+    "-pthread",
+    "-DMEDIA_SERVER_USE_GSTREAMER=0",
+    `-I${path.join(rootDir, "include")}`,
+    path.join(rootDir, "scripts/internal/v390_ui_event_record_fixture_dispatch.cpp"),
+    path.join(rootDir, "src/ingress/event_storage_application_service.cpp"),
+    path.join(rootDir, "src/analysis/event_storage.cpp"),
+    path.join(rootDir, "src/analysis/snapshot_encoder.cpp"),
+    path.join(rootDir, "src/domain/strict_json.cpp"),
+    "-o",
+    helperBinary,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(compile.status === 0,
+    `EventRecord helper compile failed:\n${compile.stdout || ""}\n${compile.stderr || ""}`);
+  const storagePath = path.join(helperRoot, "events.jsonl");
+  const snapshotsPath = path.join(helperRoot, "snapshots");
+  const clipsPath = path.join(helperRoot, "clips");
+  fs.mkdirSync(snapshotsPath, { recursive: true });
+  fs.mkdirSync(clipsPath, { recursive: true });
+  const helperRun = spawnSync(helperBinary, [
+    storagePath,
+    snapshotsPath,
+    clipsPath,
+    "evt-fixture",
+    "9001",
+    "source-9001",
+    "open",
+    "presence",
+    "/ops/events",
+    "review4-exact",
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(helperRun.status === 0,
+    `EventRecord helper smoke failed:\n${helperRun.stdout || ""}\n${helperRun.stderr || ""}`);
+  const helperEvidence = JSON.parse(String(helperRun.stdout || "").trim());
+  const digest = value => crypto.createHash("sha256").update(String(value || "")).digest("hex");
+  assert(helperEvidence.productDispatch.observedSourceId === "9001" &&
+    helperEvidence.productDispatch.observedStreamId === "source-9001" &&
+    helperEvidence.productDispatch.observedRoute === "/ops/events" &&
+    helperEvidence.productDispatch.observedStatus === "open" &&
+    helperEvidence.canonicalQuery.observedSourceId === "9001" &&
+    helperEvidence.canonicalQuery.observedStreamId === "source-9001" &&
+    helperEvidence.canonicalQuery.observedRoute === "/ops/events" &&
+    helperEvidence.canonicalQuery.observedStatus === "open" &&
+    helperEvidence.canonicalQuery.snapshotPathPresent === true &&
+    helperEvidence.canonicalQuery.clipPathPresent === true &&
+    digest(helperEvidence.productDispatch.observedSourceId) === digest("9001") &&
+    digest(helperEvidence.canonicalQuery.observedStreamId) === digest("source-9001"),
+  "EventRecord helper actual dispatch/query evidence is not independently bound");
   assert(runtimeSource.includes("product EventRecord fixture artifact cleanup residue remains"),
     "fixture cleanup residue is not fail-closed");
 });
