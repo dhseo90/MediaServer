@@ -4095,9 +4095,11 @@ export function createV390UiCaseRuntime({
     );
     if (direct.status === 404) return null;
     const payload = direct.json;
-    return readback.mode === "whole-response"
-      ? payload
-      : unwrapRecord(payload, readback.fixtureId, readback.matchFields);
+    if (readback.mode === "whole-response") return payload;
+    if (readback.mode === "event-review-joined-record") {
+      return selectEventReviewJoinedReview(payload, readback.fixtureId);
+    }
+    return unwrapRecord(payload, readback.fixtureId, readback.matchFields);
   }
 
   async function freshAuthoritativeReadback(endpoint, item, context) {
@@ -5704,6 +5706,34 @@ function recordId(value) {
     value?.channelId || value?.inviteId || value?.requestId || "");
 }
 
+export function selectEventReviewJoinedReview(payload, fixtureId) {
+  assert(typeof fixtureId === "string" && fixtureId.length > 0,
+    "event review joined readback fixtureId is required");
+  assert(payload && typeof payload === "object" && !Array.isArray(payload),
+    "event review joined readback envelope must be an object");
+  assert(payload.status === "ops-event-review-inbox" &&
+    payload.schema === "media-server.ops.event-review-inbox.v1",
+  "event review joined readback envelope contract mismatch");
+  assert(Array.isArray(payload.records),
+    "event review joined readback records are missing");
+
+  const joined = [];
+  for (const row of payload.records) {
+    const eventId = String(row?.event?.eventId || "");
+    const reviewEventId = String(row?.review?.eventId || "");
+    if (eventId !== fixtureId && reviewEventId !== fixtureId) continue;
+    assert(eventId === fixtureId && reviewEventId === fixtureId,
+      "event review joined readback event/review identity mismatch");
+    joined.push(row);
+  }
+  assert(joined.length === 1,
+    `event review joined readback requires exactly one fixture row: ${joined.length}`);
+  assert(joined[0]?.review && typeof joined[0].review === "object" &&
+    !Array.isArray(joined[0].review),
+  "event review joined readback review record is missing");
+  return joined[0].review;
+}
+
 export function normalizeInviteSeedResponse(value, { username = "", viewId = "" } = {}) {
   assert(value && typeof value === "object", "runtime invite seed response must be an object");
   const invite = value.invite && typeof value.invite === "object" ? value.invite : value;
@@ -6139,12 +6169,20 @@ export function resolveAuthoritativeReadback(endpoint, fixtureId) {
       return { endpoint: collection, fixtureId, mode: "fixture-record", matchFields: ["username", "inviteId", "requestId"], role: "admin" };
     }
   }
+  if (value.startsWith("/ops/api/events/reviews/")) {
+    return {
+      endpoint: `/ops/api/events/reviews?eventId=${encodeURIComponent(fixtureId)}&limit=25`,
+      fixtureId,
+      mode: "event-review-joined-record",
+      matchFields: [],
+      role: "operator",
+    };
+  }
   const collectionMappings = [
     ["/ops/api/vlm/profiles/", "/ops/api/vlm/profiles"],
     ["/lab/analysis/va-rules/", "/lab/analysis/va-rules"],
     ["/lab/analysis/rules/", "/lab/analysis/rules"],
     ["/lab/analysis/profiles/", "/lab/analysis/profiles"],
-    ["/ops/api/events/reviews/", "/ops/api/events/reviews"],
   ];
   for (const [prefix, collection] of collectionMappings) {
     if (value.startsWith(prefix)) {

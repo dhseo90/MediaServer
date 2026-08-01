@@ -39,10 +39,12 @@ import {
   eventExactSeedMaterializerRegistry,
   fixtureViewerScopes,
   formReadbackProfiles,
+  resolveAuthoritativeReadback,
   runtimeFixturePlanFor,
   runAuthoritativeReadbackWithSnapshotRestore,
   seedExactAccessRequestFixture,
   seedEventRecordFixture,
+  selectEventReviewJoinedReview,
   validateEventReviewCollectionAbsence,
   validateEventReviewSeedWriteReceipt,
   validateEventRecordFixtureFamilyReadback,
@@ -260,6 +262,77 @@ check("event review seed receipts bind PUT response, storage readback, and Event
       !JSON.stringify(noteDigestEvidence).includes(requestedReview.note),
     `review seed negative did not preserve safe digest-only evidence for ${missingPath}`);
   }
+});
+
+check("event review authoritative readback selects one exact nested event/review identity", () => {
+  const fixtureId = "evt-021-review4-fixture";
+  const review = {
+    schema: "media-server.ops.event-review-state.v1",
+    present: true,
+    eventId: fixtureId,
+    reviewStatus: "reviewing",
+    classification: "unclassified",
+  };
+  const envelope = records => ({
+    status: "ops-event-review-inbox",
+    schema: "media-server.ops.event-review-inbox.v1",
+    recordCount: records.length,
+    records,
+  });
+  const validRow = { event: { eventId: fixtureId }, review };
+  const unrelatedTopLevelRow = {
+    eventId: fixtureId,
+    event: { eventId: "unrelated-event" },
+    review: { ...review, eventId: "unrelated-event" },
+  };
+  assert(selectEventReviewJoinedReview(
+    envelope([unrelatedTopLevelRow, validRow]),
+    fixtureId,
+  ) === review, "event review readback did not return the exact joined review record");
+
+  const readback = resolveAuthoritativeReadback(
+    `/ops/api/events/reviews/${fixtureId}`,
+    fixtureId,
+  );
+  assert(readback.mode === "event-review-joined-record" &&
+    readback.endpoint === `/ops/api/events/reviews?eventId=${encodeURIComponent(fixtureId)}&limit=25` &&
+    readback.role === "operator",
+  "event review item endpoint did not resolve to the typed authoritative collection readback");
+
+  const negatives = [
+    ["missing fixture row", envelope([]), "requires exactly one fixture row: 0"],
+    ["duplicate fixture row", envelope([validRow, structuredClone(validRow)]),
+      "requires exactly one fixture row: 2"],
+    ["wrong nested eventId", envelope([{
+      event: { eventId: "wrong-event" },
+      review: { ...review, eventId: "wrong-event" },
+    }]), "requires exactly one fixture row: 0"],
+    ["nested eventId mismatch", envelope([{
+      event: { eventId: fixtureId },
+      review: { ...review, eventId: "wrong-review" },
+    }]), "event/review identity mismatch"],
+    ["nested review.eventId mismatch", envelope([{
+      event: { eventId: "wrong-event" },
+      review,
+    }]), "event/review identity mismatch"],
+    ["unrelated top-level eventId", envelope([unrelatedTopLevelRow]),
+      "requires exactly one fixture row: 0"],
+  ];
+  for (const [label, payload, expectedMessage] of negatives) {
+    let message = "";
+    try {
+      selectEventReviewJoinedReview(payload, fixtureId);
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    assert(message.includes(expectedMessage),
+      `${label} was not rejected by the typed event review readback: ${message || "passed"}`);
+  }
+
+  const genericBody = extractNamedFunctionBody(runtimeSource, "unwrapRecord");
+  assert(!genericBody.includes("event?.eventId") &&
+    !genericBody.includes("review?.eventId"),
+  "generic unwrapRecord was widened for event-review joined identities");
 });
 
 check("event review note evidence survives the production failure rewrap and parent aggregation", () => {
@@ -3219,6 +3292,61 @@ function extractRunnerKindAllowlist(name) {
   const match = runnerSource.match(new RegExp(`const ${escaped} = Object\\.freeze\\(\\[([\\s\\S]*?)\\]\\);`));
   assert(match, `runner allowlist missing: ${name}`);
   return [...match[1].matchAll(/"([^"]+)"/g)].map(item => item[1]).sort();
+}
+
+function extractNamedFunctionBody(source, name) {
+  const functionStart = source.indexOf(`function ${name}(`);
+  assert(functionStart >= 0, `function declaration missing: ${name}`);
+  const bodyStart = source.indexOf("{", functionStart);
+  assert(bodyStart >= 0, `function body start missing: ${name}`);
+
+  let depth = 0;
+  let quote = "";
+  let lineComment = false;
+  let blockComment = false;
+  for (let index = bodyStart; index < source.length; index += 1) {
+    const character = source[index];
+    const next = source[index + 1] || "";
+    if (lineComment) {
+      if (character === "\n") lineComment = false;
+      continue;
+    }
+    if (blockComment) {
+      if (character === "*" && next === "/") {
+        blockComment = false;
+        index += 1;
+      }
+      continue;
+    }
+    if (quote) {
+      if (character === "\\") {
+        index += 1;
+      } else if (character === quote) {
+        quote = "";
+      }
+      continue;
+    }
+    if (character === "/" && next === "/") {
+      lineComment = true;
+      index += 1;
+      continue;
+    }
+    if (character === "/" && next === "*") {
+      blockComment = true;
+      index += 1;
+      continue;
+    }
+    if (character === "'" || character === '"' || character === "`") {
+      quote = character;
+      continue;
+    }
+    if (character === "{") depth += 1;
+    if (character === "}") {
+      depth -= 1;
+      if (depth === 0) return source.slice(bodyStart + 1, index);
+    }
+  }
+  throw new Error(`function body end missing: ${name}`);
 }
 
 function sha256Text(value) {

@@ -6994,6 +6994,27 @@ row 또는 card, stale selector와 wrong route는 계속 fail-closed입니다. `
 release acceptance를 실행하지 않고 historical canonical `296 attempted / 295 PASS / 1 FAIL /
 128 not-run`과 focused EVT-019 DOM FAIL을 PASS로 바꾸지 않습니다.
 
+EVT-021 typed event-review readback checkpoint(2026-08-01)는
+`/ops/api/events/reviews` collection의 joined row를 generic unwrap으로 처리해
+`{ event: { eventId }, review: { eventId } }` identity를 찾지 못하던 fixture readback
+경계를 닫습니다. Typed extractor는 nested 두 eventId가 fixtureId와 일치하는 정확히 한 행만
+허용하고 missing/duplicate/mismatch/unrelated top-level identity를 fail-closed로 거부하며,
+generic `unwrapRecord()`과 제품 C++·API schema·UI는 변경하지 않습니다.
+
+Fresh semantic candidate `3eb21979d5b56c6960b1fe1e5a76d6c6b175451255256c3c09844dc4c5212de9`는
+986행, feature/pass/status 변경 0이고 UI-018 sourceFlow만
+`e41c2c2c726a22eb2759790fa8c189bee1bd58d89c2b5b34c8f9fd19cdcc0c63`에서
+`79120e4eb63da545cf16564d516aace31b795e4fc0b32b3c142a0dc8be2cbe17`로
+변경됐습니다. Immutable package/decision SHA는
+`6739539284853f2ec554849b88614a583cf615444a3a4eca3c2dfc48a9b21f83`/
+`927cf89631cad7e65b3611418b5f5e83d42ef9de93a23e95889a18d070c95be1`이고,
+별도 reviewer가 UI-018의 404 negative 의미와 verifier trust binding을 승인했습니다.
+Migration-aware producer는 정확히 1회 four-fixture atomic replacement를 완료했고 native
+generator는 0회입니다. Semantic 51/51·approval/feature evidence 986/986, focused
+native 47/47·event 26/26·evaluator 19/19·runtime 42/42·completion 36/36·adapter 23/23·
+diagnostic 19/19 및 inventory/evidence/script/docs/syntax/diff가 PASS했습니다. Actual EVT-021,
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 clean checkpoint 전 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

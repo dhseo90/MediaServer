@@ -3067,6 +3067,15 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | UI-001 coverage requested/observed 후속 | `verify_v390_ui_automation_coverage_contract.mjs` cross-prefix exact route oracle | 최초 검증은 UI-001 coverage observed `/login`을 canonical semantic route `/`와 비교해 11/12 FAIL. UI-001은 canonical route/control `/`와 implementation/coverage observed `/login`을 각각 검증하도록 분리해 12/12 PASS | Client-events 8건의 API requested/product observed 분리도 그대로 유지 |
 | Root projection source-flow 독립 승인 | candidate `743da5ac892a45ea47e1bdd602c1a839c7c5bf7ee459fbb23a8a9549c24faa87`, reviewer scope `issue65-root-route-digest-743da5ac-independent-review` | 독립 986행 승인 986/거절 0/불확실 0. 이전 후보 대비 `UI-018` 한 행만 digest `492393b75cb629fd3c4dfe9706a7442c564964444dfd552edf2c30d4742e1bdb`로 갱신됐고 404 oracle·required outcome·5-edge 보존. UI-001 feature/source-flow 불변과 canonical `/`·observed `/login` assertion 확인. Approval ledger write/readback·manifest apply 986/986 PASS | 정적 source-flow 승인으로 actual exact 424/Policy v4/120분/final integrity PASS를 대체하지 않음 |
 
+### REVIEW4-65 EVT-021 typed event-review authoritative readback
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| 원인/보정 | Item readback이 collection으로 변환된 뒤 joined row의 nested `event.eventId`/`review.eventId`를 generic unwrap이 식별하지 못했습니다. `event-review-joined-record` typed mode는 두 identity가 fixtureId와 일치하는 정확히 한 행만 허용하고 missing/duplicate/mismatch/unrelated top-level ID를 거부합니다 | Generic `unwrapRecord()`, 제품 C++·API schema·UI 변경 0 |
+| Semantic transaction | Candidate `3eb21979d5b56c6960b1fe1e5a76d6c6b175451255256c3c09844dc4c5212de9`, 985 carry-forward+UI-018 independent입니다. SourceFlow는 `e41c2c2c...cc0c63`→`79120e4e...cbe17`, package/decision SHA는 `6739539284853f2ec554849b88614a583cf615444a3a4eca3c2dfc48a9b21f83`/`927cf89631cad7e65b3611418b5f5e83d42ef9de93a23e95889a18d070c95be1`입니다 | Feature/pass/status 변경 0, producer 1회 atomic replacement, generator 0회 |
+| Static gate | Semantic audit 51/51·approval 986/986·negative 11/11·feature evidence 986/986/negative 15/15, native 47/47, event 26/26, evaluator 19/19, runtime 42/42, completion 36/36, adapter 23/23, diagnostic 19/19, event-review inbox/native 424 및 inventory/evidence/script/docs/syntax/JSON/diff PASS | Static contract는 actual browser evidence가 아닙니다 |
+| Actual 경계 | Clean checkpoint commit/push 뒤 `./server.sh run-v390-ui-native-diagnostic-sweep --case-id EVT-021` 정확히 1회 예정입니다 | 현재 actual EVT-021/UI, Policy v4, 30분, 120분, release는 미실행 |
+
 ## 임시 산출물 정리 기록
 
 | 버전/run | 경로 | 종류 | 조치 | 삭제/보존 결과 |
