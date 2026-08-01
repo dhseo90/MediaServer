@@ -44,6 +44,7 @@ import {
   runAuthoritativeReadbackWithSnapshotRestore,
   seedExactAccessRequestFixture,
   seedEventRecordFixture,
+  selectEventReviewJoinedCleanupRecord,
   selectEventReviewJoinedReview,
   validateEventReviewCollectionAbsence,
   validateEventReviewSeedWriteReceipt,
@@ -327,6 +328,64 @@ check("event review authoritative readback selects one exact nested event/review
     }
     assert(message.includes(expectedMessage),
       `${label} was not rejected by the typed event review readback: ${message || "passed"}`);
+  }
+
+  assert(selectEventReviewJoinedCleanupRecord(envelope([]), fixtureId, {
+    originalRecord: null,
+  }) === null, "event review cleanup did not preserve a proven absent original state");
+  assert(selectEventReviewJoinedCleanupRecord(envelope([validRow]), fixtureId, {
+    originalRecord: review,
+  }) === review, "event review cleanup did not preserve an exact original review state");
+  const cleanupNegatives = [
+    ["unexpected fixture after absent original", envelope([validRow]), null,
+      "expected the original absent state"],
+    ["duplicate cleanup fixture", envelope([validRow, structuredClone(validRow)]), review,
+      "requires exactly one original fixture row: 2"],
+    ["cleanup event identity mismatch", envelope([{
+      event: { eventId: fixtureId },
+      review: { ...review, eventId: "wrong-review" },
+    }]), null, "event/review identity mismatch"],
+    ["cleanup review identity mismatch", envelope([{
+      event: { eventId: "wrong-event" },
+      review,
+    }]), null, "event/review identity mismatch"],
+    ["cleanup partial identity", envelope([{
+      event: { eventId: fixtureId },
+      review: {},
+    }]), null, "event/review identity mismatch"],
+    ["cleanup original byte mismatch", envelope([validRow]), {
+      ...review,
+      reviewStatus: "confirmed",
+    }, "differs from the captured original state"],
+  ];
+  for (const [label, payload, originalRecord, expectedMessage] of cleanupNegatives) {
+    let message = "";
+    try {
+      selectEventReviewJoinedCleanupRecord(payload, fixtureId, { originalRecord });
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    assert(message.includes(expectedMessage),
+      `${label} was not rejected by cleanup typed readback: ${message || "passed"}`);
+  }
+
+  for (const snippet of [
+    "mutationBaselineRecord",
+    "cleanupOriginalRecord",
+    "cleanupOriginalRecordCaptured",
+    "captureEventReviewCleanupOriginal",
+    'eventReviewMode: "cleanup-original"',
+    'eventReviewMode = "strict-mutation"',
+  ]) {
+    assert(runtimeSource.includes(snippet),
+      `event review mutation/cleanup state separation missing: ${snippet}`);
+  }
+  assert(runtimeSource.indexOf("await captureEventReviewCleanupOriginal(item, context)") <
+    runtimeSource.indexOf("await materializeEventExactSeed(item, context"),
+  "event review cleanup original state is not captured before the mutation seed");
+  for (const caseId of ["EVT-021", "EVT-037", "EVT-038", "EVT-061", "EVT-068"]) {
+    assert(runtimeSource.includes(`"${caseId}"`),
+      `${caseId} event-review mutation sibling lifecycle is not audited`);
   }
 
   const genericBody = extractNamedFunctionBody(runtimeSource, "unwrapRecord");
@@ -2246,7 +2305,8 @@ check("self-contained runtime closes invite, auth readback, preference, and visu
     "/ops/api/events/reviews?eventId=",
     "matchingRuleSuggestionPresent",
     "resolveAuthoritativeReadback",
-    "cleanupExpectedRecord",
+    "cleanupOriginalRecord",
+    "mutationBaselineRecord",
     "freshAuthoritativeReadback",
     "verifyMutationReadback",
   ]) {
@@ -2609,7 +2669,8 @@ check("authoritative cleanup readback restores state after success and failure",
     assertAuthFixtureAbsentFromUsersFile(stateFile, fixtureUsername);
     assert(runtimeSource.includes("fresh authoritative cleanup readback expected an absent fixture") &&
       runtimeSource.includes("assertAuthFixtureAbsentFromUsersFile") &&
-      runtimeSource.includes("context.cleanupExpectedRecord = null"),
+      runtimeSource.includes("context.cleanupOriginalRecord = null") &&
+      runtimeSource.includes("context.cleanupOriginalRecordCaptured = true"),
     "AUTH-020 fresh absent cleanup readback is not fail closed");
   } finally {
     fs.rmSync(temporaryRoot, { recursive: true, force: true });

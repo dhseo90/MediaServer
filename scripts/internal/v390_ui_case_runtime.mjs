@@ -693,8 +693,9 @@ export function createV390UiCaseRuntime({
       fixtureId: reviewedFixtureId(item),
       descriptorRequired: caseNeedsRuntimeOwner(item),
       snapshots: snapshotStateFiles(descriptor?.stateFiles || []),
-      beforeRecord: null,
-      cleanupExpectedRecord: null,
+      mutationBaselineRecord: null,
+      cleanupOriginalRecord: null,
+      cleanupOriginalRecordCaptured: false,
       beforeRecordEndpoint: "",
       primaryRoleStatePath: "",
       actionRoleStatePaths: {},
@@ -722,6 +723,7 @@ export function createV390UiCaseRuntime({
         assert(descriptor, `${item.caseId} requires a self-contained runtime descriptor`);
         await prepareAuthFixture(item, context);
         await prepareEndpointActionFixture(item, context);
+        await captureEventReviewCleanupOriginal(item, context);
         if (item.caseId.startsWith("EVT-")) {
           await materializeEventExactSeed(item, context, exactRuntimeOracleFor(item.caseId));
         }
@@ -1744,7 +1746,7 @@ export function createV390UiCaseRuntime({
       if (cleanup.afterReadback.expectation === "absent") {
         assert(observed === null, `${item.caseId} cleanup fixture remains after delete`);
       } else {
-        assert(stableJson(observed) === stableJson(caseContext.beforeRecord),
+        assert(stableJson(observed) === stableJson(caseContext.cleanupOriginalRecord),
           `${item.caseId} cleanup readback differs from before snapshot`);
       }
     } else {
@@ -1754,6 +1756,7 @@ export function createV390UiCaseRuntime({
           caseContext.beforeRecordEndpoint,
           item,
           caseContext,
+          { eventReviewMode: "cleanup-original" },
         );
         if (cleanup.afterReadback.expectation === "absent") {
           assert(observed === null,
@@ -1768,10 +1771,10 @@ export function createV390UiCaseRuntime({
           assertInactiveOrEqualBeforeCleanup({
             caseId: item.caseId,
             observed,
-            expectedRecord: caseContext.cleanupExpectedRecord,
+            expectedRecord: caseContext.cleanupOriginalRecord,
           });
         } else {
-          assert(stableJson(observed) === stableJson(caseContext.cleanupExpectedRecord),
+          assert(stableJson(observed) === stableJson(caseContext.cleanupOriginalRecord),
             `${item.caseId} fresh authoritative cleanup readback differs from the original state`);
         }
       }
@@ -3724,12 +3727,15 @@ export function createV390UiCaseRuntime({
     const operation = fixtureInput?.actualValue?.operation || "write";
     const expanded = expandFixturePath(endpoint.path, context.fixtureId);
     context.beforeRecordEndpoint = expanded;
-    context.beforeRecord = await readEndpointRecord(expanded, item, context);
-    context.cleanupExpectedRecord = context.beforeRecord;
+    context.mutationBaselineRecord = await readEndpointRecord(expanded, item, context);
+    if (!context.cleanupOriginalRecordCaptured) {
+      context.cleanupOriginalRecord = context.mutationBaselineRecord;
+      context.cleanupOriginalRecordCaptured = true;
+    }
     if (operation === "create") {
-      assert(context.beforeRecord === null,
+      assert(context.mutationBaselineRecord === null,
         `${item.caseId} reviewed create fixture collides with existing product state`);
-      context.beforeRecord = null;
+      context.mutationBaselineRecord = null;
       return;
     }
     if (item.caseId === "AUTH-037" || item.caseId === "AUTH-038") {
@@ -3741,10 +3747,10 @@ export function createV390UiCaseRuntime({
         reason: "v390 exact runtime fixture",
         viewId: descriptor.auth?.defaultViewId || "9001",
       });
-      context.beforeRecord = await readEndpointRecord(expanded, item, context);
+      context.mutationBaselineRecord = await readEndpointRecord(expanded, item, context);
       return;
     }
-    if (item.caseId === "AUTH-019" && context.beforeRecord === null) {
+    if (item.caseId === "AUTH-019" && context.mutationBaselineRecord === null) {
       const password = resolveSecretRef(`${item.caseId}:fixture-password`, {
         item,
         field: "password",
@@ -3756,20 +3762,55 @@ export function createV390UiCaseRuntime({
         password,
         descriptor.auth?.defaultViewId || "9001",
       );
-      context.beforeRecord = await readEndpointRecord(expanded, item, context);
-      assert(context.beforeRecord !== null, `${item.caseId} auth user fixture seed readback missing`);
+      context.mutationBaselineRecord = await readEndpointRecord(expanded, item, context);
+      assert(context.mutationBaselineRecord !== null, `${item.caseId} auth user fixture seed readback missing`);
       return;
     }
-    if (context.beforeRecord === null && ["PUT", "DELETE"].includes(endpoint.method)) {
+    if (context.mutationBaselineRecord === null && ["PUT", "DELETE"].includes(endpoint.method)) {
       if (resolveAuthoritativeReadback(expanded, context.fixtureId).mode === "source-view-pair") {
         await seedSourceViewPair(item, context, fixtureInput?.actualValue || {});
       } else {
         const payload = fixturePayload(item, context.fixtureId, fixtureInput?.actualValue || {});
         await requestEndpoint("PUT", expanded, payload, item, context, [200, 201]);
       }
-      context.beforeRecord = await readEndpointRecord(expanded, item, context);
-      assert(context.beforeRecord !== null, `${item.caseId} authoritative fixture seed readback missing`);
+      context.mutationBaselineRecord = await readEndpointRecord(expanded, item, context);
+      assert(context.mutationBaselineRecord !== null, `${item.caseId} authoritative fixture seed readback missing`);
     }
+  }
+
+  async function captureEventReviewCleanupOriginal(item, context) {
+    const endpoint = item.workflow?.productAction?.endpoint;
+    if (item.workflow?.workflowClass !== "persisted-mutation" ||
+        !endpoint?.path?.startsWith("/ops/api/events/reviews/")) return;
+    assert(!context.cleanupOriginalRecordCaptured,
+      `${item.caseId} cleanup original record was captured more than once`);
+    const expanded = expandFixturePath(endpoint.path, context.fixtureId);
+    const readback = resolveAuthoritativeReadback(expanded, context.fixtureId);
+    assert(readback.mode === "event-review-joined-record",
+      `${item.caseId} event-review cleanup original readback mode drift`);
+    const response = await requestEndpoint(
+      "GET",
+      readback.endpoint,
+      null,
+      item,
+      context,
+      [200],
+      { freshRole: true, roleOverride: readback.role },
+    );
+    const records = Array.isArray(response.json?.records) ? response.json.records : null;
+    assert(records !== null,
+      `${item.caseId} cleanup original review collection records are missing`);
+    context.cleanupOriginalRecord = records.length === 0
+      ? (validateEventReviewCollectionAbsence({
+          caseId: item.caseId,
+          eventId: context.fixtureId,
+          phase: "before-seed",
+          status: response.status,
+          envelope: response.json,
+        }), null)
+      : selectEventReviewJoinedReview(response.json, context.fixtureId);
+    context.cleanupOriginalRecordCaptured = true;
+    context.beforeRecordEndpoint = expanded;
   }
 
   async function prepareEndpointActionFixture(item, context) {
@@ -3812,9 +3853,10 @@ export function createV390UiCaseRuntime({
       context.endpointActionFixture.existingSessionCookie = cookie;
       context.endpointActionFixture.loginPasswordRef = passwordRef;
       context.beforeRecordEndpoint = `/ops/api/users/${encodeURIComponent(context.fixtureId)}/disable`;
-      context.beforeRecord = await readEndpointRecord(context.beforeRecordEndpoint, item, context);
-      context.cleanupExpectedRecord = null;
-      assert(context.beforeRecord?.enabled === true,
+      context.mutationBaselineRecord = await readEndpointRecord(context.beforeRecordEndpoint, item, context);
+      context.cleanupOriginalRecord = null;
+      context.cleanupOriginalRecordCaptured = true;
+      assert(context.mutationBaselineRecord?.enabled === true,
         `${item.caseId} acceptance-owned active user seed is missing`);
       return;
     }
@@ -3823,8 +3865,9 @@ export function createV390UiCaseRuntime({
         String(source?.sourceId || "") === context.fixtureId);
       assert(!collision, `${item.caseId} acceptance-owned source fixture collides with existing state`);
       context.beforeRecordEndpoint = `/ops/api/sources/${encodeURIComponent(context.fixtureId)}`;
-      context.beforeRecord = null;
-      context.cleanupExpectedRecord = null;
+      context.mutationBaselineRecord = null;
+      context.cleanupOriginalRecord = null;
+      context.cleanupOriginalRecordCaptured = true;
       return;
     }
     if (["SRC-010", "SRC-019"].includes(item.caseId)) {
@@ -3849,9 +3892,10 @@ export function createV390UiCaseRuntime({
       context.beforeRecordEndpoint = item.caseId === "SRC-010"
         ? `/ops/api/sources/${encodeURIComponent(context.fixtureId)}`
         : `/ops/api/views/${encodeURIComponent(context.fixtureId)}`;
-      context.beforeRecord = await readEndpointRecord(context.beforeRecordEndpoint, item, context);
-      context.cleanupExpectedRecord = null;
-      assert(context.beforeRecord?.source?.enabled === true && context.beforeRecord?.publishedView?.enabled === true,
+      context.mutationBaselineRecord = await readEndpointRecord(context.beforeRecordEndpoint, item, context);
+      context.cleanupOriginalRecord = null;
+      context.cleanupOriginalRecordCaptured = true;
+      assert(context.mutationBaselineRecord?.source?.enabled === true && context.mutationBaselineRecord?.publishedView?.enabled === true,
         `${item.caseId} acceptance-owned source/view seed readback failed`);
       return;
     }
@@ -4026,7 +4070,7 @@ export function createV390UiCaseRuntime({
     const spec = cleanup.inverseAction.endpoint;
     const endpoint = expandFixturePath(spec.path, context.fixtureId);
     const payload = cleanup.kind === "restore-fixture-state"
-      ? (context.beforeRecord || fixturePayload(item, context.fixtureId, {}))
+      ? (context.cleanupOriginalRecord || fixturePayload(item, context.fixtureId, {}))
       : null;
     const response = await requestEndpoint(spec.method, endpoint, payload, item, context, spec.allowedStatuses);
     return { status: "PASS", source: "product-inverse-endpoint", method: spec.method, endpoint, httpStatus: response.status };
@@ -4037,22 +4081,26 @@ export function createV390UiCaseRuntime({
     assert(endpointSpec?.path?.includes("{fixtureId}"),
       `${item.caseId} product-memory restore requires a fixture-bound endpoint`);
     const endpoint = expandFixturePath(endpointSpec.path, context.fixtureId);
-    if (context.cleanupExpectedRecord === null) {
+    assert(context.cleanupOriginalRecordCaptured,
+      `${item.caseId} cleanup original record was not captured`);
+    if (context.cleanupOriginalRecord === null) {
       await requestEndpoint("DELETE", endpoint, null, item, context, [200, 204, 404], { freshRole: true });
       return;
     }
-    await requestEndpoint("PUT", endpoint, context.cleanupExpectedRecord, item, context, [200, 201], { freshRole: true });
+    await requestEndpoint("PUT", endpoint, context.cleanupOriginalRecord, item, context, [200, 201], { freshRole: true });
   }
 
   async function restoreSourceViewState(item, context) {
     const sourceEndpoint = `/ops/api/sources/${encodeURIComponent(context.fixtureId)}`;
     const viewEndpoint = `/ops/api/views/${encodeURIComponent(context.fixtureId)}`;
-    if (context.cleanupExpectedRecord === null) {
+    assert(context.cleanupOriginalRecordCaptured,
+      `${item.caseId} cleanup original source/view record was not captured`);
+    if (context.cleanupOriginalRecord === null) {
       await requestEndpoint("DELETE", viewEndpoint, null, item, context, [200, 404], { freshRole: true, roleOverride: "operator" });
       await requestEndpoint("DELETE", sourceEndpoint, null, item, context, [200, 404], { freshRole: true, roleOverride: "operator" });
       return;
     }
-    const pair = context.cleanupExpectedRecord;
+    const pair = context.cleanupOriginalRecord;
     assert(pair?.source && pair?.publishedView,
       `${item.caseId} original source/view pair is incomplete`);
     if (["UI-109", "SRC-066"].includes(item.caseId)) {
@@ -4071,7 +4119,10 @@ export function createV390UiCaseRuntime({
     await requestEndpoint("PUT", viewEndpoint, pair.publishedView, item, context, [200, 201], { freshRole: true, roleOverride: "operator" });
   }
 
-  async function readEndpointRecord(endpoint, item, context, { freshRole = false } = {}) {
+  async function readEndpointRecord(endpoint, item, context, {
+    freshRole = false,
+    eventReviewMode = "strict-mutation",
+  } = {}) {
     const readback = resolveAuthoritativeReadback(endpoint, context.fixtureId);
     if (readback.mode === "source-view-pair") {
       const sourceResponse = await requestEndpoint(
@@ -4097,13 +4148,22 @@ export function createV390UiCaseRuntime({
     const payload = direct.json;
     if (readback.mode === "whole-response") return payload;
     if (readback.mode === "event-review-joined-record") {
+      if (eventReviewMode === "cleanup-original") {
+        assert(context.cleanupOriginalRecordCaptured,
+          `${item.caseId} cleanup original event-review state was not captured`);
+        return selectEventReviewJoinedCleanupRecord(payload, readback.fixtureId, {
+          originalRecord: context.cleanupOriginalRecord,
+        });
+      }
+      assert(eventReviewMode === "strict-mutation",
+        `${item.caseId} unsupported event-review readback mode: ${eventReviewMode}`);
       return selectEventReviewJoinedReview(payload, readback.fixtureId);
     }
     return unwrapRecord(payload, readback.fixtureId, readback.matchFields);
   }
 
-  async function freshAuthoritativeReadback(endpoint, item, context) {
-    return readEndpointRecord(endpoint, item, context, { freshRole: true });
+  async function freshAuthoritativeReadback(endpoint, item, context, options = {}) {
+    return readEndpointRecord(endpoint, item, context, { ...options, freshRole: true });
   }
 
   async function verifyMutationReadback(item, context) {
@@ -4114,7 +4174,7 @@ export function createV390UiCaseRuntime({
       `${item.caseId} mutation readback endpoint is unavailable`);
     const endpoint = expandFixturePath(endpointSpec.path, context.fixtureId);
     const observed = await freshAuthoritativeReadback(endpoint, item, context);
-    const before = context.beforeRecord;
+    const before = context.mutationBaselineRecord;
     const changed = stableJson(observed) !== stableJson(before);
     if (endpointSpec.method === "DELETE") {
       assert(observed === null,
@@ -5707,6 +5767,32 @@ function recordId(value) {
 }
 
 export function selectEventReviewJoinedReview(payload, fixtureId) {
+  const joined = eventReviewJoinedRows(payload, fixtureId);
+  assert(joined.length === 1,
+    `event review joined readback requires exactly one fixture row: ${joined.length}`);
+  return joined[0].review;
+}
+
+export function selectEventReviewJoinedCleanupRecord(payload, fixtureId, {
+  originalRecord,
+} = {}) {
+  assert(originalRecord === null ||
+    (originalRecord && typeof originalRecord === "object" && !Array.isArray(originalRecord)),
+  "event review cleanup original record binding is missing");
+  const joined = eventReviewJoinedRows(payload, fixtureId);
+  if (originalRecord === null) {
+    assert(joined.length === 0,
+      `event review cleanup expected the original absent state, found fixture rows: ${joined.length}`);
+    return null;
+  }
+  assert(joined.length === 1,
+    `event review cleanup requires exactly one original fixture row: ${joined.length}`);
+  assert(stableJson(joined[0].review) === stableJson(originalRecord),
+    "event review cleanup record differs from the captured original state");
+  return joined[0].review;
+}
+
+function eventReviewJoinedRows(payload, fixtureId) {
   assert(typeof fixtureId === "string" && fixtureId.length > 0,
     "event review joined readback fixtureId is required");
   assert(payload && typeof payload === "object" && !Array.isArray(payload),
@@ -5726,12 +5812,12 @@ export function selectEventReviewJoinedReview(payload, fixtureId) {
       "event review joined readback event/review identity mismatch");
     joined.push(row);
   }
-  assert(joined.length === 1,
-    `event review joined readback requires exactly one fixture row: ${joined.length}`);
-  assert(joined[0]?.review && typeof joined[0].review === "object" &&
-    !Array.isArray(joined[0].review),
-  "event review joined readback review record is missing");
-  return joined[0].review;
+  for (const row of joined) {
+    assert(row?.review && typeof row.review === "object" &&
+      !Array.isArray(row.review),
+    "event review joined readback review record is missing");
+  }
+  return joined;
 }
 
 export function normalizeInviteSeedResponse(value, { username = "", viewId = "" } = {}) {

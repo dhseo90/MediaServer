@@ -7015,6 +7015,21 @@ native 47/47·event 26/26·evaluator 19/19·runtime 42/42·completion 36/36·ada
 diagnostic 19/19 및 inventory/evidence/script/docs/syntax/diff가 PASS했습니다. Actual EVT-021,
 `./test_ui.sh`, Policy v4, 30분, 120분, release는 clean checkpoint 전 미실행입니다.
 
+EVT-021 cleanup lifecycle correction은 seed 뒤 상태인 `mutationBaselineRecord`와 case 시작 전
+authoritative 상태인 `cleanupOriginalRecord`를 분리합니다. Strict mutation readback은 joined
+fixture row 정확히 1건을 계속 요구하고, cleanup readback은 seed 전 original이 absent로 캡처된
+경우에만 restore 뒤 0건을 `null`로 허용합니다. Duplicate, nested event/review mismatch,
+partial identity 및 original byte 불일치는 모두 fail-closed입니다. Fresh semantic candidate
+`2f5e15549344387b25b3cbb8a65a8ec09c71e0d4983f39c364a3f1df9cd2d58e`는 feature/pass/status
+변경 0, UI-018 sourceFlow 한 행만 `79120e4eb63da545cf16564d516aace31b795e4fc0b32b3c142a0dc8be2cbe17`에서
+`1368394b430b29ae9fcc0503443b243a10be80828278592f67dca1314f00556d`로 이동했습니다.
+Package/decision SHA는 `527ba661f8ea31ccd23415650561f399714ed5b3fb776bc342a00dec3fd2b7b8`/
+`053f5d735cb95b3392794fa463006933a22b5ac2cc34c88480e9429dea411d2c`이며 별도 reviewer가
+승인했습니다. Migration-aware producer는 정확히 1회 성공했고 native generator는 0회입니다.
+Focused/static gate는 PASS했으며 final staged tree는 commit 전 branch-bearing clean checkout의
+checkout-local build와 동일 gate를 통과해야 합니다. 새 focused actual 전에는 이전
+`case-cleanup-failed` evidence를 PASS로 승격하지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary
