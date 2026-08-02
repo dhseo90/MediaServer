@@ -3121,6 +3121,14 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Exact response/render 결속 | Refresh action/render-cycle의 initiating Playwright Request 한 개와 `response.request()` 동일 객체 Response 한 개를 sequence/action/correlation/method/path/status로 결속하고, 그 safe response projection을 동일 render-cycle phase/DOM mutation과 함께 검증합니다 | Owned request/response 0·2+, object/sequence/action/cycle/correlation/method/path/status drift, duplicate correlation, unrelated response, render-cycle mismatch, status/digest sentinel은 fail-closed |
 | 회귀·static | Runtime 45/45, completion 36/36, adapter 24/24, timeline 6/6, event 28/28, evaluator 19/19, native 48/48, diagnostic 20/20, acceptance 21/21, final-integrity 12/12, semantic 51/51·approval 986/986·negative 11/11·migration, feature 986/986·negative 15/15, inventory 17/17·index 8/8·script 11/11·docs/syntax/diff PASS | EVT-026 동일 endpoint와 EVT-004 exact request helper 회귀 PASS. Candidate `2dc205f5...41e0e` 및 manifest 불변, generator/producer 각 0회. Clean-checkout과 focused actual은 commit 전 미실행 |
 
+### REVIEW4-65 EVT-023 explicit diagnostic correlation precedence
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| Outer/inner precedence | Request correlation header가 없을 때만 active outer를 정확히 한 번 주입하고, explicit inner는 current case/action registry에 exact 등록된 값일 때만 byte-identical로 보존합니다 | Global interceptor가 inner를 outer로 덮어쓰지 않으며 raw correlation은 evidence에 저장하지 않습니다 |
+| Registry fail-closed | Unregistered, stale, wrong action/case, changed outer scope, wrong value, duplicate·대소문자 충돌 header를 request 전 거부하고 action scope 종료 시 registration을 제거합니다 | 다음 outer request에는 inner가 누출되지 않으며 response는 `response.request()`의 exact object/state/action/digest를 재검증합니다 |
+| 회귀·static | Adapter 25/25, runtime 45/45, completion 36/36, diagnostic 20/20, native 48/48, event 28/28, evaluator 19/19, timeline 6/6, acceptance 21/21, final-integrity 12/12, semantic 51/51·approval 986/986·negative 11/11·migration, feature 986/986·negative 15/15, inventory 17/17·index 8/8·script 11/11·docs/syntax/diff PASS | EVT-004/026과 AUTH/SRC endpoint-owned correlation 회귀 PASS. Candidate `2dc205f5...41e0e` 및 native manifest 불변, reviewer/producer/generator 각 0회. Clean-checkout과 focused actual은 commit 전 미실행 |
+
 ## 임시 산출물 정리 기록
 
 | 버전/run | 경로 | 종류 | 조치 | 삭제/보존 결과 |

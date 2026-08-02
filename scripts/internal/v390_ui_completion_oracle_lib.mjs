@@ -41,6 +41,8 @@ export function buildRequestCorrelationEvidence({
   const requestKind = String(expected.requestKind || "");
   const expectedInitiatorActionId = String(expected.initiatorActionId || "");
   const expectedRenderCycleId = String(expected.renderCycleId || "");
+  const expectedCorrelationRouteState = String(expected.correlationRouteState || "");
+  const expectedCorrelationRouteActionId = String(expected.correlationRouteActionId || "");
   const values = Array.isArray(entries) ? entries : [];
   const requests = values.filter(entry => entry?.phase === "request-start");
   const responses = values.filter(entry => entry?.phase === "response");
@@ -125,6 +127,20 @@ export function buildRequestCorrelationEvidence({
       exactRequestCandidates[0]?.renderCycleId !== expectedRenderCycleId) {
     failureCode = "REQUEST_RENDER_CYCLE_MISMATCH";
   }
+  else if (expectedCorrelationRouteState &&
+      exactRequestCandidates[0]?.correlationRouteState !== expectedCorrelationRouteState) {
+    failureCode = "CORRELATION_ROUTE_STATE_MISMATCH";
+  }
+  else if (expectedCorrelationRouteActionId &&
+      exactRequestCandidates[0]?.correlationRouteActionId !==
+        expectedCorrelationRouteActionId) {
+    failureCode = "CORRELATION_ROUTE_ACTION_MISMATCH";
+  }
+  else if (expectedCorrelationRouteState &&
+      exactRequestCandidates[0]?.correlationRouteDigest !==
+        crypto.createHash("sha256").update(correlationId).digest("hex")) {
+    failureCode = "CORRELATION_ROUTE_DIGEST_MISMATCH";
+  }
   else if (matchedRequests.length === 0) failureCode = "CORRELATION_MISMATCH";
   else if (matchedRequests.length !== 1) failureCode = "DUPLICATE_REQUEST";
   else if (exactResponseCandidates.length === 0) failureCode = "RESPONSE_NOT_OBSERVED";
@@ -142,6 +158,17 @@ export function buildRequestCorrelationEvidence({
   } else if (expectedRenderCycleId &&
       exactResponseCandidates[0]?.renderCycleId !== expectedRenderCycleId) {
     failureCode = "RESPONSE_RENDER_CYCLE_MISMATCH";
+  } else if (expectedCorrelationRouteState &&
+      exactResponseCandidates[0]?.correlationRouteState !== expectedCorrelationRouteState) {
+    failureCode = "RESPONSE_CORRELATION_ROUTE_STATE_MISMATCH";
+  } else if (expectedCorrelationRouteActionId &&
+      exactResponseCandidates[0]?.correlationRouteActionId !==
+        expectedCorrelationRouteActionId) {
+    failureCode = "RESPONSE_CORRELATION_ROUTE_ACTION_MISMATCH";
+  } else if (expectedCorrelationRouteState &&
+      exactResponseCandidates[0]?.correlationRouteDigest !==
+        crypto.createHash("sha256").update(correlationId).digest("hex")) {
+    failureCode = "RESPONSE_CORRELATION_ROUTE_DIGEST_MISMATCH";
   } else if (expected.responseEchoHeaderRequired === true &&
       (exactResponseCandidates[0]?.responseEchoHeaderContract !== "required" ||
         exactResponseCandidates[0]?.responseEchoHeaderObserved !== true ||
@@ -176,6 +203,8 @@ export function buildRequestCorrelationEvidence({
     expectedCaseId,
     expectedInitiatorActionId,
     expectedRenderCycleId,
+    expectedCorrelationRouteState,
+    expectedCorrelationRouteActionId,
     observedMethod: exactRequestCandidates.length === 1
       ? String(exactRequestCandidates[0].method || "").toUpperCase()
       : "",
@@ -201,6 +230,30 @@ export function buildRequestCorrelationEvidence({
     responseRequestActionId: responseCandidate?.initiatorActionId || "",
     initiatingRequestRenderCycleId: matchedRequest?.renderCycleId || "",
     responseRequestRenderCycleId: responseCandidate?.renderCycleId || "",
+    initiatingRequestCorrelationRouteState:
+      exactRequestCandidates.length === 1
+        ? String(exactRequestCandidates[0]?.correlationRouteState || "")
+        : "",
+    responseRequestCorrelationRouteState:
+      exactResponseCandidates.length === 1
+        ? String(exactResponseCandidates[0]?.correlationRouteState || "")
+        : "",
+    initiatingRequestCorrelationRouteActionId:
+      exactRequestCandidates.length === 1
+        ? String(exactRequestCandidates[0]?.correlationRouteActionId || "")
+        : "",
+    responseRequestCorrelationRouteActionId:
+      exactResponseCandidates.length === 1
+        ? String(exactResponseCandidates[0]?.correlationRouteActionId || "")
+        : "",
+    initiatingRequestCorrelationRouteDigest:
+      exactRequestCandidates.length === 1
+        ? String(exactRequestCandidates[0]?.correlationRouteDigest || "")
+        : "",
+    responseRequestCorrelationRouteDigest:
+      exactResponseCandidates.length === 1
+        ? String(exactResponseCandidates[0]?.correlationRouteDigest || "")
+        : "",
     responseRequestObjectObserved:
       exactResponseCandidates.length === 1 &&
       exactResponseCandidates[0]?.responseRequestObjectObserved === true,

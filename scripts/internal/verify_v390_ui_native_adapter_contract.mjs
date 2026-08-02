@@ -20,6 +20,7 @@ import {
   createCaseOwnedRequestIdentityRegistry,
   formatSafeResponseReadFailure,
   nativeCapabilities,
+  resolveRequestCorrelationPrecedence,
   resolvePlaywrightModule,
   secretStrippedBrowserEnv,
 } from "./v390_ui_native_adapter.mjs";
@@ -144,7 +145,8 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   "exact runner does not preserve application-fetch correlation evidence");
   assert(adapterSource.includes('await context.route("**/*"') &&
     adapterSource.includes("activeNavigationOperation?.allowCorrelation === true") &&
-    adapterSource.includes('delete headers["x-media-server-correlation-id"]') &&
+    adapterSource.includes("delete headers[correlationHeaderName]") &&
+    adapterSource.includes("outerInjectionEnabled: activeCorrelationInjectionEnabled") &&
     adapterSource.includes("allowCorrelation: false") &&
     !adapterSource.includes("context.setExtraHTTPHeaders"),
   "adapter does not keep correlation injection request/document scoped");
@@ -170,13 +172,15 @@ check("adapter exposes native wait click fill type select screenshot", () => {
 check("route-injected application correlation survives request-start to response binding", () => {
   for (const snippet of [
     "const routeInjectedCorrelations = new WeakMap()",
-    "const applyRouteInjectedCorrelation = (request, correlationId) =>",
-    "applyRouteInjectedCorrelation(request, activeCorrelationId)",
+    "const applyRouteInjectedCorrelation = (request, correlationId, {",
+    "resolveRequestCorrelationPrecedence({",
+    "applyRouteInjectedCorrelation(request, decision.correlationId, decision)",
     "const routeInjectedCorrelation = routeInjectedCorrelations.get(request)",
     'correlationInjectionSource: "route-continue"',
     "Object.assign(pending, applied)",
     "let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId)",
-    "activeCorrelationInjectionEnabled && correlationAllowed",
+    "outerInjectionEnabled: activeCorrelationInjectionEnabled",
+    "correlationAllowed,",
     "setCorrelationId: async (correlationId, { inject = true } = {})",
   ]) {
     assert(adapterSource.includes(snippet),
@@ -184,6 +188,124 @@ check("route-injected application correlation survives request-start to response
   }
   assert(!adapterSource.includes("context.setExtraHTTPHeaders"),
     "route-injected correlation widened beyond the exact intercepted request");
+});
+
+check("explicit inner correlation precedence is registry-bound and leak-free", () => {
+  const outerCorrelationId = "EVT-023:outer-correlation";
+  const innerCorrelationId = "EVT-023:diagnostic-inner-correlation";
+  const caseId = "EVT-023";
+  const actionId = "EVT-023:ops-timeline-authoritative-readback";
+  const registration = {
+    active: true,
+    caseId,
+    actionId,
+    correlationId: innerCorrelationId,
+    outerCorrelationId,
+  };
+  const absent = resolveRequestCorrelationPrecedence({
+    headerEntries: [],
+    outerCorrelationId,
+    outerInjectionEnabled: true,
+    correlationAllowed: true,
+    registration: null,
+    currentCaseId: caseId,
+    currentActionId: actionId,
+  });
+  assert(absent.state === "injected-outer" &&
+    absent.inject === true &&
+    absent.preserve === false &&
+    absent.correlationId === outerCorrelationId &&
+    /^[0-9a-f]{64}$/.test(absent.correlationDigest),
+  "header-absent request did not inject the outer correlation exactly once");
+
+  const preserved = resolveRequestCorrelationPrecedence({
+    headerEntries: [{ name: "X-Media-Server-Correlation-Id", value: innerCorrelationId }],
+    outerCorrelationId,
+    outerInjectionEnabled: true,
+    correlationAllowed: true,
+    registration,
+    currentCaseId: caseId,
+    currentActionId: actionId,
+  });
+  assert(preserved.state === "preserved-explicit-inner" &&
+    preserved.inject === false &&
+    preserved.preserve === true &&
+    preserved.correlationId === innerCorrelationId &&
+    JSON.stringify(preserved).includes(innerCorrelationId) === false,
+  "registered explicit inner correlation was not byte-preserved or leaked into safe evidence");
+
+  const expectRejected = (label, overrides, failureCode) => {
+    let observed = "";
+    try {
+      resolveRequestCorrelationPrecedence({
+        headerEntries: [{ name: "x-media-server-correlation-id", value: innerCorrelationId }],
+        outerCorrelationId,
+        outerInjectionEnabled: true,
+        correlationAllowed: true,
+        registration,
+        currentCaseId: caseId,
+        currentActionId: actionId,
+        ...overrides,
+      });
+    } catch (error) {
+      observed = String(error?.failureCode || "");
+      assert(!JSON.stringify(error?.safeEvidence || {}).includes(innerCorrelationId),
+        `${label} rejection leaked raw correlation`);
+    }
+    assert(observed === failureCode,
+      `${label} explicit correlation did not fail closed: ${observed}`);
+  };
+  expectRejected("unregistered", { registration: null },
+    "EXPLICIT_CORRELATION_UNREGISTERED");
+  expectRejected("stale registration", {
+    registration: { ...registration, active: false },
+  }, "EXPLICIT_CORRELATION_UNREGISTERED");
+  expectRejected("wrong action", { currentActionId: `${actionId}:other` },
+    "EXPLICIT_CORRELATION_ACTION_MISMATCH");
+  expectRejected("wrong case", { currentCaseId: "EVT-026" },
+    "EXPLICIT_CORRELATION_CASE_MISMATCH");
+  expectRejected("outer scope changed", { outerCorrelationId: `${outerCorrelationId}:stale` },
+    "EXPLICIT_CORRELATION_OUTER_SCOPE_MISMATCH");
+  expectRejected("wrong explicit value", {
+    headerEntries: [{ name: "x-media-server-correlation-id", value: `${innerCorrelationId}:wrong` }],
+  }, "EXPLICIT_CORRELATION_VALUE_MISMATCH");
+  expectRejected("duplicate header", {
+    headerEntries: [
+      { name: "x-media-server-correlation-id", value: innerCorrelationId },
+      { name: "X-Media-Server-Correlation-Id", value: innerCorrelationId },
+    ],
+  }, "CORRELATION_HEADER_DUPLICATE");
+
+  registration.active = false;
+  expectRejected("inner after scope end", { registration },
+    "EXPLICIT_CORRELATION_UNREGISTERED");
+  const nextOuter = resolveRequestCorrelationPrecedence({
+    headerEntries: [],
+    outerCorrelationId,
+    outerInjectionEnabled: true,
+    correlationAllowed: true,
+    registration: null,
+    currentCaseId: caseId,
+    currentActionId: `${caseId}:next-action`,
+  });
+  assert(nextOuter.state === "injected-outer" &&
+    nextOuter.correlationId === outerCorrelationId &&
+    nextOuter.correlationId !== innerCorrelationId,
+  "inner correlation leaked into the next outer request");
+
+  for (const snippet of [
+    "activeExplicitCorrelationRegistration",
+    "explicitCorrelationScopeSequence",
+    "request.headersArray()",
+    'state: "preserved-explicit-inner"',
+    'state: "injected-outer"',
+    "correlationRouteFailures",
+    "explicitRegistration.active = false",
+    "activeExplicitCorrelationRegistration = null",
+  ]) {
+    assert(adapterSource.includes(snippet),
+      `explicit correlation registry lifecycle missing ${snippet}`);
+  }
 });
 
 check("Playwright response events bind only to the exact initiating request object", () => {

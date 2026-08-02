@@ -2,6 +2,7 @@
 // 파일 용도: V390-REVIEW2-25 no-op action과 pre-existing visible state false-PASS를 검증한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -206,17 +207,38 @@ check("EVT-004 binds a response to the exact case-owned Playwright request witho
 
   const initiatorActionId = "EVT-004:owned-refresh";
   const renderCycleId = `${initiatorActionId}:cycle-1`;
-  const ownedRequest = { ...request, initiatorActionId, renderCycleId };
-  const ownedResponse = { ...response, initiatorActionId, renderCycleId };
+  const routeDigest = crypto.createHash("sha256").update(correlationId).digest("hex");
+  const ownedRequest = {
+    ...request,
+    initiatorActionId,
+    renderCycleId,
+    correlationRouteState: "injected-outer",
+    correlationRouteActionId: initiatorActionId,
+    correlationRouteDigest: routeDigest,
+  };
+  const ownedResponse = {
+    ...response,
+    initiatorActionId,
+    renderCycleId,
+    correlationRouteState: "injected-outer",
+    correlationRouteActionId: initiatorActionId,
+    correlationRouteDigest: routeDigest,
+  };
   const owned = evaluate([ownedRequest, ownedResponse], {
     initiatorActionId,
     renderCycleId,
+    correlationRouteState: "injected-outer",
+    correlationRouteActionId: initiatorActionId,
   });
   assert(owned.pass === true &&
     owned.initiatingRequestActionId === initiatorActionId &&
     owned.responseRequestActionId === initiatorActionId &&
     owned.initiatingRequestRenderCycleId === renderCycleId &&
-    owned.responseRequestRenderCycleId === renderCycleId,
+    owned.responseRequestRenderCycleId === renderCycleId &&
+    owned.initiatingRequestCorrelationRouteState === "injected-outer" &&
+    owned.responseRequestCorrelationRouteState === "injected-outer" &&
+    owned.initiatingRequestCorrelationRouteDigest === routeDigest &&
+    owned.responseRequestCorrelationRouteDigest === routeDigest,
   "request/response action and render-cycle identity did not pass");
   assert(evaluate([ownedRequest, ownedResponse], {
     initiatorActionId: `${initiatorActionId}:stale`,
@@ -228,6 +250,20 @@ check("EVT-004 binds a response to the exact case-owned Playwright request witho
     renderCycleId: `${renderCycleId}:stale`,
   }).failureCode === "REQUEST_RENDER_CYCLE_MISMATCH",
   "stale render-cycle ID did not fail closed");
+  assert(evaluate([{ ...ownedRequest, correlationRouteState: "preserved-explicit-inner" }, ownedResponse], {
+    initiatorActionId,
+    renderCycleId,
+    correlationRouteState: "injected-outer",
+    correlationRouteActionId: initiatorActionId,
+  }).failureCode === "CORRELATION_ROUTE_STATE_MISMATCH",
+  "request correlation route-state mismatch did not fail closed");
+  assert(evaluate([ownedRequest, { ...ownedResponse, correlationRouteDigest: "0".repeat(64) }], {
+    initiatorActionId,
+    renderCycleId,
+    correlationRouteState: "injected-outer",
+    correlationRouteActionId: initiatorActionId,
+  }).failureCode === "RESPONSE_CORRELATION_ROUTE_DIGEST_MISMATCH",
+  "response correlation route digest mismatch did not fail closed");
 
   for (const [label, entries, failureCode, expectedOverrides = {}, resultOverrides = {}] of [
     ["same-path-other-request", [

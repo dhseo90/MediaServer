@@ -7121,6 +7121,20 @@ feature986/negative15 및 inventory/index/script/docs/syntax/diff가 PASS했습�
 `2dc205f5...41e0e`와 native manifest는 불변이므로 generator/producer는 각 0회이며 clean-checkout과
 focused actual은 checkpoint commit 전 미실행입니다.
 
+EVT-023 explicit diagnostic correlation precedence closure(2026-08-03)는 native adapter의
+전역 route interceptor가 diagnostic readback의 case/action-owned inner correlation을 active outer
+correlation으로 덮어써 `response.request()` digest가 expected digest와 달라지던 문제를 보정합니다.
+Interceptor는 header가 없을 때만 outer correlation을 주입하고, explicit header는 현재 case/action
+registry에 exact 등록된 inner 값일 때만 byte-identical로 보존합니다. Unregistered/stale/wrong-action/
+wrong-case/outer-scope drift, duplicate·case-collision header는 request 전 fail-closed이며 action scope
+종료 시 inner registration을 제거합니다. Evidence는 raw 값 없이 state/action/sequence/digest만 보존합니다.
+EVT-004 exact identity, EVT-026 Ops lifecycle, AUTH/SRC endpoint-owned outer injection 회귀를 유지했습니다.
+Adapter25/runtime45/completion36/diagnostic20/native48/event28/evaluator19/timeline6,
+acceptance21/final-integrity12, semantic51/approval986/negative11/migration,
+feature986/negative15와 inventory17/index8/script11/docs/syntax/diff가 PASS했습니다. Candidate
+`2dc205f5...41e0e`와 native manifest는 불변이므로 reviewer/producer/generator는 각 0회이며
+clean-checkout과 focused actual은 checkpoint commit 전 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

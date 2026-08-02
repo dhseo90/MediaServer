@@ -135,6 +135,136 @@ export function secretStrippedBrowserEnv(sourceEnv = process.env) {
   return env;
 }
 
+const correlationHeaderName = "x-media-server-correlation-id";
+
+function correlationDigest(value) {
+  return value
+    ? createHash("sha256").update(String(value)).digest("hex")
+    : "";
+}
+
+function correlationPrecedenceFailure(failureCode, message, {
+  actionId = "",
+  state = "rejected-explicit-correlation",
+} = {}) {
+  const error = new Error(message);
+  error.failureCode = failureCode;
+  error.safeEvidence = Object.freeze({
+    state,
+    actionId: String(actionId || ""),
+    failureCode,
+  });
+  return error;
+}
+
+export function resolveRequestCorrelationPrecedence({
+  headerEntries = [],
+  outerCorrelationId = "",
+  outerInjectionEnabled = false,
+  correlationAllowed = true,
+  registration = null,
+  currentCaseId = "",
+  currentActionId = "",
+} = {}) {
+  const correlationHeaders = (Array.isArray(headerEntries) ? headerEntries : [])
+    .filter(entry => String(entry?.name || "").toLowerCase() === correlationHeaderName)
+    .map(entry => ({
+      name: String(entry?.name || ""),
+      value: String(entry?.value || ""),
+    }));
+  if (correlationHeaders.length > 1) {
+    throw correlationPrecedenceFailure(
+      "CORRELATION_HEADER_DUPLICATE",
+      "duplicate or case-conflicting correlation headers are forbidden",
+      { actionId: currentActionId },
+    );
+  }
+  const explicit = correlationHeaders[0] || null;
+  const outer = String(outerCorrelationId || "");
+  const actionId = String(currentActionId || "");
+  const caseId = String(currentCaseId || "");
+  if (explicit) {
+    if (!correlationAllowed) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_NOT_ALLOWED",
+        "explicit correlation is forbidden for this request boundary",
+        { actionId },
+      );
+    }
+    if (!registration || registration.active !== true) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_UNREGISTERED",
+        "explicit correlation is not registered to an active request action",
+        { actionId },
+      );
+    }
+    if (String(registration.caseId || "") !== caseId) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_CASE_MISMATCH",
+        "explicit correlation registration belongs to a different case",
+        { actionId },
+      );
+    }
+    if (!actionId || String(registration.actionId || "") !== actionId) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_ACTION_MISMATCH",
+        "explicit correlation registration belongs to a different action",
+        { actionId },
+      );
+    }
+    if (String(registration.outerCorrelationId || "") !== outer) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_OUTER_SCOPE_MISMATCH",
+        "outer correlation changed after inner correlation registration",
+        { actionId },
+      );
+    }
+    if (!explicit.value || String(registration.correlationId || "") !== explicit.value) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_VALUE_MISMATCH",
+        "explicit correlation does not match the active action registration",
+        { actionId },
+      );
+    }
+    const decision = {
+      state: "preserved-explicit-inner",
+      actionId,
+      correlationDigest: correlationDigest(explicit.value),
+      inject: false,
+      preserve: true,
+      failureCode: "",
+    };
+    Object.defineProperty(decision, "correlationId", {
+      value: explicit.value,
+      enumerable: false,
+    });
+    return Object.freeze(decision);
+  }
+  if (outer && outerInjectionEnabled === true && correlationAllowed) {
+    const decision = {
+      state: "injected-outer",
+      actionId,
+      correlationDigest: correlationDigest(outer),
+      inject: true,
+      preserve: false,
+      failureCode: "",
+    };
+    Object.defineProperty(decision, "correlationId", {
+      value: outer,
+      enumerable: false,
+    });
+    return Object.freeze(decision);
+  }
+  return Object.freeze({
+    state: "correlation-absent",
+    actionId,
+    correlationDigest: "",
+    inject: false,
+    preserve: false,
+    failureCode: "",
+  });
+}
+
 export function createCaseOwnedRequestIdentityRegistry({
   caseId = "",
   requestIdPrefix = "native-request",
@@ -482,6 +612,7 @@ async function openNativePlaywrightPage(playwright, {
   });
   const pendingRequests = new Map();
   const routeInjectedCorrelations = new WeakMap();
+  const correlationRouteFailures = [];
   const pendingSafeResponseReads = new Set();
   const safeResponseReadFailures = [];
   let diagnosticMarkerProbe = null;
@@ -495,6 +626,8 @@ async function openNativePlaywrightPage(playwright, {
   let activeCorrelationId = String(navigationCorrelationId || "");
   let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId);
   let activeRequestOwnership = null;
+  let activeExplicitCorrelationRegistration = null;
+  let explicitCorrelationScopeSequence = 0;
   const documentNavigationLedger = [];
   const documentNavigationByRequestId = new Map();
   let documentNavigationAfterListenerEndCount = 0;
@@ -504,11 +637,17 @@ async function openNativePlaywrightPage(playwright, {
         "x-media-server-correlation-id": correlationId,
       })).digest("hex")
     : "";
-  const applyRouteInjectedCorrelation = (request, correlationId) => {
+  const applyRouteInjectedCorrelation = (request, correlationId, {
+    state = "injected-outer",
+    actionId = "",
+  } = {}) => {
     const applied = {
       correlationId,
       requestHeaderDigest: correlationHeaderDigest(correlationId),
       correlationInjectionSource: "route-continue",
+      correlationRouteState: String(state || ""),
+      correlationRouteActionId: String(actionId || ""),
+      correlationRouteDigest: correlationDigest(correlationId),
     };
     routeInjectedCorrelations.set(request, applied);
     const pending = pendingRequests.get(request);
@@ -536,15 +675,41 @@ async function openNativePlaywrightPage(playwright, {
   await context.route("**/*", async route => {
     const request = route.request();
     const headers = { ...request.headers() };
+    const headerEntries = typeof request.headersArray === "function"
+      ? await request.headersArray()
+      : Object.entries(headers).map(([name, value]) => ({ name, value }));
     const documentNavigation = request.isNavigationRequest() &&
       request.resourceType() === "document";
     const correlationAllowed = !documentNavigation ||
       activeNavigationOperation?.allowCorrelation === true;
-    if (activeCorrelationId && activeCorrelationInjectionEnabled && correlationAllowed) {
-      headers["x-media-server-correlation-id"] = activeCorrelationId;
-      applyRouteInjectedCorrelation(request, activeCorrelationId);
+    let decision;
+    try {
+      decision = resolveRequestCorrelationPrecedence({
+        headerEntries,
+        outerCorrelationId: activeCorrelationId,
+        outerInjectionEnabled: activeCorrelationInjectionEnabled,
+        correlationAllowed,
+        registration: activeExplicitCorrelationRegistration,
+        currentCaseId: caseId,
+        currentActionId: String(activeRequestOwnership?.actionId || ""),
+      });
+    } catch (error) {
+      correlationRouteFailures.push({
+        sequence: ++lifecycleSequence,
+        state: String(error?.safeEvidence?.state || "rejected-explicit-correlation"),
+        actionId: String(error?.safeEvidence?.actionId || activeRequestOwnership?.actionId || ""),
+        failureCode: String(error?.failureCode || "CORRELATION_PRECEDENCE_REJECTED"),
+      });
+      await route.abort("blockedbyclient");
+      return;
+    }
+    if (decision.inject) {
+      headers[correlationHeaderName] = decision.correlationId;
+      applyRouteInjectedCorrelation(request, decision.correlationId, decision);
+    } else if (decision.preserve) {
+      applyRouteInjectedCorrelation(request, decision.correlationId, decision);
     } else if (documentNavigation) {
-      delete headers["x-media-server-correlation-id"];
+      delete headers[correlationHeaderName];
     }
     await route.continue({ headers });
   });
@@ -590,6 +755,9 @@ async function openNativePlaywrightPage(playwright, {
       correlationId,
       requestHeaderDigest,
       correlationInjectionSource: String(routeInjectedCorrelation?.correlationInjectionSource || ""),
+      correlationRouteState: String(routeInjectedCorrelation?.correlationRouteState || "correlation-absent"),
+      correlationRouteActionId: String(routeInjectedCorrelation?.correlationRouteActionId || ""),
+      correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
       initiatorActionId: String(requestOwnership?.actionId || ""),
       renderCycleId: String(requestOwnership?.renderCycleId || ""),
       requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
@@ -610,6 +778,9 @@ async function openNativePlaywrightPage(playwright, {
       correlationId,
       correlationSource: correlationId ? 'request-header' : 'none',
       correlationInjectionSource: String(routeInjectedCorrelation?.correlationInjectionSource || ""),
+      correlationRouteState: String(routeInjectedCorrelation?.correlationRouteState || "correlation-absent"),
+      correlationRouteActionId: String(routeInjectedCorrelation?.correlationRouteActionId || ""),
+      correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
       requestHeaderDigest,
       initiatorActionId: String(requestOwnership?.actionId || ""),
       renderCycleId: String(requestOwnership?.renderCycleId || ""),
@@ -679,6 +850,9 @@ async function openNativePlaywrightPage(playwright, {
         ? "initiating-request-identity"
         : "none",
       requestHeaderDigest: String(initiatingRequest?.requestHeaderDigest || ""),
+      correlationRouteState: String(initiatingRequest?.correlationRouteState || "correlation-absent"),
+      correlationRouteActionId: String(initiatingRequest?.correlationRouteActionId || ""),
+      correlationRouteDigest: String(initiatingRequest?.correlationRouteDigest || ""),
       responseEchoHeaderContract: "not-required",
       responseEchoHeaderObserved: false,
       initiatorActionId: String(initiatingRequest?.initiatorActionId || ""),
@@ -1091,6 +1265,9 @@ async function openNativePlaywrightPage(playwright, {
           status: Number(response?.status || 0),
           responseRequestObjectObserved: response?.responseRequestObjectObserved === true,
           identityMatched,
+          correlationRouteState: String(request?.correlationRouteState || ""),
+          correlationRouteActionId: String(request?.correlationRouteActionId || ""),
+          correlationRouteDigest: String(request?.correlationRouteDigest || ""),
           renderObservation,
           safeResponseProjectionSource: String(response?.safeResponseProjectionSource || ""),
           safeResponseProjectionKind: String(response?.safeResponseProjectionKind || ""),
@@ -1174,12 +1351,32 @@ async function openNativePlaywrightPage(playwright, {
       const requestPath = String(urlPath);
       const expectedPath = urlTarget(requestPath);
       const networkStart = networkEntries.length;
+      const routeFailureStart = correlationRouteFailures.length;
       const startedAt = Date.now();
       if (activeRequestOwnership) {
         throw new Error("nested request action ownership is forbidden");
       }
+      const explicitCorrelationId = String(correlationId || "");
+      const ownedActionId = String(actionId || "");
+      if (explicitCorrelationId && !ownedActionId) {
+        throw new Error("explicit request correlation requires an action ID");
+      }
+      if (explicitCorrelationId && activeExplicitCorrelationRegistration) {
+        throw new Error("nested explicit correlation registration is forbidden");
+      }
+      const explicitRegistration = explicitCorrelationId
+        ? {
+            active: true,
+            scopeSequence: ++explicitCorrelationScopeSequence,
+            caseId: String(caseId || ""),
+            actionId: ownedActionId,
+            correlationId: explicitCorrelationId,
+            outerCorrelationId: String(activeCorrelationId || ""),
+          }
+        : null;
+      activeExplicitCorrelationRegistration = explicitRegistration;
       activeRequestOwnership = {
-        actionId: String(actionId || ""),
+        actionId: ownedActionId,
         renderCycleId: String(renderCycleId || ""),
         ownershipKind: String(ownershipKind || "diagnostic-authoritative-readback"),
       };
@@ -1212,9 +1409,22 @@ async function openNativePlaywrightPage(playwright, {
         }, {
           requestMethod,
           requestPath,
-          requestCorrelationId: String(correlationId || ""),
+          requestCorrelationId: explicitCorrelationId,
         });
+      } catch (error) {
+        const routeFailure = correlationRouteFailures.slice(routeFailureStart)
+          .find(item => item.actionId === ownedActionId) || null;
+        if (routeFailure) {
+          const failure = new Error(
+            `request correlation route rejected: ${routeFailure.failureCode}`,
+          );
+          failure.failureCode = routeFailure.failureCode;
+          throw failure;
+        }
+        throw error;
       } finally {
+        if (explicitRegistration) explicitRegistration.active = false;
+        activeExplicitCorrelationRegistration = null;
         activeRequestOwnership = null;
       }
       const deadline = Date.now() + Math.min(timeoutMs, 1000);
@@ -1235,6 +1445,10 @@ async function openNativePlaywrightPage(playwright, {
         }
         await page.waitForTimeout(10);
       }
+      const requestEntry = networkEntries.slice(networkStart).find(entry =>
+        entry.phase === "request-start" &&
+        entry.method === requestMethod &&
+        urlTarget(entry.url) === expectedPath) || null;
       return {
         status: response.status,
         url: response.url,
@@ -1248,6 +1462,9 @@ async function openNativePlaywrightPage(playwright, {
         listenerInstalledBeforeRequest: requestListenersInstalled,
         ledgerSettled,
         ledgerWaitMs: Date.now() - startedAt,
+        correlationRouteState: String(requestEntry?.correlationRouteState || ""),
+        correlationRouteActionId: String(requestEntry?.correlationRouteActionId || ""),
+        correlationRouteDigest: String(requestEntry?.correlationRouteDigest || ""),
       };
     },
     requestListenersInstalled: () => requestListenersInstalled,

@@ -1150,6 +1150,8 @@ async function observeRequest(
         networkStart: diagnosticNetworkStart,
         status: diagnosticReadback.status,
         requestResult: diagnosticReadback,
+        correlationRouteState: "preserved-explicit-inner",
+        correlationRouteActionId: diagnosticReadbackActionId,
       });
       assert(diagnosticReadbackEvidence.pass === true &&
         diagnosticReadbackEvidence.initiatingRequestActionId ===
@@ -1177,6 +1179,8 @@ async function observeRequest(
           requestKind: "application-fetch",
           initiatorActionId: ownedOpsTimeline.actionId,
           renderCycleId: ownedOpsTimeline.renderCycleId,
+          correlationRouteState: "injected-outer",
+          correlationRouteActionId: ownedOpsTimeline.actionId,
         },
         requestResult: {
           actionId: ownedOpsTimeline.actionId,
@@ -1749,6 +1753,8 @@ function assertCorrelatedRuntimeFetch({
   networkStart,
   status,
   requestResult,
+  correlationRouteState = "",
+  correlationRouteActionId = "",
 }) {
   const entries = browser.networkEntries().slice(networkStart);
   if (entries.length === 0 && browser.runtimeCorrelationOptionalForContract === true) return null;
@@ -1763,6 +1769,8 @@ function assertCorrelatedRuntimeFetch({
       correlationRequired: true,
       allowedStatuses: [status],
       requestKind: "application-fetch",
+      correlationRouteState,
+      correlationRouteActionId,
     },
     requestResult,
     listenerInstalledBeforeRequest: typeof browser.requestListenersInstalled === "function"
@@ -3057,6 +3065,9 @@ function buildOpsIncidentTimelineResponseBinding(
       correlationDigest: requestEntry.correlationId
         ? sha256Digest(String(requestEntry.correlationId))
         : "",
+      correlationRouteState: String(requestEntry.correlationRouteState || ""),
+      correlationRouteActionId: String(requestEntry.correlationRouteActionId || ""),
+      correlationRouteDigest: String(requestEntry.correlationRouteDigest || ""),
       responseRequestObjectObserved:
         responseEntry?.responseRequestObjectObserved === true,
       responseStatus: Number(responseEntry?.status || 0),
@@ -3620,6 +3631,11 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
         item.path === "/ops/api/events/status?limit=5&includeArchives=1" &&
         typeof item.correlationPresent === "boolean" &&
         (!item.correlationPresent || /^[0-9a-f]{64}$/.test(item.correlationDigest || "")) &&
+        ["correlation-absent", "injected-outer", "preserved-explicit-inner"]
+          .includes(item.correlationRouteState) &&
+        typeof item.correlationRouteActionId === "string" &&
+        (!item.correlationPresent ||
+          /^[0-9a-f]{64}$/.test(item.correlationRouteDigest || "")) &&
         typeof item.responseRequestObjectObserved === "boolean" &&
         Number.isInteger(item.responseStatus)) &&
       typeof routeLocal.opsResponseRequestObjectObserved === "boolean" &&
