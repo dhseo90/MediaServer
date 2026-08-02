@@ -16,6 +16,7 @@ import {
   captureClientLiveSessionResponseProjection,
   captureDiagnosticMarkerResponseProjection,
   captureEndpointOwnedResponseProjection,
+  captureOpsIncidentTimelineResponseProjection,
   createCaseOwnedRequestIdentityRegistry,
   formatSafeResponseReadFailure,
   nativeCapabilities,
@@ -77,7 +78,7 @@ check("explicit missing module fails without fallback", () => {
 });
 
 check("adapter exposes native wait click fill type select screenshot", () => {
-  for (const capability of ["wait", "click", "fill", "type", "select", "screenshot", "evaluate", "request-correlation", "request-start-ledger", "network-quiet", "role-session-switch"]) {
+  for (const capability of ["wait", "click", "fill", "type", "select", "screenshot", "evaluate", "request-correlation", "request-start-ledger", "request-action-ownership", "network-quiet", "role-session-switch"]) {
     assert(nativeCapabilities.includes(capability), `missing capability ${capability}`);
   }
   for (const snippet of ["waitForSelector", "page.locator(selector).click", "page.locator(selector).fill", "pressSequentially", "selectOption", "page.screenshot"]) {
@@ -103,6 +104,17 @@ check("adapter exposes native wait click fill type select screenshot", () => {
     "adapter invents a response correlation echo contract");
   for (const snippet of ["page.on(\"request\"", "pendingRequests", "correlatedEntryCount", "entry.correlationId === correlationId"]) {
     assert(adapterSource.includes(snippet), `adapter action-window source missing ${snippet}`);
+  }
+  for (const snippet of [
+    "clickWithRequestOwnership",
+    "initiatorActionId",
+    "renderCycleId",
+    "requestStartedAtMs",
+    "responseObservedAtMs",
+    "case-owned-refresh-action",
+    "__mediaServerDiagnosticOwnedRenderCycle",
+  ]) {
+    assert(adapterSource.includes(snippet), `adapter owned render-cycle source missing ${snippet}`);
   }
   for (const snippet of [
     "requestListenersInstalled = true",
@@ -490,6 +502,74 @@ check("endpoint-owned full product responses are projected only through the Play
       JSON.stringify(observed.entry.safeResponseBody)),
       `${method} ${pathname} persisted sensitive response material`);
   }
+});
+
+check("Ops timeline response projection preserves only safe EventRecord identity", async () => {
+  const pending = new Set();
+  const failures = [];
+  const entry = { status: 200 };
+  const request = {
+    method: () => "GET",
+  };
+  const response = {
+    request: () => request,
+    url: () => "http://runtime.invalid/ops/api/events/status?limit=5&includeArchives=1",
+    json: async () => ({
+      status: "ops-events",
+      records: {
+        matchedRecords: 1,
+        total: 1,
+        records: [{
+          eventId: "evt-023-review4-fixture",
+          eventType: "presence",
+          status: "open",
+          summary: "not-retained",
+        }],
+      },
+    }),
+  };
+  const read = captureOpsIncidentTimelineResponseProjection({
+    response,
+    entry,
+    pendingSafeResponseReads: pending,
+    safeResponseReadFailures: failures,
+  });
+  assert(read, "Ops timeline response did not enter the safe projection");
+  await read;
+  assert(failures.length === 0 && pending.size === 0 &&
+    entry.safeResponseProjectionSource === "playwright-response-json" &&
+    entry.safeResponseProjectionKind === "ops-incident-timeline-event-records" &&
+    entry.safeResponseForbiddenMaterialObserved === false &&
+    entry.safeResponseBody?.records?.records?.[0]?.eventId ===
+      "evt-023-review4-fixture" &&
+    !JSON.stringify(entry.safeResponseBody).includes("not-retained"),
+  "Ops timeline safe response projection drift");
+
+  const rejectedEntry = { status: 200 };
+  const rejectedFailures = [];
+  const rejected = captureOpsIncidentTimelineResponseProjection({
+    response: {
+      ...response,
+      json: async () => ({
+        records: {
+          matchedRecords: 1,
+          total: 1,
+          records: [{
+            eventId: "evt-023-review4-fixture",
+            eventType: "presence",
+            status: "open",
+            sourceUrl: "forbidden",
+          }],
+        },
+      }),
+    },
+    entry: rejectedEntry,
+    pendingSafeResponseReads: new Set(),
+    safeResponseReadFailures: rejectedFailures,
+  });
+  await rejected;
+  assert(rejectedFailures.length === 1 && !rejectedEntry.safeResponseBody,
+    "Ops timeline forbidden response material did not fail closed");
 });
 
 check("client WebRTC session responses retain only the safe protocol completion shape", async () => {

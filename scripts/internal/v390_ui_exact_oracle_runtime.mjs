@@ -182,7 +182,14 @@ export async function executeCatalogRuntimeOracle({
           before: primaryAction.before || null,
           after: primaryAction.after || null,
         }
-      : await executeTrustedInteraction(browser, item, spec, correlationId, runtimeBindings);
+      : await executeTrustedInteraction(
+          browser,
+          item,
+          spec,
+          actionId,
+          correlationId,
+          runtimeBindings,
+        );
     if (clientSafeCase) {
       const createdSessionId = [...primaryNetworkEntries, ...browser.networkEntries().slice(networkStart)]
         .find(entry => entry.phase === "response" && entry.method === "POST" &&
@@ -218,6 +225,7 @@ export async function executeCatalogRuntimeOracle({
         networkStart,
         primaryNetworkEntries,
         eventRuntimeContext,
+        interaction,
       );
       responses.push(observation.evidence);
       if (observation.evidence.requestCorrelationEvidence) {
@@ -630,7 +638,14 @@ function clientSafeFixtureValues(bindings) {
   };
 }
 
-async function executeTrustedInteraction(browser, item, spec, correlationId, runtimeBindings) {
+async function executeTrustedInteraction(
+  browser,
+  item,
+  spec,
+  actionId,
+  correlationId,
+  runtimeBindings,
+) {
   if (/^(CLIENT|MEDIA|SAFE)-/.test(item.caseId)) {
     return executeClientSafeInteraction(browser, item, spec, correlationId, runtimeBindings);
   }
@@ -641,6 +656,38 @@ async function executeTrustedInteraction(browser, item, spec, correlationId, run
   const before = await browser.snapshot(selector);
   assert(before.exists && before.visible && before.disabled === false,
     `${item.caseId} exact runtime refresh control is not actionable: ${selector}`);
+  const opsTimelinePath = "/ops/api/events/status?limit=5&includeArchives=1";
+  const ownsOpsTimelineRender = spec.route === "/ops/dashboard" &&
+    spec.requests.some(request =>
+      String(request.method || "GET").toUpperCase() === "GET" &&
+      expand(String(request.path || ""), runtimeBindings) === opsTimelinePath);
+  if (ownsOpsTimelineRender) {
+    assert(typeof browser.clickWithRequestOwnership === "function",
+      `${item.caseId} request-action ownership adapter is unavailable`);
+    const renderActionId = `${String(actionId || `${item.caseId}:runtime`)}:ops-timeline-refresh`;
+    const renderCorrelationId = `${String(correlationId || `${item.caseId}:runtime`)}:ops-timeline-refresh`;
+    const renderCycleId = `${renderActionId}:cycle-1`;
+    const opsTimelineRenderCycle = await browser.clickWithRequestOwnership({
+      selector,
+      actionId: renderActionId,
+      correlationId: renderCorrelationId,
+      renderCycleId,
+      targetMethod: "GET",
+      targetPath: opsTimelinePath,
+      renderSelector: "#dashIncidentTimeline",
+      expectedRenderPhase: "dom-committed",
+      minimumObservationMs: 500,
+      quietMs: 200,
+    });
+    const after = await browser.snapshot(selector);
+    return {
+      kind: "click",
+      selector,
+      before,
+      after,
+      opsTimelineRenderCycle,
+    };
+  }
   await browser.click(selector);
   await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
   const after = await browser.snapshot(selector);
@@ -1059,6 +1106,7 @@ async function observeRequest(
   networkStart,
   primaryNetworkEntries = [],
   eventRuntimeContext = null,
+  interaction = null,
 ) {
   const method = String(request.method || "GET").toUpperCase();
   const urlPath = expand(String(request.path || ""), bindings);
@@ -1076,7 +1124,84 @@ async function observeRequest(
     let contentType = "";
     let source = "";
     let requestCorrelationEvidence = null;
-    if (["GET", "HEAD"].includes(method)) {
+    const ownedOpsTimeline = interaction?.opsTimelineRenderCycle;
+    const useOwnedOpsTimelineResponse = method === "GET" &&
+      urlPath === "/ops/api/events/status?limit=5&includeArchives=1" &&
+      ownedOpsTimeline?.schema === "media-server.v390-ui-owned-request-render-cycle.v1";
+    if (useOwnedOpsTimelineResponse) {
+      const diagnosticReadbackActionId = `${actionId}:ops-timeline-authoritative-readback`;
+      const diagnosticReadbackCorrelationId =
+        `${correlationId}:ops-timeline-authoritative-readback`;
+      const diagnosticNetworkStart = browser.networkEntries().length;
+      const diagnosticReadback = await browser.request({
+        method,
+        urlPath,
+        actionId: diagnosticReadbackActionId,
+        correlationId: diagnosticReadbackCorrelationId,
+        ownershipKind: "diagnostic-authoritative-readback",
+      });
+      const diagnosticReadbackEvidence = assertCorrelatedRuntimeFetch({
+        browser,
+        item,
+        actionId: diagnosticReadbackActionId,
+        method,
+        urlPath,
+        correlationId: diagnosticReadbackCorrelationId,
+        networkStart: diagnosticNetworkStart,
+        status: diagnosticReadback.status,
+        requestResult: diagnosticReadback,
+      });
+      assert(diagnosticReadbackEvidence.pass === true &&
+        diagnosticReadbackEvidence.initiatingRequestActionId ===
+          diagnosticReadbackActionId &&
+        diagnosticReadbackEvidence.responseRequestActionId ===
+          diagnosticReadbackActionId,
+      `${item.caseId} diagnostic Ops timeline readback identity is incomplete`);
+      const ownedEntries = Array.isArray(ownedOpsTimeline.networkEntries)
+        ? ownedOpsTimeline.networkEntries
+        : [];
+      requestCorrelationEvidence = buildRequestCorrelationEvidence({
+        entries: ownedEntries,
+        actionId: ownedOpsTimeline.actionId,
+        expected: {
+          caseId: item.caseId,
+          method,
+          urlPath,
+          correlationId: ownedEntries.find(entry =>
+            entry.phase === "request-start" &&
+            entry.initiatorActionId === ownedOpsTimeline.actionId &&
+            entry.renderCycleId === ownedOpsTimeline.renderCycleId &&
+            runtimeRequestTarget(entry.url) === runtimeRequestTarget(urlPath))?.correlationId || "",
+          correlationRequired: true,
+          allowedStatuses,
+          requestKind: "application-fetch",
+          initiatorActionId: ownedOpsTimeline.actionId,
+          renderCycleId: ownedOpsTimeline.renderCycleId,
+        },
+        requestResult: {
+          actionId: ownedOpsTimeline.actionId,
+          requestAttemptCount: 1,
+          requestReissued: false,
+        },
+        listenerInstalledBeforeRequest: typeof browser.requestListenersInstalled === "function"
+          ? browser.requestListenersInstalled() === true
+          : browser.runtimeCorrelationOptionalForContract === true,
+      });
+      assert(requestCorrelationEvidence.pass,
+        `${item.caseId} owned Ops timeline response correlation failed: ${requestCorrelationEvidence.failureCode}`);
+      assert(ownedOpsTimeline.identityMatched === true &&
+        ownedOpsTimeline.responseRequestObjectObserved === true &&
+        ownedOpsTimeline.status === 200 &&
+        ownedOpsTimeline.safeResponseProjectionSource === "playwright-response-json" &&
+        ownedOpsTimeline.safeResponseProjectionKind === "ops-incident-timeline-event-records" &&
+        ownedOpsTimeline.safeResponseForbiddenMaterialObserved === false &&
+        ownedOpsTimeline.safeResponseBody,
+      `${item.caseId} owned Ops timeline response projection is incomplete`);
+      status = ownedOpsTimeline.status;
+      body = structuredClone(ownedOpsTimeline.safeResponseBody);
+      contentType = "application/json";
+      source = "case-owned-refresh-render-response";
+    } else if (["GET", "HEAD"].includes(method)) {
       const fetchNetworkStart = browser.networkEntries().length;
       const result = item.caseId === "EVT-004"
         ? await browser.request({
@@ -1375,6 +1500,7 @@ async function observeDom(
           const lifecycle = typeof dashboardIncidentTimelineLifecycle !== 'undefined'
             ? dashboardIncidentTimelineLifecycle
             : {};
+          const ownedRenderCycle = globalThis.__mediaServerDiagnosticOwnedRenderCycle || {};
           const digestIdentity = async value => {
             const bytes = new TextEncoder().encode(String(value || ''));
             const hash = await crypto.subtle.digest('SHA-256', bytes);
@@ -1402,6 +1528,17 @@ async function observeDom(
             sortedEventIdentityDigests: await identityDigests(lifecycle.sortedEventIdentities),
             boundedEventIdentityDigests: await identityDigests(lifecycle.boundedEventIdentities),
             domEventIdentityDigests: await identityDigests(lifecycle.domEventIdentities),
+            ownedRenderCycle: {
+              actionId: String(ownedRenderCycle.actionId || ''),
+              renderCycleId: String(ownedRenderCycle.renderCycleId || ''),
+              startedAtMs: Number(ownedRenderCycle.startedAtMs || 0),
+              completedAtMs: Number(ownedRenderCycle.completedAtMs || 0),
+              initialPhase: String(ownedRenderCycle.initialPhase || ''),
+              finalPhase: String(ownedRenderCycle.finalPhase || ''),
+              phaseMutationCount: Number(ownedRenderCycle.phaseMutationCount || 0),
+              domMutationCount: Number(ownedRenderCycle.domMutationCount || 0),
+              expectedPhaseMatched: ownedRenderCycle.expectedPhaseMatched === true,
+            },
             attributeNames,
           };
         })(),
@@ -2700,7 +2837,10 @@ function buildRouteLocalIncidentTimelineEvidence(
     bounded: fixtureMatchCount(boundedEventIdentityDigests),
     dom: fixtureMatchCount(domEventIdentityDigests),
   };
-  const opsResponseBinding = buildOpsIncidentTimelineResponseBinding(networkEntries);
+  const opsResponseBinding = buildOpsIncidentTimelineResponseBinding(
+    networkEntries,
+    observation?.ownedRenderCycle,
+  );
   const attributeNames = Array.isArray(observation?.attributeNames)
     ? [...new Set(observation.attributeNames.map(String).filter(Boolean))].sort()
     : [];
@@ -2764,6 +2904,16 @@ function buildRouteLocalIncidentTimelineEvidence(
     opsResponseCandidateCount: opsResponseBinding.responseCandidateCount,
     opsResponseRequestObjectObserved: opsResponseBinding.responseRequestObjectObserved,
     opsRequestResponseIdentityMatched: opsResponseBinding.identityMatched,
+    opsCaseOwnedRequestCandidateCount: opsResponseBinding.caseOwnedRequestCandidateCount,
+    opsCaseOwnedResponseCandidateCount: opsResponseBinding.caseOwnedResponseCandidateCount,
+    opsCorrelationRequestCandidateCount: opsResponseBinding.correlationRequestCandidateCount,
+    opsCorrelationResponseCandidateCount: opsResponseBinding.correlationResponseCandidateCount,
+    opsInitiatorActionId: opsResponseBinding.initiatorActionId,
+    opsRenderCycleId: opsResponseBinding.renderCycleId,
+    opsRenderCycleMatched: opsResponseBinding.renderCycleMatched,
+    opsRequestStartedAtMs: opsResponseBinding.requestStartedAtMs,
+    opsResponseObservedAtMs: opsResponseBinding.responseObservedAtMs,
+    opsRequestLedger: opsResponseBinding.requestLedger,
     storageOwner: "EventStorageApplicationService/QueryEventRecordsForApplication",
     clientOpsStorageOwnerShared: true,
     appliedQueryPredicates: ["limit=5", "includeArchives=true"],
@@ -2798,7 +2948,10 @@ function buildRouteLocalIncidentTimelineEvidence(
   };
 }
 
-function buildOpsIncidentTimelineResponseBinding(networkEntries = []) {
+function buildOpsIncidentTimelineResponseBinding(
+  networkEntries = [],
+  ownedRenderCycle = {},
+) {
   const endpointPath = "/ops/api/events/status?limit=5&includeArchives=1";
   const target = entry => {
     try {
@@ -2819,18 +2972,102 @@ function buildOpsIncidentTimelineResponseBinding(networkEntries = []) {
     entry?.method === "GET" &&
     entry?.requestKind === "application-fetch" &&
     target(entry) === endpointPath);
-  const request = requests.length === 1 ? requests[0] : null;
-  const response = responses.length === 1 ? responses[0] : null;
-  const identityMatched = Boolean(request && response &&
-    request.requestId && response.requestId === request.requestId &&
-    request.caseRequestIdentity &&
-    response.caseRequestIdentity === request.caseRequestIdentity &&
-    Number.isInteger(request.caseRequestSequence) &&
-    response.caseRequestSequence === request.caseRequestSequence &&
-    response.responseRequestObjectObserved === true &&
-    response.requestIdentitySource === "playwright-response-request");
+  const initiatorActionId = String(ownedRenderCycle?.actionId || "");
+  const renderCycleId = String(ownedRenderCycle?.renderCycleId || "");
+  const caseOwnedRequests = requests.filter(entry =>
+    entry?.initiatorActionId === initiatorActionId &&
+    entry?.renderCycleId === renderCycleId);
+  const caseOwnedResponses = responses.filter(entry =>
+    entry?.initiatorActionId === initiatorActionId &&
+    entry?.renderCycleId === renderCycleId);
+  const request = caseOwnedRequests.length === 1 ? caseOwnedRequests[0] : null;
+  const response = caseOwnedResponses.length === 1 ? caseOwnedResponses[0] : null;
+  const correlationId = String(request?.correlationId || "");
+  const correlationRequests = requests.filter(entry =>
+    correlationId && entry?.correlationId === correlationId);
+  const correlationResponses = responses.filter(entry =>
+    correlationId && entry?.correlationId === correlationId);
+  const scopedEntries = entries.filter(entry =>
+    entry?.initiatorActionId === initiatorActionId &&
+    entry?.renderCycleId === renderCycleId);
+  const correlationEvidence = buildRequestCorrelationEvidence({
+    entries: scopedEntries,
+    actionId: initiatorActionId,
+    expected: {
+      caseId: String(request?.caseRequestIdentity || "").split(":request-")[0],
+      method: "GET",
+      urlPath: endpointPath,
+      correlationId,
+      correlationRequired: true,
+      allowedStatuses: [200],
+      requestKind: "application-fetch",
+      initiatorActionId,
+      renderCycleId,
+    },
+    requestResult: {
+      actionId: initiatorActionId,
+      requestAttemptCount: caseOwnedRequests.length,
+      requestReissued: caseOwnedRequests.length !== 1,
+    },
+    listenerInstalledBeforeRequest: true,
+  });
+  const renderCycleMatched = Boolean(
+    initiatorActionId && renderCycleId &&
+    ownedRenderCycle?.expectedPhaseMatched === true &&
+    ownedRenderCycle?.finalPhase === "dom-committed" &&
+    Number(ownedRenderCycle?.phaseMutationCount || 0) >= 2 &&
+    Number(ownedRenderCycle?.domMutationCount || 0) >= 1 &&
+    Number(ownedRenderCycle?.startedAtMs || 0) > 0 &&
+    Number(ownedRenderCycle?.completedAtMs || 0) >=
+      Number(ownedRenderCycle?.startedAtMs || 0) &&
+    Number(request?.requestStartedAtMs || 0) >=
+      Number(ownedRenderCycle?.startedAtMs || 0) &&
+    Number(response?.responseObservedAtMs || 0) >=
+      Number(request?.requestStartedAtMs || 0),
+  );
+  const identityMatched = correlationEvidence.pass === true &&
+    correlationRequests.length === 1 &&
+    correlationResponses.length === 1;
+  const requestLedger = requests.map(requestEntry => {
+    const responseEntry = responses.find(candidate =>
+      candidate.requestId && candidate.requestId === requestEntry.requestId) || null;
+    const ownership = requestEntry.initiatorActionId === initiatorActionId &&
+        requestEntry.renderCycleId === renderCycleId
+      ? "case-owned-refresh-render"
+      : (requestEntry.requestOwnershipKind === "initial-page-load"
+        ? "initial-page-load"
+        : (requestEntry.initiatorActionId && !requestEntry.renderCycleId
+          ? "diagnostic-authoritative-readback"
+          : (requestEntry.requestOwnershipKind || "unowned-request")));
+    return {
+      ownership,
+      requestIdentityDigest: requestEntry.caseRequestIdentity
+        ? sha256Digest(String(requestEntry.caseRequestIdentity))
+        : "",
+      requestSequence: Number.isInteger(requestEntry.caseRequestSequence)
+        ? requestEntry.caseRequestSequence
+        : 0,
+      initiatorActionId: String(requestEntry.initiatorActionId || ""),
+      renderCycleId: String(requestEntry.renderCycleId || ""),
+      requestStartedAtMs: Number(requestEntry.requestStartedAtMs || 0),
+      responseObservedAtMs: Number(responseEntry?.responseObservedAtMs || 0),
+      method: String(requestEntry.method || ""),
+      path: endpointPath,
+      correlationPresent: Boolean(requestEntry.correlationId),
+      correlationDigest: requestEntry.correlationId
+        ? sha256Digest(String(requestEntry.correlationId))
+        : "",
+      responseRequestObjectObserved:
+        responseEntry?.responseRequestObjectObserved === true,
+      responseStatus: Number(responseEntry?.status || 0),
+    };
+  });
   return {
-    pass: identityMatched && response.status === 200,
+    pass: identityMatched && renderCycleMatched && response?.status === 200 &&
+      response?.safeResponseProjectionSource === "playwright-response-json" &&
+      response?.safeResponseProjectionKind ===
+        "ops-incident-timeline-event-records" &&
+      response?.safeResponseForbiddenMaterialObserved !== true,
     method: "GET",
     path: endpointPath,
     status: Number(response?.status || 0),
@@ -2842,8 +3079,18 @@ function buildOpsIncidentTimelineResponseBinding(networkEntries = []) {
       : 0,
     requestCandidateCount: requests.length,
     responseCandidateCount: responses.length,
+    caseOwnedRequestCandidateCount: caseOwnedRequests.length,
+    caseOwnedResponseCandidateCount: caseOwnedResponses.length,
+    correlationRequestCandidateCount: correlationRequests.length,
+    correlationResponseCandidateCount: correlationResponses.length,
     responseRequestObjectObserved: response?.responseRequestObjectObserved === true,
     identityMatched,
+    initiatorActionId,
+    renderCycleId,
+    renderCycleMatched,
+    requestStartedAtMs: Number(request?.requestStartedAtMs || 0),
+    responseObservedAtMs: Number(response?.responseObservedAtMs || 0),
+    requestLedger,
   };
 }
 
@@ -3351,6 +3598,30 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
       Number.isInteger(routeLocal.opsRequestSequence) &&
       Number.isInteger(routeLocal.opsRequestCandidateCount) &&
       Number.isInteger(routeLocal.opsResponseCandidateCount) &&
+      Number.isInteger(routeLocal.opsCaseOwnedRequestCandidateCount) &&
+      Number.isInteger(routeLocal.opsCaseOwnedResponseCandidateCount) &&
+      Number.isInteger(routeLocal.opsCorrelationRequestCandidateCount) &&
+      Number.isInteger(routeLocal.opsCorrelationResponseCandidateCount) &&
+      typeof routeLocal.opsInitiatorActionId === "string" &&
+      typeof routeLocal.opsRenderCycleId === "string" &&
+      typeof routeLocal.opsRenderCycleMatched === "boolean" &&
+      Number.isInteger(routeLocal.opsRequestStartedAtMs) &&
+      Number.isInteger(routeLocal.opsResponseObservedAtMs) &&
+      Array.isArray(routeLocal.opsRequestLedger) &&
+      routeLocal.opsRequestLedger.every(item =>
+        typeof item.ownership === "string" &&
+        /^[0-9a-f]{64}$/.test(item.requestIdentityDigest || "") &&
+        Number.isInteger(item.requestSequence) &&
+        typeof item.initiatorActionId === "string" &&
+        typeof item.renderCycleId === "string" &&
+        Number.isInteger(item.requestStartedAtMs) &&
+        Number.isInteger(item.responseObservedAtMs) &&
+        item.method === "GET" &&
+        item.path === "/ops/api/events/status?limit=5&includeArchives=1" &&
+        typeof item.correlationPresent === "boolean" &&
+        (!item.correlationPresent || /^[0-9a-f]{64}$/.test(item.correlationDigest || "")) &&
+        typeof item.responseRequestObjectObserved === "boolean" &&
+        Number.isInteger(item.responseStatus)) &&
       typeof routeLocal.opsResponseRequestObjectObserved === "boolean" &&
       typeof routeLocal.opsRequestResponseIdentityMatched === "boolean" &&
       routeLocal.storageOwner ===

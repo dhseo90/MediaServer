@@ -204,6 +204,31 @@ check("EVT-004 binds a response to the exact case-owned Playwright request witho
     exact.responseRequestCorrelationDigest === exact.expectedCorrelationDigest,
   "request/response correlation digests are not bound to the initiating request");
 
+  const initiatorActionId = "EVT-004:owned-refresh";
+  const renderCycleId = `${initiatorActionId}:cycle-1`;
+  const ownedRequest = { ...request, initiatorActionId, renderCycleId };
+  const ownedResponse = { ...response, initiatorActionId, renderCycleId };
+  const owned = evaluate([ownedRequest, ownedResponse], {
+    initiatorActionId,
+    renderCycleId,
+  });
+  assert(owned.pass === true &&
+    owned.initiatingRequestActionId === initiatorActionId &&
+    owned.responseRequestActionId === initiatorActionId &&
+    owned.initiatingRequestRenderCycleId === renderCycleId &&
+    owned.responseRequestRenderCycleId === renderCycleId,
+  "request/response action and render-cycle identity did not pass");
+  assert(evaluate([ownedRequest, ownedResponse], {
+    initiatorActionId: `${initiatorActionId}:stale`,
+    renderCycleId,
+  }).failureCode === "REQUEST_ACTION_ID_MISMATCH",
+  "stale initiating action ID did not fail closed");
+  assert(evaluate([ownedRequest, ownedResponse], {
+    initiatorActionId,
+    renderCycleId: `${renderCycleId}:stale`,
+  }).failureCode === "REQUEST_RENDER_CYCLE_MISMATCH",
+  "stale render-cycle ID did not fail closed");
+
   for (const [label, entries, failureCode, expectedOverrides = {}, resultOverrides = {}] of [
     ["same-path-other-request", [
       request,

@@ -1031,26 +1031,106 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     expectedNodeTokens: [eventId, "presence", "open"],
   };
   const fixtureRow = `presence · open eventId ${eventId}`;
-  const opsNetworkEntries = [{
+  const renderActionId = "EVT-023:assert-visible-read-model:ops-timeline-refresh";
+  const renderCycleId = `${renderActionId}:cycle-1`;
+  const renderCorrelationId = `${renderActionId}:correlation`;
+  const requestEntry = {
     phase: "request-start",
     requestId: "native-request-ops-status",
-    caseRequestIdentity: "EVT-023:request-ops-status",
+    caseRequestIdentity: "EVT-023:request-2",
     caseRequestSequence: 2,
     requestKind: "application-fetch",
+    correlationId: renderCorrelationId,
+    correlationSource: "request-header",
+    requestHeaderDigest: digest(renderCorrelationId),
+    initiatorActionId: renderActionId,
+    renderCycleId,
+    requestOwnershipKind: "case-owned-refresh-action",
+    requestStartedAtMs: 1000,
     method: "GET",
     url: "http://runtime.invalid/ops/api/events/status?limit=5&includeArchives=1",
-  }, {
+  };
+  const responseEntry = {
     phase: "response",
     requestId: "native-request-ops-status",
-    caseRequestIdentity: "EVT-023:request-ops-status",
+    caseRequestIdentity: "EVT-023:request-2",
     caseRequestSequence: 2,
     responseRequestObjectObserved: true,
     requestIdentitySource: "playwright-response-request",
     requestKind: "application-fetch",
+    correlationId: renderCorrelationId,
+    correlationSource: "request-header",
+    responseCorrelationSource: "initiating-request-identity",
+    requestHeaderDigest: digest(renderCorrelationId),
+    initiatorActionId: renderActionId,
+    renderCycleId,
+    requestOwnershipKind: "case-owned-refresh-action",
+    requestStartedAtMs: 1000,
+    responseObservedAtMs: 1100,
     method: "GET",
     status: 200,
+    safeResponseProjectionSource: "playwright-response-json",
+    safeResponseProjectionKind: "ops-incident-timeline-event-records",
+    safeResponseForbiddenMaterialObserved: false,
     url: "http://runtime.invalid/ops/api/events/status?limit=5&includeArchives=1",
+  };
+  const unrelatedPair = ({
+    requestId,
+    identity,
+    sequence,
+    ownershipKind,
+    initiatorActionId = "",
+    correlationId = "",
+    startedAtMs,
+  }) => [{
+    ...requestEntry,
+    requestId,
+    caseRequestIdentity: identity,
+    caseRequestSequence: sequence,
+    correlationId,
+    correlationSource: correlationId ? "request-header" : "none",
+    requestHeaderDigest: correlationId ? digest(correlationId) : "",
+    initiatorActionId,
+    renderCycleId: "",
+    requestOwnershipKind: ownershipKind,
+    requestStartedAtMs: startedAtMs,
+  }, {
+    ...responseEntry,
+    requestId,
+    caseRequestIdentity: identity,
+    caseRequestSequence: sequence,
+    correlationId,
+    correlationSource: correlationId ? "request-header" : "none",
+    responseCorrelationSource: correlationId
+      ? "initiating-request-identity"
+      : "none",
+    requestHeaderDigest: correlationId ? digest(correlationId) : "",
+    initiatorActionId,
+    renderCycleId: "",
+    requestOwnershipKind: ownershipKind,
+    requestStartedAtMs: startedAtMs,
+    responseObservedAtMs: startedAtMs + 50,
   }];
+  const opsNetworkEntries = [
+    ...unrelatedPair({
+      requestId: "native-request-initial-load",
+      identity: "EVT-023:request-1",
+      sequence: 1,
+      ownershipKind: "initial-page-load",
+      startedAtMs: 100,
+    }),
+    requestEntry,
+    responseEntry,
+    ...unrelatedPair({
+      requestId: "native-request-diagnostic-readback",
+      identity: "EVT-023:request-3",
+      sequence: 3,
+      ownershipKind: "diagnostic-authoritative-readback",
+      initiatorActionId: "EVT-023:diagnostic-authoritative-readback",
+      correlationId: "EVT-023:diagnostic-authoritative-readback:correlation",
+      startedAtMs: 1300,
+    }),
+  ];
   const observed = {
     count: 2,
     visibleCount: 2,
@@ -1077,13 +1157,24 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
         domEventIdentityDigests: [unrelatedDigest, fixtureDigest],
         incidentInputCounts: JSON.stringify({ "event-record": 2, "root-cause": 2 }),
         incidentBoundedCounts: JSON.stringify({ "event-record": 2, "root-cause": 2 }),
+        ownedRenderCycle: {
+          actionId: renderActionId,
+          renderCycleId,
+          startedAtMs: 900,
+          completedAtMs: 1200,
+          initialPhase: "dom-committed",
+          finalPhase: "dom-committed",
+          phaseMutationCount: 2,
+          domMutationCount: 1,
+          expectedPhaseMatched: true,
+        },
         attributeNames: ["class", "data-incident-unit", "data-incident-workflow"],
       },
     },
   };
   const evidenceFor = ({ rows = [{ eventId: "unrelated", eventType: "motion", status: "closed" },
     { eventId, eventType: "presence", status: "open" }], dom = observed,
-  identity = fixtureIdentity } = {}) => buildEventDomSemanticCompositeEvidence({
+  identity = fixtureIdentity, network = opsNetworkEntries } = {}) => buildEventDomSemanticCompositeEvidence({
     selector: '#dashIncidentTimeline [data-incident-unit="event-record"]',
     observed: dom,
     responseBodies: [{ records: { records: rows } }],
@@ -1091,7 +1182,7 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     fixtureCandidates: [eventId],
     fixtureIdentity: identity,
     fixtureRequired: true,
-    networkEntries: opsNetworkEntries,
+    networkEntries: network,
     actualBrowserExecution: true,
   });
 
@@ -1113,8 +1204,22 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     passing.routeLocalDomBinding.opsEndpointPath ===
       "/ops/api/events/status?limit=5&includeArchives=1" &&
     passing.routeLocalDomBinding.opsResponseStatus === 200 &&
-    passing.routeLocalDomBinding.opsRequestCandidateCount === 1 &&
-    passing.routeLocalDomBinding.opsResponseCandidateCount === 1 &&
+    passing.routeLocalDomBinding.opsRequestCandidateCount === 3 &&
+    passing.routeLocalDomBinding.opsResponseCandidateCount === 3 &&
+    passing.routeLocalDomBinding.opsCaseOwnedRequestCandidateCount === 1 &&
+    passing.routeLocalDomBinding.opsCaseOwnedResponseCandidateCount === 1 &&
+    passing.routeLocalDomBinding.opsCorrelationRequestCandidateCount === 1 &&
+    passing.routeLocalDomBinding.opsCorrelationResponseCandidateCount === 1 &&
+    passing.routeLocalDomBinding.opsInitiatorActionId === renderActionId &&
+    passing.routeLocalDomBinding.opsRenderCycleId === renderCycleId &&
+    passing.routeLocalDomBinding.opsRenderCycleMatched === true &&
+    passing.routeLocalDomBinding.opsRequestLedger.length === 3 &&
+    JSON.stringify(passing.routeLocalDomBinding.opsRequestLedger.map(item => item.ownership)) ===
+      JSON.stringify([
+        "initial-page-load",
+        "case-owned-refresh-render",
+        "diagnostic-authoritative-readback",
+      ]) &&
     passing.routeLocalDomBinding.opsResponseRequestObjectObserved === true &&
     passing.routeLocalDomBinding.opsRequestResponseIdentityMatched === true &&
     passing.routeLocalDomBinding.clientOpsStorageOwnerShared === true &&
@@ -1162,6 +1267,9 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
           domEventIdentityDigests: [],
           incidentInputCounts: JSON.stringify({ "event-record": 1, "root-cause": 3 }),
           incidentBoundedCounts: JSON.stringify({ "root-cause": 3, "source-health": 3, "rule-warning": 2 }),
+          ownedRenderCycle: structuredClone(
+            observed.properties.routeLocalIncidentTimeline.ownedRenderCycle,
+          ),
           attributeNames: ["class", "data-incident-unit", "data-incident-workflow"],
         },
       },
@@ -1234,33 +1342,116 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
       "lifecycle-evidence-unavailable",
   "missing lifecycle instrumentation was misclassified as an authoritative zero response");
 
-  const duplicateOpsResponse = evidenceFor({});
-  const duplicateNetworkEntries = [...opsNetworkEntries, {
-    ...opsNetworkEntries[1],
-    requestId: "native-request-ops-status-duplicate",
-    caseRequestIdentity: "EVT-023:request-ops-status-duplicate",
-    caseRequestSequence: 3,
-  }];
-  const responseBindingFailure = buildEventDomSemanticCompositeEvidence({
-    selector: '#dashIncidentTimeline [data-incident-unit="event-record"]',
-    observed,
-    responseBodies: [{ records: { records: [
-      { eventId: "unrelated", eventType: "motion", status: "closed" },
-      { eventId, eventType: "presence", status: "open" },
-    ] } }],
-    priorResponseByPath: { "eventId/eventType/status": baseline },
-    fixtureCandidates: [eventId],
-    fixtureIdentity,
-    fixtureRequired: true,
-    networkEntries: duplicateNetworkEntries,
-    actualBrowserExecution: true,
-  });
-  assert(duplicateOpsResponse.pass === true && responseBindingFailure.pass === false &&
-    responseBindingFailure.routeLocalDomBinding.failureCode ===
-      "OPS_INCIDENT_TIMELINE_RESPONSE_BINDING_MISMATCH" &&
-    responseBindingFailure.routeLocalDomBinding.firstExclusionPredicate ===
-      "ops-authoritative-response-binding",
-  "duplicate Ops response identity did not fail closed");
+  const bindingEvidenceFor = ({ network = opsNetworkEntries, owned = {} } = {}) =>
+    evidenceFor({
+      network,
+      dom: {
+        ...observed,
+        properties: {
+          routeLocalIncidentTimeline: {
+            ...observed.properties.routeLocalIncidentTimeline,
+            ownedRenderCycle: {
+              ...observed.properties.routeLocalIncidentTimeline.ownedRenderCycle,
+              ...owned,
+            },
+          },
+        },
+      },
+    });
+  const assertResponseBindingFailure = (evidence, label) => {
+    assert(evidence.pass === false &&
+      evidence.routeLocalDomBinding.failureCode ===
+        "OPS_INCIDENT_TIMELINE_RESPONSE_BINDING_MISMATCH" &&
+      evidence.routeLocalDomBinding.firstExclusionPredicate ===
+        "ops-authoritative-response-binding",
+    `${label} did not fail closed`);
+  };
+  assert(bindingEvidenceFor().pass === true,
+    "multiple unrelated same-path requests invalidated the exact owned response");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: [...opsNetworkEntries, {
+      ...requestEntry,
+      requestId: "native-request-owned-duplicate",
+      caseRequestIdentity: "EVT-023:request-4",
+      caseRequestSequence: 4,
+      requestStartedAtMs: 1010,
+    }, {
+      ...responseEntry,
+      requestId: "native-request-owned-duplicate",
+      caseRequestIdentity: "EVT-023:request-4",
+      caseRequestSequence: 4,
+      requestStartedAtMs: 1010,
+      responseObservedAtMs: 1110,
+    }],
+  }), "duplicate case-owned request/response");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: opsNetworkEntries.map(entry =>
+      entry.initiatorActionId === renderActionId
+        ? { ...entry, initiatorActionId: `${renderActionId}:stale` }
+        : entry),
+  }), "case-owned request missing");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: opsNetworkEntries.map(entry =>
+      entry === responseEntry
+        ? { ...entry, responseRequestObjectObserved: false }
+        : entry),
+  }), "response request object missing");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: opsNetworkEntries.map(entry =>
+      entry === responseEntry
+        ? { ...entry, caseRequestSequence: 99 }
+        : entry),
+  }), "stale response sequence");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    owned: { actionId: `${renderActionId}:stale` },
+  }), "stale render action ID");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    owned: { renderCycleId: `${renderCycleId}:stale` },
+  }), "response/render-cycle identity mismatch");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: opsNetworkEntries.map(entry =>
+      entry === responseEntry ? { ...entry, status: 500 } : entry),
+  }), "wrong response status");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: opsNetworkEntries.map(entry =>
+      [requestEntry, responseEntry].includes(entry)
+        ? { ...entry, method: "POST" }
+        : entry),
+  }), "wrong request method");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: opsNetworkEntries.map(entry =>
+      [requestEntry, responseEntry].includes(entry)
+        ? { ...entry, url: "http://runtime.invalid/ops/api/events/status?limit=50" }
+        : entry),
+  }), "wrong request path");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: [...opsNetworkEntries, ...unrelatedPair({
+      requestId: "native-request-correlation-duplicate",
+      identity: "EVT-023:request-4",
+      sequence: 4,
+      ownershipKind: "polling",
+      initiatorActionId: "EVT-023:polling",
+      correlationId: renderCorrelationId,
+      startedAtMs: 1050,
+    })],
+  }), "same correlation duplicate");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: opsNetworkEntries.map(entry =>
+      entry === responseEntry
+        ? {
+            ...entry,
+            requestId: "native-request-initial-load",
+            caseRequestIdentity: "EVT-023:request-1",
+            caseRequestSequence: 1,
+          }
+        : entry),
+  }), "unrelated polling response selection");
+  assertResponseBindingFailure(bindingEvidenceFor({
+    network: opsNetworkEntries.map(entry =>
+      entry === responseEntry
+        ? { ...entry, safeResponseProjectionSource: "" }
+        : entry),
+  }), "missing response projection sentinel");
 
   const noFixtureMatch = evidenceFor({
     dom: {
@@ -1394,24 +1585,46 @@ await check("EVT-026 reuses the exact EventRecord lifecycle preservation contrac
   const eventId = "evt-026-review4-fixture";
   const fixtureDigest = crypto.createHash("sha256").update(eventId).digest("hex");
   const fixtureRow = `presence · open eventId ${eventId}`;
+  const renderActionId = "EVT-026:assert-visible-read-model:ops-timeline-refresh";
+  const renderCycleId = `${renderActionId}:cycle-1`;
+  const correlationId = `${renderActionId}:correlation`;
   const opsNetworkEntries = [{
     phase: "request-start",
     requestId: "native-request-ops-status",
-    caseRequestIdentity: "EVT-026:request-ops-status",
+    caseRequestIdentity: "EVT-026:request-2",
     caseRequestSequence: 2,
     requestKind: "application-fetch",
+    correlationId,
+    correlationSource: "request-header",
+    requestHeaderDigest: crypto.createHash("sha256").update(correlationId).digest("hex"),
+    initiatorActionId: renderActionId,
+    renderCycleId,
+    requestOwnershipKind: "case-owned-refresh-action",
+    requestStartedAtMs: 1000,
     method: "GET",
     url: "http://runtime.invalid/ops/api/events/status?limit=5&includeArchives=1",
   }, {
     phase: "response",
     requestId: "native-request-ops-status",
-    caseRequestIdentity: "EVT-026:request-ops-status",
+    caseRequestIdentity: "EVT-026:request-2",
     caseRequestSequence: 2,
     responseRequestObjectObserved: true,
     requestIdentitySource: "playwright-response-request",
     requestKind: "application-fetch",
+    correlationId,
+    correlationSource: "request-header",
+    responseCorrelationSource: "initiating-request-identity",
+    requestHeaderDigest: crypto.createHash("sha256").update(correlationId).digest("hex"),
+    initiatorActionId: renderActionId,
+    renderCycleId,
+    requestOwnershipKind: "case-owned-refresh-action",
+    requestStartedAtMs: 1000,
+    responseObservedAtMs: 1100,
     method: "GET",
     status: 200,
+    safeResponseProjectionSource: "playwright-response-json",
+    safeResponseProjectionKind: "ops-incident-timeline-event-records",
+    safeResponseForbiddenMaterialObserved: false,
     url: "http://runtime.invalid/ops/api/events/status?limit=5&includeArchives=1",
   }];
   const baseline = {
@@ -1457,6 +1670,17 @@ await check("EVT-026 reuses the exact EventRecord lifecycle preservation contrac
         sortedEventIdentityDigests: [fixtureDigest],
         boundedEventIdentityDigests: [fixtureDigest],
         domEventIdentityDigests: [fixtureDigest],
+        ownedRenderCycle: {
+          actionId: renderActionId,
+          renderCycleId,
+          startedAtMs: 900,
+          completedAtMs: 1200,
+          initialPhase: "dom-committed",
+          finalPhase: "dom-committed",
+          phaseMutationCount: 2,
+          domMutationCount: 1,
+          expectedPhaseMatched: true,
+        },
         attributeNames: ["class", "data-incident-event-id", "data-incident-unit", "data-incident-workflow"],
       },
     },

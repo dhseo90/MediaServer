@@ -25,6 +25,7 @@ export const nativeCapabilities = [
   "live-video-session-evidence",
   "request-correlation",
   "request-start-ledger",
+  "request-action-ownership",
   "network-quiet",
   "role-session-switch",
 ];
@@ -493,6 +494,7 @@ async function openNativePlaywrightPage(playwright, {
   let activeNavigationOperation = null;
   let activeCorrelationId = String(navigationCorrelationId || "");
   let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId);
+  let activeRequestOwnership = null;
   const documentNavigationLedger = [];
   const documentNavigationByRequestId = new Map();
   let documentNavigationAfterListenerEndCount = 0;
@@ -568,6 +570,15 @@ async function openNativePlaywrightPage(playwright, {
       request.headers()["x-media-server-correlation-id"] || "");
     const identity = requestIdentity(request);
     const requestId = identity.requestId;
+    const requestStartedAtMs = Date.now();
+    const implicitPageLoadOwnership = !activeRequestOwnership && activeNavigationOperation
+      ? {
+          actionId: `${String(activeNavigationOperation.invocationId || "initial-navigation")}:page-load`,
+          renderCycleId: "",
+          ownershipKind: "initial-page-load",
+        }
+      : null;
+    const requestOwnership = activeRequestOwnership || implicitPageLoadOwnership;
     const redirectedFrom = request.redirectedFrom();
     const requestKind = request.isNavigationRequest() && request.frame() === page.mainFrame()
       ? "document-navigation"
@@ -579,6 +590,10 @@ async function openNativePlaywrightPage(playwright, {
       correlationId,
       requestHeaderDigest,
       correlationInjectionSource: String(routeInjectedCorrelation?.correlationInjectionSource || ""),
+      initiatorActionId: String(requestOwnership?.actionId || ""),
+      renderCycleId: String(requestOwnership?.renderCycleId || ""),
+      requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
+      requestStartedAtMs,
       requestKind,
       method: request.method(),
       path: urlTarget(request.url()),
@@ -596,6 +611,10 @@ async function openNativePlaywrightPage(playwright, {
       correlationSource: correlationId ? 'request-header' : 'none',
       correlationInjectionSource: String(routeInjectedCorrelation?.correlationInjectionSource || ""),
       requestHeaderDigest,
+      initiatorActionId: String(requestOwnership?.actionId || ""),
+      renderCycleId: String(requestOwnership?.renderCycleId || ""),
+      requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
+      requestStartedAtMs,
       method: request.method(),
       status: 0,
       url: request.url(),
@@ -662,6 +681,11 @@ async function openNativePlaywrightPage(playwright, {
       requestHeaderDigest: String(initiatingRequest?.requestHeaderDigest || ""),
       responseEchoHeaderContract: "not-required",
       responseEchoHeaderObserved: false,
+      initiatorActionId: String(initiatingRequest?.initiatorActionId || ""),
+      renderCycleId: String(initiatingRequest?.renderCycleId || ""),
+      requestOwnershipKind: String(initiatingRequest?.requestOwnershipKind || ""),
+      requestStartedAtMs: Number(initiatingRequest?.requestStartedAtMs || 0),
+      responseObservedAtMs: Date.now(),
       method: request.method(),
       status: response.status(),
       httpOk: response.ok(),
@@ -693,6 +717,13 @@ async function openNativePlaywrightPage(playwright, {
     });
     if (endpointOwnedProjection) {
       // 공용 response listener projection이 endpoint-action evidence를 소유한다.
+    } else if (captureOpsIncidentTimelineResponseProjection({
+      response,
+      entry,
+      pendingSafeResponseReads,
+      safeResponseReadFailures,
+    })) {
+      // Ops timeline refresh response는 raw payload 없이 EventRecord safe projection만 보존한다.
     } else if (captureDiagnosticMarkerResponseProjection({
       response,
       entry,
@@ -886,6 +917,205 @@ async function openNativePlaywrightPage(playwright, {
       activeCorrelationId = String(correlationId || "");
       activeCorrelationInjectionEnabled = Boolean(activeCorrelationId) && inject === true;
     },
+    clickWithRequestOwnership: async ({
+      selector,
+      actionId,
+      correlationId,
+      renderCycleId,
+      targetMethod = "GET",
+      targetPath,
+      renderSelector = "",
+      expectedRenderPhase = "dom-committed",
+      minimumObservationMs = 500,
+      quietMs = 200,
+    } = {}) => {
+      const ownedActionId = String(actionId || "");
+      const ownedCorrelationId = String(correlationId || "");
+      const ownedRenderCycleId = String(renderCycleId || "");
+      const expectedMethod = String(targetMethod || "GET").toUpperCase();
+      const expectedPath = urlTarget(String(targetPath || ""));
+      if (!ownedActionId || !ownedCorrelationId || !ownedRenderCycleId || !expectedPath) {
+        throw new Error("owned request action/correlation/render-cycle binding is incomplete");
+      }
+      if (activeRequestOwnership) {
+        throw new Error("nested request action ownership is forbidden");
+      }
+      const previousCorrelationId = activeCorrelationId;
+      const previousCorrelationInjectionEnabled = activeCorrelationInjectionEnabled;
+      const networkStart = networkEntries.length;
+      const actionStartedAtMs = Date.now();
+      if (renderSelector) {
+        await page.evaluate(({ ownedActionId: browserActionId, ownedRenderCycleId: browserCycleId, renderSelector: browserSelector }) => {
+          const previous = globalThis.__mediaServerDiagnosticOwnedRenderCycle;
+          if (previous?.observer && typeof previous.observer.disconnect === "function") {
+            previous.observer.disconnect();
+          }
+          const owner = document.querySelector(browserSelector);
+          if (!owner) throw new Error(`owned render selector missing: ${browserSelector}`);
+          const tracker = {
+            actionId: browserActionId,
+            renderCycleId: browserCycleId,
+            startedAtMs: Date.now(),
+            phaseMutationCount: 0,
+            domMutationCount: 0,
+            initialPhase: String(owner.getAttribute("data-incident-render-phase") || ""),
+            finalPhase: "",
+            completedAtMs: 0,
+            observer: null,
+          };
+          tracker.observer = new MutationObserver(records => {
+            for (const record of records) {
+              if (record.type === "attributes" && record.attributeName === "data-incident-render-phase") {
+                tracker.phaseMutationCount += 1;
+              }
+              if (record.type === "childList") tracker.domMutationCount += 1;
+            }
+          });
+          tracker.observer.observe(owner, {
+            attributes: true,
+            attributeFilter: ["data-incident-render-phase"],
+            childList: true,
+            subtree: true,
+          });
+          globalThis.__mediaServerDiagnosticOwnedRenderCycle = tracker;
+        }, {
+          ownedActionId,
+          ownedRenderCycleId,
+          renderSelector,
+        });
+      }
+      activeRequestOwnership = {
+        actionId: ownedActionId,
+        renderCycleId: ownedRenderCycleId,
+        ownershipKind: "case-owned-refresh-action",
+      };
+      activeCorrelationId = ownedCorrelationId;
+      activeCorrelationInjectionEnabled = true;
+      try {
+        await page.locator(String(selector || "")).click();
+        const quietDeadline = Date.now() + timeoutMs;
+        let lastEntryCount = networkEntries.length;
+        let quietStartedAt = Date.now();
+        let quietObserved = false;
+        while (Date.now() < quietDeadline) {
+          const currentEntryCount = networkEntries.length;
+          if (currentEntryCount !== lastEntryCount) {
+            lastEntryCount = currentEntryCount;
+            quietStartedAt = Date.now();
+          }
+          const actionPending = [...pendingRequests.values()].some(item =>
+            item.initiatorActionId === ownedActionId &&
+            item.renderCycleId === ownedRenderCycleId);
+          if (Date.now() - actionStartedAtMs >= minimumObservationMs &&
+              !actionPending && pendingSafeResponseReads.size === 0 &&
+              Date.now() - quietStartedAt >= quietMs) {
+            quietObserved = true;
+            break;
+          }
+          await page.waitForTimeout(25);
+        }
+        if (!quietObserved) {
+          throw new Error(`owned request action network quiet timeout: ${ownedActionId}`);
+        }
+        if (safeResponseReadFailures.length > 0) {
+          throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
+        }
+        if (renderSelector) {
+          await page.waitForFunction(({ browserSelector, browserExpectedPhase }) =>
+            document.querySelector(browserSelector)?.getAttribute("data-incident-render-phase") === browserExpectedPhase,
+          { browserSelector: renderSelector, browserExpectedPhase: expectedRenderPhase },
+          { timeout: timeoutMs });
+        }
+        const scopedEntries = networkEntries.slice(networkStart);
+        const requests = scopedEntries.filter(entry =>
+          entry.phase === "request-start" &&
+          entry.method === expectedMethod &&
+          urlTarget(entry.url) === expectedPath &&
+          entry.initiatorActionId === ownedActionId &&
+          entry.renderCycleId === ownedRenderCycleId);
+        const responses = scopedEntries.filter(entry =>
+          entry.phase === "response" &&
+          entry.method === expectedMethod &&
+          urlTarget(entry.url) === expectedPath &&
+          entry.initiatorActionId === ownedActionId &&
+          entry.renderCycleId === ownedRenderCycleId);
+        const request = requests.length === 1 ? requests[0] : null;
+        const response = responses.length === 1 ? responses[0] : null;
+        const identityMatched = Boolean(request && response &&
+          response.responseRequestObjectObserved === true &&
+          response.requestIdentitySource === "playwright-response-request" &&
+          response.requestId === request.requestId &&
+          response.caseRequestIdentity === request.caseRequestIdentity &&
+          response.caseRequestSequence === request.caseRequestSequence);
+        const renderObservation = renderSelector
+          ? await page.evaluate(({ browserExpectedPhase, browserSelector }) => {
+              const tracker = globalThis.__mediaServerDiagnosticOwnedRenderCycle || {};
+              tracker.observer?.disconnect?.();
+              tracker.finalPhase = String(document.querySelector(browserSelector)?.getAttribute("data-incident-render-phase") || "");
+              tracker.completedAtMs = Date.now();
+              const safe = {
+                actionId: String(tracker.actionId || ""),
+                renderCycleId: String(tracker.renderCycleId || ""),
+                startedAtMs: Number(tracker.startedAtMs || 0),
+                completedAtMs: Number(tracker.completedAtMs || 0),
+                initialPhase: String(tracker.initialPhase || ""),
+                finalPhase: String(tracker.finalPhase || ""),
+                phaseMutationCount: Number(tracker.phaseMutationCount || 0),
+                domMutationCount: Number(tracker.domMutationCount || 0),
+                expectedPhaseMatched: tracker.finalPhase === browserExpectedPhase,
+              };
+              globalThis.__mediaServerDiagnosticOwnedRenderCycle = safe;
+              return safe;
+            }, {
+              browserExpectedPhase: expectedRenderPhase,
+              browserSelector: renderSelector,
+            })
+          : null;
+        const result = {
+          schema: "media-server.v390-ui-owned-request-render-cycle.v1",
+          actionId: ownedActionId,
+          renderCycleId: ownedRenderCycleId,
+          correlationDigest: createHash("sha256").update(ownedCorrelationId).digest("hex"),
+          method: expectedMethod,
+          path: expectedPath,
+          requestCandidateCount: requests.length,
+          responseCandidateCount: responses.length,
+          requestIdentityDigest: request?.caseRequestIdentity
+            ? createHash("sha256").update(String(request.caseRequestIdentity)).digest("hex")
+            : "",
+          requestSequence: Number.isInteger(request?.caseRequestSequence)
+            ? request.caseRequestSequence
+            : 0,
+          requestStartedAtMs: Number(request?.requestStartedAtMs || 0),
+          responseObservedAtMs: Number(response?.responseObservedAtMs || 0),
+          status: Number(response?.status || 0),
+          responseRequestObjectObserved: response?.responseRequestObjectObserved === true,
+          identityMatched,
+          renderObservation,
+          safeResponseProjectionSource: String(response?.safeResponseProjectionSource || ""),
+          safeResponseProjectionKind: String(response?.safeResponseProjectionKind || ""),
+          safeResponseForbiddenMaterialObserved:
+            response?.safeResponseForbiddenMaterialObserved === true,
+          safeResponseBody: response?.safeResponseBody
+            ? structuredClone(response.safeResponseBody)
+            : null,
+        };
+        Object.defineProperty(result, "networkEntries", {
+          value: scopedEntries.map(entry => ({ ...entry })),
+          enumerable: false,
+        });
+        return result;
+      } finally {
+        activeRequestOwnership = null;
+        activeCorrelationId = previousCorrelationId;
+        activeCorrelationInjectionEnabled = previousCorrelationInjectionEnabled;
+        if (renderSelector) {
+          await page.evaluate(() => {
+            globalThis.__mediaServerDiagnosticOwnedRenderCycle?.observer?.disconnect?.();
+          }).catch(() => {});
+        }
+      }
+    },
     armDiagnosticMarkerProbe: ({
       caseId: probeCaseId,
       marker,
@@ -937,41 +1167,56 @@ async function openNativePlaywrightPage(playwright, {
       urlPath,
       actionId = "",
       correlationId = "",
+      renderCycleId = "",
+      ownershipKind = "diagnostic-authoritative-readback",
     }) => {
       const requestMethod = String(method).toUpperCase();
       const requestPath = String(urlPath);
       const expectedPath = urlTarget(requestPath);
       const networkStart = networkEntries.length;
       const startedAt = Date.now();
-      const response = await page.evaluate(async ({
-        requestMethod: evaluatedMethod,
-        requestPath: evaluatedPath,
-        requestCorrelationId,
-      }) => {
-        const result = await fetch(evaluatedPath, {
-          method: evaluatedMethod,
-          credentials: "same-origin",
-          cache: "no-store",
-          redirect: "follow",
-          headers: requestCorrelationId
-            ? { "x-media-server-correlation-id": requestCorrelationId }
-            : {},
+      if (activeRequestOwnership) {
+        throw new Error("nested request action ownership is forbidden");
+      }
+      activeRequestOwnership = {
+        actionId: String(actionId || ""),
+        renderCycleId: String(renderCycleId || ""),
+        ownershipKind: String(ownershipKind || "diagnostic-authoritative-readback"),
+      };
+      let response;
+      try {
+        response = await page.evaluate(async ({
+          requestMethod: evaluatedMethod,
+          requestPath: evaluatedPath,
+          requestCorrelationId,
+        }) => {
+          const result = await fetch(evaluatedPath, {
+            method: evaluatedMethod,
+            credentials: "same-origin",
+            cache: "no-store",
+            redirect: "follow",
+            headers: requestCorrelationId
+              ? { "x-media-server-correlation-id": requestCorrelationId }
+              : {},
+          });
+          const text = await result.text();
+          let json = null;
+          try { json = text ? JSON.parse(text) : null; } catch (_) {}
+          return {
+            status: result.status,
+            url: result.url,
+            text,
+            json,
+            contentType: result.headers.get("content-type") || "",
+          };
+        }, {
+          requestMethod,
+          requestPath,
+          requestCorrelationId: String(correlationId || ""),
         });
-        const text = await result.text();
-        let json = null;
-        try { json = text ? JSON.parse(text) : null; } catch (_) {}
-        return {
-          status: result.status,
-          url: result.url,
-          text,
-          json,
-          contentType: result.headers.get("content-type") || "",
-        };
-      }, {
-        requestMethod,
-        requestPath,
-        requestCorrelationId: String(correlationId || ""),
-      });
+      } finally {
+        activeRequestOwnership = null;
+      }
       const deadline = Date.now() + Math.min(timeoutMs, 1000);
       let ledgerSettled = false;
       while (Date.now() <= deadline) {
@@ -1784,6 +2029,94 @@ export function captureEndpointOwnedResponseProjection({
       delete entry.safeResponseBody;
       delete entry.safeResponseProjectionSource;
       delete entry.safeResponseProjectionKind;
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+const opsIncidentTimelineForbiddenResponseKeys = new Set([
+  "sourceUrl",
+  "rawJson",
+  "debugMaterial",
+  "debugCounters",
+  "providerPrompt",
+  "providerResponse",
+  "providerMaterial",
+  "credential",
+  "authorization",
+  "password",
+  "sessionSecret",
+  "tokenHash",
+]);
+
+export function captureOpsIncidentTimelineResponseProjection({
+  response,
+  entry,
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  const request = response?.request?.();
+  const method = String(request?.method?.() || "").toUpperCase();
+  const target = urlTarget(response?.url?.() || "");
+  const expectedTarget = "/ops/api/events/status?limit=5&includeArchives=1";
+  if (method !== "GET" || target !== expectedTarget) return null;
+  const actualStatus = Number(entry?.status || 0);
+  entry.safeResponseProjectionKind = "ops-incident-timeline-event-records";
+  entry.safeResponseExpectedStatus = 200;
+  if (actualStatus !== 200) {
+    safeResponseReadFailures.push(
+      `Ops incident timeline response status mismatch GET ${expectedTarget}: expected status 200, actual status ${actualStatus}`,
+    );
+    return Promise.resolve();
+  }
+  const read = Promise.resolve()
+    .then(() => response.json())
+    .then(payload => {
+      if (objectContainsKey(payload, opsIncidentTimelineForbiddenResponseKeys)) {
+        throw new EndpointResponseProjectionError(
+          "response-sensitive-field-present",
+          "Ops incident timeline response contains forbidden material",
+        );
+      }
+      const value = requireResponseObject(payload, "Ops incident timeline response");
+      const records = requireResponseObject(value.records, "Ops incident timeline records");
+      if (!Array.isArray(records.records)) {
+        throw new EndpointResponseProjectionError(
+          "response-shape-invalid",
+          "Ops incident timeline records.records is missing",
+        );
+      }
+      const safeRecords = records.records.map((record, index) => {
+        const row = requireResponseObject(record, `Ops incident timeline record ${index}`);
+        return {
+          eventId: requireResponseIdentity(
+            row.eventId,
+            "",
+            `Ops incident timeline record ${index} eventId`,
+            { nonEmpty: true },
+          ),
+          eventType: String(row.eventType || ""),
+          status: String(row.status || ""),
+        };
+      });
+      entry.safeResponseBody = {
+        status: String(value.status || ""),
+        records: {
+          matchedRecords: Number(records.matchedRecords || 0),
+          total: Number(records.total || 0),
+          records: safeRecords,
+        },
+      };
+      entry.safeResponseProjectionSource = "playwright-response-json";
+      entry.safeResponseForbiddenMaterialObserved = false;
+    })
+    .catch(error => {
+      safeResponseReadFailures.push(
+        `Ops incident timeline response projection failed GET ${expectedTarget}: ${redactedEndpointProjectionFailure(error)}`,
+      );
+      delete entry.safeResponseBody;
+      delete entry.safeResponseProjectionSource;
     })
     .finally(() => pendingSafeResponseReads.delete(read));
   pendingSafeResponseReads.add(read);

@@ -7106,6 +7106,21 @@ readback, cleanup owner를 감사했고 dashboard lifecycle 대상 `EVT-023/026`
 불변이므로 producer/generator는 각 0회입니다. Focused/static gate는 PASS이며 clean-checkout과 actual은
 checkpoint commit 전 미실행입니다.
 
+EVT-023 Ops timeline response identity closure(2026-08-03)는 같은
+`GET /ops/api/events/status?limit=5&includeArchives=1` 세 호출을 initial page load,
+case-owned dashboard refresh/render, diagnostic authoritative readback으로 분리합니다. Runtime은 refresh action에
+opaque action ID와 render-cycle ID를 발급하고, 해당 correlation을 가진 initiating Playwright Request 정확히
+한 개와 `response.request()`가 반환한 동일 객체의 Response 정확히 한 개만 선택합니다. Diagnostic readback은
+별도 action/correlation으로 유지하지만 render evidence 후보로 사용하지 않으며 first/last/path/time-nearest
+선택은 허용하지 않습니다. Selected response의 status 200과 raw material을 제거한 EventRecord projection,
+동일 render cycle의 phase/DOM mutation 및 response→input→sorted→bounded→DOM fixture digest가 함께
+PASS해야 합니다. EVT-026도 같은 계약을 재사용하고 EVT-004의 기존 exact request helper를 확장해 사용합니다.
+Runtime45/completion36/adapter24/timeline6/event28/evaluator19/native48/diagnostic20,
+acceptance21/final-integrity12, semantic51/approval986/negative11/migration,
+feature986/negative15 및 inventory/index/script/docs/syntax/diff가 PASS했습니다. Candidate
+`2dc205f5...41e0e`와 native manifest는 불변이므로 generator/producer는 각 0회이며 clean-checkout과
+focused actual은 checkpoint commit 전 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

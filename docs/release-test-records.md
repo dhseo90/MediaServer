@@ -3113,6 +3113,14 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Rank/family 감사 | Root-cause 최대 3행과 EventRecord 최대 4행을 bounded 8행에 예약하는 rank는 competing source 최대치와 permutation 계약 때문에 유지합니다. Fixture family `EVT-007/020/023/026/048/049`는 같은 product dispatch/readback/cleanup을 사용하며 dashboard lifecycle 직접 대상 `EVT-023/026`은 exact 보존 계약, `EVT-048`은 response-derived trend 계약, 나머지는 `/ops/events` owner를 유지합니다 | Client response를 Ops evidence로 대체하지 않고 route owner를 합치지 않습니다 |
 | Static/semantic | Timeline 6/6, event 28/28, evaluator 19/19, runtime 45/45, native 48/48, completion 36/36, adapter 23/23, diagnostic 20/20, acceptance 21/21, final-integrity 12/12, semantic 51/51·approval 986/986·negative 11/11·migration, feature 986/986·negative 15/15, inventory 17/17·index 8/8·script 11/11 PASS | Candidate `2dc205f5...41e0e`와 native 424/423+1/unsupported0 불변, producer/generator 각 0회. Clean-checkout과 focused actual은 checkpoint commit 전 미실행 |
 
+### REVIEW4-65 EVT-023 Ops timeline response identity binding
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| 세 요청 소유권 | 동일 Ops status GET을 initial page load, case-owned dashboard refresh/render, diagnostic authoritative readback으로 구분합니다. Diagnostic readback은 별도 action/correlation으로 보존하지만 render response 후보에는 포함하지 않습니다 | Poll/readback을 path-only 후보로 합치거나 first/last·timestamp-nearest response를 선택하지 않음 |
+| Exact response/render 결속 | Refresh action/render-cycle의 initiating Playwright Request 한 개와 `response.request()` 동일 객체 Response 한 개를 sequence/action/correlation/method/path/status로 결속하고, 그 safe response projection을 동일 render-cycle phase/DOM mutation과 함께 검증합니다 | Owned request/response 0·2+, object/sequence/action/cycle/correlation/method/path/status drift, duplicate correlation, unrelated response, render-cycle mismatch, status/digest sentinel은 fail-closed |
+| 회귀·static | Runtime 45/45, completion 36/36, adapter 24/24, timeline 6/6, event 28/28, evaluator 19/19, native 48/48, diagnostic 20/20, acceptance 21/21, final-integrity 12/12, semantic 51/51·approval 986/986·negative 11/11·migration, feature 986/986·negative 15/15, inventory 17/17·index 8/8·script 11/11·docs/syntax/diff PASS | EVT-026 동일 endpoint와 EVT-004 exact request helper 회귀 PASS. Candidate `2dc205f5...41e0e` 및 manifest 불변, generator/producer 각 0회. Clean-checkout과 focused actual은 commit 전 미실행 |
+
 ## 임시 산출물 정리 기록
 
 | 버전/run | 경로 | 종류 | 조치 | 삭제/보존 결과 |

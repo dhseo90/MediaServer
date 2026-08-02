@@ -39,6 +39,8 @@ export function buildRequestCorrelationEvidence({
   const correlationId = String(expected.correlationId || "");
   const correlationRequired = expected.correlationRequired !== false;
   const requestKind = String(expected.requestKind || "");
+  const expectedInitiatorActionId = String(expected.initiatorActionId || "");
+  const expectedRenderCycleId = String(expected.renderCycleId || "");
   const values = Array.isArray(entries) ? entries : [];
   const requests = values.filter(entry => entry?.phase === "request-start");
   const responses = values.filter(entry => entry?.phase === "response");
@@ -59,6 +61,10 @@ export function buildRequestCorrelationEvidence({
   const matchedRequests = exactRequestCandidates.filter(entry =>
     entry?.correlationSource === "request-header" &&
     entry?.correlationId === correlationId &&
+    (!expectedInitiatorActionId ||
+      entry?.initiatorActionId === expectedInitiatorActionId) &&
+    (!expectedRenderCycleId ||
+      entry?.renderCycleId === expectedRenderCycleId) &&
     requestIdentityPresent(entry) &&
     requestIdentityOwnedByCase(entry));
   const matchedRequest = matchedRequests.length === 1 ? matchedRequests[0] : null;
@@ -68,6 +74,10 @@ export function buildRequestCorrelationEvidence({
     entry?.responseCorrelationSource === "initiating-request-identity" &&
     entry?.correlationSource === "request-header" &&
     entry?.correlationId === correlationId &&
+    (!expectedInitiatorActionId ||
+      entry?.initiatorActionId === expectedInitiatorActionId) &&
+    (!expectedRenderCycleId ||
+      entry?.renderCycleId === expectedRenderCycleId) &&
     requestIdentityPresent(entry) &&
     requestIdentityOwnedByCase(entry) &&
     matchedRequest &&
@@ -107,6 +117,14 @@ export function buildRequestCorrelationEvidence({
   else if (!requestIdentityOwnedByCase(exactRequestCandidates[0])) {
     failureCode = "REQUEST_CASE_OWNERSHIP_MISMATCH";
   }
+  else if (expectedInitiatorActionId &&
+      exactRequestCandidates[0]?.initiatorActionId !== expectedInitiatorActionId) {
+    failureCode = "REQUEST_ACTION_ID_MISMATCH";
+  }
+  else if (expectedRenderCycleId &&
+      exactRequestCandidates[0]?.renderCycleId !== expectedRenderCycleId) {
+    failureCode = "REQUEST_RENDER_CYCLE_MISMATCH";
+  }
   else if (matchedRequests.length === 0) failureCode = "CORRELATION_MISMATCH";
   else if (matchedRequests.length !== 1) failureCode = "DUPLICATE_REQUEST";
   else if (exactResponseCandidates.length === 0) failureCode = "RESPONSE_NOT_OBSERVED";
@@ -118,6 +136,12 @@ export function buildRequestCorrelationEvidence({
     failureCode = "RESPONSE_REQUEST_OBJECT_MISSING";
   } else if (!requestIdentityPresent(exactResponseCandidates[0])) {
     failureCode = "RESPONSE_REQUEST_IDENTITY_MISSING";
+  } else if (expectedInitiatorActionId &&
+      exactResponseCandidates[0]?.initiatorActionId !== expectedInitiatorActionId) {
+    failureCode = "RESPONSE_ACTION_ID_MISMATCH";
+  } else if (expectedRenderCycleId &&
+      exactResponseCandidates[0]?.renderCycleId !== expectedRenderCycleId) {
+    failureCode = "RESPONSE_RENDER_CYCLE_MISMATCH";
   } else if (expected.responseEchoHeaderRequired === true &&
       (exactResponseCandidates[0]?.responseEchoHeaderContract !== "required" ||
         exactResponseCandidates[0]?.responseEchoHeaderObserved !== true ||
@@ -150,6 +174,8 @@ export function buildRequestCorrelationEvidence({
     expectedPath: urlPath,
     expectedActionId,
     expectedCaseId,
+    expectedInitiatorActionId,
+    expectedRenderCycleId,
     observedMethod: exactRequestCandidates.length === 1
       ? String(exactRequestCandidates[0].method || "").toUpperCase()
       : "",
@@ -171,6 +197,10 @@ export function buildRequestCorrelationEvidence({
     responseRequestIdentity: responseCandidate?.caseRequestIdentity || "",
     responseRequestSequence: responseCandidate?.caseRequestSequence || null,
     requestIdentityMatched: requestResponseBound,
+    initiatingRequestActionId: matchedRequest?.initiatorActionId || "",
+    responseRequestActionId: responseCandidate?.initiatorActionId || "",
+    initiatingRequestRenderCycleId: matchedRequest?.renderCycleId || "",
+    responseRequestRenderCycleId: responseCandidate?.renderCycleId || "",
     responseRequestObjectObserved:
       exactResponseCandidates.length === 1 &&
       exactResponseCandidates[0]?.responseRequestObjectObserved === true,
