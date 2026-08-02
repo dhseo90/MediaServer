@@ -3088,6 +3088,13 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Static/semantic | Event27/client15/evaluator19/runtime42/native47/completion36/adapter23/diagnostic19/acceptance21/final-integrity12와 semantic51/approval986/negative11/migration, feature/inventory/index/script/docs/syntax/JSON/diff PASS. Candidate `2f5e15549344387b25b3cbb8a65a8ec09c71e0d4983f39c364a3f1df9cd2d58e` 불변 | Native generator 1회, semantic producer 0회. Actual EVT-023/UI/Policy v4/30분/120분/release는 clean checkpoint 전 미실행 |
 | Fixture-safe digest identity | Product digest의 `scenarioName -> className -> eventType` 안전 identity 규칙에 맞춰 test-owned EVT-023 fixture의 `scenarioName`을 fixture ID로 결속했습니다. Recent event 1건과 `events.incidentDigest.digestItems` 1건의 identity/type/status를 fail-closed로 확인하고 CLIENT-006/007/023도 같은 typed boundary로 감사합니다 | Candidate `2dc205f5aa1674e043b2d0f20f431d82e60a7ae62db90bffc8f33bdedb941e0e`, feature/pass/status 변경 0, UI-018 independent approval+985 carry-forward, producer 1회, generator 0회. Focused actual EVT-023/UI/Policy v4/30분/120분/release는 미실행 |
 
+### REVIEW4-65 EVT-023 Ops timeline row-local binding
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| Owner/identity binding | Ops timeline은 Client digest selector와 분리하며 `records.records`의 eventId/eventType/status 정확히 한 API row와 visible `[data-incident-unit="event-record"]` 한 DOM row를 같은 identity로 결속합니다 | Missing/duplicate/split-node 및 각 필드 mismatch는 fail-closed이며 raw event payload는 보존하지 않음 |
+| Static/semantic | Candidate `2dc205f5aa1674e043b2d0f20f431d82e60a7ae62db90bffc8f33bdedb941e0e`는 feature/pass/status/sourceFlow 불변입니다. Event28/client15/evaluator19/runtime43/native48/completion36/adapter23/diagnostic19, acceptance21/final-integrity12, semantic51/approval986/negative11/migration, feature986/negative15, inventory/index/script/docs/syntax/JSON/diff PASS | Official generator 1회, producer 0회. Actual EVT-023/UI/Policy v4/30분/120분/release는 clean checkpoint와 focused actual 전까지 미실행 |
+
 ## 임시 산출물 정리 기록
 
 | 버전/run | 경로 | 종류 | 조치 | 삭제/보존 결과 |

@@ -7055,6 +7055,20 @@ Migration-aware producer는 정확히 1회 성공했고 native generator는 0회
 gate는 PASS했으며 actual EVT-023, `./test_ui.sh`, Policy v4, 30분, 120분, release는 clean
 checkpoint와 focused actual 전까지 미실행입니다.
 
+EVT-023 Ops timeline row-local DOM checkpoint(2026-08-02)는 `/ops/dashboard`의
+`#dashIncidentTimeline [data-incident-unit="event-record"]`가 Client 전용 digest selector와
+다른 owner임을 고정합니다. Authoritative `records.records`의 eventId/eventType/status 정확히
+한 행과 같은 세 필드를 가진 visible timeline DOM 한 행을 구조화 candidate count/digest와
+함께 결속하며 missing, duplicate, split-node, 각 필드 mismatch를 fail-closed로 거부합니다.
+Canonical/native는 424/423+1/unsupported 0 및 ordered ID가 불변이고, 공식 generator는
+implementation projection/runtime-oracle binding 갱신을 위해 정확히 1회 실행했습니다.
+Candidate `2dc205f5...41e0e`의 feature/pass/status/sourceFlow는 모두 불변이므로 producer는
+0회입니다. Event28/client15/evaluator19/runtime43/native48/completion36/adapter23/diagnostic19,
+acceptance21/final-integrity12, semantic51/approval986/negative11/migration,
+feature986/negative15, inventory/index/script/docs/syntax/JSON/diff는 PASS입니다. Actual EVT-023,
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 clean checkpoint와 focused actual 전까지
+미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

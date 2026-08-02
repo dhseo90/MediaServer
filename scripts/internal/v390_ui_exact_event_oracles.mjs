@@ -545,7 +545,7 @@ const specs = [
     screen: "/ops/dashboard",
     canonical: "/ops/dashboard",
     role: { primary: "operator", additional: ["viewer"] },
-    visibleControl: { selector: "#dashIncidentTimeline", semanticTarget: "event-summary-and-viewer-digest", additionalSelector: "[data-testid=client-safe-incident-digest]" },
+    visibleControl: { selector: "#dashIncidentTimeline", semanticTarget: "event-summary-and-viewer-digest" },
     seed: { kind: "published-view-event", fixtureId: "evt-023-review4-fixture", requiredFields: ["eventId", "viewId", "summaryText", "severity", "status"] },
     action: { kind: "cross-role-readback", steps: ["seed-published-view-event", "operator-dashboard-read", "bind-viewer-session", "client-events-read", "compare-safe-digest", "assert-redaction"] },
     apiAssertions: [
@@ -554,8 +554,7 @@ const specs = [
     ],
     domAssertions: [
       dom("#dashIncidentTimelineBadges", ["event-count-equals-response", "records.matchedRecords", true]),
-      dom("#dashIncidentTimeline", ["contains-fixture-event-summary", "eventId/status", true]),
-      dom("[data-testid=client-safe-incident-digest]", ["safe-fields-equal-response", "summaryText/severity/eventType/status/time", true], ["redaction-boundary-closed", "source/raw/debug/provider", true]),
+      dom('#dashIncidentTimeline [data-incident-unit="event-record"]', ["contains-fixture-event-summary", "eventId/eventType/status", true], ["safe-fields-equal-response", "eventId/eventType/status", true], ["redaction-boundary-closed", "source/raw/debug/provider", true]),
     ],
   }),
   eventSpec("EVT-024", {

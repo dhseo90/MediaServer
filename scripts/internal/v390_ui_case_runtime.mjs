@@ -3438,6 +3438,39 @@ export function createV390UiCaseRuntime({
       templateValues.status = status;
       templateValues.reason = reason;
     }
+    if (item.caseId === "EVT-023") {
+      const eventId = context.fixtureId;
+      const records = responseByPath["records.records"];
+      assert(Array.isArray(records),
+        "EVT-023 authoritative Ops event collection is unavailable");
+      const fixtureRows = records.filter(record =>
+        String(record?.eventId || "") === eventId);
+      assert(fixtureRows.length === 1,
+        `EVT-023 authoritative Ops event row cardinality mismatch: ${fixtureRows.length}`);
+      const eventType = String(fixtureRows[0]?.eventType || "").trim();
+      const status = String(fixtureRows[0]?.status || "").trim();
+      assert(eventType && status,
+        "EVT-023 authoritative Ops event type/status is unavailable");
+      const rowLocalBaseline = {
+        schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+        identityKind: "event-record",
+        collectionPath: "records.records",
+        identityPaths: ["eventId"],
+        identityValue: eventId,
+        projectionPaths: ["eventType", "status"],
+        expectedProjection: { eventType, status },
+      };
+      domResponseBaselineByTarget["eventId/eventType/status"] = rowLocalBaseline;
+      rowLocalResponseTargets.push("eventId/eventType/status");
+      domFixtureIdentityByTarget["eventId/eventType/status"] = {
+        schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+        kind: "event-record",
+        eventId,
+        eventType,
+        status,
+        expectedNodeTokens: [eventId, eventType, status],
+      };
+    }
     const canaries = [
       context.catalogBindings.redactionCanary,
       context.catalogBindings.rawCanary ||

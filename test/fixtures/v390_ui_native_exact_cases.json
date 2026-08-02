@@ -5,9 +5,9 @@
     "canonicalSha256": "3b3b85556d4efc78e6cea00f9e7e8199b22ed58931ea5cc40f524ba18bdf936f",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "8421aadaab0400101bf9de4f0d20a562b57586d69c637212b6eec189161ac0d4",
+    "implementationProjectionSha256": "077e928dfc30d4780c0c645350a66ede1ec59fd42a87ac096d89cfcd98305a03",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "2ed23c2022da9add03de8647262ac44ea193d8819d976ba3d5dba925436ae33c",
+    "runtimeOracleCatalogSha256": "2e4f2bc18b11ad24f3a6e3168ec04e4ff0ea84c40632740aeb6b21cb3cf12ce5",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -204889,9 +204889,9 @@
           "route": "/ops/dashboard",
           "role": "operator",
           "featureMeaning": "ops dashboard event summary and viewer-scoped incident digest agree while raw/debug/locator/provider material stays hidden",
-          "specSha256": "45b94ebb5c5209eb1b0147ea824a5c0bdb0ad9d7efd407cab59abeec85d46cd7",
+          "specSha256": "de5eb1dc2ea4581baca0ab363f79fb5ffd8b80f3e70aeb9cc82dd47ac13318b6",
           "requestCount": 2,
-          "domAssertionCount": 3,
+          "domAssertionCount": 2,
           "stateSnapshotCount": 10,
           "cleanupStrategy": "remove-fixtures-and-assert-baseline",
           "staticCatalogIsNotRuntimePass": true

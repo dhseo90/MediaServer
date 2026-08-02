@@ -9,6 +9,9 @@ import {
   validateEventExactOracleCatalog,
 } from "./v390_ui_exact_event_oracles.mjs";
 import {
+  clientSafeExactOracleFor,
+} from "./v390_ui_exact_client_safe_oracles.mjs";
+import {
   evaluateEventExactResponseAssertion,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import {
@@ -157,7 +160,44 @@ check("audited route and selector corrections stay feature-specific", () => {
     assert(spec.visibleControl.selector.startsWith(selector), `${id} selector mismatch`);
   }
   assert(eventExactOracleFor("EVT-023").additionalRoles.includes("viewer"), "EVT-023 viewer readback role missing");
+  const evt023 = eventExactOracleFor("EVT-023");
+  assert(!Object.hasOwn(evt023.visibleControl, "additionalSelector"),
+    "EVT-023 Ops control retained a Client-only additional selector");
+  assert(evt023.dom.length === 2 &&
+    evt023.dom[1].selector === '#dashIncidentTimeline [data-incident-unit="event-record"]' &&
+    evt023.dom[1].assertions.some(assertion =>
+      assertion.operator === "contains-fixture-event-summary" &&
+      assertion.target === "eventId/eventType/status"),
+  "EVT-023 Ops route-local event row binding is missing");
   assert(eventExactOracleFor("EVT-049").action.kind === "runtime-replay", "EVT-049 is not an actual replay");
+});
+
+check("EVT-023 Ops selector stays separate from CLIENT-006/007/023 route owners", () => {
+  const expectedClientOwners = {
+    "CLIENT-006": ["/client/dashboard", '[data-testid="client-dashboard-shell"]'],
+    "CLIENT-007": ["/client/events", ".client-viewer-events"],
+    "CLIENT-023": ["/client/events", '[data-testid="client-safe-incident-digest"]'],
+  };
+  for (const [caseId, [route, selector]] of Object.entries(expectedClientOwners)) {
+    const spec = clientSafeExactOracleFor(caseId);
+    assert(spec.route === route && spec.visibleControl.selector === selector,
+      `${caseId} Client route/selector ownership drifted`);
+    assert(!spec.visibleControl.selector.includes("dashIncidentTimeline"),
+      `${caseId} Client selector was merged with the Ops timeline`);
+  }
+  const evt023 = eventExactOracleFor("EVT-023");
+  assert(evt023.route === "/ops/dashboard" &&
+    !JSON.stringify(evt023.dom).includes("client-safe-incident-digest"),
+  "EVT-023 Ops DOM oracle retained a Client-only selector");
+  const opsPage = fs.readFileSync("src/ingress/product_ui_page_scripts.cpp", "utf8");
+  const clientPage = fs.readFileSync("src/ingress/product_ui_client_scripts.cpp", "utf8");
+  assert(opsPage.includes("data-incident-unit=\"${escapeHtml(dashboardIncidentSourceKey(item))}\"") &&
+    opsPage.includes("item?.eventType") && opsPage.includes("item?.status") &&
+    opsPage.includes("eventId ${display(item.eventId)}"),
+  "Ops incident timeline no longer renders event identity/type/status in one row");
+  assert(clientPage.includes('data-testid="client-safe-incident-digest"') &&
+    clientPage.includes("renderClientSafeIncidentDigest(events.incidentDigest || {})"),
+  "Client incident digest renderer ownership is missing");
 });
 
 check("EVT-023 binds the required incident digest schema through the canonical events wrapper", () => {

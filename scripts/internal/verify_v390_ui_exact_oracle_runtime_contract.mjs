@@ -1006,6 +1006,135 @@ await check("EVT-003 API row and DOM identity bind to the same degraded source",
   );
 });
 
+await check("EVT-023 binds one authoritative event row to one Ops timeline row", async () => {
+  const eventId = "evt-023-review4-fixture";
+  const baseline = {
+    schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+    identityKind: "event-record",
+    collectionPath: "records.records",
+    identityPaths: ["eventId"],
+    identityValue: eventId,
+    projectionPaths: ["eventType", "status"],
+    expectedProjection: { eventType: "presence", status: "open" },
+  };
+  const fixtureIdentity = {
+    schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+    kind: "event-record",
+    eventId,
+    eventType: "presence",
+    status: "open",
+    expectedNodeTokens: [eventId, "presence", "open"],
+  };
+  const fixtureRow = `presence · open eventId ${eventId}`;
+  const observed = {
+    count: 2,
+    visibleCount: 2,
+    text: `motion · closed eventId unrelated ${fixtureRow}`,
+    nodeTexts: ["motion · closed eventId unrelated", fixtureRow],
+    attributes: [],
+    values: [],
+    descendantCount: 12,
+  };
+  const evidenceFor = ({ rows = [{ eventId: "unrelated", eventType: "motion", status: "closed" },
+    { eventId, eventType: "presence", status: "open" }], dom = observed,
+  identity = fixtureIdentity } = {}) => buildEventDomSemanticCompositeEvidence({
+    selector: '#dashIncidentTimeline [data-incident-unit="event-record"]',
+    observed: dom,
+    responseBodies: [{ records: { records: rows } }],
+    priorResponseByPath: { "eventId/eventType/status": baseline },
+    fixtureCandidates: [eventId],
+    fixtureIdentity: identity,
+    fixtureRequired: true,
+    actualBrowserExecution: true,
+  });
+
+  const passing = evidenceFor();
+  assert(passing.pass === true &&
+    passing.fixtureObserved.bindingMode === "api-row-to-single-dom-node" &&
+    passing.responseBaselineMatched.paths[0].candidateCount === 1 &&
+    passing.fixtureObserved.domCandidateCount === 2 &&
+    passing.fixtureObserved.matchedNodeCount === 1 &&
+    Object.values(passing.fixtureObserved.fieldMatches).every(field => field.pass),
+  "EVT-023 authoritative API row and Ops timeline row did not bind exactly");
+
+  const missingIdentityField = structuredClone(fixtureIdentity);
+  delete missingIdentityField.eventType;
+  const missingField = evidenceFor({ identity: missingIdentityField });
+  assertCompositeFailure(missingField, "fixtureObserved");
+  assert(missingField.fixtureObserved.reasonCode === "FIXTURE_IDENTITY_FIELDS_MISSING",
+    "EVT-023 missing typed identity field did not fail closed");
+
+  const missingApiRow = evidenceFor({ rows: [{ eventId: "unrelated", eventType: "presence", status: "open" }] });
+  assertCompositeFailure(missingApiRow, "responseBaselineMatched");
+  assert(missingApiRow.responseBaselineMatched.reasonCodes.includes("FIXTURE_EVENT_ROW_MISSING"),
+    "EVT-023 missing authoritative event row did not fail closed");
+
+  const duplicateApiRow = evidenceFor({ rows: [
+    { eventId, eventType: "presence", status: "open" },
+    { eventId, eventType: "presence", status: "open" },
+  ] });
+  assertCompositeFailure(duplicateApiRow, "responseBaselineMatched");
+  assert(duplicateApiRow.responseBaselineMatched.reasonCodes.includes("FIXTURE_EVENT_ROW_DUPLICATE"),
+    "EVT-023 duplicate authoritative event row did not fail closed");
+
+  for (const [field, value] of [["eventType", "motion"], ["status", "closed"]]) {
+    const apiMismatch = evidenceFor({ rows: [{ eventId, eventType: "presence", status: "open", [field]: value }] });
+    assertCompositeFailure(apiMismatch, "responseBaselineMatched");
+    assert(apiMismatch.responseBaselineMatched.reasonCodes.includes("FIXTURE_ROW_PROJECTION_MISMATCH"),
+      `EVT-023 authoritative ${field} mismatch did not fail closed`);
+  }
+
+  for (const [label, dom, failureCode] of [
+    ["event id", { ...observed, text: "presence · open eventId unrelated", nodeTexts: ["presence · open eventId unrelated"], count: 1, visibleCount: 1 }, "DOM_FIXTURE_EVENT_ID_NOT_OBSERVED"],
+    ["event type", { ...observed, text: `motion · open eventId ${eventId}`, nodeTexts: [`motion · open eventId ${eventId}`], count: 1, visibleCount: 1 }, "DOM_FIXTURE_EVENT_TYPE_NOT_OBSERVED"],
+    ["status", { ...observed, text: `presence · closed eventId ${eventId}`, nodeTexts: [`presence · closed eventId ${eventId}`], count: 1, visibleCount: 1 }, "DOM_FIXTURE_STATUS_NOT_OBSERVED"],
+  ]) {
+    const failed = evidenceFor({ dom });
+    assertCompositeFailure(failed, "fixtureObserved");
+    assert(failed.fixtureObserved.reasonCode === failureCode,
+      `EVT-023 wrong ${label} returned ${failed.fixtureObserved.reasonCode}`);
+  }
+
+  const distributed = evidenceFor({
+    dom: {
+      ...observed,
+      count: 2,
+      visibleCount: 2,
+      text: `${eventId} presence open`,
+      nodeTexts: [`eventId ${eventId}`, "presence · open"],
+    },
+  });
+  assertCompositeFailure(distributed, "fixtureObserved");
+  assert(distributed.fixtureObserved.matchedNodeCount === 0,
+    "EVT-023 distributed event identity fields were combined across rows");
+
+  const duplicateDom = evidenceFor({
+    dom: {
+      ...observed,
+      count: 2,
+      visibleCount: 2,
+      text: `${fixtureRow} ${fixtureRow}`,
+      nodeTexts: [fixtureRow, fixtureRow],
+    },
+  });
+  assertCompositeFailure(duplicateDom, "fixtureObserved");
+  assert(duplicateDom.fixtureObserved.reasonCode === "DOM_FIXTURE_IDENTITY_DUPLICATE",
+    "EVT-023 duplicate Ops timeline row did not fail closed");
+
+  const serialized = JSON.stringify(passing);
+  for (const raw of [eventId, "presence", "open"])
+    assert(!serialized.includes(raw), `EVT-023 structured row evidence exposed raw material: ${raw}`);
+
+  for (const field of ["eventId", "eventType", "status"]) {
+    const incomplete = structuredClone(passing);
+    delete incomplete.fixtureObserved.fieldMatches[field];
+    await expectReject(
+      () => Promise.resolve(validateEventDomSemanticCompositeEvidence(incomplete)),
+      "required structured fields are missing",
+    );
+  }
+});
+
 await check("response pseudo-fields include status and reject an invalid status assertion", async () => {
   const body = { ok: true };
   assert(JSON.stringify(responsePseudoFieldValues({ body, contentType: "application/json", status: 201 }, "$body")) === JSON.stringify([JSON.stringify(body)]),
