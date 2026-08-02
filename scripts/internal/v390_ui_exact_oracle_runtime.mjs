@@ -1224,6 +1224,16 @@ async function observeDom(
   markerEvaluationTracker = null,
 ) {
   const selector = expand(String(assertion.selector || ""), bindings);
+  const requiredAttributes = (Array.isArray(assertion.requiredAttributes)
+    ? assertion.requiredAttributes
+    : Object.entries(assertion.requiredAttributes || {}).map(([name, value]) => ({ name, value, operator: "equals" })))
+    .filter(expected => expected?.name && expected.value !== null && expected.value !== undefined)
+    .map(expected => ({
+      name: String(expected.name),
+      operator: String(expected.operator || "equals"),
+      value: expand(String(expected.value), bindings),
+    }));
+  const requiredAttributeNames = [...new Set(requiredAttributes.map(expected => expected.name))];
   const descendantSelectors = [...new Set((assertion.assertions || [])
     .filter(candidate => candidate.operator === "contains-descendant")
     .map(candidate => expand(String(candidate.target || ""), bindings))
@@ -1238,6 +1248,7 @@ async function observeDom(
   const observed = await browser.evaluate(`(async () => {
     const nodes = Array.from(document.querySelectorAll(${JSON.stringify(selector)}));
     const descendantSelectors = ${JSON.stringify(descendantSelectors)};
+    const requiredAttributeNames = ${JSON.stringify(requiredAttributeNames)};
     const rects = nodes.map(node => node.getBoundingClientRect());
     const overlaps = rects.flatMap((left, index) => rects.slice(index + 1).map(right =>
       left.left < right.right && left.right > right.left && left.top < right.bottom && left.bottom > right.top)).filter(Boolean).length;
@@ -1278,6 +1289,16 @@ async function observeDom(
         .slice(0, 20)
         .map(node => String(node.getAttribute('data-incident-unit') || '')),
       attributes: nodes.slice(0, 20).map(node => Object.fromEntries(Array.from(node.attributes || []).map(attr => [attr.name, attr.value]))),
+      requiredAttributeCandidates: nodes.slice(0, 20).map((node, index) => {
+        const identityAttributeNames = Array.from(node.getAttributeNames?.() || [])
+          .filter(name => /^data-(?:event|incident)-/.test(name));
+        const attributeNames = [...new Set([...requiredAttributeNames, ...identityAttributeNames])].sort();
+        return {
+          index,
+          attributeNames,
+          attributeValues: Object.fromEntries(attributeNames.map(name => [name, node.getAttribute(name)])),
+        };
+      }),
       values: nodes.slice(0, 20).map(node => String(node.value ?? '')),
       formControls: nodes.flatMap(node => [
         ...(node.matches?.('input, textarea, select') ? [node] : []),
@@ -1389,22 +1410,8 @@ async function observeDom(
     assert(!containsForbiddenStructuredDomMaterial(observed, token),
       `${item.caseId} forbidden DOM material observed ${selector}: ${token}`);
   }
-  const requiredAttributes = Array.isArray(assertion.requiredAttributes)
-    ? assertion.requiredAttributes
-    : Object.entries(assertion.requiredAttributes || {}).map(([name, value]) => ({ name, value, operator: "equals" }));
-  for (const expected of requiredAttributes) {
-    const name = expected.name;
-    if (!name || expected.value === null || expected.value === undefined) continue;
-    const value = expand(String(expected.value), bindings);
-    const matches = name === "count"
-      ? compareNumber(observed.count, expected.operator || "equals", Number(value))
-      : observed.attributes.some(attributes => compareAttribute(attributes[name], expected.operator || "equals", value));
-    assert(matches,
-      `${item.caseId} exact DOM attribute mismatch ${selector}: ${name}=${value}`);
-  }
-  const attributeOwnerEvidence = await validateRuntimeAttributeOwners(browser, item, assertion, bindings);
   const propertyEvidence = evaluateDomPropertyAssertions(assertion.propertyAssertions || [], observed, bindings, item.caseId, selector, interaction);
-  const semanticEvidence = evaluateDomSemanticAssertions(
+  let semanticEvidence = evaluateDomSemanticAssertions(
     assertion.assertions || [],
     observed,
     responseBodies,
@@ -1414,6 +1421,39 @@ async function observeDom(
     eventRuntimeContext,
     markerEvaluationTracker,
   );
+  const rowLocalComposite = semanticEvidence
+    .map(evidence => evidence?.compositeEvidence)
+    .find(evidence => evidence?.fixtureObserved?.bindingMode === "api-row-to-single-dom-node") || null;
+  const attributeEvidence = buildExactDomAttributeBindingEvidence({
+    selector,
+    requiredAttributes,
+    candidates: observed.requiredAttributeCandidates,
+    fallbackAttributes: observed.attributes,
+    nodeCount: observed.count,
+    selectedIndices: rowLocalComposite?.fixtureObserved?.matchedNodeIndices || null,
+  });
+  semanticEvidence = semanticEvidence.map(evidence => evidence?.compositeEvidence
+    ? {
+        ...evidence,
+        compositeEvidence: attachExactDomAttributeBindingEvidence(
+          evidence.compositeEvidence,
+          attributeEvidence,
+        ),
+      }
+    : evidence);
+  if (!attributeEvidence.pass) {
+    const failedAttribute = attributeEvidence.attributes.find(attribute => !attribute.pass);
+    const error = new Error(
+      `${item.caseId} exact DOM attribute mismatch ${selector}: ` +
+      `${failedAttribute?.name || "selection"}=${failedAttribute?.expectedValue || "exact-node"}`,
+    );
+    const failedComposite = semanticEvidence
+      .map(evidence => evidence?.compositeEvidence)
+      .find(Boolean);
+    if (failedComposite) error.eventDomSemanticEvidence = structuredClone(failedComposite);
+    throw error;
+  }
+  const attributeOwnerEvidence = await validateRuntimeAttributeOwners(browser, item, assertion, bindings);
   return {
     selector,
     count: observed.count,
@@ -1422,8 +1462,111 @@ async function observeDom(
     responseCount: responses.length,
     propertyEvidence,
     semanticEvidence,
+    attributeEvidence,
     attributeOwnerEvidence,
   };
+}
+
+export function buildExactDomAttributeBindingEvidence({
+  selector,
+  requiredAttributes = [],
+  candidates = [],
+  fallbackAttributes = [],
+  nodeCount = 0,
+  selectedIndices = null,
+}) {
+  const normalizedCandidates = Array.isArray(candidates) && candidates.length > 0
+    ? candidates.map((candidate, index) => ({
+        index: Number.isInteger(candidate?.index) ? candidate.index : index,
+        attributeNames: Array.isArray(candidate?.attributeNames)
+          ? candidate.attributeNames.map(String)
+          : Object.keys(candidate?.attributeValues || {}),
+        attributeValues: candidate?.attributeValues && typeof candidate.attributeValues === "object"
+          ? candidate.attributeValues
+          : {},
+      }))
+    : (Array.isArray(fallbackAttributes) ? fallbackAttributes : []).map((attributes, index) => ({
+        index,
+        attributeNames: Object.keys(attributes || {}),
+        attributeValues: attributes || {},
+      }));
+  const exactNodeSelection = Array.isArray(selectedIndices);
+  const normalizedSelectedIndices = exactNodeSelection
+    ? [...new Set(selectedIndices.filter(Number.isInteger))]
+    : normalizedCandidates.map(candidate => candidate.index);
+  const selectedCandidates = normalizedCandidates.filter(candidate =>
+    normalizedSelectedIndices.includes(candidate.index));
+  const selectionPass = !exactNodeSelection ||
+    (selectedIndices.length === 1 && normalizedSelectedIndices.length === 1 && selectedCandidates.length === 1);
+  const attributes = requiredAttributes.map(expected => {
+    const name = String(expected?.name || "");
+    const operator = String(expected?.operator || "equals");
+    const expectedValue = String(expected?.value ?? "");
+    const observations = selectedCandidates.map(candidate => {
+      const observedName = candidate.attributeNames.includes(name) ? name : "";
+      const observedValue = observedName ? candidate.attributeValues[name] : null;
+      return {
+        index: candidate.index,
+        observedName,
+        observedValue: name === "data-incident-unit" && observedValue !== null
+          ? String(observedValue)
+          : null,
+        observedValueDigest: sha256Digest(observedValue),
+        pass: observedName === name && compareAttribute(observedValue, operator, expectedValue),
+      };
+    });
+    const pass = selectionPass && (name === "count"
+      ? compareNumber(nodeCount, operator, Number(expectedValue))
+      : observations.some(observation => observation.pass));
+    return {
+      name,
+      operator,
+      expectedValue: name === "data-incident-unit" ? expectedValue : null,
+      expectedValueDigest: sha256Digest(expectedValue),
+      pass,
+      observations,
+    };
+  });
+  const pass = selectionPass && attributes.every(attribute => attribute.pass);
+  const failureCode = pass
+    ? "PASS"
+    : (!selectionPass
+      ? "DOM_ATTRIBUTE_NODE_SELECTION_MISMATCH"
+      : (attributes.some(attribute => attribute.observations.every(observation => !observation.observedName))
+        ? "DOM_ATTRIBUTE_MISSING"
+        : "DOM_ATTRIBUTE_EXACT_VALUE_MISMATCH"));
+  return {
+    schema: "media-server.v390-ui-exact-dom-attribute-binding-evidence.v1",
+    pass,
+    failurePhase: pass ? "" : "dom-attribute-binding",
+    failureCode,
+    selectorDigest: sha256Digest(String(selector || "")),
+    candidateCount: Number(nodeCount),
+    candidateEvidenceCount: normalizedCandidates.length,
+    exactNodeSelection,
+    selectedIndex: selectionPass && exactNodeSelection ? normalizedSelectedIndices[0] : -1,
+    selectedIndices: normalizedSelectedIndices,
+    selectedNodeCount: selectedCandidates.length,
+    candidateDigest: sha256Digest(normalizedCandidates),
+    attributes,
+  };
+}
+
+function attachExactDomAttributeBindingEvidence(evidence, attributeEvidence) {
+  const attached = structuredClone(evidence);
+  attached.exactAttributeBinding = structuredClone(attributeEvidence);
+  if (!attributeEvidence.pass) {
+    attached.pass = false;
+    attached.failedChecks = [...new Set([...(attached.failedChecks || []), "exactAttributeBinding"])];
+    attached.causeCodes = [...new Set([...(attached.causeCodes || []), attributeEvidence.failureCode])];
+    attached.error = {
+      code: "EVT_DOM_SEMANTIC_COMPOSITE_FAILED",
+      causes: [...attached.failedChecks],
+      causeCodes: [...attached.causeCodes],
+    };
+  }
+  validateEventDomSemanticCompositeEvidence(attached);
+  return attached;
 }
 
 function assertCorrelatedRuntimeFetch({
@@ -2348,6 +2491,11 @@ export function buildEventDomSemanticCompositeEvidence({
   const matchedNodeTexts = rendererIdentity
     ? nodeTexts.filter((_nodeText, index) => nodeIdentityMatches[index]?.pass)
     : [];
+  const matchedNodeIndices = rendererIdentity
+    ? nodeIdentityMatches
+      .map((match, index) => match?.pass ? index : -1)
+      .filter(index => index >= 0)
+    : [];
   const fieldMatches = rendererIdentity
     ? Object.fromEntries(rendererIdentity.fieldNames.map(field => {
       const matchingNodeCount = nodeIdentityMatches.filter(item => item.fields[field]).length;
@@ -2398,6 +2546,7 @@ export function buildEventDomSemanticCompositeEvidence({
       ? (matchedNodeTexts.length === 1 ? expectedNodeTokens.length : 0)
       : matchedFixtureCandidates.length,
     matchedNodeCount: matchedNodeTexts.length,
+    matchedNodeIndices,
     candidateDigest: sha256Digest(expectedNodeTokens),
     matchedCandidateDigest: sha256Digest(
       exactFixtureIdentity
@@ -2922,6 +3071,8 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
     evidence.fixtureObserved.nodeDigests.every(digest => /^[0-9a-f]{64}$/.test(digest)) &&
     Array.isArray(evidence.fixtureObserved?.matchedNodeDigests) &&
     evidence.fixtureObserved.matchedNodeDigests.every(digest => /^[0-9a-f]{64}$/.test(digest)) &&
+    Array.isArray(evidence.fixtureObserved?.matchedNodeIndices) &&
+    evidence.fixtureObserved.matchedNodeIndices.every(Number.isInteger) &&
     (evidence.fixtureObserved?.bindingMode !== "api-row-to-single-dom-node" ||
       (structuredFieldSetSupported && structuredFieldNames.every(field =>
         typeof fieldMatches[field]?.pass === "boolean" &&
@@ -2932,6 +3083,35 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
     /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.identityDigest || "") &&
     /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.expectedNodeTokensDigest || ""),
   "EVT DOM semantic evidence required structured fields are missing");
+  if (evidence.exactAttributeBinding) {
+    const attributeBinding = evidence.exactAttributeBinding;
+    assert(attributeBinding.schema === "media-server.v390-ui-exact-dom-attribute-binding-evidence.v1" &&
+      typeof attributeBinding.pass === "boolean" &&
+      typeof attributeBinding.failurePhase === "string" &&
+      typeof attributeBinding.failureCode === "string" &&
+      /^[0-9a-f]{64}$/.test(attributeBinding.selectorDigest || "") &&
+      Number.isInteger(attributeBinding.candidateCount) &&
+      Number.isInteger(attributeBinding.candidateEvidenceCount) &&
+      typeof attributeBinding.exactNodeSelection === "boolean" &&
+      Number.isInteger(attributeBinding.selectedIndex) &&
+      Array.isArray(attributeBinding.selectedIndices) &&
+      attributeBinding.selectedIndices.every(Number.isInteger) &&
+      Number.isInteger(attributeBinding.selectedNodeCount) &&
+      /^[0-9a-f]{64}$/.test(attributeBinding.candidateDigest || "") &&
+      Array.isArray(attributeBinding.attributes) &&
+      attributeBinding.attributes.every(attribute =>
+        typeof attribute.name === "string" &&
+        typeof attribute.operator === "string" &&
+        typeof attribute.pass === "boolean" &&
+        /^[0-9a-f]{64}$/.test(attribute.expectedValueDigest || "") &&
+        Array.isArray(attribute.observations) &&
+        attribute.observations.every(observation =>
+          Number.isInteger(observation.index) &&
+          typeof observation.observedName === "string" &&
+          typeof observation.pass === "boolean" &&
+          /^[0-9a-f]{64}$/.test(observation.observedValueDigest || ""))),
+    "EVT exact DOM attribute binding evidence required fields are missing");
+  }
   for (const item of evidence.responseBaselineMatched.paths) {
     assert(typeof item.path === "string" &&
       typeof item.matched === "boolean" &&

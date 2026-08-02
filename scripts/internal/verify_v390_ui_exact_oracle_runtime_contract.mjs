@@ -8,6 +8,7 @@ import {
   assertExclusiveRequestScopedCorrelation,
   buildExclusiveRequestScopedCorrelationEvidence,
   buildEventDomSemanticCompositeEvidence,
+  buildExactDomAttributeBindingEvidence,
   buildEventMarkerFlowEvidence,
   buildEvt004MarkerStageEvidence,
   buildMarkerEvaluatorLifecycleFailureEvidence,
@@ -1065,6 +1066,8 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     passing.fixtureObserved.matchedNodeCount === 1 &&
     Object.values(passing.fixtureObserved.fieldMatches).every(field => field.pass),
   "EVT-023 authoritative API row and Ops timeline row did not bind exactly");
+  assert(JSON.stringify(passing.fixtureObserved.matchedNodeIndices) === JSON.stringify([1]),
+    "EVT-023 selected Ops timeline row index is not preserved");
   assert(passing.routeLocalDomBinding?.pass === true &&
     passing.routeLocalDomBinding.routeOwner === "/ops/dashboard" &&
     passing.routeLocalDomBinding.rendererOwner === "renderDashboardIncidentTimeline" &&
@@ -1176,6 +1179,62 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
       "required structured fields are missing",
     );
   }
+});
+
+await check("exact DOM attributes bind to the selected event row and fail closed", () => {
+  const requiredAttributes = [{ name: "data-incident-unit", operator: "equals", value: "event-record" }];
+  const candidates = [
+    {
+      index: 0,
+      attributeNames: ["data-incident-unit", "data-incident-workflow"],
+      attributeValues: {
+        "data-incident-unit": "runtime-status",
+        "data-incident-workflow": "cause-impact-next-action",
+      },
+    },
+    {
+      index: 1,
+      attributeNames: ["data-incident-unit", "data-incident-workflow"],
+      attributeValues: {
+        "data-incident-unit": "event-record",
+        "data-incident-workflow": "cause-impact-next-action",
+      },
+    },
+  ];
+  const evidenceFor = (overrides = {}) => buildExactDomAttributeBindingEvidence({
+    selector: '#dashIncidentTimeline [data-incident-unit="event-record"]',
+    requiredAttributes,
+    candidates,
+    nodeCount: candidates.length,
+    selectedIndices: [1],
+    ...overrides,
+  });
+  const passing = evidenceFor();
+  assert(passing.pass === true && passing.candidateCount === 2 &&
+    passing.selectedIndex === 1 && passing.selectedNodeCount === 1 &&
+    passing.attributes[0].observations[0].observedName === "data-incident-unit" &&
+    passing.attributes[0].observations[0].observedValue === "event-record",
+  "selected event row exact attribute evidence did not pass");
+  for (const value of [null, "Event-Record", " event-record", "event-record "]) {
+    const mutated = structuredClone(candidates);
+    if (value === null) {
+      mutated[1].attributeNames = ["data-incident-workflow"];
+      delete mutated[1].attributeValues["data-incident-unit"];
+    } else {
+      mutated[1].attributeValues["data-incident-unit"] = value;
+    }
+    assert(evidenceFor({ candidates: mutated }).pass === false,
+      `exact attribute accepted missing/case/whitespace drift: ${String(value)}`);
+  }
+  assert(evidenceFor({ selectedIndices: [0] }).pass === false,
+    "attribute validator accepted a different selector node");
+  assert(evidenceFor({ selectedIndices: [1, 1] }).pass === false,
+    "attribute validator accepted duplicate selected indices");
+  assert(evidenceFor({ selectedIndices: [0, 1] }).pass === false,
+    "attribute validator accepted duplicate selected event candidates");
+  assert(runtimeSource.includes("node.getAttribute(name)") &&
+    runtimeSource.includes("matchedNodeIndices"),
+  "runtime does not read exact attributes from the semantically selected node");
 });
 
 await check("response pseudo-fields include status and reject an invalid status assertion", async () => {
