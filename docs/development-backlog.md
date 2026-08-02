@@ -7045,6 +7045,16 @@ acceptance21/final-integrity12, semantic51/approval986/negative11/migration 및
 feature/inventory/index/script/docs/syntax/JSON/diff gate가 PASS했습니다. Actual EVT-023,
 `./test_ui.sh`, Policy v4, 30분, 120분, release는 clean checkpoint 전 미실행입니다.
 
+EVT-023 fixture-safe digest identity checkpoint는 test-owned event fixture의 `scenarioName`을
+fixture ID에 결속해 product digest가 사용하는 안전한 identity 우선순위와 일치시킵니다.
+Recent event 한 건과 `events.incidentDigest.digestItems` 한 건의 identity/type/status를 각각
+fail-closed로 대조하며, 같은 typed boundary는 CLIENT-006/007/023에도 적용합니다. Candidate
+`2dc205f5aa1674e043b2d0f20f431d82e60a7ae62db90bffc8f33bdedb941e0e`는 feature/pass/status
+변경 0, UI-018 sourceFlow 한 행만 재결속한 985 carry-forward+1 independent approval입니다.
+Migration-aware producer는 정확히 1회 성공했고 native generator는 0회입니다. Focused/static
+gate는 PASS했으며 actual EVT-023, `./test_ui.sh`, Policy v4, 30분, 120분, release는 clean
+checkpoint와 focused actual 전까지 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

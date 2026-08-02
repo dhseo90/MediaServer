@@ -5,9 +5,9 @@
     "canonicalSha256": "3b3b85556d4efc78e6cea00f9e7e8199b22ed58931ea5cc40f524ba18bdf936f",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "cda9bf5822188205fc0b7d2eb8a67ceaf2fdbb16bf52b9ac4736f35ee3320829",
+    "implementationProjectionSha256": "8421aadaab0400101bf9de4f0d20a562b57586d69c637212b6eec189161ac0d4",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "757f68564a1357ad86f4e706c6611ab5a6795966b171345c4191c35bd64b6816",
+    "runtimeOracleCatalogSha256": "2ed23c2022da9add03de8647262ac44ea193d8819d976ba3d5dba925436ae33c",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -11074,7 +11074,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "1368394b430b29ae9fcc0503443b243a10be80828278592f67dca1314f00556d",
+            "semanticCallChainSha256": "2e8b62660442183a7c561f39b61f1da9f6b79dfb078d7b18484a08b4c00b64f1",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -11156,7 +11156,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "1368394b430b29ae9fcc0503443b243a10be80828278592f67dca1314f00556d"
+          "assertedSemanticDigest": "2e8b62660442183a7c561f39b61f1da9f6b79dfb078d7b18484a08b4c00b64f1"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -11168,7 +11168,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "d2ed2be60ebc9be66642572cb45920d5eeab8816dd3e6a2d35f87f39da644ce0",
+          "specSha256": "0879b290c0fec5c84f0c9a2783631d4ef38a44c6dcbd51ac37fd46a341f91ceb",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11305,7 +11305,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "1368394b430b29ae9fcc0503443b243a10be80828278592f67dca1314f00556d"
+            "semanticCallChainSha256": "2e8b62660442183a7c561f39b61f1da9f6b79dfb078d7b18484a08b4c00b64f1"
           }
         ]
       },

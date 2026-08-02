@@ -158,7 +158,12 @@ export const eventRecordFixtureFamilyExpectations = Object.freeze({
   "EVT-023": Object.freeze({
     route: "/ops/dashboard",
     records: Object.freeze([
-      Object.freeze({ eventIdSuffix: "", status: "open", evidence: "snapshot-and-clip" }),
+      Object.freeze({
+        eventIdSuffix: "",
+        status: "open",
+        evidence: "snapshot-and-clip",
+        safeDigestIdentity: "event-id-as-scenario",
+      }),
     ]),
   }),
   "EVT-026": Object.freeze({
@@ -428,6 +433,9 @@ export function eventRecordFixtureFamilyExpectedRecords({
     route: expectation.route,
     status: record.status,
     evidence: record.evidence,
+    ...(record.safeDigestIdentity === "event-id-as-scenario"
+      ? { scenarioName: `${fixtureId}${record.eventIdSuffix}` }
+      : {}),
   }));
 }
 
@@ -452,6 +460,63 @@ export function runtimeFixturePlanFor(spec) {
     plan.add("event-record");
   }
   return Object.freeze([...plan]);
+}
+
+export function requiresFixtureSafeIncidentDigest(spec) {
+  if (!spec || typeof spec !== "object") return false;
+  const fixtures = Array.isArray(spec.setup?.fixtures)
+    ? spec.setup.fixtures.map(value => String(value))
+    : [];
+  const fixtureOwned = String(spec.seed?.kind || "") === "published-view-event" ||
+    fixtures.includes("scoped-event-record");
+  const incidentDigestRequest = (spec.requests || []).find(request =>
+    (request.requiredJsonPaths || []).includes("events.incidentDigest.digestItems") ||
+    (request.requiredJsonPaths || []).includes("$.events.incidentDigest.digestItems"));
+  if (!fixtureOwned || !incidentDigestRequest) return false;
+  const eventAssertion = (incidentDigestRequest.assertions || []).some(assertion =>
+    assertion.path === "events.incidentDigest.digestItems" &&
+    assertion.operator === "contains-fixture-safe-summary");
+  return eventAssertion || fixtures.includes("incidentDigest-projection-input") ||
+    fixtures.includes("source-health");
+}
+
+export function validateFixtureSafeIncidentDigestReadback({
+  caseId,
+  fixtureId,
+  response,
+} = {}) {
+  assert(caseId && fixtureId, "fixture-safe incident digest identity is incomplete");
+  const recent = response?.events?.recent;
+  const digest = response?.events?.incidentDigest;
+  assert(Array.isArray(recent), `${caseId} viewer-scoped recent event projection is missing`);
+  const eventCandidates = recent.filter(record => String(record?.eventId || "") === fixtureId);
+  assert(eventCandidates.length === 1,
+    `${caseId} authoritative fixture event cardinality mismatch`);
+  assert(digest?.schema === "media-server.client.incident-digest.v1" &&
+    digest?.viewerSafe === true &&
+    Number(digest?.itemCount) === recent.length &&
+    Array.isArray(digest?.digestItems) &&
+    digest.digestItems.length === Math.min(recent.length, 5),
+  `${caseId} fixture-safe incident digest structure mismatch`);
+  const event = eventCandidates[0];
+  const expectedSummary = `${fixtureId} / ${String(event?.status || "recorded")}`;
+  const digestCandidates = digest.digestItems.filter(item =>
+    item?.summaryText === expectedSummary &&
+    item?.eventType === event?.eventType &&
+    item?.status === event?.status);
+  assert(digestCandidates.length === 1,
+    `${caseId} fixture-safe incident digest identity cardinality mismatch`);
+  const sha256 = value => crypto.createHash("sha256").update(String(value || "")).digest("hex");
+  return Object.freeze({
+    schema: "media-server.v390-ui-fixture-safe-incident-digest-readback.v1",
+    authoritativeFixturePresent: true,
+    authoritativeFixtureCandidateCount: eventCandidates.length,
+    digestItemCandidateCount: digestCandidates.length,
+    eventIdSha256: sha256(fixtureId),
+    summaryTextSha256: sha256(expectedSummary),
+    eventTypeSha256: sha256(event.eventType),
+    statusSha256: sha256(event.status),
+  });
 }
 
 export function buildDiagnosticMarkerFileStageEvidence({
@@ -715,6 +780,7 @@ export function createV390UiCaseRuntime({
       transientSeedReadback: null,
       eventRecordFixtureArtifacts: [],
       eventRecordFixtureDispatches: [],
+      fixtureSafeIncidentDigestReadback: null,
       eventExactSeedPrepared: false,
       prepared: false,
     };
@@ -2548,7 +2614,7 @@ export function createV390UiCaseRuntime({
       return;
     }
     if (!item.caseId.startsWith("EVT-") &&
-        !["/ops/events", "/client/events", "/client/live"].includes(spec.route)) return;
+        !["/ops/events", "/client/dashboard", "/client/events", "/client/live"].includes(spec.route)) return;
     const eventPath = descriptor?.eventStoragePath;
     assert(eventPath, `${item.caseId} catalog EventRecord storage is unavailable`);
     const observationPath = vlmObservationStoragePath(eventPath);
@@ -2558,6 +2624,7 @@ export function createV390UiCaseRuntime({
     const source = defaultPublishedSourceIdentity(descriptor);
     const searchQuery = String((item.workflow.inputs || []).find(input =>
       input.kind === "literal-control-value" && typeof input.actualValue === "string")?.actualValue || context.fixtureId);
+    const fixtureSafeIncidentDigestRequired = requiresFixtureSafeIncidentDigest(spec);
     const existing = fs.existsSync(eventPath) &&
       fs.readFileSync(eventPath, "utf8").includes(`\"eventId\":\"${context.fixtureId}\"`);
     if (!existing) {
@@ -2565,6 +2632,7 @@ export function createV390UiCaseRuntime({
         eventId: context.fixtureId,
         sourceId: source.sourceId,
         streamId: source.streamId,
+        scenarioName: fixtureSafeIncidentDigestRequired ? context.fixtureId : "",
       });
     }
     const observation = seedVlmRuleSuggestionFixture(observationPath, {
@@ -2615,8 +2683,16 @@ export function createV390UiCaseRuntime({
       const recent = Array.isArray(readback.json?.events?.recent) ? readback.json.events.recent : [];
       assert(recent.some(record => String(record?.eventId || "") === context.fixtureId),
         `${item.caseId} viewer-scoped EventRecord fixture readback is missing`);
+      const fixtureSafeIncidentDigest = fixtureSafeIncidentDigestRequired
+        ? validateFixtureSafeIncidentDigestReadback({
+            caseId: item.caseId,
+            fixtureId: context.fixtureId,
+            response: readback.json,
+          })
+        : null;
       readbackStatus = readback.status;
       recordCount = recent.length;
+      context.fixtureSafeIncidentDigestReadback = fixtureSafeIncidentDigest;
     }
     context.catalogBindings = {
       eventId: context.fixtureId,
@@ -2631,6 +2707,9 @@ export function createV390UiCaseRuntime({
       reviewStatus,
       matchedFixture: true,
       recordCount,
+      ...(context.fixtureSafeIncidentDigestReadback
+        ? { fixtureSafeIncidentDigest: context.fixtureSafeIncidentDigestReadback }
+        : {}),
     };
     if (usesEventExactRuntimeBindings(item.caseId)) {
       await captureEventExactRuntimeBindings(item, context, spec);
@@ -2717,7 +2796,8 @@ export function createV390UiCaseRuntime({
           status: familyRecord.status,
           eventType: index === 1 && plan.related ? "related-incident" : "presence",
           route: familyRecord.route,
-          scenarioName: plan.related ? "review4-related-incident" : "review4-exact",
+          scenarioName: familyRecord.scenarioName ||
+            (plan.related ? "review4-related-incident" : "review4-exact"),
         });
         context.eventRecordFixtureDispatches.push(dispatch.identityEvidence);
       } else {
@@ -5920,6 +6000,9 @@ export function validateEventRecordFixtureFamilyReadback({
     assertField("metadata.sourceId", expected.sourceId, record?.metadata?.sourceId);
     assertField("metadata.route", expected.route, record?.metadata?.route);
     assertField("status", expected.status, record?.status);
+    if (expected.scenarioName) {
+      assertField("scenarioName", expected.scenarioName, record?.scenarioName);
+    }
     if (expected.evidence === "snapshot-and-clip") {
       const snapshotPresent = record && Object.hasOwn(record, "snapshotPath") &&
         typeof record.snapshotPath === "string" && record.snapshotPath.length > 0;
@@ -5945,6 +6028,12 @@ export function validateEventRecordFixtureFamilyReadback({
       routeSha256: digest(expected.route),
       statusFieldPath: "status",
       statusSha256: digest(expected.status),
+      ...(expected.scenarioName
+        ? {
+            scenarioNameFieldPath: "scenarioName",
+            scenarioNameSha256: digest(expected.scenarioName),
+          }
+        : {}),
       evidence: expected.evidence,
     })),
   };

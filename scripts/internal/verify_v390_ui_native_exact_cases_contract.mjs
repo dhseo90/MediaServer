@@ -39,6 +39,7 @@ import {
   eventExactSeedMaterializerRegistry,
   fixtureViewerScopes,
   formReadbackProfiles,
+  requiresFixtureSafeIncidentDigest,
   resolveAuthoritativeReadback,
   runtimeFixturePlanFor,
   runAuthoritativeReadbackWithSnapshotRestore,
@@ -49,6 +50,7 @@ import {
   validateEventReviewCollectionAbsence,
   validateEventReviewSeedWriteReceipt,
   validateEventRecordFixtureFamilyReadback,
+  validateFixtureSafeIncidentDigestReadback,
 } from "./v390_ui_case_runtime.mjs";
 import {
   eventExactOracleCaseIds,
@@ -1025,7 +1027,12 @@ check("records.records fixture family uses product dispatch with exact readback 
   const expectedFamilyTable = {
     "EVT-007": { route: "/ops/events", count: 2, statuses: ["open", "archived"] },
     "EVT-020": { route: "/ops/events", count: 1, statuses: ["open"] },
-    "EVT-023": { route: "/ops/dashboard", count: 1, statuses: ["open"] },
+    "EVT-023": {
+      route: "/ops/dashboard",
+      count: 1,
+      statuses: ["open"],
+      safeDigestIdentity: "event-id-as-scenario",
+    },
     "EVT-026": { route: "/ops/dashboard", count: 1, statuses: ["open"] },
     "EVT-048": { route: "/ops/dashboard", count: 1, statuses: ["open"] },
     "EVT-049": { route: "/ops/events", count: 1, statuses: ["open"] },
@@ -1036,7 +1043,11 @@ check("records.records fixture family uses product dispatch with exact readback 
       expectation.records.length === expectedFamily.count &&
       JSON.stringify(expectation.records.map(record => record.status)) ===
         JSON.stringify(expectedFamily.statuses) &&
-      expectation.records.every(record => record.evidence === "snapshot-and-clip"),
+      expectation.records.every(record => record.evidence === "snapshot-and-clip") &&
+      (expectedFamily.safeDigestIdentity
+        ? expectation.records.every(record =>
+            record.safeDigestIdentity === expectedFamily.safeDigestIdentity)
+        : expectation.records.every(record => record.safeDigestIdentity === undefined)),
     `${caseId} records.records expected identity table drift`);
     const expectedRecords = eventRecordFixtureFamilyExpectedRecords({
       caseId,
@@ -1049,7 +1060,10 @@ check("records.records fixture family uses product dispatch with exact readback 
       record.sourceId === `${caseId.toLowerCase()}-source` &&
       record.streamId === `${caseId.toLowerCase()}-canonical-source` &&
       record.route === expectedFamily.route &&
-      record.status === expectedFamily.statuses[index]),
+      record.status === expectedFamily.statuses[index] &&
+      (expectedFamily.safeDigestIdentity
+        ? record.scenarioName === record.eventId
+        : record.scenarioName === undefined)),
     `${caseId} case-specific EventRecord dispatcher identity drift`);
   }
   assert(eventExactSeedMaterializerRegistry["active-and-archived-event-records"].evidence === true,
@@ -1229,6 +1243,121 @@ check("records.records fixture family uses product dispatch with exact readback 
   "EventRecord helper actual dispatch/query evidence is not independently bound");
   assert(runtimeSource.includes("product EventRecord fixture artifact cleanup residue remains"),
     "fixture cleanup residue is not fail-closed");
+});
+
+check("fixture-safe incident digests bind one authoritative event to one safe summary", () => {
+  const runtimeCatalog = buildExactRuntimeOracleCatalog({ implementation });
+  const affected = runtimeCatalog
+    .filter(spec => requiresFixtureSafeIncidentDigest(spec))
+    .map(spec => spec.caseId);
+  assert(JSON.stringify(affected) ===
+    JSON.stringify(["EVT-023", "CLIENT-006", "CLIENT-007", "CLIENT-023"]),
+  `fixture-safe incident digest audit scope drift: ${affected.join(",")}`);
+  assert(runtimeSource.includes('"/client/dashboard", "/client/events", "/client/live"') &&
+    runtimeSource.includes("scenarioName: fixtureSafeIncidentDigestRequired ? context.fixtureId : \"\"") &&
+    runtimeSource.includes("scenarioName: familyRecord.scenarioName ||") &&
+    runtimeSource.includes("validateFixtureSafeIncidentDigestReadback({"),
+  "fixture-safe incident digest materialization is not bound at both runtime boundaries");
+
+  const fixtureId = "fixture-safe-incident";
+  const expectedEventRecords = eventRecordFixtureFamilyExpectedRecords({
+    caseId: "EVT-023",
+    fixtureId,
+    sourceId: "fixture-source",
+    streamId: "fixture-stream",
+  });
+  const authoritativeRecordResponse = {
+    records: {
+      records: [{
+        eventId: fixtureId,
+        streamId: "fixture-stream",
+        status: "open",
+        scenarioName: fixtureId,
+        metadata: { sourceId: "fixture-source", route: "/ops/dashboard" },
+        snapshotPath: "/snapshot/fixture.jpg",
+        clipPath: "/clip/fixture.mp4",
+      }],
+    },
+  };
+  assert(validateEventRecordFixtureFamilyReadback({
+    caseId: "EVT-023",
+    fixtureId,
+    expectedRecords: expectedEventRecords,
+    response: authoritativeRecordResponse,
+  }).matchedCount === 1,
+  "EVT-023 authoritative EventRecord safe digest identity was rejected");
+  let scenarioMismatchRejected = false;
+  try {
+    const mismatch = structuredClone(authoritativeRecordResponse);
+    mismatch.records.records[0].scenarioName = "review4-exact";
+    validateEventRecordFixtureFamilyReadback({
+      caseId: "EVT-023",
+      fixtureId,
+      expectedRecords: expectedEventRecords,
+      response: mismatch,
+    });
+  } catch {
+    scenarioMismatchRejected = true;
+  }
+  assert(scenarioMismatchRejected,
+    "EVT-023 authoritative EventRecord scenario identity mismatch produced false PASS");
+  const validResponse = {
+    events: {
+      recent: [{
+        eventId: fixtureId,
+        eventType: "presence",
+        status: "open",
+      }],
+      incidentDigest: {
+        schema: "media-server.client.incident-digest.v1",
+        viewerSafe: true,
+        itemCount: 1,
+        digestItems: [{
+          summaryText: `${fixtureId} / open`,
+          eventType: "presence",
+          status: "open",
+          severity: "attention",
+          time: 1,
+        }],
+      },
+    },
+  };
+  const valid = validateFixtureSafeIncidentDigestReadback({
+    caseId: "EVT-023",
+    fixtureId,
+    response: validResponse,
+  });
+  assert(valid.authoritativeFixtureCandidateCount === 1 &&
+    valid.digestItemCandidateCount === 1 &&
+    /^[a-f0-9]{64}$/.test(valid.eventIdSha256) &&
+    /^[a-f0-9]{64}$/.test(valid.summaryTextSha256),
+  "valid fixture-safe incident digest evidence was rejected or retained raw identity");
+  const rejected = mutation => {
+    try {
+      validateFixtureSafeIncidentDigestReadback({
+        caseId: "EVT-023",
+        fixtureId,
+        response: mutation(structuredClone(validResponse)),
+      });
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  assert(rejected(value => { value.events.recent = []; return value; }),
+    "missing authoritative fixture event produced false PASS");
+  assert(rejected(value => { value.events.recent.push(structuredClone(value.events.recent[0])); return value; }),
+    "duplicate authoritative fixture event produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.itemCount = 2; return value; }),
+    "incident digest itemCount drift produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.digestItems[0].summaryText = "unrelated / open"; return value; }),
+    "unrelated safe summary produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.digestItems.push(structuredClone(value.events.incidentDigest.digestItems[0])); return value; }),
+    "duplicate fixture-safe digest item produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.digestItems[0].eventType = "wrong"; return value; }),
+    "fixture-safe digest eventType mismatch produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.digestItems[0].status = "closed"; return value; }),
+    "fixture-safe digest status mismatch produced false PASS");
 });
 
 check("EVT-004 diagnostic log evidence is redacted and byte-restored before native execution", () => {

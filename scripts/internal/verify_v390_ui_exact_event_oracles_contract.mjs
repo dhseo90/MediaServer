@@ -263,6 +263,11 @@ check("EVT-023 binds the required incident digest schema through the canonical e
     "void AppendClientSafeIncidentDigestJson(",
     "std::string ClientSafeEventDigestTimelineHint(",
   );
+  const digestSummaryProducer = boundedFunctionSource(
+    server,
+    "std::string ClientSafeIncidentDigestSummaryText(",
+    "void AppendClientSafeIncidentDigestJson(",
+  );
   const eventsProducer = boundedFunctionSource(
     server,
     "std::string ClientViewEventsJson(",
@@ -270,6 +275,15 @@ check("EVT-023 binds the required incident digest schema through the canonical e
   );
   assert(digestProducer.includes('"\\\"schema\\\":\\\"media-server.client.incident-digest.v1\\\","'),
     "client incident digest producer no longer emits the required schema");
+  assertOrdered(digestSummaryProducer, [
+    "ClientSafeDigestValue(item.scenario_name",
+    "ClientSafeDigestValue(item.class_name",
+    "ClientSafeDigestValue(item.event_type",
+    "ClientSafeDigestValue(item.status",
+    "label + \" / \" + status",
+  ], "client incident digest safe summary precedence drifted");
+  assert(!digestSummaryProducer.includes("item.event_id"),
+    "client incident digest product summary must not expose EventRecord identity directly");
   assertOrdered(eventsProducer, [
     'out << ",\\\"events\\\":";',
     "AppendClientEventSummaryJson(out,",
