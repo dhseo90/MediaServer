@@ -7090,6 +7090,22 @@ completion36/adapter23/diagnostic19/acceptance21/final-integrity12와 inventory/
 syntax/JSON/diff가 PASS했습니다. Actual EVT-023, `./test_ui.sh`, Policy v4, 30분, 120분,
 release는 clean checkpoint와 focused actual 전까지 미실행입니다.
 
+EVT-023 Ops authoritative response/source-build closure(2026-08-03)는 이전 focused actual의
+`authoritative response 0`이 제품 query 결과가 아니라 lifecycle instrumentation 미관찰값을 0으로
+기본 변환한 오분류였음을 고정합니다. Client events와 Ops status는 모두 canonical
+`EventStorageApplicationService::QueryEventRecordsForApplication` store를 읽고 Ops dashboard GET
+`/ops/api/events/status?limit=5&includeArchives=1`에는 fixture를 제외할 event/view/source/type/status/
+time/visibility predicate가 없습니다. Diagnostic actual은 browser bootstrap 전에 clean current source를
+`./server.sh build`로 직접 build하고 binary SHA를 parent/child source binding에 결속합니다. Runtime은
+Ops GET의 exact Playwright request/response identity·sequence·status와 response→input→sorted→bounded→DOM
+fixture digest를 함께 검증하며 instrumentation missing과 response binding mismatch를 authoritative zero와
+분리합니다. Rank band는 root-cause 3+EventRecord 4의 competing-source permutation에서도 8행 상한 안의
+EventRecord 보존에 필요해 유지합니다. Fixture family `EVT-007/020/023/026/048/049`의 product dispatch,
+readback, cleanup owner를 감사했고 dashboard lifecycle 대상 `EVT-023/026`과 `/ops/events` owner를
+혼합하지 않았습니다. Candidate `2dc205f5...41e0e`, feature/pass/status/sourceFlow, native ordered 424는
+불변이므로 producer/generator는 각 0회입니다. Focused/static gate는 PASS이며 clean-checkout과 actual은
+checkpoint commit 전 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

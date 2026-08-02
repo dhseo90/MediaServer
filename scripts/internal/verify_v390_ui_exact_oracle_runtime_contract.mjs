@@ -1031,6 +1031,26 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     expectedNodeTokens: [eventId, "presence", "open"],
   };
   const fixtureRow = `presence · open eventId ${eventId}`;
+  const opsNetworkEntries = [{
+    phase: "request-start",
+    requestId: "native-request-ops-status",
+    caseRequestIdentity: "EVT-023:request-ops-status",
+    caseRequestSequence: 2,
+    requestKind: "application-fetch",
+    method: "GET",
+    url: "http://runtime.invalid/ops/api/events/status?limit=5&includeArchives=1",
+  }, {
+    phase: "response",
+    requestId: "native-request-ops-status",
+    caseRequestIdentity: "EVT-023:request-ops-status",
+    caseRequestSequence: 2,
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+    requestKind: "application-fetch",
+    method: "GET",
+    status: 200,
+    url: "http://runtime.invalid/ops/api/events/status?limit=5&includeArchives=1",
+  }];
   const observed = {
     count: 2,
     visibleCount: 2,
@@ -1042,6 +1062,7 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     properties: {
       routeLocalIncidentTimeline: {
         routePath: "/ops/dashboard",
+        lifecycleObserved: true,
         containerCount: 1,
         incidentUnitNodeCount: 4,
         eventRecordCandidateCount: 2,
@@ -1070,6 +1091,7 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     fixtureCandidates: [eventId],
     fixtureIdentity: identity,
     fixtureRequired: true,
+    networkEntries: opsNetworkEntries,
     actualBrowserExecution: true,
   });
 
@@ -1086,6 +1108,17 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
   assert(passing.routeLocalDomBinding?.pass === true &&
     passing.routeLocalDomBinding.routeOwner === "/ops/dashboard" &&
     passing.routeLocalDomBinding.rendererOwner === "renderDashboardIncidentTimeline" &&
+    passing.routeLocalDomBinding.lifecycleObserved === true &&
+    passing.routeLocalDomBinding.opsEndpointMethod === "GET" &&
+    passing.routeLocalDomBinding.opsEndpointPath ===
+      "/ops/api/events/status?limit=5&includeArchives=1" &&
+    passing.routeLocalDomBinding.opsResponseStatus === 200 &&
+    passing.routeLocalDomBinding.opsRequestCandidateCount === 1 &&
+    passing.routeLocalDomBinding.opsResponseCandidateCount === 1 &&
+    passing.routeLocalDomBinding.opsResponseRequestObjectObserved === true &&
+    passing.routeLocalDomBinding.opsRequestResponseIdentityMatched === true &&
+    passing.routeLocalDomBinding.clientOpsStorageOwnerShared === true &&
+    passing.routeLocalDomBinding.firstExclusionPredicate === "none" &&
     passing.routeLocalDomBinding.containerCount === 1 &&
     passing.routeLocalDomBinding.incidentUnitNodeCount === 4 &&
     passing.routeLocalDomBinding.eventRecordCandidateCount === 2 &&
@@ -1114,6 +1147,7 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
       properties: {
         routeLocalIncidentTimeline: {
           routePath: "/ops/dashboard",
+          lifecycleObserved: true,
           containerCount: 1,
           incidentUnitNodeCount: 8,
           eventRecordCandidateCount: 0,
@@ -1188,6 +1222,45 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     domEventIdentityDigests: [fixtureDigest],
     eventRecordCandidateCount: 1,
   }), "DOM and bounded count mismatch");
+
+  const missingInstrumentation = lifecycleEvidenceFor({
+    lifecycleObserved: false,
+    renderPhase: "",
+  });
+  assert(missingInstrumentation.pass === false &&
+    missingInstrumentation.routeLocalDomBinding.failureCode ===
+      "OPS_INCIDENT_TIMELINE_LIFECYCLE_EVIDENCE_MISSING" &&
+    missingInstrumentation.routeLocalDomBinding.firstExclusionPredicate ===
+      "lifecycle-evidence-unavailable",
+  "missing lifecycle instrumentation was misclassified as an authoritative zero response");
+
+  const duplicateOpsResponse = evidenceFor({});
+  const duplicateNetworkEntries = [...opsNetworkEntries, {
+    ...opsNetworkEntries[1],
+    requestId: "native-request-ops-status-duplicate",
+    caseRequestIdentity: "EVT-023:request-ops-status-duplicate",
+    caseRequestSequence: 3,
+  }];
+  const responseBindingFailure = buildEventDomSemanticCompositeEvidence({
+    selector: '#dashIncidentTimeline [data-incident-unit="event-record"]',
+    observed,
+    responseBodies: [{ records: { records: [
+      { eventId: "unrelated", eventType: "motion", status: "closed" },
+      { eventId, eventType: "presence", status: "open" },
+    ] } }],
+    priorResponseByPath: { "eventId/eventType/status": baseline },
+    fixtureCandidates: [eventId],
+    fixtureIdentity,
+    fixtureRequired: true,
+    networkEntries: duplicateNetworkEntries,
+    actualBrowserExecution: true,
+  });
+  assert(duplicateOpsResponse.pass === true && responseBindingFailure.pass === false &&
+    responseBindingFailure.routeLocalDomBinding.failureCode ===
+      "OPS_INCIDENT_TIMELINE_RESPONSE_BINDING_MISMATCH" &&
+    responseBindingFailure.routeLocalDomBinding.firstExclusionPredicate ===
+      "ops-authoritative-response-binding",
+  "duplicate Ops response identity did not fail closed");
 
   const noFixtureMatch = evidenceFor({
     dom: {
@@ -1321,6 +1394,26 @@ await check("EVT-026 reuses the exact EventRecord lifecycle preservation contrac
   const eventId = "evt-026-review4-fixture";
   const fixtureDigest = crypto.createHash("sha256").update(eventId).digest("hex");
   const fixtureRow = `presence · open eventId ${eventId}`;
+  const opsNetworkEntries = [{
+    phase: "request-start",
+    requestId: "native-request-ops-status",
+    caseRequestIdentity: "EVT-026:request-ops-status",
+    caseRequestSequence: 2,
+    requestKind: "application-fetch",
+    method: "GET",
+    url: "http://runtime.invalid/ops/api/events/status?limit=5&includeArchives=1",
+  }, {
+    phase: "response",
+    requestId: "native-request-ops-status",
+    caseRequestIdentity: "EVT-026:request-ops-status",
+    caseRequestSequence: 2,
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+    requestKind: "application-fetch",
+    method: "GET",
+    status: 200,
+    url: "http://runtime.invalid/ops/api/events/status?limit=5&includeArchives=1",
+  }];
   const baseline = {
     schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
     identityKind: "event-record",
@@ -1349,6 +1442,7 @@ await check("EVT-026 reuses the exact EventRecord lifecycle preservation contrac
     properties: {
       routeLocalIncidentTimeline: {
         routePath: "/ops/dashboard",
+        lifecycleObserved: true,
         containerCount: 1,
         incidentUnitNodeCount: 1,
         eventRecordCandidateCount: 1,
@@ -1375,6 +1469,7 @@ await check("EVT-026 reuses the exact EventRecord lifecycle preservation contrac
     fixtureCandidates: [eventId],
     fixtureIdentity,
     fixtureRequired: true,
+    networkEntries: opsNetworkEntries,
     actualBrowserExecution: true,
   });
   const passing = evidenceFor(observed);

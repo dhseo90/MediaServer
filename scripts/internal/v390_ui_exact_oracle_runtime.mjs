@@ -1384,6 +1384,9 @@ async function observeDom(
             .map(value => String(value || '')).filter(Boolean).map(digestIdentity));
           return {
             routePath: String(location.pathname || ''),
+            lifecycleObserved: Boolean(owner &&
+              owner.hasAttribute('data-incident-render-phase') &&
+              typeof dashboardIncidentTimelineLifecycle !== 'undefined'),
             containerCount: container.length,
             incidentUnitNodeCount: incidentUnits.length,
             eventRecordCandidateCount: incidentUnits.filter(node =>
@@ -1449,6 +1452,7 @@ async function observeDom(
     selector,
     eventRuntimeContext,
     markerEvaluationTracker,
+    browser.networkEntries(),
   );
   const rowLocalComposite = semanticEvidence
     .map(evidence => evidence?.compositeEvidence)
@@ -2213,6 +2217,7 @@ function evaluateDomSemanticAssertions(
   selector,
   eventRuntimeContext = null,
   markerEvaluationTracker = null,
+  networkEntries = [],
 ) {
   return assertions.map(assertion => {
     const operator = String(assertion.operator || "");
@@ -2297,6 +2302,7 @@ function evaluateDomSemanticAssertions(
               selector,
             }
           : null,
+        networkEntries,
         actualBrowserExecution: true,
       });
       const semanticPass = compositeEvidence.pass;
@@ -2392,6 +2398,7 @@ export function buildEventDomSemanticCompositeEvidence({
   marker = "",
   markerEvaluation = null,
   markerEvaluator = buildEventMarkerFlowEvidence,
+  networkEntries = [],
   actualBrowserExecution = false,
 }) {
   const text = String(observed?.text || "");
@@ -2422,7 +2429,11 @@ export function buildEventDomSemanticCompositeEvidence({
   const routeLocalIncidentTimeline = observed?.properties?.routeLocalIncidentTimeline;
   const routeLocalDomBinding = routeLocalIncidentTimeline &&
       String(selector || "").includes("#dashIncidentTimeline")
-    ? buildRouteLocalIncidentTimelineEvidence(routeLocalIncidentTimeline, fixtureIdentity)
+    ? buildRouteLocalIncidentTimelineEvidence(
+      routeLocalIncidentTimeline,
+      fixtureIdentity,
+      networkEntries,
+    )
     : null;
 
   const paths = Object.entries(priorResponseByPath).map(([path, baseline]) => {
@@ -2641,8 +2652,13 @@ export function buildEventDomSemanticCompositeEvidence({
   return evidence;
 }
 
-function buildRouteLocalIncidentTimelineEvidence(observation, fixtureIdentity = null) {
+function buildRouteLocalIncidentTimelineEvidence(
+  observation,
+  fixtureIdentity = null,
+  networkEntries = [],
+) {
   const routePath = String(observation?.routePath || "");
+  const lifecycleObserved = observation?.lifecycleObserved === true;
   const containerCount = Number(observation?.containerCount || 0);
   const incidentUnitNodeCount = Number(observation?.incidentUnitNodeCount || 0);
   const eventRecordCandidateCount = Number(observation?.eventRecordCandidateCount || 0);
@@ -2684,11 +2700,14 @@ function buildRouteLocalIncidentTimelineEvidence(observation, fixtureIdentity = 
     bounded: fixtureMatchCount(boundedEventIdentityDigests),
     dom: fixtureMatchCount(domEventIdentityDigests),
   };
+  const opsResponseBinding = buildOpsIncidentTimelineResponseBinding(networkEntries);
   const attributeNames = Array.isArray(observation?.attributeNames)
     ? [...new Set(observation.attributeNames.map(String).filter(Boolean))].sort()
     : [];
   const ownerMatched = routePath === "/ops/dashboard" && containerCount === 1;
-  const lifecycleMatched = renderPhase === "dom-committed" &&
+  const lifecycleMatched = lifecycleObserved &&
+    opsResponseBinding.pass &&
+    renderPhase === "dom-committed" &&
     expectedFixtureDigest.length === 64 &&
     renderInputEventIdentityDigests.length <= 4 &&
     responseEventIdentityDigests.length >= renderInputEventIdentityDigests.length &&
@@ -2704,15 +2723,54 @@ function buildRouteLocalIncidentTimelineEvidence(observation, fixtureIdentity = 
     stableEqual(boundedEventIdentityDigests, domEventIdentityDigests) &&
     Object.values(stageFixtureMatches).every(count => count === 1);
   const pass = ownerMatched && lifecycleMatched;
+  const firstExclusionPredicate = !lifecycleObserved
+    ? "lifecycle-evidence-unavailable"
+    : (!opsResponseBinding.pass
+      ? "ops-authoritative-response-binding"
+      : (stageFixtureMatches.authoritativeResponse !== 1
+        ? "ops-query-result"
+        : (stageFixtureMatches.renderInput !== 1
+          ? "renderer-input-mapper"
+          : (stageFixtureMatches.sorted !== 1
+            ? "timeline-sort"
+            : (stageFixtureMatches.bounded !== 1
+              ? "timeline-bound"
+              : (stageFixtureMatches.dom !== 1 ? "dom-commit" : "none"))))));
+  const failureCode = pass
+    ? "PASS"
+    : (!ownerMatched
+      ? "OPS_INCIDENT_TIMELINE_OWNER_MISMATCH"
+      : (!lifecycleObserved
+        ? "OPS_INCIDENT_TIMELINE_LIFECYCLE_EVIDENCE_MISSING"
+        : (!opsResponseBinding.pass
+          ? "OPS_INCIDENT_TIMELINE_RESPONSE_BINDING_MISMATCH"
+          : "OPS_INCIDENT_TIMELINE_LIFECYCLE_MISMATCH")));
   return {
     schema: "media-server.v390-ui-route-local-incident-timeline-evidence.v1",
     pass,
-    failurePhase: pass ? "" : (ownerMatched ? "incident-timeline-render-lifecycle" : "route-renderer-owner"),
-    failureCode: pass ? "PASS" : (ownerMatched
-      ? "OPS_INCIDENT_TIMELINE_LIFECYCLE_MISMATCH"
-      : "OPS_INCIDENT_TIMELINE_OWNER_MISMATCH"),
+    failurePhase: pass ? "" : (ownerMatched
+      ? firstExclusionPredicate
+      : "route-renderer-owner"),
+    failureCode,
     routeOwner: "/ops/dashboard",
     rendererOwner: "renderDashboardIncidentTimeline",
+    lifecycleObserved,
+    opsEndpointMethod: opsResponseBinding.method,
+    opsEndpointPath: opsResponseBinding.path,
+    opsResponseStatus: opsResponseBinding.status,
+    opsRequestIdentityDigest: opsResponseBinding.requestIdentityDigest,
+    opsRequestSequence: opsResponseBinding.requestSequence,
+    opsRequestCandidateCount: opsResponseBinding.requestCandidateCount,
+    opsResponseCandidateCount: opsResponseBinding.responseCandidateCount,
+    opsResponseRequestObjectObserved: opsResponseBinding.responseRequestObjectObserved,
+    opsRequestResponseIdentityMatched: opsResponseBinding.identityMatched,
+    storageOwner: "EventStorageApplicationService/QueryEventRecordsForApplication",
+    clientOpsStorageOwnerShared: true,
+    appliedQueryPredicates: ["limit=5", "includeArchives=true"],
+    filterCandidateCounts: {
+      queryResult: responseEventIdentityDigests.length,
+    },
+    firstExclusionPredicate,
     routeDigest: sha256Digest(routePath),
     containerCount,
     incidentUnitNodeCount,
@@ -2737,6 +2795,55 @@ function buildRouteLocalIncidentTimelineEvidence(observation, fixtureIdentity = 
     domEventIdentityDigests,
     attributeNames,
     attributeNamesDigest: sha256Digest(attributeNames),
+  };
+}
+
+function buildOpsIncidentTimelineResponseBinding(networkEntries = []) {
+  const endpointPath = "/ops/api/events/status?limit=5&includeArchives=1";
+  const target = entry => {
+    try {
+      const parsed = new URL(String(entry?.url || ""));
+      return `${parsed.pathname}${parsed.search}`;
+    } catch {
+      return "";
+    }
+  };
+  const entries = Array.isArray(networkEntries) ? networkEntries : [];
+  const requests = entries.filter(entry =>
+    entry?.phase === "request-start" &&
+    entry?.method === "GET" &&
+    entry?.requestKind === "application-fetch" &&
+    target(entry) === endpointPath);
+  const responses = entries.filter(entry =>
+    entry?.phase === "response" &&
+    entry?.method === "GET" &&
+    entry?.requestKind === "application-fetch" &&
+    target(entry) === endpointPath);
+  const request = requests.length === 1 ? requests[0] : null;
+  const response = responses.length === 1 ? responses[0] : null;
+  const identityMatched = Boolean(request && response &&
+    request.requestId && response.requestId === request.requestId &&
+    request.caseRequestIdentity &&
+    response.caseRequestIdentity === request.caseRequestIdentity &&
+    Number.isInteger(request.caseRequestSequence) &&
+    response.caseRequestSequence === request.caseRequestSequence &&
+    response.responseRequestObjectObserved === true &&
+    response.requestIdentitySource === "playwright-response-request");
+  return {
+    pass: identityMatched && response.status === 200,
+    method: "GET",
+    path: endpointPath,
+    status: Number(response?.status || 0),
+    requestIdentityDigest: request?.caseRequestIdentity
+      ? sha256Digest(String(request.caseRequestIdentity))
+      : sha256Digest(""),
+    requestSequence: Number.isInteger(request?.caseRequestSequence)
+      ? request.caseRequestSequence
+      : 0,
+    requestCandidateCount: requests.length,
+    responseCandidateCount: responses.length,
+    responseRequestObjectObserved: response?.responseRequestObjectObserved === true,
+    identityMatched,
   };
 }
 
@@ -3236,6 +3343,23 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
       typeof routeLocal.failureCode === "string" &&
       routeLocal.routeOwner === "/ops/dashboard" &&
       routeLocal.rendererOwner === "renderDashboardIncidentTimeline" &&
+      typeof routeLocal.lifecycleObserved === "boolean" &&
+      routeLocal.opsEndpointMethod === "GET" &&
+      routeLocal.opsEndpointPath === "/ops/api/events/status?limit=5&includeArchives=1" &&
+      Number.isInteger(routeLocal.opsResponseStatus) &&
+      /^[0-9a-f]{64}$/.test(routeLocal.opsRequestIdentityDigest || "") &&
+      Number.isInteger(routeLocal.opsRequestSequence) &&
+      Number.isInteger(routeLocal.opsRequestCandidateCount) &&
+      Number.isInteger(routeLocal.opsResponseCandidateCount) &&
+      typeof routeLocal.opsResponseRequestObjectObserved === "boolean" &&
+      typeof routeLocal.opsRequestResponseIdentityMatched === "boolean" &&
+      routeLocal.storageOwner ===
+        "EventStorageApplicationService/QueryEventRecordsForApplication" &&
+      routeLocal.clientOpsStorageOwnerShared === true &&
+      stableEqual(routeLocal.appliedQueryPredicates,
+        ["limit=5", "includeArchives=true"]) &&
+      Number.isInteger(routeLocal.filterCandidateCounts?.queryResult) &&
+      typeof routeLocal.firstExclusionPredicate === "string" &&
       /^[0-9a-f]{64}$/.test(routeLocal.routeDigest || "") &&
       Number.isInteger(routeLocal.containerCount) &&
       Number.isInteger(routeLocal.incidentUnitNodeCount) &&

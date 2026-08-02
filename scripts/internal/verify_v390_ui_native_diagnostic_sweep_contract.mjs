@@ -402,6 +402,7 @@ check("valid failed child evidence is aggregated without a missing-child downgra
   const sourceBinding = {
     gitCommit: "1".repeat(40),
     manifestSha256: "2".repeat(64),
+    buildSha256: "8".repeat(64),
     runId: "current-diagnostic-run",
     caseId: "EVT-004",
     caseIdsSha256: "3".repeat(64),
@@ -502,6 +503,8 @@ check("valid failed child evidence is aggregated without a missing-child downgra
       "diagnostic-child-source-commit-mismatch"],
     ["wrong manifest", { manifestSha256: "6".repeat(64) },
       "diagnostic-child-manifest-digest-mismatch"],
+    ["wrong build", { buildSha256: "9".repeat(64) },
+      "diagnostic-child-build-digest-mismatch"],
     ["stale run", { runId: "stale-run" },
       "diagnostic-child-run-id-mismatch"],
     ["wrong case", { caseId: "EVT-003" },
@@ -751,6 +754,21 @@ check("plan-only diagnostic output preserves count invariants without browser ex
   "diagnostic runtime PID/port/root cleanup attestation is incomplete");
 });
 
+check("actual diagnostic builds and binds the current source before browser bootstrap", () => {
+  assert(sweepSource.includes("buildCurrentSourceBoundBinary()") &&
+    sweepSource.includes('spawnSync(path.join(rootDir, "server.sh"), ["build"]') &&
+    sweepSource.includes('bindingKind: "built-media-server-binary"') &&
+    sweepSource.includes('"--diagnostic-build-sha256", uiBuildBinding.buildSha256') &&
+    sweepSource.includes("sourceWorktreeStatusSha256") &&
+    sweepSource.indexOf("buildCurrentSourceBoundBinary()") <
+      sweepSource.indexOf("startSelfContainedUiEnvironment({"),
+  "diagnostic actual is not source-built and binary-bound before bootstrap");
+  assert(runnerSource.includes('"--diagnostic-build-sha256"') &&
+    runnerSource.includes("buildSha256: options.diagnosticBuildSha256") &&
+    runnerSource.includes("sha256File(buildPath) === options.diagnosticBuildSha256"),
+  "diagnostic child does not preserve the parent current-source binary binding");
+});
+
 check("diagnostic child plan-only reports only its selected case and cannot emit a release summary", () => {
   const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
   fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
@@ -767,6 +785,7 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
   const manifestSha256 = createHash("sha256")
     .update(stableJson(nativeManifest)).digest("hex");
   const diagnosticRunId = "diagnostic-child-contract";
+  const buildSha256 = "8".repeat(64);
   const run = spawnSync(path.join(rootDir, "server.sh"), [
     "run-v390-ui-native-exact-cases",
     "--diagnostic-child",
@@ -774,6 +793,7 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
     "--manifest", diagnosticManifestPath,
     "--diagnostic-source-commit", sourceCommit,
     "--diagnostic-manifest-sha256", manifestSha256,
+    "--diagnostic-build-sha256", buildSha256,
     "--diagnostic-run-id", diagnosticRunId,
     "--plan-only",
     "--output-dir", outputDir,
@@ -792,6 +812,7 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
   "diagnostic child plan-only entered a release or Policy v4 state");
   assert(summary.sourceBinding?.gitCommit === sourceCommit &&
     summary.sourceBinding?.manifestSha256 === manifestSha256 &&
+    summary.sourceBinding?.buildSha256 === buildSha256 &&
     summary.sourceBinding?.runId === diagnosticRunId &&
     summary.sourceBinding?.caseId === "RULE-097",
   "diagnostic child plan-only source binding mismatch");
@@ -814,6 +835,7 @@ check("diagnostic child explicit-positive mode revalidates UI-001 identity and s
     "utf8");
   const manifestSha256 = createHash("sha256")
     .update(stableJson(nativeManifest)).digest("hex");
+  const buildSha256 = "9".repeat(64);
   const run = spawnSync(path.join(rootDir, "server.sh"), [
     "run-v390-ui-native-exact-cases",
     "--diagnostic-child",
@@ -822,6 +844,7 @@ check("diagnostic child explicit-positive mode revalidates UI-001 identity and s
     "--manifest", diagnosticManifestPath,
     "--diagnostic-source-commit", "1".repeat(40),
     "--diagnostic-manifest-sha256", manifestSha256,
+    "--diagnostic-build-sha256", buildSha256,
     "--diagnostic-run-id", "diagnostic-child-explicit-positive-contract",
     "--plan-only",
     "--output-dir", outputDir,
@@ -837,6 +860,7 @@ check("diagnostic child explicit-positive mode revalidates UI-001 identity and s
     summary.selection?.mode === "explicit-positive-case" &&
     summary.sourceBinding?.selectionMode === "explicit-positive-case" &&
     summary.sourceBinding?.manifestSha256 === manifestSha256 &&
+    summary.sourceBinding?.buildSha256 === buildSha256 &&
     summary.actualBrowserExecution === false,
   "explicit positive child selection/source binding drift");
 });

@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { createHash } from "node:crypto";
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -55,6 +55,7 @@ const selection = selectedDiagnosticCases({
 });
 const sourceCommit = currentGitCommit();
 const sourceManifestSha256 = sha256(stableJson(manifest));
+let uiBuildBinding = null;
 
 if (options.bootstrapFailureContractFixture) {
   const bootstrapError = bootstrapFailureContractFixture(options.bootstrapFailureContractFixture);
@@ -96,6 +97,25 @@ if (options.planOnly) {
   process.exit(0);
 }
 
+try {
+  uiBuildBinding = buildCurrentSourceBoundBinary();
+} catch (error) {
+  const summary = buildSummary({
+    result: "FAIL",
+    executionStatus: "diagnostic-current-source-build-failed",
+    cases: [caseResult(selection[0], "FAIL", "current-source-build-failed", 0, {
+      actualBrowserExecution: false,
+      failurePhase: "current-source-build",
+      failureCode: "DIAGNOSTIC_CURRENT_SOURCE_BUILD_FAILED",
+    })],
+    environments: [],
+    cleanup: [],
+  });
+  writeJson(summaryPath, summary);
+  printSummary(summary, summaryPath);
+  process.exit(1);
+}
+
 let environment = null;
 let environmentGeneration = 0;
 let bootstrapUnavailable = false;
@@ -123,6 +143,7 @@ for (const [selectionIndex, item] of selection.entries()) {
       environments.push({
         generation: environmentGeneration,
         status: "started",
+        uiBuildBinding,
         runtimeOwnership: runtimeOwnershipAttestation(environment.runtime),
       });
     } catch (error) {
@@ -240,6 +261,7 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
     "--timeout-ms", String(options.timeoutMs),
     "--diagnostic-source-commit", sourceCommit,
     "--diagnostic-manifest-sha256", sourceManifestSha256,
+    "--diagnostic-build-sha256", uiBuildBinding.buildSha256,
     "--diagnostic-run-id", runId,
   ];
   if (options.playwrightModulePath) args.push("--playwright-module-path", options.playwrightModulePath);
@@ -252,6 +274,7 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
     validateChildSummary(summary, item, {
       gitCommit: sourceCommit,
       manifestSha256: sourceManifestSha256,
+      buildSha256: uiBuildBinding.buildSha256,
       runId,
       caseId: item.caseId,
       caseIdsSha256: sha256(item.caseId),
@@ -340,6 +363,13 @@ function buildSummary({ result, executionStatus, cases, environments, cleanup })
     sourceBinding: {
       gitCommit: sourceCommit,
       manifestSha256: sha256(stableJson(manifest)),
+      ...(uiBuildBinding ? {
+        buildPath: uiBuildBinding.buildPath,
+        buildSha256: uiBuildBinding.buildSha256,
+        buildBytes: uiBuildBinding.buildBytes,
+        sourceWorktreeStatusSha256: uiBuildBinding.sourceWorktreeStatusSha256,
+        bindingKind: uiBuildBinding.bindingKind,
+      } : {}),
       selectionIdsSha256: sha256(selection.map(item => item.caseId).join("\n")),
       runId,
       selectionMode,
@@ -732,6 +762,53 @@ function timestampId() {
 
 function sha256(value) {
   return createHash("sha256").update(String(value)).digest("hex");
+}
+
+function sha256File(filePath) {
+  return createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+}
+
+function buildCurrentSourceBoundBinary() {
+  const buildPath = resolveRootOrAbsolute(options.buildPath);
+  const canonicalBuildPath = path.join(rootDir, "build-gst-onnx", "media_server");
+  assert(buildPath === canonicalBuildPath,
+    "actual diagnostic execution requires the canonical current-source build path");
+  const statusBefore = currentGitWorktreeStatus();
+  assert(statusBefore === "",
+    "actual diagnostic execution requires a clean current-source worktree");
+  const build = spawnSync(path.join(rootDir, "server.sh"), ["build"], {
+    cwd: rootDir,
+    env: { ...process.env, MEDIA_SERVER_SKIP_LOCAL_ENV: "1" },
+    stdio: "inherit",
+  });
+  assert(build.status === 0 && !build.signal,
+    `diagnostic current-source build failed: exit=${build.status ?? -1}`);
+  assert(fs.existsSync(buildPath), `diagnostic current-source build output missing: ${buildPath}`);
+  const metadata = fs.statSync(buildPath);
+  assert(metadata.isFile() && metadata.size > 0,
+    "diagnostic current-source build output is not a non-empty regular file");
+  assert(currentGitCommit() === sourceCommit,
+    "diagnostic source commit changed during the current-source build");
+  const statusAfter = currentGitWorktreeStatus();
+  assert(statusAfter === statusBefore,
+    "diagnostic source worktree changed during the current-source build");
+  return Object.freeze({
+    schema: "media-server.v390-ui-build-source-binding.v1",
+    sourceCommitSha: sourceCommit,
+    sourceWorktreeStatusSha256: sha256(statusBefore),
+    buildPath,
+    buildSha256: sha256File(buildPath),
+    buildBytes: metadata.size,
+    bindingKind: "built-media-server-binary",
+  });
+}
+
+function currentGitWorktreeStatus() {
+  return execFileSync("git", ["status", "--porcelain=v1", "--untracked-files=all"], {
+    cwd: rootDir,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
 }
 
 function currentGitCommit() {

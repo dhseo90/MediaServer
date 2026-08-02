@@ -472,6 +472,7 @@ export function diagnosticChildSourceBindingErrors(summary, expected = {}) {
   for (const [field, code] of [
     ["gitCommit", "diagnostic-child-source-commit-mismatch"],
     ["manifestSha256", "diagnostic-child-manifest-digest-mismatch"],
+    ["buildSha256", "diagnostic-child-build-digest-mismatch"],
     ["runId", "diagnostic-child-run-id-mismatch"],
     ["caseId", "diagnostic-child-source-case-mismatch"],
     ["caseIdsSha256", "diagnostic-child-source-selection-mismatch"],

@@ -3104,6 +3104,15 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Static gate | Semantic 51/51·approval 986/986·negative 11/11·migration, feature 986/986·negative 15/15, timeline/event28/evaluator19/runtime45/native48/completion36/adapter23/diagnostic19, acceptance21/final-integrity12, inventory17/index8/script11/docs/syntax/JSON/diff PASS | Static contract는 focused browser actual이나 release PASS가 아닙니다 |
 | Actual boundary | 새 clean checkpoint commit 뒤 `./server.sh run-v390-ui-native-diagnostic-sweep --case-id EVT-023` 정확히 1회 예정 | UI fulltest, Policy v4, 30분, 120분, release는 미실행 |
 
+### REVIEW4-65 EVT-023 Ops authoritative response/source-build binding
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| 최초 누락 원인 | Client와 Ops는 모두 `EventStorageApplicationService::QueryEventRecordsForApplication`의 canonical EventRecord store를 읽고, dashboard GET은 `limit=5&includeArchives=1` 외 event/view/source/type/status/time/visibility predicate를 적용하지 않습니다. 이전 actual은 현재 source보다 오래된 original checkout binary를 `MEDIA_SERVER_SKIP_BUILD=1`로 기동했고 lifecycle instrumentation 부재를 count 0으로 기본 변환해 Ops query-result 0으로 오분류했습니다 | 제품 handler/storage/query/materializer/API schema/UI를 변경하지 않고 diagnostic actual이 clean current source를 먼저 build한 뒤 binary SHA를 parent/child source binding에 결속합니다 |
+| Runtime evidence | `GET /ops/api/events/status?limit=5&includeArchives=1`의 Playwright initiating request/response object identity, sequence, status 200과 product response→render input→sorted→bounded→DOM identity digest를 함께 검증합니다. Lifecycle instrumentation 미관찰은 `OPS_INCIDENT_TIMELINE_LIFECYCLE_EVIDENCE_MISSING`, duplicate/wrong response identity는 `OPS_INCIDENT_TIMELINE_RESPONSE_BINDING_MISMATCH`로 별도 거부합니다 | Raw payload/source URL/credential/token/secret은 저장하지 않고 method/path/status/count/digest/phase만 보존합니다 |
+| Rank/family 감사 | Root-cause 최대 3행과 EventRecord 최대 4행을 bounded 8행에 예약하는 rank는 competing source 최대치와 permutation 계약 때문에 유지합니다. Fixture family `EVT-007/020/023/026/048/049`는 같은 product dispatch/readback/cleanup을 사용하며 dashboard lifecycle 직접 대상 `EVT-023/026`은 exact 보존 계약, `EVT-048`은 response-derived trend 계약, 나머지는 `/ops/events` owner를 유지합니다 | Client response를 Ops evidence로 대체하지 않고 route owner를 합치지 않습니다 |
+| Static/semantic | Timeline 6/6, event 28/28, evaluator 19/19, runtime 45/45, native 48/48, completion 36/36, adapter 23/23, diagnostic 20/20, acceptance 21/21, final-integrity 12/12, semantic 51/51·approval 986/986·negative 11/11·migration, feature 986/986·negative 15/15, inventory 17/17·index 8/8·script 11/11 PASS | Candidate `2dc205f5...41e0e`와 native 424/423+1/unsupported0 불변, producer/generator 각 0회. Clean-checkout과 focused actual은 checkpoint commit 전 미실행 |
+
 ## 임시 산출물 정리 기록
 
 | 버전/run | 경로 | 종류 | 조치 | 삭제/보존 결과 |

@@ -200,6 +200,10 @@ try {
   assert(options.serverLog, "--server-log is required for actual execution");
   buildPath = resolveRootOrAbsolute(options.buildPath);
   assert(fs.existsSync(buildPath), `--build-path does not exist: ${buildPath}`);
+  if (diagnosticChild) {
+    assert(sha256File(buildPath) === options.diagnosticBuildSha256,
+      "diagnostic child build source binding mismatch");
+  }
   serverLogPath = resolveRootOrAbsolute(options.serverLog);
   assert(fs.existsSync(serverLogPath), `server log does not exist: ${serverLogPath}`);
 } catch (error) {
@@ -3801,6 +3805,7 @@ function parseArgs(args) {
     diagnosticSelectionMode: "fixed-remaining-sweep",
     diagnosticSourceCommit: "",
     diagnosticManifestSha256: "",
+    diagnosticBuildSha256: "",
     diagnosticRunId: "",
   };
   for (let index = 0; index < args.length; index += 1) {
@@ -3821,6 +3826,7 @@ function parseArgs(args) {
     else if (arg === "--diagnostic-selection-mode") value.diagnosticSelectionMode = args[++index] || "";
     else if (arg === "--diagnostic-source-commit") value.diagnosticSourceCommit = args[++index] || "";
     else if (arg === "--diagnostic-manifest-sha256") value.diagnosticManifestSha256 = args[++index] || "";
+    else if (arg === "--diagnostic-build-sha256") value.diagnosticBuildSha256 = args[++index] || "";
     else if (arg === "--diagnostic-run-id") value.diagnosticRunId = args[++index] || "";
     else throw new Error(`unknown option: ${arg}`);
   }
@@ -3839,6 +3845,8 @@ function parseArgs(args) {
     "--diagnostic-child requires --diagnostic-source-commit");
   assert(!value.diagnosticChild || /^[0-9a-f]{64}$/.test(value.diagnosticManifestSha256),
     "--diagnostic-child requires --diagnostic-manifest-sha256");
+  assert(!value.diagnosticChild || /^[0-9a-f]{64}$/.test(value.diagnosticBuildSha256),
+    "--diagnostic-child requires --diagnostic-build-sha256");
   assert(!value.diagnosticChild || value.diagnosticRunId,
     "--diagnostic-child requires --diagnostic-run-id");
   return value;
@@ -3875,6 +3883,7 @@ function diagnosticChildSourceBinding(caseId) {
   return {
     gitCommit: options.diagnosticSourceCommit,
     manifestSha256: options.diagnosticManifestSha256,
+    buildSha256: options.diagnosticBuildSha256,
     runId: options.diagnosticRunId,
     caseId,
     caseIdsSha256: sha256Text(caseId),
