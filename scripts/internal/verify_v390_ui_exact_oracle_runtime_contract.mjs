@@ -2,6 +2,7 @@
 // 파일 용도: exact 424 runtime oracle 실행기가 status/DOM/network 누락을 거짓 PASS로 처리하지 않는지 검증한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 
 import {
   bindDashboardRuntimeTrendBaseline,
@@ -1009,6 +1010,9 @@ await check("EVT-003 API row and DOM identity bind to the same degraded source",
 
 await check("EVT-023 binds one authoritative event row to one Ops timeline row", async () => {
   const eventId = "evt-023-review4-fixture";
+  const digest = value => crypto.createHash("sha256").update(String(value)).digest("hex");
+  const fixtureDigest = digest(eventId);
+  const unrelatedDigest = digest("unrelated");
   const baseline = {
     schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
     identityKind: "event-record",
@@ -1041,6 +1045,17 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
         containerCount: 1,
         incidentUnitNodeCount: 4,
         eventRecordCandidateCount: 2,
+        renderPhase: "dom-committed",
+        eventRecordInputCount: 2,
+        eventRecordBoundedCount: 2,
+        eventRecordDomCount: 2,
+        responseEventIdentityDigests: [unrelatedDigest, fixtureDigest],
+        renderInputEventIdentityDigests: [unrelatedDigest, fixtureDigest],
+        sortedEventIdentityDigests: [unrelatedDigest, fixtureDigest],
+        boundedEventIdentityDigests: [unrelatedDigest, fixtureDigest],
+        domEventIdentityDigests: [unrelatedDigest, fixtureDigest],
+        incidentInputCounts: JSON.stringify({ "event-record": 2, "root-cause": 2 }),
+        incidentBoundedCounts: JSON.stringify({ "event-record": 2, "root-cause": 2 }),
         attributeNames: ["class", "data-incident-unit", "data-incident-workflow"],
       },
     },
@@ -1074,6 +1089,16 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     passing.routeLocalDomBinding.containerCount === 1 &&
     passing.routeLocalDomBinding.incidentUnitNodeCount === 4 &&
     passing.routeLocalDomBinding.eventRecordCandidateCount === 2 &&
+    passing.routeLocalDomBinding.renderPhase === "dom-committed" &&
+    passing.routeLocalDomBinding.eventRecordInputCount === 2 &&
+    passing.routeLocalDomBinding.eventRecordBoundedCount === 2 &&
+    passing.routeLocalDomBinding.eventRecordDomCount === 2 &&
+    passing.routeLocalDomBinding.authoritativeResponseCandidateCount === 2 &&
+    passing.routeLocalDomBinding.renderInputEventRecordCount === 2 &&
+    passing.routeLocalDomBinding.sortedEventRecordCount === 2 &&
+    passing.routeLocalDomBinding.boundedEventRecordCount === 2 &&
+    passing.routeLocalDomBinding.domEventRecordCount === 2 &&
+    Object.values(passing.routeLocalDomBinding.stageFixtureMatches).every(count => count === 1) &&
     JSON.stringify(passing.routeLocalDomBinding.attributeNames) ===
       JSON.stringify(["class", "data-incident-unit", "data-incident-workflow"]),
   "EVT-023 route-local Ops incident timeline evidence is incomplete");
@@ -1092,6 +1117,17 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
           containerCount: 1,
           incidentUnitNodeCount: 8,
           eventRecordCandidateCount: 0,
+          renderPhase: "dom-committed",
+          eventRecordInputCount: 1,
+          eventRecordBoundedCount: 0,
+          eventRecordDomCount: 0,
+          responseEventIdentityDigests: [fixtureDigest],
+          renderInputEventIdentityDigests: [fixtureDigest],
+          sortedEventIdentityDigests: [fixtureDigest],
+          boundedEventIdentityDigests: [],
+          domEventIdentityDigests: [],
+          incidentInputCounts: JSON.stringify({ "event-record": 1, "root-cause": 3 }),
+          incidentBoundedCounts: JSON.stringify({ "root-cause": 3, "source-health": 3, "rule-warning": 2 }),
           attributeNames: ["class", "data-incident-unit", "data-incident-workflow"],
         },
       },
@@ -1099,9 +1135,109 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
   });
   assert(missingDom.pass === false &&
     missingDom.observationPresent.reasonCode === "DOM_OBSERVATION_MISSING" &&
-    missingDom.routeLocalDomBinding?.pass === true &&
+    missingDom.routeLocalDomBinding?.pass === false &&
+    missingDom.routeLocalDomBinding.failureCode === "OPS_INCIDENT_TIMELINE_LIFECYCLE_MISMATCH" &&
+    missingDom.routeLocalDomBinding.eventRecordInputCount === 1 &&
     missingDom.routeLocalDomBinding.eventRecordCandidateCount === 0,
   "EVT-023 missing event row did not preserve route-local structured evidence");
+
+  const lifecycleEvidenceFor = overrides => evidenceFor({
+    dom: {
+      ...observed,
+      properties: {
+        routeLocalIncidentTimeline: {
+          ...observed.properties.routeLocalIncidentTimeline,
+          ...overrides,
+        },
+      },
+    },
+  });
+  const assertLifecycleFailure = (evidence, label) => {
+    assert(evidence.pass === false &&
+      evidence.routeLocalDomBinding?.pass === false &&
+      evidence.routeLocalDomBinding.failureCode === "OPS_INCIDENT_TIMELINE_LIFECYCLE_MISMATCH" &&
+      evidence.failedChecks.includes("routeLocalDomBinding"),
+    `${label} did not fail closed`);
+  };
+  assertLifecycleFailure(lifecycleEvidenceFor({
+    eventRecordInputCount: 2,
+    eventRecordBoundedCount: 1,
+    eventRecordDomCount: 1,
+    renderInputEventIdentityDigests: [unrelatedDigest, fixtureDigest],
+    sortedEventIdentityDigests: [unrelatedDigest, fixtureDigest],
+    boundedEventIdentityDigests: [fixtureDigest],
+    domEventIdentityDigests: [fixtureDigest],
+    eventRecordCandidateCount: 1,
+  }), "input 2 to bounded 1");
+  assertLifecycleFailure(lifecycleEvidenceFor({
+    sortedEventIdentityDigests: [unrelatedDigest],
+  }), "sorted fixture loss");
+  assertLifecycleFailure(lifecycleEvidenceFor({
+    boundedEventIdentityDigests: [unrelatedDigest, unrelatedDigest],
+    domEventIdentityDigests: [unrelatedDigest, unrelatedDigest],
+  }), "bounded fixture replacement");
+  assertLifecycleFailure(lifecycleEvidenceFor({
+    eventRecordBoundedCount: 3,
+    eventRecordDomCount: 3,
+    boundedEventIdentityDigests: [unrelatedDigest, fixtureDigest, digest("extra")],
+    domEventIdentityDigests: [unrelatedDigest, fixtureDigest, digest("extra")],
+    eventRecordCandidateCount: 3,
+  }), "bounded count growth");
+  assertLifecycleFailure(lifecycleEvidenceFor({
+    eventRecordDomCount: 1,
+    domEventIdentityDigests: [fixtureDigest],
+    eventRecordCandidateCount: 1,
+  }), "DOM and bounded count mismatch");
+
+  const noFixtureMatch = evidenceFor({
+    dom: {
+      ...observed,
+      count: 1,
+      visibleCount: 1,
+      text: "motion · closed eventId unrelated",
+      nodeTexts: ["motion · closed eventId unrelated"],
+      properties: {
+        routeLocalIncidentTimeline: {
+          ...observed.properties.routeLocalIncidentTimeline,
+          eventRecordInputCount: 1,
+          eventRecordBoundedCount: 1,
+          eventRecordDomCount: 1,
+          eventRecordCandidateCount: 1,
+          responseEventIdentityDigests: [unrelatedDigest],
+          renderInputEventIdentityDigests: [unrelatedDigest],
+          sortedEventIdentityDigests: [unrelatedDigest],
+          boundedEventIdentityDigests: [unrelatedDigest],
+          domEventIdentityDigests: [unrelatedDigest],
+        },
+      },
+    },
+  });
+  assert(noFixtureMatch.pass === false && noFixtureMatch.fixtureObserved.matchedNodeCount === 0,
+    "fixture matched row 0 did not fail closed");
+  const duplicateFixtureMatch = evidenceFor({
+    dom: {
+      ...observed,
+      text: `${fixtureRow} ${fixtureRow}`,
+      nodeTexts: [fixtureRow, fixtureRow],
+      properties: {
+        routeLocalIncidentTimeline: {
+          ...observed.properties.routeLocalIncidentTimeline,
+          responseEventIdentityDigests: [fixtureDigest, fixtureDigest],
+          renderInputEventIdentityDigests: [fixtureDigest, fixtureDigest],
+          sortedEventIdentityDigests: [fixtureDigest, fixtureDigest],
+          boundedEventIdentityDigests: [fixtureDigest, fixtureDigest],
+          domEventIdentityDigests: [fixtureDigest, fixtureDigest],
+        },
+      },
+    },
+    rows: [
+      { eventId, eventType: "presence", status: "open" },
+      { eventId, eventType: "presence", status: "open" },
+    ],
+  });
+  assert(duplicateFixtureMatch.pass === false &&
+    duplicateFixtureMatch.fixtureObserved.matchedNodeCount === 2,
+  "fixture matched row 2 did not fail closed");
 
   const missingIdentityField = structuredClone(fixtureIdentity);
   delete missingIdentityField.eventType;
@@ -1179,6 +1315,82 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
       "required structured fields are missing",
     );
   }
+});
+
+await check("EVT-026 reuses the exact EventRecord lifecycle preservation contract", async () => {
+  const eventId = "evt-026-review4-fixture";
+  const fixtureDigest = crypto.createHash("sha256").update(eventId).digest("hex");
+  const fixtureRow = `presence · open eventId ${eventId}`;
+  const baseline = {
+    schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+    identityKind: "event-record",
+    collectionPath: "records.records",
+    identityPaths: ["eventId"],
+    identityValue: eventId,
+    projectionPaths: ["eventType", "status"],
+    expectedProjection: { eventType: "presence", status: "open" },
+  };
+  const fixtureIdentity = {
+    schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+    kind: "event-record",
+    eventId,
+    eventType: "presence",
+    status: "open",
+    expectedNodeTokens: [eventId, "presence", "open"],
+  };
+  const observed = {
+    count: 1,
+    visibleCount: 1,
+    text: fixtureRow,
+    nodeTexts: [fixtureRow],
+    attributes: [],
+    values: [],
+    descendantCount: 4,
+    properties: {
+      routeLocalIncidentTimeline: {
+        routePath: "/ops/dashboard",
+        containerCount: 1,
+        incidentUnitNodeCount: 1,
+        eventRecordCandidateCount: 1,
+        renderPhase: "dom-committed",
+        eventRecordInputCount: 1,
+        eventRecordBoundedCount: 1,
+        eventRecordDomCount: 1,
+        incidentInputCounts: JSON.stringify({ "event-record": 1 }),
+        incidentBoundedCounts: JSON.stringify({ "event-record": 1 }),
+        responseEventIdentityDigests: [fixtureDigest],
+        renderInputEventIdentityDigests: [fixtureDigest],
+        sortedEventIdentityDigests: [fixtureDigest],
+        boundedEventIdentityDigests: [fixtureDigest],
+        domEventIdentityDigests: [fixtureDigest],
+        attributeNames: ["class", "data-incident-event-id", "data-incident-unit", "data-incident-workflow"],
+      },
+    },
+  };
+  const evidenceFor = dom => buildEventDomSemanticCompositeEvidence({
+    selector: "#dashIncidentTimeline",
+    observed: dom,
+    responseBodies: [{ records: { records: [{ eventId, eventType: "presence", status: "open" }] } }],
+    priorResponseByPath: { "eventId/status": baseline },
+    fixtureCandidates: [eventId],
+    fixtureIdentity,
+    fixtureRequired: true,
+    actualBrowserExecution: true,
+  });
+  const passing = evidenceFor(observed);
+  assert(passing.pass === true && passing.routeLocalDomBinding?.pass === true &&
+    passing.fixtureObserved.matchedNodeCount === 1,
+  "EVT-026 exact EventRecord lifecycle did not pass");
+  const lost = structuredClone(observed);
+  lost.properties.routeLocalIncidentTimeline.boundedEventIdentityDigests = [];
+  lost.properties.routeLocalIncidentTimeline.domEventIdentityDigests = [];
+  lost.properties.routeLocalIncidentTimeline.eventRecordBoundedCount = 0;
+  lost.properties.routeLocalIncidentTimeline.eventRecordDomCount = 0;
+  lost.properties.routeLocalIncidentTimeline.eventRecordCandidateCount = 0;
+  const failed = evidenceFor(lost);
+  assert(failed.pass === false &&
+    failed.routeLocalDomBinding?.failureCode === "OPS_INCIDENT_TIMELINE_LIFECYCLE_MISMATCH",
+  "EVT-026 EventRecord lifecycle loss did not fail closed");
 });
 
 await check("exact DOM attributes bind to the selected event row and fail closed", () => {

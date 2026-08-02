@@ -1245,6 +1245,13 @@ async function observeDom(
   if (markerAssertion) {
     await browser.waitForSelector(selector, { state: "visible" });
   }
+  const incidentTimelineAssertion = item.caseId === "EVT-023" &&
+    selector.includes('#dashIncidentTimeline [data-incident-unit="event-record"]');
+  if (incidentTimelineAssertion) {
+    await browser.waitForSelector('#dashIncidentTimeline[data-incident-render-phase="dom-committed"]', {
+      state: "visible",
+    });
+  }
   const observed = await browser.evaluate(`(async () => {
     const nodes = Array.from(document.querySelectorAll(${JSON.stringify(selector)}));
     const descendantSelectors = ${JSON.stringify(descendantSelectors)};
@@ -1357,19 +1364,41 @@ async function observeDom(
         runtimeTrendSamples: typeof dashboardRuntimeTrendSamples !== 'undefined'
           ? structuredClone(dashboardRuntimeTrendSamples)
           : null,
-        routeLocalIncidentTimeline: (() => {
+        routeLocalIncidentTimeline: await (async () => {
           const container = document.querySelectorAll('#dashIncidentTimeline');
+          const owner = container.length === 1 ? container[0] : null;
           const incidentUnits = Array.from(document.querySelectorAll('#dashIncidentTimeline [data-incident-unit]'));
           const attributeNames = [...new Set(incidentUnits.flatMap(node =>
             Array.from(node.attributes || []).map(attribute => String(attribute.name || ''))))]
             .filter(Boolean)
             .sort();
+          const lifecycle = typeof dashboardIncidentTimelineLifecycle !== 'undefined'
+            ? dashboardIncidentTimelineLifecycle
+            : {};
+          const digestIdentity = async value => {
+            const bytes = new TextEncoder().encode(String(value || ''));
+            const hash = await crypto.subtle.digest('SHA-256', bytes);
+            return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
+          };
+          const identityDigests = async values => Promise.all((Array.isArray(values) ? values : [])
+            .map(value => String(value || '')).filter(Boolean).map(digestIdentity));
           return {
             routePath: String(location.pathname || ''),
             containerCount: container.length,
             incidentUnitNodeCount: incidentUnits.length,
             eventRecordCandidateCount: incidentUnits.filter(node =>
               node.getAttribute('data-incident-unit') === 'event-record').length,
+            renderPhase: String(owner?.dataset?.incidentRenderPhase || ''),
+            eventRecordInputCount: Number(owner?.dataset?.eventRecordInputCount || 0),
+            eventRecordBoundedCount: Number(owner?.dataset?.eventRecordBoundedCount || 0),
+            eventRecordDomCount: Number(owner?.dataset?.eventRecordDomCount || 0),
+            incidentInputCounts: String(owner?.dataset?.incidentInputCounts || '{}'),
+            incidentBoundedCounts: String(owner?.dataset?.incidentBoundedCounts || '{}'),
+            responseEventIdentityDigests: await identityDigests(lifecycle.responseEventIdentities),
+            renderInputEventIdentityDigests: await identityDigests(lifecycle.renderInputEventIdentities),
+            sortedEventIdentityDigests: await identityDigests(lifecycle.sortedEventIdentities),
+            boundedEventIdentityDigests: await identityDigests(lifecycle.boundedEventIdentities),
+            domEventIdentityDigests: await identityDigests(lifecycle.domEventIdentities),
             attributeNames,
           };
         })(),
@@ -2393,7 +2422,7 @@ export function buildEventDomSemanticCompositeEvidence({
   const routeLocalIncidentTimeline = observed?.properties?.routeLocalIncidentTimeline;
   const routeLocalDomBinding = routeLocalIncidentTimeline &&
       String(selector || "").includes("#dashIncidentTimeline")
-    ? buildRouteLocalIncidentTimelineEvidence(routeLocalIncidentTimeline)
+    ? buildRouteLocalIncidentTimelineEvidence(routeLocalIncidentTimeline, fixtureIdentity)
     : null;
 
   const paths = Object.entries(priorResponseByPath).map(([path, baseline]) => {
@@ -2580,12 +2609,14 @@ export function buildEventDomSemanticCompositeEvidence({
     ["observationPresent", observationPresent.pass],
     ["responseBaselineMatched", responseBaselineMatched.pass],
     ["fixtureObserved", fixtureObserved.pass],
+    ...(routeLocalDomBinding ? [["routeLocalDomBinding", routeLocalDomBinding.pass]] : []),
     ...(markerFlow ? [["markerFlow", markerFlow.pass]] : []),
   ].filter(([, pass]) => !pass).map(([name]) => name);
   const causeCodes = [
     ...(observationPresent.pass ? [] : [observationPresent.reasonCode]),
     ...responseBaselineMatched.reasonCodes,
     ...(fixtureObserved.pass ? [] : [fixtureObserved.reasonCode]),
+    ...(routeLocalDomBinding?.pass ? [] : [routeLocalDomBinding?.failureCode].filter(Boolean)),
     ...(markerFlow?.pass ? [] : [markerFlow?.failureCode].filter(Boolean)),
   ];
   const pass = failedChecks.length === 0;
@@ -2610,26 +2641,100 @@ export function buildEventDomSemanticCompositeEvidence({
   return evidence;
 }
 
-function buildRouteLocalIncidentTimelineEvidence(observation) {
+function buildRouteLocalIncidentTimelineEvidence(observation, fixtureIdentity = null) {
   const routePath = String(observation?.routePath || "");
   const containerCount = Number(observation?.containerCount || 0);
   const incidentUnitNodeCount = Number(observation?.incidentUnitNodeCount || 0);
   const eventRecordCandidateCount = Number(observation?.eventRecordCandidateCount || 0);
+  const renderPhase = String(observation?.renderPhase || "");
+  const eventRecordInputCount = Number(observation?.eventRecordInputCount || 0);
+  const eventRecordBoundedCount = Number(observation?.eventRecordBoundedCount || 0);
+  const eventRecordDomCount = Number(observation?.eventRecordDomCount || 0);
+  const parseCounts = value => {
+    try {
+      const parsed = JSON.parse(String(value || "{}"));
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+      return Object.fromEntries(Object.entries(parsed)
+        .filter(([key, count]) => /^[a-z0-9-]+$/.test(key) && Number.isInteger(Number(count)) && Number(count) >= 0)
+        .map(([key, count]) => [key, Number(count)]));
+    } catch {
+      return {};
+    }
+  };
+  const incidentInputCounts = parseCounts(observation?.incidentInputCounts);
+  const incidentBoundedCounts = parseCounts(observation?.incidentBoundedCounts);
+  const digestList = value => Array.isArray(value) && value.every(item => /^[0-9a-f]{64}$/.test(String(item || "")))
+    ? value.map(String)
+    : [];
+  const responseEventIdentityDigests = digestList(observation?.responseEventIdentityDigests);
+  const renderInputEventIdentityDigests = digestList(observation?.renderInputEventIdentityDigests);
+  const sortedEventIdentityDigests = digestList(observation?.sortedEventIdentityDigests);
+  const boundedEventIdentityDigests = digestList(observation?.boundedEventIdentityDigests);
+  const domEventIdentityDigests = digestList(observation?.domEventIdentityDigests);
+  const expectedFixtureDigest = fixtureIdentity?.kind === "event-record" && fixtureIdentity?.eventId
+    ? sha256Digest(String(fixtureIdentity.eventId))
+    : "";
+  const fixtureMatchCount = values => expectedFixtureDigest
+    ? values.filter(value => value === expectedFixtureDigest).length
+    : 0;
+  const stageFixtureMatches = {
+    authoritativeResponse: fixtureMatchCount(responseEventIdentityDigests),
+    renderInput: fixtureMatchCount(renderInputEventIdentityDigests),
+    sorted: fixtureMatchCount(sortedEventIdentityDigests),
+    bounded: fixtureMatchCount(boundedEventIdentityDigests),
+    dom: fixtureMatchCount(domEventIdentityDigests),
+  };
   const attributeNames = Array.isArray(observation?.attributeNames)
     ? [...new Set(observation.attributeNames.map(String).filter(Boolean))].sort()
     : [];
   const ownerMatched = routePath === "/ops/dashboard" && containerCount === 1;
+  const lifecycleMatched = renderPhase === "dom-committed" &&
+    expectedFixtureDigest.length === 64 &&
+    renderInputEventIdentityDigests.length <= 4 &&
+    responseEventIdentityDigests.length >= renderInputEventIdentityDigests.length &&
+    renderInputEventIdentityDigests.length === sortedEventIdentityDigests.length &&
+    sortedEventIdentityDigests.length === boundedEventIdentityDigests.length &&
+    boundedEventIdentityDigests.length === domEventIdentityDigests.length &&
+    domEventIdentityDigests.length === eventRecordCandidateCount &&
+    eventRecordInputCount === renderInputEventIdentityDigests.length &&
+    eventRecordBoundedCount === boundedEventIdentityDigests.length &&
+    eventRecordDomCount === domEventIdentityDigests.length &&
+    stableEqual(renderInputEventIdentityDigests, sortedEventIdentityDigests) &&
+    stableEqual(sortedEventIdentityDigests, boundedEventIdentityDigests) &&
+    stableEqual(boundedEventIdentityDigests, domEventIdentityDigests) &&
+    Object.values(stageFixtureMatches).every(count => count === 1);
+  const pass = ownerMatched && lifecycleMatched;
   return {
     schema: "media-server.v390-ui-route-local-incident-timeline-evidence.v1",
-    pass: ownerMatched,
-    failurePhase: ownerMatched ? "" : "route-renderer-owner",
-    failureCode: ownerMatched ? "PASS" : "OPS_INCIDENT_TIMELINE_OWNER_MISMATCH",
+    pass,
+    failurePhase: pass ? "" : (ownerMatched ? "incident-timeline-render-lifecycle" : "route-renderer-owner"),
+    failureCode: pass ? "PASS" : (ownerMatched
+      ? "OPS_INCIDENT_TIMELINE_LIFECYCLE_MISMATCH"
+      : "OPS_INCIDENT_TIMELINE_OWNER_MISMATCH"),
     routeOwner: "/ops/dashboard",
     rendererOwner: "renderDashboardIncidentTimeline",
     routeDigest: sha256Digest(routePath),
     containerCount,
     incidentUnitNodeCount,
     eventRecordCandidateCount,
+    renderPhase,
+    eventRecordInputCount,
+    eventRecordBoundedCount,
+    eventRecordDomCount,
+    incidentInputCounts,
+    incidentBoundedCounts,
+    authoritativeResponseCandidateCount: responseEventIdentityDigests.length,
+    renderInputEventRecordCount: renderInputEventIdentityDigests.length,
+    sortedEventRecordCount: sortedEventIdentityDigests.length,
+    boundedEventRecordCount: boundedEventIdentityDigests.length,
+    domEventRecordCount: domEventIdentityDigests.length,
+    expectedFixtureDigest,
+    stageFixtureMatches,
+    responseEventIdentityDigests,
+    renderInputEventIdentityDigests,
+    sortedEventIdentityDigests,
+    boundedEventIdentityDigests,
+    domEventIdentityDigests,
     attributeNames,
     attributeNamesDigest: sha256Digest(attributeNames),
   };

@@ -61,18 +61,66 @@ check("incident timeline renders supported incident source types", () => {
 });
 
 check("bounded incident timeline retains authoritative EventRecord rows", () => {
-  const eventStart = script.indexOf("const eventTimeline = dashboardIncidentEventRecords(eventsStatus)");
-  const sourceStart = script.indexOf("const sourceTimeline =", eventStart);
-  assert(eventStart >= 0 && sourceStart > eventStart,
-    "operator incident timeline EventRecord renderer boundary is unavailable");
-  const eventRenderer = script.slice(eventStart, sourceStart);
-  assertIncludes(eventRenderer, ".slice(0, 4)", "bounded EventRecord candidates");
-  assertIncludes(eventRenderer, "sort: Number.MAX_SAFE_INTEGER - 50 - index",
-    "EventRecord incident source rank");
-  assert(!eventRenderer.includes("sort: dashboardIncidentSortValue(item)"),
-    "EventRecord timestamp was compared with synthetic incident source ranks");
-  assert(3 + 4 <= 8,
-    "root-cause and EventRecord source bands exceed the default timeline bound");
+  for (const snippet of [
+    "'root-cause': 600",
+    "'event-record': 500",
+    "'source-health': 400",
+    "'rule-warning': 300",
+    "'runtime-status': 200",
+    "'log-tail': 100",
+    "const reserved = [...rootTimeline, ...eventTimeline]",
+    "const items = [...reserved, ...remaining].slice(0, 8)",
+  ]) assertIncludes(script, snippet, "deterministic incident source band");
+  assert(!timelineItems.includes("Number.MAX_SAFE_INTEGER"),
+    "incident source ranks must not depend on MAX_SAFE_INTEGER arithmetic");
+  assert(!timelineItems.includes("sort: dashboardIncidentSortValue(item)"),
+    "EventRecord timestamp must not be compared with source rank classes");
+
+  const rank = Object.freeze({ root: 600, event: 500, source: 400, rule: 300, runtime: 200, log: 100 });
+  const bounded = ({ root = 0, event = 0, source = 0, rule = 0, runtime = 0, log = 0 }, permutation = []) => {
+    const make = (kind, count) => Array.from({ length: count }, (_, index) => ({ kind, index, rank: rank[kind] }));
+    const groups = {
+      root: make("root", Math.min(root, 3)),
+      event: make("event", Math.min(event, 4)),
+      source: make("source", Math.min(source, 3)),
+      rule: make("rule", Math.min(rule, 3)),
+      runtime: make("runtime", Math.min(runtime, 1)),
+      log: make("log", Math.min(log, 3)),
+    };
+    const reserved = [...groups.root, ...groups.event];
+    const order = permutation.length ? permutation : ["source", "rule", "runtime", "log"];
+    const remaining = order.flatMap(kind => groups[kind])
+      .sort((left, right) => (right.rank - left.rank) || (left.index - right.index));
+    return [...reserved, ...remaining].slice(0, 8);
+  };
+  const permutations = [
+    ["source", "rule", "runtime", "log"],
+    ["log", "runtime", "rule", "source"],
+    ["rule", "source", "log", "runtime"],
+  ];
+  for (let root = 0; root <= 3; root += 1) {
+    for (let event = 1; event <= 4; event += 1) {
+      for (const permutation of permutations) {
+        const items = bounded({ root, event, source: 3, rule: 3, runtime: 1, log: 3 }, permutation);
+        assert(items.length <= 8, "incident timeline exceeded the global bound");
+        assert(items.filter(item => item.kind === "event").length === event,
+          `EventRecord band was truncated: root=${root} event=${event}`);
+        assert(items.filter(item => item.kind === "event").every((item, index) => item.index === index),
+          "EventRecord source-relative order drifted");
+      }
+    }
+  }
+});
+
+check("incident timeline emits bounded lifecycle evidence without payload material", () => {
+  for (const snippet of [
+    "incidentRenderPhase",
+    "incidentInputCounts",
+    "incidentBoundedCounts",
+    "eventRecordInputCount",
+    "eventRecordBoundedCount",
+    "eventRecordDomCount",
+  ]) assertIncludes(timelineRenderer, snippet, "incident lifecycle evidence");
 });
 
 check("incident workflow is styled for responsive ops review", () => {
