@@ -160,6 +160,125 @@ check("audited route and selector corrections stay feature-specific", () => {
   assert(eventExactOracleFor("EVT-049").action.kind === "runtime-replay", "EVT-049 is not an actual replay");
 });
 
+check("EVT-023 binds the required incident digest schema through the canonical events wrapper", () => {
+  const spec = eventExactOracleFor("EVT-023");
+  const request = spec.apiAssertions.find(item =>
+    item.method === "GET" && item.path === "/client/api/views/{viewId}/events");
+  const expectedPaths = [
+    "events.incidentDigest.schema",
+    "events.incidentDigest.itemCount",
+    "events.incidentDigest.viewerSafe",
+    "events.incidentDigest.digestItems",
+  ];
+  assert(JSON.stringify(request?.bodyAssertions.map(item => item.path)) === JSON.stringify(expectedPaths),
+    "EVT-023 client incident digest response paths are not bound to events.incidentDigest");
+  assert(JSON.stringify(spec.requests.find(item =>
+    item.method === "GET" && item.path === "/client/api/views/{viewId}/events")?.requiredJsonPaths) ===
+    JSON.stringify(expectedPaths),
+  "EVT-023 runtime request paths drifted from the audited response paths");
+
+  const fixtureId = "evt-023-review4-fixture";
+  const response = {
+    ok: true,
+    events: {
+      incidentDigest: {
+        schema: "media-server.client.incident-digest.v1",
+        itemCount: 1,
+        viewerSafe: true,
+        digestItems: [{ summaryText: `${fixtureId} / open` }],
+      },
+    },
+  };
+  for (const assertion of request.bodyAssertions) {
+    const result = evaluateEventExactResponseAssertion({
+      caseId: "EVT-023",
+      assertion,
+      responseJson: response,
+      context: { fixtureId },
+    });
+    assert(result.pass, `EVT-023 canonical events wrapper failed: ${assertion.path}`);
+  }
+  const stale = evaluateEventExactResponseAssertion({
+    caseId: "EVT-023",
+    assertion: {
+      path: "incidentDigest.schema",
+      operator: "equals",
+      expected: "media-server.client.incident-digest.v1",
+    },
+    responseJson: response,
+    context: { fixtureId },
+  });
+  assert(!stale.pass && stale.reason === "required response path missing: incidentDigest.schema",
+    "EVT-023 stale root incidentDigest path did not fail closed");
+
+  const assertionFor = path => request.bodyAssertions.find(item => item.path === path);
+  const missingWrapper = evaluateEventExactResponseAssertion({
+    caseId: "EVT-023",
+    assertion: assertionFor("events.incidentDigest.schema"),
+    responseJson: { ok: true },
+    context: { fixtureId },
+  });
+  assert(!missingWrapper.pass && missingWrapper.reason ===
+    "required response path missing: events.incidentDigest.schema",
+  "EVT-023 missing events wrapper did not fail closed");
+  const wrongSchema = evaluateEventExactResponseAssertion({
+    caseId: "EVT-023",
+    assertion: assertionFor("events.incidentDigest.schema"),
+    responseJson: structuredClone(response),
+    context: { fixtureId },
+  });
+  const wrongSchemaResponse = structuredClone(response);
+  wrongSchemaResponse.events.incidentDigest.schema = "media-server.client.incident-digest.v0";
+  const wrongSchemaResult = evaluateEventExactResponseAssertion({
+    caseId: "EVT-023",
+    assertion: assertionFor("events.incidentDigest.schema"),
+    responseJson: wrongSchemaResponse,
+    context: { fixtureId },
+  });
+  assert(wrongSchema.pass && !wrongSchemaResult.pass,
+    "EVT-023 wrong incident digest schema did not fail closed");
+  const countDriftResponse = structuredClone(response);
+  countDriftResponse.events.incidentDigest.itemCount = 2;
+  const countDrift = evaluateEventExactResponseAssertion({
+    caseId: "EVT-023",
+    assertion: assertionFor("events.incidentDigest.itemCount"),
+    responseJson: countDriftResponse,
+    context: { fixtureId },
+  });
+  assert(!countDrift.pass, "EVT-023 incident digest count drift did not fail closed");
+  const digestDriftResponse = structuredClone(response);
+  digestDriftResponse.events.incidentDigest.digestItems = [{ summaryText: "unrelated safe summary" }];
+  const digestDrift = evaluateEventExactResponseAssertion({
+    caseId: "EVT-023",
+    assertion: assertionFor("events.incidentDigest.digestItems"),
+    responseJson: digestDriftResponse,
+    context: { fixtureId },
+  });
+  assert(!digestDrift.pass, "EVT-023 incident digest fixture binding drift did not fail closed");
+
+  const server = fs.readFileSync("src/ingress/webrtc_http_server.cpp", "utf8");
+  const clientScript = fs.readFileSync("src/ingress/product_ui_client_scripts.cpp", "utf8");
+  const digestProducer = boundedFunctionSource(
+    server,
+    "void AppendClientSafeIncidentDigestJson(",
+    "std::string ClientSafeEventDigestTimelineHint(",
+  );
+  const eventsProducer = boundedFunctionSource(
+    server,
+    "std::string ClientViewEventsJson(",
+    "std::string ClientViewMetadataJson(",
+  );
+  assert(digestProducer.includes('"\\\"schema\\\":\\\"media-server.client.incident-digest.v1\\\","'),
+    "client incident digest producer no longer emits the required schema");
+  assertOrdered(eventsProducer, [
+    'out << ",\\\"events\\\":";',
+    "AppendClientEventSummaryJson(out,",
+  ], "client events response no longer owns the canonical events wrapper");
+  assert(clientScript.includes("const events = payload.events || {};") &&
+    clientScript.includes("renderClientSafeIncidentDigest(events.incidentDigest || {})"),
+  "client UI no longer consumes payload.events.incidentDigest");
+});
+
 check("event review DOM siblings remain on the canonical route and identity-owned rows", () => {
   const reviewCases = [
     "EVT-019", "EVT-020", "EVT-021", "EVT-028", "EVT-030", "EVT-031",

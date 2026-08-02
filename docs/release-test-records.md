@@ -3079,6 +3079,14 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Cleanup semantic transaction | Candidate `2f5e15549344387b25b3cbb8a65a8ec09c71e0d4983f39c364a3f1df9cd2d58e`, UI-018 sourceFlow `79120e4e...cbe17`→`1368394b...556d`, package/decision SHA `527ba661f8ea31ccd23415650561f399714ed5b3fb776bc342a00dec3fd2b7b8`/`053f5d735cb95b3392794fa463006933a22b5ac2cc34c88480e9429dea411d2c`입니다 | 985 carry-forward+UI-018 independent 승인, producer 정확히 1회 성공, generator 0회, feature/pass/status 변경 0 |
 | Cleanup static gate | Native 47/47, event-review inbox, event 26/26, evaluator 19/19, runtime 42/42, completion 36/36, adapter 23/23, diagnostic 19/19, semantic 51/51·approval 986/986·negative 11/11·migration, feature 986/986·negative 15/15, inventory 17/17·index 8/8·script 11/11·docs/syntax/JSON/diff PASS | Final staged tree는 commit 전 branch-bearing clean checkout에서 checkout-local build 후 동일 gate를 재검증하며, actual/Policy v4/30분/120분/release PASS를 대체하지 않음 |
 
+### REVIEW4-65 EVT-023 incident digest nested envelope
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| 원인/보정 | EVT-023이 product response root의 `incidentDigest.*`를 조회했지만 authoritative producer와 UI consumer는 `events.incidentDigest`를 사용합니다. Schema/itemCount/viewerSafe/digestItems를 nested structured lookup으로 교정했습니다 | 제품 C++·API schema·UI 변경 0, root fallback/optional 누락 허용 없음 |
+| 동일 계약 감사 | 남은 124건 중 CLIENT-006/007/023은 `/dashboard` 또는 `/events`의 `events.incidentDigest`로 exact 결속했습니다. SAFE-049는 `/ops` HTML redaction boundary라 client API envelope를 주장하지 않습니다 | Missing wrapper/schema, wrong schema, count/digest drift는 각각 fail-closed |
+| Static/semantic | Event27/client15/evaluator19/runtime42/native47/completion36/adapter23/diagnostic19/acceptance21/final-integrity12와 semantic51/approval986/negative11/migration, feature/inventory/index/script/docs/syntax/JSON/diff PASS. Candidate `2f5e15549344387b25b3cbb8a65a8ec09c71e0d4983f39c364a3f1df9cd2d58e` 불변 | Native generator 1회, semantic producer 0회. Actual EVT-023/UI/Policy v4/30분/120분/release는 clean checkpoint 전 미실행 |
+
 ## 임시 산출물 정리 기록
 
 | 버전/run | 경로 | 종류 | 조치 | 삭제/보존 결과 |

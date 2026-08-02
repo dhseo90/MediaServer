@@ -7030,6 +7030,21 @@ Focused/static gate는 PASS했으며 final staged tree는 commit 전 branch-bear
 checkout-local build와 동일 gate를 통과해야 합니다. 새 focused actual 전에는 이전
 `case-cleanup-failed` evidence를 PASS로 승격하지 않습니다.
 
+EVT-023 incident digest oracle correction은 제품의 authoritative
+`GET /client/api/views/{viewId}/events` envelope인 `events.incidentDigest`에 schema,
+itemCount, viewerSafe, digestItems를 executable structured lookup으로 결속합니다. 기존 oracle의
+root `incidentDigest.*` 경로는 stale이었고 제품 C++ producer와 UI consumer는 이미 같은 nested
+envelope를 사용하므로 변경하지 않습니다. Missing wrapper/schema, wrong schema, count drift,
+fixture digest drift와 root fallback은 fail-closed입니다. 남은 124건 감사에서 CLIENT-006/007/023은
+같은 `events.incidentDigest` envelope를 exact JSON path로 보강했고 SAFE-049는 `/ops` HTML
+redaction boundary라 억지로 통일하지 않았습니다. Candidate
+`2f5e15549344387b25b3cbb8a65a8ec09c71e0d4983f39c364a3f1df9cd2d58e`와 approvals 986행은
+불변이라 producer는 0회이며, native manifest drift만 공식 generator 1회로 재결속했습니다.
+Focused event27/client15/runtime42/native47/completion36/adapter23/evaluator19/diagnostic19와
+acceptance21/final-integrity12, semantic51/approval986/negative11/migration 및
+feature/inventory/index/script/docs/syntax/JSON/diff gate가 PASS했습니다. Actual EVT-023,
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 clean checkpoint 전 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

@@ -270,7 +270,8 @@ function buildForbiddenJsonBinding(fields) {
 
 function jsonPathFor(value) {
   const segments = String(value).split(".").filter(Boolean);
-  return `$..${segments.join(".")}`;
+  const prefix = segments[0] === "events" ? "$." : "$..";
+  return `${prefix}${segments.join(".")}`;
 }
 
 function parseExpectedValue(value) {
@@ -313,6 +314,15 @@ const noWriteNetwork = Object.freeze([
 
 function clientDigest(caseId, featureMeaning, selector, digestKey, schema, responseFields, route = "/client/events") {
   const rendererAttribute = clientDigestRendererAttribute(digestKey);
+  const requiredTokens = digestKey === "incidentDigest"
+    ? [
+        `events.${digestKey}.schema=media-server.client.incident-digest.v1`,
+        `events.${digestKey}.itemCount`,
+        `events.${digestKey}.digestItems`,
+        "viewerSafe=true",
+        ...responseFields,
+      ]
+    : [digestKey, "viewerSafe=true", ...responseFields];
   return exactSpec(caseId, featureMeaning, {
     route,
     role: "viewer",
@@ -320,7 +330,7 @@ function clientDigest(caseId, featureMeaning, selector, digestKey, schema, respo
     fixtures: ["assigned-view", "scoped-event-record", `${digestKey}-projection-input`],
     apiAssertions: [api("GET", "/client/api/views/{assignedViewId}/events", [200], {
       schema,
-      requiredTokens: [digestKey, "viewerSafe=true", ...responseFields],
+      requiredTokens,
       forbiddenFields: viewerRawFields,
       requiredFixtureBindings: [{ path: "$..eventId", fixtureRef: "scoped-event-record" }],
     })],
@@ -449,7 +459,13 @@ const entries = [
     route: "/client/dashboard", role: "viewer", fixtures: ["assigned-view", "blocked-view", "scoped-event-record", "source-health"],
     apiAssertions: [api("GET", "/client/api/views/{assignedViewId}/dashboard", [200], {
       schema: "media-server.client.dashboard",
-      requiredTokens: ["assignedViewId", "status", "incidentDigest"],
+      requiredTokens: [
+        "assignedViewId",
+        "health.status",
+        "events.incidentDigest.schema=media-server.client.incident-digest.v1",
+        "events.incidentDigest.itemCount",
+        "events.incidentDigest.digestItems",
+      ],
       forbiddenFields: ["blockedViewId", ...viewerRawFields],
     })],
     domAssertions: [dom('[data-testid="client-dashboard-shell"]', "count", "equals", 1), dom("body", "text", "excludesAll", ["blockedViewId", ...viewerRawFields])],
@@ -759,7 +775,7 @@ function validateSpec(caseId, spec) {
       Array.isArray(request.jsonAssertions) && Array.isArray(request.requiredJsonValues) &&
       Array.isArray(request.forbiddenJsonKeys) && Array.isArray(request.forbiddenJsonValues) &&
       Array.isArray(request.fixtureRefs), `${caseId} API semantic assertion invalid`);
-    assert(request.requiredJsonPaths.every(value => /^\$\.\.[A-Za-z_][A-Za-z0-9_.]*$/.test(value)) &&
+    assert(request.requiredJsonPaths.every(value => /^\$(?:\.\.|\.)[A-Za-z_][A-Za-z0-9_.]*$/.test(value)) &&
       request.jsonAssertions.every(item => request.requiredJsonPaths.includes(item.path) && item.operator &&
         (item.operator !== "equals-fixture" || (item.value === "{fixtureId}" && item.fixtureRef))) &&
       request.requiredJsonValues.every(item => item.operator === "contains-value" && item.value !== undefined),

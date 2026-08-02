@@ -66,6 +66,20 @@ const AUDITED_RESPONSE_PATH_BINDINGS = Object.freeze({
     required: ["entries", "entries[].action", "entries[].after"],
     stale: ["items", "items[].action", "items[].after"],
   },
+  "EVT-023": {
+    required: [
+      "events.incidentDigest.schema",
+      "events.incidentDigest.itemCount",
+      "events.incidentDigest.viewerSafe",
+      "events.incidentDigest.digestItems",
+    ],
+    stale: [
+      "incidentDigest.schema",
+      "incidentDigest.itemCount",
+      "incidentDigest.viewerSafe",
+      "incidentDigest.digestItems",
+    ],
+  },
   "EVT-050": {
     required: ["incidentTriageBoard.cards"],
     stale: ["incidentTriageBoard.items"],
@@ -536,7 +550,7 @@ const specs = [
     action: { kind: "cross-role-readback", steps: ["seed-published-view-event", "operator-dashboard-read", "bind-viewer-session", "client-events-read", "compare-safe-digest", "assert-redaction"] },
     apiAssertions: [
       api("GET", "/ops/api/events/status?limit=5&includeArchives=1", body(["records.records", "contains-fixture-event", true], ["records.records[].status", "equals-seed", true])),
-      api("GET", "/client/api/views/{viewId}/events", body(["incidentDigest.schema", "equals", "media-server.client.incident-digest.v1"], ["incidentDigest.viewerSafe", "equals", true], ["incidentDigest.digestItems", "contains-fixture-safe-summary", true])),
+      api("GET", "/client/api/views/{viewId}/events", body(["events.incidentDigest.schema", "equals", "media-server.client.incident-digest.v1"], ["events.incidentDigest.itemCount", "equals", 1], ["events.incidentDigest.viewerSafe", "equals", true], ["events.incidentDigest.digestItems", "contains-fixture-safe-summary", true])),
     ],
     domAssertions: [
       dom("#dashIncidentTimelineBadges", ["event-count-equals-response", "records.matchedRecords", true]),

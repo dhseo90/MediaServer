@@ -229,6 +229,21 @@ check("CLIENT/SAFE projection contracts use renderer ownership and current respo
   assert(actionNotice.requests[0].requiredJsonPaths.includes("$..noticeStatus") &&
     !actionNotice.requests[0].requiredJsonPaths.includes("$..status"),
   "CLIENT-040 must use the published noticeStatus field");
+  for (const caseId of ["CLIENT-006", "CLIENT-007", "CLIENT-023"]) {
+    const request = clientSafeExactOracleFor(caseId).requests.find(item =>
+      item.path.includes("/client/api/views/{fixtureId}/") &&
+      (item.path.endsWith("/dashboard") || item.path.endsWith("/events")));
+    assert(request?.requiredJsonPaths.includes("$.events.incidentDigest.schema") &&
+      request.requiredJsonPaths.includes("$.events.incidentDigest.itemCount") &&
+      request.requiredJsonPaths.includes("$.events.incidentDigest.digestItems") &&
+      !request.requiredJsonPaths.includes("$..incidentDigest"),
+    `${caseId} must bind the exact events.incidentDigest response envelope`);
+  }
+  const safeBoundary = clientSafeExactOracleFor("SAFE-049");
+  assert(safeBoundary.requests.length === 1 && safeBoundary.requests[0].path === "/ops" &&
+    safeBoundary.requests[0].responseSchema === "html" &&
+    safeBoundary.requests[0].requiredBodyTokens.includes("summaryText"),
+  "SAFE-049 must remain an Ops HTML redaction boundary instead of claiming the client events envelope");
 });
 
 check("SAFE-038 separates API candidate identity from the DOM candidate index", () => {
@@ -304,7 +319,7 @@ check("selector cardinality, fixture refs and JSONPath bindings are evaluator-re
     for (const request of spec.requests) {
       assert(request.fixtureRefs.length === (request.path.match(/\{fixtureId\}/g) || []).length,
         `${caseId} request fixture refs do not match placeholders`);
-      assert(request.requiredJsonPaths.every(value => /^\$\.\.[A-Za-z_][A-Za-z0-9_.]*$/.test(value)),
+      assert(request.requiredJsonPaths.every(value => /^\$(?:\.\.|\.)[A-Za-z_][A-Za-z0-9_.]*$/.test(value)),
         `${caseId} invalid requiredJsonPath`);
       assert(request.jsonAssertions.every(item => request.requiredJsonPaths.includes(item.path)),
         `${caseId} JSON assertion is not bound to a requiredJsonPath`);
