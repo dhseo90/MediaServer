@@ -1034,6 +1034,15 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     attributes: [],
     values: [],
     descendantCount: 12,
+    properties: {
+      routeLocalIncidentTimeline: {
+        routePath: "/ops/dashboard",
+        containerCount: 1,
+        incidentUnitNodeCount: 4,
+        eventRecordCandidateCount: 2,
+        attributeNames: ["class", "data-incident-unit", "data-incident-workflow"],
+      },
+    },
   };
   const evidenceFor = ({ rows = [{ eventId: "unrelated", eventType: "motion", status: "closed" },
     { eventId, eventType: "presence", status: "open" }], dom = observed,
@@ -1056,6 +1065,40 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     passing.fixtureObserved.matchedNodeCount === 1 &&
     Object.values(passing.fixtureObserved.fieldMatches).every(field => field.pass),
   "EVT-023 authoritative API row and Ops timeline row did not bind exactly");
+  assert(passing.routeLocalDomBinding?.pass === true &&
+    passing.routeLocalDomBinding.routeOwner === "/ops/dashboard" &&
+    passing.routeLocalDomBinding.rendererOwner === "renderDashboardIncidentTimeline" &&
+    passing.routeLocalDomBinding.containerCount === 1 &&
+    passing.routeLocalDomBinding.incidentUnitNodeCount === 4 &&
+    passing.routeLocalDomBinding.eventRecordCandidateCount === 2 &&
+    JSON.stringify(passing.routeLocalDomBinding.attributeNames) ===
+      JSON.stringify(["class", "data-incident-unit", "data-incident-workflow"]),
+  "EVT-023 route-local Ops incident timeline evidence is incomplete");
+
+  const missingDom = evidenceFor({
+    dom: {
+      ...observed,
+      count: 0,
+      visibleCount: 0,
+      text: "",
+      nodeTexts: [],
+      descendantCount: 0,
+      properties: {
+        routeLocalIncidentTimeline: {
+          routePath: "/ops/dashboard",
+          containerCount: 1,
+          incidentUnitNodeCount: 8,
+          eventRecordCandidateCount: 0,
+          attributeNames: ["class", "data-incident-unit", "data-incident-workflow"],
+        },
+      },
+    },
+  });
+  assert(missingDom.pass === false &&
+    missingDom.observationPresent.reasonCode === "DOM_OBSERVATION_MISSING" &&
+    missingDom.routeLocalDomBinding?.pass === true &&
+    missingDom.routeLocalDomBinding.eventRecordCandidateCount === 0,
+  "EVT-023 missing event row did not preserve route-local structured evidence");
 
   const missingIdentityField = structuredClone(fixtureIdentity);
   delete missingIdentityField.eventType;

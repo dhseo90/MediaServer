@@ -7069,6 +7069,24 @@ feature986/negative15, inventory/index/script/docs/syntax/JSON/diff는 PASS입�
 `./test_ui.sh`, Policy v4, 30분, 120분, release는 clean checkpoint와 focused actual 전까지
 미실행입니다.
 
+EVT-023 EventRecord timeline visibility/trust-only closure(2026-08-02)는 EventRecord가 실제
+millisecond timestamp로 정렬되는 반면 다른 source가 synthetic rank를 받아 8행 timeline 밖으로
+밀리던 문제를 보정합니다. `renderDashboardIncidentTimeline`은 root-cause 최대 3행과 EventRecord
+최대 4행을 유지하는 bounded source band에서 EventRecord를 결정적으로 표시하며 전체 8행 상한,
+API 순서, 기존 source 내부 상대 순위는 바꾸지 않습니다. Shell verifier는
+`AppendOpsDashboardPage`, no-new-schema verifier는 `dashboardIncidentTimelineItems`와
+`renderDashboardIncidentTimeline` owner 범위로 결속합니다. Candidate
+`2dc205f5aa1674e043b2d0f20f431d82e60a7ae62db90bffc8f33bdedb941e0e`의 feature/pass/status/
+sourceFlow는 불변이지만 UI-014 whole-file trust drift는 985 carry-forward+UI-014 independent
+trust re-review로 처리했습니다. Package/decision SHA는
+`4da3448d53694fd779cf1f61bebe8824497f4fac6dcd5f5361f9b44431c3ac59`/
+`28ae9cac0fea275986d8f9f48f4d5ae7eaa7ed785c046e1b4a036bb3ac6e6401`이며 producer는 네 fixture
+atomic replacement를 완료했고 generator는 0회입니다. Static semantic51/approval986/negative11/
+migration, feature986/negative15, timeline/event28/evaluator19/client15/runtime43/native48/
+completion36/adapter23/diagnostic19/acceptance21/final-integrity12와 inventory/index/script/docs/
+syntax/JSON/diff가 PASS했습니다. Actual EVT-023, `./test_ui.sh`, Policy v4, 30분, 120분,
+release는 clean checkpoint와 focused actual 전까지 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

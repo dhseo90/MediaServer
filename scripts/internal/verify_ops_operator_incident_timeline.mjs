@@ -1,20 +1,23 @@
 #!/usr/bin/env node
-import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Operator Incident Timeline이 event/source/rule/runtime 단서를 workflow로 묶는지 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
 
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const failures = [];
 
-const server = readWebRtcHttpServerBundle(readText);
+const pageSource = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const serverSh = readText("server.sh");
+const dashboardPage = extractCppFunctionBlock(pageSource, "void AppendOpsDashboardPage(");
+const timelineItems = extractNamedFunctionBlock(script, "dashboardIncidentTimelineItems");
+const timelineRenderer = extractNamedFunctionBlock(script, "renderDashboardIncidentTimeline");
 
 check("ops dashboard exposes operator incident source filters", () => {
   for (const snippet of [
@@ -25,7 +28,7 @@ check("ops dashboard exposes operator incident source filters", () => {
     '<option value="rule-warning">Rule Warning</option>',
     '<option value="runtime-status">Runtime Status</option>',
   ]) {
-    assertIncludes(server, snippet, "incident timeline shell");
+    assertIncludes(dashboardPage, snippet, "incident timeline shell");
   }
 });
 
@@ -50,8 +53,26 @@ check("incident timeline renders supported incident source types", () => {
   ]) {
     assertIncludes(script, snippet, "operator incident timeline script");
   }
-  assert(!script.includes("/ops/api/incidents"), "must not introduce a new incident API");
-  assert(!server.includes("media-server.ops.incident"), "must not introduce a new incident schema");
+  const timelineProductBoundary = `${dashboardPage}\n${timelineItems}\n${timelineRenderer}`;
+  assert(!timelineProductBoundary.includes("/ops/api/incidents"),
+    "must not introduce a new incident API in the dashboard timeline owner");
+  assert(!timelineProductBoundary.includes("media-server.ops.incident"),
+    "must not introduce a new incident schema in the dashboard timeline owner");
+});
+
+check("bounded incident timeline retains authoritative EventRecord rows", () => {
+  const eventStart = script.indexOf("const eventTimeline = dashboardIncidentEventRecords(eventsStatus)");
+  const sourceStart = script.indexOf("const sourceTimeline =", eventStart);
+  assert(eventStart >= 0 && sourceStart > eventStart,
+    "operator incident timeline EventRecord renderer boundary is unavailable");
+  const eventRenderer = script.slice(eventStart, sourceStart);
+  assertIncludes(eventRenderer, ".slice(0, 4)", "bounded EventRecord candidates");
+  assertIncludes(eventRenderer, "sort: Number.MAX_SAFE_INTEGER - 50 - index",
+    "EventRecord incident source rank");
+  assert(!eventRenderer.includes("sort: dashboardIncidentSortValue(item)"),
+    "EventRecord timestamp was compared with synthetic incident source ranks");
+  assert(3 + 4 <= 8,
+    "root-cause and EventRecord source bands exceed the default timeline bound");
 });
 
 check("incident workflow is styled for responsive ops review", () => {

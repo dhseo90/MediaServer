@@ -2627,7 +2627,10 @@ void AppendOpsShellScript(std::ostringstream& out,
               level,
               source: 'EventRecord',
               time: dashboardIncidentTimeLabel(item),
-              sort: dashboardIncidentSortValue(item),
+              // EventRecord is already newest-first in the bounded status response. Keep that
+              // authoritative order in the incident source bands instead of comparing its
+              // millisecond timestamp with synthetic Number.MAX_SAFE_INTEGER ranks.
+              sort: Number.MAX_SAFE_INTEGER - 50 - index,
               incidentId: `event:${item?.eventId || item?.trackId || item?.streamId || index}`,
               sourceId: streamLabel,
               title: `${display(item?.eventType || 'event')} · ${display(item?.status || '상태 미제공')}`,

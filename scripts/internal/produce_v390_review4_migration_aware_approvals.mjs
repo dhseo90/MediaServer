@@ -74,7 +74,16 @@ try {
   const packageAbsolute = packageInput.absolute;
   const decisions = decisionsInput.value;
   const reviewPackage = packageInput.value;
-  const approvalInput = prevalidateMigrationApprovalInputs({ freshAudit, migration, decisions, reviewPackage, decisionsAbsolute, packageAbsolute });
+  const currentSnapshot = currentReviewSnapshotBindings(tempDir);
+  const approvalInput = prevalidateMigrationApprovalInputs({
+    freshAudit,
+    migration,
+    decisions,
+    reviewPackage,
+    decisionsAbsolute,
+    packageAbsolute,
+    currentSnapshot,
+  });
   const approval = buildMigrationApproval({ freshAudit, rows, priorAudit, priorAuditAbsolute, priorApprovals, migration, migrationAbsolute, decisions, reviewPackage, approvalInput });
   const manifest = applyApprovedReview4SemanticClosure({ rootDir, inventoryText, rows, manifest: priorManifest, audit: freshAudit, approvals: approval });
   const canonical = readJson(path.join(rootDir, canonicalRelative));
@@ -115,7 +124,7 @@ try {
   console.log("- failures: 0");
 } finally { fs.rmSync(tempDir, { recursive: true, force: true }); }
 
-function prevalidateMigrationApprovalInputs({ freshAudit, migration, decisions, reviewPackage, decisionsAbsolute, packageAbsolute }) {
+function prevalidateMigrationApprovalInputs({ freshAudit, migration, decisions, reviewPackage, decisionsAbsolute, packageAbsolute, currentSnapshot }) {
   const reviewedOn = normalizeReviewedOn(decisions.reviewedAt);
   const requiredIndependentIds = migration.unapproved?.map(item => item.id) || [];
   const packageSha256 = sha256(fs.readFileSync(packageAbsolute));
@@ -125,6 +134,13 @@ function prevalidateMigrationApprovalInputs({ freshAudit, migration, decisions, 
       reviewPackage.candidate?.rows !== 986 || reviewPackage.candidate?.unresolved !== 0 ||
       stableStringify(reviewPackage.reviewScope?.changedIds) !== stableStringify(requiredIndependentIds) ||
       decisions.reviewPackage?.sha256 !== packageSha256) throw new Error("review package binding invalid");
+  validateReviewSnapshotBindings({
+    reviewPackage,
+    decisions,
+    freshAudit,
+    requiredIndependentIds,
+    currentSnapshot,
+  });
   if (decisions.schema !== "media-server.v390-review4-semantic-independent-scoped-decisions.v1" ||
       decisions.reviewerIsCandidateGenerator !== false || decisions.verdict !== "approved" ||
       decisions.candidate?.candidateDigest !== freshAudit.candidateDigest ||
@@ -150,6 +166,58 @@ function prevalidateMigrationApprovalInputs({ freshAudit, migration, decisions, 
     }
   }
   return { reviewedOn, requiredIndependentIds, packageSha256, decisionSha256, independentById };
+}
+
+function currentReviewSnapshotBindings(tempDir) {
+  const indexPath = path.join(tempDir, "review-snapshot.index");
+  const env = { ...process.env, GIT_INDEX_FILE: indexPath };
+  execFileSync("git", ["read-tree", "HEAD"], { cwd: rootDir, env, stdio: "pipe" });
+  execFileSync("git", ["add", "-A"], { cwd: rootDir, env, stdio: "pipe" });
+  const stagedEquivalentTreeOid = execFileSync("git", ["write-tree"], {
+    cwd: rootDir, env, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
+  const trackedDiff = execFileSync("git", ["diff", "--binary"], {
+    cwd: rootDir, encoding: "utf8", maxBuffer: 64 * 1024 * 1024,
+  });
+  const changedFiles = execFileSync("git", ["diff", "--name-only"], {
+    cwd: rootDir, encoding: "utf8",
+  }).trim().split("\n").filter(Boolean);
+  return {
+    stagedEquivalentTreeOid,
+    trackedWorktreeDiffSha256: sha256(trackedDiff),
+    changedFiles,
+  };
+}
+
+function validateReviewSnapshotBindings(input) {
+  const { reviewPackage, decisions, freshAudit, requiredIndependentIds, currentSnapshot } = input;
+  const bindings = reviewPackage?.bindings || {};
+  const decisionCandidate = decisions?.candidate || {};
+  if (!/^[0-9a-f]{40}$/.test(String(bindings.stagedEquivalentTreeOid || "")) ||
+      !/^[0-9a-f]{64}$/.test(String(bindings.trackedWorktreeDiffSha256 || "")) ||
+      bindings.stagedEquivalentTreeOid !== currentSnapshot.stagedEquivalentTreeOid ||
+      bindings.trackedWorktreeDiffSha256 !== currentSnapshot.trackedWorktreeDiffSha256 ||
+      stableStringify(bindings.changedFiles) !== stableStringify(currentSnapshot.changedFiles) ||
+      decisionCandidate.stagedEquivalentTreeOid !== bindings.stagedEquivalentTreeOid ||
+      decisionCandidate.trackedWorktreeDiffSha256 !== bindings.trackedWorktreeDiffSha256) {
+    throw new Error("review package current tree/diff binding invalid");
+  }
+  const freshById = new Map(freshAudit.items.map(item => [item.id, item]));
+  const trustRows = Array.isArray(reviewPackage.trustRebindRows)
+    ? reviewPackage.trustRebindRows
+    : [];
+  if (trustRows.length !== requiredIndependentIds.length ||
+      stableStringify(trustRows.map(item => item.id)) !== stableStringify(requiredIndependentIds)) {
+    throw new Error("review package trust rebind coverage invalid");
+  }
+  for (const row of trustRows) {
+    const current = freshById.get(row.id);
+    if (!current || row.featureContractSha256 !== current.featureContractSha256 ||
+        row.sourceFlowDigest !== current.sourceFlowDigest ||
+        row.currentTrustBindingsSha256 !== sha256(stableStringify(current.trustBindings))) {
+      throw new Error(`${row.id} review package current trust binding invalid`);
+    }
+  }
 }
 
 function buildMigrationApproval({ freshAudit, rows, priorAudit, priorAuditAbsolute, priorApprovals, migration, migrationAbsolute, decisions, reviewPackage, approvalInput }) {

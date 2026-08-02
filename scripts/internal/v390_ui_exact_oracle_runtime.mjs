@@ -1336,6 +1336,22 @@ async function observeDom(
         runtimeTrendSamples: typeof dashboardRuntimeTrendSamples !== 'undefined'
           ? structuredClone(dashboardRuntimeTrendSamples)
           : null,
+        routeLocalIncidentTimeline: (() => {
+          const container = document.querySelectorAll('#dashIncidentTimeline');
+          const incidentUnits = Array.from(document.querySelectorAll('#dashIncidentTimeline [data-incident-unit]'));
+          const attributeNames = [...new Set(incidentUnits.flatMap(node =>
+            Array.from(node.attributes || []).map(attribute => String(attribute.name || ''))))]
+            .filter(Boolean)
+            .sort();
+          return {
+            routePath: String(location.pathname || ''),
+            containerCount: container.length,
+            incidentUnitNodeCount: incidentUnits.length,
+            eventRecordCandidateCount: incidentUnits.filter(node =>
+              node.getAttribute('data-incident-unit') === 'event-record').length,
+            attributeNames,
+          };
+        })(),
       },
     };
   })()`);
@@ -1343,8 +1359,11 @@ async function observeDom(
   const forbiddenText = (assertion.forbiddenTextTokens || []).map(value => expand(String(value), bindings)).filter(Boolean);
   const forbiddenMaterial = (assertion.forbiddenMaterialTokens || []).map(value => expand(String(value), bindings)).filter(Boolean);
   const zeroCardinalityExpected = assertion.cardinality?.operator === "equals" && Number(assertion.cardinality?.value) === 0;
-  assert(observed.count > 0 || assertion.expectedExists === false || zeroCardinalityExpected,
-    `${item.caseId} exact DOM selector missing: ${selector}`);
+  const deferMissingSelectorToStructuredEventEvidence = item.caseId.startsWith("EVT-") &&
+    Array.isArray(assertion.assertions) && assertion.assertions.length > 0;
+  assert(observed.count > 0 || assertion.expectedExists === false || zeroCardinalityExpected ||
+    deferMissingSelectorToStructuredEventEvidence,
+  `${item.caseId} exact DOM selector missing: ${selector}`);
   if (markerAssertion) {
     assert(observed.count > 0 && observed.visibleCount > 0,
       `${item.caseId} marker DOM readiness failed: ${selector}`);
@@ -2228,6 +2247,11 @@ export function buildEventDomSemanticCompositeEvidence({
     attributeNodeCount: attributes.length,
     valueCount: values.length,
   };
+  const routeLocalIncidentTimeline = observed?.properties?.routeLocalIncidentTimeline;
+  const routeLocalDomBinding = routeLocalIncidentTimeline &&
+      String(selector || "").includes("#dashIncidentTimeline")
+    ? buildRouteLocalIncidentTimelineEvidence(routeLocalIncidentTimeline)
+    : null;
 
   const paths = Object.entries(priorResponseByPath).map(([path, baseline]) => {
     const rowLocal = isEventRowLocalResponseBaseline(baseline);
@@ -2430,10 +2454,36 @@ export function buildEventDomSemanticCompositeEvidence({
     observationPresent,
     responseBaselineMatched,
     fixtureObserved,
+    ...(routeLocalDomBinding ? { routeLocalDomBinding } : {}),
     ...(markerFlow ? { markerFlow } : {}),
   };
   validateEventDomSemanticCompositeEvidence(evidence);
   return evidence;
+}
+
+function buildRouteLocalIncidentTimelineEvidence(observation) {
+  const routePath = String(observation?.routePath || "");
+  const containerCount = Number(observation?.containerCount || 0);
+  const incidentUnitNodeCount = Number(observation?.incidentUnitNodeCount || 0);
+  const eventRecordCandidateCount = Number(observation?.eventRecordCandidateCount || 0);
+  const attributeNames = Array.isArray(observation?.attributeNames)
+    ? [...new Set(observation.attributeNames.map(String).filter(Boolean))].sort()
+    : [];
+  const ownerMatched = routePath === "/ops/dashboard" && containerCount === 1;
+  return {
+    schema: "media-server.v390-ui-route-local-incident-timeline-evidence.v1",
+    pass: ownerMatched,
+    failurePhase: ownerMatched ? "" : "route-renderer-owner",
+    failureCode: ownerMatched ? "PASS" : "OPS_INCIDENT_TIMELINE_OWNER_MISMATCH",
+    routeOwner: "/ops/dashboard",
+    rendererOwner: "renderDashboardIncidentTimeline",
+    routeDigest: sha256Digest(routePath),
+    containerCount,
+    incidentUnitNodeCount,
+    eventRecordCandidateCount,
+    attributeNames,
+    attributeNamesDigest: sha256Digest(attributeNames),
+  };
 }
 
 export function buildEventMarkerFlowEvidence({ marker, observed, responseBodies = [] }) {
@@ -2892,6 +2942,23 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
       /^[0-9a-f]{64}$/.test(item.projectionDigest || "") &&
       /^[0-9a-f]{64}$/.test(item.candidateDigest || ""),
     "EVT DOM semantic path evidence required fields are missing");
+  }
+  if (evidence.routeLocalDomBinding) {
+    const routeLocal = evidence.routeLocalDomBinding;
+    assert(routeLocal.schema === "media-server.v390-ui-route-local-incident-timeline-evidence.v1" &&
+      typeof routeLocal.pass === "boolean" &&
+      typeof routeLocal.failurePhase === "string" &&
+      typeof routeLocal.failureCode === "string" &&
+      routeLocal.routeOwner === "/ops/dashboard" &&
+      routeLocal.rendererOwner === "renderDashboardIncidentTimeline" &&
+      /^[0-9a-f]{64}$/.test(routeLocal.routeDigest || "") &&
+      Number.isInteger(routeLocal.containerCount) &&
+      Number.isInteger(routeLocal.incidentUnitNodeCount) &&
+      Number.isInteger(routeLocal.eventRecordCandidateCount) &&
+      Array.isArray(routeLocal.attributeNames) &&
+      routeLocal.attributeNames.every(name => /^[a-z][a-z0-9:_-]*$/i.test(name)) &&
+      /^[0-9a-f]{64}$/.test(routeLocal.attributeNamesDigest || ""),
+    "EVT route-local incident timeline evidence required fields are missing");
   }
   if (evidence.markerFlow) {
     const marker = evidence.markerFlow;

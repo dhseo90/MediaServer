@@ -28,30 +28,36 @@ if (hasHelpFlag(args)) {
 
 Usage:
   ./server.sh verify-v390-review4-semantic-migration-contract
-  node scripts/internal/verify_v390_review4_semantic_migration_contract.mjs --baseline PATH --fresh PATH [--report PATH] [--write-evidence PATH]
+  node scripts/internal/verify_v390_review4_semantic_migration_contract.mjs --baseline PATH --fresh PATH [--trust-rebind-id ID] [--report PATH] [--write-evidence PATH]
 
 The no-argument form runs only positive/negative binding self-tests. The delta form compares
 all semantic fields deterministically; it reports carry-forward-eligible and independent-review
-required IDs. --write-evidence writes only a versioned carry-forward evidence file; it never
+required IDs. --trust-rebind-id declares a current trust-binding drift that remains independently
+reviewable even when feature/pass/status/sourceFlow are unchanged. --write-evidence writes only a versioned carry-forward evidence file; it never
 writes an audit, approval ledger, decision artifact, or manifest.`);
 }
-assertKnownOptions(args, ["baseline", "fresh", "report", "write-evidence", "h", "help"]);
+assertKnownOptions(args, ["baseline", "fresh", "trust-rebind-id", "report", "write-evidence", "h", "help"]);
 
 const baselinePath = optionValue("baseline");
 const freshPath = optionValue("fresh");
 const reportPath = optionValue("report");
 const evidencePath = optionValue("write-evidence");
+const trustRebindIds = optionValues("trust-rebind-id");
 if (Boolean(baselinePath) !== Boolean(freshPath)) throw new Error("--baseline and --fresh must be supplied together");
 if (reportPath && !baselinePath) throw new Error("--report requires --baseline and --fresh");
 if (evidencePath && !baselinePath) throw new Error("--write-evidence requires --baseline and --fresh");
+if (trustRebindIds.length > 0 && !baselinePath) throw new Error("--trust-rebind-id requires --baseline and --fresh");
+if (new Set(trustRebindIds).size !== trustRebindIds.length) throw new Error("duplicate --trust-rebind-id");
 
 runBindingContract();
+runTrustRebindPartitionContract();
 runFixtureTransactionContract();
 runProducerInputPathContract();
 runProducerReviewedOnContract();
+runProducerSnapshotBindingContract();
 let delta = null;
 if (baselinePath) {
-  delta = buildDelta(readAudit(baselinePath), readAudit(freshPath));
+  delta = buildDelta(readAudit(baselinePath), readAudit(freshPath), { trustRebindIds });
   if (reportPath) {
     const absolute = path.resolve(reportPath);
     fs.mkdirSync(path.dirname(absolute), { recursive: true });
@@ -62,10 +68,12 @@ if (baselinePath) {
 
 console.log("== V390 REVIEW4 semantic migration contract ==");
 console.log("- positive/negative bindings: 9");
+console.log("- trust-only migration bindings: 6");
 console.log("- semantic/native transaction bindings: 2");
 console.log("- producer input-path bindings: 5");
 console.log("- producer entrypoint negative smoke: 1");
 console.log("- producer reviewedOn contract: 1");
+console.log("- producer snapshot/trust preflight: 6");
 if (delta) {
   console.log(`- rows: ${delta.rows}`);
   console.log(`- carryForwardEligible: ${delta.carryForwardEligible.length}`);
@@ -305,6 +313,62 @@ function runProducerReviewedOnContract() {
     "producer still assigns decisions.reviewedAt directly to reviewedOn");
 }
 
+function runProducerSnapshotBindingContract() {
+  const validate = evaluateProducerFunction(
+    "validateReviewSnapshotBindings",
+    ["stableStringify", "sha256"],
+    [stableStringify, sha256],
+  );
+  const trustBindings = { schema: "trust.v1", roles: { owner: { body: "current" } } };
+  const trustSha = sha256(stableStringify(trustBindings));
+  const currentSnapshot = {
+    stagedEquivalentTreeOid: "a".repeat(40),
+    trackedWorktreeDiffSha256: "b".repeat(64),
+    changedFiles: ["src/bound.cpp"],
+  };
+  const freshAudit = {
+    items: [{
+      id: "UI-014",
+      featureContractSha256: "c".repeat(64),
+      sourceFlowDigest: "d".repeat(64),
+      trustBindings,
+    }],
+  };
+  const reviewPackage = {
+    bindings: { ...currentSnapshot },
+    trustRebindRows: [{
+      id: "UI-014",
+      featureContractSha256: "c".repeat(64),
+      sourceFlowDigest: "d".repeat(64),
+      currentTrustBindingsSha256: trustSha,
+    }],
+  };
+  const decisions = {
+    candidate: {
+      stagedEquivalentTreeOid: currentSnapshot.stagedEquivalentTreeOid,
+      trackedWorktreeDiffSha256: currentSnapshot.trackedWorktreeDiffSha256,
+    },
+  };
+  validate({ reviewPackage, decisions, freshAudit,
+    requiredIndependentIds: ["UI-014"], currentSnapshot });
+
+  for (const [label, mutate] of [
+    ["stale tree", value => { value.reviewPackage.bindings.stagedEquivalentTreeOid = "e".repeat(40); }],
+    ["stale diff", value => { value.reviewPackage.bindings.trackedWorktreeDiffSha256 = "e".repeat(64); }],
+    ["stale decision snapshot", value => { value.decisions.candidate.trackedWorktreeDiffSha256 = "e".repeat(64); }],
+    ["stale trust", value => { value.reviewPackage.trustRebindRows[0].currentTrustBindingsSha256 = "e".repeat(64); }],
+    ["wrong row", value => { value.reviewPackage.trustRebindRows[0].id = "UI-015"; }],
+    ["extra row", value => { value.reviewPackage.trustRebindRows.push(structuredClone(value.reviewPackage.trustRebindRows[0])); }],
+  ]) {
+    const value = structuredClone({ reviewPackage, decisions, freshAudit, currentSnapshot });
+    mutate(value);
+    expectThrow(() => validate({
+      ...value,
+      requiredIndependentIds: ["UI-014"],
+    }), `${label} review package binding was accepted`);
+  }
+}
+
 function evaluateProducerFunction(name, parameterNames, parameterValues) {
   const marker = `function ${name}(`;
   const start = producerSource.indexOf(marker);
@@ -322,11 +386,13 @@ function evaluateProducerFunction(name, parameterNames, parameterValues) {
   return Function(...parameterNames, `return (${declaration});`)(...parameterValues);
 }
 
-function buildDelta(baseline, fresh) {
+function buildDelta(baseline, fresh, { trustRebindIds = [] } = {}) {
   const beforeRaw = baseline.items || [];
   const afterRaw = fresh.items || [];
   const before = review4HardCandidateItems(beforeRaw);
   const after = review4HardCandidateItems(afterRaw);
+  const trustRebindIdSet = new Set(trustRebindIds);
+  const observedTrustRebindIds = new Set();
   if (before.length !== after.length) throw new Error(`candidate row count drift: ${before.length} != ${after.length}`);
   const carryForwardEligible = [];
   const independentReviewRequired = [];
@@ -336,18 +402,41 @@ function buildDelta(baseline, fresh) {
     const next = after[index];
     if (prior.id !== next.id) throw new Error(`candidate ID order drift at ${index}: ${prior.id} != ${next.id}`);
     const fields = changedSemanticFields(prior, next);
+    const trustBindingChanged = stableStringify(beforeRaw[index].trustBindings) !==
+      stableStringify(afterRaw[index].trustBindings);
+    const trustRebindRequired = trustRebindIdSet.has(prior.id);
+    if (trustRebindRequired) {
+      assert(fields.length === 0,
+        `${prior.id} trust-only rebind cannot include semantic field drift`);
+      assert(trustBindingChanged,
+        `${prior.id} trust-only rebind requires an exact stored/current trust binding change`);
+      assert(beforeRaw[index].featureContractSha256 === afterRaw[index].featureContractSha256 &&
+        beforeRaw[index].sourceFlowDigest === afterRaw[index].sourceFlowDigest,
+      `${prior.id} trust-only rebind changed feature/pass/status/sourceFlow`);
+      observedTrustRebindIds.add(prior.id);
+    }
     const record = {
       id: prior.id,
       oldSourceFlowDigest: beforeRaw[index].sourceFlowDigest,
       newSourceFlowDigest: afterRaw[index].sourceFlowDigest,
       semanticFieldsEqual: fields.length === 0,
-      changedFields: fields,
-      equivalenceDigest: fields.length === 0 ? sha256(stableStringify(prior)) : null,
+      trustBindingChanged,
+      trustRebindRequired,
+      partition: trustRebindRequired || fields.length > 0
+        ? "independent-review-required"
+        : "strict-equivalence-carry-forward",
+      changedFields: trustRebindRequired ? ["approvalTrustBindings"] : fields,
+      equivalenceDigest: !trustRebindRequired && fields.length === 0
+        ? sha256(stableStringify(prior))
+        : null,
     };
     rows.push(record);
-    if (record.semanticFieldsEqual) carryForwardEligible.push(record.id);
+    if (record.partition === "strict-equivalence-carry-forward") carryForwardEligible.push(record.id);
     else independentReviewRequired.push(record.id);
   }
+  assert(observedTrustRebindIds.size === trustRebindIdSet.size &&
+    [...trustRebindIdSet].every(id => observedTrustRebindIds.has(id)),
+  "trust-only rebind requested a wrong or missing row");
   return {
     schema: "media-server.v390-review4-semantic-carry-forward-delta.v1",
     rows: rows.length,
@@ -364,19 +453,23 @@ function writeMigrationEvidence(absolute, delta) {
   assert(unapprovedIds.length > 0 &&
     delta.carryForwardEligible.length + unapprovedIds.length === delta.rows,
   "migration evidence coverage must partition all candidate rows");
-  const carryForward = delta.rowDelta.filter(row => row.semanticFieldsEqual).map(row => ({
+  const carryForward = delta.rowDelta.filter(row =>
+    row.partition === "strict-equivalence-carry-forward").map(row => ({
     id: row.id,
     oldSourceFlowDigest: row.oldSourceFlowDigest,
     newSourceFlowDigest: row.newSourceFlowDigest,
     equivalenceDigest: row.equivalenceDigest,
     status: "carry-forward-eligible-not-approved",
   }));
-  const unapproved = delta.rowDelta.filter(row => !row.semanticFieldsEqual).map(row => ({
+  const unapproved = delta.rowDelta.filter(row =>
+    row.partition === "independent-review-required").map(row => ({
     id: row.id,
     oldSourceFlowDigest: row.oldSourceFlowDigest,
     newSourceFlowDigest: row.newSourceFlowDigest,
     changedFields: row.changedFields,
-    status: "unapproved-independent-review-required",
+    status: row.trustRebindRequired
+      ? "unapproved-independent-trust-review-required"
+      : "unapproved-independent-review-required",
   }));
   const evidence = {
     schema: "media-server.v390-review4-semantic-migration-evidence.v2",
@@ -405,6 +498,66 @@ function writeMigrationEvidence(absolute, delta) {
 function changedSemanticFields(before, after) {
   const fields = ["featureContractSha256", "flowKind", "requirement", "verifier", "evidenceMode", "evidenceToken", "sharedContract", "roles", "edges", "semanticObligation", "trustBindings"];
   return fields.filter(field => stableStringify(before[field]) !== stableStringify(after[field]));
+}
+
+function runTrustRebindPartitionContract() {
+  const prior = contractItem();
+  prior.trustBindings = contractTrustBindings("a".repeat(64), 1);
+  prior.sourceFlowDigest = review4SourceFlowDigest(prior);
+  const fresh = structuredClone(prior);
+  fresh.trustBindings = contractTrustBindings("b".repeat(64), 4);
+  fresh.sourceFlowDigest = prior.sourceFlowDigest;
+  const baseline = { items: [prior] };
+  const current = { items: [fresh] };
+
+  const delta = buildDelta(baseline, current, { trustRebindIds: [prior.id] });
+  assert(delta.carryForwardEligible.length === 0 &&
+    stableStringify(delta.independentReviewRequired) === stableStringify([prior.id]) &&
+    delta.rowDelta[0].trustRebindRequired === true &&
+    stableStringify(delta.rowDelta[0].changedFields) === stableStringify(["approvalTrustBindings"]),
+  "trust drift was incorrectly carried forward");
+  expectThrow(() => buildDelta(baseline, current, { trustRebindIds: ["UI-998"] }),
+    "wrong trust rebind row was accepted");
+  expectThrow(() => buildDelta(baseline, current, { trustRebindIds: [prior.id, "UI-998"] }),
+    "extra trust rebind row was accepted");
+
+  const semanticDrift = structuredClone(current);
+  semanticDrift.items[0].featureContractSha256 = "c".repeat(64);
+  expectThrow(() => buildDelta(baseline, semanticDrift, { trustRebindIds: [prior.id] }),
+    "feature/pass/status/sourceFlow drift was accepted as trust-only");
+}
+
+function contractTrustBindings(trackedBlobSha256, lineOffset) {
+  const role = enclosingBodySha256 => ({
+    file: "src/bound.cpp",
+    symbol: "Bound",
+    trackedBlobSha256,
+    enclosingBodySha256,
+    enclosingBodyStartLine: 1 + lineOffset,
+    enclosingBodyEndLine: 3 + lineOffset,
+    enclosingBodyScope: "declared-symbol",
+  });
+  return {
+    schema: "media-server.review4-source-trust-bindings.v1",
+    roles: {
+      owner: role("1".repeat(64)),
+      dispatch: role("2".repeat(64)),
+      action: role("3".repeat(64)),
+      state: role("4".repeat(64)),
+      readback: role("5".repeat(64)),
+      verifier: role("6".repeat(64)),
+    },
+    verifierFileSha256: "7".repeat(64),
+    dispatch: {
+      command: "verify-alpha",
+      file: "scripts/internal/alpha.mjs",
+      armSha256: "8".repeat(64),
+      requireTarget: "alpha.mjs",
+      execTarget: "alpha.mjs",
+      connectedFiles: [],
+      connectedExecSha256: null,
+    },
+  };
 }
 
 function contractItem() {
@@ -460,7 +613,20 @@ function optionValue(name) {
   if (index < 0) return "";
   return args[index].includes("=") ? args[index].slice(args[index].indexOf("=") + 1) : (args[index + 1] || "");
 }
+function optionValues(name) {
+  const values = [];
+  for (let index = 0; index < args.length; index += 1) {
+    const value = args[index];
+    if (value === `--${name}`) values.push(String(args[++index] || ""));
+    else if (value.startsWith(`--${name}=`)) values.push(value.slice(value.indexOf("=") + 1));
+  }
+  if (values.some(value => !/^[A-Z]+-[0-9]{3}$/.test(value))) {
+    throw new Error(`--${name} requires a canonical feature ID`);
+  }
+  return values;
+}
 function sha256(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
 function assert(condition, message) { if (!condition) throw new Error(message); }
+function expectThrow(fn, message) { let threw = false; try { fn(); } catch { threw = true; } if (!threw) throw new Error(message); }
 function expectEqual(actual, expected, message) { if (stableStringify(actual) !== stableStringify(expected)) throw new Error(message); }
 function expectNotEqual(actual, expected, message) { if (stableStringify(actual) === stableStringify(expected)) throw new Error(message); }
