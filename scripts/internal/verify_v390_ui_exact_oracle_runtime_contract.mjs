@@ -13,6 +13,7 @@ import {
   buildEventMarkerFlowEvidence,
   buildEvt004MarkerStageEvidence,
   buildMarkerEvaluatorLifecycleFailureEvidence,
+  buildRequestSemanticAssertionEvidence,
   containsForbiddenResponseMaterial,
   containsForbiddenStructuredDomMaterial,
   dashboardRuntimeTrendSample,
@@ -818,6 +819,110 @@ await check("EVT-003 source-health baseline is row-local to the acceptance-owned
   ]) {
     assert(!serialized.includes(raw), "EVT-003 row-local evidence exposed a raw identity or value");
   }
+});
+
+await check("response-backed DOM targets do not inherit unrelated whole-response baselines", async () => {
+  const selected = selectEventDomResponseBaselines("records.matchedRecords", {
+    priorResponseByPath: {
+      "records.records": [{ eventId: "fixture", updatedAt: "dynamic-before" }],
+      "records.records[].status": "open",
+    },
+    domResponseBaselineByTarget: {
+      "records.matchedRecords": 1,
+    },
+    rowLocalResponseTargets: [],
+  });
+  assert(JSON.stringify(selected) === JSON.stringify({ "records.matchedRecords": 1 }),
+    "EVT-023 count target inherited a dynamic whole-record baseline");
+  const evidence = buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-023",
+    selector: "#dashIncidentTimelineBadges",
+    observed: {
+      count: 1,
+      visibleCount: 1,
+      text: "1",
+      nodeTexts: ["1"],
+      attributes: [],
+      values: [],
+      descendantCount: 1,
+    },
+    responseBodies: [{ records: {
+      matchedRecords: 1,
+      records: [{ eventId: "fixture", updatedAt: "dynamic-after" }],
+    } }],
+    priorResponseByPath: selected,
+    fixtureRequired: false,
+    actualBrowserExecution: true,
+  });
+  assert(evidence.responseBaselineMatched.pass === true &&
+    evidence.responseBaselineMatched.paths.length === 1 &&
+    evidence.responseBaselineMatched.paths[0].path === "records.matchedRecords",
+  "EVT-023 target-local count baseline did not ignore unrelated record drift");
+  const missing = selectEventDomResponseBaselines("records.matchedRecords", {
+    priorResponseByPath: {
+      "records.records": [{ eventId: "fixture" }],
+    },
+    domResponseBaselineByTarget: {},
+    rowLocalResponseTargets: [],
+  });
+  const missingEvidence = buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-023",
+    selector: "#dashIncidentTimelineBadges",
+    observed: {
+      count: 1, visibleCount: 1, text: "1", nodeTexts: ["1"],
+      attributes: [], values: [], descendantCount: 1,
+    },
+    responseBodies: [{ records: { matchedRecords: 1 } }],
+    priorResponseByPath: missing,
+    actualBrowserExecution: true,
+  });
+  assert(missingEvidence.responseBaselineMatched.pass === false &&
+    missingEvidence.responseBaselineMatched.reasonCodes.includes(
+      "RESPONSE_BASELINE_MISSING"),
+  "missing exact DOM target baseline fell back to an unrelated response path");
+  const mixedEvidence = buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-023",
+    selector: "#dashIncidentTimelineBadges",
+    observed: {
+      count: 1, visibleCount: 1, text: "1", nodeTexts: ["1"],
+      attributes: [], values: [], descendantCount: 1,
+    },
+    responseBodies: [
+      { records: { matchedRecords: 1 } },
+      { records: { matchedRecords: 2 } },
+    ],
+    priorResponseByPath: { "records.matchedRecords": 1 },
+    actualBrowserExecution: true,
+  });
+  assert(mixedEvidence.responseBaselineMatched.pass === false &&
+    mixedEvidence.responseBaselineMatched.paths[0].candidateCount === 2,
+  "mixed response candidates passed because only one matched the baseline");
+});
+
+await check("request semantic assertion evidence contains only bound digests and typed metadata", async () => {
+  const evidence = buildRequestSemanticAssertionEvidence({
+    caseId: "EVT-025",
+    method: "GET",
+    urlPath: "/ops/api/runtime/status",
+    pathTemplate: "/ops/api/runtime/status",
+    assertion: { operator: "array", path: "webrtcHttp.publishSources", expected: true },
+    assertionIndex: 0,
+    result: { pass: false, actual: { wrong: "shape" } },
+    baselinePresent: true,
+    baseline: [],
+  });
+  assert(evidence.schema === "media-server.v390-ui-request-semantic-assertion-evidence.v1" &&
+    evidence.pass === false && evidence.caseId === "EVT-025" &&
+    evidence.requestMethod === "GET" && evidence.assertionOperator === "array" &&
+    evidence.failureCode === "REQUEST_SEMANTIC_ASSERTION_MISMATCH" &&
+    [evidence.requestPathDigest, evidence.requestPathTemplateDigest,
+      evidence.assertionPathDigest, evidence.assertionIdentityDigest,
+      evidence.baselineDigest, evidence.actualDigest, evidence.expectedDigest]
+      .every(value => /^[0-9a-f]{64}$/.test(value)) &&
+    !JSON.stringify(evidence).includes("/ops/api/runtime/status") &&
+    !JSON.stringify(evidence).includes("webrtcHttp.publishSources") &&
+    !JSON.stringify(evidence).includes("wrong"),
+  "request semantic assertion evidence retained raw request/field/value material");
 });
 
 await check("EVT-003 API row and DOM identity bind to the same degraded source", async () => {
@@ -1904,13 +2009,15 @@ await check("GET response correlation, debug leaf policy, and nested attribute o
 });
 
 await check("EVT-001 actual response counts and DOM projections pass", async () => {
-  const browser = eventBrowser();
+  const body = eventBody();
+  const browser = eventBrowser({ body });
   const result = await executeCatalogRuntimeOracle({
     browser,
     item: exactItem("EVT-001", "/ops/dashboard"),
     actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
+    catalogBindings: eventCatalogBindings("EVT-001", body),
   });
   assert(result.responses.length === 1 && result.dom.length === 4, "EVT-001 evidence cardinality mismatch");
   assert(result.responses[0].assertionEvidence.length === 3, "EVT-001 request assertions were not executed");
@@ -1922,6 +2029,20 @@ await check("EVT-024 executes all three bounded samples with authoritative basel
   const browser = eventBrowser({
     body,
     domText: { "#dashRuntimeTrendSparkline": "bounded runtime samples 3" },
+    observations: {
+      "#dashRuntimeTrendSparkline": {
+        count: 1,
+        visibleCount: 1,
+        text: "bounded runtime samples 3",
+        properties: {
+          runtimeTrendSamples: [
+            { sessions: 2, taps: 1 },
+            { sessions: 2, taps: 1 },
+            { sessions: 2, taps: 1 },
+          ],
+        },
+      },
+    },
   });
   let fetchCount = 0;
   const evaluate = browser.evaluate;
@@ -1945,6 +2066,12 @@ await check("EVT-024 executes all three bounded samples with authoritative basel
           "sessionManager.activeSessions": 2,
           "sessionManager.activeAnalysisTaps": 1,
         },
+        repeatedRequests: [{
+          method: "GET",
+          path: "/ops/api/runtime/status",
+          count: 3,
+          intervalMs: 250,
+        }],
         sensitiveCanaries: [],
       },
     },
@@ -2791,19 +2918,22 @@ await check("status and response semantic drift are rejected", async () => {
 });
 
 await check("DOM response mismatch and forbidden network are rejected", async () => {
+  const body = eventBody();
   await expectReject(() => executeCatalogRuntimeOracle({
-    browser: eventBrowser({ domText: { "#dashActiveSessions": "99" } }),
+    browser: eventBrowser({ body, domText: { "#dashActiveSessions": "99" } }),
     item: exactItem("EVT-001", "/ops/dashboard"),
     actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
+    catalogBindings: eventCatalogBindings("EVT-001", body),
   }), "exact DOM semantic assertion failed");
   await expectReject(() => executeCatalogRuntimeOracle({
-    browser: eventBrowser({ network: [{ phase: "request-start", method: "POST", url: "http://runtime.invalid/events/leak" }] }),
+    browser: eventBrowser({ body, network: [{ phase: "request-start", method: "POST", url: "http://runtime.invalid/events/leak" }] }),
     item: exactItem("EVT-001", "/ops/dashboard"),
     actionId: "EVT-001:assert-visible-read-model",
     fixtureId: "runtime-contract-event",
     correlationId: "EVT-001:contract",
+    catalogBindings: eventCatalogBindings("EVT-001", body),
   }), "forbidden network request observed");
 });
 
@@ -3144,7 +3274,35 @@ function eventBody({ activeSessions = 2 } = {}) {
   };
 }
 
-function eventBrowser({ status = 200, body = eventBody(), domText = {}, network = [] } = {}) {
+function eventCatalogBindings(caseId, body) {
+  const paths = {
+    "sessionManager.activeSessions": body.sessionManager.activeSessions,
+    "sessionManager.activeAnalysisTaps": body.sessionManager.activeAnalysisTaps,
+    "sessionManager.registryActiveStreams": body.sessionManager.registryActiveStreams,
+    "webrtcHttp.publishSources.length": body.webrtcHttp.publishSources.length,
+  };
+  return {
+    eventExactRuntime: {
+      schema: "media-server.v390-ui-event-runtime-bindings.v1",
+      caseId,
+      seedByPath: {},
+      requestByPath: {},
+      priorResponseByPath: paths,
+      domResponseBaselineByTarget: { ...paths },
+      rowLocalResponseTargets: [],
+      repeatedRequests: [],
+      sensitiveCanaries: [],
+    },
+  };
+}
+
+function eventBrowser({
+  status = 200,
+  body = eventBody(),
+  domText = {},
+  observations = {},
+  network = [],
+} = {}) {
   const texts = {
     "#dashActiveSessions": String(body.sessionManager?.activeSessions ?? 0),
     "#dashActiveStreams": String(body.sessionManager?.registryActiveStreams ?? 0),
@@ -3152,7 +3310,14 @@ function eventBrowser({ status = 200, body = eventBody(), domText = {}, network 
     "#dashPublishSources": String(body.webrtcHttp?.publishSources?.length ?? 0),
     ...domText,
   };
-  return fakeBrowser({ route: "/ops/dashboard", status, body, texts, network });
+  return fakeBrowser({
+    route: "/ops/dashboard",
+    status,
+    body,
+    texts,
+    observations,
+    network,
+  });
 }
 
 function coreBrowser({ attributes = [{ "data-testid": "ops-home-page" }] } = {}) {
@@ -3314,7 +3479,7 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
         descendants: observation?.descendants ?? [],
         descendantMatches: observation?.descendantMatches ?? [],
         descendantCount: observation?.descendantCount ?? 0,
-        properties: {},
+        properties: observation?.properties ?? {},
       };
     },
   };

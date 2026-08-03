@@ -162,8 +162,6 @@ function evaluateDirectResponse({ assertion, actual, context }) {
       return { pass: everyValue(actual, value => typeof value === "number" && Number.isFinite(value)), reason: "number" };
     case "boolean":
       return { pass: everyValue(actual, value => typeof value === "boolean"), reason: "boolean" };
-    case "array":
-      return { pass: everyValue(actual, value => Array.isArray(value)), reason: "array" };
     case "object":
       return { pass: everyValue(actual, value => isObject(value)), reason: "object" };
     case "non-empty":
@@ -295,6 +293,14 @@ export function evaluateEventExactResponseAssertion({ caseId, assertion, respons
     const values = eventExactValuesAtPath(responseJson, assertion.path);
     actual = values.length === 1 ? values[0] : values;
     if (values.length === 0) return { pass: false, reason: `required response path missing: ${assertion.path}`, assertion, actual: undefined };
+    if (assertion.operator === "array") {
+      return {
+        pass: values.length === 1 && Array.isArray(values[0]),
+        reason: "array",
+        assertion,
+        actual,
+      };
+    }
   }
 
   const direct = evaluateDirectResponse({ assertion, actual, context });

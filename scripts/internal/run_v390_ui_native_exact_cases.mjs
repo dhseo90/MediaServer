@@ -1148,6 +1148,10 @@ function caseExecutionFailure(
     error.partialArtifacts.eventDomSemanticEvidence =
       structuredClone(primaryFailure.eventDomSemanticEvidence);
   }
+  if (primaryFailure?.requestSemanticAssertionEvidence) {
+    error.partialArtifacts.requestSemanticAssertionEvidence =
+      structuredClone(primaryFailure.requestSemanticAssertionEvidence);
+  }
   if (primaryFailure?.requestCorrelationEvidence) {
     error.partialArtifacts.requestCorrelationEvidence =
       structuredClone(primaryFailure.requestCorrelationEvidence);
@@ -3562,6 +3566,8 @@ function createDiagnosticChildSummary({
       requested: resultItem.requested || null,
       observed: resultItem.observed || null,
       eventDomSemanticEvidence: resultItem.eventDomSemanticEvidence || null,
+      requestSemanticAssertionEvidence:
+        resultItem.requestSemanticAssertionEvidence || null,
       requestCorrelationEvidence: resultItem.requestCorrelationEvidence || null,
       requestCorrelationScopeEvidence: resultItem.requestCorrelationScopeEvidence || null,
       navigationLifecycleEvidence: resultItem.navigationLifecycleEvidence || null,
@@ -3584,6 +3590,7 @@ function createDiagnosticChildSummary({
       requested: null,
       observed: null,
       eventDomSemanticEvidence: null,
+      requestSemanticAssertionEvidence: null,
       requestCorrelationEvidence: null,
       requestCorrelationScopeEvidence: null,
       navigationLifecycleEvidence: null,
@@ -3866,6 +3873,7 @@ function buildDiagnosticFailureProvenance({
   const runnerError = ["TypeError", "ReferenceError", "SyntaxError", "RangeError"].includes(errorName);
   const structuredEvidencePresent = Boolean(
     primaryFailure?.eventDomSemanticEvidence ||
+    primaryFailure?.requestSemanticAssertionEvidence ||
     primaryFailure?.requestCorrelationEvidence ||
     primaryFailure?.requestCorrelationScopeEvidence ||
     primaryFailure?.navigationLifecycleEvidence ||
@@ -3878,6 +3886,7 @@ function buildDiagnosticFailureProvenance({
     "control-observation-failed",
     "authoritative-readback-failed",
     "dom-semantic-assertion-failed",
+    "request-semantic-assertion-failed",
     "request-correlation-assertion-failed",
     "request-correlation-scope-assertion-failed",
     "navigation-assertion-failed",

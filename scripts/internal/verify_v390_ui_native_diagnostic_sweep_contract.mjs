@@ -12,18 +12,23 @@ import {
   aggregateDiagnosticChildOutcome,
   classifyDiagnosticCaseDisposition,
   copyEventReviewSeedWriteEvidence,
+  diagnosticRequestSemanticAssertionBindingValid,
   diagnosticStructuredAssertionFailureClass,
+  diagnosticStructuredAssertionEvidenceValid,
   diagnosticStructuredAssertionEvidencePresent,
   diagnosticChildSourceBindingErrors,
   eventReviewSeedDiagnosticCaseIds,
   serializeDiagnosticPrimaryFailureEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
+import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
+import { buildRequestSemanticAssertionEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const runnerSource = read("scripts/internal/run_v390_ui_native_exact_cases.mjs");
 const sweepSource = read("scripts/internal/run_v390_ui_native_diagnostic_sweep.mjs");
 const lifecycleSource = read("scripts/internal/v390_ui_diagnostic_lifecycle_lib.mjs");
+const exactRuntimeSource = read("scripts/internal/v390_ui_exact_oracle_runtime.mjs");
 const serverSource = read("server.sh");
 const userLauncherSource = read("test_ui.sh");
 const manifest = JSON.parse(read("test/fixtures/v390_ui_native_exact_cases.json"));
@@ -81,6 +86,47 @@ check("diagnostic output cannot become release or Policy v4 evidence", () => {
   "diagnostic sweep reaches a release-only evidence path");
   assert(!userLauncherSource.includes("run-v390-ui-native-diagnostic-sweep"),
     "user test_ui.sh exposes the internal diagnostic command");
+});
+
+check("all unresolved cases share canonical structured assertion continuation boundaries", () => {
+  const index = manifest.cases.findIndex(item => item.caseId === "EVT-023");
+  const unresolved = manifest.cases.slice(index);
+  assert(unresolved.length === 125 &&
+    unresolved.every(item => {
+      const spec = exactRuntimeOracleFor(item.caseId);
+      const summary = item.workflow?.exactRuntimeOracle;
+      return item.disposition === "native-executable" &&
+        item.dispatch === "playwright-native" &&
+        summary?.caseId === item.caseId && spec?.caseId === item.caseId &&
+        summary.requestCount === spec.requests?.length &&
+        summary.domAssertionCount === spec.dom?.length &&
+        summary.stateSnapshotCount === spec.stateSnapshots?.length &&
+        summary.cleanupStrategy === spec.cleanup?.strategy &&
+        Array.isArray(spec.cleanup?.targets) &&
+        spec.requests.every(request => {
+          const assertions = request.assertions || request.jsonAssertions || [];
+          return Array.isArray(assertions) &&
+            assertions.every(assertion => assertion?.path && assertion?.operator);
+        }) &&
+        spec.dom.every(observation => {
+          const assertions = observation.assertions || observation.propertyAssertions || [];
+          return observation?.selector && Array.isArray(assertions) &&
+            assertions.every(assertion => assertion?.operator);
+        });
+    }),
+  "unresolved selection contains unsupported or unbound runtime cases");
+  assert(exactRuntimeSource.includes("throwRequestSemanticAssertionFailure({") &&
+    exactRuntimeSource.includes("error.requestSemanticAssertionEvidence =") &&
+    runnerSource.includes("primaryFailure?.requestSemanticAssertionEvidence") &&
+    runnerSource.includes("requestSemanticAssertionEvidence:") &&
+    sweepSource.includes("childOutcome.requestSemanticAssertionEvidence") &&
+    lifecycleSource.includes('["request-semantic-assertion-failed", "requestSemanticAssertionEvidence"]') &&
+    lifecycleSource.includes('field === "requestSemanticAssertionEvidence"'),
+  "unresolved request assertions do not share the structured failure lifecycle");
+  assert(exactRuntimeSource.includes("error.eventDomSemanticEvidence =") &&
+    lifecycleSource.includes('["dom-semantic-assertion-failed", "eventDomSemanticEvidence"]') &&
+    runnerSource.includes('if (!diagnosticChild) stopped = true;'),
+  "DOM continuation or canonical fail-first boundary drifted");
 });
 
 check("only case assertion failure continues; lifecycle and evidence failures abort without retry", () => {
@@ -155,6 +201,7 @@ check("fixed 125 sweep aborts cleanup or integrity failures and continues only b
     childOutcome: { ...childOutcome, ...overrides },
     contaminated: false,
     secretScan: { status: "PASS" },
+    expectedCaseId: "EVT-025",
   });
   assert(disposition({}) === "continue-case-assertion-failure",
     "proven browser assertion failure did not continue");
@@ -179,6 +226,78 @@ check("fixed 125 sweep aborts cleanup or integrity failures and continues only b
     requestCorrelationEvidence: { pass: true },
   }) === true && diagnosticStructuredAssertionEvidencePresent({}) === false,
   "structured assertion evidence presence was not classified independently");
+  const digest = "a".repeat(64);
+  const evt025 = exactRuntimeOracleFor("EVT-025");
+  const evt025Request = evt025.requests[0];
+  const failedRequestSemanticEvidence = buildRequestSemanticAssertionEvidence({
+    caseId: "EVT-025",
+    method: evt025Request.method,
+    urlPath: evt025Request.path,
+    pathTemplate: evt025Request.path,
+    assertion: evt025Request.assertions[0],
+    assertionIndex: 0,
+    result: { pass: false, actual: {}, expected: true },
+    baselinePresent: true,
+    baseline: [],
+  });
+  assert(diagnosticStructuredAssertionEvidenceValid(
+    "requestSemanticAssertionEvidence", failedRequestSemanticEvidence,
+    { expectedCaseId: "EVT-025" }),
+  "valid request semantic assertion evidence was rejected");
+  assert(diagnosticRequestSemanticAssertionBindingValid(
+    failedRequestSemanticEvidence,
+    { caseId: "EVT-025", requests: evt025.requests },
+  ), "valid request semantic assertion evidence was not bound to EVT-025");
+  assert(!diagnosticRequestSemanticAssertionBindingValid(
+    { ...failedRequestSemanticEvidence, caseId: "EVT-026" },
+    { caseId: "EVT-025", requests: evt025.requests },
+  ), "cross-case request semantic assertion evidence passed binding");
+  assert(!diagnosticRequestSemanticAssertionBindingValid(
+    { ...failedRequestSemanticEvidence, assertionIdentityDigest: digest },
+    { caseId: "EVT-025", requests: evt025.requests },
+  ), "forged request semantic assertion identity passed binding");
+  const requestSemanticProvenance = {
+    ...provenance,
+    failureClass: "request-semantic-assertion-failed",
+    errorName: "Error",
+    classificationSource: "failed-structured-evidence",
+    structuredEvidencePresent: true,
+  };
+  assert(disposition({
+    failureClass: requestSemanticProvenance.failureClass,
+    failureProvenance: requestSemanticProvenance,
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({
+      name: "Error",
+      requestSemanticAssertionEvidence: failedRequestSemanticEvidence,
+    }),
+    requestSemanticAssertionEvidence:
+      structuredClone(failedRequestSemanticEvidence),
+  }) === "continue-case-assertion-failure",
+  "request semantic assertion failure did not continue after clean lifecycle");
+  const crossCaseRequestEvidence = {
+    ...failedRequestSemanticEvidence,
+    caseId: "EVT-026",
+  };
+  assert(disposition({
+    failureClass: requestSemanticProvenance.failureClass,
+    failureProvenance: requestSemanticProvenance,
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({
+      name: "Error",
+      requestSemanticAssertionEvidence: crossCaseRequestEvidence,
+    }),
+    requestSemanticAssertionEvidence: crossCaseRequestEvidence,
+  }) === "abort-diagnostic-lifecycle",
+  "cross-case request semantic evidence continued");
+  for (const invalidEvidence of [
+    { ...failedRequestSemanticEvidence, pass: true },
+    { ...failedRequestSemanticEvidence, actualDigest: "raw-value" },
+    { ...failedRequestSemanticEvidence, assertionIndex: -1 },
+    { ...failedRequestSemanticEvidence, failureCode: "FORGED" },
+  ]) {
+    assert(!diagnosticStructuredAssertionEvidenceValid(
+      "requestSemanticAssertionEvidence", invalidEvidence),
+    "malformed request semantic assertion evidence passed validation");
+  }
   const structuredAssertion = {
     ...provenance,
     failureClass: "request-correlation-assertion-failed",
@@ -214,6 +333,19 @@ check("fixed 125 sweep aborts cleanup or integrity failures and continues only b
     requestCorrelationEvidence: structuredClone(failedRequestCorrelationEvidence),
   }) === "continue-case-assertion-failure",
   "explicit failed structured browser assertion did not continue");
+  assert(disposition({
+    failureClass: requestSemanticProvenance.failureClass,
+    failureProvenance: requestSemanticProvenance,
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({
+      name: "Error",
+      requestSemanticAssertionEvidence: failedRequestSemanticEvidence,
+    }),
+    requestSemanticAssertionEvidence: {
+      ...failedRequestSemanticEvidence,
+      actualDigest: "b".repeat(64),
+    },
+  }) === "abort-diagnostic-lifecycle",
+  "mismatched primary/top-level request evidence continued");
   for (const badProvenance of [
     { ...provenance, kind: "runner-or-lifecycle-failure" },
     { ...provenance, phase: "browser-open" },

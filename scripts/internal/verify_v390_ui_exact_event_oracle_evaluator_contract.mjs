@@ -57,6 +57,35 @@ check("response evaluator executes equals, number-gte, and forbidden path checks
   assert(!evaluateEventExactResponseAssertion({ ...base, assertion: { path: "sessionManager.missing", operator: "number", expected: true } }).pass, "missing response path passed");
 });
 
+check("array response assertions validate the selected collection without flattening it", () => {
+  const base = { caseId: "EVT-025", context: { fixtureId: "fixture" } };
+  assert(evaluateEventExactResponseAssertion({
+    ...base,
+    assertion: { path: "webrtcHttp.publishSources", operator: "array", expected: true },
+    responseJson: { webrtcHttp: { publishSources: [] } },
+  }).pass, "empty publishSources collection was not recognized as an array");
+  assert(evaluateEventExactResponseAssertion({
+    ...base,
+    assertion: { path: "webrtcHttp.publishSources", operator: "array", expected: true },
+    responseJson: { webrtcHttp: { publishSources: [{ sourceId: "one" }] } },
+  }).pass, "non-empty publishSources collection was flattened before type validation");
+  assert(!evaluateEventExactResponseAssertion({
+    ...base,
+    assertion: { path: "webrtcHttp.publishSources", operator: "array", expected: true },
+    responseJson: { webrtcHttp: { publishSources: { sourceId: "one" } } },
+  }).pass, "object publishSources value passed the array contract");
+  assert(!evaluateEventExactResponseAssertion({
+    ...base,
+    assertion: { path: "groups[].publishSources", operator: "array", expected: true },
+    responseJson: {
+      groups: [
+        { publishSources: [{ sourceId: "one" }] },
+        { publishSources: [{ sourceId: "two" }] },
+      ],
+    },
+  }).pass, "multiple resolved collections were combined into one array value");
+});
+
 check("request evaluator requires the correlated runtime exchange", () => {
   const spec = {
     caseId: "EVT-TEST",

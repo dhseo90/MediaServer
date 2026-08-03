@@ -7163,6 +7163,22 @@ acceptance21/launcher18/final-integrity12 PASS입니다. Canonical actual은 기
 `300 attempted / 299 PASS / 1 FAIL / 124 not-run`을 유지하며 125건 diagnostic batch,
 `./test_ui.sh`, Policy v4, 30분, 120분, release는 미실행입니다.
 
+Remaining diagnostic batch assertion closure(2026-08-03)는 EVT-023의 DOM response baseline을
+assertion target별 exact entry로만 선택하고, missing·zero candidate·mixed candidate를 fail-closed합니다.
+EVT-025의 `webrtcHttp.publishSources`는 resolved value가 정확히 하나이고 그 값이 배열일 때만 PASS하며,
+배열 원소를 flatten한 뒤 검사하던 false failure를 제거했습니다. Browser request assertion 실패는 raw
+값 없이 schema/code/index/operator/path/value digest를 가진 structured evidence로 전달하고, malformed,
+복수, PASS evidence, provenance mismatch와 infrastructure/security/cleanup 실패는 batch를 중단합니다.
+Parent는 evidence의 case ID, request template digest, assertion identity digest를 current case의 exact runtime
+catalog와 교차 검증하고 cross-case·forged identity를 거부합니다. Manifest의 request/DOM/state snapshot
+count와 cleanup strategy도 같은 catalog의 실제 배열·cleanup definition과 exact equality로 preflight합니다.
+`EVT-023`부터 `SAFE-140`까지 125건의 native executable/runtime/cleanup/evidence binding preflight는
+누락·중복 없이 PASS했고 canonical `./test_ui.sh`의 first-failure 동작은 불변입니다. Evaluator20,
+runtime47, native49, completion36, adapter26, diagnostic22, acceptance21, launcher18,
+final-integrity12, semantic51/approval986, feature986/negative15 및 inventory/index/script/docs/syntax/diff가
+PASS했습니다. Candidate `1d0900d9...3a3b7`와 native manifest는 불변이라 generator/producer는 0회이며,
+actual batch와 `./test_ui.sh`, Policy v4, 30분, 120분, release는 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

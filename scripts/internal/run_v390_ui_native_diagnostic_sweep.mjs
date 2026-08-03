@@ -20,12 +20,14 @@ import {
   aggregateDiagnosticChildOutcome,
   classifyDiagnosticCaseDisposition,
   copyEventReviewSeedWriteEvidence,
+  diagnosticRequestSemanticAssertionBindingValid,
   diagnosticStructuredAssertionEvidenceValid,
   diagnosticChildSourceBindingErrors,
   eventReviewSeedDiagnosticCaseIds,
   validateEvt004LifecycleEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import { validateEventDomSemanticCompositeEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
+import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -196,6 +198,8 @@ for (const [selectionIndex, item] of selection.entries()) {
       requested: childOutcome.requested || null,
       observed: childOutcome.observed || null,
       eventDomSemanticEvidence: childOutcome.eventDomSemanticEvidence || null,
+      requestSemanticAssertionEvidence:
+        childOutcome.requestSemanticAssertionEvidence || null,
       requestCorrelationEvidence: childOutcome.requestCorrelationEvidence || null,
       requestCorrelationScopeEvidence:
         childOutcome.requestCorrelationScopeEvidence || null,
@@ -231,6 +235,7 @@ for (const [selectionIndex, item] of selection.entries()) {
     childOutcome,
     contaminated,
     secretScan,
+    expectedCaseId: item.caseId,
   });
   if (disposition === "continue-case-assertion-failure") {
     assert(childOutcome.status === "FAIL" &&
@@ -348,6 +353,7 @@ function fixedSelection(cases) {
   const selected = cases.slice(index);
   assert(selected.length === 125,
     `EVT-023 through canonical end must contain 125 unresolved cases: ${selected.length}`);
+  selected.forEach(assertDiagnosticRuntimeBinding);
   return selected;
 }
 
@@ -363,7 +369,39 @@ function selectedDiagnosticCases({ fullSelection, manifestCases, caseId, selecti
   const [item] = matches;
   assert(item.disposition === "native-executable",
     `diagnostic explicit case must be a positive native-executable case: ${caseId}`);
+  assertDiagnosticRuntimeBinding(item);
   return [item];
+}
+
+function assertDiagnosticRuntimeBinding(item) {
+  const spec = exactRuntimeOracleFor(item.caseId);
+  const summary = item.workflow?.exactRuntimeOracle;
+  assert(spec?.caseId === item.caseId && summary?.caseId === item.caseId,
+    `${item.caseId} diagnostic runtime oracle binding missing`);
+  assert(Array.isArray(spec.requests) && summary.requestCount === spec.requests.length,
+    `${item.caseId} diagnostic runtime request count drift`);
+  assert(Array.isArray(spec.dom) && summary.domAssertionCount === spec.dom.length,
+    `${item.caseId} diagnostic runtime DOM assertion count drift`);
+  assert(Array.isArray(spec.stateSnapshots) &&
+    summary.stateSnapshotCount === spec.stateSnapshots.length,
+  `${item.caseId} diagnostic runtime state snapshot count drift`);
+  assert(spec.cleanup?.strategy && Array.isArray(spec.cleanup.targets) &&
+    summary.cleanupStrategy === spec.cleanup.strategy,
+  `${item.caseId} diagnostic runtime cleanup binding drift`);
+  assert(spec.requests.every(request => {
+    const assertions = request.assertions || request.jsonAssertions || [];
+    return Array.isArray(assertions) && assertions.every(assertion =>
+      typeof assertion?.operator === "string" && assertion.operator.length > 0 &&
+      typeof assertion?.path === "string" && assertion.path.length > 0);
+  }),
+  `${item.caseId} diagnostic request assertion binding missing`);
+  assert(spec.dom.every(observation => {
+    const assertions = observation.assertions || observation.propertyAssertions || [];
+    return typeof observation?.selector === "string" && observation.selector.length > 0 &&
+      Array.isArray(assertions) && assertions.every(assertion =>
+        typeof assertion?.operator === "string" && assertion.operator.length > 0);
+  }),
+  `${item.caseId} diagnostic DOM assertion binding missing`);
 }
 
 function buildSummary({ result, executionStatus, cases, environments, cleanup }) {
@@ -605,6 +643,7 @@ function validateChildSummary(summary, item, expectedSourceBinding) {
   }
   for (const field of [
     "eventDomSemanticEvidence",
+    "requestSemanticAssertionEvidence",
     "requestCorrelationEvidence",
     "requestCorrelationScopeEvidence",
     "navigationLifecycleEvidence",
@@ -614,6 +653,13 @@ function validateChildSummary(summary, item, expectedSourceBinding) {
     if (!summary.case?.[field]) continue;
     assert(diagnosticStructuredAssertionEvidenceValid(field, summary.case[field]),
       `diagnostic child ${field} canonical evidence is invalid`);
+  }
+  if (summary.case?.requestSemanticAssertionEvidence) {
+    const spec = exactRuntimeOracleFor(item.caseId);
+    assert(diagnosticRequestSemanticAssertionBindingValid(
+      summary.case.requestSemanticAssertionEvidence,
+      { caseId: item.caseId, requests: spec?.requests || [] },
+    ), "diagnostic child request semantic evidence binding mismatch");
   }
   if (summary.case?.requestCorrelationEvidence) {
     const evidence = summary.case.requestCorrelationEvidence;

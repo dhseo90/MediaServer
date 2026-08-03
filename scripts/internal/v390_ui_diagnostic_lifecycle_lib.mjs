@@ -1,5 +1,7 @@
 // 파일 용도: UI diagnostic case 실패 시 cleanup/browser close 이후 구조화 lifecycle evidence를 최종화한다.
 
+import { createHash } from "node:crypto";
+
 import { buildNavigationTrustEvidence } from "./v390_ui_completion_oracle_lib.mjs";
 import {
   buildExclusiveRequestScopedCorrelationEvidence,
@@ -24,6 +26,7 @@ export const eventReviewSeedDiagnosticCaseIds = Object.freeze([
 ]);
 const diagnosticStructuredAssertionEvidence = Object.freeze([
   ["dom-semantic-assertion-failed", "eventDomSemanticEvidence"],
+  ["request-semantic-assertion-failed", "requestSemanticAssertionEvidence"],
   ["request-correlation-assertion-failed", "requestCorrelationEvidence"],
   ["request-correlation-scope-assertion-failed", "requestCorrelationScopeEvidence"],
   ["navigation-assertion-failed", "navigationLifecycleEvidence"],
@@ -165,7 +168,11 @@ export function serializeDiagnosticPrimaryFailureEvidence(
   });
 }
 
-export function diagnosticStructuredAssertionEvidenceValid(field, evidence) {
+export function diagnosticStructuredAssertionEvidenceValid(
+  field,
+  evidence,
+  { expectedCaseId = "" } = {},
+) {
   if (!evidence || typeof evidence !== "object" || Array.isArray(evidence) ||
       typeof evidence.pass !== "boolean") return false;
   if (field === "eventDomSemanticEvidence") {
@@ -175,6 +182,25 @@ export function diagnosticStructuredAssertionEvidenceValid(field, evidence) {
     } catch {
       return false;
     }
+  }
+  if (field === "requestSemanticAssertionEvidence") {
+    const digest = value => typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
+    return evidence.schema === "media-server.v390-ui-request-semantic-assertion-evidence.v1" &&
+      typeof evidence.caseId === "string" && evidence.caseId.length > 0 &&
+      (!expectedCaseId || evidence.caseId === expectedCaseId) &&
+      /^[A-Z]+$/.test(evidence.requestMethod || "") &&
+      digest(evidence.requestPathDigest) &&
+      digest(evidence.requestPathTemplateDigest) &&
+      Number.isInteger(evidence.assertionIndex) && evidence.assertionIndex >= 0 &&
+      typeof evidence.assertionOperator === "string" && evidence.assertionOperator.length > 0 &&
+      digest(evidence.assertionPathDigest) &&
+      digest(evidence.assertionIdentityDigest) &&
+      typeof evidence.baselinePresent === "boolean" && digest(evidence.baselineDigest) &&
+      typeof evidence.actualPresent === "boolean" && digest(evidence.actualDigest) &&
+      typeof evidence.expectedPresent === "boolean" && digest(evidence.expectedDigest) &&
+      ["PASS", "REQUEST_SEMANTIC_ASSERTION_MISMATCH",
+        "REQUEST_SEMANTIC_ASSERTION_PATH_MISSING"].includes(evidence.failureCode) &&
+      (evidence.pass === true) === (evidence.failureCode === "PASS");
   }
   if (field === "requestCorrelationEvidence") {
     return evidence.schema === "media-server.v390-ui-request-correlation-evidence.v1" &&
@@ -233,6 +259,41 @@ export function diagnosticStructuredAssertionEvidenceValid(field, evidence) {
         "media-server.v390-ui-dashboard-marker-response-stage-evidence.v1");
   }
   return false;
+}
+
+export function diagnosticRequestSemanticAssertionBindingValid(
+  evidence,
+  { caseId = "", requests = [] } = {},
+) {
+  if (!diagnosticStructuredAssertionEvidenceValid(
+    "requestSemanticAssertionEvidence", evidence, { expectedCaseId: caseId })) return false;
+  const digest = value => createHash("sha256").update(
+    typeof value === "string" ? value : stableDiagnosticEvidenceJson(value),
+  ).digest("hex");
+  const matches = [];
+  for (const request of requests) {
+    const requestMethod = String(request?.method || "").toUpperCase();
+    const requestPathTemplate = String(request?.path || "");
+    const assertions = request?.assertions || request?.jsonAssertions || [];
+    for (const [assertionIndex, assertion] of assertions.entries()) {
+      const assertionOperator = String(assertion?.operator || "");
+      const assertionPath = String(assertion?.path || "");
+      if (evidence.requestMethod !== requestMethod ||
+          evidence.requestPathTemplateDigest !== digest(requestPathTemplate) ||
+          evidence.assertionIndex !== assertionIndex ||
+          evidence.assertionOperator !== assertionOperator ||
+          evidence.assertionPathDigest !== digest(assertionPath) ||
+          evidence.assertionIdentityDigest !== digest({
+            requestMethod,
+            requestPathTemplate,
+            assertionIndex,
+            assertionOperator,
+            assertionPath,
+          })) continue;
+      matches.push({ request, assertion });
+    }
+  }
+  return matches.length === 1;
 }
 
 function stableDiagnosticEvidenceJson(value) {
@@ -662,6 +723,8 @@ export function aggregateDiagnosticChildOutcome({
     requested: childCase.requested || null,
     observed: childCase.observed || null,
     eventDomSemanticEvidence: childCase.eventDomSemanticEvidence || null,
+    requestSemanticAssertionEvidence:
+      childCase.requestSemanticAssertionEvidence || null,
     requestCorrelationEvidence: childCase.requestCorrelationEvidence || null,
     requestCorrelationScopeEvidence:
       childCase.requestCorrelationScopeEvidence || null,
@@ -690,6 +753,7 @@ export function classifyDiagnosticCaseDisposition({
   childOutcome,
   contaminated,
   secretScan,
+  expectedCaseId = "",
 } = {}) {
   const cleanupAttestation = childOutcome?.cleanupAttestation;
   const integrityPass = childSummary?.rawCaptureValidation?.status === "PASS" &&
@@ -715,8 +779,9 @@ export function classifyDiagnosticCaseDisposition({
     Object.keys(primaryStructuredEvidence).every(field =>
       allowedPrimaryEvidenceFields.has(field) &&
       diagnosticStructuredAssertionEvidenceValid(
-        field, primaryStructuredEvidence[field]) &&
-      diagnosticStructuredAssertionEvidenceValid(field, childOutcome?.[field]) &&
+        field, primaryStructuredEvidence[field], { expectedCaseId }) &&
+      diagnosticStructuredAssertionEvidenceValid(
+        field, childOutcome?.[field], { expectedCaseId }) &&
       stableDiagnosticEvidenceJson(primaryStructuredEvidence[field]) ===
         stableDiagnosticEvidenceJson(childOutcome[field]));
   const observedStructuredFailureClass =
@@ -729,6 +794,7 @@ export function classifyDiagnosticCaseDisposition({
     "control-observation-failed",
     "authoritative-readback-failed",
     "dom-semantic-assertion-failed",
+    "request-semantic-assertion-failed",
     "request-correlation-assertion-failed",
     "request-correlation-scope-assertion-failed",
     "navigation-assertion-failed",

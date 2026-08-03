@@ -2197,8 +2197,85 @@ function compareNumber(actual, operator, expected) {
   return Number(actual) === Number(expected);
 }
 
+export function buildRequestSemanticAssertionEvidence({
+  caseId = "",
+  method = "",
+  urlPath = "",
+  pathTemplate = "",
+  assertion = {},
+  assertionIndex = 0,
+  result = {},
+  baselinePresent = false,
+  baseline = undefined,
+} = {}) {
+  const requestMethod = String(method).toUpperCase();
+  const requestPathTemplate = String(pathTemplate || urlPath);
+  const assertionOperator = String(assertion.operator || "");
+  const assertionPath = String(assertion.path || "");
+  const actualPresent = result.actual !== undefined;
+  const expectedValue = result.expected !== undefined
+    ? result.expected
+    : (assertion.expected !== undefined ? assertion.expected : assertion.value);
+  const expectedPresent = expectedValue !== undefined;
+  return Object.freeze({
+    schema: "media-server.v390-ui-request-semantic-assertion-evidence.v1",
+    pass: result.pass === true,
+    caseId: String(caseId),
+    requestMethod,
+    requestPathDigest: sha256Digest(String(urlPath)),
+    requestPathTemplateDigest: sha256Digest(requestPathTemplate),
+    assertionIndex: Number(assertionIndex),
+    assertionOperator,
+    assertionPathDigest: sha256Digest(assertionPath),
+    assertionIdentityDigest: sha256Digest({
+      requestMethod,
+      requestPathTemplate,
+      assertionIndex: Number(assertionIndex),
+      assertionOperator,
+      assertionPath,
+    }),
+    baselinePresent: baselinePresent === true,
+    baselineDigest: sha256Digest({ present: baselinePresent === true, value: baseline }),
+    actualPresent,
+    actualDigest: sha256Digest({ present: actualPresent, value: result.actual }),
+    expectedPresent,
+    expectedDigest: sha256Digest({ present: expectedPresent, value: expectedValue }),
+    failureCode: result.pass === true
+      ? "PASS"
+      : (actualPresent
+        ? "REQUEST_SEMANTIC_ASSERTION_MISMATCH"
+        : "REQUEST_SEMANTIC_ASSERTION_PATH_MISSING"),
+  });
+}
+
+function throwRequestSemanticAssertionFailure({
+  context,
+  assertion,
+  assertionIndex,
+  result,
+  baselinePresent = false,
+  baseline = undefined,
+}) {
+  const error = new Error(
+    `${context.caseId} exact request assertion failed ${context.requestLabel}: ` +
+    `${assertion.operator} ${assertion.path || ""}`,
+  );
+  error.requestSemanticAssertionEvidence = buildRequestSemanticAssertionEvidence({
+    caseId: context.caseId,
+    method: context.request.method,
+    urlPath: context.urlPath,
+    pathTemplate: context.request.path,
+    assertion,
+    assertionIndex,
+    result,
+    baselinePresent,
+    baseline,
+  });
+  throw error;
+}
+
 function evaluateRequestAssertions(assertions, context) {
-  return assertions.map(assertion => {
+  return assertions.map((assertion, assertionIndex) => {
     if (context.caseId.startsWith("EVT-")) {
       const runtime = context.eventRuntimeContext || {};
       const requestIdentity = `${String(context.request.method || "GET").toUpperCase()} ${context.urlPath}`;
@@ -2288,7 +2365,16 @@ function evaluateRequestAssertions(assertions, context) {
             responseHeaders: { "content-type": context.contentType },
             context: evaluatorContext,
           });
-      assert(result.pass, `${context.caseId} exact request assertion failed ${context.requestLabel}: ${assertion.operator} ${assertion.path || ""} (${result.reason})`);
+      if (!result.pass) {
+        throwRequestSemanticAssertionFailure({
+          context,
+          assertion,
+          assertionIndex,
+          result,
+          baselinePresent,
+          baseline,
+        });
+      }
       return { operator: assertion.operator, path: assertion.path || null, valueDigest: stableDigest(result.actual) };
     }
     const operator = String(assertion.operator || "");
@@ -2317,7 +2403,18 @@ function evaluateRequestAssertions(assertions, context) {
     } else {
       throw new Error(`${context.caseId} unsupported exact request assertion operator: ${operator}`);
     }
-    assert(pass, `${context.caseId} exact request assertion failed ${context.requestLabel}: ${operator} ${assertion.path || ""}`);
+    if (!pass) {
+      throwRequestSemanticAssertionFailure({
+        context,
+        assertion,
+        assertionIndex,
+        result: {
+          pass: false,
+          actual: values.length === 1 ? values[0] : values,
+          expected,
+        },
+      });
+    }
     return { operator, path: assertion.path || null, valueDigest: stableDigest(values) };
   });
 }
@@ -2353,6 +2450,37 @@ function evaluateDomPropertyAssertions(assertions, observed, bindings, caseId, s
   });
 }
 
+function throwDirectEventDomSemanticFailure({
+  caseId,
+  selector,
+  observed,
+  operator,
+  target,
+  actual,
+  expected,
+}) {
+  const comparedActual = stableEqual(actual, expected)
+    ? { assertionPass: false, value: actual }
+    : actual;
+  const comparedExpected = stableEqual(actual, expected)
+    ? { assertionPass: true, value: expected }
+    : expected;
+  const eventDomSemanticEvidence = buildEventDomSemanticCompositeEvidence({
+    caseId,
+    selector,
+    observed,
+    responseBodies: [{ directOperatorProjection: comparedActual }],
+    priorResponseByPath: { directOperatorProjection: comparedExpected },
+    fixtureRequired: false,
+    actualBrowserExecution: true,
+  });
+  const error = new Error(
+    `${caseId} exact DOM semantic assertion failed ${selector}: ${operator}/${target}`,
+  );
+  error.eventDomSemanticEvidence = structuredClone(eventDomSemanticEvidence);
+  throw error;
+}
+
 function evaluateDomSemanticAssertions(
   assertions,
   observed,
@@ -2374,8 +2502,11 @@ function evaluateDomSemanticAssertions(
         ? observed.properties.runtimeTrendSamples
         : [];
       const actual = samples.at(-1) || null;
-      assert(actual && equalDashboardRuntimeTrendSample(actual, expected),
-        `${caseId} dashboard trend sample is not derived from the observed runtime/source/events responses`);
+      if (!actual || !equalDashboardRuntimeTrendSample(actual, expected)) {
+        throwDirectEventDomSemanticFailure({
+          caseId, selector, observed, operator, target, actual, expected,
+        });
+      }
       return { operator, target, responseValueDigest: stableDigest(expected) };
     }
     if (operator === "delta-equals-baseline") {
@@ -2383,18 +2514,92 @@ function evaluateDomSemanticAssertions(
         ? observed.properties.runtimeTrendSamples
         : [];
       const baseline = bindings.runtimeTrendBaseline;
-      assert(baseline && samples.length > 0 &&
-        equalDashboardRuntimeTrendSample(samples[0], baseline),
-      `${caseId} dashboard trend baseline is not bound to the current case context`);
+      const actual = samples[0] || null;
+      if (!baseline || !actual ||
+          !equalDashboardRuntimeTrendSample(actual, baseline)) {
+        throwDirectEventDomSemanticFailure({
+          caseId, selector, observed, operator, target, actual, expected: baseline,
+        });
+      }
       return { operator, target, responseValueDigest: stableDigest(baseline) };
     }
     if (operator === "history-bounded") {
       const samples = Array.isArray(observed.properties?.runtimeTrendSamples)
         ? observed.properties.runtimeTrendSamples
         : [];
-      assert(samples.length > 0 && samples.length <= 12,
-        `${caseId} dashboard trend history exceeded the product sample limit`);
+      const valid = samples.length > 0 && samples.length <= 12;
+      if (!valid) {
+        throwDirectEventDomSemanticFailure({
+          caseId, selector, observed, operator, target,
+          actual: { valid, count: samples.length },
+          expected: { valid: true },
+        });
+      }
       return { operator, target, responseValueDigest: stableDigest(samples.length) };
+    }
+    if (operator === "sample-count-equals-observations") {
+      const samples = Array.isArray(observed.properties?.runtimeTrendSamples)
+        ? observed.properties.runtimeTrendSamples
+        : [];
+      const repeated = Array.isArray(eventRuntimeContext?.repeatedRequests)
+        ? eventRuntimeContext.repeatedRequests
+        : [];
+      const expected = repeated.length === 1 &&
+        Number.isInteger(repeated[0]?.count) && repeated[0].count > 1
+        ? repeated[0].count
+        : null;
+      if (expected === null || samples.length !== expected) {
+        throwDirectEventDomSemanticFailure({
+          caseId, selector, observed, operator, target,
+          actual: samples.length,
+          expected,
+        });
+      }
+      return { operator, target, responseValueDigest: stableDigest(samples.length) };
+    }
+    if (operator === "delta-equals-observations") {
+      const samples = Array.isArray(observed.properties?.runtimeTrendSamples)
+        ? observed.properties.runtimeTrendSamples
+        : [];
+      const actual = samples.at(-1) || null;
+      const runtime = responseBodies.find(body =>
+        body?.sessionManager && typeof body.sessionManager === "object");
+      const expected = runtime ? {
+        sessions: Number(runtime.sessionManager.activeSessions),
+        taps: Number(runtime.sessionManager.activeAnalysisTaps),
+      } : null;
+      const actualProjection = actual ? {
+        sessions: Number(actual.sessions),
+        taps: Number(actual.taps),
+      } : null;
+      if (!actualProjection || !expected ||
+          !stableEqual(actualProjection, expected)) {
+        throwDirectEventDomSemanticFailure({
+          caseId, selector, observed, operator, target,
+          actual: actualProjection,
+          expected,
+        });
+      }
+      return {
+        operator,
+        target,
+        responseValueDigest: sha256Digest({
+          sessions: actualProjection.sessions,
+          taps: actualProjection.taps,
+        }),
+      };
+    }
+    if (operator === "does-not-claim-longrun-pass") {
+      const pass = !/(30|120)\s*(분|minute).*pass/i.test(
+        String(observed.text || ""));
+      if (!pass) {
+        throwDirectEventDomSemanticFailure({
+          caseId, selector, observed, operator, target,
+          actual: false,
+          expected: true,
+        });
+      }
+      return { operator, target, responseValueDigest: sha256Digest(observed.text) };
     }
     if (caseId.startsWith("EVT-")) {
       const responseValueMap = {};
@@ -2587,8 +2792,12 @@ export function buildEventDomSemanticCompositeEvidence({
     : null;
 
   const paths = Object.entries(priorResponseByPath).map(([path, baseline]) => {
+    const baselineMissing = baseline?.schema ===
+      "media-server.v390-ui-event-response-baseline-missing.v1";
     const rowLocal = isEventRowLocalResponseBaseline(baseline);
-    const candidates = rowLocal
+    const candidates = baselineMissing
+      ? []
+      : rowLocal
       ? responseBodies
         .flatMap(body => eventRowLocalResponseProjections(body, baseline))
       : responseBodies
@@ -2596,9 +2805,9 @@ export function buildEventDomSemanticCompositeEvidence({
         .filter(pathValues => pathValues.length > 0)
         .map(pathValues => pathValues.length === 1 ? pathValues[0] : pathValues);
     const expected = rowLocal ? baseline.expectedProjection : baseline;
-    const matched = rowLocal
+    const matched = !baselineMissing && (rowLocal
       ? candidates.length === 1 && stableEqual(candidates[0], expected)
-      : candidates.length === 0 || candidates.some(actual => stableEqual(actual, expected));
+      : candidates.length > 0 && candidates.every(actual => stableEqual(actual, expected)));
     const mismatchProjectionPaths = rowLocal && candidates.length > 0 && !matched
       ? baseline.projectionPaths.filter(projectionPath =>
         candidates.every(candidate =>
@@ -2610,15 +2819,19 @@ export function buildEventDomSemanticCompositeEvidence({
     const duplicateRowCode = baseline.identityKind === "event-record"
       ? "FIXTURE_EVENT_ROW_DUPLICATE"
       : "FIXTURE_SOURCE_ROW_DUPLICATE";
-    const reasonCode = matched
+    const reasonCode = baselineMissing
+      ? "RESPONSE_BASELINE_MISSING"
+      : matched
       ? "PASS"
-      : (rowLocal && candidates.length === 0
+      : (!rowLocal && candidates.length === 0
+        ? "RESPONSE_CANDIDATE_MISSING"
+        : (rowLocal && candidates.length === 0
         ? missingRowCode
         : (rowLocal && candidates.length > 1
           ? duplicateRowCode
         : (rowLocal
           ? "FIXTURE_ROW_PROJECTION_MISMATCH"
-          : "RESPONSE_BASELINE_MISMATCH")));
+          : "RESPONSE_BASELINE_MISMATCH"))));
     return {
       path,
       matched,
@@ -3324,9 +3537,13 @@ export function selectEventDomResponseBaselines(target, eventRuntimeContext = {}
     `row-local response baseline is missing or invalid for target: ${target}`);
     return Object.fromEntries(targetEntries);
   }
-  return targetEntries.length > 0
-    ? Object.fromEntries(targetEntries)
-    : (eventRuntimeContext?.priorResponseByPath || {});
+  if (targetEntries.length > 0) return Object.fromEntries(targetEntries);
+  return {
+    [String(target || "")]: {
+      schema: "media-server.v390-ui-event-response-baseline-missing.v1",
+      targetDigest: sha256Digest(String(target || "")),
+    },
+  };
 }
 
 function isEventRowLocalResponseBaseline(value) {

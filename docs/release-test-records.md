@@ -3139,6 +3139,15 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Remaining selection | Diagnostic-only selection은 canonical index 299의 `EVT-023`부터 `SAFE-140`까지 125건입니다. Parent가 child의 실제 failed evidence class를 재계산하고 provenance와 exact 비교합니다 | Bootstrap/source/binary/evidence/cleanup 실패는 batch abort. Canonical `test_ui.sh` first-failure stop은 불변 |
 | Semantic/static | Candidate `1d0900d920333e8a6589b5a1b7cc3af2a31ae10edcb6287a6122142d9313a3b7`, 985 carry-forward + UI-018 independent, audit/approval/feature 986/986입니다. Package/decision SHA는 `8af8a301...cc662`/`884c23ca...92bcb`입니다. Producer는 worktree audit baseline을 사용한 prevalidation FAIL 1회(atomic replacement 0) 뒤 index audit baseline으로 근본 보정한 실행 1회가 atomic PASS했고 generator는 0회입니다. Direct semantic51/runtime45/native49/completion36/adapter26/diagnostic21/acceptance21/launcher18/final-integrity12 PASS입니다 | Canonical actual은 `300 attempted / 299 PASS / 1 FAIL / 124 not-run`으로 보존. 125건 batch, `test_ui.sh`, Policy v4, 30분, 120분, release는 미실행 |
 
+### REVIEW4-65 remaining diagnostic batch assertion closure
+
+| 항목 | 결과 | 경계 |
+| --- | --- | --- |
+| Target baseline | EVT-023 DOM response baseline은 assertion target의 exact entry만 사용합니다. Missing baseline, zero candidate와 expected/mismatched candidate 혼합을 모두 거부합니다 | `priorResponseByPath` 전체 fallback과 unrelated whole-array 비교를 허용하지 않음 |
+| Array assertion | EVT-025 `webrtcHttp.publishSources`는 resolved value가 정확히 하나이고 그 값이 배열일 때만 PASS합니다 | Empty/non-empty array PASS, object와 multiple collection은 FAIL; 제품 response shape 변경 없음 |
+| Structured continuation | Request assertion failure는 schema/code/index/operator와 path/value digest만 기록합니다. Parent는 case ID, request template와 assertion identity digest를 current exact runtime catalog와 교차 검증합니다. Exactly-one valid failed evidence와 cleanup/integrity PASS일 때만 다음 case로 진행합니다 | Cross-case·forged identity, malformed, 복수, `pass=true`, provenance mismatch, TypeError, infrastructure/security/lifecycle failure는 batch abort |
+| Selection/static | `EVT-023`부터 `SAFE-140`까지 125건의 native executable, runtime oracle, cleanup, structured evidence binding을 전수 preflight했습니다. Manifest request/DOM/state snapshot count와 cleanup strategy는 catalog 실제 배열·definition과 exact equality입니다. Evaluator20/runtime47/native49/completion36/adapter26/diagnostic22/acceptance21/launcher18/final-integrity12, semantic51/approval986, feature986/negative15, inventory/index/script/docs/syntax/diff PASS입니다 | Candidate `1d0900d9...3a3b7` 및 native manifest 불변, generator/producer 0회. Canonical actual `300/299/1/124` 보존; 125건 actual batch와 `test_ui.sh`, Policy v4, 30분, 120분, release 미실행 |
+
 ## 임시 산출물 정리 기록
 
 | 버전/run | 경로 | 종류 | 조치 | 삭제/보존 결과 |

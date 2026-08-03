@@ -3440,6 +3440,21 @@ export function createV390UiCaseRuntime({
       }));
       seedByPath[target] = keys.length === 1 ? projection[keys[0]] : projection;
     }
+    // Bind simple response-backed DOM targets to that target only. Composite
+    // targets continue through their explicit semantic/row-local contracts.
+    for (const domContract of spec.dom || []) {
+      for (const assertion of domContract.assertions || []) {
+        const target = String(assertion.target || "");
+        if (!/^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$/.test(target)) {
+          continue;
+        }
+        const values = baselineBodies.flatMap(body =>
+          eventExactValuesAtPath(body, target));
+        if (values.length === 1) {
+          domResponseBaselineByTarget[target] = values[0];
+        }
+      }
+    }
     if (item.caseId === "EVT-003" || item.caseId === "EVT-025") {
       const sourceId = templateValues.sourceId;
       const sourceHealth = responseByPath.sourceHealth;
