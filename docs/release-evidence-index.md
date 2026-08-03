@@ -1430,3 +1430,11 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Semantic ledger | 최종 candidate `33f19d93f4cda0e4a1afc807304f7fd44943765af92458bbdc9e835f428f5e67`; 984 carry-forward + UI-014/UI-046 independent; package `f6c19080...7892d`; decision `5ba61dac...2ad0` | Producer 성공 2회. 중간 prior-index prevalidation FAIL 1회는 replacement 전 종료; 최종 audit/approval/implementation/native 원자 갱신, 986/986 PASS |
 | Static checkpoint | build, native50, event28/evaluator20/runtime47, completion36, adapter26, diagnostic22, Policy producer10, acceptance21, launcher18, final-integrity12 PASS | 125건 actual batch 이전 정적 evidence |
 | Actual acceptance | 기존 canonical `300 attempted / 299 PASS / 1 FAIL / 124 not-run` | 125건 batch, `./test_ui.sh`, Policy v4, 30분, 120분, release 미실행. 릴리즈 완료 evidence가 아님 |
+
+## v3.9.0 REVIEW4-65 EVT-023 catalog runtime response source checkpoint
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| Fixed remaining sweep | `v390-ui-diagnostic-20260803105822-95669`; selected 125, attempted 1, PASS 0, FAIL 1, not-run 124 | `EVT-023` fatal `catalog-runtime-response-invalid:0:source`; 나머지 124건 미실행 |
+| Common validator correction | 정식 `case-owned-refresh-render-response` provenance 허용, route-bound attestation의 실제 source 보존, unknown source fail-closed | 제품 C++/API/UI 변경 없음. 보정 후 actual 재검증 미실행 |
+| Canonical/release boundary | Canonical actual `299/424 PASS` | Policy v4, 30분, 120분, `./test_release.sh` 미실행. 릴리즈 완료 evidence가 아님 |

@@ -3250,3 +3250,12 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Native/Semantic | Generator 정확히 1회, native `424=423+1`, unsupported 0. 최종 candidate `33f19d93...8f5e67`, 984 carry-forward + UI-014/UI-046 independent | 최종 package `f6c19080...7892d`, decision `5ba61dac...2ad0`. Producer 성공 2회, 중간 prior-index prevalidation FAIL 1회는 fixture 교체 전 종료 |
 | Static gates | Build PASS, native50, event28/evaluator20/runtime47, completion36, adapter26, diagnostic22, Policy producer10, acceptance21, launcher18, final-integrity12, semantic/approval/feature 986/986 PASS | 125건 actual batch 전 checkpoint 결과이며 release acceptance를 대체하지 않음 |
 | Actual status | Canonical evidence는 `300 attempted / 299 PASS / 1 FAIL / 124 not-run` 유지 | 125건 batch, `test_ui.sh`, Policy v4 qualification, 30분, 120분, `test_release.sh` 미실행 |
+
+## REVIEW4-65 EVT-023 catalog runtime response source checkpoint (2026-08-03)
+
+| 항목 | 결과 | 실행 경계 |
+| --- | --- | --- |
+| Fixed batch actual | Run `v390-ui-diagnostic-20260803105822-95669`, selection 125, attempted 1, PASS 0, FAIL 1, not-run 124 | `EVT-023`의 fatal authoritative readback 실패 뒤 나머지 124건 미실행 |
+| 정확한 원인 | Runtime producer의 정식 source `case-owned-refresh-render-response`를 completion validator가 거부해 `catalog-runtime-response-invalid:0:source` 발생 | 제품 response shape나 fixture identity 실패가 아님 |
+| 공통 보정 | Completion catalog typed validator가 producer의 정식 source 3종만 허용하고 route-bound attestation에 실제 source를 보존 | Unknown source와 missing/wrong type/digest/method/path/status는 계속 fail-closed |
+| Actual/release 상태 | 보정 후 actual/browser 재검증 미실행, canonical actual `299/424 PASS` 유지 | Policy v4, 30분, 120분, release 미실행이며 완료 evidence로 사용하지 않음 |

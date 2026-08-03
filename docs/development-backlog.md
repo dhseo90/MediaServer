@@ -7202,6 +7202,17 @@ PASS했습니다. 이 기록은 정적 checkpoint이며 125건 actual batch, `./
 30분, 120분, `./test_release.sh`는 아직 미실행입니다. Canonical actual은 기존
 `300 attempted / 299 PASS / 1 FAIL / 124 not-run`을 유지합니다.
 
+### REVIEW4-65 EVT-023 catalog runtime response source closure (2026-08-03)
+
+Fixed remaining sweep `v390-ui-diagnostic-20260803105822-95669`은 125건을 선택했지만
+`EVT-023`에서 `1 attempted / 0 PASS / 1 FAIL / 124 not-run`으로 중단됐습니다. 실패 원인은
+runtime producer가 정식 provenance `case-owned-refresh-render-response`를 생성했지만 completion
+catalog validator가 이를 허용하지 않아 발생한 `catalog-runtime-response-invalid:0:source`였습니다.
+공통 typed validator가 producer의 세 정식 source만 허용하고 route-bound attestation에 실제 source를
+보존하도록 보정했으며, unknown source는 계속 fail-closed입니다. 이 보정의 actual/browser 재검증은
+아직 미실행이고 canonical actual은 `299/424 PASS`를 유지합니다. Policy v4, 30분, 120분,
+`./test_release.sh`도 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

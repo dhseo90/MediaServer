@@ -1772,6 +1772,77 @@ check("REVIEW4-65 catalog readback closes the exact request under the semantic c
     /^[a-f0-9]{64}$/.test(accepted.completionRequest?.catalogRuntimeAttestationSha256 || ""),
   `catalog runtime request attestation failed: ${accepted.reason}`);
 
+  const evt023Action = {
+    ...completionAction,
+    actionId: "EVT-023:assert-visible-read-model",
+    correlationId: "EVT-023:assert-visible-read-model:completion",
+    expectedEndpoint: {
+      correlationId: "EVT-023:assert-visible-read-model:completion",
+      method: "GET",
+      urlPath: "/ops/dashboard",
+      allowedStatuses: [200],
+    },
+  };
+  const evt023ExactRuntimeOracle = {
+    ...exactRuntimeOracle,
+    caseId: "EVT-023",
+    responses: [{
+      method: "GET",
+      urlPath: "/ops/api/events/status?limit=5&includeArchives=1",
+      status: 200,
+      source: "case-owned-refresh-render-response",
+      bodyDigest: "4".repeat(64),
+    }, {
+      method: "GET",
+      urlPath: "/client/api/views/9001/events",
+      status: 200,
+      source: "fresh-browser-fetch",
+      bodyDigest: "5".repeat(64),
+    }],
+  };
+  const evt023Readback = semanticV2({
+    identity: completionAction.expectedReadbackIdentity,
+    correlationId: evt023Action.correlationId,
+    actionId: evt023Action.actionId,
+    expectedBehaviorSha256: completionAction.expectedBehaviorSha256,
+    observationSource: "browser-dom",
+    selector: completionAction.controlSelector,
+    observation: {
+      before: { ...snapshot("ready", "dashboard"), selector: completionAction.controlSelector },
+      after: { ...snapshot("ready", "dashboard"), selector: completionAction.controlSelector },
+      actual: {
+        exists: true,
+        visible: true,
+        exactRuntimeOracle: evt023ExactRuntimeOracle,
+      },
+    },
+  });
+  const acceptedEvt023 = evaluateCompletionOracle({
+    action: evt023Action,
+    before: evt023Readback.observation.before,
+    after: evt023Readback.observation.after,
+    networkResponses: [],
+    semanticReadback: evt023Readback,
+  });
+  assert(acceptedEvt023.pass &&
+    acceptedEvt023.completionRequest?.catalogRuntimeResponseCount === 2 &&
+    acceptedEvt023.completionRequest?.source === "case-owned-refresh-render-response",
+  `EVT-023 case-owned catalog response source was rejected: ${acceptedEvt023.reason}`);
+
+  const unknownSource = structuredClone(evt023Readback);
+  unknownSource.observation.actual.exactRuntimeOracle.responses[0].source = "unknown-runtime-source";
+  unknownSource.observationSha256 = domSnapshotDigest(unknownSource.observation);
+  const rejectedUnknownSource = evaluateCompletionOracle({
+    action: evt023Action,
+    before: unknownSource.observation.before,
+    after: unknownSource.observation.after,
+    networkResponses: [],
+    semanticReadback: unknownSource,
+  });
+  assert(!rejectedUnknownSource.pass &&
+    rejectedUnknownSource.reason === "catalog-runtime-response-invalid:0:source",
+  "unknown catalog response source became authoritative completion");
+
   const malformed = structuredClone(readback);
   delete malformed.observation.actual.exactRuntimeOracle.responses[0].bodyDigest;
   malformed.observationSha256 = domSnapshotDigest(malformed.observation);

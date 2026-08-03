@@ -1163,7 +1163,11 @@ function catalogRuntimeCompletionRequest(semanticReadback, action) {
   const invalidResponse = responses.map((response, index) => {
     const defects = [];
     if (!response || typeof response !== "object") defects.push("shape");
-    if (!["fresh-browser-fetch", "correlated-browser-network"].includes(response?.source)) defects.push("source");
+    if (![
+      "fresh-browser-fetch",
+      "correlated-browser-network",
+      "case-owned-refresh-render-response",
+    ].includes(response?.source)) defects.push("source");
     if (!/^[a-f0-9]{64}$/.test(String(response?.bodyDigest || ""))) defects.push("bodyDigest");
     if (typeof response?.method !== "string" || !response.method) defects.push("method");
     if (typeof response?.urlPath !== "string" || !response.urlPath) defects.push("urlPath");
@@ -1214,7 +1218,7 @@ function catalogRuntimeCompletionRequest(semanticReadback, action) {
       method: String(expected.method || "GET").toUpperCase(),
       status: Number(exactResponse?.status ?? responses[0].status),
       url: expected.urlPath,
-      source: exactResponse?.source || "fresh-browser-fetch",
+      source: exactResponse?.source || responses[0].source,
       bodyDigest: exactResponse?.bodyDigest || attestationSha256,
       catalogRuntimeAttestationSha256: attestationSha256,
       catalogRuntimeResponseCount: responses.length,
