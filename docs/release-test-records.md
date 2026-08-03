@@ -3259,3 +3259,12 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 정확한 원인 | Runtime producer의 정식 source `case-owned-refresh-render-response`를 completion validator가 거부해 `catalog-runtime-response-invalid:0:source` 발생 | 제품 response shape나 fixture identity 실패가 아님 |
 | 공통 보정 | Completion catalog typed validator가 producer의 정식 source 3종만 허용하고 route-bound attestation에 실제 source를 보존 | Unknown source와 missing/wrong type/digest/method/path/status는 계속 fail-closed |
 | Actual/release 상태 | 보정 후 actual/browser 재검증 미실행, canonical actual `299/424 PASS` 유지 | Policy v4, 30분, 120분, release 미실행이며 완료 evidence로 사용하지 않음 |
+
+## REVIEW4-65 EVT-026/EVT-038 lifecycle validator checkpoint (2026-08-03)
+
+| 항목 | 결과 | 실행 경계 |
+| --- | --- | --- |
+| Fixed remaining sweep | `v390-ui-diagnostic-20260803122120-11242`; selected 125, attempted 10, PASS 8, FAIL 2, not-run 115 | PASS: `EVT-023/024/025/028/030/031/036/037` |
+| EVT-026 | `OWNED_REFRESH_STABILITY_MISMATCH`; adapter의 중첩 `renderObservation`을 runtime이 최상위 phase로 잘못 판독 | Owned request/response cardinality·identity, request/render-cycle identity, 시간 순서와 phase/DOM mutation을 공통 검증. Runtime RED `47/1` → GREEN `48/48` |
+| EVT-038 | `semantic-readback-observation-mismatch`; 성공한 typed dry-run response/attempt/audit/DOM readback을 generic mutation schema 전용 completion validator가 거부 | 완전한 typed binding/digest만 허용하고 unknown/missing/drift 거부. Completion RED `35/1` → GREEN `36/36` |
+| Actual/release 상태 | 보정 후 actual 미실행. Official canonical `299/424`, diagnostic-equivalent `307/424` | Policy v4, 30분, 120분, release 미실행. Diagnostic-equivalent는 canonical PASS evidence가 아님 |

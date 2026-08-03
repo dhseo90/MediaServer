@@ -1438,3 +1438,11 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Fixed remaining sweep | `v390-ui-diagnostic-20260803105822-95669`; selected 125, attempted 1, PASS 0, FAIL 1, not-run 124 | `EVT-023` fatal `catalog-runtime-response-invalid:0:source`; 나머지 124건 미실행 |
 | Common validator correction | 정식 `case-owned-refresh-render-response` provenance 허용, route-bound attestation의 실제 source 보존, unknown source fail-closed | 제품 C++/API/UI 변경 없음. 보정 후 actual 재검증 미실행 |
 | Canonical/release boundary | Canonical actual `299/424 PASS` | Policy v4, 30분, 120분, `./test_release.sh` 미실행. 릴리즈 완료 evidence가 아님 |
+
+## v3.9.0 REVIEW4-65 EVT-026/EVT-038 lifecycle validator checkpoint
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| Fixed remaining sweep | `v390-ui-diagnostic-20260803122120-11242`; selected 125, attempted 10, PASS 8, FAIL 2, not-run 115 | PASS ID `EVT-023/024/025/028/030/031/036/037`; EVT-026 `OWNED_REFRESH_STABILITY_MISMATCH`, EVT-038 `semantic-readback-observation-mismatch` |
+| Common lifecycle correction | Owned refresh는 중첩 render lifecycle과 exact request/response identity를 검증하고, persisted mutation은 generic 또는 완전한 typed dry-run readback만 허용 | Runtime RED `47/1`→GREEN `48/48`, completion RED `35/1`→GREEN `36/36`; unknown/missing/duplicate/identity·digest drift fail-closed |
+| Actual/release boundary | 보정 후 actual 미실행. Official canonical `299/424`, diagnostic-equivalent `307/424` | Diagnostic-equivalent는 canonical evidence가 아니며 Policy v4, 30분, 120분, `./test_release.sh`는 미실행 |

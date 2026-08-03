@@ -1617,6 +1617,111 @@ check("REVIEW4-58 persisted mutation requires a changed authoritative runtime re
   });
   assert(accepted.pass && accepted.source === "endpoint-dom",
     `authoritative persisted readback failed: ${accepted.reason}`);
+
+  const dryRunAction = {
+    ...completionAction,
+    actionId: "EVT-038:execute-persisted-action",
+    correlationId: "EVT-038:execute-persisted-action:completion",
+    expectedReadbackIdentity: "EVT-038:independent-readback",
+    expectedEndpoint: {
+      correlationId: "EVT-038:execute-persisted-action:completion",
+      method: "POST",
+      urlPath: "/ops/api/alerts/deliveries/dry-run",
+      allowedStatuses: [200],
+    },
+  };
+  const dryRunReadback = {
+    schema: "media-server.v390-ui-alert-delivery-dry-run-readback.v1",
+    fixtureId: "evt-038-review4-fixture",
+    eventIdSha256: "1".repeat(64),
+    responseSha256: "2".repeat(64),
+    attemptSha256: "3".repeat(64),
+    auditSha256: "4".repeat(64),
+    domSha256: "5".repeat(64),
+    responseBound: true,
+    attemptBound: true,
+    auditBound: true,
+    domBound: true,
+    persistedMutationObserved: true,
+  };
+  const dryRunSemanticReadback = semanticV2({
+    identity: dryRunAction.expectedReadbackIdentity,
+    correlationId: dryRunAction.correlationId,
+    actionId: dryRunAction.actionId,
+    expectedBehaviorSha256: dryRunAction.expectedBehaviorSha256,
+    observationSource: "browser-dom",
+    selector: dryRunAction.controlSelector,
+    observation: {
+      before: { ...snapshot("idle", "before"), selector: "#save" },
+      after: { ...snapshot("ready", "after"), selector: "#save" },
+      runtimeMutationReadback: dryRunReadback,
+    },
+  });
+  const dryRunResult = evaluateCompletionOracle({
+    action: dryRunAction,
+    before: dryRunSemanticReadback.observation.before,
+    after: dryRunSemanticReadback.observation.after,
+    networkResponses: [{
+      requestId: "evt-038-dry-run",
+      correlationId: dryRunAction.correlationId,
+      correlationSource: "request-header",
+      method: "POST",
+      status: 200,
+      url: "http://127.0.0.1/ops/api/alerts/deliveries/dry-run",
+    }],
+    semanticReadback: dryRunSemanticReadback,
+  });
+  assert(dryRunResult.pass && dryRunResult.source === "endpoint-dom",
+    `EVT-038 typed dry-run readback failed: ${dryRunResult.reason}`);
+  const evaluateDryRun = value => {
+    const semantic = semanticV2({
+      identity: dryRunAction.expectedReadbackIdentity,
+      correlationId: dryRunAction.correlationId,
+      actionId: dryRunAction.actionId,
+      expectedBehaviorSha256: dryRunAction.expectedBehaviorSha256,
+      observationSource: "browser-dom",
+      selector: dryRunAction.controlSelector,
+      observation: {
+        before: { ...snapshot("idle", "before"), selector: "#save" },
+        after: { ...snapshot("ready", "after"), selector: "#save" },
+        runtimeMutationReadback: value,
+      },
+    });
+    return evaluateCompletionOracle({
+      action: dryRunAction,
+      before: semantic.observation.before,
+      after: semantic.observation.after,
+      networkResponses: [{
+        requestId: "evt-038-dry-run",
+        correlationId: dryRunAction.correlationId,
+        correlationSource: "request-header",
+        method: "POST",
+        status: 200,
+        url: "http://127.0.0.1/ops/api/alerts/deliveries/dry-run",
+      }],
+      semanticReadback: semantic,
+    });
+  };
+  for (const [label, mutate] of [
+    ["unknown-schema", value => { value.schema = "media-server.v390-ui-other-readback.v1"; }],
+    ["missing-fixture", value => { value.fixtureId = ""; }],
+    ["response-binding", value => { value.responseBound = false; }],
+    ["attempt-binding", value => { value.attemptBound = false; }],
+    ["audit-binding", value => { value.auditBound = false; }],
+    ["dom-binding", value => { value.domBound = false; }],
+    ["event-identity", value => { value.eventIdSha256 = ""; }],
+    ["response-digest", value => { value.responseSha256 = "wrong"; }],
+    ["attempt-digest", value => { value.attemptSha256 = ""; }],
+    ["audit-digest", value => { value.auditSha256 = ""; }],
+    ["dom-digest", value => { value.domSha256 = ""; }],
+  ]) {
+    const invalid = structuredClone(dryRunReadback);
+    mutate(invalid);
+    const invalidResult = evaluateDryRun(invalid);
+    assert(!invalidResult.pass && invalidResult.reason === "semantic-readback-observation-mismatch",
+      `EVT-038 ${label} drift did not fail closed`);
+  }
+
   const unchanged = { ...authoritativeReadback, changed: false, observedSha256: authoritativeReadback.beforeSha256 };
   const rejected = evaluateCompletionOracle({
     action: completionAction,

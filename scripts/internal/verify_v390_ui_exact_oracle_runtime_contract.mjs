@@ -13,6 +13,7 @@ import {
   buildEventMarkerFlowEvidence,
   buildEvt004MarkerStageEvidence,
   buildMarkerEvaluatorLifecycleFailureEvidence,
+  buildOwnedRefreshStabilityEvidence,
   buildRequestSemanticAssertionEvidence,
   containsForbiddenResponseMaterial,
   containsForbiddenStructuredDomMaterial,
@@ -1878,6 +1879,56 @@ await check("EVT-026 reuses the exact EventRecord lifecycle preservation contrac
   assert(failed.pass === false &&
     failed.routeLocalDomBinding?.failureCode === "OPS_INCIDENT_TIMELINE_LIFECYCLE_MISMATCH",
   "EVT-026 EventRecord lifecycle loss did not fail closed");
+});
+
+await check("EVT-026 owned refresh reads the adapter renderObservation lifecycle", () => {
+  const actionId = "EVT-026:assert-visible-read-model:ops-timeline-refresh";
+  const renderCycleId = `${actionId}:cycle-1`;
+  const cycle = {
+    schema: "media-server.v390-ui-owned-request-render-cycle.v1",
+    actionId,
+    renderCycleId,
+    method: "GET",
+    path: "/ops/api/events/status?limit=5&includeArchives=1",
+    status: 200,
+    requestCandidateCount: 1,
+    responseCandidateCount: 1,
+    requestIdentityDigest: "a".repeat(64),
+    requestSequence: 2,
+    requestStartedAtMs: 1000,
+    responseObservedAtMs: 1100,
+    responseRequestObjectObserved: true,
+    identityMatched: true,
+    renderObservation: {
+      actionId,
+      renderCycleId,
+      startedAtMs: 900,
+      completedAtMs: 1200,
+      initialPhase: "dom-committed",
+      finalPhase: "dom-committed",
+      phaseMutationCount: 2,
+      domMutationCount: 1,
+      expectedPhaseMatched: true,
+    },
+  };
+  const evidence = buildOwnedRefreshStabilityEvidence(cycle);
+  assert(evidence.pass === true, "nested owned refresh render lifecycle did not pass");
+  for (const [label, mutate] of [
+    ["duplicate-request", value => { value.requestCandidateCount = 2; }],
+    ["response-object", value => { value.responseRequestObjectObserved = false; }],
+    ["request-identity", value => { value.requestIdentityDigest = ""; }],
+    ["action", value => { value.renderObservation.actionId = "EVT-048:other"; }],
+    ["cycle", value => { value.renderObservation.renderCycleId = `${actionId}:cycle-2`; }],
+    ["response-order", value => { value.responseObservedAtMs = 800; }],
+    ["render-order", value => { value.renderObservation.completedAtMs = 1050; }],
+    ["phase", value => { value.renderObservation.finalPhase = "rendering"; }],
+    ["dom-mutation", value => { value.renderObservation.domMutationCount = 0; }],
+  ]) {
+    const invalid = structuredClone(cycle);
+    mutate(invalid);
+    assert(buildOwnedRefreshStabilityEvidence(invalid).pass === false,
+      `${label} owned refresh drift did not fail closed`);
+  }
 });
 
 await check("exact DOM attributes bind to the selected event row and fail closed", () => {

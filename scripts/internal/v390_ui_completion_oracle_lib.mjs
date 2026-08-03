@@ -843,6 +843,34 @@ function validateSemanticReadback(value, action, actionBound) {
   return "";
 }
 
+function validatesPersistedMutationReadback(readback) {
+  if (readback?.schema === "media-server.v390-ui-runtime-mutation-readback.v1") {
+    const deleteReadback = readback.method === "DELETE";
+    return readback.persistedMutationObserved === true &&
+      readback.changed === true &&
+      /^[a-f0-9]{64}$/.test(String(readback.beforeSha256 || "")) &&
+      /^[a-f0-9]{64}$/.test(String(readback.observedSha256 || "")) &&
+      readback.beforeSha256 !== readback.observedSha256 &&
+      (deleteReadback ? readback.observedPresent === false : readback.observedPresent === true);
+  }
+  if (readback?.schema === "media-server.v390-ui-alert-delivery-dry-run-readback.v1") {
+    return typeof readback.fixtureId === "string" && readback.fixtureId.length > 0 &&
+      readback.persistedMutationObserved === true &&
+      readback.responseBound === true &&
+      readback.attemptBound === true &&
+      readback.auditBound === true &&
+      readback.domBound === true &&
+      [
+        readback.eventIdSha256,
+        readback.responseSha256,
+        readback.attemptSha256,
+        readback.auditSha256,
+        readback.domSha256,
+      ].every(value => /^[a-f0-9]{64}$/.test(String(value || "")));
+  }
+  return false;
+}
+
 function evaluateSemanticExpectation(expected, observation) {
   if (!expected || typeof expected !== "object" || !observation || typeof observation !== "object") return false;
   const before = observation.before || null;
@@ -893,15 +921,8 @@ function evaluateSemanticExpectation(expected, observation) {
   }
   if (expected.persistedMutationObserved !== undefined) {
     const readback = observation.runtimeMutationReadback || observation.actual?.runtimeMutationReadback;
-    const deleteReadback = readback?.method === "DELETE";
     return expected.persistedMutationObserved === true &&
-      readback?.schema === "media-server.v390-ui-runtime-mutation-readback.v1" &&
-      readback.persistedMutationObserved === true &&
-      readback.changed === true &&
-      /^[a-f0-9]{64}$/.test(String(readback.beforeSha256 || "")) &&
-      /^[a-f0-9]{64}$/.test(String(readback.observedSha256 || "")) &&
-      readback.beforeSha256 !== readback.observedSha256 &&
-      (deleteReadback ? readback.observedPresent === false : readback.observedPresent === true);
+      validatesPersistedMutationReadback(readback);
   }
   if (expected.navigationStatus !== undefined) {
     return Number(observation.navigation?.status) === Number(expected.navigationStatus);

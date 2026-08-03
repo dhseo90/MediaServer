@@ -7213,6 +7213,28 @@ catalog validator가 이를 허용하지 않아 발생한 `catalog-runtime-respo
 아직 미실행이고 canonical actual은 `299/424 PASS`를 유지합니다. Policy v4, 30분, 120분,
 `./test_release.sh`도 미실행입니다.
 
+### REVIEW4-65 EVT-026/EVT-038 lifecycle validator checkpoint (2026-08-03)
+
+Fixed remaining sweep `v390-ui-diagnostic-20260803122120-11242`는 125건을 선택해
+`10 attempted / 8 PASS / 2 FAIL / 115 not-run`으로 종료됐습니다. PASS ID는
+`EVT-023/024/025/028/030/031/036/037`입니다. `EVT-026`은
+`OWNED_REFRESH_STABILITY_MISMATCH`, `EVT-038`은
+`semantic-readback-observation-mismatch`에서 실패했습니다.
+
+`EVT-026`은 adapter의 중첩 `renderObservation`을 runtime validator가 존재하지 않는 최상위 phase
+필드에서 읽은 것이 원인이었습니다. 실제 adapter shape와 request/response cardinality, Playwright
+response identity, request/render-cycle identity, 시간 순서, phase/DOM mutation을 공통 owned-refresh
+evidence에 결속했습니다. Focused runtime contract는 RED `47 PASS / 1 FAIL` 뒤 `48/48 PASS`입니다.
+`EVT-038`은 POST response, delivery attempt, audit row, DOM projection과 cleanup이 정상이지만 completion
+validator가 generic mutation schema만 허용해 typed dry-run readback을 거부했습니다. Generic 계약은
+유지하고 fixture 및 response/attempt/audit/DOM binding과 SHA-256가 모두 완전한 typed schema만 허용했으며
+unknown/missing/drift는 fail-closed입니다. Focused completion contract는 RED `35 PASS / 1 FAIL` 뒤
+`36/36 PASS`입니다.
+
+보정 뒤 actual/browser는 미실행입니다. Official canonical actual은 `299/424 PASS`를 유지하고,
+이번 diagnostic의 canonical-equivalent PASS 8건을 합산한 diagnostic-equivalent 경계만 `307/424`입니다.
+Policy v4, 30분, 120분, `./test_release.sh`는 미실행이며 완료 evidence로 사용하지 않습니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

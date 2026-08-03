@@ -2625,6 +2625,44 @@ function throwDirectEventDomSemanticFailure({
   throw error;
 }
 
+export function buildOwnedRefreshStabilityEvidence(cycle = null) {
+  const render = cycle?.renderObservation;
+  const checks = {
+    schema: cycle?.schema === "media-server.v390-ui-owned-request-render-cycle.v1",
+    requestCardinality: cycle?.requestCandidateCount === 1,
+    responseCardinality: cycle?.responseCandidateCount === 1,
+    requestIdentity: /^[a-f0-9]{64}$/.test(String(cycle?.requestIdentityDigest || "")) &&
+      Number.isInteger(cycle?.requestSequence) && cycle.requestSequence > 0,
+    responseIdentity: cycle?.responseRequestObjectObserved === true && cycle?.identityMatched === true,
+    requestResponseOrder: Number(cycle?.requestStartedAtMs || 0) > 0 &&
+      Number(cycle?.responseObservedAtMs || 0) >= Number(cycle?.requestStartedAtMs || 0),
+    endpoint: cycle?.method === "GET" &&
+      cycle?.path === "/ops/api/events/status?limit=5&includeArchives=1" &&
+      cycle?.status === 200,
+    renderIdentity: typeof cycle?.actionId === "string" && cycle.actionId.length > 0 &&
+      typeof cycle?.renderCycleId === "string" && cycle.renderCycleId.length > 0 &&
+      render?.actionId === cycle.actionId && render?.renderCycleId === cycle.renderCycleId,
+    renderOrder: Number(render?.startedAtMs || 0) > 0 &&
+      Number(render?.completedAtMs || 0) >= Number(render?.startedAtMs || 0) &&
+      Number(render?.startedAtMs || 0) <= Number(cycle?.requestStartedAtMs || 0) &&
+      Number(render?.completedAtMs || 0) >= Number(cycle?.responseObservedAtMs || 0),
+    renderState: render?.expectedPhaseMatched === true &&
+      render?.finalPhase === "dom-committed" &&
+      Number(render?.phaseMutationCount || 0) > 0 &&
+      Number(render?.domMutationCount || 0) > 0,
+  };
+  const failedChecks = Object.entries(checks)
+    .filter(([, pass]) => !pass)
+    .map(([name]) => name);
+  const pass = failedChecks.length === 0;
+  return {
+    schema: "media-server.v390-ui-owned-refresh-stability-evidence.v1",
+    pass,
+    failureCode: pass ? "PASS" : "OWNED_REFRESH_STABILITY_MISMATCH",
+    failedChecks,
+  };
+}
+
 function buildDeclaredEventDomBindingEvidence({
   assertion,
   observed,
@@ -2730,11 +2768,8 @@ function buildDeclaredEventDomBindingEvidence({
     }
     if (validator === "owned-refresh-stability") {
       const cycle = interaction?.opsTimelineRenderCycle;
-      const pass = cycle?.identityMatched === true &&
-        cycle?.responseRequestObjectObserved === true &&
-        cycle?.expectedPhaseMatched === true &&
-        cycle?.finalPhase === "dom-committed";
-      return finish({ pass, failureCode: "OWNED_REFRESH_STABILITY_MISMATCH" });
+      const stability = buildOwnedRefreshStabilityEvidence(cycle);
+      return finish({ pass: stability.pass, failureCode: stability.failureCode });
     }
     if (validator === "dashboard-health-counts") {
       const runtime = responseBodies.find(body => body?.webrtcHttp && body?.sessionManager) || {};
