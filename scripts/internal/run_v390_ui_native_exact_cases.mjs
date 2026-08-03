@@ -3798,11 +3798,13 @@ function validateDiagnosticChildSummary(summary, item) {
   if (summary?.case?.failureProvenance) {
     const provenance = summary.case.failureProvenance;
     if (provenance.schema !== "media-server.v390-ui-diagnostic-failure-provenance.v1" ||
-        !["browser-case-assertion", "runner-or-lifecycle-failure"].includes(provenance.kind) ||
+        !["browser-case-assertion", "case-local-failure", "runner-or-lifecycle-failure"]
+          .includes(provenance.kind) ||
         typeof provenance.phase !== "string" ||
         typeof provenance.failureClass !== "string" ||
         typeof provenance.errorName !== "string" ||
-        !["failed-structured-evidence", "playwright-timeout", "none"].includes(provenance.classificationSource) ||
+        !["failed-structured-evidence", "playwright-timeout", "case-local-error", "none"]
+          .includes(provenance.classificationSource) ||
         typeof provenance.actualBrowserExecution !== "boolean" ||
         typeof provenance.structuredEvidencePresent !== "boolean" ||
         typeof provenance.continuationEligible !== "boolean") {
@@ -3908,7 +3910,7 @@ function buildDiagnosticFailureProvenance({
   const classificationSource = assertionFailureClasses.has(structuredFailureClass)
     ? "failed-structured-evidence"
     : (playwrightTimeoutClassAttested ? "playwright-timeout" : "none");
-  const continuationEligible = actualBrowserExecution === true &&
+  const browserAssertionContinuationEligible = actualBrowserExecution === true &&
     failurePhase === "browser-case-execution" &&
     !cleanupFailure &&
     !browserCloseFailure &&
@@ -3916,13 +3918,29 @@ function buildDiagnosticFailureProvenance({
     !runnerError &&
     explicitFailureClass.length > 0 &&
     failureClass === explicitFailureClass;
+  const caseLocalContinuationEligible = Boolean(primaryFailure) &&
+    ["prepare-case", "expected-fixture-digest", "browser-open", "browser-case-execution"]
+      .includes(failurePhase) &&
+    !cleanupFailure &&
+    !browserCloseFailure &&
+    !lifecycleFinalizationFailure &&
+    !runnerError &&
+    explicitFailureClass.length === 0;
+  const continuationEligible = browserAssertionContinuationEligible ||
+    caseLocalContinuationEligible;
   return Object.freeze({
     schema: "media-server.v390-ui-diagnostic-failure-provenance.v1",
-    kind: continuationEligible ? "browser-case-assertion" : "runner-or-lifecycle-failure",
+    kind: browserAssertionContinuationEligible
+      ? "browser-case-assertion"
+      : (caseLocalContinuationEligible
+          ? "case-local-failure"
+          : "runner-or-lifecycle-failure"),
     phase: String(failurePhase || ""),
     failureClass,
     errorName,
-    classificationSource,
+    classificationSource: caseLocalContinuationEligible
+      ? "case-local-error"
+      : classificationSource,
     actualBrowserExecution: actualBrowserExecution === true,
     structuredEvidencePresent,
     continuationEligible,

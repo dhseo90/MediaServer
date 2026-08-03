@@ -3269,6 +3269,15 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | EVT-038 | `semantic-readback-observation-mismatch`; 성공한 typed dry-run response/attempt/audit/DOM readback을 generic mutation schema 전용 completion validator가 거부 | 완전한 typed binding/digest만 허용하고 unknown/missing/drift 거부. Completion RED `35/1` → GREEN `36/36` |
 | Actual/release 상태 | 보정 후 actual 미실행. Official canonical `299/424`, diagnostic-equivalent `307/424` | Policy v4, 30분, 120분, release 미실행. Diagnostic-equivalent는 canonical PASS evidence가 아님 |
 
+## REVIEW4-65 case-local diagnostic census lifecycle (2026-08-04)
+
+| 항목 | 결과 | 실행 경계 |
+| --- | --- | --- |
+| 구조 보정 | prepare/fixture/browser/readback 등 case-local 실패는 cleanup attestation과 raw/secret integrity PASS 후 해당 environment를 완전히 recycle하고 다음 case를 실행 | 자동 retry 0; 실패를 PASS로 변경하지 않음 |
+| Suite-fatal 유지 | runner Type/Reference/Syntax/RangeError, child/source/evidence binding 오류, raw/secret integrity, runtime restore/browser close/environment cleanup 실패 | canonical `test_ui.sh` fail-first 불변 |
+| Focused static | diagnostic `22/22`, native `51/51`, acceptance `21/21`, MJS syntax와 diff check PASS | 125건 actual batch 전 checkpoint |
+| Actual/release 상태 | Official canonical `299/424`, 기존 diagnostic-equivalent `309/424` | 새 125건 batch, `test_ui.sh`, Policy v4, 30분, 120분, release 미실행 |
+
 ## REVIEW4-65 EVT-041 memory-search fixture checkpoint (2026-08-03)
 
 | 항목 | 결과 | 실행 경계 |

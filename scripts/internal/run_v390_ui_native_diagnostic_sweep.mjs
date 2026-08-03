@@ -237,10 +237,20 @@ for (const [selectionIndex, item] of selection.entries()) {
     secretScan,
     expectedCaseId: item.caseId,
   });
-  if (disposition === "continue-case-assertion-failure") {
+  if (disposition === "continue-case-local-failure") {
     assert(childOutcome.status === "FAIL" &&
       childOutcome.cleanupAttestation?.pass === true,
-    `${item.caseId} assertion failure continuation lost cleanup evidence`);
+    `${item.caseId} case-local failure continuation lost cleanup evidence`);
+    const isolatedCleanup = await recycleEnvironment(
+      environment,
+      environmentGeneration,
+      "case-local-failure-isolation",
+    );
+    cleanup.push(isolatedCleanup);
+    environment = null;
+    if (isolatedCleanup.status !== "PASS") {
+      abortReason = "diagnostic-lifecycle-integrity-failed";
+    }
   }
   if (disposition === "abort-diagnostic-lifecycle") {
     const measuredCleanup = await recycleEnvironment(
@@ -727,11 +737,13 @@ function validateChildSummary(summary, item, expectedSourceBinding) {
   if (summary.case?.failureProvenance) {
     const provenance = summary.case.failureProvenance;
     assert(provenance.schema === "media-server.v390-ui-diagnostic-failure-provenance.v1" &&
-      ["browser-case-assertion", "runner-or-lifecycle-failure"].includes(provenance.kind) &&
+      ["browser-case-assertion", "case-local-failure", "runner-or-lifecycle-failure"]
+        .includes(provenance.kind) &&
       typeof provenance.phase === "string" &&
       typeof provenance.failureClass === "string" &&
       typeof provenance.errorName === "string" &&
-      ["failed-structured-evidence", "playwright-timeout", "none"].includes(provenance.classificationSource) &&
+      ["failed-structured-evidence", "playwright-timeout", "case-local-error", "none"]
+        .includes(provenance.classificationSource) &&
       typeof provenance.actualBrowserExecution === "boolean" &&
       typeof provenance.structuredEvidencePresent === "boolean" &&
       typeof provenance.continuationEligible === "boolean",

@@ -1447,6 +1447,15 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Common lifecycle correction | Owned refresh는 중첩 render lifecycle과 exact request/response identity를 검증하고, persisted mutation은 generic 또는 완전한 typed dry-run readback만 허용 | Runtime RED `47/1`→GREEN `48/48`, completion RED `35/1`→GREEN `36/36`; unknown/missing/duplicate/identity·digest drift fail-closed |
 | Actual/release boundary | 보정 후 actual 미실행. Official canonical `299/424`, diagnostic-equivalent `307/424` | Diagnostic-equivalent는 canonical evidence가 아니며 Policy v4, 30분, 120분, `./test_release.sh`는 미실행 |
 
+## v3.9.0 REVIEW4-65 case-local diagnostic census lifecycle
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| Case-local continuation | `prepare-case`, expected fixture digest, browser open/execution 실패는 primary evidence와 case cleanup PASS 후 environment recycle | 실패 case는 FAIL로 보존하고 다음 case로 진행; retry 없음 |
+| Integrity abort | runner 오류, stale/missing child·source binding, raw/secret scan, runtime restore/browser close/environment cleanup 실패 | 즉시 suite abort; 거짓 PASS 또는 evidence 완화 없음 |
+| Focused static | Diagnostic `22/22`, native `51/51`, acceptance `21/21`, syntax/diff PASS | 새 125건 actual 이전 정적 checkpoint |
+| Release boundary | Canonical `299/424`, 기존 diagnostic-equivalent `309/424` | 새 batch와 공식 UI/Policy v4/30분/120분/release는 미실행이며 완료 evidence가 아님 |
+
 ## v3.9.0 REVIEW4-65 EVT-041 memory-search fixture checkpoint
 
 | Evidence | Binding | 상태/한계 |

@@ -7235,6 +7235,19 @@ unknown/missing/drift는 fail-closed입니다. Focused completion contract는 RE
 이번 diagnostic의 canonical-equivalent PASS 8건을 합산한 diagnostic-equivalent 경계만 `307/424`입니다.
 Policy v4, 30분, 120분, `./test_release.sh`는 미실행이며 완료 evidence로 사용하지 않습니다.
 
+### REVIEW4-65 case-local diagnostic census lifecycle (2026-08-04)
+
+`run_v390_ui_native_diagnostic_sweep.mjs`, `run_v390_ui_native_exact_cases.mjs`,
+`v390_ui_diagnostic_lifecycle_lib.mjs`에 fixed remaining sweep의 case-local 실패 수집 경계를
+추가했습니다. `prepare-case`, fixture digest, browser open/execution의 일반 case 실패는
+primary evidence, raw/secret integrity, runtime restore, browser close가 모두 PASS인 경우 실패
+environment를 완전히 정리한 뒤 새 environment에서 다음 case를 실행합니다. Type/Reference/Syntax/
+RangeError, source 또는 child evidence 오류, raw/secret integrity 실패, runtime restore/browser close/
+environment cleanup 실패는 계속 전체 중단합니다. Canonical `test_ui.sh`의 fail-first 동작은
+변경하지 않았습니다. Diagnostic `22/22`, native exact `51/51`, acceptance `21/21`, syntax와
+diff check가 PASS했습니다. 125건 actual batch와 `./test_ui.sh`는 아직 미실행이며 official
+canonical은 `299/424 PASS`, 기존 diagnostic-equivalent는 `309/424`를 유지합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

@@ -823,13 +823,31 @@ export function classifyDiagnosticCaseDisposition({
     !["TypeError", "ReferenceError", "SyntaxError", "RangeError"].includes(provenance.errorName) &&
     browserAssertionClasses.has(provenance.failureClass) &&
     provenance.failureClass === childOutcome?.failureClass;
+  const caseLocalFailureProvenance =
+    provenance?.schema === "media-server.v390-ui-diagnostic-failure-provenance.v1" &&
+    provenance.kind === "case-local-failure" &&
+    ["prepare-case", "expected-fixture-digest", "browser-open", "browser-case-execution"]
+      .includes(provenance.phase) &&
+    provenance.continuationEligible === true &&
+    provenance.classificationSource === "case-local-error" &&
+    provenance.structuredEvidencePresent === false &&
+    primaryFailureEvidenceValid &&
+    !observedStructuredEvidencePresent &&
+    observedStructuredFailureClass === "" &&
+    !["TypeError", "ReferenceError", "SyntaxError", "RangeError"]
+      .includes(provenance.errorName) &&
+    provenance.failureClass === childOutcome?.failureClass;
   if (!childSummary || !integrityPass || !lifecyclePass) {
     return "abort-diagnostic-lifecycle";
   }
   if (childOutcome?.status === "PASS" && child?.exitCode === 0) return "continue-pass";
   if (childOutcome?.status === "FAIL" && child?.exitCode === 1 &&
       childOutcome?.actualBrowserExecution === true && browserAssertionProvenance) {
-    return "continue-case-assertion-failure";
+    return "continue-case-local-failure";
+  }
+  if (childOutcome?.status === "FAIL" && child?.exitCode === 1 &&
+      caseLocalFailureProvenance) {
+    return "continue-case-local-failure";
   }
   return "abort-diagnostic-lifecycle";
 }

@@ -129,21 +129,27 @@ check("all unresolved cases share canonical structured assertion continuation bo
   "DOM continuation or canonical fail-first boundary drifted");
 });
 
-check("only case assertion failure continues; lifecycle and evidence failures abort without retry", () => {
+check("case-local failures continue only after isolated cleanup; lifecycle and evidence failures abort", () => {
   assert(sweepSource.includes("childSummary?.environmentContamination?.detected === true || !child.summary") &&
     sweepSource.includes("classifyDiagnosticCaseDisposition({") &&
-    sweepSource.includes('disposition === "continue-case-assertion-failure"') &&
+    sweepSource.includes('disposition === "continue-case-local-failure"') &&
+    sweepSource.includes('"case-local-failure-isolation"') &&
+    sweepSource.includes('if (isolatedCleanup.status !== "PASS")') &&
     sweepSource.includes('disposition === "abort-diagnostic-lifecycle"') &&
     sweepSource.includes('abortReason = "diagnostic-lifecycle-integrity-failed"') &&
     sweepSource.includes("automaticRetryCount: 0") &&
     !sweepSource.includes("retryCase") && !sweepSource.includes("while ("),
-  "diagnostic assertion continuation/lifecycle abort/no-retry contract missing");
+  "diagnostic case-local continuation/isolation/lifecycle abort contract missing");
   assert(runnerSource.includes("environmentContamination: Boolean(error?.cleanupFailure || error?.browserCloseFailure)") &&
-    runnerSource.includes("browserCloseFailure: Boolean(error?.browserCloseFailure)"),
+    runnerSource.includes("browserCloseFailure: Boolean(error?.browserCloseFailure)") &&
+    runnerSource.includes("const caseLocalContinuationEligible = Boolean(primaryFailure)") &&
+    runnerSource.includes('"case-local-failure"') &&
+    runnerSource.includes('"case-local-error"') &&
+    runnerSource.includes("!runnerError"),
   "diagnostic child contamination summary missing");
 });
 
-check("fixed 125 sweep aborts cleanup or integrity failures and continues only browser assertion failures", () => {
+check("fixed 125 sweep continues clean case-local failures and aborts environment integrity failures", () => {
   assert(lifecycleSource.includes("const integrityPass = childSummary?.rawCaptureValidation?.status === \"PASS\"") &&
     lifecycleSource.includes("childSummary?.caseRuntimeSecretArtifactIntegrity?.status === \"PASS\"") &&
     lifecycleSource.includes("secretScan?.status === \"PASS\"") &&
@@ -154,13 +160,14 @@ check("fixed 125 sweep aborts cleanup or integrity failures and continues only b
     lifecycleSource.includes('return "abort-diagnostic-lifecycle"'),
   "fixed sweep does not fail closed on cleanup or integrity failure");
   assert(lifecycleSource.includes("childOutcome?.status === \"FAIL\" && child?.exitCode === 1") &&
-    lifecycleSource.includes("childOutcome?.actualBrowserExecution === true") &&
+    lifecycleSource.includes('provenance.kind === "case-local-failure"') &&
+    lifecycleSource.includes('provenance.classificationSource === "case-local-error"') &&
     lifecycleSource.includes('provenance.kind === "browser-case-assertion"') &&
     lifecycleSource.includes("provenance.continuationEligible === true") &&
-    lifecycleSource.includes('return "continue-case-assertion-failure"') &&
+    lifecycleSource.includes('return "continue-case-local-failure"') &&
     sweepSource.includes('abortReason = "diagnostic-lifecycle-integrity-failed"') &&
     sweepSource.includes("for (const [selectionIndex, item] of selection.entries())"),
-  "fixed sweep can continue a non-browser failure or fail to abort its 125-case loop");
+  "fixed sweep case-local continuation or lifecycle abort boundary is missing");
   assert(runnerSource.includes('if (!diagnosticChild) stopped = true;'),
     "canonical test_ui fail-fast boundary changed");
 
@@ -203,7 +210,7 @@ check("fixed 125 sweep aborts cleanup or integrity failures and continues only b
     secretScan: { status: "PASS" },
     expectedCaseId: "EVT-025",
   });
-  assert(disposition({}) === "continue-case-assertion-failure",
+  assert(disposition({}) === "continue-case-local-failure",
     "proven browser assertion failure did not continue");
   assert(diagnosticStructuredAssertionFailureClass({
     requestCorrelationEvidence: { pass: true },
@@ -272,7 +279,7 @@ check("fixed 125 sweep aborts cleanup or integrity failures and continues only b
     }),
     requestSemanticAssertionEvidence:
       structuredClone(failedRequestSemanticEvidence),
-  }) === "continue-case-assertion-failure",
+  }) === "continue-case-local-failure",
   "request semantic assertion failure did not continue after clean lifecycle");
   const crossCaseRequestEvidence = {
     ...failedRequestSemanticEvidence,
@@ -331,8 +338,50 @@ check("fixed 125 sweep aborts cleanup or integrity failures and continues only b
       requestCorrelationEvidence: failedRequestCorrelationEvidence,
     }),
     requestCorrelationEvidence: structuredClone(failedRequestCorrelationEvidence),
-  }) === "continue-case-assertion-failure",
+  }) === "continue-case-local-failure",
   "explicit failed structured browser assertion did not continue");
+  for (const [phase, failureClass, actualBrowserExecution] of [
+    ["prepare-case", "sensitive-material-guard-failed", false],
+    ["expected-fixture-digest", "case-execution-failed", false],
+    ["browser-open", "control-observation-failed", false],
+    ["browser-case-execution", "authoritative-readback-failed", true],
+  ]) {
+    const caseLocalProvenance = {
+      ...provenance,
+      kind: "case-local-failure",
+      phase,
+      failureClass,
+      errorName: "Error",
+      classificationSource: "case-local-error",
+      actualBrowserExecution,
+      structuredEvidencePresent: false,
+      continuationEligible: true,
+    };
+    assert(disposition({
+      failureClass,
+      actualBrowserExecution,
+      failureProvenance: caseLocalProvenance,
+      primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({ name: "Error" }),
+    }) === "continue-case-local-failure",
+    `${phase} case-local failure did not continue after clean lifecycle`);
+  }
+  assert(disposition({
+    failureClass: "case-execution-failed",
+    actualBrowserExecution: false,
+    failureProvenance: {
+      ...provenance,
+      kind: "case-local-failure",
+      phase: "prepare-case",
+      failureClass: "case-execution-failed",
+      errorName: "TypeError",
+      classificationSource: "case-local-error",
+      actualBrowserExecution: false,
+      structuredEvidencePresent: false,
+      continuationEligible: true,
+    },
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({ name: "TypeError" }),
+  }) === "abort-diagnostic-lifecycle",
+  "runner TypeError was misclassified as a continuable case-local failure");
   assert(disposition({
     failureClass: requestSemanticProvenance.failureClass,
     failureProvenance: requestSemanticProvenance,
@@ -381,7 +430,7 @@ check("fixed 125 sweep aborts cleanup or integrity failures and continues only b
       pass: false,
       failureCode: "CORRELATION_SCOPE_NOT_REACHED",
     },
-  }) === "continue-case-assertion-failure",
+  }) === "continue-case-local-failure",
   "synthetic lifecycle evidence falsely aborted a real timeout");
   assert(disposition({
     failureClass: "request-correlation-assertion-failed",
@@ -398,7 +447,7 @@ check("fixed 125 sweep aborts cleanup or integrity failures and continues only b
       pass: false,
       failureCode: "CORRELATION_SCOPE_NOT_REACHED",
     },
-  }) === "continue-case-assertion-failure",
+  }) === "continue-case-local-failure",
   "synthetic lifecycle evidence made one primary structured failure ambiguous");
   assert(disposition({
     failureClass: "marker-stage-assertion-failed",
