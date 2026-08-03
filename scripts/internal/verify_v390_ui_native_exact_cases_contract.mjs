@@ -51,6 +51,7 @@ import {
   validateEventReviewSeedWriteReceipt,
   validateEventRecordFixtureFamilyReadback,
   validateFixtureSafeIncidentDigestReadback,
+  validateAlertDeliveryDryRunReadback,
 } from "./v390_ui_case_runtime.mjs";
 import {
   eventExactOracleCaseIds,
@@ -397,6 +398,88 @@ check("event review authoritative readback selects one exact nested event/review
   assert(!genericBody.includes("event?.eventId") &&
     !genericBody.includes("review?.eventId"),
   "generic unwrapRecord was widened for event-review joined identities");
+});
+
+check("EVT-038 binds one dry-run response to one attempt, audit row, and DOM projection", () => {
+  const fixtureId = "evt-038-review4-fixture";
+  const eventId = "evt-038-runtime-event";
+  const response = {
+    status: "ops-alert-delivery-dry-run",
+    schema: "media-server.ops.alert-delivery-dry-run.v1",
+    dryRun: true,
+    externalDeliveryPerformed: false,
+    eventPostPayloadChanged: false,
+    auditAction: "alert-delivery-dry-run",
+    payloadPreview: {
+      schema: "media-server.ops.alert-delivery-payload-preview.v1",
+      deliveryId: fixtureId,
+      eventId,
+      eventType: "intrusion",
+      sourceId: "sample",
+      payloadRedacted: true,
+    },
+    attempt: {
+      schema: "media-server.ops.alert-delivery-attempt.v1",
+      deliveryId: fixtureId,
+      eventId,
+      eventType: "intrusion",
+      sourceId: "sample",
+      status: "dry-run",
+      transport: "dry-run",
+      dryRun: true,
+      externalDeliveryPerformed: false,
+      eventPostPayloadChanged: false,
+    },
+  };
+  const attempt = structuredClone(response.attempt);
+  const auditEntry = {
+    action: "alert-delivery-dry-run",
+    target: `alert-delivery:${fixtureId}`,
+    after: { eventId },
+  };
+  const dom = {
+    previewCount: 1,
+    resultCount: 1,
+    preview: {
+      schema: response.payloadPreview.schema,
+      deliveryId: fixtureId,
+      eventId,
+      eventType: "intrusion",
+      sourceId: "sample",
+      payloadRedacted: "true",
+    },
+    result: {
+      status: response.status,
+      dryRun: "true",
+      attemptCount: "1",
+      externalDeliveryPerformed: "false",
+      auditAction: "alert-delivery-dry-run",
+    },
+  };
+  const valid = {
+    caseId: "EVT-038",
+    fixtureId,
+    response,
+    deliveries: { attempts: [attempt] },
+    audit: { entries: [auditEntry] },
+    dom,
+  };
+  const evidence = validateAlertDeliveryDryRunReadback(valid);
+  assert(evidence.persistedMutationObserved === true && evidence.responseBound === true &&
+    evidence.attemptBound === true && evidence.auditBound === true && evidence.domBound === true,
+  "EVT-038 valid dry-run readback did not produce complete evidence");
+  const negatives = [
+    ["response identity", { response: { ...response, payloadPreview: { ...response.payloadPreview, deliveryId: "wrong" } } }],
+    ["duplicate attempt", { deliveries: { attempts: [attempt, structuredClone(attempt)] } }],
+    ["audit identity", { audit: { entries: [{ ...auditEntry, after: { eventId: "wrong" } }] } }],
+    ["DOM identity", { dom: { ...dom, preview: { ...dom.preview, eventId: "wrong" } } }],
+  ];
+  for (const [label, override] of negatives) {
+    let rejected = false;
+    try { validateAlertDeliveryDryRunReadback({ ...valid, ...override }); }
+    catch { rejected = true; }
+    assert(rejected, `EVT-038 ${label} drift did not fail closed`);
+  }
 });
 
 check("event review note evidence survives the production failure rewrap and parent aggregation", () => {

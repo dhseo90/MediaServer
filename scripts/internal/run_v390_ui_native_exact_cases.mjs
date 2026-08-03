@@ -2885,7 +2885,11 @@ async function executeIndependentReadback(
     pending.actionEvidence.controlSelector || "body";
   const freshAfter = await browser.snapshot(selector);
   const runtimeMutationReadback = item.workflow.workflowClass === "persisted-mutation"
-    ? await caseRuntimeOwner.verifyMutationReadback(item, caseContext)
+    ? await caseRuntimeOwner.verifyMutationReadback(item, caseContext, {
+        action: pending.action,
+        networkResponses: pending.networkResponses,
+        browser,
+      })
     : null;
   const runtimeFormSubmitReadback = item.workflow.workflowClass === "form-submit"
     ? await caseRuntimeOwner.verifyFormSubmitReadback(item, caseContext, {

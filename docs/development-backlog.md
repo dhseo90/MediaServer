@@ -7179,6 +7179,29 @@ final-integrity12, semantic51/approval986, feature986/negative15 및 inventory/i
 PASS했습니다. Candidate `1d0900d9...3a3b7`와 native manifest는 불변이라 generator/producer는 0회이며,
 actual batch와 `./test_ui.sh`, Policy v4, 30분, 120분, release는 미실행입니다.
 
+### REVIEW4-65 remaining diagnostic batch static closure (2026-08-03)
+
+직전 `EVT-023`~`SAFE-140` diagnostic 결과의 9개 failure class를 단건 재실행 없이 한 묶음으로
+보정했습니다. `EVT-023/026`은 materialized EventRecord digest와 Ops timeline row를 같은
+response/render cycle에 결속하고, `EVT-024`는 세 bounded render sample을 각각 소유합니다.
+`EVT-025/028/030/031/036`은 aggregate count와 fixture row identity를 분리해 exact row-local 또는
+row-set DOM evidence로 검증합니다. `EVT-038`은 dry-run POST response, delivery attempt, audit row와
+DOM projection을 동일 request identity에 결속하며 raw endpoint와 credential material은 보존하지 않습니다.
+
+Native generator는 정확히 1회 실행했고 canonical `424 = 423 positive + 1 negative`, unsupported 0과
+ordered ID 불변을 확인했습니다. 최종 semantic candidate는
+`33f19d93f4cda0e4a1afc807304f7fd44943765af92458bbdc9e835f428f5e67`이며,
+`984 carry-forward + UI-014/UI-046 independent review`로 현재 source 986/986을 구성했습니다.
+최종 review package/decision SHA-256은 `f6c19080219d88465bd47b3c49e7ec50260a919aaf6a37b05737cd556c07892d`/
+`5ba61dacefcbce485192917b182c06e0205612127926f2252abe9490de3a2ad0`입니다. 앞선 5-row transaction
+성공 뒤 inventory가 같은 anchor 호환성 계열의 RULE-092/096/100 잔여를 찾아 최종 transaction을 추가했습니다.
+Producer는 성공 2회이며 그 사이 prior index binding prevalidation 실패 1회는 fixture 교체 전에 종료됐습니다.
+Build, native50, event28/evaluator20/runtime47, completion36, adapter26,
+diagnostic22, Policy producer10, acceptance21, launcher18, final-integrity12와 semantic/approval 986/986이
+PASS했습니다. 이 기록은 정적 checkpoint이며 125건 actual batch, `./test_ui.sh`, Policy v4 qualification,
+30분, 120분, `./test_release.sh`는 아직 미실행입니다. Canonical actual은 기존
+`300 attempted / 299 PASS / 1 FAIL / 124 not-run`을 유지합니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

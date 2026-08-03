@@ -2047,6 +2047,7 @@ await check("EVT-024 executes all three bounded samples with authoritative basel
   let fetchCount = 0;
   const evaluate = browser.evaluate;
   browser.evaluate = async script => {
+    if (String(script).includes("dashboardRuntimeTrendSamples.length")) return 3;
     if (String(script).startsWith("fetch(")) fetchCount += 1;
     return evaluate(script);
   };

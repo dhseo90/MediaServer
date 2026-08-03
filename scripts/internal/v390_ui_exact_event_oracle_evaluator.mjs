@@ -287,7 +287,12 @@ export function assertEventExactRuntimeBindings(caseId, context = {}, {
 
 export function evaluateEventExactResponseAssertion({ caseId, assertion, responseJson, responseText = "", responseHeaders = {}, context = {} }) {
   let actual;
-  if (assertion.path === "$text") actual = responseText;
+  const rowLocalActualPresent = Object.prototype.hasOwnProperty.call(
+    context.rowLocalActualByPath || {},
+    assertion.path,
+  );
+  if (rowLocalActualPresent) actual = context.rowLocalActualByPath[assertion.path];
+  else if (assertion.path === "$text") actual = responseText;
   else if (assertion.path === "$contentType") actual = responseHeaders["content-type"] || responseHeaders["Content-Type"] || "";
   else {
     const values = eventExactValuesAtPath(responseJson, assertion.path);

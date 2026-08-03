@@ -2126,6 +2126,7 @@ const endpointOwnedResponsePatterns = Object.freeze([
   Object.freeze({ kind: "source-disable", method: "DELETE", expectedStatus: 200, pattern: /^\/ops\/api\/sources\/([^/]+)$/ }),
   Object.freeze({ kind: "view-disable", method: "DELETE", expectedStatus: 200, pattern: /^\/ops\/api\/views\/([^/]+)$/ }),
   Object.freeze({ kind: "onvif-import-draft", method: "POST", expectedStatus: 200, pattern: /^\/ops\/api\/onvif\/import-draft$/ }),
+  Object.freeze({ kind: "alert-delivery-dry-run", method: "POST", expectedStatus: 200, pattern: /^\/ops\/api\/alerts\/deliveries\/dry-run$/ }),
 ]);
 
 const clientLiveSessionResponsePatterns = Object.freeze([
@@ -2388,6 +2389,82 @@ function endpointOwnedSafeResponseProjection({ kind, pathname, payload }) {
         viewId,
         sourceId: String(view.sourceId || ""),
         enabled: false,
+      },
+    };
+  }
+  if (kind === "alert-delivery-dry-run") {
+    requireResponseIdentity(value.status, "ops-alert-delivery-dry-run", "alert dry-run status");
+    requireResponseIdentity(value.schema, "media-server.ops.alert-delivery-dry-run.v1", "alert dry-run schema");
+    requireResponseBoolean(value.dryRun, true, "alert dry-run flag");
+    requireResponseBoolean(value.externalDeliveryPerformed, false, "alert external delivery flag");
+    requireResponseBoolean(value.eventPostPayloadChanged, false, "alert event post mutation flag");
+    const contract = requireResponseObject(value.contract, "alert dry-run contract");
+    requireResponseBoolean(contract.payloadPreview, true, "alert payload preview contract");
+    requireResponseBoolean(contract.deliveryAttemptLog, true, "alert attempt log contract");
+    requireResponseBoolean(contract.separateFromEventPostPayload, true, "alert event post separation contract");
+    const audit = requireResponseObject(value.audit, "alert dry-run audit");
+    requireResponseIdentity(audit.action, "alert-delivery-dry-run", "alert dry-run audit action");
+    const previews = Array.isArray(value.payloadPreviews) ? value.payloadPreviews : [];
+    const attempts = Array.isArray(value.attempts) ? value.attempts : [];
+    if (previews.length !== 1 || attempts.length !== 1) {
+      throw new EndpointResponseProjectionError(
+        "response-cardinality-mismatch",
+        `alert dry-run preview/attempt cardinality mismatch: ${previews.length}/${attempts.length}`,
+      );
+    }
+    const preview = requireResponseObject(previews[0], "alert payload preview");
+    const previewEvent = requireResponseObject(preview.event, "alert payload preview event");
+    const previewBody = requireResponseObject(preview.body, "alert payload preview body");
+    const deliveryId = requireResponseIdentity(preview.deliveryId, "", "alert preview deliveryId", { nonEmpty: true });
+    const eventId = requireResponseIdentity(previewEvent.eventId, "", "alert preview eventId", { nonEmpty: true });
+    const eventType = requireResponseIdentity(previewEvent.eventType, "", "alert preview eventType", { nonEmpty: true });
+    const sourceId = requireResponseIdentity(previewEvent.sourceId, "", "alert preview sourceId", { nonEmpty: true });
+    requireResponseIdentity(preview.schema, "media-server.ops.alert-delivery-payload-preview.v1", "alert preview schema");
+    requireResponseBoolean(preview.payloadRedacted, true, "alert preview redaction");
+    requireResponseBoolean(preview.eventPostPayloadChanged, false, "alert preview event post mutation");
+    requireResponseBoolean(preview.externalDeliveryPerformed, false, "alert preview external delivery");
+    requireResponseIdentity(previewBody.deliveryId, deliveryId, "alert preview body deliveryId");
+    requireResponseIdentity(previewBody.eventId, eventId, "alert preview body eventId");
+    requireResponseIdentity(previewBody.eventType, eventType, "alert preview body eventType");
+    requireResponseIdentity(previewBody.sourceId, sourceId, "alert preview body sourceId");
+    requireResponseIdentity(previewBody.endpoint, "[redacted-alert-target]", "alert preview redacted endpoint");
+    const attempt = requireResponseObject(attempts[0], "alert dry-run attempt");
+    requireResponseIdentity(attempt.schema, "media-server.ops.alert-delivery-attempt.v1", "alert attempt schema");
+    requireResponseIdentity(attempt.deliveryId, deliveryId, "alert attempt deliveryId");
+    requireResponseIdentity(attempt.eventId, eventId, "alert attempt eventId");
+    requireResponseIdentity(attempt.eventType, eventType, "alert attempt eventType");
+    requireResponseIdentity(attempt.sourceId, sourceId, "alert attempt sourceId");
+    requireResponseIdentity(attempt.status, "dry-run", "alert attempt status");
+    requireResponseIdentity(attempt.transport, "dry-run", "alert attempt transport");
+    requireResponseBoolean(attempt.dryRun, true, "alert attempt dry-run flag");
+    requireResponseBoolean(attempt.externalDeliveryPerformed, false, "alert attempt external delivery");
+    requireResponseBoolean(attempt.eventPostPayloadChanged, false, "alert attempt event post mutation");
+    return {
+      status: "ops-alert-delivery-dry-run",
+      schema: "media-server.ops.alert-delivery-dry-run.v1",
+      dryRun: true,
+      externalDeliveryPerformed: false,
+      eventPostPayloadChanged: false,
+      auditAction: "alert-delivery-dry-run",
+      payloadPreview: {
+        schema: "media-server.ops.alert-delivery-payload-preview.v1",
+        deliveryId,
+        eventId,
+        eventType,
+        sourceId,
+        payloadRedacted: true,
+      },
+      attempt: {
+        schema: "media-server.ops.alert-delivery-attempt.v1",
+        deliveryId,
+        eventId,
+        eventType,
+        sourceId,
+        status: "dry-run",
+        transport: "dry-run",
+        dryRun: true,
+        externalDeliveryPerformed: false,
+        eventPostPayloadChanged: false,
       },
     };
   }

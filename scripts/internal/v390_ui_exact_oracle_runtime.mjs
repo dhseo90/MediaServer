@@ -168,7 +168,7 @@ export async function executeCatalogRuntimeOracle({
           `${spec.action?.kind || "missing"}/${primaryAction.executedKind || "missing"}`);
       }
     }
-    const interaction = primaryAction
+    let interaction = primaryAction
       ? {
           kind: "existing-primary-action",
           actionKind: primaryAction.composedClientLive?.kind || spec.action?.kind || null,
@@ -190,6 +190,15 @@ export async function executeCatalogRuntimeOracle({
           correlationId,
           runtimeBindings,
         );
+    interaction = await completeDeclaredObservationInteraction({
+      browser,
+      item,
+      spec,
+      actionId,
+      correlationId,
+      runtimeBindings,
+      interaction,
+    });
     if (clientSafeCase) {
       const createdSessionId = [...primaryNetworkEntries, ...browser.networkEntries().slice(networkStart)]
         .find(entry => entry.phase === "response" && entry.method === "POST" &&
@@ -692,6 +701,84 @@ async function executeTrustedInteraction(
   await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
   const after = await browser.snapshot(selector);
   return { kind: "click", selector, before, after };
+}
+
+async function completeDeclaredObservationInteraction({
+  browser,
+  item,
+  spec,
+  actionId,
+  correlationId,
+  runtimeBindings,
+  interaction,
+}) {
+  const selector = refreshControls[spec.route] || "";
+  const opsTimelinePath = "/ops/api/events/status?limit=5&includeArchives=1";
+  const ownsOpsTimelineRender = spec.route === "/ops/dashboard" &&
+    spec.requests.some(request =>
+      String(request.method || "GET").toUpperCase() === "GET" &&
+      expand(String(request.path || ""), runtimeBindings) === opsTimelinePath);
+  let completed = interaction || { kind: "no-primary-interaction" };
+  if (ownsOpsTimelineRender && !completed.opsTimelineRenderCycle) {
+    assert(selector && typeof browser.clickWithRequestOwnership === "function",
+      `${item.caseId} declared Ops timeline render ownership is unavailable`);
+    const renderActionId = `${String(actionId || `${item.caseId}:runtime`)}:ops-timeline-refresh`;
+    const renderCorrelationId = `${String(correlationId || `${item.caseId}:runtime`)}:ops-timeline-refresh`;
+    const renderCycleId = `${renderActionId}:cycle-1`;
+    const opsTimelineRenderCycle = await browser.clickWithRequestOwnership({
+      selector,
+      actionId: renderActionId,
+      correlationId: renderCorrelationId,
+      renderCycleId,
+      targetMethod: "GET",
+      targetPath: opsTimelinePath,
+      renderSelector: "#dashIncidentTimeline",
+      expectedRenderPhase: "dom-committed",
+      minimumObservationMs: 500,
+      quietMs: 200,
+    });
+    completed = { ...completed, opsTimelineRenderCycle };
+  }
+  const boundedRuntimeRepeat = spec.requests.find(request =>
+    String(request.method || "GET").toUpperCase() === "GET" &&
+    expand(String(request.path || ""), runtimeBindings) === "/ops/api/runtime/status" &&
+    Number(request.repeat?.count || 1) > 1);
+  if (boundedRuntimeRepeat) {
+    assert(selector, `${item.caseId} bounded dashboard observation refresh control is missing`);
+    const expectedCount = Number(boundedRuntimeRepeat.repeat.count);
+    let observedCount = Number(await browser.evaluate(
+      "Array.isArray(dashboardRuntimeTrendSamples) ? dashboardRuntimeTrendSamples.length : -1",
+    ));
+    assert(observedCount > 0 && observedCount <= expectedCount,
+      `${item.caseId} initial dashboard runtime sample count is invalid: ${observedCount}/${expectedCount}`);
+    let refreshCount = 0;
+    while (observedCount < expectedCount) {
+      await browser.click(selector);
+      await browser.waitForNetworkQuiet({
+        correlationId,
+        minimumObservationMs: Number(boundedRuntimeRepeat.repeat.intervalMs || 250),
+        quietMs: 150,
+      });
+      const nextCount = Number(await browser.evaluate(
+        "Array.isArray(dashboardRuntimeTrendSamples) ? dashboardRuntimeTrendSamples.length : -1",
+      ));
+      assert(nextCount === observedCount + 1,
+        `${item.caseId} dashboard runtime sample render cycle drift: ${observedCount}/${nextCount}`);
+      observedCount = nextCount;
+      refreshCount += 1;
+    }
+    assert(observedCount === expectedCount,
+      `${item.caseId} bounded dashboard sample count mismatch: ${observedCount}/${expectedCount}`);
+    completed = {
+      ...completed,
+      boundedDashboardObservations: {
+        expectedCount,
+        observedCount,
+        refreshCount,
+      },
+    };
+  }
+  return completed;
 }
 
 async function executeClientSafeInteraction(browser, item, spec, correlationId, runtimeBindings) {
@@ -1395,7 +1482,9 @@ async function observeDom(
     const firstRects = rects.map(rect => [rect.x, rect.y, rect.width, rect.height].map(value => Math.round(value * 100) / 100));
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const secondRects = nodes.map(node => { const rect = node.getBoundingClientRect(); return [rect.x, rect.y, rect.width, rect.height].map(value => Math.round(value * 100) / 100); });
+    const semanticKey = name => String(name || '').replace(/^data-event-semantic-/, '').replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase());
     return {
+      locationPath: String(location.pathname || ''),
       count: nodes.length,
       visibleCount: nodes.filter(node => {
         const rect = node.getBoundingClientRect(); const style = getComputedStyle(node);
@@ -1404,6 +1493,25 @@ async function observeDom(
       text: nodes.map(node => String(node.innerText || node.textContent || '')).join(' ').replace(/\\s+/g, ' ').trim().slice(0, 24000),
       nodeTexts: nodes.slice(0, 20).map(node =>
         String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
+      semanticNodes: nodes.slice(0, 20).map((node, index) => {
+        const row = node.closest('[data-event-review-row]');
+        const fieldEntries = Array.from(node.querySelectorAll('[data-event-semantic-field]')).map(field => ({
+          name: String(field.getAttribute('data-event-semantic-field') || ''),
+          text: String(field.innerText || field.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000),
+        }));
+        const fieldNames = [...new Set(fieldEntries.map(field => field.name).filter(Boolean))];
+        return {
+          index,
+          eventId: String(row?.getAttribute('data-event-id') || ''),
+          attributes: Object.fromEntries(Array.from(node.attributes || [])
+            .filter(attribute => attribute.name.startsWith('data-event-semantic-'))
+            .map(attribute => [semanticKey(attribute.name), String(attribute.value || '')])),
+          fields: Object.fromEntries(fieldNames.map(name => [
+            name,
+            fieldEntries.filter(field => field.name === name).map(field => field.text),
+          ])),
+        };
+      }),
       semanticNodeTexts: nodes.flatMap(node => Array.from(node.querySelectorAll('.root-cause-item')))
         .slice(0, 20)
         .map(node => String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
@@ -1594,6 +1702,7 @@ async function observeDom(
     eventRuntimeContext,
     markerEvaluationTracker,
     browser.networkEntries(),
+    interaction,
   );
   const rowLocalComposite = semanticEvidence
     .map(evidence => evidence?.compositeEvidence)
@@ -2279,6 +2388,8 @@ function evaluateRequestAssertions(assertions, context) {
     if (context.caseId.startsWith("EVT-")) {
       const runtime = context.eventRuntimeContext || {};
       const requestIdentity = `${String(context.request.method || "GET").toUpperCase()} ${context.urlPath}`;
+      const rowLocalKey = `${requestIdentity}\n${String(assertion.operator || "")}\n${String(assertion.path || "")}`;
+      const rowLocalBaseline = runtime.requestRowLocalBaselineByAssertionKey?.[rowLocalKey] || null;
       const baselineResponse = runtime.responseByRequest?.[requestIdentity];
       const baselineBody = baselineResponse?.json ?? baselineResponse?.text;
       const requestBaselineValues = eventRuntimeAssertionValues({
@@ -2301,17 +2412,47 @@ function evaluateRequestAssertions(assertions, context) {
         status: context.status,
         path: assertion.path,
       });
-      const actual = actualValues.length === 1 ? actualValues[0] : actualValues;
+      let actual = actualValues.length === 1 ? actualValues[0] : actualValues;
+      if (rowLocalBaseline) {
+        assert(rowLocalBaseline.schema === "media-server.v390-ui-event-request-row-local-baseline.v1" &&
+          Array.isArray(rowLocalBaseline.identityPaths) && rowLocalBaseline.identityPaths.length > 0 &&
+          ["all", "any"].includes(rowLocalBaseline.identityPathMode),
+        `${context.caseId} request row-local baseline is invalid`);
+        const rows = eventExactValuesAtPath(context.body, rowLocalBaseline.collectionPath)
+          .flatMap(value => Array.isArray(value) ? value : [value])
+          .filter(value => value && typeof value === "object" && !Array.isArray(value));
+        const matchingRows = rows.filter(row => {
+          const matches = rowLocalBaseline.identityPaths.map(identityPath =>
+            eventExactValuesAtPath(row, identityPath)
+              .some(value => String(value) === String(rowLocalBaseline.identityValue)));
+          return rowLocalBaseline.identityPathMode === "any"
+            ? matches.some(Boolean)
+            : matches.every(Boolean);
+        });
+        assert(matchingRows.length === 1,
+          `${context.caseId} request row-local fixture cardinality mismatch: ${matchingRows.length}`);
+        const projected = eventExactValuesAtPath(
+          matchingRows[0],
+          rowLocalBaseline.projectionPath,
+        );
+        assert(projected.length === 1,
+          `${context.caseId} request row-local projection cardinality mismatch: ${projected.length}`);
+        actual = projected[0];
+      }
       const evidenceKey = eventExactSemanticEvidenceKey({
         scope: "response",
         caseId: context.caseId,
         operator: assertion.operator,
         subject: assertion.path,
       });
-      const baselinePresent = baselineResponse !== undefined
+      const baselinePresent = rowLocalBaseline
+        ? true
+        : baselineResponse !== undefined
         ? requestBaselineValues.length > 0 || ["$body", "$text", "$contentType", "$status"].includes(assertion.path)
         : Object.prototype.hasOwnProperty.call(runtime.priorResponseByPath || {}, assertion.path);
-      const baseline = baselineResponse !== undefined
+      const baseline = rowLocalBaseline
+        ? rowLocalBaseline.expectedValue
+        : baselineResponse !== undefined
         ? requestBaseline
         : runtime.priorResponseByPath?.[assertion.path];
       let semanticPass = baselinePresent && stableEqual(actual, baseline);
@@ -2348,6 +2489,9 @@ function evaluateRequestAssertions(assertions, context) {
                 : "fresh response differs from the independently captured authoritative baseline",
             },
           },
+          rowLocalActualByPath: rowLocalBaseline
+            ? { [assertion.path]: actual }
+            : {},
           sensitiveCanaries: [
             ...(runtime.sensitiveCanaries || []),
             context.bindings.redactionCanary,
@@ -2481,6 +2625,214 @@ function throwDirectEventDomSemanticFailure({
   throw error;
 }
 
+function buildDeclaredEventDomBindingEvidence({
+  assertion,
+  observed,
+  responseBodies,
+  eventRuntimeContext,
+  bindings,
+  interaction,
+}) {
+  const binding = assertion?.binding;
+  if (!binding) return null;
+  const mode = String(binding.mode || "");
+  const validator = String(binding.validator || "");
+  const semanticNodes = Array.isArray(observed?.semanticNodes)
+    ? observed.semanticNodes
+    : [];
+  const evidenceBase = {
+    schema: "media-server.v390-ui-declared-dom-binding-evidence.v1",
+    mode,
+    validatorDigest: sha256Digest(validator),
+    assertionDigest: sha256Digest({
+      operator: assertion.operator,
+      target: assertion.target,
+      binding,
+    }),
+    observedNodeCount: Number(observed?.count || 0),
+    semanticNodeCount: semanticNodes.length,
+  };
+  const finish = ({ pass, failureCode = "PASS", expectedRows = [], fields = [] }) => ({
+    ...evidenceBase,
+    pass,
+    failureCode: pass ? "PASS" : failureCode,
+    expectedRowCount: expectedRows.length,
+    expectedRowsDigest: sha256Digest(expectedRows),
+    fieldEvidence: fields.map(field => ({
+      nameDigest: sha256Digest(field.name),
+      pass: field.pass === true,
+      expectedDigest: sha256Digest(field.expected),
+      actualDigest: sha256Digest(field.actual),
+      candidateCount: Number(field.candidateCount || 0),
+    })),
+  });
+  if (mode === "direct-dom") {
+    const serialized = `${String(observed?.text || "")} ${JSON.stringify(observed?.attributes || [])} ` +
+      `${JSON.stringify(observed?.values || [])} ${JSON.stringify(observed?.formControls || [])}`;
+    if (validator === "event-row-redaction-boundary") {
+      const forbidden = [
+        "rawJson", "debugMaterial", "debugCounters", "providerPrompt", "providerResponse",
+        "Authorization: Bearer", "passwordHash", "sessionSecret", "tokenHash", "sourceUrl",
+      ];
+      const matches = forbidden.filter(token => serialized.toLowerCase().includes(token.toLowerCase()));
+      return finish({
+        pass: Number(observed?.count || 0) === 1 && matches.length === 0,
+        failureCode: matches.length ? "DIRECT_DOM_FORBIDDEN_MATERIAL" : "DIRECT_DOM_CARDINALITY_MISMATCH",
+        fields: forbidden.map(token => ({
+          name: token,
+          pass: !matches.includes(token),
+          expected: false,
+          actual: matches.includes(token),
+          candidateCount: matches.includes(token) ? 1 : 0,
+        })),
+      });
+    }
+    if (validator === "ops-only-review-card") {
+      const contract = observed?.attributes?.[0]?.["data-vlm-review-contract"];
+      const pass = observed?.locationPath === "/ops/events" &&
+        Number(observed?.count || 0) === 1 && contract === "ops-only-no-client-exposure";
+      return finish({ pass, failureCode: "OPS_ONLY_DOM_OWNER_MISMATCH" });
+    }
+    if (validator === "matching-missing-row-pair") {
+      const identities = semanticNodes.map(node => String(node.eventId || ""));
+      const states = semanticNodes.map(node => ({
+        eventRecordPresent: node.attributes?.eventRecordPresent,
+        observationPresent: node.attributes?.observationPresent,
+      }));
+      const pass = semanticNodes.length === 2 && new Set(identities).size === 2 &&
+        states.filter(state => state.eventRecordPresent === "true" &&
+          state.observationPresent === "true").length === 1 &&
+        states.filter(state => state.eventRecordPresent === "true" &&
+          state.observationPresent === "false").length === 1;
+      return finish({ pass, failureCode: "MATCHING_MISSING_ROW_PAIR_MISMATCH" });
+    }
+    if (validator === "manual-rule-draft-only") {
+      const attributes = observed?.attributes?.[0] || {};
+      const pass = Number(observed?.count || 0) === 1 &&
+        attributes["data-incident-rule-suggestion-review"] === "ops-only-draft-route" &&
+        semanticNodes[0]?.attributes?.manualDraftRoute === "/ops/rules";
+      return finish({ pass, failureCode: "MANUAL_RULE_DRAFT_BOUNDARY_MISMATCH" });
+    }
+    if (validator === "sensitive-canary-absent") {
+      const canaries = [
+        ...(eventRuntimeContext?.sensitiveCanaries || []),
+        bindings?.redactionCanary,
+        bindings?.rawCanary,
+        bindings?.credentialCanary,
+      ].filter(Boolean).map(String);
+      const matches = canaries.filter(canary => serialized.includes(canary));
+      return finish({
+        pass: canaries.length > 0 && matches.length === 0,
+        failureCode: canaries.length === 0
+          ? "SENSITIVE_CANARY_BINDING_MISSING"
+          : "SENSITIVE_CANARY_OBSERVED",
+      });
+    }
+    if (validator === "owned-refresh-stability") {
+      const cycle = interaction?.opsTimelineRenderCycle;
+      const pass = cycle?.identityMatched === true &&
+        cycle?.responseRequestObjectObserved === true &&
+        cycle?.expectedPhaseMatched === true &&
+        cycle?.finalPhase === "dom-committed";
+      return finish({ pass, failureCode: "OWNED_REFRESH_STABILITY_MISMATCH" });
+    }
+    if (validator === "dashboard-health-counts") {
+      const runtime = responseBodies.find(body => body?.webrtcHttp && body?.sessionManager) || {};
+      const health = responseBodies.find(body => Array.isArray(body?.sourceHealth)) || {};
+      const expected = {
+        publishSourceCount: String(Array.isArray(runtime?.webrtcHttp?.publishSources)
+          ? runtime.webrtcHttp.publishSources.length : 0),
+        sourceHealthCount: String(Array.isArray(health?.sourceHealth)
+          ? health.sourceHealth.length : 0),
+      };
+      const actual = {
+        publishSourceCount: semanticNodes[0]?.attributes?.publishSourceCount,
+        sourceHealthCount: semanticNodes[0]?.attributes?.sourceHealthCount,
+      };
+      return finish({
+        pass: Number(observed?.count || 0) === 1 && stableEqual(actual, expected),
+        failureCode: "DASHBOARD_HEALTH_COUNT_MISMATCH",
+        fields: Object.keys(expected).map(name => ({
+          name,
+          pass: actual[name] === expected[name],
+          expected: expected[name],
+          actual: actual[name],
+          candidateCount: actual[name] === undefined ? 0 : 1,
+        })),
+      });
+    }
+    return finish({ pass: false, failureCode: "UNSUPPORTED_DIRECT_DOM_BINDING" });
+  }
+  if (!["row-local-response", "row-set-response"].includes(mode)) {
+    return finish({ pass: false, failureCode: "UNSUPPORTED_DOM_BINDING_MODE" });
+  }
+  const assertionKey = `${String(assertion.operator || "")}\n${String(assertion.target || "")}`;
+  const baseline = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[assertionKey];
+  if (!baseline) return finish({ pass: false, failureCode: "DECLARED_RESPONSE_BASELINE_MISSING" });
+  if (["event-record-text", "source-health-text"].includes(binding.domKind)) {
+    return finish({
+      pass: true,
+      expectedRows: baseline.expectedRows || [{
+        identityValue: baseline.identityValue,
+        projection: baseline.expectedProjection,
+      }],
+    });
+  }
+  const expectedRows = baseline.schema === "media-server.v390-ui-event-row-set-response-baseline.v1"
+    ? baseline.expectedRows
+    : [{ identityValue: baseline.identityValue, projection: baseline.expectedProjection }];
+  const fieldEvidence = [];
+  let pass = semanticNodes.length === expectedRows.length;
+  for (const expectedRow of expectedRows) {
+    const nodeCandidates = semanticNodes.filter(node =>
+      String(node.eventId || "") === String(expectedRow.identityValue));
+    if (nodeCandidates.length !== 1) {
+      pass = false;
+      fieldEvidence.push({
+        name: "eventId",
+        pass: false,
+        expected: expectedRow.identityValue,
+        actual: nodeCandidates.map(node => node.eventId),
+        candidateCount: nodeCandidates.length,
+      });
+      continue;
+    }
+    const node = nodeCandidates[0];
+    for (const field of binding.fields) {
+      const rawExpected = expectedRow.projection[field.responsePath];
+      let expected = String(rawExpected ?? "");
+      if (field.transform === "false-positive-list") {
+        expected = `오탐: ${Array.isArray(rawExpected) && rawExpected.length
+          ? rawExpected.slice(0, 2).map(String).join(" · ")
+          : "오탐 힌트 없음"}`;
+      } else if (field.transform === "operator-question-list") {
+        expected = `확인: ${Array.isArray(rawExpected) && rawExpected.length
+          ? rawExpected.slice(0, 2).map(String).join(" · ")
+          : "운영자 질문 없음"}`;
+      }
+      const candidates = field.source === "field-text"
+        ? (node.fields?.[field.domKey] || [])
+        : (Object.prototype.hasOwnProperty.call(node.attributes || {}, field.domKey)
+          ? [node.attributes[field.domKey]] : []);
+      const fieldPass = candidates.length === 1 && candidates[0] === expected;
+      pass = pass && fieldPass;
+      fieldEvidence.push({
+        name: field.domKey,
+        pass: fieldPass,
+        expected,
+        actual: candidates,
+        candidateCount: candidates.length,
+      });
+    }
+  }
+  return finish({
+    pass,
+    failureCode: pass ? "PASS" : "DECLARED_DOM_FIELD_PROJECTION_MISMATCH",
+    expectedRows,
+    fields: fieldEvidence,
+  });
+}
+
 function evaluateDomSemanticAssertions(
   assertions,
   observed,
@@ -2491,6 +2843,7 @@ function evaluateDomSemanticAssertions(
   eventRuntimeContext = null,
   markerEvaluationTracker = null,
   networkEntries = [],
+  interaction = null,
 ) {
   return assertions.map(assertion => {
     const operator = String(assertion.operator || "");
@@ -2638,7 +2991,9 @@ function evaluateDomSemanticAssertions(
         selector,
         observed,
         responseBodies,
-        priorResponseByPath: selectEventDomResponseBaselines(target, eventRuntimeContext),
+        priorResponseByPath: assertion.binding?.mode === "direct-dom"
+          ? {}
+          : selectEventDomResponseBaselines(assertion, eventRuntimeContext),
         fixtureCandidates,
         fixtureIdentity: eventRuntimeContext?.domFixtureIdentityByTarget?.[target] || null,
         expectedFixtureIdentity: eventRuntimeContext?.expectedFixtureIdentity || null,
@@ -2655,6 +3010,14 @@ function evaluateDomSemanticAssertions(
             }
           : null,
         networkEntries,
+        declaredDomBinding: buildDeclaredEventDomBindingEvidence({
+          assertion,
+          observed,
+          responseBodies,
+          eventRuntimeContext,
+          bindings,
+          interaction,
+        }),
         actualBrowserExecution: true,
       });
       const semanticPass = compositeEvidence.pass;
@@ -2753,6 +3116,7 @@ export function buildEventDomSemanticCompositeEvidence({
   markerEvaluation = null,
   markerEvaluator = buildEventMarkerFlowEvidence,
   networkEntries = [],
+  declaredDomBinding = null,
   actualBrowserExecution = false,
 }) {
   const text = String(observed?.text || "");
@@ -2795,23 +3159,34 @@ export function buildEventDomSemanticCompositeEvidence({
     const baselineMissing = baseline?.schema ===
       "media-server.v390-ui-event-response-baseline-missing.v1";
     const rowLocal = isEventRowLocalResponseBaseline(baseline);
+    const rowSet = isEventRowSetResponseBaseline(baseline);
     const candidates = baselineMissing
       ? []
       : rowLocal
       ? responseBodies
         .flatMap(body => eventRowLocalResponseProjections(body, baseline))
+      : rowSet
+      ? responseBodies
+        .flatMap(body => eventRowSetResponseProjections(body, baseline))
       : responseBodies
         .map(body => eventExactValuesAtPath(body, path))
         .filter(pathValues => pathValues.length > 0)
         .map(pathValues => pathValues.length === 1 ? pathValues[0] : pathValues);
-    const expected = rowLocal ? baseline.expectedProjection : baseline;
+    const expected = rowLocal
+      ? baseline.expectedProjection
+      : (rowSet ? baseline.expectedRows : baseline);
     const matched = !baselineMissing && (rowLocal
       ? candidates.length === 1 && stableEqual(candidates[0], expected)
+      : rowSet
+      ? candidates.length === expected.length && stableEqual(candidates, expected)
       : candidates.length > 0 && candidates.every(actual => stableEqual(actual, expected)));
-    const mismatchProjectionPaths = rowLocal && candidates.length > 0 && !matched
+    const mismatchProjectionPaths = (rowLocal || rowSet) && candidates.length > 0 && !matched
       ? baseline.projectionPaths.filter(projectionPath =>
-        candidates.every(candidate =>
-          !stableEqual(candidate?.[projectionPath], expected?.[projectionPath])))
+        rowLocal
+          ? candidates.every(candidate =>
+            !stableEqual(candidate?.[projectionPath], expected?.[projectionPath]))
+          : candidates.some((candidate, index) =>
+            !stableEqual(candidate?.projection?.[projectionPath], expected?.[index]?.projection?.[projectionPath])))
       : [];
     const missingRowCode = baseline.identityKind === "event-record"
       ? "FIXTURE_EVENT_ROW_MISSING"
@@ -2825,11 +3200,11 @@ export function buildEventDomSemanticCompositeEvidence({
       ? "PASS"
       : (!rowLocal && candidates.length === 0
         ? "RESPONSE_CANDIDATE_MISSING"
-        : (rowLocal && candidates.length === 0
+        : ((rowLocal || rowSet) && candidates.length === 0
         ? missingRowCode
-        : (rowLocal && candidates.length > 1
+        : (rowLocal && candidates.length > (rowSet ? expected.length : 1)
           ? duplicateRowCode
-        : (rowLocal
+        : ((rowLocal || rowSet)
           ? "FIXTURE_ROW_PROJECTION_MISMATCH"
           : "RESPONSE_BASELINE_MISMATCH"))));
     return {
@@ -2837,11 +3212,13 @@ export function buildEventDomSemanticCompositeEvidence({
       matched,
       compared: candidates.length > 0,
       reasonCode,
-      bindingMode: rowLocal ? "row-local-identity-projection" : "path-value",
+      bindingMode: rowLocal
+        ? "row-local-identity-projection"
+        : (rowSet ? "row-set-identity-projection" : "path-value"),
       baselineDigest: sha256Digest(baseline),
       projectionDigest: sha256Digest(expected),
-      ...(rowLocal ? {
-        identityDigest: sha256Digest(baseline.identityValue),
+      ...(rowLocal || rowSet ? {
+        identityDigest: sha256Digest(rowLocal ? baseline.identityValue : baseline.identityValues),
         projectionPathsDigest: sha256Digest(baseline.projectionPaths),
         mismatchProjectionPaths,
       } : {}),
@@ -2983,6 +3360,7 @@ export function buildEventDomSemanticCompositeEvidence({
     ["observationPresent", observationPresent.pass],
     ["responseBaselineMatched", responseBaselineMatched.pass],
     ["fixtureObserved", fixtureObserved.pass],
+    ...(declaredDomBinding ? [["declaredDomBinding", declaredDomBinding.pass]] : []),
     ...(routeLocalDomBinding ? [["routeLocalDomBinding", routeLocalDomBinding.pass]] : []),
     ...(markerFlow ? [["markerFlow", markerFlow.pass]] : []),
   ].filter(([, pass]) => !pass).map(([name]) => name);
@@ -2990,6 +3368,7 @@ export function buildEventDomSemanticCompositeEvidence({
     ...(observationPresent.pass ? [] : [observationPresent.reasonCode]),
     ...responseBaselineMatched.reasonCodes,
     ...(fixtureObserved.pass ? [] : [fixtureObserved.reasonCode]),
+    ...(declaredDomBinding?.pass ? [] : [declaredDomBinding?.failureCode].filter(Boolean)),
     ...(routeLocalDomBinding?.pass ? [] : [routeLocalDomBinding?.failureCode].filter(Boolean)),
     ...(markerFlow?.pass ? [] : [markerFlow?.failureCode].filter(Boolean)),
   ];
@@ -3008,6 +3387,7 @@ export function buildEventDomSemanticCompositeEvidence({
     observationPresent,
     responseBaselineMatched,
     fixtureObserved,
+    ...(declaredDomBinding ? { declaredDomBinding } : {}),
     ...(routeLocalDomBinding ? { routeLocalDomBinding } : {}),
     ...(markerFlow ? { markerFlow } : {}),
   };
@@ -3525,9 +3905,21 @@ function countEvidenceKinds(kinds) {
   return counts;
 }
 
-export function selectEventDomResponseBaselines(target, eventRuntimeContext = {}) {
+export function selectEventDomResponseBaselines(assertionOrTarget, eventRuntimeContext = {}) {
+  const assertion = assertionOrTarget && typeof assertionOrTarget === "object"
+    ? assertionOrTarget
+    : null;
+  const target = assertion ? String(assertion.target || "") : String(assertionOrTarget || "");
+  if (assertion) {
+    const assertionKey = `${String(assertion.operator || "")}\n${target}`;
+    const explicit = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[assertionKey];
+    if (explicit) return { [target]: explicit };
+    if (["row-local-response", "row-set-response"].includes(assertion.binding?.mode)) {
+      assert(false, `declared DOM response baseline is missing: ${assertionKey}`);
+    }
+  }
   const baselineByTarget = eventRuntimeContext?.domResponseBaselineByTarget || {};
-  const targetEntries = String(target || "").split("|").filter(Boolean)
+  const targetEntries = target.split("|").filter(Boolean)
     .filter(path => Object.prototype.hasOwnProperty.call(baselineByTarget, path))
     .map(path => [path, baselineByTarget[path]]);
   const rowLocalRequired = new Set(eventRuntimeContext?.rowLocalResponseTargets || []);
@@ -3539,7 +3931,7 @@ export function selectEventDomResponseBaselines(target, eventRuntimeContext = {}
   }
   if (targetEntries.length > 0) return Object.fromEntries(targetEntries);
   return {
-    [String(target || "")]: {
+    [target]: {
       schema: "media-server.v390-ui-event-response-baseline-missing.v1",
       targetDigest: sha256Digest(String(target || "")),
     },
@@ -3558,17 +3950,51 @@ function isEventRowLocalResponseBaseline(value) {
     typeof value.expectedProjection === "object";
 }
 
+function isEventRowSetResponseBaseline(value) {
+  return value?.schema === "media-server.v390-ui-event-row-set-response-baseline.v1" &&
+    typeof value.collectionPath === "string" &&
+    Array.isArray(value.identityPaths) && value.identityPaths.length > 0 &&
+    ["all", "any"].includes(value.identityPathMode) &&
+    Array.isArray(value.identityValues) && value.identityValues.length > 1 &&
+    Array.isArray(value.projectionPaths) && value.projectionPaths.length > 0 &&
+    Array.isArray(value.expectedRows) &&
+    value.expectedRows.length === value.identityValues.length;
+}
+
 function eventRowLocalResponseProjections(body, baseline) {
   const rows = eventExactValuesAtPath(body, baseline.collectionPath)
     .flatMap(value => Array.isArray(value) ? value : [value])
     .filter(value => value && typeof value === "object" && !Array.isArray(value));
-  const matchingRows = rows.filter(value => baseline.identityPaths.some(identityPath =>
-    eventExactValuesAtPath(value, identityPath)
-      .some(identity => String(identity) === String(baseline.identityValue))));
+  const matchingRows = rows.filter(value => {
+    const matches = baseline.identityPaths.map(identityPath =>
+      eventExactValuesAtPath(value, identityPath)
+        .some(identity => String(identity) === String(baseline.identityValue)));
+    return baseline.identityPathMode === "all" ? matches.every(Boolean) : matches.some(Boolean);
+  });
   return matchingRows.map(row => Object.fromEntries(baseline.projectionPaths.map(projectionPath => {
     const values = eventExactValuesAtPath(row, projectionPath);
     return [projectionPath, values.length === 1 ? values[0] : values];
   })));
+}
+
+function eventRowSetResponseProjections(body, baseline) {
+  const rows = eventExactValuesAtPath(body, baseline.collectionPath)
+    .flatMap(value => Array.isArray(value) ? value : [value])
+    .filter(value => value && typeof value === "object" && !Array.isArray(value));
+  return baseline.identityValues.flatMap(identityValue => rows
+    .filter(row => {
+      const matches = baseline.identityPaths.map(identityPath =>
+        eventExactValuesAtPath(row, identityPath)
+          .some(identity => String(identity) === String(identityValue)));
+      return baseline.identityPathMode === "all" ? matches.every(Boolean) : matches.some(Boolean);
+    })
+    .map(row => ({
+      identityValue,
+      projection: Object.fromEntries(baseline.projectionPaths.map(projectionPath => {
+        const values = eventExactValuesAtPath(row, projectionPath);
+        return [projectionPath, values.length === 1 ? values[0] : values];
+      })),
+    })));
 }
 
 function eventDomFixtureIdentityDescriptor(value) {
@@ -3794,6 +4220,27 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
     /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.identityDigest || "") &&
     /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.expectedNodeTokensDigest || ""),
   "EVT DOM semantic evidence required structured fields are missing");
+  if (evidence.declaredDomBinding) {
+    const declared = evidence.declaredDomBinding;
+    assert(declared.schema === "media-server.v390-ui-declared-dom-binding-evidence.v1" &&
+      typeof declared.pass === "boolean" &&
+      ["direct-dom", "row-local-response", "row-set-response"].includes(declared.mode) &&
+      typeof declared.failureCode === "string" &&
+      /^[0-9a-f]{64}$/.test(declared.validatorDigest || "") &&
+      /^[0-9a-f]{64}$/.test(declared.assertionDigest || "") &&
+      Number.isInteger(declared.observedNodeCount) &&
+      Number.isInteger(declared.semanticNodeCount) &&
+      Number.isInteger(declared.expectedRowCount) &&
+      /^[0-9a-f]{64}$/.test(declared.expectedRowsDigest || "") &&
+      Array.isArray(declared.fieldEvidence) &&
+      declared.fieldEvidence.every(field =>
+        /^[0-9a-f]{64}$/.test(field.nameDigest || "") &&
+        typeof field.pass === "boolean" &&
+        /^[0-9a-f]{64}$/.test(field.expectedDigest || "") &&
+        /^[0-9a-f]{64}$/.test(field.actualDigest || "") &&
+        Number.isInteger(field.candidateCount)),
+    "EVT declared DOM binding evidence required fields are missing");
+  }
   if (evidence.exactAttributeBinding) {
     const attributeBinding = evidence.exactAttributeBinding;
     assert(attributeBinding.schema === "media-server.v390-ui-exact-dom-attribute-binding-evidence.v1" &&

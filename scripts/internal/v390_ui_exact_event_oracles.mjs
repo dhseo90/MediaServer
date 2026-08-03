@@ -272,7 +272,38 @@ function terminalSelectorAttributes(selector) {
 const body = (...assertions) => assertions.map(([path, operator, expected]) => ({ path, operator, expected }));
 const dom = (selector, ...assertions) => ({
   selector,
-  assertions: assertions.map(([operator, target, expected]) => ({ operator, target, expected })),
+  assertions: assertions.map(([operator, target, expected, binding]) => ({
+    operator,
+    target,
+    expected,
+    ...(binding ? { binding } : {}),
+  })),
+});
+const directDom = validator => ({ mode: "direct-dom", validator });
+const rowLocalDom = ({ collectionPath, identityPaths, fields, domKind = "semantic-fields", identityPathMode = "all", identitySource = "fixtureId" }) => ({
+  mode: "row-local-response",
+  collectionPath,
+  identityPaths,
+  identityPathMode,
+  identitySource,
+  domKind,
+  fields,
+});
+const rowSetDom = ({ collectionPath, identityPaths, fields, cardinality, identityPathMode = "all" }) => ({
+  mode: "row-set-response",
+  collectionPath,
+  identityPaths,
+  identityPathMode,
+  identitySource: "eventIds",
+  cardinality,
+  domKind: "semantic-fields",
+  fields,
+});
+const domField = (responsePath, domKey, source = "attribute", transform = "scalar") => ({
+  responsePath,
+  domKey,
+  source,
+  transform,
 });
 const api = (method, path, assertions, options = {}) => {
   const runtimeStatus = method === "GET" && path === "/ops/api/runtime/status";
@@ -554,7 +585,26 @@ const specs = [
     ],
     domAssertions: [
       dom("#dashIncidentTimelineBadges", ["event-count-equals-response", "records.matchedRecords", true]),
-      dom('#dashIncidentTimeline [data-incident-unit="event-record"]', ["contains-fixture-event-summary", "eventId/eventType/status", true], ["safe-fields-equal-response", "eventId/eventType/status", true], ["redaction-boundary-closed", "source/raw/debug/provider", true]),
+      dom('#dashIncidentTimeline [data-incident-unit="event-record"]',
+        ["contains-fixture-event-summary", "eventId/eventType/status", true, rowLocalDom({
+          collectionPath: "records.records",
+          identityPaths: ["eventId"],
+          domKind: "event-record-text",
+          fields: [
+            domField("eventType", "eventType", "text"),
+            domField("status", "status", "text"),
+          ],
+        })],
+        ["safe-fields-equal-response", "eventId/eventType/status", true, rowLocalDom({
+          collectionPath: "records.records",
+          identityPaths: ["eventId"],
+          domKind: "event-record-text",
+          fields: [
+            domField("eventType", "eventType", "text"),
+            domField("status", "status", "text"),
+          ],
+        })],
+        ["redaction-boundary-closed", "source/raw/debug/provider", true, directDom("event-row-redaction-boundary")]),
     ],
   }),
   eventSpec("EVT-024", {
@@ -577,7 +627,20 @@ const specs = [
       api("GET", "/ops/api/runtime/status", body(["webrtcHttp.publishSources", "array", true], ["sessionManager.registryActiveStreams", "number", true])),
       api("GET", "/ops/api/source-health", body(["sourceHealth", "contains-fixture-source", true], ["sourceHealth[].status", "equals-seed", true])),
     ],
-    domAssertions: [dom("#dashHealthBadges", ["counts-equal-responses", "webrtcHttp.publishSources.length/sourceHealth.length", true]), dom("#dashHealthText", ["contains-source-status", "sourceId/status", true])],
+    domAssertions: [
+      dom("#dashHealthBadges", ["counts-equal-responses", "webrtcHttp.publishSources.length/sourceHealth.length", true, directDom("dashboard-health-counts")]),
+      dom("#dashRootCauseList", ["contains-source-status", "sourceId/status/reason", true, rowLocalDom({
+        collectionPath: "sourceHealth",
+        identityPaths: ["sourceId", "id"],
+        identityPathMode: "any",
+        identitySource: "sourceId",
+        domKind: "source-health-text",
+        fields: [
+          domField("status", "status", "text"),
+          domField("reason", "reason", "text"),
+        ],
+      })]),
+    ],
   }),
   eventSpec("EVT-026", {
     featureMeaning: "VA tap and event summary is stable and equal to runtime and events APIs",
@@ -587,9 +650,17 @@ const specs = [
     action: { kind: "seed-refresh-twice", steps: ["create-tap", "seed-event", "capture-runtime-events", "refresh-twice", "compare-stability"] },
     apiAssertions: [
       api("GET", "/ops/api/runtime/status", body(["sessionManager.activeAnalysisTaps", "number-gte", 1], ["ok", "equals", true])),
-      api("GET", "/ops/api/events/status?limit=5", body(["records.records", "contains-fixture-event", true], ["records.records[].status", "equals-seed", true])),
+      api("GET", "/ops/api/events/status?limit=5&includeArchives=1", body(["records.records", "contains-fixture-event", true], ["records.records[].status", "equals-seed", true])),
     ],
-    domAssertions: [dom("#dashActiveTaps", ["number-equals-response", "sessionManager.activeAnalysisTaps", true]), dom("#dashIncidentTimeline", ["contains-fixture-event-summary", "eventId/status", true], ["stable-across-refresh", "eventId/status", true])],
+    domAssertions: [dom("#dashActiveTaps", ["number-equals-response", "sessionManager.activeAnalysisTaps", true]), dom("#dashIncidentTimeline", ["contains-fixture-event-summary", "eventId/status", true, rowLocalDom({
+      collectionPath: "records.records",
+      identityPaths: ["eventId"],
+      domKind: "event-record-text",
+      fields: [
+        domField("eventType", "eventType", "text"),
+        domField("status", "status", "text"),
+      ],
+    })], ["stable-across-refresh", "eventId/status", true, directDom("owned-refresh-stability")])],
     stateSnapshots: [snap("runtime-counts", "baseline-after-cleanup"), ...STATE_BOUNDARIES.map(scope => snap(scope))],
   }),
 ];
@@ -620,28 +691,64 @@ specs.push(
     selector: "[data-event-review-row][data-event-id=evt-028-review4-fixture] [data-testid=ops-vlm-event-review-card]",
     semanticTarget: "ops-vlm-evidence-review", seedKind: "event-evidence-and-vlm-sidecar", seedFields: ["snapshotPath", "clipPath", "summary", "eventExplanation", "falsePositiveHints", "operatorReviewQuestions"],
     bodyAssertions: [["records", "contains-fixture-review", true], ["records[].vlmReview.evidence", "equals-seed", true], ["records[].vlmReview.explanation", "equals-seed", true], ["storage.eventPostPayloadChanged", "equals", false]],
-    domChecks: [["fields-equal-response", "evidence/explanation/hints/questions", true], ["ops-only-boundary", "viewerClientExposureAdded", true]],
+    domChecks: [["fields-equal-response", "evidence/explanation/hints/questions", true, rowLocalDom({
+      collectionPath: "records",
+      identityPaths: ["event.eventId", "review.eventId"],
+      fields: [
+        domField("vlmReview.evidence.snapshotPathPresent", "snapshotPathPresent"),
+        domField("vlmReview.evidence.clipPathPresent", "clipPathPresent"),
+        domField("vlmReview.explanation.summary", "summary", "field-text"),
+        domField("vlmReview.explanation.eventExplanation", "eventExplanation", "field-text"),
+        domField("vlmReview.explanation.falsePositiveHints", "falsePositiveHints", "field-text", "false-positive-list"),
+        domField("vlmReview.explanation.operatorReviewQuestions", "operatorReviewQuestions", "field-text", "operator-question-list"),
+      ],
+    })], ["ops-only-boundary", "viewerClientExposureAdded", true, directDom("ops-only-review-card")]],
   }),
   reviewProjectionSpec("EVT-030", {
     featureMeaning: "VLM sidecar joins only by eventId and exposes exact matching and missing states without EventRecord schema mutation",
-    selector: "[data-event-review-row][data-event-id=evt-030-review4-fixture] [data-testid=ops-vlm-event-review-card]",
+    selector: "[data-event-review-row][data-event-id=evt-030-review4-fixture] [data-testid=ops-vlm-event-review-card], [data-event-review-row][data-event-id=evt-030-review4-fixture-related-1] [data-testid=ops-vlm-event-review-card]",
     semanticTarget: "sidecar-eventid-correlation", seedKind: "matching-and-missing-vlm-sidecars", seedFields: ["matchingEventId", "missingEventId", "observation"],
     bodyAssertions: [["records", "contains-matching-and-missing", true], ["records[].vlmReview.eventRecordPresent", "matches-fixture-mode", true], ["records[].vlmReview.observationPresent", "matches-fixture-mode", true]],
-    domChecks: [["badges-equal-response", "eventRecordPresent/observationPresent", true], ["row-pair-distinct", "matching/missing", true]],
+    domChecks: [["badges-equal-response", "eventRecordPresent/observationPresent", true, rowSetDom({
+      collectionPath: "records",
+      identityPaths: ["event.eventId", "review.eventId"],
+      cardinality: 2,
+      fields: [
+        domField("vlmReview.eventRecordPresent", "eventRecordPresent"),
+        domField("vlmReview.observationPresent", "observationPresent"),
+      ],
+    })], ["row-pair-distinct", "matching/missing", true, directDom("matching-missing-row-pair")]],
   }),
   reviewProjectionSpec("EVT-031", {
     featureMeaning: "VLM summary, explanation, false-positive hints, and operator questions render without raw provider prompt or response",
     selector: "[data-event-review-row][data-event-id=evt-031-review4-fixture] [data-testid=ops-vlm-event-review-card]",
     semanticTarget: "redacted-vlm-review", seedKind: "vlm-explanation", seedFields: ["summary", "eventExplanation", "falsePositiveHints", "operatorReviewQuestions", "rawCanary"],
     bodyAssertions: [["records[].vlmReview.explanation", "equals-seed", true], ["records[].vlmReview.observationPresent", "equals", true], ["$body", "not-contains-seed-raw-canary", true]],
-    domChecks: [["fields-equal-response", "summary/eventExplanation/falsePositiveHints/operatorReviewQuestions", true], ["not-contains-seed-raw-canary", "rawCanary", true]],
+    domChecks: [["fields-equal-response", "summary/eventExplanation/falsePositiveHints/operatorReviewQuestions", true, rowLocalDom({
+      collectionPath: "records",
+      identityPaths: ["event.eventId", "review.eventId"],
+      fields: [
+        domField("vlmReview.explanation.summary", "summary", "field-text"),
+        domField("vlmReview.explanation.eventExplanation", "eventExplanation", "field-text"),
+        domField("vlmReview.explanation.falsePositiveHints", "falsePositiveHints", "field-text", "false-positive-list"),
+        domField("vlmReview.explanation.operatorReviewQuestions", "operatorReviewQuestions", "field-text", "operator-question-list"),
+      ],
+    })], ["not-contains-seed-raw-canary", "rawCanary", true, directDom("sensitive-canary-absent")]],
   }),
   reviewProjectionSpec("EVT-036", {
     featureMeaning: "rule suggestion draft wraps a sidecar sourceCandidateReport and never writes product registries or transport payloads",
     selector: "[data-event-review-row][data-event-id=evt-036-review4-fixture] [data-testid=ops-incident-rule-suggestion-review]",
     semanticTarget: "sidecar-rule-suggestion-wrapper", seedKind: "vlm-rule-suggestion-sidecar", seedFields: ["ruleSuggestion", "sourceCandidateReport"],
     bodyAssertions: [["records[].incidentRuleSuggestionReview.sourceCandidateReport", "equals-seed", true], ["records[].incidentRuleSuggestionReview.contract.ruleRegistryWritePerformed", "equals", false], ["records[].incidentRuleSuggestionReview.contract.autoRuleApplied", "equals", false]],
-    domChecks: [["fields-equal-response", "candidateStatus/sourceCandidateReport/manualDraftRoute", true], ["manual-only", "no-auto-save-apply", true]],
+    domChecks: [["fields-equal-response", "candidateStatus/sourceCandidateReport/manualDraftRoute", true, rowLocalDom({
+      collectionPath: "records",
+      identityPaths: ["event.eventId", "review.eventId"],
+      fields: [
+        domField("incidentRuleSuggestionReview.candidateStatus", "candidateStatus"),
+        domField("incidentRuleSuggestionReview.sourceCandidateReport.matchedCandidates", "sourceCandidateCount"),
+        domField("incidentRuleSuggestionReview.manualDraftRoute", "manualDraftRoute"),
+      ],
+    })], ["manual-only", "no-auto-save-apply", true, directDom("manual-rule-draft-only")]],
   }),
   reviewProjectionSpec("EVT-037", {
     featureMeaning: "incident action state persists only to Ops review and audit and is correlated by eventId and incidentId",
@@ -663,10 +770,11 @@ specs.push(
     selector: "#alertDeliveryDryRun", semanticTarget: "alert-delivery-dry-run", seedKind: "alert-delivery-dry-run", seedFields: ["deliveryId", "payload", "redactionCanary"], actionKind: "persisted-mutation",
     steps: ["capture-before-snapshots", "seed-alert-delivery", "click-dry-run", "capture-after-snapshots", "read-attempt", "read-audit", "restore-byte-exact"],
     apiAssertions: [
-      api("POST", "/ops/api/alerts/deliveries/dry-run", body(["schema", "equals", "media-server.ops.alert-delivery-dry-run.v1"], ["payloadPreview.schema", "equals", "media-server.ops.alert-delivery-payload-preview.v1"], ["status", "string-non-empty", true])),
-      api("GET", "/ops/api/audit?eventId=evt-038-review4-fixture", body(["entries", "contains-dry-run-action", true], ["entries", "contains-fixture-event", true])),
+      api("POST", "/ops/api/alerts/deliveries/dry-run", body(["schema", "equals", "media-server.ops.alert-delivery-dry-run.v1"], ["payloadPreviews[].schema", "equals", "media-server.ops.alert-delivery-payload-preview.v1"], ["attempts[].schema", "equals", "media-server.ops.alert-delivery-attempt.v1"], ["status", "equals", "ops-alert-delivery-dry-run"])),
+      api("GET", "/ops/api/alerts/deliveries", body(["attempts", "contains-fixture-delivery", true], ["attempts[].dryRun", "equals", true], ["attempts[].externalDeliveryPerformed", "equals", false])),
+      api("GET", "/ops/api/audit", body(["entries", "contains-dry-run-action", true], ["entries", "contains-response-event", true], ["entries", "contains-fixture-delivery", true])),
     ],
-    domAssertions: [dom("#alertDeliveryPayloadPreview", ["payload-equals-response", "payloadPreview", true], ["not-contains-sensitive-canary", "redactionCanary", true]), dom("#alertDeliveryDryRunResult", ["status-equals-response", "status", true])],
+    domAssertions: [dom("#alertDeliveryPayloadPreview", ["payload-equals-response", "payloadPreviews[0]", true], ["not-contains-sensitive-canary", "redactionCanary", true]), dom("#alertDeliveryDryRunResult", ["status-equals-response", "status/dryRun/attempts.length/audit.action", true])],
     allowedStateChanges: ["alert-delivery-attempt", "ops-audit"], stateSnapshots: [snap("alert-delivery-attempt", "restore"), snap("ops-audit", "restore"), ...STATE_BOUNDARIES.map(scope => snap(scope))],
     cleanup: { required: true, strategy: "restore-byte-exact-snapshots", assertions: ["attempt-jsonl-restored", "audit-jsonl-restored", "event-and-transport-hashes-unchanged"] },
   }),

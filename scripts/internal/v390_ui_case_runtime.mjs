@@ -54,6 +54,82 @@ export function assertInactiveOrEqualBeforeCleanup({ caseId, observed, expectedR
   return { mode: "inactive", sourceInactive, viewInactive };
 }
 
+export function validateAlertDeliveryDryRunReadback({
+  caseId,
+  fixtureId,
+  response,
+  deliveries,
+  audit,
+  dom,
+} = {}) {
+  const preview = response?.payloadPreview;
+  const responseAttempt = response?.attempt;
+  assert(response?.status === "ops-alert-delivery-dry-run" &&
+    response?.schema === "media-server.ops.alert-delivery-dry-run.v1" &&
+    response?.dryRun === true && response?.externalDeliveryPerformed === false &&
+    response?.eventPostPayloadChanged === false &&
+    response?.auditAction === "alert-delivery-dry-run",
+  `${caseId} alert dry-run response contract mismatch`);
+  assert(preview?.deliveryId === fixtureId && preview?.eventId &&
+    preview?.schema === "media-server.ops.alert-delivery-payload-preview.v1" &&
+    preview?.payloadRedacted === true,
+  `${caseId} alert dry-run preview identity mismatch`);
+  assert(responseAttempt?.schema === "media-server.ops.alert-delivery-attempt.v1" &&
+    responseAttempt.deliveryId === preview.deliveryId &&
+    responseAttempt.eventId === preview.eventId &&
+    responseAttempt.eventType === preview.eventType &&
+    responseAttempt.sourceId === preview.sourceId &&
+    responseAttempt.status === "dry-run" && responseAttempt.transport === "dry-run" &&
+    responseAttempt.dryRun === true && responseAttempt.externalDeliveryPerformed === false &&
+    responseAttempt.eventPostPayloadChanged === false,
+  `${caseId} alert dry-run response attempt mismatch`);
+  const attempts = Array.isArray(deliveries?.attempts) ? deliveries.attempts : [];
+  const matchingAttempts = attempts.filter(attempt =>
+    attempt?.deliveryId === preview.deliveryId && attempt?.eventId === preview.eventId);
+  assert(matchingAttempts.length === 1,
+    `${caseId} alert dry-run authoritative attempt cardinality mismatch: ${matchingAttempts.length}`);
+  const attempt = matchingAttempts[0];
+  assert(attempt?.schema === "media-server.ops.alert-delivery-attempt.v1" &&
+    attempt.eventType === preview.eventType && attempt.sourceId === preview.sourceId &&
+    attempt.status === "dry-run" && attempt.transport === "dry-run" &&
+    attempt.dryRun === true && attempt.externalDeliveryPerformed === false &&
+    attempt.eventPostPayloadChanged === false,
+  `${caseId} alert dry-run authoritative attempt projection mismatch`);
+  const entries = Array.isArray(audit?.entries) ? audit.entries : [];
+  const matchingAudit = entries.filter(entry =>
+    entry?.action === "alert-delivery-dry-run" &&
+    entry?.target === `alert-delivery:${fixtureId}` &&
+    entry?.after?.eventId === preview.eventId);
+  assert(matchingAudit.length === 1,
+    `${caseId} alert dry-run authoritative audit cardinality mismatch: ${matchingAudit.length}`);
+  assert(dom?.previewCount === 1 && dom?.resultCount === 1 &&
+    dom.preview?.schema === preview.schema &&
+    dom.preview?.deliveryId === preview.deliveryId &&
+    dom.preview?.eventId === preview.eventId &&
+    dom.preview?.eventType === preview.eventType &&
+    dom.preview?.sourceId === preview.sourceId &&
+    dom.preview?.payloadRedacted === "true" &&
+    dom.result?.status === response.status && dom.result?.dryRun === "true" &&
+    dom.result?.attemptCount === "1" &&
+    dom.result?.externalDeliveryPerformed === "false" &&
+    dom.result?.auditAction === "alert-delivery-dry-run",
+  `${caseId} alert dry-run DOM projection mismatch`);
+  return {
+    schema: "media-server.v390-ui-alert-delivery-dry-run-readback.v1",
+    fixtureId,
+    eventIdSha256: sha256Text(preview.eventId),
+    responseSha256: sha256Text(stableJson(response)),
+    attemptSha256: sha256Text(stableJson(attempt)),
+    auditSha256: sha256Text(stableJson(matchingAudit[0])),
+    domSha256: sha256Text(stableJson(dom)),
+    responseBound: true,
+    attemptBound: true,
+    auditBound: true,
+    domBound: true,
+    persistedMutationObserved: true,
+  };
+}
+
 function profile(expectedBehaviorSha256, requiredChecks) {
   return Object.freeze({ expectedBehaviorSha256, requiredChecks: Object.freeze([...requiredChecks]) });
 }
@@ -2869,7 +2945,8 @@ export function createV390UiCaseRuntime({
 
     const observations = [];
     if (plan.vlm) {
-      for (const eventId of eventIds) {
+      for (const [index, eventId] of eventIds.entries()) {
+        if (kind === "matching-and-missing-vlm-sidecars" && index === 1) continue;
         observations.push(seedVlmRuleSuggestionFixture(observationPath, {
           eventId,
           sourceId: source.sourceId,
@@ -3360,8 +3437,10 @@ export function createV390UiCaseRuntime({
     const requestByPath = {};
     const seedByPath = {};
     const domResponseBaselineByTarget = {};
+    const domResponseBaselineByAssertionKey = {};
     const domFixtureIdentityByTarget = {};
     const rowLocalResponseTargets = [];
+    const requestRowLocalBaselineByAssertionKey = {};
     const mergedQuery = {};
     const baselineBodies = [];
     for (const request of spec.requests) {
@@ -3455,6 +3534,113 @@ export function createV390UiCaseRuntime({
         }
       }
     }
+    const assertionBindingKey = assertion =>
+      `${String(assertion?.operator || "")}\n${String(assertion?.target || "")}`;
+    const rowsAtPath = collectionPath => baselineBodies
+      .flatMap(body => eventExactValuesAtPath(body, collectionPath))
+      .flatMap(value => Array.isArray(value) ? value : [value])
+      .filter(value => value && typeof value === "object" && !Array.isArray(value));
+    const rowMatchesIdentity = (row, identityPaths, identityValue, mode) => {
+      const matches = identityPaths.map(identityPath => {
+        const values = eventExactValuesAtPath(row, identityPath);
+        return values.length === 1 && String(values[0]) === String(identityValue);
+      });
+      return mode === "any" ? matches.some(Boolean) : matches.every(Boolean);
+    };
+    const projectBoundRow = (row, fields) => Object.fromEntries(fields.map(field => {
+      const values = eventExactValuesAtPath(row, field.responsePath);
+      assert(values.length === 1,
+        `${item.caseId} bound response field cardinality mismatch: ${field.responsePath}/${values.length}`);
+      return [field.responsePath, values[0]];
+    }));
+    for (const domContract of spec.dom || []) {
+      for (const assertion of domContract.assertions || []) {
+        const binding = assertion.binding;
+        if (!binding || !["row-local-response", "row-set-response"].includes(binding.mode)) continue;
+        assert(typeof binding.collectionPath === "string" && binding.collectionPath &&
+          Array.isArray(binding.identityPaths) && binding.identityPaths.length > 0 &&
+          ["all", "any"].includes(binding.identityPathMode) &&
+          Array.isArray(binding.fields) && binding.fields.length > 0,
+        `${item.caseId} DOM response binding is incomplete: ${assertion.operator}/${assertion.target}`);
+        const identityValues = binding.identitySource === "eventIds"
+          ? (Array.isArray(context.catalogBindings.eventIds) ? context.catalogBindings.eventIds.map(String) : [])
+          : binding.identitySource === "sourceId"
+          ? [String(templateValues.sourceId)]
+          : [String(context.fixtureId)];
+        const expectedCardinality = binding.mode === "row-set-response"
+          ? Number(binding.cardinality)
+          : 1;
+        assert(identityValues.length === expectedCardinality && new Set(identityValues).size === expectedCardinality,
+          `${item.caseId} DOM response identity set cardinality mismatch`);
+        const rows = rowsAtPath(binding.collectionPath);
+        const expectedRows = identityValues.map(identityValue => {
+          const matches = rows.filter(row => rowMatchesIdentity(
+            row,
+            binding.identityPaths,
+            identityValue,
+            binding.identityPathMode,
+          ));
+          assert(matches.length === 1,
+            `${item.caseId} bound response row cardinality mismatch: ${identityValue}/${matches.length}`);
+          return {
+            identityValue,
+            projection: projectBoundRow(matches[0], binding.fields),
+          };
+        });
+        const baseline = binding.mode === "row-set-response"
+          ? {
+              schema: "media-server.v390-ui-event-row-set-response-baseline.v1",
+              collectionPath: binding.collectionPath,
+              identityPaths: [...binding.identityPaths],
+              identityPathMode: binding.identityPathMode,
+              identityValues,
+              projectionPaths: binding.fields.map(field => field.responsePath),
+              expectedRows,
+            }
+          : {
+              schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+              identityKind: binding.domKind === "event-record-text"
+                ? "event-record"
+                : (binding.domKind === "source-health-text" ? "source-health" : "event-review"),
+              collectionPath: binding.collectionPath,
+              identityPaths: [...binding.identityPaths],
+              identityPathMode: binding.identityPathMode,
+              identityValue: identityValues[0],
+              projectionPaths: binding.fields.map(field => field.responsePath),
+              expectedProjection: expectedRows[0].projection,
+            };
+        domResponseBaselineByAssertionKey[assertionBindingKey(assertion)] = baseline;
+        if (binding.domKind === "event-record-text") {
+          const projection = expectedRows[0].projection;
+          const eventType = String(projection.eventType || "").trim();
+          const status = String(projection.status || "").trim();
+          assert(eventType && status,
+            `${item.caseId} bound EventRecord DOM projection is incomplete`);
+          domFixtureIdentityByTarget[String(assertion.target)] = {
+            schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+            kind: "event-record",
+            eventId: identityValues[0],
+            eventType,
+            status,
+            expectedNodeTokens: [identityValues[0], eventType, status],
+          };
+        } else if (binding.domKind === "source-health-text") {
+          const projection = expectedRows[0].projection;
+          const status = String(projection.status || "").trim();
+          const reason = String(projection.reason || "").trim();
+          assert(status && reason,
+            `${item.caseId} bound source-health DOM projection is incomplete`);
+          domFixtureIdentityByTarget[String(assertion.target)] = {
+            schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+            kind: "source-health",
+            sourceId: identityValues[0],
+            status,
+            reason,
+            expectedNodeTokens: [identityValues[0], status, reason],
+          };
+        }
+      }
+    }
     if (item.caseId === "EVT-003" || item.caseId === "EVT-025") {
       const sourceId = templateValues.sourceId;
       const sourceHealth = responseByPath.sourceHealth;
@@ -3496,6 +3682,19 @@ export function createV390UiCaseRuntime({
       }
       seedByPath["sourceHealth[].status"] = status;
       seedByPath["sourceHealth[].reason"] = reason;
+      if (item.caseId === "EVT-025") {
+        requestRowLocalBaselineByAssertionKey[
+          "GET /ops/api/source-health\nequals-seed\nsourceHealth[].status"
+        ] = {
+          schema: "media-server.v390-ui-event-request-row-local-baseline.v1",
+          collectionPath: "sourceHealth",
+          identityPaths: ["sourceId", "id"],
+          identityPathMode: "any",
+          identityValue: sourceId,
+          projectionPath: "status",
+          expectedValue: status,
+        };
+      }
       templateValues.channelId = sourceId;
       templateValues.status = status;
       templateValues.reason = reason;
@@ -3551,6 +3750,7 @@ export function createV390UiCaseRuntime({
         requestByPath,
         priorResponseByPath: responseByPath,
         domResponseBaselineByTarget,
+        domResponseBaselineByAssertionKey,
         domFixtureIdentityByTarget,
         expectedFixtureIdentity: context.expectedFixtureIdentity,
         rowLocalResponseTargets,
@@ -3558,6 +3758,7 @@ export function createV390UiCaseRuntime({
         responseSamplesByRequest,
         sensitiveCanaries: canaries,
         repeatedRequests: requirements.repeatedRequests,
+        requestRowLocalBaselineByAssertionKey,
       },
     };
   }
@@ -4342,13 +4543,84 @@ export function createV390UiCaseRuntime({
     return readEndpointRecord(endpoint, item, context, { ...options, freshRole: true });
   }
 
-  async function verifyMutationReadback(item, context) {
+  async function verifyMutationReadback(item, context, runtime = {}) {
     assert(item.workflow?.workflowClass === "persisted-mutation",
       `${item.caseId} mutation readback is only valid for persisted workflows`);
     const endpointSpec = item.workflow.productAction?.endpoint;
     assert(endpointSpec?.method && endpointSpec.path,
       `${item.caseId} mutation readback endpoint is unavailable`);
     const endpoint = expandFixturePath(endpointSpec.path, context.fixtureId);
+    if (endpointSpec.method === "POST" && endpoint === "/ops/api/alerts/deliveries/dry-run") {
+      const action = runtime.action;
+      const correlationId = String(action?.semanticCompletion?.correlationId || "");
+      const pathMatches = entry => {
+        try { return new URL(entry?.url || "").pathname === endpoint; } catch { return false; }
+      };
+      const requestEntries = (runtime.networkResponses || []).filter(entry =>
+        entry?.phase === "request-start" && entry?.method === "POST" &&
+        entry?.correlationId === correlationId && pathMatches(entry));
+      const responseEntries = (runtime.networkResponses || []).filter(entry =>
+        entry?.phase === "response" && entry?.method === "POST" &&
+        entry?.correlationId === correlationId && pathMatches(entry));
+      assert(correlationId && requestEntries.length === 1 && responseEntries.length === 1,
+        `${item.caseId} alert dry-run initiating request/response cardinality mismatch`);
+      const requestEntry = requestEntries[0];
+      const responseEntry = responseEntries[0];
+      assert(responseEntry.status === 200 && responseEntry.responseRequestObjectObserved === true &&
+        responseEntry.safeResponseProjectionSource === "playwright-response-json" &&
+        responseEntry.safeResponseProjectionKind === "alert-delivery-dry-run" &&
+        requestEntry.requestId === responseEntry.requestId &&
+        requestEntry.caseRequestIdentity === responseEntry.caseRequestIdentity &&
+        requestEntry.caseRequestSequence === responseEntry.caseRequestSequence,
+      `${item.caseId} alert dry-run initiating response identity mismatch`);
+      const response = responseEntry.safeResponseBody;
+      assert(response?.payloadPreview?.deliveryId === context.fixtureId,
+        `${item.caseId} alert dry-run response fixture binding mismatch`);
+      const deliveries = await requestEndpoint(
+        "GET", "/ops/api/alerts/deliveries", null, item, context, [200],
+        { freshRole: true, roleOverride: "operator" },
+      );
+      const eventId = String(response.payloadPreview.eventId || "");
+      const audit = await requestEndpoint(
+        "GET", `/ops/api/audit?eventId=${encodeURIComponent(eventId)}&limit=25`,
+        null, item, context, [200], { freshRole: true, roleOverride: "operator" },
+      );
+      assert(runtime.browser && typeof runtime.browser.evaluate === "function",
+        `${item.caseId} alert dry-run browser readback is unavailable`);
+      const dom = await runtime.browser.evaluate(() => {
+        const previews = document.querySelectorAll('#alertDeliveryPayloadPreview');
+        const results = document.querySelectorAll('#alertDeliveryDryRunResult');
+        const preview = previews.length === 1 ? previews[0] : null;
+        const result = results.length === 1 ? results[0] : null;
+        return {
+          previewCount: previews.length,
+          resultCount: results.length,
+          preview: preview ? {
+            schema: preview.dataset.eventSemanticSchema || '',
+            deliveryId: preview.dataset.eventSemanticDeliveryId || '',
+            eventId: preview.dataset.eventSemanticEventId || '',
+            eventType: preview.dataset.eventSemanticEventType || '',
+            sourceId: preview.dataset.eventSemanticSourceId || '',
+            payloadRedacted: preview.dataset.eventSemanticPayloadRedacted || '',
+          } : null,
+          result: result ? {
+            status: result.dataset.eventSemanticStatus || '',
+            dryRun: result.dataset.eventSemanticDryRun || '',
+            attemptCount: result.dataset.eventSemanticAttemptCount || '',
+            externalDeliveryPerformed: result.dataset.eventSemanticExternalDeliveryPerformed || '',
+            auditAction: result.dataset.eventSemanticAuditAction || '',
+          } : null,
+        };
+      });
+      return validateAlertDeliveryDryRunReadback({
+        caseId: item.caseId,
+        fixtureId: context.fixtureId,
+        response,
+        deliveries: deliveries.json,
+        audit: audit.json,
+        dom,
+      });
+    }
     const observed = await freshAuthoritativeReadback(endpoint, item, context);
     const before = context.mutationBaselineRecord;
     const changed = stableJson(observed) !== stableJson(before);

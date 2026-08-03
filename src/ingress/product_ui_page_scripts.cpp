@@ -3338,6 +3338,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: counts.egress > 0 ? '송출 활성' : '송출 대기', tone: counts.egress > 0 ? '' : 'info' },
           { text: `라이브 소스 ${sourceHealthCounts.live}/${sourceHealthCounts.total}`, tone: sourceHealthCounts.offline > 0 ? 'bad' : (sourceHealthCounts.stale > 0 ? 'warn' : 'info') }
         ]);
+        const healthBadges = document.getElementById('dashHealthBadges');
+        if (healthBadges) {
+          healthBadges.dataset.eventSemanticPublishSourceCount = String(counts.publishSources);
+          healthBadges.dataset.eventSemanticSourceHealthCount = String(sourceHealthCounts.total);
+        }
         setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps} · ${dashboardSourceHealthStatusText(sourceHealth)}`);
         renderDashboardRuntimeTrend(runtime, sourceHealth, eventsStatus);
         renderBadges('dashRuntimeRows', [
@@ -4277,10 +4282,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         const questionText = questions.length ? questions.slice(0, 2).map(display).join(' · ') : '운영자 질문 없음';
         return `<div class="ops-vlm-event-review" data-testid="ops-vlm-event-review-card" data-vlm-review-contract="ops-only-no-client-exposure">
           <div class="badge-row">${badges.map(item => `<span class="chip${item.tone ? ` ${escapeHtml(item.tone)}` : ''}">${escapeHtml(item.text)}</span>`).join('')}</div>
-          <strong>${escapeHtml(display(explanation.summary || 'VLM explanation pending'))}</strong>
-          <span class="ops-rule-note">${escapeHtml(display(explanation.eventExplanation || 'EventRecord evidence와 matching observation이 있으면 설명을 표시합니다.'))}</span>
-          <span class="ops-rule-note">오탐: ${escapeHtml(hintText)}</span>
-          <span class="ops-rule-note">확인: ${escapeHtml(questionText)}</span>
+          <strong data-event-semantic-field="summary">${escapeHtml(display(explanation.summary || 'VLM explanation pending'))}</strong>
+          <span class="ops-rule-note" data-event-semantic-field="eventExplanation">${escapeHtml(display(explanation.eventExplanation || 'EventRecord evidence와 matching observation이 있으면 설명을 표시합니다.'))}</span>
+          <span class="ops-rule-note" data-event-semantic-field="falsePositiveHints">오탐: ${escapeHtml(hintText)}</span>
+          <span class="ops-rule-note" data-event-semantic-field="operatorReviewQuestions">확인: ${escapeHtml(questionText)}</span>
           <div class="ops-vlm-review-action-controls" data-testid="ops-vlm-review-action-controls" data-vlm-review-action-workflow="ops-only-review-state">
             <label>VLM action ${eventReviewSelectHtml('vlmAction', VLM_REVIEW_ACTIONS, vlmAction.action || 'not-reviewed')}</label>
             <label>Action target ${eventReviewSelectHtml('vlmActionTarget', VLM_REVIEW_ACTION_TARGETS, vlmAction.target || 'eventExplanation')}</label>
@@ -4319,6 +4324,26 @@ void AppendOpsShellScript(std::ostringstream& out,
             ${tableCellHtml('업데이트', `<div class="event-review-actions"><span>${escapeHtml(updated)}</span><button type="button" class="button button-secondary button-compact" data-event-review-save ${eventId ? '' : 'disabled'}>저장</button></div>`)}
           </tr>`;
         }).join('');
+        tbody.querySelectorAll('[data-event-review-row]').forEach((row, index) => {
+          const vlm = items[index]?.vlmReview || {};
+          const evidence = vlm.evidence || {};
+          const card = row.querySelector('[data-testid="ops-vlm-event-review-card"]');
+          if (!card) return;
+          card.dataset.eventSemanticEventRecordPresent = vlm.eventRecordPresent === true ? 'true' : 'false';
+          card.dataset.eventSemanticObservationPresent = vlm.observationPresent === true ? 'true' : 'false';
+          card.dataset.eventSemanticSnapshotPathPresent = evidence.snapshotPathPresent === true ? 'true' : 'false';
+          card.dataset.eventSemanticClipPathPresent = evidence.clipPathPresent === true ? 'true' : 'false';
+          const suggestionReview = items[index]?.incidentRuleSuggestionReview || {};
+          const suggestionReport = suggestionReview.sourceCandidateReport || {};
+          const suggestionCandidates = Array.isArray(suggestionReport.candidates) ? suggestionReport.candidates : [];
+          const suggestionCard = row.querySelector('[data-testid="ops-incident-rule-suggestion-review"]');
+          if (suggestionCard) {
+            suggestionCard.dataset.eventSemanticCandidateStatus = suggestionReview.candidateStatus || 'no-rule-suggestion-candidate';
+            suggestionCard.dataset.eventSemanticSourceCandidateCount = String(suggestionReport.matchedCandidates ?? suggestionCandidates.length);
+            suggestionCard.dataset.eventSemanticManualDraftRoute = suggestionReview.manualDraftRoute ||
+              suggestionReview.matchingRuleSuggestion?.targetRoute || '/ops/rules';
+          }
+        });
         bindEventReviewActions();
       }
       function bindEventReviewActions() {
@@ -5959,6 +5984,23 @@ void AppendOpsShellScript(std::ostringstream& out,
         ];
         setText('alertDeliveryPayloadPreview', previewLines.join(' | '));
         setText('alertDeliveryDryRunResult', resultLines.join(' | '));
+        const previewNode = document.getElementById('alertDeliveryPayloadPreview');
+        if (previewNode) {
+          previewNode.dataset.eventSemanticSchema = String(first.schema || '');
+          previewNode.dataset.eventSemanticDeliveryId = String(first.deliveryId || '');
+          previewNode.dataset.eventSemanticEventId = String(firstEvent.eventId || '');
+          previewNode.dataset.eventSemanticEventType = String(firstEvent.eventType || '');
+          previewNode.dataset.eventSemanticSourceId = String(firstEvent.sourceId || '');
+          previewNode.dataset.eventSemanticPayloadRedacted = first.payloadRedacted === true ? 'true' : 'false';
+        }
+        const resultNode = document.getElementById('alertDeliveryDryRunResult');
+        if (resultNode) {
+          resultNode.dataset.eventSemanticStatus = String(payload.status || '');
+          resultNode.dataset.eventSemanticDryRun = payload.dryRun === true ? 'true' : 'false';
+          resultNode.dataset.eventSemanticAttemptCount = String(attempts.length);
+          resultNode.dataset.eventSemanticExternalDeliveryPerformed = payload.externalDeliveryPerformed === true ? 'true' : 'false';
+          resultNode.dataset.eventSemanticAuditAction = String(payload?.audit?.action || '');
+        }
       }
       function renderAlertDelivery(payload = {}) {
         alertDeliveryPayloadCache = payload;

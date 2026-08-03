@@ -3241,3 +3241,12 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | v2.6.0 release reports | `/tmp/media_server_v260_release_*`, `/tmp/media_server_v260_ui_fulltest_20260615`, `/private/tmp/media_server_v260*` | 과거 release summary/report/UI dir, UI dir 삭제 전 9.7MB, publication/closeout/seed/evidence 임시 파일 합계 284KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 확인한 report/summary/html/UI/publication/closeout/seed/evidence 경로 없음 |
 | v2.5.0 release reports | `/private/tmp/media_server_v250*` | 과거 release metadata/closeout/helper/verifier/UI 임시 파일과 디렉터리, 삭제 전 파일 합계 48KB와 0B 임시 디렉터리들 | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 삭제 후 `media_server_v250*` 경로 없음 확인 |
 | v3.9.0 REVIEW4-65 source-flow finalization | `/private/tmp/generate_v390_review4_decisions.mjs` 2,390B, `v390-review4-65-final-decisions.json` 1,215,860B, `v390-review4-65-final3-decisions.json` 1,215,756B, `v390-audit-current.log` 13,324B, `v390-coverage.log` 464B | 거절 candidate 진단·최종 independent approval 입력·짧은 실행 로그. SHA-256은 순서대로 `0622a5b388aae943de6959c70656de75ebc56b15934b4f1113dc0d0c88abd9c8`, `80e77284fe88c4a4c7d14551b78c05780a06e9092b943b1755b5c753555f4b09`, `9024dbd7a6dc0922816f5616399f40551bfe79ffc6ace22b3f7e518dccab793c`, `c89aade6482821a5611598500f38dcebc5926504078bbb751654e5fba0776926`, `08df7c05bb990b6d2db9e6dd4a8beb2cb4e5ef8441d629aecc20950d692e8ffc` | 최종 approval ledger/canonical manifest와 본 문서에 digest·결과를 이관한 뒤 재현 가능한 임시 파일 5개 삭제 | 삭제 후 다섯 경로 부재를 확인. 실제 30분/exact424/120분 artifact는 아직 생성하지 않음 |
+
+## REVIEW4-65 remaining diagnostic batch static checkpoint (2026-08-03)
+
+| 항목 | 결과 | 실행 경계 |
+| --- | --- | --- |
+| Failure closure | 직전 125건 diagnostic의 9개 failure class(`EVT-023/024/025/026/028/030/031/036/038`)를 response/render-cycle, row-local/row-set identity와 endpoint-owned readback으로 일괄 보정 | 단건 actual 재실행 0회, assertion 완화와 case 전용 PASS 없음 |
+| Native/Semantic | Generator 정확히 1회, native `424=423+1`, unsupported 0. 최종 candidate `33f19d93...8f5e67`, 984 carry-forward + UI-014/UI-046 independent | 최종 package `f6c19080...7892d`, decision `5ba61dac...2ad0`. Producer 성공 2회, 중간 prior-index prevalidation FAIL 1회는 fixture 교체 전 종료 |
+| Static gates | Build PASS, native50, event28/evaluator20/runtime47, completion36, adapter26, diagnostic22, Policy producer10, acceptance21, launcher18, final-integrity12, semantic/approval/feature 986/986 PASS | 125건 actual batch 전 checkpoint 결과이며 release acceptance를 대체하지 않음 |
+| Actual status | Canonical evidence는 `300 attempted / 299 PASS / 1 FAIL / 124 not-run` 유지 | 125건 batch, `test_ui.sh`, Policy v4 qualification, 30분, 120분, `test_release.sh` 미실행 |

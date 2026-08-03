@@ -1421,3 +1421,12 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 `failure-class=external-network`, `failure-class=tool-unavailable`,
 `failure-class=external-github-access`를 분리해 남깁니다. 이 분류는 release metadata
 환경/접근 실패를 제품 runtime/media 회귀로 축소하거나 과장하지 않기 위한 기준입니다.
+
+## v3.9.0 REVIEW4-65 remaining diagnostic batch static checkpoint
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| 9-case failure closure | `EVT-023/024/025/026/028/030/031/036/038`; native canonical `424=423+1`, unsupported 0 | Generator 정확히 1회. Ordered ID 불변, generic assertion 완화 없음 |
+| Semantic ledger | 최종 candidate `33f19d93f4cda0e4a1afc807304f7fd44943765af92458bbdc9e835f428f5e67`; 984 carry-forward + UI-014/UI-046 independent; package `f6c19080...7892d`; decision `5ba61dac...2ad0` | Producer 성공 2회. 중간 prior-index prevalidation FAIL 1회는 replacement 전 종료; 최종 audit/approval/implementation/native 원자 갱신, 986/986 PASS |
+| Static checkpoint | build, native50, event28/evaluator20/runtime47, completion36, adapter26, diagnostic22, Policy producer10, acceptance21, launcher18, final-integrity12 PASS | 125건 actual batch 이전 정적 evidence |
+| Actual acceptance | 기존 canonical `300 attempted / 299 PASS / 1 FAIL / 124 not-run` | 125건 batch, `./test_ui.sh`, Policy v4, 30분, 120분, release 미실행. 릴리즈 완료 evidence가 아님 |

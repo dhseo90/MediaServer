@@ -625,6 +625,34 @@ check("endpoint-owned full product responses are projected only through the Play
       sourceDraft: { sourceId: "src-031-source", enabled: true },
       publishedViewDraft: { viewId: "src-031-view", sourceId: "src-031-source", enabled: true },
     }],
+    ["POST", "/ops/api/alerts/deliveries/dry-run", 200, fullAlertDeliveryDryRunResponse(), {
+      status: "ops-alert-delivery-dry-run",
+      schema: "media-server.ops.alert-delivery-dry-run.v1",
+      dryRun: true,
+      externalDeliveryPerformed: false,
+      eventPostPayloadChanged: false,
+      auditAction: "alert-delivery-dry-run",
+      payloadPreview: {
+        schema: "media-server.ops.alert-delivery-payload-preview.v1",
+        deliveryId: "evt-038-review4-fixture",
+        eventId: "evt-038-runtime-event",
+        eventType: "intrusion",
+        sourceId: "sample",
+        payloadRedacted: true,
+      },
+      attempt: {
+        schema: "media-server.ops.alert-delivery-attempt.v1",
+        deliveryId: "evt-038-review4-fixture",
+        eventId: "evt-038-runtime-event",
+        eventType: "intrusion",
+        sourceId: "sample",
+        status: "dry-run",
+        transport: "dry-run",
+        dryRun: true,
+        externalDeliveryPerformed: false,
+        eventPostPayloadChanged: false,
+      },
+    }],
   ];
   for (const [method, pathname, status, payload, expected] of cases) {
     const observed = await captureListenerProjection({ method, pathname, status, payload });
@@ -760,6 +788,7 @@ check("endpoint-owned non-success responses fail before success-shape projection
     ["DELETE", "/ops/api/sources/src-010-fixture", 409, 200],
     ["DELETE", "/ops/api/views/src-019-fixture", 403, 200],
     ["POST", "/ops/api/onvif/import-draft", 409, 200],
+    ["POST", "/ops/api/alerts/deliveries/dry-run", 409, 200],
   ];
   for (const [method, pathname, status, expectedStatus] of cases) {
     const observed = await captureListenerProjection({
@@ -1137,6 +1166,64 @@ function fullOnvifDraftResponse() {
       maxTiles: 1,
       enabled: true,
     },
+  };
+}
+
+function fullAlertDeliveryDryRunResponse() {
+  const preview = {
+    schema: "media-server.ops.alert-delivery-payload-preview.v1",
+    deliveryId: "evt-038-review4-fixture",
+    kind: "webhook",
+    label: "REVIEW4 EVT-038",
+    endpointMasked: "alerts.example.invalid/[redacted]",
+    payloadRedacted: true,
+    event: {
+      eventId: "evt-038-runtime-event",
+      eventType: "intrusion",
+      sourceId: "sample",
+    },
+    body: {
+      deliveryId: "evt-038-review4-fixture",
+      kind: "webhook",
+      eventId: "evt-038-runtime-event",
+      eventType: "intrusion",
+      sourceId: "sample",
+      endpoint: "[redacted-alert-target]",
+    },
+    eventPostPayloadChanged: false,
+    externalDeliveryPerformed: false,
+  };
+  return {
+    status: "ops-alert-delivery-dry-run",
+    schema: "media-server.ops.alert-delivery-dry-run.v1",
+    dryRun: true,
+    externalDeliveryPerformed: false,
+    eventPostPayloadChanged: false,
+    contract: {
+      alertTargetDraft: true,
+      payloadPreview: true,
+      deliveryAttemptLog: true,
+      separateFromEventPostPayload: true,
+    },
+    audit: { area: "events", action: "alert-delivery-dry-run" },
+    payloadPreviews: [preview],
+    attempts: [{
+      schema: "media-server.ops.alert-delivery-attempt.v1",
+      deliveryId: preview.deliveryId,
+      kind: "webhook",
+      eventId: preview.event.eventId,
+      eventType: preview.event.eventType,
+      sourceId: preview.event.sourceId,
+      status: "dry-run",
+      transport: "dry-run",
+      endpointMasked: preview.endpointMasked,
+      retryPolicy: { maxAttempts: 3, backoffMs: 2000, bounded: true },
+      dryRun: true,
+      externalDeliveryPerformed: false,
+      eventPostPayloadChanged: false,
+      attemptedAtMs: 1,
+      payloadPreview: preview,
+    }],
   };
 }
 
