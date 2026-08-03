@@ -37,6 +37,8 @@ import {
   eventRecordFixtureFamilyExpectedRecords,
   eventReviewSeedSiblingCaseIds,
   eventExactSeedMaterializerRegistry,
+  incidentMemorySearchContractCaseIds,
+  incidentMemorySearchSeedBinding,
   fixtureViewerScopes,
   formReadbackProfiles,
   requiresFixtureSafeIncidentDigest,
@@ -98,6 +100,75 @@ check("generated manifest validates against canonical exact ordered 424", () => 
   assert(result.unsupported === 0, `unsupported must be zero: ${result.unsupported}`);
   assert(result.positiveNative === 423, `positiveNative mismatch: ${result.positiveNative}`);
   assert(result.negativeRoute === 1, `negativeRoute mismatch: ${result.negativeRoute}`);
+});
+
+check("incident memory search fixtures bind every product filter and searchable query", () => {
+  assert(JSON.stringify(incidentMemorySearchContractCaseIds) ===
+    JSON.stringify(["EVT-041", "EVT-046", "SAFE-045"]),
+  "incident memory search consumer audit scope drift");
+  const binding = incidentMemorySearchSeedBinding({
+    caseId: "EVT-041",
+    seedKind: "searchable-event-review",
+    fixtureId: "evt-041-review4-fixture",
+    sourceId: "9001",
+  });
+  assert(binding.query === "evt-041-review4-fixture" &&
+    binding.scenarioName === binding.query &&
+    binding.ruleId === "1" &&
+    binding.sourceId === "9001" &&
+    binding.incidentStatus === "new" &&
+    binding.queryTermsSha256 &&
+    !JSON.stringify(binding).includes("Authorization"),
+  "EVT-041 memory search seed is not bound to query/rule/source/status");
+  const searchableEventReviewPlan = eventExactSeedMaterializerRegistry["searchable-event-review"];
+  const registryStart = runtimeSource.indexOf(
+    "export const eventExactSeedMaterializerRegistry = Object.freeze({",
+  );
+  const registryEnd = runtimeSource.indexOf("\n});", registryStart);
+  const registrySource = runtimeSource.slice(registryStart, registryEnd);
+  const declaredSeedKinds = [...registrySource.matchAll(/^\s{2}"([^"]+)":/gm)]
+    .map(match => match[1]);
+  const eventMaterializerStart = runtimeSource.indexOf(
+    "async function materializeEventExactSeed(item, context, spec)",
+  );
+  const eventMaterializerSource = runtimeSource.slice(eventMaterializerStart);
+  assert(searchableEventReviewPlan?.eventRecords === 1 &&
+    searchableEventReviewPlan?.review === true &&
+    Object.keys(searchableEventReviewPlan).length === 2 &&
+    !("memorySearch" in searchableEventReviewPlan) &&
+    registryStart >= 0 && registryEnd > registryStart &&
+    declaredSeedKinds.length === new Set(declaredSeedKinds).size &&
+    declaredSeedKinds.filter(seedKind => seedKind === "searchable-event-review").length === 1 &&
+    eventMaterializerStart >= 0 &&
+    eventMaterializerSource.includes('const memorySearchSeed = kind === "searchable-event-review"') &&
+    eventMaterializerSource.includes("scenarioName: memorySearchSeed?.scenarioName") &&
+    runtimeSource.includes("...(memorySearchSeed ? { ruleId: memorySearchSeed.ruleId } : {})") &&
+    runtimeSource.includes("incidentStatus: memorySearchSeed?.incidentStatus") &&
+    runtimeOracleSource.includes("bindings.q || bindings.searchQuery || fixtureId"),
+  "shared memory search materializer/runtime call-flow is incomplete");
+  assert(!runtimeOracleSource.includes("exact response token/path missing") &&
+    runnerSource.includes("forbidden response material|unsafe material|sensitive material") &&
+    !runnerSource.includes("/secret|credential|password|token/i.test(message)"),
+  "generic missing response path can still be mislabeled as sensitive material");
+  for (const override of [
+    { seedKind: "unknown-memory-search" },
+    { fixtureId: "" },
+    { sourceId: "" },
+  ]) {
+    let rejected = false;
+    try {
+      incidentMemorySearchSeedBinding({
+        caseId: "EVT-041",
+        seedKind: "searchable-event-review",
+        fixtureId: "evt-041-review4-fixture",
+        sourceId: "9001",
+        ...override,
+      });
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, `incident memory search invalid seed binding was accepted: ${JSON.stringify(override)}`);
+  }
 });
 
 check("event review seed receipts bind PUT response, storage readback, and EventRecord identity", () => {

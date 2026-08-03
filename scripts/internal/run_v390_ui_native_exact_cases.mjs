@@ -3855,7 +3855,9 @@ function safeDiagnosticFailureClass(error) {
   if (/HTTP\s+\d+|status mismatch/i.test(message)) return "http-status-mismatch";
   if (/selector missing|control missing|not visible/i.test(message)) return "control-observation-failed";
   if (/readback|whoami|scope|assigned view/i.test(message)) return "authoritative-readback-failed";
-  if (/secret|credential|password|token/i.test(message)) return "sensitive-material-guard-failed";
+  if (/forbidden response material|unsafe material|sensitive material|secret scan|credential|password(?:hash)?|tokenhash|sessionsecret|authorization/i.test(message)) {
+    return "sensitive-material-guard-failed";
+  }
   return "case-execution-failed";
 }
 

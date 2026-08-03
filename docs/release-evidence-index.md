@@ -1446,3 +1446,12 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Fixed remaining sweep | `v390-ui-diagnostic-20260803122120-11242`; selected 125, attempted 10, PASS 8, FAIL 2, not-run 115 | PASS ID `EVT-023/024/025/028/030/031/036/037`; EVT-026 `OWNED_REFRESH_STABILITY_MISMATCH`, EVT-038 `semantic-readback-observation-mismatch` |
 | Common lifecycle correction | Owned refresh는 중첩 render lifecycle과 exact request/response identity를 검증하고, persisted mutation은 generic 또는 완전한 typed dry-run readback만 허용 | Runtime RED `47/1`→GREEN `48/48`, completion RED `35/1`→GREEN `36/36`; unknown/missing/duplicate/identity·digest drift fail-closed |
 | Actual/release boundary | 보정 후 actual 미실행. Official canonical `299/424`, diagnostic-equivalent `307/424` | Diagnostic-equivalent는 canonical evidence가 아니며 Policy v4, 30분, 120분, `./test_release.sh`는 미실행 |
+
+## v3.9.0 REVIEW4-65 EVT-041 memory-search fixture checkpoint
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| Fixed remaining sweep | `v390-ui-diagnostic-20260803130742-23877`; selected 125, attempted 11, PASS 10, FAIL `EVT-041` 1, not-run 114 | `EVT-026/038` 신규 PASS, diagnostic-equivalent `309/424`; official canonical은 `299/424 PASS` 유지 |
+| Root cause | Searchable fixture query identity/`ruleId` 미결속과 일반 missing-path 오류의 sensitive-material 오분류 | 제품 `memorySearch.hits[].matchedTerms` 필수 schema는 정상 |
+| Source-of-truth | `searchable-event-review` seed kind에서 memory-search binding을 결정적으로 파생하고 기존 registry store/join schema 유지 | Unknown field/seed, missing query, fixture/source mismatch와 duplicate는 fail-closed |
+| Static checkpoint | Runtime `49/49`, event evaluator `20/20`, native `51/51` PASS | 보정 후 actual/browser, Policy v4, 30분, 120분, `./test_release.sh` 미실행 |

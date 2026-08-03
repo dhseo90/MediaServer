@@ -3268,3 +3268,13 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | EVT-026 | `OWNED_REFRESH_STABILITY_MISMATCH`; adapter의 중첩 `renderObservation`을 runtime이 최상위 phase로 잘못 판독 | Owned request/response cardinality·identity, request/render-cycle identity, 시간 순서와 phase/DOM mutation을 공통 검증. Runtime RED `47/1` → GREEN `48/48` |
 | EVT-038 | `semantic-readback-observation-mismatch`; 성공한 typed dry-run response/attempt/audit/DOM readback을 generic mutation schema 전용 completion validator가 거부 | 완전한 typed binding/digest만 허용하고 unknown/missing/drift 거부. Completion RED `35/1` → GREEN `36/36` |
 | Actual/release 상태 | 보정 후 actual 미실행. Official canonical `299/424`, diagnostic-equivalent `307/424` | Policy v4, 30분, 120분, release 미실행. Diagnostic-equivalent는 canonical PASS evidence가 아님 |
+
+## REVIEW4-65 EVT-041 memory-search fixture checkpoint (2026-08-03)
+
+| 항목 | 결과 | 실행 경계 |
+| --- | --- | --- |
+| Fixed remaining sweep | `v390-ui-diagnostic-20260803130742-23877`; selected 125, attempted 11, PASS 10, FAIL 1, not-run 114 | 신규 PASS에 `EVT-026/038` 포함, `EVT-041`에서 fail-stop |
+| 확정 원인 | Searchable fixture query identity/`ruleId` 미결속으로 `memorySearch.hits[].matchedTerms` path가 없었고 일반 path 오류가 sensitive-material로 오분류 | 제품의 필수 `matchedTerms` schema는 정상이며 assertion 삭제나 missing 허용 없음 |
+| Registry/validator | Memory-search binding은 `searchable-event-review` seed kind에서 파생하고 registry는 기존 store/join source-of-truth 유지 | Unknown field/seed, missing query, fixture/source mismatch, duplicate entry/hit를 fail-closed |
+| Focused static | Runtime `49/49`, event evaluator `20/20`, native `51/51` PASS | 보정 후 actual 미실행 |
+| Actual/release 상태 | Official canonical `299/424`, diagnostic-equivalent `309/424` | Policy v4, 30분, 120분, release 미실행. Diagnostic-equivalent는 canonical PASS evidence가 아님 |

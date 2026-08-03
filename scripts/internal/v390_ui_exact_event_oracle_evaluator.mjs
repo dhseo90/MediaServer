@@ -93,6 +93,132 @@ export function materializeEventExactTemplate(template, values = {}) {
   });
 }
 
+export function validateIncidentMemorySearchResponseProjection({
+  caseId,
+  responseJson,
+  fixtureId,
+  query,
+  sourceId,
+} = {}) {
+  const fail = (path, reason) => {
+    throw new Error(`${caseId || "unknown-case"} incident memory response invalid: ${path}[${reason}]`);
+  };
+  const requiredString = (value, path) => {
+    if (typeof value !== "string" || value.trim().length === 0) fail(path, "type");
+    return value;
+  };
+  const requiredStringArray = (value, path) => {
+    if (!Array.isArray(value)) fail(path, "type");
+    if (value.length === 0) fail(path, "count");
+    if (value.some(item => typeof item !== "string" || item.trim().length === 0)) {
+      fail(path, "item-type");
+    }
+    if (new Set(value).size !== value.length) fail(path, "duplicate");
+    return value;
+  };
+  const unsafeKey = /^(?:authorization|credential|credentials|password|passwordHash|secret|sessionSecret|token|tokenHash|apiKey)$/i;
+  const unsafeValue = /authorization\s*:\s*bearer|password(?:hash)?|sessionsecret|tokenhash|rtsps?:\/\//i;
+  const assertReleaseSafe = (value, path) => {
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => assertReleaseSafe(item, `${path}[${index}]`));
+      return;
+    }
+    if (value && typeof value === "object") {
+      for (const [key, child] of Object.entries(value)) {
+        if (unsafeKey.test(key)) fail(`${path}.${key}`, "unsafe-material");
+        assertReleaseSafe(child, `${path}.${key}`);
+      }
+      return;
+    }
+    if (typeof value === "string" && unsafeValue.test(value)) fail(path, "unsafe-material");
+  };
+  const normalizedCaseId = requiredString(caseId, "caseId");
+  const normalizedFixtureId = requiredString(fixtureId, "fixtureId");
+  const normalizedQuery = requiredString(query, "query");
+  const normalizedSourceId = requiredString(sourceId, "sourceId");
+  if (!responseJson || typeof responseJson !== "object" || Array.isArray(responseJson)) {
+    fail("$", "type");
+  }
+  const memorySearch = responseJson.memorySearch;
+  if (!memorySearch || typeof memorySearch !== "object" || Array.isArray(memorySearch)) {
+    fail("memorySearch", "type");
+  }
+  if (memorySearch.schema !== "media-server.ops.incident-memory-search-view.v1") {
+    fail("memorySearch.schema", "value");
+  }
+  if (memorySearch.query !== normalizedQuery) fail("memorySearch.query", "identity");
+  if (!Array.isArray(memorySearch.hits)) fail("memorySearch.hits", "type");
+  if (memorySearch.hits.length === 0) fail("memorySearch.hits", "count");
+  assertReleaseSafe(memorySearch.hits, "memorySearch.hits");
+
+  const documentIds = new Set();
+  const fixtureHits = [];
+  for (let index = 0; index < memorySearch.hits.length; index += 1) {
+    const path = `memorySearch.hits[${index}]`;
+    const hit = memorySearch.hits[index];
+    if (!hit || typeof hit !== "object" || Array.isArray(hit)) fail(path, "type");
+    const documentId = requiredString(hit.documentId, `${path}.documentId`);
+    const sourceKind = requiredString(hit.sourceKind, `${path}.sourceKind`);
+    const incidentId = requiredString(hit.incidentId, `${path}.incidentId`);
+    requiredString(hit.sourceId, `${path}.sourceId`);
+    requiredString(hit.title, `${path}.title`);
+    requiredString(hit.summary, `${path}.summary`);
+    if (typeof hit.score !== "number" || !Number.isFinite(hit.score)) fail(`${path}.score`, "type");
+    const matchedTerms = requiredStringArray(hit.matchedTerms, `${path}.matchedTerms`);
+    requiredStringArray(hit.highlightFragments, `${path}.highlightFragments`);
+    if (documentIds.has(documentId)) fail("memorySearch.hits[documentId]", "duplicate");
+    documentIds.add(documentId);
+    const documentMatches = documentId === `event-record:${normalizedFixtureId}`;
+    const incidentMatches = incidentId === normalizedFixtureId;
+    if (documentMatches && !incidentMatches) fail("memorySearch.hits[fixture-identity]", "mismatch");
+    if (incidentMatches) {
+      if (sourceKind !== "event-record") fail(`${path}.sourceKind`, "identity");
+      if (hit.sourceId !== normalizedSourceId) fail(`${path}.sourceId`, "identity");
+      fixtureHits.push({ hit, matchedTerms, documentMatches });
+    }
+  }
+  if (fixtureHits.length !== 1) fail("memorySearch.hits[fixture-cardinality]", String(fixtureHits.length));
+  if (!fixtureHits[0].documentMatches) fail("memorySearch.hits[fixture-identity]", "mismatch");
+  const queryTerms = [...new Set((normalizedQuery.toLowerCase().match(/[a-z0-9]+/g) || [])
+    .filter(term => term.length >= 2))];
+  if (queryTerms.length === 0) fail("memorySearch.query", "terms");
+  const fixtureTermSet = new Set(fixtureHits[0].matchedTerms.map(term => term.toLowerCase()));
+  if (!queryTerms.every(term => fixtureTermSet.has(term))) {
+    fail("memorySearch.hits[0].matchedTerms", "query-identity");
+  }
+  const fixtureHit = fixtureHits[0].hit;
+  return {
+    schema: "media-server.v390-ui-incident-memory-search-response-evidence.v1",
+    caseIdDigest: sha256Text(normalizedCaseId),
+    hitCount: memorySearch.hits.length,
+    fixtureHitCount: fixtureHits.length,
+    queryTermCount: queryTerms.length,
+    matchedTermCount: fixtureHit.matchedTerms.length,
+    highlightFragmentCount: fixtureHit.highlightFragments.length,
+    queryDigest: sha256Text(normalizedQuery),
+    fixtureIdentityDigest: sha256Text(`${fixtureHit.documentId}\n${fixtureHit.incidentId}\n${fixtureHit.sourceId}`),
+    matchedTermsDigest: sha256Text(JSON.stringify(fixtureHit.matchedTerms)),
+    highlightFragmentsDigest: sha256Text(JSON.stringify(fixtureHit.highlightFragments)),
+    paths: {
+      "memorySearch.hits": {
+        type: "array",
+        count: memorySearch.hits.length,
+        digest: sha256Text(JSON.stringify(memorySearch.hits.map(hit => hit.documentId))),
+      },
+      "memorySearch.hits[].matchedTerms": {
+        type: "string-array",
+        count: fixtureHit.matchedTerms.length,
+        digest: sha256Text(JSON.stringify(fixtureHit.matchedTerms)),
+      },
+      "memorySearch.hits[].highlightFragments": {
+        type: "string-array",
+        count: fixtureHit.highlightFragments.length,
+        digest: sha256Text(JSON.stringify(fixtureHit.highlightFragments)),
+      },
+    },
+  };
+}
+
 export function eventExactSemanticEvidenceKey({ scope, caseId, operator, subject }) {
   if (!["response", "dom"].includes(scope)) throw new Error(`unsupported semantic evidence scope: ${scope}`);
   if (!caseId || !operator || !subject) throw new Error("semantic evidence key requires caseId, operator, and subject");

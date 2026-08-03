@@ -40,12 +40,80 @@ import {
   captureEndpointOwnedResponseProjection,
   createCaseOwnedRequestIdentityRegistry,
 } from "./v390_ui_native_adapter.mjs";
+import {
+  validateIncidentMemorySearchResponseProjection,
+} from "./v390_ui_exact_event_oracle_evaluator.mjs";
 
 const checks = [];
 const runtimeSource = fs.readFileSync(
   new URL("./v390_ui_exact_oracle_runtime.mjs", import.meta.url),
   "utf8",
 );
+
+await check("incident memory search response evidence is typed, identity-bound, and digest-only", async () => {
+  const fixtureId = "evt-041-review4-fixture";
+  const query = fixtureId;
+  const valid = {
+    memorySearch: {
+      schema: "media-server.ops.incident-memory-search-view.v1",
+      query,
+      hits: [{
+        documentId: `event-record:${fixtureId}`,
+        sourceKind: "event-record",
+        incidentId: fixtureId,
+        sourceId: "9001",
+        title: "EventRecord presence open",
+        summary: "presence person",
+        score: 4,
+        matchedTerms: ["evt", "041", "review4", "fixture"],
+        highlightFragments: ["safe fixture summary"],
+      }],
+    },
+  };
+  const evidence = validateIncidentMemorySearchResponseProjection({
+    caseId: "EVT-041",
+    responseJson: valid,
+    fixtureId,
+    query,
+    sourceId: "9001",
+  });
+  assert(evidence.hitCount === 1 && evidence.fixtureHitCount === 1 &&
+    evidence.matchedTermCount === 4 && evidence.highlightFragmentCount === 1 &&
+    /^[a-f0-9]{64}$/.test(evidence.matchedTermsDigest) &&
+    /^[a-f0-9]{64}$/.test(evidence.highlightFragmentsDigest) &&
+    !JSON.stringify(evidence).includes(fixtureId) &&
+    !JSON.stringify(evidence).includes("safe fixture summary"),
+  "incident memory response evidence retained raw values or missed typed counts/digests");
+
+  const negatives = [
+    ["memorySearch.hits[0].matchedTerms[type]", body => { body.memorySearch.hits[0].matchedTerms = "evt"; }],
+    ["memorySearch.hits[0].matchedTerms[count]", body => { body.memorySearch.hits[0].matchedTerms = []; }],
+    ["memorySearch.hits[0].matchedTerms[duplicate]", body => { body.memorySearch.hits[0].matchedTerms.push("evt"); }],
+    ["memorySearch.hits[fixture-identity]", body => { body.memorySearch.hits[0].incidentId = "other"; }],
+    ["memorySearch.hits[0].sourceId", body => { body.memorySearch.hits[0].sourceId = "9002"; }],
+    ["memorySearch.hits[documentId][duplicate]", body => {
+      body.memorySearch.hits.push(structuredClone(body.memorySearch.hits[0]));
+    }],
+    ["memorySearch.hits[fixture-cardinality]", body => {
+      const secondFixtureHit = structuredClone(body.memorySearch.hits[0]);
+      secondFixtureHit.documentId = `event-review:${fixtureId}`;
+      body.memorySearch.hits.push(secondFixtureHit);
+    }],
+    ["memorySearch.hits[0].highlightFragments[type]", body => { body.memorySearch.hits[0].highlightFragments = null; }],
+    ["memorySearch.hits[0].passwordHash", body => { body.memorySearch.hits[0].passwordHash = "forbidden"; }],
+  ];
+  for (const [expectedPath, mutate] of negatives) {
+    const body = structuredClone(valid);
+    mutate(body);
+    await expectReject(() => validateIncidentMemorySearchResponseProjection({
+      caseId: "EVT-041",
+      responseJson: body,
+      fixtureId,
+      query,
+      sourceId: "9001",
+    }), expectedPath);
+  }
+});
 
 function assertExactDescendantCaptureContract(source) {
   for (const token of [

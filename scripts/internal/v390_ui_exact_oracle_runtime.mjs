@@ -9,6 +9,7 @@ import {
   evaluateEventExactResponseAssertion,
   eventExactSemanticEvidenceKey,
   eventExactValuesAtPath,
+  validateIncidentMemorySearchResponseProjection,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import { materializeClientSafeExactOracle } from "./v390_ui_exact_client_safe_oracles.mjs";
 import { buildRequestCorrelationEvidence } from "./v390_ui_completion_oracle_lib.mjs";
@@ -103,7 +104,7 @@ export async function executeCatalogRuntimeOracle({
     vaMetadataSampleId: bindings.vaMetadataSampleId || fixtureId,
     viewA: bindings.viewA || bindings.assignedViewId || "9001",
     viewB: bindings.viewB || bindings.blockedViewId || "9002",
-    q: encodeURIComponent(bindings.q || fixtureId),
+    q: encodeURIComponent(bindings.q || bindings.searchQuery || fixtureId),
     evidence: encodeURIComponent(bindings.evidence || "snapshot"),
     incidentStatus: encodeURIComponent(bindings.incidentStatus || "open"),
     startTimeMs: String(bindings.startTimeMs || 0),
@@ -1366,6 +1367,16 @@ async function observeRequest(
   const { status, body, contentType, source, requestCorrelationEvidence } = samples.at(-1);
   assert(allowedStatuses.includes(status),
     `${item.caseId} exact request status mismatch ${method} ${urlPath}: ${status}/${allowedStatuses.join(",")}`);
+  const incidentMemorySearchEvidence = (request.assertions || []).some(assertion =>
+    assertion.path === "memorySearch.hits[].matchedTerms")
+    ? validateIncidentMemorySearchResponseProjection({
+        caseId: item.caseId,
+        responseJson: body,
+        fixtureId: bindings.fixtureId,
+        query: decodeURIComponent(String(bindings.q || bindings.searchQuery || bindings.fixtureId || "")),
+        sourceId: bindings.sourceId,
+      })
+    : null;
   const required = request.requiredJsonPaths || request.requiredBodyTokens || [];
   for (const token of required) {
     assertRequiredBodyToken(body, expand(String(token), bindings), item.caseId, `${method} ${urlPath}`);
@@ -1422,6 +1433,7 @@ async function observeRequest(
       assertionEvidence,
       sampleCount: samples.length,
       sampleDigests: samples.map(sample => sha256Digest(sample.body)),
+      ...(incidentMemorySearchEvidence ? { incidentMemorySearchEvidence } : {}),
       ...(requestCorrelationEvidence ? { requestCorrelationEvidence } : {}),
     },
     body,
@@ -2153,7 +2165,7 @@ function assertRequiredBodyToken(body, token, caseId, requestLabel) {
   const serialized = typeof body === "string" ? body : JSON.stringify(body ?? null);
   const alternatives = token.split("|").map(value => value.trim()).filter(Boolean);
   assert(alternatives.some(value => serialized.includes(value)),
-    `${caseId} exact response token/path missing in ${requestLabel}: ${token}`);
+    `${caseId} exact response path missing in ${requestLabel}: ${token}`);
 }
 
 function resolvePath(value, expression) {

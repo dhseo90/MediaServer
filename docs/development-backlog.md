@@ -7252,3 +7252,21 @@ Policy v4, 30분, 120분, `./test_release.sh`는 미실행이며 완료 evidence
 후속 이슈는 현재 source tree와 현재 v3.9 스텝 범위 안에서 실제로 처리 가능한 항목만
 기록합니다. 다음 버전 후보, 별도 Phase 후보, 사용자 승인이 필요한 새 제품 범위는 이
 문서에 추천하지 않습니다.
+
+## v3.9.0 REVIEW4-65 EVT-041 memory-search fixture checkpoint
+
+Run `v390-ui-diagnostic-20260803130742-23877`은 125건을 선택해 11건을 시도했고,
+`EVT-026/038`을 포함한 10건 PASS 뒤 `EVT-041` 1건 FAIL로 중단되어 114건은
+not-run입니다. Diagnostic-equivalent 경계는 `309/424`이며 official canonical actual은
+`299/424 PASS`로 유지합니다.
+
+`EVT-041`의 `memorySearch.hits[].matchedTerms` path missing은 제품 schema 누락이
+아니라 searchable fixture의 query identity와 `ruleId`가 materializer에 결속되지 않은
+문제였고, 일반 response path 오류가 sensitive-material 실패로 오분류됐습니다. 제품의
+필수 `matchedTerms` schema는 유지합니다. Memory-search 설정은 별도 registry 저장 필드로
+중복하지 않고 `searchable-event-review` seed kind에서 파생하며, unknown seed/field와
+query·fixture·source identity 및 duplicate drift는 fail-closed입니다. Focused runtime
+`49/49`, event evaluator `20/20`, native `51/51`을 통과했습니다.
+
+보정 후 actual/browser는 미실행입니다. Policy v4, 30분, 120분, release도 미실행이며
+완료 evidence로 사용하지 않습니다.

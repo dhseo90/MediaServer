@@ -12,6 +12,7 @@ import {
   eventExactRuntimeBindingRequirements,
   eventExactValuesAtPath,
   materializeEventExactTemplate,
+  validateIncidentMemorySearchResponseProjection,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import { ruleRelationshipFixtureIdentity } from "./v390_ui_native_exact_cases_lib.mjs";
 
@@ -212,6 +213,38 @@ export const eventExactSeedMaterializerRegistry = Object.freeze({
   "failed-and-healthy-recheck-candidates": { eventRecords: 2, review: true, sourceHealth: true, related: true },
   "selected-command-handoff": { eventRecords: 1, review: true, sourceHealth: true, audit: true },
 });
+
+export const incidentMemorySearchContractCaseIds = Object.freeze([
+  "EVT-041",
+  "EVT-046",
+  "SAFE-045",
+]);
+
+export function incidentMemorySearchSeedBinding({
+  caseId,
+  seedKind,
+  fixtureId,
+  sourceId,
+} = {}) {
+  assert(caseId === "EVT-041", "incident memory searchable seed is owned by EVT-041");
+  assert(seedKind === "searchable-event-review", "incident memory searchable seed kind mismatch");
+  assert(typeof fixtureId === "string" && fixtureId, "incident memory fixture identity is required");
+  assert(typeof sourceId === "string" && sourceId, "incident memory source identity is required");
+  const queryTerms = [...new Set((fixtureId.toLowerCase().match(/[a-z0-9]+/g) || [])
+    .filter(term => term.length >= 2))];
+  assert(queryTerms.length > 0, "incident memory fixture query terms are required");
+  return Object.freeze({
+    caseId,
+    seedKind,
+    query: fixtureId,
+    scenarioName: fixtureId,
+    ruleId: "1",
+    sourceId,
+    incidentStatus: "new",
+    queryTermCount: queryTerms.length,
+    queryTermsSha256: crypto.createHash("sha256").update(JSON.stringify(queryTerms)).digest("hex"),
+  });
+}
 
 export const eventRecordFixtureFamilyCaseIds = Object.freeze([
   "EVT-007", "EVT-020", "EVT-023", "EVT-026", "EVT-048", "EVT-049",
@@ -2837,6 +2870,14 @@ export function createV390UiCaseRuntime({
       : defaultPublishedSourceIdentity(descriptor);
     const searchQuery = String((item.workflow.inputs || []).find(input =>
       input.kind === "literal-control-value" && typeof input.actualValue === "string")?.actualValue || context.fixtureId);
+    const memorySearchSeed = kind === "searchable-event-review"
+      ? incidentMemorySearchSeedBinding({
+          caseId: item.caseId,
+          seedKind: kind,
+          fixtureId: context.fixtureId,
+          sourceId: source.sourceId,
+        })
+      : null;
     const familyExpectedRecords = eventRecordFixtureFamilyCaseIds.includes(item.caseId)
       ? eventRecordFixtureFamilyExpectedRecords({
         caseId: item.caseId,
@@ -2930,7 +2971,8 @@ export function createV390UiCaseRuntime({
           streamId: source.streamId,
           status: index === 1 && plan.archivedRecord ? "archived" : "open",
           eventType: index === 1 && plan.related ? "related-incident" : "presence",
-          scenarioName: plan.related ? "review4-related-incident" : "review4-exact",
+          scenarioName: memorySearchSeed?.scenarioName ||
+            (plan.related ? "review4-related-incident" : "review4-exact"),
           snapshotPath: plan.evidence ? `snapshots/${eventId}.jpg` : "",
           clipPath: plan.evidence ? `clips/${eventId}.mp4` : "",
           metadata: {
@@ -2938,6 +2980,7 @@ export function createV390UiCaseRuntime({
             seedKind: kind,
             relatedTo: index > 0 && plan.related ? context.fixtureId : "",
             sourceHealth: plan.sourceHealth ? "degraded" : "available",
+            ...(memorySearchSeed ? { ruleId: memorySearchSeed.ruleId } : {}),
           },
         });
       }
@@ -2959,7 +3002,8 @@ export function createV390UiCaseRuntime({
       reviewStatus: plan.audit ? "confirmed" : "reviewing",
       classification: plan.sourceHealth ? "needs-tuning" : "unclassified",
       note: `REVIEW4 ${item.caseId} ${kind} acceptance-owned review fixture`,
-      incidentStatus: plan.sourceHealth ? "in-progress" : "new",
+      incidentStatus: memorySearchSeed?.incidentStatus ||
+        (plan.sourceHealth ? "in-progress" : "new"),
     };
     const eventRecordBeforeReviewSha256 = fs.existsSync(eventPath)
       ? crypto.createHash("sha256").update(fs.readFileSync(eventPath)).digest("hex")
@@ -3144,6 +3188,24 @@ export function createV390UiCaseRuntime({
         eventRecordAfterReviewSha256,
         eventRecordUnchanged: eventRecordAfterReviewSha256 === eventRecordBeforeReviewSha256,
       },
+      ...(memorySearchSeed ? {
+        q: memorySearchSeed.query,
+        ruleId: memorySearchSeed.ruleId,
+        incidentStatus: memorySearchSeed.incidentStatus,
+        memorySearchSeedEvidence: {
+          schema: "media-server.v390-ui-incident-memory-search-seed-evidence.v1",
+          queryTermCount: memorySearchSeed.queryTermCount,
+          queryTermsSha256: memorySearchSeed.queryTermsSha256,
+          fixtureIdentitySha256: crypto.createHash("sha256")
+            .update(memorySearchSeed.query).digest("hex"),
+          sourceIdentitySha256: crypto.createHash("sha256")
+            .update(memorySearchSeed.sourceId).digest("hex"),
+          ruleIdentitySha256: crypto.createHash("sha256")
+            .update(memorySearchSeed.ruleId).digest("hex"),
+          incidentStatusSha256: crypto.createHash("sha256")
+            .update(memorySearchSeed.incidentStatus).digest("hex"),
+        },
+      } : {}),
       ...(plan.sourceHealthReadback ? {
         status: source.status,
         reason: source.reason,
@@ -3441,6 +3503,7 @@ export function createV390UiCaseRuntime({
     const domFixtureIdentityByTarget = {};
     const rowLocalResponseTargets = [];
     const requestRowLocalBaselineByAssertionKey = {};
+    const incidentMemorySearchEvidenceByRequest = {};
     const mergedQuery = {};
     const baselineBodies = [];
     for (const request of spec.requests) {
@@ -3477,6 +3540,17 @@ export function createV390UiCaseRuntime({
       responseByRequest[identity] = samples.at(-1);
       const body = samples.at(-1)?.json ?? samples.at(-1)?.text ?? null;
       baselineBodies.push(body);
+      if ((request.assertions || []).some(assertion =>
+        assertion.path === "memorySearch.hits[].matchedTerms")) {
+        incidentMemorySearchEvidenceByRequest[identity] =
+          validateIncidentMemorySearchResponseProjection({
+            caseId: item.caseId,
+            responseJson: body,
+            fixtureId: context.fixtureId,
+            query: templateValues.q,
+            sourceId: templateValues.sourceId,
+          });
+      }
       for (const assertion of request.assertions) {
         const values = eventExactValuesAtPath(body, assertion.path);
         const actual = values.length === 1 ? values[0] : values;
@@ -3759,6 +3833,7 @@ export function createV390UiCaseRuntime({
         sensitiveCanaries: canaries,
         repeatedRequests: requirements.repeatedRequests,
         requestRowLocalBaselineByAssertionKey,
+        incidentMemorySearchEvidenceByRequest,
       },
     };
   }
