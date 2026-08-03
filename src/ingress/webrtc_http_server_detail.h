@@ -6995,7 +6995,8 @@ std::string OpsIncidentActionReadinessFollowUpJson(const std::string& type,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 29421 prototype
 std::string OpsIncidentActionReadinessStatus(const std::vector<std::string>& blockers,
-                                             bool field_smoke_required);
+                                             bool field_smoke_required,
+                                             bool review_present);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 29432 prototype
 std::string OpsIncidentActionReadinessQueueItemJson(const std::string& event_json,

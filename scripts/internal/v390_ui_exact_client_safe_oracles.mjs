@@ -208,6 +208,7 @@ function fixtureRefForName(value) {
 }
 
 function buildJsonBinding(tokens) {
+  const nullableFields = new Set(["lastFrameAgeMs", "metadataAgeMs"]);
   const paths = [];
   const assertions = [];
   const values = [];
@@ -234,7 +235,11 @@ function buildJsonBinding(tokens) {
     if (/^[A-Za-z_][A-Za-z0-9_.]*$/.test(token)) {
       const path = jsonPathFor(token);
       paths.push(path);
-      assertions.push({ path, operator: "exists", value: true });
+      assertions.push({
+        path,
+        operator: nullableFields.has(token.split(".").at(-1)) ? "path-present" : "exists",
+        value: true,
+      });
       continue;
     }
     values.push({ operator: "contains-value", value: token });
@@ -247,7 +252,7 @@ function jsonFixtureBinding(token) {
     assignedViewId: { path: "$..viewId", fixtureRef: "assigned-view" },
     blockedViewId: { path: "$..viewId", fixtureRef: "blocked-view" },
     draftId: { path: "$..draftId", fixtureRef: "vlm-rule-suggestion-draft" },
-    draftCandidateId: { path: "$..ruleSuggestion.candidateId", fixtureRef: "vlm-rule-suggestion-draft" },
+    draftCandidateId: { path: "$..candidateId", fixtureRef: "vlm-rule-suggestion-draft" },
     candidateId: { path: "$..candidateId", fixtureRef: "vlm-summary-candidate" },
     vaMetadataSampleId: { path: "$..sampleId", fixtureRef: "va-metadata-sample" },
   };
@@ -312,7 +317,8 @@ const noWriteNetwork = Object.freeze([
   "PUT /ops/api/sources/", "PUT /ops/api/views/", "POST /ops/api/events/reviews",
 ]);
 
-function clientDigest(caseId, featureMeaning, selector, digestKey, schema, responseFields, route = "/client/events") {
+function clientDigest(caseId, featureMeaning, selector, digestKey, schema, responseFields,
+  route = "/client/events", visibleControl = selector) {
   const rendererAttribute = clientDigestRendererAttribute(digestKey);
   const requiredTokens = digestKey === "incidentDigest"
     ? [
@@ -326,7 +332,7 @@ function clientDigest(caseId, featureMeaning, selector, digestKey, schema, respo
   return exactSpec(caseId, featureMeaning, {
     route,
     role: "viewer",
-    visibleControl: selector,
+    visibleControl,
     fixtures: ["assigned-view", "scoped-event-record", `${digestKey}-projection-input`],
     apiAssertions: [api("GET", "/client/api/views/{assignedViewId}/events", [200], {
       schema,
@@ -472,7 +478,7 @@ const entries = [
     semanticKeys: ["incidentDigest", "health.status"], forbiddenFields: ["blockedViewId", ...viewerRawFields], forbiddenNetwork: noWriteNetwork,
     forbiddenStateMutations: protocolMutations, snapshotTargets: ["event-record-store", "source-registry"], cleanupTargets: ["scoped-event-record", "source-health"],
   }),
-  clientDigest("CLIENT-007", "events page가 viewer scope의 client-safe summaries만 표시", ".client-viewer-events", "incidentDigest", "media-server.client.events", ["summaryText", "eventType", "time"]),
+  clientDigest("CLIENT-007", "events page가 viewer scope의 client-safe summaries만 표시", '[data-testid="client-safe-incident-digest"]', "incidentDigest", "media-server.client.events", ["summaryText", "eventType", "time"], "/client/events", ".client-viewer-events"),
   exactSpec("CLIENT-009", "grid/density/dock preference 저장과 authoritative readback", {
     route: "/client/live", role: "viewer", visibleControl: "#liveSaveLayoutPreference", action: { kind: "activate", target: "#liveSaveLayoutPreference" },
     fixtures: ["before-layout-preference"], apiAssertions: [api("PUT", "/client/api/preferences/live-layout", [200, 201], { schema: "media-server.client.live-layout-preference", requiredTokens: ["gridSize=2", "density=compact", "dockSide=right"] }), api("GET", "/client/api/preferences/live-layout", [200], { requiredTokens: ["gridSize=2", "density=compact", "dockSide=right"] })],

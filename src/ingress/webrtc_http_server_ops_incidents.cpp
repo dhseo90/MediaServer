@@ -1821,7 +1821,11 @@ std::string OpsIncidentActionReadinessFollowUpJson(const std::string& type,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 29421 function
 std::string OpsIncidentActionReadinessStatus(const std::vector<std::string>& blockers,
-                                             bool field_smoke_required) {
+                                             bool field_smoke_required,
+                                             bool review_present) {
+    if (!review_present) {
+        return "not-run";
+    }
     if (!blockers.empty()) {
         return "blocked";
     }
@@ -1862,7 +1866,7 @@ std::string OpsIncidentActionReadinessQueueItemJson(const std::string& event_jso
         incident_status == "in-progress" || action_target == "alert" ||
         action_target == "notify" || action_target == "external-alert";
     const std::string readiness_status =
-        OpsIncidentActionReadinessStatus(blockers, field_smoke_required);
+        OpsIncidentActionReadinessStatus(blockers, field_smoke_required, review.present);
 
     std::vector<std::string> followups;
     followups.push_back(OpsIncidentActionReadinessFollowUpJson(

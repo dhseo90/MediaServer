@@ -1475,3 +1475,12 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | 세 번째 actual | `v390-ui-diagnostic-20260803152435-50338`; 62 attempted, 29 PASS, 33 FAIL, 63 not-run | `CLIENT-028` child evidence ingestion에서 중단 |
 | Template binding | Client-safe materialized request가 canonical path template와 actual path를 분리 보존하고 failure evidence identity는 template에 결속 | Prior CLIENT-028 equivalent binding, client-safe `15/15`, runtime `49/49`, diagnostic `23/23` PASS |
 | Release boundary | Canonical `299/424`, diagnostic-equivalent `313/424` | 보정 후 새 batch와 UI/Policy v4/30분/120분/release 미실행 |
+
+## v3.9.0 REVIEW4-65 remaining-125 common-cluster checkpoint
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| Fresh census | `v390-ui-diagnostic-20260803153406-58218`; `125 attempted / 83 PASS / 42 FAIL` | 42건 모두 FAIL로 보존; canonical 집계에 합산하지 않음 |
+| Cluster binding | EVT request/fixture·response-derived DOM 26건, Client/Media/Safe route/control/readback 16건 | 공통 typed cardinality·identity·lifecycle에서 fail-closed; 단건 actual 없음 |
+| Source/native checkpoint | EVT-055 four-state producer 보정, generator 정확히 1회, native `424 = 423 positive + 1 negative`, unsupported `0` | Event `29/29`, client-safe `16/16`, native `52/52`, build PASS; semantic closure 후 최종 gate 필요 |
+| Release boundary | Official canonical `300 attempted / 299 PASS / 1 FAIL / 124 not-run` | 동일 125건 batch, `./test_ui.sh`, Policy v4, 30분, 120분, release는 미실행이며 완료 evidence가 아님 |

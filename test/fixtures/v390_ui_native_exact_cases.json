@@ -5,9 +5,9 @@
     "canonicalSha256": "3b3b85556d4efc78e6cea00f9e7e8199b22ed58931ea5cc40f524ba18bdf936f",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "bc8088cc3c69e21a17a89c63d072a3f32a6da2d4ba7653e72f2e489293090aea",
+    "implementationProjectionSha256": "506fa9b7a03fce212e743b9f9f6295d09e0322f802165dff79b465b6db3f90a2",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "ee1523fc7dbe5be46093c489e7f0ae00d41148868154927c92317ef99d317e3b",
+    "runtimeOracleCatalogSha256": "256d73253694604cd6de39043ec1852656d2673d72216d12ce19efe5cc304b8d",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -11074,7 +11074,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "179d0df17556e96e9b04a4e4edf501367f6f1d25dced6fb0bbf7b8dc376e6ffd",
+            "semanticCallChainSha256": "3241ef6de59c74ea0117a4e7e2fe1cc7e2b84d0fc6640c4bf2bceffe3e217f96",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -11156,7 +11156,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "179d0df17556e96e9b04a4e4edf501367f6f1d25dced6fb0bbf7b8dc376e6ffd"
+          "assertedSemanticDigest": "3241ef6de59c74ea0117a4e7e2fe1cc7e2b84d0fc6640c4bf2bceffe3e217f96"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -11168,7 +11168,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "5bdb9016527f34516268ba60ca5179f45e3512e6225ce2e0e6d0c52e5ae75f5b",
+          "specSha256": "96bb4c36e79dc1b0112b35c7e324bb97533c43b931bc9ae2bf7d36711717f5ad",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11305,7 +11305,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "179d0df17556e96e9b04a4e4edf501367f6f1d25dced6fb0bbf7b8dc376e6ffd"
+            "semanticCallChainSha256": "3241ef6de59c74ea0117a4e7e2fe1cc7e2b84d0fc6640c4bf2bceffe3e217f96"
           }
         ]
       },
@@ -214430,7 +214430,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident rule suggestion review wraps matching rule suggestion and candidate report as an Ops-only manual draft",
-          "specSha256": "01747f82dcd16b1789cb8ebc3e1eb70143f6cf2e72e65c334e44f8f2633bddcf",
+          "specSha256": "13449d84070fa49533ba8427fbc21ab47d0341847d8a07ad4c18b3cbfe11ceac",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -229365,7 +229365,7 @@
                 {
                   "sequence": 1,
                   "method": "POST",
-                  "urlPath": "/client/api/views/client-002-review4-fixture/webrtc/session",
+                  "urlPath": "/client/api/views/{assignedViewId}/webrtc/session",
                   "allowedStatuses": [
                     200
                   ]
@@ -229373,7 +229373,7 @@
                 {
                   "sequence": 2,
                   "method": "POST",
-                  "urlPath": "/client/api/views/client-002-review4-fixture/webrtc/session/client-002-review4-session/answer",
+                  "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
                   "allowedStatuses": [
                     200
                   ]
@@ -229696,7 +229696,7 @@
                   {
                     "sequence": 1,
                     "method": "POST",
-                    "urlPath": "/client/api/views/client-002-review4-fixture/webrtc/session",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session",
                     "allowedStatuses": [
                       200
                     ]
@@ -229704,7 +229704,7 @@
                   {
                     "sequence": 2,
                     "method": "POST",
-                    "urlPath": "/client/api/views/client-002-review4-fixture/webrtc/session/client-002-review4-session/answer",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
                     "allowedStatuses": [
                       200
                     ]
@@ -229863,7 +229863,7 @@
                   {
                     "sequence": 1,
                     "method": "POST",
-                    "urlPath": "/client/api/views/client-002-review4-fixture/webrtc/session",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session",
                     "allowedStatuses": [
                       200
                     ]
@@ -229871,7 +229871,7 @@
                   {
                     "sequence": 2,
                     "method": "POST",
-                    "urlPath": "/client/api/views/client-002-review4-fixture/webrtc/session/client-002-review4-session/answer",
+                    "urlPath": "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
                     "allowedStatuses": [
                       200
                     ]
@@ -231726,7 +231726,7 @@
           "route": "/client/events",
           "role": "viewer",
           "featureMeaning": "events page가 viewer scope의 client-safe summaries만 표시",
-          "specSha256": "5c352738c377d858661776a24f06ebde28d05294a875cddb9c56734fd5fc5571",
+          "specSha256": "b8dd0c0644125a1274ecfa874c3ba00f7ed3368728d4ff002644bef385842960",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -243776,7 +243776,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "client-safe source status digest API/UI",
-          "specSha256": "8954977546bfb2b04b165a636529345c2931c70514e1525e74e94b2ffe0ab607",
+          "specSha256": "c4110c37fb693102b077a0f0eb506f2f32e8134e2e1c3c45bd093f7df7f4fb9f",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 4,
@@ -249842,7 +249842,29 @@
               "allowedStatuses": [
                 404
               ],
-              "authoritativeReadback": null
+              "authoritativeReadback": null,
+              "caseLifecycleNavigationSequence": [
+                {
+                  "purpose": "initial-product-document",
+                  "method": "GET",
+                  "path": "/ops",
+                  "resourceType": "document",
+                  "sameOrigin": true,
+                  "correlationRequired": false,
+                  "redirected": false,
+                  "responseStatus": 200
+                },
+                {
+                  "purpose": "negative-document-navigation",
+                  "method": "GET",
+                  "path": "/__v390-undefined-route__",
+                  "resourceType": "document",
+                  "sameOrigin": true,
+                  "correlationRequired": false,
+                  "redirected": false,
+                  "responseStatus": 404
+                }
+              ]
             },
             "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
             "readback": {
@@ -250079,7 +250101,29 @@
                 "allowedStatuses": [
                   404
                 ],
-                "authoritativeReadback": null
+                "authoritativeReadback": null,
+                "caseLifecycleNavigationSequence": [
+                  {
+                    "purpose": "initial-product-document",
+                    "method": "GET",
+                    "path": "/ops",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false,
+                    "redirected": false,
+                    "responseStatus": 200
+                  },
+                  {
+                    "purpose": "negative-document-navigation",
+                    "method": "GET",
+                    "path": "/__v390-undefined-route__",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false,
+                    "redirected": false,
+                    "responseStatus": 404
+                  }
+                ]
               },
               "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
               "readback": {
@@ -250145,7 +250189,29 @@
                 "allowedStatuses": [
                   404
                 ],
-                "authoritativeReadback": null
+                "authoritativeReadback": null,
+                "caseLifecycleNavigationSequence": [
+                  {
+                    "purpose": "initial-product-document",
+                    "method": "GET",
+                    "path": "/ops",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false,
+                    "redirected": false,
+                    "responseStatus": 200
+                  },
+                  {
+                    "purpose": "negative-document-navigation",
+                    "method": "GET",
+                    "path": "/__v390-undefined-route__",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false,
+                    "redirected": false,
+                    "responseStatus": 404
+                  }
+                ]
               },
               "expectedBehaviorSha256": "9764fe8c206f19d2d1ea9361c77d4a0b5ffbbd95745dff7a4e2dcca2aca018f4",
               "readback": {
@@ -250356,7 +250422,29 @@
               "allowedStatuses": [
                 404
               ],
-              "authoritativeReadback": null
+              "authoritativeReadback": null,
+              "caseLifecycleNavigationSequence": [
+                {
+                  "purpose": "initial-product-document",
+                  "method": "GET",
+                  "path": "/ops",
+                  "resourceType": "document",
+                  "sameOrigin": true,
+                  "correlationRequired": false,
+                  "redirected": false,
+                  "responseStatus": 200
+                },
+                {
+                  "purpose": "negative-document-navigation",
+                  "method": "GET",
+                  "path": "/lab",
+                  "resourceType": "document",
+                  "sameOrigin": true,
+                  "correlationRequired": false,
+                  "redirected": false,
+                  "responseStatus": 404
+                }
+              ]
             },
             "expectedBehaviorSha256": "9eba822c8aea9d1acce91bf3c3c2fd4efc38e231582877b0e98bc84e5b3af592",
             "readback": {
@@ -250593,7 +250681,29 @@
                 "allowedStatuses": [
                   404
                 ],
-                "authoritativeReadback": null
+                "authoritativeReadback": null,
+                "caseLifecycleNavigationSequence": [
+                  {
+                    "purpose": "initial-product-document",
+                    "method": "GET",
+                    "path": "/ops",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false,
+                    "redirected": false,
+                    "responseStatus": 200
+                  },
+                  {
+                    "purpose": "negative-document-navigation",
+                    "method": "GET",
+                    "path": "/lab",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false,
+                    "redirected": false,
+                    "responseStatus": 404
+                  }
+                ]
               },
               "expectedBehaviorSha256": "9eba822c8aea9d1acce91bf3c3c2fd4efc38e231582877b0e98bc84e5b3af592",
               "readback": {
@@ -250659,7 +250769,29 @@
                 "allowedStatuses": [
                   404
                 ],
-                "authoritativeReadback": null
+                "authoritativeReadback": null,
+                "caseLifecycleNavigationSequence": [
+                  {
+                    "purpose": "initial-product-document",
+                    "method": "GET",
+                    "path": "/ops",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false,
+                    "redirected": false,
+                    "responseStatus": 200
+                  },
+                  {
+                    "purpose": "negative-document-navigation",
+                    "method": "GET",
+                    "path": "/lab",
+                    "resourceType": "document",
+                    "sameOrigin": true,
+                    "correlationRequired": false,
+                    "redirected": false,
+                    "responseStatus": 404
+                  }
+                ]
               },
               "expectedBehaviorSha256": "9eba822c8aea9d1acce91bf3c3c2fd4efc38e231582877b0e98bc84e5b3af592",
               "readback": {
@@ -255189,8 +255321,8 @@
               "correlationId": "SAFE-033:assert-product-state:completion",
               "correlationSource": "request-header",
               "method": "GET",
-              "urlPathTemplate": "/ops",
-              "urlPath": "/ops",
+              "urlPathTemplate": "/ops/vlm",
+              "urlPath": "/ops/vlm",
               "pathParameters": {},
               "allowedStatuses": [
                 200
@@ -255317,7 +255449,7 @@
             "kind": "product-state-request",
             "actualValue": {
               "method": "GET",
-              "path": "/ops",
+              "path": "/ops/vlm",
               "accountRole": "operator"
             },
             "sensitive": false
@@ -255351,7 +255483,7 @@
           "kind": "product-state-read",
           "endpoint": {
             "method": "GET",
-            "path": "/ops",
+            "path": "/ops/vlm",
             "allowedStatuses": [
               200
             ]
@@ -255477,8 +255609,8 @@
                 "correlationId": "SAFE-033:assert-product-state:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/ops/vlm",
+                "urlPath": "/ops/vlm",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -255597,8 +255729,8 @@
                 "correlationId": "SAFE-033:assert-product-state:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops",
-                "urlPath": "/ops",
+                "urlPathTemplate": "/ops/vlm",
+                "urlPath": "/ops/vlm",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -256065,7 +256197,7 @@
           "route": "/ops/rules",
           "role": "operator",
           "featureMeaning": "VLM suggestion은 seeded draft fields만 적용하고 저장하지 않음",
-          "specSha256": "77e615d80e4a75037774c9e0ba4c014e91a031655944bcbf98272362f2fa5e7b",
+          "specSha256": "92ff37bcd994490a7331fcefb193705547dee1f31096e87487a82d71b2ceae3a",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 3,
@@ -256616,8 +256748,8 @@
               "correlationId": "SAFE-041:assert-product-state:completion",
               "correlationSource": "request-header",
               "method": "GET",
-              "urlPathTemplate": "/ops/api/audit",
-              "urlPath": "/ops/api/audit",
+              "urlPathTemplate": "/ops/api/events/reviews",
+              "urlPath": "/ops/api/events/reviews",
               "pathParameters": {},
               "allowedStatuses": [
                 200
@@ -256744,7 +256876,7 @@
             "kind": "product-state-request",
             "actualValue": {
               "method": "GET",
-              "path": "/ops/api/audit",
+              "path": "/ops/api/events/reviews",
               "accountRole": "admin"
             },
             "sensitive": false
@@ -256778,7 +256910,7 @@
           "kind": "product-state-read",
           "endpoint": {
             "method": "GET",
-            "path": "/ops/api/audit",
+            "path": "/ops/api/events/reviews",
             "allowedStatuses": [
               200
             ]
@@ -256904,8 +257036,8 @@
                 "correlationId": "SAFE-041:assert-product-state:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops/api/audit",
-                "urlPath": "/ops/api/audit",
+                "urlPathTemplate": "/ops/api/events/reviews",
+                "urlPath": "/ops/api/events/reviews",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200
@@ -257026,8 +257158,8 @@
                 "correlationId": "SAFE-041:assert-product-state:completion",
                 "correlationSource": "request-header",
                 "method": "GET",
-                "urlPathTemplate": "/ops/api/audit",
-                "urlPath": "/ops/api/audit",
+                "urlPathTemplate": "/ops/api/events/reviews",
+                "urlPath": "/ops/api/events/reviews",
                 "pathParameters": {},
                 "allowedStatuses": [
                   200

@@ -223,6 +223,12 @@ check("CLIENT/SAFE projection contracts use renderer ownership and current respo
       item.requiredTextTokens.includes("sourceStatus")),
     `${caseId} must not treat response keys as literal DOM prose`);
   }
+  const client007 = clientSafeExactOracleFor("CLIENT-007");
+  assert(client007.visibleControl.selector === ".client-viewer-events" &&
+    client007.dom.some(item => item.selector === '[data-testid="client-safe-incident-digest"]' &&
+      item.requiredAttributes.some(attribute =>
+        attribute.name === "data-client-incident-digest" && attribute.value === "viewer-safe")),
+  "CLIENT-007 must use the page wrapper for readiness and bind digest semantics to its renderer owner");
   const followUp = clientSafeExactOracleFor("CLIENT-024");
   assert(followUp.requests[0].requiredJsonPaths.includes("$..followUpStatus") &&
     !followUp.requests[0].requiredJsonPaths.includes("$..status"),
@@ -252,7 +258,7 @@ check("SAFE-038 separates API candidate identity from the DOM candidate index", 
   const spec = clientSafeExactOracleFor("SAFE-038");
   const request = spec.requests[0];
   assert(request.jsonAssertions.some(item =>
-    item.path === "$..ruleSuggestion.candidateId" &&
+    item.path === "$..candidateId" &&
     item.operator === "equals-fixture" &&
     item.fixtureRef === "vlm-rule-suggestion-draft"),
   "SAFE-038 API candidate identity binding missing");
@@ -280,6 +286,18 @@ check("tile controls and denied view reads use their actual product boundaries",
   assert(dashboard.requests[0].jsonAssertions.some(item => item.path === "$..viewId" &&
     item.operator === "equals-fixture" && item.fixtureRef === "assigned-view"),
   "CLIENT-006 must bind the published dashboard viewId to its assigned fixture");
+});
+
+check("nullable client health ages require key presence without inventing a non-null value", () => {
+  const spec = clientSafeExactOracleFor("CLIENT-028");
+  const assertions = spec.requests.flatMap(request => request.jsonAssertions || []);
+  for (const path of ["$..lastFrameAgeMs", "$..metadataAgeMs"]) {
+    const assertion = assertions.find(candidate => candidate.path === path);
+    assert(assertion?.operator === "path-present",
+      `CLIENT-028 nullable field is not bound to key presence: ${path}`);
+  }
+  assert(assertions.some(candidate => candidate.operator === "exists"),
+    "CLIENT-028 widened every response assertion to nullable key presence");
 });
 
 check("client live controls are tile-local and persisted controls keep their real product owners", () => {

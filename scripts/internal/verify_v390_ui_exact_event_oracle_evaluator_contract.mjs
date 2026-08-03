@@ -13,6 +13,7 @@ import {
   evaluateEventExactResponseAssertion,
   evaluateEventExactStateAndCleanup,
   evaluateEventExactVisibleControl,
+  evaluateResponseDerivedDomFieldProjection,
   eventExactOracleEvaluatorCapabilities,
   eventExactSemanticEvidenceKey,
   eventExactValuesAtPath,
@@ -183,6 +184,107 @@ check("domain-specific DOM operators require keyed semantic evidence", () => {
   assert(!missing.pass && missing.reason.includes("semantic evidence missing"), "uninterpreted DOM operator passed");
   const key = "dom:EVT-019:fields-equal-response:event/review";
   assert(evaluateEventExactDomAssertion({ caseId: "EVT-019", assertion, observation, context: { fixtureId: "fixture", semanticEvidence: { [key]: { pass: true, actual: observation } } } }).pass, "DOM semantic evidence did not execute");
+});
+
+check("response-derived DOM projection normalizes field ownership without selector-only PASS", () => {
+  const fixtureId = "evt-focused-fixture";
+  const responseBodies = [{ readiness: { items: [{
+    eventId: fixtureId,
+    approvalState: "operator-approved",
+    validationSummary: "schema valid",
+    notRun: 2,
+    dryRunStatus: "blocked-not-run",
+  }, {
+    eventId: "unrelated-event",
+    sourceId: "9001",
+    approvalState: "wrong-owner",
+    validationSummary: "wrong-summary",
+    notRun: 99,
+    dryRunStatus: "wrong-dry-run",
+  }] } }];
+  const base = {
+    caseId: "EVT-FOCUSED",
+    operator: "fields-equal-response",
+    target: "approvalState/validationSummary/not-run/dry-run",
+    responseBodies,
+    fixtureCandidates: [fixtureId, "9001"],
+  };
+  const pass = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: {
+      count: 1,
+      visibleCount: 1,
+      text: "operator approved · schema valid · not-run 2 · blocked-not-run",
+      nodeTexts: ["operator approved · schema valid · not-run 2 · blocked-not-run"],
+      attributes: [{ "data-event-id": fixtureId }],
+      values: [],
+    },
+  });
+  assert(pass.pass && pass.matchedFieldCount === 4,
+    "camel/kebab renderer projection normalization did not pass");
+  assert(!JSON.stringify(pass).includes(fixtureId) &&
+    !JSON.stringify(pass).includes("operator-approved"),
+  "response-derived projection evidence retained raw identity or values");
+
+  const selectorOnly = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: { count: 1, visibleCount: 1, text: "readiness card", nodeTexts: ["readiness card"] },
+  });
+  assert(!selectorOnly.pass && selectorOnly.failureCode ===
+    "RENDERER_PROJECTION_VALUE_MISMATCH",
+  "selector-only DOM observation passed response-derived field projection");
+
+  const unrelated = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    responseBodies: [{ readiness: { items: [{
+      eventId: "other",
+      approvalState: "operator-approved",
+      validationSummary: "schema-valid",
+      notRun: 2,
+      dryRunStatus: "blocked-not-run",
+    }] } }],
+    observation: { count: 1, visibleCount: 1, text: "operator approved schema valid 2 blocked-not-run" },
+  });
+  assert(!unrelated.pass && unrelated.failureCode === "RESPONSE_FIELD_OWNER_MISSING",
+    "unrelated response object supplied projected field ownership");
+
+  const duplicate = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    responseBodies: [{ readiness: { items: [
+      responseBodies[0].readiness.items[0],
+      structuredClone(responseBodies[0].readiness.items[0]),
+    ] } }],
+    observation: { count: 1, visibleCount: 1, text: "operator approved schema valid 2 blocked-not-run" },
+  });
+  assert(!duplicate.pass && duplicate.matchedFieldCount === 0 &&
+    duplicate.failureCode === "RESPONSE_FIELD_OWNER_AMBIGUOUS",
+    "duplicate fixture response owners produced a DOM projection PASS");
+});
+
+check("response-derived ordered collection projection fails on renderer order drift", () => {
+  const fixtureId = "evt-order-fixture";
+  const base = {
+    caseId: "EVT-ORDER",
+    operator: "stage-order-equals-response",
+    target: "nodes",
+    responseBodies: [{ timelineGraph: { nodes: [
+      { stage: "source-state", eventId: fixtureId },
+      { stage: "event-record", eventId: fixtureId },
+      { stage: "close-state", eventId: fixtureId },
+    ] } }],
+    fixtureCandidates: [fixtureId],
+  };
+  const pass = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: { count: 3, visibleCount: 3, text: "Source Event Close" },
+  });
+  assert(pass.pass, "ordered response stages did not project to DOM");
+  const drift = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: { count: 3, visibleCount: 3, text: "Event Source Close" },
+  });
+  assert(!drift.pass && drift.failureCode === "RENDERER_PROJECTION_ORDER_MISMATCH",
+    "renderer order drift passed response order ownership");
 });
 
 check("event review descendant binding requires one visible identity row and one canonical card", () => {

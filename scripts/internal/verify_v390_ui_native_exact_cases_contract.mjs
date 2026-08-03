@@ -35,8 +35,11 @@ import {
   eventRecordFixtureFamilyCaseIds,
   eventRecordFixtureFamilyExpectations,
   eventRecordFixtureFamilyExpectedRecords,
+  eventReadinessSeedProfile,
   eventReviewSeedSiblingCaseIds,
   eventExactSeedMaterializerRegistry,
+  eventTypedRecordFieldsForSeed,
+  eventTypedResponseBinding,
   incidentMemorySearchContractCaseIds,
   incidentMemorySearchSeedBinding,
   fixtureViewerScopes,
@@ -49,6 +52,7 @@ import {
   seedEventRecordFixture,
   selectEventReviewJoinedCleanupRecord,
   selectEventReviewJoinedReview,
+  typedActiveResolutionFiltersFromRequest,
   validateEventReviewCollectionAbsence,
   validateEventReviewSeedWriteReceipt,
   validateEventRecordFixtureFamilyReadback,
@@ -102,6 +106,91 @@ check("generated manifest validates against canonical exact ordered 424", () => 
   assert(result.negativeRoute === 1, `negativeRoute mismatch: ${result.negativeRoute}`);
 });
 
+check("event typed fixtures select one row and preserve request-derived identities", () => {
+  const fixtureId = "evt-typed-fixture";
+  const sourceId = "9001";
+  const source = eventTypedResponseBinding({
+    assertionPath: "sourceHealth",
+    operator: "contains-fixture-source",
+    fixtureId,
+    sourceId,
+    responseJson: { sourceHealth: [
+      { sourceId: "other", status: "live" },
+      { sourceId, status: "offline", reason: "fixture" },
+    ] },
+  });
+  assert(source.identityValue === sourceId && source.expectedValue.status === "offline",
+    "source-health typed fixture row drift");
+
+  const joinedResponse = candidateId => ({ records: [{
+    event: { eventId: fixtureId },
+    review: { eventId: fixtureId },
+    incidentRuleSuggestionReview: { matchingRuleSuggestion: { candidateId } },
+  }] });
+  const joined = eventTypedResponseBinding({
+    assertionPath: "records[].incidentRuleSuggestionReview.matchingRuleSuggestion",
+    operator: "equals-seed",
+    fixtureId,
+    sourceId,
+    responseJson: joinedResponse(fixtureId),
+  });
+  assert(joined.identityPathMode === "all" && joined.expectedValue.candidateId === fixtureId,
+    "joined event/review typed fixture row drift");
+
+  for (const responseJson of [
+    { records: [{ event: { eventId: fixtureId }, review: { eventId: "other" } }] },
+    { records: [joinedResponse(fixtureId).records[0], joinedResponse(fixtureId).records[0]] },
+  ]) {
+    let rejected = false;
+    try {
+      eventTypedResponseBinding({
+        assertionPath: "records[].incidentRuleSuggestionReview.matchingRuleSuggestion",
+        operator: "equals-seed",
+        fixtureId,
+        sourceId,
+        responseJson,
+      });
+    } catch (error) {
+      rejected = /typed response fixture cardinality mismatch/.test(String(error?.message || error));
+    }
+    assert(rejected, "joined fixture identity mismatch or duplicate was accepted");
+  }
+
+  const workspace = { unifiedResolutionWorkspace: { resolutionQueue: [{
+    eventId: fixtureId,
+    sourceId,
+    evidenceQuality: { evidenceCompleteness: "partial", evidenceConfidence: "medium" },
+    resolutionSearchMetrics: { savedViewMatches: ["open-resolution"] },
+  }] } };
+  for (const [assertionPath, operator, projectionPath] of [
+    ["unifiedResolutionWorkspace.resolutionQueue[].evidenceQuality", "contains-fixture-quality", "$"],
+    ["unifiedResolutionWorkspace.resolutionQueue[].evidenceQuality.evidenceCompleteness", "equals-seed-derivation", "evidenceQuality.evidenceCompleteness"],
+    ["unifiedResolutionWorkspace.resolutionQueue[].resolutionSearchMetrics.savedViewMatches", "equals-seed", "resolutionSearchMetrics.savedViewMatches"],
+  ]) {
+    const binding = eventTypedResponseBinding({ assertionPath, operator, fixtureId, sourceId, responseJson: workspace });
+    assert(binding.identityValue === fixtureId && binding.projectionPath === projectionPath,
+      `${assertionPath} row-local projection drift`);
+  }
+
+  assert(JSON.stringify(typedActiveResolutionFiltersFromRequest({
+    q: fixtureId,
+    ruleId: "1",
+    sourceId,
+    incidentStatus: "open",
+  })) === JSON.stringify({
+    eventId: "", reviewStatus: "", classification: "", incidentStatus: "open",
+    ruleId: "1", sourceId, eventType: "", textQuery: fixtureId,
+    includeArchives: false, limit: "25", filterCount: 4, queryApplied: true,
+  }), "request-derived active resolution filters drift");
+  assert(JSON.stringify(eventTypedRecordFieldsForSeed("cross-zone-track-timeline")) ===
+    JSON.stringify({ eventType: "re-entry", scenarioName: "cross-zone-re-entry", scenarioPhase: "re-entry" }),
+  "cross-zone typed event seed drift");
+  assert(JSON.stringify([0, 1, 2, 3].map(index =>
+    eventReadinessSeedProfile("four-readiness-states", index, `${fixtureId}-${index}`).status)) ===
+    JSON.stringify(["ready", "blocked", "field-smoke-needed", "not-run"]),
+  "four-state readiness seed drift");
+});
+
 check("incident memory search fixtures bind every product filter and searchable query", () => {
   assert(JSON.stringify(incidentMemorySearchContractCaseIds) ===
     JSON.stringify(["EVT-041", "EVT-046", "SAFE-045"]),
@@ -141,7 +230,7 @@ check("incident memory search fixtures bind every product filter and searchable 
     declaredSeedKinds.filter(seedKind => seedKind === "searchable-event-review").length === 1 &&
     eventMaterializerStart >= 0 &&
     eventMaterializerSource.includes('const memorySearchSeed = kind === "searchable-event-review"') &&
-    eventMaterializerSource.includes("scenarioName: memorySearchSeed?.scenarioName") &&
+    eventMaterializerSource.includes("scenarioName: typedRecordFields.scenarioName || memorySearchSeed?.scenarioName") &&
     runtimeSource.includes("...(memorySearchSeed ? { ruleId: memorySearchSeed.ruleId } : {})") &&
     runtimeSource.includes("incidentStatus: memorySearchSeed?.incidentStatus") &&
     runtimeOracleSource.includes("bindings.q || bindings.searchQuery || fixtureId"),
@@ -1414,7 +1503,7 @@ check("fixture-safe incident digests bind one authoritative event to one safe su
   `fixture-safe incident digest audit scope drift: ${affected.join(",")}`);
   assert(runtimeSource.includes('"/client/dashboard", "/client/events", "/client/live"') &&
     runtimeSource.includes("scenarioName: fixtureSafeIncidentDigestRequired ? context.fixtureId : \"\"") &&
-    runtimeSource.includes("scenarioName: familyRecord.scenarioName ||") &&
+    runtimeSource.includes("scenarioName: typedRecordFields.scenarioName || familyRecord.scenarioName ||") &&
     runtimeSource.includes("validateFixtureSafeIncidentDigestReadback({"),
   "fixture-safe incident digest materialization is not bound at both runtime boundaries");
   assert(runtimeSource.includes("expectedFixtureIdentity") &&
@@ -1958,6 +2047,55 @@ check("MEDIA/SAFE client cases and SAFE-016 negative route use one exact route l
   assert(!safe016.actions.some(action =>
     action.kind === "assert-product-state" || action.kind === "assert-product-boundary"),
   "SAFE-016 negative route still enters the generic source-route readback lifecycle");
+});
+
+check("remaining client-safe batch clusters bind dynamic identities and owned lifecycle endpoints", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const byId = new Map(rebuilt.cases.map(item => [item.caseId, item]));
+
+  const client002 = byId.get("CLIENT-002").workflow.expectedResults[0].completion.localTransition;
+  assert(JSON.stringify(client002.requiredRequests.map(request => request.urlPath)) === JSON.stringify([
+    "/client/api/views/{assignedViewId}/webrtc/session",
+    "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
+  ]), "CLIENT-002 local completion retained static fixture/session identities");
+
+  for (const [caseId, expectedPath] of [
+    ["SAFE-033", "/ops/vlm"],
+    ["SAFE-041", "/ops/api/events/reviews"],
+  ]) {
+    const completion = byId.get(caseId).workflow.expectedResults[0].completion;
+    assert(completion.request?.method === "GET" &&
+      completion.request.urlPathTemplate === expectedPath &&
+      completion.request.urlPath === expectedPath,
+    `${caseId} completion is not bound to its authoritative runtime read model`);
+  }
+
+  for (const caseId of ["SAFE-016", "SAFE-017"]) {
+    const completion = byId.get(caseId).workflow.expectedResults[0].completion;
+    const sequence = completion.navigationBinding?.caseLifecycleNavigationSequence;
+    assert(sequence?.length === 2 &&
+      sequence[0].purpose === "initial-product-document" &&
+      sequence[1].purpose === "negative-document-navigation" &&
+      sequence[1].responseStatus === 404,
+    `${caseId} negative navigation does not own its exact two-document lifecycle`);
+  }
+
+  assert(runnerSource.includes("exactRuntimeOracleFor(item.caseId)?.requests?.some") &&
+    runnerSource.includes('(candidate.fixtureRefs || []).includes("assigned-view")') &&
+    runnerSource.includes('singleTileStart ? "start-live-tile" : type') &&
+    runnerSource.includes("viewA: catalog.viewA || catalog.viewId") &&
+    runnerSource.includes("viewB: catalog.viewB || catalog.viewId"),
+  "runtime completion does not derive assigned-view/single-tile identities from owned actions");
+  for (const snippet of [
+    'if (item.caseId === "MEDIA-017")',
+    "materializeTwoViewPlaybackFixture(item, context)",
+    "scopeRuntimeViewerToViews([defaultViewId, viewId])",
+    "context.catalogBindings.viewIds || []",
+    "fresh viewer authoritative view scopes differ from the case fixture binding",
+  ]) {
+    assert(runtimeSource.includes(snippet),
+      `MEDIA-017 two-view fixture lifecycle source missing ${snippet}`);
+  }
 });
 
 check("all cases declare native action, oracle seed, and artifact plan", () => {

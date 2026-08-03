@@ -116,6 +116,25 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   }
   assert(!adapterSource.includes('response.headers()["x-media-server-correlation-id"]'),
     "adapter invents a response correlation echo contract");
+  for (const snippet of [
+    "revealClosedDetailsForSelector",
+    'disclosure.open = true',
+    "isDisclosureSummary",
+    "style.display !== 'none' && style.visibility !== 'hidden'",
+  ]) {
+    assert(adapterSource.includes(snippet), `adapter lifecycle readiness source missing ${snippet}`);
+  }
+  const snapshotReadinessSource = adapterSource.slice(
+    adapterSource.indexOf("snapshot: async (selector)"),
+    adapterSource.indexOf("measureVisualState: async"),
+  );
+  const observedReadinessSource = adapterSource.slice(
+    adapterSource.indexOf("const element = selector ? document.querySelector(selector) : null;"),
+    adapterSource.indexOf("screenshot: async outputFile"),
+  );
+  assert(!snapshotReadinessSource.includes("Number(style.opacity || 1) > 0") &&
+    !observedReadinessSource.includes("Number(style.opacity || 1) > 0"),
+  "adapter readiness treats a native transparent control as non-actionable");
   for (const snippet of ["page.on(\"request\"", "pendingRequests", "correlatedEntryCount", "entry.correlationId === correlationId"]) {
     assert(adapterSource.includes(snippet), `adapter action-window source missing ${snippet}`);
   }

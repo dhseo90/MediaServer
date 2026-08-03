@@ -60,6 +60,7 @@ import {
   isExistingSpecializedExactOracle,
   waitForClientVaOverlayProjection,
 } from "./v390_ui_exact_oracle_runtime.mjs";
+import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import {
   assertRequestedObservedEnvelope,
   canonicalRequestedProjection,
@@ -2380,7 +2381,9 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
 
 async function executeComposedClientLiveAction(browser, item, action, caseContext, networkStart) {
   const type = action.semanticCompletion?.localTransition?.type || "";
-  if (!["composed-live-start-all-stop", "composed-va-overlay-session"].includes(type)) return null;
+  const singleTileStart = item.caseId === "CLIENT-002" && type === "click";
+  if (!singleTileStart &&
+      !["composed-live-start-all-stop", "composed-va-overlay-session"].includes(type)) return null;
   const staleSessionId = String(caseContext?.catalogBindings?.sessionId || "");
   assert(!staleSessionId,
     `${item.caseId} composed client interaction forbids a backend-precreated active session`);
@@ -2471,7 +2474,7 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
   }
   return {
     schema: "media-server.v390-ui-composed-client-live-action.v1",
-    kind: type,
+    kind: singleTileStart ? "start-live-tile" : type,
     tileIndex: tile.index,
     viewId: tile.viewId,
     sessionId,
@@ -2613,7 +2616,11 @@ async function executeEndpointOwnedAction(
 
 function bindRuntimeDefaultViewRequest(item, action, caseRuntimeOwner) {
   const request = action.semanticCompletion?.request;
-  if (item.workflow.workflowClass !== "read-only-state" ||
+  const assignedViewRuntimeRead = exactRuntimeOracleFor(item.caseId)?.requests?.some(candidate =>
+    candidate.method === "GET" &&
+    String(candidate.path || "").startsWith("/client/api/views/{fixtureId}") &&
+    (candidate.fixtureRefs || []).includes("assigned-view"));
+  if ((!assignedViewRuntimeRead && item.workflow.workflowClass !== "read-only-state") ||
       request?.method !== "GET" ||
       !String(request.urlPathTemplate || "").startsWith("/client/api/views/{id}")) {
     return action;
@@ -3049,9 +3056,11 @@ function exactOracleBindings(caseRuntimeOwner, caseContext) {
   const catalog = caseContext?.catalogBindings || {};
   const defaultViewId = caseRuntimeOwner?.descriptor?.auth?.defaultViewId || "9001";
   return {
-    assignedViewId: relationship.viewId || defaultViewId,
+    assignedViewId: relationship.viewId || catalog.viewId || defaultViewId,
     blockedViewId: relationship.blockedView?.viewId || "99002",
     viewId: catalog.viewId || relationship.viewId || defaultViewId,
+    viewA: catalog.viewA || catalog.viewId || relationship.viewId || defaultViewId,
+    viewB: catalog.viewB || catalog.viewId || relationship.viewId || defaultViewId,
     sourceId: catalog.sourceId || relationship.sourceId || defaultViewId,
     ruleId: relationship.vaRuleId || "1",
     candidateId: catalog.candidateId || caseContext?.fixtureId || "",

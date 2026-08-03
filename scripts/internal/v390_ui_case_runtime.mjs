@@ -198,7 +198,7 @@ export const eventExactSeedMaterializerRegistry = Object.freeze({
   "action-pack-evidence": { eventRecords: 1, review: true, vlm: true, alert: true, sourceHealth: true },
   "matching-rule-suggestion": { eventRecords: 1, review: true, vlm: true },
   "review-outcome-history": { eventRecords: 2, review: true, audit: true, related: true },
-  "four-readiness-states": { eventRecords: 2, review: true, vlm: true, related: true },
+  "four-readiness-states": { eventRecords: 4, review: true, vlm: true, related: true },
   "staged-rule-draft-candidate": { eventRecords: 1, review: true, vlm: true },
   "field-evidence-readiness-states": { eventRecords: 2, review: true, vlm: true, related: true },
   "incident-runtime-window": { eventRecords: 1, review: true },
@@ -213,6 +213,151 @@ export const eventExactSeedMaterializerRegistry = Object.freeze({
   "failed-and-healthy-recheck-candidates": { eventRecords: 2, review: true, sourceHealth: true, related: true },
   "selected-command-handoff": { eventRecords: 1, review: true, sourceHealth: true, audit: true },
 });
+
+const eventTypedResponseCollections = Object.freeze([
+  Object.freeze({
+    pathPrefix: "records",
+    collectionPath: "records",
+    identityPaths: Object.freeze(["event.eventId", "review.eventId"]),
+    identityPathMode: "all",
+    identitySource: "fixtureId",
+  }),
+  Object.freeze({
+    pathPrefix: "sourceHealth",
+    collectionPath: "sourceHealth",
+    identityPaths: Object.freeze(["sourceId", "id"]),
+    identitySource: "sourceId",
+  }),
+  Object.freeze({
+    pathPrefix: "records.records",
+    collectionPath: "records.records",
+    identityPaths: Object.freeze(["eventId"]),
+    identitySource: "fixtureId",
+  }),
+  Object.freeze({
+    pathPrefix: "memorySearch.hits",
+    collectionPath: "memorySearch.hits",
+    identityPaths: Object.freeze(["incidentId"]),
+    identitySource: "fixtureId",
+  }),
+  Object.freeze({
+    pathPrefix: "similarIncidents.groups",
+    collectionPath: "similarIncidents.groups",
+    identityPaths: Object.freeze(["baseEventId"]),
+    identitySource: "fixtureId",
+  }),
+  Object.freeze({
+    pathPrefix: "unifiedResolutionWorkspace.resolutionQueue",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue",
+    identityPaths: Object.freeze(["eventId"]),
+    identitySource: "fixtureId",
+  }),
+]);
+
+function typedProjectionPath(assertionPath, collectionPath, operator) {
+  if (operator.startsWith("contains-fixture")) return "$";
+  const expandedPrefix = `${collectionPath}[]`;
+  if (assertionPath === collectionPath || assertionPath === expandedPrefix) return "$";
+  if (assertionPath.startsWith(`${expandedPrefix}.`)) {
+    return assertionPath.slice(expandedPrefix.length + 1);
+  }
+  return "";
+}
+
+export function eventTypedResponseBinding({
+  assertionPath = "",
+  operator = "",
+  fixtureId = "",
+  sourceId = "",
+  responseJson = null,
+} = {}) {
+  const rowLocalOperator = operator === "score-descending" ||
+    operator === "matches-reentry" || operator === "equals" ||
+    operator.includes("seed") || operator.startsWith("contains-fixture");
+  if (!rowLocalOperator) return null;
+  const descriptor = eventTypedResponseCollections.find(candidate =>
+    assertionPath === candidate.pathPrefix ||
+    assertionPath.startsWith(`${candidate.pathPrefix}[].`));
+  if (!descriptor) return null;
+  const identityValue = descriptor.identitySource === "sourceId" ? sourceId : fixtureId;
+  assert(identityValue, `typed response identity is unavailable for ${assertionPath}`);
+  const rows = eventExactValuesAtPath(responseJson, descriptor.collectionPath)
+    .flatMap(value => Array.isArray(value) ? value : [value])
+    .filter(value => value && typeof value === "object" && !Array.isArray(value));
+  const matches = rows.filter(row => {
+    const identityMatches = descriptor.identityPaths.map(identityPath =>
+      eventExactValuesAtPath(row, identityPath).some(value => String(value) === String(identityValue)));
+    return descriptor.identityPathMode === "all"
+      ? identityMatches.every(Boolean)
+      : identityMatches.some(Boolean);
+  });
+  assert(matches.length === 1,
+    `typed response fixture cardinality mismatch for ${assertionPath}: ${matches.length}`);
+  const projectionPath = typedProjectionPath(assertionPath, descriptor.collectionPath, operator);
+  if (!projectionPath) return null;
+  const projected = eventExactValuesAtPath(matches[0], projectionPath);
+  assert(projected.length === 1,
+    `typed response projection cardinality mismatch for ${assertionPath}: ${projected.length}`);
+  return Object.freeze({
+    schema: "media-server.v390-ui-event-request-row-local-baseline.v1",
+    collectionPath: descriptor.collectionPath,
+    identityPaths: descriptor.identityPaths,
+    identityPathMode: descriptor.identityPathMode || "any",
+    identityValue,
+    projectionPath,
+    expectedValue: projected[0],
+    fixtureExpectedValue: operator === "contains-fixture-source" ? sourceId : fixtureId,
+  });
+}
+
+export function typedActiveResolutionFiltersFromRequest(query = {}) {
+  const value = key => String(query?.[key] || "").trim();
+  const includeArchives = ["1", "true", "yes", "on"].includes(
+    (value("includeArchives") || value("archive")).toLowerCase(),
+  );
+  const filterKeys = [
+    "eventId", "reviewStatus", "classification", "incidentStatus",
+    "ruleId", "sourceId", "eventType", "q", "query",
+  ];
+  const filterCount = filterKeys.filter(key => value(key)).length + (includeArchives ? 1 : 0);
+  return Object.freeze({
+    eventId: value("eventId"),
+    reviewStatus: value("reviewStatus"),
+    classification: value("classification"),
+    incidentStatus: value("incidentStatus"),
+    ruleId: value("ruleId"),
+    sourceId: value("sourceId"),
+    eventType: value("eventType"),
+    textQuery: value("q") || value("query"),
+    includeArchives,
+    limit: value("limit") || "25",
+    filterCount,
+    queryApplied: filterCount > 0,
+  });
+}
+
+export function eventTypedRecordFieldsForSeed(seedKind) {
+  if (seedKind !== "cross-zone-track-timeline") return Object.freeze({});
+  return Object.freeze({
+    eventType: "re-entry",
+    scenarioName: "cross-zone-re-entry",
+    scenarioPhase: "re-entry",
+  });
+}
+
+export function eventReadinessSeedProfile(seedKind, index, eventId) {
+  if (seedKind !== "four-readiness-states") return null;
+  assert(Number.isInteger(index) && index >= 0 && index < 4,
+    "readiness seed index is outside the four-state fixture");
+  const evidencePath = `snapshots/${eventId}.jpg`;
+  const profiles = [
+    { status: "ready", snapshotPath: evidencePath, review: { reviewStatus: "reviewing", incidentStatus: "new", actionTarget: "operator-triage" } },
+    { status: "blocked", snapshotPath: "", review: { reviewStatus: "reviewing", incidentStatus: "new", actionTarget: "operator-triage" } },
+    { status: "field-smoke-needed", snapshotPath: evidencePath, review: { reviewStatus: "reviewing", incidentStatus: "in-progress", actionTarget: "alert" } },
+    { status: "not-run", snapshotPath: evidencePath, review: null },
+  ];
+  return Object.freeze(profiles[index]);
+}
 
 export const incidentMemorySearchContractCaseIds = Object.freeze([
   "EVT-041",
@@ -398,6 +543,10 @@ export function validateEventReviewSeedWriteReceipt({
     "put.body.review.note[digest]");
   requirePath(responseReview?.incidentStatus === expected.incidentStatus,
     "put.body.review.incidentStatus");
+  if (typeof expected.actionTarget === "string") {
+    requirePath(responseReview?.incidentWorkflow?.actionTarget === expected.actionTarget,
+      "put.body.review.incidentWorkflow.actionTarget");
+  }
   requirePath(Number.isInteger(responseReview?.updatedAtMs) && responseReview.updatedAtMs > 0,
     "put.body.review.updatedAtMs");
   requirePath(typeof responseReview?.actor === "string" && responseReview.actor.length > 0,
@@ -430,6 +579,10 @@ export function validateEventReviewSeedWriteReceipt({
     "storage.body.records[].review.note[digest]");
   requirePath(storedReview?.incidentStatus === expected.incidentStatus,
     "storage.body.records[].review.incidentStatus");
+  if (typeof expected.actionTarget === "string") {
+    requirePath(storedReview?.incidentWorkflow?.actionTarget === expected.actionTarget,
+      "storage.body.records[].review.incidentWorkflow.actionTarget");
+  }
   requirePath(storedReview?.updatedAtMs === responseReview?.updatedAtMs,
     "storage.body.records[].review.updatedAtMs");
   requirePath(storedReview?.actor === responseReview?.actor,
@@ -973,7 +1126,11 @@ export function createV390UiCaseRuntime({
           }
         }
       }
-      context.primaryRoleStatePath = await freshRoleStorageState(item.accountRole, item.caseId);
+      context.primaryRoleStatePath = await freshRoleStorageState(
+        item.accountRole,
+        item.caseId,
+        context.catalogBindings.viewIds || [],
+      );
       if (item.caseId === "RULE-103") {
         await seedRule103ReplayFixtures(item, context);
         context.transientStateSeeded = true;
@@ -1546,16 +1703,23 @@ export function createV390UiCaseRuntime({
     }
   }
 
-  function scopeRuntimeViewerToView(viewId) {
+  function scopeRuntimeViewerToViews(viewIds) {
+    const identities = [...new Set((Array.isArray(viewIds) ? viewIds : [viewIds])
+      .map(String).filter(Boolean))];
     const usersFile = descriptor.auth?.usersFile;
     const username = descriptor.auth?.usernames?.viewer;
-    assert(usersFile && username && viewId, "viewer scope fixture binding is incomplete");
+    assert(usersFile && username && identities.length > 0,
+      "viewer scope fixture binding is incomplete");
     const store = JSON.parse(fs.readFileSync(usersFile, "utf8"));
     const viewer = (store.users || []).find(user => user.username === username);
     assert(viewer?.role === "viewer", "runtime viewer fixture account is unavailable");
-    viewer.viewId = viewId;
-    viewer.scopes = fixtureViewerScopes(viewId);
+    viewer.viewId = identities[0];
+    viewer.scopes = [...new Set(identities.flatMap(fixtureViewerScopes))];
     writePrivateJson(usersFile, store);
+  }
+
+  function scopeRuntimeViewerToView(viewId) {
+    scopeRuntimeViewerToViews([viewId]);
   }
 
   async function seedRule103ReplayFixtures(item, context) {
@@ -1636,7 +1800,7 @@ export function createV390UiCaseRuntime({
     assert(!leaked, `${item.caseId} transient rule catalog fixture remained after API cleanup`);
   }
 
-  async function freshRoleStorageState(role, label = "case") {
+  async function freshRoleStorageState(role, label = "case", expectedViewIds = []) {
     if (role === "anonymous") return "";
     if (!descriptor) {
       const existing = roleStateMap.roles?.[role];
@@ -1674,18 +1838,29 @@ export function createV390UiCaseRuntime({
       const scopedViewIds = expectedScopes
         .filter(scope => scope.startsWith("view:read:"))
         .map(scope => scope.slice("view:read:".length))
-        .filter(Boolean);
-      assert(scopedViewIds.length === 1,
-        `fresh viewer requires exactly one authoritative view scope: ${scopedViewIds.length}`);
+        .filter(Boolean)
+        .sort();
+      const expectedIds = [...new Set((expectedViewIds || []).map(String).filter(Boolean))].sort();
+      assert(scopedViewIds.length > 0,
+        "fresh viewer requires at least one authoritative view scope");
       const storedViewId = String(expectedViewer.viewId || "");
       const expectedViewId = storedViewId || scopedViewIds[0];
-      assert(!storedViewId || storedViewId === scopedViewIds[0],
-        "fresh viewer stored viewId differs from the authoritative view scope");
+      assert(!storedViewId || scopedViewIds.includes(storedViewId),
+        "fresh viewer stored viewId is absent from the authoritative view scopes");
+      if (expectedIds.length > 0) {
+        assert(stableJson(scopedViewIds) === stableJson(expectedIds),
+          "fresh viewer authoritative view scopes differ from the case fixture binding");
+      } else {
+        assert(scopedViewIds.length === 1,
+          `fresh viewer requires exactly one default view scope: ${scopedViewIds.length}`);
+      }
       const views = await requestJson(`${httpBase}/client/api/views`, { cookie });
       const visibleViews = Array.isArray(views.json?.views) ? views.json.views : [];
-      assert(views.status === 200 && visibleViews.length === 1 &&
-        String(visibleViews[0]?.viewId || "") === expectedViewId,
-      `fresh viewer assigned view list mismatch for ${expectedViewId}`);
+      const visibleViewIds = visibleViews.map(value => String(value?.viewId || "")).sort();
+      const expectedVisibleIds = expectedIds.length > 0 ? expectedIds : [expectedViewId];
+      assert(views.status === 200 &&
+        stableJson(visibleViewIds) === stableJson(expectedVisibleIds),
+      `fresh viewer assigned view list mismatch for ${expectedVisibleIds.join(",")}`);
       const detail = await requestJson(
         `${httpBase}/client/api/views/${encodeURIComponent(expectedViewId)}`,
         { cookie },
@@ -2740,6 +2915,10 @@ export function createV390UiCaseRuntime({
       return;
     }
     const fixtureNames = Array.isArray(spec?.setup?.fixtures) ? spec.setup.fixtures : [];
+    if (item.caseId === "MEDIA-017") {
+      await materializeTwoViewPlaybackFixture(item, context);
+      return;
+    }
     const eventFixture = item.caseId.startsWith("EVT-") || fixtureNames.some(name =>
       /(?:event|incident|review|rule-suggestion|vlm-summary|resolution)/i.test(String(name)));
     if (!spec || !eventFixture) return;
@@ -2852,6 +3031,105 @@ export function createV390UiCaseRuntime({
     }
   }
 
+  async function materializeTwoViewPlaybackFixture(item, context) {
+    const defaultViewId = String(descriptor.auth?.defaultViewId || "");
+    const views = readJson(descriptor.registrySeedPayloadPaths?.views || "").views || [];
+    const sources = readJson(descriptor.registrySeedPayloadPaths?.sources || "").sources || [];
+    const defaultView = views.find(value => String(value?.viewId || "") === defaultViewId);
+    const defaultSource = sources.find(value =>
+      String(value?.sourceId || "") === String(defaultView?.sourceId || ""));
+    assert(defaultView?.enabled !== false && defaultSource?.enabled !== false &&
+      defaultSource?.kind === "file" && defaultSource?.file,
+    `${item.caseId} default playable source/view fixture is unavailable`);
+
+    const sourceId = "39017002";
+    const viewId = "39017002";
+    const sourceWrite = await requestEndpoint(
+      "POST",
+      "/ops/api/sources",
+      {
+        sourceId,
+        displayName: `REVIEW4 ${item.caseId} source B`,
+        kind: "file",
+        file: defaultSource.file,
+        enabled: true,
+        allowDuplicateSource: true,
+        tags: ["review4", "throwaway", "multi-view"],
+        ownerGroup: "review4",
+        site: "contract",
+        group: "review4",
+        floor: "",
+        zone: "",
+      },
+      item,
+      context,
+      [201],
+      { roleOverride: "operator" },
+    );
+    context.transientApiCleanup.push({
+      endpoint: `/ops/api/sources/${sourceId}`,
+      collectionEndpoint: "/ops/api/sources",
+      collectionRecordsKey: "sources",
+      recordIdField: "sourceId",
+      recordId: sourceId,
+    });
+    assert(sourceWrite.json?.source?.sourceId === sourceId &&
+      sourceWrite.json?.source?.enabled === true,
+    `${item.caseId} second source response identity mismatch`);
+
+    const viewWrite = await requestEndpoint(
+      "POST",
+      "/ops/api/views",
+      {
+        viewId,
+        sourceId,
+        displayName: `REVIEW4 ${item.caseId} view B`,
+        enabled: true,
+        showDashboard: true,
+        showEvents: true,
+        showMetadataSummary: true,
+        allowedOverlayModes: ["raw", "va-overlay", "va-rule"],
+        defaultRuleId: "",
+        allowedRuleIds: [],
+        clientGroups: [],
+        maxTiles: 1,
+      },
+      item,
+      context,
+      [201],
+      { roleOverride: "operator" },
+    );
+    context.transientApiCleanup.push({
+      endpoint: `/ops/api/views/${viewId}`,
+      collectionEndpoint: "/ops/api/views",
+      collectionRecordsKey: "views",
+      recordIdField: "viewId",
+      recordId: viewId,
+    });
+    assert(viewWrite.json?.view?.viewId === viewId &&
+      viewWrite.json?.view?.sourceId === sourceId &&
+      viewWrite.json?.view?.enabled === true,
+    `${item.caseId} second view response identity mismatch`);
+
+    scopeRuntimeViewerToViews([defaultViewId, viewId]);
+    const viewIds = [defaultViewId, viewId];
+    context.catalogBindings = {
+      ...context.catalogBindings,
+      sourceId: String(defaultSource.sourceId),
+      viewId: defaultViewId,
+      viewA: defaultViewId,
+      viewB: viewId,
+      viewIds,
+    };
+    context.transientStateSeeded = true;
+    context.transientSeedReadback = {
+      fixturePlan: ["two-view-playback"],
+      viewIds,
+      sourceIds: [String(defaultSource.sourceId), sourceId],
+      status: "PASS",
+    };
+  }
+
   async function materializeEventExactSeed(item, context, spec) {
     assert(!context.eventExactSeedPrepared,
       `${item.caseId} exact event seed materializer ran more than once`);
@@ -2946,6 +3224,8 @@ export function createV390UiCaseRuntime({
     for (let index = 0; index < eventCount; index += 1) {
       const familyRecord = familyExpectedRecords[index] || null;
       const eventId = eventIds[index];
+      const typedRecordFields = eventTypedRecordFieldsForSeed(kind);
+      const readinessProfile = eventReadinessSeedProfile(kind, index, eventId);
       const existing = fs.existsSync(eventPath) &&
         fs.readFileSync(eventPath, "utf8").includes(`\"eventId\":\"${eventId}\"`);
       assert(!existing, `${item.caseId} exact event seed already exists: ${eventId}`);
@@ -2958,22 +3238,30 @@ export function createV390UiCaseRuntime({
           sourceId: familyRecord.sourceId,
           streamId: familyRecord.streamId,
           status: familyRecord.status,
-          eventType: index === 1 && plan.related ? "related-incident" : "presence",
+          eventType: typedRecordFields.eventType ||
+            (index === 1 && plan.related ? "related-incident" : "presence"),
           route: familyRecord.route,
-          scenarioName: familyRecord.scenarioName ||
+          scenarioName: typedRecordFields.scenarioName || familyRecord.scenarioName ||
             (plan.related ? "review4-related-incident" : "review4-exact"),
         });
         context.eventRecordFixtureDispatches.push(dispatch.identityEvidence);
+        if (typedRecordFields.scenarioPhase) {
+          rewriteEventRecordFixtureFields(eventPath, eventId, {
+            scenarioPhase: typedRecordFields.scenarioPhase,
+          });
+        }
       } else {
         seedEventRecordFixture(eventPath, {
           eventId,
           sourceId: source.sourceId,
           streamId: source.streamId,
           status: index === 1 && plan.archivedRecord ? "archived" : "open",
-          eventType: index === 1 && plan.related ? "related-incident" : "presence",
-          scenarioName: memorySearchSeed?.scenarioName ||
+          eventType: typedRecordFields.eventType ||
+            (index === 1 && plan.related ? "related-incident" : "presence"),
+          scenarioName: typedRecordFields.scenarioName || memorySearchSeed?.scenarioName ||
             (plan.related ? "review4-related-incident" : "review4-exact"),
-          snapshotPath: plan.evidence ? `snapshots/${eventId}.jpg` : "",
+          scenarioPhase: typedRecordFields.scenarioPhase || "",
+          snapshotPath: readinessProfile?.snapshotPath ?? (plan.evidence ? `snapshots/${eventId}.jpg` : ""),
           clipPath: plan.evidence ? `clips/${eventId}.mp4` : "",
           metadata: {
             sourceId: source.sourceId,
@@ -3012,9 +3300,12 @@ export function createV390UiCaseRuntime({
     let reviewStatus = 0;
     let recordCount = 0;
     if (plan.review && eventIds.length > 0) {
-      for (const eventId of eventIds) {
+      for (const [index, eventId] of eventIds.entries()) {
+        const readinessProfile = eventReadinessSeedProfile(kind, index, eventId);
+        if (readinessProfile && readinessProfile.review === null) continue;
         const requestedReview = {
           ...reviewPayload,
+          ...(readinessProfile?.review || {}),
           note: `${reviewPayload.note} ${eventId}`,
         };
         const eventRecordBeforePutSha256 = fs.existsSync(eventPath)
@@ -3175,7 +3466,8 @@ export function createV390UiCaseRuntime({
           }
         : {},
       eventReviewSeedEvidence: {
-        writeReceiptValidated: !plan.review || Object.keys(reviewSeeds).length === eventIds.length,
+        writeReceiptValidated: !plan.review || Object.keys(reviewSeeds).length ===
+          (kind === "four-readiness-states" ? 3 : eventIds.length),
         putResponseDigests: Object.fromEntries(
           Object.entries(reviewSeeds).map(([eventId, receipt]) =>
             [eventId, receipt.putResponseSha256]),
@@ -3485,9 +3777,9 @@ export function createV390UiCaseRuntime({
       viewId: context.catalogBindings.viewId || descriptor.auth?.defaultViewId || "9001",
       sourceId: context.catalogBindings.sourceId || defaultPublishedSourceIdentity(descriptor).sourceId,
       ruleId: context.catalogBindings.ruleId || "unmapped-rule",
-      q: context.catalogBindings.searchQuery || context.fixtureId,
+      q: context.catalogBindings.q || context.catalogBindings.searchQuery || context.fixtureId,
       evidence: "snapshot",
-      incidentStatus: "open",
+      incidentStatus: context.catalogBindings.incidentStatus || "open",
       startTimeMs: "0",
       endTimeMs: String(Date.now()),
       limit: "100",
@@ -3552,6 +3844,23 @@ export function createV390UiCaseRuntime({
           });
       }
       for (const assertion of request.assertions) {
+        const typedBinding = eventTypedResponseBinding({
+          assertionPath: assertion.path,
+          operator: assertion.operator,
+          fixtureId: context.fixtureId,
+          sourceId: templateValues.sourceId,
+          responseJson: body,
+        });
+        if (typedBinding) {
+          requestRowLocalBaselineByAssertionKey[
+            `${identity}\n${assertion.operator}\n${assertion.path}`
+          ] = typedBinding;
+          if (assertion.operator.startsWith("contains-fixture")) {
+            seedByPath[assertion.path] = typedBinding.fixtureExpectedValue;
+          } else if (requirements.seedPaths.includes(assertion.path)) {
+            seedByPath[assertion.path] = typedBinding.expectedValue;
+          }
+        }
         const values = eventExactValuesAtPath(body, assertion.path);
         const actual = values.length === 1 ? values[0] : values;
         const fixtureIdentityAssertion = eventExactUsesFixtureIdentityBaseline(assertion.operator);
@@ -3559,7 +3868,8 @@ export function createV390UiCaseRuntime({
             ["$text", "$contentType", "$body"].includes(assertion.path)) {
           responseByPath[assertion.path] = actual;
         }
-        if (fixtureIdentityAssertion) {
+        if (fixtureIdentityAssertion &&
+            !Object.prototype.hasOwnProperty.call(seedByPath, assertion.path)) {
           seedByPath[assertion.path] = context.fixtureId;
         }
         if (requirements.seedPaths.includes(assertion.path)) {
@@ -3568,12 +3878,14 @@ export function createV390UiCaseRuntime({
             assert(Object.prototype.hasOwnProperty.call(independentReviewSeeds, assertion.path),
               `${item.caseId} exact review seed binding is not independent: ${assertion.path}`);
             seedByPath[assertion.path] = independentReviewSeeds[assertion.path];
-          } else {
+          } else if (!Object.prototype.hasOwnProperty.call(seedByPath, assertion.path)) {
             seedByPath[assertion.path] = actual;
           }
         }
         if (requirements.requestPaths.includes(assertion.path)) {
-          requestByPath[assertion.path] = { ...mergedQuery };
+          requestByPath[assertion.path] = assertion.path.endsWith(".activeResolutionFilters")
+            ? typedActiveResolutionFiltersFromRequest(mergedQuery)
+            : { ...mergedQuery };
         }
       }
     }
@@ -6663,6 +6975,7 @@ export function seedEventRecordFixture(eventStoragePath, {
   eventType = "presence",
   className = "person",
   scenarioName = "",
+  scenarioPhase = "",
   snapshotPath = "",
   clipPath = "",
   metadata = {},
@@ -6687,7 +7000,7 @@ export function seedEventRecordFixture(eventStoragePath, {
     zoneId: "",
     lineId: "",
     scenarioName,
-    scenarioPhase: "",
+    scenarioPhase,
     confidence: 0.9,
     snapshotPath,
     clipPath,
@@ -6699,6 +7012,26 @@ export function seedEventRecordFixture(eventStoragePath, {
   fs.appendFileSync(eventStoragePath, `${JSON.stringify(record)}\n`, { mode: 0o600 });
   fs.chmodSync(eventStoragePath, 0o600);
   return record;
+}
+
+function rewriteEventRecordFixtureFields(eventStoragePath, eventId, fields = {}) {
+  const allowedFields = new Set(["scenarioPhase"]);
+  assert(Object.keys(fields).length > 0 &&
+    Object.keys(fields).every(field => allowedFields.has(field)),
+  "typed EventRecord fixture rewrite contains an unsupported field");
+  const lines = fs.readFileSync(eventStoragePath, "utf8").split("\n");
+  let matched = 0;
+  const rewritten = lines.map(line => {
+    if (!line.trim()) return line;
+    const record = JSON.parse(line);
+    if (String(record?.eventId || "") !== String(eventId)) return line;
+    matched += 1;
+    return JSON.stringify({ ...record, ...fields });
+  });
+  assert(matched === 1,
+    `typed EventRecord fixture rewrite cardinality mismatch: ${matched}`);
+  fs.writeFileSync(eventStoragePath, rewritten.join("\n"), { mode: 0o600 });
+  fs.chmodSync(eventStoragePath, 0o600);
 }
 
 export function seedVlmRuleSuggestionFixture(observationPath, { eventId, sourceId = "9001", searchTerm = "" } = {}) {

@@ -7304,3 +7304,21 @@ binding에서 stale child로 오인됐습니다. Client-safe request는 actual p
 별도로 보존하고 failure evidence를 template에 결속하도록 교정했습니다. Focused client-safe `15/15`,
 runtime `49/49`, diagnostic `23/23`과 equivalent `CLIENT-028` binding이 PASS했습니다. 제품 assertion과
 response schema는 변경하지 않았으며 새 batch와 canonical `test_ui.sh`는 아직 미실행입니다.
+
+### REVIEW4-65 remaining-125 common-cluster checkpoint (2026-08-04)
+
+Fresh census `v390-ui-diagnostic-20260803153406-58218`은 고정된
+`EVT-023`~`SAFE-140` 125건을 모두 시도해 `83 PASS / 42 FAIL`을 보존했습니다.
+실패는 EVT request/fixture·response-derived DOM 26건과 Client/Media/Safe
+route/control/readback 16건의 공통 계약으로 묶었으며 단건 actual 보정은 수행하지
+않았습니다. Typed fixture row 선택, response-derived DOM owner/cardinality, dynamic
+viewer/session binding, details visibility, navigation lifecycle과 EVT-055의 네 readiness
+상태를 fail-closed로 보정했습니다. 제품 변경은 누락된 EVT-055 `not-run` 상태 생성에
+한정합니다.
+
+공식 native generator는 source 동결 뒤 정확히 1회 실행했고 canonical은
+`424 = 423 positive + 1 negative`, unsupported `0`, ordered ID 및
+route/role/viewport/theme 불변입니다. Build, event oracle `29/29`, client-safe `16/16`,
+native exact `52/52`가 PASS했습니다. 동일 125건 batch 재실행과 canonical
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 아직 미실행이며 실제 진척으로
+승격하지 않습니다.

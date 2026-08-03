@@ -3298,3 +3298,13 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 세 번째 actual | `v390-ui-diagnostic-20260803152435-50338`; 62 attempted, 29 PASS, 33 FAIL, 63 not-run | `CLIENT-028` child evidence ingestion에서 중단 |
 | Template binding | Materialized client request의 canonical `{fixtureId}` template와 actual path를 분리하고 failure evidence를 template에 결속 | Prior CLIENT-028 equivalent binding, client-safe `15/15`, runtime `49/49`, diagnostic `23/23` PASS |
 | Actual/release 상태 | Official canonical `299/424`, diagnostic-equivalent `313/424` | 보정 후 새 batch, Policy v4, 30분, 120분, release 미실행 |
+
+## v3.9.0 REVIEW4-65 remaining-125 common-cluster checkpoint
+
+| 항목 | 결과 | 실행 경계 |
+| --- | --- | --- |
+| Fresh census | `v390-ui-diagnostic-20260803153406-58218`; selected/attempted `125/125`, PASS `83`, FAIL `42`, not-run/unsupported `0/0` | Canonical `test_ui.sh` 집계에는 합산하지 않음 |
+| Common correction | EVT request/fixture·response-derived DOM 26건과 Client/Media/Safe route/control/readback 16건을 공통 source 계약으로 보정 | 단건 actual·assertion 삭제·case 전용 무조건 PASS 없음 |
+| Product correction | EVT-055 readiness producer에 기존 계약의 `not-run` 상태를 추가해 ready/blocked/field-smoke-needed/not-run 네 상태를 결정적으로 생성 | API schema와 기존 세 상태 의미 불변 |
+| Native/build gate | Generator 정확히 1회; `424 = 423+1`, unsupported `0`, event `29/29`, client-safe `16/16`, native `52/52`, build PASS | Ordered ID 및 route/role/viewport/theme 불변 |
+| Actual/release 상태 | 동일 125건 batch 재실행 전이며 official canonical은 `300 attempted / 299 PASS / 1 FAIL / 124 not-run` | UI/Policy v4/30분/120분/release 미실행; static PASS를 actual 진척으로 사용하지 않음 |

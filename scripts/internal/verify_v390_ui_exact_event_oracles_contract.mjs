@@ -19,6 +19,8 @@ import {
   eventExactUsesFixtureIdentityBaseline,
 } from "./v390_ui_case_runtime.mjs";
 
+const opsIncidentSource = fs.readFileSync("src/ingress/webrtc_http_server_ops_incidents.cpp", "utf8");
+
 const checks = [];
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -74,6 +76,33 @@ function assertOrdered(source, markers, message) {
     previous = current;
   }
 }
+
+check("EVT-055 product readiness derives all four documented states without a write side effect", () => {
+  const statusBody = boundedFunctionSource(
+    opsIncidentSource,
+    "std::string OpsIncidentActionReadinessStatus(",
+    "std::string OpsIncidentActionReadinessQueueItemJson(",
+  );
+  assertOrdered(statusBody, [
+    "if (!review_present)",
+    'return "not-run"',
+    "if (!blockers.empty())",
+    'return "blocked"',
+    "if (field_smoke_required)",
+    'return "field-smoke-needed"',
+    'return "ready"',
+  ], "EVT-055 four-state readiness ordering drifted");
+  const itemBody = boundedFunctionSource(
+    opsIncidentSource,
+    "std::string OpsIncidentActionReadinessQueueItemJson(",
+    "std::string OpsIncidentActionReadinessQueueViewJson(",
+  );
+  assert(itemBody.includes("blockers, field_smoke_required, review.present"),
+    "EVT-055 readiness state is not bound to authoritative review presence");
+  assert(itemBody.includes('"autoActionWritePerformed":false') ||
+    itemBody.includes('\\"autoActionWritePerformed\\":false'),
+  "EVT-055 no-write response contract is missing");
+});
 function assertRuntimeResponseProjectionContract(captureBody) {
   const assertionLoopStart = captureBody.indexOf("for (const assertion of request.assertions)");
   const assertionLoopEnd = captureBody.indexOf(
@@ -89,7 +118,7 @@ function assertRuntimeResponseProjectionContract(captureBody) {
   const responseAssignment = assertionLoopBody.indexOf(
     "responseByPath[assertion.path] = actual",
   );
-  const fixtureBranch = assertionLoopBody.indexOf("if (fixtureIdentityAssertion)");
+  const fixtureBranch = assertionLoopBody.indexOf("if (fixtureIdentityAssertion &&");
   assert(fixtureDeclaration >= 0 && responseAssignment > fixtureDeclaration &&
     fixtureBranch > responseAssignment,
   "actual response projection must precede the fixture identity seed branch");
@@ -99,9 +128,9 @@ function assertRuntimeResponseProjectionContract(captureBody) {
   assert(/if \(values\.length > 0 \|\|\s*\["\$text", "\$contentType", "\$body"\]\.includes\(assertion\.path\)\) \{\s*responseByPath\[assertion\.path\] = actual;\s*\}/s
     .test(assertionLoopBody),
   "actual response projection is not bound to values or response pseudo-fields");
-  assert(/if \(fixtureIdentityAssertion\) \{\s*seedByPath\[assertion\.path\] = context\.fixtureId;\s*\}/s
+  assert(/if \(fixtureIdentityAssertion &&\s*!Object\.prototype\.hasOwnProperty\.call\(seedByPath, assertion\.path\)\) \{\s*seedByPath\[assertion\.path\] = context\.fixtureId;\s*\}/s
     .test(assertionLoopBody),
-  "fixture identity branch must set only the fixture seed channel");
+  "fixture identity branch must preserve a typed seed and otherwise set only the fixture channel");
 
   const evt003Start = captureBody.indexOf(
     'if (item.caseId === "EVT-003" || item.caseId === "EVT-025")',
@@ -634,7 +663,7 @@ check("all specs assert body semantics, DOM semantics, forbidden boundaries, sna
   }
 });
 
-check("18 audited stale response path families bind the actual product JSON schema", () => {
+check("19 audited stale response path families bind the actual product JSON schema", () => {
   const expected = {
     "EVT-007": ["records.matchedRecords"],
     "EVT-017": ["integrations", "integrations[].endpointMasked", "integrations[].endpointRedacted"],
@@ -646,6 +675,11 @@ check("18 audited stale response path families bind the actual product JSON sche
       "operationalActionPack.contract.externalDeliveryPerformed",
       "operationalActionPack.contract.ruleRegistryWritePerformed",
       "operationalActionPack.contract.sourceHealthWritePerformed",
+    ],
+    "EVT-047": [
+      "records[].incidentRuleSuggestionReview.matchingRuleSuggestion",
+      "records[].incidentRuleSuggestionReview.sourceCandidateReport",
+      "records[].incidentRuleSuggestionReview.contract.ruleRegistryWritePerformed",
     ],
     "EVT-055": ["incidentActionReadinessQueue.readinessCounts.notRun", "incidentActionReadinessQueue.contract.autoActionWritePerformed"],
     "EVT-058": [
@@ -694,7 +728,7 @@ check("18 audited stale response path families bind the actual product JSON sche
       "unifiedResolutionWorkspace.resolutionQueue[].incidentCommandHandoff.commandPlanDraft",
     ],
   };
-  assert(Object.keys(expected).length === 18, "audited stale response family count drift");
+  assert(Object.keys(expected).length === 19, "audited stale response family count drift");
   for (const [caseId, paths] of Object.entries(expected)) {
     const actual = responsePaths(eventExactOracleFor(caseId));
     for (const path of paths) assert(actual.includes(path), `${caseId} actual product response path missing: ${path}`);
@@ -714,6 +748,7 @@ check("validator rejects restoring any audited stale response path", () => {
     "EVT-050": ["incidentTriageBoard.cards", "incidentTriageBoard.items"],
     "EVT-051": ["incidentDecisionScorecard.scorecards", "incidentDecisionScorecard.items"],
     "EVT-052": ["operationalActionPack.contract.externalDeliveryPerformed", "operationalActionPack.contract.autoActionPerformed"],
+    "EVT-047": ["records[].incidentRuleSuggestionReview.matchingRuleSuggestion", "incidentRuleSuggestionReview.matchingRuleSuggestion"],
     "EVT-055": ["incidentActionReadinessQueue.readinessCounts.notRun", "incidentActionReadinessQueue.contract.notRunIsPass"],
     "EVT-058": ["runtimeEvidenceWindow.contract.persistentArchiveCreated", "runtimeEvidenceWindow.contract.longTermStorageAdded"],
     "EVT-064": ["unifiedResolutionWorkspace.selectedDetail", "unifiedResolutionWorkspace.resolutionDetail"],
@@ -960,17 +995,21 @@ check("fixture contains assertions use identity baselines and diagnostic canarie
     runtimeSource.includes("exact review seed binding is not independent") &&
     runtimeSource.includes("eventRecordAfterReviewSha256 === eventRecordBeforeReviewSha256"),
   "review seed bindings are not independent from the GET response or EventRecord no-write boundary");
-  const reviewSeedBranch = boundedFunctionSource(
-    runtimeSource,
-    'if (requirements.seedPaths.includes(assertion.path))',
-    'if (requirements.requestPaths.includes(assertion.path))',
+  const independentSeedStart = runtimeSource.indexOf(
+    "const independentReviewSeeds = context.catalogBindings.eventReviewSeedByPath || {}",
   );
-  const independentReviewBranch = reviewSeedBranch.slice(
-    reviewSeedBranch.indexOf('if (assertion.path.startsWith("records[].review."))'),
-    reviewSeedBranch.indexOf("} else {"),
+  const independentSeedEnd = runtimeSource.indexOf(
+    "if (requirements.requestPaths.includes(assertion.path))",
+    independentSeedStart,
   );
-  assert(independentReviewBranch.length > 0 &&
-    !independentReviewBranch.includes("seedByPath[assertion.path] = actual"),
+  assert(independentSeedStart >= 0 && independentSeedEnd > independentSeedStart,
+    "independent review seed branch boundary is missing");
+  const reviewSeedBranch = runtimeSource.slice(independentSeedStart, independentSeedEnd);
+  const independentReviewMatch = reviewSeedBranch.match(
+    /if \(assertion\.path\.startsWith\("records\[\]\.review\."\)\) \{([\s\S]*?)\n\s*\} else if/,
+  );
+  assert(independentReviewMatch?.[1] &&
+    !independentReviewMatch[1].includes("seedByPath[assertion.path] = actual"),
     "review seed path regressed to response self-comparison");
   assert(runtimeSource.includes("bindings.redactionCanary = redactionCanary"),
     "diagnostic redaction canary is not propagated to runtime bindings");

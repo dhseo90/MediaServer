@@ -100,6 +100,18 @@ const AUDITED_RESPONSE_PATH_BINDINGS = Object.freeze({
     ],
     stale: ["operationalActionPack.contract.autoActionPerformed"],
   },
+  "EVT-047": {
+    required: [
+      "records[].incidentRuleSuggestionReview.matchingRuleSuggestion",
+      "records[].incidentRuleSuggestionReview.sourceCandidateReport",
+      "records[].incidentRuleSuggestionReview.contract.ruleRegistryWritePerformed",
+    ],
+    stale: [
+      "incidentRuleSuggestionReview.matchingRuleSuggestion",
+      "incidentRuleSuggestionReview.sourceCandidateReport",
+      "incidentRuleSuggestionReview.contract.ruleRegistryWritePerformed",
+    ],
+  },
   "EVT-055": {
     required: ["incidentActionReadinessQueue.readinessCounts.notRun", "incidentActionReadinessQueue.contract.autoActionWritePerformed"],
     stale: ["incidentActionReadinessQueue.contract.notRunIsPass"],
@@ -814,7 +826,7 @@ specs.push(
     featureMeaning: "incident rule suggestion review wraps matching rule suggestion and candidate report as an Ops-only manual draft",
     selector: "[data-event-review-row][data-event-id=evt-047-review4-fixture] [data-testid=ops-incident-rule-suggestion-review]", semanticTarget: "incident-rule-suggestion-review", seedKind: "matching-rule-suggestion-sidecar", seedFields: ["matchingRuleSuggestion", "sourceCandidateReport", "manualDraftRoute"],
     apiPath: "/ops/api/events/reviews/evt-047-review4-fixture",
-    bodyAssertions: [["incidentRuleSuggestionReview.matchingRuleSuggestion", "equals-seed", true], ["incidentRuleSuggestionReview.sourceCandidateReport", "equals-seed", true], ["incidentRuleSuggestionReview.contract.ruleRegistryWritePerformed", "equals", false]],
+    bodyAssertions: [["records[].incidentRuleSuggestionReview.matchingRuleSuggestion", "equals-seed", true], ["records[].incidentRuleSuggestionReview.sourceCandidateReport", "equals-seed", true], ["records[].incidentRuleSuggestionReview.contract.ruleRegistryWritePerformed", "equals", false]],
     domChecks: [["fields-equal-response", "suggestion/candidates/manualDraftRoute", true], ["manual-only", "no-auto-apply", true]],
   }),
   reviewProjectionSpec("EVT-048", {

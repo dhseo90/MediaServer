@@ -77,6 +77,11 @@ const endpointOwnedActionSpecs = Object.freeze({
   "SRC-031": Object.freeze({ method: "POST", path: "/ops/api/onvif/import-draft", allowedStatuses: Object.freeze([200]) }),
 });
 
+const readModelEndpointOverrides = new Map([
+  ["SAFE-033", Object.freeze({ method: "GET", path: "/ops/vlm", allowedStatuses: Object.freeze([200]) })],
+  ["SAFE-041", Object.freeze({ method: "GET", path: "/ops/api/events/reviews", allowedStatuses: Object.freeze([200]) })],
+]);
+
 export function createNativeExactPreExecutionFailureSummary({
   error,
   manifest,
@@ -1144,8 +1149,8 @@ const localCompletionContracts = new Map([
   ["CLIENT-002", {
     seedRequirements: [{ kind: "live-tile-state", state: "idle", minimumCount: 1 }],
     requiredRequests: [
-      { sequence: 1, method: "POST", urlPath: "/client/api/views/client-002-review4-fixture/webrtc/session", allowedStatuses: [200] },
-      { sequence: 2, method: "POST", urlPath: "/client/api/views/client-002-review4-fixture/webrtc/session/client-002-review4-session/answer", allowedStatuses: [200] },
+      { sequence: 1, method: "POST", urlPath: "/client/api/views/{assignedViewId}/webrtc/session", allowedStatuses: [200] },
+      { sequence: 2, method: "POST", urlPath: "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer", allowedStatuses: [200] },
     ],
     postconditions: [
       { selector: '[data-action="toggle-playback"]', property: "ariaLabel", operator: "includes", value: "정지" },
@@ -2686,6 +2691,18 @@ function buildProductAction({
       localAction: null,
     };
   }
+  const readModelOverride = readModelEndpointOverrides.get(caseId);
+  if (readModelOverride) {
+    return {
+      kind: workflowClass === "hidden-disabled" ? "product-boundary-read" : "product-state-read",
+      endpoint: {
+        method: readModelOverride.method,
+        path: readModelOverride.path,
+        allowedStatuses: [...readModelOverride.allowedStatuses],
+      },
+      localAction: null,
+    };
+  }
   return {
     kind: workflowClass === "hidden-disabled" ? "product-boundary-read" : "product-state-read",
     endpoint: {
@@ -3511,6 +3528,31 @@ function buildActionSemanticCompletion({
         : {}),
       authoritativeReadback: null,
     };
+    if (primary && action.kind === "navigate-negative" &&
+        ["SAFE-016", "SAFE-017"].includes(caseId)) {
+      navigationBinding.caseLifecycleNavigationSequence = [
+        {
+          purpose: "initial-product-document",
+          method: "GET",
+          path: screenRoute,
+          resourceType: "document",
+          sameOrigin: true,
+          correlationRequired: false,
+          redirected: false,
+          responseStatus: 200,
+        },
+        {
+          purpose: "negative-document-navigation",
+          method: "GET",
+          path: action.route,
+          resourceType: "document",
+          sameOrigin: true,
+          correlationRequired: false,
+          redirected: false,
+          responseStatus: (action.allowedStatuses || [404])[0],
+        },
+      ];
+    }
   }
   if (navigationBoundReadModel && primary && !documentNavigation) {
     const authoritativeRequest = diagnosticNavigationBoundReadModel

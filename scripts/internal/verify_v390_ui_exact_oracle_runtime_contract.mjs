@@ -15,6 +15,7 @@ import {
   buildMarkerEvaluatorLifecycleFailureEvidence,
   buildOwnedRefreshStabilityEvidence,
   buildRequestSemanticAssertionEvidence,
+  buildResponseDerivedEventDomProjectionEvidence,
   containsForbiddenResponseMaterial,
   containsForbiddenStructuredDomMaterial,
   dashboardRuntimeTrendSample,
@@ -768,6 +769,83 @@ await check("EVT DOM semantic composite distinguishes safe failure evidence with
     "composite error evidence exposed a raw secret, URL, or credential value");
     assertCompositeDigestsAreSha256(evidence);
   }
+});
+
+await check("missing legacy DOM baselines use strict response-derived renderer projection", async () => {
+  const fixtureId = "evt-runtime-projection-fixture";
+  const selectedResponseBaselines = selectEventDomResponseBaselines({
+    operator: "fields-equal-response",
+    target: "approvalState/validationSummary",
+  }, {});
+  const observed = {
+    count: 1,
+    visibleCount: 1,
+    text: "operator approved · schema valid",
+    nodeTexts: ["operator approved · schema valid"],
+    attributes: [],
+    values: [],
+    descendantCount: 2,
+  };
+  const responseBodies = [{ readiness: { items: [{
+    eventId: fixtureId,
+    approvalState: "operator-approved",
+    validationSummary: "schema-valid",
+  }] } }];
+  const projection = buildResponseDerivedEventDomProjectionEvidence({
+    caseId: "EVT-FOCUSED",
+    assertion: { operator: "fields-equal-response", target: "approvalState/validationSummary" },
+    observed,
+    responseBodies,
+    fixtureCandidates: [fixtureId],
+    selectedResponseBaselines,
+  });
+  const passing = buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-FOCUSED",
+    selector: "#focused [data-event]",
+    observed,
+    responseBodies,
+    priorResponseByPath: {},
+    responseDerivedDomProjection: projection,
+    actualBrowserExecution: true,
+  });
+  assert(passing.pass && passing.responseBaselineMatched.pathCount === 0 &&
+    passing.responseDerivedDomProjection.pass,
+  "response-derived renderer projection did not replace only the missing baseline");
+
+  const selectorOnlyProjection = buildResponseDerivedEventDomProjectionEvidence({
+    caseId: "EVT-FOCUSED",
+    assertion: { operator: "fields-equal-response", target: "approvalState/validationSummary" },
+    observed: { ...observed, text: "readiness", nodeTexts: ["readiness"] },
+    responseBodies,
+    fixtureCandidates: [fixtureId],
+    selectedResponseBaselines,
+  });
+  const selectorOnly = buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-FOCUSED",
+    selector: "#focused [data-event]",
+    observed: { ...observed, text: "readiness", nodeTexts: ["readiness"] },
+    responseBodies,
+    priorResponseByPath: {},
+    responseDerivedDomProjection: selectorOnlyProjection,
+    actualBrowserExecution: true,
+  });
+  assertCompositeFailure(selectorOnly, "responseDerivedDomProjection");
+  assert(selectorOnly.causeCodes.includes("RENDERER_PROJECTION_VALUE_MISMATCH"),
+    "selector-only projection did not retain a strict failure code");
+  assert(!JSON.stringify(passing).includes(fixtureId) &&
+    !JSON.stringify(passing).includes("operator-approved"),
+  "runtime projection evidence retained raw response material");
+
+  const explicitBaseline = buildResponseDerivedEventDomProjectionEvidence({
+    caseId: "EVT-FOCUSED",
+    assertion: { operator: "fields-equal-response", target: "approvalState" },
+    observed,
+    responseBodies,
+    fixtureCandidates: [fixtureId],
+    selectedResponseBaselines: { approvalState: "operator-approved" },
+  });
+  assert(explicitBaseline === null,
+    "response-derived fallback replaced an explicitly owned response baseline");
 });
 
 await check("EVT-003 source-health baseline is row-local to the acceptance-owned source", async () => {
@@ -3092,6 +3170,20 @@ await check("CLIENT fixture materialization binds assigned and blocked views ind
     bindings: { assignedViewId: "9001", blockedViewId: "99002" },
     correlationId: "CLIENT-001:contract",
   }), "forbidden response value observed");
+});
+
+await check("client media readiness and nullable fields preserve their product ownership", async () => {
+  for (const snippet of [
+    'operator === "path-present"',
+    "root.closest?.('[data-tile]')",
+    "video.readyState >= 2",
+    "scrollIntoView?.({ block: 'nearest', inline: 'nearest' })",
+  ]) {
+    assert(runtimeSource.includes(snippet),
+      `client runtime lifecycle source missing ${snippet}`);
+  }
+  assert(!runtimeSource.includes("videoCount >= minimumPlaying"),
+    "client media readiness accepts merely present, non-playing videos");
 });
 
 await check("SAFE DOM structure/material and external capability boundaries are enforced", async () => {

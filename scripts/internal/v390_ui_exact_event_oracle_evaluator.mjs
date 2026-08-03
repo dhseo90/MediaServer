@@ -53,6 +53,224 @@ function recursiveContains(value, needle) {
   return valueText(value).includes(String(needle));
 }
 
+function normalizedProjectionWords(value) {
+  return String(value ?? "")
+    .normalize("NFKC")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function normalizedProjectionKey(value) {
+  return normalizedProjectionWords(value).replace(/\s+/gu, "");
+}
+
+function fixtureIdentityRank(value, fixtureCandidates, directOnly = false) {
+  if (value === undefined || value === null) return Number.MAX_SAFE_INTEGER;
+  const values = directOnly && isObject(value)
+    ? Object.values(value).filter(child => !isObject(child) && !Array.isArray(child))
+    : [value];
+  for (let index = 0; index < fixtureCandidates.length; index += 1) {
+    if (values.some(child => recursiveContains(child, fixtureCandidates[index]))) return index;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function collectResponseFieldCandidates(responseBodies, fixtureCandidates) {
+  const candidates = [];
+  const visit = (value, path, fixtureRank, fixtureDistance) => {
+    if (Array.isArray(value)) {
+      value.forEach((child, index) =>
+        visit(child, `${path}[${index}]`, fixtureRank, fixtureDistance + 1));
+      return;
+    }
+    if (!isObject(value)) return;
+    const directRank = fixtureIdentityRank(value, fixtureCandidates, true);
+    const ownerRank = Math.min(fixtureRank, directRank);
+    const distance = directRank < fixtureRank ? 0 : fixtureDistance + 1;
+    for (const [key, child] of Object.entries(value)) {
+      const childPath = path ? `${path}.${key}` : key;
+      const childRank = Math.min(ownerRank,
+        fixtureIdentityRank(child, fixtureCandidates));
+      candidates.push({
+        key,
+        path: childPath,
+        value: child,
+        fixtureRank: childRank,
+        fixtureDistance: distance,
+      });
+      visit(child, childPath, ownerRank, distance);
+    }
+  };
+  for (const body of responseBodies) {
+    visit(body, "", Number.MAX_SAFE_INTEGER, 1000);
+  }
+  return candidates;
+}
+
+function projectionFieldMatchScore(field, candidate) {
+  const fieldKey = normalizedProjectionKey(field);
+  const candidateKey = normalizedProjectionKey(candidate.key);
+  if (!fieldKey || !candidateKey) return 0;
+  if (fieldKey === candidateKey) return 100;
+  if (fieldKey.length >= 4 && candidateKey.includes(fieldKey)) return 80;
+  if (candidateKey.length >= 4 && fieldKey.includes(candidateKey)) return 70;
+  const fieldWords = normalizedProjectionWords(field).split(" ").filter(Boolean);
+  const candidateWords = new Set(normalizedProjectionWords(candidate.key).split(" ").filter(Boolean));
+  return fieldWords.length > 0 && fieldWords.every(word => candidateWords.has(word)) ? 60 : 0;
+}
+
+function orderedProjectionValues(operator, value) {
+  const values = Array.isArray(value) ? value : [value];
+  if (operator.startsWith("stage-order-") && values.every(isObject)) {
+    return values.map(item => item.stage).filter(item => item !== undefined);
+  }
+  if (operator.startsWith("edge-order-") && values.every(isObject)) {
+    return values.flatMap(item => [item.from, item.to].filter(field => field !== undefined));
+  }
+  return values;
+}
+
+function rendererProjectionScalars(value, operator, field) {
+  if (String(field).endsWith(".length")) {
+    return Array.isArray(value) || typeof value === "string" ? [value.length] : [];
+  }
+  const ordered = orderedProjectionValues(operator, value);
+  const scalars = [];
+  const visit = child => {
+    if (Array.isArray(child)) {
+      child.forEach(visit);
+      return;
+    }
+    if (isObject(child)) {
+      Object.values(child).forEach(visit);
+      return;
+    }
+    if (child !== undefined && child !== null && String(child).trim().length > 0) scalars.push(child);
+  };
+  ordered.forEach(visit);
+  return scalars;
+}
+
+function rendererValueVariants(value, operator) {
+  const variants = new Set([normalizedProjectionWords(value)]);
+  if (String(operator).startsWith("stage-order-") && typeof value === "string") {
+    const genericStageWords = new Set(["state", "record", "action", "dry", "run"]);
+    const label = normalizedProjectionWords(value).split(" ")
+      .filter(word => !genericStageWords.has(word)).join(" ");
+    if (label) variants.add(label);
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    variants.add(normalizedProjectionWords(value.toFixed(2)));
+    if (Number.isInteger(value) && value > 100000000000) {
+      variants.add(normalizedProjectionWords(new Date(value).toISOString()));
+    }
+  }
+  return [...variants].filter(Boolean);
+}
+
+function rendererPhraseIndex(text, value, operator) {
+  const haystack = ` ${normalizedProjectionWords(text)} `;
+  const indices = rendererValueVariants(value, operator).map(variant =>
+    haystack.indexOf(` ${variant} `)).filter(index => index >= 0);
+  return indices.length > 0 ? Math.min(...indices) : -1;
+}
+
+export function evaluateResponseDerivedDomFieldProjection({
+  caseId = "",
+  operator = "",
+  target = "",
+  responseBodies = [],
+  observation = {},
+  fixtureCandidates = [],
+} = {}) {
+  const fields = String(target).split("/").map(value => value.trim()).filter(Boolean);
+  const normalizedFixtures = [...new Set(fixtureCandidates
+    .filter(value => value !== undefined && value !== null && String(value).length > 0)
+    .map(String))];
+  const responseCandidates = collectResponseFieldCandidates(responseBodies, normalizedFixtures);
+  const domText = [
+    observation?.text,
+    ...(observation?.nodeTexts || []),
+    JSON.stringify(observation?.attributes || []),
+    JSON.stringify(observation?.values || []),
+  ].filter(Boolean).join(" ");
+  let priorOrderIndex = -1;
+  const orderSensitive = String(operator).includes("order-equals-response");
+  const fieldEvidence = fields.map(field => {
+    const ranked = responseCandidates.map(candidate => ({
+      ...candidate,
+      matchScore: projectionFieldMatchScore(field.replace(/\.length$/, ""), candidate),
+    })).filter(candidate => candidate.matchScore > 0 &&
+      (normalizedFixtures.length === 0 || candidate.fixtureRank < Number.MAX_SAFE_INTEGER))
+      .sort((left, right) => left.fixtureRank - right.fixtureRank ||
+        left.fixtureDistance - right.fixtureDistance ||
+        right.matchScore - left.matchScore || left.path.localeCompare(right.path));
+    const best = ranked[0];
+    const selected = best ? ranked.filter(candidate => candidate.matchScore === best.matchScore &&
+      candidate.fixtureRank === best.fixtureRank &&
+      candidate.fixtureDistance === best.fixtureDistance) : [];
+    const responseValues = selected.flatMap(candidate =>
+      rendererProjectionScalars(candidate.value, operator, field));
+    const valueIndices = responseValues.map(value => rendererPhraseIndex(domText, value, operator));
+    const valuesPass = responseValues.length > 0 && valueIndices.every(index => index >= 0);
+    let orderPass = true;
+    if (orderSensitive && valuesPass) {
+      for (const index of valueIndices) {
+        if (index < priorOrderIndex) orderPass = false;
+        priorOrderIndex = index;
+      }
+    }
+    return {
+      nameDigest: sha256Text(normalizedProjectionKey(field)),
+      responseOwnerCount: selected.length,
+      responseOwnerDigest: sha256Text(selected.map(candidate => candidate.path).sort().join("\n")),
+      projectedValueCount: responseValues.length,
+      projectedValueDigest: sha256Text(stable(responseValues)),
+      matchedValueCount: valueIndices.filter(index => index >= 0).length,
+      valuesPass,
+      orderPass,
+      pass: selected.length === 1 && valuesPass && orderPass,
+    };
+  });
+  const ownerMissing = fieldEvidence.some(field => field.responseOwnerCount === 0);
+  const ownerAmbiguous = fieldEvidence.some(field => field.responseOwnerCount > 1);
+  const valueMissing = fieldEvidence.some(field => field.projectedValueCount === 0);
+  const valueMismatch = fieldEvidence.some(field => !field.valuesPass);
+  const orderMismatch = fieldEvidence.some(field => !field.orderPass);
+  const observationPresent = Number(observation?.count || 0) > 0 &&
+    Number(observation?.visibleCount || 0) > 0;
+  const pass = fields.length > 0 && observationPresent && !ownerMissing && !ownerAmbiguous && !valueMissing &&
+    !valueMismatch && !orderMismatch;
+  const failureCode = pass
+    ? "PASS"
+    : (!observationPresent
+      ? "DOM_PROJECTION_OWNER_MISSING"
+      : (ownerMissing
+        ? "RESPONSE_FIELD_OWNER_MISSING"
+        : (ownerAmbiguous
+          ? "RESPONSE_FIELD_OWNER_AMBIGUOUS"
+          : (valueMissing
+            ? "RESPONSE_FIELD_VALUE_MISSING"
+            : (orderMismatch
+              ? "RENDERER_PROJECTION_ORDER_MISMATCH"
+              : "RENDERER_PROJECTION_VALUE_MISMATCH")))));
+  return {
+    schema: "media-server.v390-ui-response-derived-dom-field-projection.v1",
+    pass,
+    failureCode,
+    caseIdDigest: sha256Text(caseId),
+    operatorDigest: sha256Text(operator),
+    targetDigest: sha256Text(target),
+    observationDigest: sha256Text(domText),
+    fieldCount: fields.length,
+    matchedFieldCount: fieldEvidence.filter(field => field.pass).length,
+    fieldEvidence,
+  };
+}
+
 function pathTokens(path) {
   if (!path || path === "$" || path.startsWith("$")) return [];
   return String(path).split(".").flatMap(part => part.endsWith("[]")

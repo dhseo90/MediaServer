@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import {
   assertEventExactRuntimeBindings,
+  evaluateResponseDerivedDomFieldProjection,
   evaluateEventExactDomAssertion,
   evaluateEventExactResponseAssertion,
   eventExactSemanticEvidenceKey,
@@ -161,6 +162,7 @@ export async function executeCatalogRuntimeOracle({
       if (expectedExecutedKind) {
         const acceptedKinds = new Set([
           expectedExecutedKind,
+          "start-live-tile",
           "composed-live-start-all-stop",
           "composed-va-overlay-session",
         ]);
@@ -825,6 +827,9 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId, 
       `${item.caseId} exact product action is not actionable: ${target}`);
     await browser.click(target);
     await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
+    if (action.kind === "start-live-tile") {
+      await waitForPlayingMedia(browser, item.caseId, target);
+    }
     return { kind: action.kind, selector: target, before: snapshot, after: await browser.snapshot(target) };
   }
   if (action.kind === "control-sequence") {
@@ -877,6 +882,7 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId, 
       new Set(result.clickedTileIds || []).size === 2,
       `${item.caseId} two-live-tile action mismatch: ${JSON.stringify(result)}`);
     await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
+    await waitForPlayingMedia(browser, item.caseId, target, 2);
     return { kind: action.kind, selector: target, ...result };
   }
   if (action.kind === "reload") {
@@ -901,6 +907,33 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId, 
     return { kind: action.kind, selector: target, before: snapshot, valueDigest: stableDigest(action.value) };
   }
   throw new Error(`${item.caseId} unsupported exact client/safe action kind: ${action.kind || "missing"}`);
+}
+
+async function waitForPlayingMedia(browser, caseId, tileSelector, minimumPlaying = 1) {
+  const readiness = await browser.evaluate(`(async ({ selector, minimumPlaying }) => {
+    const deadline = Date.now() + 12000;
+    let last = { videoCount: 0, playingCount: 0, readyStates: [] };
+    while (Date.now() < deadline) {
+      const roots = Array.from(document.querySelectorAll(selector));
+      const videos = roots.flatMap(root => {
+        if (root.matches?.('video')) return [root];
+        const owner = root.matches?.('[data-tile]') ? root : root.closest?.('[data-tile]');
+        return Array.from((owner || root).querySelectorAll('video'));
+      });
+      const unique = [...new Set(videos)];
+      last = {
+        videoCount: unique.length,
+        playingCount: unique.filter(video => !video.paused && video.readyState >= 2).length,
+        readyStates: unique.map(video => Number(video.readyState || 0)),
+      };
+      if (last.playingCount >= minimumPlaying) return last;
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    return last;
+  })()`, { selector: String(tileSelector || ""), minimumPlaying });
+  assert(readiness.playingCount >= minimumPlaying,
+    `${caseId} media readiness mismatch: ${JSON.stringify(readiness)}`);
+  return readiness;
 }
 
 export function validateClientRuntimeFixtureBindings(spec, bindings = {}) {
@@ -1452,6 +1485,13 @@ async function observeDom(
   markerEvaluationTracker = null,
 ) {
   const selector = expand(String(assertion.selector || ""), bindings);
+  if ((assertion.propertyAssertions || []).some(candidate =>
+      candidate.name === "boundingRectWithinViewport")) {
+    await browser.evaluate(`(() => {
+      const node = document.querySelector(${JSON.stringify(selector)});
+      node?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    })()`);
+  }
   const requiredAttributes = (Array.isArray(assertion.requiredAttributes)
     ? assertion.requiredAttributes
     : Object.entries(assertion.requiredAttributes || {}).map(([name, value]) => ({ name, value, operator: "equals" })))
@@ -2540,6 +2580,7 @@ function evaluateRequestAssertions(assertions, context) {
     const expected = assertion.expected !== undefined ? assertion.expected : assertion.value;
     if (operator === "equals" || operator === "equals-fixture") pass = values.some(value => Object.is(value, expected));
     else if (operator === "exists") pass = values.length > 0 && values.every(value => value !== undefined && value !== null);
+    else if (operator === "path-present") pass = values.length > 0 && values.every(value => value !== undefined);
     else if (operator === "number-gte") pass = values.some(value => compareNumber(value, "gte", assertion.expected));
     else if (operator === "number") pass = values.some(value => typeof value === "number" && Number.isFinite(value));
     else if (operator === "boolean") pass = values.some(value => typeof value === "boolean");
@@ -3027,6 +3068,17 @@ function evaluateDomSemanticAssertions(
         eventRuntimeContext?.templateValues?.sourceId,
       ].filter(Boolean).map(String);
       const fixtureBoundOperator = /(?:fixture|selected-event|source-status|event-and-evidence|audit)/.test(operator);
+      const selectedResponseBaselines = assertion.binding?.mode === "direct-dom"
+        ? {}
+        : selectEventDomResponseBaselines(assertion, eventRuntimeContext);
+      const responseDerivedDomProjection = buildResponseDerivedEventDomProjectionEvidence({
+        caseId,
+        assertion: { ...assertion, target },
+        observed,
+        responseBodies,
+        fixtureCandidates,
+        selectedResponseBaselines,
+      });
       const markerEvaluationRequired = caseId === "EVT-004" &&
         operator === "contains-fixture-marker" &&
         assertion.target === "marker";
@@ -3038,9 +3090,7 @@ function evaluateDomSemanticAssertions(
         selector,
         observed,
         responseBodies,
-        priorResponseByPath: assertion.binding?.mode === "direct-dom"
-          ? {}
-          : selectEventDomResponseBaselines(assertion, eventRuntimeContext),
+        priorResponseByPath: responseDerivedDomProjection ? {} : selectedResponseBaselines,
         fixtureCandidates,
         fixtureIdentity: eventRuntimeContext?.domFixtureIdentityByTarget?.[target] || null,
         expectedFixtureIdentity: eventRuntimeContext?.expectedFixtureIdentity || null,
@@ -3065,6 +3115,7 @@ function evaluateDomSemanticAssertions(
           bindings,
           interaction,
         }),
+        responseDerivedDomProjection,
         actualBrowserExecution: true,
       });
       const semanticPass = compositeEvidence.pass;
@@ -3164,6 +3215,7 @@ export function buildEventDomSemanticCompositeEvidence({
   markerEvaluator = buildEventMarkerFlowEvidence,
   networkEntries = [],
   declaredDomBinding = null,
+  responseDerivedDomProjection = null,
   actualBrowserExecution = false,
 }) {
   const text = String(observed?.text || "");
@@ -3408,6 +3460,8 @@ export function buildEventDomSemanticCompositeEvidence({
     ["responseBaselineMatched", responseBaselineMatched.pass],
     ["fixtureObserved", fixtureObserved.pass],
     ...(declaredDomBinding ? [["declaredDomBinding", declaredDomBinding.pass]] : []),
+    ...(responseDerivedDomProjection
+      ? [["responseDerivedDomProjection", responseDerivedDomProjection.pass]] : []),
     ...(routeLocalDomBinding ? [["routeLocalDomBinding", routeLocalDomBinding.pass]] : []),
     ...(markerFlow ? [["markerFlow", markerFlow.pass]] : []),
   ].filter(([, pass]) => !pass).map(([name]) => name);
@@ -3416,6 +3470,8 @@ export function buildEventDomSemanticCompositeEvidence({
     ...responseBaselineMatched.reasonCodes,
     ...(fixtureObserved.pass ? [] : [fixtureObserved.reasonCode]),
     ...(declaredDomBinding?.pass ? [] : [declaredDomBinding?.failureCode].filter(Boolean)),
+    ...(responseDerivedDomProjection?.pass
+      ? [] : [responseDerivedDomProjection?.failureCode].filter(Boolean)),
     ...(routeLocalDomBinding?.pass ? [] : [routeLocalDomBinding?.failureCode].filter(Boolean)),
     ...(markerFlow?.pass ? [] : [markerFlow?.failureCode].filter(Boolean)),
   ];
@@ -3435,6 +3491,7 @@ export function buildEventDomSemanticCompositeEvidence({
     responseBaselineMatched,
     fixtureObserved,
     ...(declaredDomBinding ? { declaredDomBinding } : {}),
+    ...(responseDerivedDomProjection ? { responseDerivedDomProjection } : {}),
     ...(routeLocalDomBinding ? { routeLocalDomBinding } : {}),
     ...(markerFlow ? { markerFlow } : {}),
   };
@@ -3985,6 +4042,32 @@ export function selectEventDomResponseBaselines(assertionOrTarget, eventRuntimeC
   };
 }
 
+function responseBaselineSelectionMissing(selectedResponseBaselines) {
+  const entries = Object.values(selectedResponseBaselines || {});
+  return entries.length === 1 && entries[0]?.schema ===
+    "media-server.v390-ui-event-response-baseline-missing.v1";
+}
+
+export function buildResponseDerivedEventDomProjectionEvidence({
+  caseId = "",
+  assertion = {},
+  observed = {},
+  responseBodies = [],
+  fixtureCandidates = [],
+  selectedResponseBaselines = {},
+} = {}) {
+  if (!/equal(?:s)?-response/.test(String(assertion.operator || "")) ||
+      !responseBaselineSelectionMissing(selectedResponseBaselines)) return null;
+  return evaluateResponseDerivedDomFieldProjection({
+    caseId,
+    operator: assertion.operator,
+    target: assertion.target,
+    responseBodies,
+    observation: observed,
+    fixtureCandidates,
+  });
+}
+
 function isEventRowLocalResponseBaseline(value) {
   return value?.schema === "media-server.v390-ui-event-row-local-response-baseline.v1" &&
     typeof value.collectionPath === "string" &&
@@ -4287,6 +4370,30 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
         /^[0-9a-f]{64}$/.test(field.actualDigest || "") &&
         Number.isInteger(field.candidateCount)),
     "EVT declared DOM binding evidence required fields are missing");
+  }
+  if (evidence.responseDerivedDomProjection) {
+    const projection = evidence.responseDerivedDomProjection;
+    assert(projection.schema ===
+      "media-server.v390-ui-response-derived-dom-field-projection.v1" &&
+      typeof projection.pass === "boolean" &&
+      typeof projection.failureCode === "string" &&
+      Number.isInteger(projection.fieldCount) && projection.fieldCount > 0 &&
+      Number.isInteger(projection.matchedFieldCount) &&
+      projection.matchedFieldCount >= 0 &&
+      projection.matchedFieldCount <= projection.fieldCount &&
+      [projection.caseIdDigest, projection.operatorDigest, projection.targetDigest,
+        projection.observationDigest].every(digest => /^[0-9a-f]{64}$/.test(digest)) &&
+      Array.isArray(projection.fieldEvidence) &&
+      projection.fieldEvidence.length === projection.fieldCount &&
+      projection.fieldEvidence.every(field =>
+        [field.nameDigest, field.responseOwnerDigest, field.projectedValueDigest]
+          .every(digest => /^[0-9a-f]{64}$/.test(digest)) &&
+        Number.isInteger(field.responseOwnerCount) && field.responseOwnerCount >= 0 &&
+        Number.isInteger(field.projectedValueCount) && field.projectedValueCount >= 0 &&
+        Number.isInteger(field.matchedValueCount) && field.matchedValueCount >= 0 &&
+        typeof field.valuesPass === "boolean" && typeof field.orderPass === "boolean" &&
+        typeof field.pass === "boolean"),
+    "EVT response-derived DOM projection evidence is incomplete");
   }
   if (evidence.exactAttributeBinding) {
     const attributeBinding = evidence.exactAttributeBinding;

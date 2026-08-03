@@ -150,6 +150,16 @@ function correlationDigest(value) {
     : "";
 }
 
+async function revealClosedDetailsForSelector(page, selector) {
+  await page.evaluate(targetSelector => {
+    const target = document.querySelector(targetSelector);
+    const disclosure = target?.closest?.("details");
+    const isDisclosureSummary = target?.tagName?.toLowerCase?.() === "summary" &&
+      target.parentElement === disclosure;
+    if (disclosure && !disclosure.open && !isDisclosureSummary) disclosure.open = true;
+  }, String(selector || ""));
+}
+
 function correlationPrecedenceFailure(failureCode, message, {
   actionId = "",
   state = "rejected-explicit-correlation",
@@ -1073,7 +1083,13 @@ async function openNativePlaywrightPage(playwright, {
       return buildNavigationEvidence();
     },
     finalizeNavigationLedger,
-    waitForSelector: (selector, options = {}) => page.locator(selector).waitFor({ state: options.state || "visible", timeout: options.timeout || timeoutMs }),
+    waitForSelector: async (selector, options = {}) => {
+      await revealClosedDetailsForSelector(page, selector);
+      await page.locator(selector).waitFor({
+        state: options.state || "visible",
+        timeout: options.timeout || timeoutMs,
+      });
+    },
     navigate: async (nextPagePath, {
       invocationId = "",
       kind = "explicit-navigation",
@@ -1507,6 +1523,7 @@ async function openNativePlaywrightPage(playwright, {
       throw new Error(`network quiet timeout for correlation ${correlationId || "(any)"}`);
     },
     click: async (selector) => {
+      await revealClosedDetailsForSelector(page, selector);
       await page.locator(selector).click();
     },
     submitDocumentForm: async (selector, {
@@ -1713,7 +1730,7 @@ async function openNativePlaywrightPage(playwright, {
       return {
         selector: ${JSON.stringify(selector)},
         exists: Boolean(element),
-        visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0),
+        visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== 'none' && style.visibility !== 'hidden'),
         tag: String(element?.tagName || '').toLowerCase(),
         hidden: Boolean(element?.hidden),
         disabled: Boolean(element && 'disabled' in element && element.disabled),
@@ -1942,7 +1959,7 @@ async function openNativePlaywrightPage(playwright, {
         const style = element ? getComputedStyle(element) : null;
         const exists = Boolean(element);
         const visible = Boolean(rect && rect.width > 0 && rect.height > 0 && style &&
-          style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0);
+          style.display !== 'none' && style.visibility !== 'hidden');
         const disabled = Boolean(element && 'disabled' in element && element.disabled);
         return {
           schema: 'media-server.v390-ui-runtime-observed.v1',
