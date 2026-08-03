@@ -7294,3 +7294,13 @@ query·fixture·source identity 및 duplicate drift는 fail-closed입니다. Foc
 
 보정 후 actual/browser는 미실행입니다. Policy v4, 30분, 120분, release도 미실행이며
 완료 evidence로 사용하지 않습니다.
+
+### REVIEW4-65 materialized request evidence checkpoint (2026-08-04)
+
+세 번째 actual `v390-ui-diagnostic-20260803152435-50338`은 `62 attempted / 29 PASS /
+33 FAIL / 63 not-run`까지 진행했습니다. `CLIENT-028` 실패 자체는 정상적인 request semantic
+assertion이었지만 materialized request가 canonical `{fixtureId}` path template를 잃어 부모 evidence
+binding에서 stale child로 오인됐습니다. Client-safe request는 actual path와 canonical path template를
+별도로 보존하고 failure evidence를 template에 결속하도록 교정했습니다. Focused client-safe `15/15`,
+runtime `49/49`, diagnostic `23/23`과 equivalent `CLIENT-028` binding이 PASS했습니다. 제품 assertion과
+response schema는 변경하지 않았으며 새 batch와 canonical `test_ui.sh`는 아직 미실행입니다.

@@ -189,6 +189,8 @@ check("CLIENT-005/021 require tile-owned UI sessions and actual product overlay 
   });
   const eventRequest = materialized.requests.find(item =>
     item.method === "GET" && item.path === "/client/api/views/9001/events?limit=6");
+  assert(eventRequest?.pathTemplate === "/client/api/views/{fixtureId}/events?limit=6",
+    "CLIENT-021 materialized request lost its canonical path template");
   assert(eventRequest?.jsonAssertions.some(assertion =>
     assertion.path === "$..eventId" &&
     assertion.operator === "equals-fixture" &&

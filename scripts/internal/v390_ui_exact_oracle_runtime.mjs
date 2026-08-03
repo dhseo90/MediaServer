@@ -2385,7 +2385,7 @@ function throwRequestSemanticAssertionFailure({
     caseId: context.caseId,
     method: context.request.method,
     urlPath: context.urlPath,
-    pathTemplate: context.request.path,
+    pathTemplate: context.request.pathTemplate || context.request.path,
     assertion,
     assertionIndex,
     result,

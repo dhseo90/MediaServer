@@ -1467,3 +1467,11 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Root cause | Searchable fixture query identity/`ruleId` 미결속과 일반 missing-path 오류의 sensitive-material 오분류 | 제품 `memorySearch.hits[].matchedTerms` 필수 schema는 정상 |
 | Source-of-truth | `searchable-event-review` seed kind에서 memory-search binding을 결정적으로 파생하고 기존 registry store/join schema 유지 | Unknown field/seed, missing query, fixture/source mismatch와 duplicate는 fail-closed |
 | Static checkpoint | Runtime `49/49`, event evaluator `20/20`, native `51/51` PASS | 보정 후 actual/browser, Policy v4, 30분, 120분, `./test_release.sh` 미실행 |
+
+## v3.9.0 REVIEW4-65 materialized request evidence checkpoint
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| 세 번째 actual | `v390-ui-diagnostic-20260803152435-50338`; 62 attempted, 29 PASS, 33 FAIL, 63 not-run | `CLIENT-028` child evidence ingestion에서 중단 |
+| Template binding | Client-safe materialized request가 canonical path template와 actual path를 분리 보존하고 failure evidence identity는 template에 결속 | Prior CLIENT-028 equivalent binding, client-safe `15/15`, runtime `49/49`, diagnostic `23/23` PASS |
+| Release boundary | Canonical `299/424`, diagnostic-equivalent `313/424` | 보정 후 새 batch와 UI/Policy v4/30분/120분/release 미실행 |

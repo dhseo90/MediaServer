@@ -703,6 +703,7 @@ export function materializeClientSafeExactOracle(caseId, fixtureValues = {}) {
     `${caseId} action fixture values were not fully materialized`);
   resolved.action = structuredClone(resolved.visibleControl.action);
   for (const request of resolved.requests) {
+    request.pathTemplate = request.path;
     request.path = resolveTemplate(request.path, request.fixtureRefs, fixtureValues, value => encodeURIComponent(value));
     for (const assertion of request.jsonAssertions) {
       if (assertion.operator === "equals-fixture") assertion.value = fixtureValue(assertion.fixtureRef, fixtureValues);

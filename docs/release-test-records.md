@@ -3290,3 +3290,11 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Registry/validator | Memory-search binding은 `searchable-event-review` seed kind에서 파생하고 registry는 기존 store/join source-of-truth 유지 | Unknown field/seed, missing query, fixture/source mismatch, duplicate entry/hit를 fail-closed |
 | Focused static | Runtime `49/49`, event evaluator `20/20`, native `51/51` PASS | 보정 후 actual 미실행 |
 | Actual/release 상태 | Official canonical `299/424`, diagnostic-equivalent `309/424` | Policy v4, 30분, 120분, release 미실행. Diagnostic-equivalent는 canonical PASS evidence가 아님 |
+
+## v3.9.0 REVIEW4-65 materialized request evidence checkpoint
+
+| 항목 | 결과 | 실행 경계 |
+| --- | --- | --- |
+| 세 번째 actual | `v390-ui-diagnostic-20260803152435-50338`; 62 attempted, 29 PASS, 33 FAIL, 63 not-run | `CLIENT-028` child evidence ingestion에서 중단 |
+| Template binding | Materialized client request의 canonical `{fixtureId}` template와 actual path를 분리하고 failure evidence를 template에 결속 | Prior CLIENT-028 equivalent binding, client-safe `15/15`, runtime `49/49`, diagnostic `23/23` PASS |
+| Actual/release 상태 | Official canonical `299/424`, diagnostic-equivalent `313/424` | 보정 후 새 batch, Policy v4, 30분, 120분, release 미실행 |
