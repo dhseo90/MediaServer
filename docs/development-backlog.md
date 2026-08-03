@@ -7135,6 +7135,24 @@ feature986/negative15와 inventory17/index8/script11/docs/syntax/diff가 PASS했
 `2dc205f5...41e0e`와 native manifest는 불변이므로 reviewer/producer/generator는 각 0회이며
 clean-checkout과 focused actual은 checkpoint commit 전 미실행입니다.
 
+EVT-023 expected fixture digest 및 remaining diagnostic continuation closure(2026-08-03)는
+authoritative EventRecord identity의 expected digest를 browser 관찰값에서 역산하지 않고 canonical
+manifest와 test-owned materializer가 browser 시작 전에 생성하도록 결속합니다. `EVT-023/026`은
+response→render input→sorted→bounded→DOM 전 단계에서 같은 case-owned digest를 보존해야 하며 missing,
+wrong/cross-case digest, observed-value overwrite, fixture loss·replacement·duplicate는 fail-closed입니다.
+Diagnostic-only fixed selection은 canonical index 299의 `EVT-023`부터 `SAFE-140`까지 정확히 125건이며,
+각 case assertion FAIL은 restore·browser/context close·raw/secret integrity cleanup이 모두 PASS한 경우에만
+다음 case로 진행합니다. Bootstrap/source/binary/evidence/cleanup integrity 실패는 나머지를 not-run으로 두고
+batch를 중단하며 canonical `./test_ui.sh`의 first-failure stop 동작은 변경하지 않습니다. Fresh semantic
+candidate는 `cab1e571cb6714b5d8d02ac9fe3be0a79d52706080da798135827e95afcd4b77`이고
+985 carry-forward + UI-018 independent review로 986/986을 구성했습니다. Migration-aware producer는
+독립 no-hardlinks clone에서 정확히 1회 PASS해 네 fixture를 atomic 교체했고 native generator는 0회입니다.
+Direct static gate는 semantic51/approval986/negative11/migration, feature986/negative15,
+timeline6/event28/evaluator19/runtime45/native48/completion36/adapter25/diagnostic20,
+acceptance21/launcher18/final-integrity12 PASS입니다. Canonical actual은 기존
+`300 attempted / 299 PASS / 1 FAIL / 124 not-run`을 유지하며 125건 diagnostic batch,
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 미실행입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

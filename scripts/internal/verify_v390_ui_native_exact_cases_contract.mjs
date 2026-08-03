@@ -1258,6 +1258,15 @@ check("fixture-safe incident digests bind one authoritative event to one safe su
     runtimeSource.includes("scenarioName: familyRecord.scenarioName ||") &&
     runtimeSource.includes("validateFixtureSafeIncidentDigestReadback({"),
   "fixture-safe incident digest materialization is not bound at both runtime boundaries");
+  assert(runtimeSource.includes("expectedFixtureIdentity") &&
+    runtimeSource.includes('source: "canonical-manifest-test-owned-materializer"') &&
+    runtimeSource.includes("eventIdentityDigest: sha256Text(canonicalFixtureId)") &&
+    runtimeSource.includes("EXPECTED_FIXTURE_DIGEST_MISSING"),
+  "EVT-023/026 expected fixture digest is not generated once by the test-owned materializer");
+  assert(runnerSource.includes("assertExpectedFixtureDigestBeforeBrowser(item, caseContext)") &&
+    runnerSource.indexOf("assertExpectedFixtureDigestBeforeBrowser(item, caseContext)") <
+      runnerSource.indexOf("browser = await adapter.openPage({"),
+  "expected fixture digest is not fail-closed before browser startup");
 
   const fixtureId = "fixture-safe-incident";
   const expectedEventRecords = eventRecordFixtureFamilyExpectedRecords({

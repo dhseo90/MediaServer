@@ -1024,8 +1024,10 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
   };
   const fixtureIdentity = {
     schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+    caseId: "EVT-023",
     kind: "event-record",
     eventId,
+    eventIdentityDigest: fixtureDigest,
     eventType: "presence",
     status: "open",
     expectedNodeTokens: [eventId, "presence", "open"],
@@ -1189,12 +1191,14 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
   const evidenceFor = ({ rows = [{ eventId: "unrelated", eventType: "motion", status: "closed" },
     { eventId, eventType: "presence", status: "open" }], dom = observed,
   identity = fixtureIdentity, network = opsNetworkEntries } = {}) => buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-023",
     selector: '#dashIncidentTimeline [data-incident-unit="event-record"]',
     observed: dom,
     responseBodies: [{ records: { records: rows } }],
     priorResponseByPath: { "eventId/eventType/status": baseline },
     fixtureCandidates: [eventId],
     fixtureIdentity: identity,
+    expectedFixtureIdentity: identity,
     fixtureRequired: true,
     networkEntries: network,
     actualBrowserExecution: true,
@@ -1258,8 +1262,31 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     passing.routeLocalDomBinding.domEventRecordCount === 2 &&
     Object.values(passing.routeLocalDomBinding.stageFixtureMatches).every(count => count === 1) &&
     JSON.stringify(passing.routeLocalDomBinding.attributeNames) ===
-      JSON.stringify(["class", "data-incident-unit", "data-incident-workflow"]),
+      JSON.stringify(["class", "data-incident-unit", "data-incident-workflow"]) &&
+    passing.routeLocalDomBinding.expectedFixtureDigest === fixtureDigest,
   "EVT-023 route-local Ops incident timeline evidence is incomplete");
+
+  const missingExpectedDigestIdentity = structuredClone(fixtureIdentity);
+  delete missingExpectedDigestIdentity.eventIdentityDigest;
+  const missingExpectedDigest = evidenceFor({ identity: missingExpectedDigestIdentity });
+  assert(missingExpectedDigest.pass === false &&
+    missingExpectedDigest.routeLocalDomBinding?.failureCode ===
+      "EXPECTED_FIXTURE_DIGEST_MISSING",
+  "EVT-023 missing expected fixture digest did not fail closed before observation matching");
+
+  for (const [label, identity, expectedCode] of [
+    ["wrong", { ...fixtureIdentity, eventIdentityDigest: unrelatedDigest },
+      "EXPECTED_FIXTURE_DIGEST_MISMATCH"],
+    ["stale-event", { ...fixtureIdentity, eventId: "evt-023-stale" },
+      "EXPECTED_FIXTURE_DIGEST_MISMATCH"],
+    ["cross-case", { ...fixtureIdentity, caseId: "EVT-026" },
+      "EXPECTED_FIXTURE_DIGEST_CASE_MISMATCH"],
+  ]) {
+    const failed = evidenceFor({ identity });
+    assert(failed.pass === false &&
+      failed.routeLocalDomBinding?.failureCode === expectedCode,
+    `EVT-023 ${label} expected fixture digest did not fail closed`);
+  }
 
   const missingDom = evidenceFor({
     dom: {
@@ -1321,6 +1348,11 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
       evidence.failedChecks.includes("routeLocalDomBinding"),
     `${label} did not fail closed`);
   };
+  const observedOverwrite = lifecycleEvidenceFor({ expectedFixtureDigest: unrelatedDigest });
+  assert(observedOverwrite.pass === false &&
+    observedOverwrite.routeLocalDomBinding?.failureCode ===
+      "OBSERVED_EXPECTED_FIXTURE_DIGEST_FORBIDDEN",
+  "EVT-023 observed lifecycle value overwrote the materialized expected fixture digest");
   assertLifecycleFailure(lifecycleEvidenceFor({
     eventRecordInputCount: 2,
     eventRecordBoundedCount: 1,
@@ -1664,8 +1696,10 @@ await check("EVT-026 reuses the exact EventRecord lifecycle preservation contrac
   };
   const fixtureIdentity = {
     schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+    caseId: "EVT-026",
     kind: "event-record",
     eventId,
+    eventIdentityDigest: fixtureDigest,
     eventType: "presence",
     status: "open",
     expectedNodeTokens: [eventId, "presence", "open"],
@@ -1712,19 +1746,22 @@ await check("EVT-026 reuses the exact EventRecord lifecycle preservation contrac
     },
   };
   const evidenceFor = dom => buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-026",
     selector: "#dashIncidentTimeline",
     observed: dom,
     responseBodies: [{ records: { records: [{ eventId, eventType: "presence", status: "open" }] } }],
     priorResponseByPath: { "eventId/status": baseline },
     fixtureCandidates: [eventId],
     fixtureIdentity,
+    expectedFixtureIdentity: fixtureIdentity,
     fixtureRequired: true,
     networkEntries: opsNetworkEntries,
     actualBrowserExecution: true,
   });
   const passing = evidenceFor(observed);
   assert(passing.pass === true && passing.routeLocalDomBinding?.pass === true &&
-    passing.fixtureObserved.matchedNodeCount === 1,
+    passing.fixtureObserved.matchedNodeCount === 1 &&
+    passing.routeLocalDomBinding.expectedFixtureDigest === fixtureDigest,
   "EVT-026 exact EventRecord lifecycle did not pass");
   const lost = structuredClone(observed);
   lost.properties.routeLocalIncidentTimeline.boundedEventIdentityDigests = [];

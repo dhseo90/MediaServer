@@ -141,6 +141,32 @@ export const eventRecordFixtureFamilyCaseIds = Object.freeze([
   "EVT-007", "EVT-020", "EVT-023", "EVT-026", "EVT-048", "EVT-049",
 ]);
 
+const incidentTimelineExpectedFixtureDigestCaseIds = Object.freeze([
+  "EVT-023", "EVT-026",
+]);
+
+export function assertExpectedFixtureDigestBeforeBrowser(item, caseContext) {
+  if (!incidentTimelineExpectedFixtureDigestCaseIds.includes(String(item?.caseId || ""))) return;
+  const expected = caseContext?.expectedFixtureIdentity;
+  const propagated = caseContext?.catalogBindings?.eventExactRuntime?.expectedFixtureIdentity;
+  const fail = (code, message) => {
+    const error = new Error(`${code}: ${message}`);
+    error.code = code;
+    throw error;
+  };
+  if (!expected?.eventIdentityDigest || !propagated?.eventIdentityDigest) {
+    fail("EXPECTED_FIXTURE_DIGEST_MISSING", `${item.caseId} expected fixture digest is unavailable`);
+  }
+  if (expected.caseId !== item.caseId || propagated.caseId !== item.caseId) {
+    fail("EXPECTED_FIXTURE_DIGEST_CASE_MISMATCH", `${item.caseId} expected fixture case binding drifted`);
+  }
+  const digest = sha256Text(expected.eventId);
+  if (expected.eventIdentityDigest !== digest ||
+      stableJson(propagated) !== stableJson(expected)) {
+    fail("EXPECTED_FIXTURE_DIGEST_MISMATCH", `${item.caseId} expected fixture digest drifted`);
+  }
+}
+
 export const eventRecordFixtureFamilyExpectations = Object.freeze({
   "EVT-007": Object.freeze({
     route: "/ops/events",
@@ -781,6 +807,7 @@ export function createV390UiCaseRuntime({
       eventRecordFixtureArtifacts: [],
       eventRecordFixtureDispatches: [],
       fixtureSafeIncidentDigestReadback: null,
+      expectedFixtureIdentity: null,
       eventExactSeedPrepared: false,
       prepared: false,
     };
@@ -2759,6 +2786,22 @@ export function createV390UiCaseRuntime({
         ? context.fixtureId
         : `${context.fixtureId}-${plan.related ? "related" : "state"}-${index}`);
     });
+    if (incidentTimelineExpectedFixtureDigestCaseIds.includes(item.caseId)) {
+      const canonicalFixtureId = String(spec?.seed?.fixtureId || "");
+      assert(canonicalFixtureId && canonicalFixtureId === context.fixtureId &&
+        eventIds.filter(eventId => eventId === canonicalFixtureId).length === 1,
+      `${item.caseId} canonical fixture identity is not materialized exactly once`);
+      assert(context.expectedFixtureIdentity === null,
+        `${item.caseId} expected fixture identity was already bound`);
+      context.expectedFixtureIdentity = Object.freeze({
+        schema: "media-server.v390-ui-expected-fixture-identity.v1",
+        source: "canonical-manifest-test-owned-materializer",
+        caseId: item.caseId,
+        kind: "event-record",
+        eventId: canonicalFixtureId,
+        eventIdentityDigest: sha256Text(canonicalFixtureId),
+      });
+    }
     if (eventReviewMutationCaseIds.has(item.caseId)) {
       for (const eventId of eventIds) {
         const before = await requestEndpoint(
@@ -3490,6 +3533,7 @@ export function createV390UiCaseRuntime({
         priorResponseByPath: responseByPath,
         domResponseBaselineByTarget,
         domFixtureIdentityByTarget,
+        expectedFixtureIdentity: context.expectedFixtureIdentity,
         rowLocalResponseTargets,
         responseByRequest,
         responseSamplesByRequest,

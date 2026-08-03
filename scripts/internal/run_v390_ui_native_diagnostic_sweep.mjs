@@ -119,13 +119,15 @@ try {
 let environment = null;
 let environmentGeneration = 0;
 let bootstrapUnavailable = false;
+let abortReason = "";
 const cases = [];
 const environments = [];
 const cleanup = [];
 
 for (const [selectionIndex, item] of selection.entries()) {
-  if (bootstrapUnavailable) {
-    cases.push(caseResult(item, "not-run", "environment-bootstrap-unavailable", environmentGeneration));
+  if (bootstrapUnavailable || abortReason) {
+    cases.push(caseResult(item, "not-run",
+      abortReason || "environment-bootstrap-unavailable", environmentGeneration));
     writeProgress(selectionIndex, item);
     continue;
   }
@@ -219,10 +221,27 @@ for (const [selectionIndex, item] of selection.entries()) {
       secretScan,
     }));
 
-  if (contaminated || secretScan.status !== "PASS") {
-    const measuredCleanup = await recycleEnvironment(environment, environmentGeneration, "child-contamination");
+  const disposition = classifyDiagnosticCaseDisposition({
+    child,
+    childSummary,
+    childOutcome,
+    contaminated,
+    secretScan,
+  });
+  if (disposition === "continue-case-assertion-failure") {
+    assert(childOutcome.status === "FAIL" &&
+      childOutcome.cleanupAttestation?.pass === true,
+    `${item.caseId} assertion failure continuation lost cleanup evidence`);
+  }
+  if (disposition === "abort-diagnostic-lifecycle") {
+    const measuredCleanup = await recycleEnvironment(
+      environment,
+      environmentGeneration,
+      "diagnostic-lifecycle-integrity-failed",
+    );
     cleanup.push(measuredCleanup);
     environment = null;
+    abortReason = "diagnostic-lifecycle-integrity-failed";
   }
   writeProgress(selectionIndex, item);
 }
@@ -319,11 +338,39 @@ async function recycleEnvironment(handle, generation, reason) {
 }
 
 function fixedSelection(cases) {
-  const index = cases.findIndex(item => item.caseId === "RULE-097");
-  assert(index >= 0, "RULE-097 is missing from the canonical exact manifest");
+  const index = cases.findIndex(item => item.caseId === "EVT-023");
+  assert(index >= 0, "EVT-023 is missing from the canonical exact manifest");
+  assert(index === 299, `EVT-023 canonical attempted boundary drifted: ${index}`);
   const selected = cases.slice(index);
-  assert(selected.length === 144, `RULE-097 through canonical end must contain 144 cases: ${selected.length}`);
+  assert(selected.length === 125,
+    `EVT-023 through canonical end must contain 125 unresolved cases: ${selected.length}`);
   return selected;
+}
+
+function classifyDiagnosticCaseDisposition({
+  child,
+  childSummary,
+  childOutcome,
+  contaminated,
+  secretScan,
+}) {
+  const cleanupAttestation = childOutcome?.cleanupAttestation;
+  const integrityPass = childSummary?.rawCaptureValidation?.status === "PASS" &&
+    childSummary?.caseRuntimeSecretArtifactIntegrity?.status === "PASS" &&
+    secretScan?.status === "PASS";
+  const lifecyclePass = contaminated !== true &&
+    cleanupAttestation?.pass === true &&
+    cleanupAttestation?.caseRuntimeRestored === true &&
+    cleanupAttestation?.browserContextClosed === true;
+  if (!childSummary || !integrityPass || !lifecyclePass) {
+    return "abort-diagnostic-lifecycle";
+  }
+  if (childOutcome?.status === "PASS" && child?.exitCode === 0) return "continue-pass";
+  if (childOutcome?.status === "FAIL" && child?.exitCode === 1 &&
+      childOutcome?.actualBrowserExecution === true) {
+    return "continue-case-assertion-failure";
+  }
+  return "abort-diagnostic-lifecycle";
 }
 
 function selectedDiagnosticCases({ fullSelection, manifestCases, caseId, selectionMode }) {

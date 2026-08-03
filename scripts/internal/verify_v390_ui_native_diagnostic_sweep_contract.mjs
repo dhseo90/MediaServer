@@ -38,14 +38,18 @@ check("release runner remains fail-first outside the internal diagnostic child m
   "diagnostic child does not bypass Policy v4 production in a distinct branch");
 });
 
-check("diagnostic selection is fixed to RULE-097 through the canonical end", () => {
-  const index = manifest.cases.findIndex(item => item.caseId === "RULE-097");
-  assert(index >= 0, "RULE-097 missing from native manifest");
-  assert(manifest.cases.slice(index).length === 144, "RULE-097 diagnostic target is not exactly 144 cases");
+check("diagnostic selection is fixed to canonical unresolved EVT-023 through the exact end", () => {
+  const index = manifest.cases.findIndex(item => item.caseId === "EVT-023");
+  assert(index >= 0, "EVT-023 missing from native manifest");
+  assert(index === 299, `EVT-023 canonical attempted boundary drifted: ${index}`);
+  assert(manifest.cases.slice(index).length === 125,
+    "EVT-023 unresolved diagnostic target is not exactly 125 cases");
   assert(sweepSource.includes('const selected = cases.slice(index);') &&
-    sweepSource.includes('selected.length === 144') &&
+    sweepSource.includes('item.caseId === "EVT-023"') &&
+    sweepSource.includes('index === 299') &&
+    sweepSource.includes('selected.length === 125') &&
     sweepSource.includes("const fullSelection = fixedSelection(manifest.cases)"),
-  "diagnostic selection is not fixed to the expected 144 cases");
+  "diagnostic selection is not fixed to the exact canonical unresolved 125 cases");
 });
 
 check("diagnostic sweep uses a fresh source-built manifest without replacing tracked fixtures", () => {
@@ -74,14 +78,15 @@ check("diagnostic output cannot become release or Policy v4 evidence", () => {
     "user test_ui.sh exposes the internal diagnostic command");
 });
 
-check("cleanup or browser-close contamination recycles before the next case without retry", () => {
+check("only case assertion failure continues; lifecycle and evidence failures abort without retry", () => {
   assert(sweepSource.includes("childSummary?.environmentContamination?.detected === true || !child.summary") &&
-    sweepSource.includes('if (contaminated || secretScan.status !== "PASS")') &&
-    sweepSource.includes('await recycleEnvironment(environment, environmentGeneration, "child-contamination")') &&
-    sweepSource.includes("environment = null;") &&
+    sweepSource.includes("classifyDiagnosticCaseDisposition({") &&
+    sweepSource.includes('disposition === "continue-case-assertion-failure"') &&
+    sweepSource.includes('disposition === "abort-diagnostic-lifecycle"') &&
+    sweepSource.includes('abortReason = "diagnostic-lifecycle-integrity-failed"') &&
     sweepSource.includes("automaticRetryCount: 0") &&
     !sweepSource.includes("retryCase") && !sweepSource.includes("while ("),
-  "contamination recycle/no-retry contract missing");
+  "diagnostic assertion continuation/lifecycle abort/no-retry contract missing");
   assert(runnerSource.includes("environmentContamination: Boolean(error?.cleanupFailure || error?.browserCloseFailure)") &&
     runnerSource.includes("browserCloseFailure: Boolean(error?.browserCloseFailure)"),
   "diagnostic child contamination summary missing");
@@ -737,10 +742,15 @@ check("plan-only diagnostic output preserves count invariants without browser ex
   assert(summary.diagnosticOnly === true && summary.releaseEvidenceEligible === false &&
     summary.policyV4Qualification === "not-eligible" && summary.uiFulltestPass === false,
   "diagnostic plan-only release boundary mismatch");
-  assert(summary.counts.target === 144 && summary.counts.attempted === 0 &&
-    summary.counts.pass === 0 && summary.counts.fail === 0 && summary.counts.notRun === 144,
+  const expectedIds = manifest.cases.slice(299).map(item => item.caseId);
+  assert(summary.counts.target === 125 && summary.counts.attempted === 0 &&
+    summary.counts.pass === 0 && summary.counts.fail === 0 && summary.counts.notRun === 125,
   "diagnostic plan-only count invariant mismatch");
-  assert(summary.cases.length === 144 && summary.cases.every(item => item.automaticRetryCount === 0),
+  assert(summary.selection?.startCaseId === "EVT-023" &&
+    summary.selection?.endCaseId === expectedIds.at(-1) &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(expectedIds) &&
+    new Set(summary.selection?.selectedIds || []).size === 125 &&
+    summary.cases.length === 125 && summary.cases.every(item => item.automaticRetryCount === 0),
     "diagnostic plan-only retry/case count mismatch");
   assert(summary.actualBrowserExecution === false &&
     /^[0-9a-f]{40}$/.test(summary.sourceBinding?.gitCommit || "") &&

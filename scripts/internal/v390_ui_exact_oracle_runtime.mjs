@@ -2429,12 +2429,14 @@ function evaluateDomSemanticAssertions(
         markerEvaluationTracker.invocationCount += 1;
       }
       const compositeEvidence = buildEventDomSemanticCompositeEvidence({
+        caseId,
         selector,
         observed,
         responseBodies,
         priorResponseByPath: selectEventDomResponseBaselines(target, eventRuntimeContext),
         fixtureCandidates,
         fixtureIdentity: eventRuntimeContext?.domFixtureIdentityByTarget?.[target] || null,
+        expectedFixtureIdentity: eventRuntimeContext?.expectedFixtureIdentity || null,
         fixtureRequired: fixtureBoundOperator,
         marker: markerEvaluationRequired ? bindings.logMarker : "",
         markerEvaluation: markerEvaluationRequired
@@ -2533,12 +2535,14 @@ function evaluateDomSemanticAssertions(
 }
 
 export function buildEventDomSemanticCompositeEvidence({
+  caseId = "",
   selector,
   observed,
   responseBodies = [],
   priorResponseByPath = {},
   fixtureCandidates = [],
   fixtureIdentity = null,
+  expectedFixtureIdentity = null,
   fixtureRequired = false,
   marker = "",
   markerEvaluation = null,
@@ -2575,8 +2579,9 @@ export function buildEventDomSemanticCompositeEvidence({
   const routeLocalDomBinding = routeLocalIncidentTimeline &&
       String(selector || "").includes("#dashIncidentTimeline")
     ? buildRouteLocalIncidentTimelineEvidence(
+      caseId,
       routeLocalIncidentTimeline,
-      fixtureIdentity,
+      expectedFixtureIdentity,
       networkEntries,
     )
     : null;
@@ -2798,8 +2803,9 @@ export function buildEventDomSemanticCompositeEvidence({
 }
 
 function buildRouteLocalIncidentTimelineEvidence(
+  caseId,
   observation,
-  fixtureIdentity = null,
+  expectedFixtureIdentity = null,
   networkEntries = [],
 ) {
   const routePath = String(observation?.routePath || "");
@@ -2832,9 +2838,23 @@ function buildRouteLocalIncidentTimelineEvidence(
   const sortedEventIdentityDigests = digestList(observation?.sortedEventIdentityDigests);
   const boundedEventIdentityDigests = digestList(observation?.boundedEventIdentityDigests);
   const domEventIdentityDigests = digestList(observation?.domEventIdentityDigests);
-  const expectedFixtureDigest = fixtureIdentity?.kind === "event-record" && fixtureIdentity?.eventId
-    ? sha256Digest(String(fixtureIdentity.eventId))
-    : "";
+  const expectedFixtureDigest = String(expectedFixtureIdentity?.eventIdentityDigest || "");
+  const expectedFixtureCaseMatched = expectedFixtureIdentity?.caseId === caseId;
+  const expectedFixtureDigestMatched =
+    expectedFixtureIdentity?.kind === "event-record" &&
+    /^[0-9a-f]{64}$/.test(expectedFixtureDigest) &&
+    expectedFixtureDigest === sha256Digest(String(expectedFixtureIdentity?.eventId || ""));
+  const observedExpectedDigestPresent = Object.prototype.hasOwnProperty.call(
+    observation || {},
+    "expectedFixtureDigest",
+  );
+  const expectedFixtureFailureCode = observedExpectedDigestPresent
+    ? "OBSERVED_EXPECTED_FIXTURE_DIGEST_FORBIDDEN"
+    : (!expectedFixtureDigest
+      ? "EXPECTED_FIXTURE_DIGEST_MISSING"
+      : (!expectedFixtureCaseMatched
+        ? "EXPECTED_FIXTURE_DIGEST_CASE_MISMATCH"
+        : (!expectedFixtureDigestMatched ? "EXPECTED_FIXTURE_DIGEST_MISMATCH" : "PASS")));
   const fixtureMatchCount = values => expectedFixtureDigest
     ? values.filter(value => value === expectedFixtureDigest).length
     : 0;
@@ -2854,9 +2874,9 @@ function buildRouteLocalIncidentTimelineEvidence(
     : [];
   const ownerMatched = routePath === "/ops/dashboard" && containerCount === 1;
   const lifecycleMatched = lifecycleObserved &&
+    expectedFixtureFailureCode === "PASS" &&
     opsResponseBinding.pass &&
     renderPhase === "dom-committed" &&
-    expectedFixtureDigest.length === 64 &&
     renderInputEventIdentityDigests.length <= 4 &&
     responseEventIdentityDigests.length >= renderInputEventIdentityDigests.length &&
     renderInputEventIdentityDigests.length === sortedEventIdentityDigests.length &&
@@ -2873,6 +2893,8 @@ function buildRouteLocalIncidentTimelineEvidence(
   const pass = ownerMatched && lifecycleMatched;
   const firstExclusionPredicate = !lifecycleObserved
     ? "lifecycle-evidence-unavailable"
+    : (expectedFixtureFailureCode !== "PASS"
+      ? "expected-fixture-digest"
     : (!opsResponseBinding.pass
       ? "ops-authoritative-response-binding"
       : (stageFixtureMatches.authoritativeResponse !== 1
@@ -2883,16 +2905,18 @@ function buildRouteLocalIncidentTimelineEvidence(
             ? "timeline-sort"
             : (stageFixtureMatches.bounded !== 1
               ? "timeline-bound"
-              : (stageFixtureMatches.dom !== 1 ? "dom-commit" : "none"))))));
+              : (stageFixtureMatches.dom !== 1 ? "dom-commit" : "none")))))));
   const failureCode = pass
     ? "PASS"
     : (!ownerMatched
       ? "OPS_INCIDENT_TIMELINE_OWNER_MISMATCH"
       : (!lifecycleObserved
         ? "OPS_INCIDENT_TIMELINE_LIFECYCLE_EVIDENCE_MISSING"
-        : (!opsResponseBinding.pass
-          ? "OPS_INCIDENT_TIMELINE_RESPONSE_BINDING_MISMATCH"
-          : "OPS_INCIDENT_TIMELINE_LIFECYCLE_MISMATCH")));
+        : (expectedFixtureFailureCode !== "PASS"
+          ? expectedFixtureFailureCode
+          : (!opsResponseBinding.pass
+            ? "OPS_INCIDENT_TIMELINE_RESPONSE_BINDING_MISMATCH"
+            : "OPS_INCIDENT_TIMELINE_LIFECYCLE_MISMATCH"))));
   return {
     schema: "media-server.v390-ui-route-local-incident-timeline-evidence.v1",
     pass,

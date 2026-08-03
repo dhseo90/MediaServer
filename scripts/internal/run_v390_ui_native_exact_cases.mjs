@@ -11,7 +11,10 @@ import {
   bindDocumentFormSubmission,
   createNativePlaywrightAdapter,
 } from "./v390_ui_native_adapter.mjs";
-import { createV390UiCaseRuntime } from "./v390_ui_case_runtime.mjs";
+import {
+  assertExpectedFixtureDigestBeforeBrowser,
+  createV390UiCaseRuntime,
+} from "./v390_ui_case_runtime.mjs";
 import {
   buildEndpointActionSemanticReadback,
   buildNavigationTrustEvidence,
@@ -389,6 +392,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   const tracePath = path.join(tracesDir, `${item.caseId}.trace.json`);
   const consolePath = path.join(logsDir, `${item.caseId}.browser-console.json`);
   const caseContext = await caseRuntime.prepareCase(item);
+  assertExpectedFixtureDigestBeforeBrowser(item, caseContext);
   const storageStatePath = caseContext.primaryRoleStatePath || resolveRoleState(item.accountRole, roleStateMap);
   let browser = null;
   try {
