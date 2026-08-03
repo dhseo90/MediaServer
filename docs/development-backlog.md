@@ -7137,18 +7137,28 @@ clean-checkout과 focused actual은 checkpoint commit 전 미실행입니다.
 
 EVT-023 expected fixture digest 및 remaining diagnostic continuation closure(2026-08-03)는
 authoritative EventRecord identity의 expected digest를 browser 관찰값에서 역산하지 않고 canonical
-manifest와 test-owned materializer가 browser 시작 전에 생성하도록 결속합니다. `EVT-023/026`은
+manifest와 test-owned materializer가 browser 시작 전에 생성하도록 결속합니다. Materializer는 template
+identity가 아니라 `eventId === context.fixtureId`인 정확히 한 EventRecord에서 materialized identity를
+확정하고 0건·중복·template drift를 fail-closed합니다. Prepare/digest/browser-open은 하나의 failure
+lifecycle 안에서 수행해 browser 생성 전 실패도 authoritative state를 복원하고
+`actualBrowserExecution=false` cleanup attestation을 남깁니다. `EVT-023/026`은
 response→render input→sorted→bounded→DOM 전 단계에서 같은 case-owned digest를 보존해야 하며 missing,
 wrong/cross-case digest, observed-value overwrite, fixture loss·replacement·duplicate는 fail-closed입니다.
 Diagnostic-only fixed selection은 canonical index 299의 `EVT-023`부터 `SAFE-140`까지 정확히 125건이며,
-각 case assertion FAIL은 restore·browser/context close·raw/secret integrity cleanup이 모두 PASS한 경우에만
-다음 case로 진행합니다. Bootstrap/source/binary/evidence/cleanup integrity 실패는 나머지를 not-run으로 두고
-batch를 중단하며 canonical `./test_ui.sh`의 first-failure stop 동작은 변경하지 않습니다. Fresh semantic
-candidate는 `cab1e571cb6714b5d8d02ac9fe3be0a79d52706080da798135827e95afcd4b77`이고
-985 carry-forward + UI-018 independent review로 986/986을 구성했습니다. Migration-aware producer는
-독립 no-hardlinks clone에서 정확히 1회 PASS해 네 fixture를 atomic 교체했고 native generator는 0회입니다.
+정확히 한 `pass=false` structured assertion 또는 실제 Playwright timeout만 exact failure provenance와
+restore·browser/context close·raw/secret integrity cleanup이 모두 PASS한 경우 다음 case로 진행합니다.
+Generic Error, `pass=true`, 복수·invalid evidence, 위조 provenance, fake timeout, TypeError 계열과
+bootstrap/source/binary/cleanup integrity 실패는 나머지를 not-run으로 두고 batch를 중단합니다. Parent는
+child provenance를 신뢰하지 않고 실제 failed evidence class를 다시 계산하며 canonical `./test_ui.sh`의
+first-failure stop 동작은 변경하지 않습니다. Fresh semantic candidate는
+`1d0900d920333e8a6589b5a1b7cc3af2a31ae10edcb6287a6122142d9313a3b7`이고
+985 carry-forward + UI-018 independent review로 986/986을 구성했습니다. Review package/decision SHA는
+`8af8a301ac703fb62517ad718f93ba1dd0ef0d64638ec92aa27f0729829cc662`/
+`884c23cad0e8987154e1ed185414701d792d4bdfe02b9822608e6200bb892bcb`입니다. Migration-aware producer는
+worktree audit를 prior로 사용한 첫 prevalidation이 index approval ledger와 불일치해 fixture 교체 전 FAIL했고,
+index audit baseline으로 근본 보정한 두 번째 실행이 네 fixture를 atomic 교체했습니다. Native generator는 0회입니다.
 Direct static gate는 semantic51/approval986/negative11/migration, feature986/negative15,
-timeline6/event28/evaluator19/runtime45/native48/completion36/adapter25/diagnostic20,
+timeline6/event28/evaluator19/runtime45/native49/completion36/adapter26/diagnostic21,
 acceptance21/launcher18/final-integrity12 PASS입니다. Canonical actual은 기존
 `300 attempted / 299 PASS / 1 FAIL / 124 not-run`을 유지하며 125건 diagnostic batch,
 `./test_ui.sh`, Policy v4, 30분, 120분, release는 미실행입니다.

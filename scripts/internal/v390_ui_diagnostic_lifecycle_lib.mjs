@@ -1,7 +1,10 @@
 // 파일 용도: UI diagnostic case 실패 시 cleanup/browser close 이후 구조화 lifecycle evidence를 최종화한다.
 
 import { buildNavigationTrustEvidence } from "./v390_ui_completion_oracle_lib.mjs";
-import { buildExclusiveRequestScopedCorrelationEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
+import {
+  buildExclusiveRequestScopedCorrelationEvidence,
+  validateEventDomSemanticCompositeEvidence,
+} from "./v390_ui_exact_oracle_runtime.mjs";
 import {
   failureLifecycleEvidenceSchema,
   serializeFailureLifecycleEvidence,
@@ -19,6 +22,16 @@ export const eventReviewSeedDiagnosticCaseIds = Object.freeze([
   "EVT-066",
   "EVT-068",
 ]);
+const diagnosticStructuredAssertionEvidence = Object.freeze([
+  ["dom-semantic-assertion-failed", "eventDomSemanticEvidence"],
+  ["request-correlation-assertion-failed", "requestCorrelationEvidence"],
+  ["request-correlation-scope-assertion-failed", "requestCorrelationScopeEvidence"],
+  ["navigation-assertion-failed", "navigationLifecycleEvidence"],
+  ["marker-assertion-failed", "markerEvidence"],
+  ["marker-stage-assertion-failed", "markerStageEvidence"],
+]);
+const diagnosticPrimaryFailureEvidenceSchema =
+  "media-server.v390-ui-diagnostic-primary-failure-evidence.v1";
 const eventReviewNoteDigestEvidenceSchema =
   "media-server.v390-ui-event-review-note-digest-evidence.v1";
 const eventReviewNoteStages = Object.freeze([
@@ -115,6 +128,121 @@ export function copyEventReviewSeedWriteEvidence(evidence, { caseId = "" } = {})
   }
   copied.matches = expectedMatches;
   return Object.freeze(copied);
+}
+
+export function diagnosticStructuredAssertionFailureClass(error) {
+  const observed = diagnosticStructuredAssertionEvidence
+    .map(([failureClass, field]) => [failureClass, error?.[field]])
+    .filter(([, evidence]) => evidence !== undefined && evidence !== null);
+  if (observed.some(([, evidence]) => typeof evidence?.pass !== "boolean")) {
+    return "invalid-structured-failure-evidence";
+  }
+  const failed = observed.filter(([, evidence]) => evidence.pass === false);
+  if (failed.length > 1) return "ambiguous-structured-failure-evidence";
+  return failed.length === 1 ? failed[0][0] : "";
+}
+
+export function diagnosticStructuredAssertionEvidencePresent(error) {
+  return diagnosticStructuredAssertionEvidence.some(([, field]) =>
+    error?.[field] !== undefined && error?.[field] !== null);
+}
+
+export function serializeDiagnosticPrimaryFailureEvidence(
+  error,
+  { playwrightTimeoutClassAttested = false } = {},
+) {
+  const structuredEvidence = {};
+  for (const [, field] of diagnosticStructuredAssertionEvidence) {
+    if (error?.[field] === undefined || error?.[field] === null) continue;
+    structuredEvidence[field] = structuredClone(error[field]);
+  }
+  return Object.freeze({
+    schema: diagnosticPrimaryFailureEvidenceSchema,
+    errorName: String(error?.name || "Error"),
+    playwrightTimeoutClassAttested:
+      playwrightTimeoutClassAttested === true,
+    structuredEvidence: Object.freeze(structuredEvidence),
+  });
+}
+
+export function diagnosticStructuredAssertionEvidenceValid(field, evidence) {
+  if (!evidence || typeof evidence !== "object" || Array.isArray(evidence) ||
+      typeof evidence.pass !== "boolean") return false;
+  if (field === "eventDomSemanticEvidence") {
+    try {
+      validateEventDomSemanticCompositeEvidence(evidence);
+      return evidence.actualBrowserExecution === true;
+    } catch {
+      return false;
+    }
+  }
+  if (field === "requestCorrelationEvidence") {
+    return evidence.schema === "media-server.v390-ui-request-correlation-evidence.v1" &&
+      evidence.requestKind === "application-fetch" &&
+      typeof evidence.expectedCorrelationDigest === "string" &&
+      typeof evidence.initiatingRequestCorrelationDigest === "string" &&
+      typeof evidence.responseRequestCorrelationDigest === "string" &&
+      typeof evidence.caseRequestIdentity === "string" &&
+      (evidence.caseRequestSequence === null ||
+        Number.isInteger(evidence.caseRequestSequence)) &&
+      typeof evidence.responseRequestObjectObserved === "boolean" &&
+      typeof evidence.responseRequestMethod === "string" &&
+      typeof evidence.responseRequestPath === "string" &&
+      typeof evidence.responseRequestHeaderDigest === "string" &&
+      Number.isInteger(evidence.responseStatus) &&
+      typeof evidence.responseEchoHeaderRequired === "boolean" &&
+      typeof evidence.responseEchoHeaderObserved === "boolean" &&
+      typeof evidence.failureCode === "string";
+  }
+  if (field === "requestCorrelationScopeEvidence") {
+    return evidence.schema === "media-server.v390-ui-request-correlation-scope-evidence.v1" &&
+      evidence.requestKind === "application-fetch" &&
+      Number.isInteger(evidence.logTailRequestCount) &&
+      Number.isInteger(evidence.correlationLeakRequestCount) &&
+      Array.isArray(evidence.orderedLedger) &&
+      typeof evidence.failureCode === "string";
+  }
+  if (field === "navigationLifecycleEvidence") {
+    return evidence.schema === "media-server.v390-ui-navigation-trust-evidence.v1" &&
+      Number.isInteger(evidence.totalDocumentNavigationCount) &&
+      Array.isArray(evidence.orderedDocumentNavigations) &&
+      typeof evidence.listenerInstalledBeforeFirstNavigation === "boolean" &&
+      Number.isInteger(evidence.navigationAfterListenerEndCount) &&
+      typeof evidence.failureCode === "string";
+  }
+  if (field === "markerEvidence") {
+    return evidence.schema === "media-server.v390-ui-event-marker-flow-evidence.v1" &&
+      typeof evidence.failurePhase === "string" &&
+      typeof evidence.failureCode === "string" &&
+      Number.isInteger(evidence.evaluatorInvocationCount) &&
+      typeof evidence.correlationResponseBound === "boolean" &&
+      typeof evidence.domReadinessConfirmed === "boolean";
+  }
+  if (field === "markerStageEvidence") {
+    const validNested = (value, schema) => value === null ||
+      (value && typeof value === "object" && !Array.isArray(value) &&
+        value.schema === schema && typeof value.pass === "boolean");
+    return evidence.schema === "media-server.v390-ui-evt004-marker-stage-evidence.v1" &&
+      typeof evidence.failurePhase === "string" &&
+      typeof evidence.failureCode === "string" &&
+      Object.hasOwn(evidence, "fileStageEvidence") &&
+      Object.hasOwn(evidence, "dashboardResponseEvidence") &&
+      validNested(evidence.fileStageEvidence,
+        "media-server.v390-ui-marker-file-stage-evidence.v1") &&
+      validNested(evidence.dashboardResponseEvidence,
+        "media-server.v390-ui-dashboard-marker-response-stage-evidence.v1");
+  }
+  return false;
+}
+
+function stableDiagnosticEvidenceJson(value) {
+  const normalize = item => {
+    if (Array.isArray(item)) return item.map(normalize);
+    if (!item || typeof item !== "object") return item;
+    return Object.fromEntries(Object.keys(item).sort()
+      .map(key => [key, normalize(item[key])]));
+  };
+  return JSON.stringify(normalize(value));
 }
 
 export async function finalizeFailedCaseLifecycle({
@@ -230,6 +358,7 @@ export function buildFailureLifecycleEvidence({
   cleanupFailure,
   browserCloseFailure,
   browserCloseAttempted,
+  browserContextCreated,
   capturedCorrelationWindow,
 }) {
   const lifecycleNavigationBinding = item.actions.find(action =>
@@ -303,6 +432,7 @@ export function buildFailureLifecycleEvidence({
       cleanupFailure,
       browserCloseFailure,
       browserCloseAttempted,
+      browserContextCreated,
       caseRuntimeRestored: runtimeState.has("__caseRuntimeRestored"),
       cleanupEntries: trace.cleanup,
     }),
@@ -314,12 +444,15 @@ export function buildCaseCleanupAttestation({
   cleanupFailure,
   browserCloseFailure,
   browserCloseAttempted,
+  browserContextCreated = true,
   caseRuntimeRestored,
   cleanupEntries = [],
 }) {
+  const browserContextClosed = browserContextCreated !== true ||
+    (browserCloseAttempted === true && !browserCloseFailure);
   const pass = !cleanupFailure &&
     !browserCloseFailure &&
-    browserCloseAttempted === true &&
+    browserContextClosed &&
     caseRuntimeRestored === true;
   return {
     schema: "media-server.v390-ui-case-cleanup-attestation.v1",
@@ -329,7 +462,7 @@ export function buildCaseCleanupAttestation({
     caseRuntimeRestoreAttempted: true,
     caseRuntimeRestored: caseRuntimeRestored === true,
     browserCloseAttempted: browserCloseAttempted === true,
-    browserContextClosed: browserCloseAttempted === true && !browserCloseFailure,
+    browserContextClosed,
     cleanupEntryCount: Array.isArray(cleanupEntries) ? cleanupEntries.length : 0,
     failureCode: pass
       ? ""
@@ -346,6 +479,7 @@ export function buildFallbackFailureLifecycleEvidence({
   cleanupFailure,
   browserCloseFailure,
   browserCloseAttempted,
+  browserContextCreated = true,
   caseRuntimeRestored,
   cleanupEntries = [],
   navigation = null,
@@ -387,6 +521,7 @@ export function buildFallbackFailureLifecycleEvidence({
       cleanupFailure,
       browserCloseFailure,
       browserCloseAttempted,
+      browserContextCreated,
       caseRuntimeRestored,
       cleanupEntries,
     }),
@@ -535,6 +670,8 @@ export function aggregateDiagnosticChildOutcome({
     markerEvidence: childCase.markerEvidence || null,
     markerStageEvidence: childCase.markerStageEvidence || null,
     markerEvidenceLifecycle: childCase.markerEvidenceLifecycle || null,
+    failureProvenance: childCase.failureProvenance || null,
+    primaryFailureEvidence: childCase.primaryFailureEvidence || null,
     cleanupAttestation: childCase.cleanupAttestation || null,
     eventReviewSeedWriteEvidence:
       childCase.eventReviewSeedWriteEvidence || null,
@@ -545,4 +682,88 @@ export function aggregateDiagnosticChildOutcome({
     childRawCaptureValidation: summary.rawCaptureValidation || null,
     childSourceBinding: summary.sourceBinding || null,
   };
+}
+
+export function classifyDiagnosticCaseDisposition({
+  child,
+  childSummary,
+  childOutcome,
+  contaminated,
+  secretScan,
+} = {}) {
+  const cleanupAttestation = childOutcome?.cleanupAttestation;
+  const integrityPass = childSummary?.rawCaptureValidation?.status === "PASS" &&
+    childSummary?.caseRuntimeSecretArtifactIntegrity?.status === "PASS" &&
+    secretScan?.status === "PASS";
+  const lifecyclePass = contaminated !== true &&
+    cleanupAttestation?.pass === true &&
+    cleanupAttestation?.caseRuntimeRestored === true &&
+    cleanupAttestation?.browserContextClosed === true;
+  const provenance = childOutcome?.failureProvenance;
+  const primaryFailureEvidence = childOutcome?.primaryFailureEvidence;
+  const primaryStructuredEvidence = primaryFailureEvidence?.structuredEvidence;
+  const allowedPrimaryEvidenceFields = new Set(
+    diagnosticStructuredAssertionEvidence.map(([, field]) => field));
+  const primaryFailureEvidenceValid =
+    primaryFailureEvidence?.schema === diagnosticPrimaryFailureEvidenceSchema &&
+    typeof primaryFailureEvidence.errorName === "string" &&
+    primaryFailureEvidence.errorName.length > 0 &&
+    typeof primaryFailureEvidence.playwrightTimeoutClassAttested === "boolean" &&
+    primaryStructuredEvidence &&
+    typeof primaryStructuredEvidence === "object" &&
+    !Array.isArray(primaryStructuredEvidence) &&
+    Object.keys(primaryStructuredEvidence).every(field =>
+      allowedPrimaryEvidenceFields.has(field) &&
+      diagnosticStructuredAssertionEvidenceValid(
+        field, primaryStructuredEvidence[field]) &&
+      diagnosticStructuredAssertionEvidenceValid(field, childOutcome?.[field]) &&
+      stableDiagnosticEvidenceJson(primaryStructuredEvidence[field]) ===
+        stableDiagnosticEvidenceJson(childOutcome[field]));
+  const observedStructuredFailureClass =
+    diagnosticStructuredAssertionFailureClass(primaryStructuredEvidence);
+  const observedStructuredEvidencePresent =
+    diagnosticStructuredAssertionEvidencePresent(primaryStructuredEvidence);
+  const browserAssertionClasses = new Set([
+    "ui-timeout",
+    "http-status-mismatch",
+    "control-observation-failed",
+    "authoritative-readback-failed",
+    "dom-semantic-assertion-failed",
+    "request-correlation-assertion-failed",
+    "request-correlation-scope-assertion-failed",
+    "navigation-assertion-failed",
+    "marker-assertion-failed",
+    "marker-stage-assertion-failed",
+  ]);
+  const browserAssertionProvenance =
+    provenance?.schema === "media-server.v390-ui-diagnostic-failure-provenance.v1" &&
+    provenance.kind === "browser-case-assertion" &&
+    provenance.phase === "browser-case-execution" &&
+    provenance.actualBrowserExecution === true &&
+    provenance.continuationEligible === true &&
+    primaryFailureEvidenceValid &&
+    provenance.errorName === primaryFailureEvidence.errorName &&
+    ["failed-structured-evidence", "playwright-timeout"].includes(provenance.classificationSource) &&
+    (provenance.classificationSource !== "playwright-timeout" ||
+      (provenance.failureClass === "ui-timeout" && provenance.errorName === "TimeoutError" &&
+        primaryFailureEvidence.playwrightTimeoutClassAttested === true &&
+        provenance.structuredEvidencePresent === false &&
+        observedStructuredEvidencePresent === false &&
+        observedStructuredFailureClass === "")) &&
+    (provenance.classificationSource !== "failed-structured-evidence" ||
+      (provenance.structuredEvidencePresent === true &&
+        observedStructuredEvidencePresent === true &&
+        provenance.failureClass === observedStructuredFailureClass)) &&
+    !["TypeError", "ReferenceError", "SyntaxError", "RangeError"].includes(provenance.errorName) &&
+    browserAssertionClasses.has(provenance.failureClass) &&
+    provenance.failureClass === childOutcome?.failureClass;
+  if (!childSummary || !integrityPass || !lifecyclePass) {
+    return "abort-diagnostic-lifecycle";
+  }
+  if (childOutcome?.status === "PASS" && child?.exitCode === 0) return "continue-pass";
+  if (childOutcome?.status === "FAIL" && child?.exitCode === 1 &&
+      childOutcome?.actualBrowserExecution === true && browserAssertionProvenance) {
+    return "continue-case-assertion-failure";
+  }
+  return "abort-diagnostic-lifecycle";
 }

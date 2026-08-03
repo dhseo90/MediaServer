@@ -18,7 +18,9 @@ import {
 } from "./v390_ui_native_exact_cases_lib.mjs";
 import {
   aggregateDiagnosticChildOutcome,
+  classifyDiagnosticCaseDisposition,
   copyEventReviewSeedWriteEvidence,
+  diagnosticStructuredAssertionEvidenceValid,
   diagnosticChildSourceBindingErrors,
   eventReviewSeedDiagnosticCaseIds,
   validateEvt004LifecycleEvidence,
@@ -204,6 +206,8 @@ for (const [selectionIndex, item] of selection.entries()) {
       markerEvidence: childOutcome.markerEvidence || null,
       markerEvidenceLifecycle:
         childOutcome.markerEvidenceLifecycle || null,
+      failureProvenance: childOutcome.failureProvenance || null,
+      primaryFailureEvidence: childOutcome.primaryFailureEvidence || null,
       cleanupAttestation: childOutcome.cleanupAttestation || null,
       eventReviewSeedWriteEvidence:
         childOutcome.eventReviewSeedWriteEvidence || null,
@@ -345,32 +349,6 @@ function fixedSelection(cases) {
   assert(selected.length === 125,
     `EVT-023 through canonical end must contain 125 unresolved cases: ${selected.length}`);
   return selected;
-}
-
-function classifyDiagnosticCaseDisposition({
-  child,
-  childSummary,
-  childOutcome,
-  contaminated,
-  secretScan,
-}) {
-  const cleanupAttestation = childOutcome?.cleanupAttestation;
-  const integrityPass = childSummary?.rawCaptureValidation?.status === "PASS" &&
-    childSummary?.caseRuntimeSecretArtifactIntegrity?.status === "PASS" &&
-    secretScan?.status === "PASS";
-  const lifecyclePass = contaminated !== true &&
-    cleanupAttestation?.pass === true &&
-    cleanupAttestation?.caseRuntimeRestored === true &&
-    cleanupAttestation?.browserContextClosed === true;
-  if (!childSummary || !integrityPass || !lifecyclePass) {
-    return "abort-diagnostic-lifecycle";
-  }
-  if (childOutcome?.status === "PASS" && child?.exitCode === 0) return "continue-pass";
-  if (childOutcome?.status === "FAIL" && child?.exitCode === 1 &&
-      childOutcome?.actualBrowserExecution === true) {
-    return "continue-case-assertion-failure";
-  }
-  return "abort-diagnostic-lifecycle";
 }
 
 function selectedDiagnosticCases({ fullSelection, manifestCases, caseId, selectionMode }) {
@@ -616,13 +594,26 @@ function validateChildSummary(summary, item, expectedSourceBinding) {
     `diagnostic child source binding invalid: ${sourceBindingErrors.join(",")}`);
   assert(summary.sourceBinding?.selectionMode === expectedSourceBinding.selectionMode,
     "diagnostic child selection mode source binding mismatch");
-  assert(summary.case?.actualBrowserExecution === Boolean(summary.counts?.attempted),
-    "diagnostic child actual browser execution mismatch");
+  assert(typeof summary.case?.actualBrowserExecution === "boolean" &&
+    summary.actualBrowserExecution === summary.case.actualBrowserExecution,
+  "diagnostic child actual browser execution mismatch");
   if (summary.case?.eventDomSemanticEvidence) {
     const evidence = summary.case.eventDomSemanticEvidence;
     validateEventDomSemanticCompositeEvidence(evidence);
     assert(evidence.actualBrowserExecution === true,
       "diagnostic child structured EVT DOM evidence did not execute a browser");
+  }
+  for (const field of [
+    "eventDomSemanticEvidence",
+    "requestCorrelationEvidence",
+    "requestCorrelationScopeEvidence",
+    "navigationLifecycleEvidence",
+    "markerEvidence",
+    "markerStageEvidence",
+  ]) {
+    if (!summary.case?.[field]) continue;
+    assert(diagnosticStructuredAssertionEvidenceValid(field, summary.case[field]),
+      `diagnostic child ${field} canonical evidence is invalid`);
   }
   if (summary.case?.requestCorrelationEvidence) {
     const evidence = summary.case.requestCorrelationEvidence;
@@ -686,6 +677,19 @@ function validateChildSummary(summary, item, expectedSourceBinding) {
       typeof evidence.correlationResponseBound === "boolean" &&
       typeof evidence.domReadinessConfirmed === "boolean",
     "diagnostic child marker evidence is invalid");
+  }
+  if (summary.case?.failureProvenance) {
+    const provenance = summary.case.failureProvenance;
+    assert(provenance.schema === "media-server.v390-ui-diagnostic-failure-provenance.v1" &&
+      ["browser-case-assertion", "runner-or-lifecycle-failure"].includes(provenance.kind) &&
+      typeof provenance.phase === "string" &&
+      typeof provenance.failureClass === "string" &&
+      typeof provenance.errorName === "string" &&
+      ["failed-structured-evidence", "playwright-timeout", "none"].includes(provenance.classificationSource) &&
+      typeof provenance.actualBrowserExecution === "boolean" &&
+      typeof provenance.structuredEvidencePresent === "boolean" &&
+      typeof provenance.continuationEligible === "boolean",
+    "diagnostic child failure provenance is invalid");
   }
   if (summary.case?.cleanupAttestation) {
     const evidence = summary.case.cleanupAttestation;

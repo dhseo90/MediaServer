@@ -46,8 +46,10 @@ import {
   captureBoundedCorrelationWindow,
   closeBrowserForFailureLifecycle,
   copyEventReviewSeedWriteEvidence,
+  diagnosticStructuredAssertionFailureClass,
   eventReviewSeedDiagnosticCaseIds,
   finalizeFailedCaseLifecycle,
+  serializeDiagnosticPrimaryFailureEvidence,
   serializeFailureLifecycleEvidence,
   validateEvt004LifecycleEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
@@ -391,11 +393,43 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   const screenshotPath = path.join(screenshotsDir, `${item.caseId}.png`);
   const tracePath = path.join(tracesDir, `${item.caseId}.trace.json`);
   const consolePath = path.join(logsDir, `${item.caseId}.browser-console.json`);
-  const caseContext = await caseRuntime.prepareCase(item);
-  assertExpectedFixtureDigestBeforeBrowser(item, caseContext);
-  const storageStatePath = caseContext.primaryRoleStatePath || resolveRoleState(item.accountRole, roleStateMap);
+  const requested = canonicalRequestedProjection(item);
+  const trace = {
+    schema: "media-server.v390-ui-native-interaction-trace.v2",
+    caseId: item.caseId,
+    featureId: item.featureId,
+    dispatch: "playwright-native",
+    requested,
+    observed: null,
+    navigation: null,
+    setup: [],
+    inputs: structuredClone(item.workflow.inputs),
+    actions: [],
+    completionEvents: [],
+    rawPrimaryObservations: [],
+    expectedResults: structuredClone(item.workflow.expectedResults),
+    cleanup: [],
+  };
+  const runtimeState = new Map();
+  let caseContext = null;
+  let storageStatePath = "";
   let browser = null;
+  let browserContextCreated = false;
+  let caseResult = null;
+  let primaryFailure = null;
+  let cleanupFailure = null;
+  let browserCloseFailure = null;
+  let lifecycleFinalizationFailure = null;
+  let browserCloseAttempted = false;
+  let failureLifecycleEvidence = null;
+  let executionPhase = "prepare-case";
   try {
+    caseContext = await caseRuntime.prepareCase(item);
+    executionPhase = "expected-fixture-digest";
+    assertExpectedFixtureDigestBeforeBrowser(item, caseContext);
+    storageStatePath = caseContext.primaryRoleStatePath ||
+      resolveRoleState(item.accountRole, roleStateMap);
+    executionPhase = "browser-open";
     browser = await adapter.openPage({
       httpBase: options.httpBase,
       pagePath: item.actions[0].semanticCompletion.navigationBinding?.requestedPath ||
@@ -411,46 +445,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       onRuntimeSecret: ({ kind, value }) =>
         caseRuntime.registerObservedSecret(item, caseContext, kind, value),
     });
-  } catch (error) {
-    let cleanupFailure = null;
-    try {
-      await caseRuntime.restoreCase(item, caseContext);
-    } catch (cleanupError) {
-      cleanupFailure = cleanupError;
-    }
-    throw caseExecutionFailure(item.caseId, {
-      primaryFailure: error,
-      cleanupFailure,
-      browserCloseFailure: null,
-      artifactPaths: { screenshotPath, tracePath, consolePath },
-    });
-  }
-  const requested = canonicalRequestedProjection(item);
-  const trace = {
-    schema: "media-server.v390-ui-native-interaction-trace.v2",
-    caseId: item.caseId,
-    featureId: item.featureId,
-    dispatch: "playwright-native",
-    requested,
-    observed: null,
-    navigation: browser.navigation,
-    setup: [],
-    inputs: structuredClone(item.workflow.inputs),
-    actions: [],
-    completionEvents: [],
-    rawPrimaryObservations: [],
-    expectedResults: structuredClone(item.workflow.expectedResults),
-    cleanup: [],
-  };
-  const runtimeState = new Map();
-  let caseResult = null;
-  let primaryFailure = null;
-  let cleanupFailure = null;
-  let browserCloseFailure = null;
-  let lifecycleFinalizationFailure = null;
-  let browserCloseAttempted = false;
-  let failureLifecycleEvidence = null;
-  try {
+    browserContextCreated = true;
+    trace.navigation = structuredClone(browser.navigation);
+    executionPhase = "browser-case-execution";
     await executeWorkflowSetup(item, storageStatePath, roleStateMap, caseRuntime, caseContext, trace);
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
       `${item.caseId} navigation status ${browser.navigation.status} not in ${item.oracle.allowedStatuses.join(",")}`);
@@ -826,6 +823,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       disposition: item.disposition,
       dispatch: "playwright-native",
       manualIntervention: false,
+      actualBrowserExecution: true,
       requested: trace.requested,
       observed: requestedObserved.observed,
       requestedObservedSchema: requestedObserved.schema,
@@ -867,6 +865,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         cleanupFailure: null,
         browserCloseFailure: null,
         browserCloseAttempted,
+        browserContextCreated,
         caseRuntimeRestored: runtimeState.has("__caseRuntimeRestored"),
         cleanupEntries: trace.cleanup,
       }),
@@ -902,13 +901,14 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     if (correlationWindow && !Number.isInteger(correlationWindow.networkEnd)) {
       runtimeState.set("__requestCorrelationWindow", {
         ...correlationWindow,
-        networkEnd: browser.networkEntries().length,
+        networkEnd: browser ? browser.networkEntries().length : 0,
       });
     }
   } finally {
     const finalized = await finalizeFailedCaseLifecycle({
       primaryFailure,
       captureEvidence: () => {
+        if (!browser) return null;
         const entries = browser.networkEntries();
         const correlationWindow = runtimeState.get("__requestCorrelationWindow") || null;
         const closedWindow = correlationWindow
@@ -924,11 +924,19 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       },
       restoreCase: async () => {
         if (runtimeState.has("__caseRuntimeRestored")) return;
+        if (!caseContext) {
+          if (primaryFailure?.runtimeCleanup?.status === "PASS") {
+            runtimeState.set("__caseRuntimeRestored", true);
+            return;
+          }
+          throw new Error(`${item.caseId} case runtime preparation did not produce restorable state`);
+        }
         const cleanupResults = await caseRuntime.restoreCase(item, caseContext, browser);
         trace.cleanup.push(...cleanupResults.map(result => ({ ...result, status: "PASS", fallbackAfterFailure: true })));
         runtimeState.set("__caseRuntimeRestored", true);
       },
       closeBrowser: async () => {
+        if (!browser) return null;
         browserCloseAttempted = true;
         return closeBrowserForFailureLifecycle({ browser, trace });
       },
@@ -948,6 +956,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           cleanupFailure: finalCleanupFailure,
           browserCloseFailure: finalBrowserCloseFailure,
           browserCloseAttempted,
+          browserContextCreated,
           capturedCorrelationWindow: capturedEvidence,
         });
       },
@@ -961,6 +970,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         cleanupFailure,
         browserCloseFailure,
         browserCloseAttempted,
+        browserContextCreated,
         caseRuntimeRestored: runtimeState.has("__caseRuntimeRestored"),
         cleanupEntries: trace.cleanup,
         navigation: trace.navigation,
@@ -989,7 +999,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         writeJson(consolePath, {
           schema: "media-server.v390-ui-native-browser-console.v1",
           caseId: item.caseId,
-          entries: browser.consoleEntries(),
+          entries: browser ? browser.consoleEntries() : [],
         });
         writeJson(tracePath, trace);
       } catch (error) {
@@ -999,6 +1009,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           cleanupFailure,
           browserCloseFailure,
           browserCloseAttempted,
+          browserContextCreated,
           caseRuntimeRestored: runtimeState.has("__caseRuntimeRestored"),
           cleanupEntries: trace.cleanup,
         });
@@ -1007,6 +1018,22 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   }
   if (primaryFailure || cleanupFailure || browserCloseFailure ||
       lifecycleFinalizationFailure) {
+    const primaryFailureEvidence = serializeDiagnosticPrimaryFailureEvidence(
+      primaryFailure,
+      {
+        playwrightTimeoutClassAttested:
+          adapter.isPlaywrightTimeoutError(primaryFailure),
+      },
+    );
+    const failureProvenance = buildDiagnosticFailureProvenance({
+      primaryFailure,
+      primaryFailureEvidence,
+      cleanupFailure,
+      browserCloseFailure,
+      lifecycleFinalizationFailure,
+      actualBrowserExecution: browserContextCreated,
+      failurePhase: executionPhase,
+    });
     throw caseExecutionFailure(item.caseId, {
       primaryFailure,
       cleanupFailure,
@@ -1017,6 +1044,10 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         requested,
         observed: null,
       },
+      actualBrowserExecution: browserContextCreated,
+      failurePhase: executionPhase,
+      failureProvenance,
+      primaryFailureEvidence,
       failureLifecycleEvidence,
     });
   }
@@ -1034,6 +1065,9 @@ function createFailedCaseResult(item, error, diagnosticChild) {
       : (error instanceof Error ? error.message : String(error)),
     dispatch: "playwright-native",
     manualIntervention: false,
+    actualBrowserExecution: error?.actualBrowserExecution === true,
+    failureProvenance: error?.failureProvenance || null,
+    primaryFailureEvidence: error?.primaryFailureEvidence || null,
     ...(diagnosticChild ? {
       failureDetail: safeDiagnosticFailureDetail(error),
       environmentContamination: Boolean(error?.cleanupFailure || error?.browserCloseFailure),
@@ -1057,6 +1091,10 @@ function caseExecutionFailure(
     lifecycleFinalizationFailure,
     artifactPaths = {},
     requestedObserved = null,
+    actualBrowserExecution = false,
+    failurePhase = "case-execution",
+    failureProvenance = null,
+    primaryFailureEvidence = null,
     failureLifecycleEvidence = null,
   },
 ) {
@@ -1070,12 +1108,29 @@ function caseExecutionFailure(
       : "",
   ].filter(Boolean);
   const error = new Error(`${caseId} native execution failed: ${parts.join("; ")}`);
-  error.primaryFailure = primaryFailure ? { message: messageFor(primaryFailure) } : null;
+  error.primaryFailureEvidence = primaryFailureEvidence ||
+    serializeDiagnosticPrimaryFailureEvidence(primaryFailure);
+  error.primaryFailure = primaryFailure ? {
+    name: error.primaryFailureEvidence.errorName,
+    message: messageFor(primaryFailure),
+  } : null;
   error.cleanupFailure = cleanupFailure ? { message: messageFor(cleanupFailure) } : null;
   error.browserCloseFailure = browserCloseFailure ? { message: messageFor(browserCloseFailure) } : null;
   error.lifecycleFinalizationFailure = lifecycleFinalizationFailure
     ? { message: messageFor(lifecycleFinalizationFailure) }
     : null;
+  error.actualBrowserExecution = actualBrowserExecution === true;
+  error.failureProvenance = failureProvenance || Object.freeze({
+    schema: "media-server.v390-ui-diagnostic-failure-provenance.v1",
+    kind: "runner-or-lifecycle-failure",
+    phase: String(failurePhase || ""),
+    failureClass: "case-execution-failed",
+    errorName: String(primaryFailure?.name || "Error"),
+    classificationSource: "none",
+    actualBrowserExecution: actualBrowserExecution === true,
+    structuredEvidencePresent: false,
+    continuationEligible: false,
+  });
   error.partialArtifacts = Object.fromEntries(Object.entries({
     screenshotPath: artifactPaths.screenshotPath,
     tracePath: artifactPaths.tracePath,
@@ -1087,6 +1142,8 @@ function caseExecutionFailure(
   if (requestedObserved?.observed) {
     error.partialArtifacts.observed = structuredClone(requestedObserved.observed);
   }
+  error.partialArtifacts.failureProvenance =
+    structuredClone(error.failureProvenance);
   if (primaryFailure?.eventDomSemanticEvidence) {
     error.partialArtifacts.eventDomSemanticEvidence =
       structuredClone(primaryFailure.eventDomSemanticEvidence);
@@ -1127,6 +1184,7 @@ function caseExecutionFailure(
       "cleanupAttestation",
     ]) {
       if (Object.hasOwn(failureLifecycleEvidence, key)) {
+        if (Object.hasOwn(error.partialArtifacts, key)) continue;
         error.partialArtifacts[key] = structuredClone(failureLifecycleEvidence[key]);
       }
     }
@@ -3473,7 +3531,7 @@ function createDiagnosticChildSummary({
     releaseEvidenceEligible: false,
     policyV4Qualification: "not-eligible",
     uiFulltestPass: false,
-    actualBrowserExecution: Boolean(resultItem),
+    actualBrowserExecution: resultItem?.actualBrowserExecution === true,
     sourceBinding: diagnosticChildSourceBinding(item.caseId),
     selection: {
       startCaseId: item.caseId,
@@ -3498,7 +3556,9 @@ function createDiagnosticChildSummary({
       status: resultItem.status,
       failureClass: resultItem.status === "FAIL" ? resultItem.reason : "",
       failureDetail: resultItem.status === "FAIL" ? resultItem.failureDetail || "" : "",
-      actualBrowserExecution: true,
+      actualBrowserExecution: resultItem.actualBrowserExecution === true,
+      failureProvenance: resultItem.failureProvenance || null,
+      primaryFailureEvidence: resultItem.primaryFailureEvidence || null,
       requested: resultItem.requested || null,
       observed: resultItem.observed || null,
       eventDomSemanticEvidence: resultItem.eventDomSemanticEvidence || null,
@@ -3530,6 +3590,7 @@ function createDiagnosticChildSummary({
       markerStageEvidence: null,
       markerEvidence: null,
       markerEvidenceLifecycle: null,
+      failureProvenance: null,
       cleanupAttestation: null,
       failureLifecycleEvidence:
         serializeFailureLifecycleEvidence({}),
@@ -3723,6 +3784,20 @@ function validateDiagnosticChildSummary(summary, item) {
       errors.push("diagnostic-child-marker-evidence");
     }
   }
+  if (summary?.case?.failureProvenance) {
+    const provenance = summary.case.failureProvenance;
+    if (provenance.schema !== "media-server.v390-ui-diagnostic-failure-provenance.v1" ||
+        !["browser-case-assertion", "runner-or-lifecycle-failure"].includes(provenance.kind) ||
+        typeof provenance.phase !== "string" ||
+        typeof provenance.failureClass !== "string" ||
+        typeof provenance.errorName !== "string" ||
+        !["failed-structured-evidence", "playwright-timeout", "none"].includes(provenance.classificationSource) ||
+        typeof provenance.actualBrowserExecution !== "boolean" ||
+        typeof provenance.structuredEvidencePresent !== "boolean" ||
+        typeof provenance.continuationEligible !== "boolean") {
+      errors.push("diagnostic-child-failure-provenance");
+    }
+  }
   if (summary?.case?.cleanupAttestation) {
     const evidence = summary.case.cleanupAttestation;
     if (evidence.schema !== "media-server.v390-ui-case-cleanup-attestation.v1" ||
@@ -3761,6 +3836,9 @@ function validateDiagnosticChildSummary(summary, item) {
 function safeDiagnosticFailureClass(error) {
   if (error?.cleanupFailure) return "case-cleanup-failed";
   if (error?.browserCloseFailure) return "browser-close-failed";
+  const structuredFailureClass = diagnosticStructuredAssertionFailureClass(
+    error?.primaryFailureEvidence?.structuredEvidence || error?.primaryFailure);
+  if (structuredFailureClass) return structuredFailureClass;
   const message = String(error?.primaryFailure?.message || error?.message || "");
   if (/timeout|waitFor/i.test(message)) return "ui-timeout";
   if (/HTTP\s+\d+|status mismatch/i.test(message)) return "http-status-mismatch";
@@ -3768,6 +3846,72 @@ function safeDiagnosticFailureClass(error) {
   if (/readback|whoami|scope|assigned view/i.test(message)) return "authoritative-readback-failed";
   if (/secret|credential|password|token/i.test(message)) return "sensitive-material-guard-failed";
   return "case-execution-failed";
+}
+
+function buildDiagnosticFailureProvenance({
+  primaryFailure,
+  primaryFailureEvidence,
+  cleanupFailure,
+  browserCloseFailure,
+  lifecycleFinalizationFailure,
+  actualBrowserExecution,
+  failurePhase,
+}) {
+  const failureClass = safeDiagnosticFailureClass({
+    primaryFailure,
+    cleanupFailure,
+    browserCloseFailure,
+  });
+  const errorName = String(primaryFailure?.name || "Error");
+  const runnerError = ["TypeError", "ReferenceError", "SyntaxError", "RangeError"].includes(errorName);
+  const structuredEvidencePresent = Boolean(
+    primaryFailure?.eventDomSemanticEvidence ||
+    primaryFailure?.requestCorrelationEvidence ||
+    primaryFailure?.requestCorrelationScopeEvidence ||
+    primaryFailure?.navigationLifecycleEvidence ||
+    primaryFailure?.markerEvidence ||
+    primaryFailure?.markerStageEvidence
+  );
+  const assertionFailureClasses = new Set([
+    "ui-timeout",
+    "http-status-mismatch",
+    "control-observation-failed",
+    "authoritative-readback-failed",
+    "dom-semantic-assertion-failed",
+    "request-correlation-assertion-failed",
+    "request-correlation-scope-assertion-failed",
+    "navigation-assertion-failed",
+    "marker-assertion-failed",
+    "marker-stage-assertion-failed",
+  ]);
+  const structuredFailureClass = diagnosticStructuredAssertionFailureClass(primaryFailure);
+  const playwrightTimeoutClassAttested =
+    primaryFailureEvidence?.playwrightTimeoutClassAttested === true;
+  const explicitFailureClass = assertionFailureClasses.has(structuredFailureClass)
+    ? structuredFailureClass
+    : (playwrightTimeoutClassAttested ? "ui-timeout" : "");
+  const classificationSource = assertionFailureClasses.has(structuredFailureClass)
+    ? "failed-structured-evidence"
+    : (playwrightTimeoutClassAttested ? "playwright-timeout" : "none");
+  const continuationEligible = actualBrowserExecution === true &&
+    failurePhase === "browser-case-execution" &&
+    !cleanupFailure &&
+    !browserCloseFailure &&
+    !lifecycleFinalizationFailure &&
+    !runnerError &&
+    explicitFailureClass.length > 0 &&
+    failureClass === explicitFailureClass;
+  return Object.freeze({
+    schema: "media-server.v390-ui-diagnostic-failure-provenance.v1",
+    kind: continuationEligible ? "browser-case-assertion" : "runner-or-lifecycle-failure",
+    phase: String(failurePhase || ""),
+    failureClass,
+    errorName,
+    classificationSource,
+    actualBrowserExecution: actualBrowserExecution === true,
+    structuredEvidencePresent,
+    continuationEligible,
+  });
 }
 
 function safeDiagnosticFailureDetail(error) {

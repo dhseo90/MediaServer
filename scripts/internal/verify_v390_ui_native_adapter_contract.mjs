@@ -20,6 +20,7 @@ import {
   createCaseOwnedRequestIdentityRegistry,
   formatSafeResponseReadFailure,
   nativeCapabilities,
+  isResolvedPlaywrightTimeoutError,
   resolveRequestCorrelationPrecedence,
   resolvePlaywrightModule,
   secretStrippedBrowserEnv,
@@ -76,6 +77,18 @@ check("explicit missing module fails without fallback", () => {
     assert(Array.isArray(error.attempts) && error.attempts[0]?.status === "missing-package-json", "missing-module attempt evidence missing");
   }
   assert(failed, "missing explicit module must fail");
+});
+
+check("Playwright timeout attestation uses class identity instead of mutable error name", () => {
+  class RealTimeoutError extends Error {}
+  const playwright = { errors: { TimeoutError: RealTimeoutError } };
+  const genuine = new RealTimeoutError("genuine timeout");
+  const forged = new Error("forged timeout");
+  forged.name = "TimeoutError";
+  assert(isResolvedPlaywrightTimeoutError(playwright, genuine) === true,
+    "real Playwright TimeoutError class was not attested");
+  assert(isResolvedPlaywrightTimeoutError(playwright, forged) === false,
+    "mutable Error.name impersonated Playwright TimeoutError");
 });
 
 check("adapter exposes native wait click fill type select screenshot", () => {

@@ -10,15 +10,20 @@ import { fileURLToPath } from "node:url";
 import { buildNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 import {
   aggregateDiagnosticChildOutcome,
+  classifyDiagnosticCaseDisposition,
   copyEventReviewSeedWriteEvidence,
+  diagnosticStructuredAssertionFailureClass,
+  diagnosticStructuredAssertionEvidencePresent,
   diagnosticChildSourceBindingErrors,
   eventReviewSeedDiagnosticCaseIds,
+  serializeDiagnosticPrimaryFailureEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const runnerSource = read("scripts/internal/run_v390_ui_native_exact_cases.mjs");
 const sweepSource = read("scripts/internal/run_v390_ui_native_diagnostic_sweep.mjs");
+const lifecycleSource = read("scripts/internal/v390_ui_diagnostic_lifecycle_lib.mjs");
 const serverSource = read("server.sh");
 const userLauncherSource = read("test_ui.sh");
 const manifest = JSON.parse(read("test/fixtures/v390_ui_native_exact_cases.json"));
@@ -92,6 +97,193 @@ check("only case assertion failure continues; lifecycle and evidence failures ab
   "diagnostic child contamination summary missing");
 });
 
+check("fixed 125 sweep aborts cleanup or integrity failures and continues only browser assertion failures", () => {
+  assert(lifecycleSource.includes("const integrityPass = childSummary?.rawCaptureValidation?.status === \"PASS\"") &&
+    lifecycleSource.includes("childSummary?.caseRuntimeSecretArtifactIntegrity?.status === \"PASS\"") &&
+    lifecycleSource.includes("secretScan?.status === \"PASS\"") &&
+    lifecycleSource.includes("cleanupAttestation?.pass === true") &&
+    lifecycleSource.includes("cleanupAttestation?.caseRuntimeRestored === true") &&
+    lifecycleSource.includes("cleanupAttestation?.browserContextClosed === true") &&
+    lifecycleSource.includes("if (!childSummary || !integrityPass || !lifecyclePass)") &&
+    lifecycleSource.includes('return "abort-diagnostic-lifecycle"'),
+  "fixed sweep does not fail closed on cleanup or integrity failure");
+  assert(lifecycleSource.includes("childOutcome?.status === \"FAIL\" && child?.exitCode === 1") &&
+    lifecycleSource.includes("childOutcome?.actualBrowserExecution === true") &&
+    lifecycleSource.includes('provenance.kind === "browser-case-assertion"') &&
+    lifecycleSource.includes("provenance.continuationEligible === true") &&
+    lifecycleSource.includes('return "continue-case-assertion-failure"') &&
+    sweepSource.includes('abortReason = "diagnostic-lifecycle-integrity-failed"') &&
+    sweepSource.includes("for (const [selectionIndex, item] of selection.entries())"),
+  "fixed sweep can continue a non-browser failure or fail to abort its 125-case loop");
+  assert(runnerSource.includes('if (!diagnosticChild) stopped = true;'),
+    "canonical test_ui fail-fast boundary changed");
+
+  const provenance = {
+    schema: "media-server.v390-ui-diagnostic-failure-provenance.v1",
+    kind: "browser-case-assertion",
+    phase: "browser-case-execution",
+    failureClass: "ui-timeout",
+    errorName: "TimeoutError",
+    classificationSource: "playwright-timeout",
+    actualBrowserExecution: true,
+    structuredEvidencePresent: false,
+    continuationEligible: true,
+  };
+  const child = { exitCode: 1 };
+  const childSummary = {
+    rawCaptureValidation: { status: "PASS" },
+    caseRuntimeSecretArtifactIntegrity: { status: "PASS" },
+  };
+  const childOutcome = {
+    status: "FAIL",
+    failureClass: provenance.failureClass,
+    actualBrowserExecution: true,
+    failureProvenance: provenance,
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence(
+      { name: "TimeoutError" },
+      { playwrightTimeoutClassAttested: true },
+    ),
+    cleanupAttestation: {
+      pass: true,
+      caseRuntimeRestored: true,
+      browserContextClosed: true,
+    },
+  };
+  const disposition = overrides => classifyDiagnosticCaseDisposition({
+    child,
+    childSummary,
+    childOutcome: { ...childOutcome, ...overrides },
+    contaminated: false,
+    secretScan: { status: "PASS" },
+  });
+  assert(disposition({}) === "continue-case-assertion-failure",
+    "proven browser assertion failure did not continue");
+  assert(diagnosticStructuredAssertionFailureClass({
+    requestCorrelationEvidence: { pass: true },
+  }) === "", "passing structured evidence became a failure class");
+  assert(diagnosticStructuredAssertionFailureClass({
+    eventDomSemanticEvidence: { pass: false },
+    requestCorrelationEvidence: { pass: true },
+  }) === "dom-semantic-assertion-failed",
+  "one failed structured assertion was not classified exactly");
+  assert(diagnosticStructuredAssertionFailureClass({
+    eventDomSemanticEvidence: { pass: false },
+    requestCorrelationEvidence: { pass: false },
+  }) === "ambiguous-structured-failure-evidence",
+  "multiple failed structured assertions did not fail closed");
+  assert(diagnosticStructuredAssertionFailureClass({
+    eventDomSemanticEvidence: { failureCode: "MISSING_PASS" },
+  }) === "invalid-structured-failure-evidence",
+  "invalid structured assertion evidence did not fail closed");
+  assert(diagnosticStructuredAssertionEvidencePresent({
+    requestCorrelationEvidence: { pass: true },
+  }) === true && diagnosticStructuredAssertionEvidencePresent({}) === false,
+  "structured assertion evidence presence was not classified independently");
+  const structuredAssertion = {
+    ...provenance,
+    failureClass: "request-correlation-assertion-failed",
+    errorName: "Error",
+    classificationSource: "failed-structured-evidence",
+    structuredEvidencePresent: true,
+  };
+  const failedRequestCorrelationEvidence = {
+    schema: "media-server.v390-ui-request-correlation-evidence.v1",
+    pass: false,
+    requestKind: "application-fetch",
+    expectedCorrelationDigest: "expected-digest",
+    initiatingRequestCorrelationDigest: "initiating-digest",
+    responseRequestCorrelationDigest: "response-digest",
+    caseRequestIdentity: "EVT-023:request-1",
+    caseRequestSequence: 1,
+    responseRequestObjectObserved: true,
+    responseRequestMethod: "GET",
+    responseRequestPath: "/ops/api/events/status?limit=5&includeArchives=1",
+    responseRequestHeaderDigest: "header-digest",
+    responseStatus: 200,
+    responseEchoHeaderRequired: false,
+    responseEchoHeaderObserved: false,
+    failureCode: "CORRELATION_MISMATCH",
+  };
+  assert(disposition({
+    failureClass: structuredAssertion.failureClass,
+    failureProvenance: structuredAssertion,
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({
+      name: "Error",
+      requestCorrelationEvidence: failedRequestCorrelationEvidence,
+    }),
+    requestCorrelationEvidence: structuredClone(failedRequestCorrelationEvidence),
+  }) === "continue-case-assertion-failure",
+  "explicit failed structured browser assertion did not continue");
+  for (const badProvenance of [
+    { ...provenance, kind: "runner-or-lifecycle-failure" },
+    { ...provenance, phase: "browser-open" },
+    { ...provenance, continuationEligible: false },
+    { ...provenance, errorName: "TypeError" },
+    { ...provenance, failureClass: "case-execution-failed", structuredEvidencePresent: false },
+    { ...provenance, failureClass: "case-execution-failed", structuredEvidencePresent: true },
+    { ...provenance, failureClass: "ambiguous-structured-failure-evidence", structuredEvidencePresent: true },
+    { ...provenance, failureClass: "invalid-structured-failure-evidence", structuredEvidencePresent: true },
+    { ...provenance, failureClass: "authoritative-readback-failed", classificationSource: "none" },
+    { ...provenance, failureClass: "ui-timeout", classificationSource: "playwright-timeout", errorName: "Error" },
+    { ...provenance, structuredEvidencePresent: true },
+    { ...structuredAssertion },
+  ]) {
+    assert(disposition({ failureProvenance: badProvenance }) === "abort-diagnostic-lifecycle",
+      "non-assertion or runner failure was allowed to continue");
+  }
+  assert(disposition({
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({
+      name: "TimeoutError",
+    }),
+  }) === "abort-diagnostic-lifecycle",
+  "mutable Error.name impersonated a Playwright TimeoutError class");
+  assert(disposition({
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({
+      name: "TimeoutError",
+      requestCorrelationEvidence: { pass: true },
+    }),
+  }) === "abort-diagnostic-lifecycle",
+  "passing structured evidence was ignored to continue a timeout provenance");
+  assert(disposition({
+    requestCorrelationScopeEvidence: {
+      pass: false,
+      failureCode: "CORRELATION_SCOPE_NOT_REACHED",
+    },
+  }) === "continue-case-assertion-failure",
+  "synthetic lifecycle evidence falsely aborted a real timeout");
+  assert(disposition({
+    failureClass: "request-correlation-assertion-failed",
+    failureProvenance: {
+      ...structuredAssertion,
+      failureClass: "request-correlation-assertion-failed",
+    },
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({
+      name: "Error",
+      requestCorrelationEvidence: failedRequestCorrelationEvidence,
+    }),
+    requestCorrelationEvidence: structuredClone(failedRequestCorrelationEvidence),
+    requestCorrelationScopeEvidence: {
+      pass: false,
+      failureCode: "CORRELATION_SCOPE_NOT_REACHED",
+    },
+  }) === "continue-case-assertion-failure",
+  "synthetic lifecycle evidence made one primary structured failure ambiguous");
+  assert(disposition({
+    failureClass: "marker-stage-assertion-failed",
+    failureProvenance: {
+      ...structuredAssertion,
+      failureClass: "marker-stage-assertion-failed",
+    },
+    primaryFailureEvidence: {
+      schema: "media-server.v390-ui-diagnostic-primary-failure-evidence.v1",
+      errorName: "Error",
+      structuredEvidence: { markerStageEvidence: { pass: false } },
+    },
+    markerStageEvidence: { pass: false },
+  }) === "abort-diagnostic-lifecycle",
+  "schema-less primary structured evidence was allowed to continue");
+});
+
 check("diagnostic child output is constrained and failure reasons are safe classes", () => {
   assert(runnerSource.includes("assertDiagnosticChildOutputRoot(outputDir)") &&
     runnerSource.includes("safeDiagnosticFailureClass(error)") &&
@@ -112,6 +304,9 @@ check("diagnostic child output is constrained and failure reasons are safe class
     sweepSource.includes("validateEventDomSemanticCompositeEvidence(evidence)") &&
     runnerSource.includes("eventDomSemanticEvidence"),
   "structured EVT DOM evidence is not preserved through child and sweep summaries");
+  assert(runnerSource.includes("error?.primaryFailureEvidence?.structuredEvidence") &&
+    runnerSource.includes("serializeDiagnosticPrimaryFailureEvidence(primaryFailure)"),
+  "serialized structured assertion evidence cannot restore the child failure class");
   assert(runnerSource.includes("if (primaryFailure?.requestCorrelationEvidence)") &&
     runnerSource.includes("error.partialArtifacts.requestCorrelationEvidence") &&
     runnerSource.includes("requestCorrelationEvidence: resultItem.requestCorrelationEvidence || null") &&

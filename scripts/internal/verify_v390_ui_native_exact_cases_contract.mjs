@@ -58,8 +58,10 @@ import {
 } from "./v390_ui_exact_event_oracles.mjs";
 import {
   aggregateDiagnosticChildOutcome,
+  buildCaseCleanupAttestation,
   copyEventReviewSeedWriteEvidence,
   eventReviewSeedDiagnosticCaseIds,
+  serializeDiagnosticPrimaryFailureEvidence,
   serializeFailureLifecycleEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import {
@@ -77,6 +79,7 @@ const runnerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/run_v3
 const generatorSource = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_v390_ui_native_exact_cases.mjs"), "utf8");
 const nativeLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_exact_cases_lib.mjs"), "utf8");
 const runtimeSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_case_runtime.mjs"), "utf8");
+const lifecycleSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_diagnostic_lifecycle_lib.mjs"), "utf8");
 const runtimeOracleSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_exact_oracle_runtime.mjs"), "utf8");
 const environmentSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_acceptance_ui_environment.mjs"), "utf8");
 const producerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_policy_v4_evidence_producer.mjs"), "utf8");
@@ -454,6 +457,7 @@ check("event review note evidence survives the production failure rewrap and par
     "fs",
     "structuredClone",
     "serializeFailureLifecycleEvidence",
+    "serializeDiagnosticPrimaryFailureEvidence",
     "copyEventReviewSeedWriteEvidence",
     "eventReviewSeedDiagnosticCaseIds",
     `${runnerSource.slice(functionStart, functionEnd)}
@@ -462,6 +466,7 @@ check("event review note evidence survives the production failure rewrap and par
     fs,
     structuredClone,
     serializeFailureLifecycleEvidence,
+    serializeDiagnosticPrimaryFailureEvidence,
     copyEventReviewSeedWriteEvidence,
     eventReviewSeedDiagnosticCaseIds,
   );
@@ -1259,7 +1264,7 @@ check("fixture-safe incident digests bind one authoritative event to one safe su
     runtimeSource.includes("validateFixtureSafeIncidentDigestReadback({"),
   "fixture-safe incident digest materialization is not bound at both runtime boundaries");
   assert(runtimeSource.includes("expectedFixtureIdentity") &&
-    runtimeSource.includes('source: "canonical-manifest-test-owned-materializer"') &&
+    runtimeSource.includes('source: "materialized-event-record-fixture"') &&
     runtimeSource.includes("eventIdentityDigest: sha256Text(canonicalFixtureId)") &&
     runtimeSource.includes("EXPECTED_FIXTURE_DIGEST_MISSING"),
   "EVT-023/026 expected fixture digest is not generated once by the test-owned materializer");
@@ -1367,6 +1372,67 @@ check("fixture-safe incident digests bind one authoritative event to one safe su
     "fixture-safe digest eventType mismatch produced false PASS");
   assert(rejected(value => { value.events.incidentDigest.digestItems[0].status = "closed"; return value; }),
     "fixture-safe digest status mismatch produced false PASS");
+});
+
+check("EVT-023/026 expected digest binds one materialized EventRecord identity before browser startup", () => {
+  for (const caseId of ["EVT-023", "EVT-026"]) {
+    const spec = eventExactOracleFor(caseId);
+    const fixtureId = `${caseId.toLowerCase()}-materialized-fixture`;
+    const records = eventRecordFixtureFamilyExpectedRecords({
+      caseId,
+      fixtureId,
+      sourceId: "fixture-source",
+      streamId: "fixture-stream",
+    });
+    const materialized = records.filter(record => record.eventId === fixtureId);
+    assert(spec.seed.fixtureId === "{fixtureId}" && materialized.length === 1,
+      `${caseId} template drift or materialized fixture cardinality was accepted`);
+    assert(materialized[0].eventId === fixtureId,
+      `${caseId} expected fixture identity did not derive from the materialized EventRecord family`);
+  }
+  assert(runtimeSource.includes('spec?.seed?.fixtureId || "") === "{fixtureId}"') &&
+    runtimeSource.includes("canonicalRecords.length === 1") &&
+    runtimeSource.includes("eventIds.filter(eventId => eventId === context.fixtureId).length === 1") &&
+    runtimeSource.includes("eventId: canonicalFixtureId") &&
+    runtimeSource.includes('source: "materialized-event-record-fixture"'),
+  "expected fixture digest can drift from exactly one materialized EventRecord identity");
+  const attestation = buildCaseCleanupAttestation({
+    primaryFailure: new Error("EXPECTED_FIXTURE_DIGEST_MISMATCH"),
+    cleanupFailure: null,
+    browserCloseFailure: null,
+    browserCloseAttempted: false,
+    browserContextCreated: false,
+    caseRuntimeRestored: true,
+  });
+  assert(attestation.pass === true && attestation.caseRuntimeRestored === true &&
+    attestation.browserContextClosed === true,
+  "pre-browser expected-digest failure does not retain a passing cleanup attestation");
+  assert(runnerSource.indexOf("caseContext = await caseRuntime.prepareCase(item);") <
+    runnerSource.indexOf("assertExpectedFixtureDigestBeforeBrowser(item, caseContext)") &&
+    runnerSource.indexOf("assertExpectedFixtureDigestBeforeBrowser(item, caseContext)") <
+      runnerSource.indexOf("browser = await adapter.openPage({") &&
+    runnerSource.includes("actualBrowserExecution: browserContextCreated") &&
+    runnerSource.includes("const cleanupResults = await caseRuntime.restoreCase(item, caseContext, browser);"),
+  "pre-browser expected-digest failure can skip restore or claim browser execution");
+  assert(runnerSource.includes("buildDiagnosticFailureProvenance({") &&
+    runnerSource.includes('failurePhase === "browser-case-execution"') &&
+    runnerSource.includes('"TypeError", "ReferenceError", "SyntaxError", "RangeError"') &&
+    runnerSource.includes("serializeDiagnosticPrimaryFailureEvidence(primaryFailure)") &&
+    runnerSource.includes("adapter.isPlaywrightTimeoutError(primaryFailure)") &&
+    runnerSource.includes("error?.primaryFailureEvidence?.structuredEvidence") &&
+    runnerSource.includes("assertionFailureClasses.has(structuredFailureClass)") &&
+    runnerSource.includes('classificationSource = assertionFailureClasses.has(structuredFailureClass)') &&
+    runnerSource.includes("playwrightTimeoutClassAttested") &&
+    runnerSource.includes("failureClass === explicitFailureClass") &&
+    !runnerSource.includes("assertionFailureClasses.has(failureClass) || structuredEvidencePresent") &&
+    runnerSource.includes("structuredEvidencePresent") &&
+    lifecycleSource.includes("diagnosticStructuredAssertionFailureClass(primaryStructuredEvidence)") &&
+    lifecycleSource.includes("diagnosticStructuredAssertionEvidencePresent(primaryStructuredEvidence)") &&
+    lifecycleSource.includes("provenance.errorName === primaryFailureEvidence.errorName") &&
+    lifecycleSource.includes("provenance.structuredEvidencePresent === false") &&
+    lifecycleSource.includes("observedStructuredEvidencePresent === false") &&
+    runnerSource.includes("continuationEligible"),
+  "diagnostic failure lacks explicit browser-assertion provenance");
 });
 
 check("EVT-004 diagnostic log evidence is redacted and byte-restored before native execution", () => {

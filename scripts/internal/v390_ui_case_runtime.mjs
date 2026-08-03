@@ -2787,15 +2787,19 @@ export function createV390UiCaseRuntime({
         : `${context.fixtureId}-${plan.related ? "related" : "state"}-${index}`);
     });
     if (incidentTimelineExpectedFixtureDigestCaseIds.includes(item.caseId)) {
-      const canonicalFixtureId = String(spec?.seed?.fixtureId || "");
-      assert(canonicalFixtureId && canonicalFixtureId === context.fixtureId &&
-        eventIds.filter(eventId => eventId === canonicalFixtureId).length === 1,
+      assert(String(spec?.seed?.fixtureId || "") === "{fixtureId}",
+        `${item.caseId} canonical fixture seed template drifted`);
+      const canonicalRecords = familyExpectedRecords.filter(record =>
+        record.eventId === context.fixtureId);
+      assert(canonicalRecords.length === 1 &&
+        eventIds.filter(eventId => eventId === context.fixtureId).length === 1,
       `${item.caseId} canonical fixture identity is not materialized exactly once`);
+      const canonicalFixtureId = canonicalRecords[0].eventId;
       assert(context.expectedFixtureIdentity === null,
         `${item.caseId} expected fixture identity was already bound`);
       context.expectedFixtureIdentity = Object.freeze({
         schema: "media-server.v390-ui-expected-fixture-identity.v1",
-        source: "canonical-manifest-test-owned-materializer",
+        source: "materialized-event-record-fixture",
         caseId: item.caseId,
         kind: "event-record",
         eventId: canonicalFixtureId,

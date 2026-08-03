@@ -81,6 +81,11 @@ export function resolvePlaywrightModule({ modulePath = "", requireExplicit = fal
   throw failure;
 }
 
+export function isResolvedPlaywrightTimeoutError(playwright, error) {
+  const TimeoutError = playwright?.errors?.TimeoutError;
+  return typeof TimeoutError === "function" && error instanceof TimeoutError;
+}
+
 export async function createNativePlaywrightAdapter({ modulePath = "", chromePath = "" } = {}) {
   const resolved = resolvePlaywrightModule({ modulePath, requireExplicit: Boolean(modulePath) });
   const executablePath = resolveNativeBrowserExecutable(chromePath);
@@ -108,6 +113,8 @@ export async function createNativePlaywrightAdapter({ modulePath = "", chromePat
       ...args,
       executablePath,
     }),
+    isPlaywrightTimeoutError: error =>
+      isResolvedPlaywrightTimeoutError(resolved.playwright, error),
   };
 }
 
