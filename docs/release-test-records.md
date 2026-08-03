@@ -3277,7 +3277,9 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Suite-fatal 유지 | runner Type/Reference/Syntax/RangeError, child/source/evidence binding 오류, raw/secret integrity, runtime restore/browser close/environment cleanup 실패 | canonical `test_ui.sh` fail-first 불변 |
 | 첫 actual | `v390-ui-diagnostic-20260803151517-44240`: 11 attempted, 10 PASS, EVT-041 FAIL, 114 not-run | 기존 child validator가 attempted를 browser execution으로 오인해 clean pre-browser failure를 raw integrity FAIL로 처리 |
 | Validator 보정 | attempted와 actual browser execution을 분리하고 prior EVT-041 child summary가 case-local continuation임을 직접 재검증 | diagnostic `23/23`, native `51/51`, acceptance `21/21`, syntax/diff PASS |
-| Actual/release 상태 | Official canonical `299/424`, 기존 diagnostic-equivalent `309/424` | 보정 후 새 125건 batch, `test_ui.sh`, Policy v4, 30분, 120분, release 미실행 |
+| 두 번째 actual | `v390-ui-diagnostic-20260803151930-45332`: 43 attempted, 14 PASS, 29 FAIL, 82 not-run | 기존보다 32건 더 시도; EVT-061/068·CLIENT-001/006 신규 PASS |
+| Structured evidence 분류 | Direct attribute case-local 실패와 함께 보존된 PASS structured evidence를 모순으로 오인한 CLIENT-007 중단 조건 교정 | Prior child evidence가 continuation으로 재분류됨; assertion 완화 없음 |
+| Actual/release 상태 | Official canonical `299/424`, diagnostic-equivalent `313/424` | 보정 후 새 125건 batch, `test_ui.sh`, Policy v4, 30분, 120분, release 미실행 |
 
 ## REVIEW4-65 EVT-041 memory-search fixture checkpoint (2026-08-03)
 

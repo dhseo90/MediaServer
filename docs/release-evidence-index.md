@@ -1455,7 +1455,9 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Integrity abort | runner 오류, stale/missing child·source binding, raw/secret scan, runtime restore/browser close/environment cleanup 실패 | 즉시 suite abort; 거짓 PASS 또는 evidence 완화 없음 |
 | 첫 actual | `v390-ui-diagnostic-20260803151517-44240`; 11 attempted, 10 PASS, EVT-041 FAIL, 114 not-run | attempted/browser conflation으로 clean pre-browser FAIL이 raw integrity FAIL로 오분류되어 전체 중단 |
 | Validator 보정 | attempted와 actual browser execution을 typed provenance phase로 분리 | Prior EVT-041 evidence의 continuation 판정 PASS; diagnostic `23/23`, native `51/51`, acceptance `21/21` |
-| Release boundary | Canonical `299/424`, 기존 diagnostic-equivalent `309/424` | 보정 후 batch와 공식 UI/Policy v4/30분/120분/release는 미실행이며 완료 evidence가 아님 |
+| 두 번째 actual | `v390-ui-diagnostic-20260803151930-45332`; 43 attempted, 14 PASS, 29 FAIL, 82 not-run | EVT-061/068·CLIENT-001/006 신규 PASS; CLIENT-007에서 공통 provenance 분류 중단 |
+| Structured evidence 분류 | PASS structured evidence와 별도 direct attribute case-local FAIL의 공존을 허용하되 failed/invalid/ambiguous evidence는 계속 abort | Prior CLIENT-007 child disposition 재검증 PASS |
+| Release boundary | Canonical `299/424`, diagnostic-equivalent `313/424` | 보정 후 batch와 공식 UI/Policy v4/30분/120분/release는 미실행이며 완료 evidence가 아님 |
 
 ## v3.9.0 REVIEW4-65 EVT-041 memory-search fixture checkpoint
 

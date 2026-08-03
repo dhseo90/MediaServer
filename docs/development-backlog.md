@@ -7252,6 +7252,13 @@ browser 실행을 분리한 typed validator를 추가했고 해당 prior child e
 diff check가 PASS했습니다. 보정 후 125건 actual batch와 `./test_ui.sh`는 아직 미실행이며 official
 canonical은 `299/424 PASS`, 기존 diagnostic-equivalent는 `309/424`를 유지합니다.
 
+두 번째 actual `v390-ui-diagnostic-20260803151930-45332`는 `43 attempted / 14 PASS / 29 FAIL /
+82 not-run`까지 진행해 기존 경계를 32건 넘었고 `EVT-061/068`, `CLIENT-001/006` 신규 PASS를
+확인했습니다. CLIENT-007에서 direct attribute 실패와 함께 보존된 PASS structured evidence를
+case-local provenance와 모순으로 오인해 중단된 공통 분류를 교정했습니다. Prior CLIENT-007 child
+evidence가 `continue-case-local-failure`로 판정됨을 직접 재검증했고 제품 assertion은 변경하지 않았습니다.
+Diagnostic-equivalent 경계는 `313/424`이며 official canonical은 계속 `299/424 PASS`입니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

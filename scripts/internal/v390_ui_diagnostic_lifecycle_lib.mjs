@@ -857,9 +857,8 @@ export function classifyDiagnosticCaseDisposition({
       .includes(provenance.phase) &&
     provenance.continuationEligible === true &&
     provenance.classificationSource === "case-local-error" &&
-    provenance.structuredEvidencePresent === false &&
     primaryFailureEvidenceValid &&
-    !observedStructuredEvidencePresent &&
+    provenance.structuredEvidencePresent === observedStructuredEvidencePresent &&
     observedStructuredFailureClass === "" &&
     !["TypeError", "ReferenceError", "SyntaxError", "RangeError"]
       .includes(provenance.errorName) &&

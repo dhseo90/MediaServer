@@ -406,6 +406,35 @@ check("fixed 125 sweep continues clean case-local failures and aborts environmen
     }) === "continue-case-local-failure",
     `${phase} case-local failure did not continue after clean lifecycle`);
   }
+  const passingRequestCorrelationEvidence = {
+    ...failedRequestCorrelationEvidence,
+    pass: true,
+    expectedCorrelationDigest: "same-digest",
+    initiatingRequestCorrelationDigest: "same-digest",
+    responseRequestCorrelationDigest: "same-digest",
+    failureCode: "",
+  };
+  assert(disposition({
+    failureClass: "case-execution-failed",
+    actualBrowserExecution: true,
+    failureProvenance: {
+      ...provenance,
+      kind: "case-local-failure",
+      phase: "browser-case-execution",
+      failureClass: "case-execution-failed",
+      errorName: "Error",
+      classificationSource: "case-local-error",
+      actualBrowserExecution: true,
+      structuredEvidencePresent: true,
+      continuationEligible: true,
+    },
+    primaryFailureEvidence: serializeDiagnosticPrimaryFailureEvidence({
+      name: "Error",
+      requestCorrelationEvidence: passingRequestCorrelationEvidence,
+    }),
+    requestCorrelationEvidence: structuredClone(passingRequestCorrelationEvidence),
+  }) === "continue-case-local-failure",
+  "case-local attribute failure was aborted because passing structured evidence was preserved");
   assert(disposition({
     failureClass: "case-execution-failed",
     actualBrowserExecution: false,
