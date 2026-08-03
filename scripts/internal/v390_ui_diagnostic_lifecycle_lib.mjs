@@ -680,6 +680,33 @@ export function diagnosticChildSourceBindingErrors(summary, expected = {}) {
   return errors;
 }
 
+export function diagnosticChildBrowserExecutionBindingValid(summary = {}) {
+  const attempted = Number(summary?.counts?.attempted || 0);
+  const pass = Number(summary?.counts?.pass || 0);
+  const fail = Number(summary?.counts?.fail || 0);
+  const actualBrowserExecution = summary?.case?.actualBrowserExecution === true;
+  if (summary?.actualBrowserExecution !== actualBrowserExecution) return false;
+  if (attempted !== pass + fail || ![0, 1].includes(attempted)) return false;
+  if (attempted === 0) return actualBrowserExecution === false;
+  if (pass === 1) return actualBrowserExecution === true;
+  const provenance = summary?.case?.failureProvenance;
+  if (provenance?.kind === "browser-case-assertion") {
+    return actualBrowserExecution === true &&
+      provenance.actualBrowserExecution === true;
+  }
+  if (provenance?.kind !== "case-local-failure" ||
+      provenance.continuationEligible !== true ||
+      provenance.actualBrowserExecution !== actualBrowserExecution) {
+    return false;
+  }
+  if (["prepare-case", "expected-fixture-digest", "browser-open"]
+      .includes(provenance.phase)) {
+    return actualBrowserExecution === false;
+  }
+  return provenance.phase === "browser-case-execution" &&
+    actualBrowserExecution === true;
+}
+
 export function aggregateDiagnosticChildOutcome({
   summary,
   exitCode,

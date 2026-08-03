@@ -12,6 +12,7 @@ import {
   aggregateDiagnosticChildOutcome,
   classifyDiagnosticCaseDisposition,
   copyEventReviewSeedWriteEvidence,
+  diagnosticChildBrowserExecutionBindingValid,
   diagnosticRequestSemanticAssertionBindingValid,
   diagnosticStructuredAssertionFailureClass,
   diagnosticStructuredAssertionEvidenceValid,
@@ -147,6 +148,46 @@ check("case-local failures continue only after isolated cleanup; lifecycle and e
     runnerSource.includes('"case-local-error"') &&
     runnerSource.includes("!runnerError"),
   "diagnostic child contamination summary missing");
+});
+
+check("attempted case evidence does not falsely require browser execution before browser open", () => {
+  const summary = ({ phase, actualBrowserExecution, kind = "case-local-failure" }) => ({
+    actualBrowserExecution,
+    counts: { attempted: 1, pass: 0, fail: 1 },
+    case: {
+      status: "FAIL",
+      actualBrowserExecution,
+      failureProvenance: {
+        kind,
+        phase,
+        actualBrowserExecution,
+        continuationEligible: true,
+      },
+    },
+  });
+  for (const phase of ["prepare-case", "expected-fixture-digest", "browser-open"]) {
+    assert(diagnosticChildBrowserExecutionBindingValid(summary({
+      phase,
+      actualBrowserExecution: false,
+    })), `${phase} case-local evidence incorrectly required a browser`);
+  }
+  assert(diagnosticChildBrowserExecutionBindingValid(summary({
+    phase: "browser-case-execution",
+    actualBrowserExecution: true,
+  })), "browser case-local failure lost actual execution binding");
+  assert(!diagnosticChildBrowserExecutionBindingValid(summary({
+    phase: "prepare-case",
+    actualBrowserExecution: true,
+  })), "prepare-case failure forged browser execution");
+  assert(!diagnosticChildBrowserExecutionBindingValid(summary({
+    phase: "browser-case-execution",
+    actualBrowserExecution: false,
+  })), "browser execution failure passed without a browser");
+  assert(diagnosticChildBrowserExecutionBindingValid({
+    actualBrowserExecution: true,
+    counts: { attempted: 1, pass: 1, fail: 0 },
+    case: { status: "PASS", actualBrowserExecution: true },
+  }), "passing diagnostic child lost browser execution binding");
 });
 
 check("fixed 125 sweep continues clean case-local failures and aborts environment integrity failures", () => {

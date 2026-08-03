@@ -46,6 +46,7 @@ import {
   captureBoundedCorrelationWindow,
   closeBrowserForFailureLifecycle,
   copyEventReviewSeedWriteEvidence,
+  diagnosticChildBrowserExecutionBindingValid,
   diagnosticStructuredAssertionFailureClass,
   eventReviewSeedDiagnosticCaseIds,
   finalizeFailedCaseLifecycle,
@@ -3703,11 +3704,8 @@ function validateDiagnosticChildSummary(summary, item) {
     errors.push("diagnostic-child-count-invariant");
   }
   if (summary?.case?.caseId !== item.caseId) errors.push("diagnostic-child-case-id");
-  if (summary?.case?.actualBrowserExecution !== Boolean(summary?.counts?.attempted)) {
+  if (!diagnosticChildBrowserExecutionBindingValid(summary)) {
     errors.push("diagnostic-child-browser-execution");
-  }
-  if (summary?.actualBrowserExecution !== summary?.case?.actualBrowserExecution) {
-    errors.push("diagnostic-child-browser-execution-summary");
   }
   if (summary?.case?.eventDomSemanticEvidence) {
     const evidence = summary.case.eventDomSemanticEvidence;

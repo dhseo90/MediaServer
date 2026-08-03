@@ -7244,8 +7244,12 @@ primary evidence, raw/secret integrity, runtime restore, browser close가 모두
 environment를 완전히 정리한 뒤 새 environment에서 다음 case를 실행합니다. Type/Reference/Syntax/
 RangeError, source 또는 child evidence 오류, raw/secret integrity 실패, runtime restore/browser close/
 environment cleanup 실패는 계속 전체 중단합니다. Canonical `test_ui.sh`의 fail-first 동작은
-변경하지 않았습니다. Diagnostic `22/22`, native exact `51/51`, acceptance `21/21`, syntax와
-diff check가 PASS했습니다. 125건 actual batch와 `./test_ui.sh`는 아직 미실행이며 official
+변경하지 않았습니다. 첫 actual run `v390-ui-diagnostic-20260803151517-44240`은 child validator가
+`attempted=1`을 browser 실행으로 오인해 EVT-041의 clean pre-browser FAIL을 raw integrity 실패로
+분류하면서 `11 attempted / 10 PASS / 1 FAIL / 114 not-run`으로 종료됐습니다. Attempted와 actual
+browser 실행을 분리한 typed validator를 추가했고 해당 prior child evidence가 case-local continuation으로
+재분류됨을 직접 확인했습니다. Diagnostic `23/23`, native exact `51/51`, acceptance `21/21`, syntax와
+diff check가 PASS했습니다. 보정 후 125건 actual batch와 `./test_ui.sh`는 아직 미실행이며 official
 canonical은 `299/424 PASS`, 기존 diagnostic-equivalent는 `309/424`를 유지합니다.
 
 ## 후속 이슈 추천 규칙
