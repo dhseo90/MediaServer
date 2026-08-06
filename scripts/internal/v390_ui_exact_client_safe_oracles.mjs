@@ -120,7 +120,14 @@ function exactSpec(caseId, featureMeaning, {
         ? { operator: assertion.operator, value: assertion.value }
         : null,
       requiredAttributes: attributeName
-        ? [{ name: attributeName, operator: assertion.operator, value: assertion.value }]
+        ? [{
+          name: attributeName,
+          operator: assertion.property === "playsinline" &&
+            assertion.operator === "equals" && assertion.value === true
+            ? "boolean-present"
+            : assertion.operator,
+          value: assertion.value,
+        }]
         : [],
       propertyAssertions: !textAssertion && !materialAssertion && assertion.property !== "count" && !attributeName
         ? [{ name: assertion.property, operator: assertion.operator, value: assertion.value }]

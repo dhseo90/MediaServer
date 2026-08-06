@@ -2084,8 +2084,9 @@ check("remaining client-safe batch clusters bind dynamic identities and owned li
     runnerSource.includes('(candidate.fixtureRefs || []).includes("assigned-view")') &&
     runnerSource.includes("clientLiveCompositionFromTransition") &&
     runnerSource.includes("kind: composition.kind") &&
-    runnerSource.includes("viewA: catalog.viewA || catalog.viewId") &&
-    runnerSource.includes("viewB: catalog.viewB || catalog.viewId"),
+    runnerSource.includes("exactOracleRuntimeBindings({") &&
+    runtimeSource.includes("viewA: catalog.viewA || catalog.viewId") &&
+    runtimeSource.includes("viewB: catalog.viewB || catalog.viewId"),
   "runtime completion does not derive assigned-view/single-tile identities from owned actions");
   for (const snippet of [
     'if (item.caseId === "MEDIA-017")',

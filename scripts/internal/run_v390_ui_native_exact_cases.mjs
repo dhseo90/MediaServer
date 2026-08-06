@@ -14,6 +14,7 @@ import {
 import {
   assertExpectedFixtureDigestBeforeBrowser,
   createV390UiCaseRuntime,
+  exactOracleRuntimeBindings,
 } from "./v390_ui_case_runtime.mjs";
 import {
   buildEndpointActionSemanticReadback,
@@ -3066,26 +3067,12 @@ function exactFixtureId(item) {
 }
 
 function exactOracleBindings(caseRuntimeOwner, caseContext) {
-  const relationship = caseContext?.relationshipFixture || {};
-  const catalog = caseContext?.catalogBindings || {};
-  const defaultViewId = caseRuntimeOwner?.descriptor?.auth?.defaultViewId || "9001";
-  return {
-    assignedViewId: relationship.viewId || catalog.viewId || defaultViewId,
-    blockedViewId: relationship.blockedView?.viewId || "99002",
-    viewId: catalog.viewId || relationship.viewId || defaultViewId,
-    viewA: catalog.viewA || catalog.viewId || relationship.viewId || defaultViewId,
-    viewB: catalog.viewB || catalog.viewId || relationship.viewId || defaultViewId,
-    sourceId: catalog.sourceId || relationship.sourceId || defaultViewId,
-    ruleId: relationship.vaRuleId || "1",
-    candidateId: catalog.candidateId || caseContext?.fixtureId || "",
-    eventId: catalog.eventId || caseContext?.fixtureId || "",
-    searchQuery: catalog.searchQuery || caseContext?.fixtureId || "",
-    sessionId: catalog.sessionId || "",
-    vaMetadataSampleId: catalog.vaMetadataSampleId || "",
-    runtimeTrendBaseline: catalog.runtimeTrendBaseline || null,
-    logMarker: catalog.logMarker || "",
-    redactionCanary: catalog.redactionCanary || "",
-  };
+  return exactOracleRuntimeBindings({
+    defaultViewId: caseRuntimeOwner?.descriptor?.auth?.defaultViewId || "9001",
+    fixtureId: caseContext?.fixtureId || "",
+    relationshipFixture: caseContext?.relationshipFixture || {},
+    catalogBindings: caseContext?.catalogBindings || {},
+  });
 }
 
 async function executeWorkflowCleanup(browser, item, runtimeState, caseRuntimeOwner, caseContext, trace) {

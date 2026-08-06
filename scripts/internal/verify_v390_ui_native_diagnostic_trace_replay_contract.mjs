@@ -30,6 +30,12 @@ const gates = Object.freeze([
     expected: /final trace replay: PASS 10\/10/,
     count: 10,
   },
+  {
+    label: "final-five",
+    script: "verify_v390_ui_native_diagnostic_trace_replay_final_five_contract.mjs",
+    expected: /final five trace replay: PASS 5\/5/,
+    count: 5,
+  },
 ]);
 
 let passed = 0;
@@ -48,5 +54,5 @@ for (const gate of gates) {
   passed += gate.count;
 }
 
-if (passed !== 33) throw new Error(`actual diagnostic trace replay coverage mismatch: ${passed}/33`);
-console.log(`v390 UI native diagnostic trace replay contract PASS: ${passed}/33`);
+if (passed !== 38) throw new Error(`actual diagnostic trace replay coverage mismatch: ${passed}/38`);
+console.log(`v390 UI native diagnostic trace replay contract PASS: ${passed}/38`);

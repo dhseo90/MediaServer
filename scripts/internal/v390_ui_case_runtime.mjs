@@ -408,6 +408,35 @@ export function canonicalEventRuntimeSeedBindings({ fixtureId, sourceId = "9001"
   });
 }
 
+export function exactOracleRuntimeBindings({
+  defaultViewId = "9001",
+  fixtureId = "",
+  relationshipFixture = {},
+  catalogBindings = {},
+} = {}) {
+  const relationship = relationshipFixture || {};
+  const catalog = catalogBindings || {};
+  return Object.freeze({
+    assignedViewId: relationship.viewId || catalog.viewId || defaultViewId,
+    blockedViewId: relationship.blockedView?.viewId || "99002",
+    viewId: catalog.viewId || relationship.viewId || defaultViewId,
+    viewA: catalog.viewA || catalog.viewId || relationship.viewId || defaultViewId,
+    viewB: catalog.viewB || catalog.viewId || relationship.viewId || defaultViewId,
+    sourceId: catalog.sourceId || relationship.sourceId || defaultViewId,
+    ruleId: catalog.ruleId || relationship.vaRuleId || "1",
+    candidateId: catalog.candidateId || fixtureId,
+    eventId: catalog.eventId || fixtureId,
+    searchQuery: catalog.searchQuery || fixtureId,
+    incidentStatus: catalog.incidentStatus || "",
+    incidentMemoryHitSourceId: catalog.incidentMemoryHitSourceId || "",
+    sessionId: catalog.sessionId || "",
+    vaMetadataSampleId: catalog.vaMetadataSampleId || "",
+    runtimeTrendBaseline: catalog.runtimeTrendBaseline || null,
+    logMarker: catalog.logMarker || "",
+    redactionCanary: catalog.redactionCanary || "",
+  });
+}
+
 export function vlmRuleSuggestionDraftBinding(observation) {
   const candidateId = String(observation?.ruleSuggestion?.candidateId || "");
   assert(candidateId, "VLM rule-suggestion authoritative candidate identity is missing");
@@ -3929,6 +3958,7 @@ export function createV390UiCaseRuntime({
     const domFixtureIdentityByTarget = {};
     const rowLocalResponseTargets = [];
     const requestRowLocalBaselineByAssertionKey = {};
+    const requestRowLocalBaselines = [];
     const incidentMemorySearchEvidenceByRequest = {};
     const mergedQuery = {};
     const baselineBodies = [];
@@ -3989,6 +4019,13 @@ export function createV390UiCaseRuntime({
           requestRowLocalBaselineByAssertionKey[
             `${request.method} ${request.path}\n${assertion.operator}\n${assertion.path}`
           ] = typedBinding;
+          requestRowLocalBaselines.push(Object.freeze({
+            ...typedBinding,
+            requestMethod: String(request.method).toUpperCase(),
+            requestPathTemplate: String(request.path),
+            assertionOperator: String(assertion.operator),
+            assertionPath: String(assertion.path),
+          }));
           if (assertion.operator.startsWith("contains-fixture")) {
             seedByPath[assertion.path] = typedBinding.fixtureExpectedValue;
           } else if (requirements.seedPaths.includes(assertion.path)) {
@@ -4203,9 +4240,7 @@ export function createV390UiCaseRuntime({
       seedByPath["sourceHealth[].status"] = status;
       seedByPath["sourceHealth[].reason"] = reason;
       if (item.caseId === "EVT-025") {
-        requestRowLocalBaselineByAssertionKey[
-          "GET /ops/api/source-health\nequals-seed\nsourceHealth[].status"
-        ] = {
+        const sourceHealthStatusBaseline = {
           schema: "media-server.v390-ui-event-request-row-local-baseline.v1",
           collectionPath: "sourceHealth",
           identityPaths: ["sourceId", "id"],
@@ -4214,6 +4249,16 @@ export function createV390UiCaseRuntime({
           projectionPath: "status",
           expectedValue: status,
         };
+        requestRowLocalBaselineByAssertionKey[
+          "GET /ops/api/source-health\nequals-seed\nsourceHealth[].status"
+        ] = sourceHealthStatusBaseline;
+        requestRowLocalBaselines.push(Object.freeze({
+          ...sourceHealthStatusBaseline,
+          requestMethod: "GET",
+          requestPathTemplate: "/ops/api/source-health",
+          assertionOperator: "equals-seed",
+          assertionPath: "sourceHealth[].status",
+        }));
       }
       templateValues.channelId = sourceId;
       templateValues.status = status;
@@ -4279,6 +4324,7 @@ export function createV390UiCaseRuntime({
         sensitiveCanaries: canaries,
         repeatedRequests: requirements.repeatedRequests,
         requestRowLocalBaselineByAssertionKey,
+        requestRowLocalBaselines: Object.freeze(requestRowLocalBaselines),
         incidentMemorySearchEvidenceByRequest,
       },
     };

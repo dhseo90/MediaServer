@@ -5,7 +5,7 @@
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
     "bindingSchema": "media-server.ui-fulltest-canonical-implementation-projection.v1",
-    "projectionSha256": "fed32e49ff1de33363c8c8663896b64d9f2636453a1a01fdf4baa83d86426962"
+    "projectionSha256": "27f7d69501d6886a0657158af219286f41fee05df0938bc72faff28c8a1c3367"
   },
   "caseCount": 424,
   "cases": [
@@ -1142,7 +1142,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "renderV310OperatorFeatureCorrection"
+        "actionAnchor": "bindEventReviewActions"
       },
       "routeBinding": {
         "screenRoute": "/ops/events",

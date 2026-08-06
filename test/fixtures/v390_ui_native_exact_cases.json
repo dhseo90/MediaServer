@@ -2,12 +2,12 @@
   "schema": "media-server.v390-ui-native-exact-cases.v2",
   "sourceBindings": {
     "canonicalSchema": "media-server.ui-fulltest-canonical-case-manifest.v1",
-    "canonicalSha256": "3b3b85556d4efc78e6cea00f9e7e8199b22ed58931ea5cc40f524ba18bdf936f",
+    "canonicalSha256": "78e496f53fe2b8c9484e548cf430273dcaa8af4a8a67338f647a1b5028dd12dc",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "93b82099f57ad19de058e265988b62340a68dc8667b7fe77bb12128c7508d808",
+    "implementationProjectionSha256": "272738c65f5fdd03c2791c5ca288e6cb4ab12fa4b737b2851f4b45cb2c55ef75",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "55d0971072c741a5d7003ed9ea067c2e6fa3e6b2cc71e0b4a5051f37eac6043d",
+    "runtimeOracleCatalogSha256": "c13c639fd8fabfc641dde7306d8a468c912462e7245cca03b20ee2bd8f16130b",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -11074,7 +11074,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "71191eb5b803f2df973d5a1f3110f65c0c819d2aacf1ee69015b2586f8123647",
+            "semanticCallChainSha256": "edbbcc65120906bec5d4b7abf2fcd17e71d4f655e9d300eb9cebae870183b879",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -11156,7 +11156,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "71191eb5b803f2df973d5a1f3110f65c0c819d2aacf1ee69015b2586f8123647"
+          "assertedSemanticDigest": "edbbcc65120906bec5d4b7abf2fcd17e71d4f655e9d300eb9cebae870183b879"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -11168,7 +11168,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "7fffc88910aac67b75787dc5f3582403256c1379be5bb0faaf30be72214a8541",
+          "specSha256": "ada3130bb751f89ceafc7b64a007ca7c9626c840eddab677d0d1edf0b78796e6",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11305,7 +11305,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "71191eb5b803f2df973d5a1f3110f65c0c819d2aacf1ee69015b2586f8123647"
+            "semanticCallChainSha256": "edbbcc65120906bec5d4b7abf2fcd17e71d4f655e9d300eb9cebae870183b879"
           }
         ]
       },
@@ -38478,7 +38478,7 @@
         "requestedSelector": null,
         "canonicalSelector": null,
         "selectorSource": "review4-explicit-control-not-applicable",
-        "actionAnchor": "renderV310OperatorFeatureCorrection",
+        "actionAnchor": "bindEventReviewActions",
         "actionRoute": "/ops/events",
         "targetSelector": null
       },
@@ -38766,7 +38766,7 @@
             "text": "`/ops/events`가 correctedFeatureLabel, featureAliases, reanalysisRequested/reanalysisReason control과 summary card를 Ops-only로 표시하고 기존 review 저장 버튼으로 event review state에만 반영하며 client/viewer에는 노출하지 않음",
             "sha256": "fd53e5eee0532914ac0c943f9cdd96c1f92c454471395ba42de45df073b84291"
           },
-          "specSha256": "576dfd5021ee79466ae9cf773d1138402caa1834e5f4c1256304ade7e4de21ef",
+          "specSha256": "78cecb1c4b95666417fb24b2d0c7b5bcfd33a56b6fc692fd5bdcd12c64927a7a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -39054,7 +39054,7 @@
         "theme": "light",
         "controlAction": {
           "selector": null,
-          "actionAnchor": "renderV310OperatorFeatureCorrection"
+          "actionAnchor": "bindEventReviewActions"
         }
       },
       "observedProjection": {
@@ -238658,7 +238658,7 @@
           "route": "/client/live",
           "role": "viewer",
           "featureMeaning": "video viewport가 실제 video track을 재생하고 clipping 없음",
-          "specSha256": "c36fb59bf2956db815e24f6d4b2734eabee76d0ce2d554dd9dbe1079afc52195",
+          "specSha256": "255d0dfa58c6788a1f2a00c2db1a9c9bf8da87a98af67afa57237106933b085a",
           "requestCount": 1,
           "domAssertionCount": 3,
           "stateSnapshotCount": 1,

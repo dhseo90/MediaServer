@@ -1275,14 +1275,60 @@ function catalogRuntimeCompletionRequest(semanticReadback, action) {
   if (exactResponses.length > 1) {
     return { present: true, match: null, reason: "ambiguous-exact-request" };
   }
+  const expectedCorrelationDigest = crypto.createHash("sha256")
+    .update(String(action.correlationId || ""))
+    .digest("hex");
+  const correlatedResponses = exactResponses.length === 0
+    ? responses.filter(response => {
+      const evidence = response?.requestCorrelationEvidence;
+      const correlationDigests = [
+        evidence?.correlationDigest,
+        evidence?.expectedCorrelationDigest,
+        evidence?.initiatingRequestCorrelationDigest,
+        evidence?.responseRequestCorrelationDigest,
+        evidence?.initiatingRequestCorrelationRouteDigest,
+        evidence?.responseRequestCorrelationRouteDigest,
+      ];
+      return String(response.method).toUpperCase() === String(expected.method || "GET").toUpperCase() &&
+        requestPathname(response.urlPath) === requestPathname(expected.urlPath) &&
+        requestTarget(response.urlPath) !== requestTarget(expected.urlPath) &&
+        allowedStatuses.includes(Number(response.status)) &&
+        evidence?.schema === "media-server.v390-ui-request-correlation-evidence.v1" &&
+        evidence.pass === true &&
+        evidence.requestKind === "application-fetch" &&
+        evidence.expectedCaseId === String(action.actionId || "").split(":")[0] &&
+        evidence.expectedActionId === action.actionId &&
+        evidence.expectedMethod === String(expected.method || "GET").toUpperCase() &&
+        requestTarget(evidence.expectedPath) === requestTarget(response.urlPath) &&
+        evidence.observedMethod === String(response.method).toUpperCase() &&
+        requestTarget(evidence.observedPath) === requestTarget(response.urlPath) &&
+        evidence.responseRequestObjectObserved === true &&
+        evidence.responseRequestMethod === String(response.method).toUpperCase() &&
+        requestTarget(evidence.responseRequestPath) === requestTarget(response.urlPath) &&
+        Number(evidence.responseStatus) === Number(response.status) &&
+        typeof evidence.caseRequestIdentity === "string" && evidence.caseRequestIdentity.length > 0 &&
+        evidence.caseRequestIdentity === evidence.responseRequestIdentity &&
+        evidence.requestIdentityMatched === true &&
+        correlationDigests.every(digest => digest === expectedCorrelationDigest) &&
+        evidence.requestCandidateCount === 1 &&
+        evidence.matchedRequestCount === 1 &&
+        evidence.responseCandidateCount === 1 &&
+        evidence.matchedResponseCount === 1 &&
+        evidence.requestAttemptCount === 1 &&
+        evidence.requestReissued === false;
+    })
+    : [];
+  if (correlatedResponses.length > 1) {
+    return { present: true, match: null, reason: "ambiguous-correlated-request" };
+  }
   const routeBound = String(expected.method || "GET").toUpperCase() === "GET" &&
     !/^\/(?:ops|client)\/api(?:\/|$)/.test(expected.urlPath) &&
     requestPathname(exactRuntimeOracle.requestedRoute) === expected.urlPath &&
     requestPathname(exactRuntimeOracle.observedRoute).startsWith("/");
-  if (exactResponses.length === 0 && !routeBound) {
+  if (exactResponses.length === 0 && correlatedResponses.length === 0 && !routeBound) {
     return { present: true, match: null, reason: "request-correlation-missing" };
   }
-  const exactResponse = exactResponses[0] || null;
+  const exactResponse = exactResponses[0] || correlatedResponses[0] || null;
   const attestation = {
     schema: exactRuntimeOracle.schema,
     caseId: exactRuntimeOracle.caseId,

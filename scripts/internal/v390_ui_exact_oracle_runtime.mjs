@@ -2495,6 +2495,9 @@ function compareAttribute(actual, operator, expected) {
   if (operator === "includes" || operator === "includesAll") return value.includes(expected);
   if (operator === "excludes" || operator === "excludesAll") return !value.includes(expected);
   if (operator === "present") return actual !== undefined;
+  if (operator === "boolean-present") {
+    return expected === "true" && actual !== undefined && actual !== null;
+  }
   return value === expected;
 }
 
@@ -2592,7 +2595,19 @@ function evaluateRequestAssertions(assertions, context) {
       const canonicalRequestIdentity =
         `${String(context.request.method || "GET").toUpperCase()} ${String(context.request.pathTemplate || context.request.path || context.urlPath)}`;
       const rowLocalKey = `${canonicalRequestIdentity}\n${String(assertion.operator || "")}\n${String(assertion.path || "")}`;
-      const rowLocalBaseline = runtime.requestRowLocalBaselineByAssertionKey?.[rowLocalKey] || null;
+      const hasDeclarativeBaselines = Array.isArray(runtime.requestRowLocalBaselines);
+      const declarativeBaselines = hasDeclarativeBaselines
+        ? runtime.requestRowLocalBaselines.filter(candidate =>
+          candidate?.requestMethod === String(context.request.method || "GET").toUpperCase() &&
+          candidate?.requestPathTemplate === String(context.request.pathTemplate || context.request.path || context.urlPath) &&
+          candidate?.assertionOperator === String(assertion.operator || "") &&
+          candidate?.assertionPath === String(assertion.path || ""))
+        : [];
+      assert(declarativeBaselines.length <= 1,
+        `${context.caseId} request row-local baseline cardinality mismatch: ${declarativeBaselines.length}`);
+      const rowLocalBaseline = hasDeclarativeBaselines
+        ? (declarativeBaselines[0] || null)
+        : (runtime.requestRowLocalBaselineByAssertionKey?.[rowLocalKey] || null);
       const baselineResponse = runtime.responseByRequest?.[requestIdentity];
       const baselineBody = baselineResponse?.json ?? baselineResponse?.text;
       const requestBaselineValues = eventRuntimeAssertionValues({
@@ -2679,6 +2694,10 @@ function evaluateRequestAssertions(assertions, context) {
           templateValues: context.bindings,
           seed: runtime.seed || {},
           seedByPath: runtime.seedByPath || {},
+          expectedResponseByPath: rowLocalBaseline &&
+            rowLocalBaseline.fixtureExpectedValue !== undefined
+            ? { [assertion.path]: rowLocalBaseline.fixtureExpectedValue }
+            : {},
           requestByPath,
           priorResponseByPath: baselinePresent
             ? { ...(runtime.priorResponseByPath || {}), [assertion.path]: baseline }
@@ -2702,7 +2721,7 @@ function evaluateRequestAssertions(assertions, context) {
             context.bindings.credentialCanary,
           ].filter(Boolean),
         };
-      const result = assertion.path === "$status"
+      let result = assertion.path === "$status"
         ? evaluateRuntimeStatusPseudoFieldAssertion(assertion, context.status, { ...evaluatorContext, caseId: context.caseId })
         : evaluateEventExactResponseAssertion({
             caseId: context.caseId,
@@ -2712,6 +2731,13 @@ function evaluateRequestAssertions(assertions, context) {
             responseHeaders: { "content-type": context.contentType },
             context: evaluatorContext,
           });
+      if (rowLocalBaseline && !semanticPass) {
+        result = {
+          ...result,
+          pass: false,
+          reason: "fresh fixture-owned row differs from the authoritative row-local baseline",
+        };
+      }
       if (!result.pass) {
         throwRequestSemanticAssertionFailure({
           context,
@@ -2765,6 +2791,12 @@ function evaluateRequestAssertions(assertions, context) {
     }
     return { operator, path: assertion.path || null, valueDigest: stableDigest(values) };
   });
+}
+
+export function evaluateEventRuntimeRequestAssertions(assertions, context) {
+  assert(String(context?.caseId || "").startsWith("EVT-"),
+    "event runtime request assertion replay requires an EVT case");
+  return evaluateRequestAssertions(assertions, context);
 }
 
 function evaluateDomPropertyAssertions(assertions, observed, bindings, caseId, selector, interaction) {

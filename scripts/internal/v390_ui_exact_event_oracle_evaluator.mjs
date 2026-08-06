@@ -866,33 +866,38 @@ export function validateIncidentMemorySearchResponseProjection({
     const documentId = requiredString(hit.documentId, `${path}.documentId`);
     const sourceKind = requiredString(hit.sourceKind, `${path}.sourceKind`);
     const incidentId = requiredString(hit.incidentId, `${path}.incidentId`);
-    requiredString(hit.sourceId, `${path}.sourceId`);
-    requiredString(hit.title, `${path}.title`);
-    requiredString(hit.summary, `${path}.summary`);
-    if (typeof hit.score !== "number" || !Number.isFinite(hit.score)) fail(`${path}.score`, "type");
-    const matchedTerms = requiredStringArray(hit.matchedTerms, `${path}.matchedTerms`);
-    requiredStringArray(hit.highlightFragments, `${path}.highlightFragments`);
     if (documentIds.has(documentId)) fail("memorySearch.hits[documentId]", "duplicate");
     documentIds.add(documentId);
     const documentMatches = documentId === `event-record:${normalizedFixtureId}`;
     const incidentMatches = incidentId === normalizedIncidentId;
-    if (documentMatches && !incidentMatches) fail("memorySearch.hits[fixture-identity]", "mismatch");
-    if (incidentMatches) {
-      if (sourceKind !== "event-record") fail(`${path}.sourceKind`, "identity");
-      if (hit.sourceId !== normalizedSourceId) fail(`${path}.sourceId`, "identity");
-      fixtureHits.push({ hit, matchedTerms, documentMatches });
+    if (documentMatches || incidentMatches) {
+      fixtureHits.push({ hit, path, sourceKind, documentMatches, incidentMatches });
     }
   }
   if (fixtureHits.length !== 1) fail("memorySearch.hits[fixture-cardinality]", String(fixtureHits.length));
-  if (!fixtureHits[0].documentMatches) fail("memorySearch.hits[fixture-identity]", "mismatch");
+  const fixtureHitOwner = fixtureHits[0];
+  const fixtureHit = fixtureHitOwner.hit;
+  const fixturePath = fixtureHitOwner.path;
+  if (!fixtureHitOwner.documentMatches || !fixtureHitOwner.incidentMatches) {
+    fail("memorySearch.hits[fixture-identity]", "mismatch");
+  }
+  if (fixtureHitOwner.sourceKind !== "event-record") fail(`${fixturePath}.sourceKind`, "identity");
+  requiredString(fixtureHit.sourceId, `${fixturePath}.sourceId`);
+  if (fixtureHit.sourceId !== normalizedSourceId) fail(`${fixturePath}.sourceId`, "identity");
+  requiredString(fixtureHit.title, `${fixturePath}.title`);
+  requiredString(fixtureHit.summary, `${fixturePath}.summary`);
+  if (typeof fixtureHit.score !== "number" || !Number.isFinite(fixtureHit.score)) {
+    fail(`${fixturePath}.score`, "type");
+  }
+  const matchedTerms = requiredStringArray(fixtureHit.matchedTerms, `${fixturePath}.matchedTerms`);
+  requiredStringArray(fixtureHit.highlightFragments, `${fixturePath}.highlightFragments`);
   const queryTerms = [...new Set((normalizedQuery.toLowerCase().match(/[a-z0-9]+/g) || [])
     .filter(term => term.length >= 2))];
   if (queryTerms.length === 0) fail("memorySearch.query", "terms");
-  const fixtureTermSet = new Set(fixtureHits[0].matchedTerms.map(term => term.toLowerCase()));
+  const fixtureTermSet = new Set(matchedTerms.map(term => term.toLowerCase()));
   if (!queryTerms.every(term => fixtureTermSet.has(term))) {
-    fail("memorySearch.hits[0].matchedTerms", "query-identity");
+    fail(`${fixturePath}.matchedTerms`, "query-identity");
   }
-  const fixtureHit = fixtureHits[0].hit;
   return {
     schema: "media-server.v390-ui-incident-memory-search-response-evidence.v1",
     caseIdDigest: sha256Text(normalizedCaseId),
