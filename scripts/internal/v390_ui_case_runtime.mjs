@@ -152,7 +152,7 @@ const eventExactRuntimeBindingCaseIds = new Set([
   "EVT-003", "EVT-004", "EVT-007", "EVT-016", "EVT-017", "EVT-019", "EVT-020",
   "EVT-022", "EVT-023", "EVT-024", "EVT-025", "EVT-026", "EVT-028", "EVT-030",
   "EVT-031", "EVT-036", "EVT-041", "EVT-042", "EVT-043", "EVT-044", "EVT-046",
-  "EVT-047", "EVT-049", "EVT-050", "EVT-051", "EVT-052", "EVT-053", "EVT-054",
+  "EVT-047", "EVT-048", "EVT-049", "EVT-050", "EVT-051", "EVT-052", "EVT-053", "EVT-054",
   "EVT-055", "EVT-056", "EVT-057", "EVT-058", "EVT-064", "EVT-065", "EVT-066",
   "EVT-067", "EVT-069", "EVT-070", "EVT-071", "EVT-072", "EVT-075",
 ]);
@@ -270,6 +270,7 @@ export function eventTypedResponseBinding({
   fixtureId = "",
   sourceId = "",
   responseJson = null,
+  comparisonProjectionPaths = [],
 } = {}) {
   const rowLocalOperator = operator === "score-descending" ||
     operator === "matches-reentry" || operator === "equals" ||
@@ -298,6 +299,19 @@ export function eventTypedResponseBinding({
   const projected = eventExactValuesAtPath(matches[0], projectionPath);
   assert(projected.length === 1,
     `typed response projection cardinality mismatch for ${assertionPath}: ${projected.length}`);
+  assert(Array.isArray(comparisonProjectionPaths),
+    `typed response comparison projection paths are invalid for ${assertionPath}`);
+  const normalizedComparisonProjectionPaths = [...new Set(
+    comparisonProjectionPaths.map(value => String(value || "")).filter(Boolean),
+  )];
+  const expectedComparisonProjection = normalizedComparisonProjectionPaths.length > 0
+    ? Object.fromEntries(normalizedComparisonProjectionPaths.map(path => {
+      const values = eventExactValuesAtPath(matches[0], path);
+      assert(values.length === 1,
+        `typed response comparison projection cardinality mismatch for ${assertionPath}:${path}: ${values.length}`);
+      return [path, values[0]];
+    }))
+    : undefined;
   return Object.freeze({
     schema: "media-server.v390-ui-event-request-row-local-baseline.v1",
     collectionPath: descriptor.collectionPath,
@@ -307,6 +321,12 @@ export function eventTypedResponseBinding({
     projectionPath,
     expectedValue: projected[0],
     fixtureExpectedValue: operator === "contains-fixture-source" ? sourceId : fixtureId,
+    ...(normalizedComparisonProjectionPaths.length > 0
+      ? {
+          comparisonProjectionPaths: Object.freeze(normalizedComparisonProjectionPaths),
+          expectedComparisonProjection: Object.freeze(expectedComparisonProjection),
+        }
+      : {}),
   });
 }
 
@@ -4014,6 +4034,12 @@ export function createV390UiCaseRuntime({
           fixtureId: context.fixtureId,
           sourceId: templateValues.sourceId,
           responseJson: body,
+          comparisonProjectionPaths:
+            sourceHealthFixtureMaterializationPlan(spec.seed?.kind) &&
+            assertion.operator === "contains-fixture-source" &&
+            assertion.path === "sourceHealth"
+              ? ["status", "reason"]
+              : [],
         });
         if (typedBinding) {
           requestRowLocalBaselineByAssertionKey[

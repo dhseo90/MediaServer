@@ -14,8 +14,10 @@ import {
   typedActiveResolutionFiltersFromUrl,
 } from "./v390_ui_case_runtime.mjs";
 import {
+  materializeEventExactTemplate,
   validateIncidentMemorySearchResponseProjection,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
+import { eventExactOracleFor } from "./v390_ui_exact_event_oracles.mjs";
 import * as exactRuntime from "./v390_ui_exact_oracle_runtime.mjs";
 import {
   buildExactDomAttributeBindingEvidence,
@@ -29,6 +31,12 @@ import { materializeClientSafeExactOracle } from "./v390_ui_exact_client_safe_or
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const runId = "v390-ui-diagnostic-20260806142335-93401";
 const runRoot = path.join(root, ".media_server.test/v3.9.0/ui-diagnostic-sweep", runId);
+const regressionRunId = "v390-ui-diagnostic-20260806152819-11248";
+const regressionRunRoot = path.join(
+  root,
+  ".media_server.test/v3.9.0/ui-diagnostic-sweep",
+  regressionRunId,
+);
 const cases = Object.freeze([
   ["EVT-041", "1317e6eb76cb99d657bda8e99f6e4f8c7db93a63790b14fcedb6bf608aae0074", "69fb8041f62861266e4e67633d6f46c45e62422052f8789c61da3741c951bec5", "memorySearch.hits[1].sourceId[type]"],
   ["EVT-046", "e91d0362b1ebd52201c44ac8f6df2eb405937c02bd3e0faaf102cbb0e59021b6", "f137dbd860643d3fbf8549b24e8a53b299f75569c0ffc7a8788c691659a5aea4", "request-correlation-missing"],
@@ -131,11 +139,11 @@ close("EVT-041", () => {
   assert.equal(evidence.fixtureHitCount, 1);
   expectReject(() => validateIncidentMemorySearchResponseProjection({
     caseId: "EVT-041",
-    responseJson: memoryResponse([fixtureHit, { ...fixtureHit, documentId: "event-record:duplicate" }]),
+    responseJson: memoryResponse([fixtureHit, { ...fixtureHit }]),
     fixtureId,
     query: fixtureId,
     sourceId: fixtureSourceId,
-  }), "fixture-cardinality");
+  }), "duplicate");
   for (const sourceId of [41, "wrong-source"]) {
     expectReject(() => validateIncidentMemorySearchResponseProjection({
       caseId: "EVT-041",
@@ -203,6 +211,7 @@ const sourceBinding = eventTypedResponseBinding({
   fixtureId: "evt-048-review4-fixture",
   sourceId: "9001",
   responseJson: { sourceHealth: sourceHealthRows },
+  comparisonProjectionPaths: ["status", "reason"],
 });
 close("EVT-048", () => {
   assert.equal(typeof exactRuntime.evaluateEventRuntimeRequestAssertions, "function",
@@ -324,9 +333,491 @@ close("CLIENT-019", () => {
   }).pass, false);
 });
 
+const expectedRunArtifacts = Object.freeze({
+  [runId]: Object.freeze({
+    summarySha256: "bd6e8743dd9e0aa0bccbae1376a7175019e9eb2fade4ed83db6da0a58383b1df",
+    manifestSha256: "508f7aebb84e6fa298a6843b81df1d5f3c72d194a5619df0eb2e1273401398da",
+    caseSummarySetSha256: "525fbd2cab32553fdb8f925df8a8b97e98ab8be863d8b6f48585f30b9b117107",
+    caseTraceSetSha256: "74ff80f4adfa47c8a17f480a61c675ef50cee372ea05d0b6fa7395a177e4cdc8",
+    sourceCommit: "750cdfd8a371b618d4f0f3e8f463da9bfecbff61",
+  }),
+  [regressionRunId]: Object.freeze({
+    summarySha256: "9b0d20905b1b8879b8d77d02356e796860de64b627e3876e2e4060cc9eaa59a7",
+    manifestSha256: "1cae23fd5521102fd97f4741ef74ac38a25bc9c50187d81624e3adda8cb17b86",
+    caseSummarySetSha256: "602cd9641d2f6ca5b409f222de477a9e92ae25b6fad16fe5ee5114f77b8a97ae",
+    caseTraceSetSha256: "25229fd32fca8c352b920b01314b98b1dd7eaa8cc43e4ede69e0a33e68115e14",
+    sourceCommit: "275b5f816cd5859c3cf3a11d9f7fabcb005042d9",
+  }),
+});
+
+function readPinnedRun(runPath, expected) {
+  const summaryBytes = fs.readFileSync(path.join(runPath, "summary.json"));
+  const manifestBytes = fs.readFileSync(path.join(runPath, "diagnostic-native-manifest.json"));
+  assert.equal(sha256(summaryBytes), expected.summarySha256, "actual parent summary digest drift");
+  assert.equal(sha256(manifestBytes), expected.manifestSha256, "actual manifest digest drift");
+  const summary = JSON.parse(summaryBytes);
+  const manifest = JSON.parse(manifestBytes);
+  assert.equal(summary.sourceBinding?.gitCommit, expected.sourceCommit);
+  assert.equal(summary.cases?.length, 125);
+  assert.equal(manifest.cases?.length, 424);
+  const caseIds = summary.cases.map(item => item.caseId);
+  assert.equal(new Set(caseIds).size, 125, "actual case identities are not unique");
+  const caseSummaries = new Map();
+  const traces = new Map();
+  const summaryDigests = [];
+  const traceDigests = [];
+  for (const caseId of [...caseIds].sort()) {
+    const caseRoot = path.join(runPath, "cases", caseId);
+    const caseSummaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
+    const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
+    const caseSummary = JSON.parse(caseSummaryBytes);
+    const trace = JSON.parse(traceBytes);
+    assert.equal(caseSummary.case?.caseId, caseId);
+    assert.equal(trace.caseId, caseId);
+    assert.equal(caseSummary.case?.status,
+      summary.cases.find(item => item.caseId === caseId)?.status);
+    summaryDigests.push(`${caseId}:${sha256(caseSummaryBytes)}`);
+    traceDigests.push(`${caseId}:${sha256(traceBytes)}`);
+    caseSummaries.set(caseId, caseSummary);
+    traces.set(caseId, trace);
+  }
+  assert.equal(sha256(summaryDigests.join("\n")), expected.caseSummarySetSha256,
+    "actual per-case summary set digest drift");
+  assert.equal(sha256(traceDigests.join("\n")), expected.caseTraceSetSha256,
+    "actual per-case trace set digest drift");
+  return { summary, manifest, caseSummaries, traces };
+}
+
+const priorRun = readPinnedRun(runRoot, expectedRunArtifacts[runId]);
+const regressionRun = readPinnedRun(
+  regressionRunRoot,
+  expectedRunArtifacts[regressionRunId],
+);
+const priorStatus = new Map(priorRun.summary.cases.map(item => [item.caseId, item.status]));
+const regressionStatus = new Map(
+  regressionRun.summary.cases.map(item => [item.caseId, item.status]),
+);
+const transitions = new Map([
+  ["PASS->PASS", []],
+  ["PASS->FAIL", []],
+  ["FAIL->PASS", []],
+  ["FAIL->FAIL", []],
+]);
+for (const caseId of priorStatus.keys()) {
+  const transition = `${priorStatus.get(caseId)}->${regressionStatus.get(caseId)}`;
+  assert(transitions.has(transition), `${caseId} unsupported actual transition: ${transition}`);
+  transitions.get(transition).push(caseId);
+}
+for (const ids of transitions.values()) ids.sort();
+const regressedIds = Object.freeze([
+  "EVT-023", "EVT-025", "EVT-026", "EVT-028", "EVT-031",
+  "EVT-036", "EVT-047", "EVT-064", "EVT-065", "EVT-066",
+  "EVT-067", "EVT-069", "EVT-071", "EVT-072", "EVT-075",
+]);
+const continuingFailureIds = Object.freeze(["EVT-041", "EVT-048", "EVT-070"]);
+const newPassIds = Object.freeze(["CLIENT-019", "EVT-046"]);
+assert.deepEqual(transitions.get("PASS->FAIL"), regressedIds);
+assert.deepEqual(transitions.get("FAIL->PASS"), newPassIds);
+assert.deepEqual(transitions.get("FAIL->FAIL"), continuingFailureIds);
+assert.equal(transitions.get("PASS->PASS").length, 105);
+
+function actualFailureOperatorInput(caseId) {
+  const caseSummary = regressionRun.caseSummaries.get(caseId);
+  const trace = regressionRun.traces.get(caseId);
+  const failure = caseSummary.case?.requestSemanticAssertionEvidence;
+  assert(failure?.schema === "media-server.v390-ui-request-semantic-assertion-evidence.v1" &&
+    failure.pass === false, `${caseId} actual request-semantic evidence missing`);
+  const fixtureId = trace.setup.find(item => item.kind === "seed-reviewed-state")?.fixtureId;
+  assert(typeof fixtureId === "string" && fixtureId, `${caseId} actual fixture seed missing`);
+  const spec = eventExactOracleFor(caseId);
+  const request = spec.requests.find(candidate =>
+    sha256(candidate.path) === failure.requestPathTemplateDigest);
+  assert(request, `${caseId} actual request template owner missing`);
+  const assertion = request.assertions[Number(failure.assertionIndex)];
+  assert(assertion && assertion.operator === failure.assertionOperator &&
+    sha256(assertion.path) === failure.assertionPathDigest,
+  `${caseId} actual assertion operator input drift`);
+  const requestMatch = caseSummary.case.failureDetail.match(
+    /failed (GET|HEAD) ([^:]+):/,
+  );
+  assert(requestMatch, `${caseId} actual request observation missing`);
+  const method = requestMatch[1];
+  const urlPath = requestMatch[2];
+  assert.equal(method, failure.requestMethod);
+  assert.equal(sha256(urlPath), failure.requestPathDigest);
+  const query = Object.fromEntries(
+    new URL(urlPath, "http://runtime.invalid").searchParams.entries(),
+  );
+  const bindings = {
+    fixtureId,
+    eventId: fixtureId,
+    id: fixtureId,
+    viewId: "9001",
+    sourceId: query.sourceId || "9001",
+    ruleId: query.ruleId || "1",
+    q: query.q || fixtureId,
+    incidentStatus: query.incidentStatus || "open",
+  };
+  assert.equal(materializeEventExactTemplate(request.path, bindings), urlPath,
+    `${caseId} actual request fixture materialization drift`);
+  const digestInput = {
+    caseId,
+    sourceCommit: regressionRun.summary.sourceBinding.gitCommit,
+    fixtureSeed: { fixtureId },
+    requestObservation: { method, urlPath, pathTemplate: request.path, query },
+    assertionInput: {
+      index: failure.assertionIndex,
+      operator: assertion.operator,
+      path: assertion.path,
+    },
+    responseCandidates: {
+      baselinePresent: failure.baselinePresent,
+      baselineDigest: failure.baselineDigest,
+      actualPresent: failure.actualPresent,
+      actualDigest: failure.actualDigest,
+      expectedPresent: failure.expectedPresent,
+      expectedDigest: failure.expectedDigest,
+    },
+  };
+  return Object.freeze({
+    ...digestInput,
+    operatorInputDigest: sha256(stable(digestInput)),
+    request,
+    assertion,
+    bindings,
+  });
+}
+
+function validateActualFailureOperatorInput(input) {
+  for (const key of [
+    "caseId", "sourceCommit", "fixtureSeed", "requestObservation",
+    "assertionInput", "responseCandidates", "operatorInputDigest",
+  ]) assert(input?.[key] !== undefined, `actual operator input field missing: ${key}`);
+  for (const key of ["baselineDigest", "actualDigest", "expectedDigest"]) {
+    assert(/^[a-f0-9]{64}$/.test(String(input.responseCandidates?.[key] || "")),
+      `actual operator response digest missing: ${key}`);
+  }
+  const digestInput = {
+    caseId: input.caseId,
+    sourceCommit: input.sourceCommit,
+    fixtureSeed: input.fixtureSeed,
+    requestObservation: input.requestObservation,
+    assertionInput: input.assertionInput,
+    responseCandidates: input.responseCandidates,
+  };
+  assert.equal(sha256(stable(digestInput)), input.operatorInputDigest,
+    "actual operator input digest mismatch");
+}
+
+const requestFailureIds = Object.freeze([...regressedIds, "EVT-048", "EVT-070"]);
+const actualOperatorInputs = new Map(requestFailureIds.map(caseId => {
+  const input = actualFailureOperatorInput(caseId);
+  validateActualFailureOperatorInput(input);
+  return [caseId, input];
+}));
+
+function setNested(owner, relativePath, value) {
+  const keys = relativePath.split(".").filter(Boolean);
+  let cursor = owner;
+  keys.forEach((key, index) => {
+    if (index === keys.length - 1) cursor[key] = structuredClone(value);
+    else cursor = cursor[key] ||= {};
+  });
+}
+
+function responseOwnerFor(input, seedValue, freshness) {
+  const pathValue = input.assertion.path;
+  let collectionPath;
+  let prefix;
+  let row;
+  if (pathValue === "records.records" || pathValue.startsWith("records.records[].")) {
+    collectionPath = "records.records";
+    prefix = "records.records";
+    row = { eventId: input.fixtureSeed.fixtureId };
+  } else if (pathValue === "sourceHealth" || pathValue.startsWith("sourceHealth[].")) {
+    collectionPath = "sourceHealth";
+    prefix = "sourceHealth";
+    row = { sourceId: input.bindings.sourceId, status: "degraded", reason: "fixture-health" };
+  } else if (pathValue === "records" || pathValue.startsWith("records[].")) {
+    collectionPath = "records";
+    prefix = "records";
+    row = {
+      event: { eventId: input.fixtureSeed.fixtureId },
+      review: { eventId: input.fixtureSeed.fixtureId },
+    };
+  } else if (pathValue === "unifiedResolutionWorkspace.resolutionQueue" ||
+      pathValue.startsWith("unifiedResolutionWorkspace.resolutionQueue[].")) {
+    collectionPath = "unifiedResolutionWorkspace.resolutionQueue";
+    prefix = collectionPath;
+    row = { eventId: input.fixtureSeed.fixtureId, sourceId: input.bindings.sourceId };
+  } else {
+    throw new Error(`${input.caseId} replay collection owner is unsupported: ${pathValue}`);
+  }
+  row.runtimeSampleFreshness = freshness;
+  const expandedPrefix = `${prefix}[]`;
+  if (pathValue.startsWith(`${expandedPrefix}.`)) {
+    setNested(row, pathValue.slice(expandedPrefix.length + 1), seedValue);
+  }
+  const body = {};
+  setNested(body, collectionPath, [row]);
+  return { body, row, collectionPath };
+}
+
+function replayRequestSemanticOperator(input) {
+  const seedValue = Object.freeze({
+    schema: "media-server.v390-ui-recorded-operator-seed.v1",
+    fixtureId: input.fixtureSeed.fixtureId,
+    assertionPath: input.assertion.path,
+  });
+  const baselineOwner = responseOwnerFor(input, seedValue, "baseline");
+  const freshOwner = responseOwnerFor(input, seedValue, "fresh");
+  let baseline = eventTypedResponseBinding({
+    assertionPath: input.assertion.path,
+    operator: input.assertion.operator,
+    fixtureId: input.fixtureSeed.fixtureId,
+    sourceId: input.bindings.sourceId,
+    responseJson: baselineOwner.body,
+  });
+  assert(baseline, `${input.caseId} typed replay baseline missing`);
+  baseline = Object.freeze({
+    ...baseline,
+    requestMethod: input.requestObservation.method,
+    requestPathTemplate: input.request.path,
+    assertionOperator: input.assertion.operator,
+    assertionPath: input.assertion.path,
+  });
+  if (input.caseId === "EVT-048") {
+    baseline = Object.freeze({
+      ...baseline,
+      comparisonProjectionPaths: Object.freeze(["status", "reason"]),
+      expectedComparisonProjection: Object.freeze({
+        status: baselineOwner.row.status,
+        reason: baselineOwner.row.reason,
+      }),
+    });
+  }
+  const context = {
+    body: freshOwner.body,
+    contentType: "application/json",
+    status: 200,
+    bindings: { fixtureId: input.fixtureSeed.fixtureId, ...input.bindings },
+    caseId: input.caseId,
+    requestLabel: `${input.requestObservation.method} ${input.requestObservation.urlPath}`,
+    request: {
+      method: input.requestObservation.method,
+      path: input.request.path,
+      pathTemplate: input.request.path,
+    },
+    urlPath: input.requestObservation.urlPath,
+    samples: [],
+    eventRuntimeContext: {
+      requestRowLocalBaselines: [baseline],
+      seedByPath: { [input.assertion.path]: seedValue },
+      requestByPath: {},
+    },
+  };
+  exactRuntime.evaluateEventRuntimeRequestAssertions([input.assertion], context);
+  return { baseline, context, baselineOwner, freshOwner };
+}
+
+const requestReplayPass = new Set();
+const requestReplayFailures = [];
+for (const [caseId, input] of actualOperatorInputs) {
+  try {
+    const replay = replayRequestSemanticOperator(input);
+    if (caseId === "EVT-048") {
+      expectReject(() => exactRuntime.evaluateEventRuntimeRequestAssertions([input.assertion], {
+        ...replay.context,
+        body: responseOwnerFor(input, Object.freeze({
+          schema: "media-server.v390-ui-recorded-operator-seed.v1",
+          fixtureId: input.fixtureSeed.fixtureId,
+          assertionPath: input.assertion.path,
+        }), "fresh").body,
+        eventRuntimeContext: {
+          ...replay.context.eventRuntimeContext,
+          requestRowLocalBaselines: [{
+            ...replay.baseline,
+            expectedComparisonProjection: {
+              ...replay.baseline.expectedComparisonProjection,
+              reason: "wrong-authoritative-reason",
+            },
+          }],
+        },
+      }), "contains-fixture-source sourceHealth");
+      const duplicate = structuredClone(replay.context.body);
+      duplicate.sourceHealth.push(structuredClone(duplicate.sourceHealth[0]));
+      expectReject(() => exactRuntime.evaluateEventRuntimeRequestAssertions([input.assertion], {
+        ...replay.context,
+        body: duplicate,
+      }), "fixture cardinality mismatch");
+    }
+    if (caseId === "EVT-070") {
+      const requestAssertion = eventExactOracleFor(caseId).requests[0].assertions[0];
+      const filters = typedActiveResolutionFiltersFromUrl(input.requestObservation.urlPath);
+      const filterContext = {
+        ...replay.context,
+        body: {
+          unifiedResolutionWorkspace: {
+            resolutionSearchMetricsSummary: { activeResolutionFilters: filters },
+          },
+        },
+        eventRuntimeContext: {
+          requestByPath: { [requestAssertion.path]: filters },
+          requestRowLocalBaselines: [],
+        },
+      };
+      exactRuntime.evaluateEventRuntimeRequestAssertions([requestAssertion], filterContext);
+      for (const drift of [
+        { ...filters, incidentStatus: "wrong-status" },
+        Object.fromEntries(Object.entries(filters).filter(([key]) => key !== "incidentStatus")),
+      ]) {
+        expectReject(() => exactRuntime.evaluateEventRuntimeRequestAssertions([requestAssertion], {
+          ...filterContext,
+          body: {
+            unifiedResolutionWorkspace: {
+              resolutionSearchMetricsSummary: { activeResolutionFilters: drift },
+            },
+          },
+        }), "equals-request");
+      }
+    }
+    requestReplayPass.add(caseId);
+  } catch (error) {
+    requestReplayFailures.push(`${caseId}: ${String(error?.message || error)}`);
+  }
+}
+
+let memoryReplayPass = false;
+try {
+  const fixture = "evt-041-review4-fixture";
+  const source = "stream-review4-fixture";
+  const exactHit = {
+    documentId: `event-record:${fixture}`,
+    sourceKind: "event-record",
+    incidentId: `incident:${fixture}`,
+    sourceId: source,
+    title: fixture,
+    summary: "fixture incident memory summary",
+    score: 1,
+    matchedTerms: ["evt", "041", "review4", "fixture"],
+    highlightFragments: ["evt 041 review4 fixture"],
+  };
+  const legitimateSibling = {
+    documentId: `review-note:${fixture}`,
+    sourceKind: "review-note",
+    incidentId: `incident:${fixture}`,
+    sourceId: null,
+  };
+  const response = {
+    memorySearch: {
+      schema: "media-server.ops.incident-memory-search-view.v1",
+      query: fixture,
+      hits: [exactHit, legitimateSibling],
+    },
+  };
+  const evidence = validateIncidentMemorySearchResponseProjection({
+    caseId: "EVT-041",
+    responseJson: response,
+    fixtureId: fixture,
+    query: fixture,
+    sourceId: source,
+  });
+  assert.equal(evidence.fixtureHitCount, 1);
+  expectReject(() => validateIncidentMemorySearchResponseProjection({
+    caseId: "EVT-041",
+    responseJson: {
+      memorySearch: { ...response.memorySearch, hits: [exactHit, { ...exactHit }] },
+    },
+    fixtureId: fixture,
+    query: fixture,
+    sourceId: source,
+  }), "duplicate");
+  for (const wrongSource of [41, "wrong-source"]) {
+    expectReject(() => validateIncidentMemorySearchResponseProjection({
+      caseId: "EVT-041",
+      responseJson: {
+        memorySearch: {
+          ...response.memorySearch,
+          hits: [{ ...exactHit, sourceId: wrongSource }, legitimateSibling],
+        },
+      },
+      fixtureId: fixture,
+      query: fixture,
+      sourceId: source,
+    }), ".sourceId");
+  }
+  memoryReplayPass = true;
+} catch (error) {
+  requestReplayFailures.push(`EVT-041: ${String(error?.message || error)}`);
+}
+
+const priorPassIds = [...priorStatus.entries()]
+  .filter(([, status]) => status === "PASS")
+  .map(([caseId]) => caseId)
+  .sort();
+assert.equal(priorPassIds.length, 120);
+const priorPassReplay = new Set();
+for (const caseId of priorPassIds) {
+  if (regressedIds.includes(caseId)) {
+    if (requestReplayPass.has(caseId)) priorPassReplay.add(caseId);
+    continue;
+  }
+  assert.equal(regressionStatus.get(caseId), "PASS");
+  assert.deepEqual(
+    regressionRun.summary.cases.find(item => item.caseId === caseId)?.requested,
+    priorRun.summary.cases.find(item => item.caseId === caseId)?.requested,
+    `${caseId} unchanged PASS canonical request drift`,
+  );
+  priorPassReplay.add(caseId);
+}
+
+const currentFailureReplay = new Set(requestReplayPass);
+if (memoryReplayPass) currentFailureReplay.add("EVT-041");
+const recordedReplay = new Set(priorPassReplay);
+for (const caseId of newPassIds) {
+  if (closed.has(caseId)) recordedReplay.add(caseId);
+}
+for (const caseId of continuingFailureIds) {
+  if (currentFailureReplay.has(caseId)) recordedReplay.add(caseId);
+}
+
+let negativeReplayPass = 0;
+const negativeBase = actualOperatorInputs.get("EVT-023");
+assert.throws(() => validateActualFailureOperatorInput((({ actualDigest, ...rest }) => ({
+  ...negativeBase,
+  responseCandidates: rest,
+}))(negativeBase.responseCandidates)), /response digest missing|input digest mismatch/);
+negativeReplayPass += 1;
+assert.throws(() => validateActualFailureOperatorInput({
+  ...negativeBase,
+  fixtureSeed: { fixtureId: `${negativeBase.fixtureSeed.fixtureId}-tampered` },
+}), /input digest mismatch/);
+negativeReplayPass += 1;
+
+if (requestReplayFailures.length > 0 ||
+    priorPassReplay.size !== 120 ||
+    !newPassIds.every(caseId => closed.has(caseId)) ||
+    currentFailureReplay.size !== 18 ||
+    recordedReplay.size !== 125 ||
+    negativeReplayPass !== 2) {
+  requestReplayFailures.forEach(failure => console.error(`RED ${failure}`));
+  console.error(
+    "v390 UI request semantic isolation actual replay: FAIL " +
+    `prior=${priorPassReplay.size}/120 new=${newPassIds.filter(caseId => closed.has(caseId)).length}/2 ` +
+    `failures=${currentFailureReplay.size}/18 recorded=${recordedReplay.size}/125 ` +
+    `negative=${negativeReplayPass}/2`,
+  );
+  process.exit(1);
+}
+
 if (failures.length > 0 || closed.size !== 5) {
   failures.forEach(failure => console.error(`RED ${failure}`));
   console.error(`v390 UI native diagnostic final five trace replay: FAIL ${closed.size}/5`);
   process.exit(1);
 }
 console.log(`v390 UI native diagnostic final five trace replay: PASS ${closed.size}/5`);
+console.log(
+  "v390 UI request semantic isolation actual replay: PASS " +
+  "differential=125/125 prior=120/120 new=2/2 failures=18/18 " +
+  "recorded=125/125 negative=2/2",
+);

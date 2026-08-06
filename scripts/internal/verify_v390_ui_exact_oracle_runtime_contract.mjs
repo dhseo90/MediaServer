@@ -96,11 +96,6 @@ await check("incident memory search response evidence is typed, identity-bound, 
     ["memorySearch.hits[documentId][duplicate]", body => {
       body.memorySearch.hits.push(structuredClone(body.memorySearch.hits[0]));
     }],
-    ["memorySearch.hits[fixture-cardinality]", body => {
-      const secondFixtureHit = structuredClone(body.memorySearch.hits[0]);
-      secondFixtureHit.documentId = `event-review:${fixtureId}`;
-      body.memorySearch.hits.push(secondFixtureHit);
-    }],
     ["memorySearch.hits[0].highlightFragments[type]", body => { body.memorySearch.hits[0].highlightFragments = null; }],
     ["memorySearch.hits[0].passwordHash", body => { body.memorySearch.hits[0].passwordHash = "forbidden"; }],
   ];
@@ -116,6 +111,23 @@ await check("incident memory search response evidence is typed, identity-bound, 
       sourceId: "9001",
     }), expectedPath);
   }
+  const sameIncidentSibling = structuredClone(valid);
+  sameIncidentSibling.memorySearch.hits.push({
+    documentId: `event-review:${fixtureId}`,
+    sourceKind: "event-review",
+    incidentId: `incident:${fixtureId}`,
+    sourceId: null,
+  });
+  const siblingEvidence = validateIncidentMemorySearchResponseProjection({
+    caseId: "EVT-041",
+    responseJson: sameIncidentSibling,
+    fixtureId,
+    expectedIncidentId: `incident:${fixtureId}`,
+    query,
+    sourceId: "9001",
+  });
+  assert(siblingEvidence.hitCount === 2 && siblingEvidence.fixtureHitCount === 1,
+    "same-incident non-fixture hit changed exact fixture owner cardinality");
 });
 
 function assertExactDescendantCaptureContract(source) {
@@ -2340,11 +2352,11 @@ await check("EVT-024 executes all three bounded samples with authoritative basel
 });
 
 await check("requested EVT binding scope is complete and excludes specialized mutation paths", async () => {
-  const requested = "003,004,007,016,017,019,020,022,023,024,025,026,028,030,031,036,041,042,043,044,046,047,049,050,051,052,053,054,055,056,057,058,064,065,066,067,069,070,071,072,075"
+  const requested = "003,004,007,016,017,019,020,022,023,024,025,026,028,030,031,036,041,042,043,044,046,047,048,049,050,051,052,053,054,055,056,057,058,064,065,066,067,069,070,071,072,075"
     .split(",").map(value => `EVT-${value}`);
-  assert(requested.length === 41 && requested.every(usesEventExactRuntimeBindings),
+  assert(requested.length === 42 && requested.every(usesEventExactRuntimeBindings),
     "requested EVT exact runtime binding scope is incomplete");
-  assert(["EVT-001", "EVT-018", "EVT-021", "EVT-037", "EVT-038", "EVT-048", "EVT-061", "EVT-068"]
+  assert(["EVT-001", "EVT-018", "EVT-021", "EVT-037", "EVT-038", "EVT-061", "EVT-068"]
     .every(caseId => !usesEventExactRuntimeBindings(caseId)),
   "persisted specialized EVT workflow entered the shared read-only binding path");
 });

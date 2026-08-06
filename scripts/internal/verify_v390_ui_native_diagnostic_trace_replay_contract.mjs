@@ -31,10 +31,10 @@ const gates = Object.freeze([
     count: 10,
   },
   {
-    label: "final-five",
+    label: "request-semantic-isolation",
     script: "verify_v390_ui_native_diagnostic_trace_replay_final_five_contract.mjs",
-    expected: /final five trace replay: PASS 5\/5/,
-    count: 5,
+    expected: /request semantic isolation actual replay: PASS differential=125\/125 prior=120\/120 new=2\/2 failures=18\/18 recorded=125\/125 negative=2\/2/,
+    count: 125,
   },
 ]);
 
@@ -54,5 +54,5 @@ for (const gate of gates) {
   passed += gate.count;
 }
 
-if (passed !== 38) throw new Error(`actual diagnostic trace replay coverage mismatch: ${passed}/38`);
-console.log(`v390 UI native diagnostic trace replay contract PASS: ${passed}/38`);
+if (passed !== 158) throw new Error(`actual diagnostic trace replay coverage mismatch: ${passed}/158`);
+console.log(`v390 UI native diagnostic trace replay contract PASS: ${passed}/158`);

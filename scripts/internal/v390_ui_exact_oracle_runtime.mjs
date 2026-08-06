@@ -2631,6 +2631,7 @@ function evaluateRequestAssertions(assertions, context) {
         path: assertion.path,
       });
       let actual = actualValues.length === 1 ? actualValues[0] : actualValues;
+      let rowLocalComparisonActual = undefined;
       if (rowLocalBaseline) {
         assert(rowLocalBaseline.schema === "media-server.v390-ui-event-request-row-local-baseline.v1" &&
           Array.isArray(rowLocalBaseline.identityPaths) && rowLocalBaseline.identityPaths.length > 0 &&
@@ -2656,6 +2657,21 @@ function evaluateRequestAssertions(assertions, context) {
         assert(projected.length === 1,
           `${context.caseId} request row-local projection cardinality mismatch: ${projected.length}`);
         actual = projected[0];
+        if (Array.isArray(rowLocalBaseline.comparisonProjectionPaths) &&
+            rowLocalBaseline.comparisonProjectionPaths.length > 0) {
+          assert(rowLocalBaseline.expectedComparisonProjection &&
+            typeof rowLocalBaseline.expectedComparisonProjection === "object" &&
+            !Array.isArray(rowLocalBaseline.expectedComparisonProjection),
+          `${context.caseId} request row-local comparison baseline is invalid`);
+          rowLocalComparisonActual = Object.fromEntries(
+            rowLocalBaseline.comparisonProjectionPaths.map(path => {
+              const values = eventExactValuesAtPath(matchingRows[0], path);
+              assert(values.length === 1,
+                `${context.caseId} request row-local comparison projection cardinality mismatch: ${path}/${values.length}`);
+              return [path, values[0]];
+            }),
+          );
+        }
       }
       const evidenceKey = eventExactSemanticEvidenceKey({
         scope: "response",
@@ -2669,11 +2685,20 @@ function evaluateRequestAssertions(assertions, context) {
         ? requestBaselineValues.length > 0 || ["$body", "$text", "$contentType", "$status"].includes(assertion.path)
         : Object.prototype.hasOwnProperty.call(runtime.priorResponseByPath || {}, assertion.path);
       const baseline = rowLocalBaseline
-        ? rowLocalBaseline.expectedValue
+        ? (rowLocalComparisonActual !== undefined
+            ? rowLocalBaseline.expectedComparisonProjection
+            : rowLocalBaseline.expectedValue)
         : baselineResponse !== undefined
         ? requestBaseline
         : runtime.priorResponseByPath?.[assertion.path];
-      let semanticPass = baselinePresent && stableEqual(actual, baseline);
+      const rowLocalComparisonRequired = rowLocalBaseline &&
+        (!assertion.operator.startsWith("contains-fixture") ||
+          rowLocalComparisonActual !== undefined);
+      let semanticPass = !rowLocalComparisonRequired ||
+        (baselinePresent && stableEqual(
+          rowLocalComparisonActual !== undefined ? rowLocalComparisonActual : actual,
+          baseline,
+        ));
       if (assertion.operator === "stable-across-bounded-samples") {
         const sampleValues = context.samples.map(sample => {
           const values = eventRuntimeAssertionValues({
@@ -2695,6 +2720,7 @@ function evaluateRequestAssertions(assertions, context) {
           seed: runtime.seed || {},
           seedByPath: runtime.seedByPath || {},
           expectedResponseByPath: rowLocalBaseline &&
+            assertion.operator.startsWith("contains-fixture") &&
             rowLocalBaseline.fixtureExpectedValue !== undefined
             ? { [assertion.path]: rowLocalBaseline.fixtureExpectedValue }
             : {},
@@ -2731,7 +2757,7 @@ function evaluateRequestAssertions(assertions, context) {
             responseHeaders: { "content-type": context.contentType },
             context: evaluatorContext,
           });
-      if (rowLocalBaseline && !semanticPass) {
+      if (rowLocalComparisonRequired && !semanticPass) {
         result = {
           ...result,
           pass: false,

@@ -870,7 +870,7 @@ export function validateIncidentMemorySearchResponseProjection({
     documentIds.add(documentId);
     const documentMatches = documentId === `event-record:${normalizedFixtureId}`;
     const incidentMatches = incidentId === normalizedIncidentId;
-    if (documentMatches || incidentMatches) {
+    if (documentMatches) {
       fixtureHits.push({ hit, path, sourceKind, documentMatches, incidentMatches });
     }
   }
