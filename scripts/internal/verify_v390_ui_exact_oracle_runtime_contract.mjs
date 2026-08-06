@@ -9,6 +9,7 @@ import {
   assertExclusiveRequestScopedCorrelation,
   buildExclusiveRequestScopedCorrelationEvidence,
   buildEventDomSemanticCompositeEvidence,
+  buildEventReviewRenderRequestBindingEvidence,
   buildExactDomAttributeBindingEvidence,
   buildEventMarkerFlowEvidence,
   buildEvt004MarkerStageEvidence,
@@ -177,6 +178,140 @@ await check("EVT-041 typed owner uses documentId and preserves sourceId type/val
   }
 });
 
+await check("EVT-041 DOM projection binds one typed memorySearch hit to one rendered node", async () => {
+  const fixtureId = "evt-041-review4-fixture";
+  const documentId = `event-record:${fixtureId}`;
+  const fixtureHit = {
+    documentId,
+    sourceKind: "event-record",
+    incidentId: `incident:${fixtureId}`,
+    sourceId: "9001",
+    matchedTerms: ["evt", "041", "review4", "fixture"],
+    highlightFragments: ["evt 041 review4 fixture"],
+  };
+  const sibling = {
+    documentId: `review-note:${fixtureId}`,
+    sourceKind: "review-note",
+    incidentId: `incident:${fixtureId}`,
+    sourceId: null,
+    matchedTerms: ["review4"],
+    highlightFragments: ["review4"],
+  };
+  const observed = {
+    count: 1,
+    visibleCount: 1,
+    text: "evt 041 review4 fixture",
+    attributes: [{ "data-incident-memory-hit": documentId }],
+    values: [""],
+    descendantCount: 6,
+    semanticNodes: [{
+      eventId: documentId,
+      attributes: {},
+      fields: {
+        matchedTerms: [...fixtureHit.matchedTerms],
+        highlightFragments: [...fixtureHit.highlightFragments],
+      },
+    }],
+  };
+  const evaluate = (operator, target, hits = [fixtureHit, sibling], observation = observed) =>
+    buildResponseDerivedEventDomProjectionEvidence({
+      caseId: "EVT-041",
+      assertion: { operator, target },
+      observed: observation,
+      responseBodies: [{ memorySearch: { hits } }],
+      fixtureCandidates: [fixtureId],
+      fixtureIdentity: fixtureId,
+      selectedResponseBaselines: {
+        [target]: {
+          schema: "media-server.v390-ui-event-response-baseline-missing.v1",
+        },
+      },
+    });
+  for (const [operator, target] of [
+    ["matched-terms-equal-response", "matchedTerms"],
+    ["highlight-fragments-equal-response", "highlightFragments"],
+  ]) {
+    const valid = evaluate(operator, target);
+    assert(valid?.pass === true && valid.fieldEvidence?.[0]?.responseOwnerCount === 1,
+      `EVT-041 ${target} did not bind one typed response/DOM owner`);
+    for (const hits of [
+      [sibling],
+      [fixtureHit, { ...fixtureHit }, sibling],
+      [{ ...fixtureHit, documentId: "event-record:wrong" }, sibling],
+    ]) {
+      assert(evaluate(operator, target, hits)?.pass === false,
+        `EVT-041 ${target} owner mutation unexpectedly passed`);
+    }
+    assert(evaluate(operator, target, [fixtureHit, sibling], {
+      ...observed,
+      count: 2,
+      visibleCount: 2,
+      semanticNodes: [observed.semanticNodes[0], structuredClone(observed.semanticNodes[0])],
+    })?.pass === false, `EVT-041 ${target} duplicate DOM owner unexpectedly passed`);
+  }
+});
+
+await check("EVT-041 product refresh binds one initiating request/response to the rendered owner", () => {
+  const correlationId = "evt-041-product-render-correlation";
+  const fields = {
+    q: "evt-041-review4-fixture",
+    ruleId: "1",
+    sourceId: "9001",
+    incidentStatus: "new",
+    startTimeMs: "0",
+    endTimeMs: "1786037141023",
+  };
+  const url = `http://runtime.invalid/ops/api/events/reviews?${new URLSearchParams({
+    limit: "25",
+    offset: "0",
+    ...fields,
+    v300Q: fields.q,
+  })}`;
+  const request = {
+    phase: "request-start",
+    requestId: "evt-041-product-request",
+    caseRequestIdentity: "EVT-041:request-16",
+    caseRequestSequence: 16,
+    requestKind: "application-fetch",
+    sameOrigin: true,
+    method: "GET",
+    url,
+    correlationId,
+  };
+  const response = {
+    ...request,
+    phase: "response",
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+  };
+  const evaluate = (entries, observation = {
+    renderBound: true,
+    fixtureOwnerCount: 1,
+  }) => buildEventReviewRenderRequestBindingEvidence({
+    entries,
+    caseId: "EVT-041",
+    actionId: "EVT-041:assert-product-state",
+    correlationId,
+    fields,
+    observation,
+    ownerKind: "incident-memory",
+  });
+  assert(evaluate([request, response]).pass === true,
+    "EVT-041 product refresh request/response did not bind");
+  for (const entries of [
+    [],
+    [request],
+    [request, response, { ...request }, { ...response }],
+    [{ ...request, correlationId: "wrong" }, { ...response, correlationId: "wrong" }],
+    [{ ...request, caseRequestSequence: 0 }, { ...response, caseRequestSequence: 0 }],
+  ]) {
+    assert(evaluate(entries).pass === false,
+      "EVT-041 invalid product refresh owner unexpectedly passed");
+  }
+  assert(evaluate([request, response], { renderBound: false, fixtureOwnerCount: 0 }).pass === false,
+    "EVT-041 missing product render owner unexpectedly passed");
+});
+
 await check("EVT-070 request provenance binds one Playwright request/response identity and exact query map", async () => {
   const expectedQuery = {
     q: "evt-070-review4-fixture",
@@ -204,6 +339,41 @@ await check("EVT-070 request provenance binds one Playwright request/response id
     responseRequestObjectObserved: true,
     requestIdentitySource: "playwright-response-request",
   };
+  const correlationId = "evt-070-correlation";
+  Object.assign(request, {
+    correlationId,
+    correlationSource: "request-header",
+  });
+  Object.assign(response, {
+    correlationId,
+    correlationSource: "request-header",
+    responseCorrelationSource: "initiating-request-identity",
+  });
+  const correlationDigest = crypto.createHash("sha256").update(correlationId).digest("hex");
+  const requestCorrelationEvidence = {
+    schema: "media-server.v390-ui-request-correlation-evidence.v1",
+    pass: true,
+    expectedActionId: "EVT-070:assert-product-state",
+    expectedCaseId: "EVT-070",
+    expectedMethod: "GET",
+    expectedPath: `/ops/api/events/reviews?${query}`,
+    correlationDigest,
+    expectedCorrelationDigest: correlationDigest,
+    initiatingRequestCorrelationDigest: correlationDigest,
+    responseRequestCorrelationDigest: correlationDigest,
+    caseRequestIdentity: request.caseRequestIdentity,
+    caseRequestSequence: request.caseRequestSequence,
+    responseRequestIdentity: response.caseRequestIdentity,
+    responseRequestSequence: response.caseRequestSequence,
+    requestIdentityMatched: true,
+    responseRequestObjectObserved: true,
+    requestCandidateCount: 1,
+    matchedRequestCount: 1,
+    responseCandidateCount: 1,
+    matchedResponseCount: 1,
+    requestAttemptCount: 1,
+    requestReissued: false,
+  };
   const baseline = {
     schema: "media-server.v390-ui-event-owner-provenance-baseline.v1",
     provenance: "request",
@@ -223,7 +393,24 @@ await check("EVT-070 request provenance binds one Playwright request/response id
     values: ["filtered"],
     descendantCount: 1,
   };
-  const evaluate = (networkEntries, responseBodies = []) =>
+  const unrelatedEntries = [2, 3, 4].flatMap(sequence => {
+    const unrelatedUrl = `${url}&ledger=${sequence}`;
+    const unrelated = {
+      ...request,
+      requestId: `evt-070-request-${sequence}`,
+      caseRequestIdentity: `EVT-070:request-${sequence}`,
+      caseRequestSequence: sequence,
+      url: unrelatedUrl,
+      correlationId: `unrelated-${sequence}`,
+    };
+    return [unrelated, { ...unrelated, phase: "response" }];
+  });
+  const evaluate = (
+    networkEntries,
+    responseBodies = [],
+    correlationEvidence = requestCorrelationEvidence,
+    requestActionId = "EVT-070:assert-product-state",
+  ) =>
     buildEventDomSemanticCompositeEvidence({
       caseId: "EVT-070",
       selector: "#v320ResolutionSearchMetricsGrid",
@@ -231,9 +418,11 @@ await check("EVT-070 request provenance binds one Playwright request/response id
       networkEntries,
       responseBodies,
       priorResponseByPath: { "q/ruleId/sourceId/incidentStatus": baseline },
+      requestCorrelationEvidence: correlationEvidence,
+      requestActionId,
       actualBrowserExecution: true,
     });
-  const valid = evaluate([request, response]);
+  const valid = evaluate([...unrelatedEntries, request, response]);
   assert(valid.pass === true &&
     valid.responseBaselineMatched.paths[0]?.bindingMode === "request-query-exact-identity" &&
     valid.responseBaselineMatched.paths[0]?.candidateCount === 1,
@@ -245,7 +434,15 @@ await check("EVT-070 request provenance binds one Playwright request/response id
     urlFor("q=evt-070-review4-fixture&ruleId=1&sourceId=9001&incidentStatus=new&incidentStatus=open"),
     urlFor("q=evt-070-review4-fixture&ruleId=1&sourceId=9001&incidentStatus=open"),
   ]) {
-    const failed = evaluate([{ ...request, url: badUrl }, { ...response, url: badUrl }]);
+    const failedEvidence = {
+      ...requestCorrelationEvidence,
+      expectedPath: new URL(badUrl).pathname + new URL(badUrl).search,
+    };
+    const failed = evaluate(
+      [...unrelatedEntries, { ...request, url: badUrl }, { ...response, url: badUrl }],
+      [],
+      failedEvidence,
+    );
     assert(failed.pass === false,
       `EVT-070 malformed query unexpectedly passed: ${badUrl}`);
   }
@@ -258,6 +455,17 @@ await check("EVT-070 request provenance binds one Playwright request/response id
   assert(wrongProvenance.pass === false &&
     wrongProvenance.responseBaselineMatched.paths[0]?.candidateCount === 0,
   "request provenance was incorrectly satisfied from a response candidate");
+  for (const [label, evidence, action] of [
+    ["missing-identity", { ...requestCorrelationEvidence, caseRequestIdentity: "" }, requestCorrelationEvidence.expectedActionId],
+    ["zero-sequence", { ...requestCorrelationEvidence, caseRequestSequence: 0 }, requestCorrelationEvidence.expectedActionId],
+    ["wrong-action", requestCorrelationEvidence, "EVT-070:wrong-action"],
+    ["wrong-correlation", { ...requestCorrelationEvidence, correlationDigest: "0".repeat(64) }, requestCorrelationEvidence.expectedActionId],
+  ]) {
+    assert(evaluate([...unrelatedEntries, request, response], [], evidence, action).pass === false,
+      `EVT-070 ${label} binding unexpectedly passed`);
+  }
+  assert(evaluate([...unrelatedEntries, request, response, { ...request }, { ...response }]).pass === false,
+    "EVT-070 duplicate exact request identity unexpectedly passed");
 });
 
 await check("incident memory search response evidence is typed, identity-bound, and digest-only", async () => {

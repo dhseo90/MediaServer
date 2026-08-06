@@ -792,7 +792,7 @@ specs.push(
   }),
   reviewProjectionSpec("EVT-041", {
     featureMeaning: "incident memory search applies query, rule, source, status, and time filters and returns exact matched terms and highlights",
-    selector: "#opsIncidentSearchRows [data-incident-memory-hit=evt-041-review4-fixture]", semanticTarget: "incident-memory-search", seedKind: "searchable-event-review", seedFields: ["query", "ruleId", "sourceId", "incidentStatus", "startTimeMs", "endTimeMs"],
+    selector: "#opsIncidentSearchRows [data-incident-memory-hit='event-record:evt-041-review4-fixture']", semanticTarget: "incident-memory-search", seedKind: "searchable-event-review", seedFields: ["query", "ruleId", "sourceId", "incidentStatus", "startTimeMs", "endTimeMs"],
     apiPath: "/ops/api/events/reviews?q={q}&ruleId={ruleId}&sourceId={sourceId}&incidentStatus={incidentStatus}&startTimeMs={startTimeMs}&endTimeMs={endTimeMs}",
     bodyAssertions: [["memorySearch.schema", "equals", "media-server.ops.incident-memory-search-view.v1"], ["memorySearch.hits", "contains-fixture-document", true], ["memorySearch.hits[].matchedTerms", "contains-query-terms", true], ["memorySearch.hits[].highlightFragments", "non-empty", true]],
     domChecks: [["matched-terms-equal-response", "matchedTerms", true], ["highlight-fragments-equal-response", "highlightFragments", true]],

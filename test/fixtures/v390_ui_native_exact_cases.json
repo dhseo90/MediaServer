@@ -5,9 +5,9 @@
     "canonicalSha256": "78e496f53fe2b8c9484e548cf430273dcaa8af4a8a67338f647a1b5028dd12dc",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "272738c65f5fdd03c2791c5ca288e6cb4ab12fa4b737b2851f4b45cb2c55ef75",
+    "implementationProjectionSha256": "4ac765c862c4d45950cc88490d37fe6e34a37b71fa82fd5ba389abb7df80872d",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "c13c639fd8fabfc641dde7306d8a468c912462e7245cca03b20ee2bd8f16130b",
+    "runtimeOracleCatalogSha256": "f696aef428d5195e7112c06fb894a1a83c0d26b4b39cae5ec9a2256cf28c5251",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -24602,7 +24602,7 @@
             "setupId": "UI-039:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "aaa986d401101d1117ec23580cb90ff3be79b35aba5658fd2bf69ef5d43d5fac",
+            "semanticCallChainSha256": "15afc0dc30c8db0c900bbdd918e8039537ff4355778b192e9f9afc32ca19eb3a",
             "persistedMutation": false,
             "fixtureId": "ui-039-review4-fixture",
             "beforeSnapshotRef": null
@@ -24684,7 +24684,7 @@
             "contextSha256": "d38defe331f96a12f7a7dbebec112afe34b60efa234232e2d172fa55ba9d9da1"
           },
           "verifierCommand": "verify-v250-ops-events-semantic-search-ui",
-          "assertedSemanticDigest": "aaa986d401101d1117ec23580cb90ff3be79b35aba5658fd2bf69ef5d43d5fac"
+          "assertedSemanticDigest": "15afc0dc30c8db0c900bbdd918e8039537ff4355778b192e9f9afc32ca19eb3a"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -24696,7 +24696,7 @@
             "text": "검색 입력, rule/source/incident status/time filter, `memorySearch` 결과, matched evidence highlight가 `/ops/events`에 Ops-only로 표시되고 primary nav/client/viewer에는 노출되지 않음",
             "sha256": "adbaba2fbb41010667a8bf831c3f37099a16bdf0e7ff2d2c11987eca0d70dd02"
           },
-          "specSha256": "78b84b27fccdb0983782d7b65ab49895c216f4d882eb64f630b037157df2b60b",
+          "specSha256": "208cb3e13c6150fdcf3508ec8ed2e01ee6944dd76742a279dd92156a11d9c247",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -24943,7 +24943,7 @@
             "cleanupId": "UI-039:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "aaa986d401101d1117ec23580cb90ff3be79b35aba5658fd2bf69ef5d43d5fac"
+            "semanticCallChainSha256": "15afc0dc30c8db0c900bbdd918e8039537ff4355778b192e9f9afc32ca19eb3a"
           }
         ]
       },
@@ -27712,7 +27712,7 @@
             "setupId": "UI-044:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "29c692554b91e274b50ba0964ebcd0dbfabb7ac4a5a583d649b9b1597b75c330",
+            "semanticCallChainSha256": "692a39adfaaf54c59ee3122ac11a3d61128a7d0a26800dc3ab96115553b9bece",
             "persistedMutation": false,
             "fixtureId": "ui-044-review4-fixture",
             "beforeSnapshotRef": null
@@ -27794,7 +27794,7 @@
             "contextSha256": "c66842e4838c0ce24914a12d7e00c406ded642a0789d0fe117948e21fce17a2f"
           },
           "verifierCommand": "verify-v250-ops-events-semantic-search-ui",
-          "assertedSemanticDigest": "29c692554b91e274b50ba0964ebcd0dbfabb7ac4a5a583d649b9b1597b75c330"
+          "assertedSemanticDigest": "692a39adfaaf54c59ee3122ac11a3d61128a7d0a26800dc3ab96115553b9bece"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -27806,7 +27806,7 @@
             "text": "semantic search, timeline graph, explainable brief, similar lookup, release-safe bundle을 route/control/action 단위 UI 풀테스트 기준으로 분리하고 자동 smoke나 raw JSON/API-only 확인을 UI PASS로 쓰지 않음",
             "sha256": "72cb385fe2ab44be33980a2f8324c9c25e8b9eee6a2d880bb7e2867dda0dac1f"
           },
-          "specSha256": "94f462cbdf1c4391414c7661f6a8ac0121572095492af71788fa2d417fc07860",
+          "specSha256": "41e0838e9b4f62ec152f9416a03a3b1e04cbc8033a4224cb66541528d44dc3f8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -28053,7 +28053,7 @@
             "cleanupId": "UI-044:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "29c692554b91e274b50ba0964ebcd0dbfabb7ac4a5a583d649b9b1597b75c330"
+            "semanticCallChainSha256": "692a39adfaaf54c59ee3122ac11a3d61128a7d0a26800dc3ab96115553b9bece"
           }
         ]
       },
@@ -211325,7 +211325,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "incident memory search applies query, rule, source, status, and time filters and returns exact matched terms and highlights",
-          "specSha256": "7612a1d13a2f1b6f898ed6316e01101e2f665ce27dfce73391d8de204ebd9390",
+          "specSha256": "12a9a3caf3d133f33b8bfba2a6231777004796ea8cc88ef040fb636238931068",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,

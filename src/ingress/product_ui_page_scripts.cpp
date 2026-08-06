@@ -4529,8 +4529,8 @@ void AppendOpsShellScript(std::ostringstream& out,
               <strong>${escapeHtml(display(hit.title || hit.documentId || 'incident memory'))}</strong>
               <span>${escapeHtml(display(hit.sourceKind || 'document'))} · ${escapeHtml(display(hit.incidentId || '-'))} · ${escapeHtml(display(hit.sourceId || '-'))}</span>
             </div>
-            <div class="badge-row">${matchedTerms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
-            <div class="incident-memory-fragments">${fragments.map(fragment => `<p>${incidentMemoryHighlightHtml(fragment, matchedTerms)}</p>`).join('')}</div>
+            <div class="badge-row">${matchedTerms.map(term => `<span class="chip info" data-event-semantic-field="matchedTerms">${escapeHtml(term)}</span>`).join('')}</div>
+            <div class="incident-memory-fragments">${fragments.map(fragment => `<p data-event-semantic-field="highlightFragments">${incidentMemoryHighlightHtml(fragment, matchedTerms)}</p>`).join('')}</div>
           </article>`;
         }).join('');
       }

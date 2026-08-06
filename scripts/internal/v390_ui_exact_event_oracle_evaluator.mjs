@@ -18,6 +18,18 @@ const DIRECT_DOM_OPERATORS = new Set([
 ]);
 
 const responseDerivedDomProjectionContracts = Object.freeze({
+  "EVT-041\nmatched-terms-equal-response\nmatchedTerms": Object.freeze({
+    selector: "#opsIncidentSearchRows [data-incident-memory-hit='event-record:{fixtureId}']",
+    collectionPath: "memorySearch.hits", identityPaths: ["documentId"],
+    identityPrefix: "event-record:",
+    fields: [["matchedTerms[]", "matchedTerms", "field-text"]],
+  }),
+  "EVT-041\nhighlight-fragments-equal-response\nhighlightFragments": Object.freeze({
+    selector: "#opsIncidentSearchRows [data-incident-memory-hit='event-record:{fixtureId}']",
+    collectionPath: "memorySearch.hits", identityPaths: ["documentId"],
+    identityPrefix: "event-record:",
+    fields: [["highlightFragments[]", "highlightFragments", "field-text"]],
+  }),
   "EVT-043\nslot-values-equal-response\naction/object/context/environment": Object.freeze({
     selector: "#opsIncidentBriefRows [data-incident-brief-card={fixtureId}]",
     collectionPath: "incidentBrief.briefs", identityPaths: ["eventId"],
@@ -484,6 +496,10 @@ function projectionContractFixtureIdentity(fixtureIdentity, fixtureCandidates) {
   return fixtureCandidates.map(String).find(value => /^evt-\d{3}-review4-fixture(?:$|-)/.test(value)) || "";
 }
 
+function projectionContractOwnerIdentity(contract, fixtureIdentity) {
+  return `${String(contract.identityPrefix || "")}${String(fixtureIdentity || "")}`;
+}
+
 function projectionContractRows(responseBodies, contract) {
   const selectedBodies = contract.responseBodySelection === "last" ||
       contract.responseBodyAgreement === "first-last"
@@ -553,7 +569,8 @@ function evaluateDeclaredResponseDomProjection({
   fixtureIdentity,
   contract,
 }) {
-  const identity = projectionContractFixtureIdentity(fixtureIdentity, fixtureCandidates);
+  const fixture = projectionContractFixtureIdentity(fixtureIdentity, fixtureCandidates);
+  const identity = fixture ? projectionContractOwnerIdentity(contract, fixture) : "";
   const rows = projectionContractRows(responseBodies, contract);
   const owners = identity ? rows.filter(row => projectionContractRowMatches(row, contract, identity)) : [];
   const agreementBodies = contract.responseBodyAgreement === "first-last" && responseBodies.length >= 2

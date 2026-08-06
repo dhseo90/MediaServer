@@ -230,6 +230,8 @@ export async function executeCatalogRuntimeOracle({
           browser,
           item,
           spec,
+          actionId,
+          correlationId,
           bindings: {
             ...runtimeBindings,
             ...(eventRuntimeContext?.templateValues || {}),
@@ -283,6 +285,9 @@ export async function executeCatalogRuntimeOracle({
         interaction,
         eventRuntimeContext,
         markerEvaluationTracker,
+        latestRequestCorrelationEvidence,
+        actionId,
+        eventReviewRenderBinding,
       ));
     }
     if (markerEvaluationTracker &&
@@ -967,6 +972,8 @@ export function eventReviewRenderProjectionEvaluateExpression() {
       ruleId: "opsIncidentSearchRuleFilter",
       sourceId: "opsIncidentSearchSourceFilter",
       incidentStatus: "opsIncidentSearchStatusFilter",
+      startTimeMs: "opsIncidentSearchStartTime",
+      endTimeMs: "opsIncidentSearchEndTime",
     };
     const applied = [];
     for (const [name, value] of Object.entries(fields || {})) {
@@ -986,18 +993,110 @@ export function eventReviewRenderProjectionEvaluateExpression() {
       `[data-v320-resolution-detail="${CSS.escape(String(expectedFixtureId || ""))}"]`);
     const candidate = document.querySelector(
       `[data-vlm-summary-candidate-event="${CSS.escape(String(expectedFixtureId || ""))}"]`);
-    const renderOwner = ownerKind === "candidate" ? candidate : detail;
+    const memorySelector = `[data-incident-memory-hit="${CSS.escape(
+      `event-record:${String(expectedFixtureId || "")}`)}"]`;
+    const deadline = Date.now() + 2000;
+    let memoryOwners = Array.from(document.querySelectorAll(memorySelector));
+    while (ownerKind === "incident-memory" && memoryOwners.length === 0 && Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      memoryOwners = Array.from(document.querySelectorAll(memorySelector));
+    }
+    if (ownerKind === "incident-memory" && memoryOwners.length !== 1) {
+      throw new Error(`event review incident memory owner cardinality mismatch: ${memoryOwners.length}`);
+    }
+    const renderOwner = ownerKind === "candidate"
+      ? candidate
+      : (ownerKind === "incident-memory" ? memoryOwners[0] : detail);
     return {
       applied: applied.sort(),
       fixtureOwnerCount: Number(Boolean(renderOwner)),
-      renderBound: renderOwner?.closest("#opsV320ResolutionDetail")
-        ?.getAttribute("data-v390-event-review-render-request") === "bound" || Boolean(candidate),
+      renderBound: ownerKind === "incident-memory"
+        ? Boolean(renderOwner?.closest("#opsIncidentSearchRows"))
+        : (renderOwner?.closest("#opsV320ResolutionDetail")
+          ?.getAttribute("data-v390-event-review-render-request") === "bound" || Boolean(candidate)),
     };
   };
 }
 
-async function materializeEventReviewRenderProjection({ browser, item, spec, bindings }) {
-  const supported = ["q", "ruleId", "sourceId", "incidentStatus"];
+export function buildEventReviewRenderRequestBindingEvidence({
+  entries = [],
+  caseId = "",
+  actionId = "",
+  correlationId = "",
+  fields = {},
+  observation = null,
+  ownerKind = "",
+} = {}) {
+  const values = Array.isArray(entries) ? entries : [];
+  const exactQuery = entry => {
+    try {
+      const parsed = new URL(String(entry?.url || ""), "http://runtime.invalid");
+      return parsed.pathname === "/ops/api/events/reviews" &&
+        Object.entries(fields).every(([name, expected]) => {
+          const actual = parsed.searchParams.getAll(name);
+          return actual.length === 1 && actual[0] === String(expected);
+        });
+    } catch {
+      return false;
+    }
+  };
+  const owned = entry => entry?.requestKind === "application-fetch" &&
+    entry?.sameOrigin === true && String(entry?.method || "").toUpperCase() === "GET" &&
+    exactQuery(entry) && String(entry?.correlationId || "") === correlationId;
+  const requests = values.filter(entry => entry?.phase === "request-start" && owned(entry));
+  const responses = values.filter(entry => entry?.phase === "response" && owned(entry));
+  const request = requests.length === 1 ? requests[0] : null;
+  const boundResponses = request ? responses.filter(response =>
+    response?.responseRequestObjectObserved === true &&
+    response?.requestIdentitySource === "playwright-response-request" &&
+    response?.requestId === request.requestId &&
+    response?.caseRequestIdentity === request.caseRequestIdentity &&
+    response?.caseRequestSequence === request.caseRequestSequence &&
+    String(response?.url || "") === String(request.url || "")) : [];
+  const identityPass = Boolean(request &&
+    request.caseRequestIdentity === `${caseId}:request-${request.caseRequestSequence}` &&
+    Number.isInteger(request.caseRequestSequence) && request.caseRequestSequence > 0 &&
+    boundResponses.length === 1);
+  const renderPass = observation?.renderBound === true &&
+    observation?.fixtureOwnerCount === 1;
+  const pass = Boolean(caseId && actionId && correlationId) &&
+    requests.length === 1 && responses.length === 1 && identityPass && renderPass;
+  return {
+    schema: "media-server.v390-ui-event-review-render-binding.v1",
+    pass,
+    failureCode: pass
+      ? "PASS"
+      : (requests.length === 0
+        ? "PRODUCT_RENDER_REQUEST_MISSING"
+        : (requests.length !== 1
+          ? "PRODUCT_RENDER_REQUEST_DUPLICATE"
+          : (!identityPass
+            ? "PRODUCT_RENDER_REQUEST_RESPONSE_IDENTITY_MISMATCH"
+            : "PRODUCT_RENDER_OWNER_MISMATCH"))),
+    ownerKind: String(ownerKind || ""),
+    actionIdDigest: sha256Digest(String(actionId || "")),
+    correlationDigest: sha256Digest(String(correlationId || "")),
+    requestIdentityDigest: request?.caseRequestIdentity
+      ? sha256Digest(String(request.caseRequestIdentity)) : sha256Digest(""),
+    requestSequence: Number.isInteger(request?.caseRequestSequence)
+      ? request.caseRequestSequence : 0,
+    requestCandidateCount: requests.length,
+    responseCandidateCount: responses.length,
+    responseRequestObjectObserved: boundResponses.length === 1,
+    filterDigest: sha256Digest(fields),
+    fixtureOwnerCount: Number(observation?.fixtureOwnerCount || 0),
+  };
+}
+
+async function materializeEventReviewRenderProjection({
+  browser,
+  item,
+  spec,
+  bindings,
+  actionId,
+  correlationId,
+}) {
+  const supported = ["q", "ruleId", "sourceId", "incidentStatus", "startTimeMs", "endTimeMs"];
   const requests = (spec.requests || []).map(request => {
     const path = expand(String(request.path || ""), bindings);
     const url = new URL(path, "http://runtime.invalid");
@@ -1013,8 +1112,12 @@ async function materializeEventReviewRenderProjection({ browser, item, spec, bin
     `${item.caseId} event review render request owner cardinality mismatch: ${requests.length}`);
   const expectedFixtureId = String(bindings.fixtureId || "");
   const ownerKind = (spec.dom || []).some(assertion =>
-    String(assertion.selector || "").includes("vlm-summary-candidate"))
-    ? "candidate" : "resolution-detail";
+    String(assertion.selector || "").includes("incident-memory-hit"))
+    ? "incident-memory"
+    : ((spec.dom || []).some(assertion =>
+      String(assertion.selector || "").includes("vlm-summary-candidate"))
+      ? "candidate" : "resolution-detail");
+  const renderNetworkStart = browser.networkEntries().length;
   const observation = await browser.evaluate(eventReviewRenderProjectionEvaluateExpression(), {
     fields: requests[0].fields,
     expectedFixtureId,
@@ -1024,13 +1127,18 @@ async function materializeEventReviewRenderProjection({ browser, item, spec, bin
     `${item.caseId} event review render owner binding mismatch`);
   assert(JSON.stringify(observation.applied) === JSON.stringify(Object.keys(requests[0].fields).sort()),
     `${item.caseId} event review render fields drift`);
-  return {
-    schema: "media-server.v390-ui-event-review-render-binding.v1",
-    requestPathDigest: sha256Digest(requests[0].path),
-    appliedFields: observation.applied,
-    fixtureOwnerCount: observation.fixtureOwnerCount,
-    pass: true,
-  };
+  const evidence = buildEventReviewRenderRequestBindingEvidence({
+    entries: browser.networkEntries().slice(renderNetworkStart),
+    caseId: item.caseId,
+    actionId,
+    correlationId,
+    fields: requests[0].fields,
+    observation,
+    ownerKind,
+  });
+  assert(evidence.pass,
+    `${item.caseId} event review product fetch binding mismatch: ${evidence.failureCode}`);
+  return evidence;
 }
 
 export function correlatedMutationRequestResponseEnvelope({ requestEntry, responseEntry } = {}) {
@@ -1621,6 +1729,9 @@ async function observeDom(
   interaction,
   eventRuntimeContext = null,
   markerEvaluationTracker = null,
+  requestCorrelationEvidence = null,
+  requestActionId = "",
+  eventReviewRenderBinding = null,
 ) {
   const projectionSelectors = [...new Set((assertion.assertions || [])
     .map(candidate => responseDerivedDomProjectionContractFor({
@@ -1693,6 +1804,7 @@ async function observeDom(
         const row = node.closest('[data-event-review-row]');
         const semanticOwner = node.closest('[data-event-semantic-event-id]');
         const resolutionOwner = node.closest('[data-v320-resolution-detail]');
+        const incidentMemoryOwner = node.closest('[data-incident-memory-hit]');
         const fieldEntries = Array.from(node.querySelectorAll('[data-event-semantic-field]')).map(field => ({
           name: String(field.getAttribute('data-event-semantic-field') || ''),
           text: String(field.getAttribute('data-event-semantic-value') ??
@@ -1703,7 +1815,8 @@ async function observeDom(
           index,
           eventId: String(row?.getAttribute('data-event-id') ||
             semanticOwner?.getAttribute('data-event-semantic-event-id') ||
-            resolutionOwner?.getAttribute('data-v320-resolution-detail') || ''),
+            resolutionOwner?.getAttribute('data-v320-resolution-detail') ||
+            incidentMemoryOwner?.getAttribute('data-incident-memory-hit') || ''),
           attributes: Object.fromEntries(Array.from(node.attributes || [])
             .filter(attribute => attribute.name.startsWith('data-event-semantic-'))
             .map(attribute => [semanticKey(attribute.name), String(attribute.value || '')])),
@@ -1904,6 +2017,9 @@ async function observeDom(
     markerEvaluationTracker,
     browser.networkEntries(),
     interaction,
+    requestCorrelationEvidence,
+    requestActionId,
+    eventReviewRenderBinding,
   );
   const rowLocalComposite = semanticEvidence
     .map(evidence => evidence?.compositeEvidence)
@@ -3150,6 +3266,9 @@ function evaluateDomSemanticAssertions(
   markerEvaluationTracker = null,
   networkEntries = [],
   interaction = null,
+  requestCorrelationEvidence = null,
+  requestActionId = "",
+  eventReviewRenderBinding = null,
 ) {
   return assertions.map(assertion => {
     const operator = String(assertion.operator || "");
@@ -3326,6 +3445,9 @@ function evaluateDomSemanticAssertions(
             }
           : null,
         networkEntries,
+        requestCorrelationEvidence,
+        requestActionId,
+        eventReviewRenderBinding,
         declaredDomBinding: buildDeclaredEventDomBindingEvidence({
           assertion,
           observed,
@@ -3433,6 +3555,9 @@ export function buildEventDomSemanticCompositeEvidence({
   markerEvaluation = null,
   markerEvaluator = buildEventMarkerFlowEvidence,
   networkEntries = [],
+  requestCorrelationEvidence = null,
+  requestActionId = "",
+  eventReviewRenderBinding = null,
   declaredDomBinding = null,
   responseDerivedDomProjection = null,
   actualBrowserExecution = false,
@@ -3480,7 +3605,13 @@ export function buildEventDomSemanticCompositeEvidence({
     const rowLocal = isEventRowLocalResponseBaseline(baseline);
     const rowSet = isEventRowSetResponseBaseline(baseline);
     const requestEvaluation = requestOwner
-      ? evaluateEventRequestQueryOwner({ caseId, networkEntries, baseline })
+      ? evaluateEventRequestQueryOwner({
+          caseId,
+          networkEntries,
+          baseline,
+          requestCorrelationEvidence,
+          requestActionId,
+        })
       : null;
     const candidates = baselineMissing
       ? []
@@ -4344,26 +4475,60 @@ function isEventRequestOwnerProvenanceBaseline(value) {
     !Array.isArray(value.expectedQuery);
 }
 
-function evaluateEventRequestQueryOwner({ caseId, networkEntries, baseline }) {
+function evaluateEventRequestQueryOwner({
+  caseId,
+  networkEntries,
+  baseline,
+  requestCorrelationEvidence = null,
+  requestActionId = "",
+}) {
   const entries = Array.isArray(networkEntries) ? networkEntries : [];
   const parseUrl = entry => {
     try {
-      return new URL(String(entry?.url || ""));
+      return new URL(String(entry?.url || ""), "http://runtime.invalid");
     } catch {
       return null;
     }
   };
+  const binding = requestCorrelationEvidence;
+  const bindingIdentity = String(binding?.caseRequestIdentity || "");
+  const bindingSequence = Number(binding?.caseRequestSequence || 0);
+  const bindingResponseIdentity = String(binding?.responseRequestIdentity || "");
+  const bindingResponseSequence = Number(binding?.responseRequestSequence || 0);
+  const bindingDigest = String(binding?.correlationDigest || "");
+  const bindingExpectedPath = String(binding?.expectedPath || "");
+  const expectedActionId = String(binding?.expectedActionId || "");
+  const bindingShapeValid = binding?.schema ===
+      "media-server.v390-ui-request-correlation-evidence.v1" &&
+    binding?.pass === true && binding?.requestIdentityMatched === true &&
+    binding?.responseRequestObjectObserved === true &&
+    binding?.expectedCaseId === caseId &&
+    binding?.expectedMethod === baseline.requestMethod &&
+    expectedActionId.length > 0 && expectedActionId === String(requestActionId || "") &&
+    bindingIdentity === `${caseId}:request-${bindingSequence}` &&
+    bindingSequence > 0 &&
+    bindingResponseIdentity === bindingIdentity &&
+    bindingResponseSequence === bindingSequence &&
+    /^[a-f0-9]{64}$/.test(bindingDigest) &&
+    binding?.expectedCorrelationDigest === bindingDigest &&
+    binding?.initiatingRequestCorrelationDigest === bindingDigest &&
+    binding?.responseRequestCorrelationDigest === bindingDigest &&
+    binding?.requestCandidateCount === 1 && binding?.matchedRequestCount === 1 &&
+    binding?.responseCandidateCount === 1 && binding?.matchedResponseCount === 1 &&
+    binding?.requestAttemptCount === 1 && binding?.requestReissued === false;
+  const exactIdentity = entry => bindingShapeValid &&
+    entry?.caseRequestIdentity === bindingIdentity &&
+    entry?.caseRequestSequence === bindingSequence;
   const ownsTarget = entry => {
     const parsed = parseUrl(entry);
-    return entry?.requestKind === "application-fetch" &&
+    return exactIdentity(entry) && entry?.requestKind === "application-fetch" &&
       entry?.sameOrigin === true &&
       String(entry?.method || "").toUpperCase() === baseline.requestMethod &&
-      parsed?.pathname === baseline.requestPathname;
+      parsed?.pathname === baseline.requestPathname &&
+      sha256Digest(String(entry?.correlationId || "")) === bindingDigest;
   };
-  const requests = entries.filter(entry =>
-    entry?.phase === "request-start" && ownsTarget(entry));
-  const responses = entries.filter(entry =>
-    entry?.phase === "response" && ownsTarget(entry));
+  const requests = entries.filter(entry => entry?.phase === "request-start" && ownsTarget(entry));
+  const responses = entries.filter(entry => entry?.phase === "response" && ownsTarget(entry));
   const request = requests.length === baseline.cardinality.collectionOwner
     ? requests[0]
     : null;
@@ -4379,13 +4544,17 @@ function evaluateEventRequestQueryOwner({ caseId, networkEntries, baseline }) {
   const identityValid = Boolean(request &&
     typeof request.requestId === "string" && request.requestId.length > 0 &&
     typeof request.caseRequestIdentity === "string" &&
-    request.caseRequestIdentity.startsWith(`${caseId}:request-`) &&
-    Number.isInteger(request.caseRequestSequence) && request.caseRequestSequence > 0 &&
+    request.caseRequestIdentity === bindingIdentity &&
+    request.caseRequestSequence === bindingSequence &&
     response.length === baseline.cardinality.fixtureRow);
   const expectedKeys = Object.keys(baseline.expectedQuery).sort();
   const expectedShapeValid = expectedKeys.length === baseline.cardinality.value &&
     expectedKeys.every(key => typeof baseline.expectedQuery[key] === "string");
   const parsed = request ? parseUrl(request) : null;
+  const bindingParsed = bindingShapeValid ? parseUrl({ url: bindingExpectedPath }) : null;
+  const bindingPathValid = Boolean(bindingParsed &&
+    bindingParsed.pathname === baseline.requestPathname &&
+    String(bindingParsed.pathname + bindingParsed.search) === String(parsed?.pathname + parsed?.search));
   const actualKeys = parsed ? [...new Set(parsed.searchParams.keys())].sort() : [];
   const exactKeys = stableEqual(actualKeys, expectedKeys);
   const exactValues = Boolean(parsed && expectedShapeValid && exactKeys &&
@@ -4396,15 +4565,18 @@ function evaluateEventRequestQueryOwner({ caseId, networkEntries, baseline }) {
   const actualQuery = parsed
     ? Object.fromEntries(expectedKeys.map(key => [key, parsed.searchParams.getAll(key)]))
     : null;
-  const pass = requests.length === baseline.cardinality.collectionOwner &&
+  const pass = bindingShapeValid && bindingPathValid &&
+    requests.length === baseline.cardinality.collectionOwner &&
     identityValid && expectedShapeValid && exactValues;
   const reasonCode = pass
     ? "PASS"
+    : !bindingShapeValid
+    ? "REQUEST_CORRELATION_BINDING_INVALID"
     : requests.length === 0
     ? "REQUEST_OWNER_MISSING"
     : requests.length !== baseline.cardinality.collectionOwner
     ? "REQUEST_OWNER_DUPLICATE"
-    : !identityValid
+    : !identityValid || !bindingPathValid
     ? "REQUEST_RESPONSE_IDENTITY_MISMATCH"
     : "REQUEST_QUERY_EXACT_MISMATCH";
   return {
