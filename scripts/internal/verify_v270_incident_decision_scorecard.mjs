@@ -22,6 +22,7 @@ const implementationManifest = JSON.parse(readText("test/fixtures/project_featur
 const serverSh = readText("server.sh");
 const roadmapEvidence = [backlog, inventory, streamVerification].join("\n");
 const decisionScorecardViewBlock = extractCppFunctionBlock(server, "std::string OpsIncidentDecisionScorecardViewJson(");
+const decisionScorecardItemBlock = extractCppFunctionBlock(server, "std::string OpsIncidentDecisionScorecardJson(");
 
 check("roadmap records V270-S02 as active/completed Decision scorecard work", () => {
   const hasCurrentRoadmapRow = /\| 2 \| V270-S02 \| P0 \| (진행|완료) \| Decision scorecard \|/.test(backlog);
@@ -48,6 +49,38 @@ check("Ops events API exposes deterministic decision scorecard", () => {
   assert(start >= 0 && end > start, "EVT-051 decision scorecard projection block missing");
   const evt051ProjectionBlock = server.slice(start, end);
   assertIncludes(evt051ProjectionBlock, "media-server.ops.incident-decision-scorecard.v1", "EVT-051 block-scoped canonical projection");
+  for (const snippet of [
+    "event_record_score",
+    "source_health_score",
+    "similar_incident_score",
+    "vlm_summary_score",
+    "vlm_rule_score",
+    "operator_review_age_score",
+    "decision_score =",
+    "event_record_score + source_health_score + bounded_similar_incident_score +",
+    "vlm_summary_score + vlm_rule_score + operator_review_age_score",
+    "generated_at_ms - review.updated_at_ms",
+    "source_reliability.source_health_status",
+    "vlm_summary_candidate_count > 0",
+    "bounded_similar_incident_score",
+    '"\\"score\\":" << decision_score',
+  ]) {
+    assertIncludes(decisionScorecardItemBlock, snippet, "EVT-051 deterministic score basis");
+  }
+  for (const snippet of [
+    "std::sort(scorecards.begin(), scorecards.end()",
+    "OpsV320SourceReliabilityInfoFor(event_json, source_health_snapshot)",
+    "OpsSimilarIncidentScore(base, related, nullptr)",
+    "OpsVlmSummaryCandidateReviewJson(search_query, source_id)",
+    'ParseInt64Field(vlm_summary_review, "matchedCandidates")',
+    "left_score > right_score",
+    "ParseStringField(left, \"eventId\")",
+    "ParseStringField(right, \"eventId\")",
+    "\\\"scoreRank\\\"",
+    "std::to_string(index + 1)",
+  ]) {
+    assertIncludes(decisionScorecardViewBlock, snippet, "LAB-075 scoreRank ordering and rank readback");
+  }
   const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
   const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
   assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-051 canonical review route");
@@ -102,6 +135,14 @@ check("/ops/events UI renders decision scorecard and priority reason chips", () 
     assertIncludes(script, snippet, "Ops incident decision scorecard script");
   }
   assertIncludes(scorecardBlock, "incidentDecisionScorecard", "UI-051 block-scoped canonical product state");
+  for (const snippet of [
+    "data-event-semantic-score",
+    "data-event-semantic-score-rank",
+    "card?.score ?? 0",
+    "card?.scoreRank ?? '-'",
+  ]) {
+    assertIncludes(scorecardBlock, snippet, "UI-051 score and rank renderer projection");
+  }
   assertIncludes(scorecardBlock, "contract?.rawJsonExposed === false", "UI-051 raw JSON explicit false state");
   assert(!["rawJsonPayload", "rawPayload", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => scorecardBlock.includes(marker)), "UI-051 raw-material-redaction block-scoped absence oracle");
   assertIncludes(scorecardBlock, "contract?.sourceUrlExposed === false", "UI-051 source URL explicit false state");

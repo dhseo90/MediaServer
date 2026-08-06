@@ -996,7 +996,8 @@ check("fixed remaining renderers expose exact fixture-owned semantic projections
     const contract = responseDerivedDomProjectionContractFor({
       caseId, operator: assertion.operator, target: assertion.target,
     });
-    assert(contract?.selector.startsWith("[data-v320-resolution-detail={fixtureId}] #"),
+    assert(/^#[A-Za-z0-9]+\[data-v(?:320|330|350)-[^=]+={fixtureId}\]$/.test(
+      String(contract?.selector || "")),
       `${caseId} selected-detail renderer owner selector is stale`);
   }
 });

@@ -5328,7 +5328,7 @@
       "featureContractSha256": "2576f96a265f3e5c5d9c43071ee7e7d46056fa97c348374a7e5f1fa82a7e0388",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "static-production-contract",
-      "evidenceToken": "incidentDecisionScorecard",
+      "evidenceToken": "score",
       "verifier": {
         "command": "verify-v270-incident-decision-scorecard",
         "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs"
@@ -5338,42 +5338,42 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshEvents",
           "anchor": "async function refreshEvents() {",
-          "line": 5974,
+          "line": 6103,
           "contextSha256": "17ea702c410bfb64d69e23e0d5a8309d58ae1cd5d8e44b7db17e631c1bddcdcd"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshEvents",
           "anchor": "renderIncidentDecisionScorecard(reviewPayload.incidentDecisionScorecard || {});",
-          "line": 6040,
+          "line": 6169,
           "contextSha256": "8467cc80f7a18cb2de688a7023c7a37e80cac9b3691111f9ff7d92df7fefd068"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderIncidentDecisionScorecard",
           "anchor": "function renderIncidentDecisionScorecard(incidentDecisionScorecard = {}) {",
-          "line": 5223,
+          "line": 5329,
           "contextSha256": "57f88270d880441a6af6a56498ee91d0d617ad6117634561cbcf7c2ff3039c91"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderIncidentDecisionScorecard",
-          "anchor": "{ text: incidentDecisionScorecard.schema || 'media-server.ops.incident-decision-scorecard.v1' },",
-          "line": 5228,
-          "contextSha256": "9510610bdedeede2402ffc48381a7675c753de34b927dc47d53cd83e4bcc37ce"
+          "anchor": "return `<article class=\"incident-decision-scorecard-card\" data-incident-decision-scorecard-event=\"${escapeHtml(card?.eventId || '')}\" data-event-semantic-event-id=\"${escapeHtml(card?.eventId || '')}\" data-event-semantic-score=\"${escapeHtml(display(card?.score ?? ''))}\" data-event-semantic-score-rank=\"${escapeHtml(display(card?.scoreRank ?? ''))}\">",
+          "line": 5355,
+          "contextSha256": "3de3776ab3dba828f70e999e1ee570c11c7837be1d1d44aad6f8ee188d2769e3"
         },
         "readback": {
           "file": "scripts/internal/verify_v270_incident_decision_scorecard.mjs",
-          "symbol": "canonical-assertion:incidentDecisionScorecard",
-          "anchor": "assertIncludes(scorecardBlock, \"incidentDecisionScorecard\", \"UI-051 block-scoped canonical product state\");",
-          "line": 103,
-          "contextSha256": "40c4c70ed32b9b06ebc95b34687476e262e48792049fc5bc69f5a1babf2f1649"
+          "symbol": "canonical-assertion:UI-051-score-rank",
+          "anchor": "assertIncludes(scorecardBlock, snippet, \"UI-051 score and rank renderer projection\");",
+          "line": 144,
+          "contextSha256": "53c33ccb5949fff82437b0ac82bfc0b705406204017d61a0e9c88484c5dff2b0"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v270-incident-decision-scorecard",
           "anchor": "verify-v270-incident-decision-scorecard)",
-          "line": 2745,
+          "line": 2839,
           "contextSha256": "78039e08576e5e49b847b7879adf7754bdf1f6bc7de3b0e49c227b32abeee5c4"
         }
       },
@@ -5383,43 +5383,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "refreshEvents contains exact renderIncidentDecisionScorecard call with feature payload",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5974",
-          "target": "src/ingress/product_ui_page_scripts.cpp:6040"
+          "source": "src/ingress/product_ui_page_scripts.cpp:6103",
+          "target": "src/ingress/product_ui_page_scripts.cpp:6169"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "renderIncidentDecisionScorecard(reviewPayload.incidentDecisionScorecard || {});",
-          "source": "src/ingress/product_ui_page_scripts.cpp:6040",
-          "target": "src/ingress/product_ui_page_scripts.cpp:5223"
+          "source": "src/ingress/product_ui_page_scripts.cpp:6169",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5329"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
-          "witness": "renderIncidentDecisionScorecard emits media-server.ops.incident-decision-scorecard.v1 schema/control state",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5223",
-          "target": "src/ingress/product_ui_page_scripts.cpp:5228"
+          "witness": "renderIncidentDecisionScorecard emits score and scoreRank on the fixture-owned card",
+          "source": "src/ingress/product_ui_page_scripts.cpp:5329",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5355"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
-          "witness": "incidentDecisionScorecard is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5228",
-          "target": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:103"
+          "witness": "the canonical verifier asserts score and rank projection inside the exact renderer block",
+          "source": "src/ingress/product_ui_page_scripts.cpp:5355",
+          "target": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:144"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v270-incident-decision-scorecard",
-          "source": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:103",
-          "target": "server.sh:2745"
+          "source": "scripts/internal/verify_v270_incident_decision_scorecard.mjs:144",
+          "target": "server.sh:2839"
         }
       ],
-      "rationale": "renderIncidentDecisionScorecard의 actual payload call, canonical media-server.ops.incident-decision-scorecard.v1 emission, production-source verifier assertion을 결속한다."
+      "rationale": "renderIncidentDecisionScorecard의 actual payload call과 fixture-owned score/scoreRank projection, production-source verifier assertion을 결속한다."
     },
     {
       "id": "UI-052",
@@ -6220,28 +6220,28 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshEvents",
           "anchor": "async function refreshEvents() {",
-          "line": 5974,
+          "line": 6103,
           "contextSha256": "17ea702c410bfb64d69e23e0d5a8309d58ae1cd5d8e44b7db17e631c1bddcdcd"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshEvents",
           "anchor": "renderV310ReplayTimelineUi(reviewPayload.replayTimeline || {});",
-          "line": 6050,
-          "contextSha256": "a3d8f85ebf4285de5c82411526ef70033467de9c7e604d31203b0ceef45a5b8e"
+          "line": 6181,
+          "contextSha256": "f754945df5d5fadf9892f4d4e5f719cb9f50c0e4ae5bbd13be814241be3a20f2"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV310ReplayTimelineUi",
           "anchor": "function renderV310ReplayTimelineUi(replayTimeline = {}) {",
-          "line": 5011,
+          "line": 5116,
           "contextSha256": "2fb7d775c7936300788ea681e5da25a383d4f7e811c3313922b5aa5c51fc9487"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV310ReplayTimelineUi",
           "anchor": "{ text: replayTimeline.schema || 'media-server.ops.v310-replay-timeline-ui.v1' },",
-          "line": 5016,
+          "line": 5121,
           "contextSha256": "385ad4e4d454c460a083cd50a75a6175ba7b0fa64568eac87aa12373f84cbda4"
         },
         "readback": {
@@ -6255,7 +6255,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v310-replay-timeline-ui",
           "anchor": "verify-v310-replay-timeline-ui)",
-          "line": 1937,
+          "line": 1975,
           "contextSha256": "bd8630ff6e87d77eba23fedc754bf6e112fc29ea63f8aea3f4072b9de44c66fc"
         }
       },
@@ -6265,31 +6265,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "refreshEvents contains exact renderV310ReplayTimelineUi call with feature payload",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5974",
-          "target": "src/ingress/product_ui_page_scripts.cpp:6050"
+          "source": "src/ingress/product_ui_page_scripts.cpp:6103",
+          "target": "src/ingress/product_ui_page_scripts.cpp:6181"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "renderV310ReplayTimelineUi(reviewPayload.replayTimeline || {});",
-          "source": "src/ingress/product_ui_page_scripts.cpp:6050",
-          "target": "src/ingress/product_ui_page_scripts.cpp:5011"
+          "source": "src/ingress/product_ui_page_scripts.cpp:6181",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5116"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV310ReplayTimelineUi emits media-server.ops.v310-replay-timeline-ui.v1 schema/control state",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5011",
-          "target": "src/ingress/product_ui_page_scripts.cpp:5016"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5116",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5121"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "media-server.ops.v310-replay-timeline-ui.v1 is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5016",
+          "source": "src/ingress/product_ui_page_scripts.cpp:5121",
           "target": "scripts/internal/verify_v310_replay_timeline_ui.mjs:121"
         },
         {
@@ -6298,7 +6298,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v310-replay-timeline-ui",
           "source": "scripts/internal/verify_v310_replay_timeline_ui.mjs:121",
-          "target": "server.sh:1937"
+          "target": "server.sh:1975"
         }
       ],
       "rationale": "renderV310ReplayTimelineUi의 actual payload call, canonical media-server.ops.v310-replay-timeline-ui.v1 emission, production-source verifier assertion을 결속한다."
@@ -6308,7 +6308,11 @@
       "featureContractSha256": "e846399a7ab67b00f8cc83aedcd1749e16afafaa2b8c7fc09f267da6edff2c8a",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "product-action-api-authoritative-mutation-readback",
-      "evidenceToken": "media-server.ops.operator-feature-correction.v1",
+      "evidenceToken": "requestJson",
+      "sharedContract": {
+        "id": "media-server.actual-contract.operator-feature-correction-save",
+        "facet": "safety-invariant"
+      },
       "verifier": {
         "command": "verify-v310-operator-feature-correction",
         "file": "scripts/internal/verify_v310_operator_feature_correction.mjs"
@@ -6316,44 +6320,44 @@
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshEvents",
-          "anchor": "async function refreshEvents() {",
-          "line": 5974,
-          "contextSha256": "17ea702c410bfb64d69e23e0d5a8309d58ae1cd5d8e44b7db17e631c1bddcdcd"
+          "symbol": "bindEventReviewActions",
+          "anchor": "function bindEventReviewActions() {",
+          "line": 4356,
+          "contextSha256": "8e0fb6212a5b3b449a9d46d55249b35253133d2c779df8f9e1a9982db56611bf"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshEvents",
-          "anchor": "renderV310OperatorFeatureCorrection(reviewPayload.operatorFeatureCorrection || {});",
-          "line": 6051,
-          "contextSha256": "5806c82a44dd4f3960751ed2bac275e3fcf0da8b23d70b8998eea8d18ccb3f66"
+          "symbol": "bindEventReviewActions",
+          "anchor": "document.querySelectorAll('[data-event-review-save]').forEach(button => {",
+          "line": 4357,
+          "contextSha256": "896e49eeaab702bdfeba618682db233f58e3fb965ad2df7bf5a1b9d5368033ac"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "renderV310OperatorFeatureCorrection",
-          "anchor": "function renderV310OperatorFeatureCorrection(operatorFeatureCorrection = {}) {",
-          "line": 5070,
-          "contextSha256": "34df2a4b49cbab1c2a6d42896ab671c22026f3cf999cde0df24995b2e98a5bcd"
+          "symbol": "bindEventReviewActions",
+          "anchor": "button.addEventListener('click', async () => {",
+          "line": 4358,
+          "contextSha256": "c25cd2165ae4da1d717a63ec7c16f3a842d8aacbef8b7556e067ec84bfb162b6"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "renderV310OperatorFeatureCorrection",
-          "anchor": "{ text: operatorFeatureCorrection.schema || 'media-server.ops.operator-feature-correction.v1' },",
-          "line": 5075,
-          "contextSha256": "c8928c981324f12a5b63432d7d132255fc0cba6c9160c1ac9a1c609d1daad4fb"
+          "symbol": "bindEventReviewActions",
+          "anchor": "const result = await requestJson(`/ops/api/events/reviews/${encodeURIComponent(eventId)}`, {",
+          "line": 4400,
+          "contextSha256": "5fefbf7112a25ca49876b597e33da85c73d9ea22dca64fad0cf29cb7ece5d888"
         },
         "readback": {
           "file": "scripts/internal/verify_v310_operator_feature_correction.mjs",
-          "symbol": "canonical-assertion:media-server.ops.operator-feature-correction.v1",
-          "anchor": "assertIncludes(extractNamedFunctionBlock(files.pageScript, \"renderV310OperatorFeatureCorrection\"), \"media-server.ops.operator-feature-correction.v1\", \"UI-061 block-scoped canonical product state\");",
-          "line": 155,
-          "contextSha256": "c01ef4ff50741f0c854f53ef5aa46c23b49ae7782dd37bce06cc4bea6a0b7c73"
+          "symbol": "canonical-assertion:UI-061-authoritative-mutation-readback",
+          "anchor": "]) assertIncludes(reviewRouteBlock, snippet, \"UI-061 requestJson reviews authoritative server mutation and response readback\");",
+          "line": 197,
+          "contextSha256": "764735f8af258b32b46c6079afaa72ad0248bcde527f81fba65ca2db36c1e6a5"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v310-operator-feature-correction",
           "anchor": "verify-v310-operator-feature-correction)",
-          "line": 1949,
+          "line": 1987,
           "contextSha256": "1cfa4bfd2f0dac82433f4f3b07fee2dc1d17d02361656e593a4707804ab7beae"
         }
       },
@@ -6362,44 +6366,44 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "/ops/events refresh contains operatorFeatureCorrection renderer",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5974",
-          "target": "src/ingress/product_ui_page_scripts.cpp:6051"
+          "witness": "bindEventReviewActions owns the exact event review save controls",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4356",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4357"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "direct-callsite",
-          "witness": "renderV310OperatorFeatureCorrection(reviewPayload.operatorFeatureCorrection || {});",
-          "source": "src/ingress/product_ui_page_scripts.cpp:6051",
-          "target": "src/ingress/product_ui_page_scripts.cpp:5070"
+          "kind": "function-containment",
+          "witness": "the event review save control binds the primary click action",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4357",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4358"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
-          "witness": "operatorFeatureCorrection renderer emits schema state",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5070",
-          "target": "src/ingress/product_ui_page_scripts.cpp:5075"
+          "witness": "bindEventReviewActions sends correction fields through exact event review PUT and refreshes authoritative state",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4358",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4400"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
-          "witness": "media-server.ops.operator-feature-correction.v1 is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5075",
-          "target": "scripts/internal/verify_v310_operator_feature_correction.mjs:155"
+          "witness": "the canonical verifier binds correction payload, server parse, Upsert, saved response, and refresh readback",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4400",
+          "target": "scripts/internal/verify_v310_operator_feature_correction.mjs:197"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v310-operator-feature-correction",
-          "source": "scripts/internal/verify_v310_operator_feature_correction.mjs:155",
-          "target": "server.sh:1949"
+          "source": "scripts/internal/verify_v310_operator_feature_correction.mjs:197",
+          "target": "server.sh:1987"
         }
       ],
-      "rationale": "제품/auth/source action→operator-feature-correction state/reject/redaction→독립 assertion을 결속했다."
+      "rationale": "렌더된 correction control에서 기존 review save handler, exact PUT payload/response, authoritative refresh readback까지 실제 product call-flow로 결속했다."
     },
     {
       "id": "UI-062",
@@ -6416,28 +6420,28 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshEvents",
           "anchor": "async function refreshEvents() {",
-          "line": 5974,
+          "line": 6103,
           "contextSha256": "17ea702c410bfb64d69e23e0d5a8309d58ae1cd5d8e44b7db17e631c1bddcdcd"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshEvents",
           "anchor": "renderV320UnifiedOpsEventsWorkspace(reviewPayload.unifiedResolutionWorkspace || {});",
-          "line": 6049,
-          "contextSha256": "205b3f184c1d7d8f27dac0b8130f792191c49adec91f62df0daf874730820d83"
+          "line": 6178,
+          "contextSha256": "140f3f6300d8ac9252f8a2e1964c303c68bda70be718b6f43d2342cdab947cf5"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {",
-          "line": 4896,
+          "line": 5001,
           "contextSha256": "22cbe3fe71ef965f8c728583a68e5d36f0d5bb88b13f32bdf753904c35d65d80"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "{ text: unifiedResolutionWorkspace.schema || 'media-server.ops.v320-unified-events-workspace.v1' },",
-          "line": 4909,
+          "line": 5014,
           "contextSha256": "6060eb53cdd6728d6f632590596a921c609d7429b15c4a73b20cf823b8c00abe"
         },
         "readback": {
@@ -6451,7 +6455,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v320-unified-ops-events-workspace",
           "anchor": "verify-v320-unified-ops-events-workspace)",
-          "line": 1973,
+          "line": 2011,
           "contextSha256": "a13441233ae4a8bc3bbe5a86ea66db835cd06e93d2000351fdd8fa31e001f191"
         }
       },
@@ -6461,31 +6465,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "refreshEvents contains exact renderV320UnifiedOpsEventsWorkspace call with feature payload",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5974",
-          "target": "src/ingress/product_ui_page_scripts.cpp:6049"
+          "source": "src/ingress/product_ui_page_scripts.cpp:6103",
+          "target": "src/ingress/product_ui_page_scripts.cpp:6178"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "renderV320UnifiedOpsEventsWorkspace(reviewPayload.unifiedResolutionWorkspace || {});",
-          "source": "src/ingress/product_ui_page_scripts.cpp:6049",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4896"
+          "source": "src/ingress/product_ui_page_scripts.cpp:6178",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5001"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV320UnifiedOpsEventsWorkspace emits media-server.ops.v320-unified-events-workspace.v1 schema/control state",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4896",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4909"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5001",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5014"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "media-server.ops.v320-unified-events-workspace.v1 is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4909",
+          "source": "src/ingress/product_ui_page_scripts.cpp:5014",
           "target": "scripts/internal/verify_v320_unified_ops_events_workspace.mjs:132"
         },
         {
@@ -6494,7 +6498,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v320-unified-ops-events-workspace",
           "source": "scripts/internal/verify_v320_unified_ops_events_workspace.mjs:132",
-          "target": "server.sh:1973"
+          "target": "server.sh:2011"
         }
       ],
       "rationale": "renderV320UnifiedOpsEventsWorkspace의 actual payload call, canonical media-server.ops.v320-unified-events-workspace.v1 emission, production-source verifier assertion을 결속한다."
@@ -6514,29 +6518,29 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {",
-          "line": 4896,
+          "line": 5001,
           "contextSha256": "22cbe3fe71ef965f8c728583a68e5d36f0d5bb88b13f32bdf753904c35d65d80"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "${renderV320EvidenceQualityLayer(selectedDetail, unifiedResolutionWorkspace.evidenceQualitySummary || {})}",
-          "line": 4989,
+          "line": 5094,
           "contextSha256": "804f00b2a3950f9368d9dffdff34806368527ff5718b11499a534c22a4e08243"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320EvidenceQualityLayer",
           "anchor": "function renderV320EvidenceQualityLayer(selectedDetail = {}, evidenceQualitySummary = {}) {",
-          "line": 4498,
+          "line": 4603,
           "contextSha256": "ac9a0f397c634de2a576d25a2f636f6d249479a8a450cb396da6d4c8ca1a925e"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320EvidenceQualityLayer",
-          "anchor": "return `<div id=\"v320EvidenceQualityGrid\" class=\"v320-evidence-quality-grid\" data-v320-evidence-quality=\"${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-completeness=\"${escapeHtml(evidenceQuality.evidenceCompleteness || '')}\" data-event-semantic-confidence=\"${escapeHtml(evidenceQuality.evidenceConfidence || '')}\" data-event-semantic-replay-coverage-hint=\"${escapeHtml(evidenceQuality.replayCoverageHint || '')}\">",
+          "anchor": "return `<div id=\"v320EvidenceQualityGrid\" class=\"v320-evidence-quality-grid\" data-v320-evidence-quality=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-v320-evidence-quality-schema=\"${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-completeness=\"${escapeHtml(evidenceQuality.evidenceCompleteness || '')}\" data-event-semantic-confidence=\"${escapeHtml(evidenceQuality.evidenceConfidence || '')}\" data-event-semantic-replay-coverage-hint=\"${escapeHtml(evidenceQuality.replayCoverageHint || '')}\">",
           "line": 4618,
-          "contextSha256": "9ee981b25893e61f2589a97410fd9f915ef6ac27a71a5f63332c49056f4b2f59"
+          "contextSha256": "686668a3a3f5b2119dadbf4873846f3e4c713ecd5d1962c8d09b5613ec9cb516"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_evidence_quality_layer.mjs",
@@ -6549,7 +6553,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v320-evidence-quality-layer",
           "anchor": "verify-v320-evidence-quality-layer)",
-          "line": 1977,
+          "line": 2015,
           "contextSha256": "981026578b5297e64a65aeaadd75c49d9b8a0f4a56778c8a7126f7b536a36eea"
         }
       },
@@ -6559,23 +6563,23 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "renderV320UnifiedOpsEventsWorkspace contains exact renderV320EvidenceQualityLayer call with feature payload",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4896",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4989"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5001",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5094"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "${renderV320EvidenceQualityLayer(selectedDetail, unifiedResolutionWorkspace.evidenceQualitySummary || {})}",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4989",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4498"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5094",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4603"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV320EvidenceQualityLayer emits media-server.ops.v320-evidence-quality.v1 schema/control state",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4498",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4603",
           "target": "src/ingress/product_ui_page_scripts.cpp:4618"
         },
         {
@@ -6592,7 +6596,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v320-evidence-quality-layer",
           "source": "scripts/internal/verify_v320_evidence_quality_layer.mjs:134",
-          "target": "server.sh:1977"
+          "target": "server.sh:2015"
         }
       ],
       "rationale": "renderV320EvidenceQualityLayer의 actual payload call, canonical media-server.ops.v320-evidence-quality.v1 emission, production-source verifier assertion을 결속한다."
@@ -6612,29 +6616,29 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {",
-          "line": 4896,
+          "line": 5001,
           "contextSha256": "22cbe3fe71ef965f8c728583a68e5d36f0d5bb88b13f32bdf753904c35d65d80"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}",
-          "line": 4990,
+          "line": 5095,
           "contextSha256": "e77fa46c31e1753706cd2c584a51d90e4f6893614eba8bc427d95de379f087c5"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320SourceReliabilityContext",
           "anchor": "function renderV320SourceReliabilityContext(selectedDetail = {}, sourceReliabilitySummary = {}) {",
-          "line": 4540,
+          "line": 4645,
           "contextSha256": "ef48c1dfa4845c995669f83ccbec423de7aef349d505652058f83bc97d4bb3be"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320SourceReliabilityContext",
-          "anchor": "return `<div id=\"v320SourceReliabilityGrid\" class=\"v320-source-reliability-grid\" data-v320-source-reliability=\"${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-health=\"${escapeHtml(sourceReliability.sourceHealthStatus || '')}\" data-event-semantic-failure-context=\"${escapeHtml(sourceReliability.recentFailureContext || '')}\" data-event-semantic-recheck-hint=\"${escapeHtml(sourceReliability.operatorRecheckHint || '')}\">",
+          "anchor": "return `<div id=\"v320SourceReliabilityGrid\" class=\"v320-source-reliability-grid\" data-v320-source-reliability=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-v320-source-reliability-schema=\"${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-health=\"${escapeHtml(sourceReliability.sourceHealthStatus || '')}\" data-event-semantic-failure-context=\"${escapeHtml(sourceReliability.recentFailureContext || '')}\" data-event-semantic-recheck-hint=\"${escapeHtml(sourceReliability.operatorRecheckHint || '')}\">",
           "line": 4652,
-          "contextSha256": "625e1a27eeb74458d9cb696a57488ce0272fc0c840fab0b1c52033571a0a943a"
+          "contextSha256": "577a4985a9e978fcac749bb792766e3a79c65a3be0995573a22026b28fce428f"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_source_reliability_context.mjs",
@@ -6647,7 +6651,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v320-source-reliability-context",
           "anchor": "verify-v320-source-reliability-context)",
-          "line": 1981,
+          "line": 2019,
           "contextSha256": "befee86a423231c708d96b3b48cf91444cc922675627e7a443decf97d36dc8dc"
         }
       },
@@ -6657,23 +6661,23 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "renderV320UnifiedOpsEventsWorkspace contains feature renderer call",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4896",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4990"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5001",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5095"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4990",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4540"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5095",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4645"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV320SourceReliabilityContext emits media-server.ops.v320-source-reliability-context.v1",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4540",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4645",
           "target": "src/ingress/product_ui_page_scripts.cpp:4652"
         },
         {
@@ -6690,7 +6694,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v320-source-reliability-context",
           "source": "scripts/internal/verify_v320_source_reliability_context.mjs:114",
-          "target": "server.sh:1981"
+          "target": "server.sh:2019"
         }
       ],
       "rationale": "renderV320SourceReliabilityContext actual call/schema emission과 production verifier assertion을 결속한다."
@@ -6710,29 +6714,29 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {",
-          "line": 4896,
+          "line": 5001,
           "contextSha256": "22cbe3fe71ef965f8c728583a68e5d36f0d5bb88b13f32bdf753904c35d65d80"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}",
-          "line": 4994,
+          "line": 5099,
           "contextSha256": "0d35c5b24dd4461d3ad8c685e4534fd65b1ca3f52b5e78b94c124cff1c1e9b9f"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320AiReviewQualityContext",
           "anchor": "function renderV320AiReviewQualityContext(selectedDetail = {}, aiReviewQualitySummary = {}) {",
-          "line": 4708,
+          "line": 4813,
           "contextSha256": "806a3df4edeaeae6b2c71575962c9f36630651666440e89f180606b5f58e6163"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320AiReviewQualityContext",
-          "anchor": "return `<div id=\"v320AiReviewQualityGrid\" class=\"v320-ai-review-quality-grid\" data-v320-ai-review-quality=\"${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-correction-signal=\"${escapeHtml(aiReviewQuality.correctionReviewSignal || '')}\" data-event-semantic-review-signal=\"${escapeHtml(aiReviewQuality.reviewStatus || '')}\" data-event-semantic-uncertainty-reason=\"${escapeHtml(aiReviewQuality.uncertaintyReason || '')}\" data-event-semantic-quality-badge=\"${escapeHtml(aiReviewQuality.qualityBadge || '')}\">",
+          "anchor": "return `<div id=\"v320AiReviewQualityGrid\" class=\"v320-ai-review-quality-grid\" data-v320-ai-review-quality=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-v320-ai-review-quality-schema=\"${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-correction-signal=\"${escapeHtml(aiReviewQuality.correctionReviewSignal || '')}\" data-event-semantic-review-signal=\"${escapeHtml(aiReviewQuality.reviewStatus || '')}\" data-event-semantic-uncertainty-reason=\"${escapeHtml(aiReviewQuality.uncertaintyReason || '')}\" data-event-semantic-quality-badge=\"${escapeHtml(aiReviewQuality.qualityBadge || '')}\">",
           "line": 4821,
-          "contextSha256": "08e102433ea4f0cc70ef5319fe54539a76ebcc39d51912ef1be04defbf893b13"
+          "contextSha256": "ffc48310366d0cef5c358f272bd9a97728e17aa4a5e5163f91b8aa859e995ba5"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_ai_review_quality_context.mjs",
@@ -6745,7 +6749,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v320-ai-review-quality-context",
           "anchor": "verify-v320-ai-review-quality-context)",
-          "line": 1989,
+          "line": 2027,
           "contextSha256": "b60b03d85735fcaba42374a4311562230ffe053a937a9384965866cee6a5bd8f"
         }
       },
@@ -6755,23 +6759,23 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "renderV320UnifiedOpsEventsWorkspace contains feature renderer call",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4896",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4994"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5001",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5099"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4994",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4708"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5099",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4813"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV320AiReviewQualityContext emits media-server.ops.v320-ai-review-quality-context.v1",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4708",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4813",
           "target": "src/ingress/product_ui_page_scripts.cpp:4821"
         },
         {
@@ -6788,7 +6792,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v320-ai-review-quality-context",
           "source": "scripts/internal/verify_v320_ai_review_quality_context.mjs:124",
-          "target": "server.sh:1989"
+          "target": "server.sh:2027"
         }
       ],
       "rationale": "renderV320AiReviewQualityContext actual call/schema emission과 production verifier assertion을 결속한다."
@@ -6906,29 +6910,29 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {",
-          "line": 4896,
+          "line": 5001,
           "contextSha256": "22cbe3fe71ef965f8c728583a68e5d36f0d5bb88b13f32bdf753904c35d65d80"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "${renderV320ActionReadinessChecklist(selectedDetail, unifiedResolutionWorkspace.actionReadinessChecklistSummary || {})}",
-          "line": 4996,
+          "line": 5101,
           "contextSha256": "f9af5eb9b080794a987ec9caedee78a00d8030ea76217873f0619200c3475272"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320ActionReadinessChecklist",
           "anchor": "function renderV320ActionReadinessChecklist(selectedDetail = {}, actionReadinessChecklistSummary = {}) {",
-          "line": 4779,
+          "line": 4884,
           "contextSha256": "d1ee5e633903368dfcab305c043d90e800cfab34a4ffaf4c5f78fb787e8ebb73"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320ActionReadinessChecklist",
-          "anchor": "return `<div id=\"v320ActionReadinessChecklistGrid\" class=\"v320-action-readiness-checklist-grid\" data-v320-action-readiness-checklist=\"${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-rule-draft=\"${escapeHtml(actionReadinessChecklist.ruleDraftStatus || '')}\" data-event-semantic-evidence-bundle=\"${escapeHtml(actionReadinessChecklist.evidenceBundleStatus || '')}\" data-event-semantic-notification=\"${actionReadinessChecklist.notificationReady === true ? 'true' : 'false'}\">",
+          "anchor": "return `<div id=\"v320ActionReadinessChecklistGrid\" class=\"v320-action-readiness-checklist-grid\" data-v320-action-readiness-checklist=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-v320-action-readiness-checklist-schema=\"${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-rule-draft=\"${escapeHtml(actionReadinessChecklist.ruleDraftStatus || '')}\" data-event-semantic-evidence-bundle=\"${escapeHtml(actionReadinessChecklist.evidenceBundleStatus || '')}\" data-event-semantic-notification=\"${actionReadinessChecklist.notificationReady === true ? 'true' : 'false'}\">",
           "line": 4897,
-          "contextSha256": "0afc1416ccafab600b8ed925a03f074a30cca6ae98bc667dea1d511f4f413d85"
+          "contextSha256": "79324b170d09d4766ecd85ca196bc221fb954f26585afa8fa78863e16c7f26ad"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_action_readiness_checklist.mjs",
@@ -6941,7 +6945,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v320-action-readiness-checklist",
           "anchor": "verify-v320-action-readiness-checklist)",
-          "line": 1997,
+          "line": 2035,
           "contextSha256": "913786d1b329cbb8386f6a35afcf59112b6de67c0a3807247208f55a44d13ec3"
         }
       },
@@ -6951,23 +6955,23 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "renderV320UnifiedOpsEventsWorkspace contains feature renderer call",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4896",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4996"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5001",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5101"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "${renderV320ActionReadinessChecklist(selectedDetail, unifiedResolutionWorkspace.actionReadinessChecklistSummary || {})}",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4996",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4779"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5101",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4884"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV320ActionReadinessChecklist emits media-server.ops.v320-action-readiness-checklist.v1",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4779",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4884",
           "target": "src/ingress/product_ui_page_scripts.cpp:4897"
         },
         {
@@ -6984,7 +6988,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v320-action-readiness-checklist",
           "source": "scripts/internal/verify_v320_action_readiness_checklist.mjs:129",
-          "target": "server.sh:1997"
+          "target": "server.sh:2035"
         }
       ],
       "rationale": "renderV320ActionReadinessChecklist actual call/schema emission과 production verifier assertion을 결속한다."
@@ -7102,29 +7106,29 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {",
-          "line": 4896,
+          "line": 5001,
           "contextSha256": "22cbe3fe71ef965f8c728583a68e5d36f0d5bb88b13f32bdf753904c35d65d80"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "${renderV320ResolutionSearchMetrics(unifiedResolutionWorkspace, selectedDetail)}",
-          "line": 4997,
+          "line": 5102,
           "contextSha256": "9d55ab4ad6cffd8a679be0d473105ab9944b1162c342be74d1a4b206ee809382"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320ResolutionSearchMetrics",
           "anchor": "function renderV320ResolutionSearchMetrics(unifiedResolutionWorkspace = {}, selectedDetail = {}) {",
-          "line": 4827,
+          "line": 4932,
           "contextSha256": "e4baba2f8c98fe410bdfd85cbd25b0b05003192084725748d8a128e8ada4f12b"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320ResolutionSearchMetrics",
-          "anchor": "return `<div id=\"v320ResolutionSearchMetricsGrid\" class=\"v320-resolution-search-metrics-grid\" data-v320-resolution-search-metrics=\"${escapeHtml(resolutionSearchMetricsSummary.schema || 'media-server.ops.v320-resolution-search-metrics.v1')}\">",
-          "line": 4861,
-          "contextSha256": "e5ddaf52047eeb0c05ce288ce9bafb5b076d1f933ecff3f81ee993b7b9f869d5"
+          "anchor": "return `<div id=\"v320ResolutionSearchMetricsGrid\" class=\"v320-resolution-search-metrics-grid\" data-v320-resolution-search-metrics=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-v320-resolution-search-metrics-schema=\"${escapeHtml(resolutionSearchMetricsSummary.schema || 'media-server.ops.v320-resolution-search-metrics.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\">",
+          "line": 4966,
+          "contextSha256": "7b1dc580b4df0a2f2b4e5911e3ec7b7f95a0cec9fa891bf18a3da9701a5bcc25"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_resolution_search_metrics.mjs",
@@ -7137,7 +7141,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v320-resolution-search-metrics",
           "anchor": "verify-v320-resolution-search-metrics)",
-          "line": 2005,
+          "line": 2043,
           "contextSha256": "0b814a4d905bb23aff7e4c5634a30a041fe7303d5a3632f4ec2dbd42e307cea8"
         }
       },
@@ -7147,31 +7151,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "renderV320UnifiedOpsEventsWorkspace contains feature renderer call",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4896",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4997"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5001",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5102"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "${renderV320ResolutionSearchMetrics(unifiedResolutionWorkspace, selectedDetail)}",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4997",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4827"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5102",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4932"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV320ResolutionSearchMetrics emits media-server.ops.v320-resolution-search-metrics.v1",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4827",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4861"
+          "source": "src/ingress/product_ui_page_scripts.cpp:4932",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4966"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "media-server.ops.v320-resolution-search-metrics.v1 is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4861",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4966",
           "target": "scripts/internal/verify_v320_resolution_search_metrics.mjs:125"
         },
         {
@@ -7180,7 +7184,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v320-resolution-search-metrics",
           "source": "scripts/internal/verify_v320_resolution_search_metrics.mjs:125",
-          "target": "server.sh:2005"
+          "target": "server.sh:2043"
         }
       ],
       "rationale": "renderV320ResolutionSearchMetrics actual call/schema emission과 production verifier assertion을 결속한다."
@@ -7200,29 +7204,29 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {",
-          "line": 4896,
+          "line": 5001,
           "contextSha256": "22cbe3fe71ef965f8c728583a68e5d36f0d5bb88b13f32bdf753904c35d65d80"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "${renderV330IncidentSourceCorrelationLayer(selectedDetail, unifiedResolutionWorkspace.incidentSourceCorrelationSummary || {})}",
-          "line": 4991,
+          "line": 5096,
           "contextSha256": "0e844fa5648f066fdef4d3c191ffa4858d5dfcd3822344292b4da164a4282168"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV330IncidentSourceCorrelationLayer",
           "anchor": "function renderV330IncidentSourceCorrelationLayer(selectedDetail = {}, incidentSourceCorrelationSummary = {}) {",
-          "line": 4573,
+          "line": 4678,
           "contextSha256": "160b4f392fa75ad1b7887277aeafcb6fb6eda8e0a08a2310ec20a74eddd43f85"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV330IncidentSourceCorrelationLayer",
-          "anchor": "return `<div id=\"v330IncidentSourceCorrelationGrid\" class=\"v330-incident-source-correlation-grid\" data-v330-incident-source-correlation=\"${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentSourceCorrelation.sourceCauseCategory || '')}\" data-event-semantic-closure-impact=\"${escapeHtml(incidentSourceCorrelation.resolutionClosureImpact || '')}\">",
+          "anchor": "return `<div id=\"v330IncidentSourceCorrelationGrid\" class=\"v330-incident-source-correlation-grid\" data-v330-incident-source-correlation=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-v330-incident-source-correlation-schema=\"${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentSourceCorrelation.sourceCauseCategory || '')}\" data-event-semantic-closure-impact=\"${escapeHtml(incidentSourceCorrelation.resolutionClosureImpact || '')}\">",
           "line": 4690,
-          "contextSha256": "1e08e5360c6b732905dc85dc74a8b926bbefec5e872538a5c3d92a58b96bf45f"
+          "contextSha256": "29d55ecf57728e0bbba4125bdbbc2fc06e2890a91385558892826992dcbed36d"
         },
         "readback": {
           "file": "scripts/internal/verify_v330_incident_source_correlation_layer.mjs",
@@ -7235,7 +7239,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v330-incident-source-correlation-layer",
           "anchor": "verify-v330-incident-source-correlation-layer)",
-          "line": 2029,
+          "line": 2067,
           "contextSha256": "7002c9f3879a3377f4caaffa0832f65d8f853400c4426916ee32f088db444fd9"
         }
       },
@@ -7245,23 +7249,23 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "renderV320UnifiedOpsEventsWorkspace contains feature renderer call",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4896",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4991"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5001",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5096"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "${renderV330IncidentSourceCorrelationLayer(selectedDetail, unifiedResolutionWorkspace.incidentSourceCorrelationSummary || {})}",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4991",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4573"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5096",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4678"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV330IncidentSourceCorrelationLayer emits media-server.ops.v330-incident-source-correlation.v1",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4573",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4678",
           "target": "src/ingress/product_ui_page_scripts.cpp:4690"
         },
         {
@@ -7278,7 +7282,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v330-incident-source-correlation-layer",
           "source": "scripts/internal/verify_v330_incident_source_correlation_layer.mjs:155",
-          "target": "server.sh:2029"
+          "target": "server.sh:2067"
         }
       ],
       "rationale": "renderV330IncidentSourceCorrelationLayer actual call/schema emission과 production verifier assertion을 결속한다."
@@ -7298,29 +7302,29 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {",
-          "line": 4896,
+          "line": 5001,
           "contextSha256": "22cbe3fe71ef965f8c728583a68e5d36f0d5bb88b13f32bdf753904c35d65d80"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "${renderV330OperatorRecheckRecoveryQueue(selectedDetail, unifiedResolutionWorkspace.operatorRecheckRecoveryQueueSummary || {})}",
-          "line": 4992,
+          "line": 5097,
           "contextSha256": "e1ec2293b0ba9abad9332ebfefa147803246872dc75d1197e2b59f865b9511cf"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV330OperatorRecheckRecoveryQueue",
           "anchor": "function renderV330OperatorRecheckRecoveryQueue(selectedDetail = {}, operatorRecheckRecoveryQueueSummary = {}) {",
-          "line": 4612,
+          "line": 4717,
           "contextSha256": "1ede511c608c9d7e1b7c7ac48089cf665c8a6bf7ca370db071e3bf0e831fe2a3"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV330OperatorRecheckRecoveryQueue",
-          "anchor": "return `<div id=\"v330OperatorRecheckRecoveryQueueGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v330-operator-recheck-recovery-queue=\"${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-retry-candidate=\"${escapeHtml(operatorRecheckRecoveryQueue.retryCandidate || '')}\" data-event-semantic-dry-run-status=\"${escapeHtml(operatorRecheckRecoveryQueue.dryRunResultStatus || '')}\" data-event-semantic-operator-note-link=\"${escapeHtml(operatorRecheckRecoveryQueue.operatorNoteRoute || '')}\" data-event-semantic-failed-only-recheck=\"${operatorRecheckRecoveryQueue.failedOnlyRecheck === true ? 'true' : 'false'}\">",
+          "anchor": "return `<div id=\"v330OperatorRecheckRecoveryQueueGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v330-operator-recheck-recovery-queue=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-v330-operator-recheck-recovery-queue-schema=\"${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-retry-candidate=\"${escapeHtml(operatorRecheckRecoveryQueue.retryCandidate || '')}\" data-event-semantic-dry-run-status=\"${escapeHtml(operatorRecheckRecoveryQueue.dryRunResultStatus || '')}\" data-event-semantic-operator-note-link=\"${escapeHtml(operatorRecheckRecoveryQueue.operatorNoteRoute || '')}\" data-event-semantic-failed-only-recheck=\"${operatorRecheckRecoveryQueue.failedOnlyRecheck === true ? 'true' : 'false'}\">",
           "line": 4735,
-          "contextSha256": "e81648db0d2b1efbe49e105337b35b5edb2af585d6ebc28a3aaf8e281eb3593b"
+          "contextSha256": "7abd182076de3f0394f0abb4a69824daec5af359fbe52198dd578451640ca6f9"
         },
         "readback": {
           "file": "scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs",
@@ -7333,7 +7337,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v330-operator-recheck-recovery-queue",
           "anchor": "verify-v330-operator-recheck-recovery-queue)",
-          "line": 2033,
+          "line": 2071,
           "contextSha256": "bc4780750b78f4ca3721637ce03f471d07d615addf5cb308bc418ac43833ddb3"
         }
       },
@@ -7343,23 +7347,23 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "renderV320UnifiedOpsEventsWorkspace contains feature renderer call",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4896",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4992"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5001",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5097"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "${renderV330OperatorRecheckRecoveryQueue(selectedDetail, unifiedResolutionWorkspace.operatorRecheckRecoveryQueueSummary || {})}",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4992",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4612"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5097",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4717"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV330OperatorRecheckRecoveryQueue emits media-server.ops.v330-operator-recheck-recovery-queue.v1",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4612",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4717",
           "target": "src/ingress/product_ui_page_scripts.cpp:4735"
         },
         {
@@ -7376,7 +7380,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v330-operator-recheck-recovery-queue",
           "source": "scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs:157",
-          "target": "server.sh:2033"
+          "target": "server.sh:2071"
         }
       ],
       "rationale": "renderV330OperatorRecheckRecoveryQueue actual call/schema emission과 production verifier assertion을 결속한다."
@@ -8180,29 +8184,29 @@
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {",
-          "line": 4896,
+          "line": 5001,
           "contextSha256": "22cbe3fe71ef965f8c728583a68e5d36f0d5bb88b13f32bdf753904c35d65d80"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320UnifiedOpsEventsWorkspace",
           "anchor": "${renderV350IncidentCommandHandoff(selectedDetail, unifiedResolutionWorkspace.incidentCommandHandoffSummary || {})}",
-          "line": 4993,
+          "line": 5098,
           "contextSha256": "ae8dfe4519daaf1d2d0302450aea0ed712eb318595c673032c14cf8d65f2d5e3"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV350IncidentCommandHandoff",
           "anchor": "function renderV350IncidentCommandHandoff(selectedDetail = {}, incidentCommandHandoffSummary = {}) {",
-          "line": 4667,
+          "line": 4772,
           "contextSha256": "34a6af0ab65a15b473e7dd3b24ba3e0967844cfa9466ba7d5bb7989d4322e9e5"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV350IncidentCommandHandoff",
-          "anchor": "return `<div id=\"v350IncidentCommandHandoffGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v350-incident-command-handoff=\"${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentCommandHandoff.sourceCause || '')}\" data-event-semantic-continuity-drill-candidate=\"${escapeHtml(incidentCommandHandoff.continuityDrillCandidate || '')}\" data-event-semantic-command-plan-draft=\"${escapeHtml(incidentCommandHandoff.commandPlanDraft || '')}\" data-event-semantic-command-plan-executed=\"${boundaries.commandPlanExecuted === true ? 'true' : 'false'}\">",
+          "anchor": "return `<div id=\"v350IncidentCommandHandoffGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v350-incident-command-handoff=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-v350-incident-command-handoff-schema=\"${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}\" data-event-semantic-event-id=\"${escapeHtml(selectedDetail?.eventId || '')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentCommandHandoff.sourceCause || '')}\" data-event-semantic-continuity-drill-candidate=\"${escapeHtml(incidentCommandHandoff.continuityDrillCandidate || '')}\" data-event-semantic-command-plan-draft=\"${escapeHtml(incidentCommandHandoff.commandPlanDraft || '')}\" data-event-semantic-command-plan-executed=\"${boundaries.commandPlanExecuted === true ? 'true' : 'false'}\">",
           "line": 4787,
-          "contextSha256": "7ba791dbc49e362e3fd369d09edc3ed19588dc183509dc6373fde25f867be9c7"
+          "contextSha256": "b3ad69cdf3297a0dac73e1c64a9dbe526866972c986f0ade3eef67af35f6fa34"
         },
         "readback": {
           "file": "scripts/internal/verify_v350_incident_to_command_handoff.mjs",
@@ -8215,7 +8219,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v350-incident-to-command-handoff",
           "anchor": "verify-v350-incident-to-command-handoff)",
-          "line": 2113,
+          "line": 2151,
           "contextSha256": "1b80fe443ceda42b465b4fa565df20b25682e179eda859d004908d76f17fb5d8"
         }
       },
@@ -8225,23 +8229,23 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "renderV320UnifiedOpsEventsWorkspace contains feature payload renderer call",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4896",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4993"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5001",
+          "target": "src/ingress/product_ui_page_scripts.cpp:5098"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "${renderV350IncidentCommandHandoff(selectedDetail, unifiedResolutionWorkspace.incidentCommandHandoffSummary || {})}",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4993",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4667"
+          "source": "src/ingress/product_ui_page_scripts.cpp:5098",
+          "target": "src/ingress/product_ui_page_scripts.cpp:4772"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderV350IncidentCommandHandoff emits exact media-server.ops.v350-incident-command-handoff.v1 state",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4667",
+          "source": "src/ingress/product_ui_page_scripts.cpp:4772",
           "target": "src/ingress/product_ui_page_scripts.cpp:4787"
         },
         {
@@ -8258,7 +8262,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v350-incident-to-command-handoff",
           "source": "scripts/internal/verify_v350_incident_to_command_handoff.mjs:197",
-          "target": "server.sh:2113"
+          "target": "server.sh:2151"
         }
       ],
       "rationale": "renderV350IncidentCommandHandoff actual payload call, exact control/schema/false boundary emission과 production verifier assertion을 결속한다."

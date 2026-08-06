@@ -59,7 +59,7 @@ const responseDerivedDomProjectionContracts = Object.freeze({
   "EVT-051\nscore-equals-response\nscore": Object.freeze({
     selector: "#opsIncidentDecisionScorecardRows [data-incident-decision-scorecard-event={fixtureId}]",
     collectionPath: "incidentDecisionScorecard.scorecards", identityPaths: ["eventId"],
-    fields: [["priorityReasonChips[].label", "priorityReasons", "field-text"]],
+    fields: [["score", "score"]],
   }),
   "EVT-052\nlinks-equal-response\nbundle/draft/dry-run/recheck": Object.freeze({
     selector: "#opsOperationalActionPackRows [data-operational-action-pack-event={fixtureId}]",
@@ -116,14 +116,14 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     fields: [["resolutionState.status", "status"], ["resolutionState.reason", "reason"]],
   }),
   "EVT-065\nfields-equal-response\ncompleteness/confidence/replayCoverageHint": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v320EvidenceQualityGrid",
+    selector: "#v320EvidenceQualityGrid[data-v320-evidence-quality={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["evidenceQuality.evidenceCompleteness", "completeness"],
       ["evidenceQuality.evidenceConfidence", "confidence"],
       ["evidenceQuality.replayCoverageHint", "replayCoverageHint"]],
   }),
   "EVT-066\nfields-equal-item-readback\nhealth/failureContext/recheckHint": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v320SourceReliabilityGrid",
+    selector: "#v320SourceReliabilityGrid[data-v320-source-reliability={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["sourceReliability.sourceHealthStatus", "health"],
       ["sourceReliability.recentFailureContext", "failureContext"],
@@ -131,7 +131,7 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     responseBodySelection: "last",
   }),
   "EVT-067\nfields-equal-response\ncorrectionSignal/reviewSignal/uncertaintyReason/qualityBadge": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v320AiReviewQualityGrid",
+    selector: "#v320AiReviewQualityGrid[data-v320-ai-review-quality={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["aiReviewQuality.correctionReviewSignal", "correctionSignal"],
       ["aiReviewQuality.reviewStatus", "reviewSignal"],
@@ -139,7 +139,7 @@ const responseDerivedDomProjectionContracts = Object.freeze({
       ["aiReviewQuality.qualityBadge", "qualityBadge"]],
   }),
   "EVT-069\nfields-equal-response\nruleDraft/evidenceBundle/notification/blockers": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v320ActionReadinessChecklistGrid",
+    selector: "#v320ActionReadinessChecklistGrid[data-v320-action-readiness-checklist={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["actionReadinessChecklist.ruleDraftStatus", "ruleDraft"],
       ["actionReadinessChecklist.evidenceBundleStatus", "evidenceBundle"],
@@ -147,14 +147,14 @@ const responseDerivedDomProjectionContracts = Object.freeze({
       ["actionReadinessChecklist.readinessBlockers[]", "blockers", "field-text"]],
   }),
   "EVT-071\nfields-equal-response\nsourceCause/closureImpact/correlationSignal": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v330IncidentSourceCorrelationGrid",
+    selector: "#v330IncidentSourceCorrelationGrid[data-v330-incident-source-correlation={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["incidentSourceCorrelation.sourceCauseCategory", "sourceCause"],
       ["incidentSourceCorrelation.resolutionClosureImpact", "closureImpact"],
       ["incidentSourceCorrelation.correlationSignals[]", "correlationSignal", "field-text"]],
   }),
   "EVT-072\nfields-equal-response\nretryCandidate/recoveryChecklist/dryRunStatus/operatorNoteLink": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v330OperatorRecheckRecoveryQueueGrid",
+    selector: "#v330OperatorRecheckRecoveryQueueGrid[data-v330-operator-recheck-recovery-queue={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["operatorRecheckRecoveryQueue.retryCandidate", "retryCandidate"],
       ["operatorRecheckRecoveryQueue.recoveryChecklist[]", "recoveryChecklist", "field-text"],
@@ -162,7 +162,7 @@ const responseDerivedDomProjectionContracts = Object.freeze({
       ["operatorRecheckRecoveryQueue.operatorNoteRoute", "operatorNoteLink"]],
   }),
   "EVT-075\nfields-equal-response\nsourceCause/continuityDrillCandidate/commandPlanDraft": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v350IncidentCommandHandoffGrid",
+    selector: "#v350IncidentCommandHandoffGrid[data-v350-incident-command-handoff={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["incidentCommandHandoff.sourceCause", "sourceCause"],
       ["incidentCommandHandoff.continuityDrillCandidate", "continuityDrillCandidate"],
@@ -218,6 +218,34 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     collectionPath: "operatorOutcomeMemory.items", identityPaths: ["eventId"],
     fields: [["deterministicHistoryHint.deterministicHistoryHint", "deterministicHistoryHint", "field-text"]],
   }),
+  "EVT-051\norder-equals-response\nscore": Object.freeze({
+    selector: "#opsIncidentDecisionScorecardRows [data-incident-decision-scorecard-event={fixtureId}]",
+    collectionPath: "incidentDecisionScorecard.scorecards", identityPaths: ["eventId"],
+    fields: [["score", "score"], ["scoreRank", "scoreRank"]],
+  }),
+  "EVT-054\naudit-refs-equal-response\nauditActionRefs": Object.freeze({
+    selector: "#opsOperatorOutcomeMemoryRows [data-operator-outcome-memory-event={fixtureId}]",
+    collectionPath: "operatorOutcomeMemory.items", identityPaths: ["eventId"],
+    fields: [["auditActionRefs.eventReviewUpdate|auditActionRefs.incidentActionUpdate",
+      "auditActionRefs", "field-text", "non-empty-union"]],
+  }),
+  "EVT-066\ncollection-item-consistent\nsourceReliability": Object.freeze({
+    selector: "#v320SourceReliabilityGrid[data-v320-source-reliability={fixtureId}]",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["sourceReliability.sourceHealthStatus", "health"],
+      ["sourceReliability.recentFailureContext", "failureContext"],
+      ["sourceReliability.operatorRecheckHint", "recheckHint"]],
+    responseBodyAgreement: "first-last",
+  }),
+  "EVT-070\nfields-equal-response\nactiveFilters/savedViewMatches/summary": Object.freeze({
+    selector: "#v320ResolutionSearchMetricsGrid[data-v320-resolution-search-metrics={fixtureId}]",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [
+      ["$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.reviewStatus|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.classification|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.incidentStatus|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.ruleId|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.sourceId|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.eventType|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.eventId|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.textQuery|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.includeArchives|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.activeResolutionFilters.limit", "activeFilters", "field-text", "non-empty-union"],
+      ["resolutionSearchMetrics.savedViewMatches[]", "savedViewMatches", "field-text"],
+      ["$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.operationsMetricSummary.matchedQueueCount|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.operationsMetricSummary.readyForApprovalCount|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.operationsMetricSummary.blockedActionCount|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.operationsMetricSummary.sourceRecheckCount|$root.unifiedResolutionWorkspace.resolutionSearchMetricsSummary.operationsMetricSummary.reviewRequiredCount", "summary", "field-text", "non-empty-union"],
+    ],
+  }),
   "EVT-055\nnot-run-not-styled-pass\nnot-run": Object.freeze({
     selector: "#opsIncidentActionReadinessQueueRows [data-incident-action-readiness-event={fixtureId}]",
     collectionPath: "incidentActionReadinessQueue.items", identityPaths: ["eventId"],
@@ -240,32 +268,32 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     fields: [["detailSections[].key", "detailSections", "field-text"]],
   }),
   "EVT-065\nselected-event-equals\nevt-065-review4-fixture": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v320EvidenceQualityGrid",
+    selector: "#v320EvidenceQualityGrid[data-v320-evidence-quality={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["evidenceQuality.evidenceCompleteness", "completeness"]],
   }),
   "EVT-067\nselected-event-equals\nevt-067-review4-fixture": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v320AiReviewQualityGrid",
+    selector: "#v320AiReviewQualityGrid[data-v320-ai-review-quality={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["aiReviewQuality.qualityBadge", "qualityBadge"]],
   }),
   "EVT-069\nselected-event-equals\nevt-069-review4-fixture": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v320ActionReadinessChecklistGrid",
+    selector: "#v320ActionReadinessChecklistGrid[data-v320-action-readiness-checklist={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["actionReadinessChecklist.ruleDraftStatus", "ruleDraft"]],
   }),
   "EVT-071\nselected-event-equals\nevt-071-review4-fixture": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v330IncidentSourceCorrelationGrid",
+    selector: "#v330IncidentSourceCorrelationGrid[data-v330-incident-source-correlation={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["incidentSourceCorrelation.sourceCauseCategory", "sourceCause"]],
   }),
   "EVT-072\nhealthy-source-absent\nhealthySource": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v330OperatorRecheckRecoveryQueueGrid",
+    selector: "#v330OperatorRecheckRecoveryQueueGrid[data-v330-operator-recheck-recovery-queue={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["operatorRecheckRecoveryQueue.failedOnlyRecheck", "failedOnlyRecheck"]],
   }),
   "EVT-075\nread-only\nno-action-control": Object.freeze({
-    selector: "[data-v320-resolution-detail={fixtureId}] #v350IncidentCommandHandoffGrid",
+    selector: "#v350IncidentCommandHandoffGrid[data-v350-incident-command-handoff={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["incidentCommandHandoff.boundaries.commandPlanExecuted", "commandPlanExecuted"]],
   }),
@@ -445,7 +473,8 @@ function projectionContractFixtureIdentity(fixtureIdentity, fixtureCandidates) {
 }
 
 function projectionContractRows(responseBodies, contract) {
-  const selectedBodies = contract.responseBodySelection === "last"
+  const selectedBodies = contract.responseBodySelection === "last" ||
+      contract.responseBodyAgreement === "first-last"
     ? responseBodies.slice(-1)
     : responseBodies;
   return selectedBodies.flatMap(body => eventExactValuesAtPath(body, contract.collectionPath))
@@ -468,6 +497,16 @@ function projectionContractExpectedValues(
     return [String(Math.min(Number(projectionContext.rowCount || 0), limit))];
   }
   if (transform === "limit") return [String(Number(options.limit))];
+  if (transform === "non-empty-union") {
+    return String(responsePath).split("|").flatMap(path => {
+      const root = path.startsWith("$root.") ? projectionContext.rootBody : row;
+      const localPath = path.startsWith("$root.") ? path.slice(6) : path;
+      return eventExactValuesAtPath(root, localPath)
+        .flatMap(value => Array.isArray(value) ? value : [value])
+        .filter(value => value !== undefined && value !== null && String(value).length > 0)
+        .map(value => String(value));
+    });
+  }
   if (transform === "evidence-state") {
     const [snapshotPath, clipPath] = String(responsePath).split("|");
     const snapshotPresent = eventExactValuesAtPath(row, snapshotPath)
@@ -478,7 +517,9 @@ function projectionContractExpectedValues(
       ? "snapshot+clip"
       : (snapshotPresent ? "snapshot-only" : (clipPresent ? "clip-only" : "none"))];
   }
-  const values = eventExactValuesAtPath(row, responsePath)
+  const root = String(responsePath).startsWith("$root.") ? projectionContext.rootBody : row;
+  const localPath = String(responsePath).startsWith("$root.") ? String(responsePath).slice(6) : responsePath;
+  const values = eventExactValuesAtPath(root, localPath)
     .flatMap(value => Array.isArray(value) ? value : [value])
     .map(value => String(value ?? ""));
   if (transform === "pass-style") {
@@ -500,6 +541,20 @@ function evaluateDeclaredResponseDomProjection({
   const identity = projectionContractFixtureIdentity(fixtureIdentity, fixtureCandidates);
   const rows = projectionContractRows(responseBodies, contract);
   const owners = identity ? rows.filter(row => projectionContractRowMatches(row, contract, identity)) : [];
+  const agreementBodies = contract.responseBodyAgreement === "first-last" && responseBodies.length >= 2
+    ? [responseBodies[0], responseBodies.at(-1)] : [];
+  const agreementOwners = agreementBodies.map(body =>
+    eventExactValuesAtPath(body, contract.collectionPath)
+      .flatMap(value => Array.isArray(value) ? value : [value])
+      .filter(row => row && typeof row === "object" && !Array.isArray(row) &&
+        projectionContractRowMatches(row, contract, identity)));
+  const agreementPass = contract.responseBodyAgreement !== "first-last" ||
+    (agreementOwners.length === 2 && agreementOwners.every(group => group.length === 1) &&
+      contract.fields.every(([responsePath]) => deepEqual(
+        projectionContractExpectedValues(agreementOwners[0][0], responsePath, identity,
+          "identity", {}, { rootBody: agreementBodies[0] }),
+        projectionContractExpectedValues(agreementOwners[1][0], responsePath, identity,
+          "identity", {}, { rootBody: agreementBodies[1] }))));
   const semanticNodes = Array.isArray(observation?.semanticNodes) ? observation.semanticNodes : [];
   const domCandidates = semanticNodes.filter(node => String(node?.eventId || "") === identity);
   const observationPresent = Number(observation?.count || 0) === 1 &&
@@ -511,6 +566,7 @@ function evaluateDeclaredResponseDomProjection({
     const expected = owners.length === 1
       ? projectionContractExpectedValues(owners[0], responsePath, identity, transform, options, {
         rowCount: rows.length,
+        rootBody: contract.responseBodySelection === "last" ? responseBodies.at(-1) : responseBodies[0],
       })
       : [];
     const node = domOwnerExact ? domCandidates[0] : null;
@@ -534,7 +590,7 @@ function evaluateDeclaredResponseDomProjection({
       matchedValueCount: valuesPass ? expected.length : expected.filter(value => actual.includes(value)).length,
       valuesPass,
       orderPass: valuesPass,
-      pass: owners.length === 1 && domOwnerExact && valuesPass,
+      pass: owners.length === 1 && agreementPass && domOwnerExact && valuesPass,
     };
   });
   const ownerMissing = owners.length === 0;
@@ -543,7 +599,8 @@ function evaluateDeclaredResponseDomProjection({
     semanticNodes.length === 0 || domCandidates.length === 0;
   const domDuplicate = Number(observation?.count || 0) > 1 || semanticNodes.length > 1 || domCandidates.length > 1;
   const valueMismatch = fieldEvidence.some(field => !field.valuesPass);
-  const pass = Boolean(identity) && owners.length === 1 && domOwnerExact && fieldEvidence.length > 0 && !valueMismatch;
+  const pass = Boolean(identity) && owners.length === 1 && agreementPass && domOwnerExact &&
+    fieldEvidence.length > 0 && !valueMismatch;
   const failureCode = pass
     ? "PASS"
     : (ownerMissing
@@ -720,6 +777,7 @@ export function validateIncidentMemorySearchResponseProjection({
   fixtureId,
   query,
   sourceId,
+  expectedIncidentId,
 } = {}) {
   const fail = (path, reason) => {
     throw new Error(`${caseId || "unknown-case"} incident memory response invalid: ${path}[${reason}]`);
@@ -757,6 +815,8 @@ export function validateIncidentMemorySearchResponseProjection({
   const normalizedFixtureId = requiredString(fixtureId, "fixtureId");
   const normalizedQuery = requiredString(query, "query");
   const normalizedSourceId = requiredString(sourceId, "sourceId");
+  const normalizedIncidentId = requiredString(
+    expectedIncidentId || `incident:${normalizedFixtureId}`, "expectedIncidentId");
   if (!responseJson || typeof responseJson !== "object" || Array.isArray(responseJson)) {
     fail("$", "type");
   }
@@ -790,7 +850,7 @@ export function validateIncidentMemorySearchResponseProjection({
     if (documentIds.has(documentId)) fail("memorySearch.hits[documentId]", "duplicate");
     documentIds.add(documentId);
     const documentMatches = documentId === `event-record:${normalizedFixtureId}`;
-    const incidentMatches = incidentId === normalizedFixtureId;
+    const incidentMatches = incidentId === normalizedIncidentId;
     if (documentMatches && !incidentMatches) fail("memorySearch.hits[fixture-identity]", "mismatch");
     if (incidentMatches) {
       if (sourceKind !== "event-record") fail(`${path}.sourceKind`, "identity");

@@ -1548,7 +1548,11 @@ std::string OpsIncidentDecisionScorecardReasonChipsJson(const std::vector<std::s
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 29154 function
 std::string OpsIncidentDecisionScorecardJson(const std::string& event_json,
-                                             const OpsEventReviewState& review) {
+                                             const OpsEventReviewState& review,
+                                             const OpsV320SourceReliabilityInfo& source_reliability,
+                                             const int similar_incident_score,
+                                             const int vlm_summary_candidate_count,
+                                             const std::int64_t generated_at_ms) {
     const std::string event_id = review.event_id.empty()
                                      ? Trim(ParseStringField(event_json, "eventId").value_or(""))
                                      : review.event_id;
@@ -1567,9 +1571,32 @@ std::string OpsIncidentDecisionScorecardJson(const std::string& event_json,
     const std::string vlm_rule_status = OpsIncidentTriageBoardVlmCandidateStatus(rule_review);
     const std::int64_t event_time_ms = OpsIncidentTriageBoardEventTimeMs(event_json, review);
     const std::int64_t operator_review_age_ms =
-        review.updated_at_ms > 0 ? std::max<std::int64_t>(0, event_time_ms - review.updated_at_ms) : -1;
-    const std::string source_health_status = source_id.empty() ? "source-missing" : "source-linked";
-    const std::string vlm_summary_status = "memory-search-query-dependent";
+        review.updated_at_ms > 0 ? std::max<std::int64_t>(0, generated_at_ms - review.updated_at_ms) : -1;
+    const std::string source_health_status = source_reliability.source_health_status;
+    const std::string vlm_summary_status =
+        vlm_summary_candidate_count > 0 ? "candidate-present" : "no-candidate";
+    const int event_record_score =
+        (event_status == "unknown" ? 0 : 15) +
+        (event_time_ms > 0 ? 5 : 0) +
+        (Trim(ParseStringField(event_json, "snapshotPath").value_or("")).empty() ? 0 : 5) +
+        (Trim(ParseStringField(event_json, "clipPath").value_or("")).empty() ? 0 : 5);
+    const int source_health_score = source_health_status == "live"
+                                        ? 0
+                                        : (source_health_status == "connecting"
+                                               ? 5
+                                               : (source_health_status == "stale" ? 10 : 15));
+    const int bounded_similar_incident_score =
+        std::max(0, std::min(15, (similar_incident_score * 15) / 100));
+    const int vlm_summary_score = vlm_summary_candidate_count > 0 ? 10 : 0;
+    const int vlm_rule_score = vlm_rule_status == "no-matching-candidate" ? 0 : 15;
+    const int operator_review_age_score = operator_review_age_ms < 0
+                                              ? 20
+                                              : (operator_review_age_ms >= 300000
+                                                     ? 15
+                                                     : (operator_review_age_ms >= 60000 ? 10 : 5));
+    const int decision_score =
+        event_record_score + source_health_score + bounded_similar_incident_score +
+        vlm_summary_score + vlm_rule_score + operator_review_age_score;
 
     std::vector<std::string> reasons;
     reasons.push_back(event_status == "unknown" ? "event-record-status-missing" : "event-record:" + event_status);
@@ -1591,16 +1618,20 @@ std::string OpsIncidentDecisionScorecardJson(const std::string& event_json,
         << "\"sourceHealthBasis\":{"
         << "\"sourceId\":\"" << JsonEscape(source_id.empty() ? "unknown-source" : source_id) << "\","
         << "\"status\":\"" << JsonEscape(source_health_status) << "\","
+        << "\"reason\":\"" << JsonEscape(source_reliability.source_health_reason) << "\","
         << "\"sourceUrlExposed\":false"
         << "},"
         << "\"similarIncidentBasis\":{"
         << "\"similarIncidentKey\":\"" << JsonEscape(similar_key) << "\","
         << "\"ruleId\":\"" << JsonEscape(rule_id.empty() ? "unmapped-rule" : rule_id) << "\","
-        << "\"scenario\":\"" << JsonEscape(scenario) << "\""
+        << "\"scenario\":\"" << JsonEscape(scenario) << "\","
+        << "\"score\":" << similar_incident_score
         << "},"
         << "\"vlmSummaryCandidateStatus\":\"" << JsonEscape(vlm_summary_status) << "\","
+        << "\"vlmSummaryCandidateCount\":" << vlm_summary_candidate_count << ","
         << "\"vlmRuleCandidateStatus\":\"" << JsonEscape(vlm_rule_status) << "\","
         << "\"operatorReviewAgeMs\":" << operator_review_age_ms << ","
+        << "\"score\":" << decision_score << ","
         << "\"priorityReasonChips\":" << OpsIncidentDecisionScorecardReasonChipsJson(reasons) << ","
         << "\"rawJsonExposed\":false,"
         << "\"sourceUrlExposed\":false"
@@ -1611,10 +1642,14 @@ std::string OpsIncidentDecisionScorecardJson(const std::string& event_json,
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 29215 function
 std::string OpsIncidentDecisionScorecardViewJson(
     const std::vector<std::string>& event_json_records,
-    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews,
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    const std::string& search_query) {
     std::vector<std::string> scorecards;
     scorecards.reserve(event_json_records.size());
-    for (const std::string& event_json : event_json_records) {
+    const std::int64_t generated_at_ms = NowUnixMs();
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string& event_json = event_json_records[index];
         const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
         if (!OpsEventReviewEventIdAllowed(event_id)) {
             continue;
@@ -1622,7 +1657,53 @@ std::string OpsIncidentDecisionScorecardViewJson(
         const auto review_it = reviews.find(event_id);
         const OpsEventReviewState review =
             review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
-        scorecards.push_back(OpsIncidentDecisionScorecardJson(event_json, review));
+        const OpsSimilarIncidentCandidate base =
+            OpsSimilarIncidentCandidateFromEvent(event_json, review, index);
+        int similar_incident_score = 0;
+        for (std::size_t related_index = 0; related_index < event_json_records.size(); ++related_index) {
+            if (related_index == index) {
+                continue;
+            }
+            const std::string related_event_id = Trim(
+                ParseStringField(event_json_records[related_index], "eventId").value_or(""));
+            const auto related_review_it = reviews.find(related_event_id);
+            const OpsEventReviewState related_review = related_review_it == reviews.end()
+                                                           ? DefaultOpsEventReviewState(related_event_id)
+                                                           : related_review_it->second;
+            const OpsSimilarIncidentCandidate related = OpsSimilarIncidentCandidateFromEvent(
+                event_json_records[related_index], related_review, related_index);
+            similar_incident_score = std::max(
+                similar_incident_score, OpsSimilarIncidentScore(base, related, nullptr));
+        }
+        const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+        const std::string vlm_summary_review = search_query.empty()
+                                                   ? std::string()
+                                                   : OpsVlmSummaryCandidateReviewJson(search_query, source_id);
+        const int vlm_summary_candidate_count = static_cast<int>(
+            ParseInt64Field(vlm_summary_review, "matchedCandidates").value_or(0));
+        scorecards.push_back(OpsIncidentDecisionScorecardJson(
+            event_json,
+            review,
+            OpsV320SourceReliabilityInfoFor(event_json, source_health_snapshot),
+            similar_incident_score,
+            vlm_summary_candidate_count,
+            generated_at_ms));
+    }
+    std::sort(scorecards.begin(), scorecards.end(), [](const std::string& left,
+                                                       const std::string& right) {
+        const std::int64_t left_score = ParseInt64Field(left, "score").value_or(0);
+        const std::int64_t right_score = ParseInt64Field(right, "score").value_or(0);
+        if (left_score != right_score) {
+            return left_score > right_score;
+        }
+        return ParseStringField(left, "eventId").value_or("") <
+               ParseStringField(right, "eventId").value_or("");
+    });
+    for (std::size_t index = 0; index < scorecards.size(); ++index) {
+        if (!scorecards[index].empty() && scorecards[index].back() == '}') {
+            scorecards[index].pop_back();
+            scorecards[index] += ",\"scoreRank\":" + std::to_string(index + 1) + "}";
+        }
     }
 
     std::ostringstream out;
@@ -6710,7 +6791,11 @@ bool OpsEventReviewInboxJson(const WebRtcHttpRuntimeConfig& config,
         << "\"incidentTriageBoard\":" << OpsIncidentTriageBoardViewJson(event_result.records_json, reviews)
         << ","
         << "\"incidentDecisionScorecard\":"
-        << OpsIncidentDecisionScorecardViewJson(event_result.records_json, reviews)
+        << OpsIncidentDecisionScorecardViewJson(
+               event_result.records_json,
+               reviews,
+               source_health_snapshot,
+               OpsIncidentMemoryQueryValue(query, "q"))
         << ","
         << "\"operationalActionPack\":"
         << OpsOperationalActionPackViewJson(event_result.records_json, reviews)

@@ -225,6 +225,17 @@ export async function executeCatalogRuntimeOracle({
         `${item.caseId} native primary action lacks the bound VA event projection`);
       }
     }
+    const eventReviewRenderBinding = item.caseId.startsWith("EVT-")
+      ? await materializeEventReviewRenderProjection({
+          browser,
+          item,
+          spec,
+          bindings: {
+            ...runtimeBindings,
+            ...(eventRuntimeContext?.templateValues || {}),
+          },
+        })
+      : null;
     const responses = [];
     const responseBodies = [];
     for (const request of spec.requests) {
@@ -319,6 +330,7 @@ export async function executeCatalogRuntimeOracle({
       dom,
       cleanup,
       nativePrimaryControl,
+      ...(eventReviewRenderBinding ? { eventReviewRenderBinding } : {}),
       ...(correlationScopeEvidence ? { correlationScopeEvidence } : {}),
       forbiddenNetworkObserved: 0,
       requestedRoute: spec.route,
@@ -915,13 +927,17 @@ export async function waitForPlayingMedia(browser, caseId, tileSelector, minimum
     selector: String(tileSelector || ""),
     minimumPlaying,
   });
+  assert(readiness && typeof readiness === "object" &&
+    Number.isInteger(readiness.videoCount) && Number.isInteger(readiness.playingCount) &&
+    Array.isArray(readiness.readyStates),
+  `${caseId} media readiness observation shape is invalid`);
   assert(readiness.playingCount >= minimumPlaying,
     `${caseId} media readiness mismatch: ${JSON.stringify(readiness)}`);
   return readiness;
 }
 
 export function mediaReadinessEvaluateExpression() {
-  return `async ({ selector, minimumPlaying }) => {
+  return async ({ selector, minimumPlaying }) => {
     const deadline = Date.now() + 12000;
     let last = { videoCount: 0, playingCount: 0, readyStates: [] };
     while (Date.now() < deadline) {
@@ -941,7 +957,77 @@ export function mediaReadinessEvaluateExpression() {
       await new Promise(resolve => setTimeout(resolve, 200));
     }
     return last;
-  }`;
+  };
+}
+
+export function eventReviewRenderProjectionEvaluateExpression() {
+  return async ({ fields, expectedFixtureId, ownerKind }) => {
+    const controlIds = {
+      q: "opsIncidentSearchInput",
+      ruleId: "opsIncidentSearchRuleFilter",
+      sourceId: "opsIncidentSearchSourceFilter",
+      incidentStatus: "opsIncidentSearchStatusFilter",
+    };
+    const applied = [];
+    for (const [name, value] of Object.entries(fields || {})) {
+      const node = document.getElementById(controlIds[name]);
+      if (!node) throw new Error(`event review render control missing: ${name}`);
+      node.value = String(value);
+      applied.push(name);
+    }
+    if (typeof refreshEvents !== "function") {
+      throw new Error("event review render refresh owner missing");
+    }
+    await refreshEvents();
+    const detail = document.querySelector(
+      `[data-v320-resolution-detail="${CSS.escape(String(expectedFixtureId || ""))}"]`);
+    const candidate = document.querySelector(
+      `[data-vlm-summary-candidate-event="${CSS.escape(String(expectedFixtureId || ""))}"]`);
+    const renderOwner = ownerKind === "candidate" ? candidate : detail;
+    return {
+      applied: applied.sort(),
+      fixtureOwnerCount: Number(Boolean(renderOwner)),
+      renderBound: renderOwner?.closest("#opsV320ResolutionDetail")
+        ?.getAttribute("data-v390-event-review-render-request") === "bound" || Boolean(candidate),
+    };
+  };
+}
+
+async function materializeEventReviewRenderProjection({ browser, item, spec, bindings }) {
+  const supported = ["q", "ruleId", "sourceId", "incidentStatus"];
+  const requests = (spec.requests || []).map(request => {
+    const path = expand(String(request.path || ""), bindings);
+    const url = new URL(path, "http://runtime.invalid");
+    const fields = Object.fromEntries(supported
+      .map(name => [name, url.searchParams.get(name)])
+      .filter(([, value]) => value !== null && String(value).length > 0));
+    return { request, path, url, fields };
+  }).filter(candidate => candidate.request?.method === "GET" &&
+    candidate.url.pathname === "/ops/api/events/reviews" &&
+    Object.keys(candidate.fields).length > 0);
+  if (requests.length === 0) return null;
+  assert(requests.length === 1,
+    `${item.caseId} event review render request owner cardinality mismatch: ${requests.length}`);
+  const expectedFixtureId = String(bindings.fixtureId || "");
+  const ownerKind = (spec.dom || []).some(assertion =>
+    String(assertion.selector || "").includes("vlm-summary-candidate"))
+    ? "candidate" : "resolution-detail";
+  const observation = await browser.evaluate(eventReviewRenderProjectionEvaluateExpression(), {
+    fields: requests[0].fields,
+    expectedFixtureId,
+    ownerKind,
+  });
+  assert(observation?.renderBound === true && observation.fixtureOwnerCount === 1,
+    `${item.caseId} event review render owner binding mismatch`);
+  assert(JSON.stringify(observation.applied) === JSON.stringify(Object.keys(requests[0].fields).sort()),
+    `${item.caseId} event review render fields drift`);
+  return {
+    schema: "media-server.v390-ui-event-review-render-binding.v1",
+    requestPathDigest: sha256Digest(requests[0].path),
+    appliedFields: observation.applied,
+    fixtureOwnerCount: observation.fixtureOwnerCount,
+    pass: true,
+  };
 }
 
 export function correlatedMutationRequestResponseEnvelope({ requestEntry, responseEntry } = {}) {
@@ -1594,7 +1680,8 @@ async function observeDom(
         const resolutionOwner = node.closest('[data-v320-resolution-detail]');
         const fieldEntries = Array.from(node.querySelectorAll('[data-event-semantic-field]')).map(field => ({
           name: String(field.getAttribute('data-event-semantic-field') || ''),
-          text: String(field.innerText || field.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000),
+          text: String(field.getAttribute('data-event-semantic-value') ??
+            field.innerText ?? field.textContent ?? '').replace(/\\s+/g, ' ').trim().slice(0, 4000),
         }));
         const fieldNames = [...new Set(fieldEntries.map(field => field.name).filter(Boolean))];
         return {

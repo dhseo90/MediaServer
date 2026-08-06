@@ -6963,14 +6963,22 @@ std::string OpsIncidentTriageBoardViewJson(
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 29133 prototype
 std::string OpsIncidentDecisionScorecardReasonChipsJson(const std::vector<std::string>& reasons);
 
+struct OpsV320SourceReliabilityInfo;
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 29154 prototype
 std::string OpsIncidentDecisionScorecardJson(const std::string& event_json,
-                                             const OpsEventReviewState& review);
+                                             const OpsEventReviewState& review,
+                                             const OpsV320SourceReliabilityInfo& source_reliability,
+                                             int similar_incident_score,
+                                             int vlm_summary_candidate_count,
+                                             std::int64_t generated_at_ms);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 29215 prototype
 std::string OpsIncidentDecisionScorecardViewJson(
     const std::vector<std::string>& event_json_records,
-    const std::unordered_map<std::string, OpsEventReviewState>& reviews);
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews,
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    const std::string& search_query);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 29263 prototype
 std::string OpsOperationalActionPackActionsJson(const std::string& event_json,

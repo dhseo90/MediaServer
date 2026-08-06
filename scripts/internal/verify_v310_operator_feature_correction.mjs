@@ -36,6 +36,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v310-operator-feature-correction";
 const files = {
   server: `${readWebRtcHttpServerBundle(readText)}\n${readText("src/ingress/product_ui_server_pages.cpp")}`,
+  runtime: readText("src/ingress/webrtc_http_server_runtime.cpp"),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -134,6 +135,14 @@ check("ops review API returns V310 operator correction view model with boundary 
 });
 
 check("product UI renders correction controls and saves them through review state", () => {
+  const correctionControlBlock = extractNamedFunctionBlock(files.pageScript, "eventReviewFeatureCorrectionHtml");
+  const reviewRowsBlock = extractNamedFunctionBlock(files.pageScript, "renderEventReviewRows");
+  const reviewActionBlock = extractNamedFunctionBlock(files.pageScript, "bindEventReviewActions");
+  const reviewRouteStart = files.runtime.indexOf("if (IsOpsEventReviewItemRoute(request.path)) {");
+  const reviewRouteEnd = files.runtime.indexOf('if (request.path == "/ops/api/audit") {', reviewRouteStart);
+  assert(reviewRouteStart >= 0 && reviewRouteEnd > reviewRouteStart,
+    "UI-061 authoritative event-review item route block missing");
+  const reviewRouteBlock = files.runtime.slice(reviewRouteStart, reviewRouteEnd);
   for (const snippet of [
     "eventReviewFeatureCorrectionHtml",
     "renderV310OperatorFeatureCorrection",
@@ -158,6 +167,34 @@ check("product UI renders correction controls and saves them through review stat
     assertIncludes(files.pageScript, "/ops/events", "UI-061 canonical route obligation");
     assertIncludes(files.pageScript, "correctedFeatureLabel", "UI-061 canonical field obligation");
   }
+  for (const snippet of [
+    'data-event-review-field="correctedFeatureLabel"',
+    'data-event-review-field="featureAliases"',
+    'data-event-review-field="reanalysisRequested"',
+    'data-event-review-field="reanalysisReason"',
+  ]) assertIncludes(correctionControlBlock, snippet, "UI-061 correction control owner");
+  assertIncludes(reviewRowsBlock, "bindEventReviewActions();", "UI-061 rendered rows bind authoritative save action");
+  for (const snippet of [
+    "featureCorrection: {",
+    "correctedFeatureLabel: correctedFeatureLabel",
+    "featureAliases: featureAliases",
+    "reanalysisRequested: reanalysisRequested",
+    "reanalysisReason: reanalysisReason",
+    "requestJson(`/ops/api/events/reviews/${encodeURIComponent(eventId)}`",
+    "method: 'PUT'",
+    "const result = await requestJson",
+    "await refreshEvents();",
+  ]) assertIncludes(reviewActionBlock, snippet, "UI-061 authoritative mutation and readback flow");
+  for (const snippet of [
+    'ExtractObjectField(request.body, "featureCorrection")',
+    'ParseStringField(*feature_correction, "correctedFeatureLabel")',
+    'StringArrayFieldValues(*feature_correction, "featureAliases")',
+    'ParseBoolField(*feature_correction, "reanalysisRequested")',
+    'ParseStringField(*feature_correction, "reanalysisReason")',
+    "UpsertOpsEventReviewState(config, next, &previous, &error_message)",
+    "LoadOpsEventReviewStates(config, &reviews, nullptr)",
+    "OpsEventReviewStateJson(saved)",
+  ]) assertIncludes(reviewRouteBlock, snippet, "UI-061 requestJson reviews authoritative server mutation and response readback");
 });
 
 check("V310 operator correction UI has stable responsive styles", () => {

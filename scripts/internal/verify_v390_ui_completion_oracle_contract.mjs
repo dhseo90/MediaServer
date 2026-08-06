@@ -16,6 +16,7 @@ import {
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
 import { buildNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
+import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -2232,9 +2233,21 @@ check("REVIEW4-58 exact 424 primary completion contracts bind product action and
         `${item.caseId} request is not action-correlated`);
       assert(completion.request.correlationId !== `${item.caseId}:navigation`,
         `${item.caseId} reuses initial navigation correlation`);
-      assert(completion.request.method === endpoint.method && completion.request.urlPathTemplate === endpoint.path &&
-        !completion.request.urlPath.includes("{") &&
-        JSON.stringify(completion.request.allowedStatuses) === JSON.stringify(endpoint.allowedStatuses),
+      const productEndpointBound = completion.request.method === endpoint.method &&
+        completion.request.urlPathTemplate === endpoint.path &&
+        JSON.stringify(completion.request.allowedStatuses) === JSON.stringify(endpoint.allowedStatuses);
+      const exactReadRequests = (exactRuntimeOracleFor(item.caseId)?.requests || [])
+        .filter(request => request?.method === "GET");
+      const authoritativeRead = exactReadRequests.length === 1 ? exactReadRequests[0] : null;
+      const authoritativeReadBound = item.workflow.workflowClass === "read-only-state" &&
+        item.workflow.productAction.kind === "product-state-read" &&
+        endpoint.method === "GET" && endpoint.path === item.canonicalRoute &&
+        authoritativeRead?.path?.startsWith("/ops/api/events/reviews") &&
+        completion.request.method === authoritativeRead.method &&
+        completion.request.urlPathTemplate === authoritativeRead.path &&
+        JSON.stringify(completion.request.allowedStatuses) ===
+          JSON.stringify(authoritativeRead.allowedStatuses || authoritativeRead.statuses || [200]);
+      assert((productEndpointBound || authoritativeReadBound) && !completion.request.urlPath.includes("{"),
       `${item.caseId} product endpoint completion mismatch`);
     } else {
       assert(completion.localTransition.selector === item.workflow.primaryControl.selector &&

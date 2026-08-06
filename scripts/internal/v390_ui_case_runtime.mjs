@@ -343,11 +343,17 @@ export function typedActiveResolutionFiltersFromUrl(urlPath) {
   return typedActiveResolutionFiltersFromRequest(query);
 }
 
-export function authoritativeSourceHealthFixtureBinding({ sources, views, sourceHealth } = {}) {
+export function authoritativeSourceHealthFixtureBinding({
+  sources, views, sourceHealth, expectedSourceId,
+} = {}) {
   assert(Array.isArray(sources) && Array.isArray(views) && Array.isArray(sourceHealth),
     "authoritative source-health fixture inputs are incomplete");
+  const normalizedExpectedSourceId = String(expectedSourceId || "");
+  assert(normalizedExpectedSourceId,
+    "authoritative source-health expected source identity is missing");
   const matches = sourceHealth.flatMap(health => {
     const sourceId = String(health?.sourceId || "");
+    if (sourceId !== normalizedExpectedSourceId) return [];
     const sourceOwners = sources.filter(candidate =>
       String(candidate?.sourceId || "") === sourceId && candidate?.enabled === true);
     const viewOwners = views.filter(candidate =>
@@ -3724,6 +3730,8 @@ export function createV390UiCaseRuntime({
       sources: sourceList.json?.sources,
       views: viewList.json?.views,
       sourceHealth: health.json?.sourceHealth,
+      expectedSourceId: String(context.catalogBindings?.sourceId ||
+        canonicalEventRuntimeSeedBindings({ fixtureId: context.fixtureId }).sourceId),
     });
     context.catalogBindings = { ...context.catalogBindings, ...binding };
     return binding;

@@ -4615,7 +4615,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           evidenceQuality.sourceUrlExposed === false &&
           evidenceQuality.rawJsonExposed === false &&
           evidenceQuality.debugMaterialExposed === false;
-        return `<div id="v320EvidenceQualityGrid" class="v320-evidence-quality-grid" data-v320-evidence-quality="${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-completeness="${escapeHtml(evidenceQuality.evidenceCompleteness || '')}" data-event-semantic-confidence="${escapeHtml(evidenceQuality.evidenceConfidence || '')}" data-event-semantic-replay-coverage-hint="${escapeHtml(evidenceQuality.replayCoverageHint || '')}">
+        return `<div id="v320EvidenceQualityGrid" class="v320-evidence-quality-grid" data-v320-evidence-quality="${escapeHtml(selectedDetail?.eventId || '')}" data-v320-evidence-quality-schema="${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-completeness="${escapeHtml(evidenceQuality.evidenceCompleteness || '')}" data-event-semantic-confidence="${escapeHtml(evidenceQuality.evidenceConfidence || '')}" data-event-semantic-replay-coverage-hint="${escapeHtml(evidenceQuality.replayCoverageHint || '')}">
           <p class="v320-evidence-quality-card">
             <strong>evidence completeness</strong>
             <span>${escapeHtml(display(evidenceQuality.evidenceCompleteness || 'missing'))}</span>
@@ -4649,7 +4649,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           sourceReliability.sourceUrlExposed === false &&
           sourceReliability.rawJsonExposed === false &&
           sourceReliability.debugMaterialExposed === false;
-        return `<div id="v320SourceReliabilityGrid" class="v320-source-reliability-grid" data-v320-source-reliability="${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-health="${escapeHtml(sourceReliability.sourceHealthStatus || '')}" data-event-semantic-failure-context="${escapeHtml(sourceReliability.recentFailureContext || '')}" data-event-semantic-recheck-hint="${escapeHtml(sourceReliability.operatorRecheckHint || '')}">
+        return `<div id="v320SourceReliabilityGrid" class="v320-source-reliability-grid" data-v320-source-reliability="${escapeHtml(selectedDetail?.eventId || '')}" data-v320-source-reliability-schema="${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-health="${escapeHtml(sourceReliability.sourceHealthStatus || '')}" data-event-semantic-failure-context="${escapeHtml(sourceReliability.recentFailureContext || '')}" data-event-semantic-recheck-hint="${escapeHtml(sourceReliability.operatorRecheckHint || '')}">
           <p class="v320-source-reliability-card">
             <strong>source health</strong>
             <span>${escapeHtml(display(sourceReliability.sourceHealthStatus || 'source-missing'))}</span>
@@ -4687,7 +4687,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           incidentSourceCorrelation.sourceUrlExposed === false &&
           incidentSourceCorrelation.rawJsonExposed === false &&
           incidentSourceCorrelation.debugMaterialExposed === false;
-        return `<div id="v330IncidentSourceCorrelationGrid" class="v330-incident-source-correlation-grid" data-v330-incident-source-correlation="${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-source-cause="${escapeHtml(incidentSourceCorrelation.sourceCauseCategory || '')}" data-event-semantic-closure-impact="${escapeHtml(incidentSourceCorrelation.resolutionClosureImpact || '')}">
+        return `<div id="v330IncidentSourceCorrelationGrid" class="v330-incident-source-correlation-grid" data-v330-incident-source-correlation="${escapeHtml(selectedDetail?.eventId || '')}" data-v330-incident-source-correlation-schema="${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-source-cause="${escapeHtml(incidentSourceCorrelation.sourceCauseCategory || '')}" data-event-semantic-closure-impact="${escapeHtml(incidentSourceCorrelation.resolutionClosureImpact || '')}">
           <p class="v330-incident-source-correlation-card">
             <strong>source cause</strong>
             <span>${escapeHtml(display(incidentSourceCorrelation.sourceCauseCategory || 'source-context-missing'))}</span>
@@ -4732,7 +4732,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           operatorRecheckRecoveryQueue.credentialMaterialExposed === false &&
           operatorRecheckRecoveryQueue.autoRecoveryApplied === false &&
           operatorRecheckRecoveryQueue.externalRecoveryPerformed === false;
-        return `<div id="v330OperatorRecheckRecoveryQueueGrid" class="v330-operator-recheck-recovery-queue-grid" data-v330-operator-recheck-recovery-queue="${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-retry-candidate="${escapeHtml(operatorRecheckRecoveryQueue.retryCandidate || '')}" data-event-semantic-dry-run-status="${escapeHtml(operatorRecheckRecoveryQueue.dryRunResultStatus || '')}" data-event-semantic-operator-note-link="${escapeHtml(operatorRecheckRecoveryQueue.operatorNoteRoute || '')}" data-event-semantic-failed-only-recheck="${operatorRecheckRecoveryQueue.failedOnlyRecheck === true ? 'true' : 'false'}">
+        return `<div id="v330OperatorRecheckRecoveryQueueGrid" class="v330-operator-recheck-recovery-queue-grid" data-v330-operator-recheck-recovery-queue="${escapeHtml(selectedDetail?.eventId || '')}" data-v330-operator-recheck-recovery-queue-schema="${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-retry-candidate="${escapeHtml(operatorRecheckRecoveryQueue.retryCandidate || '')}" data-event-semantic-dry-run-status="${escapeHtml(operatorRecheckRecoveryQueue.dryRunResultStatus || '')}" data-event-semantic-operator-note-link="${escapeHtml(operatorRecheckRecoveryQueue.operatorNoteRoute || '')}" data-event-semantic-failed-only-recheck="${operatorRecheckRecoveryQueue.failedOnlyRecheck === true ? 'true' : 'false'}">
           <p class="v330-operator-recheck-recovery-queue-card">
             <strong>failed-only recheck</strong>
             <span>${operatorRecheckRecoveryQueue.failedOnlyRecheck === true ? 'enabled' : '확인 필요'}</span>
@@ -4784,7 +4784,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           boundaries.viewerClientExposureAdded === false &&
           boundaries.rawLocatorExposedToClient === false &&
           boundaries['credential' + 'MaterialExposed'] === false;
-        return `<div id="v350IncidentCommandHandoffGrid" class="v330-operator-recheck-recovery-queue-grid" data-v350-incident-command-handoff="${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-source-cause="${escapeHtml(incidentCommandHandoff.sourceCause || '')}" data-event-semantic-continuity-drill-candidate="${escapeHtml(incidentCommandHandoff.continuityDrillCandidate || '')}" data-event-semantic-command-plan-draft="${escapeHtml(incidentCommandHandoff.commandPlanDraft || '')}" data-event-semantic-command-plan-executed="${boundaries.commandPlanExecuted === true ? 'true' : 'false'}">
+        return `<div id="v350IncidentCommandHandoffGrid" class="v330-operator-recheck-recovery-queue-grid" data-v350-incident-command-handoff="${escapeHtml(selectedDetail?.eventId || '')}" data-v350-incident-command-handoff-schema="${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-source-cause="${escapeHtml(incidentCommandHandoff.sourceCause || '')}" data-event-semantic-continuity-drill-candidate="${escapeHtml(incidentCommandHandoff.continuityDrillCandidate || '')}" data-event-semantic-command-plan-draft="${escapeHtml(incidentCommandHandoff.commandPlanDraft || '')}" data-event-semantic-command-plan-executed="${boundaries.commandPlanExecuted === true ? 'true' : 'false'}">
           <p class="v330-operator-recheck-recovery-queue-card" data-v350-detail-section="incident-command-handoff">
             <strong>source cause</strong>
             <span>${escapeHtml(display(incidentCommandHandoff.sourceCause || 'source-context-missing'))}</span>
@@ -4818,7 +4818,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           aiReviewQuality.sourceUrlExposed === false &&
           aiReviewQuality.rawJsonExposed === false &&
           aiReviewQuality.debugMaterialExposed === false;
-        return `<div id="v320AiReviewQualityGrid" class="v320-ai-review-quality-grid" data-v320-ai-review-quality="${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-correction-signal="${escapeHtml(aiReviewQuality.correctionReviewSignal || '')}" data-event-semantic-review-signal="${escapeHtml(aiReviewQuality.reviewStatus || '')}" data-event-semantic-uncertainty-reason="${escapeHtml(aiReviewQuality.uncertaintyReason || '')}" data-event-semantic-quality-badge="${escapeHtml(aiReviewQuality.qualityBadge || '')}">
+        return `<div id="v320AiReviewQualityGrid" class="v320-ai-review-quality-grid" data-v320-ai-review-quality="${escapeHtml(selectedDetail?.eventId || '')}" data-v320-ai-review-quality-schema="${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-correction-signal="${escapeHtml(aiReviewQuality.correctionReviewSignal || '')}" data-event-semantic-review-signal="${escapeHtml(aiReviewQuality.reviewStatus || '')}" data-event-semantic-uncertainty-reason="${escapeHtml(aiReviewQuality.uncertaintyReason || '')}" data-event-semantic-quality-badge="${escapeHtml(aiReviewQuality.qualityBadge || '')}">
           <p class="v320-ai-review-quality-card">
             <strong>correction review</strong>
             <span>${escapeHtml(display(aiReviewQuality.correctionReviewSignal || 'pending-review'))}</span>
@@ -4894,7 +4894,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           actionReadinessChecklist.ruleDraftCreated === false &&
           actionReadinessChecklist.notificationSent === false &&
           actionReadinessChecklist.viewerClientExposureAdded === false;
-        return `<div id="v320ActionReadinessChecklistGrid" class="v320-action-readiness-checklist-grid" data-v320-action-readiness-checklist="${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-rule-draft="${escapeHtml(actionReadinessChecklist.ruleDraftStatus || '')}" data-event-semantic-evidence-bundle="${escapeHtml(actionReadinessChecklist.evidenceBundleStatus || '')}" data-event-semantic-notification="${actionReadinessChecklist.notificationReady === true ? 'true' : 'false'}">
+        return `<div id="v320ActionReadinessChecklistGrid" class="v320-action-readiness-checklist-grid" data-v320-action-readiness-checklist="${escapeHtml(selectedDetail?.eventId || '')}" data-v320-action-readiness-checklist-schema="${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-rule-draft="${escapeHtml(actionReadinessChecklist.ruleDraftStatus || '')}" data-event-semantic-evidence-bundle="${escapeHtml(actionReadinessChecklist.evidenceBundleStatus || '')}" data-event-semantic-notification="${actionReadinessChecklist.notificationReady === true ? 'true' : 'false'}">
           <p class="v320-action-readiness-checklist-card">
             <strong>readiness status</strong>
             <span>${escapeHtml(display(actionReadinessChecklist.readinessStatus || 'blocked'))}</span>
@@ -4963,13 +4963,13 @@ void AppendOpsShellScript(std::ostringstream& out,
           resolutionSearchMetricsSummary.rawJsonExposed === false &&
           resolutionSearchMetricsSummary.debugMaterialExposed === false &&
           resolutionSearchMetricsSummary.clientDigestChanged === false;
-        return `<div id="v320ResolutionSearchMetricsGrid" class="v320-resolution-search-metrics-grid" data-v320-resolution-search-metrics="${escapeHtml(resolutionSearchMetricsSummary.schema || 'media-server.ops.v320-resolution-search-metrics.v1')}">
+        return `<div id="v320ResolutionSearchMetricsGrid" class="v320-resolution-search-metrics-grid" data-v320-resolution-search-metrics="${escapeHtml(selectedDetail?.eventId || '')}" data-v320-resolution-search-metrics-schema="${escapeHtml(resolutionSearchMetricsSummary.schema || 'media-server.ops.v320-resolution-search-metrics.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}">
           <article class="v320-resolution-search-card">
             <strong>resolution filters</strong>
             <span>${escapeHtml(display(filters.queryApplied === true ? 'active filters' : 'default queue'))}</span>
             <small>filterCount ${escapeHtml(display(filters.filterCount ?? 0))} · selected ${escapeHtml(display(resolutionSearchMetrics.eventId || selectedDetail?.eventId || 'none'))}</small>
             <div class="v320-resolution-filter-list">
-              ${(filterEntries.length ? filterEntries : [['default', 'unfiltered']]).map(([key, value]) => `<span class="chip" data-v320-resolution-filter="${escapeHtml(key)}">${escapeHtml(key)} ${escapeHtml(display(value))}</span>`).join('')}
+              ${(filterEntries.length ? filterEntries : [['default', 'unfiltered']]).map(([key, value]) => `<span class="chip" data-v320-resolution-filter="${escapeHtml(key)}">${escapeHtml(key)} <span data-event-semantic-field="activeFilters">${escapeHtml(String(value))}</span></span>`).join('')}
             </div>
           </article>
           <article class="v320-resolution-search-card">
@@ -4985,7 +4985,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <span>${escapeHtml(display(metrics.metricBasis || 'EventRecord + Ops review state + v3.2 context'))}</span>
             <small>${escapeHtml(display(metrics.operationsNextAction || 'filter saved views, inspect blocked action readiness, then close or reopen with audit'))}</small>
             <div class="v320-resolution-filter-list">
-              ${metricCards.map(([key, value]) => `<span class="v320-resolution-metric-card" data-v320-resolution-metric="${escapeHtml(key)}"><strong>${escapeHtml(display(value))}</strong><small>${escapeHtml(key)}</small></span>`).join('')}
+              ${metricCards.map(([key, value]) => `<span class="v320-resolution-metric-card" data-v320-resolution-metric="${escapeHtml(key)}"><strong data-event-semantic-field="summary">${escapeHtml(String(value))}</strong><small>${escapeHtml(key)}</small></span>`).join('')}
             </div>
           </article>
           <article class="v320-resolution-search-card">
@@ -4993,7 +4993,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <span>${boundary ? 'Ops-only search metrics' : 'boundary 확인 필요'}</span>
             <small>clientDigestChanged ${resolutionSearchMetricsSummary.clientDigestChanged === false ? 'false' : '확인 필요'} · sourceUrlExposed ${resolutionSearchMetricsSummary.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${resolutionSearchMetricsSummary.rawJsonExposed === false ? 'false' : '확인 필요'}</small>
             <div class="v320-resolution-saved-views">
-              ${(Array.isArray(resolutionSearchMetrics.savedViewMatches) ? resolutionSearchMetrics.savedViewMatches : ['open-resolution']).map(view => `<span class="chip info" data-v320-saved-view="${escapeHtml(view)}">${escapeHtml(display(view))}</span>`).join('')}
+              ${(Array.isArray(resolutionSearchMetrics.savedViewMatches) ? resolutionSearchMetrics.savedViewMatches : ['open-resolution']).map(view => `<span class="chip info" data-v320-saved-view="${escapeHtml(view)}" data-event-semantic-field="savedViewMatches">${escapeHtml(String(view))}</span>`).join('')}
             </div>
           </article>
         </div>`;
@@ -5086,7 +5086,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           </div>
           <div class="v320-resolution-detail-grid">
             ${detailSections.map(section => `<p data-v320-resolution-detail-section="${escapeHtml(section?.key || '')}">
-              <strong data-event-semantic-field="detailSections">${escapeHtml(display(section?.key || 'section'))}</strong>
+              <strong data-event-semantic-field="detailSections" data-event-semantic-value="${escapeHtml(section?.key || '')}">${escapeHtml(display(section?.key || 'section'))}</strong>
               <span>${escapeHtml(display(section?.status || 'unknown'))}</span>
               <small>${escapeHtml(display(section?.detail || 'Ops review state'))}</small>
             </p>`).join('')}
@@ -5352,12 +5352,13 @@ void AppendOpsShellScript(std::ostringstream& out,
           const eventBasis = card?.eventRecordBasis || {};
           const sourceBasis = card?.sourceHealthBasis || {};
           const similarBasis = card?.similarIncidentBasis || {};
-          return `<article class="incident-decision-scorecard-card" data-incident-decision-scorecard-event="${escapeHtml(card?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(card?.eventId || '')}">
+          return `<article class="incident-decision-scorecard-card" data-incident-decision-scorecard-event="${escapeHtml(card?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(card?.eventId || '')}" data-event-semantic-score="${escapeHtml(display(card?.score ?? ''))}" data-event-semantic-score-rank="${escapeHtml(display(card?.scoreRank ?? ''))}">
             <div class="table-cell-main">
               <strong>${escapeHtml(display(card?.eventId || 'event'))}</strong>
               <span>EventRecord ${escapeHtml(display(eventBasis.eventType || 'event'))} · ${escapeHtml(display(eventBasis.status || 'unknown'))}</span>
             </div>
             <div class="badge-row">
+              <span class="chip info">score ${escapeHtml(display(card?.score ?? 0))} · rank ${escapeHtml(display(card?.scoreRank ?? '-'))}</span>
               ${chips.map(chip => `<span class="chip priority-reason-chip ${chip?.tone ? escapeHtml(chip.tone) : ''}" data-event-semantic-field="priorityReasons">${escapeHtml(display(chip?.label || chip))}</span>`).join('')}
             </div>
             <div class="incident-decision-basis-grid">
@@ -5751,7 +5752,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <div class="operator-outcome-memory-hint">
               <p><strong>deterministicHistoryHint</strong><span data-event-semantic-field="deterministicHistoryHint">${escapeHtml(display(hint.deterministicHistoryHint || '-'))}</span></p>
               <p><strong>reviewStateBasis</strong><span>${escapeHtml(display(basis.reviewStatus || '-'))} · ${escapeHtml(display(basis.incidentStatus || '-'))} · ${escapeHtml(display(basis.classification || '-'))} · ${escapeHtml(display(basis.vlmAction || '-'))}</span></p>
-              <p><strong>auditActionRefs</strong><span>${escapeHtml(display(audit.eventReviewUpdate || 'event-review-update'))} · ${escapeHtml(display(audit.incidentActionUpdate || 'incident-action-update'))}</span></p>
+              <p><strong>auditActionRefs</strong><span data-event-semantic-field="auditActionRefs">${escapeHtml(audit.eventReviewUpdate || 'event-review-update')}</span> · <span data-event-semantic-field="auditActionRefs">${escapeHtml(audit.incidentActionUpdate || 'incident-action-update')}</span></p>
             </div>
           </article>`;
         }).join('');
@@ -6175,6 +6176,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
         renderV300EventEvidenceSearchUi(reviewPayload.eventEvidenceSearch || {});
         renderV320UnifiedOpsEventsWorkspace(reviewPayload.unifiedResolutionWorkspace || {});
+        document.getElementById('opsV320ResolutionDetail')?.setAttribute(
+          'data-v390-event-review-render-request', 'bound');
         renderV310ReplayTimelineUi(reviewPayload.replayTimeline || {});
         renderV310OperatorFeatureCorrection(reviewPayload.operatorFeatureCorrection || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});

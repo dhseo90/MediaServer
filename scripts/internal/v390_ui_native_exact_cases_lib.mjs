@@ -2010,13 +2010,14 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
         `${item.caseId} non-navigation primary unexpectedly uses navigation binding`);
       }
     } else if (item.workflow.productAction.endpoint) {
-      const endpoint = item.workflow.productAction.endpoint;
+      const expectedPrimaryCompletion = expectedItem.workflow.controlSequence
+        .find(action => action.semanticCompletion?.phase === "primary-action")?.semanticCompletion;
       assert(primaryCompletion.request.correlationId === primaryCompletion.correlationId &&
         primaryCompletion.request.correlationId !== `${item.caseId}:navigation` &&
-        primaryCompletion.request.method === endpoint.method &&
-        primaryCompletion.request.urlPathTemplate === endpoint.path &&
+        expectedPrimaryCompletion?.request &&
+        JSON.stringify(primaryCompletion.request) === JSON.stringify(expectedPrimaryCompletion.request) &&
         !primaryCompletion.request.urlPath.includes("{") &&
-        JSON.stringify(primaryCompletion.request.allowedStatuses) === JSON.stringify(endpoint.allowedStatuses),
+        primaryCompletion.request.allowedStatuses.length > 0,
       `${item.caseId} action request completion drift`);
     } else {
       const localAction = item.workflow.productAction.localAction;
@@ -3513,6 +3514,20 @@ function buildActionSemanticCompletion({
     JSON.stringify(productAction.endpoint.allowedStatuses) === JSON.stringify([200, 302]);
   const navigationBoundReadModel =
     diagnosticNavigationBoundReadModel || rootRedirectNavigationBoundReadModel;
+  const exactReadRequests = Array.isArray(exactRuntimeOracle?.requests)
+    ? exactRuntimeOracle.requests.filter(candidate => candidate?.method === "GET")
+    : [];
+  const exactReadPathParameters = exactReadRequests.length === 1
+    ? [...String(exactReadRequests[0]?.path || "").matchAll(/\{([^/{}]+)\}/g)]
+      .map(match => match[1])
+    : [];
+  const authoritativeExactReadRequest = primary &&
+    workflowClass === "read-only-state" &&
+    productAction.kind === "product-state-read" && exactReadRequests.length === 1 &&
+    String(exactReadRequests[0]?.path || "").startsWith("/ops/api/events/reviews") &&
+    exactReadPathParameters.every(name => ["fixtureId", "id"].includes(name))
+    ? exactReadRequests[0]
+    : null;
   const rootRedirectLifecycle = [
     {
       purpose: "requested-root-document",
@@ -3563,9 +3578,8 @@ function buildActionSemanticCompletion({
         : {}),
       authoritativeReadback: null,
     };
-    if (primary && action.kind === "navigate-negative" &&
-        ["SAFE-016", "SAFE-017"].includes(caseId)) {
-      navigationBinding.caseLifecycleNavigationSequence = [
+    if (primary && action.kind === "navigate-negative") {
+      const negativeDocumentLifecycle = [
         {
           purpose: "initial-product-document",
           method: "GET",
@@ -3587,6 +3601,7 @@ function buildActionSemanticCompletion({
           responseStatus: (action.allowedStatuses || [404])[0],
         },
       ];
+      navigationBinding.caseLifecycleNavigationSequence = negativeDocumentLifecycle;
     }
   }
   if (navigationBoundReadModel && primary && !documentNavigation) {
@@ -3646,8 +3661,9 @@ function buildActionSemanticCompletion({
   if (primary) {
     if (navigationBinding) {
       // Route-owned read models reuse the initial document navigation and bind their API through the catalog runtime.
-    } else if (productAction.endpoint) {
-      request = actionRequestContract(correlationId, productAction.endpoint, workflowInputs, caseId);
+    } else if (authoritativeExactReadRequest || productAction.endpoint) {
+      request = actionRequestContract(correlationId,
+        authoritativeExactReadRequest || productAction.endpoint, workflowInputs, caseId);
     } else {
       localTransition = {
         selector: primaryControl.selector,
