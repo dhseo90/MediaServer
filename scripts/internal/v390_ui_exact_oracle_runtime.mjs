@@ -2634,11 +2634,20 @@ function evaluateRequestAssertions(assertions, context) {
       let rowLocalComparisonActual = undefined;
       if (rowLocalBaseline) {
         assert(rowLocalBaseline.schema === "media-server.v390-ui-event-request-row-local-baseline.v1" &&
+          rowLocalBaseline.provenance === "response" &&
           Array.isArray(rowLocalBaseline.identityPaths) && rowLocalBaseline.identityPaths.length > 0 &&
-          ["all", "any"].includes(rowLocalBaseline.identityPathMode),
+          ["all", "any"].includes(rowLocalBaseline.identityPathMode) &&
+          rowLocalBaseline.cardinality?.collectionOwner === 1 &&
+          rowLocalBaseline.cardinality?.fixtureRow === 1 &&
+          rowLocalBaseline.cardinality?.value === 1,
         `${context.caseId} request row-local baseline is invalid`);
-        const rows = eventExactValuesAtPath(context.body, rowLocalBaseline.collectionPath)
-          .flatMap(value => Array.isArray(value) ? value : [value])
+        const collectionOwners = eventExactValuesAtPath(
+          context.body, rowLocalBaseline.collectionPath);
+        assert(collectionOwners.length === rowLocalBaseline.cardinality.collectionOwner &&
+          Array.isArray(collectionOwners[0]),
+        `${context.caseId} request row-local collection owner cardinality mismatch: ${collectionOwners.length}`);
+        const rows = collectionOwners
+          .flatMap(value => value)
           .filter(value => value && typeof value === "object" && !Array.isArray(value));
         const matchingRows = rows.filter(row => {
           const matches = rowLocalBaseline.identityPaths.map(identityPath =>
@@ -2648,13 +2657,13 @@ function evaluateRequestAssertions(assertions, context) {
             ? matches.some(Boolean)
             : matches.every(Boolean);
         });
-        assert(matchingRows.length === 1,
+        assert(matchingRows.length === rowLocalBaseline.cardinality.fixtureRow,
           `${context.caseId} request row-local fixture cardinality mismatch: ${matchingRows.length}`);
         const projected = eventExactValuesAtPath(
           matchingRows[0],
           rowLocalBaseline.projectionPath,
         );
-        assert(projected.length === 1,
+        assert(projected.length === rowLocalBaseline.cardinality.value,
           `${context.caseId} request row-local projection cardinality mismatch: ${projected.length}`);
         actual = projected[0];
         if (Array.isArray(rowLocalBaseline.comparisonProjectionPaths) &&
@@ -3467,10 +3476,16 @@ export function buildEventDomSemanticCompositeEvidence({
   const paths = Object.entries(priorResponseByPath).map(([path, baseline]) => {
     const baselineMissing = baseline?.schema ===
       "media-server.v390-ui-event-response-baseline-missing.v1";
+    const requestOwner = isEventRequestOwnerProvenanceBaseline(baseline);
     const rowLocal = isEventRowLocalResponseBaseline(baseline);
     const rowSet = isEventRowSetResponseBaseline(baseline);
+    const requestEvaluation = requestOwner
+      ? evaluateEventRequestQueryOwner({ caseId, networkEntries, baseline })
+      : null;
     const candidates = baselineMissing
       ? []
+      : requestOwner
+      ? requestEvaluation.candidates
       : rowLocal
       ? responseBodies
         .flatMap(body => eventRowLocalResponseProjections(body, baseline))
@@ -3481,10 +3496,14 @@ export function buildEventDomSemanticCompositeEvidence({
         .map(body => eventExactValuesAtPath(body, path))
         .filter(pathValues => pathValues.length > 0)
         .map(pathValues => pathValues.length === 1 ? pathValues[0] : pathValues);
-    const expected = rowLocal
+    const expected = requestOwner
+      ? baseline.expectedQuery
+      : rowLocal
       ? baseline.expectedProjection
       : (rowSet ? baseline.expectedRows : baseline);
-    const matched = !baselineMissing && (rowLocal
+    const matched = !baselineMissing && (requestOwner
+      ? requestEvaluation.pass
+      : rowLocal
       ? candidates.length === 1 && stableEqual(candidates[0], expected)
       : rowSet
       ? candidates.length === expected.length && stableEqual(candidates, expected)
@@ -3505,6 +3524,8 @@ export function buildEventDomSemanticCompositeEvidence({
       : "FIXTURE_SOURCE_ROW_DUPLICATE";
     const reasonCode = baselineMissing
       ? "RESPONSE_BASELINE_MISSING"
+      : requestOwner
+      ? requestEvaluation.reasonCode
       : matched
       ? "PASS"
       : (!rowLocal && candidates.length === 0
@@ -3521,11 +3542,20 @@ export function buildEventDomSemanticCompositeEvidence({
       matched,
       compared: candidates.length > 0,
       reasonCode,
-      bindingMode: rowLocal
+      bindingMode: requestOwner
+        ? "request-query-exact-identity"
+        : rowLocal
         ? "row-local-identity-projection"
         : (rowSet ? "row-set-identity-projection" : "path-value"),
       baselineDigest: sha256Digest(baseline),
       projectionDigest: sha256Digest(expected),
+      ...(requestOwner ? {
+        fixtureIdentityPathsDigest: sha256Digest(baseline.fixtureIdentityPaths),
+        requestIdentityDigest: requestEvaluation.requestIdentityDigest,
+        requestSequence: requestEvaluation.requestSequence,
+        ownerCandidateCount: requestEvaluation.ownerCandidateCount,
+        responseCandidateCount: requestEvaluation.responseCandidateCount,
+      } : {}),
       ...(rowLocal || rowSet ? {
         identityDigest: sha256Digest(rowLocal ? baseline.identityValue : baseline.identityValues),
         projectionPathsDigest: sha256Digest(baseline.projectionPaths),
@@ -4295,6 +4325,101 @@ function isEventRowLocalResponseBaseline(value) {
     value.projectionPaths.length > 0 &&
     value.expectedProjection &&
     typeof value.expectedProjection === "object";
+}
+
+function isEventRequestOwnerProvenanceBaseline(value) {
+  return value?.schema === "media-server.v390-ui-event-owner-provenance-baseline.v1" &&
+    value.provenance === "request" &&
+    value.collectionPath === "networkEntries" &&
+    Array.isArray(value.fixtureIdentityPaths) &&
+    stableEqual(value.fixtureIdentityPaths,
+      ["caseRequestIdentity", "caseRequestSequence", "requestId"]) &&
+    value.valuePath === "url.searchParams" &&
+    value.cardinality?.collectionOwner === 1 &&
+    value.cardinality?.fixtureRow === 1 &&
+    Number.isInteger(value.cardinality?.value) && value.cardinality.value > 0 &&
+    typeof value.requestMethod === "string" && value.requestMethod.length > 0 &&
+    typeof value.requestPathname === "string" && value.requestPathname.startsWith("/") &&
+    value.expectedQuery && typeof value.expectedQuery === "object" &&
+    !Array.isArray(value.expectedQuery);
+}
+
+function evaluateEventRequestQueryOwner({ caseId, networkEntries, baseline }) {
+  const entries = Array.isArray(networkEntries) ? networkEntries : [];
+  const parseUrl = entry => {
+    try {
+      return new URL(String(entry?.url || ""));
+    } catch {
+      return null;
+    }
+  };
+  const ownsTarget = entry => {
+    const parsed = parseUrl(entry);
+    return entry?.requestKind === "application-fetch" &&
+      entry?.sameOrigin === true &&
+      String(entry?.method || "").toUpperCase() === baseline.requestMethod &&
+      parsed?.pathname === baseline.requestPathname;
+  };
+  const requests = entries.filter(entry =>
+    entry?.phase === "request-start" && ownsTarget(entry));
+  const responses = entries.filter(entry =>
+    entry?.phase === "response" && ownsTarget(entry));
+  const request = requests.length === baseline.cardinality.collectionOwner
+    ? requests[0]
+    : null;
+  const response = request
+    ? responses.filter(candidate =>
+      candidate.responseRequestObjectObserved === true &&
+      candidate.requestIdentitySource === "playwright-response-request" &&
+      candidate.requestId === request.requestId &&
+      candidate.caseRequestIdentity === request.caseRequestIdentity &&
+      candidate.caseRequestSequence === request.caseRequestSequence &&
+      String(candidate.url || "") === String(request.url || ""))
+    : [];
+  const identityValid = Boolean(request &&
+    typeof request.requestId === "string" && request.requestId.length > 0 &&
+    typeof request.caseRequestIdentity === "string" &&
+    request.caseRequestIdentity.startsWith(`${caseId}:request-`) &&
+    Number.isInteger(request.caseRequestSequence) && request.caseRequestSequence > 0 &&
+    response.length === baseline.cardinality.fixtureRow);
+  const expectedKeys = Object.keys(baseline.expectedQuery).sort();
+  const expectedShapeValid = expectedKeys.length === baseline.cardinality.value &&
+    expectedKeys.every(key => typeof baseline.expectedQuery[key] === "string");
+  const parsed = request ? parseUrl(request) : null;
+  const actualKeys = parsed ? [...new Set(parsed.searchParams.keys())].sort() : [];
+  const exactKeys = stableEqual(actualKeys, expectedKeys);
+  const exactValues = Boolean(parsed && expectedShapeValid && exactKeys &&
+    expectedKeys.every(key => {
+      const values = parsed.searchParams.getAll(key);
+      return values.length === 1 && values[0] === baseline.expectedQuery[key];
+    }));
+  const actualQuery = parsed
+    ? Object.fromEntries(expectedKeys.map(key => [key, parsed.searchParams.getAll(key)]))
+    : null;
+  const pass = requests.length === baseline.cardinality.collectionOwner &&
+    identityValid && expectedShapeValid && exactValues;
+  const reasonCode = pass
+    ? "PASS"
+    : requests.length === 0
+    ? "REQUEST_OWNER_MISSING"
+    : requests.length !== baseline.cardinality.collectionOwner
+    ? "REQUEST_OWNER_DUPLICATE"
+    : !identityValid
+    ? "REQUEST_RESPONSE_IDENTITY_MISMATCH"
+    : "REQUEST_QUERY_EXACT_MISMATCH";
+  return {
+    pass,
+    reasonCode,
+    candidates: request ? [actualQuery] : [],
+    ownerCandidateCount: requests.length,
+    responseCandidateCount: responses.length,
+    requestIdentityDigest: request?.caseRequestIdentity
+      ? sha256Digest(String(request.caseRequestIdentity))
+      : sha256Digest(""),
+    requestSequence: Number.isInteger(request?.caseRequestSequence)
+      ? request.caseRequestSequence
+      : 0,
+  };
 }
 
 function isEventRowSetResponseBaseline(value) {

@@ -237,8 +237,11 @@ const eventTypedResponseCollections = Object.freeze([
   Object.freeze({
     pathPrefix: "memorySearch.hits",
     collectionPath: "memorySearch.hits",
-    identityPaths: Object.freeze(["incidentId"]),
+    identityPaths: Object.freeze(["documentId"]),
     identitySource: "fixtureId",
+    identityPrefix: "event-record:",
+    strictIdentityType: "string",
+    authoritativeValuePath: "sourceId",
   }),
   Object.freeze({
     pathPrefix: "similarIncidents.groups",
@@ -280,20 +283,39 @@ export function eventTypedResponseBinding({
     assertionPath === candidate.pathPrefix ||
     assertionPath.startsWith(`${candidate.pathPrefix}[].`));
   if (!descriptor) return null;
-  const identityValue = descriptor.identitySource === "sourceId" ? sourceId : fixtureId;
+  const rawIdentityValue = descriptor.identitySource === "sourceId" ? sourceId : fixtureId;
+  const identityValue = descriptor.identityPrefix
+    ? `${descriptor.identityPrefix}${rawIdentityValue}`
+    : rawIdentityValue;
   assert(identityValue, `typed response identity is unavailable for ${assertionPath}`);
-  const rows = eventExactValuesAtPath(responseJson, descriptor.collectionPath)
+  const collectionOwners = eventExactValuesAtPath(responseJson, descriptor.collectionPath);
+  assert(collectionOwners.length === 1 && Array.isArray(collectionOwners[0]),
+    `typed response collection owner cardinality mismatch for ${assertionPath}: ${collectionOwners.length}`);
+  const rows = collectionOwners
     .flatMap(value => Array.isArray(value) ? value : [value])
     .filter(value => value && typeof value === "object" && !Array.isArray(value));
   const matches = rows.filter(row => {
     const identityMatches = descriptor.identityPaths.map(identityPath =>
-      eventExactValuesAtPath(row, identityPath).some(value => String(value) === String(identityValue)));
+      eventExactValuesAtPath(row, identityPath).some(value =>
+        descriptor.strictIdentityType
+          ? typeof value === descriptor.strictIdentityType && value === identityValue
+          : String(value) === String(identityValue)));
     return descriptor.identityPathMode === "all"
       ? identityMatches.every(Boolean)
       : identityMatches.some(Boolean);
   });
   assert(matches.length === 1,
     `typed response fixture cardinality mismatch for ${assertionPath}: ${matches.length}`);
+  let authoritativeExpectedValue;
+  if (descriptor.authoritativeValuePath) {
+    const authoritativeValues = eventExactValuesAtPath(
+      matches[0], descriptor.authoritativeValuePath);
+    assert(authoritativeValues.length === 1 &&
+      typeof authoritativeValues[0] === "string" &&
+      authoritativeValues[0] === sourceId,
+    `typed response authoritative value mismatch for ${assertionPath}:${descriptor.authoritativeValuePath}`);
+    authoritativeExpectedValue = sourceId;
+  }
   const projectionPath = typedProjectionPath(assertionPath, descriptor.collectionPath, operator);
   if (!projectionPath) return null;
   const projected = eventExactValuesAtPath(matches[0], projectionPath);
@@ -314,12 +336,20 @@ export function eventTypedResponseBinding({
     : undefined;
   return Object.freeze({
     schema: "media-server.v390-ui-event-request-row-local-baseline.v1",
+    provenance: "response",
     collectionPath: descriptor.collectionPath,
     identityPaths: descriptor.identityPaths,
     identityPathMode: descriptor.identityPathMode || "any",
     identityValue,
     projectionPath,
     expectedValue: projected[0],
+    cardinality: Object.freeze({ collectionOwner: 1, fixtureRow: 1, value: 1 }),
+    ...(descriptor.authoritativeValuePath
+      ? {
+          authoritativeValuePath: descriptor.authoritativeValuePath,
+          authoritativeExpectedValue,
+        }
+      : {}),
     fixtureExpectedValue: operator === "contains-fixture-source" ? sourceId : fixtureId,
     ...(normalizedComparisonProjectionPaths.length > 0
       ? {
@@ -328,6 +358,31 @@ export function eventTypedResponseBinding({
         }
       : {}),
   });
+}
+
+export function registerEventOwnerProvenanceBaseline({
+  byAssertionKey,
+  entries,
+  baseline,
+} = {}) {
+  assert(byAssertionKey && typeof byAssertionKey === "object" && !Array.isArray(byAssertionKey) &&
+    Array.isArray(entries), "event owner/provenance baseline registry is invalid");
+  assert(baseline && typeof baseline === "object" && !Array.isArray(baseline) &&
+    ["request", "response"].includes(baseline.provenance) &&
+    typeof baseline.collectionPath === "string" && baseline.collectionPath &&
+    baseline.cardinality?.collectionOwner === 1 &&
+    baseline.cardinality?.fixtureRow === 1 &&
+    Number.isInteger(baseline.cardinality?.value) && baseline.cardinality.value > 0,
+  "event owner/provenance baseline is invalid");
+  const assertionKey = `${String(baseline.requestMethod || "").toUpperCase()} ` +
+    `${String(baseline.requestPathTemplate || "")}\n` +
+    `${String(baseline.assertionOperator || "")}\n${String(baseline.assertionPath || "")}`;
+  assert(!Object.prototype.hasOwnProperty.call(byAssertionKey, assertionKey),
+    `duplicate owner/provenance baseline: ${assertionKey}`);
+  const immutable = Object.freeze({ ...baseline });
+  byAssertionKey[assertionKey] = immutable;
+  entries.push(immutable);
+  return immutable;
 }
 
 export function typedActiveResolutionFiltersFromRequest(query = {}) {
@@ -3987,6 +4042,35 @@ export function createV390UiCaseRuntime({
         `${item.caseId} event runtime baseline cannot pre-dispatch a mutation: ${request.method} ${request.path}`);
       const endpoint = materializeEventExactTemplate(request.path, templateValues);
       const identity = `${request.method} ${endpoint}`;
+      const endpointUrl = new URL(endpoint, "http://runtime.invalid");
+      for (const target of requirements.requestPaths) {
+        const queryKeys = String(target).split("/").filter(Boolean);
+        if (queryKeys.length < 2 ||
+            !queryKeys.every(key => endpointUrl.searchParams.getAll(key).length === 1)) {
+          continue;
+        }
+        assert(!Object.prototype.hasOwnProperty.call(domResponseBaselineByTarget, target),
+          `duplicate request provenance owner for ${target}`);
+        domResponseBaselineByTarget[target] = Object.freeze({
+          schema: "media-server.v390-ui-event-owner-provenance-baseline.v1",
+          provenance: "request",
+          collectionPath: "networkEntries",
+          fixtureIdentityPaths: Object.freeze([
+            "caseRequestIdentity", "caseRequestSequence", "requestId",
+          ]),
+          valuePath: "url.searchParams",
+          cardinality: Object.freeze({
+            collectionOwner: 1,
+            fixtureRow: 1,
+            value: queryKeys.length,
+          }),
+          requestMethod: String(request.method).toUpperCase(),
+          requestPathname: endpointUrl.pathname,
+          expectedQuery: Object.freeze(Object.fromEntries(
+            queryKeys.map(key => [key, endpointUrl.searchParams.get(key)]),
+          )),
+        });
+      }
       Object.assign(mergedQuery,
         Object.fromEntries(new URL(endpoint, "http://runtime.invalid").searchParams.entries()));
       const roleOverride = endpoint.startsWith("/client/api/") ? "viewer" : "operator";
@@ -4032,7 +4116,9 @@ export function createV390UiCaseRuntime({
           assertionPath: assertion.path,
           operator: assertion.operator,
           fixtureId: context.fixtureId,
-          sourceId: templateValues.sourceId,
+          sourceId: assertion.path.startsWith("memorySearch.hits")
+            ? templateValues.incidentMemoryHitSourceId
+            : templateValues.sourceId,
           responseJson: body,
           comparisonProjectionPaths:
             sourceHealthFixtureMaterializationPlan(spec.seed?.kind) &&
@@ -4042,16 +4128,17 @@ export function createV390UiCaseRuntime({
               : [],
         });
         if (typedBinding) {
-          requestRowLocalBaselineByAssertionKey[
-            `${request.method} ${request.path}\n${assertion.operator}\n${assertion.path}`
-          ] = typedBinding;
-          requestRowLocalBaselines.push(Object.freeze({
+          registerEventOwnerProvenanceBaseline({
+            byAssertionKey: requestRowLocalBaselineByAssertionKey,
+            entries: requestRowLocalBaselines,
+            baseline: {
             ...typedBinding,
             requestMethod: String(request.method).toUpperCase(),
             requestPathTemplate: String(request.path),
             assertionOperator: String(assertion.operator),
             assertionPath: String(assertion.path),
-          }));
+            },
+          });
           if (assertion.operator.startsWith("contains-fixture")) {
             seedByPath[assertion.path] = typedBinding.fixtureExpectedValue;
           } else if (requirements.seedPaths.includes(assertion.path)) {
@@ -4265,27 +4352,6 @@ export function createV390UiCaseRuntime({
       }
       seedByPath["sourceHealth[].status"] = status;
       seedByPath["sourceHealth[].reason"] = reason;
-      if (item.caseId === "EVT-025") {
-        const sourceHealthStatusBaseline = {
-          schema: "media-server.v390-ui-event-request-row-local-baseline.v1",
-          collectionPath: "sourceHealth",
-          identityPaths: ["sourceId", "id"],
-          identityPathMode: "any",
-          identityValue: sourceId,
-          projectionPath: "status",
-          expectedValue: status,
-        };
-        requestRowLocalBaselineByAssertionKey[
-          "GET /ops/api/source-health\nequals-seed\nsourceHealth[].status"
-        ] = sourceHealthStatusBaseline;
-        requestRowLocalBaselines.push(Object.freeze({
-          ...sourceHealthStatusBaseline,
-          requestMethod: "GET",
-          requestPathTemplate: "/ops/api/source-health",
-          assertionOperator: "equals-seed",
-          assertionPath: "sourceHealth[].status",
-        }));
-      }
       templateValues.channelId = sourceId;
       templateValues.status = status;
       templateValues.reason = reason;

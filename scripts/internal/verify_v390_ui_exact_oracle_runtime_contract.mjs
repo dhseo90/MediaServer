@@ -33,8 +33,10 @@ import {
 import {
   buildDiagnosticMarkerFileStageEvidence,
   buildEvt004TimelineOwnershipEvidence,
+  eventTypedResponseBinding,
   usesEventExactRuntimeBindings,
 } from "./v390_ui_case_runtime.mjs";
+import * as caseRuntime from "./v390_ui_case_runtime.mjs";
 import {
   bindFixtureResponseToInitiatingRequest,
   buildDiagnosticMarkerResponseStageEvidence,
@@ -50,6 +52,213 @@ const runtimeSource = fs.readFileSync(
   new URL("./v390_ui_exact_oracle_runtime.mjs", import.meta.url),
   "utf8",
 );
+
+await check("owner/provenance baseline registration rejects duplicate declared owners", async () => {
+  assert(typeof caseRuntime.registerEventOwnerProvenanceBaseline === "function",
+    "registerEventOwnerProvenanceBaseline is missing");
+  const byAssertionKey = {};
+  const entries = [];
+  const baseline = {
+    schema: "media-server.v390-ui-event-request-row-local-baseline.v1",
+    provenance: "response",
+    requestMethod: "GET",
+    requestPathTemplate: "/ops/api/source-health",
+    assertionOperator: "equals-seed",
+    assertionPath: "sourceHealth[].status",
+    collectionPath: "sourceHealth",
+    identityPaths: ["sourceId", "id"],
+    identityPathMode: "any",
+    identityValue: "stream-fixture",
+    projectionPath: "status",
+    expectedValue: "offline",
+    cardinality: { collectionOwner: 1, fixtureRow: 1, value: 1 },
+  };
+  caseRuntime.registerEventOwnerProvenanceBaseline({ byAssertionKey, entries, baseline });
+  assert(entries.length === 1,
+    "one declared owner did not register exactly once");
+  await expectReject(() => Promise.resolve(
+    caseRuntime.registerEventOwnerProvenanceBaseline({ byAssertionKey, entries, baseline }),
+  ), "duplicate owner/provenance baseline");
+});
+
+await check("EVT-025 response provenance selects one fixture row only inside sourceHealth", async () => {
+  const fixtureRow = {
+    sourceId: "stream-fixture",
+    status: "offline",
+    reason: "subscription-missing",
+  };
+  const response = {
+    ok: true,
+    schema: "media-server.ops.source-health.v1",
+    summary: { sourceId: "stream-fixture", status: "offline" },
+    sourceHealth: [fixtureRow],
+    diagnostics: { sourceHealth: [structuredClone(fixtureRow)] },
+  };
+  const binding = eventTypedResponseBinding({
+    assertionPath: "sourceHealth[].status",
+    operator: "equals-seed",
+    fixtureId: "evt-025-review4-fixture",
+    sourceId: "stream-fixture",
+    responseJson: response,
+  });
+  assert(binding?.provenance === "response" &&
+    binding.collectionPath === "sourceHealth" &&
+    binding.identityPaths.join("/") === "sourceId/id" &&
+    binding.projectionPath === "status" &&
+    binding.expectedValue === "offline" &&
+    binding.cardinality?.collectionOwner === 1 &&
+    binding.cardinality?.fixtureRow === 1 &&
+    binding.cardinality?.value === 1,
+  "EVT-025 owner/provenance projection contract is incomplete");
+
+  const duplicateOwnerRow = structuredClone(response);
+  duplicateOwnerRow.sourceHealth.push(structuredClone(fixtureRow));
+  await expectReject(() => Promise.resolve(eventTypedResponseBinding({
+    assertionPath: "sourceHealth[].status",
+    operator: "equals-seed",
+    fixtureId: "evt-025-review4-fixture",
+    sourceId: "stream-fixture",
+    responseJson: duplicateOwnerRow,
+  })), "typed response fixture cardinality mismatch");
+});
+
+await check("EVT-041 typed owner uses documentId and preserves sourceId type/value", async () => {
+  const fixtureId = "evt-041-review4-fixture";
+  const sourceId = "stream-review4-fixture";
+  const fixtureHit = {
+    documentId: `event-record:${fixtureId}`,
+    sourceKind: "event-record",
+    incidentId: `incident:${fixtureId}`,
+    sourceId,
+    title: "EventRecord presence open",
+    summary: "fixture incident memory summary",
+    score: 1,
+    matchedTerms: ["evt", "041", "review4", "fixture"],
+    highlightFragments: ["evt 041 review4 fixture"],
+  };
+  const sibling = {
+    documentId: `review-note:${fixtureId}`,
+    sourceKind: "review-note",
+    incidentId: `incident:${fixtureId}`,
+    sourceId: null,
+    title: "review note",
+    summary: "legitimate same-incident sibling",
+    score: 0.5,
+    matchedTerms: ["review4"],
+    highlightFragments: ["review4"],
+  };
+  const response = { memorySearch: { hits: [fixtureHit, sibling] } };
+  const bind = body => eventTypedResponseBinding({
+    assertionPath: "memorySearch.hits",
+    operator: "contains-fixture-document",
+    fixtureId,
+    sourceId,
+    responseJson: body,
+  });
+  const binding = bind(response);
+  assert(binding?.provenance === "response" &&
+    binding.collectionPath === "memorySearch.hits" &&
+    binding.identityPaths.length === 1 &&
+    binding.identityPaths[0] === "documentId" &&
+    binding.identityValue === `event-record:${fixtureId}` &&
+    binding.authoritativeValuePath === "sourceId" &&
+    binding.authoritativeExpectedValue === sourceId,
+  "EVT-041 typed fixture owner is not documentId/sourceId bound");
+
+  for (const hits of [
+    [sibling],
+    [fixtureHit, { ...fixtureHit }],
+    [{ ...fixtureHit, documentId: `event-record:other` }, sibling],
+    [{ ...fixtureHit, sourceId: 41 }, sibling],
+    [{ ...fixtureHit, sourceId: "wrong-source" }, sibling],
+  ]) {
+    await expectReject(() => Promise.resolve(bind({ memorySearch: { hits } })),
+      "typed response");
+  }
+});
+
+await check("EVT-070 request provenance binds one Playwright request/response identity and exact query map", async () => {
+  const expectedQuery = {
+    q: "evt-070-review4-fixture",
+    ruleId: "1",
+    sourceId: "9001",
+    incidentStatus: "new",
+  };
+  const query = "q=evt-070-review4-fixture&ruleId=1&sourceId=9001&incidentStatus=new";
+  const url = `http://runtime.invalid/ops/api/events/reviews?${query}`;
+  const request = {
+    phase: "request-start",
+    requestId: "evt-070-request-1",
+    caseRequestIdentity: "EVT-070:request-1",
+    caseRequestSequence: 1,
+    requestKind: "application-fetch",
+    resourceType: "fetch",
+    sameOrigin: true,
+    method: "GET",
+    url,
+  };
+  const response = {
+    ...request,
+    phase: "response",
+    status: 200,
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+  };
+  const baseline = {
+    schema: "media-server.v390-ui-event-owner-provenance-baseline.v1",
+    provenance: "request",
+    collectionPath: "networkEntries",
+    fixtureIdentityPaths: ["caseRequestIdentity", "caseRequestSequence", "requestId"],
+    valuePath: "url.searchParams",
+    cardinality: { collectionOwner: 1, fixtureRow: 1, value: 4 },
+    requestMethod: "GET",
+    requestPathname: "/ops/api/events/reviews",
+    expectedQuery,
+  };
+  const observed = {
+    count: 1,
+    visibleCount: 1,
+    text: "filtered resolution search",
+    attributes: [{}],
+    values: ["filtered"],
+    descendantCount: 1,
+  };
+  const evaluate = (networkEntries, responseBodies = []) =>
+    buildEventDomSemanticCompositeEvidence({
+      caseId: "EVT-070",
+      selector: "#v320ResolutionSearchMetricsGrid",
+      observed,
+      networkEntries,
+      responseBodies,
+      priorResponseByPath: { "q/ruleId/sourceId/incidentStatus": baseline },
+      actualBrowserExecution: true,
+    });
+  const valid = evaluate([request, response]);
+  assert(valid.pass === true &&
+    valid.responseBaselineMatched.paths[0]?.bindingMode === "request-query-exact-identity" &&
+    valid.responseBaselineMatched.paths[0]?.candidateCount === 1,
+  "EVT-070 exact request provenance did not pass");
+
+  const urlFor = value => `http://runtime.invalid/ops/api/events/reviews?${value}`;
+  for (const badUrl of [
+    urlFor("q=evt-070-review4-fixture&ruleId=1&sourceId=9001"),
+    urlFor("q=evt-070-review4-fixture&ruleId=1&sourceId=9001&incidentStatus=new&incidentStatus=open"),
+    urlFor("q=evt-070-review4-fixture&ruleId=1&sourceId=9001&incidentStatus=open"),
+  ]) {
+    const failed = evaluate([{ ...request, url: badUrl }, { ...response, url: badUrl }]);
+    assert(failed.pass === false,
+      `EVT-070 malformed query unexpectedly passed: ${badUrl}`);
+  }
+  const wrongProvenance = evaluate([], [{
+    q: expectedQuery.q,
+    ruleId: expectedQuery.ruleId,
+    sourceId: expectedQuery.sourceId,
+    incidentStatus: expectedQuery.incidentStatus,
+  }]);
+  assert(wrongProvenance.pass === false &&
+    wrongProvenance.responseBaselineMatched.paths[0]?.candidateCount === 0,
+  "request provenance was incorrectly satisfied from a response candidate");
+});
 
 await check("incident memory search response evidence is typed, identity-bound, and digest-only", async () => {
   const fixtureId = "evt-041-review4-fixture";
