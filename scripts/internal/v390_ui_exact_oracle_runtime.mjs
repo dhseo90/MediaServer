@@ -973,6 +973,9 @@ export function eventReviewRenderProjectionEvaluateExpression() {
       const node = document.getElementById(controlIds[name]);
       if (!node) throw new Error(`event review render control missing: ${name}`);
       node.value = String(value);
+      if (node.value !== String(value)) {
+        throw new Error(`event review render control rejected authoritative value: ${name}`);
+      }
       applied.push(name);
     }
     if (typeof refreshEvents !== "function") {
@@ -1527,7 +1530,7 @@ async function observeRequest(
         responseJson: body,
         fixtureId: bindings.fixtureId,
         query: decodeURIComponent(String(bindings.q || bindings.searchQuery || bindings.fixtureId || "")),
-        sourceId: bindings.sourceId,
+        sourceId: bindings.incidentMemoryHitSourceId || bindings.sourceId,
       })
     : null;
   const required = request.requiredJsonPaths || request.requiredBodyTokens || [];
@@ -1593,6 +1596,21 @@ async function observeRequest(
   };
 }
 
+async function prepareExactViewportObservation(browser, selector) {
+  const prepared = await browser.evaluate(async exactSelector => {
+    const nodes = Array.from(document.querySelectorAll(exactSelector));
+    const scroller = document.scrollingElement;
+    if (nodes.length !== 1 || !scroller) {
+      return { pass: false, nodeCount: nodes.length, scrollerPresent: Boolean(scroller) };
+    }
+    nodes[0].scrollIntoView({ behavior: 'instant', block: 'center', inline: 'center' });
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return { pass: true, nodeCount: 1, scrollerPresent: true };
+  }, selector);
+  assert(prepared?.pass === true && prepared.nodeCount === 1 && prepared.scrollerPresent === true,
+    `exact viewport observation owner is unavailable: ${selector}`);
+}
+
 async function observeDom(
   browser,
   item,
@@ -1616,10 +1634,7 @@ async function observeDom(
   const selector = expand(String(projectionSelectors[0] || assertion.selector || ""), bindings);
   if ((assertion.propertyAssertions || []).some(candidate =>
       candidate.name === "boundingRectWithinViewport")) {
-    await browser.evaluate(`(() => {
-      const node = document.querySelector(${JSON.stringify(selector)});
-      node?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
-    })()`);
+    await prepareExactViewportObservation(browser, selector);
   }
   const requiredAttributes = (Array.isArray(assertion.requiredAttributes)
     ? assertion.requiredAttributes
@@ -2574,7 +2589,9 @@ function evaluateRequestAssertions(assertions, context) {
     if (context.caseId.startsWith("EVT-")) {
       const runtime = context.eventRuntimeContext || {};
       const requestIdentity = `${String(context.request.method || "GET").toUpperCase()} ${context.urlPath}`;
-      const rowLocalKey = `${requestIdentity}\n${String(assertion.operator || "")}\n${String(assertion.path || "")}`;
+      const canonicalRequestIdentity =
+        `${String(context.request.method || "GET").toUpperCase()} ${String(context.request.pathTemplate || context.request.path || context.urlPath)}`;
+      const rowLocalKey = `${canonicalRequestIdentity}\n${String(assertion.operator || "")}\n${String(assertion.path || "")}`;
       const rowLocalBaseline = runtime.requestRowLocalBaselineByAssertionKey?.[rowLocalKey] || null;
       const baselineResponse = runtime.responseByRequest?.[requestIdentity];
       const baselineBody = baselineResponse?.json ?? baselineResponse?.text;

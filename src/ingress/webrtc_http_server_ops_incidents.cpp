@@ -1589,11 +1589,12 @@ std::string OpsIncidentDecisionScorecardJson(const std::string& event_json,
         std::max(0, std::min(15, (similar_incident_score * 15) / 100));
     const int vlm_summary_score = vlm_summary_candidate_count > 0 ? 10 : 0;
     const int vlm_rule_score = vlm_rule_status == "no-matching-candidate" ? 0 : 15;
-    const int operator_review_age_score = operator_review_age_ms < 0
-                                              ? 20
-                                              : (operator_review_age_ms >= 300000
-                                                     ? 15
-                                                     : (operator_review_age_ms >= 60000 ? 10 : 5));
+    const std::string operator_review_age_reason = operator_review_age_ms < 0 ? "operator-review-age:not-reviewed"
+                                                 : (operator_review_age_ms >= 300000
+                                                        ? "operator-review-age:stale-5m"
+                                                        : (operator_review_age_ms >= 60000 ? "operator-review-age:aged-1m" : "operator-review-age:recent"));
+    const int operator_review_age_score = operator_review_age_reason == "operator-review-age:not-reviewed" ? 20
+                                        : (operator_review_age_reason == "operator-review-age:stale-5m" ? 15 : (operator_review_age_reason == "operator-review-age:aged-1m" ? 10 : 5));
     const int decision_score =
         event_record_score + source_health_score + bounded_similar_incident_score +
         vlm_summary_score + vlm_rule_score + operator_review_age_score;
@@ -1604,8 +1605,7 @@ std::string OpsIncidentDecisionScorecardJson(const std::string& event_json,
     reasons.push_back("similar:" + similar_key);
     reasons.push_back("vlm-summary:" + vlm_summary_status);
     reasons.push_back("vlm-rule:" + vlm_rule_status);
-    reasons.push_back(operator_review_age_ms < 0 ? "operator-review:not-reviewed"
-                                                 : "operator-review-age:" + std::to_string(operator_review_age_ms));
+    reasons.push_back(operator_review_age_reason);
 
     std::ostringstream out;
     out << "{"

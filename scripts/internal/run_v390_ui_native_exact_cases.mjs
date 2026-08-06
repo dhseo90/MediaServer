@@ -698,6 +698,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           const observed = await browser.navigate(action.route, {
             invocationId: navigationBinding.invocationId,
             kind: "negative-document-navigation",
+            lifecycleScope: Array.isArray(navigationBinding.caseLifecycleNavigationSequence) ? "case" : "operation",
           });
           assert(action.allowedStatuses.includes(observed.status),
             `${item.caseId} negative navigation status ${observed.status} not in ${action.allowedStatuses.join(",")}`);

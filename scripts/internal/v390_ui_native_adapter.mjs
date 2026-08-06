@@ -1093,6 +1093,7 @@ async function openNativePlaywrightPage(playwright, {
     navigate: async (nextPagePath, {
       invocationId = "",
       kind = "explicit-navigation",
+      lifecycleScope = "operation",
     } = {}) => {
       const ledgerStart = documentNavigationLedger.length;
       const networkStart = networkEntries.length;
@@ -1106,7 +1107,7 @@ async function openNativePlaywrightPage(playwright, {
         requestedPath: urlTarget(new URL(nextPagePath, `${httpBase}/`).toString()),
         invocationId: observedInvocationId,
         response,
-        ledger: documentNavigationLedger.slice(ledgerStart),
+        ledger: lifecycleScope === "case" ? documentNavigationLedger : documentNavigationLedger.slice(ledgerStart),
         scopedNetworkEntries: networkEntries.slice(networkStart),
       });
     },

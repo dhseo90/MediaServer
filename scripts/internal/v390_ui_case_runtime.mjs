@@ -453,10 +453,14 @@ export function incidentMemorySearchSeedBinding({
   seedKind,
   fixtureId,
   sourceId,
+  incidentMemoryHitSourceId,
 } = {}) {
   assert(seedKind === "searchable-event-review", "incident memory searchable seed kind mismatch");
   assert(typeof fixtureId === "string" && fixtureId, "incident memory fixture identity is required");
   assert(typeof sourceId === "string" && sourceId, "incident memory source identity is required");
+  const projectedHitSourceId = incidentMemoryHitSourceId || sourceId;
+  assert(typeof projectedHitSourceId === "string" && projectedHitSourceId,
+    "incident memory projected hit source identity is required");
   const queryTerms = [...new Set((fixtureId.toLowerCase().match(/[a-z0-9]+/g) || [])
     .filter(term => term.length >= 2))];
   assert(queryTerms.length > 0, "incident memory fixture query terms are required");
@@ -466,6 +470,7 @@ export function incidentMemorySearchSeedBinding({
     scenarioName: fixtureId,
     ruleId: "1",
     sourceId,
+    incidentMemoryHitSourceId: projectedHitSourceId,
     incidentStatus: "new",
     incidentId: `incident:${fixtureId}`,
     queryTermCount: queryTerms.length,
@@ -3248,6 +3253,7 @@ export function createV390UiCaseRuntime({
           seedKind: kind,
           fixtureId: context.fixtureId,
           sourceId: source.sourceId,
+          incidentMemoryHitSourceId: source.streamId,
         })
       : null;
     const familyExpectedRecords = eventRecordFixtureFamilyCaseIds.includes(item.caseId)
@@ -3551,6 +3557,8 @@ export function createV390UiCaseRuntime({
         ? source.status
         : (plan.sourceHealth ? "degraded" : "available"),
       eventReviewSeeds: reviewSeeds,
+      incidentStatus: reviewSeeds[context.fixtureId]?.incidentStatus ||
+        memorySearchSeed?.incidentStatus || reviewPayload.incidentStatus,
       eventReviewSeedByPath: reviewSeeds[context.fixtureId]
         ? {
             "records[].review.eventId": reviewSeeds[context.fixtureId].eventId,
@@ -3581,6 +3589,7 @@ export function createV390UiCaseRuntime({
         q: memorySearchSeed.query,
         ruleId: memorySearchSeed.ruleId,
         incidentStatus: memorySearchSeed.incidentStatus,
+        incidentMemoryHitSourceId: memorySearchSeed.incidentMemoryHitSourceId,
         memorySearchSeedEvidence: {
           schema: "media-server.v390-ui-incident-memory-search-seed-evidence.v1",
           queryTermCount: memorySearchSeed.queryTermCount,
@@ -3903,6 +3912,8 @@ export function createV390UiCaseRuntime({
       q: context.catalogBindings.q || context.catalogBindings.searchQuery || canonicalSeedBindings.q,
       evidence: "snapshot",
       incidentStatus: context.catalogBindings.incidentStatus || canonicalSeedBindings.incidentStatus,
+      incidentMemoryHitSourceId: context.catalogBindings.incidentMemoryHitSourceId ||
+        canonicalSeedBindings.incidentMemoryHitSourceId || canonicalSeedBindings.sourceId,
       startTimeMs: "0",
       endTimeMs: String(Date.now()),
       limit: "100",
@@ -3963,7 +3974,7 @@ export function createV390UiCaseRuntime({
             responseJson: body,
             fixtureId: context.fixtureId,
             query: templateValues.q,
-            sourceId: templateValues.sourceId,
+            sourceId: templateValues.incidentMemoryHitSourceId,
           });
       }
       for (const assertion of request.assertions) {
@@ -3976,7 +3987,7 @@ export function createV390UiCaseRuntime({
         });
         if (typedBinding) {
           requestRowLocalBaselineByAssertionKey[
-            `${identity}\n${assertion.operator}\n${assertion.path}`
+            `${request.method} ${request.path}\n${assertion.operator}\n${assertion.path}`
           ] = typedBinding;
           if (assertion.operator.startsWith("contains-fixture")) {
             seedByPath[assertion.path] = typedBinding.fixtureExpectedValue;

@@ -439,7 +439,7 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
       requestTarget(expected.expectedCanonicalRoute) !== expectedPath ||
       !expectedObservedPath ||
       observedPath !== expectedObservedPath ||
-      requestTarget(navigation.requestedPath) !== expectedPath) {
+      requestTarget(ledgerBinding?.path || navigation.requestedPath) !== expectedPath) {
     failureCode = "NAVIGATION_ROUTE_MISMATCH";
   } else if (requestAttemptCount !== 1 ||
       navigation.requestReissued === true ||
@@ -1270,7 +1270,7 @@ function catalogRuntimeCompletionRequest(semanticReadback, action) {
   }
   const exactResponses = responses.filter(response =>
     String(response.method).toUpperCase() === String(expected.method || "GET").toUpperCase() &&
-    requestPathname(response.urlPath) === expected.urlPath &&
+    requestTarget(response.urlPath) === requestTarget(expected.urlPath) &&
     allowedStatuses.includes(Number(response.status)));
   if (exactResponses.length > 1) {
     return { present: true, match: null, reason: "ambiguous-exact-request" };

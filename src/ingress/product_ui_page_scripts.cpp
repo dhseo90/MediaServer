@@ -4969,7 +4969,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <span>${escapeHtml(display(filters.queryApplied === true ? 'active filters' : 'default queue'))}</span>
             <small>filterCount ${escapeHtml(display(filters.filterCount ?? 0))} · selected ${escapeHtml(display(resolutionSearchMetrics.eventId || selectedDetail?.eventId || 'none'))}</small>
             <div class="v320-resolution-filter-list">
-              ${(filterEntries.length ? filterEntries : [['default', 'unfiltered']]).map(([key, value]) => `<span class="chip" data-v320-resolution-filter="${escapeHtml(key)}">${escapeHtml(key)} <span data-event-semantic-field="activeFilters">${escapeHtml(String(value))}</span></span>`).join('')}
+              ${(filterEntries.length ? filterEntries : [['default', 'unfiltered']]).map(([key, value]) => `<span class="chip" data-v320-resolution-filter="${escapeHtml(key)}">${escapeHtml(key)} <span data-event-semantic-field="activeFilters" data-event-semantic-value="${escapeHtml(String(value))}">${escapeHtml(String(value))}</span></span>`).join('')}
             </div>
           </article>
           <article class="v320-resolution-search-card">
@@ -5107,8 +5107,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           : []);
         timelineRoot.innerHTML = timelineItems.length === 0
           ? '<p class="ops-rule-note">표시할 resolution timeline marker가 없습니다.</p>'
-          : timelineItems.map(marker => `<div class="v320-resolution-timeline-marker" data-v320-resolution-timeline-marker="${escapeHtml(marker?.key || '')}">
-              <span>${escapeHtml(display(marker?.label || marker?.key || 'marker'))}</span>
+          : timelineItems.map(marker => `<div class="v320-resolution-timeline-marker" data-v320-resolution-timeline-marker="${escapeHtml(marker?.key || '')}" data-event-semantic-event-id="${escapeHtml(marker?.eventId || '')}">
+              <span data-event-semantic-field="timelineMarkers" data-event-semantic-value="${escapeHtml(marker?.key || '')}">${escapeHtml(display(marker?.label || marker?.key || 'marker'))}</span>
               <strong>${escapeHtml(display(marker?.status || 'unknown'))}</strong>
               <p>${escapeHtml(display(marker?.eventId || '-'))} · ${escapeHtml(display(marker?.transition || 'none'))} · ${escapeHtml(display(marker?.timeMs ?? 0))}ms</p>
             </div>`).join('');
@@ -5247,7 +5247,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const matchedTerms = Array.isArray(candidate.matchedTerms) ? candidate.matchedTerms : [];
           const summary = candidate.summary || candidate.eventExplanation || 'summary candidate';
           const candidateIdentity = candidate.eventId || candidate.observationId || '';
-          return `<article class="vlm-summary-candidate-card" data-vlm-summary-candidate-event="${escapeHtml(candidateIdentity)}" data-event-semantic-event-id="${escapeHtml(candidateIdentity)}" data-event-semantic-score="${escapeHtml(display(candidate.matchScore ?? ''))}">
+          return `<article class="vlm-summary-candidate-card" data-vlm-summary-candidate-event="${escapeHtml(candidateIdentity)}" data-event-semantic-event-id="${escapeHtml(candidateIdentity)}" data-event-semantic-score="${escapeHtml(display(candidate.matchScore ?? ''))}" data-event-semantic-candidate-count="${escapeHtml(String(candidates.length))}">
             <div class="table-cell-main">
               <strong>${escapeHtml(display(candidate.eventId || candidate.observationId || 'vlm summary candidate'))}</strong>
               <span>${escapeHtml(display(candidate.sourceId || '-'))} · ${escapeHtml(display(candidate.ruleId || '-'))} · score ${escapeHtml(display(candidate.matchScore ?? '-'))}</span>

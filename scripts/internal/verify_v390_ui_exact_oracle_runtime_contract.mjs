@@ -3237,7 +3237,10 @@ await check("client media readiness and nullable fields preserve their product o
     'operator === "path-present"',
     "root.closest?.('[data-tile]')",
     "video.readyState >= 2",
-    "scrollIntoView?.({ block: 'nearest', inline: 'nearest' })",
+    "prepareExactViewportObservation",
+    "document.scrollingElement",
+    "scrollIntoView({ behavior: 'instant', block: 'center', inline: 'center' })",
+    "requestAnimationFrame(() => requestAnimationFrame(resolve))",
   ]) {
     assert(runtimeSource.includes(snippet),
       `client runtime lifecycle source missing ${snippet}`);

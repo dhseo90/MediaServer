@@ -38,6 +38,12 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     fields: [["$identity", "eventId", "identity"], ["matchScore", "score"],
       ["matchedTerms[]", "matchedTerms", "field-text"]],
   }),
+  "EVT-046\ncandidate-count-equals-response\ncandidates.length": Object.freeze({
+    selector: "#opsVlmSummaryCandidateRows [data-vlm-summary-candidate-event={fixtureId}]",
+    collectionPath: "memorySearch.vlmSummaryCandidateReview.sourceCandidateReport.candidates",
+    identityPaths: ["eventId", "observationId"], identityPathMode: "any",
+    fields: [["$collection", "candidateCount", "attribute", "collection-count"]],
+  }),
   "EVT-047\nfields-equal-response\nsuggestion/candidates/manualDraftRoute": Object.freeze({
     selector: "[data-event-review-row][data-event-id={fixtureId}] [data-testid=ops-incident-rule-suggestion-review]",
     collectionPath: "records", identityPaths: ["event.eventId", "review.eventId"],
@@ -267,6 +273,12 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
     fields: [["detailSections[].key", "detailSections", "field-text"]],
   }),
+  "EVT-064\nmarker-order-equals-response\ntimelineMarkers": Object.freeze({
+    selector: "#opsV320ResolutionTimeline [data-v320-resolution-timeline-marker]",
+    collectionPath: "unifiedResolutionWorkspace.resolutionTimeline", identityPaths: ["eventId"],
+    domOwnerMode: "field-fragments",
+    fields: [["timelineMarkers[].key", "timelineMarkers", "field-text"]],
+  }),
   "EVT-065\nselected-event-equals\nevt-065-review4-fixture": Object.freeze({
     selector: "#v320EvidenceQualityGrid[data-v320-evidence-quality={fixtureId}]",
     collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
@@ -492,6 +504,9 @@ function projectionContractExpectedValues(
   row, responsePath, fixtureIdentity, transform = "identity", options = {}, projectionContext = {},
 ) {
   if (responsePath === "$identity") return [fixtureIdentity];
+  if (transform === "collection-count") {
+    return [String(Number(projectionContext.rowCount || 0))];
+  }
   if (transform === "bounded-collection-count") {
     const limit = Number(options.limit);
     return [String(Math.min(Number(projectionContext.rowCount || 0), limit))];
@@ -557,9 +572,16 @@ function evaluateDeclaredResponseDomProjection({
           "identity", {}, { rootBody: agreementBodies[1] }))));
   const semanticNodes = Array.isArray(observation?.semanticNodes) ? observation.semanticNodes : [];
   const domCandidates = semanticNodes.filter(node => String(node?.eventId || "") === identity);
-  const observationPresent = Number(observation?.count || 0) === 1 &&
-    Number(observation?.visibleCount || 0) === 1 && semanticNodes.length === 1;
-  const domOwnerExact = observationPresent && domCandidates.length === 1;
+  const fieldFragments = contract.domOwnerMode === "field-fragments";
+  const observationPresent = fieldFragments
+    ? Number(observation?.count || 0) > 0 &&
+      Number(observation?.visibleCount || 0) === Number(observation?.count || 0) &&
+      semanticNodes.length === Number(observation?.count || 0)
+    : Number(observation?.count || 0) === 1 &&
+      Number(observation?.visibleCount || 0) === 1 && semanticNodes.length === 1;
+  const domOwnerExact = observationPresent && (fieldFragments
+    ? domCandidates.length === semanticNodes.length
+    : domCandidates.length === 1);
   const fieldEvidence = contract.fields.map(([
     responsePath, domKey, source = "attribute", transform = "identity", options = {},
   ]) => {
@@ -569,14 +591,15 @@ function evaluateDeclaredResponseDomProjection({
         rootBody: contract.responseBodySelection === "last" ? responseBodies.at(-1) : responseBodies[0],
       })
       : [];
-    const node = domOwnerExact ? domCandidates[0] : null;
-    const actual = !node
+    const nodes = domOwnerExact ? (fieldFragments ? domCandidates : [domCandidates[0]]) : [];
+    const actual = nodes.length === 0
       ? []
       : (source === "identity"
-        ? [String(node.eventId || "")]
+        ? nodes.map(node => String(node.eventId || ""))
         : (source === "field-text"
-          ? (Array.isArray(node.fields?.[domKey]) ? node.fields[domKey].map(String) : [])
-          : (Object.prototype.hasOwnProperty.call(node.attributes || {}, domKey)
+          ? nodes.flatMap(node => Array.isArray(node.fields?.[domKey])
+            ? node.fields[domKey].map(String) : [])
+          : nodes.flatMap(node => Object.prototype.hasOwnProperty.call(node.attributes || {}, domKey)
             ? [String(node.attributes[domKey])] : [])));
     const valuesPass = expected.length > 0 && actual.length === expected.length &&
       expected.every((value, index) => actual[index] === value);
@@ -597,7 +620,9 @@ function evaluateDeclaredResponseDomProjection({
   const ownerAmbiguous = owners.length > 1;
   const domMissing = Number(observation?.count || 0) === 0 || Number(observation?.visibleCount || 0) === 0 ||
     semanticNodes.length === 0 || domCandidates.length === 0;
-  const domDuplicate = Number(observation?.count || 0) > 1 || semanticNodes.length > 1 || domCandidates.length > 1;
+  const domDuplicate = fieldFragments
+    ? observationPresent && domCandidates.length !== semanticNodes.length
+    : Number(observation?.count || 0) > 1 || semanticNodes.length > 1 || domCandidates.length > 1;
   const valueMismatch = fieldEvidence.some(field => !field.valuesPass);
   const pass = Boolean(identity) && owners.length === 1 && agreementPass && domOwnerExact &&
     fieldEvidence.length > 0 && !valueMismatch;
@@ -1117,6 +1142,23 @@ export function evaluateEventExactResponseAssertion({ caseId, assertion, respons
 
   const direct = evaluateDirectResponse({ assertion, actual, context });
   if (direct) return { ...direct, assertion, actual };
+  if (assertion.operator === "contains-fixture-source") {
+    const expected = expectedValueFor(context, assertion, "response") ?? context.fixtureId;
+    const identityFields = isObject(actual)
+      ? ["sourceId", "id"].filter(key => Object.prototype.hasOwnProperty.call(actual, key))
+      : [];
+    const pass = identityFields.length === 1 &&
+      String(actual[identityFields[0]]) === String(expected);
+    return {
+      pass,
+      reason: pass
+        ? "authoritative source row identity exact"
+        : "authoritative source row identity missing, duplicated, or mismatched",
+      assertion,
+      actual,
+      expected,
+    };
+  }
   if (genericContainsFixtureOperator(assertion.operator)) {
     const expected = expectedValueFor(context, assertion, "response") ?? context.fixtureId;
     return { pass: recursiveContains(actual, expected), reason: `${assertion.operator} expected ${valueText(expected)}`, assertion, actual };
