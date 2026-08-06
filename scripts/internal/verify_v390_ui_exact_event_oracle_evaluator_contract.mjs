@@ -262,6 +262,86 @@ check("response-derived DOM projection normalizes field ownership without select
     "duplicate fixture response owners produced a DOM projection PASS");
 });
 
+check("EVT-041 highlight fragments bind the renderer-visible whitespace projection by exact index", () => {
+  const fixtureId = "evt-041-review4-fixture";
+  const documentId = `event-record:${fixtureId}`;
+  const responseFragments = [
+    "fixture fragment\nzero",
+    "fixture\tfragment one",
+    "fixture  fragment two",
+  ];
+  const visibleFragments = responseFragments.map(value => value.replace(/\s+/gu, " ").trim());
+  const base = {
+    caseId: "EVT-041",
+    operator: "highlight-fragments-equal-response",
+    target: "highlightFragments",
+    responseBodies: [{ memorySearch: { hits: [{
+      documentId,
+      highlightFragments: responseFragments,
+    }] } }],
+    fixtureCandidates: [fixtureId],
+    fixtureIdentity: fixtureId,
+  };
+  const observation = fragments => ({
+    count: 1,
+    visibleCount: 1,
+    semanticNodes: [{
+      eventId: documentId,
+      attributes: {},
+      fields: { highlightFragments: fragments },
+    }],
+  });
+  const contract = responseDerivedDomProjectionContractFor(base);
+  assert(contract?.fields?.[0]?.[3] === "collapse-whitespace-text",
+    "EVT-041 highlightFragments renderer transform is not explicit");
+  const pass = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: observation(visibleFragments),
+  });
+  assert(pass.pass && pass.fieldEvidence[0].projectedValueCount === 3 &&
+    pass.fieldEvidence[0].matchedValueCount === 3 && pass.fieldEvidence[0].orderPass,
+  "EVT-041 whitespace-only renderer projection did not preserve exact 3/3 index binding");
+  for (const [label, fragments] of [
+    ["missing", visibleFragments.slice(0, 2)],
+    ["duplicate", [visibleFragments[0], visibleFragments[1], visibleFragments[1]]],
+    ["reordered", [visibleFragments[1], visibleFragments[0], visibleFragments[2]]],
+    ["semantic-change", [visibleFragments[0], `${visibleFragments[1]} changed`, visibleFragments[2]]],
+  ]) {
+    const result = evaluateResponseDerivedDomFieldProjection({
+      ...base,
+      observation: observation(fragments),
+    });
+    assert(!result.pass && result.failureCode === "RENDERER_PROJECTION_VALUE_MISMATCH",
+      `EVT-041 ${label} fragment mutation unexpectedly passed`);
+  }
+  const wrongOwner = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: {
+      ...observation(visibleFragments),
+      semanticNodes: [{
+        eventId: "event-record:wrong-fixture",
+        attributes: {},
+        fields: { highlightFragments: visibleFragments },
+      }],
+    },
+  });
+  assert(!wrongOwner.pass && wrongOwner.failureCode === "DOM_PROJECTION_OWNER_MISSING",
+    "EVT-041 wrong fixture DOM owner unexpectedly passed");
+  const splitOwner = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: {
+      count: 2,
+      visibleCount: 2,
+      semanticNodes: [
+        { eventId: documentId, attributes: {}, fields: { highlightFragments: visibleFragments.slice(0, 1) } },
+        { eventId: documentId, attributes: {}, fields: { highlightFragments: visibleFragments.slice(1) } },
+      ],
+    },
+  });
+  assert(!splitOwner.pass && splitOwner.failureCode === "DOM_PROJECTION_OWNER_AMBIGUOUS",
+    "EVT-041 split DOM owner unexpectedly passed");
+});
+
 check("response-derived ordered collection projection fails on renderer order drift", () => {
   const fixtureId = "evt-order-fixture";
   const base = {

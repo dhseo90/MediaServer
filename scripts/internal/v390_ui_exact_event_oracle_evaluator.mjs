@@ -28,7 +28,7 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     selector: "#opsIncidentSearchRows [data-incident-memory-hit='event-record:{fixtureId}']",
     collectionPath: "memorySearch.hits", identityPaths: ["documentId"],
     identityPrefix: "event-record:",
-    fields: [["highlightFragments[]", "highlightFragments", "field-text"]],
+    fields: [["highlightFragments[]", "highlightFragments", "field-text", "collapse-whitespace-text"]],
   }),
   "EVT-043\nslot-values-equal-response\naction/object/context/environment": Object.freeze({
     selector: "#opsIncidentBriefRows [data-incident-brief-card={fixtureId}]",
@@ -553,6 +553,9 @@ function projectionContractExpectedValues(
   const values = eventExactValuesAtPath(root, localPath)
     .flatMap(value => Array.isArray(value) ? value : [value])
     .map(value => String(value ?? ""));
+  if (transform === "collapse-whitespace-text") {
+    return values.map(value => value.replace(/\s+/gu, " ").trim());
+  }
   if (transform === "pass-style") {
     return values.map(value => value === "ready" ? "true" : "false");
   }
