@@ -336,6 +336,84 @@ export function typedActiveResolutionFiltersFromRequest(query = {}) {
   });
 }
 
+export function typedActiveResolutionFiltersFromUrl(urlPath) {
+  const query = Object.fromEntries(
+    new URL(String(urlPath || ""), "http://runtime.invalid").searchParams.entries(),
+  );
+  return typedActiveResolutionFiltersFromRequest(query);
+}
+
+export function authoritativeSourceHealthFixtureBinding({ sources, views, sourceHealth } = {}) {
+  assert(Array.isArray(sources) && Array.isArray(views) && Array.isArray(sourceHealth),
+    "authoritative source-health fixture inputs are incomplete");
+  const matches = sourceHealth.flatMap(health => {
+    const sourceId = String(health?.sourceId || "");
+    const sourceOwners = sources.filter(candidate =>
+      String(candidate?.sourceId || "") === sourceId && candidate?.enabled === true);
+    const viewOwners = views.filter(candidate =>
+      String(candidate?.sourceId || "") === sourceId && candidate?.enabled === true);
+    const healthOwners = sourceHealth.filter(candidate =>
+      String(candidate?.sourceId || "") === sourceId);
+    return sourceId && sourceOwners.length === 1 && viewOwners.length === 1 &&
+      healthOwners.length === 1
+      ? [{ source: sourceOwners[0], view: viewOwners[0], health }]
+      : [];
+  });
+  assert(matches.length === 1,
+    `authoritative source-health fixture owner cardinality mismatch: ${matches.length}`);
+  const selected = matches[0];
+  const sourceId = String(selected.source.sourceId || "");
+  const streamId = String(selected.source.canonicalSourceKey || selected.source.streamId || "");
+  assert(sourceId && streamId, "authoritative source-health source identity is incomplete");
+  return Object.freeze({
+    sourceId,
+    streamId,
+    viewId: String(selected.view.viewId || ""),
+    status: String(selected.health.status || ""),
+    reason: String(selected.health.reason || ""),
+  });
+}
+
+export function sourceHealthFixtureMaterializationPlan(seedKind) {
+  if (seedKind !== "dashboard-three-api-samples") return null;
+  return Object.freeze({
+    seedKind,
+    authoritativeReadEndpoints: Object.freeze([
+      "/ops/api/sources",
+      "/ops/api/views",
+      "/ops/api/source-health",
+    ]),
+    joinIdentity: "sourceId",
+    requiresEnabledSource: true,
+    requiresEnabledView: true,
+  });
+}
+
+export function canonicalEventRuntimeSeedBindings({ fixtureId, sourceId = "9001" } = {}) {
+  assert(typeof fixtureId === "string" && fixtureId,
+    "canonical event runtime fixture identity is required");
+  assert(typeof sourceId === "string" && sourceId,
+    "canonical event runtime source identity is required");
+  return Object.freeze({
+    q: fixtureId,
+    ruleId: "1",
+    sourceId,
+    incidentStatus: "open",
+  });
+}
+
+export function vlmRuleSuggestionDraftBinding(observation) {
+  const candidateId = String(observation?.ruleSuggestion?.candidateId || "");
+  assert(candidateId, "VLM rule-suggestion authoritative candidate identity is missing");
+  return candidateId;
+}
+
+export function vlmRuleSuggestionCandidateId(eventId) {
+  assert(typeof eventId === "string" && eventId,
+    "VLM rule-suggestion event identity is required");
+  return `${eventId}-candidate`;
+}
+
 export function eventTypedRecordFieldsForSeed(seedKind) {
   if (seedKind !== "cross-zone-track-timeline") return Object.freeze({});
   return Object.freeze({
@@ -366,12 +444,10 @@ export const incidentMemorySearchContractCaseIds = Object.freeze([
 ]);
 
 export function incidentMemorySearchSeedBinding({
-  caseId,
   seedKind,
   fixtureId,
   sourceId,
 } = {}) {
-  assert(caseId === "EVT-041", "incident memory searchable seed is owned by EVT-041");
   assert(seedKind === "searchable-event-review", "incident memory searchable seed kind mismatch");
   assert(typeof fixtureId === "string" && fixtureId, "incident memory fixture identity is required");
   assert(typeof sourceId === "string" && sourceId, "incident memory source identity is required");
@@ -379,13 +455,13 @@ export function incidentMemorySearchSeedBinding({
     .filter(term => term.length >= 2))];
   assert(queryTerms.length > 0, "incident memory fixture query terms are required");
   return Object.freeze({
-    caseId,
     seedKind,
     query: fixtureId,
     scenarioName: fixtureId,
     ruleId: "1",
     sourceId,
     incidentStatus: "new",
+    incidentId: `incident:${fixtureId}`,
     queryTermCount: queryTerms.length,
     queryTermsSha256: crypto.createHash("sha256").update(JSON.stringify(queryTerms)).digest("hex"),
   });
@@ -1151,6 +1227,10 @@ export function createV390UiCaseRuntime({
         assert(candidate?.ruleSuggestion?.manualReviewRequired === true &&
           candidate?.ruleSuggestion?.autoApply === false,
         `${item.caseId} transient VLM rule draft seed is missing from the authoritative API readback`);
+        context.catalogBindings = {
+          ...context.catalogBindings,
+          candidateId: vlmRuleSuggestionDraftBinding(candidate),
+        };
         context.transientSeedReadback = {
           status: response.status,
           matchedFixture: true,
@@ -3011,7 +3091,9 @@ export function createV390UiCaseRuntime({
     }
     context.catalogBindings = {
       eventId: context.fixtureId,
-      candidateId: String(observation?.ruleSuggestion?.candidateId || `${context.fixtureId}-candidate`),
+      candidateId: observation?.ruleSuggestion?.candidateId
+        ? vlmRuleSuggestionDraftBinding(observation)
+        : vlmRuleSuggestionCandidateId(context.fixtureId),
       searchQuery,
       sourceId: source.sourceId,
       viewId: descriptor.auth?.defaultViewId || "9001",
@@ -3146,6 +3228,12 @@ export function createV390UiCaseRuntime({
     const source = plan.sourceHealthReadback
       ? await materializeEvt003SourceHealthFixture(item, context)
       : defaultPublishedSourceIdentity(descriptor);
+    if (kind === "dashboard-three-api-samples") {
+      const authoritativeSource = await materializeAuthoritativeSourceHealthFixture(item, context);
+      assert(authoritativeSource.sourceId === source.sourceId &&
+        authoritativeSource.streamId === source.streamId,
+      `${item.caseId} authoritative source-health owner differs from the published fixture`);
+    }
     const searchQuery = String((item.workflow.inputs || []).find(input =>
       input.kind === "literal-control-value" && typeof input.actualValue === "string")?.actualValue || context.fixtureId);
     const memorySearchSeed = kind === "searchable-event-review"
@@ -3292,6 +3380,7 @@ export function createV390UiCaseRuntime({
       note: `REVIEW4 ${item.caseId} ${kind} acceptance-owned review fixture`,
       incidentStatus: memorySearchSeed?.incidentStatus ||
         (plan.sourceHealth ? "in-progress" : "new"),
+      ...(memorySearchSeed?.incidentId ? { incidentId: memorySearchSeed.incidentId } : {}),
     };
     const eventRecordBeforeReviewSha256 = fs.existsSync(eventPath)
       ? crypto.createHash("sha256").update(fs.readFileSync(eventPath)).digest("hex")
@@ -3445,7 +3534,9 @@ export function createV390UiCaseRuntime({
       eventId: context.fixtureId,
       eventIds,
       seedKind: kind,
-      candidateId: String(observations[0]?.ruleSuggestion?.candidateId || `${context.fixtureId}-candidate`),
+      candidateId: observations.length > 0
+        ? vlmRuleSuggestionDraftBinding(observations[0])
+        : vlmRuleSuggestionCandidateId(context.fixtureId),
       searchQuery,
       sourceId: source.sourceId,
       viewId: source.viewId || descriptor.auth?.defaultViewId || "9001",
@@ -3618,6 +3709,26 @@ export function createV390UiCaseRuntime({
     return { sourceId, streamId: baseline.streamId, viewId, status, reason };
   }
 
+  async function materializeAuthoritativeSourceHealthFixture(item, context) {
+    const plan = sourceHealthFixtureMaterializationPlan("dashboard-three-api-samples");
+    assert(plan?.authoritativeReadEndpoints?.length === 3,
+      `${item.caseId} source-health materialization plan is incomplete`);
+    const responses = [];
+    for (const endpoint of plan.authoritativeReadEndpoints) {
+      responses.push(await requestEndpoint(
+        "GET", endpoint, null, item, context, [200],
+        { freshRole: true, roleOverride: "operator" }));
+    }
+    const [sourceList, viewList, health] = responses;
+    const binding = authoritativeSourceHealthFixtureBinding({
+      sources: sourceList.json?.sources,
+      views: viewList.json?.views,
+      sourceHealth: health.json?.sourceHealth,
+    });
+    context.catalogBindings = { ...context.catalogBindings, ...binding };
+    return binding;
+  }
+
   async function disableEvt003SourceHealthFixtureForTeardown(item, context) {
     const fixture = context.eventSourceHealthFixture;
     if (!fixture || fixture.disabledForTeardown) return { status: "already-disabled-for-teardown" };
@@ -3770,16 +3881,20 @@ export function createV390UiCaseRuntime({
       visit(value);
       return results;
     };
+    const canonicalSeedBindings = canonicalEventRuntimeSeedBindings({
+      fixtureId: context.fixtureId,
+      sourceId: context.catalogBindings.sourceId || defaultPublishedSourceIdentity(descriptor).sourceId,
+    });
     const templateValues = {
       fixtureId: context.fixtureId,
       eventId: context.fixtureId,
       id: context.fixtureId,
       viewId: context.catalogBindings.viewId || descriptor.auth?.defaultViewId || "9001",
-      sourceId: context.catalogBindings.sourceId || defaultPublishedSourceIdentity(descriptor).sourceId,
-      ruleId: context.catalogBindings.ruleId || "unmapped-rule",
-      q: context.catalogBindings.q || context.catalogBindings.searchQuery || context.fixtureId,
+      sourceId: canonicalSeedBindings.sourceId,
+      ruleId: context.catalogBindings.ruleId || canonicalSeedBindings.ruleId,
+      q: context.catalogBindings.q || context.catalogBindings.searchQuery || canonicalSeedBindings.q,
       evidence: "snapshot",
-      incidentStatus: context.catalogBindings.incidentStatus || "open",
+      incidentStatus: context.catalogBindings.incidentStatus || canonicalSeedBindings.incidentStatus,
       startTimeMs: "0",
       endTimeMs: String(Date.now()),
       limit: "100",
@@ -3884,7 +3999,7 @@ export function createV390UiCaseRuntime({
         }
         if (requirements.requestPaths.includes(assertion.path)) {
           requestByPath[assertion.path] = assertion.path.endsWith(".activeResolutionFilters")
-            ? typedActiveResolutionFiltersFromRequest(mergedQuery)
+            ? typedActiveResolutionFiltersFromUrl(endpoint)
             : { ...mergedQuery };
         }
       }
@@ -7052,7 +7167,7 @@ export function seedVlmRuleSuggestionFixture(observationPath, { eventId, sourceI
     operatorReviewQuestions: [],
     ruleSuggestion: {
       kind: "line-crossing",
-      candidateId: `${eventId}-candidate`,
+      candidateId: vlmRuleSuggestionCandidateId(eventId),
       suggestedAction: "manual-save-in-ops-rules",
       targetRoute: "/ops/rules",
       manualReviewRequired: true,

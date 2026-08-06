@@ -19,6 +19,8 @@ import {
   buildEndpointActionSemanticReadback,
   buildNavigationTrustEvidence,
   buildRequestCorrelationEvidence,
+  clientLiveCompositionFromTransition,
+  composedClientRuntimeBoundary,
   domSnapshotDigest,
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
@@ -2371,7 +2373,10 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     persistedRequestBinding,
     formResponseIdentity,
     originalSessionCookie,
-    beforePostconditionSnapshots,
+    beforePostconditionSnapshots: composedClientLive?.transitionBeforeSnapshots &&
+        Object.keys(composedClientLive.transitionBeforeSnapshots).length > 0
+      ? structuredClone(composedClientLive.transitionBeforeSnapshots)
+      : beforePostconditionSnapshots,
   });
   return {
     actionEvidence: { ...boundActionEvidence, completionStatus: "awaiting-independent-readback" },
@@ -2380,10 +2385,10 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
 }
 
 async function executeComposedClientLiveAction(browser, item, action, caseContext, networkStart) {
-  const type = action.semanticCompletion?.localTransition?.type || "";
-  const singleTileStart = item.caseId === "CLIENT-002" && type === "click";
-  if (!singleTileStart &&
-      !["composed-live-start-all-stop", "composed-va-overlay-session"].includes(type)) return null;
+  const composition = clientLiveCompositionFromTransition(
+    action.semanticCompletion?.localTransition,
+  );
+  if (!composition) return null;
   const staleSessionId = String(caseContext?.catalogBindings?.sessionId || "");
   assert(!staleSessionId,
     `${item.caseId} composed client interaction forbids a backend-precreated active session`);
@@ -2403,7 +2408,7 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
   const playbackSelector = `${tileSelector} [data-action="toggle-playback"]`;
   let modeSelector = null;
   let infoOverlayChanged = false;
-  if (type === "composed-va-overlay-session") {
+  if (composition.vaOverlay) {
     modeSelector = `${tileSelector} [data-mode-action="va-overlay"]`;
     const modeBefore = await browser.snapshot(modeSelector);
     assert(modeBefore.exists && modeBefore.visible && !modeBefore.disabled,
@@ -2440,7 +2445,7 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
   assert(sessionRequest?.requestBody && typeof sessionRequest.requestBody.overlayMode === "string",
     `${item.caseId} composed product playback request is missing overlayMode`);
   let vaProjection = null;
-  if (type === "composed-va-overlay-session") {
+  if (composition.vaOverlay) {
     assert(sessionRequest.requestBody.overlayMode === "va-overlay",
       `${item.caseId} product session request overlayMode drift: ${sessionRequest.requestBody.overlayMode}`);
     vaProjection = await waitForClientVaOverlayProjection(browser, {
@@ -2452,7 +2457,16 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
     assert(vaProjection.sampleId === String(caseContext?.catalogBindings?.vaMetadataSampleId || ""),
       `${item.caseId} product VA projection is not bound to the seeded metadata event`);
   }
-  if (type === "composed-live-start-all-stop") {
+  const transitionBeforeSnapshots = {};
+  if (composition.allStop) {
+    const runtimeBoundary = composedClientRuntimeBoundary({
+      transition: action.semanticCompletion?.localTransition,
+      composed: { viewId: tile.viewId, sessionId, overlayMode: sessionRequest.requestBody.overlayMode },
+    });
+    assert(runtimeBoundary, `${item.caseId} composed client runtime boundary is incomplete`);
+    for (const selector of runtimeBoundary.postconditionSelectors) {
+      transitionBeforeSnapshots[selector] = await browser.snapshot(selector);
+    }
     const allStopBefore = await browser.snapshot("#liveAllStop");
     if (allStopBefore.exists && !allStopBefore.visible) {
       await browser.click("details.workspace-actions > summary");
@@ -2474,7 +2488,7 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
   }
   return {
     schema: "media-server.v390-ui-composed-client-live-action.v1",
-    kind: singleTileStart ? "start-live-tile" : type,
+    kind: composition.kind,
     tileIndex: tile.index,
     viewId: tile.viewId,
     sessionId,
@@ -2482,27 +2496,26 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
     modeSelector,
     playbackSelector,
     infoOverlayChanged,
+    transitionBeforeSnapshots,
     ...(vaProjection ? { vaProjection: structuredClone(vaProjection) } : {}),
-    cleanupRequired: type === "composed-va-overlay-session",
+    cleanupRequired: composition.vaOverlay,
     status: "PASS",
   };
 }
 
 function materializeComposedClientCompletion(actionEvidence, composedClientLive) {
   if (!composedClientLive || !actionEvidence.expectedLocalTransition) return actionEvidence;
-  const requiredRequests = (actionEvidence.expectedLocalTransition.requiredRequests || []).map(request => ({
-    ...request,
-    urlPath: String(request.urlPath)
-      .replaceAll("{assignedViewId}", encodeURIComponent(composedClientLive.viewId))
-      .replaceAll("{sessionId}", encodeURIComponent(composedClientLive.sessionId)),
-  }));
-  assert(requiredRequests.every(request => !request.urlPath.includes("{")),
+  const runtimeBoundary = composedClientRuntimeBoundary({
+    transition: actionEvidence.expectedLocalTransition,
+    composed: composedClientLive,
+  });
+  assert(runtimeBoundary,
     `${actionEvidence.actionId} composed request binding remained unresolved`);
   return {
     ...actionEvidence,
     expectedLocalTransition: {
       ...actionEvidence.expectedLocalTransition,
-      requiredRequests,
+      requiredRequests: runtimeBoundary.requiredRequests.map(request => structuredClone(request)),
     },
   };
 }

@@ -384,6 +384,98 @@ check("fixed remaining contracts cover all 22 diagnosed response DOM owners", ()
   "one or more fixed remaining owner contracts are missing");
 });
 
+check("diagnostic final operator requires exact response values on one selected-event DOM owner", () => {
+  const fixtureId = "evt-065-review4-fixture";
+  const base = {
+    caseId: "EVT-065",
+    operator: "selected-event-equals",
+    target: fixtureId,
+    fixtureIdentity: fixtureId,
+    fixtureCandidates: [fixtureId],
+    responseBodies: [{ unifiedResolutionWorkspace: { resolutionQueue: [{
+      eventId: fixtureId,
+      evidenceQuality: { evidenceCompleteness: "complete" },
+    }] } }],
+    observation: { count: 1, visibleCount: 1, semanticNodes: [{
+      eventId: fixtureId,
+      attributes: { completeness: "complete" },
+      fields: {},
+    }] },
+  };
+  assert(evaluateResponseDerivedDomFieldProjection(base).pass,
+    "selected-event final operator did not compare its response value");
+  const ownerOnly = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: { count: 1, visibleCount: 1, semanticNodes: [{
+      eventId: fixtureId, attributes: {}, fields: {},
+    }] },
+  });
+  assert(!ownerOnly.pass && ownerOnly.failureCode === "RENDERER_PROJECTION_VALUE_MISMATCH",
+    "selected-event owner identity passed without the projected value");
+  const zero = evaluateResponseDerivedDomFieldProjection({
+    ...base, observation: { count: 0, visibleCount: 0, semanticNodes: [] },
+  });
+  assert(!zero.pass && zero.failureCode === "DOM_PROJECTION_OWNER_MISSING",
+    "zero selected-event DOM owners passed");
+  const wrongFixture = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: { count: 1, visibleCount: 1, semanticNodes: [{
+      eventId: "evt-wrong", attributes: { completeness: "complete" }, fields: {},
+    }] },
+  });
+  assert(!wrongFixture.pass && wrongFixture.failureCode === "DOM_PROJECTION_OWNER_MISSING",
+    "wrong selected-event DOM fixture passed");
+  const split = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: { count: 2, visibleCount: 2, semanticNodes: [
+      base.observation.semanticNodes[0], structuredClone(base.observation.semanticNodes[0]),
+    ] },
+  });
+  assert(!split.pass && split.failureCode === "DOM_PROJECTION_OWNER_AMBIGUOUS",
+    "split selected-event DOM owners passed");
+  const drift = evaluateResponseDerivedDomFieldProjection({
+    ...base,
+    observation: { count: 1, visibleCount: 1, semanticNodes: [{
+      eventId: fixtureId, attributes: { completeness: "partial" }, fields: {},
+    }] },
+  });
+  assert(!drift.pass && drift.failureCode === "RENDERER_PROJECTION_VALUE_MISMATCH",
+    "selected-event projected value drift passed");
+});
+
+check("item readback selection ignores collection duplication but rejects duplicate rows in the authoritative body", () => {
+  const fixtureId = "evt-066-review4-fixture";
+  const row = {
+    eventId: fixtureId,
+    sourceReliability: {
+      sourceHealthStatus: "failed",
+      recentFailureContext: "connect-timeout",
+      operatorRecheckHint: "run-source-recheck",
+    },
+  };
+  const observation = { count: 1, visibleCount: 1, semanticNodes: [{
+    eventId: fixtureId,
+    attributes: {
+      health: "failed", failureContext: "connect-timeout", recheckHint: "run-source-recheck",
+    },
+    fields: {},
+  }] };
+  const base = {
+    caseId: "EVT-066", operator: "fields-equal-item-readback",
+    target: "health/failureContext/recheckHint",
+    fixtureIdentity: fixtureId, fixtureCandidates: [fixtureId], observation,
+  };
+  const body = rows => ({ unifiedResolutionWorkspace: { resolutionQueue: rows } });
+  assert(evaluateResponseDerivedDomFieldProjection({
+    ...base, responseBodies: [body([row]), body([structuredClone(row)])],
+  }).pass, "authoritative item readback was ambiguous with the earlier collection response");
+  const duplicate = evaluateResponseDerivedDomFieldProjection({
+    ...base, responseBodies: [body([row]), body([row, structuredClone(row)])],
+  });
+  assert(!duplicate.pass && duplicate.failureCode === "RESPONSE_FIELD_OWNER_AMBIGUOUS",
+    "duplicate fixture rows inside the authoritative item response passed");
+});
+
 check("event review descendant binding requires one visible identity row and one canonical card", () => {
   const assertion = {
     operator: "contains-descendant",

@@ -12,6 +12,7 @@ const DIRECT_RESPONSE_OPERATORS = new Set([
 ]);
 const DIRECT_DOM_OPERATORS = new Set([
   "contains-descendant", "contains-fixture-event", "contains-fixture-marker", "does-not-claim-longrun-pass",
+  "history-bounded",
   "not-contains-seed-credential-canary", "not-contains-seed-raw-canary", "not-contains-sensitive-canary",
   "number-equals-response", "selected-event-equals", "slot-count-equals", "text-includes",
 ]);
@@ -58,7 +59,7 @@ const responseDerivedDomProjectionContracts = Object.freeze({
   "EVT-051\nscore-equals-response\nscore": Object.freeze({
     selector: "#opsIncidentDecisionScorecardRows [data-incident-decision-scorecard-event={fixtureId}]",
     collectionPath: "incidentDecisionScorecard.scorecards", identityPaths: ["eventId"],
-    fields: [["priorityReasonChips[].label", "score", "field-text"]],
+    fields: [["priorityReasonChips[].label", "priorityReasons", "field-text"]],
   }),
   "EVT-052\nlinks-equal-response\nbundle/draft/dry-run/recheck": Object.freeze({
     selector: "#opsOperationalActionPackRows [data-operational-action-pack-event={fixtureId}]",
@@ -127,6 +128,7 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     fields: [["sourceReliability.sourceHealthStatus", "health"],
       ["sourceReliability.recentFailureContext", "failureContext"],
       ["sourceReliability.operatorRecheckHint", "recheckHint"]],
+    responseBodySelection: "last",
   }),
   "EVT-067\nfields-equal-response\ncorrectionSignal/reviewSignal/uncertaintyReason/qualityBadge": Object.freeze({
     selector: "[data-v320-resolution-detail={fixtureId}] #v320AiReviewQualityGrid",
@@ -165,6 +167,107 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     fields: [["incidentCommandHandoff.sourceCause", "sourceCause"],
       ["incidentCommandHandoff.continuityDrillCandidate", "continuityDrillCandidate"],
       ["incidentCommandHandoff.commandPlanDraft", "commandPlanDraft"]],
+  }),
+  "EVT-043\nslot-count-equals\n[data-incident-brief-slot]": Object.freeze({
+    selector: "#opsIncidentBriefRows [data-incident-brief-card={fixtureId}]",
+    collectionPath: "incidentBrief.briefs", identityPaths: ["eventId"],
+    fields: [["actionSlot.value", "action", "field-text"]],
+  }),
+  "EVT-044\nexplanation-terms-equal-response\nexplanationTerms": Object.freeze({
+    selector: "#opsSimilarIncidentRows [data-similar-incident-group={fixtureId}]",
+    collectionPath: "similarIncidents.groups", identityPaths: ["baseEventId"],
+    fields: [["related[].explanationTerms[]", "explanationTerms", "field-text"]],
+  }),
+  "EVT-047\nmanual-only\nno-auto-apply": Object.freeze({
+    selector: "[data-event-review-row][data-event-id={fixtureId}] [data-testid=ops-incident-rule-suggestion-review]",
+    collectionPath: "records", identityPaths: ["event.eventId", "review.eventId"],
+    fields: [["incidentRuleSuggestionReview.contract.autoRuleApplied", "autoRuleApplied"],
+      ["incidentRuleSuggestionReview.contract.ruleRegistryWritePerformed", "ruleRegistryWritePerformed"]],
+  }),
+  "EVT-049\nfields-equal-response\neventType/scenario/evidence": Object.freeze({
+    selector: "#eventRecordRows [data-event-semantic-event-id={fixtureId}]",
+    collectionPath: "records.records", identityPaths: ["eventId"],
+    fields: [["eventType", "eventType"], ["scenarioPhase", "scenario"],
+      ["snapshotPath|clipPath", "evidenceState", "attribute", "evidence-state"]],
+  }),
+  "EVT-050\nfilter-result-exact\nlane/priority/sort": Object.freeze({
+    selector: "#opsIncidentTriageBoardRows [data-incident-triage-card={fixtureId}]",
+    collectionPath: "incidentTriageBoard.cards", identityPaths: ["eventId"],
+    fields: [["lane", "lane"], ["priority", "priority"], ["priorityRank", "sortRank"]],
+  }),
+  "EVT-051\nreasons-equal-response\npriorityReasons": Object.freeze({
+    selector: "#opsIncidentDecisionScorecardRows [data-incident-decision-scorecard-event={fixtureId}]",
+    collectionPath: "incidentDecisionScorecard.scorecards", identityPaths: ["eventId"],
+    fields: [["priorityReasonChips[].label", "priorityReasons", "field-text"]],
+  }),
+  "EVT-052\nmanual-only\nall-actions": Object.freeze({
+    selector: "#opsOperationalActionPackRows [data-operational-action-pack-event={fixtureId}]",
+    collectionPath: "operationalActionPack.items", identityPaths: ["eventId"],
+    fields: [["actions.ruleDraftRoute.ruleRegistryWritePerformed", "ruleRegistryWritePerformed"],
+      ["actions.alertDryRunRoute.externalDeliveryPerformed", "externalDeliveryPerformed"],
+      ["actions.sourceHealthRecheck.sourceHealthWritePerformed", "sourceHealthWritePerformed"]],
+  }),
+  "EVT-053\nmanual-only\nno-auto-save-apply": Object.freeze({
+    selector: "#opsRuleWhatIfPreviewRows [data-rule-what-if-preview-event={fixtureId}]",
+    collectionPath: "ruleWhatIfPreview.items", identityPaths: ["eventId", "preview.eventId"], identityPathMode: "any",
+    fields: [["preview.manualSaveRequired", "manualSaveRequired"],
+      ["preview.ruleRegistryWritePerformed", "ruleRegistryWritePerformed"]],
+  }),
+  "EVT-054\nhistory-hint-equals-response\ndeterministicHistoryHint": Object.freeze({
+    selector: "#opsOperatorOutcomeMemoryRows [data-operator-outcome-memory-event={fixtureId}]",
+    collectionPath: "operatorOutcomeMemory.items", identityPaths: ["eventId"],
+    fields: [["deterministicHistoryHint.deterministicHistoryHint", "deterministicHistoryHint", "field-text"]],
+  }),
+  "EVT-055\nnot-run-not-styled-pass\nnot-run": Object.freeze({
+    selector: "#opsIncidentActionReadinessQueueRows [data-incident-action-readiness-event={fixtureId}]",
+    collectionPath: "incidentActionReadinessQueue.items", identityPaths: ["eventId"],
+    fields: [["readinessStatus", "readinessStatus"], ["readinessStatus", "passStyled", "attribute", "pass-style"]],
+  }),
+  "EVT-057\nnot-contains-seed-credential-canary\ncredentialCanary": Object.freeze({
+    selector: "#opsEvidenceIntakeFieldReadinessRows [data-evidence-intake-field-event={fixtureId}]",
+    collectionPath: "evidenceIntakeFieldReadiness.items", identityPaths: ["eventId"],
+    fields: [["evidenceIntakeStatus", "evidenceIntakeStatus"]],
+  }),
+  "EVT-058\nhistory-bounded\nsampleLimit": Object.freeze({
+    selector: "#opsRuntimeEvidenceWindowRows [data-runtime-evidence-event={fixtureId}]",
+    collectionPath: "runtimeEvidenceWindow.items", identityPaths: ["eventId"],
+    fields: [["$collection", "sampleCount", "attribute", "bounded-collection-count", { limit: 12 }],
+      ["$limit", "sampleLimit", "attribute", "limit", { limit: 12 }]],
+  }),
+  "EVT-064\ndetail-sections-equal-response\ndetailSections": Object.freeze({
+    selector: "#opsV320ResolutionDetail [data-v320-resolution-detail={fixtureId}]",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["detailSections[].key", "detailSections", "field-text"]],
+  }),
+  "EVT-065\nselected-event-equals\nevt-065-review4-fixture": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v320EvidenceQualityGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["evidenceQuality.evidenceCompleteness", "completeness"]],
+  }),
+  "EVT-067\nselected-event-equals\nevt-067-review4-fixture": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v320AiReviewQualityGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["aiReviewQuality.qualityBadge", "qualityBadge"]],
+  }),
+  "EVT-069\nselected-event-equals\nevt-069-review4-fixture": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v320ActionReadinessChecklistGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["actionReadinessChecklist.ruleDraftStatus", "ruleDraft"]],
+  }),
+  "EVT-071\nselected-event-equals\nevt-071-review4-fixture": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v330IncidentSourceCorrelationGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["incidentSourceCorrelation.sourceCauseCategory", "sourceCause"]],
+  }),
+  "EVT-072\nhealthy-source-absent\nhealthySource": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v330OperatorRecheckRecoveryQueueGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["operatorRecheckRecoveryQueue.failedOnlyRecheck", "failedOnlyRecheck"]],
+  }),
+  "EVT-075\nread-only\nno-action-control": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v350IncidentCommandHandoffGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["incidentCommandHandoff.boundaries.commandPlanExecuted", "commandPlanExecuted"]],
   }),
 });
 
@@ -342,7 +445,10 @@ function projectionContractFixtureIdentity(fixtureIdentity, fixtureCandidates) {
 }
 
 function projectionContractRows(responseBodies, contract) {
-  return responseBodies.flatMap(body => eventExactValuesAtPath(body, contract.collectionPath))
+  const selectedBodies = contract.responseBodySelection === "last"
+    ? responseBodies.slice(-1)
+    : responseBodies;
+  return selectedBodies.flatMap(body => eventExactValuesAtPath(body, contract.collectionPath))
     .flatMap(value => Array.isArray(value) ? value : [value])
     .filter(value => value && typeof value === "object" && !Array.isArray(value));
 }
@@ -353,11 +459,32 @@ function projectionContractRowMatches(row, contract, fixtureIdentity) {
   return contract.identityPathMode === "any" ? matches.some(Boolean) : matches.every(Boolean);
 }
 
-function projectionContractExpectedValues(row, responsePath, fixtureIdentity) {
+function projectionContractExpectedValues(
+  row, responsePath, fixtureIdentity, transform = "identity", options = {}, projectionContext = {},
+) {
   if (responsePath === "$identity") return [fixtureIdentity];
-  return eventExactValuesAtPath(row, responsePath)
+  if (transform === "bounded-collection-count") {
+    const limit = Number(options.limit);
+    return [String(Math.min(Number(projectionContext.rowCount || 0), limit))];
+  }
+  if (transform === "limit") return [String(Number(options.limit))];
+  if (transform === "evidence-state") {
+    const [snapshotPath, clipPath] = String(responsePath).split("|");
+    const snapshotPresent = eventExactValuesAtPath(row, snapshotPath)
+      .some(value => String(value ?? "").trim().length > 0);
+    const clipPresent = eventExactValuesAtPath(row, clipPath)
+      .some(value => String(value ?? "").trim().length > 0);
+    return [snapshotPresent && clipPresent
+      ? "snapshot+clip"
+      : (snapshotPresent ? "snapshot-only" : (clipPresent ? "clip-only" : "none"))];
+  }
+  const values = eventExactValuesAtPath(row, responsePath)
     .flatMap(value => Array.isArray(value) ? value : [value])
     .map(value => String(value ?? ""));
+  if (transform === "pass-style") {
+    return values.map(value => value === "ready" ? "true" : "false");
+  }
+  return values;
 }
 
 function evaluateDeclaredResponseDomProjection({
@@ -378,9 +505,13 @@ function evaluateDeclaredResponseDomProjection({
   const observationPresent = Number(observation?.count || 0) === 1 &&
     Number(observation?.visibleCount || 0) === 1 && semanticNodes.length === 1;
   const domOwnerExact = observationPresent && domCandidates.length === 1;
-  const fieldEvidence = contract.fields.map(([responsePath, domKey, source = "attribute"]) => {
+  const fieldEvidence = contract.fields.map(([
+    responsePath, domKey, source = "attribute", transform = "identity", options = {},
+  ]) => {
     const expected = owners.length === 1
-      ? projectionContractExpectedValues(owners[0], responsePath, identity)
+      ? projectionContractExpectedValues(owners[0], responsePath, identity, transform, options, {
+        rowCount: rows.length,
+      })
       : [];
     const node = domOwnerExact ? domCandidates[0] : null;
     const actual = !node
@@ -1069,10 +1200,24 @@ function evaluateDirectDom({ assertion, observation, context }) {
     }
     case "does-not-claim-longrun-pass":
       return { pass: !/(30|120)\s*(분|minute).*pass/i.test(text), reason: "does-not-claim-longrun-pass" };
+    case "history-bounded": {
+      const attributes = (observation?.attributes || [])[0] || {};
+      const count = Number(attributes["data-event-semantic-sample-count"]);
+      const limit = Number(attributes["data-event-semantic-sample-limit"]);
+      return {
+        pass: Number.isInteger(count) && count > 0 && Number.isInteger(limit) && limit > 0 && count <= limit,
+        reason: "history-bounded",
+      };
+    }
     case "selected-event-equals":
       return { pass: recursiveContains(observation, context.fixtureId), reason: "selected-event-equals" };
-    case "slot-count-equals":
-      return { pass: Number(observation?.descendantCounts?.[assertion.target]) === Number(assertion.expected), reason: "slot-count-equals" };
+    case "slot-count-equals": {
+      const semanticCount = (observation?.attributes || [])
+        .map(attributes => attributes?.["data-event-semantic-slot-count"])
+        .find(value => value !== undefined);
+      const actual = semanticCount ?? observation?.descendantCounts?.[assertion.target];
+      return { pass: Number(actual) === Number(assertion.expected), reason: "slot-count-equals" };
+    }
     case "number-equals-response": {
       const expected = context?.responseValues?.[assertion.target];
       const actual = Number(observation?.number ?? observation?.value ?? text.trim());

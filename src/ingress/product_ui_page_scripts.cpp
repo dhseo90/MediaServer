@@ -4122,6 +4122,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (numeric > 1000000000000) return new Date(numeric).toLocaleString();
         return `${Math.round(numeric)}ms`;
       };
+      const eventRecordEvidenceState = item => {
+        const snapshotPresent = String(item?.snapshotPath || '').trim().length > 0;
+        const clipPresent = String(item?.clipPath || '').trim().length > 0;
+        return snapshotPresent && clipPresent
+          ? 'snapshot+clip'
+          : (snapshotPresent ? 'snapshot-only' : (clipPresent ? 'clip-only' : 'none'));
+      };
       const eventRecordEvidence = item => {
         const snapshotPath = String(item?.snapshotPath || '').trim();
         const clipPath = String(item?.clipPath || '').trim();
@@ -4178,7 +4185,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             ${ruleId ? `<span class="ops-rule-note">rule ${escapeHtml(ruleId)}</span>` : ''}
           </div>`;
           const scenarioParts = [item?.scenarioName, item?.scenarioPhase].filter(Boolean).map(display);
-          return `<tr data-event-semantic-event-id="${escapeHtml(item?.eventId || '')}">
+          return `<tr data-event-semantic-event-id="${escapeHtml(item?.eventId || '')}" data-event-semantic-event-type="${escapeHtml(item?.eventType || '')}" data-event-semantic-scenario="${escapeHtml(item?.scenarioPhase || '')}" data-event-semantic-evidence-state="${eventRecordEvidenceState(item)}">
             ${tableCellHtml('이벤트', eventHtml)}
             ${tableCellHtml('상태', badge(item?.status || '미제공', item?.status === 'ended' ? 'info' : ''), 'table-cell-status')}
             ${tableCellHtml('스트림', escapeHtml(streamLabel))}
@@ -4256,7 +4263,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const body = hasSuggestion
           ? `${display(kind)} · ${classesText} · ${display(suggestion.rationale || '운영자가 geometry와 조건을 검토한 뒤 수동 저장합니다.')}`
           : 'matching VLM rule suggestion 후보가 없습니다. /ops/rules draft workflow에서 전체 후보를 다시 조회할 수 있습니다.';
-        return `<div class="ops-incident-rule-suggestion-review ops-incident-rule-suggestion-card" data-testid="ops-incident-rule-suggestion-review" data-incident-rule-suggestion-review="ops-only-draft-route">
+        return `<div class="ops-incident-rule-suggestion-review ops-incident-rule-suggestion-card" data-testid="ops-incident-rule-suggestion-review" data-incident-rule-suggestion-review="ops-only-draft-route" data-event-semantic-auto-rule-applied="${review.contract?.autoRuleApplied === true ? 'true' : 'false'}" data-event-semantic-rule-registry-write-performed="${review.contract?.ruleRegistryWritePerformed === true ? 'true' : 'false'}">
           <div class="badge-row">${badges.map(item => `<span class="chip${item.tone ? ` ${escapeHtml(item.tone)}` : ''}">${escapeHtml(item.text)}</span>`).join('')}</div>
           <strong>Incident-to-rule manual review</strong>
           <span class="ops-rule-note">${escapeHtml(body)}</span>
@@ -4608,7 +4615,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           evidenceQuality.sourceUrlExposed === false &&
           evidenceQuality.rawJsonExposed === false &&
           evidenceQuality.debugMaterialExposed === false;
-        return `<div id="v320EvidenceQualityGrid" class="v320-evidence-quality-grid" data-v320-evidence-quality="${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}" data-event-semantic-completeness="${escapeHtml(evidenceQuality.evidenceCompleteness || '')}" data-event-semantic-confidence="${escapeHtml(evidenceQuality.evidenceConfidence || '')}" data-event-semantic-replay-coverage-hint="${escapeHtml(evidenceQuality.replayCoverageHint || '')}">
+        return `<div id="v320EvidenceQualityGrid" class="v320-evidence-quality-grid" data-v320-evidence-quality="${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-completeness="${escapeHtml(evidenceQuality.evidenceCompleteness || '')}" data-event-semantic-confidence="${escapeHtml(evidenceQuality.evidenceConfidence || '')}" data-event-semantic-replay-coverage-hint="${escapeHtml(evidenceQuality.replayCoverageHint || '')}">
           <p class="v320-evidence-quality-card">
             <strong>evidence completeness</strong>
             <span>${escapeHtml(display(evidenceQuality.evidenceCompleteness || 'missing'))}</span>
@@ -4642,7 +4649,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           sourceReliability.sourceUrlExposed === false &&
           sourceReliability.rawJsonExposed === false &&
           sourceReliability.debugMaterialExposed === false;
-        return `<div id="v320SourceReliabilityGrid" class="v320-source-reliability-grid" data-v320-source-reliability="${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}" data-event-semantic-health="${escapeHtml(sourceReliability.sourceHealthStatus || '')}" data-event-semantic-failure-context="${escapeHtml(sourceReliability.recentFailureContext || '')}" data-event-semantic-recheck-hint="${escapeHtml(sourceReliability.operatorRecheckHint || '')}">
+        return `<div id="v320SourceReliabilityGrid" class="v320-source-reliability-grid" data-v320-source-reliability="${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-health="${escapeHtml(sourceReliability.sourceHealthStatus || '')}" data-event-semantic-failure-context="${escapeHtml(sourceReliability.recentFailureContext || '')}" data-event-semantic-recheck-hint="${escapeHtml(sourceReliability.operatorRecheckHint || '')}">
           <p class="v320-source-reliability-card">
             <strong>source health</strong>
             <span>${escapeHtml(display(sourceReliability.sourceHealthStatus || 'source-missing'))}</span>
@@ -4680,7 +4687,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           incidentSourceCorrelation.sourceUrlExposed === false &&
           incidentSourceCorrelation.rawJsonExposed === false &&
           incidentSourceCorrelation.debugMaterialExposed === false;
-        return `<div id="v330IncidentSourceCorrelationGrid" class="v330-incident-source-correlation-grid" data-v330-incident-source-correlation="${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}" data-event-semantic-source-cause="${escapeHtml(incidentSourceCorrelation.sourceCauseCategory || '')}" data-event-semantic-closure-impact="${escapeHtml(incidentSourceCorrelation.resolutionClosureImpact || '')}">
+        return `<div id="v330IncidentSourceCorrelationGrid" class="v330-incident-source-correlation-grid" data-v330-incident-source-correlation="${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-source-cause="${escapeHtml(incidentSourceCorrelation.sourceCauseCategory || '')}" data-event-semantic-closure-impact="${escapeHtml(incidentSourceCorrelation.resolutionClosureImpact || '')}">
           <p class="v330-incident-source-correlation-card">
             <strong>source cause</strong>
             <span>${escapeHtml(display(incidentSourceCorrelation.sourceCauseCategory || 'source-context-missing'))}</span>
@@ -4725,7 +4732,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           operatorRecheckRecoveryQueue.credentialMaterialExposed === false &&
           operatorRecheckRecoveryQueue.autoRecoveryApplied === false &&
           operatorRecheckRecoveryQueue.externalRecoveryPerformed === false;
-        return `<div id="v330OperatorRecheckRecoveryQueueGrid" class="v330-operator-recheck-recovery-queue-grid" data-v330-operator-recheck-recovery-queue="${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}" data-event-semantic-retry-candidate="${escapeHtml(operatorRecheckRecoveryQueue.retryCandidate || '')}" data-event-semantic-dry-run-status="${escapeHtml(operatorRecheckRecoveryQueue.dryRunResultStatus || '')}" data-event-semantic-operator-note-link="${escapeHtml(operatorRecheckRecoveryQueue.operatorNoteRoute || '')}">
+        return `<div id="v330OperatorRecheckRecoveryQueueGrid" class="v330-operator-recheck-recovery-queue-grid" data-v330-operator-recheck-recovery-queue="${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-retry-candidate="${escapeHtml(operatorRecheckRecoveryQueue.retryCandidate || '')}" data-event-semantic-dry-run-status="${escapeHtml(operatorRecheckRecoveryQueue.dryRunResultStatus || '')}" data-event-semantic-operator-note-link="${escapeHtml(operatorRecheckRecoveryQueue.operatorNoteRoute || '')}" data-event-semantic-failed-only-recheck="${operatorRecheckRecoveryQueue.failedOnlyRecheck === true ? 'true' : 'false'}">
           <p class="v330-operator-recheck-recovery-queue-card">
             <strong>failed-only recheck</strong>
             <span>${operatorRecheckRecoveryQueue.failedOnlyRecheck === true ? 'enabled' : '확인 필요'}</span>
@@ -4777,7 +4784,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           boundaries.viewerClientExposureAdded === false &&
           boundaries.rawLocatorExposedToClient === false &&
           boundaries['credential' + 'MaterialExposed'] === false;
-        return `<div id="v350IncidentCommandHandoffGrid" class="v330-operator-recheck-recovery-queue-grid" data-v350-incident-command-handoff="${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}" data-event-semantic-source-cause="${escapeHtml(incidentCommandHandoff.sourceCause || '')}" data-event-semantic-continuity-drill-candidate="${escapeHtml(incidentCommandHandoff.continuityDrillCandidate || '')}" data-event-semantic-command-plan-draft="${escapeHtml(incidentCommandHandoff.commandPlanDraft || '')}">
+        return `<div id="v350IncidentCommandHandoffGrid" class="v330-operator-recheck-recovery-queue-grid" data-v350-incident-command-handoff="${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-source-cause="${escapeHtml(incidentCommandHandoff.sourceCause || '')}" data-event-semantic-continuity-drill-candidate="${escapeHtml(incidentCommandHandoff.continuityDrillCandidate || '')}" data-event-semantic-command-plan-draft="${escapeHtml(incidentCommandHandoff.commandPlanDraft || '')}" data-event-semantic-command-plan-executed="${boundaries.commandPlanExecuted === true ? 'true' : 'false'}">
           <p class="v330-operator-recheck-recovery-queue-card" data-v350-detail-section="incident-command-handoff">
             <strong>source cause</strong>
             <span>${escapeHtml(display(incidentCommandHandoff.sourceCause || 'source-context-missing'))}</span>
@@ -4811,7 +4818,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           aiReviewQuality.sourceUrlExposed === false &&
           aiReviewQuality.rawJsonExposed === false &&
           aiReviewQuality.debugMaterialExposed === false;
-        return `<div id="v320AiReviewQualityGrid" class="v320-ai-review-quality-grid" data-v320-ai-review-quality="${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}" data-event-semantic-correction-signal="${escapeHtml(aiReviewQuality.correctionReviewSignal || '')}" data-event-semantic-review-signal="${escapeHtml(aiReviewQuality.reviewStatus || '')}" data-event-semantic-uncertainty-reason="${escapeHtml(aiReviewQuality.uncertaintyReason || '')}" data-event-semantic-quality-badge="${escapeHtml(aiReviewQuality.qualityBadge || '')}">
+        return `<div id="v320AiReviewQualityGrid" class="v320-ai-review-quality-grid" data-v320-ai-review-quality="${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-correction-signal="${escapeHtml(aiReviewQuality.correctionReviewSignal || '')}" data-event-semantic-review-signal="${escapeHtml(aiReviewQuality.reviewStatus || '')}" data-event-semantic-uncertainty-reason="${escapeHtml(aiReviewQuality.uncertaintyReason || '')}" data-event-semantic-quality-badge="${escapeHtml(aiReviewQuality.qualityBadge || '')}">
           <p class="v320-ai-review-quality-card">
             <strong>correction review</strong>
             <span>${escapeHtml(display(aiReviewQuality.correctionReviewSignal || 'pending-review'))}</span>
@@ -4887,7 +4894,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           actionReadinessChecklist.ruleDraftCreated === false &&
           actionReadinessChecklist.notificationSent === false &&
           actionReadinessChecklist.viewerClientExposureAdded === false;
-        return `<div id="v320ActionReadinessChecklistGrid" class="v320-action-readiness-checklist-grid" data-v320-action-readiness-checklist="${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}" data-event-semantic-rule-draft="${escapeHtml(actionReadinessChecklist.ruleDraftStatus || '')}" data-event-semantic-evidence-bundle="${escapeHtml(actionReadinessChecklist.evidenceBundleStatus || '')}" data-event-semantic-notification="${actionReadinessChecklist.notificationReady === true ? 'true' : 'false'}">
+        return `<div id="v320ActionReadinessChecklistGrid" class="v320-action-readiness-checklist-grid" data-v320-action-readiness-checklist="${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-rule-draft="${escapeHtml(actionReadinessChecklist.ruleDraftStatus || '')}" data-event-semantic-evidence-bundle="${escapeHtml(actionReadinessChecklist.evidenceBundleStatus || '')}" data-event-semantic-notification="${actionReadinessChecklist.notificationReady === true ? 'true' : 'false'}">
           <p class="v320-action-readiness-checklist-card">
             <strong>readiness status</strong>
             <span>${escapeHtml(display(actionReadinessChecklist.readinessStatus || 'blocked'))}</span>
@@ -5072,14 +5079,14 @@ void AppendOpsShellScript(std::ostringstream& out,
         }).join('');
         const detailSections = Array.isArray(selectedDetail?.detailSections) ? selectedDetail.detailSections : [];
         const selectedResolution = selectedDetail?.resolutionState || {};
-        detailRoot.innerHTML = `<article class="v320-resolution-detail-card" data-v320-resolution-detail="${escapeHtml(selectedDetail?.eventId || '')}">
+        detailRoot.innerHTML = `<article class="v320-resolution-detail-card" data-v320-resolution-detail="${escapeHtml(selectedDetail?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(selectedDetail?.eventId || '')}">
           <div class="table-cell-main">
             <strong>${escapeHtml(display(selectedDetail?.eventId || 'resolution detail'))}</strong>
             <span>${escapeHtml(display(selectedDetail?.eventType || 'event'))} · review ${escapeHtml(display(selectedDetail?.reviewState || 'new'))}</span>
           </div>
           <div class="v320-resolution-detail-grid">
             ${detailSections.map(section => `<p data-v320-resolution-detail-section="${escapeHtml(section?.key || '')}">
-              <strong>${escapeHtml(display(section?.label || section?.key || 'section'))}</strong>
+              <strong data-event-semantic-field="detailSections">${escapeHtml(display(section?.key || 'section'))}</strong>
               <span>${escapeHtml(display(section?.status || 'unknown'))}</span>
               <small>${escapeHtml(display(section?.detail || 'Ops review state'))}</small>
             </p>`).join('')}
@@ -5221,7 +5228,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: vlmSummaryCandidateReview.manualReviewRoute || '/ops/events' },
           { text: vlmSummaryCandidateReview.contract?.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: vlmSummaryCandidateReview.contract?.viewerClientExposureAdded === false ? 'info' : 'warn' }
         ]);
-        if (!q) {
+        if (!q && candidates.length === 0) {
           setText('opsVlmSummaryCandidateSummary', '검색어를 입력하면 sidecar summary candidate를 sourceCandidateReport로 감싸 manual review 후보로 표시합니다.');
           root.innerHTML = '<p class="ops-rule-note">검색어를 입력하면 VLM summary candidate review가 표시됩니다.</p>';
           return;
@@ -5300,7 +5307,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <div class="incident-triage-card-list">
               ${laneCards.length ? laneCards.map(card => {
                 const reasons = Array.isArray(card?.priorityReasons) ? card.priorityReasons : [];
-                return `<article class="incident-triage-card" data-incident-triage-card="${escapeHtml(card?.eventId || '')}" data-priority="${escapeHtml(card?.priority || 'low')}" data-event-semantic-event-id="${escapeHtml(card?.eventId || '')}" data-event-semantic-lane="${escapeHtml(card?.lane || '')}" data-event-semantic-priority="${escapeHtml(card?.priority || '')}" data-event-semantic-review-state="${escapeHtml(card?.reviewState || '')}" data-event-semantic-incident-status="${escapeHtml(card?.incidentStatus || '')}">
+                return `<article class="incident-triage-card" data-incident-triage-card="${escapeHtml(card?.eventId || '')}" data-priority="${escapeHtml(card?.priority || 'low')}" data-event-semantic-event-id="${escapeHtml(card?.eventId || '')}" data-event-semantic-lane="${escapeHtml(card?.lane || '')}" data-event-semantic-priority="${escapeHtml(card?.priority || '')}" data-event-semantic-sort-rank="${escapeHtml(display(card?.priorityRank ?? ''))}" data-event-semantic-review-state="${escapeHtml(card?.reviewState || '')}" data-event-semantic-incident-status="${escapeHtml(card?.incidentStatus || '')}">
                   <div class="table-cell-main">
                     <strong>${escapeHtml(display(card?.eventId || 'event'))}</strong>
                     <span>${escapeHtml(display(card?.sourceId || '-'))} · ${escapeHtml(display(card?.ruleId || '-'))} · ${escapeHtml(display(card?.scenario || '-'))}</span>
@@ -5351,7 +5358,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               <span>EventRecord ${escapeHtml(display(eventBasis.eventType || 'event'))} · ${escapeHtml(display(eventBasis.status || 'unknown'))}</span>
             </div>
             <div class="badge-row">
-              ${chips.map(chip => `<span class="chip priority-reason-chip ${chip?.tone ? escapeHtml(chip.tone) : ''}" data-event-semantic-field="score">${escapeHtml(display(chip?.label || chip))}</span>`).join('')}
+              ${chips.map(chip => `<span class="chip priority-reason-chip ${chip?.tone ? escapeHtml(chip.tone) : ''}" data-event-semantic-field="priorityReasons">${escapeHtml(display(chip?.label || chip))}</span>`).join('')}
             </div>
             <div class="incident-decision-basis-grid">
               <p><strong>sourceHealthBasis</strong><span>${escapeHtml(display(sourceBasis.sourceId || '-'))} · ${escapeHtml(display(sourceBasis.status || '-'))}</span></p>
@@ -5396,7 +5403,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             alertDryRunRoute.available ? `<button type="button" class="button button-secondary button-compact" data-action-pack-alert-dry-run="${escapeHtml(item?.eventId || '')}">alert dry-run</button>` : '',
             sourceHealthRecheck.available ? `<a class="button button-secondary button-compact" data-source-health-recheck="dry-run" href="/ops/dashboard">source health recheck</a>` : `<span class="chip warn">source health 대기</span>`
           ].filter(Boolean).join('');
-          return `<article class="operational-action-pack-card" data-operational-action-pack-event="${escapeHtml(item?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(item?.eventId || '')}" data-event-semantic-bundle="${evidence.available === true ? 'true' : 'false'}" data-event-semantic-draft="${ruleDraftRoute.available === true ? 'true' : 'false'}" data-event-semantic-dry-run="${alertDryRunRoute.available === true ? 'true' : 'false'}" data-event-semantic-recheck="${sourceHealthRecheck.available === true ? 'true' : 'false'}">
+          return `<article class="operational-action-pack-card" data-operational-action-pack-event="${escapeHtml(item?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(item?.eventId || '')}" data-event-semantic-bundle="${evidence.available === true ? 'true' : 'false'}" data-event-semantic-draft="${ruleDraftRoute.available === true ? 'true' : 'false'}" data-event-semantic-dry-run="${alertDryRunRoute.available === true ? 'true' : 'false'}" data-event-semantic-recheck="${sourceHealthRecheck.available === true ? 'true' : 'false'}" data-event-semantic-rule-registry-write-performed="${ruleDraftRoute.ruleRegistryWritePerformed === true ? 'true' : 'false'}" data-event-semantic-external-delivery-performed="${alertDryRunRoute.externalDeliveryPerformed === true ? 'true' : 'false'}" data-event-semantic-source-health-write-performed="${sourceHealthRecheck.sourceHealthWritePerformed === true ? 'true' : 'false'}">
             <div class="table-cell-main">
               <strong>${escapeHtml(display(item?.eventId || 'event'))}</strong>
               <span>${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.ruleId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))}</span>
@@ -5453,7 +5460,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const followUps = Array.isArray(item?.followUps) ? item.followUps : [];
           const blockers = Array.isArray(item?.blockerReasons) ? item.blockerReasons : [];
           const status = item?.readinessStatus || 'not-run';
-          return `<article class="incident-action-readiness-queue-card" data-incident-action-readiness-event="${escapeHtml(item?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(item?.eventId || '')}" data-event-semantic-readiness-status="${escapeHtml(status)}">
+          return `<article class="incident-action-readiness-queue-card" data-incident-action-readiness-event="${escapeHtml(item?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(item?.eventId || '')}" data-event-semantic-readiness-status="${escapeHtml(status)}" data-event-semantic-pass-styled="${status === 'ready' ? 'true' : 'false'}">
             <div class="table-cell-main">
               <strong>${escapeHtml(display(item?.eventId || 'event'))}</strong>
               <span>${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.ruleId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))}</span>
@@ -5542,6 +5549,11 @@ void AppendOpsShellScript(std::ostringstream& out,
         const root = document.getElementById('opsRuntimeEvidenceWindowRows');
         if (!root) return;
         const items = Array.isArray(runtimeEvidenceWindow.items) ? runtimeEvidenceWindow.items : [];
+        dashboardRuntimeTrendSamples = items.slice(-12).map(item => ({
+          eventId: String(item?.eventId || ''),
+          sourceId: String(item?.sourceId || ''),
+          eventWindowMs: Number(item?.runtimeEvidencePacket?.eventWindowMs || 0)
+        }));
         const counts = runtimeEvidenceWindow.windowCounts || {};
         renderBadges('opsRuntimeEvidenceWindowBadges', [
           { text: runtimeEvidenceWindow.schema || 'media-server.ops.runtime-evidence-window.v1' },
@@ -5567,7 +5579,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         root.innerHTML = items.map(item => {
           const packet = item?.runtimeEvidencePacket || {};
           const status = item?.runtimeWindowStatus || 'not-run';
-          return `<article class="runtime-evidence-window-card" data-runtime-evidence-event="${escapeHtml(item?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(item?.eventId || '')}" data-event-semantic-source-id="${escapeHtml(item?.sourceId || '')}" data-event-semantic-event-window-ms="${escapeHtml(display(packet.eventWindowMs ?? ''))}" data-event-semantic-window-start-ms="${escapeHtml(display(packet.windowStartMs ?? ''))}" data-event-semantic-window-end-ms="${escapeHtml(display(packet.windowEndMs ?? ''))}">
+          return `<article class="runtime-evidence-window-card" data-runtime-evidence-event="${escapeHtml(item?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(item?.eventId || '')}" data-event-semantic-source-id="${escapeHtml(item?.sourceId || '')}" data-event-semantic-event-window-ms="${escapeHtml(display(packet.eventWindowMs ?? ''))}" data-event-semantic-window-start-ms="${escapeHtml(display(packet.windowStartMs ?? ''))}" data-event-semantic-window-end-ms="${escapeHtml(display(packet.windowEndMs ?? ''))}" data-event-semantic-sample-count="${dashboardRuntimeTrendSamples.length}" data-event-semantic-sample-limit="${MAX_RUNTIME_TREND_SAMPLES}">
             <div class="table-cell-main">
               <strong>${escapeHtml(display(item?.eventId || 'event'))}</strong>
               <span>${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.ruleId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))}</span>
@@ -5620,7 +5632,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const conditionPreview = preview.conditionPreview || {};
           const classes = Array.isArray(conditionPreview.classes) ? conditionPreview.classes : [];
           const manualDraftRoute = preview.manualDraftRoute || `/ops/rules?draftEventId=${encodeURIComponent(preview.eventId || item?.eventId || '')}&whatIfPreview=1`;
-          return `<article class="rule-what-if-preview-card" data-rule-what-if-preview-event="${escapeHtml(preview.eventId || item?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(preview.eventId || item?.eventId || '')}" data-event-semantic-draft-comparison="${escapeHtml(display(draftComparison.comparisonResult || ''))}" data-event-semantic-condition-preview="${escapeHtml(display(conditionPreview.eventType || ''))}" data-event-semantic-manual-draft-route="${escapeHtml(manualDraftRoute)}">
+          return `<article class="rule-what-if-preview-card" data-rule-what-if-preview-event="${escapeHtml(preview.eventId || item?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(preview.eventId || item?.eventId || '')}" data-event-semantic-draft-comparison="${escapeHtml(display(draftComparison.comparisonResult || ''))}" data-event-semantic-condition-preview="${escapeHtml(display(conditionPreview.eventType || ''))}" data-event-semantic-manual-draft-route="${escapeHtml(manualDraftRoute)}" data-event-semantic-manual-save-required="${preview.manualSaveRequired === true ? 'true' : 'false'}" data-event-semantic-rule-registry-write-performed="${preview.ruleRegistryWritePerformed === true ? 'true' : 'false'}">
             <div class="table-cell-main">
               <strong>${escapeHtml(display(preview.eventId || item?.eventId || 'event'))}</strong>
               <span>${escapeHtml(display(preview.sourceId || '-'))} · ${escapeHtml(display(preview.ruleId || '-'))} · ${escapeHtml(display(preview.scenario || '-'))}</span>
@@ -5737,7 +5749,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               <span class="chip">review-needed ${escapeHtml(display(itemCounts.reviewNeededCount ?? 0))}</span>
             </div>
             <div class="operator-outcome-memory-hint">
-              <p><strong>deterministicHistoryHint</strong><span>${escapeHtml(display(hint.deterministicHistoryHint || '-'))}</span></p>
+              <p><strong>deterministicHistoryHint</strong><span data-event-semantic-field="deterministicHistoryHint">${escapeHtml(display(hint.deterministicHistoryHint || '-'))}</span></p>
               <p><strong>reviewStateBasis</strong><span>${escapeHtml(display(basis.reviewStatus || '-'))} · ${escapeHtml(display(basis.incidentStatus || '-'))} · ${escapeHtml(display(basis.classification || '-'))} · ${escapeHtml(display(basis.vlmAction || '-'))}</span></p>
               <p><strong>auditActionRefs</strong><span>${escapeHtml(display(audit.eventReviewUpdate || 'event-review-update'))} · ${escapeHtml(display(audit.incidentActionUpdate || 'incident-action-update'))}</span></p>
             </div>
@@ -5782,7 +5794,7 @@ void AppendOpsShellScript(std::ostringstream& out,
                     <span>${escapeHtml(display(item?.incidentId || '-'))} · ${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))} · ${escapeHtml(display(item?.incidentStatus || '-'))}</span>
                   </div>
                   <span class="similar-incident-score" data-event-semantic-field="score">${escapeHtml(display(item?.score ?? 0))}</span>
-                  <div class="badge-row">${terms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
+                  <div class="badge-row">${terms.map(term => `<span class="chip info" data-event-semantic-field="explanationTerms">${escapeHtml(term)}</span>`).join('')}</div>
                 </div>`;
               }).join('')}
             </div>
@@ -5869,7 +5881,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const slotKeys = ['actionSlot', 'objectSlot', 'contextSlot', 'environmentSlot'];
         root.innerHTML = briefs.map(brief => {
           const slots = slotKeys.map(key => brief?.[key]).filter(Boolean);
-          return `<article class="incident-brief-card" data-incident-brief-card="${escapeHtml(brief?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(brief?.eventId || '')}">
+          return `<article class="incident-brief-card" data-incident-brief-card="${escapeHtml(brief?.eventId || '')}" data-event-semantic-event-id="${escapeHtml(brief?.eventId || '')}" data-event-semantic-slot-count="${slots.length}">
             <div class="table-cell-main">
               <strong>${escapeHtml(display(brief?.title || brief?.incidentId || 'incident brief'))}</strong>
               <span>${escapeHtml(display(brief?.incidentId || '-'))} · review ${escapeHtml(display(brief?.reviewStatus || '-'))} · incident ${escapeHtml(display(brief?.incidentStatus || '-'))}</span>

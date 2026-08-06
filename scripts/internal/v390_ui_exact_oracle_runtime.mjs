@@ -910,8 +910,18 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId, 
   throw new Error(`${item.caseId} unsupported exact client/safe action kind: ${action.kind || "missing"}`);
 }
 
-async function waitForPlayingMedia(browser, caseId, tileSelector, minimumPlaying = 1) {
-  const readiness = await browser.evaluate(`(async ({ selector, minimumPlaying }) => {
+export async function waitForPlayingMedia(browser, caseId, tileSelector, minimumPlaying = 1) {
+  const readiness = await browser.evaluate(mediaReadinessEvaluateExpression(), {
+    selector: String(tileSelector || ""),
+    minimumPlaying,
+  });
+  assert(readiness.playingCount >= minimumPlaying,
+    `${caseId} media readiness mismatch: ${JSON.stringify(readiness)}`);
+  return readiness;
+}
+
+export function mediaReadinessEvaluateExpression() {
+  return `async ({ selector, minimumPlaying }) => {
     const deadline = Date.now() + 12000;
     let last = { videoCount: 0, playingCount: 0, readyStates: [] };
     while (Date.now() < deadline) {
@@ -931,10 +941,23 @@ async function waitForPlayingMedia(browser, caseId, tileSelector, minimumPlaying
       await new Promise(resolve => setTimeout(resolve, 200));
     }
     return last;
-  })()`, { selector: String(tileSelector || ""), minimumPlaying });
-  assert(readiness.playingCount >= minimumPlaying,
-    `${caseId} media readiness mismatch: ${JSON.stringify(readiness)}`);
-  return readiness;
+  }`;
+}
+
+export function correlatedMutationRequestResponseEnvelope({ requestEntry, responseEntry } = {}) {
+  assert(requestEntry?.phase === "request-start" && responseEntry?.phase === "response" &&
+    typeof requestEntry.requestId === "string" && requestEntry.requestId &&
+    requestEntry.requestId === responseEntry.requestId,
+  "mutation request/response envelope is not bound to one request identity");
+  assert((requestEntry.requestBody === null || requestEntry.requestBody === undefined ||
+      typeof requestEntry.requestBody === "object") &&
+    responseEntry.safeResponseBody && typeof responseEntry.safeResponseBody === "object",
+  "mutation request/response envelope projections are incomplete");
+  return Object.freeze({
+    requestBody: structuredClone(requestEntry.requestBody ?? null),
+    responseBody: structuredClone(responseEntry.safeResponseBody),
+    ...structuredClone(responseEntry.safeResponseBody),
+  });
 }
 
 export function validateClientRuntimeFixtureBindings(spec, bindings = {}) {
@@ -1376,13 +1399,23 @@ async function observeRequest(
         try { return new URL(entry.url).pathname === new URL(urlPath, "http://runtime.invalid").pathname; } catch (_) { return false; }
       });
       assert(match, `${item.caseId} exact mutation response missing: ${method} ${urlPath}`);
+      const requestMatch = [
+        ...primaryNetworkEntries,
+        ...browser.networkEntries().slice(networkStart),
+      ].find(entry => entry.phase === "request-start" && entry.requestId === match.requestId);
       if (endpointOwnedProjectionCases.has(item.caseId)) {
         assert(match.safeResponseProjectionSource === "playwright-response-json" &&
           typeof match.safeResponseProjectionKind === "string" && match.safeResponseProjectionKind,
         `${item.caseId} endpoint response did not pass through the native Playwright response projection`);
       }
       status = match.status;
-      body = match.safeResponseBody ?? null;
+      body = requestMatch?.requestId && requestMatch.requestId === match.requestId &&
+          requestMatch.requestBody && typeof requestMatch.requestBody === "object"
+        ? correlatedMutationRequestResponseEnvelope({
+            requestEntry: requestMatch,
+            responseEntry: match,
+          })
+        : (match.safeResponseBody ?? null);
       contentType = String(match.responseHeaders?.["content-type"] || match.contentType || "");
       source = "correlated-browser-network";
       if (request.correlationRequired !== false) {

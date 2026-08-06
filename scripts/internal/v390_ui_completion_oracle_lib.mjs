@@ -20,6 +20,61 @@ const trustedResponseRequestIdentitySources = new Set([
   "fixture-initiating-request-handle",
 ]);
 
+export function clientLiveCompositionFromTransition(transition = {}) {
+  const required = Array.isArray(transition?.requiredRequests)
+    ? transition.requiredRequests
+    : [];
+  const sessionCreate = required.find(request => request?.method === "POST" &&
+    /^\/client\/api\/views\/(?:\{assignedViewId\}|[^/]+)\/webrtc\/session$/.test(String(request?.urlPath || "")));
+  const answer = required.find(request => request?.method === "POST" &&
+    /^\/client\/api\/views\/(?:\{assignedViewId\}|[^/]+)\/webrtc\/session\/(?:\{sessionId\}|[^/]+)\/answer$/.test(String(request?.urlPath || "")));
+  const hasIdleLiveTile = (transition?.seedRequirements || []).some(requirement =>
+    ["live-tile", "live-tile-state"].includes(requirement?.kind) &&
+    requirement?.state === "idle" &&
+    Number(requirement?.minimumCount || 0) >= 1);
+  if (!sessionCreate || !answer || !hasIdleLiveTile) return null;
+  const type = String(transition?.type || "");
+  return Object.freeze({
+    createsSession: true,
+    requiresAnswer: true,
+    allStop: type === "composed-live-start-all-stop",
+    vaOverlay: type === "composed-va-overlay-session",
+    kind: type === "composed-live-start-all-stop" || type === "composed-va-overlay-session"
+      ? type
+      : "start-live-tile",
+  });
+}
+
+export function composedClientRuntimeBoundary({ transition = {}, composed = {} } = {}) {
+  const composition = clientLiveCompositionFromTransition(transition);
+  if (!composition) return null;
+  const viewId = String(composed?.viewId || "");
+  const sessionId = String(composed?.sessionId || "");
+  const overlayMode = String(composed?.overlayMode || "");
+  if (!viewId || !sessionId || !overlayMode) return null;
+  const requiredRequests = (transition.requiredRequests || []).map(request => ({
+    ...structuredClone(request),
+    urlPath: String(request.urlPath || "")
+      .replaceAll("{assignedViewId}", encodeURIComponent(viewId))
+      .replaceAll("{sessionId}", encodeURIComponent(sessionId)),
+  }));
+  if (requiredRequests.some(request => !request.urlPath || request.urlPath.includes("{"))) return null;
+  const postconditionSelectors = [...new Set((transition.postconditions || [])
+    .map(condition => String(condition?.selector || ""))
+    .filter(Boolean))];
+  return Object.freeze({
+    schema: "media-server.v390-ui-composed-client-runtime-boundary.v1",
+    composition,
+    viewId,
+    sessionId,
+    requestProjection: Object.freeze({ overlayMode }),
+    responseIdentity: Object.freeze({ sessionId }),
+    requiredRequests: Object.freeze(requiredRequests),
+    postconditionSelectors: Object.freeze(postconditionSelectors),
+    networkRequestIdentityRequired: true,
+  });
+}
+
 export function domSnapshotDigest(snapshot) {
   if (snapshot === null || snapshot === undefined) return "";
   return crypto.createHash("sha256").update(stableStringify(snapshot)).digest("hex");
@@ -290,7 +345,20 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
   const expectedObservedPath = requestTarget(
     expected.expectedObservedPath || expected.expectedCanonicalRoute,
   );
-  const observedPath = requestTarget(navigation.observedPath || navigation.url);
+  const orderedDocumentNavigations = Array.isArray(navigation.orderedDocumentNavigations)
+    ? navigation.orderedDocumentNavigations
+    : [];
+  const exactLedgerBindings = orderedDocumentNavigations.filter(entry =>
+    entry?.responseBound === true &&
+    entry?.invocationId === expected.invocationId &&
+    requestTarget(entry?.path) === expectedPath &&
+    String(entry?.method || "").toUpperCase() === String(expected.method || "GET").toUpperCase());
+  const ledgerBinding = exactLedgerBindings.length === 1 &&
+      Number(exactLedgerBindings[0]?.responseStatus || 0) === 404 &&
+      (expected.allowedStatuses || []).includes(404)
+    ? exactLedgerBindings[0]
+    : null;
+  const observedPath = requestTarget(ledgerBinding?.path || navigation.observedPath || navigation.url);
   const requestCandidateCount = Number(navigation.requestCandidateCount || 0);
   const responseCandidateCount = Number(navigation.responseCandidateCount || 0);
   const requestAttemptCount = Number(navigation.requestAttemptCount || 0);
@@ -299,9 +367,6 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
   const reloadCount = Number(navigation.reloadCount || 0);
   const unownedNavigationCount = Number(navigation.unownedNavigationCount || 0);
   const additionalFetchCount = Number(navigation.additionalFetchCount || 0);
-  const orderedDocumentNavigations = Array.isArray(navigation.orderedDocumentNavigations)
-    ? navigation.orderedDocumentNavigations
-    : [];
   const expectedLifecycle = Array.isArray(expected.caseLifecycleNavigationSequence)
     ? expected.caseLifecycleNavigationSequence
     : null;
@@ -359,7 +424,8 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
   } else if (!lifecycleMatches) {
     failureCode = "NAVIGATION_LIFECYCLE_MISMATCH";
   }
-  else if (!expected.invocationId || navigation.invocationId !== expected.invocationId) {
+  else if (!expected.invocationId ||
+      String(ledgerBinding?.invocationId || navigation.invocationId || "") !== expected.invocationId) {
     failureCode = "NAVIGATION_INVOCATION_MISMATCH";
   } else if (navigation.requestKind !== "document-navigation" ||
       navigation.resourceType !== "document") {

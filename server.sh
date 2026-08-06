@@ -198,6 +198,8 @@ Usage:
                  내부 전용: RULE-097 이후 144개 actual UI 진단 sweep을 release evidence와 분리해 실행합니다.
   verify-v390-ui-native-diagnostic-sweep-contract
                  내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
+  verify-v390-ui-native-diagnostic-trace-replay-contract
+                 최신 actual diagnostic 33개 실패를 고정 trace 기반 공통 경계로 replay합니다.
   verify-ui-fulltest-evidence-policy-v4
                  V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
   verify-ui-fulltest-evidence-policy-v4-contract
@@ -490,6 +492,8 @@ Usage:
                  내부 전용: RULE-097 이후 144개 actual UI 진단 sweep을 release evidence와 분리해 실행합니다.
   verify-v390-ui-native-diagnostic-sweep-contract
                  내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
+  verify-v390-ui-native-diagnostic-trace-replay-contract
+                 최신 actual diagnostic 33개 실패를 고정 trace 기반 공통 경계로 replay합니다.
   verify-ui-fulltest-evidence-policy-v4
                  V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
   verify-ui-fulltest-evidence-policy-v4-contract
@@ -2407,6 +2411,10 @@ case "${cmd}" in
   verify-v390-ui-native-diagnostic-sweep-contract)
     require_internal verify_v390_ui_native_diagnostic_sweep_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_native_diagnostic_sweep_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-native-diagnostic-trace-replay-contract)
+    require_internal verify_v390_ui_native_diagnostic_trace_replay_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_diagnostic_trace_replay_contract.mjs" "$@"
     ;;
   verify-ui-fulltest-evidence-policy-v4)
     require_internal verify_ui_fulltest_evidence_policy_v4.mjs

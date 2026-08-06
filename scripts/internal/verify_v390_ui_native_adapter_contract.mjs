@@ -923,9 +923,24 @@ check("preserved standalone evidence proves native actions", () => {
     assert(summary.actions.some(action => action.kind === kind && action.status === "PASS"), `missing PASS action ${kind}`);
   }
   assert(summary.finalState === "native-adapter:ready:typed", "native final state mismatch");
-  for (const field of ["screenshotPath", "tracePath"]) {
-    assert(fs.existsSync(summary[field]), `native artifact missing ${field}`);
+  const artifactNames = {
+    screenshotPath: "native-adapter.png",
+    tracePath: "trace.json",
+  };
+  for (const [field, expectedName] of Object.entries(artifactNames)) {
+    assert(path.basename(String(summary[field] || "")) === expectedName,
+      `native artifact identity drifted ${field}`);
+    const artifactPath = path.join(path.dirname(summaryPath), expectedName);
+    assert(fs.existsSync(artifactPath), `native artifact missing ${field}`);
   }
+  const screenshot = fs.readFileSync(path.join(path.dirname(summaryPath), artifactNames.screenshotPath));
+  assert(screenshot.length > 8 && screenshot.subarray(0, 8).equals(
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  "native screenshot is not a PNG artifact");
+  const trace = JSON.parse(fs.readFileSync(
+    path.join(path.dirname(summaryPath), artifactNames.tracePath), "utf8"));
+  assert(trace.schema === "media-server.v390-ui-native-adapter-trace.v1",
+    "native adapter trace schema mismatch");
 });
 
 check("current UI suite state does not reuse stale native evidence", () => {

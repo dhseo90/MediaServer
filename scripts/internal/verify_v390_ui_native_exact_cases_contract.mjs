@@ -2082,7 +2082,8 @@ check("remaining client-safe batch clusters bind dynamic identities and owned li
 
   assert(runnerSource.includes("exactRuntimeOracleFor(item.caseId)?.requests?.some") &&
     runnerSource.includes('(candidate.fixtureRefs || []).includes("assigned-view")') &&
-    runnerSource.includes('singleTileStart ? "start-live-tile" : type') &&
+    runnerSource.includes("clientLiveCompositionFromTransition") &&
+    runnerSource.includes("kind: composition.kind") &&
     runnerSource.includes("viewA: catalog.viewA || catalog.viewId") &&
     runnerSource.includes("viewB: catalog.viewB || catalog.viewId"),
   "runtime completion does not derive assigned-view/single-tile identities from owned actions");
