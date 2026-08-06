@@ -16,6 +16,162 @@ const DIRECT_DOM_OPERATORS = new Set([
   "number-equals-response", "selected-event-equals", "slot-count-equals", "text-includes",
 ]);
 
+const responseDerivedDomProjectionContracts = Object.freeze({
+  "EVT-043\nslot-values-equal-response\naction/object/context/environment": Object.freeze({
+    selector: "#opsIncidentBriefRows [data-incident-brief-card={fixtureId}]",
+    collectionPath: "incidentBrief.briefs", identityPaths: ["eventId"],
+    fields: [
+      ["actionSlot.value", "action", "field-text"], ["objectSlot.value", "object", "field-text"],
+      ["contextSlot.value", "context", "field-text"], ["environmentSlot.value", "environment", "field-text"],
+    ],
+  }),
+  "EVT-044\nrelated-order-equals-response\nscore": Object.freeze({
+    selector: "#opsSimilarIncidentRows [data-similar-incident-group={fixtureId}]",
+    collectionPath: "similarIncidents.groups", identityPaths: ["baseEventId"],
+    fields: [["related[].score", "score", "field-text"]],
+  }),
+  "EVT-046\ncandidate-fields-equal-response\neventId/score/matchedTerms": Object.freeze({
+    selector: "#opsVlmSummaryCandidateRows [data-vlm-summary-candidate-event={fixtureId}]",
+    collectionPath: "memorySearch.vlmSummaryCandidateReview.sourceCandidateReport.candidates",
+    identityPaths: ["eventId", "observationId"], identityPathMode: "any",
+    fields: [["$identity", "eventId", "identity"], ["matchScore", "score"],
+      ["matchedTerms[]", "matchedTerms", "field-text"]],
+  }),
+  "EVT-047\nfields-equal-response\nsuggestion/candidates/manualDraftRoute": Object.freeze({
+    selector: "[data-event-review-row][data-event-id={fixtureId}] [data-testid=ops-incident-rule-suggestion-review]",
+    collectionPath: "records", identityPaths: ["event.eventId", "review.eventId"],
+    fields: [["incidentRuleSuggestionReview.candidateStatus", "candidateStatus"],
+      ["incidentRuleSuggestionReview.sourceCandidateReport.matchedCandidates", "sourceCandidateCount"],
+      ["incidentRuleSuggestionReview.manualDraftRoute", "manualDraftRoute"]],
+  }),
+  "EVT-049\ncontains-fixture-event\neventId": Object.freeze({
+    selector: "#eventRecordRows [data-event-semantic-event-id={fixtureId}]",
+    collectionPath: "records.records", identityPaths: ["eventId"],
+    fields: [["$identity", "eventId", "identity"]],
+  }),
+  "EVT-050\ncard-fields-equal-response\nlane/priority/status": Object.freeze({
+    selector: "#opsIncidentTriageBoardRows [data-incident-triage-card={fixtureId}]",
+    collectionPath: "incidentTriageBoard.cards", identityPaths: ["eventId"],
+    fields: [["lane", "lane"], ["priority", "priority"],
+      ["reviewState", "reviewState"], ["incidentStatus", "incidentStatus"]],
+  }),
+  "EVT-051\nscore-equals-response\nscore": Object.freeze({
+    selector: "#opsIncidentDecisionScorecardRows [data-incident-decision-scorecard-event={fixtureId}]",
+    collectionPath: "incidentDecisionScorecard.scorecards", identityPaths: ["eventId"],
+    fields: [["priorityReasonChips[].label", "score", "field-text"]],
+  }),
+  "EVT-052\nlinks-equal-response\nbundle/draft/dry-run/recheck": Object.freeze({
+    selector: "#opsOperationalActionPackRows [data-operational-action-pack-event={fixtureId}]",
+    collectionPath: "operationalActionPack.items", identityPaths: ["eventId"],
+    fields: [["actions.releaseSafeEvidenceBundle.available", "bundle"],
+      ["actions.ruleDraftRoute.available", "draft"],
+      ["actions.alertDryRunRoute.available", "dryRun"],
+      ["actions.sourceHealthRecheck.available", "recheck"]],
+  }),
+  "EVT-053\nfields-equal-response\ndraftComparison/conditionPreview/manualDraftRoute": Object.freeze({
+    selector: "#opsRuleWhatIfPreviewRows [data-rule-what-if-preview-event={fixtureId}]",
+    collectionPath: "ruleWhatIfPreview.items", identityPaths: ["eventId", "preview.eventId"], identityPathMode: "any",
+    fields: [["preview.draftComparison.comparisonResult", "draftComparison"],
+      ["preview.conditionPreview.eventType", "conditionPreview"],
+      ["preview.manualDraftRoute", "manualDraftRoute"]],
+  }),
+  "EVT-054\ncounts-equal-response\naccepted/dismissed/reviewNeeded": Object.freeze({
+    selector: "#opsOperatorOutcomeMemoryRows [data-operator-outcome-memory-event={fixtureId}]",
+    collectionPath: "operatorOutcomeMemory.items", identityPaths: ["eventId"],
+    fields: [["outcomeCounts.acceptedCount", "accepted"],
+      ["outcomeCounts.dismissedCount", "dismissed"],
+      ["outcomeCounts.reviewNeededCount", "reviewNeeded"]],
+  }),
+  "EVT-055\nstates-equal-response\nready/blocked/field-smoke-needed/not-run": Object.freeze({
+    selector: "#opsIncidentActionReadinessQueueRows [data-incident-action-readiness-event={fixtureId}]",
+    collectionPath: "incidentActionReadinessQueue.items", identityPaths: ["eventId"],
+    fields: [["readinessStatus", "readinessStatus"]],
+  }),
+  "EVT-056\nflags-equal\nnoAutoSave/noAutoApply/ruleRegistryWritePerformed": Object.freeze({
+    selector: "#opsApprovalGatedRuleDraftReadinessRows [data-approval-gated-rule-draft-event={fixtureId}]",
+    collectionPath: "approvalGatedRuleDraftReadiness.items", identityPaths: ["eventId"],
+    fields: [["stagedDraft.noAutoSave", "noAutoSave"],
+      ["stagedDraft.noAutoApply", "noAutoApply"],
+      ["stagedDraft.ruleRegistryWritePerformed", "ruleRegistryWritePerformed"]],
+  }),
+  "EVT-057\nstates-equal-response\npassed/failed/blocked/not-run": Object.freeze({
+    selector: "#opsEvidenceIntakeFieldReadinessRows [data-evidence-intake-field-event={fixtureId}]",
+    collectionPath: "evidenceIntakeFieldReadiness.items", identityPaths: ["eventId"],
+    fields: [["evidenceIntakeStatus", "evidenceIntakeStatus"],
+      ["sourceHealthReadiness", "sourceHealthReadiness"],
+      ["fieldSmokeStatus", "fieldSmokeStatus"]],
+  }),
+  "EVT-058\nwindow-fields-equal-response\neventId/sourceId/samples/window": Object.freeze({
+    selector: "#opsRuntimeEvidenceWindowRows [data-runtime-evidence-event={fixtureId}]",
+    collectionPath: "runtimeEvidenceWindow.items", identityPaths: ["eventId"],
+    fields: [["$identity", "eventId", "identity"], ["sourceId", "sourceId"],
+      ["runtimeEvidencePacket.eventWindowMs", "eventWindowMs"],
+      ["runtimeEvidencePacket.windowStartMs", "windowStartMs"],
+      ["runtimeEvidencePacket.windowEndMs", "windowEndMs"]],
+  }),
+  "EVT-064\nqueue-fields-equal-response\nstatus/reason": Object.freeze({
+    selector: "#opsV320ResolutionQueue [data-v320-resolution-event={fixtureId}]",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["resolutionState.status", "status"], ["resolutionState.reason", "reason"]],
+  }),
+  "EVT-065\nfields-equal-response\ncompleteness/confidence/replayCoverageHint": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v320EvidenceQualityGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["evidenceQuality.evidenceCompleteness", "completeness"],
+      ["evidenceQuality.evidenceConfidence", "confidence"],
+      ["evidenceQuality.replayCoverageHint", "replayCoverageHint"]],
+  }),
+  "EVT-066\nfields-equal-item-readback\nhealth/failureContext/recheckHint": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v320SourceReliabilityGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["sourceReliability.sourceHealthStatus", "health"],
+      ["sourceReliability.recentFailureContext", "failureContext"],
+      ["sourceReliability.operatorRecheckHint", "recheckHint"]],
+  }),
+  "EVT-067\nfields-equal-response\ncorrectionSignal/reviewSignal/uncertaintyReason/qualityBadge": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v320AiReviewQualityGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["aiReviewQuality.correctionReviewSignal", "correctionSignal"],
+      ["aiReviewQuality.reviewStatus", "reviewSignal"],
+      ["aiReviewQuality.uncertaintyReason", "uncertaintyReason"],
+      ["aiReviewQuality.qualityBadge", "qualityBadge"]],
+  }),
+  "EVT-069\nfields-equal-response\nruleDraft/evidenceBundle/notification/blockers": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v320ActionReadinessChecklistGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["actionReadinessChecklist.ruleDraftStatus", "ruleDraft"],
+      ["actionReadinessChecklist.evidenceBundleStatus", "evidenceBundle"],
+      ["actionReadinessChecklist.notificationReady", "notification"],
+      ["actionReadinessChecklist.readinessBlockers[]", "blockers", "field-text"]],
+  }),
+  "EVT-071\nfields-equal-response\nsourceCause/closureImpact/correlationSignal": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v330IncidentSourceCorrelationGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["incidentSourceCorrelation.sourceCauseCategory", "sourceCause"],
+      ["incidentSourceCorrelation.resolutionClosureImpact", "closureImpact"],
+      ["incidentSourceCorrelation.correlationSignals[]", "correlationSignal", "field-text"]],
+  }),
+  "EVT-072\nfields-equal-response\nretryCandidate/recoveryChecklist/dryRunStatus/operatorNoteLink": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v330OperatorRecheckRecoveryQueueGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["operatorRecheckRecoveryQueue.retryCandidate", "retryCandidate"],
+      ["operatorRecheckRecoveryQueue.recoveryChecklist[]", "recoveryChecklist", "field-text"],
+      ["operatorRecheckRecoveryQueue.dryRunResultStatus", "dryRunStatus"],
+      ["operatorRecheckRecoveryQueue.operatorNoteRoute", "operatorNoteLink"]],
+  }),
+  "EVT-075\nfields-equal-response\nsourceCause/continuityDrillCandidate/commandPlanDraft": Object.freeze({
+    selector: "[data-v320-resolution-detail={fixtureId}] #v350IncidentCommandHandoffGrid",
+    collectionPath: "unifiedResolutionWorkspace.resolutionQueue", identityPaths: ["eventId"],
+    fields: [["incidentCommandHandoff.sourceCause", "sourceCause"],
+      ["incidentCommandHandoff.continuityDrillCandidate", "continuityDrillCandidate"],
+      ["incidentCommandHandoff.commandPlanDraft", "commandPlanDraft"]],
+  }),
+});
+
+export function responseDerivedDomProjectionContractFor({ caseId = "", operator = "", target = "" } = {}) {
+  return responseDerivedDomProjectionContracts[`${caseId}\n${operator}\n${target}`] || null;
+}
+
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -178,6 +334,115 @@ function rendererPhraseIndex(text, value, operator) {
   return indices.length > 0 ? Math.min(...indices) : -1;
 }
 
+function projectionContractFixtureIdentity(fixtureIdentity, fixtureCandidates) {
+  if (fixtureIdentity !== undefined && fixtureIdentity !== null && String(fixtureIdentity)) {
+    return String(fixtureIdentity);
+  }
+  return fixtureCandidates.map(String).find(value => /^evt-\d{3}-review4-fixture(?:$|-)/.test(value)) || "";
+}
+
+function projectionContractRows(responseBodies, contract) {
+  return responseBodies.flatMap(body => eventExactValuesAtPath(body, contract.collectionPath))
+    .flatMap(value => Array.isArray(value) ? value : [value])
+    .filter(value => value && typeof value === "object" && !Array.isArray(value));
+}
+
+function projectionContractRowMatches(row, contract, fixtureIdentity) {
+  const matches = contract.identityPaths.map(path =>
+    eventExactValuesAtPath(row, path).some(value => String(value) === fixtureIdentity));
+  return contract.identityPathMode === "any" ? matches.some(Boolean) : matches.every(Boolean);
+}
+
+function projectionContractExpectedValues(row, responsePath, fixtureIdentity) {
+  if (responsePath === "$identity") return [fixtureIdentity];
+  return eventExactValuesAtPath(row, responsePath)
+    .flatMap(value => Array.isArray(value) ? value : [value])
+    .map(value => String(value ?? ""));
+}
+
+function evaluateDeclaredResponseDomProjection({
+  caseId,
+  operator,
+  target,
+  responseBodies,
+  observation,
+  fixtureCandidates,
+  fixtureIdentity,
+  contract,
+}) {
+  const identity = projectionContractFixtureIdentity(fixtureIdentity, fixtureCandidates);
+  const rows = projectionContractRows(responseBodies, contract);
+  const owners = identity ? rows.filter(row => projectionContractRowMatches(row, contract, identity)) : [];
+  const semanticNodes = Array.isArray(observation?.semanticNodes) ? observation.semanticNodes : [];
+  const domCandidates = semanticNodes.filter(node => String(node?.eventId || "") === identity);
+  const observationPresent = Number(observation?.count || 0) === 1 &&
+    Number(observation?.visibleCount || 0) === 1 && semanticNodes.length === 1;
+  const domOwnerExact = observationPresent && domCandidates.length === 1;
+  const fieldEvidence = contract.fields.map(([responsePath, domKey, source = "attribute"]) => {
+    const expected = owners.length === 1
+      ? projectionContractExpectedValues(owners[0], responsePath, identity)
+      : [];
+    const node = domOwnerExact ? domCandidates[0] : null;
+    const actual = !node
+      ? []
+      : (source === "identity"
+        ? [String(node.eventId || "")]
+        : (source === "field-text"
+          ? (Array.isArray(node.fields?.[domKey]) ? node.fields[domKey].map(String) : [])
+          : (Object.prototype.hasOwnProperty.call(node.attributes || {}, domKey)
+            ? [String(node.attributes[domKey])] : [])));
+    const valuesPass = expected.length > 0 && actual.length === expected.length &&
+      expected.every((value, index) => actual[index] === value);
+    return {
+      nameDigest: sha256Text(normalizedProjectionKey(domKey)),
+      responseOwnerCount: owners.length,
+      responseOwnerDigest: sha256Text(owners.length === 1
+        ? `${contract.collectionPath}\n${identity}` : `${contract.collectionPath}\n${owners.length}`),
+      projectedValueCount: expected.length,
+      projectedValueDigest: sha256Text(stable(expected)),
+      matchedValueCount: valuesPass ? expected.length : expected.filter(value => actual.includes(value)).length,
+      valuesPass,
+      orderPass: valuesPass,
+      pass: owners.length === 1 && domOwnerExact && valuesPass,
+    };
+  });
+  const ownerMissing = owners.length === 0;
+  const ownerAmbiguous = owners.length > 1;
+  const domMissing = Number(observation?.count || 0) === 0 || Number(observation?.visibleCount || 0) === 0 ||
+    semanticNodes.length === 0 || domCandidates.length === 0;
+  const domDuplicate = Number(observation?.count || 0) > 1 || semanticNodes.length > 1 || domCandidates.length > 1;
+  const valueMismatch = fieldEvidence.some(field => !field.valuesPass);
+  const pass = Boolean(identity) && owners.length === 1 && domOwnerExact && fieldEvidence.length > 0 && !valueMismatch;
+  const failureCode = pass
+    ? "PASS"
+    : (ownerMissing
+      ? "RESPONSE_FIELD_OWNER_MISSING"
+      : (ownerAmbiguous
+        ? "RESPONSE_FIELD_OWNER_AMBIGUOUS"
+        : (domMissing
+          ? "DOM_PROJECTION_OWNER_MISSING"
+          : (domDuplicate
+            ? "DOM_PROJECTION_OWNER_AMBIGUOUS"
+            : "RENDERER_PROJECTION_VALUE_MISMATCH"))));
+  return {
+    schema: "media-server.v390-ui-response-derived-dom-field-projection.v1",
+    pass,
+    failureCode,
+    caseIdDigest: sha256Text(caseId),
+    operatorDigest: sha256Text(operator),
+    targetDigest: sha256Text(target),
+    observationDigest: sha256Text(stable({
+      count: Number(observation?.count || 0),
+      visibleCount: Number(observation?.visibleCount || 0),
+      semanticNodeCount: semanticNodes.length,
+      domOwnerCount: domCandidates.length,
+    })),
+    fieldCount: fieldEvidence.length,
+    matchedFieldCount: fieldEvidence.filter(field => field.pass).length,
+    fieldEvidence,
+  };
+}
+
 export function evaluateResponseDerivedDomFieldProjection({
   caseId = "",
   operator = "",
@@ -185,7 +450,14 @@ export function evaluateResponseDerivedDomFieldProjection({
   responseBodies = [],
   observation = {},
   fixtureCandidates = [],
+  fixtureIdentity = "",
 } = {}) {
+  const contract = responseDerivedDomProjectionContractFor({ caseId, operator, target });
+  if (contract) {
+    return evaluateDeclaredResponseDomProjection({
+      caseId, operator, target, responseBodies, observation, fixtureCandidates, fixtureIdentity, contract,
+    });
+  }
   const fields = String(target).split("/").map(value => value.trim()).filter(Boolean);
   const normalizedFixtures = [...new Set(fixtureCandidates
     .filter(value => value !== undefined && value !== null && String(value).length > 0)

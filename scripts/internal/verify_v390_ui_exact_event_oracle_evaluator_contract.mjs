@@ -18,6 +18,7 @@ import {
   eventExactSemanticEvidenceKey,
   eventExactValuesAtPath,
   materializeEventExactTemplate,
+  responseDerivedDomProjectionContractFor,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import {
   eventExactOracleCaseIds,
@@ -285,6 +286,102 @@ check("response-derived ordered collection projection fails on renderer order dr
   });
   assert(!drift.pass && drift.failureCode === "RENDERER_PROJECTION_ORDER_MISMATCH",
     "renderer order drift passed response order ownership");
+});
+
+check("fixed remaining response-derived contracts bind one fixture row to one DOM owner", () => {
+  const fixtureId = "evt-043-review4-fixture";
+  const args = {
+    caseId: "EVT-043",
+    operator: "slot-values-equal-response",
+    target: "action/object/context/environment",
+    fixtureIdentity: fixtureId,
+    fixtureCandidates: [fixtureId, "9001"],
+    responseBodies: [{
+      aggregate: { actionSlot: { value: "aggregate-must-not-own" } },
+      incidentBrief: { briefs: [{
+        eventId: fixtureId,
+        actionSlot: { value: "enter" }, objectSlot: { value: "zone-a" },
+        contextSlot: { value: "after-exit" }, environmentSlot: { value: "camera-1" },
+      }] },
+    }],
+    observation: {
+      count: 1, visibleCount: 1,
+      semanticNodes: [{
+        eventId: fixtureId, attributes: {}, fields: {
+          action: ["enter"], object: ["zone-a"],
+          context: ["after-exit"], environment: ["camera-1"],
+        },
+      }],
+    },
+  };
+  const passing = evaluateResponseDerivedDomFieldProjection(args);
+  assert(passing.pass && passing.matchedFieldCount === 4,
+    "fixture-owned row and same-node DOM projection did not pass");
+  const duplicate = evaluateResponseDerivedDomFieldProjection({
+    ...args,
+    responseBodies: [{ incidentBrief: { briefs: [
+      args.responseBodies[0].incidentBrief.briefs[0],
+      structuredClone(args.responseBodies[0].incidentBrief.briefs[0]),
+    ] } }],
+  });
+  assert(!duplicate.pass && duplicate.failureCode === "RESPONSE_FIELD_OWNER_AMBIGUOUS",
+    "duplicate authoritative response rows did not fail closed");
+  const wrongFixture = evaluateResponseDerivedDomFieldProjection({
+    ...args,
+    observation: { count: 1, visibleCount: 1, semanticNodes: [{
+      ...args.observation.semanticNodes[0], eventId: "wrong-fixture",
+    }] },
+  });
+  assert(!wrongFixture.pass && wrongFixture.failureCode === "DOM_PROJECTION_OWNER_MISSING",
+    "wrong DOM fixture identity did not fail closed");
+  const splitNode = evaluateResponseDerivedDomFieldProjection({
+    ...args,
+    observation: { count: 2, visibleCount: 2, semanticNodes: [
+      { eventId: fixtureId, attributes: {}, fields: { action: ["enter"], object: ["zone-a"] } },
+      { eventId: fixtureId, attributes: {}, fields: { context: ["after-exit"], environment: ["camera-1"] } },
+    ] },
+  });
+  assert(!splitNode.pass && splitNode.failureCode === "DOM_PROJECTION_OWNER_AMBIGUOUS",
+    "split or duplicate DOM owners did not fail closed");
+  const drift = evaluateResponseDerivedDomFieldProjection({
+    ...args,
+    observation: { ...args.observation, semanticNodes: [{
+      ...args.observation.semanticNodes[0],
+      fields: { ...args.observation.semanticNodes[0].fields, action: ["leave"] },
+    }] },
+  });
+  assert(!drift.pass && drift.failureCode === "RENDERER_PROJECTION_VALUE_MISMATCH",
+    "renderer field drift did not fail closed");
+});
+
+check("fixed remaining contracts cover all 22 diagnosed response DOM owners", () => {
+  const keys = [
+    ["EVT-043", "slot-values-equal-response", "action/object/context/environment"],
+    ["EVT-044", "related-order-equals-response", "score"],
+    ["EVT-046", "candidate-fields-equal-response", "eventId/score/matchedTerms"],
+    ["EVT-047", "fields-equal-response", "suggestion/candidates/manualDraftRoute"],
+    ["EVT-049", "contains-fixture-event", "eventId"],
+    ["EVT-050", "card-fields-equal-response", "lane/priority/status"],
+    ["EVT-051", "score-equals-response", "score"],
+    ["EVT-052", "links-equal-response", "bundle/draft/dry-run/recheck"],
+    ["EVT-053", "fields-equal-response", "draftComparison/conditionPreview/manualDraftRoute"],
+    ["EVT-054", "counts-equal-response", "accepted/dismissed/reviewNeeded"],
+    ["EVT-055", "states-equal-response", "ready/blocked/field-smoke-needed/not-run"],
+    ["EVT-056", "flags-equal", "noAutoSave/noAutoApply/ruleRegistryWritePerformed"],
+    ["EVT-057", "states-equal-response", "passed/failed/blocked/not-run"],
+    ["EVT-058", "window-fields-equal-response", "eventId/sourceId/samples/window"],
+    ["EVT-064", "queue-fields-equal-response", "status/reason"],
+    ["EVT-065", "fields-equal-response", "completeness/confidence/replayCoverageHint"],
+    ["EVT-066", "fields-equal-item-readback", "health/failureContext/recheckHint"],
+    ["EVT-067", "fields-equal-response", "correctionSignal/reviewSignal/uncertaintyReason/qualityBadge"],
+    ["EVT-069", "fields-equal-response", "ruleDraft/evidenceBundle/notification/blockers"],
+    ["EVT-071", "fields-equal-response", "sourceCause/closureImpact/correlationSignal"],
+    ["EVT-072", "fields-equal-response", "retryCandidate/recoveryChecklist/dryRunStatus/operatorNoteLink"],
+    ["EVT-075", "fields-equal-response", "sourceCause/continuityDrillCandidate/commandPlanDraft"],
+  ];
+  assert(keys.every(([caseId, operator, target]) =>
+    responseDerivedDomProjectionContractFor({ caseId, operator, target })),
+  "one or more fixed remaining owner contracts are missing");
 });
 
 check("event review descendant binding requires one visible identity row and one canonical card", () => {

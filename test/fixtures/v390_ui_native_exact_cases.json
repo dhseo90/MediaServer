@@ -5,9 +5,9 @@
     "canonicalSha256": "3b3b85556d4efc78e6cea00f9e7e8199b22ed58931ea5cc40f524ba18bdf936f",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "506fa9b7a03fce212e743b9f9f6295d09e0322f802165dff79b465b6db3f90a2",
+    "implementationProjectionSha256": "c5cf2284243cd86184cf45b96177df782019c55e717bb8a1f248ab11b442471c",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "256d73253694604cd6de39043ec1852656d2673d72216d12ce19efe5cc304b8d",
+    "runtimeOracleCatalogSha256": "d37b1167c30b587c93af67bef84eeb45c64e9241ec569ab71551dc74bbbd9377",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -25846,7 +25846,7 @@
             "setupId": "UI-041:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "b78d92eec26b3e5b2a0c4794750813e3f707cb9409cf3d7937079d9cf7fff72c",
+            "semanticCallChainSha256": "0344046f327be7d34558ab808c71cd6f7c1c9b89a7d65401f3045ff82630d4a3",
             "persistedMutation": false,
             "fixtureId": "ui-041-review4-fixture",
             "beforeSnapshotRef": null
@@ -25928,7 +25928,7 @@
             "contextSha256": "4e0054c755fced2d269e7de198bfcdeb25e0b690c448c43e40debac63d3422f7"
           },
           "verifierCommand": "verify-v250-explainable-incident-brief",
-          "assertedSemanticDigest": "b78d92eec26b3e5b2a0c4794750813e3f707cb9409cf3d7937079d9cf7fff72c"
+          "assertedSemanticDigest": "0344046f327be7d34558ab808c71cd6f7c1c9b89a7d65401f3045ff82630d4a3"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -25940,7 +25940,7 @@
             "text": "action/object/context/environment slot 기반 brief가 `/ops/events`에 Ops-only로 표시되고 VLM enrichment는 default-off, provider call 없음, client/viewer 노출 없음으로 표시됨",
             "sha256": "a7a086110c113e4f8ce73c413ad108616427ac98778bcfffe1f8c21bdc6c9ef3"
           },
-          "specSha256": "0389418f06b8bbc96f2eed603cdd281934e6f6726bbe78bc5a509d20c69a1034",
+          "specSha256": "8440edfc37bb08e639a120859838b8de2e1400da181260926458ca7f9c10e3ce",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -26187,7 +26187,7 @@
             "cleanupId": "UI-041:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "b78d92eec26b3e5b2a0c4794750813e3f707cb9409cf3d7937079d9cf7fff72c"
+            "semanticCallChainSha256": "0344046f327be7d34558ab808c71cd6f7c1c9b89a7d65401f3045ff82630d4a3"
           }
         ]
       },
@@ -26369,7 +26369,7 @@
             "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
               "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
               "allowedObservationSources": [
                 "browser-dom",
@@ -26395,7 +26395,7 @@
           "kind": "verify-independent-readback",
           "dispatch": "playwright-native",
           "actionId": "UI-042:verify-independent-readback",
-          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
           "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
           "readbackIdentity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
           "readbackLocator": {
@@ -26421,7 +26421,7 @@
             "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
               "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
               "allowedObservationSources": [
                 "browser-dom",
@@ -26434,7 +26434,7 @@
             "readbackIdentity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
             "readbackExpectation": {
               "readbackIdentity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
               "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
               "runtimeEvidenceRequired": true
             },
@@ -26468,7 +26468,7 @@
             "setupId": "UI-042:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "58c7b15f2e9b3f33700aa833b2d8adeb9f4819295184c3fac9da63d03629c262",
+            "semanticCallChainSha256": "fde86ad4900def368759857b66ab6cfaa87158f5611f3ad4b41add53b06f0de2",
             "persistedMutation": false,
             "fixtureId": "ui-042-review4-fixture",
             "beforeSnapshotRef": null
@@ -26528,15 +26528,15 @@
           "localAction": null
         },
         "expectedProductState": {
-          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
           "expectedBehavior": "rule/scenario/source/status/action target 기반 similar incident lookup group이 `/ops/events`에 Ops-only로 표시되고 raw JSON/source URL/debug/provider material 없이 deterministic score와 explanation term만 표시됨",
           "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
           "locator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderSimilarIncidentLookup",
-            "anchor": "<span class=\"similar-incident-score\">${escapeHtml(display(item?.score ?? 0))}</span>",
-            "anchorSha256": "9ce92d8e3fdc380b3e09be87380b243a3e83c750c82aee837ac76d579d0dbbc0",
-            "contextSha256": "a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095"
+            "anchor": "<span class=\"similar-incident-score\" data-event-semantic-field=\"score\">${escapeHtml(display(item?.score ?? 0))}</span>",
+            "anchorSha256": "42fd9785edf1b08327c0273aa4acd3b4f86427045b23c19abea982138671c9dd",
+            "contextSha256": "efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961"
           }
         },
         "independentReadback": {
@@ -26550,7 +26550,7 @@
             "contextSha256": "8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f"
           },
           "verifierCommand": "verify-v250-similar-incident-lookup",
-          "assertedSemanticDigest": "58c7b15f2e9b3f33700aa833b2d8adeb9f4819295184c3fac9da63d03629c262"
+          "assertedSemanticDigest": "fde86ad4900def368759857b66ab6cfaa87158f5611f3ad4b41add53b06f0de2"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -26562,7 +26562,7 @@
             "text": "rule/scenario/source/status/action target 기반 similar incident lookup group이 `/ops/events`에 Ops-only로 표시되고 raw JSON/source URL/debug/provider material 없이 deterministic score와 explanation term만 표시됨",
             "sha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1"
           },
-          "specSha256": "69df6be44dc284f1dd53b0a1198b3a80059392fccb80e6ebc631bdc0510f1b2e",
+          "specSha256": "0cd1322a8ca83d2950fc90d09949d93d7ef12974f1bab120a1341a685fcbbce1",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -26660,7 +26660,7 @@
               "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
                 "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -26686,7 +26686,7 @@
             "kind": "verify-independent-readback",
             "dispatch": "playwright-native",
             "actionId": "UI-042:verify-independent-readback",
-            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
             "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
             "readbackIdentity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
             "readbackLocator": {
@@ -26712,7 +26712,7 @@
               "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
                 "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -26725,7 +26725,7 @@
               "readbackIdentity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
               "readbackExpectation": {
                 "readbackIdentity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
                 "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
                 "runtimeEvidenceRequired": true
               },
@@ -26747,7 +26747,7 @@
             "stateLocator": {
               "file": "src/ingress/product_ui_page_scripts.cpp",
               "symbol": "renderSimilarIncidentLookup",
-              "contextSha256": "a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095"
+              "contextSha256": "efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961"
             },
             "readbackLocator": {
               "file": "scripts/internal/verify_v250_similar_incident_lookup.mjs",
@@ -26780,7 +26780,7 @@
               "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v250_similar_incident_lookup.mjs#canonical-assertion:similar-incident-score#8d95d54888d090b650941d27308ff29b970ca4b8973a7dcdf91d13ea6c00761f",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderSimilarIncidentLookup#efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961",
                 "expectedBehaviorSha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -26809,7 +26809,7 @@
             "cleanupId": "UI-042:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "58c7b15f2e9b3f33700aa833b2d8adeb9f4819295184c3fac9da63d03629c262"
+            "semanticCallChainSha256": "fde86ad4900def368759857b66ab6cfaa87158f5611f3ad4b41add53b06f0de2"
           }
         ]
       },
@@ -28337,7 +28337,7 @@
             "setupId": "UI-045:reviewed-state",
             "strategy": "actionable",
             "route": "/ops/events",
-            "semanticCallChainSha256": "1fa71d4c4347d44c6f66818d50e143719a3c0172a8b949d2af08e9697d307616",
+            "semanticCallChainSha256": "0e78c307a8b9f4f897ea58563c4a89c939d465af0c31fb92fd8fc18c17f4ed6d",
             "persistedMutation": false,
             "fixtureId": "ui-045-review4-fixture",
             "beforeSnapshotRef": null
@@ -28414,7 +28414,7 @@
             "contextSha256": "3c30a10f4fa1da7210fee00f814a6cef6edcb76ef07a58a70b5f465c865c1bf4"
           },
           "verifierCommand": "verify-v260-incident-memory-productization",
-          "assertedSemanticDigest": "1fa71d4c4347d44c6f66818d50e143719a3c0172a8b949d2af08e9697d307616"
+          "assertedSemanticDigest": "0e78c307a8b9f4f897ea58563c4a89c939d465af0c31fb92fd8fc18c17f4ed6d"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -28426,7 +28426,7 @@
             "text": "VLM summary candidate review panel이 `media-server.ops.vlm-summary-candidate-review.v1` wrapper, candidate count, matched terms, manual review route를 Ops-only로 표시하고 client/viewer에는 노출되지 않음",
             "sha256": "e5210ba357c9124b2519da79839e5e519964c8bb0ce34702587925e8a622f2c5"
           },
-          "specSha256": "c6852ba11eb2f9cdf3fa24e112c2be576b53784fa3057f5d063bca07602a91da",
+          "specSha256": "55d578d1ada095a3ed7e3cfb927cd9ed936a552f2dfb97e6715f5c68a51e63fb",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -28676,7 +28676,7 @@
             "cleanupId": "UI-045:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "1fa71d4c4347d44c6f66818d50e143719a3c0172a8b949d2af08e9697d307616"
+            "semanticCallChainSha256": "0e78c307a8b9f4f897ea58563c4a89c939d465af0c31fb92fd8fc18c17f4ed6d"
           }
         ]
       },
@@ -31752,7 +31752,7 @@
             "setupId": "UI-050:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "cb372ac916709d041669aa29cb256d4d766d5fb62575db0ef1c84c1cc632bab9",
+            "semanticCallChainSha256": "3271249db0c2564c912ba741f063bb52e67901fddc3abf8121e1734c2c798ee9",
             "persistedMutation": false,
             "fixtureId": "ui-050-review4-fixture",
             "beforeSnapshotRef": null
@@ -31834,7 +31834,7 @@
             "contextSha256": "ca7b2a798e6b4a9a1b785be0cbfe3ff3ec3a97fc4e6033f1108884dd8c481409"
           },
           "verifierCommand": "verify-v270-incident-triage-board",
-          "assertedSemanticDigest": "cb372ac916709d041669aa29cb256d4d766d5fb62575db0ef1c84c1cc632bab9"
+          "assertedSemanticDigest": "3271249db0c2564c912ba741f063bb52e67901fddc3abf8121e1734c2c798ee9"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -31846,7 +31846,7 @@
             "text": "`/ops/events`가 priority/review state/source/rule/scenario/similar incident/VLM candidate 기준의 lane/filter/sort board를 `media-server.ops.incident-triage-board.v1`로 표시하고 client/viewer에는 노출하지 않음",
             "sha256": "0113e9561ae4f6b448468c0fcb3949bec72d8a92fd8cadd0b3a2f238e81fa173"
           },
-          "specSha256": "1197afa605f83056fb7dc307df3fbc66234b1238807d3ee207335079ecd918e9",
+          "specSha256": "b03061ed8f326288465b959bf417b31198bb795f070352cf5aa61d910ffc1a50",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -32093,7 +32093,7 @@
             "cleanupId": "UI-050:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "cb372ac916709d041669aa29cb256d4d766d5fb62575db0ef1c84c1cc632bab9"
+            "semanticCallChainSha256": "3271249db0c2564c912ba741f063bb52e67901fddc3abf8121e1734c2c798ee9"
           }
         ]
       },
@@ -32381,7 +32381,7 @@
             "setupId": "UI-051:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "714f65fb18def0245a931cab2ec8e9a5fa056093ad97e0b617e3c6d1341b3a7d",
+            "semanticCallChainSha256": "cfddccd6e955403f0a6211750c5a06c6e5c93df5811021f618b9162a89701ac2",
             "persistedMutation": false,
             "fixtureId": "ui-051-review4-fixture",
             "beforeSnapshotRef": null
@@ -32455,7 +32455,7 @@
             "contextSha256": "40c4c70ed32b9b06ebc95b34687476e262e48792049fc5bc69f5a1babf2f1649"
           },
           "verifierCommand": "verify-v270-incident-decision-scorecard",
-          "assertedSemanticDigest": "714f65fb18def0245a931cab2ec8e9a5fa056093ad97e0b617e3c6d1341b3a7d"
+          "assertedSemanticDigest": "cfddccd6e955403f0a6211750c5a06c6e5c93df5811021f618b9162a89701ac2"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -32467,7 +32467,7 @@
             "text": "`/ops/events`가 EventRecord/source health/similar incident/VLM summary/rule candidate/operator review age를 deterministic priority reason chip으로 표시하고 provider 호출/raw JSON/source URL 노출 없이 Ops-only로 유지함",
             "sha256": "e642b7784831b6a06bdd5d1ae7539abf288b610c26c60a3c28e4eec7f1dc1f69"
           },
-          "specSha256": "75d30327d7e5b1daeefd71383769d39c973c9d03735eeddc6ae364aa14c58aee",
+          "specSha256": "22bc770fc150db389e0c4a351f14ab3babe715ca3c63889f71eace080948a001",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -32721,7 +32721,7 @@
             "cleanupId": "UI-051:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "714f65fb18def0245a931cab2ec8e9a5fa056093ad97e0b617e3c6d1341b3a7d"
+            "semanticCallChainSha256": "cfddccd6e955403f0a6211750c5a06c6e5c93df5811021f618b9162a89701ac2"
           }
         ]
       },
@@ -33017,7 +33017,7 @@
             "setupId": "UI-052:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "2f08c44b96128751affbeac3618831929a00e00c24fac4dc169599f6bbe32dc1",
+            "semanticCallChainSha256": "04577930564b29b1396e9cf995534e964e49b169c412aab73d5144101f5ef906",
             "persistedMutation": false,
             "fixtureId": "ui-052-review4-fixture",
             "beforeSnapshotRef": null
@@ -33091,7 +33091,7 @@
             "contextSha256": "6f598ab6294366deab68e22d7623be628eb84dd5e5ca0f66d3f7d8b78e9267d2"
           },
           "verifierCommand": "verify-v270-operational-action-pack",
-          "assertedSemanticDigest": "2f08c44b96128751affbeac3618831929a00e00c24fac4dc169599f6bbe32dc1"
+          "assertedSemanticDigest": "04577930564b29b1396e9cf995534e964e49b169c412aab73d5144101f5ef906"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -33103,7 +33103,7 @@
             "text": "`/ops/events`가 release-safe evidence bundle, `/ops/rules` draft route, alert dry-run, source health recheck dry-run을 한 action pack card로 표시하고 외부 실제 발송/자동 rule write 없이 Ops-only로 유지함",
             "sha256": "69da6cd51a7e3db6a4276fcc625020e47783b945b70fd5f74ba8b4d6c1375be6"
           },
-          "specSha256": "7c4cda727aea186672580ae7d338e1b8953fd42377386e5d10d6e8492a905185",
+          "specSha256": "be582c17a86fad0451b4e5f89dfc915de593c7894283b81cc3cbf5d275c7b199",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -33373,7 +33373,7 @@
             "cleanupId": "UI-052:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "2f08c44b96128751affbeac3618831929a00e00c24fac4dc169599f6bbe32dc1"
+            "semanticCallChainSha256": "04577930564b29b1396e9cf995534e964e49b169c412aab73d5144101f5ef906"
           }
         ]
       },
@@ -33673,7 +33673,7 @@
             "setupId": "UI-053:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "3158f22a5120ecc920f7652c85c8043a507ed81201891685a8e290afd281b6ce",
+            "semanticCallChainSha256": "5e2c133de0ac353e5be62f5f333380481352a14be7170c2fa9498040060fc9a7",
             "persistedMutation": false,
             "fixtureId": "ui-053-review4-fixture",
             "beforeSnapshotRef": null
@@ -33747,7 +33747,7 @@
             "contextSha256": "bf03abae4b54a4cefe46d38bd005a2f0a3e6eec35aa326381d506c963abc8d40"
           },
           "verifierCommand": "verify-v270-rule-what-if-preview",
-          "assertedSemanticDigest": "3158f22a5120ecc920f7652c85c8043a507ed81201891685a8e290afd281b6ce"
+          "assertedSemanticDigest": "5e2c133de0ac353e5be62f5f333380481352a14be7170c2fa9498040060fc9a7"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -33759,7 +33759,7 @@
             "text": "`/ops/events`가 selected incident/EventRecord와 rule suggestion 후보를 저장 전 condition preview/draft comparison으로 표시하고 `/ops/rules` draft-only 수동 저장 경로로만 연결하며 full replay engine/자동 저장/자동 적용 없이 Ops-only로 유지함",
             "sha256": "2af914e8516d4fb476cf65119b5bf01e1afdcce1dd77ec20d0156ed56d092317"
           },
-          "specSha256": "703ae3d41711d199772785aac722f0375cf1bd8c95343f0bb27e392cfb71168b",
+          "specSha256": "9898bb659327222bdc36ea83b24aafcabec7dbfd1bc064d6933ab502db90955d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -34037,7 +34037,7 @@
             "cleanupId": "UI-053:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "3158f22a5120ecc920f7652c85c8043a507ed81201891685a8e290afd281b6ce"
+            "semanticCallChainSha256": "5e2c133de0ac353e5be62f5f333380481352a14be7170c2fa9498040060fc9a7"
           }
         ]
       },
@@ -34318,7 +34318,7 @@
             "setupId": "UI-054:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "50211a771d9f64d997bae17275d5e5c9502af8847cc8630e5e323c5cc0d0ec04",
+            "semanticCallChainSha256": "e672829ac3a361fb173120118187330c500d18e3eaef1ce652a0d5ae735fb0ff",
             "persistedMutation": false,
             "fixtureId": "ui-054-review4-fixture",
             "beforeSnapshotRef": null
@@ -34400,7 +34400,7 @@
             "contextSha256": "62abea2fad0ad10b68b349776f9db8791cd9266c1506d096ed50987a2f5ce2a3"
           },
           "verifierCommand": "verify-v270-operator-outcome-memory",
-          "assertedSemanticDigest": "50211a771d9f64d997bae17275d5e5c9502af8847cc8630e5e323c5cc0d0ec04"
+          "assertedSemanticDigest": "e672829ac3a361fb173120118187330c500d18e3eaef1ce652a0d5ae735fb0ff"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -34412,7 +34412,7 @@
             "text": "`/ops/events`가 accept/dismiss/review-needed outcome과 기존 Ops review/audit 상태를 deterministic history hint로 표시하고 새 저장소/자동 학습/client viewer 노출 없이 Ops-only로 유지함",
             "sha256": "ff425f243e0d89c54df9333ead33e35c87e7be07dcc0e149936526b9b5580e74"
           },
-          "specSha256": "0377fc88dffca5c208439bce5e97ea0d9787aee3ac1e6737421ca0c58dfe3074",
+          "specSha256": "e3ea2b5127d4ec73b1146274b00683bbd016132dd109d690af820152c81156d5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -34659,7 +34659,7 @@
             "cleanupId": "UI-054:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "50211a771d9f64d997bae17275d5e5c9502af8847cc8630e5e323c5cc0d0ec04"
+            "semanticCallChainSha256": "e672829ac3a361fb173120118187330c500d18e3eaef1ce652a0d5ae735fb0ff"
           }
         ]
       },
@@ -34940,7 +34940,7 @@
             "setupId": "UI-055:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "06ac2a6b5e6d7057ec0369e3abe7a099e0c5aea87ee69ac60de8b534c72fe789",
+            "semanticCallChainSha256": "0cedd914f663c6b513594b5c3e8fb78d8496dc3e241777619e6943242c377371",
             "persistedMutation": false,
             "fixtureId": "ui-055-review4-fixture",
             "beforeSnapshotRef": null
@@ -35022,7 +35022,7 @@
             "contextSha256": "26947af3ec0889a8903462d0b680c9720d62ccf12e54ce6cdf7522182f66bad6"
           },
           "verifierCommand": "verify-v280-incident-action-readiness-queue",
-          "assertedSemanticDigest": "06ac2a6b5e6d7057ec0369e3abe7a099e0c5aea87ee69ac60de8b534c72fe789"
+          "assertedSemanticDigest": "0cedd914f663c6b513594b5c3e8fb78d8496dc3e241777619e6943242c377371"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -35034,7 +35034,7 @@
             "text": "`/ops/events`가 operator 승인 가능한 follow-up 후보를 ready/blocked/field-smoke-needed/not-run 상태로 분리해 표시하고 외부 실제 발송, 자동 action write, EventRecord/Event POST/WebRTC/SSE/WS/media path 변경 없이 Ops-only로 유지함",
             "sha256": "00871ef02d7932acfe03761bd29e5c57e7b32d7ee89d6781923811e3dee4c08d"
           },
-          "specSha256": "099d91de5f4b9b7a1353cc90bc6ed71250185f49f1e7f2f30d22671336a63e04",
+          "specSha256": "fc5d65bb4ab6daa51407184326df407f4bda5eb99b7c38f3e3f9802351d74798",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -35281,7 +35281,7 @@
             "cleanupId": "UI-055:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "06ac2a6b5e6d7057ec0369e3abe7a099e0c5aea87ee69ac60de8b534c72fe789"
+            "semanticCallChainSha256": "0cedd914f663c6b513594b5c3e8fb78d8496dc3e241777619e6943242c377371"
           }
         ]
       },
@@ -36184,7 +36184,7 @@
             "setupId": "UI-057:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "0d3be6124834fe2fac3caec0163f6e3e45176a6b0ac6d2119660bc6d69de1e46",
+            "semanticCallChainSha256": "cbfd8d5b8501ec8e2e1dd1844e7fd6819ff713d3e23ec55616ef26de37cda9c9",
             "persistedMutation": false,
             "fixtureId": "ui-057-review4-fixture",
             "beforeSnapshotRef": null
@@ -36266,7 +36266,7 @@
             "contextSha256": "36a0ce71af3550b05f21b961c243ec908c8228d7442b609689233268d554eb1b"
           },
           "verifierCommand": "verify-v280-evidence-intake-field-readiness",
-          "assertedSemanticDigest": "0d3be6124834fe2fac3caec0163f6e3e45176a6b0ac6d2119660bc6d69de1e46"
+          "assertedSemanticDigest": "cbfd8d5b8501ec8e2e1dd1844e7fd6819ff713d3e23ec55616ef26de37cda9c9"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -36278,7 +36278,7 @@
             "text": "`/ops/events`가 redacted evidence intake, source health recheck, field smoke precondition을 passed/failed/blocked/not-run으로 구분하고 credential/source/raw/debug material을 노출하지 않음",
             "sha256": "3e42b091b47dd5ac2f5e6f253eb7de544607100a740e939325f629451b59e9d0"
           },
-          "specSha256": "bc916a2ec32deed0cf9a91665643599b233e4db80325a6742d9209aadeca9cf9",
+          "specSha256": "9f27957486cef6b785851f6c69e5aa7af5e1d30f9fee36e6eceed3d70e6dc2a5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -36525,7 +36525,7 @@
             "cleanupId": "UI-057:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "0d3be6124834fe2fac3caec0163f6e3e45176a6b0ac6d2119660bc6d69de1e46"
+            "semanticCallChainSha256": "cbfd8d5b8501ec8e2e1dd1844e7fd6819ff713d3e23ec55616ef26de37cda9c9"
           }
         ]
       },
@@ -36806,7 +36806,7 @@
             "setupId": "UI-058:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "d2a21c9e726af8bf1060694910db719d0dd949e197423cc0d6a905da555d1cbd",
+            "semanticCallChainSha256": "489c7506e0eef9c53f6eb5ba6fb577607f95cd3c19c73c6999559f685ccea674",
             "persistedMutation": false,
             "fixtureId": "ui-058-review4-fixture",
             "beforeSnapshotRef": null
@@ -36888,7 +36888,7 @@
             "contextSha256": "4d0d71eb316b411d0678b99a8f6c36c721f0c795d2599153d0e16dcec438d9b9"
           },
           "verifierCommand": "verify-v280-runtime-evidence-window",
-          "assertedSemanticDigest": "d2a21c9e726af8bf1060694910db719d0dd949e197423cc0d6a905da555d1cbd"
+          "assertedSemanticDigest": "489c7506e0eef9c53f6eb5ba6fb577607f95cd3c19c73c6999559f685ccea674"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -36900,7 +36900,7 @@
             "text": "`/ops/events` incident detail이 bounded runtime/source/event evidence window를 Ops-only로 표시하되 장기 저장소, 30분/120분 evidence, client/viewer exposure를 만들지 않음",
             "sha256": "83572c5985717974bf76cf1541d6ce1252f0d934fee5c0932430d78507ad1941"
           },
-          "specSha256": "2cfebac4af27d48ae9da4d4d9996dcfa35404b038a611a8ef54373833323b7e2",
+          "specSha256": "f6f804b7ff28d8cee92516906f889511c19e2912b1c753109cd3583d968a961a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -37147,7 +37147,7 @@
             "cleanupId": "UI-058:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "d2a21c9e726af8bf1060694910db719d0dd949e197423cc0d6a905da555d1cbd"
+            "semanticCallChainSha256": "489c7506e0eef9c53f6eb5ba6fb577607f95cd3c19c73c6999559f685ccea674"
           }
         ]
       },
@@ -39301,7 +39301,7 @@
             "setupId": "UI-062:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "eba5579c330c17a28d128936acbada0ad28784664c63bc0c8e32af67a768ad4b",
+            "semanticCallChainSha256": "d2910bb592d208812525c219ba94ae1a8e287d698bd60cbd9cab58512875f757",
             "persistedMutation": false,
             "fixtureId": "ui-062-review4-fixture",
             "beforeSnapshotRef": null
@@ -39375,7 +39375,7 @@
             "contextSha256": "e06895890d825c321a30ec06645bbbe582e92cb8f1325a66bb516ba2c39090b7"
           },
           "verifierCommand": "verify-v320-unified-ops-events-workspace",
-          "assertedSemanticDigest": "eba5579c330c17a28d128936acbada0ad28784664c63bc0c8e32af67a768ad4b"
+          "assertedSemanticDigest": "d2910bb592d208812525c219ba94ae1a8e287d698bd60cbd9cab58512875f757"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -39387,7 +39387,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-unified-events-workspace.v1` 기반 resolution queue, resolution detail, resolution timeline을 한 작업공간으로 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "eaccd6e9cbe45cb5b7062966bbf4e8da69aca43439690b4faffc65ea484781af"
           },
-          "specSha256": "aab93ebbf5b0248da41e2b6f20425e29e4114adbdd73f06e6c2ff2d3072325ce",
+          "specSha256": "cadcc8258db759831ca2726df1cd7880aaccd51ae98d52c35536ea7e1f16b4e8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -39641,7 +39641,7 @@
             "cleanupId": "UI-062:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "eba5579c330c17a28d128936acbada0ad28784664c63bc0c8e32af67a768ad4b"
+            "semanticCallChainSha256": "d2910bb592d208812525c219ba94ae1a8e287d698bd60cbd9cab58512875f757"
           }
         ]
       },
@@ -39823,7 +39823,7 @@
             "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
               "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
               "allowedObservationSources": [
                 "browser-dom",
@@ -39849,7 +39849,7 @@
           "kind": "verify-independent-readback",
           "dispatch": "playwright-native",
           "actionId": "UI-063:verify-independent-readback",
-          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
           "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
           "readbackIdentity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
           "readbackLocator": {
@@ -39875,7 +39875,7 @@
             "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
               "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
               "allowedObservationSources": [
                 "browser-dom",
@@ -39888,7 +39888,7 @@
             "readbackIdentity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
             "readbackExpectation": {
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
               "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
               "runtimeEvidenceRequired": true
             },
@@ -39922,7 +39922,7 @@
             "setupId": "UI-063:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "f7ce3e6841d499ed3c4f41981d0ff72b0a3bda50e8c85cfe0b226f13eace0ba0",
+            "semanticCallChainSha256": "7cc0d6348fad3e63d8fa61ef7d25e7ff46c1795f98c8f38652762e3045f7e946",
             "persistedMutation": false,
             "fixtureId": "ui-063-review4-fixture",
             "beforeSnapshotRef": null
@@ -39982,15 +39982,15 @@
           "localAction": null
         },
         "expectedProductState": {
-          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
           "expectedBehavior": "`/ops/events`가 `media-server.ops.v320-evidence-quality.v1` 기반 evidence completeness, deterministic confidence, replay coverage hint를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
           "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
           "locator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV320EvidenceQualityLayer",
-            "anchor": "return `<div id=\"v320EvidenceQualityGrid\" class=\"v320-evidence-quality-grid\" data-v320-evidence-quality=\"${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}\">",
-            "anchorSha256": "934f4739f1cf4ca4dce60de77456549daea528561384330ddc552723a932afd9",
-            "contextSha256": "c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c"
+            "anchor": "return `<div id=\"v320EvidenceQualityGrid\" class=\"v320-evidence-quality-grid\" data-v320-evidence-quality=\"${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}\" data-event-semantic-completeness=\"${escapeHtml(evidenceQuality.evidenceCompleteness || '')}\" data-event-semantic-confidence=\"${escapeHtml(evidenceQuality.evidenceConfidence || '')}\" data-event-semantic-replay-coverage-hint=\"${escapeHtml(evidenceQuality.replayCoverageHint || '')}\">",
+            "anchorSha256": "1e0e64cf47d65304c706f3497892ef5f4d55f3d2dd2c2f812691c9cdcbcc399f",
+            "contextSha256": "8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718"
           }
         },
         "independentReadback": {
@@ -40004,7 +40004,7 @@
             "contextSha256": "ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf"
           },
           "verifierCommand": "verify-v320-evidence-quality-layer",
-          "assertedSemanticDigest": "f7ce3e6841d499ed3c4f41981d0ff72b0a3bda50e8c85cfe0b226f13eace0ba0"
+          "assertedSemanticDigest": "7cc0d6348fad3e63d8fa61ef7d25e7ff46c1795f98c8f38652762e3045f7e946"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -40016,7 +40016,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-evidence-quality.v1` 기반 evidence completeness, deterministic confidence, replay coverage hint를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240"
           },
-          "specSha256": "9ead90e59c44075110398becf6c9602e22dbb44143863dc1c6ce3b178559d56d",
+          "specSha256": "8a1f946661795f528361160be06665e350c2cb2877fbf4c85f2993c3990f11c2",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -40114,7 +40114,7 @@
               "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
                 "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -40140,7 +40140,7 @@
             "kind": "verify-independent-readback",
             "dispatch": "playwright-native",
             "actionId": "UI-063:verify-independent-readback",
-            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
             "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
             "readbackIdentity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
             "readbackLocator": {
@@ -40166,7 +40166,7 @@
               "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
                 "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -40179,7 +40179,7 @@
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
               "readbackExpectation": {
                 "readbackIdentity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
                 "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
                 "runtimeEvidenceRequired": true
               },
@@ -40201,7 +40201,7 @@
             "stateLocator": {
               "file": "src/ingress/product_ui_page_scripts.cpp",
               "symbol": "renderV320EvidenceQualityLayer",
-              "contextSha256": "c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c"
+              "contextSha256": "8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718"
             },
             "readbackLocator": {
               "file": "scripts/internal/verify_v320_evidence_quality_layer.mjs",
@@ -40234,7 +40234,7 @@
               "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_evidence_quality_layer.mjs#canonical-assertion:evidenceQuality#ff9ac74d13f03d454b61249ae685ff673a41ab902fbfc3ad750a031e69cc0dcf",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320EvidenceQualityLayer#8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718",
                 "expectedBehaviorSha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -40263,7 +40263,7 @@
             "cleanupId": "UI-063:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "f7ce3e6841d499ed3c4f41981d0ff72b0a3bda50e8c85cfe0b226f13eace0ba0"
+            "semanticCallChainSha256": "7cc0d6348fad3e63d8fa61ef7d25e7ff46c1795f98c8f38652762e3045f7e946"
           }
         ]
       },
@@ -40452,7 +40452,7 @@
             "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
               "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
               "allowedObservationSources": [
                 "browser-dom",
@@ -40486,7 +40486,7 @@
           "kind": "verify-independent-readback",
           "dispatch": "playwright-native",
           "actionId": "UI-064:verify-independent-readback",
-          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
           "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
           "readbackIdentity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
           "readbackLocator": {
@@ -40512,7 +40512,7 @@
             "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
               "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
               "allowedObservationSources": [
                 "browser-dom",
@@ -40525,7 +40525,7 @@
             "readbackIdentity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
             "readbackExpectation": {
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
               "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
               "runtimeEvidenceRequired": true
             },
@@ -40559,7 +40559,7 @@
             "setupId": "UI-064:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "aaa01ee88427b6af3ae5b53fc09075b07ac89ae83bfd4e44b9c9ac8283bb97fa",
+            "semanticCallChainSha256": "530774ca643d33b1c237f80a725a37f9f4dd8e45d6ac10fa20a3f179a9e67f36",
             "persistedMutation": false,
             "fixtureId": "ui-064-review4-fixture",
             "beforeSnapshotRef": null
@@ -40594,9 +40594,9 @@
           "sourceLocator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV320SourceReliabilityContext",
-            "anchor": "return `<div id=\"v320SourceReliabilityGrid\" class=\"v320-source-reliability-grid\" data-v320-source-reliability=\"${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}\">",
-            "anchorSha256": "9025d5fda1f88d08c6b8872e7b6dfa5911ba6332d88d1702afcce8ecd0f46e17",
-            "contextSha256": "d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9"
+            "anchor": "return `<div id=\"v320SourceReliabilityGrid\" class=\"v320-source-reliability-grid\" data-v320-source-reliability=\"${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}\" data-event-semantic-health=\"${escapeHtml(sourceReliability.sourceHealthStatus || '')}\" data-event-semantic-failure-context=\"${escapeHtml(sourceReliability.recentFailureContext || '')}\" data-event-semantic-recheck-hint=\"${escapeHtml(sourceReliability.operatorRecheckHint || '')}\">",
+            "anchorSha256": "f7bb6bef49f8d47009c8fc19f35d57e863549562dc38238b706bf8b16827d22f",
+            "contextSha256": "50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7"
           }
         },
         "productAction": {
@@ -40611,15 +40611,15 @@
           "localAction": null
         },
         "expectedProductState": {
-          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
           "expectedBehavior": "`/ops/events`가 `media-server.ops.v320-source-reliability-context.v1` 기반 source health, recent failure, operator recheck hint를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/source registry write 없이 유지함",
           "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
           "locator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV320SourceReliabilityContext",
-            "anchor": "return `<div id=\"v320SourceReliabilityGrid\" class=\"v320-source-reliability-grid\" data-v320-source-reliability=\"${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}\">",
-            "anchorSha256": "9025d5fda1f88d08c6b8872e7b6dfa5911ba6332d88d1702afcce8ecd0f46e17",
-            "contextSha256": "d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9"
+            "anchor": "return `<div id=\"v320SourceReliabilityGrid\" class=\"v320-source-reliability-grid\" data-v320-source-reliability=\"${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}\" data-event-semantic-health=\"${escapeHtml(sourceReliability.sourceHealthStatus || '')}\" data-event-semantic-failure-context=\"${escapeHtml(sourceReliability.recentFailureContext || '')}\" data-event-semantic-recheck-hint=\"${escapeHtml(sourceReliability.operatorRecheckHint || '')}\">",
+            "anchorSha256": "f7bb6bef49f8d47009c8fc19f35d57e863549562dc38238b706bf8b16827d22f",
+            "contextSha256": "50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7"
           }
         },
         "independentReadback": {
@@ -40633,7 +40633,7 @@
             "contextSha256": "0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950"
           },
           "verifierCommand": "verify-v320-source-reliability-context",
-          "assertedSemanticDigest": "aaa01ee88427b6af3ae5b53fc09075b07ac89ae83bfd4e44b9c9ac8283bb97fa"
+          "assertedSemanticDigest": "530774ca643d33b1c237f80a725a37f9f4dd8e45d6ac10fa20a3f179a9e67f36"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -40645,7 +40645,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-source-reliability-context.v1` 기반 source health, recent failure, operator recheck hint를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/source registry write 없이 유지함",
             "sha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce"
           },
-          "specSha256": "dea8873dd1acba3dfb51fcaa4d785780c9b1a386809f1da236f30a93a13ae05f",
+          "specSha256": "8736f6d5a3c59afd86ffe18fc5c3e65c2ac74a586fc7a4a30a49446a4febf049",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -40750,7 +40750,7 @@
               "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
                 "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -40784,7 +40784,7 @@
             "kind": "verify-independent-readback",
             "dispatch": "playwright-native",
             "actionId": "UI-064:verify-independent-readback",
-            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
             "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
             "readbackIdentity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
             "readbackLocator": {
@@ -40810,7 +40810,7 @@
               "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
                 "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -40823,7 +40823,7 @@
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
               "readbackExpectation": {
                 "readbackIdentity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
                 "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
                 "runtimeEvidenceRequired": true
               },
@@ -40845,7 +40845,7 @@
             "stateLocator": {
               "file": "src/ingress/product_ui_page_scripts.cpp",
               "symbol": "renderV320SourceReliabilityContext",
-              "contextSha256": "d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9"
+              "contextSha256": "50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7"
             },
             "readbackLocator": {
               "file": "scripts/internal/verify_v320_source_reliability_context.mjs",
@@ -40878,7 +40878,7 @@
               "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_source_reliability_context.mjs#canonical-assertion:sourceReliability#0c234920036bb9fd028ef79efe8e55b5bf5469cbe3404f3d1cd8642477c8a950",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320SourceReliabilityContext#50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7",
                 "expectedBehaviorSha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -40915,7 +40915,7 @@
             "cleanupId": "UI-064:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "aaa01ee88427b6af3ae5b53fc09075b07ac89ae83bfd4e44b9c9ac8283bb97fa"
+            "semanticCallChainSha256": "530774ca643d33b1c237f80a725a37f9f4dd8e45d6ac10fa20a3f179a9e67f36"
           }
         ]
       },
@@ -41104,7 +41104,7 @@
             "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
               "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
               "allowedObservationSources": [
                 "browser-dom",
@@ -41140,7 +41140,7 @@
           "kind": "verify-independent-readback",
           "dispatch": "playwright-native",
           "actionId": "UI-065:verify-independent-readback",
-          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
           "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
           "readbackIdentity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
           "readbackLocator": {
@@ -41166,7 +41166,7 @@
             "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
               "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
               "allowedObservationSources": [
                 "browser-dom",
@@ -41179,7 +41179,7 @@
             "readbackIdentity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
             "readbackExpectation": {
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
               "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
               "runtimeEvidenceRequired": true
             },
@@ -41213,7 +41213,7 @@
             "setupId": "UI-065:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "f243d2bc482da38d51c1bfa3f747e7fd3f2b9d4f69275cc010a04e2e9534b80a",
+            "semanticCallChainSha256": "1c6c26fe638a8f082cd93a12c3fc45171ee182009a35d3571a1f68611b03f9cf",
             "persistedMutation": false,
             "fixtureId": "ui-065-review4-fixture",
             "beforeSnapshotRef": null
@@ -41248,9 +41248,9 @@
           "sourceLocator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV320AiReviewQualityContext",
-            "anchor": "return `<div id=\"v320AiReviewQualityGrid\" class=\"v320-ai-review-quality-grid\" data-v320-ai-review-quality=\"${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}\">",
-            "anchorSha256": "6a4c7dbe259aa5c11d7a9fd8bf2ec481c4fe6cc6637385f20e8a9e14cd2cf4c3",
-            "contextSha256": "9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c"
+            "anchor": "return `<div id=\"v320AiReviewQualityGrid\" class=\"v320-ai-review-quality-grid\" data-v320-ai-review-quality=\"${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}\" data-event-semantic-correction-signal=\"${escapeHtml(aiReviewQuality.correctionReviewSignal || '')}\" data-event-semantic-review-signal=\"${escapeHtml(aiReviewQuality.reviewStatus || '')}\" data-event-semantic-uncertainty-reason=\"${escapeHtml(aiReviewQuality.uncertaintyReason || '')}\" data-event-semantic-quality-badge=\"${escapeHtml(aiReviewQuality.qualityBadge || '')}\">",
+            "anchorSha256": "81daf98b32d94a1788620a02f8a1379d488999803587e0f40f8866ef379af771",
+            "contextSha256": "d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01"
           }
         },
         "productAction": {
@@ -41265,15 +41265,15 @@
           "localAction": null
         },
         "expectedProductState": {
-          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
           "expectedBehavior": "`/ops/events`가 `media-server.ops.v320-ai-review-quality-context.v1` 기반 correction/review signal, uncertainty reason, quality badge를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/provider call 없이 유지함",
           "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
           "locator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV320AiReviewQualityContext",
-            "anchor": "return `<div id=\"v320AiReviewQualityGrid\" class=\"v320-ai-review-quality-grid\" data-v320-ai-review-quality=\"${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}\">",
-            "anchorSha256": "6a4c7dbe259aa5c11d7a9fd8bf2ec481c4fe6cc6637385f20e8a9e14cd2cf4c3",
-            "contextSha256": "9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c"
+            "anchor": "return `<div id=\"v320AiReviewQualityGrid\" class=\"v320-ai-review-quality-grid\" data-v320-ai-review-quality=\"${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}\" data-event-semantic-correction-signal=\"${escapeHtml(aiReviewQuality.correctionReviewSignal || '')}\" data-event-semantic-review-signal=\"${escapeHtml(aiReviewQuality.reviewStatus || '')}\" data-event-semantic-uncertainty-reason=\"${escapeHtml(aiReviewQuality.uncertaintyReason || '')}\" data-event-semantic-quality-badge=\"${escapeHtml(aiReviewQuality.qualityBadge || '')}\">",
+            "anchorSha256": "81daf98b32d94a1788620a02f8a1379d488999803587e0f40f8866ef379af771",
+            "contextSha256": "d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01"
           }
         },
         "independentReadback": {
@@ -41287,7 +41287,7 @@
             "contextSha256": "543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab"
           },
           "verifierCommand": "verify-v320-ai-review-quality-context",
-          "assertedSemanticDigest": "f243d2bc482da38d51c1bfa3f747e7fd3f2b9d4f69275cc010a04e2e9534b80a"
+          "assertedSemanticDigest": "1c6c26fe638a8f082cd93a12c3fc45171ee182009a35d3571a1f68611b03f9cf"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -41299,7 +41299,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-ai-review-quality-context.v1` 기반 correction/review signal, uncertainty reason, quality badge를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/provider call 없이 유지함",
             "sha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc"
           },
-          "specSha256": "aa467b64cd6dd4bb5b6da79be4486f070c298688d92d409fa16f8dd16ef126d4",
+          "specSha256": "e7238c512ab2c6a1c71b669b811c960e101d472f269312e1f6ebbea9e280d5bd",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -41404,7 +41404,7 @@
               "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
                 "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -41440,7 +41440,7 @@
             "kind": "verify-independent-readback",
             "dispatch": "playwright-native",
             "actionId": "UI-065:verify-independent-readback",
-            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
             "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
             "readbackIdentity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
             "readbackLocator": {
@@ -41466,7 +41466,7 @@
               "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
                 "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -41479,7 +41479,7 @@
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
               "readbackExpectation": {
                 "readbackIdentity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
                 "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
                 "runtimeEvidenceRequired": true
               },
@@ -41501,7 +41501,7 @@
             "stateLocator": {
               "file": "src/ingress/product_ui_page_scripts.cpp",
               "symbol": "renderV320AiReviewQualityContext",
-              "contextSha256": "9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c"
+              "contextSha256": "d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01"
             },
             "readbackLocator": {
               "file": "scripts/internal/verify_v320_ai_review_quality_context.mjs",
@@ -41534,7 +41534,7 @@
               "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_ai_review_quality_context.mjs#canonical-assertion:media-server.ops.v320-ai-review-quality-context.v1#543d80eb4c3c4d6c3443ce526f07831ba8f9908149706f7e70e80d99ac02dcab",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320AiReviewQualityContext#d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01",
                 "expectedBehaviorSha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -41573,7 +41573,7 @@
             "cleanupId": "UI-065:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "f243d2bc482da38d51c1bfa3f747e7fd3f2b9d4f69275cc010a04e2e9534b80a"
+            "semanticCallChainSha256": "1c6c26fe638a8f082cd93a12c3fc45171ee182009a35d3571a1f68611b03f9cf"
           }
         ]
       },
@@ -41869,7 +41869,7 @@
             "setupId": "UI-066:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "4171b5eceab517d2e446cd72de1dc45cdfc64cd2d6f309685158cfef2f309546",
+            "semanticCallChainSha256": "d2d048028af7ee7734c56a44e82952b63b0624e540e0406e54195f4e925b6fe0",
             "persistedMutation": false,
             "fixtureId": "ui-066-review4-fixture",
             "beforeSnapshotRef": null
@@ -41943,7 +41943,7 @@
             "contextSha256": "d8fa4b05b5c7f6b80c27fe4cd81e4c7a0a7c52ec41c8e1bc32c59843642c08ae"
           },
           "verifierCommand": "verify-v320-operator-resolution-flow",
-          "assertedSemanticDigest": "4171b5eceab517d2e446cd72de1dc45cdfc64cd2d6f309685158cfef2f309546"
+          "assertedSemanticDigest": "d2d048028af7ee7734c56a44e82952b63b0624e540e0406e54195f4e925b6fe0"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -41955,7 +41955,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-operator-resolution-flow.v1` 기반 assignment target, operator note, close/reopen 가능 상태, audit trail을 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "59b15b2bcc3063804d12a17f8e648b771567ecb93e1bc28af72aca26dfc62d2f"
           },
-          "specSha256": "b76f80f4af7ff01c0da5f350f4fba8f16f1c5f589d449ec4e7403cac98b4f359",
+          "specSha256": "cc4518647a215f0b72370cf50a92262008632e51e14db1e3a18903689497894f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -42225,7 +42225,7 @@
             "cleanupId": "UI-066:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "4171b5eceab517d2e446cd72de1dc45cdfc64cd2d6f309685158cfef2f309546"
+            "semanticCallChainSha256": "d2d048028af7ee7734c56a44e82952b63b0624e540e0406e54195f4e925b6fe0"
           }
         ]
       },
@@ -42414,7 +42414,7 @@
             "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
               "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
               "allowedObservationSources": [
                 "browser-dom",
@@ -42449,7 +42449,7 @@
           "kind": "verify-independent-readback",
           "dispatch": "playwright-native",
           "actionId": "UI-067:verify-independent-readback",
-          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
           "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
           "readbackIdentity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
           "readbackLocator": {
@@ -42475,7 +42475,7 @@
             "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
               "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
               "allowedObservationSources": [
                 "browser-dom",
@@ -42488,7 +42488,7 @@
             "readbackIdentity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
             "readbackExpectation": {
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
               "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
               "runtimeEvidenceRequired": true
             },
@@ -42522,7 +42522,7 @@
             "setupId": "UI-067:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "8b0018bb7529cbc2ad5850ea90e3cb1f877c3c57189a0022b0cab3ca8aadba5e",
+            "semanticCallChainSha256": "e8aa30a2cd2d6cc10f80d1b0a89555f690b976b33b01165a6b89284693983d69",
             "persistedMutation": false,
             "fixtureId": "ui-067-review4-fixture",
             "beforeSnapshotRef": null
@@ -42557,9 +42557,9 @@
           "sourceLocator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV320ActionReadinessChecklist",
-            "anchor": "return `<div id=\"v320ActionReadinessChecklistGrid\" class=\"v320-action-readiness-checklist-grid\" data-v320-action-readiness-checklist=\"${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}\">",
-            "anchorSha256": "3602dd6067633bb2fc22bd1be7300d7c3b6e4597fc4ab6ca37104fb3d79f9edf",
-            "contextSha256": "bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3"
+            "anchor": "return `<div id=\"v320ActionReadinessChecklistGrid\" class=\"v320-action-readiness-checklist-grid\" data-v320-action-readiness-checklist=\"${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}\" data-event-semantic-rule-draft=\"${escapeHtml(actionReadinessChecklist.ruleDraftStatus || '')}\" data-event-semantic-evidence-bundle=\"${escapeHtml(actionReadinessChecklist.evidenceBundleStatus || '')}\" data-event-semantic-notification=\"${actionReadinessChecklist.notificationReady === true ? 'true' : 'false'}\">",
+            "anchorSha256": "af4837afe3b3a886f8078b5d842f571f6f67e5773cf7f5bd8bab204d386e96dc",
+            "contextSha256": "4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed"
           }
         },
         "productAction": {
@@ -42574,15 +42574,15 @@
           "localAction": null
         },
         "expectedProductState": {
-          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
           "expectedBehavior": "`/ops/events`가 `media-server.ops.v320-action-readiness-checklist.v1` 기반 readiness status, rule draft, evidence bundle, notification readiness checklist와 blocker chip을 unified resolution detail 안에 표시하고 자동 action write, external delivery, source URL/raw JSON/debug/client exposure 없이 유지함",
           "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
           "locator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV320ActionReadinessChecklist",
-            "anchor": "return `<div id=\"v320ActionReadinessChecklistGrid\" class=\"v320-action-readiness-checklist-grid\" data-v320-action-readiness-checklist=\"${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}\">",
-            "anchorSha256": "3602dd6067633bb2fc22bd1be7300d7c3b6e4597fc4ab6ca37104fb3d79f9edf",
-            "contextSha256": "bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3"
+            "anchor": "return `<div id=\"v320ActionReadinessChecklistGrid\" class=\"v320-action-readiness-checklist-grid\" data-v320-action-readiness-checklist=\"${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}\" data-event-semantic-rule-draft=\"${escapeHtml(actionReadinessChecklist.ruleDraftStatus || '')}\" data-event-semantic-evidence-bundle=\"${escapeHtml(actionReadinessChecklist.evidenceBundleStatus || '')}\" data-event-semantic-notification=\"${actionReadinessChecklist.notificationReady === true ? 'true' : 'false'}\">",
+            "anchorSha256": "af4837afe3b3a886f8078b5d842f571f6f67e5773cf7f5bd8bab204d386e96dc",
+            "contextSha256": "4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed"
           }
         },
         "independentReadback": {
@@ -42596,7 +42596,7 @@
             "contextSha256": "0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f"
           },
           "verifierCommand": "verify-v320-action-readiness-checklist",
-          "assertedSemanticDigest": "8b0018bb7529cbc2ad5850ea90e3cb1f877c3c57189a0022b0cab3ca8aadba5e"
+          "assertedSemanticDigest": "e8aa30a2cd2d6cc10f80d1b0a89555f690b976b33b01165a6b89284693983d69"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -42608,7 +42608,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-action-readiness-checklist.v1` 기반 readiness status, rule draft, evidence bundle, notification readiness checklist와 blocker chip을 unified resolution detail 안에 표시하고 자동 action write, external delivery, source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb"
           },
-          "specSha256": "0aab341652273d72422ba2df7fb1d9d3d3f4f9208c19552205901088bac3cd96",
+          "specSha256": "1cf5920c1eb87115d3dd28d839e95055f0607aee1e7fc99700ae1443db5ce796",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -42713,7 +42713,7 @@
               "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
                 "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -42748,7 +42748,7 @@
             "kind": "verify-independent-readback",
             "dispatch": "playwright-native",
             "actionId": "UI-067:verify-independent-readback",
-            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
             "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
             "readbackIdentity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
             "readbackLocator": {
@@ -42774,7 +42774,7 @@
               "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
                 "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -42787,7 +42787,7 @@
               "readbackIdentity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
               "readbackExpectation": {
                 "readbackIdentity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
                 "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
                 "runtimeEvidenceRequired": true
               },
@@ -42809,7 +42809,7 @@
             "stateLocator": {
               "file": "src/ingress/product_ui_page_scripts.cpp",
               "symbol": "renderV320ActionReadinessChecklist",
-              "contextSha256": "bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3"
+              "contextSha256": "4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed"
             },
             "readbackLocator": {
               "file": "scripts/internal/verify_v320_action_readiness_checklist.mjs",
@@ -42842,7 +42842,7 @@
               "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v320_action_readiness_checklist.mjs#canonical-assertion:actionReadinessChecklist#0f27dc3687ef48ffd461c6d0a6a62fac0c4d19fffbe6334c568355d359dee75f",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV320ActionReadinessChecklist#4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed",
                 "expectedBehaviorSha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -42880,7 +42880,7 @@
             "cleanupId": "UI-067:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "8b0018bb7529cbc2ad5850ea90e3cb1f877c3c57189a0022b0cab3ca8aadba5e"
+            "semanticCallChainSha256": "e8aa30a2cd2d6cc10f80d1b0a89555f690b976b33b01165a6b89284693983d69"
           }
         ]
       },
@@ -43827,7 +43827,7 @@
             "setupId": "UI-069:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "0c06f263a0ae602a4cea8b4497ad31482623cd6485dfe18639c4ba8353b7522b",
+            "semanticCallChainSha256": "a7a979b1568129727b1135d39a3d9d1b7ce8c2a5fd50854a2290b3e5c7316818",
             "persistedMutation": false,
             "fixtureId": "ui-069-review4-fixture",
             "beforeSnapshotRef": null
@@ -43901,7 +43901,7 @@
             "contextSha256": "474216eedf1ef7e2ae2dcd10efc830b64323bf406ea88be4674f7164df76deb3"
           },
           "verifierCommand": "verify-v320-resolution-search-metrics",
-          "assertedSemanticDigest": "0c06f263a0ae602a4cea8b4497ad31482623cd6485dfe18639c4ba8353b7522b"
+          "assertedSemanticDigest": "a7a979b1568129727b1135d39a3d9d1b7ce8c2a5fd50854a2290b3e5c7316818"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -43913,7 +43913,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-resolution-search-metrics.v1` 기반 active resolution filters, saved view presets, operations metric summary를 unified resolution detail 안에 표시하고 saved view write/source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "8476f63682c885547ce1e69164345db4b321ab89fe25948b84135cc1a79dbf5d"
           },
-          "specSha256": "2f2ac4762a60a158b23791fcf3ac3cde9f3747a4b7dac0cbb1520a64c10cd997",
+          "specSha256": "45b86a5a631152fda4da58519a6963b413bb23201c2a3e5445c3380d9b72524e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -44187,7 +44187,7 @@
             "cleanupId": "UI-069:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "0c06f263a0ae602a4cea8b4497ad31482623cd6485dfe18639c4ba8353b7522b"
+            "semanticCallChainSha256": "a7a979b1568129727b1135d39a3d9d1b7ce8c2a5fd50854a2290b3e5c7316818"
           }
         ]
       },
@@ -44376,7 +44376,7 @@
             "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
               "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
               "allowedObservationSources": [
                 "browser-dom",
@@ -44413,7 +44413,7 @@
           "kind": "verify-independent-readback",
           "dispatch": "playwright-native",
           "actionId": "UI-070:verify-independent-readback",
-          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
           "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
           "readbackIdentity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
           "readbackLocator": {
@@ -44439,7 +44439,7 @@
             "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
               "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
               "allowedObservationSources": [
                 "browser-dom",
@@ -44452,7 +44452,7 @@
             "readbackIdentity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
             "readbackExpectation": {
               "readbackIdentity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
               "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
               "runtimeEvidenceRequired": true
             },
@@ -44486,7 +44486,7 @@
             "setupId": "UI-070:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "1314045664d28aa756c592cebcd5b0ce8027996b4115da90fc2c60ac4383b756",
+            "semanticCallChainSha256": "681dcf94900ee648274a0c7879e408d8f946a73ccfe12453f36dbd86b1e36b05",
             "persistedMutation": false,
             "fixtureId": "ui-070-review4-fixture",
             "beforeSnapshotRef": null
@@ -44521,9 +44521,9 @@
           "sourceLocator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV330IncidentSourceCorrelationLayer",
-            "anchor": "return `<div id=\"v330IncidentSourceCorrelationGrid\" class=\"v330-incident-source-correlation-grid\" data-v330-incident-source-correlation=\"${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}\">",
-            "anchorSha256": "fdac7b15f27ef369e2c00e808b6a78ef556c4bc32b129b20d2d48189488dc170",
-            "contextSha256": "0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8"
+            "anchor": "return `<div id=\"v330IncidentSourceCorrelationGrid\" class=\"v330-incident-source-correlation-grid\" data-v330-incident-source-correlation=\"${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentSourceCorrelation.sourceCauseCategory || '')}\" data-event-semantic-closure-impact=\"${escapeHtml(incidentSourceCorrelation.resolutionClosureImpact || '')}\">",
+            "anchorSha256": "586b11dd1cd3de9be259921bac484777a5cc2ced522e94b73c1a9cad988dd0e2",
+            "contextSha256": "87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f"
           }
         },
         "productAction": {
@@ -44538,15 +44538,15 @@
           "localAction": null
         },
         "expectedProductState": {
-          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
           "expectedBehavior": "`/ops/events`가 `media-server.ops.v330-incident-source-correlation.v1` 기반 source cause, closure impact, source handoff를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
           "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
           "locator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV330IncidentSourceCorrelationLayer",
-            "anchor": "return `<div id=\"v330IncidentSourceCorrelationGrid\" class=\"v330-incident-source-correlation-grid\" data-v330-incident-source-correlation=\"${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}\">",
-            "anchorSha256": "fdac7b15f27ef369e2c00e808b6a78ef556c4bc32b129b20d2d48189488dc170",
-            "contextSha256": "0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8"
+            "anchor": "return `<div id=\"v330IncidentSourceCorrelationGrid\" class=\"v330-incident-source-correlation-grid\" data-v330-incident-source-correlation=\"${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentSourceCorrelation.sourceCauseCategory || '')}\" data-event-semantic-closure-impact=\"${escapeHtml(incidentSourceCorrelation.resolutionClosureImpact || '')}\">",
+            "anchorSha256": "586b11dd1cd3de9be259921bac484777a5cc2ced522e94b73c1a9cad988dd0e2",
+            "contextSha256": "87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f"
           }
         },
         "independentReadback": {
@@ -44560,7 +44560,7 @@
             "contextSha256": "178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd"
           },
           "verifierCommand": "verify-v330-incident-source-correlation-layer",
-          "assertedSemanticDigest": "1314045664d28aa756c592cebcd5b0ce8027996b4115da90fc2c60ac4383b756"
+          "assertedSemanticDigest": "681dcf94900ee648274a0c7879e408d8f946a73ccfe12453f36dbd86b1e36b05"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -44572,7 +44572,7 @@
             "text": "`/ops/events`가 `media-server.ops.v330-incident-source-correlation.v1` 기반 source cause, closure impact, source handoff를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e"
           },
-          "specSha256": "d6596872326c9af95e4425597906b5342032dd28ac53837dc518ae1e338eee56",
+          "specSha256": "96017999098242d9b87e0d88acff1996c75b15294a59a549ba3f3ecd09479521",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -44677,7 +44677,7 @@
               "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
                 "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -44714,7 +44714,7 @@
             "kind": "verify-independent-readback",
             "dispatch": "playwright-native",
             "actionId": "UI-070:verify-independent-readback",
-            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
             "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
             "readbackIdentity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
             "readbackLocator": {
@@ -44740,7 +44740,7 @@
               "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
                 "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -44753,7 +44753,7 @@
               "readbackIdentity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
               "readbackExpectation": {
                 "readbackIdentity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
                 "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
                 "runtimeEvidenceRequired": true
               },
@@ -44775,7 +44775,7 @@
             "stateLocator": {
               "file": "src/ingress/product_ui_page_scripts.cpp",
               "symbol": "renderV330IncidentSourceCorrelationLayer",
-              "contextSha256": "0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8"
+              "contextSha256": "87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f"
             },
             "readbackLocator": {
               "file": "scripts/internal/verify_v330_incident_source_correlation_layer.mjs",
@@ -44808,7 +44808,7 @@
               "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v330_incident_source_correlation_layer.mjs#canonical-assertion:incidentSourceCorrelation#178c2927be7ca1c4d937eb35d29d66e5e262dca66b66d69292ff3dea3f752bfd",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330IncidentSourceCorrelationLayer#87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f",
                 "expectedBehaviorSha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -44848,7 +44848,7 @@
             "cleanupId": "UI-070:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "1314045664d28aa756c592cebcd5b0ce8027996b4115da90fc2c60ac4383b756"
+            "semanticCallChainSha256": "681dcf94900ee648274a0c7879e408d8f946a73ccfe12453f36dbd86b1e36b05"
           }
         ]
       },
@@ -45037,7 +45037,7 @@
             "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
               "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
               "allowedObservationSources": [
                 "browser-dom",
@@ -45076,7 +45076,7 @@
           "kind": "verify-independent-readback",
           "dispatch": "playwright-native",
           "actionId": "UI-071:verify-independent-readback",
-          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
           "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
           "readbackIdentity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
           "readbackLocator": {
@@ -45102,7 +45102,7 @@
             "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
               "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
               "allowedObservationSources": [
                 "browser-dom",
@@ -45115,7 +45115,7 @@
             "readbackIdentity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
             "readbackExpectation": {
               "readbackIdentity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
               "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
               "runtimeEvidenceRequired": true
             },
@@ -45149,7 +45149,7 @@
             "setupId": "UI-071:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "aec6e86a64dbbb69d604219ebf38c5a223ba8a423cf70d5301aafb3f280c7cf6",
+            "semanticCallChainSha256": "3be8e70bba3de63f31cf1c72f05bb84a5a2fe83c4a21001d52e5cc9387a196ef",
             "persistedMutation": false,
             "fixtureId": "ui-071-review4-fixture",
             "beforeSnapshotRef": null
@@ -45184,9 +45184,9 @@
           "sourceLocator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV330OperatorRecheckRecoveryQueue",
-            "anchor": "return `<div id=\"v330OperatorRecheckRecoveryQueueGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v330-operator-recheck-recovery-queue=\"${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}\">",
-            "anchorSha256": "3b764ebecb38314edaf387137c6fb98c82308f7eb32fabe176661df4340a370a",
-            "contextSha256": "6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782"
+            "anchor": "return `<div id=\"v330OperatorRecheckRecoveryQueueGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v330-operator-recheck-recovery-queue=\"${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}\" data-event-semantic-retry-candidate=\"${escapeHtml(operatorRecheckRecoveryQueue.retryCandidate || '')}\" data-event-semantic-dry-run-status=\"${escapeHtml(operatorRecheckRecoveryQueue.dryRunResultStatus || '')}\" data-event-semantic-operator-note-link=\"${escapeHtml(operatorRecheckRecoveryQueue.operatorNoteRoute || '')}\">",
+            "anchorSha256": "14f1fe0ac3eda1c4cbe66ed7c6ace099cb169d4941c93a487a9119f2f6c43dd2",
+            "contextSha256": "a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4"
           }
         },
         "productAction": {
@@ -45201,15 +45201,15 @@
           "localAction": null
         },
         "expectedProductState": {
-          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
           "expectedBehavior": "`/ops/events`가 `media-server.ops.v330-operator-recheck-recovery-queue.v1` 기반 failed-only recheck, retry candidate, recovery checklist, dry-run result, operator note link를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/자동 recovery 없이 유지함",
           "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
           "locator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV330OperatorRecheckRecoveryQueue",
-            "anchor": "return `<div id=\"v330OperatorRecheckRecoveryQueueGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v330-operator-recheck-recovery-queue=\"${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}\">",
-            "anchorSha256": "3b764ebecb38314edaf387137c6fb98c82308f7eb32fabe176661df4340a370a",
-            "contextSha256": "6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782"
+            "anchor": "return `<div id=\"v330OperatorRecheckRecoveryQueueGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v330-operator-recheck-recovery-queue=\"${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}\" data-event-semantic-retry-candidate=\"${escapeHtml(operatorRecheckRecoveryQueue.retryCandidate || '')}\" data-event-semantic-dry-run-status=\"${escapeHtml(operatorRecheckRecoveryQueue.dryRunResultStatus || '')}\" data-event-semantic-operator-note-link=\"${escapeHtml(operatorRecheckRecoveryQueue.operatorNoteRoute || '')}\">",
+            "anchorSha256": "14f1fe0ac3eda1c4cbe66ed7c6ace099cb169d4941c93a487a9119f2f6c43dd2",
+            "contextSha256": "a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4"
           }
         },
         "independentReadback": {
@@ -45223,7 +45223,7 @@
             "contextSha256": "16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed"
           },
           "verifierCommand": "verify-v330-operator-recheck-recovery-queue",
-          "assertedSemanticDigest": "aec6e86a64dbbb69d604219ebf38c5a223ba8a423cf70d5301aafb3f280c7cf6"
+          "assertedSemanticDigest": "3be8e70bba3de63f31cf1c72f05bb84a5a2fe83c4a21001d52e5cc9387a196ef"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -45235,7 +45235,7 @@
             "text": "`/ops/events`가 `media-server.ops.v330-operator-recheck-recovery-queue.v1` 기반 failed-only recheck, retry candidate, recovery checklist, dry-run result, operator note link를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/자동 recovery 없이 유지함",
             "sha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323"
           },
-          "specSha256": "b40826524d80875ae6665cbd4db0859a398b447e7be90caa5d03278eff1cf27b",
+          "specSha256": "8ab4e113f8d3e17746fbca4ff17d270214a8fe554a29b8340b7d3cefe6de54b4",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -45340,7 +45340,7 @@
               "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
                 "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -45379,7 +45379,7 @@
             "kind": "verify-independent-readback",
             "dispatch": "playwright-native",
             "actionId": "UI-071:verify-independent-readback",
-            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
             "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
             "readbackIdentity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
             "readbackLocator": {
@@ -45405,7 +45405,7 @@
               "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
                 "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -45418,7 +45418,7 @@
               "readbackIdentity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
               "readbackExpectation": {
                 "readbackIdentity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
                 "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
                 "runtimeEvidenceRequired": true
               },
@@ -45440,7 +45440,7 @@
             "stateLocator": {
               "file": "src/ingress/product_ui_page_scripts.cpp",
               "symbol": "renderV330OperatorRecheckRecoveryQueue",
-              "contextSha256": "6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782"
+              "contextSha256": "a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4"
             },
             "readbackLocator": {
               "file": "scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs",
@@ -45473,7 +45473,7 @@
               "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs#canonical-assertion:operatorRecheckRecoveryQueue#16e7f71c56ef34b43df85f23c40508a0ec01e7d7638dccc43ac3fd7ce58518ed",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV330OperatorRecheckRecoveryQueue#a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4",
                 "expectedBehaviorSha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -45515,7 +45515,7 @@
             "cleanupId": "UI-071:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "aec6e86a64dbbb69d604219ebf38c5a223ba8a423cf70d5301aafb3f280c7cf6"
+            "semanticCallChainSha256": "3be8e70bba3de63f31cf1c72f05bb84a5a2fe83c4a21001d52e5cc9387a196ef"
           }
         ]
       },
@@ -50782,7 +50782,7 @@
             "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
               "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
               "allowedObservationSources": [
                 "browser-dom",
@@ -50816,7 +50816,7 @@
           "kind": "verify-independent-readback",
           "dispatch": "playwright-native",
           "actionId": "UI-080:verify-independent-readback",
-          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
           "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
           "readbackIdentity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
           "readbackLocator": {
@@ -50842,7 +50842,7 @@
             "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
             "readback": {
               "identity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
               "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
               "allowedObservationSources": [
                 "browser-dom",
@@ -50855,7 +50855,7 @@
             "readbackIdentity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
             "readbackExpectation": {
               "readbackIdentity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
-              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+              "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
               "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
               "runtimeEvidenceRequired": true
             },
@@ -50889,7 +50889,7 @@
             "setupId": "UI-080:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/events",
-            "semanticCallChainSha256": "300b6029ac9d8bc07bd3d7c23ca1bf180012f9bfd84fc3f9039c89a84b120105",
+            "semanticCallChainSha256": "835b1d5eadaefa9cb7bc81cb6eb627fd99d598941b264f03eeb85dabc5596a7f",
             "persistedMutation": false,
             "fixtureId": "ui-080-review4-fixture",
             "beforeSnapshotRef": null
@@ -50924,9 +50924,9 @@
           "sourceLocator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV350IncidentCommandHandoff",
-            "anchor": "return `<div id=\"v350IncidentCommandHandoffGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v350-incident-command-handoff=\"${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}\">",
-            "anchorSha256": "375cefc877f94953363110c9bede1318c10163eb8656e7561d81869ca2ba82d1",
-            "contextSha256": "ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08"
+            "anchor": "return `<div id=\"v350IncidentCommandHandoffGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v350-incident-command-handoff=\"${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentCommandHandoff.sourceCause || '')}\" data-event-semantic-continuity-drill-candidate=\"${escapeHtml(incidentCommandHandoff.continuityDrillCandidate || '')}\" data-event-semantic-command-plan-draft=\"${escapeHtml(incidentCommandHandoff.commandPlanDraft || '')}\">",
+            "anchorSha256": "9b2281c442b179487048f663083c65e7be9feee033a5a23e8800d990735c6749",
+            "contextSha256": "5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a"
           }
         },
         "productAction": {
@@ -50941,15 +50941,15 @@
           "localAction": null
         },
         "expectedProductState": {
-          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+          "identity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
           "expectedBehavior": "`/ops/events` selected detail이 `media-server.ops.v350-incident-command-handoff.v1` 기반 source 원인, continuity drill 후보, command plan 초안을 read-only로 표시하고 source/view/rule write, client notice 발송, media/schema mutation을 만들지 않음",
           "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
           "locator": {
             "file": "src/ingress/product_ui_page_scripts.cpp",
             "symbol": "renderV350IncidentCommandHandoff",
-            "anchor": "return `<div id=\"v350IncidentCommandHandoffGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v350-incident-command-handoff=\"${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}\">",
-            "anchorSha256": "375cefc877f94953363110c9bede1318c10163eb8656e7561d81869ca2ba82d1",
-            "contextSha256": "ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08"
+            "anchor": "return `<div id=\"v350IncidentCommandHandoffGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v350-incident-command-handoff=\"${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentCommandHandoff.sourceCause || '')}\" data-event-semantic-continuity-drill-candidate=\"${escapeHtml(incidentCommandHandoff.continuityDrillCandidate || '')}\" data-event-semantic-command-plan-draft=\"${escapeHtml(incidentCommandHandoff.commandPlanDraft || '')}\">",
+            "anchorSha256": "9b2281c442b179487048f663083c65e7be9feee033a5a23e8800d990735c6749",
+            "contextSha256": "5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a"
           }
         },
         "independentReadback": {
@@ -50963,7 +50963,7 @@
             "contextSha256": "bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345"
           },
           "verifierCommand": "verify-v350-incident-to-command-handoff",
-          "assertedSemanticDigest": "300b6029ac9d8bc07bd3d7c23ca1bf180012f9bfd84fc3f9039c89a84b120105"
+          "assertedSemanticDigest": "835b1d5eadaefa9cb7bc81cb6eb627fd99d598941b264f03eeb85dabc5596a7f"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -50975,7 +50975,7 @@
             "text": "`/ops/events` selected detail이 `media-server.ops.v350-incident-command-handoff.v1` 기반 source 원인, continuity drill 후보, command plan 초안을 read-only로 표시하고 source/view/rule write, client notice 발송, media/schema mutation을 만들지 않음",
             "sha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452"
           },
-          "specSha256": "7b1e2489fe025a540b37a7c88243163b1979455364f5f291653b93e1ef9cdb2e",
+          "specSha256": "ce3ef058cb96847a44a8bae1bbb61a3b87e89c5a46146eb331800c7e98b21e23",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -51080,7 +51080,7 @@
               "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
                 "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -51114,7 +51114,7 @@
             "kind": "verify-independent-readback",
             "dispatch": "playwright-native",
             "actionId": "UI-080:verify-independent-readback",
-            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+            "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
             "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
             "readbackIdentity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
             "readbackLocator": {
@@ -51140,7 +51140,7 @@
               "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
                 "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -51153,7 +51153,7 @@
               "readbackIdentity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
               "readbackExpectation": {
                 "readbackIdentity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
                 "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
                 "runtimeEvidenceRequired": true
               },
@@ -51175,7 +51175,7 @@
             "stateLocator": {
               "file": "src/ingress/product_ui_page_scripts.cpp",
               "symbol": "renderV350IncidentCommandHandoff",
-              "contextSha256": "ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08"
+              "contextSha256": "5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a"
             },
             "readbackLocator": {
               "file": "scripts/internal/verify_v350_incident_to_command_handoff.mjs",
@@ -51208,7 +51208,7 @@
               "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
               "readback": {
                 "identity": "independent-readback:scripts/internal/verify_v350_incident_to_command_handoff.mjs#canonical-assertion:incidentCommandHandoff#bc7671c5c2f545069fe3c64d5cc768289660e6bce0f44d36417453da927c7345",
-                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08",
+                "expectedStateIdentity": "product-state:src/ingress/product_ui_page_scripts.cpp#renderV350IncidentCommandHandoff#5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a",
                 "expectedBehaviorSha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452",
                 "allowedObservationSources": [
                   "browser-dom",
@@ -51245,7 +51245,7 @@
             "cleanupId": "UI-080:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "300b6029ac9d8bc07bd3d7c23ca1bf180012f9bfd84fc3f9039c89a84b120105"
+            "semanticCallChainSha256": "835b1d5eadaefa9cb7bc81cb6eb627fd99d598941b264f03eeb85dabc5596a7f"
           }
         ]
       },

@@ -74,16 +74,27 @@ try {
     height: 640,
     navigationCorrelationId: "",
   });
-  const navigationEntry = page.networkEntries().find(entry =>
+  const navigationEntries = page.networkEntries();
+  const navigationEntry = navigationEntries.find(entry =>
     entry.phase === "request-start" &&
     entry.requestKind === "document-navigation" &&
     new URL(entry.url).pathname === "/");
   assert(navigationEntry?.correlationSource === "none" &&
     navigationEntry.correlationId === "",
   "document navigation unexpectedly contains application correlation");
-  assert(navigationEntry?.requestId && navigationEntry.method === "GET" && navigationEntry.status === 200,
+  const navigationResponse = navigationEntries.find(entry =>
+    entry.phase === "response" &&
+    entry.requestKind === "document-navigation" &&
+    entry.requestId === navigationEntry?.requestId);
+  assert(navigationEntry?.requestId && navigationEntry.method === "GET" &&
+    navigationResponse?.status === 200 &&
+    navigationResponse.responseRequestObjectObserved === true,
     "navigation request identity/method/status mismatch");
-  navigationCorrelation = navigationEntry;
+  navigationCorrelation = {
+    ...navigationEntry,
+    status: navigationResponse.status,
+    responseRequestObjectObserved: true,
+  };
 
   await step("wait", "#native-name", () => page.waitForSelector("#native-name"));
   await step("fill", "#native-name", () => page.fill("#native-name", "native-adapter"));

@@ -4455,9 +4455,9 @@
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderSimilarIncidentLookup",
-          "anchor": "<span class=\"similar-incident-score\">${escapeHtml(display(item?.score ?? 0))}</span>",
-          "line": 5685,
-          "contextSha256": "a775073860fe660248eeb78ed1c53d02a878b35b30e5fe4db5e8c44dde5da095"
+        "anchor": "<span class=\"similar-incident-score\" data-event-semantic-field=\"score\">${escapeHtml(display(item?.score ?? 0))}</span>",
+        "line": 5784,
+        "contextSha256": "efa43521e0b80e79357ed3258384d49eff76666dbd32f0b0460ace80dfbab961"
         },
         "readback": {
           "file": "scripts/internal/verify_v250_similar_incident_lookup.mjs",
@@ -4497,14 +4497,14 @@
           "kind": "function-containment",
           "witness": "/ops/events similar incident lookup action emits similar-incident-score state",
           "source": "src/ingress/product_ui_page_scripts.cpp:5651",
-          "target": "src/ingress/product_ui_page_scripts.cpp:5685"
+        "target": "src/ingress/product_ui_page_scripts.cpp:5784"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "similar-incident-score is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:5685",
+        "source": "src/ingress/product_ui_page_scripts.cpp:5784",
           "target": "scripts/internal/verify_v250_similar_incident_lookup.mjs:79"
         },
         {
@@ -6534,9 +6534,9 @@
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320EvidenceQualityLayer",
-          "anchor": "return `<div id=\"v320EvidenceQualityGrid\" class=\"v320-evidence-quality-grid\" data-v320-evidence-quality=\"${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}\">",
-          "line": 4513,
-          "contextSha256": "c3f4bec060568d24106231cb052e85b565f5ba7a42aa991b7961e7d5668cfd6c"
+        "anchor": "return `<div id=\"v320EvidenceQualityGrid\" class=\"v320-evidence-quality-grid\" data-v320-evidence-quality=\"${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}\" data-event-semantic-completeness=\"${escapeHtml(evidenceQuality.evidenceCompleteness || '')}\" data-event-semantic-confidence=\"${escapeHtml(evidenceQuality.evidenceConfidence || '')}\" data-event-semantic-replay-coverage-hint=\"${escapeHtml(evidenceQuality.replayCoverageHint || '')}\">",
+        "line": 4611,
+        "contextSha256": "8ba5bb1e679b109e8719466bad3a534feaaebb04b2b1dad13e61d66f5634c718"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_evidence_quality_layer.mjs",
@@ -6576,14 +6576,14 @@
           "kind": "function-containment",
           "witness": "renderV320EvidenceQualityLayer emits media-server.ops.v320-evidence-quality.v1 schema/control state",
           "source": "src/ingress/product_ui_page_scripts.cpp:4498",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4513"
+        "target": "src/ingress/product_ui_page_scripts.cpp:4611"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "evidenceQuality is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4513",
+        "source": "src/ingress/product_ui_page_scripts.cpp:4611",
           "target": "scripts/internal/verify_v320_evidence_quality_layer.mjs:134"
         },
         {
@@ -6632,9 +6632,9 @@
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320SourceReliabilityContext",
-          "anchor": "return `<div id=\"v320SourceReliabilityGrid\" class=\"v320-source-reliability-grid\" data-v320-source-reliability=\"${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}\">",
-          "line": 4547,
-          "contextSha256": "d1d9b44c72fdfec548538d8904e33c1d00836b9beba4463ed415fba2d8de5cc9"
+        "anchor": "return `<div id=\"v320SourceReliabilityGrid\" class=\"v320-source-reliability-grid\" data-v320-source-reliability=\"${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}\" data-event-semantic-health=\"${escapeHtml(sourceReliability.sourceHealthStatus || '')}\" data-event-semantic-failure-context=\"${escapeHtml(sourceReliability.recentFailureContext || '')}\" data-event-semantic-recheck-hint=\"${escapeHtml(sourceReliability.operatorRecheckHint || '')}\">",
+        "line": 4645,
+        "contextSha256": "50f5de8715ca72293edf4d04ca17ee5f50bd92512959ee1bc2ed039fb5cc93d7"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_source_reliability_context.mjs",
@@ -6674,14 +6674,14 @@
           "kind": "function-containment",
           "witness": "renderV320SourceReliabilityContext emits media-server.ops.v320-source-reliability-context.v1",
           "source": "src/ingress/product_ui_page_scripts.cpp:4540",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4547"
+        "target": "src/ingress/product_ui_page_scripts.cpp:4645"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "sourceReliability is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4547",
+        "source": "src/ingress/product_ui_page_scripts.cpp:4645",
           "target": "scripts/internal/verify_v320_source_reliability_context.mjs:114"
         },
         {
@@ -6730,9 +6730,9 @@
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320AiReviewQualityContext",
-          "anchor": "return `<div id=\"v320AiReviewQualityGrid\" class=\"v320-ai-review-quality-grid\" data-v320-ai-review-quality=\"${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}\">",
-          "line": 4716,
-          "contextSha256": "9ab644e8d9a05d9a1b7debe43fa048c1cf7bee313a65e6bc10d5713e235a6a2c"
+        "anchor": "return `<div id=\"v320AiReviewQualityGrid\" class=\"v320-ai-review-quality-grid\" data-v320-ai-review-quality=\"${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}\" data-event-semantic-correction-signal=\"${escapeHtml(aiReviewQuality.correctionReviewSignal || '')}\" data-event-semantic-review-signal=\"${escapeHtml(aiReviewQuality.reviewStatus || '')}\" data-event-semantic-uncertainty-reason=\"${escapeHtml(aiReviewQuality.uncertaintyReason || '')}\" data-event-semantic-quality-badge=\"${escapeHtml(aiReviewQuality.qualityBadge || '')}\">",
+        "line": 4814,
+        "contextSha256": "d131fac7a01f868bd87ef8db7704587c8093c5723f805df7796c7cd1f8f61f01"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_ai_review_quality_context.mjs",
@@ -6772,14 +6772,14 @@
           "kind": "function-containment",
           "witness": "renderV320AiReviewQualityContext emits media-server.ops.v320-ai-review-quality-context.v1",
           "source": "src/ingress/product_ui_page_scripts.cpp:4708",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4716"
+        "target": "src/ingress/product_ui_page_scripts.cpp:4814"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "media-server.ops.v320-ai-review-quality-context.v1 is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4716",
+        "source": "src/ingress/product_ui_page_scripts.cpp:4814",
           "target": "scripts/internal/verify_v320_ai_review_quality_context.mjs:124"
         },
         {
@@ -6926,9 +6926,9 @@
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV320ActionReadinessChecklist",
-          "anchor": "return `<div id=\"v320ActionReadinessChecklistGrid\" class=\"v320-action-readiness-checklist-grid\" data-v320-action-readiness-checklist=\"${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}\">",
-          "line": 4792,
-          "contextSha256": "bceb9242f718b924ecef27f9a645f1b908aae1cc2a0a4a19c7ee74ce044aedc3"
+        "anchor": "return `<div id=\"v320ActionReadinessChecklistGrid\" class=\"v320-action-readiness-checklist-grid\" data-v320-action-readiness-checklist=\"${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}\" data-event-semantic-rule-draft=\"${escapeHtml(actionReadinessChecklist.ruleDraftStatus || '')}\" data-event-semantic-evidence-bundle=\"${escapeHtml(actionReadinessChecklist.evidenceBundleStatus || '')}\" data-event-semantic-notification=\"${actionReadinessChecklist.notificationReady === true ? 'true' : 'false'}\">",
+        "line": 4890,
+        "contextSha256": "4bc2d3af4c0db7b63eacf5b0e8e373d7a1ba5902ba889aea89f304433c6075ed"
         },
         "readback": {
           "file": "scripts/internal/verify_v320_action_readiness_checklist.mjs",
@@ -6968,14 +6968,14 @@
           "kind": "function-containment",
           "witness": "renderV320ActionReadinessChecklist emits media-server.ops.v320-action-readiness-checklist.v1",
           "source": "src/ingress/product_ui_page_scripts.cpp:4779",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4792"
+        "target": "src/ingress/product_ui_page_scripts.cpp:4890"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "actionReadinessChecklist is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4792",
+        "source": "src/ingress/product_ui_page_scripts.cpp:4890",
           "target": "scripts/internal/verify_v320_action_readiness_checklist.mjs:129"
         },
         {
@@ -7220,9 +7220,9 @@
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV330IncidentSourceCorrelationLayer",
-          "anchor": "return `<div id=\"v330IncidentSourceCorrelationGrid\" class=\"v330-incident-source-correlation-grid\" data-v330-incident-source-correlation=\"${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}\">",
-          "line": 4585,
-          "contextSha256": "0339934320c7821f758d53fa3ac9b4a048de8b6ddd24ae2c2db8e540b819c2e8"
+        "anchor": "return `<div id=\"v330IncidentSourceCorrelationGrid\" class=\"v330-incident-source-correlation-grid\" data-v330-incident-source-correlation=\"${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentSourceCorrelation.sourceCauseCategory || '')}\" data-event-semantic-closure-impact=\"${escapeHtml(incidentSourceCorrelation.resolutionClosureImpact || '')}\">",
+        "line": 4683,
+        "contextSha256": "87998002add1946ae7c24f6fe557c5bf430b33805ee1c4ffd3486247e281ea7f"
         },
         "readback": {
           "file": "scripts/internal/verify_v330_incident_source_correlation_layer.mjs",
@@ -7262,14 +7262,14 @@
           "kind": "function-containment",
           "witness": "renderV330IncidentSourceCorrelationLayer emits media-server.ops.v330-incident-source-correlation.v1",
           "source": "src/ingress/product_ui_page_scripts.cpp:4573",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4585"
+        "target": "src/ingress/product_ui_page_scripts.cpp:4683"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "incidentSourceCorrelation is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4585",
+        "source": "src/ingress/product_ui_page_scripts.cpp:4683",
           "target": "scripts/internal/verify_v330_incident_source_correlation_layer.mjs:155"
         },
         {
@@ -7318,9 +7318,9 @@
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV330OperatorRecheckRecoveryQueue",
-          "anchor": "return `<div id=\"v330OperatorRecheckRecoveryQueueGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v330-operator-recheck-recovery-queue=\"${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}\">",
-          "line": 4630,
-          "contextSha256": "6b93f774d37b39909ef2761eaaa2dfe7ec81f30da62984e86a88c191856e0782"
+        "anchor": "return `<div id=\"v330OperatorRecheckRecoveryQueueGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v330-operator-recheck-recovery-queue=\"${escapeHtml(operatorRecheckRecoveryQueue.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1')}\" data-event-semantic-retry-candidate=\"${escapeHtml(operatorRecheckRecoveryQueue.retryCandidate || '')}\" data-event-semantic-dry-run-status=\"${escapeHtml(operatorRecheckRecoveryQueue.dryRunResultStatus || '')}\" data-event-semantic-operator-note-link=\"${escapeHtml(operatorRecheckRecoveryQueue.operatorNoteRoute || '')}\">",
+        "line": 4728,
+        "contextSha256": "a7455faddec9fdffe1973995e371eaa5a107296a8aa591332e64b5860a689ab4"
         },
         "readback": {
           "file": "scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs",
@@ -7360,14 +7360,14 @@
           "kind": "function-containment",
           "witness": "renderV330OperatorRecheckRecoveryQueue emits media-server.ops.v330-operator-recheck-recovery-queue.v1",
           "source": "src/ingress/product_ui_page_scripts.cpp:4612",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4630"
+        "target": "src/ingress/product_ui_page_scripts.cpp:4728"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "operatorRecheckRecoveryQueue is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4630",
+        "source": "src/ingress/product_ui_page_scripts.cpp:4728",
           "target": "scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs:157"
         },
         {
@@ -8200,9 +8200,9 @@
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderV350IncidentCommandHandoff",
-          "anchor": "return `<div id=\"v350IncidentCommandHandoffGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v350-incident-command-handoff=\"${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}\">",
-          "line": 4682,
-          "contextSha256": "ffc7e055d56f9c751976cc33389a291f57064b182f118bf9e55e205ae9874c08"
+        "anchor": "return `<div id=\"v350IncidentCommandHandoffGrid\" class=\"v330-operator-recheck-recovery-queue-grid\" data-v350-incident-command-handoff=\"${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}\" data-event-semantic-source-cause=\"${escapeHtml(incidentCommandHandoff.sourceCause || '')}\" data-event-semantic-continuity-drill-candidate=\"${escapeHtml(incidentCommandHandoff.continuityDrillCandidate || '')}\" data-event-semantic-command-plan-draft=\"${escapeHtml(incidentCommandHandoff.commandPlanDraft || '')}\">",
+        "line": 4780,
+        "contextSha256": "5c7f81a39ad6050ce60a79620aaf38d29c6580b79aa89abef184ce42cba41d3a"
         },
         "readback": {
           "file": "scripts/internal/verify_v350_incident_to_command_handoff.mjs",
@@ -8242,14 +8242,14 @@
           "kind": "function-containment",
           "witness": "renderV350IncidentCommandHandoff emits exact media-server.ops.v350-incident-command-handoff.v1 state",
           "source": "src/ingress/product_ui_page_scripts.cpp:4667",
-          "target": "src/ingress/product_ui_page_scripts.cpp:4682"
+        "target": "src/ingress/product_ui_page_scripts.cpp:4780"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "incidentCommandHandoff is asserted in the canonical product-source assertion branch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:4682",
+        "source": "src/ingress/product_ui_page_scripts.cpp:4780",
           "target": "scripts/internal/verify_v350_incident_to_command_handoff.mjs:197"
         },
         {

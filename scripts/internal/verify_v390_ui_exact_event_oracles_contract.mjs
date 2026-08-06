@@ -13,6 +13,7 @@ import {
 } from "./v390_ui_exact_client_safe_oracles.mjs";
 import {
   evaluateEventExactResponseAssertion,
+  responseDerivedDomProjectionContractFor,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import {
   eventExactSeedMaterializerRegistry,
@@ -973,6 +974,31 @@ check("EVT-003 dashboard renderer keeps the bounded three-source identity projec
   ), "dashboard root-cause detail is not bound to the bounded degraded source identities");
   assert(!/sourceUrl|credential|password|token/i.test(sourceHealthProjection),
     "dashboard source identity segment includes sensitive source material");
+});
+
+check("fixed remaining renderers expose exact fixture-owned semantic projections", () => {
+  const pageScript = fs.readFileSync("src/ingress/product_ui_page_scripts.cpp", "utf8");
+  for (const token of [
+    "data-event-semantic-event-id", "data-event-semantic-field=\"score\"",
+    "eventSemanticCandidateStatus", "data-event-semantic-lane",
+    "data-event-semantic-readiness-status", "data-event-semantic-no-auto-save",
+    "data-event-semantic-evidence-intake-status", "data-event-semantic-event-window-ms",
+    "data-event-semantic-completeness", "data-event-semantic-failure-context",
+    "data-event-semantic-correction-signal", "data-event-semantic-rule-draft",
+    "data-event-semantic-source-cause", "data-event-semantic-retry-candidate",
+    "data-event-semantic-command-plan-draft",
+  ]) {
+    assert(pageScript.includes(token), `fixed remaining renderer semantic token missing: ${token}`);
+  }
+  for (const caseId of ["EVT-065", "EVT-066", "EVT-067", "EVT-069", "EVT-071", "EVT-072", "EVT-075"]) {
+    const spec = eventExactOracleFor(caseId);
+    const assertion = spec.dom[0].assertions[0];
+    const contract = responseDerivedDomProjectionContractFor({
+      caseId, operator: assertion.operator, target: assertion.target,
+    });
+    assert(contract?.selector.startsWith("[data-v320-resolution-detail={fixtureId}] #"),
+      `${caseId} selected-detail renderer owner selector is stale`);
+  }
 });
 
 check("fixture contains assertions use identity baselines and diagnostic canaries stay bound", () => {

@@ -10,6 +10,7 @@ import {
   evaluateEventExactResponseAssertion,
   eventExactSemanticEvidenceKey,
   eventExactValuesAtPath,
+  responseDerivedDomProjectionContractFor,
   validateIncidentMemorySearchResponseProjection,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import { materializeClientSafeExactOracle } from "./v390_ui_exact_client_safe_oracles.mjs";
@@ -1484,7 +1485,16 @@ async function observeDom(
   eventRuntimeContext = null,
   markerEvaluationTracker = null,
 ) {
-  const selector = expand(String(assertion.selector || ""), bindings);
+  const projectionSelectors = [...new Set((assertion.assertions || [])
+    .map(candidate => responseDerivedDomProjectionContractFor({
+      caseId: item.caseId,
+      operator: String(candidate.operator || ""),
+      target: String(candidate.target || ""),
+    })?.selector)
+    .filter(Boolean))];
+  assert(projectionSelectors.length <= 1,
+    `${item.caseId} DOM projection contracts disagree on the owner selector`);
+  const selector = expand(String(projectionSelectors[0] || assertion.selector || ""), bindings);
   if ((assertion.propertyAssertions || []).some(candidate =>
       candidate.name === "boundingRectWithinViewport")) {
     await browser.evaluate(`(() => {
@@ -1547,6 +1557,8 @@ async function observeDom(
         String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
       semanticNodes: nodes.slice(0, 20).map((node, index) => {
         const row = node.closest('[data-event-review-row]');
+        const semanticOwner = node.closest('[data-event-semantic-event-id]');
+        const resolutionOwner = node.closest('[data-v320-resolution-detail]');
         const fieldEntries = Array.from(node.querySelectorAll('[data-event-semantic-field]')).map(field => ({
           name: String(field.getAttribute('data-event-semantic-field') || ''),
           text: String(field.innerText || field.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000),
@@ -1554,7 +1566,9 @@ async function observeDom(
         const fieldNames = [...new Set(fieldEntries.map(field => field.name).filter(Boolean))];
         return {
           index,
-          eventId: String(row?.getAttribute('data-event-id') || ''),
+          eventId: String(row?.getAttribute('data-event-id') ||
+            semanticOwner?.getAttribute('data-event-semantic-event-id') ||
+            resolutionOwner?.getAttribute('data-v320-resolution-detail') || ''),
           attributes: Object.fromEntries(Array.from(node.attributes || [])
             .filter(attribute => attribute.name.startsWith('data-event-semantic-'))
             .map(attribute => [semanticKey(attribute.name), String(attribute.value || '')])),
@@ -3077,6 +3091,7 @@ function evaluateDomSemanticAssertions(
         observed,
         responseBodies,
         fixtureCandidates,
+        fixtureIdentity: eventRuntimeContext?.templateValues?.fixtureId || bindings.fixtureId || "",
         selectedResponseBaselines,
       });
       const markerEvaluationRequired = caseId === "EVT-004" &&
@@ -4054,10 +4069,16 @@ export function buildResponseDerivedEventDomProjectionEvidence({
   observed = {},
   responseBodies = [],
   fixtureCandidates = [],
+  fixtureIdentity = "",
   selectedResponseBaselines = {},
 } = {}) {
-  if (!/equal(?:s)?-response/.test(String(assertion.operator || "")) ||
-      !responseBaselineSelectionMissing(selectedResponseBaselines)) return null;
+  const contract = responseDerivedDomProjectionContractFor({
+    caseId,
+    operator: String(assertion.operator || ""),
+    target: String(assertion.target || ""),
+  });
+  if (!contract && (!/equal(?:s)?-response/.test(String(assertion.operator || "")) ||
+      !responseBaselineSelectionMissing(selectedResponseBaselines))) return null;
   return evaluateResponseDerivedDomFieldProjection({
     caseId,
     operator: assertion.operator,
@@ -4065,6 +4086,7 @@ export function buildResponseDerivedEventDomProjectionEvidence({
     responseBodies,
     observation: observed,
     fixtureCandidates,
+    fixtureIdentity,
   });
 }
 

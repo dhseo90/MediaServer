@@ -2188,7 +2188,7 @@ function resolvePrimaryControl({ canonicalCase, implementationItem, canonicalSel
     const overrideSource = overrideControlSourceCatalog.get(canonicalSelector);
     const locator = overrideSource
       ? sourceLocatorFromAnchor(caseId, overrideSource)
-      : implementationItem.semanticEvidence?.controlSelector?.locator;
+      : resolveCanonicalControlSourceLocator(implementationItem.semanticEvidence);
     assert(locator?.file && locator?.anchor, `${caseId} canonical primary control source missing`);
     const hidden = exactHiddenControl;
     const disabled = exactDisabledControl;
@@ -2210,6 +2210,19 @@ function resolvePrimaryControl({ canonicalCase, implementationItem, canonicalSel
     accountRole,
     workflowClass,
   });
+}
+
+function resolveCanonicalControlSourceLocator(semanticEvidence) {
+  const locator = compactSourceLocator(semanticEvidence?.controlSelector?.locator);
+  if (sourceLocatorAnchorExists(locator)) return locator;
+  for (const candidate of [semanticEvidence?.review4Proof?.roles?.state,
+    semanticEvidence?.review4Proof?.roles?.action, semanticEvidence?.review4Proof?.roles?.owner]) {
+    const live = compactSourceLocator(candidate);
+    if (live?.file === locator?.file && live.symbol === locator?.symbol && sourceLocatorAnchorExists(live)) {
+      return live;
+    }
+  }
+  return locator;
 }
 
 function buildNotApplicablePrimaryControl({
@@ -3356,11 +3369,33 @@ function localActionType(selector) {
 }
 
 function distinctExpectedStateLocator(proof, readbackLocator) {
-  for (const candidate of [proof.roles?.state, proof.roles?.action, proof.roles?.dispatch, proof.roles?.owner]) {
+  const stateLocator = compactSourceLocator(proof.roles?.state);
+  if (isIndependentSourceLocator(stateLocator, readbackLocator) && sourceLocatorAnchorExists(stateLocator)) {
+    return stateLocator;
+  }
+
+  const ownerLocator = compactSourceLocator(proof.roles?.owner);
+  if (isIndependentSourceLocator(ownerLocator, readbackLocator) &&
+      ownerLocator.file === stateLocator?.file && ownerLocator.symbol === stateLocator?.symbol &&
+      sourceLocatorAnchorExists(ownerLocator)) {
+    return ownerLocator;
+  }
+
+  for (const candidate of [proof.roles?.action, proof.roles?.dispatch]) {
     const locator = compactSourceLocator(candidate);
-    if (locator?.file && locatorIdentity(locator) !== locatorIdentity(readbackLocator)) return locator;
+    if (isIndependentSourceLocator(locator, readbackLocator) && sourceLocatorAnchorExists(locator)) return locator;
   }
   throw new Error("no independent expected product state locator");
+}
+
+function isIndependentSourceLocator(locator, readbackLocator) {
+  return Boolean(locator?.file && locatorIdentity(locator) !== locatorIdentity(readbackLocator));
+}
+
+function sourceLocatorAnchorExists(locator) {
+  if (!locator?.file || !locator.anchor) return false;
+  const sourcePath = path.join(rootDir, locator.file);
+  return fs.existsSync(sourcePath) && fs.readFileSync(sourcePath, "utf8").includes(locator.anchor);
 }
 
 function sourceLocatorFromAnchor(caseId, source) {

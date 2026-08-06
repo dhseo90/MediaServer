@@ -848,6 +848,64 @@ await check("missing legacy DOM baselines use strict response-derived renderer p
     "response-derived fallback replaced an explicitly owned response baseline");
 });
 
+await check("declared fixed remaining owners replace missing baselines without recursive field search", async () => {
+  const fixtureId = "evt-056-review4-fixture";
+  const assertion = {
+    operator: "flags-equal",
+    target: "noAutoSave/noAutoApply/ruleRegistryWritePerformed",
+  };
+  const selectedResponseBaselines = selectEventDomResponseBaselines(assertion, {});
+  const observed = {
+    count: 1,
+    visibleCount: 1,
+    text: "approval gated fixture",
+    attributes: [],
+    values: [],
+    descendantCount: 1,
+    semanticNodes: [{
+      eventId: fixtureId,
+      attributes: {
+        noAutoSave: "true",
+        noAutoApply: "true",
+        ruleRegistryWritePerformed: "false",
+      },
+      fields: {},
+    }],
+  };
+  const projection = buildResponseDerivedEventDomProjectionEvidence({
+    caseId: "EVT-056",
+    assertion,
+    observed,
+    responseBodies: [{
+      contract: { noAutoSave: false, noAutoApply: false },
+      approvalGatedRuleDraftReadiness: { items: [{
+        eventId: fixtureId,
+        stagedDraft: {
+          noAutoSave: true,
+          noAutoApply: true,
+          ruleRegistryWritePerformed: false,
+        },
+      }] },
+    }],
+    fixtureCandidates: [fixtureId],
+    fixtureIdentity: fixtureId,
+    selectedResponseBaselines,
+  });
+  assert(projection?.pass && projection.matchedFieldCount === 3,
+    "declared actual response owner path did not replace the missing baseline");
+  const evidence = buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-056",
+    selector: "#fixture-draft",
+    observed,
+    responseBodies: [],
+    priorResponseByPath: {},
+    responseDerivedDomProjection: projection,
+    actualBrowserExecution: true,
+  });
+  assert(evidence.pass && evidence.responseBaselineMatched.pathCount === 0,
+    "declared fixed remaining projection retained a missing response baseline");
+});
+
 await check("EVT-003 source-health baseline is row-local to the acceptance-owned source", async () => {
   const sourceId = "39065003";
   const baseline = {
