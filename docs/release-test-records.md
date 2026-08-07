@@ -3308,3 +3308,12 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Product correction | EVT-055 readiness producer에 기존 계약의 `not-run` 상태를 추가해 ready/blocked/field-smoke-needed/not-run 네 상태를 결정적으로 생성 | API schema와 기존 세 상태 의미 불변 |
 | Native/build gate | Generator 정확히 1회; `424 = 423+1`, unsupported `0`, event `29/29`, client-safe `16/16`, native `52/52`, build PASS | Ordered ID 및 route/role/viewport/theme 불변 |
 | Actual/release 상태 | 동일 125건 batch 재실행 전이며 official canonical은 `300 attempted / 299 PASS / 1 FAIL / 124 not-run` | UI/Policy v4/30분/120분/release 미실행; static PASS를 actual 진척으로 사용하지 않음 |
+
+## v3.9.0 REVIEW4-65 UI-008 Playwright selector ownership checkpoint
+
+| 항목 | 결과 | 실행 경계 |
+| --- | --- | --- |
+| Historical actual | Source `6c6e2e71...`의 `./test_ui.sh`는 UI-008 `#access-requests-body tr:has-text("ui-008-review4-fixture")`를 native `document.querySelector()`에 전달해 SyntaxError로 중단 | UI-008 selector 자체와 Playwright locator identity는 변경하지 않음 |
+| Common adapter correction | `revealClosedDetailsForSelector()`가 `page.locator(selector).first()`에서 target을 attach한 뒤 locator-bound `evaluate()`로 closest details만 열고 같은 locator에서 requested state를 기다림 | Missing/wrong text는 기존 timeout, multiple은 명시적 first-locator 정책으로 fail-closed evidence 보존 |
+| Static checkpoint | Adapter RED→GREEN `33/33`; native exact/runtime/completion/diagnostic, canonical 424 selector dialect audit, semantic/feature/inventory/build PASS | Generator/producer 각 0회 |
+| Actual/release 상태 | 이 기록 시점 `./test_ui.sh`와 Policy v4 미실행 | 30분, 120분, release도 미실행이며 static PASS를 acceptance PASS로 사용하지 않음 |

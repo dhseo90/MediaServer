@@ -21,6 +21,7 @@ import {
   formatSafeResponseReadFailure,
   nativeCapabilities,
   isResolvedPlaywrightTimeoutError,
+  revealClosedDetailsForSelector,
   resolveRequestCorrelationPrecedence,
   resolvePlaywrightModule,
   secretStrippedBrowserEnv,
@@ -91,6 +92,181 @@ check("Playwright timeout attestation uses class identity instead of mutable err
     "mutable Error.name impersonated Playwright TimeoutError");
 });
 
+check("selector owner reveal keeps plain CSS in the Playwright locator engine", async () => {
+  const selector = "#plain-target";
+  const harness = selectorOwnerHarness({ selector });
+  const evidence = await revealClosedDetailsForSelector(harness.page, selector, {
+    state: "visible",
+    timeout: 41,
+  });
+  assertSelectorOwnerEvidence(evidence, { candidateCount: 1, requestedState: "visible" });
+  assert(harness.nativeSelectorCalls.length === 0,
+    "plain CSS selector escaped into a native DOM selector API");
+  assert(JSON.stringify(harness.waits) === JSON.stringify([
+    { state: "attached", timeout: 41 },
+    { state: "visible", timeout: 41 },
+  ]), "plain CSS selector did not preserve attached-before-visible ordering");
+});
+
+check("UI-008 Playwright has-text selector never reaches native querySelector", async () => {
+  const selector = '#access-requests-body tr:has-text("ui-008-review4-fixture")';
+  const harness = selectorOwnerHarness({ selector });
+  const evidence = await revealClosedDetailsForSelector(harness.page, selector, {
+    state: "visible",
+    timeout: 43,
+  });
+  assertSelectorOwnerEvidence(evidence, { candidateCount: 1, requestedState: "visible" });
+  assert(harness.nativeSelectorCalls.length === 0,
+    "UI-008 Playwright selector escaped into native querySelector");
+  assert(harness.locatorSelectors.every(value => value === selector),
+    "UI-008 selector identity changed before Playwright resolution");
+});
+
+check("selector owner reveal opens only the selected target closed details owner", async () => {
+  const selector = "#closed-details-target";
+  const disclosure = selectorHarnessDetails(false);
+  const harness = selectorOwnerHarness({
+    selector,
+    targets: [selectorHarnessTarget({ disclosure })],
+  });
+  const evidence = await revealClosedDetailsForSelector(harness.page, selector, {
+    state: "visible",
+    timeout: 47,
+  });
+  assert(disclosure.open === true, "closed details owner was not opened");
+  assert(evidence.disclosureFound === true && evidence.disclosureOpened === true,
+    "closed details mutation evidence is incomplete");
+
+  const summaryDetails = selectorHarnessDetails(false);
+  const summary = selectorHarnessTarget({ disclosure: summaryDetails, tagName: "SUMMARY" });
+  summary.parentElement = summaryDetails;
+  const summaryHarness = selectorOwnerHarness({ selector: "details > summary", targets: [summary] });
+  const summaryEvidence = await revealClosedDetailsForSelector(
+    summaryHarness.page,
+    "details > summary",
+    { state: "visible", timeout: 47 },
+  );
+  assert(summaryDetails.open === false && summaryEvidence.disclosureOpened === false,
+    "details summary selection changed the existing summary-owner contract");
+});
+
+check("selector owner reveal waits for dynamic attachment before owner evaluation", async () => {
+  const selector = "#dynamic-target";
+  const harness = selectorOwnerHarness({ selector, initiallyAttached: false, attachOnWait: true });
+  const evidence = await revealClosedDetailsForSelector(harness.page, selector, {
+    state: "attached",
+    timeout: 53,
+  });
+  assertSelectorOwnerEvidence(evidence, { candidateCount: 1, requestedState: "attached" });
+  assert(harness.evaluateAfterAttached === true,
+    "dynamic selector owner was evaluated before attachment");
+  assert(JSON.stringify(harness.waits) === JSON.stringify([
+    { state: "attached", timeout: 53 },
+    { state: "attached", timeout: 53 },
+  ]), "dynamic attached state did not retain the two-phase locator lifecycle");
+});
+
+check("selector owner reveal fails closed for zero candidates and preserves first of many", async () => {
+  const missing = selectorOwnerHarness({ selector: "#missing", targets: [] });
+  let missingFailed = false;
+  try {
+    await revealClosedDetailsForSelector(missing.page, "#missing", {
+      state: "visible",
+      timeout: 59,
+    });
+  } catch (error) {
+    missingFailed = true;
+    assert(String(error.message).includes("locator wait timeout"),
+      "missing selector did not preserve locator timeout failure");
+  }
+  assert(missingFailed, "missing selector was accepted");
+
+  const firstDetails = selectorHarnessDetails(false);
+  const secondDetails = selectorHarnessDetails(false);
+  const multiple = selectorOwnerHarness({
+    selector: ".candidate",
+    targets: [
+      selectorHarnessTarget({ disclosure: firstDetails }),
+      selectorHarnessTarget({ disclosure: secondDetails }),
+    ],
+  });
+  const evidence = await revealClosedDetailsForSelector(multiple.page, ".candidate", {
+    state: "visible",
+    timeout: 61,
+  });
+  assertSelectorOwnerEvidence(evidence, { candidateCount: 2, requestedState: "visible" });
+  assert(firstDetails.open === true && secondDetails.open === false,
+    "multiple selector candidates did not preserve first-locator ownership");
+});
+
+check("selector owner reveal preserves exact text selector identity and rejects wrong text", async () => {
+  const exact = '#access-requests-body tr:has-text("ui-008-review4-fixture")';
+  const wrong = '#access-requests-body tr:has-text("wrong-fixture")';
+  const harness = selectorOwnerHarness({ selector: exact });
+  let failed = false;
+  try {
+    await revealClosedDetailsForSelector(harness.page, wrong, {
+      state: "visible",
+      timeout: 67,
+    });
+  } catch (error) {
+    failed = true;
+    assert(String(error.message).includes("locator wait timeout"),
+      "wrong text selector did not retain locator failure");
+  }
+  assert(failed, "wrong text selector was accepted");
+  assert(harness.locatorSelectors.includes(wrong),
+    "wrong text selector was rewritten before Playwright resolution");
+});
+
+check("canonical selector dialect audit leaves no Playwright selector path in native DOM APIs", () => {
+  const canonicalManifest = JSON.parse(readText("test/fixtures/ui_fulltest_case_manifest_policy_v4.json"));
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  assert(canonicalManifest.cases?.length === 424 && nativeManifest.cases?.length === 424,
+    "selector audit did not cover the canonical/native exact 424 manifests");
+  assert(nativeManifest.cases.filter(item => item.disposition === "unsupported").length === 0,
+    "selector audit encountered an unsupported native case");
+  const manifestSelectors = [
+    ...collectSelectorContractValues(canonicalManifest),
+    ...collectSelectorContractValues(nativeManifest),
+  ];
+  assert(manifestSelectors.length > 0, "selector audit found no manifest selector contracts");
+  const manifestDialect = manifestSelectors.filter(item => playwrightSelectorDialect(item.value));
+  assert(manifestDialect.length === 0,
+    `canonical CSS-only selector contract contains Playwright dialect: ${manifestDialect.map(item => item.path).join(",")}`);
+
+  assert(caseRuntimeSource.includes(
+    'await browser.waitForSelector(`${sectionSelector} tr:has-text(${JSON.stringify(identity)})`);'),
+  "UI-008 runtime Playwright selector construction is missing");
+  assert(!caseRuntimeSource.includes(
+    'document.querySelector(`${sectionSelector} tr:has-text(${JSON.stringify(identity)})`)'),
+  "UI-008 runtime Playwright selector reaches native querySelector");
+
+  for (const forbidden of [
+    "document.querySelector(browserSelector)",
+    "document.querySelector(${JSON.stringify(selector)})",
+    "const element = selector ? document.querySelector(selector) : null;",
+  ]) {
+    assert(!adapterSource.includes(forbidden),
+      `Locator-bound adapter selector still reaches a native DOM API: ${forbidden}`);
+  }
+  const measureVisualSource = adapterSource.slice(
+    adapterSource.indexOf("measureVisualState: async"),
+    adapterSource.indexOf("waitForLiveVideoReady: async"),
+  );
+  assert(!measureVisualSource.includes("document.querySelector(targetSelector)"),
+    "visual target selector is not Locator-bound");
+
+  const dynamicCalls = collectDynamicNativeSelectorCalls();
+  const unclassified = dynamicCalls.filter(item => !cssOnlyNativeSelectorOwners().has(
+    `${item.file}::${item.identifier}`));
+  assert(unclassified.length === 0,
+    `dynamic native selector owner is unclassified: ${unclassified.map(item => `${item.file}:${item.identifier}`).join(",")}`);
+  const dialectNativeCalls = collectNativeSelectorDialectCalls();
+  assert(dialectNativeCalls.length === 0,
+    `Playwright selector dialect reaches a native DOM API: ${dialectNativeCalls.join(",")}`);
+});
+
 check("adapter exposes native wait click fill type select screenshot", () => {
   for (const capability of ["wait", "click", "fill", "type", "select", "screenshot", "evaluate", "request-correlation", "request-start-ledger", "request-action-ownership", "network-quiet", "role-session-switch"]) {
     assert(nativeCapabilities.includes(capability), `missing capability ${capability}`);
@@ -98,7 +274,7 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   for (const snippet of ["waitForSelector", "page.locator(selector).click", "page.locator(selector).fill", "pressSequentially", "selectOption", "page.screenshot"]) {
     assert(adapterSource.includes(snippet), `adapter source missing ${snippet}`);
   }
-  assert(adapterSource.includes("readOnly: Boolean(element && 'readOnly' in element && element.readOnly)"),
+  assert(adapterSource.includes('readOnly: Boolean("readOnly" in element && element.readOnly)'),
     "adapter snapshot does not expose product readonly state");
   for (const snippet of ["x-media-server-correlation-id", "requestId", "correlationSource", "setCorrelationId"]) {
     assert(adapterSource.includes(snippet), `adapter correlation source missing ${snippet}`);
@@ -120,16 +296,17 @@ check("adapter exposes native wait click fill type select screenshot", () => {
     "revealClosedDetailsForSelector",
     'disclosure.open = true',
     "isDisclosureSummary",
-    "style.display !== 'none' && style.visibility !== 'hidden'",
   ]) {
     assert(adapterSource.includes(snippet), `adapter lifecycle readiness source missing ${snippet}`);
   }
+  assert(/style\.display !== ["']none["'] && style\.visibility !== ["']hidden["']/.test(adapterSource),
+    "adapter lifecycle readiness no longer observes display and visibility");
   const snapshotReadinessSource = adapterSource.slice(
     adapterSource.indexOf("snapshot: async (selector)"),
     adapterSource.indexOf("measureVisualState: async"),
   );
   const observedReadinessSource = adapterSource.slice(
-    adapterSource.indexOf("const element = selector ? document.querySelector(selector) : null;"),
+    adapterSource.indexOf("observeRequestedObservedState: async"),
     adapterSource.indexOf("screenshot: async outputFile"),
   );
   assert(!snapshotReadinessSource.includes("Number(style.opacity || 1) > 0") &&
@@ -536,10 +713,10 @@ check("whoami observation keeps setup-required and unauthorized sessions anonymo
   const unauthenticatedBranches = adapterSource.match(/principal\?\.authenticated === false/g) || [];
   assert(unauthenticatedBranches.length === 2,
     `setup-required anonymous handling must cover requested/observed and visual capture: ${unauthenticatedBranches.length}`);
-  assert(adapterSource.includes("if (response.status === 401) {\n          accountRole = 'anonymous';") &&
-    adapterSource.includes("if (principal?.authenticated === false) {\n            accountRole = 'anonymous';"),
+  assert(/if \(response\.status === 401\) \{\s+accountRole = ["']anonymous["'];/.test(adapterSource) &&
+    /if \(principal\?\.authenticated === false\) \{\s+accountRole = ["']anonymous["'];/.test(adapterSource),
   "whoami observation does not distinguish 401 and setup-required unauthenticated principals");
-  assert(adapterSource.includes("principal?.authenticated === true && typeof principal?.role === 'string'"),
+  assert(/principal\?\.authenticated === true && typeof principal\?\.role === ["']string["']/.test(adapterSource),
     "authenticated whoami observation no longer requires an exact role");
 });
 
@@ -1038,6 +1215,189 @@ function readText(relativePath) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function assertSelectorOwnerEvidence(evidence, {
+  candidateCount,
+  requestedState,
+} = {}) {
+  assert(evidence?.schema === "media-server.v390-ui-selector-owner-reveal.v1",
+    "selector owner reveal schema mismatch");
+  assert(evidence.selectorEngine === "playwright-locator" &&
+    evidence.candidatePolicy === "first" &&
+    evidence.selectedCandidateIndex === 0,
+  "selector owner reveal did not preserve Playwright first-locator ownership");
+  assert(evidence.candidateCount === candidateCount,
+    `selector owner candidate count mismatch: ${evidence.candidateCount}`);
+  assert(evidence.requestedState === requestedState,
+    `selector owner requested state mismatch: ${evidence.requestedState}`);
+  assert(/^[0-9a-f]{64}$/.test(evidence.selectorSha256 || ""),
+    "selector owner safe identity digest missing");
+}
+
+function selectorHarnessDetails(open = false) {
+  return { tagName: "DETAILS", open };
+}
+
+function selectorHarnessTarget({
+  disclosure = null,
+  tagName = "DIV",
+  visible = true,
+} = {}) {
+  return {
+    tagName,
+    visible,
+    parentElement: null,
+    closest(value) {
+      return value === "details" ? disclosure : null;
+    },
+  };
+}
+
+function selectorOwnerHarness({
+  selector,
+  targets = [selectorHarnessTarget()],
+  initiallyAttached = true,
+  attachOnWait = false,
+} = {}) {
+  let attached = initiallyAttached && targets.length > 0;
+  const waits = [];
+  const locatorSelectors = [];
+  const nativeSelectorCalls = [];
+  let evaluateAfterAttached = false;
+  const locatorFor = requestedSelector => {
+    locatorSelectors.push(requestedSelector);
+    const matches = requestedSelector === selector ? targets : [];
+    const first = {
+      waitFor: async ({ state, timeout } = {}) => {
+        waits.push({ state, timeout });
+        if (state === "attached" && attachOnWait && matches.length > 0) attached = true;
+        if (!attached || matches.length === 0) throw new Error(`locator wait timeout: ${requestedSelector}`);
+        if (state === "visible" && matches[0]?.visible !== true) {
+          throw new Error(`locator wait timeout: ${requestedSelector}`);
+        }
+      },
+      evaluate: async (callback, argument) => {
+        evaluateAfterAttached = attached;
+        if (!attached || matches.length === 0) throw new Error(`locator evaluate missing: ${requestedSelector}`);
+        return callback(matches[0], argument);
+      },
+    };
+    return {
+      count: async () => attached ? matches.length : 0,
+      first: () => first,
+    };
+  };
+  return {
+    page: {
+      locator: locatorFor,
+      evaluate: async (_callback, requestedSelector) => {
+        nativeSelectorCalls.push(requestedSelector);
+        if (/:(?:has-text|text|text-is|visible)\b|(?:^|\s)nth=|>>/.test(String(requestedSelector || ""))) {
+          throw new SyntaxError(`native querySelector rejected: ${requestedSelector}`);
+        }
+        return null;
+      },
+    },
+    waits,
+    locatorSelectors,
+    nativeSelectorCalls,
+    get evaluateAfterAttached() {
+      return evaluateAfterAttached;
+    },
+  };
+}
+
+function cssOnlyNativeSelectorOwners() {
+  return new Set([
+    "capture_docs_ui_assets.mjs::selector",
+    "ui_visual_smoke_lib.mjs::item",
+    "ui_visual_smoke_lib.mjs::selector",
+    "v390_ui_case_runtime.mjs::selector",
+    "v390_ui_exact_oracle_runtime.mjs::descendantSelector",
+    "v390_ui_exact_oracle_runtime.mjs::exactSelector",
+    "v390_ui_exact_oracle_runtime.mjs::memorySelector",
+    "v390_ui_exact_oracle_runtime.mjs::selector",
+    "v390_ui_exact_oracle_runtime.mjs::tileSelector",
+    "v390_ui_native_adapter.mjs::controlSelector",
+    "v390_ui_native_adapter.mjs::liveSpec.modeControlsSelector",
+    "v390_ui_native_adapter.mjs::liveSpec.modeSelector",
+    "v390_ui_native_adapter.mjs::liveSpec.placeholderSelector",
+    "v390_ui_native_adapter.mjs::liveSpec.stageSelector",
+    "v390_ui_native_adapter.mjs::liveSpec.tileSelector",
+    "v390_ui_native_adapter.mjs::liveSpec.videoSelector",
+    "v390_ui_native_adapter.mjs::modeSelectorValue",
+    "v390_ui_native_adapter.mjs::targetSelector",
+    "v390_ui_native_adapter.mjs::videoSelectorValue",
+    "verify_auth_scope_picker.mjs::selector",
+    "verify_ops_client_ui_smoke.mjs::selector",
+    "verify_ops_event_records_scope.mjs::selector",
+    "verify_ops_tables_layout.mjs::auditSelector",
+    "verify_ops_tables_layout.mjs::fallbackOpenSelector",
+    "verify_ops_tables_layout.mjs::openSelector",
+    "verify_ops_tables_layout.mjs::selector",
+    "verify_ops_ui_click_e2e.mjs::selector",
+    "verify_v390_ui_automation.mjs::interaction.selector",
+    "verify_v390_ui_automation.mjs::selector",
+    "verify_v390_ui_automation.mjs::targetSelector",
+  ]);
+}
+
+function playwrightSelectorDialect(value) {
+  return /:has-text\(|:text\(|:text-is\(|:visible(?:\b|\()|(?:^|\s)nth=|>>/.test(String(value || ""));
+}
+
+function collectSelectorContractValues(value, currentPath = "$") {
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) => collectSelectorContractValues(item, `${currentPath}[${index}]`));
+  }
+  if (!value || typeof value !== "object") return [];
+  const result = [];
+  for (const [key, item] of Object.entries(value)) {
+    const itemPath = `${currentPath}.${key}`;
+    const selectorOwned = /selector/i.test(key) && !/(?:source|engine|policy|sha256)$/i.test(key);
+    if (selectorOwned && typeof item === "string" && item) {
+      result.push({ path: itemPath, value: item });
+    } else if (selectorOwned && Array.isArray(item)) {
+      for (let index = 0; index < item.length; index += 1) {
+        if (typeof item[index] === "string" && item[index]) {
+          result.push({ path: `${itemPath}[${index}]`, value: item[index] });
+        }
+      }
+    }
+    result.push(...collectSelectorContractValues(item, itemPath));
+  }
+  return result;
+}
+
+function selectorAuditSources() {
+  const internalDir = path.join(rootDir, "scripts/internal");
+  return fs.readdirSync(internalDir)
+    .filter(name => name.endsWith(".mjs") && !name.endsWith("_contract.mjs"))
+    .sort()
+    .map(file => ({ file, source: fs.readFileSync(path.join(internalDir, file), "utf8") }));
+}
+
+function collectDynamicNativeSelectorCalls() {
+  const pattern = /\b(?:document|[A-Za-z_$][\w$]*)\.querySelector(?:All)?\(\s*([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)?)\s*\)/g;
+  const result = [];
+  for (const { file, source } of selectorAuditSources()) {
+    for (const match of source.matchAll(pattern)) {
+      result.push({ file, identifier: match[1] });
+    }
+  }
+  return result;
+}
+
+function collectNativeSelectorDialectCalls() {
+  const result = [];
+  const pattern = /\.querySelector(?:All)?\(([^\n;]{0,300})\)/g;
+  for (const { file, source } of selectorAuditSources()) {
+    for (const match of source.matchAll(pattern)) {
+      if (playwrightSelectorDialect(match[1])) result.push(`${file}:${match.index}`);
+    }
+  }
+  return result;
 }
 
 function fullAuthDisableResponse() {

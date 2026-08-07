@@ -1484,3 +1484,12 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Cluster binding | EVT request/fixture·response-derived DOM 26건, Client/Media/Safe route/control/readback 16건 | 공통 typed cardinality·identity·lifecycle에서 fail-closed; 단건 actual 없음 |
 | Source/native checkpoint | EVT-055 four-state producer 보정, generator 정확히 1회, native `424 = 423 positive + 1 negative`, unsupported `0` | Event `29/29`, client-safe `16/16`, native `52/52`, build PASS; semantic closure 후 최종 gate 필요 |
 | Release boundary | Official canonical `300 attempted / 299 PASS / 1 FAIL / 124 not-run` | 동일 125건 batch, `./test_ui.sh`, Policy v4, 30분, 120분, release는 미실행이며 완료 evidence가 아님 |
+
+## v3.9.0 REVIEW4-65 UI-008 Playwright selector ownership checkpoint
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| Historical actual | Source `6c6e2e71...` first-failure와 UI-008 trace | Playwright `:has-text()`가 adapter의 native `document.querySelector()`에 도달한 SyntaxError를 보존 |
+| Common ownership contract | `v390_ui_native_adapter.mjs::revealClosedDetailsForSelector`, native adapter contract와 canonical selector dialect audit | Runtime/manifest selector는 `page.locator(selector).first()`가 소유하고 attach 뒤 locator-bound `evaluate()`에서만 closest details를 엽니다. Selector/text identity와 missing timeout은 불변 |
+| Static checkpoint | Adapter `33/33`, native/runtime/completion/diagnostic, canonical 424, semantic/feature/inventory/build PASS | Native DOM API로 Playwright dialect가 도달하는 경로 0; source/native/semantic drift 0, generator/producer 각 0회 |
+| Release boundary | 이 정적 checkpoint의 `./test_ui.sh`, Policy v4, 30분, 120분, release 미실행 | Actual UI PASS evidence가 아님 |

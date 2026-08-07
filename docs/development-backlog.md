@@ -7322,3 +7322,20 @@ route/role/viewport/theme 불변입니다. Build, event oracle `29/29`, client-s
 native exact `52/52`가 PASS했습니다. 동일 125건 batch 재실행과 canonical
 `./test_ui.sh`, Policy v4, 30분, 120분, release는 아직 미실행이며 실제 진척으로
 승격하지 않습니다.
+
+### REVIEW4-65 Playwright selector ownership checkpoint (2026-08-07)
+
+`scripts/internal/v390_ui_native_adapter.mjs`의 `revealClosedDetailsForSelector()`는
+manifest/runtime selector를 native `document.querySelector()`에 전달하지 않고
+`page.locator(selector).first()`가 선택한 target에 locator-bound `evaluate()`를 적용합니다.
+따라서 plain CSS와 Playwright `:has-text()` selector 모두 동일 문자열·first-locator
+정책을 유지하고, target attach 뒤 가장 가까운 closed `details`만 연 다음 같은 locator의
+requested state를 기다립니다. Missing target과 wrong text는 기존 timeout으로 fail-closed합니다.
+
+`scripts/internal/verify_v390_ui_native_adapter_contract.mjs`는 UI-008 actual selector,
+plain CSS, closed details, dynamic attachment, zero/multiple candidate와 scripts/internal의
+dynamic native selector 전달 경로를 전수 검증합니다. Focused adapter `33/33`, native
+exact/runtime/completion/diagnostic, canonical manifest `424/424`, semantic/feature/inventory와
+build gate가 PASS했으며 source-built/stored manifest 및 semantic drift가 없어 generator와
+producer는 각 `0회`입니다. 이 checkpoint 시점 `./test_ui.sh`, Policy v4, 30분, 120분,
+release는 미실행이며 실제 acceptance PASS evidence로 사용하지 않습니다.

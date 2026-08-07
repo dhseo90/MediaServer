@@ -150,14 +150,43 @@ function correlationDigest(value) {
     : "";
 }
 
-async function revealClosedDetailsForSelector(page, selector) {
-  await page.evaluate(targetSelector => {
-    const target = document.querySelector(targetSelector);
+export async function revealClosedDetailsForSelector(page, selector, {
+  state = "attached",
+  timeout,
+} = {}) {
+  const selectorValue = String(selector || "");
+  const candidates = page.locator(selectorValue);
+  const targetLocator = candidates.first();
+  const waitOptions = requestedState => ({
+    state: requestedState,
+    ...(Number.isFinite(timeout) ? { timeout } : {}),
+  });
+  await targetLocator.waitFor(waitOptions("attached"));
+  const candidateCount = await candidates.count();
+  const disclosureEvidence = await targetLocator.evaluate(target => {
     const disclosure = target?.closest?.("details");
     const isDisclosureSummary = target?.tagName?.toLowerCase?.() === "summary" &&
       target.parentElement === disclosure;
-    if (disclosure && !disclosure.open && !isDisclosureSummary) disclosure.open = true;
-  }, String(selector || ""));
+    const disclosureInitiallyOpen = Boolean(disclosure?.open);
+    if (disclosure && !disclosureInitiallyOpen && !isDisclosureSummary) disclosure.open = true;
+    return {
+      disclosureFound: Boolean(disclosure),
+      disclosureInitiallyOpen,
+      disclosureOpened: Boolean(disclosure && !disclosureInitiallyOpen && disclosure.open),
+      isDisclosureSummary,
+    };
+  });
+  await targetLocator.waitFor(waitOptions(state));
+  return {
+    schema: "media-server.v390-ui-selector-owner-reveal.v1",
+    selectorEngine: "playwright-locator",
+    selectorSha256: createHash("sha256").update(selectorValue).digest("hex"),
+    candidatePolicy: "first",
+    candidateCount,
+    selectedCandidateIndex: 0,
+    requestedState: state,
+    ...disclosureEvidence,
+  };
 }
 
 function correlationPrecedenceFailure(failureCode, message, {
@@ -1084,8 +1113,7 @@ async function openNativePlaywrightPage(playwright, {
     },
     finalizeNavigationLedger,
     waitForSelector: async (selector, options = {}) => {
-      await revealClosedDetailsForSelector(page, selector);
-      await page.locator(selector).waitFor({
+      return revealClosedDetailsForSelector(page, selector, {
         state: options.state || "visible",
         timeout: options.timeout || timeoutMs,
       });
@@ -1142,14 +1170,19 @@ async function openNativePlaywrightPage(playwright, {
       const previousCorrelationInjectionEnabled = activeCorrelationInjectionEnabled;
       const networkStart = networkEntries.length;
       const actionStartedAtMs = Date.now();
-      if (renderSelector) {
-        await page.evaluate(({ ownedActionId: browserActionId, ownedRenderCycleId: browserCycleId, renderSelector: browserSelector }) => {
+      const renderOwnerLocator = renderSelector
+        ? page.locator(String(renderSelector)).first()
+        : null;
+      if (renderOwnerLocator) {
+        await renderOwnerLocator.waitFor({ state: "attached", timeout: timeoutMs });
+        await renderOwnerLocator.evaluate((owner, {
+          ownedActionId: browserActionId,
+          ownedRenderCycleId: browserCycleId,
+        }) => {
           const previous = globalThis.__mediaServerDiagnosticOwnedRenderCycle;
           if (previous?.observer && typeof previous.observer.disconnect === "function") {
             previous.observer.disconnect();
           }
-          const owner = document.querySelector(browserSelector);
-          if (!owner) throw new Error(`owned render selector missing: ${browserSelector}`);
           const tracker = {
             actionId: browserActionId,
             renderCycleId: browserCycleId,
@@ -1179,7 +1212,6 @@ async function openNativePlaywrightPage(playwright, {
         }, {
           ownedActionId,
           ownedRenderCycleId,
-          renderSelector,
         });
       }
       activeRequestOwnership = {
@@ -1190,7 +1222,7 @@ async function openNativePlaywrightPage(playwright, {
       activeCorrelationId = ownedCorrelationId;
       activeCorrelationInjectionEnabled = true;
       try {
-        await page.locator(String(selector || "")).click();
+        await page.locator(String(selector || "")).first().click();
         const quietDeadline = Date.now() + timeoutMs;
         let lastEntryCount = networkEntries.length;
         let quietStartedAt = Date.now();
@@ -1218,11 +1250,19 @@ async function openNativePlaywrightPage(playwright, {
         if (safeResponseReadFailures.length > 0) {
           throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
         }
-        if (renderSelector) {
-          await page.waitForFunction(({ browserSelector, browserExpectedPhase }) =>
-            document.querySelector(browserSelector)?.getAttribute("data-incident-render-phase") === browserExpectedPhase,
-          { browserSelector: renderSelector, browserExpectedPhase: expectedRenderPhase },
-          { timeout: timeoutMs });
+        if (renderOwnerLocator) {
+          const phaseDeadline = Date.now() + timeoutMs;
+          let expectedPhaseObserved = false;
+          while (Date.now() < phaseDeadline) {
+            if (await renderOwnerLocator.getAttribute("data-incident-render-phase") === expectedRenderPhase) {
+              expectedPhaseObserved = true;
+              break;
+            }
+            await page.waitForTimeout(25);
+          }
+          if (!expectedPhaseObserved) {
+            throw new Error(`owned render phase timeout: ${expectedRenderPhase}`);
+          }
         }
         const scopedEntries = networkEntries.slice(networkStart);
         const requests = scopedEntries.filter(entry =>
@@ -1245,11 +1285,11 @@ async function openNativePlaywrightPage(playwright, {
           response.requestId === request.requestId &&
           response.caseRequestIdentity === request.caseRequestIdentity &&
           response.caseRequestSequence === request.caseRequestSequence);
-        const renderObservation = renderSelector
-          ? await page.evaluate(({ browserExpectedPhase, browserSelector }) => {
+        const renderObservation = renderOwnerLocator
+          ? await renderOwnerLocator.evaluate((owner, browserExpectedPhase) => {
               const tracker = globalThis.__mediaServerDiagnosticOwnedRenderCycle || {};
               tracker.observer?.disconnect?.();
-              tracker.finalPhase = String(document.querySelector(browserSelector)?.getAttribute("data-incident-render-phase") || "");
+              tracker.finalPhase = String(owner.getAttribute("data-incident-render-phase") || "");
               tracker.completedAtMs = Date.now();
               const safe = {
                 actionId: String(tracker.actionId || ""),
@@ -1264,10 +1304,7 @@ async function openNativePlaywrightPage(playwright, {
               };
               globalThis.__mediaServerDiagnosticOwnedRenderCycle = safe;
               return safe;
-            }, {
-              browserExpectedPhase: expectedRenderPhase,
-              browserSelector: renderSelector,
-            })
+            }, expectedRenderPhase)
           : null;
         const result = {
           schema: "media-server.v390-ui-owned-request-render-cycle.v1",
@@ -1524,8 +1561,11 @@ async function openNativePlaywrightPage(playwright, {
       throw new Error(`network quiet timeout for correlation ${correlationId || "(any)"}`);
     },
     click: async (selector) => {
-      await revealClosedDetailsForSelector(page, selector);
-      await page.locator(selector).click();
+      await revealClosedDetailsForSelector(page, selector, {
+        state: "visible",
+        timeout: timeoutMs,
+      });
+      await page.locator(selector).first().click();
     },
     submitDocumentForm: async (selector, {
       invocationId = "",
@@ -1724,41 +1764,74 @@ async function openNativePlaywrightPage(playwright, {
         ...result,
       };
     },
-    snapshot: async (selector) => sanitizeEvidenceValue(await page.evaluate(`(() => {
-      const element = document.querySelector(${JSON.stringify(selector)});
-      const rect = element ? element.getBoundingClientRect() : null;
-      const style = element ? getComputedStyle(element) : null;
-      return {
-        selector: ${JSON.stringify(selector)},
-        exists: Boolean(element),
-        visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== 'none' && style.visibility !== 'hidden'),
-        tag: String(element?.tagName || '').toLowerCase(),
-        hidden: Boolean(element?.hidden),
-        disabled: Boolean(element && 'disabled' in element && element.disabled),
-        readOnly: Boolean(element && 'readOnly' in element && element.readOnly),
-        open: Boolean(element && 'open' in element && element.open),
-        href: String(element?.getAttribute?.('href') || ''),
-        title: String(element?.getAttribute?.('title') || ''),
-        ariaLabel: String(element?.getAttribute?.('aria-label') || ''),
-        ariaPressed: String(element?.getAttribute?.('aria-pressed') || ''),
-        text: String(element?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 4000),
-        value: element && 'value' in element ? String(element.value || '') : '',
-        checked: Boolean(element && 'checked' in element && element.checked),
-        selectedValues: element?.tagName === 'SELECT' ? Array.from(element.selectedOptions).map(option => String(option.value)) : [],
-        optionValues: element?.tagName === 'SELECT' ? Array.from(element.options).filter(option => !option.disabled).map(option => String(option.value)) : [],
-        url: location.href,
-      };
-    })()`), observedRuntimeSecrets),
+    snapshot: async (selector) => {
+      const selectorValue = String(selector || "");
+      const locator = page.locator(selectorValue).first();
+      const exists = selectorValue.length > 0 && await locator.count() === 1;
+      const observed = exists
+        ? await locator.evaluate((element, ownedSelector) => {
+            const rect = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            return {
+              selector: ownedSelector,
+              exists: true,
+              visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== "none" && style.visibility !== "hidden"),
+              tag: String(element.tagName || "").toLowerCase(),
+              hidden: Boolean(element.hidden),
+              disabled: Boolean("disabled" in element && element.disabled),
+              readOnly: Boolean("readOnly" in element && element.readOnly),
+              open: Boolean("open" in element && element.open),
+              href: String(element.getAttribute?.("href") || ""),
+              title: String(element.getAttribute?.("title") || ""),
+              ariaLabel: String(element.getAttribute?.("aria-label") || ""),
+              ariaPressed: String(element.getAttribute?.("aria-pressed") || ""),
+              text: String(element.innerText || "").replace(/\s+/g, " ").trim().slice(0, 4000),
+              value: "value" in element ? String(element.value || "") : "",
+              checked: Boolean("checked" in element && element.checked),
+              selectedValues: element.tagName === "SELECT" ? Array.from(element.selectedOptions).map(option => String(option.value)) : [],
+              optionValues: element.tagName === "SELECT" ? Array.from(element.options).filter(option => !option.disabled).map(option => String(option.value)) : [],
+              url: location.href,
+            };
+          }, selectorValue)
+        : {
+            selector: selectorValue,
+            exists: false,
+            visible: false,
+            tag: "",
+            hidden: false,
+            disabled: false,
+            readOnly: false,
+            open: false,
+            href: "",
+            title: "",
+            ariaLabel: "",
+            ariaPressed: "",
+            text: "",
+            value: "",
+            checked: false,
+            selectedValues: [],
+            optionValues: [],
+            url: page.url(),
+          };
+      return sanitizeEvidenceValue(observed, observedRuntimeSecrets);
+    },
     measureVisualState: async (selector = "body", {
       caseBinding = null,
       requestedTheme = colorScheme,
       liveVideoSpec = null,
       liveCorrelationId = "",
     } = {}) => {
-      const geometry = await page.evaluate(async ({ targetSelector, binding, requestedThemeValue, liveSpec }) => {
+      const targetSelector = String(selector);
+      const targetLocator = page.locator(targetSelector).first();
+      await targetLocator.waitFor({ state: "attached", timeout: timeoutMs });
+      const geometry = await targetLocator.evaluate(async (target, {
+        targetSelector: browserTargetSelector,
+        binding,
+        requestedThemeValue,
+        liveSpec,
+      }) => {
         if (document.fonts?.ready) await document.fonts.ready;
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        const target = document.querySelector(targetSelector);
         const rectValue = element => {
           const rect = element?.getBoundingClientRect?.();
           if (!rect) return null;
@@ -1886,12 +1959,12 @@ async function openNativePlaywrightPage(playwright, {
           mediaTheme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
           viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
           document: { scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, clientWidth: document.documentElement.clientWidth, clientHeight: document.documentElement.clientHeight },
-          target: { selector: targetSelector, visible: isVisible(target), rect: rectValue(target) },
+          target: { selector: browserTargetSelector, visible: isVisible(target), rect: rectValue(target) },
           textSamples,
           liveVideo,
         };
       }, {
-        targetSelector: String(selector),
+        targetSelector,
         binding: caseBinding,
         requestedThemeValue: String(requestedTheme),
         liveSpec: liveVideoSpec,
@@ -1937,53 +2010,64 @@ async function openNativePlaywrightPage(playwright, {
     },
     evaluate: (expression, argument) => page.evaluate(expression, argument),
     observeRequestedObservedState: async ({ selector = null, applicability = "required" } = {}) => {
-      return page.evaluate(`(async () => {
-        const selector = ${JSON.stringify(selector)};
-        const applicability = ${JSON.stringify(applicability)};
-        const response = await fetch('/auth/whoami', { credentials: 'same-origin', cache: 'no-store' });
-        let accountRole = '';
+      const selectorValue = selector === null ? null : String(selector);
+      const contextObservation = await page.evaluate(async () => {
+        const response = await fetch("/auth/whoami", { credentials: "same-origin", cache: "no-store" });
+        let accountRole = "";
         if (response.status === 401) {
-          accountRole = 'anonymous';
+          accountRole = "anonymous";
         } else {
-          if (!response.ok) throw new Error('whoami observation failed with status ' + response.status);
+          if (!response.ok) throw new Error(`whoami observation failed with status ${response.status}`);
           const principal = await response.json();
           if (principal?.authenticated === false) {
-            accountRole = 'anonymous';
-          } else if (principal?.authenticated === true && typeof principal?.role === 'string') {
+            accountRole = "anonymous";
+          } else if (principal?.authenticated === true && typeof principal?.role === "string") {
             accountRole = principal.role;
           } else {
-            throw new Error('whoami observation returned an invalid authenticated principal');
+            throw new Error("whoami observation returned an invalid authenticated principal");
           }
         }
-        const element = selector ? document.querySelector(selector) : null;
-        const rect = element?.getBoundingClientRect?.() || null;
-        const style = element ? getComputedStyle(element) : null;
-        const exists = Boolean(element);
-        const visible = Boolean(rect && rect.width > 0 && rect.height > 0 && style &&
-          style.display !== 'none' && style.visibility !== 'hidden');
-        const disabled = Boolean(element && 'disabled' in element && element.disabled);
         return {
-          schema: 'media-server.v390-ui-runtime-observed.v1',
           screenRoute: location.pathname,
           accountRole,
           viewport: { width: innerWidth, height: innerHeight },
-          theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-          controlAction: {
-            selector,
-            applicability,
-            exists,
-            visible,
-            enabled: visible && !disabled,
-          },
-          provenance: {
-            screenRoute: 'browser-location',
-            accountRole: 'session-whoami',
-            viewport: 'browser-inner-size',
-            theme: 'browser-media-query',
-            controlAction: 'dom-selector-state',
-          },
+          theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
         };
-      })()`);
+      });
+      let controlObservation = { exists: false, visible: false, disabled: false };
+      if (selectorValue) {
+        const locator = page.locator(selectorValue).first();
+        if (await locator.count() === 1) {
+          controlObservation = await locator.evaluate(element => {
+            const rect = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            return {
+              exists: true,
+              visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style &&
+                style.display !== "none" && style.visibility !== "hidden"),
+              disabled: Boolean("disabled" in element && element.disabled),
+            };
+          });
+        }
+      }
+      return {
+        schema: "media-server.v390-ui-runtime-observed.v1",
+        ...contextObservation,
+        controlAction: {
+          selector: selectorValue,
+          applicability,
+          exists: controlObservation.exists,
+          visible: controlObservation.visible,
+          enabled: controlObservation.visible && !controlObservation.disabled,
+        },
+        provenance: {
+          screenRoute: "browser-location",
+          accountRole: "session-whoami",
+          viewport: "browser-inner-size",
+          theme: "browser-media-query",
+          controlAction: "dom-selector-state",
+        },
+      };
     },
     screenshot: async outputFile => {
       await assertEvidenceDomSecretsAbsent(page, observedRuntimeSecrets);

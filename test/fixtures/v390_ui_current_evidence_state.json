@@ -8,11 +8,11 @@
   "automatedCaseCount": 0,
   "canonicalCaseManifest": {
     "path": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
-    "sha256": "e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989"
+    "sha256": "eb99180530180179c632807fa2598c79f04891ac696c2be87f3e39a1b628f3fe"
   },
   "nativeExactManifest": {
     "path": "test/fixtures/v390_ui_native_exact_cases.json",
-    "sha256": "b8473f9495fcdccca4e11811959271c1738a0b64f628ddb107b6aebe64cf72b3"
+    "sha256": "0b9610a1f5a57b330faa15e04632cd87cbcee5d2e2ce1f245202bc72bec60dae"
   },
   "visualMatrixPlan": {
     "path": "test/fixtures/v390_ui_visual_matrix_plan.json",
