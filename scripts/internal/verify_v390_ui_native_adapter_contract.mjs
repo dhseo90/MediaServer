@@ -27,10 +27,12 @@ import {
   secretStrippedBrowserEnv,
 } from "./v390_ui_native_adapter.mjs";
 import {
+  bindRuntimeControlObservationOwner,
   buildCanonicalSharedAdapterImpact,
   buildPostActionLifecyclePlan,
   evaluatePostActionLifecycle,
   observePostActionLifecycle,
+  postActionDestinationLifecycleRequired,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -262,7 +264,8 @@ check("all redirecting document cases bind destination controls and forbid stale
     const plan = buildPostActionLifecyclePlan(item);
     assert(plan.postNavigation.routeChanged === true &&
       plan.postNavigation.sourceSelectorRewaitAllowed === false &&
-      plan.postNavigation.selector !== plan.preAction.selector,
+      plan.postNavigation.selector !== plan.preAction.selector &&
+      postActionDestinationLifecycleRequired(plan) === true,
     `${caseId} redirect lifecycle permits stale source reuse`);
     const accepted = evaluatePostActionLifecycle(plan, {
       observedRoute: plan.postNavigation.route,
@@ -322,7 +325,7 @@ check("post-action lifecycle separates UI-002 source control from the redirect d
     "UI-002 redirect permits a stale source selector rewait");
 });
 
-check("post-action lifecycle accepts redirect and non-redirect boundaries without stale source reuse", () => {
+check("post-action destination lifecycle applies only to redirects", async () => {
   const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
   const ui002 = nativeManifest.cases.find(candidate => candidate.caseId === "UI-002");
   const redirectPlan = buildPostActionLifecyclePlan(ui002, {
@@ -340,6 +343,8 @@ check("post-action lifecycle accepts redirect and non-redirect boundaries withou
   });
   assert(redirected.pass === true && redirected.sourceSelectorRewaited === false,
     "redirect lifecycle did not accept detached source with a valid destination");
+  assert(postActionDestinationLifecycleRequired(redirectPlan) === true,
+    "redirect destination lifecycle was not enabled");
 
   const auth007 = nativeManifest.cases.find(candidate => candidate.caseId === "AUTH-007");
   const nonRedirectPlan = buildPostActionLifecyclePlan(auth007, {
@@ -356,8 +361,40 @@ check("post-action lifecycle accepts redirect and non-redirect boundaries withou
     sourceObservation: { exists: true, visible: true },
   });
   assert(nonRedirect.pass === true &&
-    nonRedirectPlan.postNavigation.selector === nonRedirectPlan.preAction.selector,
+    nonRedirectPlan.postNavigation.selector === nonRedirectPlan.preAction.selector &&
+    postActionDestinationLifecycleRequired(nonRedirectPlan) === false,
   "non-redirect lifecycle changed the source control contract");
+  let waitAttempted = false;
+  let rejected = false;
+  try {
+    await observePostActionLifecycle({
+      waitForSelector: async () => { waitAttempted = true; },
+      snapshot: async () => ({ exists: true, visible: true }),
+      evaluate: async () => "/login",
+    }, nonRedirectPlan);
+  } catch (error) {
+    rejected = String(error.message).includes("requires an observed redirect contract");
+  }
+  assert(rejected && waitAttempted === false,
+    "non-redirect source selector reached the post-action wait callsite");
+});
+
+check("runtime control observation separates canonical identity from fixture-qualified owner", () => {
+  const observed = bindRuntimeControlObservationOwner({
+    identitySelector: '[data-ops-rule-action="delete-va"]',
+    executionOwnerSelector: '[data-ops-rule-action="delete-va"][data-ops-rule-id="3920006"]',
+    ownerObservation: { exists: true, visible: true, disabled: false },
+  });
+  assert(observed.selector === '[data-ops-rule-action="delete-va"]' &&
+    observed.exists === true && observed.visible === true && observed.enabled === true,
+  "fixture-qualified owner did not retain canonical selector identity");
+  const missing = bindRuntimeControlObservationOwner({
+    identitySelector: '[data-ops-rule-action="delete-va"]',
+    executionOwnerSelector: '[data-ops-rule-action="delete-va"][data-ops-rule-id="missing"]',
+    ownerObservation: { exists: false, visible: false, disabled: false },
+  });
+  assert(missing.exists === false && missing.visible === false && missing.enabled === false,
+    "missing execution owner passed runtime control observation");
 });
 
 check("post-action lifecycle fails closed for missing destination and wrong destination route", () => {
@@ -435,19 +472,22 @@ check("post-action destination wait failures retain structured fail-closed evide
     "destination timeout lost the structured missing-control evidence");
 });
 
-check("exact runner binds visual evidence to the post-action destination lifecycle", () => {
+check("exact runner preserves non-redirect visual behavior and binds redirected destinations", () => {
   for (const snippet of [
     "buildPostActionLifecyclePlan",
     "observePostActionLifecycle",
     "postActionLifecyclePlan",
     "postActionLifecycleEvidence",
+    "postActionDestinationLifecycleRequired(postActionLifecyclePlan)",
+    'let visualTargetSelector = item.controlAction.targetSelector || "body";',
+    "visualTargetSelector = postActionLifecyclePlan.postNavigation.selector",
   ]) {
     assert(exactRunnerSource.includes(snippet),
       `exact runner post-action lifecycle integration missing ${snippet}`);
   }
-  assert(!exactRunnerSource.includes(
-    'const visualTargetSelector = item.controlAction.targetSelector || "body";'),
-  "exact runner still reuses the pre-action source selector for post-action visual evidence");
+  assert(exactRunnerSource.indexOf("postActionDestinationLifecycleRequired(postActionLifecyclePlan)") <
+    exactRunnerSource.indexOf("visualTargetSelector = postActionLifecyclePlan.postNavigation.selector"),
+  "exact runner did not guard destination visual binding by redirect lifecycle");
 });
 
 check("canonical selector dialect audit leaves no Playwright selector path in native DOM APIs", () => {

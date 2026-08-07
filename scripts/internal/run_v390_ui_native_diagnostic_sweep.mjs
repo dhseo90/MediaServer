@@ -50,7 +50,7 @@ const diagnosticManifestPath = path.join(outputDir, "diagnostic-native-manifest.
 writeJson(diagnosticManifestPath, manifest);
 const fullSelection = fixedSelection(manifest.cases);
 const selectionMode = options.selectionArtifact
-  ? "shared-adapter-impact-sweep"
+  ? selectionModeForArtifact(options.selectionArtifact)
   : options.caseId
     ? "explicit-positive-case"
     : "fixed-remaining-sweep";
@@ -399,6 +399,29 @@ function selectedDiagnosticCases({
     manifestCases.forEach(assertDiagnosticRuntimeBinding);
     return manifestCases;
   }
+  if (selectionMode === "diagnostic-failure-census-sweep") {
+    assert(!caseId, "diagnostic failure census selection cannot receive --case-id");
+    const artifact = readJson(selectionArtifact);
+    assert(artifact.schema === "media-server.v390-ui-diagnostic-failure-census.v1",
+      "diagnostic failure census schema mismatch");
+    const { digest, ...payload } = artifact;
+    assert(/^[0-9a-f]{64}$/.test(digest) && sha256(stableJson(payload)) === digest,
+      "diagnostic failure census immutable digest mismatch");
+    const selectedIds = artifact.failedIds;
+    assert(Array.isArray(selectedIds) && selectedIds.length === 99 &&
+      new Set(selectedIds).size === selectedIds.length &&
+      Array.isArray(artifact.failures) && artifact.failures.length === selectedIds.length &&
+      artifact.failures.every((row, index) => row.caseId === selectedIds[index]),
+    "diagnostic failure census must contain exactly 99 unique ordered failures");
+    const byId = new Map(manifestCases.map(item => [item.caseId, item]));
+    const selected = selectedIds.map(caseId => byId.get(caseId));
+    assert(selected.every(Boolean), "diagnostic failure census contains an unknown case ID");
+    assert(selected.every((item, index) => index === 0 ||
+      manifestCases.indexOf(selected[index - 1]) < manifestCases.indexOf(item)),
+    "diagnostic failure census order does not match the canonical manifest");
+    selected.forEach(assertDiagnosticRuntimeBinding);
+    return selected;
+  }
   assert(selectionMode === "explicit-positive-case", "unsupported diagnostic selection mode");
   assert(caseId, "explicit diagnostic selection requires --case-id");
   const matches = manifestCases.filter(item => item.caseId === caseId);
@@ -408,6 +431,17 @@ function selectedDiagnosticCases({
     `diagnostic explicit case must be a positive native-executable case: ${caseId}`);
   assertDiagnosticRuntimeBinding(item);
   return [item];
+}
+
+function selectionModeForArtifact(selectionArtifact) {
+  const artifact = readJson(selectionArtifact);
+  if (artifact.schema === "media-server.v390-ui-shared-adapter-impact.v1") {
+    return "shared-adapter-impact-sweep";
+  }
+  if (artifact.schema === "media-server.v390-ui-diagnostic-failure-census.v1") {
+    return "diagnostic-failure-census-sweep";
+  }
+  throw new Error("unsupported diagnostic selection artifact schema");
 }
 
 function assertDiagnosticRuntimeBinding(item) {

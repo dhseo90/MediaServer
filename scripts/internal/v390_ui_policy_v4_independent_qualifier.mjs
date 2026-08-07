@@ -126,11 +126,17 @@ function qualifyRequest(value, expected, reasons) {
   if (upper(start.method) !== expected.request.method || upper(response.method) !== expected.request.method) {
     reasons.push("raw-primary-request-method-mismatch");
   }
-  if (pathname(start.url) !== expected.request.urlPath || pathname(response.url) !== expected.request.urlPath) {
+  if (requestTarget(start.url) !== expected.request.urlPath ||
+      requestTarget(response.url) !== expected.request.urlPath) {
     reasons.push("raw-primary-request-path-mismatch");
   }
   if (!expected.request.allowedStatuses.includes(Number(response.status))) reasons.push("raw-primary-request-status-mismatch");
-  return { requestId: start.requestId, method: upper(start.method), urlPath: pathname(start.url), status: Number(response.status) };
+  return {
+    requestId: start.requestId,
+    method: upper(start.method),
+    urlPath: requestTarget(start.url),
+    status: Number(response.status),
+  };
 }
 
 function qualifyReadback(value, expected, reasons) {
@@ -182,7 +188,7 @@ function qualifyLocalTransition(value, expected, reasons) {
 }
 
 function qualifyNegativeNavigation(value, expected, reasons) {
-  if (!expected.request?.allowedStatuses?.includes(Number(value.navigation?.status))) {
+  if (!expected.navigationBinding?.allowedStatuses?.includes(Number(value.navigation?.status))) {
     reasons.push("raw-primary-negative-navigation-status-mismatch");
   }
 }
@@ -253,6 +259,15 @@ function upper(value) {
 function pathname(value) {
   try {
     return new URL(String(value || ""), "http://localhost").pathname;
+  } catch {
+    return "";
+  }
+}
+
+function requestTarget(value) {
+  try {
+    const parsed = new URL(String(value || ""), "http://localhost");
+    return `${parsed.pathname}${parsed.search}`;
   } catch {
     return "";
   }

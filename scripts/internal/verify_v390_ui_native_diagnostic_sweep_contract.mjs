@@ -1239,6 +1239,45 @@ check("shared adapter impact artifact selects all 424 canonical cases once in ma
   "shared adapter impact source binding or browser boundary mismatch");
 });
 
+check("immutable failure census selects exactly the prior 99 failures once", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "failure-census-contract-"));
+  temporaryDirs.push(outputDir);
+  const artifact = JSON.parse(read("test/fixtures/v390_ui_diagnostic_failure_census_20260807.json"));
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", "test/fixtures/v390_ui_diagnostic_failure_census_20260807.json",
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0, `failure census plan failed: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  assert(summary.selection?.mode === "diagnostic-failure-census-sweep" &&
+    summary.selection?.targetCaseCount === 99 &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(artifact.failedIds) &&
+    new Set(summary.selection?.selectedIds || []).size === 99,
+  "failure census selection is missing, duplicated, or reordered");
+  assert(summary.counts.target === 99 && summary.counts.attempted === 0 &&
+    summary.counts.pass === 0 && summary.counts.fail === 0 &&
+    summary.counts.notRun === 99 && summary.counts.unsupported === 0 &&
+    summary.actualBrowserExecution === false,
+  "failure census plan count or browser boundary mismatch");
+  const tampered = structuredClone(artifact);
+  tampered.failedIds = tampered.failedIds.slice(1);
+  const tamperedPath = path.join(outputDir, "tampered-census.json");
+  fs.writeFileSync(tamperedPath, `${JSON.stringify(tampered)}\n`, "utf8");
+  const rejected = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", tamperedPath,
+    "--plan-only",
+    "--output-dir", path.join(outputDir, "tampered-output"),
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(rejected.status !== 0 &&
+    `${rejected.stderr || ""}${rejected.stdout || ""}`.includes("immutable digest mismatch"),
+  "tampered failure census selection was accepted");
+});
+
 check("actual diagnostic builds and binds the current source before browser bootstrap", () => {
   assert(sweepSource.includes("buildCurrentSourceBoundBinary()") &&
     sweepSource.includes('spawnSync(path.join(rootDir, "server.sh"), ["build"]') &&

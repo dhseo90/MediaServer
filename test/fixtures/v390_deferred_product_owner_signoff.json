@@ -167,7 +167,7 @@
               "productPersistentSecretStoreEnabled",
               "secretMaterialStored"
             ],
-            "sourceFileSha256": "f1877e71124d52cf053ba9b1c3424f7ae3761dc0810ce124b19df074e5f2f6d1"
+            "sourceFileSha256": "9d50fbae07a2255a7fb2d4204851f4f84b48193e9da7285b21aa4f4f62dd8a60"
           },
           {
             "file": "src/ingress/product_ui_ops_sources_script.cpp",
@@ -268,7 +268,7 @@
               "productionRestorePerformed",
               "automaticRecoveryPerformed"
             ],
-            "sourceFileSha256": "f1877e71124d52cf053ba9b1c3424f7ae3761dc0810ce124b19df074e5f2f6d1"
+            "sourceFileSha256": "9d50fbae07a2255a7fb2d4204851f4f84b48193e9da7285b21aa4f4f62dd8a60"
           },
           {
             "file": "src/ingress/product_ui_ops_sources_script.cpp",

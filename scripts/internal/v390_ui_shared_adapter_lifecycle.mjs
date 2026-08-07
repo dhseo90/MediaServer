@@ -170,11 +170,43 @@ export function evaluatePostActionLifecycle(plan, {
   };
 }
 
+export function postActionDestinationLifecycleRequired(plan) {
+  assert(plan?.schema === "media-server.v390-ui-post-action-lifecycle-plan.v1",
+    "post-action lifecycle plan schema mismatch");
+  return plan.postNavigation.routeChanged === true &&
+    plan.action?.documentRequest?.redirectPath === plan.postNavigation.route;
+}
+
+export function bindRuntimeControlObservationOwner({
+  identitySelector = null,
+  executionOwnerSelector = null,
+  ownerObservation = null,
+} = {}) {
+  const identity = identitySelector === null ? null : String(identitySelector);
+  const owner = executionOwnerSelector === null ? identity : String(executionOwnerSelector);
+  assert(identity === null || identity.length > 0,
+    "runtime control observation identity selector is invalid");
+  assert(identity === null || owner.length > 0,
+    "runtime control observation owner selector is missing");
+  const applicability = identity === null ? "not-applicable" : "required";
+  const exists = applicability === "required" && ownerObservation?.exists === true;
+  const visible = exists && ownerObservation?.visible === true;
+  return {
+    selector: identity,
+    applicability,
+    exists,
+    visible,
+    enabled: visible && ownerObservation?.disabled !== true,
+  };
+}
+
 export async function observePostActionLifecycle(browser, plan, {
   sourceObservation = null,
 } = {}) {
   assert(browser?.waitForSelector && browser?.snapshot && browser?.evaluate,
     "post-action lifecycle requires the native browser adapter");
+  assert(postActionDestinationLifecycleRequired(plan),
+    `${plan.caseId} destination lifecycle requires an observed redirect contract`);
   let waitFailure = null;
   try {
     await browser.waitForSelector(plan.postNavigation.selector, {

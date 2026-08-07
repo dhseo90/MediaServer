@@ -8,6 +8,8 @@ import process from "node:process";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 
+import { bindRuntimeControlObservationOwner } from "./v390_ui_shared_adapter_lifecycle.mjs";
+
 const require = createRequire(import.meta.url);
 export const nativeCapabilities = [
   "navigate",
@@ -2009,8 +2011,13 @@ async function openNativePlaywrightPage(playwright, {
       }, { videoSelectorValue: videoSelector, modeSelectorValue: modeSelector }, { timeout });
     },
     evaluate: (expression, argument) => page.evaluate(expression, argument),
-    observeRequestedObservedState: async ({ selector = null, applicability = "required" } = {}) => {
+    observeRequestedObservedState: async ({
+      selector = null,
+      ownerSelector = selector,
+      applicability = "required",
+    } = {}) => {
       const selectorValue = selector === null ? null : String(selector);
+      const ownerSelectorValue = ownerSelector === null ? selectorValue : String(ownerSelector);
       const contextObservation = await page.evaluate(async () => {
         const response = await fetch("/auth/whoami", { credentials: "same-origin", cache: "no-store" });
         let accountRole = "";
@@ -2035,8 +2042,8 @@ async function openNativePlaywrightPage(playwright, {
         };
       });
       let controlObservation = { exists: false, visible: false, disabled: false };
-      if (selectorValue) {
-        const locator = page.locator(selectorValue).first();
+      if (ownerSelectorValue) {
+        const locator = page.locator(ownerSelectorValue).first();
         if (await locator.count() === 1) {
           controlObservation = await locator.evaluate(element => {
             const rect = element.getBoundingClientRect();
@@ -2053,13 +2060,11 @@ async function openNativePlaywrightPage(playwright, {
       return {
         schema: "media-server.v390-ui-runtime-observed.v1",
         ...contextObservation,
-        controlAction: {
-          selector: selectorValue,
-          applicability,
-          exists: controlObservation.exists,
-          visible: controlObservation.visible,
-          enabled: controlObservation.visible && !controlObservation.disabled,
-        },
+        controlAction: bindRuntimeControlObservationOwner({
+          identitySelector: applicability === "not-applicable" ? null : selectorValue,
+          executionOwnerSelector: ownerSelectorValue,
+          ownerObservation: controlObservation,
+        }),
         provenance: {
           screenRoute: "browser-location",
           accountRole: "session-whoami",

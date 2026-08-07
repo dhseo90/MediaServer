@@ -4189,8 +4189,8 @@ export function createV390UiCaseRuntime({
       }));
       seedByPath[target] = keys.length === 1 ? projection[keys[0]] : projection;
     }
-    // Bind simple response-backed DOM targets to that target only. Composite
-    // targets continue through their explicit semantic/row-local contracts.
+    // 단순 응답 기반 DOM 대상은 해당 대상에만 결속한다. 복합 대상은 명시적
+    // semantic/row-local 계약을 계속 사용한다.
     for (const domContract of spec.dom || []) {
       for (const assertion of domContract.assertions || []) {
         const target = String(assertion.target || "");

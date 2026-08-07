@@ -685,6 +685,15 @@ export function evaluateResponseDerivedDomFieldProjection({
   fixtureCandidates = [],
   fixtureIdentity = "",
 } = {}) {
+  if (operator === "number-equals-response") {
+    return evaluateResponseRootNumberProjection({
+      caseId,
+      operator,
+      target,
+      responseBodies,
+      observation,
+    });
+  }
   const contract = responseDerivedDomProjectionContractFor({ caseId, operator, target });
   if (contract) {
     return evaluateDeclaredResponseDomProjection({
@@ -773,6 +782,64 @@ export function evaluateResponseDerivedDomFieldProjection({
     fieldCount: fields.length,
     matchedFieldCount: fieldEvidence.filter(field => field.pass).length,
     fieldEvidence,
+  };
+}
+
+function evaluateResponseRootNumberProjection({
+  caseId,
+  operator,
+  target,
+  responseBodies,
+  observation,
+}) {
+  const paths = String(target).split("|").map(value => value.trim()).filter(Boolean);
+  const owners = responseBodies.map((body, index) => ({
+    index,
+    values: paths.flatMap(path => eventExactValuesAtPath(body, path))
+      .filter(value => value !== undefined && value !== null && Number.isFinite(Number(value))),
+  })).filter(owner => owner.values.length > 0);
+  const actual = Number(String(observation?.text || "").replace(/[^0-9.-]/g, ""));
+  const values = owners.length === 1 ? owners[0].values : [];
+  const valuesPass = Number.isFinite(actual) && values.some(value => actual === Number(value));
+  const observationPresent = Number(observation?.count || 0) === 1 &&
+    Number(observation?.visibleCount || 0) === 1;
+  const pass = paths.length > 0 && owners.length === 1 && observationPresent && valuesPass;
+  const failureCode = pass
+    ? "PASS"
+    : (!observationPresent
+      ? "DOM_PROJECTION_OWNER_MISSING"
+      : (owners.length === 0
+        ? "RESPONSE_FIELD_OWNER_MISSING"
+        : (owners.length > 1
+          ? "RESPONSE_FIELD_OWNER_AMBIGUOUS"
+          : "RENDERER_PROJECTION_VALUE_MISMATCH")));
+  return {
+    schema: "media-server.v390-ui-response-derived-dom-field-projection.v1",
+    pass,
+    failureCode,
+    caseIdDigest: sha256Text(caseId),
+    operatorDigest: sha256Text(operator),
+    targetDigest: sha256Text(target),
+    observationDigest: sha256Text(stable({
+      count: Number(observation?.count || 0),
+      visibleCount: Number(observation?.visibleCount || 0),
+      textDigest: sha256Text(String(observation?.text || "")),
+    })),
+    fieldCount: 1,
+    matchedFieldCount: pass ? 1 : 0,
+    fieldEvidence: [{
+      nameDigest: sha256Text(paths.join("|")),
+      responseOwnerCount: owners.length,
+      responseOwnerDigest: sha256Text(owners.length === 1
+        ? `request-bound-response-body:${owners[0].index}`
+        : owners.map(owner => owner.index).join("\n")),
+      projectedValueCount: values.length,
+      projectedValueDigest: sha256Text(stable(values.map(value => Number(value)))),
+      matchedValueCount: valuesPass ? 1 : 0,
+      valuesPass,
+      orderPass: true,
+      pass,
+    }],
   };
 }
 

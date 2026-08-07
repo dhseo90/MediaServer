@@ -639,7 +639,8 @@ export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
       errors.push("EVT-004-marker-phase-missing");
     }
     if (caseEvidence.requestCorrelationEvidence?.pass === true &&
-        caseEvidence.navigationLifecycleEvidence?.pass === true) {
+        caseEvidence.navigationLifecycleEvidence?.pass === true &&
+        !preservedStructuredPrimaryFailurePresent(caseEvidence)) {
       errors.push("EVT-004-marker-evidence-required-after-prerequisites");
     }
   } else if (caseEvidence.markerEvidenceLifecycle?.phase !== "reached" ||
@@ -657,6 +658,17 @@ export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
     errors.push("EVT-004-primary-failure-not-preserved");
   }
   return errors;
+}
+
+function preservedStructuredPrimaryFailurePresent(caseEvidence) {
+  const primary = caseEvidence.primaryFailureEvidence;
+  const structured = primary?.structuredEvidence;
+  return primary?.schema === "media-server.v390-ui-diagnostic-primary-failure-evidence.v1" &&
+    typeof primary.errorName === "string" && primary.errorName.length > 0 &&
+    structured && typeof structured === "object" && !Array.isArray(structured) &&
+    Object.keys(structured).length > 0 &&
+    caseEvidence.cleanupAttestation?.primaryFailurePresent === true &&
+    caseEvidence.cleanupAttestation?.primaryFailurePreserved === true;
 }
 
 export function diagnosticChildSourceBindingErrors(summary, expected = {}) {

@@ -3,10 +3,10 @@
   "sourceRelease": "v3.9.0",
   "evidenceBoundary": "static-semantic-audit-only-not-runtime-ui-or-longrun-pass",
   "summary": {
-    "documents": 176,
+    "documents": 181,
     "sourceMarkers": 38,
     "currentProductContracts": 82,
-    "historicalOrSuperseded": 63,
+    "historicalOrSuperseded": 68,
     "conditionalOrTemplate": 27
   },
   "documents": [
@@ -72,7 +72,7 @@
     },
     {
       "path": "README.en.md",
-      "contentSha256": "c5de77d4fec6574e6269d74d62e5e2689b4501287665f550a38c40d3e16af95b",
+      "contentSha256": "d59faa04c0d597389c9c22084b6a2af7486ef7d4b1c2c4ba7c4eaa35ee44d66a",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -92,7 +92,7 @@
     },
     {
       "path": "README.md",
-      "contentSha256": "1db1c5973a2fe5ed3a078616893a497786d8ede1ae43bf7ccc918b009cfda90a",
+      "contentSha256": "ecc9b7c885a005e156ce123dc1fb44dc6fb1fb7a3492e7aec5bf3b8efda00f86",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -292,7 +292,7 @@
     },
     {
       "path": "docs/development-backlog.md",
-      "contentSha256": "e5f0f56b2f3b828608f7630eb803380d2c8b520ec7ac6d5725cbdcc444011ffa",
+      "contentSha256": "0f5facb512e7d94c70e63693d37d9908eb8fccc0ad1ee69d25e8951514e4bd81",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -492,7 +492,7 @@
     },
     {
       "path": "docs/manual-ui-checklist.md",
-      "contentSha256": "b8410e375cb8e793b1718147adfe1bb136284cbd82a0ffbb238f9c4217289b5c",
+      "contentSha256": "e91feb6ee9f96f2724d035747db5b4a9edf704657d796cb465d92b6b39cb9247",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -552,7 +552,7 @@
     },
     {
       "path": "docs/manual-ui-result-template.md",
-      "contentSha256": "1abaa5d3a413b999751c48f718bd5d901eb8ef0f6d12b627d419dd181e4c1f40",
+      "contentSha256": "931e5d04e84f3ed0cd37636f88822d1c58f488ec95eea0096fff57392c664972",
       "semanticRole": "design-or-evidence-template",
       "lifecycle": "template-not-executed",
       "alignment": "aligned",
@@ -912,7 +912,7 @@
     },
     {
       "path": "docs/project-feature-test-inventory.md",
-      "contentSha256": "ff3caa44049ad7a0a67d54e4c2eb6bbadd3ed6ad00e3cb05d78431f5cce9a287",
+      "contentSha256": "f5154597664b2610ab5a3eef895e5193c2aef8e1b56596e6d97add4e61297da7",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1451,6 +1451,86 @@
       "semanticDigest": "81a90c60aded2a81fc03a1704d81e3d5267a25e8246ae3ba560c1faf94d8d4a4"
     },
     {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/first-failure.md",
+      "contentSha256": "7f614aeefff38ae5a3cb7ba8124eaa29a1bb7291aacd645774eb92748a5f9a13",
+      "semanticRole": "historical-first-failure-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-failure-record",
+      "semanticStatement": "v3.9.0 Acceptance First Failure — 당시 acceptance의 최초 실패 기록이다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "first-failure"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "81397b919205c26f1549be3b4f7e191e7dc8f5ca8dd3ef31500d06bdfb133ad9"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
+      "contentSha256": "9d74b7ed62bfe0b73e1e798db5d8339b79d3cef760709ac414e339fb6b33eda1",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Test Acceptance Bundle — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "48e41513260614babaf8b37255620388bc06dc3201bbf94b0c1ae83cd0d4ed52"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/predev-report.md",
+      "contentSha256": "0c40bbe60842f79534c10e81d4ea7e1890ebb63650a0fee14b098e627964cdd1",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "e5255728f9d62bef432306b3940f063015fbab8d1e62cd2603036b151192d2d3"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.md",
+      "contentSha256": "a78835a8783a1f701bc679fd0275f209f4ede7016805829173a6656d5a8acec7",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "d0599a336e4dcd8bff55e5c8e91103b5871c65736d5e244386014fdcc0ce962c"
+    },
+    {
       "path": "docs/release-artifacts/v3.9.0/test-acceptance-final/first-failure.md",
       "contentSha256": "ad4a81cc852bbfdbe592b235bd60a29dbb4bcaf2b5c9c57999a9ec9aaeb8bcd0",
       "semanticRole": "historical-first-failure-record",
@@ -1732,7 +1812,7 @@
     },
     {
       "path": "docs/release-evidence-index.md",
-      "contentSha256": "8cc175775f9e5734d35d9418a90d8b085f23e8405bc356dd48313166b4432dbe",
+      "contentSha256": "edc9f04129227d13b27150f514518a84d712d410f462187a732dcf95302b9671",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1752,7 +1832,7 @@
     },
     {
       "path": "docs/release-policy.md",
-      "contentSha256": "6eacf65e92358087bb00124cf3dfd689ed1b3a5e5f94ccad68a93cec148f6f4b",
+      "contentSha256": "de720ed2cdb1edc89c02bba2856d214499e06360ceb10b69b19109c163c6c754",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1772,7 +1852,7 @@
     },
     {
       "path": "docs/release-test-records.md",
-      "contentSha256": "93da827f73fcdf4f2fba5efa38f9f87dd2bc2f3630b281d63f44a1208951f95a",
+      "contentSha256": "bcb5e9aa96df7b980216dc5428732c7db4e11a12c2bd01083eb9b57a5c98010d",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1872,7 +1952,7 @@
     },
     {
       "path": "docs/stream-verification.md",
-      "contentSha256": "85773c176663d2af8fefd65e8f3b868cb54de48280eec67a2d2c95cd9a53b34e",
+      "contentSha256": "1002294d13a1f2bb62b2177d623892136400afd181e0e9c1e5055c2fb99142e4",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2032,7 +2112,7 @@
     },
     {
       "path": "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
-      "contentSha256": "c9bcb3bf0a94ae74365081de6e29320315ba6d8820b3626e5e15677659001267",
+      "contentSha256": "7be4edaab49c022430187a292a60f3f688ba48d7a2fad12047b4590e64c591af",
       "semanticRole": "current-review4-64-refactor-handoff",
       "lifecycle": "current-plan",
       "alignment": "aligned",
@@ -2292,12 +2372,12 @@
     },
     {
       "path": "docs/superpowers/plans/2026-07-12-v390-review4-50-62.md",
-      "contentSha256": "25c691772f31c19d522fd14f9e31fd873f992b04a4686c8493ad1bf3fe80e37e",
+      "contentSha256": "12cb6b0dc8610b7bc2630686dccb7626bba2da8f121af590b9f177495b6772e9",
       "semanticRole": "current-review4-execution-plan",
       "lifecycle": "current-plan",
       "alignment": "aligned",
       "decision": "retain-active-plan",
-      "semanticStatement": "v3.9.0 REVIEW4 50~62 Implementation Plan — REVIEW4 50~65의 승인 순서와 실행 경계를 기록한다",
+      "semanticStatement": "v3.9.0 REVIEW4 50~63 Implementation Plan — REVIEW4 50~65의 승인 순서와 실행 경계를 기록한다",
       "actualOwner": {
         "path": "test/fixtures/v390_structure_execution_scope_decision.json",
         "anchor": "execute-actual-refactor-in-v3.9.0-after-review4-50-63"
@@ -2308,7 +2388,27 @@
           "anchor": "V390-REVIEW4-52"
         }
       ],
-      "semanticDigest": "3b053e7e04badbe23e2f3344d458926a3b972a9f64195087dc4a417fd6067083"
+      "semanticDigest": "a9c94535b969980ca198cc398c15329b48f158af4f0dc8bdf64fa117813f927b"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-13-v390-review4-remaining-issues-55-65-implementation.md",
+      "contentSha256": "df9e5cd31e456fbcc1ffaa728739c31f6b3e30ad5b4199e79fd5b5fe77718c2f",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 REVIEW4 잔여 이슈 55~65 구현 계획 및 현재 기록 — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-13-v390-review4-remaining-issues-55-65-implementation.md",
+          "anchor": "v3.9.0 REVIEW4 잔여 이슈 55~65 구현 계획 및 현재 기록"
+        }
+      ],
+      "semanticDigest": "2d158de8e8accfb08bd75e182c84ec2d3714928da36b81ecf5d82e15b41deaba"
     },
     {
       "path": "docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md",
@@ -2812,7 +2912,7 @@
     },
     {
       "path": "docs/v390-feature-completion-inventory.md",
-      "contentSha256": "261ee3dd4dc59b28ae1e2b14d379dd7e6e26472cc8a532b3df3821c0cea2bfb5",
+      "contentSha256": "eb507b61e4e6a5cf435baa2f21f73f69f6bb8c2d1d5b8cab8e12a2819cf98abd",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2832,7 +2932,7 @@
     },
     {
       "path": "docs/v390-ui-automation-coverage-matrix.md",
-      "contentSha256": "30fef744e44d418a2136e3cc9f9eb6efd9c8274a0046a07766db299ae56a4771",
+      "contentSha256": "6ee2212b4b7da8bbed64ff3fff9b4f17d35773f934dd5b4e3206b0f9e736b0f6",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -3548,7 +3648,7 @@
     },
     {
       "path": "scripts/internal/verify_v290_2x_compatibility_baseline.mjs",
-      "line": 123,
+      "line": 130,
       "column": 70,
       "occurrence": 1,
       "marker": "미구현",
@@ -3562,7 +3662,7 @@
     },
     {
       "path": "scripts/internal/verify_v290_final_contract_freeze.mjs",
-      "line": 158,
+      "line": 160,
       "column": 66,
       "occurrence": 1,
       "marker": "미구현",
@@ -3576,7 +3676,7 @@
     },
     {
       "path": "scripts/internal/verify_v290_final_stabilization_run.mjs",
-      "line": 105,
+      "line": 106,
       "column": 68,
       "occurrence": 1,
       "marker": "미구현",
@@ -3590,7 +3690,7 @@
     },
     {
       "path": "scripts/internal/verify_v290_owner_release_readiness.mjs",
-      "line": 127,
+      "line": 118,
       "column": 68,
       "occurrence": 1,
       "marker": "미구현",
@@ -3604,7 +3704,7 @@
     },
     {
       "path": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
-      "line": 175,
+      "line": 169,
       "column": 71,
       "occurrence": 1,
       "marker": "미구현",
@@ -3618,7 +3718,7 @@
     },
     {
       "path": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
-      "line": 106,
+      "line": 107,
       "column": 69,
       "occurrence": 1,
       "marker": "미구현",
@@ -3632,7 +3732,7 @@
     },
     {
       "path": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
-      "line": 95,
+      "line": 98,
       "column": 77,
       "occurrence": 1,
       "marker": "미구현",
@@ -3646,7 +3746,7 @@
     },
     {
       "path": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
-      "line": 122,
+      "line": 129,
       "column": 72,
       "occurrence": 1,
       "marker": "미구현",
@@ -3660,7 +3760,7 @@
     },
     {
       "path": "scripts/internal/verify_v290_v28_regression_bundle.mjs",
-      "line": 104,
+      "line": 111,
       "column": 66,
       "occurrence": 1,
       "marker": "미구현",
@@ -3674,7 +3774,7 @@
     },
     {
       "path": "scripts/internal/verify_v300_entry_baseline.mjs",
-      "line": 135,
+      "line": 125,
       "column": 59,
       "occurrence": 1,
       "marker": "미구현",
@@ -3688,7 +3788,7 @@
     },
     {
       "path": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
-      "line": 136,
+      "line": 137,
       "column": 76,
       "occurrence": 1,
       "marker": "미구현",
@@ -3716,7 +3816,7 @@
     },
     {
       "path": "scripts/internal/verify_v320_entry_baseline.mjs",
-      "line": 142,
+      "line": 147,
       "column": 59,
       "occurrence": 1,
       "marker": "미구현",
@@ -3744,7 +3844,7 @@
     },
     {
       "path": "scripts/internal/verify_v330_source_registry_snapshot_identity.mjs",
-      "line": 86,
+      "line": 88,
       "column": 77,
       "occurrence": 1,
       "marker": "not implemented",
@@ -3772,7 +3872,7 @@
     },
     {
       "path": "scripts/internal/verify_v340_stabilization_release_readiness.mjs",
-      "line": 137,
+      "line": 142,
       "column": 76,
       "occurrence": 1,
       "marker": "미구현",
@@ -3786,11 +3886,11 @@
     },
     {
       "path": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-      "line": 24,
-      "column": 5,
+      "line": 25,
+      "column": 40,
       "occurrence": 1,
       "marker": "미구현",
-      "contextSha256": "45a3e3eca5e1ddc1fa1d0253b74d1c7631c62fbbedaf7cb0dca5634c2afb1dcd",
+      "contextSha256": "1bb8151a7d21d034c77f826a38e576493bf5da6b5041008ae0deb152516eb616",
       "disposition": "truthful-not-executed-policy-help-text",
       "semanticRole": "truthful-help-boundary-literal",
       "owner": {
@@ -4024,7 +4124,7 @@
     },
     {
       "path": "scripts/internal/verify_v390_review4_truth_reset.mjs",
-      "line": 83,
+      "line": 110,
       "column": 51,
       "occurrence": 1,
       "marker": "미완성",
@@ -4052,7 +4152,7 @@
     },
     {
       "path": "src/ingress/product_ui_page_scripts.cpp",
-      "line": 1317,
+      "line": 1319,
       "column": 62,
       "occurrence": 1,
       "marker": "not implemented",
@@ -4060,7 +4160,7 @@
       "disposition": "preserved-step-boundary-copy",
       "semanticRole": "historical-step-local-boundary",
       "owner": {
-        "path": "src/ingress/webrtc_http_server.cpp",
+        "path": "src/ingress/webrtc_http_server_ops_foundation.cpp",
         "anchor": "OpsV380ActionReceiptBundleJson"
       }
     }

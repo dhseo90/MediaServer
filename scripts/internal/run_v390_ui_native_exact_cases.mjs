@@ -72,6 +72,7 @@ import {
 import {
   buildPostActionLifecyclePlan,
   observePostActionLifecycle,
+  postActionDestinationLifecycleRequired,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 
 const runnerWorkflowSchema = "media-server.v390-ui-case-native-workflow.v2";
@@ -686,7 +687,14 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
             `${item.caseId} /ops/events approval readiness row/link exact UI mismatch`);
             trace.setup.push({ kind: "observe-approval-readiness-row-link", ...readinessUi, status: "PASS" });
           }
-          await observePrimaryControlContext(browser, item, requested, runtimeState, action.selector);
+          await observePrimaryControlContext(
+            browser,
+            item,
+            requested,
+            runtimeState,
+            action.selector,
+            waitSelector,
+          );
           trace.actions.push({ ...action, status: "PASS" });
         } else if (action.kind === "navigate-action-route") {
           const roleSwitch = await caseRuntime.switchActionRoleSession(browser, item, action, caseContext);
@@ -779,15 +787,20 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       .reverse()
       .find(observation => observation?.action?.controlSelector ===
         postActionLifecyclePlan.preAction.selector)?.after || null;
-    const { evidence: postActionLifecycleEvidence } = await observePostActionLifecycle(
-      browser,
-      postActionLifecyclePlan,
-      {
-        sourceObservation,
-      },
-    );
-    trace.postActionLifecycleEvidence = postActionLifecycleEvidence;
-    const visualTargetSelector = postActionLifecyclePlan.postNavigation.selector;
+    let postActionLifecycleEvidence = null;
+    let visualTargetSelector = item.controlAction.targetSelector || "body";
+    if (postActionDestinationLifecycleRequired(postActionLifecyclePlan)) {
+      const observedPostAction = await observePostActionLifecycle(
+        browser,
+        postActionLifecyclePlan,
+        {
+          sourceObservation,
+        },
+      );
+      postActionLifecycleEvidence = observedPostAction.evidence;
+      trace.postActionLifecycleEvidence = postActionLifecycleEvidence;
+      visualTargetSelector = postActionLifecyclePlan.postNavigation.selector;
+    }
     const visualExpectedCase = {
       canonicalCaseId: item.caseId,
       featureId: item.featureId,
@@ -1275,7 +1288,14 @@ function summarizeArtifactLifecycle(pruning, deduplication) {
   };
 }
 
-async function observePrimaryControlContext(browser, item, requested, runtimeState, candidateSelector = null) {
+async function observePrimaryControlContext(
+  browser,
+  item,
+  requested,
+  runtimeState,
+  candidateSelector = null,
+  executionOwnerSelector = null,
+) {
   if (runtimeState.has("__requestedObservedEnvelope")) return;
   const primaryControl = item.workflow.primaryControl;
   const primarySelector = primaryControl.selector ?? null;
@@ -1283,6 +1303,7 @@ async function observePrimaryControlContext(browser, item, requested, runtimeSta
   await browser.setCorrelationId(`${item.caseId}:schema-observation`, { inject: false });
   const rawObserved = await browser.observeRequestedObservedState({
     selector: primarySelector,
+    ownerSelector: executionOwnerSelector || primarySelector,
     applicability: primaryControl.applicability,
   });
   await browser.setCorrelationId(`${item.caseId}:navigation`, { inject: false });
@@ -4062,7 +4083,8 @@ function parseArgs(args) {
     "--diagnostic-case-id requires --diagnostic-child");
   assert(value.diagnosticSelectionMode === "fixed-remaining-sweep" ||
     value.diagnosticSelectionMode === "explicit-positive-case" ||
-    value.diagnosticSelectionMode === "shared-adapter-impact-sweep",
+    value.diagnosticSelectionMode === "shared-adapter-impact-sweep" ||
+    value.diagnosticSelectionMode === "diagnostic-failure-census-sweep",
   "--diagnostic-selection-mode must be a supported diagnostic child mode");
   assert(value.diagnosticSelectionMode === "fixed-remaining-sweep" || value.diagnosticChild,
     "--diagnostic-selection-mode requires --diagnostic-child");

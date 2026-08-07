@@ -24,7 +24,7 @@ Usage:
   ./server.sh verify-v390-review4-semantic-discovery-ledger [--write-ledger]
 
 Checks:
-  - AGENTS.md와 분리된 tracked Markdown 176개 각각의 semantic role/lifecycle/actual owner/evidence를 검증
+  - AGENTS.md와 분리된 tracked Markdown 181개 각각의 semantic role/lifecycle/actual owner/evidence를 검증
   - 37개 source marker 각각의 occurrence identity와 exact disposition을 검증
   - checksum이나 문서 자기참조를 current 제품 의미의 완료 근거로 사용하지 않음
   - stale current claim, generic 분류, owner/evidence 누락을 negative fixture로 거부
@@ -42,9 +42,9 @@ const stored = readJson(fixturePath);
 const negativeCases = readJson(negativeFixturePath);
 const checks = [];
 
-check("all 176 tracked Markdown documents have exact semantic records", () => {
+check("all 181 tracked Markdown documents have exact semantic records", () => {
   const expectedPaths = trackedMarkdownPaths();
-  assert(expectedPaths.length === 176, `expected 176 Markdown files, got ${expectedPaths.length}`);
+  assert(expectedPaths.length === 181, `expected 181 Markdown files, got ${expectedPaths.length}`);
   assert(stored.documents.length === expectedPaths.length, "semantic document ledger count drift");
   assertStableEqual(stored.documents.map(item => item.path), expectedPaths, "semantic document path set drift");
   assert(new Set(stored.documents.map(item => item.path)).size === stored.documents.length, "duplicate document record");
@@ -310,7 +310,7 @@ function currentDocumentOwner(file) {
 function markerOwner(item) {
   if (item.path === "scripts/internal/onvif_probe_adapter_smoke.cpp") return owner("src/ingress/onvif_live_import.cpp", "RunOnvifProbeAdapter");
   if (item.path === "src/ingress/product_ui_js.cpp") return owner("src/ingress/product_ui_js.cpp", item.marker);
-  if (item.path === "src/ingress/product_ui_page_scripts.cpp") return owner("src/ingress/webrtc_http_server.cpp", "OpsV380ActionReceiptBundleJson");
+  if (item.path === "src/ingress/product_ui_page_scripts.cpp") return owner("src/ingress/webrtc_http_server_ops_foundation.cpp", "OpsV380ActionReceiptBundleJson");
   if (item.path === "scripts/internal/verify_v330_source_registry_snapshot_identity.mjs") return owner("src/ingress/source_view_registry.cpp", "SourceRegistrySnapshotIdentityJson");
   if (item.path === "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs") return owner("test/fixtures/v390_deferred_product_owner_signoff.json", "not-executed");
   if (item.path === "scripts/internal/verify_v390_review4_truth_reset.mjs") return owner("test/fixtures/v390_review4_truth_reset.json", "review4_50SnapshotMetrics");

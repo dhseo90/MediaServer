@@ -3660,7 +3660,7 @@ function buildActionSemanticCompletion({
   const readModelCompletionContract = primary ? readModelCompletionContracts.get(caseId) || null : null;
   if (primary) {
     if (navigationBinding) {
-      // Route-owned read models reuse the initial document navigation and bind their API through the catalog runtime.
+      // Route 소유 read model은 최초 문서 이동을 재사용하고 catalog runtime을 통해 API를 결속한다.
     } else if (authoritativeExactReadRequest || productAction.endpoint) {
       request = actionRequestContract(correlationId,
         authoritativeExactReadRequest || productAction.endpoint, workflowInputs, caseId);
