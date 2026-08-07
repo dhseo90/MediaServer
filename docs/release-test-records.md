@@ -3317,3 +3317,14 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Common adapter correction | `revealClosedDetailsForSelector()`가 `page.locator(selector).first()`에서 target을 attach한 뒤 locator-bound `evaluate()`로 closest details만 열고 같은 locator에서 requested state를 기다림 | Missing/wrong text는 기존 timeout, multiple은 명시적 first-locator 정책으로 fail-closed evidence 보존 |
 | Static checkpoint | Adapter RED→GREEN `33/33`; native exact/runtime/completion/diagnostic, canonical 424 selector dialect audit, semantic/feature/inventory/build PASS | Generator/producer 각 0회 |
 | Actual/release 상태 | 이 기록 시점 `./test_ui.sh`와 Policy v4 미실행 | 30분, 120분, release도 미실행이며 static PASS를 acceptance PASS로 사용하지 않음 |
+
+## v3.9.0 REVIEW4-65 shared adapter post-navigation lifecycle checkpoint
+
+| 항목 | 결과 | 실행 경계 |
+| --- | --- | --- |
+| 영향 전수 | Diff `6c6e2e7..2d8864c`의 changed adapter methods와 canonical exact runner 호출자를 대조해 ordered 424/424, remaining-125 교집합 125/125를 `v390_ui_shared_adapter_impact.json`에 action/route/selector와 함께 결속 | 기존 EVT-023~SAFE-140 source·fixture 변경 없음 |
+| UI-002 exact root cause | `POST /setup` 302→`/login`과 independent readback PASS 뒤 exact runner post-action visual phase가 setup submit selector를 `measureVisualState()`에서 다시 attached wait | submit/request/readback 실패가 아니며 UI-002 전용 예외 없음 |
+| 공통 보정 | pre-action source control, action request/response, post-navigation destination route/control을 분리하고 redirect 9건은 `/login` 또는 `/client/live` destination selector만 wait | missing/detached/wrong route/stale source reuse fail-closed, timeout/assertion 불변 |
+| 영향 batch selection | `--selection-artifact test/fixtures/v390_ui_shared_adapter_impact.json`이 current canonical-derived artifact와 exact match할 때만 ordered 424를 한 번 선택하며 missing/duplicate/reorder를 거부 | UI-018 negative-route는 trusted full-impact mode에서만 허용하고 기존 explicit-positive 단건 계약은 불변 |
+| Static checkpoint | Adapter 42/42, native 53/53, runtime 58/58, completion 36/36, diagnostic 25/25·trace replay 158/158, semantic audit 51/51·approval 986/986, feature evidence 986/986·negative 15/15, inventory/docs/build PASS | Semantic/native drift 0; generator/producer 각 0회 |
+| Actual 상태 | 영향 diagnostic batch와 `./test_ui.sh`는 checkpoint commit 전 미실행 | Batch 전부 PASS일 때만 canonical launcher 1회 실행; actual 이후 수정·재시도·Git 작업 금지 |

@@ -69,6 +69,10 @@ import {
   canonicalRequestedProjection,
   runtimeObservedProjection,
 } from "./v390_ui_requested_observed_schema.mjs";
+import {
+  buildPostActionLifecyclePlan,
+  observePostActionLifecycle,
+} from "./v390_ui_shared_adapter_lifecycle.mjs";
 
 const runnerWorkflowSchema = "media-server.v390-ui-case-native-workflow.v2";
 const supportedSetupKinds = Object.freeze([
@@ -765,7 +769,25 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       `${item.caseId} runtime requested/observed control context was not captured`);
     const requestedObserved = runtimeState.get("__requestedObservedEnvelope");
     trace.observed = structuredClone(requestedObserved.observed);
-    const visualTargetSelector = item.controlAction.targetSelector || "body";
+    const completedReadback = runtimeState.get("__completedPrimaryReadback") || null;
+    const postActionLifecyclePlan = buildPostActionLifecyclePlan(
+      item,
+      completedReadback?.formResponseIdentity || null,
+    );
+    const sourceObservation = trace.rawPrimaryObservations
+      .slice()
+      .reverse()
+      .find(observation => observation?.action?.controlSelector ===
+        postActionLifecyclePlan.preAction.selector)?.after || null;
+    const { evidence: postActionLifecycleEvidence } = await observePostActionLifecycle(
+      browser,
+      postActionLifecyclePlan,
+      {
+        sourceObservation,
+      },
+    );
+    trace.postActionLifecycleEvidence = postActionLifecycleEvidence;
+    const visualTargetSelector = postActionLifecyclePlan.postNavigation.selector;
     const visualExpectedCase = {
       canonicalCaseId: item.caseId,
       featureId: item.featureId,
@@ -843,6 +865,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       requireVideoOverlay: false,
       navigation: finalNavigation,
       navigationLifecycleEvidence: trace.navigationLifecycleEvidence || null,
+      postActionLifecycleEvidence,
       eventDomSemanticEvidence: runtimeState.get("__eventDomSemanticEvidence") || null,
       requestCorrelationEvidence: runtimeState.get("__requestCorrelationEvidence") || null,
       requestCorrelationScopeEvidence:
@@ -884,6 +907,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     };
   } catch (error) {
     primaryFailure = error;
+    if (error?.postActionLifecycleEvidence) {
+      trace.postActionLifecycleEvidence = structuredClone(error.postActionLifecycleEvidence);
+    }
     if (error?.eventDomSemanticEvidence) {
       runtimeState.set("__eventDomSemanticEvidence",
         structuredClone(error.eventDomSemanticEvidence));
@@ -3028,6 +3054,9 @@ async function executeIndependentReadback(
     expectedBehaviorSha256: pending.actionEvidence.expectedBehaviorSha256,
     readbackIdentity: pending.actionEvidence.expectedReadbackIdentity,
     semanticReadback,
+    formResponseIdentity: pending.formResponseIdentity
+      ? structuredClone(pending.formResponseIdentity)
+      : null,
   });
   return {
     actionEvidence: {
@@ -3495,7 +3524,7 @@ function makeNotRun(item, reason) {
 
 function selectDiagnosticCase(cases, caseId, selectionMode) {
   assert(caseId, "--diagnostic-case-id is required with --diagnostic-child");
-  assert(["fixed-remaining-sweep", "explicit-positive-case"].includes(selectionMode),
+  assert(["fixed-remaining-sweep", "explicit-positive-case", "shared-adapter-impact-sweep"].includes(selectionMode),
     "unsupported diagnostic child selection mode");
   if (selectionMode === "explicit-positive-case") {
     const matches = cases.filter(item => item.caseId === caseId);
@@ -3504,6 +3533,14 @@ function selectDiagnosticCase(cases, caseId, selectionMode) {
     assert(item.disposition === "native-executable",
       `diagnostic explicit case must be a positive native-executable case: ${caseId}`);
     return diagnosticSingleCaseSelection(item, selectionMode);
+  }
+  if (selectionMode === "shared-adapter-impact-sweep") {
+    assert(cases.length === 424,
+      `shared adapter impact diagnostic manifest must contain 424 cases: ${cases.length}`);
+    const matches = cases.filter(item => item.caseId === caseId);
+    assert(matches.length === 1,
+      `shared adapter impact diagnostic case is unknown or duplicated: ${caseId}`);
+    return diagnosticSingleCaseSelection(matches[0], selectionMode);
   }
   const firstIndex = cases.findIndex(item => item.caseId === "RULE-097");
   assert(firstIndex >= 0, "RULE-097 diagnostic start case is missing from the canonical manifest");
@@ -4024,7 +4061,8 @@ function parseArgs(args) {
   assert(!value.diagnosticCaseId || value.diagnosticChild,
     "--diagnostic-case-id requires --diagnostic-child");
   assert(value.diagnosticSelectionMode === "fixed-remaining-sweep" ||
-    value.diagnosticSelectionMode === "explicit-positive-case",
+    value.diagnosticSelectionMode === "explicit-positive-case" ||
+    value.diagnosticSelectionMode === "shared-adapter-impact-sweep",
   "--diagnostic-selection-mode must be a supported diagnostic child mode");
   assert(value.diagnosticSelectionMode === "fixed-remaining-sweep" || value.diagnosticChild,
     "--diagnostic-selection-mode requires --diagnostic-child");

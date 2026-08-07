@@ -7339,3 +7339,31 @@ exact/runtime/completion/diagnostic, canonical manifest `424/424`, semantic/feat
 build gate가 PASS했으며 source-built/stored manifest 및 semantic drift가 없어 generator와
 producer는 각 `0회`입니다. 이 checkpoint 시점 `./test_ui.sh`, Policy v4, 30분, 120분,
 release는 미실행이며 실제 acceptance PASS evidence로 사용하지 않습니다.
+
+### REVIEW4-65 shared adapter post-navigation lifecycle checkpoint (2026-08-07)
+
+`6c6e2e71832d47109751efeccedd6c8eb8c52e2e..2d8864c77721be76fd32caeaf1d2e00a6f2b8924`
+shared adapter diff의 `waitForSelector`, `clickWithRequestOwnership`, `click`, `snapshot`,
+`measureVisualState`, `observeRequestedObservedState` 호출 경로를 canonical 424 전체에 대조했습니다.
+모든 case가 공통 post-action visual/runtime observation 경로를 사용하므로 직접 영향 범위는 ordered
+424/424이며, 기존 remaining-125 교집합도 manifest index 299 이후 125/125입니다. Case별 action
+sequence와 source/destination route·selector는
+`test/fixtures/v390_ui_shared_adapter_impact.json`에 digest-bound artifact로 고정했습니다.
+
+UI-002 actual timeout은 `POST /setup` 302→`/login`과 authoritative readback 뒤 exact runner의
+post-action `measureVisualState()`가 pre-action setup submit selector를 다시 `attached`로 기다린
+호출부였습니다. 공통 lifecycle은 pre-action source 검증, action request/response 결속,
+post-navigation destination route/control readback으로 분리하고 redirect 뒤 source selector 재대기를
+금지합니다. Redirect 9건은 `/login` 또는 `/client/live` destination control에 explicit 결속하고,
+no-redirect는 기존 source control 계약을 유지합니다. Missing destination, wrong route, source detach와
+stale source reuse는 fail-closed이며 timeout 축소·assertion 삭제·case 전용 예외는 없습니다.
+
+영향 batch는 `--selection-artifact test/fixtures/v390_ui_shared_adapter_impact.json`만 허용하고,
+artifact를 current canonical native manifest에서 재생성한 값과 exact 비교한 뒤 ordered 424개를
+누락·중복 없이 선택합니다. 이 모드는 explicit 단건 positive 계약을 넓히지 않으며 UI-018
+negative-route도 같은 trusted full-impact batch 안에서만 diagnostic child로 실행합니다.
+
+Adapter RED→GREEN, native exact/runtime/completion/diagnostic 25/25, event/client-safe/catalog, Policy contract,
+semantic audit/approval 986/986, feature evidence 986/986, inventory/docs와 full build가 PASS했습니다.
+Canonical/native fixture drift가 없어 generator/producer는 각 0회입니다. 이 checkpoint 시점 영향
+diagnostic batch와 `./test_ui.sh`, Policy v4 qualification은 미실행이며 actual PASS로 기록하지 않습니다.

@@ -28,6 +28,7 @@ import {
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import { validateEventDomSemanticCompositeEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
+import { buildCanonicalSharedAdapterImpact } from "./v390_ui_shared_adapter_lifecycle.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -48,13 +49,16 @@ validateNativeExactManifest({ manifest, canonical, implementation });
 const diagnosticManifestPath = path.join(outputDir, "diagnostic-native-manifest.json");
 writeJson(diagnosticManifestPath, manifest);
 const fullSelection = fixedSelection(manifest.cases);
-const selectionMode = options.caseId
-  ? "explicit-positive-case"
-  : "fixed-remaining-sweep";
+const selectionMode = options.selectionArtifact
+  ? "shared-adapter-impact-sweep"
+  : options.caseId
+    ? "explicit-positive-case"
+    : "fixed-remaining-sweep";
 const selection = selectedDiagnosticCases({
   fullSelection,
   manifestCases: manifest.cases,
   caseId: options.caseId,
+  selectionArtifact: options.selectionArtifact,
   selectionMode,
 });
 const sourceCommit = currentGitCommit();
@@ -367,10 +371,33 @@ function fixedSelection(cases) {
   return selected;
 }
 
-function selectedDiagnosticCases({ fullSelection, manifestCases, caseId, selectionMode }) {
+function selectedDiagnosticCases({
+  fullSelection,
+  manifestCases,
+  caseId,
+  selectionArtifact,
+  selectionMode,
+}) {
   if (selectionMode === "fixed-remaining-sweep") {
     assert(!caseId, "fixed diagnostic selection cannot receive --case-id");
     return fullSelection;
+  }
+  if (selectionMode === "shared-adapter-impact-sweep") {
+    assert(!caseId, "shared adapter impact selection cannot receive --case-id");
+    const artifact = readJson(selectionArtifact);
+    const expected = buildCanonicalSharedAdapterImpact({
+      schema: manifest.schema,
+      cases: manifestCases,
+    });
+    assert(stableJson(artifact) === stableJson(expected),
+      "shared adapter impact selection artifact does not match the current canonical manifest");
+    const selectedIds = artifact.cases.map(item => item.caseId);
+    assert(selectedIds.length === manifestCases.length &&
+      new Set(selectedIds).size === selectedIds.length &&
+      selectedIds.every((caseId, index) => caseId === manifestCases[index].caseId),
+    "shared adapter impact selection must contain every canonical case once in manifest order");
+    manifestCases.forEach(assertDiagnosticRuntimeBinding);
+    return manifestCases;
   }
   assert(selectionMode === "explicit-positive-case", "unsupported diagnostic selection mode");
   assert(caseId, "explicit diagnostic selection requires --case-id");
@@ -421,6 +448,7 @@ function buildSummary({ result, executionStatus, cases, environments, cleanup })
     pass: cases.filter(item => item.status === "PASS").length,
     fail: cases.filter(item => item.status === "FAIL").length,
     notRun: cases.filter(item => item.status === "not-run").length,
+    unsupported: 0,
   };
   assert(counts.target === counts.attempted + counts.notRun, "diagnostic target/count invariant failed");
   assert(counts.attempted === counts.pass + counts.fail, "diagnostic attempted/count invariant failed");
@@ -825,6 +853,7 @@ function parseArgs(args) {
     planOnly: false,
     caseId: "",
     caseIdSpecified: false,
+    selectionArtifact: "",
     bootstrapFailureContractFixture: "",
   };
   for (let index = 0; index < args.length; index += 1) {
@@ -840,6 +869,10 @@ function parseArgs(args) {
       parsed.caseIdSpecified = true;
       parsed.caseId = args[++index] || "";
     }
+    else if (arg === "--selection-artifact") {
+      assert(!parsed.selectionArtifact, "duplicate --selection-artifact is not allowed");
+      parsed.selectionArtifact = args[++index] || "";
+    }
     else if (arg === "--contract-bootstrap-failure-fixture") {
       parsed.bootstrapFailureContractFixture = args[++index] || "";
     }
@@ -848,6 +881,8 @@ function parseArgs(args) {
   }
   assert(Number.isFinite(parsed.timeoutMs) && parsed.timeoutMs > 0, "--timeout-ms must be positive");
   if (parsed.caseId) assert(/^[A-Z]+-\d{3}$/.test(parsed.caseId), "--case-id must be a canonical case ID");
+  assert(!(parsed.caseId && parsed.selectionArtifact),
+    "--case-id and --selection-artifact are mutually exclusive");
   if (parsed.bootstrapFailureContractFixture) {
     assert(parsed.caseId, "bootstrap failure contract fixture requires --case-id");
   }

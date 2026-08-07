@@ -26,6 +26,12 @@ import {
   resolvePlaywrightModule,
   secretStrippedBrowserEnv,
 } from "./v390_ui_native_adapter.mjs";
+import {
+  buildCanonicalSharedAdapterImpact,
+  buildPostActionLifecyclePlan,
+  evaluatePostActionLifecycle,
+  observePostActionLifecycle,
+} from "./v390_ui_shared_adapter_lifecycle.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -217,6 +223,231 @@ check("selector owner reveal preserves exact text selector identity and rejects 
   assert(failed, "wrong text selector was accepted");
   assert(harness.locatorSelectors.includes(wrong),
     "wrong text selector was rewritten before Playwright resolution");
+});
+
+check("shared adapter impact census covers all canonical 424 cases and the fixed remaining 125", () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const impact = buildCanonicalSharedAdapterImpact(nativeManifest);
+  const storedImpact = JSON.parse(readText("test/fixtures/v390_ui_shared_adapter_impact.json"));
+  assert(impact.caseCount === 424 && impact.cases.length === 424,
+    "shared adapter impact census did not cover canonical 424");
+  assert(new Set(impact.cases.map(item => item.caseId)).size === 424,
+    "shared adapter impact census contains duplicate case IDs");
+  assert(JSON.stringify(impact.cases.map(item => item.caseId)) ===
+    JSON.stringify(nativeManifest.cases.map(item => item.caseId)),
+  "shared adapter impact census changed canonical ordering");
+  assert(impact.remaining125CaseCount === 125 &&
+    JSON.stringify(impact.remaining125CaseIds) ===
+      JSON.stringify(nativeManifest.cases.slice(299).map(item => item.caseId)),
+  "shared adapter impact census changed the fixed remaining-125 selection");
+  for (const family of ["UI-", "EVT-", "CLIENT-", "MEDIA-", "SAFE-"]) {
+    assert(impact.cases.some(item => item.caseId.startsWith(family)),
+      `shared adapter impact census omitted ${family} cases`);
+  }
+  assert(JSON.stringify(storedImpact) === JSON.stringify(impact),
+    "stored shared adapter impact artifact drifted from canonical source analysis");
+});
+
+check("all redirecting document cases bind destination controls and forbid stale source rewait", () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const impact = buildCanonicalSharedAdapterImpact(nativeManifest);
+  const expectedRedirects = [
+    "UI-002", "UI-003", "UI-004", "UI-005", "UI-007",
+    "AUTH-004", "AUTH-005", "AUTH-006", "AUTH-034",
+  ];
+  assert(JSON.stringify(impact.routeTransitionCaseIds) === JSON.stringify(expectedRedirects),
+    "redirecting document case census drifted");
+  for (const caseId of expectedRedirects) {
+    const item = nativeManifest.cases.find(candidate => candidate.caseId === caseId);
+    const plan = buildPostActionLifecyclePlan(item);
+    assert(plan.postNavigation.routeChanged === true &&
+      plan.postNavigation.sourceSelectorRewaitAllowed === false &&
+      plan.postNavigation.selector !== plan.preAction.selector,
+    `${caseId} redirect lifecycle permits stale source reuse`);
+    const accepted = evaluatePostActionLifecycle(plan, {
+      observedRoute: plan.postNavigation.route,
+      destinationObservation: { exists: true, visible: true },
+      sourceObservation: { exists: false, visible: false },
+    });
+    assert(accepted.pass === true && accepted.sourceDetached === true,
+      `${caseId} detached redirect source was not accepted with its destination`);
+  }
+});
+
+check("UI-002 through UI-007 existing canonical cases have explicit post-action lifecycle coverage", () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const existingIds = nativeManifest.cases.map(item => item.caseId);
+  assert(!existingIds.includes("UI-006"), "unexpected canonical UI-006 case appeared");
+  for (const caseId of ["UI-002", "UI-003", "UI-004", "UI-005", "UI-007"]) {
+    const item = nativeManifest.cases.find(candidate => candidate.caseId === caseId);
+    const plan = buildPostActionLifecyclePlan(item);
+    assert(plan.action.sequence.some(action => action.kind === "submit-form"),
+      `${caseId} action sequence lost its form submission`);
+    const destinationMissing = evaluatePostActionLifecycle(plan, {
+      observedRoute: plan.postNavigation.route,
+      destinationObservation: { exists: false, visible: false },
+      sourceObservation: { exists: false, visible: false },
+    });
+    assert(destinationMissing.failureCode === "DESTINATION_CONTROL_MISSING",
+      `${caseId} missing destination did not fail closed`);
+    const wrongRoute = evaluatePostActionLifecycle(plan, {
+      observedRoute: `${plan.postNavigation.route}-wrong`,
+      destinationObservation: { exists: true, visible: true },
+      sourceObservation: { exists: false, visible: false },
+    });
+    assert(wrongRoute.failureCode === "WRONG_DESTINATION_ROUTE",
+      `${caseId} wrong destination route did not fail closed`);
+  }
+});
+
+check("post-action lifecycle separates UI-002 source control from the redirect destination", () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const item = nativeManifest.cases.find(candidate => candidate.caseId === "UI-002");
+  const plan = buildPostActionLifecyclePlan(item, {
+    schema: "media-server.v390-ui-document-form-submit-binding.v1",
+    method: "POST",
+    path: "/setup",
+    status: 302,
+    redirectCount: 1,
+    redirectPath: "/login",
+  });
+  assert(plan.preAction.route === "/setup" &&
+    plan.preAction.selector === '[data-testid="auth-setup-form"] button[type="submit"]',
+  "UI-002 pre-action source binding drifted");
+  assert(plan.postNavigation.route === "/login" &&
+    plan.postNavigation.selector === '[data-testid="auth-login-form"]' &&
+    plan.postNavigation.selector !== plan.preAction.selector,
+  "UI-002 redirect destination reused the stale setup selector");
+  assert(plan.postNavigation.sourceSelectorRewaitAllowed === false,
+    "UI-002 redirect permits a stale source selector rewait");
+});
+
+check("post-action lifecycle accepts redirect and non-redirect boundaries without stale source reuse", () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const ui002 = nativeManifest.cases.find(candidate => candidate.caseId === "UI-002");
+  const redirectPlan = buildPostActionLifecyclePlan(ui002, {
+    schema: "media-server.v390-ui-document-form-submit-binding.v1",
+    method: "POST",
+    path: "/setup",
+    status: 302,
+    redirectCount: 1,
+    redirectPath: "/login",
+  });
+  const redirected = evaluatePostActionLifecycle(redirectPlan, {
+    observedRoute: "/login",
+    destinationObservation: { exists: true, visible: true },
+    sourceObservation: { exists: false, visible: false },
+  });
+  assert(redirected.pass === true && redirected.sourceSelectorRewaited === false,
+    "redirect lifecycle did not accept detached source with a valid destination");
+
+  const auth007 = nativeManifest.cases.find(candidate => candidate.caseId === "AUTH-007");
+  const nonRedirectPlan = buildPostActionLifecyclePlan(auth007, {
+    schema: "media-server.v390-ui-document-form-submit-binding.v1",
+    method: "POST",
+    path: "/login",
+    status: 403,
+    redirectCount: 0,
+    redirectPath: "",
+  });
+  const nonRedirect = evaluatePostActionLifecycle(nonRedirectPlan, {
+    observedRoute: "/login",
+    destinationObservation: { exists: true, visible: true },
+    sourceObservation: { exists: true, visible: true },
+  });
+  assert(nonRedirect.pass === true &&
+    nonRedirectPlan.postNavigation.selector === nonRedirectPlan.preAction.selector,
+  "non-redirect lifecycle changed the source control contract");
+});
+
+check("post-action lifecycle fails closed for missing destination and wrong destination route", () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const item = nativeManifest.cases.find(candidate => candidate.caseId === "UI-002");
+  const plan = buildPostActionLifecyclePlan(item, {
+    schema: "media-server.v390-ui-document-form-submit-binding.v1",
+    method: "POST",
+    path: "/setup",
+    status: 302,
+    redirectCount: 1,
+    redirectPath: "/login",
+  });
+  const missing = evaluatePostActionLifecycle(plan, {
+    observedRoute: "/login",
+    destinationObservation: { exists: false, visible: false },
+    sourceObservation: { exists: false, visible: false },
+  });
+  assert(missing.pass === false && missing.failureCode === "DESTINATION_CONTROL_MISSING",
+    "missing redirect destination control did not fail closed");
+  const wrongRoute = evaluatePostActionLifecycle(plan, {
+    observedRoute: "/setup",
+    destinationObservation: { exists: true, visible: true },
+    sourceObservation: { exists: true, visible: true },
+  });
+  assert(wrongRoute.pass === false && wrongRoute.failureCode === "WRONG_DESTINATION_ROUTE",
+    "wrong redirect destination route did not fail closed");
+});
+
+check("post-action lifecycle waits only for the destination selector after redirect", async () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const item = nativeManifest.cases.find(candidate => candidate.caseId === "UI-002");
+  const plan = buildPostActionLifecyclePlan(item);
+  const waitedSelectors = [];
+  const browser = {
+    waitForSelector: async (selector, options) => {
+      waitedSelectors.push({ selector, state: options.state });
+    },
+    evaluate: async () => "/login",
+    snapshot: async selector => ({
+      selector,
+      exists: selector === '[data-testid="auth-login-form"]',
+      visible: true,
+    }),
+  };
+  const observed = await observePostActionLifecycle(browser, plan, {
+    sourceObservation: { exists: false, visible: false },
+  });
+  assert(observed.evidence.pass === true && observed.evidence.sourceDetached === true,
+    "redirect destination lifecycle did not accept a detached source");
+  assert(JSON.stringify(waitedSelectors) === JSON.stringify([{
+    selector: '[data-testid="auth-login-form"]',
+    state: "visible",
+  }]), "redirect lifecycle waited for a stale source selector");
+});
+
+check("post-action destination wait failures retain structured fail-closed evidence", async () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const item = nativeManifest.cases.find(candidate => candidate.caseId === "UI-002");
+  const plan = buildPostActionLifecyclePlan(item);
+  const browser = {
+    waitForSelector: async () => { throw new Error("destination timeout"); },
+    evaluate: async () => "/login",
+    snapshot: async selector => ({ selector, exists: false, visible: false }),
+  };
+  let failure = null;
+  try {
+    await observePostActionLifecycle(browser, plan, {
+      sourceObservation: { exists: false, visible: false },
+    });
+  } catch (error) {
+    failure = error;
+  }
+  assert(failure?.postActionLifecycleEvidence?.failureCode === "DESTINATION_CONTROL_MISSING",
+    "destination timeout lost the structured missing-control evidence");
+});
+
+check("exact runner binds visual evidence to the post-action destination lifecycle", () => {
+  for (const snippet of [
+    "buildPostActionLifecyclePlan",
+    "observePostActionLifecycle",
+    "postActionLifecyclePlan",
+    "postActionLifecycleEvidence",
+  ]) {
+    assert(exactRunnerSource.includes(snippet),
+      `exact runner post-action lifecycle integration missing ${snippet}`);
+  }
+  assert(!exactRunnerSource.includes(
+    'const visualTargetSelector = item.controlAction.targetSelector || "body";'),
+  "exact runner still reuses the pre-action source selector for post-action visual evidence");
 });
 
 check("canonical selector dialect audit leaves no Playwright selector path in native DOM APIs", () => {

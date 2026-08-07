@@ -1210,6 +1210,35 @@ check("plan-only diagnostic output preserves count invariants without browser ex
   "diagnostic runtime PID/port/root cleanup attestation is incomplete");
 });
 
+check("shared adapter impact artifact selects all 424 canonical cases once in manifest order", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "shared-adapter-impact-contract-"));
+  temporaryDirs.push(outputDir);
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", "test/fixtures/v390_ui_shared_adapter_impact.json",
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0, `shared adapter impact plan failed: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  const expectedIds = manifest.cases.map(item => item.caseId);
+  assert(summary.selection?.mode === "shared-adapter-impact-sweep" &&
+    summary.selection?.targetCaseCount === 424 &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(expectedIds) &&
+    new Set(summary.selection?.selectedIds || []).size === 424,
+  "shared adapter impact selection is missing, duplicated, or reordered");
+  assert(summary.counts.target === 424 && summary.counts.attempted === 0 &&
+    summary.counts.pass === 0 && summary.counts.fail === 0 &&
+    summary.counts.notRun === 424 && summary.counts.unsupported === 0,
+  "shared adapter impact plan count invariant mismatch");
+  assert(summary.sourceBinding?.selectionMode === "shared-adapter-impact-sweep" &&
+    summary.sourceBinding?.selectionIdsSha256 === summary.selection?.targetCaseIdsSha256 &&
+    summary.actualBrowserExecution === false,
+  "shared adapter impact source binding or browser boundary mismatch");
+});
+
 check("actual diagnostic builds and binds the current source before browser bootstrap", () => {
   assert(sweepSource.includes("buildCurrentSourceBoundBinary()") &&
     sweepSource.includes('spawnSync(path.join(rootDir, "server.sh"), ["build"]') &&
@@ -1319,6 +1348,40 @@ check("diagnostic child explicit-positive mode revalidates UI-001 identity and s
     summary.sourceBinding?.buildSha256 === buildSha256 &&
     summary.actualBrowserExecution === false,
   "explicit positive child selection/source binding drift");
+});
+
+check("shared adapter impact child accepts the canonical negative-route case without widening explicit positives", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "child-shared-impact-contract-"));
+  temporaryDirs.push(outputDir);
+  const canonical = JSON.parse(read("test/fixtures/ui_fulltest_case_manifest_policy_v4.json"));
+  const implementation = JSON.parse(read("test/fixtures/project_feature_implementation_evidence.json"));
+  const diagnosticManifestPath = path.join(outputDir, "diagnostic-native-manifest.json");
+  const nativeManifest = buildNativeExactManifest({ canonical, implementation });
+  fs.writeFileSync(diagnosticManifestPath, `${JSON.stringify(nativeManifest, null, 2)}\n`, "utf8");
+  const manifestSha256 = createHash("sha256").update(stableJson(nativeManifest)).digest("hex");
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-exact-cases",
+    "--diagnostic-child",
+    "--diagnostic-case-id", "UI-018",
+    "--diagnostic-selection-mode", "shared-adapter-impact-sweep",
+    "--manifest", diagnosticManifestPath,
+    "--diagnostic-source-commit", "2".repeat(40),
+    "--diagnostic-manifest-sha256", manifestSha256,
+    "--diagnostic-build-sha256", "3".repeat(64),
+    "--diagnostic-run-id", "diagnostic-child-shared-impact-contract",
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0, `shared impact UI-018 child plan failed: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  assert(summary.selection?.caseId === "UI-018" &&
+    summary.selection?.mode === "shared-adapter-impact-sweep" &&
+    summary.sourceBinding?.selectionMode === "shared-adapter-impact-sweep" &&
+    summary.selection?.automaticRetryCount === 0 &&
+    summary.actualBrowserExecution === false,
+  "shared adapter impact child selection/source binding drift");
 });
 
 check("server dispatch exposes only the internal run and verification commands", () => {
