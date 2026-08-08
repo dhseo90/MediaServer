@@ -18,6 +18,7 @@ import {
   domSnapshotDigest,
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
+import { traceSafeWorkflowInputs } from "./v390_ui_native_exact_cases_lib.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const runId = "v390-ui-diagnostic-20260806130704-74153";
@@ -69,6 +70,18 @@ const adapterSource = source("scripts/internal/v390_ui_native_adapter.mjs");
 const runnerSource = source("scripts/internal/run_v390_ui_native_exact_cases.mjs");
 const rendererSource = source("src/ingress/product_ui_page_scripts.cpp");
 const incidentSource = source("src/ingress/webrtc_http_server_ops_incidents.cpp");
+const eventRecordImpactArtifactPath = path.join(
+  root,
+  "test/fixtures/v390_ui_event_record_owner_impact_20260809.json",
+);
+const eventRecordImpactArtifact = JSON.parse(fs.readFileSync(eventRecordImpactArtifactPath));
+const currentAcceptanceRoot = path.join(
+  root,
+  ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260808104018-55067/ui-exact-424",
+);
+const currentAcceptanceSummaryBytes = fs.readFileSync(path.join(currentAcceptanceRoot, "summary.json"));
+const currentAcceptanceSummary = JSON.parse(currentAcceptanceSummaryBytes);
+const currentEvt007TraceBytes = fs.readFileSync(path.join(currentAcceptanceRoot, "traces/EVT-007.trace.json"));
 
 const failures = [];
 const closures = new Set();
@@ -140,6 +153,120 @@ close(["EVT-070"],
   rendererSource.includes('data-event-semantic-field="activeFilters" data-event-semantic-value="${escapeHtml(String(value))}"'),
   "active filter renderer does not expose its authoritative value to semantic observation");
 
+const { digest: eventRecordImpactDigest, ...eventRecordImpactPayload } = eventRecordImpactArtifact;
+assert.equal(
+  eventRecordImpactDigest,
+  sha256(stableJson(eventRecordImpactPayload)),
+  "EventRecord impact artifact immutable digest drift",
+);
+assert.equal(
+  sha256(currentAcceptanceSummaryBytes),
+  eventRecordImpactArtifact.sourceBinding.parentSummarySha256,
+  "EventRecord impact parent summary digest drift",
+);
+assert.equal(
+  sha256(currentEvt007TraceBytes),
+  eventRecordImpactArtifact.sourceBinding.evt007TraceSha256,
+  "EVT-007 actual trace digest drift",
+);
+assert.deepEqual(currentAcceptanceSummary.coverage, {
+  ...currentAcceptanceSummary.coverage,
+  attempted: 292,
+  pass: 291,
+  fail: 1,
+  notRun: 132,
+  unsupported: 0,
+});
+assert.equal(currentAcceptanceSummary.cases[290]?.testId, "EVT-004");
+assert.equal(currentAcceptanceSummary.cases[290]?.rawOutcome, "completed");
+assert.equal(currentAcceptanceSummary.cases[291]?.testId, "EVT-007");
+const actualEvt007Projection = currentAcceptanceSummary.cases[291]
+  ?.failureLifecycleEvidence?.primaryFailureEvidence?.structuredEvidence
+  ?.eventDomSemanticEvidence?.responseDerivedDomProjection;
+assert.equal(actualEvt007Projection?.failureCode, "RESPONSE_FIELD_OWNER_MISSING");
+assert.deepEqual(
+  actualEvt007Projection?.fieldEvidence?.map(field => field.responseOwnerCount),
+  [2, 0, 2, 2],
+  "EVT-007 actual RED owner counts drift",
+);
+assert.deepEqual(
+  actualEvt007Projection?.fieldEvidence?.map(field => field.projectedValueCount),
+  [2, 0, 2, 46],
+  "EVT-007 actual RED projection counts drift",
+);
+
+const eventRecordFixtureId = "evt-007-review4-fixture";
+const evt007Projection = evaluateResponseDerivedDomFieldProjection({
+  caseId: "EVT-007",
+  operator: "row-fields-equal-response",
+  target: "eventId/ruleId/scenarioName/evidence",
+  fixtureIdentity: eventRecordFixtureId,
+  fixtureCandidates: [eventRecordFixtureId],
+  responseBodies: [{
+    records: {
+      records: [
+        {
+          eventId: eventRecordFixtureId,
+          scenarioName: "review4 fixture scenario",
+          scenarioPhase: "review",
+          snapshotPath: "/test-owned/evt-007-snapshot.jpg",
+          clipPath: "/test-owned/evt-007-clip.mp4",
+          metadata: {},
+        },
+        {
+          eventId: `${eventRecordFixtureId}-state-1`,
+          scenarioName: "archived scenario",
+          snapshotPath: "/test-owned/unrelated.jpg",
+          clipPath: "/test-owned/unrelated.mp4",
+          metadata: { ruleId: "unrelated-rule" },
+        },
+      ],
+    },
+  }],
+  observation: {
+    count: 1,
+    visibleCount: 1,
+    semanticNodes: [{
+      eventId: eventRecordFixtureId,
+      attributes: {},
+      fields: {
+        scenarioName: ["review4 fixture scenario · review"],
+        evidence: ["evt-007-snapshot.jpg", "evt-007-clip.mp4"],
+      },
+    }],
+  },
+});
+close(["EVT-007"],
+  responseDerivedDomProjectionContractFor({
+    caseId: "EVT-007",
+    operator: "row-fields-equal-response",
+    target: "eventId/ruleId/scenarioName/evidence",
+  })?.collectionPath === "records.records" && evt007Projection.pass,
+  "EventRecord fields are not bound to one fixture-owned collection row and DOM owner");
+
+const fullSrc031Inputs = [{
+  kind: "endpoint-action-fixture",
+  actualValue: {
+    method: "POST",
+    path: "/ops/api/sources/onvif",
+    body: { sourceUrl: "rtsp://viewer:credential@example.invalid/live", credentialRef: "secret-ref" },
+    setup: { profileToken: "sensitive-profile" },
+    readback: { sourceUrl: "rtsp://example.invalid/live" },
+  },
+}];
+const src031TraceInputs = traceSafeWorkflowInputs(fullSrc031Inputs);
+const src031TraceText = JSON.stringify(src031TraceInputs);
+close(["SRC-031"],
+  fullSrc031Inputs[0].actualValue.body.sourceUrl.startsWith("rtsp://") &&
+    src031TraceInputs[0].actualValue.method === "POST" &&
+    src031TraceInputs[0].actualValue.path === "/ops/api/sources/onvif" &&
+    src031TraceInputs[0].actualValue.body.retention === "digest-only" &&
+    /^[0-9a-f]{64}$/.test(src031TraceInputs[0].actualValue.body.sha256) &&
+    !src031TraceText.includes("rtsp://") &&
+    !src031TraceText.includes("credentialRef") &&
+    !src031TraceText.includes("profileToken"),
+  "endpoint fixture execution input is not retained as digest-only trace evidence");
+
 const evt075Action = actual.get("EVT-075").trace.actions[0];
 const evt075Observation = { actual: evt075Action.observed };
 const evt075Completion = evaluateCompletionOracle({
@@ -192,9 +319,18 @@ assert(evaluatorSource.includes("RESPONSE_FIELD_OWNER_AMBIGUOUS") &&
   evaluatorSource.includes("RENDERER_PROJECTION_VALUE_MISMATCH"),
 "response/DOM fail-closed failure classes were removed");
 
-if (failures.length > 0 || closures.size !== 10) {
+if (failures.length > 0 || closures.size !== 12) {
   failures.forEach(failure => console.error(`RED ${failure}`));
-  console.error(`v390 UI native diagnostic final trace replay: FAIL ${closures.size}/10`);
+  console.error(`v390 UI native diagnostic final trace replay: FAIL ${closures.size}/12`);
   process.exit(1);
 }
-console.log(`v390 UI native diagnostic final trace replay: PASS ${closures.size}/10`);
+console.log(`v390 UI native diagnostic final trace replay: PASS ${closures.size}/12`);
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort()
+      .map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}

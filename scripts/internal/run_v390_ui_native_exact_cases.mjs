@@ -29,6 +29,7 @@ import {
   createNativeExactExecutionFailureSummary,
   createNativeExactPreExecutionFailureSummary,
   ruleRelationshipFixtureIdentity,
+  traceSafeWorkflowInputs,
   validateNativeExactCaptureSummary,
   validateNativeExactManifest,
 } from "./v390_ui_native_exact_cases_lib.mjs";
@@ -433,7 +434,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     observed: null,
     navigation: null,
     setup: [],
-    inputs: structuredClone(item.workflow.inputs),
+    inputs: traceSafeWorkflowInputs(item.workflow.inputs),
     actions: [],
     completionEvents: [],
     rawPrimaryObservations: [],

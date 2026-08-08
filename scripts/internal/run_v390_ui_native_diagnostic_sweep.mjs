@@ -28,6 +28,7 @@ import {
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import { validateEventDomSemanticCompositeEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
+import { eventRecordFixtureFamilyCaseIds } from "./v390_ui_case_runtime.mjs";
 import { buildCanonicalSharedAdapterImpact } from "./v390_ui_shared_adapter_lifecycle.mjs";
 import {
   buildDiagnosticSelectionContract,
@@ -574,6 +575,29 @@ function selectedDiagnosticCases({
     assert(selected.every((item, index) => index === 0 ||
       manifestCases.indexOf(selected[index - 1]) < manifestCases.indexOf(item)),
     "diagnostic failure closure order does not match the canonical manifest");
+    selected.forEach(assertDiagnosticRuntimeBinding);
+    return selected;
+  }
+  if (selectionMode === diagnosticSelectionModes.eventRecordOwnerImpactSweep) {
+    assert(!caseId, "EventRecord owner impact selection cannot receive --case-id");
+    const artifact = readJson(selectionArtifact);
+    assert(artifact.schema === "media-server.v390-ui-event-record-owner-impact.v1",
+      "EventRecord owner impact schema mismatch");
+    const { digest, ...payload } = artifact;
+    assert(/^[0-9a-f]{64}$/.test(digest) && sha256(stableJson(payload)) === digest,
+      "EventRecord owner impact immutable digest mismatch");
+    const selectedIds = artifact.selectedIds;
+    assert(Array.isArray(selectedIds) && selectedIds.length === 6 &&
+      new Set(selectedIds).size === selectedIds.length,
+    "EventRecord owner impact must contain exactly six unique ordered cases");
+    assert(stableJson(selectedIds) === stableJson(eventRecordFixtureFamilyCaseIds),
+      "EventRecord owner impact case family mismatch");
+    const byId = new Map(manifestCases.map(item => [item.caseId, item]));
+    const selected = selectedIds.map(selectedCaseId => byId.get(selectedCaseId));
+    assert(selected.every(Boolean), "EventRecord owner impact contains an unknown case ID");
+    assert(selected.every((item, index) => index === 0 ||
+      manifestCases.indexOf(selected[index - 1]) < manifestCases.indexOf(item)),
+    "EventRecord owner impact order does not match the canonical manifest");
     selected.forEach(assertDiagnosticRuntimeBinding);
     return selected;
   }

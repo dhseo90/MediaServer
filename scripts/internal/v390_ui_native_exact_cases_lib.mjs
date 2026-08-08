@@ -34,6 +34,28 @@ export const review4WorkflowClasses = Object.freeze([
   "hidden-disabled",
   "negative-route",
 ]);
+
+export function traceSafeWorkflowInputs(inputs = []) {
+  if (!Array.isArray(inputs)) throw new Error("trace workflow inputs must be an array");
+  return inputs.map(input => {
+    const projected = structuredClone(input);
+    if (projected?.kind !== "endpoint-action-fixture") return projected;
+    const actual = input?.actualValue || {};
+    const digestOnly = value => ({
+      retention: "digest-only",
+      present: value !== undefined && value !== null,
+      sha256: sha256Text(JSON.stringify(value ?? null)),
+    });
+    projected.actualValue = {
+      method: String(actual.method || ""),
+      path: String(actual.path || ""),
+      body: digestOnly(actual.body),
+      setup: digestOnly(actual.setup),
+      readback: digestOnly(actual.readback),
+    };
+    return projected;
+  });
+}
 export const review4WorkflowClassExpectedCounts = Object.freeze({
   actionable: 28,
   "form-submit": 16,

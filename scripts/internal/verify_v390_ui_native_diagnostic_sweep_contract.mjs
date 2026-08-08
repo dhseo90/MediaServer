@@ -25,6 +25,7 @@ import {
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import { buildRequestSemanticAssertionEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
+import { eventRecordFixtureFamilyCaseIds } from "./v390_ui_case_runtime.mjs";
 import {
   buildDiagnosticSelectionContract,
   diagnosticSelectionModeForArtifactSchema,
@@ -1182,6 +1183,7 @@ check("parent and child share one fail-closed diagnostic selection registry", ()
       "shared-adapter-impact-sweep",
       "diagnostic-failure-census-sweep",
       "diagnostic-failure-closure-sweep",
+      "event-record-owner-impact-sweep",
     ]), "diagnostic selection registry mode set drift");
   assert(diagnosticSelectionModeForArtifactSchema(
     "media-server.v390-ui-shared-adapter-impact.v1") ===
@@ -1191,7 +1193,10 @@ check("parent and child share one fail-closed diagnostic selection registry", ()
         diagnosticSelectionModes.diagnosticFailureCensusSweep &&
     diagnosticSelectionModeForArtifactSchema(
       "media-server.v390-ui-diagnostic-failure-closure.v1") ===
-        diagnosticSelectionModes.diagnosticFailureClosureSweep,
+      diagnosticSelectionModes.diagnosticFailureClosureSweep &&
+    diagnosticSelectionModeForArtifactSchema(
+      "media-server.v390-ui-event-record-owner-impact.v1") ===
+        diagnosticSelectionModes.eventRecordOwnerImpactSweep,
   "diagnostic artifact schema registry drift");
   for (const stale of ["", "stale-mode", "diagnostic-failure-census-sweep-v0"]) {
     let failed = false;
@@ -1490,6 +1495,74 @@ check("immutable failure closure selects the exact remaining seven through the r
   assert(rejected.status !== 0 &&
     `${rejected.stderr || ""}${rejected.stdout || ""}`.includes("immutable digest mismatch"),
   "tampered failure closure selection was accepted");
+});
+
+check("immutable EventRecord owner impact selects the exact six through the real child preflight", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "event-record-owner-impact-contract-"));
+  temporaryDirs.push(outputDir);
+  const artifactPath = "test/fixtures/v390_ui_event_record_owner_impact_20260809.json";
+  const artifact = JSON.parse(read(artifactPath));
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", artifactPath,
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0, `EventRecord owner impact plan failed: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  assert(summary.selection?.mode === "event-record-owner-impact-sweep" &&
+    summary.selection?.targetCaseCount === 6 &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(artifact.selectedIds) &&
+    JSON.stringify(artifact.selectedIds) === JSON.stringify(eventRecordFixtureFamilyCaseIds) &&
+    new Set(summary.selection?.selectedIds || []).size === 6 &&
+    summary.counts.target === 6 && summary.counts.attempted === 0 &&
+    summary.counts.pass === 0 && summary.counts.fail === 0 &&
+    summary.counts.notRun === 6 && summary.counts.unsupported === 0 &&
+    summary.actualBrowserExecution === false,
+  "EventRecord owner impact selection is missing, duplicated, reordered, or started a browser");
+  const childPreflight = summary.childSelectionPreflight;
+  assert(childPreflight?.phase === "child-selection-preflight" &&
+    childPreflight.status === "PASS" && childPreflight.exitCode === 0 &&
+    childPreflight.actualBrowserExecution === false &&
+    childPreflight.selectionMode === "event-record-owner-impact-sweep" &&
+    childPreflight.targetCaseCount === 6 &&
+    childPreflight.targetCaseIdsSha256 === summary.selection.targetCaseIdsSha256 &&
+    childPreflight.childAcceptedTargetCaseCount === 6 &&
+    childPreflight.childAcceptedTargetCaseIdsSha256 ===
+      summary.selection.targetCaseIdsSha256,
+  "EventRecord owner impact did not pass the real no-browser child subprocess preflight");
+  const tampered = structuredClone(artifact);
+  tampered.selectedIds = [...tampered.selectedIds].reverse();
+  const tamperedPath = path.join(outputDir, "tampered-event-record-owner-impact.json");
+  fs.writeFileSync(tamperedPath, `${JSON.stringify(tampered)}\n`, "utf8");
+  const rejected = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", tamperedPath,
+    "--plan-only",
+    "--output-dir", path.join(outputDir, "tampered-output"),
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(rejected.status !== 0 &&
+    `${rejected.stderr || ""}${rejected.stdout || ""}`.includes("immutable digest mismatch"),
+  "tampered EventRecord owner impact selection was accepted");
+
+  const wrongFamily = structuredClone(artifact);
+  wrongFamily.selectedIds = manifest.cases.slice(0, 6).map(item => item.caseId);
+  delete wrongFamily.digest;
+  wrongFamily.digest = createHash("sha256").update(stableJson(wrongFamily)).digest("hex");
+  const wrongFamilyPath = path.join(outputDir, "wrong-family-event-record-owner-impact.json");
+  fs.writeFileSync(wrongFamilyPath, `${JSON.stringify(wrongFamily)}\n`, "utf8");
+  const wrongFamilyRun = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", wrongFamilyPath,
+    "--plan-only",
+    "--output-dir", path.join(outputDir, "wrong-family-output"),
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(wrongFamilyRun.status !== 0 &&
+    `${wrongFamilyRun.stderr || ""}${wrongFamilyRun.stdout || ""}`.includes(
+      "EventRecord owner impact case family mismatch"),
+  "a correctly digested but unrelated six-case selection was accepted");
 });
 
 check("child selection preflight failure preserves process evidence without attempting a UI case", () => {

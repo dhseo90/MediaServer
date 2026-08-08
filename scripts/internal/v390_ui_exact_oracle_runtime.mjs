@@ -1822,6 +1822,14 @@ async function observeDom(
     .filter(Boolean))];
   assert(projectionSelectors.length <= 1,
     `${item.caseId} DOM projection contracts disagree on the owner selector`);
+  const projectionContracts = (assertion.assertions || [])
+    .map(candidate => responseDerivedDomProjectionContractFor({
+      caseId: item.caseId,
+      operator: String(candidate.operator || ""),
+      target: String(candidate.target || ""),
+    }))
+    .filter(Boolean);
+  const projectionDomFields = projectionContracts[0]?.domFields || {};
   const selector = expand(String(projectionSelectors[0] || assertion.selector || ""), bindings);
   if ((assertion.propertyAssertions || []).some(candidate =>
       candidate.name === "boundingRectWithinViewport")) {
@@ -1871,6 +1879,7 @@ async function observeDom(
     const nodes = Array.from(document.querySelectorAll(${JSON.stringify(selector)}));
     const descendantSelectors = ${JSON.stringify(descendantSelectors)};
     const requiredAttributeNames = ${JSON.stringify(requiredAttributeNames)};
+    const projectionDomFields = ${JSON.stringify(projectionDomFields)};
     const rects = nodes.map(node => node.getBoundingClientRect());
     const overlaps = rects.flatMap((left, index) => rects.slice(index + 1).map(right =>
       left.left < right.right && left.right > right.left && left.top < right.bottom && left.bottom > right.top)).filter(Boolean).length;
@@ -1902,6 +1911,26 @@ async function observeDom(
           text: String(field.getAttribute('data-event-semantic-value') ??
             field.innerText ?? field.textContent ?? '').replace(/\\s+/g, ' ').trim().slice(0, 4000),
         }));
+        const declaredFieldEntries = Object.entries(projectionDomFields).flatMap(([name, descriptor]) => {
+          const selected = Array.from(node.querySelectorAll(String(descriptor?.selector || '')))
+            .map(field => String(field.innerText ?? field.textContent ?? '')
+              .replace(/\\s+/g, ' ').trim().slice(0, 4000));
+          if (descriptor?.mode === 'prefixed-text') {
+            const prefix = String(descriptor?.prefix || '');
+            return selected.filter(value => value.startsWith(prefix))
+              .map(value => ({ name, text: value.slice(prefix.length) }));
+          }
+          if (descriptor?.mode === 'single-text') {
+            return selected.slice(0, 1).filter(Boolean).map(text => ({ name, text }));
+          }
+          if (descriptor?.mode === 'delimiter-text') {
+            const delimiter = String(descriptor?.delimiter || '');
+            return selected.flatMap(value => delimiter ? value.split(delimiter) : [value])
+              .map(value => value.trim()).filter(Boolean).map(text => ({ name, text }));
+          }
+          return [];
+        });
+        fieldEntries.push(...declaredFieldEntries);
         const fieldNames = [...new Set(fieldEntries.map(field => field.name).filter(Boolean))];
         return {
           index,

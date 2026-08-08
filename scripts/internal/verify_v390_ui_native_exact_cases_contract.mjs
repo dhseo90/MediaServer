@@ -21,6 +21,7 @@ import {
   validateNativeExactManifest,
   validateNativeExactPreExecutionFailureSummary,
 } from "./v390_ui_native_exact_cases_lib.mjs";
+import * as nativeExactCasesLib from "./v390_ui_native_exact_cases_lib.mjs";
 import {
   canonicalRequestedProjection,
   expectedRuntimeObservation,
@@ -1863,6 +1864,27 @@ check("exact-case implementation projection drift and whole-file fallback are re
   wholeFileFallback.sourceBindings.implementationSha256 = "0".repeat(64);
   expectManifestInvalid(wholeFileFallback, canonical, implementation,
     "whole-file implementation source binding is forbidden");
+});
+
+check("endpoint action execution inputs retain full runtime values but trace inputs are release-safe digests", () => {
+  const item = manifest.cases.find(candidate => candidate.caseId === "SRC-031");
+  assert(item, "SRC-031 native case is missing");
+  const sourceInputs = item.workflow.inputs;
+  const sourceBefore = JSON.stringify(sourceInputs);
+  const traceInputs = nativeExactCasesLib.traceSafeWorkflowInputs(sourceInputs);
+  const serialized = JSON.stringify(traceInputs);
+  const endpoint = traceInputs.find(input => input.kind === "endpoint-action-fixture");
+  assert(endpoint?.actualValue?.method === "POST" &&
+    endpoint?.actualValue?.path === "/ops/api/onvif/import-draft" &&
+    endpoint?.actualValue?.body?.retention === "digest-only" &&
+    /^[0-9a-f]{64}$/.test(endpoint?.actualValue?.body?.sha256 || ""),
+  "endpoint action trace-safe body attestation is incomplete");
+  assert(!/(?:https?|rtsp|rtsps):\/\//i.test(serialized) &&
+    !/credentialRef|operator-entered-secret|profile-live-main/.test(serialized),
+  "endpoint action trace retained forbidden fixture material");
+  assert(JSON.stringify(sourceInputs) === sourceBefore &&
+    /rtsp:\/\//i.test(sourceBefore),
+  "trace projection mutated or weakened the execution-owned input");
 });
 
 check("admin-only ops users cases and runtime role schema stay authoritative", () => {

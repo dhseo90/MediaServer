@@ -33,7 +33,7 @@ const gates = Object.freeze([
   {
     label: "final",
     script: "verify_v390_ui_native_diagnostic_trace_replay_final_contract.mjs",
-    expected: /final trace replay: PASS 10\/10/,
+    expected: /final trace replay: PASS 12\/12/,
     count: 10,
   },
   {

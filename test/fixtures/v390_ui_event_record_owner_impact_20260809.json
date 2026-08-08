@@ -1,0 +1,68 @@
+{
+  "schema": "media-server.v390-ui-event-record-owner-impact.v1",
+  "sourceBinding": {
+    "gitCommit": "54468725f67bd83d0691e60ef90906cae4b19c2d",
+    "runId": "v390-test-acceptance-20260808104018-55067",
+    "caseManifestSha256": "eb99180530180179c632807fa2598c79f04891ac696c2be87f3e39a1b628f3fe",
+    "nativeExactManifestSha256": "0b9610a1f5a57b330faa15e04632cd87cbcee5d2e2ce1f245202bc72bec60dae",
+    "buildSha256": "93482b03f2e60df0b4a3f46178e90c83713948cffe9b594bdd3a3aa98b7c4e26",
+    "parentSummarySha256": "18958d1a53ba80e4f2977b4b14b387cf580cb814c2afa23f1c8c362d9e8b33bf",
+    "evt007TraceSha256": "a43e28302f0369202b06f79cce764948ebabe72cda68c310c60310daa069c252"
+  },
+  "sourceCounts": {
+    "target": 424,
+    "attempted": 292,
+    "pass": 291,
+    "fail": 1,
+    "notRun": 132,
+    "unsupported": 0
+  },
+  "preservedActual": {
+    "passCount": 291,
+    "evt004Pass": true,
+    "impactCasesWithinPreservedPass": []
+  },
+  "selectedIds": [
+    "EVT-007",
+    "EVT-020",
+    "EVT-023",
+    "EVT-026",
+    "EVT-048",
+    "EVT-049"
+  ],
+  "impactCases": [
+    {"caseId": "EVT-007", "manifestIndex": 291, "route": "/ops/events"},
+    {"caseId": "EVT-020", "manifestIndex": 296, "route": "/ops/events"},
+    {"caseId": "EVT-023", "manifestIndex": 299, "route": "/ops/dashboard"},
+    {"caseId": "EVT-026", "manifestIndex": 302, "route": "/ops/dashboard"},
+    {"caseId": "EVT-048", "manifestIndex": 315, "route": "/ops/dashboard"},
+    {"caseId": "EVT-049", "manifestIndex": 316, "route": "/ops/events"}
+  ],
+  "eventRecordContract": {
+    "collectionPath": "records.records",
+    "identityPaths": ["eventId"],
+    "domOwnerSelector": "#eventRecordRows [data-event-semantic-event-id={fixtureId}]",
+    "fields": [
+      {"name": "eventId", "paths": ["eventId"], "classification": "top-level-required"},
+      {"name": "ruleId", "paths": ["metadata.ruleId", "ruleId", "vaRuleId"], "classification": "nested-or-top-level-optional"},
+      {"name": "scenarioName", "paths": ["scenarioName", "scenarioPhase", "className"], "classification": "top-level-renderer-projection"},
+      {"name": "evidence", "paths": ["snapshotPath", "clipPath"], "classification": "top-level-renderer-projection"}
+    ]
+  },
+  "actualFailure": {
+    "caseId": "EVT-007",
+    "operator": "row-fields-equal-response",
+    "failureCode": "RESPONSE_FIELD_OWNER_MISSING",
+    "fieldOwnerCounts": [2, 0, 2, 2],
+    "projectedValueCounts": [2, 0, 2, 46],
+    "matchedValueCounts": [2, 0, 2, 4]
+  },
+  "securityFinding": {
+    "independent": true,
+    "caseId": "SRC-031",
+    "findingId": "viewer-source-url",
+    "boundary": "trace.inputs.endpoint-action-fixture.actualValue.body",
+    "retention": "digest-only"
+  },
+  "digest": "e4ff196549a5b14fdb980e7b34ddfcbba1a375f5c723cae08d124241cba5fdef"
+}

@@ -44,6 +44,113 @@ check("path resolver expands array projections without inventing missing values"
   assert(eventExactValuesAtPath(value, "records[].missing").length === 0, "missing path was invented");
 });
 
+check("EVT-007 binds every projected EventRecord field to one authoritative collection owner", () => {
+  const fixtureId = "evt-007-review4-fixture";
+  const base = {
+    caseId: "EVT-007",
+    operator: "row-fields-equal-response",
+    target: "eventId/ruleId/scenarioName/evidence",
+    fixtureCandidates: [fixtureId],
+    fixtureIdentity: fixtureId,
+    responseBodies: [{
+      records: {
+        records: [
+          {
+            eventId: fixtureId,
+            scenarioName: fixtureId,
+            scenarioPhase: "",
+            className: "person",
+            snapshotPath: `snapshots/${fixtureId}.jpg`,
+            clipPath: `clips/${fixtureId}.mp4`,
+            metadata: {},
+          },
+          {
+            eventId: `${fixtureId}-state-1`,
+            scenarioName: `${fixtureId}-state-1`,
+            snapshotPath: `snapshots/${fixtureId}-state-1.jpg`,
+            clipPath: `clips/${fixtureId}-state-1.mp4`,
+            metadata: { ruleId: "unrelated-rule" },
+          },
+        ],
+      },
+    }],
+    observation: {
+      count: 1,
+      visibleCount: 1,
+      semanticNodes: [{
+        eventId: fixtureId,
+        attributes: {},
+        fields: {
+          ruleId: [],
+          scenarioName: [fixtureId],
+          evidence: [`${fixtureId}.jpg`, `${fixtureId}.mp4`],
+        },
+      }],
+    },
+  };
+  const contract = responseDerivedDomProjectionContractFor(base);
+  assert(contract?.collectionPath === "records.records" &&
+    JSON.stringify(contract.identityPaths) === JSON.stringify(["eventId"]),
+  "EVT-007 authoritative EventRecord owner contract is missing");
+  const pass = evaluateResponseDerivedDomFieldProjection(base);
+  assert(pass.pass && pass.fieldCount === 4 && pass.matchedFieldCount === 4,
+    `EVT-007 owner-local projection did not pass: ${pass.failureCode}`);
+
+  const expectFail = (name, value) => {
+    assert(!evaluateResponseDerivedDomFieldProjection(value).pass,
+      `EVT-007 ${name} negative mutation passed`);
+  };
+  expectFail("owner-zero", {
+    ...base,
+    fixtureIdentity: `${fixtureId}-missing`,
+    fixtureCandidates: [`${fixtureId}-missing`],
+  });
+  expectFail("owner-two", {
+    ...base,
+    responseBodies: [{ records: { records: [
+      base.responseBodies[0].records.records[0],
+      structuredClone(base.responseBodies[0].records.records[0]),
+    ] } }],
+  });
+  expectFail("unrelated-nested-identity", {
+    ...base,
+    responseBodies: [{ records: { records: [{
+      ...base.responseBodies[0].records.records[0],
+      eventId: "unrelated-event",
+      metadata: { fixtureId },
+    }] } }],
+  });
+  expectFail("optional-rule-contract", {
+    ...base,
+    observation: { ...base.observation, semanticNodes: [{
+      ...base.observation.semanticNodes[0],
+      fields: { ...base.observation.semanticNodes[0].fields, ruleId: ["fabricated-rule"] },
+    }] },
+  });
+  expectFail("evidence-order", {
+    ...base,
+    observation: { ...base.observation, semanticNodes: [{
+      ...base.observation.semanticNodes[0],
+      fields: { ...base.observation.semanticNodes[0].fields,
+        evidence: [`${fixtureId}.mp4`, `${fixtureId}.jpg`] },
+    }] },
+  });
+  expectFail("evidence-value", {
+    ...base,
+    observation: { ...base.observation, semanticNodes: [{
+      ...base.observation.semanticNodes[0],
+      fields: { ...base.observation.semanticNodes[0].fields,
+        evidence: [`${fixtureId}.jpg`, "drift.mp4"] },
+    }] },
+  });
+  expectFail("dom-zero", { ...base,
+    observation: { count: 0, visibleCount: 0, semanticNodes: [] } });
+  expectFail("dom-two-split-row", { ...base,
+    observation: { count: 2, visibleCount: 2, semanticNodes: [
+      base.observation.semanticNodes[0], structuredClone(base.observation.semanticNodes[0]),
+    ] } });
+});
+
 check("template materialization requires every dynamic value and URL-encodes it", () => {
   assert(materializeEventExactTemplate("/reviews/{fixtureId}", { fixtureId: "fixture a" }) === "/reviews/fixture%20a", "template encoding mismatch");
   let message = "";

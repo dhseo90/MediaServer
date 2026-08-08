@@ -18,6 +18,33 @@ const DIRECT_DOM_OPERATORS = new Set([
 ]);
 
 const responseDerivedDomProjectionContracts = Object.freeze({
+  "EVT-007\nrow-fields-equal-response\neventId/ruleId/scenarioName/evidence": Object.freeze({
+    selector: "#eventRecordRows [data-event-semantic-event-id={fixtureId}]",
+    collectionPath: "records.records",
+    identityPaths: ["eventId"],
+    domFields: Object.freeze({
+      ruleId: Object.freeze({
+        selector: "td[data-label='이벤트'] .ops-rule-note",
+        mode: "prefixed-text",
+        prefix: "rule ",
+      }),
+      scenarioName: Object.freeze({
+        selector: "td[data-label='시나리오']",
+        mode: "single-text",
+      }),
+      evidence: Object.freeze({
+        selector: "td[data-label='증거'] .ops-rule-note",
+        mode: "delimiter-text",
+        delimiter: " · ",
+      }),
+    }),
+    fields: [
+      ["$identity", "eventId", "identity"],
+      ["metadata.ruleId|ruleId|vaRuleId", "ruleId", "field-text", "first-non-empty", { optional: true }],
+      ["scenarioName|scenarioPhase|className", "scenarioName", "field-text", "renderer-scenario"],
+      ["snapshotPath|clipPath", "evidence", "field-text", "renderer-evidence-names", { minCount: 2 }],
+    ],
+  }),
   "EVT-041\nmatched-terms-equal-response\nmatchedTerms": Object.freeze({
     selector: "#opsIncidentSearchRows [data-incident-memory-hit='event-record:{fixtureId}']",
     collectionPath: "memorySearch.hits", identityPaths: ["documentId"],
@@ -548,6 +575,35 @@ function projectionContractExpectedValues(
       ? "snapshot+clip"
       : (snapshotPresent ? "snapshot-only" : (clipPresent ? "clip-only" : "none"))];
   }
+  if (transform === "first-non-empty") {
+    for (const path of String(responsePath).split("|")) {
+      const value = eventExactValuesAtPath(row, path)
+        .flatMap(item => Array.isArray(item) ? item : [item])
+        .find(item => item !== undefined && item !== null && String(item).trim().length > 0);
+      if (value !== undefined) return [String(value)];
+    }
+    return [];
+  }
+  if (transform === "renderer-scenario") {
+    const [scenarioNamePath, scenarioPhasePath, classNamePath] = String(responsePath).split("|");
+    const first = path => eventExactValuesAtPath(row, path)
+      .flatMap(item => Array.isArray(item) ? item : [item])
+      .find(item => item !== undefined && item !== null && String(item).trim().length > 0);
+    const scenarioParts = [first(scenarioNamePath), first(scenarioPhasePath)]
+      .filter(value => value !== undefined).map(String);
+    if (scenarioParts.length > 0) return [scenarioParts.join(" · ")];
+    const className = first(classNamePath);
+    return className === undefined ? [] : [String(className)];
+  }
+  if (transform === "renderer-evidence-names") {
+    return String(responsePath).split("|").flatMap(path =>
+      eventExactValuesAtPath(row, path)
+        .flatMap(item => Array.isArray(item) ? item : [item])
+        .filter(item => item !== undefined && item !== null && String(item).trim().length > 0)
+        .slice(0, 1)
+        .map(item => String(item).split("/").at(-1) || ""))
+      .filter(Boolean).slice(0, 2);
+  }
   const root = String(responsePath).startsWith("$root.") ? projectionContext.rootBody : row;
   const localPath = String(responsePath).startsWith("$root.") ? String(responsePath).slice(6) : responsePath;
   const values = eventExactValuesAtPath(root, localPath)
@@ -621,8 +677,10 @@ function evaluateDeclaredResponseDomProjection({
             ? node.fields[domKey].map(String) : [])
           : nodes.flatMap(node => Object.prototype.hasOwnProperty.call(node.attributes || {}, domKey)
             ? [String(node.attributes[domKey])] : [])));
-    const valuesPass = expected.length > 0 && actual.length === expected.length &&
-      expected.every((value, index) => actual[index] === value);
+    const optionalEmpty = options.optional === true && expected.length === 0 && actual.length === 0;
+    const countPass = expected.length >= Number(options.minCount || 1);
+    const valuesPass = optionalEmpty || (countPass && actual.length === expected.length &&
+      expected.every((value, index) => actual[index] === value));
     return {
       nameDigest: sha256Text(normalizedProjectionKey(domKey)),
       responseOwnerCount: owners.length,
