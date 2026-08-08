@@ -2417,6 +2417,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         responseEventIdentities: [],
         renderInputEventIdentities: [],
         sortedEventIdentities: [],
+        responseLogCandidates: [],
+        classifiedLogCandidates: [],
+        sortedLogCandidates: [],
+        filteredLogCandidates: [],
+        boundedLogCandidates: [],
+        rendererInputLogCandidates: [],
         boundedEventIdentities: [],
         domEventIdentities: []
       };
@@ -2589,6 +2595,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (filter.query && !dashboardIncidentSearchText(item).includes(filter.query)) return false;
         return true;
       };
+      const dashboardIncidentProjectCandidates = (orderedItems = [], filter = {}, limit = 8) => {
+        const inputItems = Array.isArray(orderedItems) ? orderedItems : [];
+        const filteredItems = inputItems.filter(item => dashboardIncidentMatchesFilter(item, filter));
+        return {
+          inputItems,
+          filteredItems,
+          boundedItems: filteredItems.slice(0, Math.max(0, Number(limit) || 0))
+        };
+      };
       const dashboardIncidentFiltersActive = filter => Boolean(filter.query || filter.source);
       const rerenderDashboardIncidentTimelineFromCache = () => {
         const cache = dashboardIncidentTimelineCache || {};
@@ -2693,11 +2708,12 @@ void AppendOpsShellScript(std::ostringstream& out,
           });
         const ruleTimeline = dashboardRuleWarningItems(catalog, runtime);
         const runtimeTimeline = dashboardRuntimeStatusIncidentItems(runtime);
-        const logLines = Array.isArray(diagnosticLog?.lines) ? diagnosticLog.lines : [];
-        const logTimeline = [...logLines]
+        const logLines = Array.isArray(diagnosticLog?.lines) ? diagnosticLog.lines.map(String) : [];
+        const classifiedLogLines = [...logLines]
           .reverse()
-          .filter(line => /source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP/i.test(String(line || '')))
-          .slice(0, 3)
+          .filter(line => /source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP/i.test(String(line || '')));
+        const sortedLogLines = classifiedLogLines.slice(0, 3);
+        const logTimeline = sortedLogLines
           .map((line, index) => ({
             level: 'info',
             source: 'Log tail',
@@ -2711,22 +2727,28 @@ void AppendOpsShellScript(std::ostringstream& out,
             cause: '로그 패턴 매칭',
             impact: '관련 인시던트와 correlation id를 대조해야 합니다.',
             nextAction: '관련 root-cause 또는 source health incident와 같은 cid를 비교합니다.',
-            actionHref: '/ops/dashboard'
+            actionHref: '/ops/dashboard',
+            projectionText: String(line || '')
           }));
         const reserved = [...rootTimeline, ...eventTimeline];
         const remaining = [...sourceTimeline, ...ruleTimeline, ...runtimeTimeline, ...logTimeline]
           .sort((a, b) => numberValue(b.sort) - numberValue(a.sort));
-        const items = [...reserved, ...remaining].slice(0, 8);
+        const orderedItems = [...reserved, ...remaining];
         dashboardIncidentTimelineLifecycle = {
-          phase: 'bounded-items-ready',
+          phase: 'sorted-items-ready',
           responseEventIdentities: responseEventRecords.map(item => String(item?.eventId || '')).filter(Boolean),
           renderInputEventIdentities: renderInputEventRecords.map(item => String(item?.eventId || '')).filter(Boolean),
           sortedEventIdentities: eventTimeline.map(item => String(item.eventIdentity || '')).filter(Boolean),
-          boundedEventIdentities: items.filter(item => dashboardIncidentSourceKey(item) === 'event-record')
-            .map(item => String(item.eventIdentity || '')).filter(Boolean),
+          responseLogCandidates: logLines,
+          classifiedLogCandidates: classifiedLogLines,
+          sortedLogCandidates: sortedLogLines,
+          filteredLogCandidates: [],
+          boundedLogCandidates: [],
+          rendererInputLogCandidates: [],
+          boundedEventIdentities: [],
           domEventIdentities: []
         };
-        if (items.length > 0) return items;
+        if (orderedItems.length > 0) return orderedItems;
         return [{
           level: 'info',
           source: 'Summary',
@@ -2747,9 +2769,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           dashboardIncidentTimelineCache = { rootItems, eventsStatus, diagnosticLog, sourceHealth, runtime, catalog };
         }
         syncDashboardIncidentFilterFromHash();
-        const allItems = dashboardIncidentTimelineItems(rootItems, eventsStatus, diagnosticLog, sourceHealth, runtime, catalog);
         const filter = dashboardIncidentFilterState();
-        const items = allItems.filter(item => dashboardIncidentMatchesFilter(item, filter));
+        const orderedItems = dashboardIncidentTimelineItems(rootItems, eventsStatus, diagnosticLog, sourceHealth, runtime, catalog);
+        const projection = dashboardIncidentProjectCandidates(orderedItems, filter, 8);
+        const filteredItems = projection.filteredItems;
+        const items = projection.boundedItems;
         const filtersActive = dashboardIncidentFiltersActive(filter);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
         const eventCount = dashboardIncidentEventRecords(eventsStatus).length;
@@ -2758,7 +2782,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const runtimeWarningCount = dashboardRuntimeStatusIncidentItems(runtime).filter(item => item.level === 'warn').length;
         renderBadges('dashIncidentTimelineBadges', [
           { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 인시던트 없음', tone: warnCount > 0 ? 'warn' : '' },
-          { text: filtersActive ? `필터 결과 ${items.length}/${allItems.length}` : `전체 ${allItems.length}` },
+          { text: filtersActive ? `필터 결과 ${items.length}/${orderedItems.length}` : `전체 ${items.length}` },
           { text: `EventRecord ${eventCount}` },
           { text: sourceIssueCount > 0 ? `source health ${sourceIssueCount}` : 'source health 정상', tone: sourceIssueCount > 0 ? 'warn' : '' },
           { text: ruleWarningCount > 0 ? `rule warning ${ruleWarningCount}` : 'rule warning 정상', tone: ruleWarningCount > 0 ? 'warn' : 'info' },
@@ -2790,10 +2814,24 @@ void AppendOpsShellScript(std::ostringstream& out,
         };
         list.dataset.incidentRenderPhase = 'bounded-items-ready';
         list.dataset.incidentInputCounts = JSON.stringify(inputCounts);
-        list.dataset.incidentBoundedCounts = JSON.stringify(sourceCounts(allItems));
+        list.dataset.incidentFilteredCounts = JSON.stringify(sourceCounts(filteredItems));
+        list.dataset.incidentBoundedCounts = JSON.stringify(sourceCounts(items));
         list.dataset.eventRecordInputCount = String(Math.min(dashboardIncidentEventRecords(eventsStatus).length, 4));
-        list.dataset.eventRecordBoundedCount = String(allItems.filter(item =>
+        list.dataset.eventRecordBoundedCount = String(items.filter(item =>
           dashboardIncidentSourceKey(item) === 'event-record').length);
+        dashboardIncidentTimelineLifecycle = {
+          ...dashboardIncidentTimelineLifecycle,
+          phase: 'bounded-items-ready',
+          filteredLogCandidates: filteredItems.filter(item =>
+            dashboardIncidentSourceKey(item) === 'log-tail').map(item => String(item.projectionText || '')),
+          boundedLogCandidates: items.filter(item =>
+            dashboardIncidentSourceKey(item) === 'log-tail').map(item => String(item.projectionText || '')),
+          rendererInputLogCandidates: items.filter(item =>
+            dashboardIncidentSourceKey(item) === 'log-tail').map(item => String(item.projectionText || '')),
+          boundedEventIdentities: items.filter(item => dashboardIncidentSourceKey(item) === 'event-record')
+            .map(item => String(item.eventIdentity || '')).filter(Boolean),
+          domEventIdentities: []
+        };
         if (items.length === 0) {
           list.innerHTML = `<div class="empty">${escapeHtml(emptyFilterText)}<br />다른 검색어 또는 출처 필터를 선택하세요.</div>`;
           list.dataset.eventRecordDomCount = '0';

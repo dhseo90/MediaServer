@@ -152,6 +152,7 @@ export async function executeCatalogRuntimeOracle({
     : null;
   if (!requestScopedCorrelationOnly) await browser.setCorrelationId(correlationId);
   try {
+    const declaredVisibleControlValue = await applyDeclaredVisibleControlValue(browser, item, spec);
     const nativePrimaryControl = await observeNativePrimaryControl(browser, item);
     if (primaryAction && clientSafeCase) {
       const expectedExecutedKind = new Map([
@@ -203,6 +204,9 @@ export async function executeCatalogRuntimeOracle({
       runtimeBindings,
       interaction,
     });
+    if (declaredVisibleControlValue) {
+      interaction = { ...interaction, declaredVisibleControlValue };
+    }
     if (clientSafeCase) {
       const createdSessionId = [...primaryNetworkEntries, ...browser.networkEntries().slice(networkStart)]
         .find(entry => entry.phase === "response" && entry.method === "POST" &&
@@ -349,6 +353,30 @@ export async function executeCatalogRuntimeOracle({
   } finally {
     await browser.setCorrelationId("");
   }
+}
+
+export async function applyDeclaredVisibleControlValue(browser, item, spec) {
+  const selector = String(spec?.visibleControl?.selector || "");
+  if (!Object.hasOwn(spec?.visibleControl || {}, "setValue")) return null;
+  const expectedValue = String(spec.visibleControl.setValue ?? "");
+  assert(selector, `${item.caseId} declared visible-control value selector is missing`);
+  await browser.waitForSelector(selector, { state: "visible" });
+  const before = await browser.snapshot(selector);
+  assert(before.exists === true && before.visible === true && before.disabled === false,
+    `${item.caseId} declared visible-control value owner is not actionable: ${selector}`);
+  await browser.select(selector, expectedValue);
+  const after = await browser.snapshot(selector);
+  const observedValue = String(after?.selectedValues?.[0] ?? after?.value ?? "");
+  assert(after.exists === true && after.visible === true && after.disabled === false &&
+    observedValue === expectedValue,
+  `${item.caseId} declared visible-control value projection mismatch: ${selector}`);
+  return {
+    selectorDigest: sha256Digest(selector),
+    expectedValueDigest: sha256Digest(expectedValue),
+    observedValueDigest: sha256Digest(observedValue),
+    candidatePolicy: "exact-first-control",
+    status: "PASS",
+  };
 }
 
 async function observeNativePrimaryControl(browser, item) {
@@ -1765,6 +1793,7 @@ async function observeDom(
     (assertion.assertions || []).some(candidate =>
       candidate.operator === "contains-fixture-marker" &&
       candidate.target === "marker");
+  const expectedMarker = markerAssertion ? String(bindings.logMarker || "") : "";
   if (markerAssertion) {
     await browser.waitForSelector(selector, { state: "visible" });
   }
@@ -1776,6 +1805,7 @@ async function observeDom(
     });
   }
   const observed = await browser.evaluate(`(async () => {
+    const expectedMarker = ${JSON.stringify(expectedMarker)};
     const nodes = Array.from(document.querySelectorAll(${JSON.stringify(selector)}));
     const descendantSelectors = ${JSON.stringify(descendantSelectors)};
     const requiredAttributeNames = ${JSON.stringify(requiredAttributeNames)};
@@ -1934,6 +1964,17 @@ async function observeDom(
           };
           const identityDigests = async values => Promise.all((Array.isArray(values) ? values : [])
             .map(value => String(value || '')).filter(Boolean).map(digestIdentity));
+          const markerMatches = value => {
+            const canonicalMarker = String(expectedMarker || '').normalize('NFKC').trim();
+            const normalized = String(value || '').normalize('NFKC').replace(/\s+/gu, ' ').trim();
+            if (!canonicalMarker || !normalized) return false;
+            const escaped = canonicalMarker.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&');
+            return new RegExp('(?:^|[\\s([{:<])' + escaped + '(?=$|[\\s)\\]},.:;>])', 'u').test(normalized);
+          };
+          const markerDigests = async values => {
+            const matches = (Array.isArray(values) ? values : []).filter(markerMatches);
+            return Promise.all(matches.map(() => digestIdentity(expectedMarker)));
+          };
           return {
             routePath: String(location.pathname || ''),
             lifecycleObserved: Boolean(owner &&
@@ -1948,7 +1989,48 @@ async function observeDom(
             eventRecordBoundedCount: Number(owner?.dataset?.eventRecordBoundedCount || 0),
             eventRecordDomCount: Number(owner?.dataset?.eventRecordDomCount || 0),
             incidentInputCounts: String(owner?.dataset?.incidentInputCounts || '{}'),
+            incidentFilteredCounts: String(owner?.dataset?.incidentFilteredCounts || '{}'),
             incidentBoundedCounts: String(owner?.dataset?.incidentBoundedCounts || '{}'),
+            markerProjection: await (async () => {
+              const responseCandidates = Array.isArray(lifecycle.responseLogCandidates) ? lifecycle.responseLogCandidates : [];
+              const classifiedCandidates = Array.isArray(lifecycle.classifiedLogCandidates) ? lifecycle.classifiedLogCandidates : [];
+              const sortedCandidates = Array.isArray(lifecycle.sortedLogCandidates) ? lifecycle.sortedLogCandidates : [];
+              const filteredCandidates = Array.isArray(lifecycle.filteredLogCandidates) ? lifecycle.filteredLogCandidates : [];
+              const boundedCandidates = Array.isArray(lifecycle.boundedLogCandidates) ? lifecycle.boundedLogCandidates : [];
+              const rendererCandidates = Array.isArray(lifecycle.rendererInputLogCandidates) ? lifecycle.rendererInputLogCandidates : [];
+              const responseDigests = await markerDigests(responseCandidates);
+              const classifiedDigests = await markerDigests(classifiedCandidates);
+              const sortedDigests = await markerDigests(sortedCandidates);
+              const filteredDigests = await markerDigests(filteredCandidates);
+              const boundedDigests = await markerDigests(boundedCandidates);
+              const rendererDigests = await markerDigests(rendererCandidates);
+              const filterState = typeof dashboardIncidentFilterState === 'function'
+                ? dashboardIncidentFilterState()
+                : { query: '', source: '' };
+              return {
+                routeOwner: String(location.pathname || ''),
+                rendererContainerSelector: '#dashIncidentTimeline',
+                response: { inputCount: responseCandidates.length, outputCount: responseCandidates.length, markerDigests: responseDigests },
+                classifier: {
+                  inputCount: responseCandidates.length,
+                  outputCount: classifiedCandidates.length,
+                  markerDigests: classifiedDigests,
+                  result: 'formal-incident-pattern',
+                  reason: 'source-health-cleanup-stale-event-auth-transport-pattern'
+                },
+                sorted: { inputCount: classifiedCandidates.length, outputCount: sortedCandidates.length, markerDigests: sortedDigests, exclusionReason: sortedCandidates.length < classifiedCandidates.length ? 'source-local-three-bound' : '' },
+                filtered: {
+                  inputCount: sortedCandidates.length,
+                  outputCount: filteredCandidates.length,
+                  markerDigests: filteredDigests,
+                  sourceDigest: await digestIdentity(filterState.source || ''),
+                  queryDigest: await digestIdentity(filterState.query || ''),
+                  exclusionReason: filteredCandidates.length < sortedCandidates.length ? 'declared-filter-mismatch' : ''
+                },
+                bounded: { inputCount: filteredCandidates.length, outputCount: boundedCandidates.length, markerDigests: boundedDigests, exclusionReason: boundedCandidates.length < filteredCandidates.length ? 'global-eight-bound' : '' },
+                rendererInput: { inputCount: boundedCandidates.length, outputCount: rendererCandidates.length, markerDigests: rendererDigests, exclusionReason: rendererCandidates.length < boundedCandidates.length ? 'renderer-input-missing' : '' }
+              };
+            })(),
             responseEventIdentityDigests: await identityDigests(lifecycle.responseEventIdentities),
             renderInputEventIdentityDigests: await identityDigests(lifecycle.renderInputEventIdentities),
             sortedEventIdentityDigests: await identityDigests(lifecycle.sortedEventIdentities),
@@ -4274,6 +4356,12 @@ export function buildEventMarkerFlowEvidence({
       ? String(visibleKinds[domMatchedIndices[0]] || "")
       : "";
   domMarkerObserved.candidateKindCounts = countEvidenceKinds(visibleKinds);
+  const projectionStages = buildEventMarkerProjectionStageEvidence({
+    required: caseId === "EVT-004",
+    markerDigest,
+    projection: observed?.properties?.routeLocalIncidentTimeline?.markerProjection || null,
+    domMarkerObserved,
+  });
   const failed = [
     ["fixture-marker-materialization", fixtureMarkerMaterialized.pass,
       canonicalMarker.length === 0
@@ -4281,6 +4369,7 @@ export function buildEventMarkerFlowEvidence({
         : fixtureIdentityFailureCode],
     ["authoritative-response", responseMarkerObserved.pass,
       responseMarkerObserved.matchedCount > 1 ? "RESPONSE_MARKER_DUPLICATE" : "RESPONSE_MARKER_NOT_OBSERVED"],
+    ["projection-stages", projectionStages.pass, projectionStages.failureCode],
     ["timeline-projection", timelineProjectionObserved.pass,
       timelineProjectionObserved.matchedCount > 1 ? "TIMELINE_MARKER_DUPLICATE" : "TIMELINE_MARKER_NOT_PROJECTED"],
     ["dom-render", domMarkerObserved.pass,
@@ -4294,8 +4383,97 @@ export function buildEventMarkerFlowEvidence({
     markerDigest,
     fixtureMarkerMaterialized,
     responseMarkerObserved,
+    projectionStages,
     timelineProjectionObserved,
     domMarkerObserved,
+  };
+}
+
+function buildEventMarkerProjectionStageEvidence({
+  required,
+  markerDigest,
+  projection,
+  domMarkerObserved,
+}) {
+  if (!projection) {
+    return required
+      ? {
+          schema: "media-server.v390-ui-event-marker-projection-stages.v1",
+          pass: false,
+          failureCode: "MARKER_PROJECTION_EVIDENCE_MISSING",
+          firstMissingStage: "projection-evidence",
+          stages: [],
+        }
+      : {
+          schema: "media-server.v390-ui-event-marker-projection-stages.v1",
+          pass: true,
+          failureCode: "PASS",
+          firstMissingStage: "",
+          status: "not-required",
+          stages: [],
+        };
+  }
+  const definitions = [
+    ["response", "RESPONSE_MARKER_NOT_OBSERVED"],
+    ["classifier", "MARKER_CLASSIFIER_EXCLUDED"],
+    ["sorted", "MARKER_SORT_IDENTITY_LOST"],
+    ["filtered", "MARKER_SOURCE_FILTER_EXCLUDED"],
+    ["bounded", "MARKER_BOUNDED_OUT"],
+    ["rendererInput", "MARKER_RENDERER_INPUT_MISSING"],
+  ];
+  const stages = definitions.map(([name, missingCode]) => {
+    const value = projection?.[name] || {};
+    const digests = Array.isArray(value.markerDigests) ? value.markerDigests.map(String) : [];
+    const matchedCount = digests.filter(digest => digest === markerDigest).length;
+    const digestDriftCount = digests.filter(digest => digest !== markerDigest).length;
+    return {
+      name,
+      inputCount: Number(value.inputCount || 0),
+      outputCount: Number(value.outputCount || 0),
+      markerDigest,
+      matchedCount,
+      digestDriftCount,
+      result: String(value.result || ""),
+      reason: String(value.reason || value.exclusionReason || ""),
+      pass: matchedCount === 1 && digestDriftCount === 0,
+      missingCode,
+    };
+  });
+  stages.push({
+    name: "dom",
+    inputCount: Number(projection?.dom?.inputCount ?? domMarkerObserved.candidateCount ?? 0),
+    outputCount: Number(projection?.dom?.outputCount ?? domMarkerObserved.matchedCount ?? 0),
+    markerDigest,
+    matchedCount: Number(projection?.dom?.matchedNodeCount ?? domMarkerObserved.matchedCount ?? 0),
+    digestDriftCount: Array.isArray(projection?.dom?.markerDigests)
+      ? projection.dom.markerDigests.filter(digest => String(digest) !== markerDigest).length
+      : 0,
+    result: "visible-route-local-node",
+    reason: "",
+    pass: Number(projection?.dom?.matchedNodeCount ?? domMarkerObserved.matchedCount ?? 0) === 1,
+    missingCode: Number(projection?.dom?.matchedNodeCount ?? domMarkerObserved.matchedCount ?? 0) > 1
+      ? "DOM_MARKER_DUPLICATE"
+      : "DOM_MARKER_NOT_OBSERVED",
+  });
+  const routePass = projection.routeOwner === "/ops/dashboard" &&
+    projection.rendererContainerSelector === "#dashIncidentTimeline";
+  const digestDrift = stages.find(stage => stage.digestDriftCount > 0);
+  const failedStage = stages.find(stage => !stage.pass);
+  const failureCode = digestDrift
+    ? "MARKER_PROJECTION_DIGEST_DRIFT"
+    : (!routePass
+      ? "MARKER_ROUTE_OWNER_MISMATCH"
+      : (failedStage?.missingCode || "PASS"));
+  return {
+    schema: "media-server.v390-ui-event-marker-projection-stages.v1",
+    pass: failureCode === "PASS",
+    failureCode,
+    firstMissingStage: failureCode === "PASS"
+      ? ""
+      : (failureCode === "MARKER_ROUTE_OWNER_MISMATCH" ? "route-owner" : String((digestDrift || failedStage)?.name || "")),
+    routeOwner: String(projection.routeOwner || ""),
+    rendererContainerSelector: String(projection.rendererContainerSelector || ""),
+    stages: stages.map(({ missingCode: _missingCode, ...stage }) => stage),
   };
 }
 

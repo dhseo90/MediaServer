@@ -375,6 +375,32 @@ assert(classifyDiagnosticCaseDisposition({
 }) === "continue-case-local-failure",
 "final EVT-004 valid browser FAIL was reclassified as not-run");
 
+const projectionRunRelative = ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
+  "v390-ui-diagnostic-20260808034107-12912";
+const projectionParent = readJson(`${projectionRunRelative}/summary.json`);
+const projectionEvtSummary = readJson(`${projectionRunRelative}/cases/EVT-004/summary.json`);
+const projectionEvtTrace = readJson(
+  `${projectionRunRelative}/cases/EVT-004/traces/EVT-004.trace.json`);
+const recordedProjectionMarker = projectionEvtSummary.case?.markerEvidence;
+assert(projectionParent.counts.target === 1 &&
+  projectionParent.counts.attempted === 1 &&
+  projectionParent.counts.pass === 0 &&
+  projectionParent.counts.fail === 1 &&
+  projectionParent.counts.notRun === 0 &&
+  projectionEvtSummary.actualBrowserExecution === true &&
+  projectionEvtSummary.case?.markerStageEvidence?.pass === true &&
+  projectionEvtSummary.case?.cleanupAttestation?.pass === true &&
+  recordedProjectionMarker?.responseMarkerObserved?.matchedCount === 1 &&
+  recordedProjectionMarker?.timelineProjectionObserved?.matchedCount === 0 &&
+  recordedProjectionMarker?.domMarkerObserved?.matchedCount === 0 &&
+  recordedProjectionMarker?.timelineProjectionObserved?.candidateCount === 8 &&
+  recordedProjectionMarker?.timelineProjectionObserved?.candidateKindCounts?.["root-cause"] === 1 &&
+  recordedProjectionMarker?.timelineProjectionObserved?.candidateKindCounts?.["source-health"] === 3 &&
+  recordedProjectionMarker?.timelineProjectionObserved?.candidateKindCounts?.["rule-warning"] === 3 &&
+  recordedProjectionMarker?.timelineProjectionObserved?.candidateKindCounts?.["runtime-status"] === 1 &&
+  projectionEvtTrace.failureLifecycleEvidence?.failureCode === "TIMELINE_MARKER_NOT_PROJECTED",
+"recorded EVT-004 first 1-to-0 projection boundary drifted");
+
 const marker = "REVIEW4-evt-004-review4-fixture-LOG-MARKER";
 const expectedMarkerIdentity = buildExpectedDiagnosticMarkerIdentity({
   caseId: "EVT-004",
@@ -417,11 +443,26 @@ const markerReplay = buildEventMarkerFlowEvidence({
     semanticNodeKinds: ["log-tail"],
     visibleSemanticNodeTexts: [marker],
     visibleSemanticNodeKinds: ["log-tail"],
+    properties: {
+      routeLocalIncidentTimeline: {
+        markerProjection: {
+          routeOwner: "/ops/dashboard",
+          rendererContainerSelector: "#dashIncidentTimeline",
+          response: { inputCount: 80, outputCount: 80, markerDigests: [expectedMarkerIdentity.markerIdentityDigest] },
+          classifier: { inputCount: 80, outputCount: 1, markerDigests: [expectedMarkerIdentity.markerIdentityDigest], result: "included", reason: "formal-incident-pattern" },
+          sorted: { inputCount: 1, outputCount: 1, markerDigests: [expectedMarkerIdentity.markerIdentityDigest], exclusionReason: "" },
+          filtered: { inputCount: 1, outputCount: 1, markerDigests: [expectedMarkerIdentity.markerIdentityDigest], exclusionReason: "" },
+          bounded: { inputCount: 1, outputCount: 1, markerDigests: [expectedMarkerIdentity.markerIdentityDigest], exclusionReason: "" },
+          rendererInput: { inputCount: 1, outputCount: 1, markerDigests: [expectedMarkerIdentity.markerIdentityDigest], exclusionReason: "" },
+          dom: { inputCount: 1, outputCount: 1, markerDigests: [expectedMarkerIdentity.markerIdentityDigest], matchedNodeCount: 1 },
+        },
+      },
+    },
   },
 });
-assert(markerReplay.pass === true,
+assert(markerReplay.pass === true && markerReplay.projectionStages.pass === true,
   "recorded EVT-004 marker response/timeline/DOM lifecycle replay remained failed");
-console.log("final recorded replay: PASS 99/99 prior=98/98 repaired=1/1");
+console.log("final recorded replay: PASS 99/99 prior=98/98 repaired=1/1 first-1-to-0=global-bound-before-filter");
 
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));

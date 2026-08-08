@@ -17,6 +17,10 @@ const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const serverSh = readText("server.sh");
 const dashboardPage = extractCppFunctionBlock(pageSource, "void AppendOpsDashboardPage(");
 const timelineItems = extractNamedFunctionBlock(script, "dashboardIncidentTimelineItems");
+const timelineSourceKey = extractNamedFunctionBlock(script, "dashboardIncidentSourceKey");
+const timelineSearchText = extractNamedFunctionBlock(script, "dashboardIncidentSearchText");
+const timelineMatchesFilter = extractNamedFunctionBlock(script, "dashboardIncidentMatchesFilter");
+const timelineProjection = extractNamedFunctionBlock(script, "dashboardIncidentProjectCandidates");
 const timelineRenderer = extractNamedFunctionBlock(script, "renderDashboardIncidentTimeline");
 
 check("ops dashboard exposes operator incident source filters", () => {
@@ -69,7 +73,8 @@ check("bounded incident timeline retains authoritative EventRecord rows", () => 
     "'runtime-status': 200",
     "'log-tail': 100",
     "const reserved = [...rootTimeline, ...eventTimeline]",
-    "const items = [...reserved, ...remaining].slice(0, 8)",
+    "const orderedItems = [...reserved, ...remaining]",
+    "dashboardIncidentProjectCandidates",
   ]) assertIncludes(script, snippet, "deterministic incident source band");
   assert(!timelineItems.includes("Number.MAX_SAFE_INTEGER"),
     "incident source ranks must not depend on MAX_SAFE_INTEGER arithmetic");
@@ -112,10 +117,37 @@ check("bounded incident timeline retains authoritative EventRecord rows", () => 
   }
 });
 
+check("active incident filters are applied before the global bound", () => {
+  const project = Function(
+    `"use strict";\n${timelineSourceKey}\n${timelineSearchText}\n${timelineMatchesFilter}\n${timelineProjection}\nreturn dashboardIncidentProjectCandidates;`,
+  )();
+  const ordered = [
+    ...Array.from({ length: 8 }, (_, index) => ({ source: "Higher band", title: `higher ${index}` })),
+    { source: "Log tail", title: "owned marker candidate" },
+  ];
+  const unfiltered = project(ordered, {}, 8);
+  assert(unfiltered.inputItems.length === 9 &&
+    unfiltered.filteredItems.length === 9 &&
+    unfiltered.boundedItems.length === 8 &&
+    unfiltered.boundedItems.every(item => item.source !== "Log tail"),
+  "default ordering/bound contract drifted");
+  const sourceFiltered = project(ordered, { source: "log-tail", query: "" }, 8);
+  assert(sourceFiltered.inputItems.length === 9 &&
+    sourceFiltered.filteredItems.length === 1 &&
+    sourceFiltered.boundedItems.length === 1 &&
+    sourceFiltered.boundedItems[0].source === "Log tail",
+  "source filter was applied after the global bound");
+  const queryFiltered = project(ordered, { source: "", query: "owned marker" }, 8);
+  assert(queryFiltered.filteredItems.length === 1 &&
+    queryFiltered.boundedItems.length === 1,
+  "query filter was applied after the global bound");
+});
+
 check("incident timeline emits bounded lifecycle evidence without payload material", () => {
   for (const snippet of [
     "incidentRenderPhase",
     "incidentInputCounts",
+    "incidentFilteredCounts",
     "incidentBoundedCounts",
     "eventRecordInputCount",
     "eventRecordBoundedCount",

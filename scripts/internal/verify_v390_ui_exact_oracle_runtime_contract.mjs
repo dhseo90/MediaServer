@@ -5,6 +5,7 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 
 import {
+  applyDeclaredVisibleControlValue,
   bindDashboardRuntimeTrendBaseline,
   assertExclusiveRequestScopedCorrelation,
   buildExclusiveRequestScopedCorrelationEvidence,
@@ -692,6 +693,46 @@ await check("EVT-004 marker lifecycle distinguishes hook, file, response, timeli
   "marker stage evidence exposed a path or raw marker");
 });
 
+await check("declared visible-control values are applied by the exact runtime before observation", async () => {
+  const calls = [];
+  let selected = "";
+  const browser = {
+    async waitForSelector(selector, options) { calls.push(["wait", selector, options.state]); },
+    async snapshot(selector) {
+      calls.push(["snapshot", selector]);
+      return { exists: true, visible: true, disabled: false, value: selected, selectedValues: [selected] };
+    },
+    async select(selector, value) { calls.push(["select", selector, value]); selected = value; },
+  };
+  const evidence = await applyDeclaredVisibleControlValue(browser, { caseId: "EVT-004" }, {
+    visibleControl: { selector: "#dashIncidentTimelineSource", setValue: "log-tail" },
+  });
+  assert(evidence.status === "PASS" &&
+    evidence.candidatePolicy === "exact-first-control" &&
+    evidence.expectedValueDigest === evidence.observedValueDigest &&
+    JSON.stringify(calls) === JSON.stringify([
+      ["wait", "#dashIncidentTimelineSource", "visible"],
+      ["snapshot", "#dashIncidentTimelineSource"],
+      ["select", "#dashIncidentTimelineSource", "log-tail"],
+      ["snapshot", "#dashIncidentTimelineSource"],
+    ]),
+  "declared filter value did not reach the visible control exactly once");
+
+  let rejected = false;
+  try {
+    await applyDeclaredVisibleControlValue({
+      async waitForSelector() {},
+      async snapshot() { return { exists: true, visible: true, disabled: false, value: "source-health", selectedValues: ["source-health"] }; },
+      async select() {},
+    }, { caseId: "EVT-004" }, {
+      visibleControl: { selector: "#dashIncidentTimelineSource", setValue: "log-tail" },
+    });
+  } catch {
+    rejected = true;
+  }
+  assert(rejected, "wrong declared filter value did not fail closed");
+});
+
 await check("EVT-004 test-owned marker digest reaches the DOM evaluator without EventRecord lifecycle crossover", async () => {
   const marker = "REVIEW4-evt-004-review4-fixture-LOG-MARKER";
   const expectedFixtureIdentity = caseRuntime.buildExpectedDiagnosticMarkerIdentity({
@@ -784,6 +825,21 @@ await check("EVT-004 test-owned marker digest reaches the DOM evaluator without 
       semanticNodeKinds: ["log-tail"],
       visibleSemanticNodeTexts: [marker],
       visibleSemanticNodeKinds: ["log-tail"],
+      properties: {
+        routeLocalIncidentTimeline: {
+          markerProjection: {
+            routeOwner: "/ops/dashboard",
+            rendererContainerSelector: "#dashIncidentTimeline",
+            response: { inputCount: 1, outputCount: 1, markerDigests: [expectedFixtureIdentity.markerIdentityDigest] },
+            classifier: { inputCount: 1, outputCount: 1, markerDigests: [expectedFixtureIdentity.markerIdentityDigest], result: "included", reason: "formal-incident-pattern" },
+            sorted: { inputCount: 1, outputCount: 1, markerDigests: [expectedFixtureIdentity.markerIdentityDigest], exclusionReason: "" },
+            filtered: { inputCount: 1, outputCount: 1, markerDigests: [expectedFixtureIdentity.markerIdentityDigest], exclusionReason: "" },
+            bounded: { inputCount: 1, outputCount: 1, markerDigests: [expectedFixtureIdentity.markerIdentityDigest], exclusionReason: "" },
+            rendererInput: { inputCount: 1, outputCount: 1, markerDigests: [expectedFixtureIdentity.markerIdentityDigest], exclusionReason: "" },
+            dom: { inputCount: 1, outputCount: 1, markerDigests: [expectedFixtureIdentity.markerIdentityDigest], matchedNodeCount: 1 },
+          },
+        },
+      },
     },
   };
   assert(buildEventMarkerFlowEvidence(markerInput).pass === true,
@@ -1112,6 +1168,19 @@ await check("EVT-004 correlation is request-scoped to one authoritative log-tail
 
 await check("EVT-004 marker flow binds one authoritative response row to one visible timeline node", async () => {
   const marker = "REVIEW4-evt-004-review4-fixture-LOG-MARKER";
+  const markerDigest = crypto.createHash("sha256").update(marker).digest("hex");
+  const projection = overrides => ({
+    routeOwner: "/ops/dashboard",
+    rendererContainerSelector: "#dashIncidentTimeline",
+    response: { inputCount: 1, outputCount: 1, markerDigests: [markerDigest] },
+    classifier: { inputCount: 1, outputCount: 1, markerDigests: [markerDigest], result: "included", reason: "formal-incident-pattern" },
+    sorted: { inputCount: 1, outputCount: 1, markerDigests: [markerDigest], exclusionReason: "" },
+    filtered: { inputCount: 1, outputCount: 1, markerDigests: [markerDigest], exclusionReason: "" },
+    bounded: { inputCount: 1, outputCount: 1, markerDigests: [markerDigest], exclusionReason: "" },
+    rendererInput: { inputCount: 1, outputCount: 1, markerDigests: [markerDigest], exclusionReason: "" },
+    dom: { inputCount: 1, outputCount: 1, markerDigests: [markerDigest], matchedNodeCount: 1 },
+    ...overrides,
+  });
   const matching = buildEventMarkerFlowEvidence({
     marker,
     responseBodies: [{ lines: [`[review4] auth incident ${marker} [redacted]`] }],
@@ -1120,6 +1189,7 @@ await check("EVT-004 marker flow binds one authoritative response row to one vis
       semanticNodeKinds: ["log-tail"],
       visibleSemanticNodeTexts: [`로그 단서 ${marker} diagnostics log-tail`],
       visibleSemanticNodeKinds: ["log-tail"],
+      properties: { routeLocalIncidentTimeline: { markerProjection: projection() } },
     },
   });
   assert(matching.pass && matching.responseMarkerObserved.matchedCount === 1 &&
@@ -1129,6 +1199,36 @@ await check("EVT-004 marker flow binds one authoritative response row to one vis
     matching.domMarkerObserved.matchedCount === 1 &&
     matching.domMarkerObserved.selectedIndices[0] === 0,
   "exact response/timeline/DOM marker binding did not pass");
+  assert(matching.projectionStages.pass === true &&
+    matching.projectionStages.firstMissingStage === "" &&
+    !JSON.stringify(matching.projectionStages).includes(marker),
+  "digest-only marker projection stages did not pass safely");
+
+  for (const [label, stage, failureCode] of [
+    ["classifier", projection({ classifier: { inputCount: 1, outputCount: 0, markerDigests: [], result: "excluded", reason: "no-formal-incident-pattern" } }), "MARKER_CLASSIFIER_EXCLUDED"],
+    ["sort", projection({ sorted: { inputCount: 1, outputCount: 0, markerDigests: [], exclusionReason: "sort-identity-lost" } }), "MARKER_SORT_IDENTITY_LOST"],
+    ["filter", projection({ filtered: { inputCount: 1, outputCount: 0, markerDigests: [], exclusionReason: "source-filter-mismatch" } }), "MARKER_SOURCE_FILTER_EXCLUDED"],
+    ["bound", projection({ bounded: { inputCount: 9, outputCount: 0, markerDigests: [], exclusionReason: "global-bound" } }), "MARKER_BOUNDED_OUT"],
+    ["route", projection({ routeOwner: "/ops/events" }), "MARKER_ROUTE_OWNER_MISMATCH"],
+    ["renderer", projection({ rendererInput: { inputCount: 1, outputCount: 0, markerDigests: [], exclusionReason: "renderer-input-missing" } }), "MARKER_RENDERER_INPUT_MISSING"],
+    ["DOM zero", projection({ dom: { inputCount: 1, outputCount: 0, markerDigests: [], matchedNodeCount: 0 } }), "DOM_MARKER_NOT_OBSERVED"],
+    ["DOM duplicate", projection({ dom: { inputCount: 1, outputCount: 2, markerDigests: [markerDigest, markerDigest], matchedNodeCount: 2 } }), "DOM_MARKER_DUPLICATE"],
+    ["digest drift", projection({ bounded: { inputCount: 1, outputCount: 1, markerDigests: ["0".repeat(64)], exclusionReason: "" } }), "MARKER_PROJECTION_DIGEST_DRIFT"],
+  ]) {
+    const evidence = buildEventMarkerFlowEvidence({
+      marker,
+      responseBodies: [{ lines: [marker] }],
+      observed: {
+        semanticNodeTexts: [marker],
+        semanticNodeKinds: ["log-tail"],
+        visibleSemanticNodeTexts: [marker],
+        visibleSemanticNodeKinds: ["log-tail"],
+        properties: { routeLocalIncidentTimeline: { markerProjection: stage } },
+      },
+    });
+    assert(evidence.pass === false && evidence.failureCode === failureCode,
+      `${label} projection boundary did not fail closed: ${evidence.failureCode}`);
+  }
 
   const failureCases = [
     ["materialization", { marker: "", responseBodies: [], observed: {} },
