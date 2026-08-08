@@ -554,6 +554,29 @@ function selectedDiagnosticCases({
     selected.forEach(assertDiagnosticRuntimeBinding);
     return selected;
   }
+  if (selectionMode === diagnosticSelectionModes.diagnosticFailureClosureSweep) {
+    assert(!caseId, "diagnostic failure closure selection cannot receive --case-id");
+    const artifact = readJson(selectionArtifact);
+    assert(artifact.schema === "media-server.v390-ui-diagnostic-failure-closure.v1",
+      "diagnostic failure closure schema mismatch");
+    const { digest, ...payload } = artifact;
+    assert(/^[0-9a-f]{64}$/.test(digest) && sha256(stableJson(payload)) === digest,
+      "diagnostic failure closure immutable digest mismatch");
+    const selectedIds = artifact.selectedIds;
+    assert(Array.isArray(selectedIds) && selectedIds.length === 7 &&
+      new Set(selectedIds).size === selectedIds.length &&
+      Array.isArray(artifact.failures) && artifact.failures.length === selectedIds.length &&
+      artifact.failures.every((row, index) => row.caseId === selectedIds[index]),
+    "diagnostic failure closure must contain exactly seven unique ordered failures");
+    const byId = new Map(manifestCases.map(item => [item.caseId, item]));
+    const selected = selectedIds.map(selectedCaseId => byId.get(selectedCaseId));
+    assert(selected.every(Boolean), "diagnostic failure closure contains an unknown case ID");
+    assert(selected.every((item, index) => index === 0 ||
+      manifestCases.indexOf(selected[index - 1]) < manifestCases.indexOf(item)),
+    "diagnostic failure closure order does not match the canonical manifest");
+    selected.forEach(assertDiagnosticRuntimeBinding);
+    return selected;
+  }
   assert(selectionMode === diagnosticSelectionModes.explicitPositiveCase,
     "unsupported diagnostic selection mode");
   assert(caseId, "explicit diagnostic selection requires --case-id");

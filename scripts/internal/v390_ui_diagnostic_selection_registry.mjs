@@ -7,6 +7,7 @@ export const diagnosticSelectionModes = Object.freeze({
   explicitPositiveCase: "explicit-positive-case",
   sharedAdapterImpactSweep: "shared-adapter-impact-sweep",
   diagnosticFailureCensusSweep: "diagnostic-failure-census-sweep",
+  diagnosticFailureClosureSweep: "diagnostic-failure-closure-sweep",
 });
 
 export const diagnosticSelectionModeRegistry = Object.freeze([
@@ -36,6 +37,13 @@ export const diagnosticSelectionModeRegistry = Object.freeze([
     artifactSchema: "media-server.v390-ui-diagnostic-failure-census.v1",
     selectionKind: "immutable-failure-census",
     expectedCount: 99,
+    expectedStartCaseId: null,
+  }),
+  Object.freeze({
+    mode: diagnosticSelectionModes.diagnosticFailureClosureSweep,
+    artifactSchema: "media-server.v390-ui-diagnostic-failure-closure.v1",
+    selectionKind: "immutable-failure-closure",
+    expectedCount: 7,
     expectedStartCaseId: null,
   }),
 ]);

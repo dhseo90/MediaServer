@@ -1143,7 +1143,11 @@ export function buildEvt004TimelineOwnershipEvidence({
       value.firstCreatorCase === "baseline-server-start"));
   const after = [...preserved];
   const selectedBefore = before.slice(0, 8);
-  const selectedAfter = after.slice(0, 8);
+  const markerCandidates = after.filter(value => value.marker);
+  const selectedAfter = [
+    ...markerCandidates,
+    ...after.filter(value => !value.marker),
+  ].slice(0, 8);
   const countByKind = values => Object.fromEntries(
     Object.keys(groups).map(kind => [kind, values.filter(value => value.kind === kind).length]),
   );
@@ -1157,19 +1161,20 @@ export function buildEvt004TimelineOwnershipEvidence({
     after.some(candidate => candidate.identityDigest === value.identityDigest));
   const stateRestored = Boolean(stateIdentityAfter) &&
     stateIdentityAfter === stateIdentityBefore;
-  const failureCode = invalidOwnership
-    ? "EVT004_NON_OWNED_CANDIDATE_MISCLASSIFIED"
-    : (!markerInitiallyDisplaced && !markerInitiallySelected
-    ? "EVT004_MARKER_NOT_PRESENT_BEFORE_ISOLATION"
-    : (markerInitiallyDisplaced && removed.length === 0
-        ? "EVT004_ACCEPTANCE_OWNED_RESIDUE_MISSING"
-        : (!nonOwnedPreserved
-            ? "EVT004_NON_OWNED_CANDIDATE_REMOVED"
-            : (!markerSelectedAfterIsolation
-                ? "EVT004_MARKER_NOT_SELECTED_AFTER_ISOLATION"
-                : (!stateRestored
-                    ? "EVT004_POST_ISOLATION_STATE_IDENTITY_MISMATCH"
-                    : "PASS")))));
+  let failureCode = "PASS";
+  if (invalidOwnership) {
+    failureCode = "EVT004_NON_OWNED_CANDIDATE_MISCLASSIFIED";
+  } else if (markerCandidates.length !== 1) {
+    failureCode = "EVT004_MARKER_OWNER_CARDINALITY_MISMATCH";
+  } else if (!markerInitiallyDisplaced && !markerInitiallySelected) {
+    failureCode = "EVT004_MARKER_NOT_PRESENT_BEFORE_ISOLATION";
+  } else if (!nonOwnedPreserved) {
+    failureCode = "EVT004_NON_OWNED_CANDIDATE_REMOVED";
+  } else if (!markerSelectedAfterIsolation) {
+    failureCode = "EVT004_MARKER_NOT_SELECTED_AFTER_ISOLATION";
+  } else if (!stateRestored) {
+    failureCode = "EVT004_POST_ISOLATION_STATE_IDENTITY_MISMATCH";
+  }
   return {
     schema: "media-server.v390-ui-evt004-timeline-ownership-evidence.v1",
     pass: failureCode === "PASS",
@@ -1194,6 +1199,8 @@ export function buildEvt004TimelineOwnershipEvidence({
     markerInitiallyDisplaced,
     markerInitiallySelected,
     markerSelectedAfterIsolation,
+    acceptanceOwnedResidueState: removed.length > 0 ? "removed" : "already-drained",
+    postIsolationSelectionPolicy: "marker-first-with-non-owned-preservation",
     nonOwnedPreserved,
     invalidOwnership,
     removedIdentityDigest: digestIdentities(removed),

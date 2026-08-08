@@ -10,8 +10,14 @@ import {
   bindRuntimeControlObservationOwner,
   buildPostActionLifecyclePlan,
   postActionDestinationLifecycleRequired,
+  resolvePostActionVisualTarget,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
-import { validateEvt004LifecycleEvidence } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
+import {
+  aggregateDiagnosticChildOutcome,
+  classifyDiagnosticCaseDisposition,
+  validateEvt004LifecycleEvidence,
+} from "./v390_ui_diagnostic_lifecycle_lib.mjs";
+import { buildEvt004TimelineOwnershipEvidence } from "./v390_ui_case_runtime.mjs";
 import { evaluateResponseDerivedDomFieldProjection } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -153,6 +159,13 @@ const evt004Failure = {
   status: "FAIL",
   actualBrowserExecution: true,
   primaryFailureEvidence: evt004PrimaryFailure,
+  failureProvenance: {
+    schema: "media-server.v390-ui-diagnostic-failure-provenance.v1",
+    kind: "case-local-failure",
+    phase: "browser-case-execution",
+    actualBrowserExecution: true,
+    continuationEligible: true,
+  },
   requestCorrelationEvidence: { pass: true },
   requestCorrelationScopeEvidence: { pass: true },
   navigationLifecycleEvidence: { pass: true },
@@ -194,6 +207,121 @@ for (const row of census.failures) {
 assert(priorPass === 192 && repaired === 99 && priorPass + repaired === 291,
   "impact replay aggregate mismatch");
 console.log(`impact trace replay: PASS 291/291 prior=${priorPass}/192 repaired=${repaired}/99`);
+
+const latestRunRelative = ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
+  "v390-ui-diagnostic-20260808004425-80046";
+const closure = readJson("test/fixtures/v390_ui_diagnostic_failure_closure_20260808.json");
+const latestSummary = readJson(`${latestRunRelative}/summary.json`);
+const { digest: closureDigest, ...closurePayload } = closure;
+assert(closure.schema === "media-server.v390-ui-diagnostic-failure-closure.v1" &&
+  sha256(stableJson(closurePayload)) === closureDigest,
+"latest failure closure immutable digest mismatch");
+assert(sha256(fs.readFileSync(path.join(rootDir, latestRunRelative, "summary.json"))) ===
+  closure.sourceBinding.parentSummarySha256,
+"latest parent summary byte binding mismatch");
+assert(latestSummary.counts.target === 99 && latestSummary.counts.attempted === 98 &&
+  latestSummary.counts.pass === 92 && latestSummary.counts.fail === 6 &&
+  latestSummary.counts.notRun === 1,
+"latest source counts mismatch");
+const latestPassIds = latestSummary.cases
+  .filter(item => item.status === "PASS").map(item => item.caseId);
+const latestRemainingIds = latestSummary.cases
+  .filter(item => item.status !== "PASS").map(item => item.caseId);
+assert(latestPassIds.length === 92 && new Set(latestPassIds).size === 92 &&
+  JSON.stringify(latestRemainingIds) === JSON.stringify(closure.selectedIds),
+"latest 92 PASS or seven remaining identities drifted");
+
+for (const caseId of latestPassIds) {
+  const item = byId.get(caseId);
+  const trace = readJson(`${latestRunRelative}/cases/${caseId}/traces/${caseId}.trace.json`);
+  const plan = buildPostActionLifecyclePlan(item);
+  if (postActionDestinationLifecycleRequired(plan)) continue;
+  const sourceObservation = [...(trace.rawPrimaryObservations || [])].reverse()
+    .find(observation => observation?.action?.controlSelector === plan.preAction.selector &&
+      observation?.after?.selector === plan.preAction.selector)?.after || null;
+  const currentRoute = sourceObservation?.url || trace.navigation?.url || item.screenRoute;
+  const target = resolvePostActionVisualTarget(plan, { currentRoute, sourceObservation });
+  assert(target.selector === plan.preAction.selector && target.sourceDetached === false,
+    `${caseId} prior PASS post-action visual owner regressed`);
+}
+
+const timeoutClosureIds = closure.selectedIds.filter(caseId => caseId !== "EVT-004");
+assert(timeoutClosureIds.length === 6, "latest timeout closure identity count mismatch");
+for (const caseId of timeoutClosureIds) {
+  const binding = closure.failures.find(row => row.caseId === caseId);
+  const summaryPath = path.join(rootDir, latestRunRelative, "cases", caseId, "summary.json");
+  const tracePath = path.join(rootDir, latestRunRelative, "cases", caseId,
+    "traces", `${caseId}.trace.json`);
+  assert(sha256(fs.readFileSync(summaryPath)) === binding.summarySha256 &&
+    sha256(fs.readFileSync(tracePath)) === binding.traceSha256,
+  `${caseId} latest timeout evidence byte binding mismatch`);
+  const childSummary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  const trace = JSON.parse(fs.readFileSync(tracePath, "utf8"));
+  const plan = buildPostActionLifecyclePlan(byId.get(caseId));
+  const sourceObservation = [...trace.rawPrimaryObservations].reverse()
+    .find(observation => observation?.action?.controlSelector === plan.preAction.selector)?.after;
+  assert(childSummary.case?.failureClass === "ui-timeout" &&
+    childSummary.case?.failureDetail?.includes("locator.waitFor") &&
+    sourceObservation?.selector === plan.preAction.selector &&
+    sourceObservation.exists === false && sourceObservation.visible === false,
+  `${caseId} recorded stale source timeout signature drifted`);
+  const target = resolvePostActionVisualTarget(plan, {
+    currentRoute: sourceObservation.url,
+    sourceObservation,
+  });
+  assert(target.selector === "body" && target.sourceDetached === true &&
+    target.bindingKind === "post-action-document-owner" &&
+    target.requestedState === "attached",
+  `${caseId} detached source was still selected for post-action visual measurement`);
+}
+
+const evtBinding = closure.failures.find(row => row.caseId === "EVT-004");
+const evtSummaryPath = path.join(rootDir, latestRunRelative, "cases", "EVT-004", "summary.json");
+const evtTracePath = path.join(rootDir, latestRunRelative, "cases", "EVT-004",
+  "traces", "EVT-004.trace.json");
+assert(sha256(fs.readFileSync(evtSummaryPath)) === evtBinding.summarySha256 &&
+  sha256(fs.readFileSync(evtTracePath)) === evtBinding.traceSha256,
+"EVT-004 latest evidence byte binding mismatch");
+const recordedEvtSummary = JSON.parse(fs.readFileSync(evtSummaryPath, "utf8"));
+assert(validateEvt004LifecycleEvidence(recordedEvtSummary.case).length === 0,
+  "EVT-004 preserved FAIL lifecycle remains invalid");
+const recordedEvtOutcome = aggregateDiagnosticChildOutcome({
+  summary: recordedEvtSummary,
+  exitCode: 1,
+});
+assert(classifyDiagnosticCaseDisposition({
+  child: { exitCode: 1 },
+  childSummary: recordedEvtSummary,
+  childOutcome: recordedEvtOutcome,
+  contaminated: false,
+  secretScan: { status: "PASS" },
+  expectedCaseId: "EVT-004",
+}) === "continue-case-local-failure",
+"EVT-004 valid child FAIL was still converted into ingestion abort");
+const baseline = (kind, index) => ({
+  stableIdentity: `${kind}:baseline-${index}`,
+  owned: false,
+  ownerLabel: "published-seed-baseline",
+  firstCreatorCase: "baseline-server-start",
+});
+const evtIsolation = buildEvt004TimelineOwnershipEvidence({
+  rootCandidates: [baseline("root-cause", 1), baseline("root-cause", 2)],
+  sourceCandidates: [1, 2, 3].map(index => baseline("source-health", index)),
+  ruleCandidates: [1, 2, 3].map(index => baseline("rule-warning", index)),
+  logCandidates: [{
+    ...baseline("log-tail", 1),
+    stableIdentity: "log-tail:evt004-marker",
+    marker: true,
+  }],
+  stateIdentityBefore: "already-drained-baseline",
+  stateIdentityAfter: "already-drained-baseline",
+});
+assert(evtIsolation.pass === true &&
+  evtIsolation.acceptanceOwnedResidueState === "already-drained" &&
+  evtIsolation.markerSelectedAfterIsolation === true &&
+  evtIsolation.nonOwnedPreserved === true,
+"EVT-004 already-drained marker isolation replay remained failed");
+console.log("latest closure trace replay: PASS 99/99 prior=92/92 repaired=7/7");
 
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));

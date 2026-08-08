@@ -239,6 +239,55 @@ export async function observePostActionLifecycle(browser, plan, {
   };
 }
 
+export function resolvePostActionVisualTarget(plan, {
+  currentRoute = "",
+  sourceObservation = null,
+} = {}) {
+  assert(plan?.schema === "media-server.v390-ui-post-action-lifecycle-plan.v1",
+    "post-action visual target plan schema mismatch");
+  const sourceSelector = String(plan.preAction?.selector || "");
+  assert(sourceSelector, `${plan.caseId} post-action visual source selector missing`);
+  const base = {
+    schema: "media-server.v390-ui-post-action-visual-target.v1",
+    caseId: plan.caseId,
+    sourceSelectorSha256: createHash("sha256").update(sourceSelector).digest("hex"),
+    requestedState: "attached",
+  };
+  if (!sourceObservation) {
+    return {
+      ...base,
+      selector: sourceSelector,
+      bindingKind: "source-owner-without-action-observation",
+      sourceDetached: false,
+      observedRoute: routeLocation(currentRoute),
+    };
+  }
+  assert(sourceObservation.selector === sourceSelector,
+    `${plan.caseId} post-action visual source selector binding mismatch`);
+  assert(typeof sourceObservation.exists === "boolean",
+    `${plan.caseId} post-action visual source existence missing`);
+  if (sourceObservation.exists) {
+    return {
+      ...base,
+      selector: sourceSelector,
+      bindingKind: "attached-source-owner",
+      sourceDetached: false,
+      observedRoute: routeLocation(currentRoute),
+    };
+  }
+  const observedRoute = routeLocation(currentRoute);
+  const actionRoute = routeLocation(sourceObservation.url);
+  assert(observedRoute && actionRoute && observedRoute === actionRoute,
+    `${plan.caseId} detached source post-action document binding mismatch`);
+  return {
+    ...base,
+    selector: "body",
+    bindingKind: "post-action-document-owner",
+    sourceDetached: true,
+    observedRoute,
+  };
+}
+
 export function buildCanonicalSharedAdapterImpact(nativeManifest) {
   assert(nativeManifest?.schema && Array.isArray(nativeManifest?.cases),
     "shared adapter impact requires the native exact manifest");
@@ -322,6 +371,17 @@ function routePath(value) {
     return new URL(source, "http://127.0.0.1").pathname;
   } catch {
     return source.split(/[?#]/, 1)[0];
+  }
+}
+
+function routeLocation(value) {
+  const source = String(value || "");
+  if (!source) return "";
+  try {
+    const parsed = new URL(source, "http://127.0.0.1");
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return source;
   }
 }
 

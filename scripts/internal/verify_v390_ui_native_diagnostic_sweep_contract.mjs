@@ -20,6 +20,7 @@ import {
   diagnosticChildSourceBindingErrors,
   eventReviewSeedDiagnosticCaseIds,
   serializeDiagnosticPrimaryFailureEvidence,
+  validateEvt004LifecycleEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import { buildRequestSemanticAssertionEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
@@ -55,6 +56,48 @@ check("release runner remains fail-first outside the internal diagnostic child m
     runnerSource.includes("if (diagnosticChild) {") &&
     runnerSource.includes("} else if (!evidenceProductionFailure) {"),
   "diagnostic child does not bypass Policy v4 production in a distinct branch");
+});
+
+check("recorded EVT-004 child FAIL remains valid case evidence instead of missing ingestion", () => {
+  const summaryPath = path.join(rootDir,
+    ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
+    "v390-ui-diagnostic-20260808004425-80046/cases/EVT-004/summary.json");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  const lifecycleErrors = validateEvt004LifecycleEvidence(summary.case);
+  assert(!lifecycleErrors.includes("EVT-004-request-correlation-missing"),
+    "a downstream correlation stage missing after the preserved primary failure invalidated the child summary");
+  const childOutcome = aggregateDiagnosticChildOutcome({ summary, exitCode: 1 });
+  const disposition = classifyDiagnosticCaseDisposition({
+    child: { exitCode: 1 },
+    childSummary: summary,
+    childOutcome,
+    contaminated: summary.environmentContamination?.detected === true,
+    secretScan: { status: "PASS" },
+    expectedCaseId: "EVT-004",
+  });
+  assert(childOutcome.status === "FAIL" &&
+    childOutcome.failureClass === "case-execution-failed" &&
+    childOutcome.actualBrowserExecution === true &&
+    childOutcome.cleanupAttestation?.primaryFailurePreserved === true &&
+    disposition === "continue-case-local-failure",
+  "valid EVT-004 child FAIL summary was converted into lifecycle abort/missing evidence");
+  const corruptedSummary = structuredClone(summary);
+  delete corruptedSummary.case.navigationLifecycleEvidence;
+  corruptedSummary.rawCaptureValidation.errors.push(
+    "diagnostic-child-EVT-004-navigation-lifecycle-missing");
+  const corruptedOutcome = aggregateDiagnosticChildOutcome({
+    summary: corruptedSummary,
+    exitCode: 1,
+  });
+  assert(classifyDiagnosticCaseDisposition({
+    child: { exitCode: 1 },
+    childSummary: corruptedSummary,
+    childOutcome: corruptedOutcome,
+    contaminated: false,
+    secretScan: { status: "PASS" },
+    expectedCaseId: "EVT-004",
+  }) === "abort-diagnostic-lifecycle",
+  "a real missing lifecycle field was accepted as a preserved child FAIL");
 });
 
 check("diagnostic selection is fixed to canonical unresolved EVT-023 through the exact end", () => {
@@ -199,7 +242,7 @@ check("attempted case evidence does not falsely require browser execution before
 });
 
 check("fixed 125 sweep continues clean case-local failures and aborts environment integrity failures", () => {
-  assert(lifecycleSource.includes("const integrityPass = childSummary?.rawCaptureValidation?.status === \"PASS\"") &&
+  assert(lifecycleSource.includes("const integrityPass = diagnosticChildRawCaptureIntegrityPass(") &&
     lifecycleSource.includes("childSummary?.caseRuntimeSecretArtifactIntegrity?.status === \"PASS\"") &&
     lifecycleSource.includes("secretScan?.status === \"PASS\"") &&
     lifecycleSource.includes("cleanupAttestation?.pass === true") &&
@@ -1094,13 +1137,17 @@ check("parent and child share one fail-closed diagnostic selection registry", ()
       "explicit-positive-case",
       "shared-adapter-impact-sweep",
       "diagnostic-failure-census-sweep",
+      "diagnostic-failure-closure-sweep",
     ]), "diagnostic selection registry mode set drift");
   assert(diagnosticSelectionModeForArtifactSchema(
     "media-server.v390-ui-shared-adapter-impact.v1") ===
       diagnosticSelectionModes.sharedAdapterImpactSweep &&
     diagnosticSelectionModeForArtifactSchema(
       "media-server.v390-ui-diagnostic-failure-census.v1") ===
-        diagnosticSelectionModes.diagnosticFailureCensusSweep,
+        diagnosticSelectionModes.diagnosticFailureCensusSweep &&
+    diagnosticSelectionModeForArtifactSchema(
+      "media-server.v390-ui-diagnostic-failure-closure.v1") ===
+        diagnosticSelectionModes.diagnosticFailureClosureSweep,
   "diagnostic artifact schema registry drift");
   for (const stale of ["", "stale-mode", "diagnostic-failure-census-sweep-v0"]) {
     let failed = false;
@@ -1349,6 +1396,56 @@ check("immutable failure census selects exactly the prior 99 failures once", () 
   assert(rejected.status !== 0 &&
     `${rejected.stderr || ""}${rejected.stdout || ""}`.includes("immutable digest mismatch"),
   "tampered failure census selection was accepted");
+});
+
+check("immutable failure closure selects the exact remaining seven through the real child preflight", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "failure-closure-contract-"));
+  temporaryDirs.push(outputDir);
+  const artifactPath = "test/fixtures/v390_ui_diagnostic_failure_closure_20260808.json";
+  const artifact = JSON.parse(read(artifactPath));
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", artifactPath,
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0, `failure closure plan failed: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  assert(summary.selection?.mode === "diagnostic-failure-closure-sweep" &&
+    summary.selection?.targetCaseCount === 7 &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(artifact.selectedIds) &&
+    new Set(summary.selection?.selectedIds || []).size === 7 &&
+    summary.counts.target === 7 && summary.counts.attempted === 0 &&
+    summary.counts.pass === 0 && summary.counts.fail === 0 &&
+    summary.counts.notRun === 7 && summary.counts.unsupported === 0 &&
+    summary.actualBrowserExecution === false,
+  "failure closure selection is missing, duplicated, reordered, or started a browser");
+  const childPreflight = summary.childSelectionPreflight;
+  assert(childPreflight?.phase === "child-selection-preflight" &&
+    childPreflight.status === "PASS" && childPreflight.exitCode === 0 &&
+    childPreflight.actualBrowserExecution === false &&
+    childPreflight.selectionMode === "diagnostic-failure-closure-sweep" &&
+    childPreflight.targetCaseCount === 7 &&
+    childPreflight.targetCaseIdsSha256 === summary.selection.targetCaseIdsSha256 &&
+    childPreflight.childAcceptedTargetCaseCount === 7 &&
+    childPreflight.childAcceptedTargetCaseIdsSha256 ===
+      summary.selection.targetCaseIdsSha256,
+  "failure closure did not pass the real no-browser child subprocess preflight");
+  const tampered = structuredClone(artifact);
+  tampered.selectedIds = tampered.selectedIds.slice(1);
+  const tamperedPath = path.join(outputDir, "tampered-closure.json");
+  fs.writeFileSync(tamperedPath, `${JSON.stringify(tampered)}\n`, "utf8");
+  const rejected = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", tamperedPath,
+    "--plan-only",
+    "--output-dir", path.join(outputDir, "tampered-output"),
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(rejected.status !== 0 &&
+    `${rejected.stderr || ""}${rejected.stdout || ""}`.includes("immutable digest mismatch"),
+  "tampered failure closure selection was accepted");
 });
 
 check("child selection preflight failure preserves process evidence without attempting a UI case", () => {

@@ -21,8 +21,8 @@ const gates = Object.freeze([
   {
     label: "impact-291",
     script: "verify_v390_ui_native_diagnostic_trace_replay_impact_contract.mjs",
-    expected: /impact trace replay: PASS 291\/291 prior=192\/192 repaired=99\/99/,
-    count: 291,
+    expected: /latest closure trace replay: PASS 99\/99 prior=92\/92 repaired=7\/7/,
+    count: 390,
   },
   {
     label: "remaining",
@@ -60,5 +60,5 @@ for (const gate of gates) {
   passed += gate.count;
 }
 
-if (passed !== 449) throw new Error(`actual diagnostic trace replay coverage mismatch: ${passed}/449`);
-console.log(`v390 UI native diagnostic trace replay contract PASS: ${passed}/449`);
+if (passed !== 548) throw new Error(`actual diagnostic trace replay coverage mismatch: ${passed}/548`);
+console.log(`v390 UI native diagnostic trace replay contract PASS: ${passed}/548`);

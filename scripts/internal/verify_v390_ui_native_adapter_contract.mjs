@@ -33,6 +33,7 @@ import {
   evaluatePostActionLifecycle,
   observePostActionLifecycle,
   postActionDestinationLifecycleRequired,
+  resolvePostActionVisualTarget,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -472,6 +473,51 @@ check("post-action destination wait failures retain structured fail-closed evide
     "destination timeout lost the structured missing-control evidence");
 });
 
+check("post-action visual measurement never re-waits a detached source owner", () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const item = nativeManifest.cases.find(candidate => candidate.caseId === "UI-029");
+  const plan = buildPostActionLifecyclePlan(item);
+  const detached = resolvePostActionVisualTarget(plan, {
+    currentRoute: "/ops/vlm",
+    sourceObservation: {
+      selector: plan.preAction.selector,
+      exists: false,
+      visible: false,
+      url: "http://127.0.0.1:8080/ops/vlm",
+    },
+  });
+  assert(detached.selector === "body" &&
+    detached.bindingKind === "post-action-document-owner" &&
+    detached.sourceDetached === true &&
+    detached.observedRoute === "/ops/vlm",
+  "detached source control remained the post-action visual wait owner");
+  const retained = resolvePostActionVisualTarget(plan, {
+    currentRoute: "/ops/vlm",
+    sourceObservation: {
+      selector: plan.preAction.selector,
+      exists: true,
+      visible: false,
+      url: "http://127.0.0.1:8080/ops/vlm",
+    },
+  });
+  assert(retained.selector === plan.preAction.selector &&
+    retained.bindingKind === "attached-source-owner" &&
+    retained.sourceDetached === false,
+  "attached source control lost its existing visual measurement contract");
+  for (const sourceObservation of [
+    { selector: "#wrong", exists: false, visible: false, url: "http://127.0.0.1:8080/ops/vlm" },
+    { selector: plan.preAction.selector, exists: false, visible: false, url: "http://127.0.0.1:8080/wrong" },
+  ]) {
+    let rejected = false;
+    try {
+      resolvePostActionVisualTarget(plan, { currentRoute: "/ops/vlm", sourceObservation });
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, "wrong selector/route detached source visual owner passed");
+  }
+});
+
 check("exact runner preserves non-redirect visual behavior and binds redirected destinations", () => {
   for (const snippet of [
     "buildPostActionLifecyclePlan",
@@ -479,6 +525,9 @@ check("exact runner preserves non-redirect visual behavior and binds redirected 
     "postActionLifecyclePlan",
     "postActionLifecycleEvidence",
     "postActionDestinationLifecycleRequired(postActionLifecyclePlan)",
+    "resolvePostActionVisualTarget(",
+    "trace.postActionVisualTargetEvidence = postActionVisualTarget",
+    "observation?.after?.selector ===",
     'let visualTargetSelector = item.controlAction.targetSelector || "body";',
     "visualTargetSelector = postActionLifecyclePlan.postNavigation.selector",
   ]) {

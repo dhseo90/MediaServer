@@ -767,6 +767,49 @@ await check("EVT-004 removes only acceptance-owned canonical timeline residue", 
     "a product-baseline candidate mislabeled as owned did not fail closed");
 });
 
+await check("EVT-004 marker isolation accepts an already-drained prior-case residue", async () => {
+  const baseline = (kind, index) => ({
+    stableIdentity: `${kind}:baseline-${index}`,
+    owned: false,
+    ownerLabel: "published-seed-baseline",
+    firstCreatorCase: "baseline-server-start",
+    originRoute: `/ops/api/${kind}`,
+    originService: `${kind}-service`,
+    backingOwner: `${kind}-registry`,
+  });
+  const evidence = buildEvt004TimelineOwnershipEvidence({
+    rootCandidates: [baseline("root-cause", 1), baseline("root-cause", 2)],
+    sourceCandidates: [
+      baseline("source-health", 1),
+      baseline("source-health", 2),
+      baseline("source-health", 3),
+    ],
+    ruleCandidates: [
+      baseline("rule-warning", 1),
+      baseline("rule-warning", 2),
+      baseline("rule-warning", 3),
+    ],
+    logCandidates: [{
+      stableIdentity: "log-tail:evt004-marker",
+      owned: false,
+      ownerLabel: "evt004-marker-fixture",
+      firstCreatorCase: "EVT-004",
+      originRoute: "/ops/api/diagnostics/log-tail?limit=80",
+      originService: "OpsDiagnosticLogTailJson",
+      backingOwner: "acceptance-owned product root log snapshot",
+      marker: true,
+    }],
+    stateIdentityBefore: "already-drained-baseline",
+    stateIdentityAfter: "already-drained-baseline",
+  });
+  assert(evidence.pass === true &&
+    evidence.markerInitiallyDisplaced === true &&
+    evidence.markerSelectedAfterIsolation === true &&
+    evidence.nonOwnedPreserved === true &&
+    Object.values(evidence.ownedKindCounts).every(count => count === 0),
+  "an already-drained prior-case residue incorrectly blocked EVT-004 marker isolation");
+});
+
 await check("EVT-004 correlation is request-scoped to one authoritative log-tail fetch", async () => {
   const correlationId = "EVT-004:assert-product-state:completion";
   const path = "/ops/api/diagnostics/log-tail?limit=50";

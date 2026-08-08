@@ -73,6 +73,7 @@ import {
   buildPostActionLifecyclePlan,
   observePostActionLifecycle,
   postActionDestinationLifecycleRequired,
+  resolvePostActionVisualTarget,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 import {
   diagnosticSelectionModes,
@@ -805,7 +806,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       .slice()
       .reverse()
       .find(observation => observation?.action?.controlSelector ===
-        postActionLifecyclePlan.preAction.selector)?.after || null;
+        postActionLifecyclePlan.preAction.selector &&
+        observation?.after?.selector ===
+          postActionLifecyclePlan.preAction.selector)?.after || null;
     let postActionLifecycleEvidence = null;
     let visualTargetSelector = item.controlAction.targetSelector || "body";
     if (postActionDestinationLifecycleRequired(postActionLifecyclePlan)) {
@@ -819,6 +822,18 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       postActionLifecycleEvidence = observedPostAction.evidence;
       trace.postActionLifecycleEvidence = postActionLifecycleEvidence;
       visualTargetSelector = postActionLifecyclePlan.postNavigation.selector;
+    } else {
+      const postActionVisualTarget = resolvePostActionVisualTarget(
+        postActionLifecyclePlan,
+        {
+          currentRoute: await browser.evaluate(
+            "location.pathname + location.search + location.hash",
+          ),
+          sourceObservation,
+        },
+      );
+      visualTargetSelector = postActionVisualTarget.selector;
+      trace.postActionVisualTargetEvidence = postActionVisualTarget;
     }
     const visualExpectedCase = {
       canonicalCaseId: item.caseId,
