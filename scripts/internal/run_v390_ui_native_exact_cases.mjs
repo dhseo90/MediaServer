@@ -74,6 +74,11 @@ import {
   observePostActionLifecycle,
   postActionDestinationLifecycleRequired,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
+import {
+  diagnosticSelectionModes,
+  validateDiagnosticSelectionContract,
+  validateDiagnosticSelectionMode,
+} from "./v390_ui_diagnostic_selection_registry.mjs";
 
 const runnerWorkflowSchema = "media-server.v390-ui-case-native-workflow.v2";
 const supportedSetupKinds = Object.freeze([
@@ -135,6 +140,7 @@ let implementation = null;
 let validation = null;
 let visualPlanValidation = null;
 let runnerWorkflowCompatibility = null;
+let diagnosticSelectionContract = null;
 try {
   manifest = readJson(options.manifest);
   if (diagnosticChild) {
@@ -149,6 +155,14 @@ try {
     visualPlanValidation = validateVisualMatrixPlan({ plan: visualMatrixPlan, canonical, native: manifest });
   }
   runnerWorkflowCompatibility = validateRunnerWorkflowCompatibility(manifest.cases);
+  if (diagnosticChild) {
+    validateDiagnosticSelectionMode(options.diagnosticSelectionMode);
+    diagnosticSelectionContract = readJson(options.diagnosticSelectionContract);
+    validateDiagnosticSelectionContract(diagnosticSelectionContract, {
+      expectedMode: options.diagnosticSelectionMode,
+      manifestCaseIds: manifest.cases.map(item => item.caseId),
+    });
+  }
 } catch (error) {
   const summary = diagnosticChild
     ? createDiagnosticPreExecutionSummary(options.diagnosticCaseId, "manifest-or-contract-preflight")
@@ -159,7 +173,12 @@ try {
 }
 const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
 const diagnosticSelection = diagnosticChild
-  ? selectDiagnosticCase(manifest.cases, options.diagnosticCaseId, options.diagnosticSelectionMode)
+  ? selectDiagnosticCase(
+    manifest.cases,
+    options.diagnosticCaseId,
+    options.diagnosticSelectionMode,
+    diagnosticSelectionContract,
+  )
   : null;
 const tracesDir = path.join(outputDir, "traces");
 const screenshotsDir = path.join(outputDir, "screenshots");
@@ -3543,33 +3562,22 @@ function makeNotRun(item, reason) {
   return { caseId: item.caseId, featureId: item.featureId, status: "not-run", reason };
 }
 
-function selectDiagnosticCase(cases, caseId, selectionMode) {
+function selectDiagnosticCase(cases, caseId, selectionMode, selectionContract) {
   assert(caseId, "--diagnostic-case-id is required with --diagnostic-child");
-  assert(["fixed-remaining-sweep", "explicit-positive-case", "shared-adapter-impact-sweep"].includes(selectionMode),
-    "unsupported diagnostic child selection mode");
-  if (selectionMode === "explicit-positive-case") {
-    const matches = cases.filter(item => item.caseId === caseId);
-    assert(matches.length === 1, `diagnostic explicit case ID is unknown or duplicated: ${caseId}`);
-    const [item] = matches;
+  validateDiagnosticSelectionMode(selectionMode);
+  validateDiagnosticSelectionContract(selectionContract, {
+    expectedMode: selectionMode,
+    manifestCaseIds: cases.map(item => item.caseId),
+  });
+  assert(selectionContract.selectedIds.includes(caseId),
+    `diagnostic case is outside the parent selection contract: ${caseId}`);
+  const matches = cases.filter(item => item.caseId === caseId);
+  assert(matches.length === 1, `diagnostic case ID is unknown or duplicated: ${caseId}`);
+  const [item] = matches;
+  if (selectionMode === diagnosticSelectionModes.explicitPositiveCase) {
     assert(item.disposition === "native-executable",
       `diagnostic explicit case must be a positive native-executable case: ${caseId}`);
-    return diagnosticSingleCaseSelection(item, selectionMode);
   }
-  if (selectionMode === "shared-adapter-impact-sweep") {
-    assert(cases.length === 424,
-      `shared adapter impact diagnostic manifest must contain 424 cases: ${cases.length}`);
-    const matches = cases.filter(item => item.caseId === caseId);
-    assert(matches.length === 1,
-      `shared adapter impact diagnostic case is unknown or duplicated: ${caseId}`);
-    return diagnosticSingleCaseSelection(matches[0], selectionMode);
-  }
-  const firstIndex = cases.findIndex(item => item.caseId === "RULE-097");
-  assert(firstIndex >= 0, "RULE-097 diagnostic start case is missing from the canonical manifest");
-  const selected = cases.slice(firstIndex);
-  assert(selected.length === 144,
-    `RULE-097 diagnostic selection must contain 144 cases: ${selected.length}`);
-  const item = selected.find(candidate => candidate.caseId === caseId);
-  assert(item, `diagnostic case is outside the fixed RULE-097 selection: ${caseId}`);
   return diagnosticSingleCaseSelection(item, selectionMode);
 }
 
@@ -3753,6 +3761,9 @@ function validateDiagnosticChildSummary(summary, item) {
     "caseId",
     "caseIdsSha256",
     "selectionMode",
+    "parentSelectionCount",
+    "parentSelectionIdsSha256",
+    "selectionContractDigest",
   ]) {
     if (summary?.sourceBinding?.[field] !== expectedSourceBinding[field]) {
       errors.push(`diagnostic-child-source-binding-${field}`);
@@ -4049,7 +4060,8 @@ function parseArgs(args) {
     planOnly: false,
     diagnosticChild: false,
     diagnosticCaseId: "",
-    diagnosticSelectionMode: "fixed-remaining-sweep",
+    diagnosticSelectionMode: diagnosticSelectionModes.fixedRemainingSweep,
+    diagnosticSelectionContract: "",
     diagnosticSourceCommit: "",
     diagnosticManifestSha256: "",
     diagnosticBuildSha256: "",
@@ -4071,6 +4083,7 @@ function parseArgs(args) {
     else if (arg === "--diagnostic-child") value.diagnosticChild = true;
     else if (arg === "--diagnostic-case-id") value.diagnosticCaseId = args[++index] || "";
     else if (arg === "--diagnostic-selection-mode") value.diagnosticSelectionMode = args[++index] || "";
+    else if (arg === "--diagnostic-selection-contract") value.diagnosticSelectionContract = args[++index] || "";
     else if (arg === "--diagnostic-source-commit") value.diagnosticSourceCommit = args[++index] || "";
     else if (arg === "--diagnostic-manifest-sha256") value.diagnosticManifestSha256 = args[++index] || "";
     else if (arg === "--diagnostic-build-sha256") value.diagnosticBuildSha256 = args[++index] || "";
@@ -4081,12 +4094,9 @@ function parseArgs(args) {
   assert(Number.isFinite(value.timeoutMs) && value.timeoutMs > 0, "--timeout-ms must be positive");
   assert(!value.diagnosticCaseId || value.diagnosticChild,
     "--diagnostic-case-id requires --diagnostic-child");
-  assert(value.diagnosticSelectionMode === "fixed-remaining-sweep" ||
-    value.diagnosticSelectionMode === "explicit-positive-case" ||
-    value.diagnosticSelectionMode === "shared-adapter-impact-sweep" ||
-    value.diagnosticSelectionMode === "diagnostic-failure-census-sweep",
-  "--diagnostic-selection-mode must be a supported diagnostic child mode");
-  assert(value.diagnosticSelectionMode === "fixed-remaining-sweep" || value.diagnosticChild,
+  validateDiagnosticSelectionMode(value.diagnosticSelectionMode);
+  assert(value.diagnosticSelectionMode === diagnosticSelectionModes.fixedRemainingSweep ||
+    value.diagnosticChild,
     "--diagnostic-selection-mode requires --diagnostic-child");
   assert(!value.diagnosticChild || value.diagnosticCaseId,
     "--diagnostic-child requires --diagnostic-case-id");
@@ -4098,6 +4108,8 @@ function parseArgs(args) {
     "--diagnostic-child requires --diagnostic-build-sha256");
   assert(!value.diagnosticChild || value.diagnosticRunId,
     "--diagnostic-child requires --diagnostic-run-id");
+  assert(!value.diagnosticChild || value.diagnosticSelectionContract,
+    "--diagnostic-child requires --diagnostic-selection-contract");
   return value;
 }
 
@@ -4137,6 +4149,10 @@ function diagnosticChildSourceBinding(caseId) {
     caseId,
     caseIdsSha256: sha256Text(caseId),
     selectionMode: options.diagnosticSelectionMode,
+    parentSelectionCount: Number(diagnosticSelectionContract?.targetCaseCount || 0),
+    parentSelectionIdsSha256:
+      String(diagnosticSelectionContract?.targetCaseIdsSha256 || ""),
+    selectionContractDigest: String(diagnosticSelectionContract?.digest || ""),
   };
 }
 

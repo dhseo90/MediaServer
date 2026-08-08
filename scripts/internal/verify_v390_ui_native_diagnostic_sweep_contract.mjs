@@ -23,6 +23,14 @@ import {
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import { buildRequestSemanticAssertionEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
+import {
+  buildDiagnosticSelectionContract,
+  diagnosticSelectionModeForArtifactSchema,
+  diagnosticSelectionModeRegistry,
+  diagnosticSelectionModes,
+  validateDiagnosticSelectionContract,
+  validateDiagnosticSelectionMode,
+} from "./v390_ui_diagnostic_selection_registry.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -1026,7 +1034,7 @@ check("diagnostic sweep reports durable progress and treats cleanup failure as f
     sweepSource.includes("buildBootstrapFailureEvidence(error)") &&
     sweepSource.includes("reasonSha256") &&
     sweepSource.includes("environmentAttestationSha256") &&
-    sweepSource.includes('cleanup.some(item => item.status !== "PASS") ? "FAIL" : "PASS"'),
+    sweepSource.includes('cleanup.some(item => item.status !== "PASS") || abortReason ? "FAIL" : "PASS"'),
   "diagnostic progress or final cleanup failure binding missing");
 });
 
@@ -1079,12 +1087,63 @@ check("bootstrap failure preserves safe phase, cause digest, and cleanup attesta
   "bootstrap failure summary exposed a raw URL or secret");
 });
 
-check("default diagnostics retain the fixed RULE-097 selection while explicit diagnostics use validated positives", () => {
+check("parent and child share one fail-closed diagnostic selection registry", () => {
+  assert(JSON.stringify(diagnosticSelectionModeRegistry.map(entry => entry.mode)) ===
+    JSON.stringify([
+      "fixed-remaining-sweep",
+      "explicit-positive-case",
+      "shared-adapter-impact-sweep",
+      "diagnostic-failure-census-sweep",
+    ]), "diagnostic selection registry mode set drift");
+  assert(diagnosticSelectionModeForArtifactSchema(
+    "media-server.v390-ui-shared-adapter-impact.v1") ===
+      diagnosticSelectionModes.sharedAdapterImpactSweep &&
+    diagnosticSelectionModeForArtifactSchema(
+      "media-server.v390-ui-diagnostic-failure-census.v1") ===
+        diagnosticSelectionModes.diagnosticFailureCensusSweep,
+  "diagnostic artifact schema registry drift");
+  for (const stale of ["", "stale-mode", "diagnostic-failure-census-sweep-v0"]) {
+    let failed = false;
+    try {
+      validateDiagnosticSelectionMode(stale);
+    } catch {
+      failed = true;
+    }
+    assert(failed, `invalid diagnostic selection mode passed: ${stale}`);
+  }
+  let staleSchemaFailed = false;
+  try {
+    diagnosticSelectionModeForArtifactSchema("media-server.v390-ui-stale-selection.v0");
+  } catch {
+    staleSchemaFailed = true;
+  }
+  assert(staleSchemaFailed, "stale diagnostic artifact schema passed");
+  const validContract = buildDiagnosticSelectionContract({
+    mode: diagnosticSelectionModes.explicitPositiveCase,
+    selectedIds: ["UI-001"],
+  });
+  for (const [label, candidate] of [
+    ["schema", { ...validContract, schema: "stale.v0" }],
+    ["digest", { ...validContract, digest: "0".repeat(64) }],
+    ["selection ID", { ...validContract, selectedIds: ["UI-002"] }],
+    ["selection digest", { ...validContract, targetCaseIdsSha256: "1".repeat(64) }],
+  ]) {
+    let failed = false;
+    try {
+      validateDiagnosticSelectionContract(candidate, {
+        expectedMode: diagnosticSelectionModes.explicitPositiveCase,
+        manifestCaseIds: manifest.cases.map(item => item.caseId),
+      });
+    } catch {
+      failed = true;
+    }
+    assert(failed, `${label} mismatch passed the shared selection validator`);
+  }
   assert(sweepSource.includes('else if (arg === "--case-id") {') &&
     sweepSource.includes('parsed.caseId = args[++index] || "";'),
     "diagnostic single-case parser missing");
   assert(sweepSource.includes('assert(!parsed.caseIdSpecified, "duplicate --case-id is not allowed")') &&
-    sweepSource.includes('selectionMode === "explicit-positive-case"') &&
+    sweepSource.includes('diagnosticSelectionModes.explicitPositiveCase') &&
     sweepSource.includes('item.disposition === "native-executable"') &&
     sweepSource.includes('manifestCases.filter(item => item.caseId === caseId)') &&
     sweepSource.includes('mode: selectionMode'),
@@ -1094,7 +1153,8 @@ check("default diagnostics retain the fixed RULE-097 selection while explicit di
     sweepSource.includes("selectedIds: selection.map(item => item.caseId)"),
   "diagnostic summary does not bind selection metadata to the actual selected cases");
   assert(sweepSource.includes('"--diagnostic-case-id", item.caseId') &&
-    sweepSource.includes('"--diagnostic-selection-mode", selectionMode'),
+    sweepSource.includes('"--diagnostic-selection-mode", selectionMode') &&
+    sweepSource.includes('"--diagnostic-selection-contract", selectionContractPath'),
   "diagnostic parent does not forward the requested case and explicit selection mode to its child");
 });
 
@@ -1263,6 +1323,19 @@ check("immutable failure census selects exactly the prior 99 failures once", () 
     summary.counts.notRun === 99 && summary.counts.unsupported === 0 &&
     summary.actualBrowserExecution === false,
   "failure census plan count or browser boundary mismatch");
+  const childPreflight = summary.childSelectionPreflight;
+  assert(childPreflight?.phase === "child-selection-preflight" &&
+    childPreflight.status === "PASS" && childPreflight.exitCode === 0 &&
+    childPreflight.actualBrowserExecution === false &&
+    childPreflight.selectionMode === "diagnostic-failure-census-sweep" &&
+    childPreflight.targetCaseCount === 99 &&
+    childPreflight.targetCaseIdsSha256 === summary.selection.targetCaseIdsSha256 &&
+    childPreflight.childAcceptedTargetCaseCount === 99 &&
+    childPreflight.childAcceptedTargetCaseIdsSha256 ===
+      summary.selection.targetCaseIdsSha256 &&
+    childPreflight.stdout?.captured === true &&
+    childPreflight.stderr?.captured === true,
+  "failure census did not pass the real no-browser child subprocess preflight");
   const tampered = structuredClone(artifact);
   tampered.failedIds = tampered.failedIds.slice(1);
   const tamperedPath = path.join(outputDir, "tampered-census.json");
@@ -1276,6 +1349,39 @@ check("immutable failure census selects exactly the prior 99 failures once", () 
   assert(rejected.status !== 0 &&
     `${rejected.stderr || ""}${rejected.stdout || ""}`.includes("immutable digest mismatch"),
   "tampered failure census selection was accepted");
+});
+
+check("child selection preflight failure preserves process evidence without attempting a UI case", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "failure-census-child-preflight-failure-"));
+  temporaryDirs.push(outputDir);
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", "test/fixtures/v390_ui_diagnostic_failure_census_20260807.json",
+    "--contract-child-selection-preflight-fixture", "digest-mismatch",
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 1, `invalid child preflight exit mismatch: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  const preflight = summary.childSelectionPreflight;
+  assert(summary.result === "FAIL" &&
+    summary.executionStatus === "diagnostic-child-selection-preflight-failed" &&
+    summary.counts.target === 99 && summary.counts.attempted === 0 &&
+    summary.counts.pass === 0 && summary.counts.fail === 0 &&
+    summary.counts.notRun === 99 && summary.actualBrowserExecution === false &&
+    summary.cases.every(item => item.status === "not-run" &&
+      item.actualBrowserExecution === false),
+  "child selection preflight failure was counted as an attempted UI case");
+  assert(preflight?.phase === "child-selection-preflight" &&
+    preflight.status === "FAIL" && preflight.exitCode === 1 &&
+    preflight.actualBrowserExecution === false &&
+    preflight.stdout?.captured === true && /^[0-9a-f]{64}$/.test(preflight.stdout.sha256) &&
+    preflight.stderr?.captured === true && /^[0-9a-f]{64}$/.test(preflight.stderr.sha256) &&
+    preflight.selectionMode === "diagnostic-failure-census-sweep" &&
+    preflight.targetCaseCount === 99,
+  "parent lost child preflight exit/stdout/stderr/phase evidence");
 });
 
 check("actual diagnostic builds and binds the current source before browser bootstrap", () => {
@@ -1305,6 +1411,14 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
   fs.writeFileSync(diagnosticManifestPath,
     `${JSON.stringify(nativeManifest, null, 2)}\n`,
     "utf8");
+  const fixedIds = nativeManifest.cases.slice(
+    nativeManifest.cases.findIndex(item => item.caseId === "EVT-023"),
+  ).map(item => item.caseId);
+  const selectionContractPath = writeSelectionContract(
+    outputDir,
+    diagnosticSelectionModes.fixedRemainingSweep,
+    fixedIds,
+  );
   const sourceCommit = "0".repeat(40);
   const manifestSha256 = createHash("sha256")
     .update(stableJson(nativeManifest)).digest("hex");
@@ -1313,7 +1427,8 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
   const run = spawnSync(path.join(rootDir, "server.sh"), [
     "run-v390-ui-native-exact-cases",
     "--diagnostic-child",
-    "--diagnostic-case-id", "RULE-097",
+    "--diagnostic-case-id", "EVT-023",
+    "--diagnostic-selection-contract", selectionContractPath,
     "--manifest", diagnosticManifestPath,
     "--diagnostic-source-commit", sourceCommit,
     "--diagnostic-manifest-sha256", manifestSha256,
@@ -1325,11 +1440,11 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
   assert(run.status === 0, `diagnostic child plan-only failed: ${run.stderr || run.stdout}`);
   const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
   assert(summary.schema === "media-server.v390-ui-diagnostic-child.v1", "diagnostic child plan-only schema mismatch");
-  assert(summary.selection?.startCaseId === "RULE-097" &&
-    summary.selection?.endCaseId === "RULE-097" &&
-    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(["RULE-097"]) &&
+  assert(summary.selection?.startCaseId === "EVT-023" &&
+    summary.selection?.endCaseId === "EVT-023" &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(["EVT-023"]) &&
     summary.selection?.targetCaseCount === 1 &&
-    summary.selection?.caseId === "RULE-097" && summary.selection?.automaticRetryCount === 0,
+    summary.selection?.caseId === "EVT-023" && summary.selection?.automaticRetryCount === 0,
   "diagnostic child selected-case/retry mismatch");
   assert(summary.releaseEvidenceEligible === false && summary.policyV4Qualification === "not-eligible" &&
     summary.uiFulltestPass === false,
@@ -1338,7 +1453,13 @@ check("diagnostic child plan-only reports only its selected case and cannot emit
     summary.sourceBinding?.manifestSha256 === manifestSha256 &&
     summary.sourceBinding?.buildSha256 === buildSha256 &&
     summary.sourceBinding?.runId === diagnosticRunId &&
-    summary.sourceBinding?.caseId === "RULE-097",
+    summary.sourceBinding?.caseId === "EVT-023" &&
+    summary.sourceBinding?.parentSelectionCount === 125 &&
+    summary.sourceBinding?.parentSelectionIdsSha256 ===
+      buildDiagnosticSelectionContract({
+        mode: diagnosticSelectionModes.fixedRemainingSweep,
+        selectedIds: fixedIds,
+      }).targetCaseIdsSha256,
   "diagnostic child plan-only source binding mismatch");
   assert(summary.case?.actualBrowserExecution === false &&
     summary.case?.eventDomSemanticEvidence === null,
@@ -1360,11 +1481,17 @@ check("diagnostic child explicit-positive mode revalidates UI-001 identity and s
   const manifestSha256 = createHash("sha256")
     .update(stableJson(nativeManifest)).digest("hex");
   const buildSha256 = "9".repeat(64);
+  const selectionContractPath = writeSelectionContract(
+    outputDir,
+    diagnosticSelectionModes.explicitPositiveCase,
+    ["UI-001"],
+  );
   const run = spawnSync(path.join(rootDir, "server.sh"), [
     "run-v390-ui-native-exact-cases",
     "--diagnostic-child",
     "--diagnostic-case-id", "UI-001",
     "--diagnostic-selection-mode", "explicit-positive-case",
+    "--diagnostic-selection-contract", selectionContractPath,
     "--manifest", diagnosticManifestPath,
     "--diagnostic-source-commit", "1".repeat(40),
     "--diagnostic-manifest-sha256", manifestSha256,
@@ -1400,11 +1527,17 @@ check("shared adapter impact child accepts the canonical negative-route case wit
   const nativeManifest = buildNativeExactManifest({ canonical, implementation });
   fs.writeFileSync(diagnosticManifestPath, `${JSON.stringify(nativeManifest, null, 2)}\n`, "utf8");
   const manifestSha256 = createHash("sha256").update(stableJson(nativeManifest)).digest("hex");
+  const selectionContractPath = writeSelectionContract(
+    outputDir,
+    diagnosticSelectionModes.sharedAdapterImpactSweep,
+    nativeManifest.cases.map(item => item.caseId),
+  );
   const run = spawnSync(path.join(rootDir, "server.sh"), [
     "run-v390-ui-native-exact-cases",
     "--diagnostic-child",
     "--diagnostic-case-id", "UI-018",
     "--diagnostic-selection-mode", "shared-adapter-impact-sweep",
+    "--diagnostic-selection-contract", selectionContractPath,
     "--manifest", diagnosticManifestPath,
     "--diagnostic-source-commit", "2".repeat(40),
     "--diagnostic-manifest-sha256", manifestSha256,
@@ -1446,6 +1579,14 @@ function check(name, fn) {
 
 function read(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function writeSelectionContract(outputDir, mode, selectedIds) {
+  const contract = buildDiagnosticSelectionContract({ mode, selectedIds });
+  validateDiagnosticSelectionContract(contract, { expectedMode: mode });
+  const contractPath = path.join(outputDir, `selection-${mode}.json`);
+  fs.writeFileSync(contractPath, `${JSON.stringify(contract, null, 2)}\n`, "utf8");
+  return contractPath;
 }
 
 function assert(condition, message) {

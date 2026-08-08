@@ -689,6 +689,16 @@ export function diagnosticChildSourceBindingErrors(summary, expected = {}) {
       errors.push(code);
     }
   }
+  for (const [field, code] of [
+    ["selectionMode", "diagnostic-child-selection-mode-mismatch"],
+    ["parentSelectionCount", "diagnostic-child-parent-selection-count-mismatch"],
+    ["parentSelectionIdsSha256", "diagnostic-child-parent-selection-digest-mismatch"],
+    ["selectionContractDigest", "diagnostic-child-selection-contract-digest-mismatch"],
+  ]) {
+    if (Object.hasOwn(expected, field) && binding[field] !== expected[field]) {
+      errors.push(code);
+    }
+  }
   return errors;
 }
 

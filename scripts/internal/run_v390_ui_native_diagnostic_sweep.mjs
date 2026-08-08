@@ -29,6 +29,12 @@ import {
 import { validateEventDomSemanticCompositeEvidence } from "./v390_ui_exact_oracle_runtime.mjs";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import { buildCanonicalSharedAdapterImpact } from "./v390_ui_shared_adapter_lifecycle.mjs";
+import {
+  buildDiagnosticSelectionContract,
+  diagnosticSelectionModeForArtifactSchema,
+  diagnosticSelectionModes,
+  validateDiagnosticSelectionContract,
+} from "./v390_ui_diagnostic_selection_registry.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -52,8 +58,8 @@ const fullSelection = fixedSelection(manifest.cases);
 const selectionMode = options.selectionArtifact
   ? selectionModeForArtifact(options.selectionArtifact)
   : options.caseId
-    ? "explicit-positive-case"
-    : "fixed-remaining-sweep";
+    ? diagnosticSelectionModes.explicitPositiveCase
+    : diagnosticSelectionModes.fixedRemainingSweep;
 const selection = selectedDiagnosticCases({
   fullSelection,
   manifestCases: manifest.cases,
@@ -61,6 +67,16 @@ const selection = selectedDiagnosticCases({
   selectionArtifact: options.selectionArtifact,
   selectionMode,
 });
+const selectionContract = buildDiagnosticSelectionContract({
+  mode: selectionMode,
+  selectedIds: selection.map(item => item.caseId),
+});
+validateDiagnosticSelectionContract(selectionContract, {
+  expectedMode: selectionMode,
+  manifestCaseIds: manifest.cases.map(item => item.caseId),
+});
+const selectionContractPath = path.join(outputDir, "diagnostic-selection.json");
+writeJson(selectionContractPath, selectionContract);
 const sourceCommit = currentGitCommit();
 const sourceManifestSha256 = sha256(stableJson(manifest));
 let uiBuildBinding = null;
@@ -93,16 +109,26 @@ if (options.bootstrapFailureContractFixture) {
 }
 
 if (options.planOnly) {
+  const childSelectionPreflight = await runDiagnosticSelectionPreflight({
+    buildSha256: "0".repeat(64),
+  });
+  const preflightPassed = childSelectionPreflight.status === "PASS";
   const summary = buildSummary({
-    result: "NOT-RUN",
-    executionStatus: "diagnostic-plan-only-not-browser-evidence",
-    cases: selection.map(item => caseResult(item, "not-run", "plan-only", 0)),
+    result: preflightPassed ? "NOT-RUN" : "FAIL",
+    executionStatus: preflightPassed
+      ? "diagnostic-plan-only-not-browser-evidence"
+      : "diagnostic-child-selection-preflight-failed",
+    cases: selection.map(item => caseResult(item, "not-run",
+      preflightPassed ? "plan-only" : "child-selection-preflight-failed", 0, {
+        actualBrowserExecution: false,
+      })),
     environments: [],
     cleanup: [],
+    childSelectionPreflight,
   });
   writeJson(summaryPath, summary);
   printSummary(summary, summaryPath);
-  process.exit(0);
+  process.exit(preflightPassed ? 0 : 1);
 }
 
 try {
@@ -131,6 +157,26 @@ let abortReason = "";
 const cases = [];
 const environments = [];
 const cleanup = [];
+
+const childSelectionPreflight = await runDiagnosticSelectionPreflight({
+  buildSha256: uiBuildBinding.buildSha256,
+});
+if (childSelectionPreflight.status !== "PASS") {
+  const summary = buildSummary({
+    result: "FAIL",
+    executionStatus: "diagnostic-child-selection-preflight-failed",
+    cases: selection.map(item => caseResult(item, "not-run",
+      "child-selection-preflight-failed", 0, {
+        actualBrowserExecution: false,
+      })),
+    environments: [],
+    cleanup: [],
+    childSelectionPreflight,
+  });
+  writeJson(summaryPath, summary);
+  printSummary(summary, summaryPath);
+  process.exit(1);
+}
 
 for (const [selectionIndex, item] of selection.entries()) {
   if (bootstrapUnavailable || abortReason) {
@@ -192,7 +238,10 @@ for (const [selectionIndex, item] of selection.entries()) {
     summary: childSummary,
     exitCode: child.exitCode,
   });
-  cases.push(caseResult(item, childOutcome.status,
+  const parentCaseStatus = childOutcome.actualBrowserExecution === true
+    ? childOutcome.status
+    : "not-run";
+  cases.push(caseResult(item, parentCaseStatus,
     childOutcome.failureClass,
     environmentGeneration, {
       failureDetail: childSummary?.case?.failureDetail || "",
@@ -227,6 +276,7 @@ for (const [selectionIndex, item] of selection.entries()) {
         childOutcome.childRawCaptureValidation || null,
       childSourceBinding: childOutcome.childSourceBinding || null,
       childExitCode: child.exitCode,
+      childProcess: child.process,
       environmentContamination: contaminated || secretScan.status !== "PASS",
       childCleanupFailure: childSummary?.environmentContamination?.cleanupFailure === true,
       childBrowserCloseFailure: childSummary?.environmentContamination?.browserCloseFailure === true,
@@ -276,11 +326,12 @@ if (environment) {
 
 const summary = buildSummary({
   result: cases.some(item => item.status === "FAIL") ||
-    cleanup.some(item => item.status !== "PASS") ? "FAIL" : "PASS",
+    cleanup.some(item => item.status !== "PASS") || abortReason ? "FAIL" : "PASS",
   executionStatus: "diagnostic-sweep-browser-evidence-not-release-evidence",
   cases,
   environments,
   cleanup,
+  childSelectionPreflight,
 });
 writeJson(summaryPath, summary);
 printSummary(summary, summaryPath);
@@ -293,6 +344,7 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
     "--diagnostic-child",
     "--diagnostic-case-id", item.caseId,
     "--diagnostic-selection-mode", selectionMode,
+    "--diagnostic-selection-contract", selectionContractPath,
     "--manifest", diagnosticManifestPath,
     "--output-dir", childDir,
     "--http-base", handle.runtime.httpBase,
@@ -308,7 +360,8 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
   ];
   if (options.playwrightModulePath) args.push("--playwright-module-path", options.playwrightModulePath);
   if (options.chromePath) args.push("--chrome-path", options.chromePath);
-  const exitCode = await runChildProcess("./server.sh", args, handle.exactCaseEnv);
+  const childProcess = await runChildProcess("./server.sh", args, handle.exactCaseEnv,
+    "case-child-subprocess");
   const childSummaryPath = path.join(childDir, "summary.json");
   let summary = null;
   try {
@@ -321,11 +374,90 @@ async function runDiagnosticChild({ item, childDir, environment: handle }) {
       caseId: item.caseId,
       caseIdsSha256: sha256(item.caseId),
       selectionMode,
+      parentSelectionIdsSha256: selectionContract.targetCaseIdsSha256,
+      parentSelectionCount: selectionContract.targetCaseCount,
+      selectionContractDigest: selectionContract.digest,
     });
   } catch {
     summary = null;
   }
-  return { exitCode, summary };
+  return { exitCode: childProcess.exitCode, summary, process: childProcess };
+}
+
+async function runDiagnosticSelectionPreflight({ buildSha256 }) {
+  const item = selection[0];
+  const childDir = path.join(outputDir, "child-selection-preflight");
+  fs.mkdirSync(childDir, { recursive: true, mode: 0o700 });
+  const childSelectionContractPath = selectionPreflightContractPath();
+  const args = [
+    "run-v390-ui-native-exact-cases",
+    "--diagnostic-child",
+    "--diagnostic-case-id", item.caseId,
+    "--diagnostic-selection-mode", selectionMode,
+    "--diagnostic-selection-contract", childSelectionContractPath,
+    "--manifest", diagnosticManifestPath,
+    "--output-dir", childDir,
+    "--diagnostic-source-commit", sourceCommit,
+    "--diagnostic-manifest-sha256", sourceManifestSha256,
+    "--diagnostic-build-sha256", buildSha256,
+    "--diagnostic-run-id", runId,
+    "--plan-only",
+  ];
+  const childProcess = await runChildProcess("./server.sh", args, {},
+    "child-selection-preflight");
+  let summary = null;
+  let validationError = "";
+  try {
+    summary = readJsonAbsolute(path.join(childDir, "summary.json"));
+    validateChildSummary(summary, item, {
+      gitCommit: sourceCommit,
+      manifestSha256: sourceManifestSha256,
+      buildSha256,
+      runId,
+      caseId: item.caseId,
+      caseIdsSha256: sha256(item.caseId),
+      selectionMode,
+      parentSelectionIdsSha256: selectionContract.targetCaseIdsSha256,
+      parentSelectionCount: selectionContract.targetCaseCount,
+      selectionContractDigest: selectionContract.digest,
+    });
+  } catch (error) {
+    validationError = sanitizeChildProcessOutput(
+      error instanceof Error ? error.message : String(error),
+    );
+    summary = null;
+  }
+  const passed = childProcess.exitCode === 0 && summary &&
+    summary.result === "NOT-RUN" && summary.actualBrowserExecution === false &&
+    summary.counts?.attempted === 0;
+  return {
+    phase: "child-selection-preflight",
+    status: passed ? "PASS" : "FAIL",
+    exitCode: childProcess.exitCode,
+    stdout: childProcess.stdout,
+    stderr: childProcess.stderr,
+    spawnError: childProcess.spawnError,
+    validationError,
+    actualBrowserExecution: summary?.actualBrowserExecution === true,
+    selectionMode,
+    targetCaseCount: selectionContract.targetCaseCount,
+    targetCaseIdsSha256: selectionContract.targetCaseIdsSha256,
+    selectionContractDigest: selectionContract.digest,
+    childAcceptedTargetCaseCount:
+      Number(summary?.sourceBinding?.parentSelectionCount || 0),
+    childAcceptedTargetCaseIdsSha256:
+      String(summary?.sourceBinding?.parentSelectionIdsSha256 || ""),
+  };
+}
+
+function selectionPreflightContractPath() {
+  if (!options.childSelectionPreflightContractFixture) return selectionContractPath;
+  assert(options.childSelectionPreflightContractFixture === "digest-mismatch",
+    "unknown child selection preflight contract fixture");
+  const tampered = { ...selectionContract, digest: "0".repeat(64) };
+  const fixturePath = path.join(outputDir, "diagnostic-selection-preflight-tampered.json");
+  writeJson(fixturePath, tampered);
+  return fixturePath;
 }
 
 async function recycleEnvironment(handle, generation, reason) {
@@ -378,11 +510,11 @@ function selectedDiagnosticCases({
   selectionArtifact,
   selectionMode,
 }) {
-  if (selectionMode === "fixed-remaining-sweep") {
+  if (selectionMode === diagnosticSelectionModes.fixedRemainingSweep) {
     assert(!caseId, "fixed diagnostic selection cannot receive --case-id");
     return fullSelection;
   }
-  if (selectionMode === "shared-adapter-impact-sweep") {
+  if (selectionMode === diagnosticSelectionModes.sharedAdapterImpactSweep) {
     assert(!caseId, "shared adapter impact selection cannot receive --case-id");
     const artifact = readJson(selectionArtifact);
     const expected = buildCanonicalSharedAdapterImpact({
@@ -399,7 +531,7 @@ function selectedDiagnosticCases({
     manifestCases.forEach(assertDiagnosticRuntimeBinding);
     return manifestCases;
   }
-  if (selectionMode === "diagnostic-failure-census-sweep") {
+  if (selectionMode === diagnosticSelectionModes.diagnosticFailureCensusSweep) {
     assert(!caseId, "diagnostic failure census selection cannot receive --case-id");
     const artifact = readJson(selectionArtifact);
     assert(artifact.schema === "media-server.v390-ui-diagnostic-failure-census.v1",
@@ -422,7 +554,8 @@ function selectedDiagnosticCases({
     selected.forEach(assertDiagnosticRuntimeBinding);
     return selected;
   }
-  assert(selectionMode === "explicit-positive-case", "unsupported diagnostic selection mode");
+  assert(selectionMode === diagnosticSelectionModes.explicitPositiveCase,
+    "unsupported diagnostic selection mode");
   assert(caseId, "explicit diagnostic selection requires --case-id");
   const matches = manifestCases.filter(item => item.caseId === caseId);
   assert(matches.length === 1, `diagnostic explicit case ID is unknown or duplicated: ${caseId}`);
@@ -435,13 +568,7 @@ function selectedDiagnosticCases({
 
 function selectionModeForArtifact(selectionArtifact) {
   const artifact = readJson(selectionArtifact);
-  if (artifact.schema === "media-server.v390-ui-shared-adapter-impact.v1") {
-    return "shared-adapter-impact-sweep";
-  }
-  if (artifact.schema === "media-server.v390-ui-diagnostic-failure-census.v1") {
-    return "diagnostic-failure-census-sweep";
-  }
-  throw new Error("unsupported diagnostic selection artifact schema");
+  return diagnosticSelectionModeForArtifactSchema(artifact.schema);
 }
 
 function assertDiagnosticRuntimeBinding(item) {
@@ -475,7 +602,14 @@ function assertDiagnosticRuntimeBinding(item) {
   `${item.caseId} diagnostic DOM assertion binding missing`);
 }
 
-function buildSummary({ result, executionStatus, cases, environments, cleanup }) {
+function buildSummary({
+  result,
+  executionStatus,
+  cases,
+  environments,
+  cleanup,
+  childSelectionPreflight = null,
+}) {
   const counts = {
     target: selection.length,
     attempted: cases.filter(item => item.status === "PASS" || item.status === "FAIL").length,
@@ -519,6 +653,7 @@ function buildSummary({ result, executionStatus, cases, environments, cleanup })
       mode: selectionMode,
     },
     counts,
+    childSelectionPreflight,
     environments,
     cleanup,
     cases,
@@ -704,6 +839,13 @@ function validateChildSummary(summary, item, expectedSourceBinding) {
     `diagnostic child source binding invalid: ${sourceBindingErrors.join(",")}`);
   assert(summary.sourceBinding?.selectionMode === expectedSourceBinding.selectionMode,
     "diagnostic child selection mode source binding mismatch");
+  assert(summary.sourceBinding?.parentSelectionIdsSha256 ===
+    expectedSourceBinding.parentSelectionIdsSha256 &&
+    summary.sourceBinding?.parentSelectionCount ===
+      expectedSourceBinding.parentSelectionCount &&
+    summary.sourceBinding?.selectionContractDigest ===
+      expectedSourceBinding.selectionContractDigest,
+  "diagnostic child parent selection contract binding mismatch");
   assert(typeof summary.case?.actualBrowserExecution === "boolean" &&
     summary.actualBrowserExecution === summary.case.actualBrowserExecution,
   "diagnostic child actual browser execution mismatch");
@@ -864,16 +1006,74 @@ function assertDiagnosticOutputRoot(candidate) {
     "diagnostic output must be inside .media_server.test/v3.9.0/ui-diagnostic-sweep");
 }
 
-function runChildProcess(file, args, env) {
+function runChildProcess(file, args, env, phase) {
   return new Promise(resolve => {
+    const stdout = createChildStreamCapture();
+    const stderr = createChildStreamCapture();
+    let settled = false;
+    let spawnError = "";
     const child = spawn(file, args, {
       cwd: rootDir,
       env: { ...process.env, ...env },
-      stdio: ["ignore", "ignore", "ignore"],
+      stdio: ["ignore", "pipe", "pipe"],
     });
-    child.once("error", () => resolve(1));
-    child.once("exit", code => resolve(Number.isInteger(code) ? code : 1));
+    child.stdout.on("data", chunk => stdout.update(chunk));
+    child.stderr.on("data", chunk => stderr.update(chunk));
+    const finish = (exitCode, spawnError = "") => {
+      if (settled) return;
+      settled = true;
+      resolve({
+        phase,
+        exitCode,
+        stdout: stdout.finish(),
+        stderr: stderr.finish(),
+        spawnError: sanitizeChildProcessOutput(spawnError),
+      });
+    };
+    child.once("error", error => {
+      spawnError = error instanceof Error ? error.message : String(error);
+    });
+    child.once("close", code => finish(Number.isInteger(code) ? code : 1, spawnError));
   });
+}
+
+function createChildStreamCapture() {
+  const maximumCapturedBytes = 256 * 1024;
+  const chunks = [];
+  const digest = createHash("sha256");
+  let bytes = 0;
+  let capturedBytes = 0;
+  return {
+    update(chunk) {
+      const buffer = Buffer.from(chunk);
+      bytes += buffer.length;
+      digest.update(buffer);
+      if (capturedBytes >= maximumCapturedBytes) return;
+      const remaining = maximumCapturedBytes - capturedBytes;
+      const captured = buffer.subarray(0, remaining);
+      chunks.push(captured);
+      capturedBytes += captured.length;
+    },
+    finish() {
+      const raw = Buffer.concat(chunks).toString("utf8");
+      const text = sanitizeChildProcessOutput(raw);
+      return {
+        captured: true,
+        bytes,
+        sha256: digest.digest("hex"),
+        truncated: capturedBytes < bytes,
+        redacted: text !== raw,
+        text,
+      };
+    },
+  };
+}
+
+function sanitizeChildProcessOutput(value) {
+  return String(value || "")
+    .replace(/(?:https?|rtsp|rtsps):\/\/[^\s,;)]+/ig, "[redacted-url]")
+    .replace(/\b(password|credential|secret|token|cookie|authorization)\s*([=:])\s*[^\s,;]+/ig,
+      "$1$2[redacted]");
 }
 
 function parseArgs(args) {
@@ -889,6 +1089,7 @@ function parseArgs(args) {
     caseIdSpecified: false,
     selectionArtifact: "",
     bootstrapFailureContractFixture: "",
+    childSelectionPreflightContractFixture: "",
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -910,6 +1111,9 @@ function parseArgs(args) {
     else if (arg === "--contract-bootstrap-failure-fixture") {
       parsed.bootstrapFailureContractFixture = args[++index] || "";
     }
+    else if (arg === "--contract-child-selection-preflight-fixture") {
+      parsed.childSelectionPreflightContractFixture = args[++index] || "";
+    }
     else if (arg === "--plan-only") parsed.planOnly = true;
     else throw new Error(`unknown option: ${arg}`);
   }
@@ -919,6 +1123,10 @@ function parseArgs(args) {
     "--case-id and --selection-artifact are mutually exclusive");
   if (parsed.bootstrapFailureContractFixture) {
     assert(parsed.caseId, "bootstrap failure contract fixture requires --case-id");
+  }
+  if (parsed.childSelectionPreflightContractFixture) {
+    assert(parsed.planOnly,
+      "child selection preflight contract fixture requires --plan-only");
   }
   return parsed;
 }

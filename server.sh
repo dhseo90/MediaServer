@@ -195,7 +195,7 @@ Usage:
   run-v390-ui-native-exact-cases
                  V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
   run-v390-ui-native-diagnostic-sweep
-                 내부 전용: RULE-097 이후 144개 actual UI 진단 sweep을 release evidence와 분리해 실행합니다.
+                 내부 전용: shared registry로 검증된 diagnostic selection을 release evidence와 분리해 실행합니다.
   verify-v390-ui-native-diagnostic-sweep-contract
                  내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
   verify-v390-ui-native-diagnostic-trace-replay-contract
@@ -489,7 +489,7 @@ Usage:
   run-v390-ui-native-exact-cases
                  V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
   run-v390-ui-native-diagnostic-sweep
-                 내부 전용: RULE-097 이후 144개 actual UI 진단 sweep을 release evidence와 분리해 실행합니다.
+                 내부 전용: shared registry로 검증된 diagnostic selection을 release evidence와 분리해 실행합니다.
   verify-v390-ui-native-diagnostic-sweep-contract
                  내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
   verify-v390-ui-native-diagnostic-trace-replay-contract
