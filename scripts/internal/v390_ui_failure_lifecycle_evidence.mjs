@@ -3,6 +3,65 @@
 export const failureLifecycleEvidenceSchema =
   "media-server.v390-ui-failure-lifecycle-evidence.v1";
 
+export function deriveMarkerEvidenceLifecycle(source = {}) {
+  const nested = source?.failureLifecycleEvidence &&
+      typeof source.failureLifecycleEvidence === "object"
+    ? { ...source.failureLifecycleEvidence, ...source }
+    : source;
+  const markerEvidence = nested?.markerEvidence || null;
+  const declared = nested?.markerEvidenceLifecycle || null;
+  const stageEvidencePresent = Boolean(nested?.markerStageEvidence);
+  const primaryFailurePresent = Boolean(nested?.primaryFailureEvidence) ||
+    nested?.cleanupAttestation?.primaryFailurePresent === true;
+  if (markerEvidence) {
+    if (declared?.phase && declared.phase !== "reached") {
+      return {
+        ...cloneStructured(declared),
+        evaluatorInvocationCount: Number(declared.evaluatorInvocationCount || 0),
+        stageEvidencePresent,
+        primaryFailurePresent,
+      };
+    }
+    return {
+      phase: "reached",
+      evaluatorInvocationCount: Number(markerEvidence.evaluatorInvocationCount || 0),
+      correlationResponseBound: markerEvidence.correlationResponseBound === true,
+      domReadinessConfirmed: markerEvidence.domReadinessConfirmed === true,
+      stageEvidencePresent,
+      primaryFailurePresent,
+    };
+  }
+  if (declared?.phase === "reached") {
+    return {
+      ...cloneStructured(declared),
+      phase: "reached",
+      evaluatorInvocationCount: Number(declared.evaluatorInvocationCount || 0),
+      stageEvidencePresent,
+      primaryFailurePresent,
+    };
+  }
+  if (declared?.phase === "partial" || stageEvidencePresent ||
+      nested?.requestCorrelationEvidence || nested?.requestCorrelationScopeEvidence) {
+    return {
+      phase: "partial",
+      evaluatorInvocationCount: Number(declared?.evaluatorInvocationCount || 0),
+      correlationResponseBound: declared?.correlationResponseBound === true ||
+        nested?.requestCorrelationEvidence?.pass === true,
+      domReadinessConfirmed: declared?.domReadinessConfirmed === true,
+      stageEvidencePresent,
+      primaryFailurePresent,
+    };
+  }
+  return {
+    phase: "not-reached",
+    evaluatorInvocationCount: 0,
+    correlationResponseBound: false,
+    domReadinessConfirmed: false,
+    stageEvidencePresent,
+    primaryFailurePresent,
+  };
+}
+
 export function serializeFailureLifecycleEvidence(source = {}) {
   const nested = source?.failureLifecycleEvidence &&
       typeof source.failureLifecycleEvidence === "object"
@@ -10,16 +69,7 @@ export function serializeFailureLifecycleEvidence(source = {}) {
     : source;
   const markerStageEvidence = nested?.markerStageEvidence || null;
   const markerEvidence = nested?.markerEvidence || null;
-  const markerEvidenceLifecycle = nested?.markerEvidenceLifecycle ||
-    (markerEvidence ? {
-      phase: "reached",
-      evaluatorInvocationCount:
-        Number(markerEvidence.evaluatorInvocationCount || 0),
-      correlationResponseBound:
-        markerEvidence.correlationResponseBound === true,
-      domReadinessConfirmed:
-        markerEvidence.domReadinessConfirmed === true,
-    } : { phase: "not-reached" });
+  const markerEvidenceLifecycle = deriveMarkerEvidenceLifecycle(source);
   const failurePhase = String(
     markerEvidence?.failurePhase ||
     markerStageEvidence?.failurePhase ||
@@ -47,6 +97,10 @@ export function serializeFailureLifecycleEvidence(source = {}) {
     markerStageEvidence: cloneStructured(markerStageEvidence),
     markerEvidence: cloneStructured(markerEvidence),
     markerEvidenceLifecycle: cloneStructured(markerEvidenceLifecycle),
+    primaryFailureEvidence:
+      cloneStructured(source?.primaryFailureEvidence || nested?.primaryFailureEvidence),
+    failureProvenance:
+      cloneStructured(source?.failureProvenance || nested?.failureProvenance),
     cleanupAttestation:
       cloneStructured(nested?.cleanupAttestation),
   };

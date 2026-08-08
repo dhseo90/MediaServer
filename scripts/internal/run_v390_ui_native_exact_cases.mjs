@@ -3868,7 +3868,7 @@ function validateDiagnosticChildSummary(summary, item) {
     }
   }
   if (summary?.case?.markerEvidenceLifecycle &&
-      (!["reached", "not-reached"].includes(summary.case.markerEvidenceLifecycle.phase) ||
+      (!["reached", "partial", "not-reached"].includes(summary.case.markerEvidenceLifecycle.phase) ||
         (summary.case.markerEvidenceLifecycle.phase === "reached" &&
           (!Number.isInteger(summary.case.markerEvidenceLifecycle.evaluatorInvocationCount) ||
             typeof summary.case.markerEvidenceLifecycle.correlationResponseBound !== "boolean" ||

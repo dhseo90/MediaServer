@@ -692,6 +692,118 @@ await check("EVT-004 marker lifecycle distinguishes hook, file, response, timeli
   "marker stage evidence exposed a path or raw marker");
 });
 
+await check("EVT-004 test-owned marker digest reaches the DOM evaluator without EventRecord lifecycle crossover", async () => {
+  const marker = "REVIEW4-evt-004-review4-fixture-LOG-MARKER";
+  const expectedFixtureIdentity = caseRuntime.buildExpectedDiagnosticMarkerIdentity({
+    caseId: "EVT-004",
+    marker,
+  });
+  assert(expectedFixtureIdentity.schema ===
+    "media-server.v390-ui-expected-fixture-identity.v1" &&
+    expectedFixtureIdentity.caseId === "EVT-004" &&
+    expectedFixtureIdentity.kind === "diagnostic-log-marker" &&
+    expectedFixtureIdentity.markerIdentityDigest ===
+      crypto.createHash("sha256").update(marker).digest("hex"),
+  "test-owned marker materializer did not produce its immutable digest");
+
+  const runtimeBindings = caseRuntime.exactOracleRuntimeBindings({
+    fixtureId: "evt-004-review4-fixture",
+    catalogBindings: { expectedFixtureIdentity },
+  });
+  assert(JSON.stringify(runtimeBindings.expectedFixtureIdentity) ===
+    JSON.stringify(expectedFixtureIdentity),
+  "exactOracleBindings dropped the test-owned marker identity");
+  caseRuntime.assertExpectedFixtureDigestBeforeBrowser({ caseId: "EVT-004" }, {
+    expectedFixtureIdentity,
+    catalogBindings: {
+      logMarker: marker,
+      eventExactRuntime: { expectedFixtureIdentity },
+    },
+  });
+  for (const mutation of [
+    null,
+    { ...expectedFixtureIdentity, markerIdentityDigest: "0".repeat(64) },
+    { ...expectedFixtureIdentity, caseId: "EVT-003" },
+  ]) {
+    let rejected = false;
+    try {
+      caseRuntime.assertExpectedFixtureDigestBeforeBrowser({ caseId: "EVT-004" }, {
+        expectedFixtureIdentity: mutation,
+        catalogBindings: {
+          logMarker: marker,
+          eventExactRuntime: { expectedFixtureIdentity: mutation },
+        },
+      });
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, "missing, wrong, or stale EVT-004 marker digest was accepted before browser startup");
+  }
+
+  const literalBaseline = selectEventDomResponseBaselines({
+    operator: "text-includes",
+    target: "log tail",
+  }, {});
+  assert(Object.keys(literalBaseline).length === 0,
+    "literal text-includes was incorrectly treated as a response path");
+
+  const badgeEvidence = buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-004",
+    selector: "#dashIncidentTimelineBadges",
+    observed: {
+      count: 1,
+      visibleCount: 1,
+      text: "log tail 1",
+      descendantCount: 1,
+      attributes: [],
+      values: [],
+      properties: {
+        routeLocalIncidentTimeline: {
+          routePath: "/ops/dashboard",
+          lifecycleObserved: true,
+          containerCount: 1,
+        },
+      },
+    },
+    priorResponseByPath: literalBaseline,
+    expectedFixtureIdentity,
+    actualBrowserExecution: true,
+  });
+  assert(badgeEvidence.pass === true &&
+    !Object.hasOwn(badgeEvidence, "routeLocalDomBinding") &&
+    badgeEvidence.responseBaselineMatched.pathCount === 0,
+  "EVT-004 badge assertion crossed into EventRecord digest/baseline lifecycle");
+
+  const markerInput = {
+    caseId: "EVT-004",
+    marker,
+    expectedFixtureIdentity,
+    responseBodies: [{ lines: [marker] }],
+    observed: {
+      semanticNodeTexts: [marker],
+      semanticNodeKinds: ["log-tail"],
+      visibleSemanticNodeTexts: [marker],
+      visibleSemanticNodeKinds: ["log-tail"],
+    },
+  };
+  assert(buildEventMarkerFlowEvidence(markerInput).pass === true,
+    "test-owned marker digest did not bind response/timeline/DOM");
+  for (const [label, identity, code] of [
+    ["missing", null, "EXPECTED_FIXTURE_DIGEST_MISSING"],
+    ["changed", { ...expectedFixtureIdentity, markerIdentityDigest: "0".repeat(64) },
+      "EXPECTED_FIXTURE_DIGEST_MISMATCH"],
+    ["stale", { ...expectedFixtureIdentity, caseId: "EVT-003" },
+      "EXPECTED_FIXTURE_DIGEST_CASE_MISMATCH"],
+  ]) {
+    const evidence = buildEventMarkerFlowEvidence({
+      ...markerInput,
+      expectedFixtureIdentity: identity,
+    });
+    assert(evidence.pass === false && evidence.failureCode === code,
+      `${label} marker digest did not fail closed: ${evidence.failureCode}`);
+  }
+});
+
 await check("EVT-004 removes only acceptance-owned canonical timeline residue", async () => {
   const owned = (kind, index) => ({
     stableIdentity: `${kind}:review4-owned-${index}`,

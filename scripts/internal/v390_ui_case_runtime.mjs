@@ -508,6 +508,7 @@ export function exactOracleRuntimeBindings({
     vaMetadataSampleId: catalog.vaMetadataSampleId || "",
     runtimeTrendBaseline: catalog.runtimeTrendBaseline || null,
     logMarker: catalog.logMarker || "",
+    expectedFixtureIdentity: catalog.expectedFixtureIdentity || null,
     redactionCanary: catalog.redactionCanary || "",
   });
 }
@@ -590,8 +591,27 @@ const incidentTimelineExpectedFixtureDigestCaseIds = Object.freeze([
   "EVT-023", "EVT-026",
 ]);
 
+const expectedFixtureDigestCaseIds = Object.freeze([
+  ...incidentTimelineExpectedFixtureDigestCaseIds,
+  "EVT-004",
+]);
+
+export function buildExpectedDiagnosticMarkerIdentity({ caseId, marker } = {}) {
+  assert(caseId === "EVT-004", "diagnostic marker identity is limited to EVT-004");
+  const canonicalMarker = String(marker || "").normalize("NFKC").trim();
+  assert(canonicalMarker, "diagnostic marker identity requires a materialized marker");
+  return Object.freeze({
+    schema: "media-server.v390-ui-expected-fixture-identity.v1",
+    source: "test-owned-diagnostic-log-marker-materializer",
+    caseId,
+    kind: "diagnostic-log-marker",
+    markerIdentityDigest: sha256Text(canonicalMarker),
+  });
+}
+
 export function assertExpectedFixtureDigestBeforeBrowser(item, caseContext) {
-  if (!incidentTimelineExpectedFixtureDigestCaseIds.includes(String(item?.caseId || ""))) return;
+  const caseId = String(item?.caseId || "");
+  if (!expectedFixtureDigestCaseIds.includes(caseId)) return;
   const expected = caseContext?.expectedFixtureIdentity;
   const propagated = caseContext?.catalogBindings?.eventExactRuntime?.expectedFixtureIdentity;
   const fail = (code, message) => {
@@ -599,14 +619,19 @@ export function assertExpectedFixtureDigestBeforeBrowser(item, caseContext) {
     error.code = code;
     throw error;
   };
-  if (!expected?.eventIdentityDigest || !propagated?.eventIdentityDigest) {
+  const digestField = caseId === "EVT-004"
+    ? "markerIdentityDigest"
+    : "eventIdentityDigest";
+  if (!expected?.[digestField] || !propagated?.[digestField]) {
     fail("EXPECTED_FIXTURE_DIGEST_MISSING", `${item.caseId} expected fixture digest is unavailable`);
   }
   if (expected.caseId !== item.caseId || propagated.caseId !== item.caseId) {
     fail("EXPECTED_FIXTURE_DIGEST_CASE_MISMATCH", `${item.caseId} expected fixture case binding drifted`);
   }
-  const digest = sha256Text(expected.eventId);
-  if (expected.eventIdentityDigest !== digest ||
+  const identityValue = caseId === "EVT-004" ? caseContext?.catalogBindings?.logMarker : expected.eventId;
+  const expectedKind = caseId === "EVT-004" ? "diagnostic-log-marker" : "event-record";
+  const digest = sha256Text(String(identityValue || "").normalize("NFKC").trim());
+  if (expected.kind !== expectedKind || expected[digestField] !== digest ||
       stableJson(propagated) !== stableJson(expected)) {
     fail("EXPECTED_FIXTURE_DIGEST_MISMATCH", `${item.caseId} expected fixture digest drifted`);
   }
@@ -4495,6 +4520,13 @@ export function createV390UiCaseRuntime({
       assert(markerLines.every(line => line.includes("redacted")),
         `${item.caseId} diagnostic log-tail did not preserve the marker with redacted sensitive material`);
       bindings.logMarker = marker;
+      assert(context.expectedFixtureIdentity === null,
+        `${item.caseId} expected fixture identity was already bound`);
+      context.expectedFixtureIdentity = buildExpectedDiagnosticMarkerIdentity({
+        caseId: item.caseId,
+        marker,
+      });
+      bindings.expectedFixtureIdentity = context.expectedFixtureIdentity;
       bindings.redactionCanary = redactionCanary;
       bindings.diagnosticNoisePrefix = evt004OwnedNoisePrefix;
     }

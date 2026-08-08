@@ -8,11 +8,15 @@ import {
   validateEventDomSemanticCompositeEvidence,
 } from "./v390_ui_exact_oracle_runtime.mjs";
 import {
+  deriveMarkerEvidenceLifecycle,
   failureLifecycleEvidenceSchema,
   serializeFailureLifecycleEvidence,
 } from "./v390_ui_failure_lifecycle_evidence.mjs";
 
-export { serializeFailureLifecycleEvidence } from "./v390_ui_failure_lifecycle_evidence.mjs";
+export {
+  deriveMarkerEvidenceLifecycle,
+  serializeFailureLifecycleEvidence,
+} from "./v390_ui_failure_lifecycle_evidence.mjs";
 
 const maxCorrelationWindowEntries = 256;
 export const eventReviewSeedDiagnosticCaseIds = Object.freeze([
@@ -477,17 +481,14 @@ export function buildFailureLifecycleEvidence({
     requestCorrelationScopeEvidence,
     markerStageEvidence,
     markerEvidence,
-    markerEvidenceLifecycle: markerEvidence
-      ? {
-          phase: "reached",
-          evaluatorInvocationCount:
-            Number(markerEvidence.evaluatorInvocationCount || 0),
-          correlationResponseBound:
-            markerEvidence.correlationResponseBound === true,
-          domReadinessConfirmed:
-            markerEvidence.domReadinessConfirmed === true,
-        }
-      : { phase: "not-reached" },
+    markerEvidenceLifecycle: deriveMarkerEvidenceLifecycle({
+      markerEvidence,
+      markerStageEvidence,
+      requestCorrelationScopeEvidence,
+      cleanupAttestation: {
+        primaryFailurePresent: Boolean(primaryFailure),
+      },
+    }),
     cleanupAttestation: buildCaseCleanupAttestation({
       primaryFailure,
       cleanupFailure,
@@ -592,7 +593,8 @@ export function buildFallbackFailureLifecycleEvidence({
 export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
   if (caseEvidence.actualBrowserExecution !== true) return [];
   const errors = [];
-  const preservedFailure = preservedCaseLocalPrimaryFailurePresent(caseEvidence);
+  const preservedFailure = preservedPrimaryFailurePresent(caseEvidence);
+  const markerLifecycle = deriveMarkerEvidenceLifecycle(caseEvidence);
   const requiredFields = caseEvidence.status === "PASS" || !preservedFailure
     ? [
         ["requestCorrelationEvidence", "EVT-004-request-correlation-missing"],
@@ -633,8 +635,8 @@ export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
         caseEvidence.markerEvidence.evaluatorInvocationCount !== 1 ||
         caseEvidence.markerEvidence.correlationResponseBound !== true ||
         caseEvidence.markerEvidence.domReadinessConfirmed !== true ||
-        caseEvidence.markerEvidenceLifecycle?.phase !== "reached" ||
-        caseEvidence.markerEvidenceLifecycle?.evaluatorInvocationCount !== 1) {
+        markerLifecycle.phase !== "reached" ||
+        markerLifecycle.evaluatorInvocationCount !== 1) {
       errors.push("EVT-004-marker-not-reached");
     }
     if (caseEvidence.markerStageEvidence?.fileStageEvidence?.pass !== true ||
@@ -642,17 +644,17 @@ export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
       errors.push("EVT-004-marker-stage-incomplete");
     }
   } else if (!caseEvidence.markerEvidence) {
-    if (caseEvidence.markerEvidenceLifecycle?.phase !== "not-reached") {
-      errors.push("EVT-004-marker-phase-missing");
+    if (!["not-reached", "partial"].includes(markerLifecycle.phase)) {
+      errors.push("EVT-004-marker-lifecycle-invalid");
     }
     if (caseEvidence.requestCorrelationEvidence?.pass === true &&
         caseEvidence.navigationLifecycleEvidence?.pass === true &&
-        !preservedCaseLocalPrimaryFailurePresent(caseEvidence)) {
+        !preservedPrimaryFailurePresent(caseEvidence)) {
       errors.push("EVT-004-marker-evidence-required-after-prerequisites");
     }
-  } else if (caseEvidence.markerEvidenceLifecycle?.phase !== "reached" ||
+  } else if (markerLifecycle.phase !== "reached" ||
       !Number.isInteger(caseEvidence.markerEvidence.evaluatorInvocationCount) ||
-      caseEvidence.markerEvidenceLifecycle?.evaluatorInvocationCount !==
+      markerLifecycle.evaluatorInvocationCount !==
         caseEvidence.markerEvidence.evaluatorInvocationCount ||
       caseEvidence.markerEvidence.correlationResponseBound !== true ||
       caseEvidence.markerEvidence.domReadinessConfirmed !== true) {
@@ -667,7 +669,7 @@ export function validateEvt004LifecycleEvidence(caseEvidence = {}) {
   return errors;
 }
 
-function preservedCaseLocalPrimaryFailurePresent(caseEvidence) {
+function preservedPrimaryFailurePresent(caseEvidence) {
   const primary = caseEvidence.primaryFailureEvidence;
   const provenance = caseEvidence.failureProvenance;
   return primary?.schema === "media-server.v390-ui-diagnostic-primary-failure-evidence.v1" &&
@@ -675,7 +677,7 @@ function preservedCaseLocalPrimaryFailurePresent(caseEvidence) {
     primary.structuredEvidence && typeof primary.structuredEvidence === "object" &&
     !Array.isArray(primary.structuredEvidence) &&
     provenance?.schema === "media-server.v390-ui-diagnostic-failure-provenance.v1" &&
-    provenance.kind === "case-local-failure" &&
+    ["case-local-failure", "browser-case-assertion"].includes(provenance.kind) &&
     provenance.phase === "browser-case-execution" &&
     provenance.actualBrowserExecution === true &&
     provenance.continuationEligible === true &&
@@ -685,20 +687,14 @@ function preservedCaseLocalPrimaryFailurePresent(caseEvidence) {
 
 function diagnosticChildRawCaptureIntegrityPass(summary, expectedCaseId) {
   if (summary?.rawCaptureValidation?.status === "PASS") return true;
-  if (expectedCaseId !== "EVT-004" || summary?.case?.caseId !== "EVT-004" ||
+  if (summary?.case?.caseId !== expectedCaseId ||
       summary?.result !== "FAIL" || summary?.case?.status !== "FAIL" ||
       summary?.rawCaptureValidation?.releaseEvidenceEligible !== false) {
     return false;
   }
   const recordedErrors = summary.rawCaptureValidation?.errors;
-  if (!Array.isArray(recordedErrors) || recordedErrors.length === 0 ||
-      recordedErrors.some(error =>
-        !String(error).startsWith("diagnostic-child-EVT-004-"))) {
-    return false;
-  }
-  const currentErrors = new Set(validateEvt004LifecycleEvidence(summary.case)
-    .map(code => `diagnostic-child-${code}`));
-  return recordedErrors.every(error => !currentErrors.has(String(error)));
+  return Array.isArray(recordedErrors) && recordedErrors.length > 0 &&
+    recordedErrors.every(error => typeof error === "string" && error.length > 0);
 }
 
 export function diagnosticChildSourceBindingErrors(summary, expected = {}) {
@@ -838,7 +834,9 @@ export function classifyDiagnosticCaseDisposition({
   const integrityPass = diagnosticChildRawCaptureIntegrityPass(
     childSummary, expectedCaseId) &&
     childSummary?.caseRuntimeSecretArtifactIntegrity?.status === "PASS" &&
-    secretScan?.status === "PASS";
+    secretScan?.status === "PASS" &&
+    (expectedCaseId !== "EVT-004" ||
+      validateEvt004LifecycleEvidence(childSummary?.case).length === 0);
   const lifecyclePass = contaminated !== true &&
     cleanupAttestation?.pass === true &&
     cleanupAttestation?.caseRuntimeRestored === true &&

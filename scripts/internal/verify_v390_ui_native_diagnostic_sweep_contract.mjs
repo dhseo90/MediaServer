@@ -18,6 +18,7 @@ import {
   diagnosticStructuredAssertionEvidenceValid,
   diagnosticStructuredAssertionEvidencePresent,
   diagnosticChildSourceBindingErrors,
+  deriveMarkerEvidenceLifecycle,
   eventReviewSeedDiagnosticCaseIds,
   serializeDiagnosticPrimaryFailureEvidence,
   validateEvt004LifecycleEvidence,
@@ -98,6 +99,49 @@ check("recorded EVT-004 child FAIL remains valid case evidence instead of missin
     expectedCaseId: "EVT-004",
   }) === "abort-diagnostic-lifecycle",
   "a real missing lifecycle field was accepted as a preserved child FAIL");
+});
+
+check("latest EVT-004 browser FAIL preserves primary, marker phase, raw validation, and cleanup independently", () => {
+  const summaryPath = path.join(rootDir,
+    ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
+    "v390-ui-diagnostic-20260808021130-96376/cases/EVT-004/summary.json");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  const phase = deriveMarkerEvidenceLifecycle(summary.case);
+  assert(phase.phase === "partial" && phase.stageEvidencePresent === true &&
+    phase.primaryFailurePresent === true && phase.evaluatorInvocationCount === 0,
+  "marker file/response progress was collapsed into not-reached or complete");
+
+  const childOutcome = aggregateDiagnosticChildOutcome({ summary, exitCode: 1 });
+  const disposition = classifyDiagnosticCaseDisposition({
+    child: { exitCode: 1 },
+    childSummary: summary,
+    childOutcome,
+    contaminated: summary.environmentContamination?.detected === true,
+    secretScan: { status: "PASS" },
+    expectedCaseId: "EVT-004",
+  });
+  assert(childOutcome.status === "FAIL" &&
+    childOutcome.actualBrowserExecution === true &&
+    childOutcome.primaryFailureEvidence?.structuredEvidence?.eventDomSemanticEvidence &&
+    childOutcome.markerStageEvidence?.pass === true &&
+    childOutcome.markerEvidence === null &&
+    childOutcome.childRawCaptureValidation?.status === "FAIL" &&
+    childOutcome.cleanupAttestation?.pass === true &&
+    disposition === "continue-case-local-failure",
+  "valid bound child FAIL was discarded or reclassified as not-run");
+
+  const stale = structuredClone(summary);
+  stale.sourceBinding.gitCommit = "0".repeat(40);
+  assert(diagnosticChildSourceBindingErrors(stale, summary.sourceBinding)
+    .includes("diagnostic-child-source-commit-mismatch"),
+  "stale child source binding did not remain fail-closed");
+
+  const falselyComplete = structuredClone(summary.case);
+  falselyComplete.markerEvidenceLifecycle = { phase: "reached" };
+  falselyComplete.markerEvidence = null;
+  assert(validateEvt004LifecycleEvidence(falselyComplete)
+    .includes("EVT-004-marker-lifecycle-invalid"),
+  "complete marker lifecycle accepted missing marker evidence");
 });
 
 check("diagnostic selection is fixed to canonical unresolved EVT-023 through the exact end", () => {
@@ -871,7 +915,7 @@ check("response binding failure closes before preserving complete lifecycle evid
     result.evidence.requestCorrelationScopeEvidence?.windowAttestation?.networkEnd === 3 &&
     result.evidence.requestCorrelationScopeEvidence?.windowAttestation?.truncated === false &&
     result.evidence.markerEvidence === null &&
-    result.evidence.markerEvidenceLifecycle?.phase === "not-reached" &&
+    result.evidence.markerEvidenceLifecycle?.phase === "partial" &&
     result.evidence.cleanupAttestation?.pass === true &&
     result.evidence.cleanupAttestation?.primaryFailurePreserved === true &&
     result.validationErrors.length === 0 &&

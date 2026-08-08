@@ -3589,6 +3589,7 @@ export function buildEventDomSemanticCompositeEvidence({
   };
   const routeLocalIncidentTimeline = observed?.properties?.routeLocalIncidentTimeline;
   const routeLocalDomBinding = routeLocalIncidentTimeline &&
+      expectedFixtureIdentity?.kind === "event-record" &&
       String(selector || "").includes("#dashIncidentTimeline")
     ? buildRouteLocalIncidentTimelineEvidence(
       caseId,
@@ -3818,7 +3819,9 @@ export function buildEventDomSemanticCompositeEvidence({
   };
   const markerFlow = markerEvaluation
     ? evaluateEventMarkerFlowEvidence({
+        caseId,
         marker,
+        expectedFixtureIdentity,
         observed,
         responseBodies,
         markerEvaluation,
@@ -4197,9 +4200,30 @@ function buildOpsIncidentTimelineResponseBinding(
   };
 }
 
-export function buildEventMarkerFlowEvidence({ marker, observed, responseBodies = [] }) {
+export function buildEventMarkerFlowEvidence({
+  caseId = "",
+  marker,
+  expectedFixtureIdentity = null,
+  observed,
+  responseBodies = [],
+}) {
   const canonicalMarker = String(marker || "").normalize("NFKC").trim();
   const markerDigest = sha256Digest(canonicalMarker);
+  const fixtureIdentityRequired = caseId === "EVT-004" || expectedFixtureIdentity !== null;
+  const fixtureIdentityFailureCode = !fixtureIdentityRequired
+    ? "PASS"
+    : (!expectedFixtureIdentity?.markerIdentityDigest
+      ? "EXPECTED_FIXTURE_DIGEST_MISSING"
+      : (expectedFixtureIdentity.caseId !== caseId
+        ? "EXPECTED_FIXTURE_DIGEST_CASE_MISMATCH"
+        : (expectedFixtureIdentity.schema !==
+              "media-server.v390-ui-expected-fixture-identity.v1" ||
+            expectedFixtureIdentity.kind !== "diagnostic-log-marker" ||
+            expectedFixtureIdentity.source !==
+              "test-owned-diagnostic-log-marker-materializer" ||
+            expectedFixtureIdentity.markerIdentityDigest !== markerDigest
+          ? "EXPECTED_FIXTURE_DIGEST_MISMATCH"
+          : "PASS")));
   const markerMatches = value => {
     const normalized = String(value || "").normalize("NFKC").replace(/\s+/gu, " ").trim();
     if (!canonicalMarker || !normalized) return false;
@@ -4230,8 +4254,9 @@ export function buildEventMarkerFlowEvidence({ marker, observed, responseBodies 
     ? observed.visibleSemanticNodeKinds.map(String)
     : [];
   const fixtureMarkerMaterialized = {
-    pass: canonicalMarker.length > 0,
+    pass: canonicalMarker.length > 0 && fixtureIdentityFailureCode === "PASS",
     markerDigest,
+    expectedFixtureDigestBound: fixtureIdentityFailureCode === "PASS",
   };
   const responseMarkerObserved = markerEvidenceCounts(responseLines, responseMatches);
   const timelineProjectionObserved = markerEvidenceCounts(timelineNodes, timelineMatches);
@@ -4251,7 +4276,9 @@ export function buildEventMarkerFlowEvidence({ marker, observed, responseBodies 
   domMarkerObserved.candidateKindCounts = countEvidenceKinds(visibleKinds);
   const failed = [
     ["fixture-marker-materialization", fixtureMarkerMaterialized.pass,
-      "FIXTURE_MARKER_NOT_MATERIALIZED"],
+      canonicalMarker.length === 0
+        ? "FIXTURE_MARKER_NOT_MATERIALIZED"
+        : fixtureIdentityFailureCode],
     ["authoritative-response", responseMarkerObserved.pass,
       responseMarkerObserved.matchedCount > 1 ? "RESPONSE_MARKER_DUPLICATE" : "RESPONSE_MARKER_NOT_OBSERVED"],
     ["timeline-projection", timelineProjectionObserved.pass,
@@ -4273,7 +4300,9 @@ export function buildEventMarkerFlowEvidence({ marker, observed, responseBodies 
 }
 
 export function evaluateEventMarkerFlowEvidence({
+  caseId = "",
   marker,
+  expectedFixtureIdentity = null,
   observed,
   responseBodies = [],
   markerEvaluation = {},
@@ -4311,7 +4340,13 @@ export function evaluateEventMarkerFlowEvidence({
     });
   }
   try {
-    const evidence = markerEvaluator({ marker, observed, responseBodies });
+    const evidence = markerEvaluator({
+      caseId,
+      marker,
+      expectedFixtureIdentity,
+      observed,
+      responseBodies,
+    });
     return { ...evidence, ...lifecycle };
   } catch {
     return buildMarkerEvaluatorLifecycleFailureEvidence({
@@ -4386,6 +4421,13 @@ export function selectEventDomResponseBaselines(assertionOrTarget, eventRuntimeC
     : null;
   const target = assertion ? String(assertion.target || "") : String(assertionOrTarget || "");
   if (assertion) {
+    if (assertion.binding?.mode === "direct-dom" || [
+      "text-includes",
+      "contains-fixture-marker",
+      "not-contains-sensitive-canary",
+    ].includes(String(assertion.operator || ""))) {
+      return {};
+    }
     const assertionKey = `${String(assertion.operator || "")}\n${target}`;
     const explicit = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[assertionKey];
     if (explicit) return { [target]: explicit };

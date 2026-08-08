@@ -15,9 +15,18 @@ import {
 import {
   aggregateDiagnosticChildOutcome,
   classifyDiagnosticCaseDisposition,
+  deriveMarkerEvidenceLifecycle,
   validateEvt004LifecycleEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
-import { buildEvt004TimelineOwnershipEvidence } from "./v390_ui_case_runtime.mjs";
+import {
+  buildEvt004TimelineOwnershipEvidence,
+  buildExpectedDiagnosticMarkerIdentity,
+} from "./v390_ui_case_runtime.mjs";
+import {
+  buildEventDomSemanticCompositeEvidence,
+  buildEventMarkerFlowEvidence,
+  selectEventDomResponseBaselines,
+} from "./v390_ui_exact_oracle_runtime.mjs";
 import { evaluateResponseDerivedDomFieldProjection } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -322,6 +331,97 @@ assert(evtIsolation.pass === true &&
   evtIsolation.nonOwnedPreserved === true,
 "EVT-004 already-drained marker isolation replay remained failed");
 console.log("latest closure trace replay: PASS 99/99 prior=92/92 repaired=7/7");
+
+const finalRunRelative = ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
+  "v390-ui-diagnostic-20260808021130-96376";
+const finalParent = readJson(`${finalRunRelative}/summary.json`);
+const finalPassIds = finalParent.cases
+  .filter(item => item.status === "PASS").map(item => item.caseId);
+assert(finalParent.counts.target === 7 && finalParent.counts.pass === 6 &&
+  finalParent.counts.fail === 0 && finalParent.counts.notRun === 1 &&
+  finalPassIds.length === 6 &&
+  finalPassIds.every(caseId => timeoutClosureIds.includes(caseId)),
+"final closure parent did not preserve the six newly passing cases");
+assert(new Set([...latestPassIds, ...finalPassIds]).size === 98,
+  "recorded 98 PASS identity set regressed or overlapped");
+
+const finalEvtSummary = readJson(`${finalRunRelative}/cases/EVT-004/summary.json`);
+const finalEvtTrace = readJson(
+  `${finalRunRelative}/cases/EVT-004/traces/EVT-004.trace.json`);
+const finalEvtComposite = finalEvtSummary.case?.eventDomSemanticEvidence;
+assert(finalEvtSummary.actualBrowserExecution === true &&
+  finalEvtSummary.case?.failureClass === "dom-semantic-assertion-failed" &&
+  finalEvtComposite?.causeCodes?.includes("EXPECTED_FIXTURE_DIGEST_MISSING") &&
+  finalEvtComposite?.causeCodes?.includes("RESPONSE_BASELINE_MISSING") &&
+  finalEvtSummary.case?.markerStageEvidence?.pass === true &&
+  finalEvtSummary.case?.cleanupAttestation?.pass === true &&
+  finalEvtTrace.failureLifecycleEvidence?.markerEvidence === null,
+"final EVT-004 actual failure signature or preserved stage evidence drifted");
+assert(deriveMarkerEvidenceLifecycle(finalEvtSummary.case).phase === "partial",
+  "final EVT-004 partial marker phase was collapsed into not-reached");
+assert(validateEvt004LifecycleEvidence(finalEvtSummary.case).length === 0,
+  "final EVT-004 valid child FAIL did not survive raw validation independently");
+const finalEvtOutcome = aggregateDiagnosticChildOutcome({
+  summary: finalEvtSummary,
+  exitCode: 1,
+});
+assert(classifyDiagnosticCaseDisposition({
+  child: { exitCode: 1 },
+  childSummary: finalEvtSummary,
+  childOutcome: finalEvtOutcome,
+  contaminated: false,
+  secretScan: { status: "PASS" },
+  expectedCaseId: "EVT-004",
+}) === "continue-case-local-failure",
+"final EVT-004 valid browser FAIL was reclassified as not-run");
+
+const marker = "REVIEW4-evt-004-review4-fixture-LOG-MARKER";
+const expectedMarkerIdentity = buildExpectedDiagnosticMarkerIdentity({
+  caseId: "EVT-004",
+  marker,
+});
+assert(expectedMarkerIdentity.markerIdentityDigest ===
+  finalEvtSummary.case.markerStageEvidence.fileStageEvidence.markerDigest,
+"test-owned marker identity no longer matches the recorded materializer digest");
+const directBaseline = selectEventDomResponseBaselines({
+  operator: "text-includes",
+  target: "log tail",
+}, {});
+const badgeReplay = buildEventDomSemanticCompositeEvidence({
+  caseId: "EVT-004",
+  selector: "#dashIncidentTimelineBadges",
+  observed: {
+    count: 1,
+    visibleCount: 1,
+    text: "log tail",
+    descendantCount: 1,
+    attributes: [],
+    values: [],
+    properties: { routeLocalIncidentTimeline: { routePath: "/ops/dashboard" } },
+  },
+  priorResponseByPath: directBaseline,
+  expectedFixtureIdentity: expectedMarkerIdentity,
+  actualBrowserExecution: true,
+});
+assert(badgeReplay.pass === true &&
+  badgeReplay.responseBaselineMatched.pathCount === 0 &&
+  !Object.hasOwn(badgeReplay, "routeLocalDomBinding"),
+"recorded EVT-004 badge replay retained baseline/digest lifecycle crossover");
+const markerReplay = buildEventMarkerFlowEvidence({
+  caseId: "EVT-004",
+  marker,
+  expectedFixtureIdentity: expectedMarkerIdentity,
+  responseBodies: [{ lines: [marker] }],
+  observed: {
+    semanticNodeTexts: [marker],
+    semanticNodeKinds: ["log-tail"],
+    visibleSemanticNodeTexts: [marker],
+    visibleSemanticNodeKinds: ["log-tail"],
+  },
+});
+assert(markerReplay.pass === true,
+  "recorded EVT-004 marker response/timeline/DOM lifecycle replay remained failed");
+console.log("final recorded replay: PASS 99/99 prior=98/98 repaired=1/1");
 
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));

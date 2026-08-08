@@ -943,7 +943,7 @@ function validateChildSummary(summary, item, expectedSourceBinding) {
   }
   if (summary.case?.markerEvidenceLifecycle) {
     const lifecycle = summary.case.markerEvidenceLifecycle;
-    assert(["reached", "not-reached"].includes(lifecycle.phase) &&
+    assert(["reached", "partial", "not-reached"].includes(lifecycle.phase) &&
       (lifecycle.phase !== "reached" ||
         (Number.isInteger(lifecycle.evaluatorInvocationCount) &&
           typeof lifecycle.correlationResponseBound === "boolean" &&
