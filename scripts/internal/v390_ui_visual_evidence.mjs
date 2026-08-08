@@ -10,6 +10,24 @@ export const visualMatrixPlanSchema = "media-server.v390-ui-visual-matrix-plan.v
 export const visualMatrixSchema = "media-server.ui-visual-cross-cutting-matrix.v2";
 export const requiredResponsiveWidths = Object.freeze([320, 390, 760, 1180]);
 export const requiredThemes = Object.freeze(["light", "dark"]);
+export const explicitRegexPatternSchema = "media-server.v390-explicit-regex-pattern.v1";
+
+const liveSessionRegexContexts = Object.freeze({
+  request: Object.freeze({
+    caseId: "CLIENT-019",
+    actionId: "live-session-request",
+    phase: "visual-plan-preflight",
+    callsite: "v390_ui_visual_evidence:live-session-path",
+    flags: "u",
+  }),
+  answer: Object.freeze({
+    caseId: "CLIENT-020",
+    actionId: "live-session-answer",
+    phase: "visual-plan-preflight",
+    callsite: "v390_ui_visual_evidence:live-session-answer-path",
+    flags: "u",
+  }),
+});
 
 const requiredRepresentativeScreens = Object.freeze([
   ["ops-home", "UI-009", "/ops/home", "operator"],
@@ -84,8 +102,8 @@ export function validateVisualMatrixPlan({ plan, canonical, native }) {
   assert(live.session?.method === "POST" && live.session?.requiredRequestBody?.overlayMode === "va-overlay",
     "live VA session request contract mismatch");
   assert(live.session?.answerMethod === "POST", "live answer request contract mismatch");
-  compilePattern(live.session.pathPattern, "live session path pattern");
-  compilePattern(live.session.answerPathPattern, "live answer path pattern");
+  compilePattern(live.session.pathPattern, liveSessionRegexContexts.request);
+  compilePattern(live.session.answerPathPattern, liveSessionRegexContexts.answer);
   assert(equalArray(live.session.allowedStatuses, [200]), "live session allowed status mismatch");
   assert(equalArray(live.session.answerAllowedStatuses, [200, 204]), "live answer allowed status mismatch");
   assert(live.rendering?.objectFit === "contain" && live.rendering?.requireLiveTrack === true &&
@@ -363,7 +381,11 @@ function evaluateLiveVideoEvidence({ liveVideo, spec, viewport, required, failur
   if (spec.rendering.requirePlaceholderHidden && liveVideo.placeholder?.hidden !== true) failures.push("live-video-placeholder-visible");
 
   const session = liveVideo.session || {};
-  const sessionPathOk = matchesPattern(session.requestPath, spec.session.pathPattern);
+  const sessionPathOk = matchesPattern(
+    session.requestPath,
+    spec.session.pathPattern,
+    liveSessionRegexContexts.request,
+  );
   const sessionPathBinding = parseLiveSessionRequestPath(session.requestPath);
   const answerPathBinding = parseLiveSessionAnswerPath(session.answerPath);
   const tileViewId = String(liveVideo.tile?.viewId || "");
@@ -381,7 +403,11 @@ function evaluateLiveVideoEvidence({ liveVideo, spec, viewport, required, failur
     session.offerReceived === true && typeof session.correlationId === "string" && session.correlationId.length > 0;
   if (!requestOk) failures.push("va-overlay-session-request-mismatch");
   const answerOk = session.answerMethod === spec.session.answerMethod &&
-    matchesPattern(session.answerPath, spec.session.answerPathPattern) && viewBindingOk && sessionIdBindingOk &&
+    matchesPattern(
+      session.answerPath,
+      spec.session.answerPathPattern,
+      liveSessionRegexContexts.answer,
+    ) && viewBindingOk && sessionIdBindingOk &&
     spec.session.answerAllowedStatuses.includes(session.answerStatus);
   if (!answerOk) failures.push("va-overlay-session-answer-mismatch");
   metrics.vaOverlaySessionBound = requestOk && answerOk && metrics.sameTileIdentity && liveVideo.mode?.active === true;
@@ -619,14 +645,30 @@ function probeMetadataMatchesPayload(probe) {
     observed.viewport?.width === probe.width && observed.viewport?.height === probe.height && observed.appliedTheme === probe.theme;
 }
 
-function compilePattern(value, label) {
-  assert(typeof value === "string" && value.length > 0, `${label} missing`);
-  try { return new RegExp(value); }
-  catch { throw new Error(`${label} invalid`); }
+function compilePattern(value, context) {
+  const descriptor = {
+    schema: explicitRegexPatternSchema,
+    source: typeof value === "string" ? value : "",
+    flags: String(context?.flags || ""),
+  };
+  const safeContext = [
+    `case=${String(context?.caseId || "missing")}`,
+    `action=${String(context?.actionId || "missing")}`,
+    `phase=${String(context?.phase || "missing")}`,
+    `callsite=${String(context?.callsite || "missing")}`,
+    `patternDigest=${sha256Text(descriptor.source)}`,
+    `flags=${descriptor.flags || "none"}`,
+  ].join(" ");
+  if (descriptor.schema !== explicitRegexPatternSchema || descriptor.source.length === 0 ||
+      !context?.caseId || !context?.actionId || !context?.phase || !context?.callsite) {
+    throw new Error(`EXPLICIT_REGEX_SCHEMA_INVALID ${safeContext}`);
+  }
+  try { return new RegExp(descriptor.source, descriptor.flags); }
+  catch { throw new Error(`EXPLICIT_REGEX_COMPILE_INVALID ${safeContext}`); }
 }
 
-function matchesPattern(value, pattern) {
-  return typeof value === "string" && compilePattern(pattern, "runtime path pattern").test(value);
+function matchesPattern(value, pattern, context) {
+  return typeof value === "string" && compilePattern(pattern, context).test(value);
 }
 
 function parseLiveSessionRequestPath(value) {

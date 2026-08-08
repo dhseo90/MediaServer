@@ -32,6 +32,7 @@ import {
   validateClientRuntimeFixtureBindings,
   waitForClientVaOverlayProjection,
 } from "./v390_ui_exact_oracle_runtime.mjs";
+import * as exactRuntime from "./v390_ui_exact_oracle_runtime.mjs";
 import {
   buildDiagnosticMarkerFileStageEvidence,
   buildEvt004TimelineOwnershipEvidence,
@@ -54,6 +55,57 @@ const runtimeSource = fs.readFileSync(
   new URL("./v390_ui_exact_oracle_runtime.mjs", import.meta.url),
   "utf8",
 );
+const dynamicRegExpAudit = auditInternalDynamicRegExpBoundaries();
+
+await check("fixture-derived literals use one serializable non-RegExp matcher", async () => {
+  assert(typeof exactRuntime.matchesDeclaredLiteral === "function",
+    "shared declared literal matcher is missing");
+  assert(typeof exactRuntime.buildDeclaredLiteralMatchEvidence === "function",
+    "shared declared literal audit evidence builder is missing");
+  const literals = [
+    "[", "]", "{", "}", "(", ")", "*", "+", "?", ".", "^", "$", "|", "\\", "/",
+    "[]{}()*+?.^$|\\/",
+  ];
+  for (const literal of literals) {
+    const containing = `prefix (${literal}) suffix`;
+    assert(exactRuntime.matchesDeclaredLiteral(containing, literal, "marker-token") === true,
+      `literal metacharacter did not match exactly: ${JSON.stringify(literal)}`);
+    assert(exactRuntime.matchesDeclaredLiteral(`prefix (${literal}x) suffix`, literal, "marker-token") === false,
+      `literal metacharacter accepted a substring: ${JSON.stringify(literal)}`);
+    const browserExpression = `(${exactRuntime.matchesDeclaredLiteral.toString()})(${JSON.stringify(containing)},${JSON.stringify(literal)},"marker-token")`;
+    assert((0, eval)(browserExpression) === true,
+      `serialized browser literal matcher drifted: ${JSON.stringify(literal)}`);
+  }
+  const sensitiveInput = "fixture[meta]{value}(literal)*+?.^$|\\/";
+  const evidence = exactRuntime.buildDeclaredLiteralMatchEvidence({
+    callsite: "v390_ui_exact_oracle_runtime:route-local-incident-timeline-marker",
+    input: sensitiveInput,
+    flags: "none",
+    intendedMatchingSemantics: "nfkc-collapse-whitespace-exact-literal-token-boundary",
+  });
+  assert(evidence.callsite === "v390_ui_exact_oracle_runtime:route-local-incident-timeline-marker" &&
+    /^[0-9a-f]{64}$/.test(evidence.patternSourceDigest) &&
+    /^[0-9a-f]{64}$/.test(evidence.inputDigest) &&
+    evidence.inputLength === sensitiveInput.length &&
+    evidence.regexMetacharacterKinds.join("") === "[]{}()*+?.^$|\\/" &&
+    evidence.flags === "none" &&
+    evidence.intendedMatchingSemantics === "nfkc-collapse-whitespace-exact-literal-token-boundary" &&
+    !JSON.stringify(evidence).includes(sensitiveInput),
+  "literal matcher audit evidence is incomplete or retained raw input");
+});
+
+await check("canonical exact runtime has zero dynamic RegExp constructors", async () => {
+  const constructorSites = [...runtimeSource.matchAll(/\bnew\s+RegExp\s*\(/g)];
+  assert(constructorSites.length === 0,
+    `unsafe dynamic RegExp constructor count is ${constructorSites.length}, expected 0`);
+  assert(dynamicRegExpAudit.bareConstructorSites === 0 &&
+    dynamicRegExpAudit.pageEvaluateDynamicConstructorSites === 0 &&
+    dynamicRegExpAudit.fixtureDerivedLiteralConstructorSites === 0 &&
+    dynamicRegExpAudit.canonicalEvaluatorUnsafeConstructorSites === 0 &&
+    dynamicRegExpAudit.canonicalEvaluatorExplicitValidatedConstructorSites === 1 &&
+    dynamicRegExpAudit.canonicalEvaluatorStaticSourceConstructorSites === 1,
+  `scripts/internal dynamic RegExp audit failed: ${JSON.stringify(dynamicRegExpAudit)}`);
+});
 
 await check("owner/provenance baseline registration rejects duplicate declared owners", async () => {
   assert(typeof caseRuntime.registerEventOwnerProvenanceBaseline === "function",
@@ -828,6 +880,12 @@ await check("EVT-004 test-owned marker digest reaches the DOM evaluator without 
       properties: {
         routeLocalIncidentTimeline: {
           markerProjection: {
+            literalMatchEvidence: exactRuntime.buildDeclaredLiteralMatchEvidence({
+              callsite: "v390_ui_exact_oracle_runtime:route-local-incident-timeline-marker",
+              input: marker,
+              flags: "none",
+              intendedMatchingSemantics: "nfkc-collapse-whitespace-exact-literal-token-boundary",
+            }),
             routeOwner: "/ops/dashboard",
             rendererContainerSelector: "#dashIncidentTimeline",
             response: { inputCount: 1, outputCount: 1, markerDigests: [expectedFixtureIdentity.markerIdentityDigest] },
@@ -1170,6 +1228,12 @@ await check("EVT-004 marker flow binds one authoritative response row to one vis
   const marker = "REVIEW4-evt-004-review4-fixture-LOG-MARKER";
   const markerDigest = crypto.createHash("sha256").update(marker).digest("hex");
   const projection = overrides => ({
+    literalMatchEvidence: exactRuntime.buildDeclaredLiteralMatchEvidence({
+      callsite: "v390_ui_exact_oracle_runtime:route-local-incident-timeline-marker",
+      input: marker,
+      flags: "none",
+      intendedMatchingSemantics: "nfkc-collapse-whitespace-exact-literal-token-boundary",
+    }),
     routeOwner: "/ops/dashboard",
     rendererContainerSelector: "#dashIncidentTimeline",
     response: { inputCount: 1, outputCount: 1, markerDigests: [markerDigest] },
@@ -1214,6 +1278,18 @@ await check("EVT-004 marker flow binds one authoritative response row to one vis
     ["DOM zero", projection({ dom: { inputCount: 1, outputCount: 0, markerDigests: [], matchedNodeCount: 0 } }), "DOM_MARKER_NOT_OBSERVED"],
     ["DOM duplicate", projection({ dom: { inputCount: 1, outputCount: 2, markerDigests: [markerDigest, markerDigest], matchedNodeCount: 2 } }), "DOM_MARKER_DUPLICATE"],
     ["digest drift", projection({ bounded: { inputCount: 1, outputCount: 1, markerDigests: ["0".repeat(64)], exclusionReason: "" } }), "MARKER_PROJECTION_DIGEST_DRIFT"],
+    ["literal evidence missing", projection({ literalMatchEvidence: null }), "LITERAL_MATCH_EVIDENCE_MISSING"],
+    ["literal input digest drift", projection({
+      literalMatchEvidence: {
+        ...exactRuntime.buildDeclaredLiteralMatchEvidence({
+          callsite: "v390_ui_exact_oracle_runtime:route-local-incident-timeline-marker",
+          input: marker,
+          flags: "none",
+          intendedMatchingSemantics: "nfkc-collapse-whitespace-exact-literal-token-boundary",
+        }),
+        inputDigest: "0".repeat(64),
+      },
+    }), "LITERAL_MATCH_EVIDENCE_DRIFT"],
   ]) {
     const evidence = buildEventMarkerFlowEvidence({
       marker,
@@ -4184,8 +4260,114 @@ for (const item of checks) console.log(`[${item.status.toLowerCase()}] ${item.na
 console.log("\n== v3.9.0 exact runtime oracle contract summary ==");
 console.log(`- pass: ${checks.length - failures.length}`);
 console.log(`- fail: ${failures.length}`);
+console.log(`- scriptsInternalRegExpConstructors: ${dynamicRegExpAudit.constructorSites}`);
+console.log(`- pageEvaluateRegExpConstructors: ${dynamicRegExpAudit.pageEvaluateConstructorSites}`);
+console.log(`- pageEvaluateDynamicRegExpConstructors: ${dynamicRegExpAudit.pageEvaluateDynamicConstructorSites}`);
+console.log(`- fixtureDerivedLiteralRegExpConstructors: ${dynamicRegExpAudit.fixtureDerivedLiteralConstructorSites}`);
+console.log(`- canonicalEvaluatorRegExpConstructors: ${dynamicRegExpAudit.canonicalEvaluatorConstructorSites}`);
+console.log(`- canonicalEvaluatorExplicitValidatedRegExpConstructors: ${dynamicRegExpAudit.canonicalEvaluatorExplicitValidatedConstructorSites}`);
+console.log(`- canonicalEvaluatorStaticSourceRegExpConstructors: ${dynamicRegExpAudit.canonicalEvaluatorStaticSourceConstructorSites}`);
+console.log(`- canonicalEvaluatorUnsafeDynamicRegExpConstructors: ${dynamicRegExpAudit.canonicalEvaluatorUnsafeConstructorSites}`);
 console.log("- actualBrowserExecution: not-run-by-this-contract");
 if (failures.length > 0) process.exit(1);
+
+function auditInternalDynamicRegExpBoundaries() {
+  const directory = new URL("./", import.meta.url);
+  const fileNames = fs.readdirSync(directory)
+    .filter(name => name.endsWith(".mjs"))
+    .sort();
+  let constructorSites = 0;
+  let bareConstructorSites = 0;
+  let evaluateCallsites = 0;
+  let evaluateFiles = 0;
+  let pageEvaluateConstructorSites = 0;
+  let pageEvaluateDynamicConstructorSites = 0;
+  let canonicalEvaluatorConstructorSites = 0;
+  let canonicalEvaluatorExplicitValidatedConstructorSites = 0;
+  let canonicalEvaluatorStaticSourceConstructorSites = 0;
+  let canonicalEvaluatorUnsafeConstructorSites = 0;
+  const canonicalEvaluatorFiles = new Set([
+    "v390_ui_case_runtime.mjs",
+    "v390_ui_completion_oracle.mjs",
+    "v390_ui_diagnostic_lifecycle_lib.mjs",
+    "v390_ui_exact_event_oracle_evaluator.mjs",
+    "v390_ui_exact_oracle_runtime.mjs",
+    "v390_ui_native_adapter.mjs",
+    "v390_ui_native_exact_cases_lib.mjs",
+    "v390_ui_shared_adapter_lifecycle.mjs",
+    "v390_ui_visual_evidence.mjs",
+  ]);
+  for (const fileName of fileNames) {
+    const source = fs.readFileSync(new URL(fileName, directory), "utf8");
+    const constructors = [...source.matchAll(/\bnew\s+RegExp\s*\(/g)];
+    const bare = [...source.matchAll(/(?<!new\s)\bRegExp\s*\(/g)];
+    const callsites = [...source.matchAll(/\b(?:browser|page|locator)\.evaluate\s*\(/g)];
+    constructorSites += constructors.length;
+    bareConstructorSites += bare.length;
+    evaluateCallsites += callsites.length;
+    if (callsites.length > 0) evaluateFiles += 1;
+    if (canonicalEvaluatorFiles.has(fileName)) {
+      canonicalEvaluatorConstructorSites += constructors.length;
+      for (const match of constructors) {
+        const context = source.slice(Math.max(0, Number(match.index) - 120),
+          Math.min(source.length, Number(match.index) + 180));
+        if (fileName === "v390_ui_visual_evidence.mjs" &&
+            context.includes("descriptor.source") &&
+            source.includes("explicitRegexPatternSchema") &&
+            source.includes("EXPLICIT_REGEX_COMPILE_INVALID")) {
+          canonicalEvaluatorExplicitValidatedConstructorSites += 1;
+        } else if (fileName === "v390_ui_native_exact_cases_lib.mjs" &&
+            context.includes("dynamicSelectorPattern")) {
+          canonicalEvaluatorStaticSourceConstructorSites += 1;
+        } else {
+          canonicalEvaluatorUnsafeConstructorSites += 1;
+        }
+      }
+    }
+    for (const body of evaluateTemplateBodies(source)) {
+      const bodyConstructors = [...body.matchAll(/\bnew\s+RegExp\s*\(([^)]*)\)/g)];
+      pageEvaluateConstructorSites += bodyConstructors.length;
+      pageEvaluateDynamicConstructorSites += bodyConstructors.filter(match =>
+        !/^\s*["']/.test(match[1])).length;
+    }
+  }
+  return Object.freeze({
+    scriptsInternalMjsFiles: fileNames.length,
+    constructorSites,
+    bareConstructorSites,
+    evaluateFiles,
+    evaluateCallsites,
+    pageEvaluateConstructorSites,
+    pageEvaluateDynamicConstructorSites,
+    canonicalRuntimeConstructorSites:
+      [...runtimeSource.matchAll(/\bnew\s+RegExp\s*\(/g)].length,
+    fixtureDerivedLiteralConstructorSites:
+      [...runtimeSource.matchAll(/\bnew\s+RegExp\s*\(/g)].length,
+    canonicalEvaluatorConstructorSites,
+    canonicalEvaluatorExplicitValidatedConstructorSites,
+    canonicalEvaluatorStaticSourceConstructorSites,
+    canonicalEvaluatorUnsafeConstructorSites,
+  });
+}
+
+function evaluateTemplateBodies(source) {
+  const bodies = [];
+  const startPattern = /\b(?:browser|page|locator)\.evaluate\s*\(\s*`/g;
+  for (const match of source.matchAll(startPattern)) {
+    const start = Number(match.index) + match[0].length;
+    let escaped = false;
+    for (let index = start; index < source.length; index += 1) {
+      const character = source[index];
+      if (escaped) { escaped = false; continue; }
+      if (character === "\\") { escaped = true; continue; }
+      if (character === "`") {
+        bodies.push(source.slice(start, index));
+        break;
+      }
+    }
+  }
+  return bodies;
+}
 
 function exactItem(caseId, route) {
   return {

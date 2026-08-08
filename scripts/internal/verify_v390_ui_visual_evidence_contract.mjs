@@ -34,6 +34,22 @@ check("대표 route plan은 canonical/native 10개 화면과 80개 조합에 결
   assert(result.planSha256.length === 64, "plan digest missing");
 });
 
+check("malformed explicit regex는 browser 실행 전 digest-bound context로 거부된다", () => {
+  const malformed = structuredClone(plan);
+  malformed.liveVideoProbe.session.pathPattern = "[fixture-secret";
+  let error = "";
+  try { validateVisualMatrixPlan({ plan: malformed, canonical, native }); }
+  catch (caught) { error = String(caught?.message || caught); }
+  assert(error.includes("EXPLICIT_REGEX_COMPILE_INVALID") &&
+    error.includes("case=CLIENT-019") &&
+    error.includes("action=live-session-request") &&
+    error.includes("phase=visual-plan-preflight") &&
+    error.includes("callsite=v390_ui_visual_evidence:live-session-path") &&
+    /patternDigest=[0-9a-f]{64}/.test(error) &&
+    !error.includes("[fixture-secret"),
+  `malformed explicit regex did not fail closed with safe context: ${error}`);
+});
+
 check("10 route×4 viewport×2 theme matrix만 exact PASS한다", () => {
   const probes = expandVisualMatrixPlan(plan).map((variant, index) => makeProbe(variant, index));
   const matrix = evaluateVisualMatrix(probes, { plan, canonical, native });

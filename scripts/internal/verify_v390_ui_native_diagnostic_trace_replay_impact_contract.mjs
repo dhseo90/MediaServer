@@ -23,6 +23,7 @@ import {
   buildExpectedDiagnosticMarkerIdentity,
 } from "./v390_ui_case_runtime.mjs";
 import {
+  buildDeclaredLiteralMatchEvidence,
   buildEventDomSemanticCompositeEvidence,
   buildEventMarkerFlowEvidence,
   selectEventDomResponseBaselines,
@@ -446,6 +447,12 @@ const markerReplay = buildEventMarkerFlowEvidence({
     properties: {
       routeLocalIncidentTimeline: {
         markerProjection: {
+          literalMatchEvidence: buildDeclaredLiteralMatchEvidence({
+            callsite: "v390_ui_exact_oracle_runtime:route-local-incident-timeline-marker",
+            input: marker,
+            flags: "none",
+            intendedMatchingSemantics: "nfkc-collapse-whitespace-exact-literal-token-boundary",
+          }),
           routeOwner: "/ops/dashboard",
           rendererContainerSelector: "#dashIncidentTimeline",
           response: { inputCount: 80, outputCount: 80, markerDigests: [expectedMarkerIdentity.markerIdentityDigest] },

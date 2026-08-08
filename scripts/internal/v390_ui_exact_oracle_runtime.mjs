@@ -46,6 +46,58 @@ const inactiveResponseAttestationKeys = new Set([
   "registryWrite",
 ]);
 
+export function matchesDeclaredLiteral(value, literal, semantics = "marker-token") {
+  const normalize = input => String(input ?? "")
+    .normalize("NFKC")
+    .replace(/\s+/gu, " ")
+    .trim();
+  const normalizedValue = normalize(value);
+  const normalizedLiteral = normalize(literal);
+  if (!normalizedValue || !normalizedLiteral) return false;
+  const profiles = {
+    "marker-token": { before: " ([{:<", after: " )]},.:;>" },
+    "whitespace-token": { before: " ", after: " " },
+  };
+  const profile = profiles[semantics];
+  if (!profile) throw new Error(`unsupported declared literal semantics: ${semantics}`);
+  let offset = 0;
+  while (offset <= normalizedValue.length - normalizedLiteral.length) {
+    const index = normalizedValue.indexOf(normalizedLiteral, offset);
+    if (index < 0) return false;
+    const beforePass = index === 0 || profile.before.includes(normalizedValue[index - 1]);
+    const end = index + normalizedLiteral.length;
+    const afterPass = end === normalizedValue.length || profile.after.includes(normalizedValue[end]);
+    if (beforePass && afterPass) return true;
+    offset = index + Math.max(normalizedLiteral.length, 1);
+  }
+  return false;
+}
+
+export function buildDeclaredLiteralMatchEvidence({
+  callsite,
+  input,
+  flags = "none",
+  intendedMatchingSemantics,
+}) {
+  const value = String(input ?? "");
+  const metacharacters = ["[", "]", "{", "}", "(", ")", "*", "+", "?", ".", "^", "$", "|", "\\", "/"];
+  return {
+    schema: "media-server.v390-ui-declared-literal-match-evidence.v1",
+    callsite: String(callsite || ""),
+    patternSourceDigest: sha256Digest({
+      schema: "media-server.v390-ui-declared-literal-matcher.v1",
+      normalization: "NFKC+collapse-whitespace+trim",
+      profiles: ["marker-token", "whitespace-token"],
+      operator: "indexOf+exact-boundary",
+    }),
+    inputDigest: sha256Digest(value),
+    inputLength: value.length,
+    regexMetacharacterKinds: metacharacters.filter(character => value.includes(character)),
+    flags: String(flags || "none"),
+    intendedMatchingSemantics: String(intendedMatchingSemantics || ""),
+  };
+}
+
 export function buildEvt004MarkerStageEvidence({
   fileStageEvidence = null,
   dashboardResponseEvidence = null,
@@ -1794,6 +1846,14 @@ async function observeDom(
       candidate.operator === "contains-fixture-marker" &&
       candidate.target === "marker");
   const expectedMarker = markerAssertion ? String(bindings.logMarker || "") : "";
+  const markerLiteralMatchEvidence = markerAssertion
+    ? buildDeclaredLiteralMatchEvidence({
+        callsite: "v390_ui_exact_oracle_runtime:route-local-incident-timeline-marker",
+        input: expectedMarker,
+        flags: "none",
+        intendedMatchingSemantics: "nfkc-collapse-whitespace-exact-literal-token-boundary",
+      })
+    : null;
   if (markerAssertion) {
     await browser.waitForSelector(selector, { state: "visible" });
   }
@@ -1806,6 +1866,8 @@ async function observeDom(
   }
   const observed = await browser.evaluate(`(async () => {
     const expectedMarker = ${JSON.stringify(expectedMarker)};
+    const matchesDeclaredLiteral = ${matchesDeclaredLiteral.toString()};
+    const markerLiteralMatchEvidence = ${JSON.stringify(markerLiteralMatchEvidence)};
     const nodes = Array.from(document.querySelectorAll(${JSON.stringify(selector)}));
     const descendantSelectors = ${JSON.stringify(descendantSelectors)};
     const requiredAttributeNames = ${JSON.stringify(requiredAttributeNames)};
@@ -1965,11 +2027,7 @@ async function observeDom(
           const identityDigests = async values => Promise.all((Array.isArray(values) ? values : [])
             .map(value => String(value || '')).filter(Boolean).map(digestIdentity));
           const markerMatches = value => {
-            const canonicalMarker = String(expectedMarker || '').normalize('NFKC').trim();
-            const normalized = String(value || '').normalize('NFKC').replace(/\s+/gu, ' ').trim();
-            if (!canonicalMarker || !normalized) return false;
-            const escaped = canonicalMarker.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&');
-            return new RegExp('(?:^|[\\s([{:<])' + escaped + '(?=$|[\\s)\\]},.:;>])', 'u').test(normalized);
+            return matchesDeclaredLiteral(value, expectedMarker, 'marker-token');
           };
           const markerDigests = async values => {
             const matches = (Array.isArray(values) ? values : []).filter(markerMatches);
@@ -2008,6 +2066,7 @@ async function observeDom(
                 ? dashboardIncidentFilterState()
                 : { query: '', source: '' };
               return {
+                literalMatchEvidence: markerLiteralMatchEvidence,
                 routeOwner: String(location.pathname || ''),
                 rendererContainerSelector: '#dashIncidentTimeline',
                 response: { inputCount: responseCandidates.length, outputCount: responseCandidates.length, markerDigests: responseDigests },
@@ -2625,11 +2684,7 @@ function containsForbiddenDomMaterial(observed, needle) {
   const text = String(observed?.text || "");
   if (!/(?:credential|exposure)/i.test(token)) return text.includes(token);
 
-  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const assignment = new RegExp(`(?:^|[\\s{[(,;])['\"]?${escaped}['\"]?\\s*[:=]\\s*([^\\s,;)}\\]]+)`, "gi");
-  for (const match of text.matchAll(assignment)) {
-    if (!isRedactedDomValue(match[1])) return true;
-  }
+  if (containsUnredactedLiteralAssignment(text, token)) return true;
 
   return (observed?.formControls || []).some(control => {
     const identity = [control.id, control.name, control.dataTestid, control.ariaLabel]
@@ -2641,11 +2696,7 @@ function containsForbiddenDomMaterial(observed, needle) {
 export function containsForbiddenStructuredDomMaterial(observed, needle) {
   const token = String(needle || "");
   const text = String(observed?.text || "");
-  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const assignment = new RegExp(`(?:^|[\\s{[(,;])['\"]?${escaped}['\"]?\\s*[:=]\\s*([^\\s,;)}\\]]+)`, "gi");
-  for (const match of text.matchAll(assignment)) {
-    if (!isRedactedDomValue(match[1])) return true;
-  }
+  if (containsUnredactedLiteralAssignment(text, token)) return true;
 
   if (!/(?:credential|password|token|source.?url|raw(?:locator|json|evidence|material)?)/i.test(token)) return false;
   return (observed?.formControls || []).some(control => {
@@ -2653,6 +2704,15 @@ export function containsForbiddenStructuredDomMaterial(observed, needle) {
       .map(value => String(value || "").toLowerCase()).join(" ");
     return identity.includes(token.toLowerCase()) && !isRedactedDomValue(control.value);
   });
+}
+
+function containsUnredactedLiteralAssignment(text, token) {
+  const assignment = /(?:^|[\s{[(,;])["']?([^"'\s:=,;)}\]]+)["']?\s*[:=]\s*([^\s,;)}\]]+)/gi;
+  const expectedKey = String(token || "").toLowerCase();
+  for (const match of String(text || "").matchAll(assignment)) {
+    if (String(match[1] || "").toLowerCase() === expectedKey && !isRedactedDomValue(match[2])) return true;
+  }
+  return false;
 }
 
 function isRedactedDomValue(value) {
@@ -4306,12 +4366,8 @@ export function buildEventMarkerFlowEvidence({
             expectedFixtureIdentity.markerIdentityDigest !== markerDigest
           ? "EXPECTED_FIXTURE_DIGEST_MISMATCH"
           : "PASS")));
-  const markerMatches = value => {
-    const normalized = String(value || "").normalize("NFKC").replace(/\s+/gu, " ").trim();
-    if (!canonicalMarker || !normalized) return false;
-    const escaped = escapeRegex(canonicalMarker);
-    return new RegExp(`(?:^|[\\s([{:<])${escaped}(?=$|[\\s)\\]},.:;>])`, "u").test(normalized);
-  };
+  const markerMatches = value =>
+    matchesDeclaredLiteral(value, canonicalMarker, "marker-token");
   const responseLines = responseBodies.flatMap(body =>
     Array.isArray(body?.lines) ? body.lines.map(String) : []);
   const responseMatches = responseLines.filter(markerMatches);
@@ -4359,6 +4415,12 @@ export function buildEventMarkerFlowEvidence({
   const projectionStages = buildEventMarkerProjectionStageEvidence({
     required: caseId === "EVT-004",
     markerDigest,
+    expectedLiteralMatchEvidence: buildDeclaredLiteralMatchEvidence({
+      callsite: "v390_ui_exact_oracle_runtime:route-local-incident-timeline-marker",
+      input: canonicalMarker,
+      flags: "none",
+      intendedMatchingSemantics: "nfkc-collapse-whitespace-exact-literal-token-boundary",
+    }),
     projection: observed?.properties?.routeLocalIncidentTimeline?.markerProjection || null,
     domMarkerObserved,
   });
@@ -4392,6 +4454,7 @@ export function buildEventMarkerFlowEvidence({
 function buildEventMarkerProjectionStageEvidence({
   required,
   markerDigest,
+  expectedLiteralMatchEvidence,
   projection,
   domMarkerObserved,
 }) {
@@ -4413,6 +4476,20 @@ function buildEventMarkerProjectionStageEvidence({
           stages: [],
         };
   }
+  const literalMatchEvidence = projection?.literalMatchEvidence || null;
+  const literalEvidenceMissing = !literalMatchEvidence;
+  const literalEvidenceDrift = literalMatchEvidence && (
+    literalMatchEvidence.schema !== expectedLiteralMatchEvidence.schema ||
+    literalMatchEvidence.callsite !== expectedLiteralMatchEvidence.callsite ||
+    literalMatchEvidence.patternSourceDigest !== expectedLiteralMatchEvidence.patternSourceDigest ||
+    literalMatchEvidence.inputDigest !== markerDigest ||
+    literalMatchEvidence.inputLength !== expectedLiteralMatchEvidence.inputLength ||
+    JSON.stringify(literalMatchEvidence.regexMetacharacterKinds) !==
+      JSON.stringify(expectedLiteralMatchEvidence.regexMetacharacterKinds) ||
+    literalMatchEvidence.flags !== expectedLiteralMatchEvidence.flags ||
+    literalMatchEvidence.intendedMatchingSemantics !==
+      expectedLiteralMatchEvidence.intendedMatchingSemantics
+  );
   const definitions = [
     ["response", "RESPONSE_MARKER_NOT_OBSERVED"],
     ["classifier", "MARKER_CLASSIFIER_EXCLUDED"],
@@ -4459,20 +4536,42 @@ function buildEventMarkerProjectionStageEvidence({
     projection.rendererContainerSelector === "#dashIncidentTimeline";
   const digestDrift = stages.find(stage => stage.digestDriftCount > 0);
   const failedStage = stages.find(stage => !stage.pass);
-  const failureCode = digestDrift
-    ? "MARKER_PROJECTION_DIGEST_DRIFT"
-    : (!routePass
-      ? "MARKER_ROUTE_OWNER_MISMATCH"
-      : (failedStage?.missingCode || "PASS"));
+  const failureCode = literalEvidenceMissing
+    ? "LITERAL_MATCH_EVIDENCE_MISSING"
+    : (literalEvidenceDrift
+      ? "LITERAL_MATCH_EVIDENCE_DRIFT"
+      : (digestDrift
+        ? "MARKER_PROJECTION_DIGEST_DRIFT"
+        : (!routePass
+          ? "MARKER_ROUTE_OWNER_MISMATCH"
+          : (failedStage?.missingCode || "PASS"))));
   return {
     schema: "media-server.v390-ui-event-marker-projection-stages.v1",
     pass: failureCode === "PASS",
     failureCode,
     firstMissingStage: failureCode === "PASS"
       ? ""
-      : (failureCode === "MARKER_ROUTE_OWNER_MISMATCH" ? "route-owner" : String((digestDrift || failedStage)?.name || "")),
+      : (failureCode.startsWith("LITERAL_MATCH_EVIDENCE_")
+        ? "literal-match-evidence"
+        : (failureCode === "MARKER_ROUTE_OWNER_MISMATCH"
+          ? "route-owner"
+          : String((digestDrift || failedStage)?.name || ""))),
     routeOwner: String(projection.routeOwner || ""),
     rendererContainerSelector: String(projection.rendererContainerSelector || ""),
+    literalMatchEvidence: literalMatchEvidence
+      ? {
+          schema: String(literalMatchEvidence.schema || ""),
+          callsite: String(literalMatchEvidence.callsite || ""),
+          patternSourceDigest: String(literalMatchEvidence.patternSourceDigest || ""),
+          inputDigest: String(literalMatchEvidence.inputDigest || ""),
+          inputLength: Number(literalMatchEvidence.inputLength || 0),
+          regexMetacharacterKinds: Array.isArray(literalMatchEvidence.regexMetacharacterKinds)
+            ? literalMatchEvidence.regexMetacharacterKinds.map(String)
+            : [],
+          flags: String(literalMatchEvidence.flags || ""),
+          intendedMatchingSemantics: String(literalMatchEvidence.intendedMatchingSemantics || ""),
+        }
+      : null,
     stages: stages.map(({ missingCode: _missingCode, ...stage }) => stage),
   };
 }
@@ -5017,12 +5116,9 @@ function eventDomNodeIdentityMatch(nodeText, projection) {
       fields,
     };
   }
-  const sourcePattern = new RegExp(
-    `(?:^|\\s)#\\s*${escapeRegex(projection.sourceId)}(?=$|\\s)`,
-    "u",
-  );
   const fields = {
-    sourceId: segments.some(segment => sourcePattern.test(segment)),
+    sourceId: segments.some(segment =>
+      matchesDeclaredLiteral(segment, `#${projection.sourceId}`, "whitespace-token")),
     status: segments.some(segment => projection.statusLabels.some(label =>
       exactNormalizedPhrasePresent(segment, label))),
     reason: segments.some(segment => projection.reasonLabels.some(label =>
@@ -5036,12 +5132,7 @@ function eventDomNodeIdentityMatch(nodeText, projection) {
 }
 
 function exactNormalizedPhrasePresent(segment, phrase) {
-  const escaped = escapeRegex(phrase);
-  return new RegExp(`(?:^|\\s)${escaped}(?=$|\\s)`, "u").test(segment);
-}
-
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return matchesDeclaredLiteral(segment, phrase, "whitespace-token");
 }
 
 export function validateEventDomSemanticCompositeEvidence(evidence) {
