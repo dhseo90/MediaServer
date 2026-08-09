@@ -5,9 +5,9 @@
     "canonicalSha256": "78e496f53fe2b8c9484e548cf430273dcaa8af4a8a67338f647a1b5028dd12dc",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "2793b40fa2aa96cf1087eb1599fe7c404e7dc81fabfce8788a3596de0802a73e",
+    "implementationProjectionSha256": "0dd0be61ee08714c45d9ede1b5c9f81663f99cc00f60d7a7070c73e2e7462994",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "df9718a69bb9264376abb42e38da2a343d12658684d02e604a541b4642be86f8",
+    "runtimeOracleCatalogSha256": "e7518cb45b78de13ef8de446b0f16e66c23325e9b44fd0444bdcd6978f6c786c",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -11074,7 +11074,7 @@
             "setupId": "UI-018:reviewed-state",
             "strategy": "negative-route",
             "route": "/lab",
-            "semanticCallChainSha256": "9372c0c861ffffd21aeff81823a6a14b776a8e97861cc088e73d113067727626",
+            "semanticCallChainSha256": "745c1faf871a574d64868fb11ad0723cfd12e352bdeab47c185179f2d078e797",
             "persistedMutation": false,
             "fixtureId": "ui-018-review4-fixture",
             "beforeSnapshotRef": null
@@ -11156,7 +11156,7 @@
             "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
           },
           "verifierCommand": "verify-v390-ui-native-exact-cases-contract",
-          "assertedSemanticDigest": "9372c0c861ffffd21aeff81823a6a14b776a8e97861cc088e73d113067727626"
+          "assertedSemanticDigest": "745c1faf871a574d64868fb11ad0723cfd12e352bdeab47c185179f2d078e797"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -11168,7 +11168,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "39e6aaf8c0caca910515b70af5456ca2b0991c7fe1771e7334a64f4db7487394",
+          "specSha256": "f4ac1a1c03fd0697d8a08dacfa058abe502d75e46184e436bf55f28ea62c255c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11305,7 +11305,7 @@
             "cleanupId": "UI-018:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "9372c0c861ffffd21aeff81823a6a14b776a8e97861cc088e73d113067727626"
+            "semanticCallChainSha256": "745c1faf871a574d64868fb11ad0723cfd12e352bdeab47c185179f2d078e797"
           }
         ]
       },
@@ -200934,7 +200934,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "alert delivery search, kind, enabled-state filters and empty state match persisted integrations",
-          "specSha256": "079f24db8bd87d4de117f103b4aa7a83d1912041fcd5389f01df5809807b8931",
+          "specSha256": "13ab0f1f0e780c113f013b614bf0f828a0191bdd28d6d2e00c6622361447b8d0",
           "requestCount": 1,
           "domAssertionCount": 4,
           "stateSnapshotCount": 10,
@@ -202297,7 +202297,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "review inbox joins EventRecord with a separate review state by eventId without mutating the EventRecord",
-          "specSha256": "b75aaa9456175272a884de2343072efa4e0c37f0835ad10aad68e4867a2008aa",
+          "specSha256": "3661f2f1978c644751e9ac5a4f47ad3ca6d8258c608bb9f73df745e0c7a30763",
           "requestCount": 2,
           "domAssertionCount": 1,
           "stateSnapshotCount": 10,
@@ -204264,7 +204264,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "audit list filtering, detail, and JSON/CSV/diff export represent the same audit events",
-          "specSha256": "2532fce0cd45b2f7c9b9f8f48f89ca7c4f1c66d20052a3ef98ed623c274e415e",
+          "specSha256": "918f89e20154305a96b3e4657803d5dd0a60c0bbec3ab1d26f9d2289d776d43f",
           "requestCount": 3,
           "domAssertionCount": 3,
           "stateSnapshotCount": 10,

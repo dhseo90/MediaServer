@@ -257,6 +257,118 @@ const eventTypedResponseCollections = Object.freeze([
   }),
 ]);
 
+export function buildEventRequestQueryOwnerBaseline({
+  method = "GET",
+  requestPath = "",
+  target = "",
+} = {}) {
+  const queryKeys = String(target).split("/").filter(Boolean);
+  if (queryKeys.length === 0) return null;
+  let endpointUrl;
+  try {
+    endpointUrl = new URL(String(requestPath), "http://runtime.invalid");
+  } catch {
+    return null;
+  }
+  if (!queryKeys.every(key => endpointUrl.searchParams.getAll(key).length === 1)) return null;
+  return Object.freeze({
+    schema: "media-server.v390-ui-event-owner-provenance-baseline.v1",
+    provenance: "request",
+    collectionPath: "networkEntries",
+    fixtureIdentityPaths: Object.freeze([
+      "caseRequestIdentity", "caseRequestSequence", "requestId",
+    ]),
+    valuePath: "url.searchParams",
+    cardinality: Object.freeze({
+      collectionOwner: 1,
+      fixtureRow: 1,
+      value: queryKeys.length,
+    }),
+    requestMethod: String(method).toUpperCase(),
+    requestPathname: endpointUrl.pathname,
+    expectedQuery: Object.freeze(Object.fromEntries(
+      queryKeys.map(key => [key, endpointUrl.searchParams.get(key)]),
+    )),
+  });
+}
+
+function eventOwnerValueAtPath(owner, ownerPath) {
+  const segments = String(ownerPath || "").split(".").filter(Boolean);
+  let current = owner;
+  for (const segment of segments) {
+    if (!current || typeof current !== "object" ||
+        !Object.prototype.hasOwnProperty.call(current, segment)) return undefined;
+    current = current[segment];
+  }
+  return current;
+}
+
+export function resolveEventBoundResponseRows({
+  caseId = "",
+  binding = {},
+  rows = [],
+  fixtureOwners = [],
+  identityValues = [],
+} = {}) {
+  const declaredOwners = binding.identitySource === "fixture-owner"
+    ? fixtureOwners.filter(owner =>
+        owner?.kind === binding.fixtureOwner?.kind &&
+        owner?.role === binding.fixtureOwner?.role)
+    : [];
+  if (binding.identitySource === "fixture-owner") {
+    assert(declaredOwners.length === 1,
+      `${caseId} materialized fixture owner cardinality mismatch: ${declaredOwners.length}`);
+  }
+  const identityFields = Array.isArray(binding.identityFields)
+    ? binding.identityFields
+    : [];
+  const identities = binding.identitySource === "fixture-owner"
+    ? declaredOwners.map(owner => {
+        if (identityFields.length === 0) {
+          const identityValue = `${String(binding.identityPrefix || "")}${String(owner.identity)}`;
+          return { identityValue, identityProjection: null };
+        }
+        const identityProjection = Object.fromEntries(identityFields.map(field => {
+          const value = eventOwnerValueAtPath(owner, field.ownerPath);
+          assert(value !== undefined && value !== null && String(value).length > 0,
+            `${caseId} fixture owner identity field is missing: ${field.ownerPath}`);
+          return [field.responsePath,
+            `${String(field.prefix || "")}${String(value)}${String(field.suffix || "")}`];
+        }));
+        const identityValue = String(identityProjection[identityFields[0].responsePath]);
+        return { identityValue, identityProjection };
+      })
+    : identityValues.map(value => ({ identityValue: String(value), identityProjection: null }));
+  const expectedCardinality = binding.mode === "row-set-response"
+    ? Number(binding.cardinality)
+    : 1;
+  assert(identities.length === expectedCardinality &&
+    new Set(identities.map(identity => JSON.stringify(identity.identityProjection || identity.identityValue))).size ===
+      expectedCardinality,
+  `${caseId} DOM response identity set cardinality mismatch`);
+  return identities.map(identity => {
+    const matches = rows.filter(row => {
+      if (identity.identityProjection) {
+        return Object.entries(identity.identityProjection).every(([responsePath, expected]) => {
+          const values = eventExactValuesAtPath(row, responsePath);
+          return values.length === 1 && String(values[0]) === String(expected);
+        });
+      }
+      const pathMatches = binding.identityPaths.map(identityPath => {
+        const values = eventExactValuesAtPath(row, identityPath);
+        return values.length === 1 && String(values[0]) === String(identity.identityValue);
+      });
+      return binding.identityPathMode === "any" ? pathMatches.some(Boolean) : pathMatches.every(Boolean);
+    });
+    const identityLabel = identity.identityProjection
+      ? Object.values(identity.identityProjection).join("|")
+      : identity.identityValue;
+    assert(matches.length === 1,
+      `${caseId} bound response row cardinality mismatch: ${identityLabel}/${matches.length}`);
+    return { ...identity, row: matches[0] };
+  });
+}
+
 function typedProjectionPath(assertionPath, collectionPath, operator) {
   if (operator.startsWith("contains-fixture")) return "$";
   const expandedPrefix = `${collectionPath}[]`;
@@ -747,6 +859,8 @@ export function validateEventReviewSeedWriteReceipt({
   requirePath([200, 201].includes(putStatus), "put.status");
   requirePath(putEnvelope?.status === "ops-event-review", "put.body.status");
   requirePath(putEnvelope?.persistent === true, "put.body.persistent");
+  requirePath(putEnvelope?.audit?.action === "event-review-update",
+    "put.body.audit.action");
   requirePath(responseReview && typeof responseReview === "object" && !Array.isArray(responseReview),
     "put.body.review");
   requirePath(responseReview?.eventId === eventId, "put.body.review.eventId");
@@ -854,6 +968,7 @@ export function validateEventReviewSeedWriteReceipt({
   };
   return Object.freeze({
     eventId,
+    auditAction: String(putEnvelope.audit.action),
     reviewStatus: storageObservation.reviewStatus,
     classification: storageObservation.classification,
     notePresent: storageObservation.notePresent,
@@ -3709,6 +3824,12 @@ export function createV390UiCaseRuntime({
       recordCount = exact.matchedCount;
     }
 
+    const boundFixtureOwners = fixtureOwners.map(owner => {
+      const auditAction = reviewSeeds[owner.identity]?.auditAction;
+      return auditAction
+        ? Object.freeze({ ...owner, auditAction })
+        : owner;
+    });
     context.catalogBindings = {
       ...context.catalogBindings,
       eventId: context.fixtureId,
@@ -3721,7 +3842,7 @@ export function createV390UiCaseRuntime({
       sourceId: source.sourceId,
       viewId: source.viewId || descriptor.auth?.defaultViewId || "9001",
       alertIds,
-      fixtureOwners: Object.freeze([...fixtureOwners]),
+      fixtureOwners: Object.freeze(boundFixtureOwners),
       sourceHealth: plan.sourceHealthReadback
         ? source.status
         : (plan.sourceHealth ? "degraded" : "available"),
@@ -4081,6 +4202,8 @@ export function createV390UiCaseRuntime({
       q: context.catalogBindings.q || context.catalogBindings.searchQuery || canonicalSeedBindings.q,
       evidence: "snapshot",
       incidentStatus: context.catalogBindings.incidentStatus || canonicalSeedBindings.incidentStatus,
+      auditAction: context.catalogBindings.fixtureOwners?.find(owner =>
+        owner?.kind === "event-record" && owner?.role === "primary")?.auditAction || "",
       incidentMemoryHitSourceId: context.catalogBindings.incidentMemoryHitSourceId ||
         canonicalSeedBindings.incidentMemoryHitSourceId || canonicalSeedBindings.sourceId,
       startTimeMs: "0",
@@ -4103,39 +4226,44 @@ export function createV390UiCaseRuntime({
     const mergedQuery = {};
     const baselineBodies = [];
     const baselineResponses = [];
+    const ownerBoundSeedByPath = {};
+    for (const domContract of spec.dom || []) {
+      for (const assertion of domContract.assertions || []) {
+        const binding = assertion.binding;
+        if (binding?.identitySource !== "fixture-owner" ||
+            !Array.isArray(binding.identityFields)) continue;
+        const owners = (context.catalogBindings.fixtureOwners || []).filter(owner =>
+          owner?.kind === binding.fixtureOwner?.kind &&
+          owner?.role === binding.fixtureOwner?.role);
+        assert(owners.length === 1,
+          `${item.caseId} owner-bound seed fixture cardinality mismatch: ${owners.length}`);
+        for (const field of binding.identityFields) {
+          if (!field.seedPath) continue;
+          const value = eventOwnerValueAtPath(owners[0], field.ownerPath);
+          assert(value !== undefined && value !== null && String(value).length > 0,
+            `${item.caseId} owner-bound seed field is missing: ${field.ownerPath}`);
+          assert(!Object.prototype.hasOwnProperty.call(ownerBoundSeedByPath, field.seedPath) ||
+            stableJson(ownerBoundSeedByPath[field.seedPath]) === stableJson(value),
+          `${item.caseId} owner-bound seed path is ambiguous: ${field.seedPath}`);
+          ownerBoundSeedByPath[field.seedPath] = value;
+        }
+      }
+    }
     for (const request of spec.requests) {
       assert(["GET", "HEAD"].includes(request.method),
         `${item.caseId} event runtime baseline cannot pre-dispatch a mutation: ${request.method} ${request.path}`);
       const endpoint = materializeEventExactTemplate(request.path, templateValues);
       const identity = `${request.method} ${endpoint}`;
-      const endpointUrl = new URL(endpoint, "http://runtime.invalid");
       for (const target of requirements.requestPaths) {
-        const queryKeys = String(target).split("/").filter(Boolean);
-        if (queryKeys.length < 2 ||
-            !queryKeys.every(key => endpointUrl.searchParams.getAll(key).length === 1)) {
-          continue;
-        }
+        const baseline = buildEventRequestQueryOwnerBaseline({
+          method: request.method,
+          requestPath: endpoint,
+          target,
+        });
+        if (!baseline) continue;
         assert(!Object.prototype.hasOwnProperty.call(domResponseBaselineByTarget, target),
           `duplicate request provenance owner for ${target}`);
-        domResponseBaselineByTarget[target] = Object.freeze({
-          schema: "media-server.v390-ui-event-owner-provenance-baseline.v1",
-          provenance: "request",
-          collectionPath: "networkEntries",
-          fixtureIdentityPaths: Object.freeze([
-            "caseRequestIdentity", "caseRequestSequence", "requestId",
-          ]),
-          valuePath: "url.searchParams",
-          cardinality: Object.freeze({
-            collectionOwner: 1,
-            fixtureRow: 1,
-            value: queryKeys.length,
-          }),
-          requestMethod: String(request.method).toUpperCase(),
-          requestPathname: endpointUrl.pathname,
-          expectedQuery: Object.freeze(Object.fromEntries(
-            queryKeys.map(key => [key, endpointUrl.searchParams.get(key)]),
-          )),
-        });
+        domResponseBaselineByTarget[target] = baseline;
       }
       Object.assign(mergedQuery,
         Object.fromEntries(new URL(endpoint, "http://runtime.invalid").searchParams.entries()));
@@ -4230,7 +4358,9 @@ export function createV390UiCaseRuntime({
         }
         if (requirements.seedPaths.includes(assertion.path)) {
           const independentReviewSeeds = context.catalogBindings.eventReviewSeedByPath || {};
-          if (assertion.path.startsWith("records[].review.")) {
+          if (Object.prototype.hasOwnProperty.call(ownerBoundSeedByPath, assertion.path)) {
+            seedByPath[assertion.path] = ownerBoundSeedByPath[assertion.path];
+          } else if (assertion.path.startsWith("records[].review.")) {
             assert(Object.prototype.hasOwnProperty.call(independentReviewSeeds, assertion.path),
               `${item.caseId} exact review seed binding is not independent: ${assertion.path}`);
             seedByPath[assertion.path] = independentReviewSeeds[assertion.path];
@@ -4282,13 +4412,6 @@ export function createV390UiCaseRuntime({
       .flatMap(body => eventExactValuesAtPath(body, collectionPath))
       .flatMap(value => Array.isArray(value) ? value : [value])
       .filter(value => value && typeof value === "object" && !Array.isArray(value));
-    const rowMatchesIdentity = (row, identityPaths, identityValue, mode) => {
-      const matches = identityPaths.map(identityPath => {
-        const values = eventExactValuesAtPath(row, identityPath);
-        return values.length === 1 && String(values[0]) === String(identityValue);
-      });
-      return mode === "any" ? matches.some(Boolean) : matches.every(Boolean);
-    };
     const projectBoundRow = (row, fields) => Object.fromEntries(fields.map(field => {
       const values = eventExactValuesAtPath(row, field.responsePath);
       assert(values.length === 1,
@@ -4319,51 +4442,34 @@ export function createV390UiCaseRuntime({
           assert(responseOwners.length === 1,
             `${item.caseId} DOM authoritative response owner cardinality mismatch: ${responseOwners.length}`);
         }
-        const declaredFixtureOwners = binding.identitySource === "fixture-owner"
-          ? (context.catalogBindings.fixtureOwners || []).filter(owner =>
-              owner?.kind === binding.fixtureOwner?.kind &&
-              owner?.role === binding.fixtureOwner?.role)
-          : [];
-        if (binding.identitySource === "fixture-owner") {
-          assert(typeof binding.fixtureOwner?.kind === "string" && binding.fixtureOwner.kind &&
-            typeof binding.fixtureOwner?.role === "string" && binding.fixtureOwner.role &&
-            declaredFixtureOwners.length === 1,
-          `${item.caseId} materialized fixture owner cardinality mismatch: ${declaredFixtureOwners.length}`);
-        }
         const identityValues = binding.identitySource === "eventIds"
           ? (Array.isArray(context.catalogBindings.eventIds) ? context.catalogBindings.eventIds.map(String) : [])
-          : binding.identitySource === "fixture-owner"
-          ? [`${String(binding.identityPrefix || "")}${String(declaredFixtureOwners[0].identity)}`]
           : binding.identitySource === "sourceId"
           ? [String(templateValues.sourceId)]
+          : binding.identitySource === "fixture-owner"
+          ? []
           : [String(context.fixtureId)];
-        const expectedCardinality = binding.mode === "row-set-response"
-          ? Number(binding.cardinality)
-          : 1;
-        assert(identityValues.length === expectedCardinality && new Set(identityValues).size === expectedCardinality,
-          `${item.caseId} DOM response identity set cardinality mismatch`);
         const rows = rowsAtPath(responseOwners.map(response => response.body), binding.collectionPath);
-        const expectedRows = identityValues.map(identityValue => {
-          const matches = rows.filter(row => rowMatchesIdentity(
-            row,
-            binding.identityPaths,
-            identityValue,
-            binding.identityPathMode,
-          ));
-          assert(matches.length === 1,
-            `${item.caseId} bound response row cardinality mismatch: ${identityValue}/${matches.length}`);
-          return {
-            identityValue,
-            projection: projectBoundRow(matches[0], binding.fields),
-          };
+        const resolvedRows = resolveEventBoundResponseRows({
+          caseId: item.caseId,
+          binding,
+          rows,
+          fixtureOwners: context.catalogBindings.fixtureOwners || [],
+          identityValues,
         });
+        const expectedRows = resolvedRows.map(({ identityValue, identityProjection, row }) => ({
+          identityValue,
+          ...(identityProjection ? { identityProjection } : {}),
+          projection: projectBoundRow(row, binding.fields),
+        }));
+        const resolvedIdentityValues = expectedRows.map(row => row.identityValue);
         const baseline = binding.mode === "row-set-response"
           ? {
               schema: "media-server.v390-ui-event-row-set-response-baseline.v1",
               collectionPath: binding.collectionPath,
               identityPaths: [...binding.identityPaths],
               identityPathMode: binding.identityPathMode,
-              identityValues,
+              identityValues: resolvedIdentityValues,
               projectionPaths: binding.fields.map(field => field.responsePath),
               expectedRows,
               ...(binding.responseSource ? { responseSource: Object.freeze({
@@ -4380,7 +4486,10 @@ export function createV390UiCaseRuntime({
               collectionPath: binding.collectionPath,
               identityPaths: [...binding.identityPaths],
               identityPathMode: binding.identityPathMode,
-              identityValue: identityValues[0],
+              identityValue: resolvedIdentityValues[0],
+              ...(expectedRows[0].identityProjection
+                ? { identityProjection: expectedRows[0].identityProjection }
+                : {}),
               projectionPaths: binding.fields.map(field => field.responsePath),
               expectedProjection: expectedRows[0].projection,
               ...(binding.responseSource ? { responseSource: Object.freeze({
@@ -4399,10 +4508,10 @@ export function createV390UiCaseRuntime({
           domFixtureIdentityByTarget[String(assertion.target)] = {
             schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
             kind: "event-record",
-            eventId: identityValues[0],
+            eventId: resolvedIdentityValues[0],
             eventType,
             status,
-            expectedNodeTokens: [identityValues[0], eventType, status],
+            expectedNodeTokens: [resolvedIdentityValues[0], eventType, status],
             apiExpectedProjection: Object.freeze({ ...projection }),
           };
         } else if (binding.domKind === "source-health-text") {
@@ -4414,10 +4523,10 @@ export function createV390UiCaseRuntime({
           domFixtureIdentityByTarget[String(assertion.target)] = {
             schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
             kind: "source-health",
-            sourceId: identityValues[0],
+            sourceId: resolvedIdentityValues[0],
             status,
             reason,
-            expectedNodeTokens: [identityValues[0], status, reason],
+            expectedNodeTokens: [resolvedIdentityValues[0], status, reason],
           };
         }
       }

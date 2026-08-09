@@ -21,6 +21,7 @@ const eventExactTemplateVariableSchema = Object.freeze({
   endTimeMs: Object.freeze({ type: "unsigned-integer" }),
   limit: Object.freeze({ type: "unsigned-integer" }),
   offset: Object.freeze({ type: "unsigned-integer" }),
+  auditAction: Object.freeze({ type: "identifier" }),
 });
 
 const DIRECT_RESPONSE_OPERATORS = new Set([
@@ -1132,7 +1133,7 @@ export function auditEventExactTemplateUsage() {
     fixtureId: "audit-fixture", viewId: "9001", sourceId: "audit-source",
     ruleId: "audit-rule", q: "audit query", evidence: "snapshot",
     incidentStatus: "open", startTimeMs: "0", endTimeMs: "1",
-    limit: "100", offset: "0",
+    limit: "100", offset: "0", auditAction: "event-review-update",
   });
   let responseBaselineTemplateUseCount = 0;
   let unresolvedTemplateCount = 0;

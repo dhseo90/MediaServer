@@ -291,7 +291,7 @@ const dom = (selector, ...assertions) => ({
     ...(binding ? { binding } : {}),
   })),
 });
-const directDom = validator => ({ mode: "direct-dom", validator });
+const directDom = (validator, options = {}) => ({ mode: "direct-dom", validator, ...options });
 const rowLocalDom = ({
   collectionPath,
   identityPaths,
@@ -299,9 +299,11 @@ const rowLocalDom = ({
   responseSource,
   fixtureOwner,
   identityPrefix = "",
+  identityFields = [],
   domKind = "semantic-fields",
   identityPathMode = "all",
   identitySource = "fixtureId",
+  action = null,
 }) => ({
   mode: "row-local-response",
   collectionPath,
@@ -311,6 +313,8 @@ const rowLocalDom = ({
   ...(responseSource ? { responseSource } : {}),
   ...(fixtureOwner ? { fixtureOwner } : {}),
   ...(identityPrefix ? { identityPrefix } : {}),
+  ...(identityFields.length ? { identityFields } : {}),
+  ...(action ? { action } : {}),
   domKind,
   fields,
 });
@@ -530,9 +534,36 @@ const specs = [
           domField("label", "label", "field-text"),
         ],
       })]),
-      dom("#alertDeliveryKindFilter", ["filter-result-exact", "kind", true]),
-      dom("#alertDeliveryEnabledFilter", ["filter-result-exact", "enabled", true]),
-      dom("#alertDeliveryFilter", ["unmatched-query-produces-empty", "fixture-unmatched", true]),
+      dom("#alertDeliveryKindFilter", ["filter-result-exact", "kind", true, directDom("filter-action-readback", {
+        responseSource: responseSource("/ops/api/alerts/deliveries"),
+        collectionPath: "integrations",
+        identityPaths: ["id"],
+        identityPathMode: "all",
+        identitySource: "fixture-owner",
+        fixtureOwner: fixtureOwner("alert-delivery"),
+        action: { kind: "select", controlSelector: "#alertDeliveryKindFilter", ownerValuePath: "kind" },
+        readback: { rowSelector: "#alertDeliveryRows [data-alert-delivery-id]", identityAttribute: "data-alert-delivery-id", expectedVisibleOwnerCount: 1, field: { name: "kind", ownerValuePath: "kind" } },
+      })]),
+      dom("#alertDeliveryEnabledFilter", ["filter-result-exact", "enabled", true, directDom("filter-action-readback", {
+        responseSource: responseSource("/ops/api/alerts/deliveries"),
+        collectionPath: "integrations",
+        identityPaths: ["id"],
+        identityPathMode: "all",
+        identitySource: "fixture-owner",
+        fixtureOwner: fixtureOwner("alert-delivery"),
+        action: { kind: "select", controlSelector: "#alertDeliveryEnabledFilter", ownerValuePath: "enabled", transform: "enabled-filter" },
+        readback: { rowSelector: "#alertDeliveryRows [data-alert-delivery-id]", identityAttribute: "data-alert-delivery-id", expectedVisibleOwnerCount: 1, field: { name: "enabled", ownerValuePath: "enabled", transform: "boolean-string" } },
+      })]),
+      dom("#alertDeliveryFilter", ["unmatched-query-produces-empty", "fixture-unmatched", true, directDom("filter-action-readback", {
+        responseSource: responseSource("/ops/api/alerts/deliveries"),
+        collectionPath: "integrations",
+        identityPaths: ["id"],
+        identityPathMode: "all",
+        identitySource: "fixture-owner",
+        fixtureOwner: fixtureOwner("alert-delivery"),
+        action: { kind: "fill", controlSelector: "#alertDeliveryFilter", ownerValuePath: "id", suffix: "-unmatched" },
+        readback: { rowSelector: "#alertDeliveryRows [data-alert-delivery-id]", identityAttribute: "data-alert-delivery-id", expectedVisibleOwnerCount: 0 },
+      })]),
     ],
   }),
   eventSpec("EVT-018", {
@@ -578,7 +609,8 @@ const specs = [
         domField("review.reviewStatus", "reviewStatus", "field-text"),
         domField("review.classification", "classification", "field-text"),
       ],
-    })], ["contains-descendant", "[data-testid=ops-vlm-event-review-card]", true])],
+    })], ["contains-descendant", "[data-testid=ops-vlm-event-review-card]", true,
+      directDom("exact-visible-descendant-owner")])],
   }),
   eventSpec("EVT-020", {
     featureMeaning: "event list and review detail expose evidence references, review status, and operator note",
@@ -647,18 +679,37 @@ const specs = [
     domAssertions: [
       dom("#event-review-audit-list [data-audit-list-body] [data-event-semantic-event-id=\"event:{fixtureId}\"]", ["contains-fixture-audit", "eventId/action", true, rowLocalDom({
         collectionPath: "entries",
-        identityPaths: ["target"],
+        identityPaths: ["target", "action"],
         identitySource: "fixture-owner",
         fixtureOwner: fixtureOwner("event-record"),
-        identityPrefix: "event:",
-        responseSource: responseSource("/ops/api/audit?eventId=evt-022-review4-fixture"),
+        identityFields: [
+          { responsePath: "target", ownerPath: "identity", prefix: "event:" },
+          { responsePath: "action", ownerPath: "auditAction", seedPath: "entries[].action" },
+        ],
+        responseSource: responseSource("/ops/api/audit?eventId={fixtureId}"),
+        domKind: "audit-entry-text",
         fields: [
           domField("target", "target", "field-text"),
           domField("action", "action", "field-text"),
         ],
       })]),
-      dom("#event-review-audit-list [data-audit-detail]", ["detail-equals-response", "before/after", true]),
-      dom("#event-review-audit-list [data-audit-export=json], #event-review-audit-list [data-audit-export=csv], #event-review-audit-list [data-audit-export=diff-json]", ["export-download-matches-api", "fixtureId", true]),
+      dom("#opsAuditDetail", ["detail-equals-response", "before/after", true, rowLocalDom({
+        collectionPath: "entries",
+        identityPaths: ["target", "action"],
+        identitySource: "fixture-owner",
+        fixtureOwner: fixtureOwner("event-record"),
+        identityFields: [
+          { responsePath: "target", ownerPath: "identity", prefix: "event:" },
+          { responsePath: "action", ownerPath: "auditAction" },
+        ],
+        responseSource: responseSource("/ops/api/audit?eventId={fixtureId}"),
+        domKind: "audit-detail-modal",
+        action: { kind: "click", controlSelector: "#event-review-audit-list [data-event-semantic-event-id=\"event:{fixtureId}\"]:has([data-event-semantic-field=\"action\"][data-event-semantic-value=\"{auditAction}\"]) [data-audit-detail]" },
+        fields: [domField("before", "before", "audit-json"), domField("after", "after", "audit-json")],
+      })]),
+      dom("#event-review-audit-list [data-audit-export=json], #event-review-audit-list [data-audit-export=csv], #event-review-audit-list [data-audit-export=diff-json]", ["export-download-matches-api", "fixtureId", true, directDom("audit-export-controls", {
+        formats: ["json", "csv", "diff-json"],
+      })]),
     ],
   }),
   eventSpec("EVT-023", {

@@ -297,6 +297,7 @@ check("event review seed receipts bind PUT response, storage readback, and Event
   const putEnvelope = {
     status: "ops-event-review",
     persistent: true,
+    audit: { action: "event-review-update" },
     review,
   };
   const storageEnvelope = {
@@ -337,6 +338,9 @@ check("event review seed receipts bind PUT response, storage readback, and Event
         note: requestedReview.note,
         review: { ...review, note: undefined },
       },
+    }],
+    ["put.body.audit.action", {
+      putEnvelope: { ...putEnvelope, audit: { action: "resolution-state-update" } },
     }],
     ["put.body.review.note[digest]", {
       putEnvelope: { ...putEnvelope, review: { ...review, note: "drifted-note" } },
@@ -671,6 +675,7 @@ check("event review note evidence survives the production failure rewrap and par
       putEnvelope: {
         status: "ops-event-review",
         persistent: true,
+        audit: { action: "event-review-update" },
         review: { ...review, note: "put-note-drift" },
       },
       storageStatus: 200,

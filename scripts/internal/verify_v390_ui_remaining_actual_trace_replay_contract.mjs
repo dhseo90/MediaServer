@@ -10,10 +10,17 @@ import { fileURLToPath } from "node:url";
 
 import { eventExactOracleFor } from "./v390_ui_exact_event_oracles.mjs";
 import {
+  buildEventRequestQueryOwnerBaseline,
+  resolveEventBoundResponseRows,
+} from "./v390_ui_case_runtime.mjs";
+import {
+  evaluateEventExactDomAssertion,
   evaluateResponseDerivedDomFieldProjection,
   responseDerivedDomProjectionContractFor,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import {
+  buildEventDomSemanticCompositeEvidence,
+  evaluateEventDomActionReadback,
   selectEventDomResponseBodies,
 } from "./v390_ui_exact_oracle_runtime.mjs";
 
@@ -22,6 +29,8 @@ const runRoot = path.join(root,
   ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809031330-49276");
 const closureRunRoot = path.join(root,
   ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809040016-62650");
+const latestRunRoot = path.join(root,
+  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809054053-83497");
 const censusPath = path.join(root,
   "test/fixtures/v390_ui_remaining_actual_failure_census_20260809.json");
 const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
@@ -128,6 +137,88 @@ for (const [caseId, expected] of Object.entries(closureActual.cases)) {
   assert(String(summary.case?.failureDetail || "").includes(expected.failure) ||
     JSON.stringify(summary.case?.eventDomSemanticEvidence || {}).includes(expected.failure),
   `${caseId} closure failure signature drift`);
+}
+
+const latestActual = Object.freeze({
+  parentSha256: "11b2e530f63bfd0bbe312b7a0163d0229029fce175f1aae31d8ffed4ebbd0af7",
+  cases: Object.freeze({
+    "EVT-007": Object.freeze({
+      summarySha256: "054c46a595155d50171e4a6006df81f4a73ccb86a2c8ae80b0c1b62fd17b1d26",
+      traceSha256: "c73e8ff5a9cea09e2dce720f17502b4c1e8408eed1c22e45b1240ccaeafc2acc",
+      status: "FAIL", failure: "RESPONSE_BASELINE_MISSING",
+    }),
+    "EVT-017": Object.freeze({
+      summarySha256: "f74bbd00e11a1754e29fb50554e998ac6c837fc668ed3b8cfce3601c09827455",
+      traceSha256: "c02818243a93229a77a8f591d6ba02026bf354b18e6d62513253b48f0f9e92f9",
+      status: "FAIL", failure: "RESPONSE_BASELINE_MISSING",
+    }),
+    "EVT-019": Object.freeze({
+      summarySha256: "f6c6cb6c05aad08c85e002a4d68e1571ab1f91a3fe0406a29b4aec254ff0f2ef",
+      traceSha256: "57fbd81c59f9645fef5d09a923cd7b111f02fffabc12bb6f0bb2128daa051413",
+      status: "FAIL", failure: "RESPONSE_BASELINE_MISSING",
+    }),
+    "EVT-022": Object.freeze({
+      summarySha256: "eca36f9a1e0bc9c62e61d82d359581dbacea2762ec1ce2bef1c989d0e4495b04",
+      traceSha256: "2281ff78967e650dac327f582796c34c5e61dd8e25f28664340b24c607e9af50",
+      status: "FAIL", failure: "bound response row cardinality mismatch",
+    }),
+  }),
+});
+const latestParentBytes = fs.readFileSync(path.join(latestRunRoot, "summary.json"));
+assert.equal(sha256(latestParentBytes), latestActual.parentSha256,
+  "latest actual parent summary digest drift");
+const latestParent = JSON.parse(latestParentBytes);
+assert.deepEqual(latestParent.counts,
+  { target: 7, attempted: 6, pass: 3, fail: 3, notRun: 1, unsupported: 0 });
+for (const [caseId, expected] of Object.entries(latestActual.cases)) {
+  const caseRoot = path.join(latestRunRoot, "cases", caseId);
+  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
+  const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
+  assert.equal(sha256(summaryBytes), expected.summarySha256,
+    `${caseId} latest actual summary digest drift`);
+  assert.equal(sha256(traceBytes), expected.traceSha256,
+    `${caseId} latest actual trace digest drift`);
+  const summary = JSON.parse(summaryBytes);
+  assert.equal(summary.case?.status, expected.status, `${caseId} latest RED status drift`);
+  assert(String(summary.case?.failureDetail || "").includes(expected.failure) ||
+    JSON.stringify(summary.case?.eventDomSemanticEvidence || {}).includes(expected.failure),
+  `${caseId} latest failure signature drift`);
+}
+
+const lifecycleMatrix = Object.freeze({
+  "EVT-007": Object.freeze({
+    seed: "active-and-archived-event-records",
+    steps: ["seed-active-and-archive", "toggle-archives", "filter-evidence", "page-forward-back", "compare-order"],
+    api: ["status/equals", "records.records/contains-fixture-events", "records.matchedRecords/number-gte"],
+    dom: ["row-fields-equal-response/eventId/ruleId/scenarioName/evidence", "archive-toggle-changes-result/fixtureArchiveEventId", "pagination-offset-equals-request/offset"],
+  }),
+  "EVT-017": Object.freeze({
+    seed: "alert-delivery-integrations",
+    steps: ["seed-two-integrations", "filter-search", "filter-kind", "filter-enabled", "assert-empty"],
+    api: ["status/string-non-empty", "integrations/contains-fixture-integrations", "integrations[].endpointMasked/redacted", "integrations[].endpointRedacted/equals"],
+    dom: ["row-fields-equal-response/id/kind/enabled/label", "filter-result-exact/kind", "filter-result-exact/enabled", "unmatched-query-produces-empty/fixture-unmatched"],
+  }),
+  "EVT-019": Object.freeze({
+    seed: "event-record-and-review",
+    steps: ["seed-event", "seed-review", "capture-record-hash", "load-inbox", "compare-joined-row", "assert-record-unchanged"],
+    api: ["records/contains-fixture-review", "storage.separateFromEventRecords/equals", "records[].event.eventId/equals-fixture", "records[].review.eventId/equals-fixture", "records[].review.reviewStatus/equals-seed", "records[].review.classification/equals-seed"],
+    dom: ["fields-equal-response/event/review", "contains-descendant/[data-testid=ops-vlm-event-review-card]"],
+  }),
+  "EVT-022": Object.freeze({
+    seed: "review-audit-actions",
+    steps: ["seed-two-audits", "refresh-audit", "filter-fixture", "open-detail", "export-json-csv-diff", "compare-exports"],
+    api: ["entries/contains-fixture-event", "entries[].action/contains-seed-action", "$text/csv-contains-fixture", "$contentType/starts-with", "entries/contains-fixture-diff", "entries[].after/object"],
+    dom: ["contains-fixture-audit/eventId/action", "detail-equals-response/before/after", "export-download-matches-api/fixtureId"],
+  }),
+});
+for (const [caseId, expected] of Object.entries(lifecycleMatrix)) {
+  const spec = eventExactOracleFor(caseId);
+  assert.equal(spec.seed.kind, expected.seed, `${caseId} fixture role drift`);
+  assert.deepEqual(spec.action.steps, expected.steps, `${caseId} ordered action sequence drift`);
+  assert.deepEqual(spec.requests.flatMap(request => request.assertions.map(assertion =>
+    `${assertion.path}/${assertion.operator}`)), expected.api, `${caseId} API assertion waterfall drift`);
+  assert.deepEqual(spec.domAssertions.flatMap(contract => contract.assertions.map(assertion =>
+    `${assertion.operator}/${assertion.target}`)), expected.dom, `${caseId} DOM assertion waterfall drift`);
 }
 
 const lifecycleAssertions = Object.freeze([
@@ -354,9 +445,182 @@ const auditAssertion = eventExactOracleFor("EVT-022").domAssertions
 assert.equal(auditAssertion?.binding?.mode, "row-local-response",
   "EVT-022 audit assertion still omits its fixture-owned response baseline");
 assert.equal(auditAssertion?.binding?.collectionPath, "entries");
+assert.deepEqual(auditAssertion?.binding?.identityFields, [
+  { responsePath: "target", ownerPath: "identity", prefix: "event:" },
+  { responsePath: "action", ownerPath: "auditAction", seedPath: "entries[].action" },
+], "EVT-022 audit owner is not target/action exact");
+const auditDetailAssertion = eventExactOracleFor("EVT-022").domAssertions
+  .flatMap(entry => entry.assertions)
+  .find(assertion => assertion.operator === "detail-equals-response");
+assert.equal(auditDetailAssertion?.binding?.domKind, "audit-detail-modal");
+assert.equal(auditDetailAssertion?.binding?.action?.kind, "click");
+const auditExportAssertion = eventExactOracleFor("EVT-022").domAssertions
+  .flatMap(entry => entry.assertions)
+  .find(assertion => assertion.operator === "export-download-matches-api");
+assert.deepEqual(auditExportAssertion?.binding?.formats, ["json", "csv", "diff-json"]);
+
+const filterAssertions = eventExactOracleFor("EVT-017").domAssertions
+  .flatMap(entry => entry.assertions)
+  .filter(assertion => ["filter-result-exact", "unmatched-query-produces-empty"]
+    .includes(assertion.operator));
+assert.equal(filterAssertions.length, 3);
+assert(filterAssertions.every(assertion =>
+  assertion.binding?.mode === "direct-dom" &&
+  assertion.binding?.validator === "filter-action-readback" &&
+  assertion.binding?.responseSource?.path === "/ops/api/alerts/deliveries" &&
+  assertion.binding?.identitySource === "fixture-owner"),
+"EVT-017 filter action/readback lifecycle is incomplete");
+const filterBody = { integrations: [{ id: deliveryIdentity, kind: "webhook", enabled: true }] };
+assert.deepEqual(selectEventDomResponseBodies(filterAssertions[0], {
+  templateValues: { fixtureId: "evt-017-review4-fixture" },
+}, [{ method: "GET", urlPath: "/ops/api/alerts/deliveries" }], [filterBody]), [filterBody]);
+assert.throws(() => selectEventDomResponseBodies(filterAssertions[0], {
+  templateValues: { fixtureId: "evt-017-review4-fixture" },
+}, [{ method: "GET", urlPath: "/ops/api/alerts/deliveries?stale=1" }], [filterBody]),
+/cardinality mismatch: 0/, "stale filter response owner did not fail closed");
+assert.throws(() => selectEventDomResponseBodies(filterAssertions[0], {
+  templateValues: { fixtureId: "evt-017-review4-fixture" },
+}, [
+  { method: "GET", urlPath: "/ops/api/alerts/deliveries" },
+  { method: "GET", urlPath: "/ops/api/alerts/deliveries" },
+], [filterBody, filterBody]), /cardinality mismatch: 2/,
+"duplicate filter response owner did not fail closed");
+
+const descendantBinding = eventExactOracleFor("EVT-019").domAssertions
+  .flatMap(entry => entry.assertions)
+  .find(assertion => assertion.operator === "contains-descendant")?.binding;
+assert.deepEqual(descendantBinding,
+  { mode: "direct-dom", validator: "exact-visible-descendant-owner" });
 
 assert(runtimeSource.includes("routeLocalRendererIdentityMatched") &&
   runtimeSource.includes('rendererOwner === "renderDashboardIncidentTimeline"'),
 "EVT-023/026 route-local renderer identity proof is not admitted at the fixture boundary");
+
+const paginationPath = "/ops/api/events/status?limit=100&offset=0&evidence=snapshot&includeArchives=1";
+const paginationBaseline = buildEventRequestQueryOwnerBaseline({
+  method: "GET", requestPath: paginationPath, target: "offset",
+});
+assert(paginationBaseline, "single-key pagination query owner baseline is missing");
+const paginationActionId = "EVT-007:assert-product-state";
+const paginationCorrelation = "EVT-007:pagination-contract";
+const paginationCorrelationDigest = sha256(paginationCorrelation);
+const paginationRequest = {
+  phase: "request-start", requestId: "request-1", caseRequestIdentity: "EVT-007:request-1",
+  caseRequestSequence: 1, requestKind: "application-fetch", sameOrigin: true, method: "GET",
+  url: `http://runtime.invalid${paginationPath}`, correlationId: paginationCorrelation,
+};
+const paginationResponse = {
+  ...paginationRequest, phase: "response", responseRequestObjectObserved: true,
+  requestIdentitySource: "playwright-response-request",
+};
+const paginationCorrelationEvidence = {
+  schema: "media-server.v390-ui-request-correlation-evidence.v1", pass: true,
+  requestIdentityMatched: true, responseRequestObjectObserved: true,
+  expectedCaseId: "EVT-007", expectedMethod: "GET", expectedPath: paginationPath,
+  expectedActionId: paginationActionId, caseRequestIdentity: "EVT-007:request-1",
+  caseRequestSequence: 1, responseRequestIdentity: "EVT-007:request-1",
+  responseRequestSequence: 1, correlationDigest: paginationCorrelationDigest,
+  expectedCorrelationDigest: paginationCorrelationDigest,
+  initiatingRequestCorrelationDigest: paginationCorrelationDigest,
+  responseRequestCorrelationDigest: paginationCorrelationDigest,
+  requestCandidateCount: 1, matchedRequestCount: 1,
+  responseCandidateCount: 1, matchedResponseCount: 1,
+  requestAttemptCount: 1, requestReissued: false,
+};
+const paginationEvidence = ({ entries = [paginationRequest, paginationResponse],
+  actionId = paginationActionId, correlation = paginationCorrelationEvidence } = {}) =>
+  buildEventDomSemanticCompositeEvidence({
+    caseId: "EVT-007", selector: "#eventRecordsPrev, #eventRecordsNext",
+    observed: { count: 2, visibleCount: 2, text: "previous next", attributes: [{}, {}], values: ["", ""] },
+    priorResponseByPath: { offset: paginationBaseline }, networkEntries: entries,
+    requestCorrelationEvidence: correlation, requestActionId: actionId,
+    actualBrowserExecution: true,
+  });
+assert.equal(paginationEvidence().pass, true, "exact pagination action/request owner remains RED");
+assert.equal(paginationEvidence({ entries: [] }).responseBaselineMatched.reasonCodes[0],
+  "REQUEST_OWNER_MISSING", "zero pagination request owner did not fail closed");
+assert.equal(paginationEvidence({ entries: [paginationRequest, paginationRequest, paginationResponse] })
+  .responseBaselineMatched.reasonCodes[0], "REQUEST_OWNER_DUPLICATE",
+"duplicate pagination request owner did not fail closed");
+assert.equal(paginationEvidence({ actionId: "EVT-007:wrong-action" })
+  .responseBaselineMatched.reasonCodes[0], "REQUEST_CORRELATION_BINDING_INVALID",
+"wrong pagination action did not fail closed");
+const wrongOffsetRequest = { ...paginationRequest,
+  url: "http://runtime.invalid/ops/api/events/status?limit=100&offset=25&evidence=snapshot&includeArchives=1" };
+const wrongOffsetResponse = { ...paginationResponse, url: wrongOffsetRequest.url };
+assert.equal(paginationEvidence({ entries: [wrongOffsetRequest, wrongOffsetResponse] })
+  .responseBaselineMatched.reasonCodes[0], "REQUEST_RESPONSE_IDENTITY_MISMATCH",
+"wrong pagination offset did not fail closed");
+
+const filterContract = {
+  actionKind: "select", controlSelector: "#alertDeliveryKindFilter",
+  expectedValue: "webhook", expectedOwnerIdentity: deliveryIdentity,
+  expectedVisibleOwnerCount: 1, field: { name: "kind", expected: "webhook" },
+};
+const filterObservation = {
+  actionKind: "select", controlSelector: "#alertDeliveryKindFilter", controlValue: "webhook",
+  visibleRows: [{ identity: deliveryIdentity, fields: { kind: ["webhook"] } }],
+};
+assert.equal(evaluateEventDomActionReadback(filterContract, filterObservation).pass, true,
+  "exact filter action/readback remains RED");
+assert.equal(evaluateEventDomActionReadback(filterContract,
+  { ...filterObservation, controlValue: "email" }).failureCode, "FILTER_VALUE_MISMATCH");
+assert.equal(evaluateEventDomActionReadback(filterContract,
+  { ...filterObservation, actionKind: "fill" }).failureCode, "FILTER_ACTION_MISMATCH");
+assert.equal(evaluateEventDomActionReadback(filterContract,
+  { ...filterObservation, visibleRows: [] }).failureCode, "FILTER_RESULT_OWNER_MISSING");
+assert.equal(evaluateEventDomActionReadback(filterContract,
+  { ...filterObservation, visibleRows: [filterObservation.visibleRows[0],
+    { identity: "other", fields: { kind: ["webhook"] } }] }).failureCode,
+"FILTER_RESULT_OWNER_DUPLICATE");
+
+const descendantAssertion = { operator: "contains-descendant",
+  target: "[data-testid=ops-vlm-event-review-card]", expected: true };
+const descendantObservation = {
+  rootCount: 1, visibleRootCount: 1,
+  descendants: [descendantAssertion.target],
+  descendantMatches: [{ selector: descendantAssertion.target,
+    ownerNodeCount: 1, count: 1, visibleCount: 1 }],
+};
+assert.equal(evaluateEventExactDomAssertion({
+  caseId: "EVT-019", assertion: descendantAssertion, observation: descendantObservation,
+  context: { fixtureId: "fixture" },
+}).pass, true, "exact descendant semantic owner remains RED");
+assert.equal(evaluateEventExactDomAssertion({
+  caseId: "EVT-019", assertion: descendantAssertion,
+  observation: { ...descendantObservation,
+    descendantMatches: [{ selector: descendantAssertion.target,
+      ownerNodeCount: 2, count: 2, visibleCount: 2 }] },
+  context: { fixtureId: "fixture" },
+}).pass, false, "split descendant owner did not fail closed");
+
+const auditBinding = {
+  mode: "row-local-response", collectionPath: "entries",
+  identityPaths: ["target", "action"], identityPathMode: "all",
+  identitySource: "fixture-owner",
+  fixtureOwner: { kind: "event-record", role: "primary" },
+  identityFields: [
+    { responsePath: "target", ownerPath: "identity", prefix: "event:" },
+    { responsePath: "action", ownerPath: "auditAction" },
+  ],
+};
+const auditOwner = { kind: "event-record", role: "primary",
+  identity: "evt-022-review4-fixture", auditAction: "event-review-update" };
+const auditRow = { target: "event:evt-022-review4-fixture", action: "event-review-update",
+  before: null, after: { reviewStatus: "confirmed" } };
+assert.deepEqual(resolveEventBoundResponseRows({
+  caseId: "EVT-022", binding: auditBinding, rows: [auditRow], fixtureOwners: [auditOwner],
+}), [{ identityValue: auditRow.target,
+  identityProjection: { target: auditRow.target, action: auditRow.action }, row: auditRow }]);
+assert.throws(() => resolveEventBoundResponseRows({
+  caseId: "EVT-022", binding: auditBinding,
+  rows: [{ ...auditRow, action: "resolution-state-update" }], fixtureOwners: [auditOwner],
+}), /bound response row cardinality mismatch: event:evt-022-review4-fixture\|event-review-update\/0/,
+"partial audit target match did not fail closed");
+assert.throws(() => resolveEventBoundResponseRows({
+  caseId: "EVT-022", binding: auditBinding, rows: [auditRow, { ...auditRow }],
+  fixtureOwners: [auditOwner],
+}), /bound response row cardinality mismatch: event:evt-022-review4-fixture\|event-review-update\/2/,
+"duplicate exact audit identity did not fail closed");
 
 console.log("PASS verify_v390_ui_remaining_actual_trace_replay_contract");

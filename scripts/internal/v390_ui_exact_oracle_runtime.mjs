@@ -1802,6 +1802,197 @@ async function prepareExactViewportObservation(browser, selector) {
     `exact viewport observation owner is unavailable: ${selector}`);
 }
 
+function declaredOwnerValue(owner, ownerPath) {
+  return String(ownerPath || "").split(".").filter(Boolean).reduce((value, segment) =>
+    value && typeof value === "object" ? value[segment] : undefined, owner);
+}
+
+function declaredActionValue(value, transform = "scalar", prefix = "", suffix = "") {
+  let projected = value;
+  if (transform === "enabled-filter") projected = value === true ? "enabled" : "disabled";
+  if (transform === "boolean-string") projected = value === true ? "true" : "false";
+  return `${String(prefix || "")}${String(projected ?? "")}${String(suffix || "")}`;
+}
+
+export function evaluateEventDomActionReadback(contract = {}, observation = {}) {
+  const fail = failureCode => ({
+    schema: "media-server.v390-ui-event-dom-action-readback.v1",
+    pass: false,
+    failureCode,
+  });
+  if (String(observation.actionKind || "") !== String(contract.actionKind || "") ||
+      String(observation.controlSelector || "") !== String(contract.controlSelector || "")) {
+    return fail("FILTER_ACTION_MISMATCH");
+  }
+  if (String(observation.controlValue ?? "") !== String(contract.expectedValue ?? "")) {
+    return fail("FILTER_VALUE_MISMATCH");
+  }
+  const rows = Array.isArray(observation.visibleRows) ? observation.visibleRows : [];
+  const expectedCount = Number(contract.expectedVisibleOwnerCount);
+  if (rows.length !== expectedCount) {
+    return fail(rows.length === 0
+      ? "FILTER_RESULT_OWNER_MISSING"
+      : "FILTER_RESULT_OWNER_DUPLICATE");
+  }
+  if (expectedCount === 1 &&
+      String(rows[0]?.identity || "") !== String(contract.expectedOwnerIdentity || "")) {
+    return fail("FILTER_RESULT_OWNER_MISMATCH");
+  }
+  if (contract.field && expectedCount === 1) {
+    const candidates = rows[0]?.fields?.[contract.field.name] || [];
+    if (candidates.length !== 1 || String(candidates[0]) !== String(contract.field.expected)) {
+      return fail("FILTER_RESULT_FIELD_MISMATCH");
+    }
+  }
+  return {
+    schema: "media-server.v390-ui-event-dom-action-readback.v1",
+    pass: true,
+    failureCode: "PASS",
+  };
+}
+
+function declaredBindingOwnerRow({ item, binding, responseBodies, eventRuntimeContext }) {
+  const owners = binding.identitySource === "fixture-owner"
+    ? (eventRuntimeContext?.fixtureOwners || []).filter(owner =>
+        owner?.kind === binding.fixtureOwner?.kind && owner?.role === binding.fixtureOwner?.role)
+    : [];
+  assert(owners.length === 1,
+    `${item.caseId} declared action fixture owner cardinality mismatch: ${owners.length}`);
+  const rows = responseBodies
+    .flatMap(body => eventExactValuesAtPath(body, binding.collectionPath))
+    .flatMap(value => Array.isArray(value) ? value : [value])
+    .filter(value => value && typeof value === "object" && !Array.isArray(value));
+  const identityFields = Array.isArray(binding.identityFields) ? binding.identityFields : [];
+  const matches = rows.filter(row => {
+    if (identityFields.length > 0) {
+      return identityFields.every(field => {
+        const ownerValue = declaredOwnerValue(owners[0], field.ownerPath);
+        const expected = declaredActionValue(ownerValue, "scalar", field.prefix, field.suffix);
+        const values = eventExactValuesAtPath(row, field.responsePath);
+        return values.length === 1 && String(values[0]) === expected;
+      });
+    }
+    return (binding.identityPaths || []).every(identityPath => {
+      const values = eventExactValuesAtPath(row, identityPath);
+      return values.length === 1 && String(values[0]) === String(owners[0].identity);
+    });
+  });
+  assert(matches.length === 1,
+    `${item.caseId} declared action response row cardinality mismatch: ${matches.length}`);
+  return { owner: owners[0], row: matches[0] };
+}
+
+async function executeDeclaredDomActions({
+  browser,
+  item,
+  domContract,
+  bindings,
+  responses,
+  responseBodies,
+  eventRuntimeContext,
+}) {
+  const readbacks = {};
+  for (const assertion of domContract.assertions || []) {
+    const binding = assertion.binding;
+    if (!binding?.action) continue;
+    const resolvedAssertion = resolveEventDomAssertionForRuntime({
+      caseId: item.caseId, assertion, bindings, eventRuntimeContext,
+    });
+    const selectedBodies = selectEventDomResponseBodies(
+      resolvedAssertion, eventRuntimeContext, responses, responseBodies,
+    );
+    const { owner, row } = declaredBindingOwnerRow({
+      item, binding, responseBodies: selectedBodies, eventRuntimeContext,
+    });
+    const action = binding.action;
+    const actionValueRaw = action.ownerValuePath
+      ? eventExactValuesAtPath(row, action.ownerValuePath)
+      : [];
+    if (action.ownerValuePath) {
+      assert(actionValueRaw.length === 1,
+        `${item.caseId} declared action value cardinality mismatch: ${actionValueRaw.length}`);
+    }
+    const expectedValue = action.ownerValuePath
+      ? declaredActionValue(actionValueRaw[0], action.transform, action.prefix, action.suffix)
+      : "";
+    const templateValues = {
+      ...bindings,
+      ...(eventRuntimeContext?.templateValues || {}),
+      auditAction: String(owner.auditAction || eventRuntimeContext?.templateValues?.auditAction || ""),
+    };
+    const controlSelector = materializeEventExactTemplate(action.controlSelector, templateValues, {
+      context: "selector",
+    });
+    const controlCount = Number(await browser.evaluate(
+      `document.querySelectorAll(${JSON.stringify(controlSelector)}).length`,
+    ));
+    assert(controlCount === 1,
+      `${item.caseId} declared action control cardinality mismatch: ${controlCount}`);
+    if (action.kind === "select") await browser.select(controlSelector, expectedValue);
+    else if (action.kind === "fill") await browser.fill(controlSelector, expectedValue);
+    else if (action.kind === "click") await browser.click(controlSelector);
+    else assert(false, `${item.caseId} unsupported declared DOM action: ${action.kind}`);
+    const readback = binding.readback;
+    if (!readback) continue;
+    const observation = await browser.evaluate(`(() => {
+      const visible = node => {
+        const rect = node.getBoundingClientRect();
+        const style = getComputedStyle(node);
+        return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+      };
+      const control = document.querySelector(${JSON.stringify(controlSelector)});
+      const rows = Array.from(document.querySelectorAll(${JSON.stringify(readback.rowSelector)}))
+        .filter(visible)
+        .map(row => {
+          const fields = {};
+          for (const field of Array.from(row.querySelectorAll('[data-event-semantic-field]'))) {
+            const name = String(field.getAttribute('data-event-semantic-field') || '');
+            if (!name) continue;
+            if (!fields[name]) fields[name] = [];
+            fields[name].push(String(field.getAttribute('data-event-semantic-value') ??
+              field.innerText ?? field.textContent ?? '').trim());
+          }
+          return {
+            identity: String(row.getAttribute(${JSON.stringify(readback.identityAttribute)}) || ''),
+            fields,
+          };
+        });
+      return {
+        actionKind: ${JSON.stringify(action.kind)},
+        controlSelector: ${JSON.stringify(controlSelector)},
+        controlValue: String(control?.value ?? ''),
+        visibleRows: rows,
+      };
+    })()`);
+    const field = readback.field
+      ? {
+          name: readback.field.name,
+          expected: declaredActionValue(
+            eventExactValuesAtPath(row, readback.field.ownerValuePath)[0],
+            readback.field.transform,
+          ),
+        }
+      : null;
+    const contract = {
+      actionKind: action.kind,
+      controlSelector,
+      expectedValue,
+      expectedOwnerIdentity: String(owner.identity),
+      expectedVisibleOwnerCount: Number(readback.expectedVisibleOwnerCount),
+      ...(field ? { field } : {}),
+    };
+    const evaluation = evaluateEventDomActionReadback(contract, observation);
+    assert(evaluation.pass,
+      `${item.caseId} declared DOM action readback failed: ${evaluation.failureCode}`);
+    readbacks[`${String(assertion.operator || "")}\n${String(resolvedAssertion.target || "")}`] = {
+      contract,
+      observation,
+      evaluation,
+    };
+  }
+  return readbacks;
+}
+
 async function observeDom(
   browser,
   item,
@@ -1845,6 +2036,15 @@ async function observeDom(
     ? { ...bindings, fixtureId: uniqueProjectionOwnerIdentities[0] }
     : bindings;
   const selector = expand(String(projectionSelectors[0] || assertion.selector || ""), selectorBindings);
+  const declaredActionReadbacks = await executeDeclaredDomActions({
+    browser,
+    item,
+    domContract: assertion,
+    bindings,
+    responses,
+    responseBodies,
+    eventRuntimeContext,
+  });
   if ((assertion.propertyAssertions || []).some(candidate =>
       candidate.name === "boundingRectWithinViewport")) {
     await prepareExactViewportObservation(browser, selector);
@@ -2051,6 +2251,15 @@ async function observeDom(
           matches.length === 1 && visibleCount === 1;
       }),
       descendantCount: nodes.reduce((count, node) => count + node.querySelectorAll('*').length, 0),
+      auditDetail: (() => {
+        const dialog = document.getElementById('opsAuditDetail');
+        return {
+          count: dialog ? 1 : 0,
+          open: Boolean(dialog?.open || dialog?.hasAttribute('open')),
+          before: String(document.getElementById('opsAuditDetailBefore')?.textContent || ''),
+          after: String(document.getElementById('opsAuditDetailAfter')?.textContent || ''),
+        };
+      })(),
       properties: {
         text: nodes.map(node => String(node.innerText || node.textContent || '')).join(' ').replace(/\\s+/g, ' ').trim(),
         value: nodes[0] && 'value' in nodes[0] ? String(nodes[0].value ?? '') : '',
@@ -2175,6 +2384,7 @@ async function observeDom(
       },
     };
   })()`);
+  observed.declaredActionReadbacks = declaredActionReadbacks;
   const requiredText = (assertion.requiredTextTokens || []).map(value => expand(String(value), bindings)).filter(Boolean);
   const forbiddenText = (assertion.forbiddenTextTokens || []).map(value => expand(String(value), bindings)).filter(Boolean);
   const forbiddenMaterial = (assertion.forbiddenMaterialTokens || []).map(value => expand(String(value), bindings)).filter(Boolean);
@@ -3364,6 +3574,35 @@ function buildDeclaredEventDomBindingEvidence({
       const stability = buildOwnedRefreshStabilityEvidence(cycle);
       return finish({ pass: stability.pass, failureCode: stability.failureCode });
     }
+    if (validator === "exact-visible-descendant-owner") {
+      const match = (observed?.descendantMatches || [])
+        .find(candidate => candidate.selector === assertion.target);
+      const pass = Number(observed?.count || 0) === 1 &&
+        Number(observed?.visibleCount || 0) === 1 &&
+        Number(match?.ownerNodeCount || 0) === 1 &&
+        Number(match?.count || 0) === 1 &&
+        Number(match?.visibleCount || 0) === 1;
+      return finish({ pass, failureCode: "DESCENDANT_SEMANTIC_OWNER_MISMATCH" });
+    }
+    if (validator === "filter-action-readback") {
+      const assertionKey = `${String(assertion.operator || "")}\n${String(assertion.target || "")}`;
+      const readback = observed?.declaredActionReadbacks?.[assertionKey];
+      const result = readback?.evaluation || {
+        pass: false,
+        failureCode: "FILTER_ACTION_READBACK_MISSING",
+      };
+      return finish({ pass: result.pass === true, failureCode: result.failureCode });
+    }
+    if (validator === "audit-export-controls") {
+      const actualFormats = (observed?.attributes || [])
+        .map(attributes => String(attributes?.["data-audit-export"] || ""))
+        .filter(Boolean);
+      const expectedFormats = Array.isArray(binding.formats) ? binding.formats.map(String) : [];
+      const pass = Number(observed?.count || 0) === expectedFormats.length &&
+        Number(observed?.visibleCount || 0) === expectedFormats.length &&
+        stableEqual([...actualFormats].sort(), [...expectedFormats].sort());
+      return finish({ pass, failureCode: "AUDIT_EXPORT_OWNER_MISMATCH" });
+    }
     if (validator === "dashboard-health-counts") {
       const runtime = responseBodies.find(body => body?.webrtcHttp && body?.sessionManager) || {};
       const health = responseBodies.find(body => Array.isArray(body?.sourceHealth)) || {};
@@ -3397,7 +3636,33 @@ function buildDeclaredEventDomBindingEvidence({
   const assertionKey = `${String(assertion.operator || "")}\n${String(assertion.target || "")}`;
   const baseline = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[assertionKey];
   if (!baseline) return finish({ pass: false, failureCode: "DECLARED_RESPONSE_BASELINE_MISSING" });
-  if (["audit-entry-text", "behavior-only", "event-record-text", "source-health-text"].includes(binding.domKind)) {
+  if (binding.domKind === "audit-detail-modal") {
+    const parseAuditJson = value => {
+      try { return JSON.parse(String(value || "")); } catch { return { invalidAuditJson: true }; }
+    };
+    const expected = baseline.expectedProjection || {};
+    const actual = {
+      before: parseAuditJson(observed?.auditDetail?.before),
+      after: parseAuditJson(observed?.auditDetail?.after),
+    };
+    const pass = Number(observed?.auditDetail?.count || 0) === 1 &&
+      observed?.auditDetail?.open === true &&
+      stableEqual(actual.before, expected.before) &&
+      stableEqual(actual.after, expected.after);
+    return finish({
+      pass,
+      failureCode: "AUDIT_DETAIL_RESPONSE_MISMATCH",
+      expectedRows: [{ identityValue: baseline.identityValue, projection: expected }],
+      fields: ["before", "after"].map(name => ({
+        name,
+        pass: stableEqual(actual[name], expected[name]),
+        expected: expected[name],
+        actual: actual[name],
+        candidateCount: actual[name]?.invalidAuditJson === true ? 0 : 1,
+      })),
+    });
+  }
+  if (["behavior-only", "event-record-text", "source-health-text"].includes(binding.domKind)) {
     return finish({
       pass: true,
       expectedRows: baseline.expectedRows || [{
@@ -3409,11 +3674,23 @@ function buildDeclaredEventDomBindingEvidence({
   const expectedRows = baseline.schema === "media-server.v390-ui-event-row-set-response-baseline.v1"
     ? baseline.expectedRows
     : [{ identityValue: baseline.identityValue, projection: baseline.expectedProjection }];
+  const nodeMatchesIdentityProjection = (node, identityProjection) =>
+    Object.entries(identityProjection || {}).every(([name, expected]) => {
+      const candidates = node.fields?.[name] || [];
+      return candidates.length === 1 && String(candidates[0]) === String(expected);
+    });
+  const ownerScopedNodes = expectedRows.some(row => row.identityProjection)
+    ? semanticNodes.filter(node => expectedRows.some(row =>
+        String(node.eventId || "") === String(row.identityValue) &&
+        nodeMatchesIdentityProjection(node, row.identityProjection)))
+    : semanticNodes;
   const fieldEvidence = [];
-  let pass = semanticNodes.length === expectedRows.length;
+  let pass = ownerScopedNodes.length === expectedRows.length;
   for (const expectedRow of expectedRows) {
-    const nodeCandidates = semanticNodes.filter(node =>
-      String(node.eventId || "") === String(expectedRow.identityValue));
+    const nodeCandidates = ownerScopedNodes.filter(node =>
+      String(node.eventId || "") === String(expectedRow.identityValue) &&
+      (!expectedRow.identityProjection ||
+        nodeMatchesIdentityProjection(node, expectedRow.identityProjection)));
     if (nodeCandidates.length !== 1) {
       pass = false;
       fieldEvidence.push({
@@ -3670,7 +3947,7 @@ function evaluateDomSemanticAssertions(
         requestActionId,
         eventReviewRenderBinding,
         declaredDomBinding: buildDeclaredEventDomBindingEvidence({
-          assertion,
+          assertion: resolvedAssertion,
           observed,
           responseBodies: assertionResponseBodies,
           eventRuntimeContext,
@@ -4873,9 +5150,24 @@ export function selectEventDomResponseBodies(
     responses.length === responseBodies.length,
   "DOM response owner selection requires aligned response evidence and bodies");
   const baselines = selectEventDomResponseBaselines(assertion, eventRuntimeContext);
-  const sources = [...new Map(Object.values(baselines)
+  const bindingSource = assertion?.binding?.mode === "direct-dom"
+    ? assertion?.binding?.responseSource
+    : null;
+  const materializedBindingSource = bindingSource
+    ? {
+        method: String(bindingSource.method || "GET").toUpperCase(),
+        path: materializeEventExactTemplate(
+          bindingSource.path,
+          eventRuntimeContext?.templateValues || {},
+        ),
+      }
+    : null;
+  const sources = [...new Map([
+    ...(materializedBindingSource ? [materializedBindingSource] : []),
+    ...Object.values(baselines)
     .filter(baseline => baseline?.responseSource)
-    .map(baseline => [stableSerialize(baseline.responseSource), baseline.responseSource])).values()];
+    .map(baseline => baseline.responseSource),
+  ].map(source => [stableSerialize(source), source])).values()];
   if (sources.length === 0) return responseBodies;
   assert(sources.length === 1,
     "DOM assertion declares multiple authoritative response owners");
@@ -5048,9 +5340,7 @@ function evaluateEventRequestQueryOwner({
   const bindingPathValid = Boolean(bindingParsed &&
     bindingParsed.pathname === baseline.requestPathname &&
     String(bindingParsed.pathname + bindingParsed.search) === String(parsed?.pathname + parsed?.search));
-  const actualKeys = parsed ? [...new Set(parsed.searchParams.keys())].sort() : [];
-  const exactKeys = stableEqual(actualKeys, expectedKeys);
-  const exactValues = Boolean(parsed && expectedShapeValid && exactKeys &&
+  const exactValues = Boolean(parsed && expectedShapeValid &&
     expectedKeys.every(key => {
       const values = parsed.searchParams.getAll(key);
       return values.length === 1 && values[0] === baseline.expectedQuery[key];
