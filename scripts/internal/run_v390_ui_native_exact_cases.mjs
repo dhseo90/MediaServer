@@ -76,6 +76,10 @@ import {
   resolvePostActionVisualTarget,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 import {
+  bindRequestNavigationLifecycle,
+  buildRequestNavigationLifecyclePlan,
+} from "./v390_ui_request_navigation_lifecycle.mjs";
+import {
   diagnosticSelectionModes,
   validateDiagnosticSelectionContract,
   validateDiagnosticSelectionMode,
@@ -843,6 +847,29 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       trace.navigationOwnerLifecycleEvidence = navigationPreActionOwner;
     }
     const visualContext = await browser.observePostActionVisualContext();
+    let requestNavigationLifecycleBinding = null;
+    if (postActionLifecyclePlan.action.primaryCompletion.mode === "request") {
+      const lifecycleStart = runtimeState.get("__primaryNavigationLifecycleStart");
+      assert(Number.isInteger(lifecycleStart) && lifecycleStart >= 0,
+        `${item.caseId} primary request navigation lifecycle start missing`);
+      const requestNavigationPlan = buildRequestNavigationLifecyclePlan(item);
+      const requestNavigationLifecycles = browser.navigationOwnerLifecycles()
+        .slice(lifecycleStart);
+      requestNavigationLifecycleBinding = bindRequestNavigationLifecycle(
+        requestNavigationPlan,
+        requestNavigationLifecycles,
+        {
+          sourceBeforeObservation,
+          sourceObservation,
+          visualContext,
+        },
+      );
+      trace.requestNavigationLifecycleEvidence = {
+        plan: requestNavigationPlan,
+        lifecycles: requestNavigationLifecycles,
+        binding: requestNavigationLifecycleBinding,
+      };
+    }
     let destinationObservation = null;
     if (postActionLifecyclePlan.postNavigation.routeChanged) {
       await browser.waitForSelector(postActionLifecyclePlan.postNavigation.selector, {
@@ -862,6 +889,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         sourceBeforeObservation,
         sourceObservation,
         destinationObservation,
+        requestNavigationLifecycleBinding,
       },
     );
     const visualTargetSelector = postActionVisualTarget.selector;
@@ -2254,6 +2282,12 @@ function captureFormResponseIdentity(networkResponses, action, lifecycle, caseId
 
 async function executeCaseNativeAction(browser, item, action, runtimeState, caseRuntimeOwner, caseContext) {
   action = bindRuntimeDefaultViewRequest(item, action, caseRuntimeOwner);
+  if (action.semanticCompletion?.phase === "primary-action") {
+    assert(!runtimeState.has("__primaryNavigationLifecycleStart"),
+      `${item.caseId} primary navigation lifecycle start is duplicated`);
+    runtimeState.set("__primaryNavigationLifecycleStart",
+      browser.navigationOwnerLifecycles().length);
+  }
   if (action.kind === "verify-independent-readback") {
     return executeIndependentReadback(
       browser,
@@ -3027,7 +3061,7 @@ async function semanticAssertionResult(
   runtimeState.set("__pendingPrimaryCompletion", {
     action,
     actionEvidence,
-    before: snapshot,
+    before: observed,
     after: snapshot,
     networkResponses: browser.networkEntries().slice(networkStart),
     explicitObserved: exactObserved,

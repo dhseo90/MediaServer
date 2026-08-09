@@ -364,6 +364,7 @@ export function resolvePostActionVisualTarget(plan, {
   sourceBeforeObservation = null,
   sourceObservation = null,
   destinationObservation = null,
+  requestNavigationLifecycleBinding = null,
 } = {}) {
   assert(plan?.schema === "media-server.v390-ui-post-action-lifecycle-plan.v1",
     "post-action visual target plan schema mismatch");
@@ -387,6 +388,16 @@ export function resolvePostActionVisualTarget(plan, {
     label: "document owner",
   });
   const completionMode = String(plan.action?.primaryCompletion?.mode || "");
+  if (requestNavigationLifecycleBinding !== null) {
+    assert(completionMode === "request" &&
+      requestNavigationLifecycleBinding.schema ===
+        "media-server.v390-ui-request-navigation-lifecycle-binding.v1" &&
+      requestNavigationLifecycleBinding.caseId === plan.caseId &&
+      requestNavigationLifecycleBinding.pass === true &&
+      requestNavigationLifecycleBinding.finalRoute === observedRoute &&
+      Number(requestNavigationLifecycleBinding.finalEpoch) === navigationEpoch,
+    `${plan.caseId} request navigation lifecycle binding mismatch`);
+  }
   const base = {
     schema: "media-server.v390-ui-post-action-visual-target.v1",
     caseId: plan.caseId,
@@ -450,6 +461,17 @@ export function resolvePostActionVisualTarget(plan, {
       sourceDetached: sourceObservation?.exists === false,
       sourceHidden: sourceObservation?.exists === true && sourceObservation.visible !== true,
       epochRelation: "advanced",
+    };
+  }
+  if (completionMode === "request" &&
+      Number(requestNavigationLifecycleBinding?.navigationCount || 0) > 0) {
+    return {
+      ...base,
+      selector: "body",
+      bindingKind: "post-readback-visible-document-owner",
+      sourceDetached: sourceObservation?.exists === false,
+      sourceHidden: sourceObservation?.exists === true && sourceObservation.visible !== true,
+      epochRelation: requestNavigationLifecycleBinding.epochRelation,
     };
   }
   if (sourceSelector === "body") {

@@ -18,11 +18,11 @@
   },
   "artifacts": {
     "acceptanceSummary": {
-      "path": ".media_server.test/v3.9.0/ui-acceptance-current/summary.json",
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809124033-89067/summary.json",
       "sha256": "b84022f231d64bebc5eb7d5b6ca1e1a93c79addb107a4d0ed987f63d291a4f52"
     },
     "firstFailure": {
-      "path": ".media_server.test/v3.9.0/ui-acceptance-current/first-failure.json",
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809124033-89067/first-failure.json",
       "sha256": "f5fae610bff969e863f8589681946d4b5e97cd871a2aa1f8123489d70c0f67e5"
     },
     "exactSummary": {

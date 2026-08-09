@@ -15,13 +15,45 @@ import {
   resolvePostActionVisualTarget,
   selectExactNavigationOwnerLifecycle,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
+import {
+  bindRequestNavigationLifecycle,
+  buildRequestNavigationCensus,
+  buildRequestNavigationLifecyclePlan,
+} from "./v390_ui_request_navigation_lifecycle.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const red = readJson("test/fixtures/v390_ui_post_action_visual_owner_red_20260809.json");
 const navigationRed = readJson("test/fixtures/v390_ui_navigation_pre_post_owner_red_20260809.json");
+const requestNavigationRed = readJson("test/fixtures/v390_ui_request_navigation_epoch_red_20260809.json");
 const manifest = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const storedImpact = readJson("test/fixtures/v390_ui_shared_adapter_impact.json");
 const byId = new Map(manifest.cases.map(item => [item.caseId, item]));
+
+assert.equal(requestNavigationRed.schema,
+  "media-server.v390-ui-request-navigation-epoch-red.v1");
+assert.equal(requestNavigationRed.sourceCommitSha,
+  "312a4f077f3cc50c6838fc09c31ed3b255c0b6a9");
+assert.equal(requestNavigationRed.actualBrowserExecution, true);
+assert.equal(requestNavigationRed.releaseEvidenceEligible, false);
+assert.deepEqual(requestNavigationRed.coverage, {
+  target: 424,
+  attempted: 7,
+  pass: 6,
+  fail: 1,
+  notRun: 417,
+  unsupported: 0,
+});
+assert.equal(requestNavigationRed.firstFailure.caseId, "UI-008");
+assert.equal(requestNavigationRed.firstFailure.completionMode, "request");
+assert.equal(requestNavigationRed.firstFailure.error,
+  "source-before owner navigation epoch mismatch");
+assert.deepEqual(requestNavigationRed.capturedBeforeFailure,
+  ["UI-001", "UI-002", "UI-003", "UI-004", "UI-005", "UI-007"]);
+for (const artifact of Object.values(requestNavigationRed.artifacts)) {
+  assert.match(artifact.sha256, /^[0-9a-f]{64}$/);
+  const filePath = path.join(rootDir, artifact.path);
+  if (fs.existsSync(filePath)) assert.equal(sha256File(filePath), artifact.sha256);
+}
 
 assert.equal(navigationRed.schema,
   "media-server.v390-ui-navigation-pre-post-owner-red.v1");
@@ -134,6 +166,110 @@ assert.ok(impact.cases.every(item =>
   item.postActionVisualLifecycle.exactOneOwnerRequired === true &&
   item.postActionVisualLifecycle.invisibleSourceRewaitAllowed === false &&
   item.postActionVisualLifecycle.staleSourceScrollAllowed === false));
+
+const requestNavigationCensus = buildRequestNavigationCensus(manifest);
+assert.deepEqual(requestNavigationCensus.counts, {
+  "document-form-redirect": 9,
+  "same-route-document-form": 2,
+  "readback-route-roundtrip": 5,
+  "same-route-reload": 1,
+  "same-document-no-navigation": 374,
+});
+assert.equal(requestNavigationCensus.requestCompletionCount, 391);
+assert.equal(requestNavigationCensus.navigationSideEffectCount, 17);
+assert.equal(requestNavigationCensus.exactOneClassificationCount, 391);
+assert.deepEqual(requestNavigationCensus.caseIds["readback-route-roundtrip"], [
+  "UI-008", "AUTH-036", "EVT-058", "SAFE-033", "SAFE-041",
+]);
+assert.deepEqual(requestNavigationCensus.caseIds["same-route-reload"], ["CLIENT-010"]);
+assert.deepEqual(requestNavigationCensus.caseIds["same-route-document-form"], [
+  "AUTH-007", "AUTH-035",
+]);
+
+const ui008NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("UI-008"));
+assert.equal(ui008NavigationPlan.classification, "readback-route-roundtrip");
+assert.deepEqual(ui008NavigationPlan.steps.map(step => step.invocationId), [
+  "UI-008:form-readback-source-navigation",
+  "UI-008:form-readback-restore-navigation",
+]);
+const ui008NavigationBinding = bindRequestNavigationLifecycle(
+  ui008NavigationPlan,
+  requestNavigationLifecycles(ui008NavigationPlan, 1),
+  {
+    sourceBeforeObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
+    sourceObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
+    visualContext: context("/client/request-access", 3),
+  },
+);
+assert.equal(ui008NavigationBinding.navigationCount, 2);
+assert.equal(ui008NavigationBinding.epochRelation, "advanced-readback");
+const ui008VisualTarget = resolvePostActionVisualTarget(plan("UI-008"), {
+  visualContext: context("/client/request-access", 3),
+  sourceBeforeObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
+  sourceObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
+  requestNavigationLifecycleBinding: ui008NavigationBinding,
+});
+assert.equal(ui008VisualTarget.selector, "body");
+assert.equal(ui008VisualTarget.bindingKind, "post-readback-visible-document-owner");
+
+const auth006NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("AUTH-006"));
+assert.equal(auth006NavigationPlan.classification, "document-form-redirect");
+assert.equal(auth006NavigationPlan.steps.length, 3);
+const evt058NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("EVT-058"));
+assert.equal(evt058NavigationPlan.classification, "readback-route-roundtrip");
+assert.equal(evt058NavigationPlan.steps.length, 2);
+const client010NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("CLIENT-010"));
+assert.equal(client010NavigationPlan.classification, "same-route-reload");
+assert.equal(client010NavigationPlan.steps.length, 1);
+const ui109NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("UI-109"));
+assert.equal(ui109NavigationPlan.classification, "same-document-no-navigation");
+assert.equal(ui109NavigationPlan.steps.length, 0);
+
+for (const mutation of [
+  lifecycles => lifecycles.slice(1),
+  lifecycles => [...lifecycles, structuredClone(lifecycles[0])],
+  lifecycles => [{ ...lifecycles[0], invocationId: "wrong" }, ...lifecycles.slice(1)],
+  lifecycles => [{ ...lifecycles[0], sourceRoute: "/wrong" }, ...lifecycles.slice(1)],
+  lifecycles => [{ ...lifecycles[0], destinationRoute: "/wrong" }, ...lifecycles.slice(1)],
+  lifecycles => [{ ...lifecycles[0], kind: "wrong" }, ...lifecycles.slice(1)],
+  lifecycles => [{
+    ...lifecycles[0],
+    sourceOwner: { ...lifecycles[0].sourceOwner, selector: "#wrong" },
+  }, ...lifecycles.slice(1)],
+  lifecycles => [{
+    ...lifecycles[0],
+    sourceOwner: { ...lifecycles[0].sourceOwner, navigationEpoch: 0 },
+    destinationOwner: { ...lifecycles[0].destinationOwner, navigationEpoch: 1 },
+  }, ...lifecycles.slice(1)],
+  lifecycles => [{
+    ...lifecycles[0],
+    destinationOwner: {
+      ...lifecycles[0].destinationOwner,
+      navigationEpoch: lifecycles[0].sourceOwner.navigationEpoch,
+    },
+  }, ...lifecycles.slice(1)],
+  lifecycles => [{
+    ...lifecycles[0],
+    sourceOwner: { ...lifecycles[0].sourceOwner, visible: false },
+  }, ...lifecycles.slice(1)],
+]) assert.throws(() => bindRequestNavigationLifecycle(
+  ui008NavigationPlan,
+  mutation(requestNavigationLifecycles(ui008NavigationPlan, 1)),
+  {
+    sourceBeforeObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
+    sourceObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
+    visualContext: context("/client/request-access", 3),
+  },
+));
+assert.throws(() => bindRequestNavigationLifecycle(
+  ui109NavigationPlan,
+  [requestNavigationLifecycles(ui008NavigationPlan, 1)[0]],
+  {
+    sourceBeforeObservation: observation(ui109NavigationPlan.sourceSelector, 1, true, true),
+    sourceObservation: observation(ui109NavigationPlan.sourceSelector, 1, true, true),
+    visualContext: context("/ops/sources", 2),
+  },
+), /cardinality mismatch/);
 
 const ui109 = plan("UI-109");
 const ui109Hidden = resolvePostActionVisualTarget(ui109, {
@@ -294,6 +430,10 @@ const adapterSource = fs.readFileSync(path.join(rootDir,
 assert.ok(runnerSource.includes("browser.observePostActionVisualContext()"));
 assert.ok(runnerSource.includes("browser.navigationOwnerLifecycle("),
   "runner must consume the pre-action owner captured before document navigation");
+assert.ok(runnerSource.includes("browser.navigationOwnerLifecycles()"),
+  "runner must consume the exact post-action request navigation lifecycle sequence");
+assert.ok(runnerSource.includes("bindRequestNavigationLifecycle("),
+  "runner must bind request navigation side-effects before visual owner selection");
 assert.ok(runnerSource.includes("ownerBinding: postActionVisualTarget"));
 assert.ok(!runnerSource.includes("postActionDestinationLifecycleRequired(postActionLifecyclePlan)"));
 assert.ok(adapterSource.includes("post-action visual owner is not visible"));
@@ -306,6 +446,7 @@ assert.ok(adapterSource.includes("sourceSelectorRewaited" ) === false,
 console.log("== v3.9.0 post-action visual owner contract ==");
 console.log("- latest canonical RED: PASS 107 / FAIL UI-109 / not-run 316 replay-bound");
 console.log("- canonical census: PASS 424/424 exact-one owner lifecycle");
+console.log("- request navigation census: PASS 391/391 exact-one classification; side-effect 17 / none 374");
 console.log("- source visible/hidden/detached, route-change, local, navigation: PASS");
 console.log("- wrong route/selector/epoch/cardinality/hidden destination: fail-closed PASS");
 
@@ -356,6 +497,25 @@ function navigationLifecycle(lifecyclePlan, {
     sourceOwner: observation(sourceSelector, sourceEpoch, true, true),
     destinationOwner: observation("body", destinationEpoch, true, true),
   };
+}
+
+function requestNavigationLifecycles(requestPlan, initialEpoch) {
+  let epoch = initialEpoch;
+  return requestPlan.steps.map(step => {
+    const lifecycle = {
+      schema: "media-server.v390-ui-navigation-owner-lifecycle.v1",
+      caseId: requestPlan.caseId,
+      invocationId: step.invocationId,
+      kind: step.kind,
+      action: step.action,
+      sourceRoute: step.sourceRoute,
+      destinationRoute: step.destinationRoute,
+      sourceOwner: observation(step.sourceSelector, epoch, true, true),
+      destinationOwner: observation("body", epoch + 1, true, true),
+    };
+    epoch += 1;
+    return lifecycle;
+  });
 }
 
 function readJson(relativePath) {

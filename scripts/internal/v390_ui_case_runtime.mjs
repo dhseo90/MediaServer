@@ -24,7 +24,7 @@ const evt004OwnedNoiseCount = evt004DashboardLogLimit + 16;
 const evt004OwnedNoisePrefix = "[review4-noise] EVT-004-OWNED-";
 
 export const formReadbackProfiles = Object.freeze({
-  "UI-008": profile("369115bd854774b2872b93c2c631149ca84758a1b153e4301716a85c6533d969", ["responsePending", "storePending", "listPending", "noUserOrInvite", "pendingLoginDenied", "uiPending"]),
+  "UI-008": profile("369115bd854774b2872b93c2c631149ca84758a1b153e4301716a85c6533d969", ["responsePending", "storePending", "listPending", "noUserOrInvite", "pendingLoginDenied", "uiPending"], readbackNavigation("/client/request-access")),
   "UI-002": profile("f44961be73ee6e07c913f79ddcf045a5efd06d60f2bea8ce1478ea1945f46ba0", ["weakRejected", "weakNoWrite", "adminStored", "plaintextAbsent", "adminWhoami"]),
   "UI-003": profile("60b1ba654195a63cc5c0d0b05446a304cf7979ded85d85872bac1450314512a8", ["stableAuthorization", "viewerWhoami", "viewerLanding"]),
   "UI-004": profile("d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4", ["oldPasswordDenied", "newPasswordAccepted", "historyReuseDenied", "historyRotated", "plaintextAbsent"]),
@@ -32,14 +32,14 @@ export const formReadbackProfiles = Object.freeze({
   "UI-007": profile("da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c", ["beforeLoginDenied", "beforeClientDenied", "inviteConsumed", "viewerWhoami", "viewerScope", "clientAllowed", "opsDenied"]),
   "AUTH-004": profile("1994311ad1baf7a0018e8321c2d6489b75441825b28502d0c1e19138fa96e7e4", ["stableAuthorization", "viewerWhoami", "clientAllowed", "opsDenied"]),
   "AUTH-005": profile("a3546c87b364001c5c22370212b1975fbab2ba77d08ca7de87238890c9d8a0aa", ["missingStoreGate", "hashlessStoreGate", "hashlessLoginDenied", "bootstrapToLogin", "adminWhoami"]),
-  "AUTH-006": profile("726e4e6294571ed05474e620d5ce4158ae6c897773bc536f62b4193bfc035820", ["adminAllScope", "usersApiRedacted", "usersUiRedacted", "adminWhoami"]),
+  "AUTH-006": profile("726e4e6294571ed05474e620d5ce4158ae6c897773bc536f62b4193bfc035820", ["adminAllScope", "usersApiRedacted", "usersUiRedacted", "adminWhoami"], readbackNavigation("/login")),
   "AUTH-007": profile("f7f92112af1673336141c9ed6528b22e4b16e290f7167816ba1df749995a0358", ["emptyPasswordDenied", "hashlessAdminDenied", "browserAnonymous", "storeUnchanged"]),
   "AUTH-014": profile("57700666ee7e9d6abf223416c8399df6b5a226d025ba9a6b61d1121a7cbe0aa3", ["responseIdentity", "responseRedacted", "storeIdentity", "listIdentity", "listRedacted", "uiRedacted", "plaintextAbsent"]),
   "AUTH-015": profile("73569388823d0de8abe609397ebe0b9f5f6e99467415c5ad6c7b4f852c381485", ["responseTokenBound", "issuedTokenRegistered", "storeHasHashOnly", "listIdentity", "listRedacted", "uiRedacted"]),
   "AUTH-033": profile("574f65cd5a55b1adc442d6e00a6dbfaf50854affc6df2d7e8650936d14b4140d", ["inviteCreatedStatus", "responseTokenBound", "issuedTokenRegistered", "storeHasHashOnly", "listIdentity", "listRedacted", "uiRedacted"]),
   "AUTH-034": profile("6f20c9e17ceec760de6a91135f75cb74dd7a4e388c858a15730949398fcd490c", ["beforeLoginDenied", "beforeClientDenied", "inviteConsumed", "viewerWhoami", "viewerScope", "clientAllowed", "opsDenied"]),
   "AUTH-035": profile("3a88390b3e88ba317b05828c430e92ae5230f2f194137eb4c3ae6be2a273ad81", ["consumedSeeded", "consumedRejected", "expiredSeeded", "expiredRejected", "browserAnonymous", "storeUnchanged"]),
-  "AUTH-036": profile("a7dcf49c1b91e2e3c96c6db48efcfb5776d5f8a2d50ad780896e5715bcc86cc3", ["responsePending", "storePending", "listPending", "noUserOrInvite", "pendingLoginDenied", "uiPending"]),
+  "AUTH-036": profile("a7dcf49c1b91e2e3c96c6db48efcfb5776d5f8a2d50ad780896e5715bcc86cc3", ["responsePending", "storePending", "listPending", "noUserOrInvite", "pendingLoginDenied", "uiPending"], readbackNavigation("/client/request-access")),
 });
 
 export function assertInactiveOrEqualBeforeCleanup({ caseId, observed, expectedRecord } = {}) {
@@ -131,8 +131,20 @@ export function validateAlertDeliveryDryRunReadback({
   };
 }
 
-function profile(expectedBehaviorSha256, requiredChecks) {
-  return Object.freeze({ expectedBehaviorSha256, requiredChecks: Object.freeze([...requiredChecks]) });
+function profile(expectedBehaviorSha256, requiredChecks, navigationLifecycle = null) {
+  return Object.freeze({
+    expectedBehaviorSha256,
+    requiredChecks: Object.freeze([...requiredChecks]),
+    navigationLifecycle,
+  });
+}
+
+function readbackNavigation(restoreRoute) {
+  return Object.freeze({
+    kind: "route-roundtrip",
+    observationRoute: "/ops/users",
+    restoreRoute,
+  });
 }
 
 const ruleRelationshipFixtureCaseIds = new Set([
@@ -5694,6 +5706,7 @@ export function createV390UiCaseRuntime({
       const usersApi = await requestJson(`${httpBase}/ops/api/users`, { cookie: loginCookie });
       const publicAdmin = usersApi.json?.users?.find(user => user.username === "admin");
       const ui = await inspectOpsUsersUiWithLogin(browser, {
+        caseId: item.caseId,
         username: "admin",
         password,
         sectionSelector: "#users-body",
@@ -6014,6 +6027,7 @@ export function createV390UiCaseRuntime({
       });
       const adminPassword = roleSecrets.roles?.admin || "";
       const ui = await inspectOpsUsersUiWithLogin(browser, {
+        caseId: item.caseId,
         username: descriptor.auth?.usernames?.admin || "admin",
         password: adminPassword,
         sectionSelector: "#access-requests-body",
@@ -6938,14 +6952,17 @@ async function observeCurrentOpsUsersUi(browser, {
 }
 
 async function inspectOpsUsersUiWithLogin(browser, {
+  caseId,
   username,
   password,
   sectionSelector,
   identity,
   returnPath,
 } = {}) {
-  assert(username && password && returnPath, "ops users isolated UI readback login binding is incomplete");
+  assert(caseId && username && password && returnPath,
+    "ops users isolated UI readback login binding is incomplete");
   browser.registerRuntimeSecret(password);
+  let observation = null;
   try {
     const login = await browser.evaluate(async credentials => {
       const response = await fetch("/login", {
@@ -6959,9 +6976,12 @@ async function inspectOpsUsersUiWithLogin(browser, {
     }, { username, password });
     assert(login.status === 200 && login.pathname.startsWith("/ops/"),
       "ops users isolated UI readback login failed");
-    const navigation = await browser.navigate("/ops/users");
+    const navigation = await browser.navigate("/ops/users", {
+      invocationId: `${caseId}:form-readback-source-navigation`,
+      kind: "form-readback-source-navigation",
+    });
     assert(navigation.status === 200, "ops users isolated UI readback navigation failed");
-    return await observeCurrentOpsUsersUi(browser, { sectionSelector, identity });
+    observation = await observeCurrentOpsUsersUi(browser, { sectionSelector, identity });
   } finally {
     await browser.evaluate(async () => {
       try {
@@ -6972,8 +6992,24 @@ async function inspectOpsUsersUiWithLogin(browser, {
         });
       } catch {}
     });
-    await browser.navigate(returnPath);
+    await browser.navigate(returnPath, {
+      invocationId: `${caseId}:form-readback-restore-navigation`,
+      kind: "form-readback-restore-navigation",
+    });
   }
+  return {
+    ...observation,
+    navigationLifecycle: {
+      schema: "media-server.v390-ui-readback-navigation-declaration.v1",
+      kind: "route-roundtrip",
+      observationRoute: "/ops/users",
+      restoreRoute: returnPath,
+      invocationIds: [
+        `${caseId}:form-readback-source-navigation`,
+        `${caseId}:form-readback-restore-navigation`,
+      ],
+    },
+  };
 }
 
 function objectHasAnyKey(value, forbidden) {

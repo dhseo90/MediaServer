@@ -1245,6 +1245,8 @@ async function openNativePlaywrightPage(playwright, {
     finalizeNavigationLedger,
     navigationOwnerLifecycle: invocationId =>
       selectExactNavigationOwnerLifecycle(navigationOwnerLifecycles, invocationId),
+    navigationOwnerLifecycles: () =>
+      structuredClone(navigationOwnerLifecycles),
     waitForSelector: async (selector, options = {}) => {
       return revealClosedDetailsForSelector(page, selector, {
         state: options.state || "visible",

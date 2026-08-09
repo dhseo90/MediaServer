@@ -492,7 +492,10 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
           await prepareEvt004MarkerDashboardNavigation(args);
       }
       await browser.setCorrelationId(`${item.caseId}:navigation`, { inject: false });
-      screenNavigation = await browser.navigate(screenRoute);
+      screenNavigation = await browser.navigate(screenRoute, {
+        invocationId: `${item.caseId}:catalog-screen-preparation-navigation`,
+        kind: "catalog-screen-preparation-navigation",
+      });
       assert([200, 204].includes(screenNavigation.status),
         `${item.caseId} catalog screen route status mismatch: ${screenNavigation.status}`);
       if (item.caseId === "EVT-004") {
@@ -530,7 +533,10 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
   if (item.caseId === "EVT-004") {
     markerStageEvidence = await prepareEvt004MarkerDashboardNavigation(args);
   }
-  const sourceNavigation = await browser.navigate(sourceRoute);
+  const sourceNavigation = await browser.navigate(sourceRoute, {
+    invocationId: `${item.caseId}:catalog-source-navigation`,
+    kind: "catalog-source-navigation",
+  });
   assert([200, 204].includes(sourceNavigation.status),
     `${item.caseId} catalog source route status mismatch: ${sourceNavigation.status}`);
   if (item.caseId === "EVT-004") {
@@ -567,7 +573,10 @@ export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
   let restoreAttempted = false;
   const restoreDestination = async () => {
     restoreAttempted = true;
-    restoreNavigation = await browser.navigate(destinationRoute);
+    restoreNavigation = await browser.navigate(destinationRoute, {
+      invocationId: `${item.caseId}:catalog-restore-navigation`,
+      kind: "catalog-restore-navigation",
+    });
     assert([200, 204].includes(restoreNavigation.status),
       `${item.caseId} catalog destination restore status mismatch: ${restoreNavigation.status}`);
   };
@@ -722,7 +731,10 @@ async function cleanupTrustedInteraction(browser, item, spec, interaction, corre
     return { strategy: "restore-select-value", status: "PASS" };
   }
   if (kind === "navigate-negative" || (kind === "activate" && item.caseId === "SAFE-053")) {
-    const observed = await browser.navigate(spec.route);
+    const observed = await browser.navigate(spec.route, {
+      invocationId: `${item.caseId}:catalog-cleanup-restore-navigation`,
+      kind: "catalog-cleanup-restore-navigation",
+    });
     assert([200, 204].includes(observed.status), `${item.caseId} route cleanup status mismatch: ${observed.status}`);
     return { strategy: "restore-route", status: "PASS", route: spec.route };
   }
@@ -987,13 +999,19 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId, 
     return { kind: action.kind, selector: target, ...result };
   }
   if (action.kind === "reload") {
-    const observed = await browser.navigate(target);
+    const observed = await browser.navigate(target, {
+      invocationId: `${item.caseId}:catalog-action-reload-navigation`,
+      kind: "catalog-action-reload-navigation",
+    });
     assert([200, 204].includes(observed.status), `${item.caseId} reload status mismatch: ${observed.status}`);
     await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
     return { kind: action.kind, route: target, observed };
   }
   if (action.kind === "navigate-negative") {
-    const observed = await browser.navigate(target);
+    const observed = await browser.navigate(target, {
+      invocationId: `${item.caseId}:catalog-action-negative-navigation`,
+      kind: "catalog-action-negative-navigation",
+    });
     assert(observed.status === 404, `${item.caseId} negative navigation status mismatch: ${observed.status}`);
     return { kind: action.kind, route: target, observed };
   }
