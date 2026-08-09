@@ -136,6 +136,7 @@ export function buildPostActionLifecyclePlan(item, formResponseIdentity = null) 
         selector: String(action.submitSelector || action.selector || ""),
       })),
       documentRequest: documentContract ? {
+        navigationInvocationId: `${item.caseId}:form-submit-document-navigation`,
         method: "POST",
         path: documentContract.path,
         statuses: [...documentContract.statuses],
@@ -175,6 +176,80 @@ export function buildPostActionLifecyclePlan(item, formResponseIdentity = null) 
       phase: "destination-route-control-readback",
     },
   };
+}
+
+export function bindNavigationPreActionVisualOwner(plan, lifecycle) {
+  assert(plan?.schema === "media-server.v390-ui-post-action-lifecycle-plan.v1",
+    "navigation pre-action owner plan schema mismatch");
+  assert(lifecycle?.schema ===
+    "media-server.v390-ui-navigation-owner-lifecycle.v1",
+  `${plan.caseId} navigation owner lifecycle schema mismatch`);
+  assert(lifecycle.caseId === plan.caseId,
+    `${plan.caseId} navigation owner case mismatch`);
+  const completionMode = String(plan.action?.primaryCompletion?.mode || "");
+  const documentRedirect = plan.postNavigation?.transitionKind ===
+    "document-form-redirect";
+  assert(completionMode === "navigation" || documentRedirect,
+    `${plan.caseId} navigation owner lifecycle is not applicable`);
+  const expectedInvocationId = documentRedirect
+    ? String(plan.action?.documentRequest?.navigationInvocationId || "")
+    : String(plan.action?.primaryCompletion?.navigationBinding?.invocationId || "");
+  assert(expectedInvocationId && lifecycle.invocationId === expectedInvocationId,
+    `${plan.caseId} navigation owner invocation mismatch`);
+  const expectedAction = documentRedirect
+    ? plan.preAction.selector
+    : String(plan.action?.primaryCompletion?.navigationBinding?.requestedPath || "");
+  assert(expectedAction && lifecycle.action === expectedAction,
+    `${plan.caseId} navigation owner action mismatch`);
+  if (documentRedirect) {
+    assert(lifecycle.kind === "form-submit-document-navigation",
+      `${plan.caseId} navigation owner kind mismatch`);
+  }
+  const expectedSelector = documentRedirect ? plan.preAction.selector : "body";
+  validateOwnerObservation(plan.caseId, lifecycle.sourceOwner, {
+    selector: expectedSelector,
+    requireVisible: true,
+    label: "navigation source-before owner",
+  });
+  const initialDocumentNavigation = lifecycle.kind === "initial-document-navigation";
+  const sourceRoute = String(lifecycle.sourceRoute || "");
+  assert(initialDocumentNavigation
+    ? sourceRoute === "about:blank"
+    : routePath(sourceRoute) === plan.preAction.route,
+  `${plan.caseId} navigation source-before route mismatch`);
+  const destinationEpoch = Number(lifecycle.destinationOwner?.navigationEpoch);
+  validateOwnerObservation(plan.caseId, lifecycle.destinationOwner, {
+    selector: "body",
+    navigationEpoch: destinationEpoch,
+    requireVisible: true,
+    label: "navigation destination document owner",
+  });
+  assert(routePath(lifecycle.destinationRoute) === plan.postNavigation.route,
+    `${plan.caseId} navigation destination route mismatch`);
+  assert(destinationEpoch > Number(lifecycle.sourceOwner.navigationEpoch),
+    `${plan.caseId} navigation owner epoch did not advance`);
+  return {
+    schema: "media-server.v390-ui-navigation-pre-action-owner-binding.v1",
+    caseId: plan.caseId,
+    invocationId: expectedInvocationId,
+    sourceOwner: structuredClone(lifecycle.sourceOwner),
+    destinationOwner: structuredClone(lifecycle.destinationOwner),
+    sourceRoute,
+    destinationRoute: routePath(lifecycle.destinationRoute),
+    epochRelation: "advanced",
+  };
+}
+
+export function selectExactNavigationOwnerLifecycle(lifecycles, invocationId) {
+  assert(Array.isArray(lifecycles),
+    "navigation owner lifecycle collection missing");
+  const expectedInvocationId = String(invocationId || "");
+  assert(expectedInvocationId, "navigation owner invocation is missing");
+  const candidates = lifecycles.filter(item =>
+    item?.invocationId === expectedInvocationId);
+  assert(candidates.length === 1,
+    `navigation owner lifecycle cardinality mismatch: ${candidates.length}`);
+  return structuredClone(candidates[0]);
 }
 
 export function evaluatePostActionLifecycle(plan, {
@@ -570,7 +645,7 @@ function validateOwnerObservation(caseId, observation, {
       `${caseId} ${label} navigation epoch mismatch`);
   } else {
     assert(Number.isInteger(Number(observation.navigationEpoch)) &&
-      Number(observation.navigationEpoch) > 0,
+      Number(observation.navigationEpoch) >= 0,
     `${caseId} ${label} navigation epoch missing`);
   }
   if (requireVisible) {

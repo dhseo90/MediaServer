@@ -8,16 +8,44 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  bindNavigationPreActionVisualOwner,
   buildCanonicalSharedAdapterImpact,
   buildPostActionLifecyclePlan,
+  documentFormSubmitContract,
   resolvePostActionVisualTarget,
+  selectExactNavigationOwnerLifecycle,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const red = readJson("test/fixtures/v390_ui_post_action_visual_owner_red_20260809.json");
+const navigationRed = readJson("test/fixtures/v390_ui_navigation_pre_post_owner_red_20260809.json");
 const manifest = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const storedImpact = readJson("test/fixtures/v390_ui_shared_adapter_impact.json");
 const byId = new Map(manifest.cases.map(item => [item.caseId, item]));
+
+assert.equal(navigationRed.schema,
+  "media-server.v390-ui-navigation-pre-post-owner-red.v1");
+assert.equal(navigationRed.sourceCommitSha,
+  "c88a55390ef7dd39cd307541b868d16d1147e9a3");
+assert.equal(navigationRed.actualBrowserExecution, true);
+assert.equal(navigationRed.releaseEvidenceEligible, false);
+assert.deepEqual(navigationRed.coverage, {
+  target: 424,
+  attempted: 1,
+  pass: 0,
+  fail: 1,
+  notRun: 423,
+  unsupported: 0,
+});
+assert.equal(navigationRed.firstFailure.caseId, "UI-001");
+assert.equal(navigationRed.firstFailure.completionMode, "navigation");
+assert.equal(navigationRed.firstFailure.error,
+  "navigation source-before observation missing");
+for (const artifact of Object.values(navigationRed.artifacts)) {
+  assert.match(artifact.sha256, /^[0-9a-f]{64}$/);
+  const filePath = path.join(rootDir, artifact.path);
+  if (fs.existsSync(filePath)) assert.equal(sha256File(filePath), artifact.sha256);
+}
 
 assert.equal(red.schema, "media-server.v390-ui-post-action-visual-owner-red.v1");
 assert.equal(red.releaseEvidenceEligible, false);
@@ -82,6 +110,25 @@ assert.equal(impact.postActionVisualCensus.detachedSourceBranchCaseCount, 227);
 assert.equal(impact.postActionVisualCensus.routeChangeCaseCount, 13);
 assert.equal(impact.postActionVisualCensus.localTransitionCaseCount, 28);
 assert.equal(impact.postActionVisualCensus.navigationCaseCount, 5);
+const lifecycleRows = manifest.cases.map(item => ({
+  caseId: item.caseId,
+  plan: buildPostActionLifecyclePlan(item),
+  documentForm: documentFormCase(item),
+}));
+assert.deepEqual(lifecycleRows.filter(item =>
+  item.plan.action.primaryCompletion.mode === "navigation").map(item => item.caseId),
+["UI-001", "UI-018", "EVT-004", "SAFE-016", "SAFE-017"]);
+assert.equal(lifecycleRows.filter(item => item.documentForm).length, 11);
+assert.equal(lifecycleRows.filter(item => item.documentForm &&
+  item.plan.postNavigation.transitionKind === "document-form-redirect").length, 9);
+assert.equal(lifecycleRows.filter(item => item.plan.postNavigation.routeChanged).length, 13);
+assert.equal(lifecycleRows.filter(item =>
+  item.plan.action.primaryCompletion.mode === "navigation" &&
+  item.plan.postNavigation.routeChanged === false).length, 3);
+assert.equal(lifecycleRows.filter(item =>
+  item.plan.action.primaryCompletion.mode === "request").length, 391);
+assert.equal(lifecycleRows.filter(item =>
+  item.plan.action.primaryCompletion.mode === "local").length, 28);
 assert.equal(new Set(impact.cases.map(item => item.caseId)).size, 424);
 assert.ok(impact.cases.every(item =>
   item.postActionVisualLifecycle.exactOneOwnerRequired === true &&
@@ -154,6 +201,62 @@ assert.throws(() => resolvePostActionVisualTarget(evt004, {
   sourceObservation: observation(evt004.preAction.selector, 9, true, true),
 }), /navigation completion epoch did not advance/);
 
+const ui001 = plan("UI-001");
+const ui001Lifecycle = navigationLifecycle(ui001, {
+  kind: "initial-document-navigation",
+  sourceRoute: "about:blank",
+  sourceEpoch: 0,
+  destinationEpoch: 2,
+});
+const ui001PreOwner = bindNavigationPreActionVisualOwner(
+  ui001,
+  selectExactNavigationOwnerLifecycle([ui001Lifecycle],
+    ui001.action.primaryCompletion.navigationBinding.invocationId),
+);
+assert.equal(ui001PreOwner.sourceOwner.selector, "body");
+assert.equal(ui001PreOwner.sourceOwner.navigationEpoch, 0);
+assert.equal(ui001PreOwner.destinationOwner.navigationEpoch, 2);
+
+const ui002 = plan("UI-002");
+const ui002Lifecycle = navigationLifecycle(ui002, {
+  kind: "form-submit-document-navigation",
+  invocationId: ui002.action.documentRequest.navigationInvocationId,
+  sourceRoute: ui002.preAction.route,
+  sourceSelector: ui002.preAction.selector,
+  sourceEpoch: 1,
+  destinationEpoch: 2,
+});
+assert.equal(bindNavigationPreActionVisualOwner(ui002, ui002Lifecycle)
+  .sourceOwner.selector, ui002.preAction.selector);
+
+assert.throws(() => selectExactNavigationOwnerLifecycle([], "missing"),
+  /cardinality mismatch: 0/);
+assert.throws(() => selectExactNavigationOwnerLifecycle([
+  ui001Lifecycle,
+  structuredClone(ui001Lifecycle),
+], ui001Lifecycle.invocationId), /cardinality mismatch: 2/);
+for (const invalid of [
+  { ...ui001Lifecycle, caseId: "wrong" },
+  { ...ui001Lifecycle, invocationId: "wrong" },
+  { ...ui001Lifecycle, action: "/wrong" },
+  { ...ui001Lifecycle, sourceRoute: "/wrong" },
+  {
+    ...ui001Lifecycle,
+    sourceOwner: { ...ui001Lifecycle.sourceOwner, selector: "#wrong" },
+  },
+  {
+    ...ui001Lifecycle,
+    destinationOwner: { ...ui001Lifecycle.destinationOwner, visible: false },
+  },
+  {
+    ...ui001Lifecycle,
+    destinationOwner: {
+      ...ui001Lifecycle.destinationOwner,
+      navigationEpoch: ui001Lifecycle.sourceOwner.navigationEpoch,
+    },
+  },
+]) assert.throws(() => bindNavigationPreActionVisualOwner(ui001, invalid));
+
 for (const invalid of [
   () => resolvePostActionVisualTarget(ui109, {
     visualContext: context("/wrong", 1),
@@ -189,9 +292,13 @@ const runnerSource = fs.readFileSync(path.join(rootDir,
 const adapterSource = fs.readFileSync(path.join(rootDir,
   "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
 assert.ok(runnerSource.includes("browser.observePostActionVisualContext()"));
+assert.ok(runnerSource.includes("browser.navigationOwnerLifecycle("),
+  "runner must consume the pre-action owner captured before document navigation");
 assert.ok(runnerSource.includes("ownerBinding: postActionVisualTarget"));
 assert.ok(!runnerSource.includes("postActionDestinationLifecycleRequired(postActionLifecyclePlan)"));
 assert.ok(adapterSource.includes("post-action visual owner is not visible"));
+assert.ok(adapterSource.includes("navigationOwnerLifecycle:"),
+  "adapter must expose exact pre/post document navigation owner lifecycle evidence");
 assert.ok(adapterSource.includes("element.scrollIntoView({"));
 assert.ok(adapterSource.includes("sourceSelectorRewaited" ) === false,
   "adapter must consume the resolved owner, not recreate source lifecycle policy");
@@ -228,8 +335,35 @@ function context(route, navigationEpoch) {
   };
 }
 
+function navigationLifecycle(lifecyclePlan, {
+  kind,
+  invocationId = lifecyclePlan.action.primaryCompletion.navigationBinding?.invocationId,
+  sourceRoute,
+  sourceSelector = "body",
+  sourceEpoch,
+  destinationEpoch,
+} = {}) {
+  return {
+    schema: "media-server.v390-ui-navigation-owner-lifecycle.v1",
+    caseId: lifecyclePlan.caseId,
+    invocationId,
+    kind,
+    action: kind === "form-submit-document-navigation"
+      ? lifecyclePlan.preAction.selector
+      : lifecyclePlan.action.primaryCompletion.navigationBinding?.requestedPath,
+    sourceRoute,
+    destinationRoute: lifecyclePlan.postNavigation.route,
+    sourceOwner: observation(sourceSelector, sourceEpoch, true, true),
+    destinationOwner: observation("body", destinationEpoch, true, true),
+  };
+}
+
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));
+}
+
+function documentFormCase(item) {
+  return documentFormSubmitContract(item.caseId) !== null;
 }
 
 function sha256File(filePath) {

@@ -8,7 +8,10 @@ import process from "node:process";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 
-import { bindRuntimeControlObservationOwner } from "./v390_ui_shared_adapter_lifecycle.mjs";
+import {
+  bindRuntimeControlObservationOwner,
+  selectExactNavigationOwnerLifecycle,
+} from "./v390_ui_shared_adapter_lifecycle.mjs";
 import { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
 
 export { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
@@ -716,6 +719,7 @@ async function openNativePlaywrightPage(playwright, {
   const documentNavigationByRequestId = new Map();
   let documentNavigationEpoch = 0;
   let documentNavigationAfterListenerEndCount = 0;
+  const navigationOwnerLifecycles = [];
   let closePromise = null;
   const correlationHeaderDigest = correlationId => correlationId
     ? createHash("sha256").update(JSON.stringify({
@@ -1065,6 +1069,58 @@ async function openNativePlaywrightPage(playwright, {
   requestListenersInstalled = true;
   const navigationRequestedPath = urlTarget(new URL(pagePath, `${httpBase}/`).toString());
   const navigationOrigin = urlOrigin(new URL(pagePath, `${httpBase}/`).toString());
+  const captureNavigationOwner = async selector => {
+    const ownedSelector = String(selector || "");
+    const candidates = page.locator(ownedSelector);
+    const candidateCount = ownedSelector ? await candidates.count() : 0;
+    const owner = candidateCount === 1
+      ? await candidates.first().evaluate((element, { selectorValue, documentEpoch }) => {
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          const viewportDocumentOwner = selectorValue === "body" &&
+            document.visibilityState === "visible" &&
+            document.documentElement.clientWidth > 0 &&
+            document.documentElement.clientHeight > 0;
+          return {
+            selector: selectorValue,
+            candidateCount: 1,
+            navigationEpoch: documentEpoch,
+            exists: true,
+            visible: Boolean(style && style.display !== "none" &&
+              style.visibility !== "hidden" && Number(style.opacity || 1) > 0 &&
+              ((rect.width > 0 && rect.height > 0) || viewportDocumentOwner)),
+          };
+        }, { selectorValue: ownedSelector, documentEpoch: documentNavigationEpoch })
+      : {
+          selector: ownedSelector,
+          candidateCount,
+          navigationEpoch: documentNavigationEpoch,
+          exists: false,
+          visible: false,
+        };
+    return sanitizeEvidenceValue(owner, observedRuntimeSecrets);
+  };
+  const captureNavigationOwnerLifecycle = async (operation, sourceOwner, action) => {
+    if (navigationOwnerLifecycles.some(item =>
+      item.invocationId === operation.invocationId)) {
+      throw new Error(`duplicate navigation owner invocation: ${operation.invocationId}`);
+    }
+    const destinationOwner = await captureNavigationOwner("body");
+    const lifecycle = {
+      schema: "media-server.v390-ui-navigation-owner-lifecycle.v1",
+      caseId: String(caseId || ""),
+      invocationId: operation.invocationId,
+      kind: operation.kind,
+      action: String(action || ""),
+      sourceRoute: sourceOwner.route,
+      destinationRoute: page.url(),
+      sourceOwner: { ...sourceOwner },
+      destinationOwner,
+    };
+    delete lifecycle.sourceOwner.route;
+    navigationOwnerLifecycles.push(lifecycle);
+    return lifecycle;
+  };
   const performNavigation = async (nextPagePath, {
     invocationId = "",
     kind = "explicit-navigation",
@@ -1078,12 +1134,20 @@ async function openNativePlaywrightPage(playwright, {
       kind,
       allowCorrelation,
     };
+    const sourceOwner = {
+      ...(await captureNavigationOwner("body")),
+      route: page.url(),
+    };
+    if (sourceOwner.candidateCount !== 1 || sourceOwner.visible !== true) {
+      throw new Error(`navigation source-before document owner is not visible: ${operation.invocationId}`);
+    }
     activeNavigationOperation = operation;
     try {
       const response = await page.goto(new URL(nextPagePath, `${httpBase}/`).toString(), {
         waitUntil: "load",
         timeout: timeoutMs,
       });
+      await captureNavigationOwnerLifecycle(operation, sourceOwner, nextPagePath);
       return { status: response?.status() || 0, url: page.url(), invocationId: operation.invocationId };
     } finally {
       activeNavigationOperation = null;
@@ -1179,6 +1243,8 @@ async function openNativePlaywrightPage(playwright, {
       return buildNavigationEvidence();
     },
     finalizeNavigationLedger,
+    navigationOwnerLifecycle: invocationId =>
+      selectExactNavigationOwnerLifecycle(navigationOwnerLifecycles, invocationId),
     waitForSelector: async (selector, options = {}) => {
       return revealClosedDetailsForSelector(page, selector, {
         state: options.state || "visible",
@@ -1653,9 +1719,17 @@ async function openNativePlaywrightPage(playwright, {
         kind: "form-submit-document-navigation",
         allowCorrelation: false,
       };
+      const sourceOwner = {
+        ...(await captureNavigationOwner(selector)),
+        route: page.url(),
+      };
+      if (sourceOwner.candidateCount !== 1 || sourceOwner.visible !== true) {
+        throw new Error(`document form source-before owner is not visible: ${operation.invocationId}`);
+      }
       activeNavigationOperation = operation;
       try {
         await page.locator(selector).click();
+        await captureNavigationOwnerLifecycle(operation, sourceOwner, selector);
         return { invocationId: operation.invocationId };
       } finally {
         activeNavigationOperation = null;

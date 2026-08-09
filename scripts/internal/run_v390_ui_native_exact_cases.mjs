@@ -71,6 +71,7 @@ import {
   runtimeObservedProjection,
 } from "./v390_ui_requested_observed_schema.mjs";
 import {
+  bindNavigationPreActionVisualOwner,
   buildPostActionLifecyclePlan,
   resolvePostActionVisualTarget,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
@@ -819,8 +820,28 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         postActionLifecyclePlan.action.primaryCompletion.actionId &&
         observation?.action?.controlSelector ===
           postActionLifecyclePlan.preAction.selector) || null;
-    const sourceBeforeObservation = primaryVisualObservation?.before || null;
+    const navigationOwnerRequired =
+      postActionLifecyclePlan.action.primaryCompletion.mode === "navigation" ||
+      postActionLifecyclePlan.postNavigation.transitionKind === "document-form-redirect";
+    const navigationInvocationId =
+      postActionLifecyclePlan.postNavigation.transitionKind === "document-form-redirect"
+        ? postActionLifecyclePlan.action.documentRequest.navigationInvocationId
+        : postActionLifecyclePlan.action.primaryCompletion.navigationBinding?.invocationId;
+    const navigationOwnerLifecycle = navigationOwnerRequired
+      ? browser.navigationOwnerLifecycle(navigationInvocationId)
+      : null;
+    const navigationPreActionOwner = navigationOwnerLifecycle
+      ? bindNavigationPreActionVisualOwner(
+          postActionLifecyclePlan,
+          navigationOwnerLifecycle,
+        )
+      : null;
+    const sourceBeforeObservation = navigationPreActionOwner?.sourceOwner ||
+      primaryVisualObservation?.before || null;
     const sourceObservation = primaryVisualObservation?.after || null;
+    if (navigationPreActionOwner) {
+      trace.navigationOwnerLifecycleEvidence = navigationPreActionOwner;
+    }
     const visualContext = await browser.observePostActionVisualContext();
     let destinationObservation = null;
     if (postActionLifecyclePlan.postNavigation.routeChanged) {
@@ -835,7 +856,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       postActionLifecyclePlan,
       {
         visualContext,
-        executionOwnerSelector: primaryVisualObservation?.action?.executionOwnerSelector ||
+        executionOwnerSelector: navigationPreActionOwner?.sourceOwner?.selector ||
+          primaryVisualObservation?.action?.executionOwnerSelector ||
           sourceBeforeObservation?.selector || postActionLifecyclePlan.preAction.selector,
         sourceBeforeObservation,
         sourceObservation,

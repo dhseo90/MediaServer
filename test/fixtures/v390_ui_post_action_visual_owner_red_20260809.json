@@ -7,11 +7,11 @@
   "runId": "v390-test-acceptance-20260809112234-69642",
   "artifacts": {
     "acceptanceSummary": {
-      "path": ".media_server.test/v3.9.0/ui-acceptance-current/summary.json",
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809112234-69642/summary.json",
       "sha256": "7c61a277a0b79ef8915bac5b20799177e1c92ed1da7122a70a31b9dda6aa5c65"
     },
     "firstFailure": {
-      "path": ".media_server.test/v3.9.0/ui-acceptance-current/first-failure.json",
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809112234-69642/first-failure.json",
       "sha256": "1294d492a5f8eac1176fe86d2d52522d087da2d9f3c164eb14f86a860b41c5be"
     },
     "exactSummary": {
