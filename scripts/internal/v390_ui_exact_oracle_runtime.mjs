@@ -1671,6 +1671,7 @@ async function observeRequest(
       const diagnosticReadback = await requestWithExplicitOwnership(browser, {
         method,
         urlPath,
+        allowedStatuses,
         actionId: diagnosticReadbackActionId,
         correlationId: diagnosticReadbackCorrelationId,
         ownershipKind: "diagnostic-authoritative-readback",
@@ -1745,6 +1746,7 @@ async function observeRequest(
       const result = await requestWithExplicitOwnership(browser, {
         method,
         urlPath,
+        allowedStatuses,
         actionId,
         correlationId: request.correlationRequired === false ? "" : correlationId,
         ownershipKind: ownershipPhase,

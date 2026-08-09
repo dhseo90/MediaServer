@@ -14,6 +14,13 @@ import {
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 import { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
 import { createRequestActionOwnershipRegistry } from "./v390_ui_request_action_ownership.mjs";
+import {
+  assertZeroActionCorrelationLeaks,
+  classifyPageOwnedRequest,
+  createActionRequestEnvelopeLedger,
+  normalizeActionRequestEnvelope,
+  normalizeRequestTarget,
+} from "./v390_ui_action_request_ledger.mjs";
 
 export { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
 
@@ -700,6 +707,7 @@ async function openNativePlaywrightPage(playwright, {
   });
   const pendingRequests = new Map();
   const routeInjectedCorrelations = new WeakMap();
+  const routeRequestOwnerships = new WeakMap();
   const correlationRouteFailures = [];
   const pendingSafeResponseReads = new Set();
   const safeResponseReadFailures = [];
@@ -715,6 +723,9 @@ async function openNativePlaywrightPage(playwright, {
   let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId);
   let activeRequestOwnership = null;
   let activeRequestRenderCycleId = "";
+  let activeActionRequestLedgers = [];
+  let activeActionScopeNetworkStart = 0;
+  const completedActionRequestLedgers = [];
   const requestActionOwnershipCaseId = String(caseId || "noncanonical-page");
   const requestActionOwnershipRegistry = createRequestActionOwnershipRegistry({
     caseId: requestActionOwnershipCaseId,
@@ -729,6 +740,83 @@ async function openNativePlaywrightPage(playwright, {
   let initialRouteSettlingAttestation = null;
   let actionLedgerStart = null;
   let closePromise = null;
+  const requestKindFor = request => request.isNavigationRequest() &&
+      request.resourceType() === "document"
+    ? "document-navigation"
+    : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
+  const createEnvelopeWrapper = (context, requestEnvelope, {
+    requestKind = "application-fetch",
+    registrationKind = "manifest-envelope",
+  } = {}) => {
+    requestActionOwnershipRegistry.validate(context, {
+      caseId,
+      actionId: context.actionId,
+      phase: context.phase,
+    });
+    const envelope = normalizeActionRequestEnvelope(requestEnvelope, {
+      caseId,
+      phase: context.phase,
+      actionId: context.actionId,
+      correlationId: context.correlationId,
+      requestKind,
+      registrationKind,
+    });
+    assert(envelope.actionId === context.actionId &&
+      envelope.phase === context.phase &&
+      envelope.correlationId === context.correlationId,
+    "action request envelope does not match its active context");
+    const wrapper = {
+      ledger: createActionRequestEnvelopeLedger(envelope),
+      claimCount: 0,
+      responseCount: 0,
+      closed: false,
+    };
+    activeActionRequestLedgers.push(wrapper);
+    return wrapper;
+  };
+  const findAvailableEnvelope = ({ method, target, requestKind }) =>
+    activeActionRequestLedgers.find(wrapper => !wrapper.closed &&
+      wrapper.claimCount < wrapper.ledger.envelope.expectedRequestCount &&
+      wrapper.ledger.matches({ method, target, requestKind })) || null;
+  const claimActionRequest = (request, {
+    registration = null,
+  } = {}) => {
+    if (!activeRequestOwnership) return null;
+    const method = request.method();
+    const target = normalizeRequestTarget(request.url());
+    const requestKind = requestKindFor(request);
+    const wrapper = registration?.ledgerWrapper ||
+      findAvailableEnvelope({ method, target, requestKind });
+    if (!wrapper) {
+      if (registration?.active === true) {
+        throw new Error("explicit action request registration envelope mismatch");
+      }
+      if (activeNavigationOperation && requestKind === "document-navigation") {
+        return {
+          context: activeRequestOwnership,
+          ledgerWrapper: null,
+          registrationKind: "explicit-navigation-operation",
+        };
+      }
+      return null;
+    }
+    wrapper.ledger.claim(request, {
+      method,
+      target,
+      requestKind,
+      registrationKind: registration?.active === true
+        ? "explicit-inner-request"
+        : "manifest-envelope-sequence",
+    });
+    wrapper.claimCount += 1;
+    return {
+      context: activeRequestOwnership,
+      ledgerWrapper: wrapper,
+      registrationKind: registration?.active === true
+        ? "explicit-inner-request"
+        : "manifest-envelope-sequence",
+    };
+  };
   const correlationHeaderDigest = correlationId => correlationId
     ? createHash("sha256").update(JSON.stringify({
         "x-media-server-correlation-id": correlationId,
@@ -780,15 +868,31 @@ async function openNativePlaywrightPage(playwright, {
     const correlationAllowed = !documentNavigation ||
       activeNavigationOperation?.allowCorrelation === true;
     let decision;
+    let actionRequestOwnership = null;
     try {
+      const explicitCorrelationHeaderPresent = headerEntries.some(entry =>
+        String(entry?.name || "").toLowerCase() === correlationHeaderName);
+      actionRequestOwnership = activeExplicitCorrelationRegistration?.active === true &&
+          Boolean(activeExplicitCorrelationRegistration.correlationId) &&
+          !explicitCorrelationHeaderPresent
+        ? null
+        : claimActionRequest(request, {
+            registration: explicitCorrelationHeaderPresent
+              ? activeExplicitCorrelationRegistration
+              : null,
+          });
+      const claimedContext = actionRequestOwnership?.context || null;
       decision = resolveRequestCorrelationPrecedence({
         headerEntries,
-        outerCorrelationId: activeCorrelationId,
-        outerInjectionEnabled: activeCorrelationInjectionEnabled,
-        correlationAllowed,
+        outerCorrelationId: claimedContext ? activeCorrelationId : "",
+        outerInjectionEnabled: claimedContext
+          ? activeCorrelationInjectionEnabled &&
+            actionRequestOwnership?.ledgerWrapper?.ledger.envelope.correlationRequired !== false
+          : false,
+        correlationAllowed: Boolean(claimedContext) && correlationAllowed,
         registration: activeExplicitCorrelationRegistration,
         currentCaseId: caseId,
-        currentActionId: String(activeRequestOwnership?.actionId || ""),
+        currentActionId: String(claimedContext?.actionId || ""),
       });
     } catch (error) {
       correlationRouteFailures.push({
@@ -799,6 +903,9 @@ async function openNativePlaywrightPage(playwright, {
       });
       await route.abort("blockedbyclient");
       return;
+    }
+    if (actionRequestOwnership) {
+      routeRequestOwnerships.set(request, actionRequestOwnership);
     }
     if (decision.inject) {
       headers[correlationHeaderName] = decision.correlationId;
@@ -858,18 +965,27 @@ async function openNativePlaywrightPage(playwright, {
     const identity = requestIdentity(request);
     const requestId = identity.requestId;
     const requestStartedAtMs = Date.now();
-    const implicitPageLoadOwnership = !activeRequestOwnership && activeNavigationOperation
+    const actionRequestOwnership = routeRequestOwnerships.get(request) || null;
+    const actionContext = actionRequestOwnership?.context || null;
+    const implicitPageLoadOwnership = !actionContext && activeNavigationOperation
       ? {
           actionId: `${String(activeNavigationOperation.invocationId || "initial-navigation")}:page-load`,
           renderCycleId: "",
           ownershipKind: "initial-page-load",
         }
       : null;
-    const requestOwnership = activeRequestOwnership || implicitPageLoadOwnership;
+    const pageOwnership = classifyPageOwnedRequest({
+      initialSettlingComplete: Boolean(initialRouteSettlingAttestation),
+      resourceType: request.resourceType(),
+      requestKind: requestKindFor(request),
+    });
+    const requestOwnership = actionContext || implicitPageLoadOwnership || pageOwnership;
+    const ledgerOwner = actionContext ? "action" : "page";
+    const ownerPhase = actionContext
+      ? String(actionContext.phase || "")
+      : (implicitPageLoadOwnership ? "bootstrap" : pageOwnership.ownerPhase);
     const redirectedFrom = request.redirectedFrom();
-    const requestKind = request.isNavigationRequest() && request.frame() === page.mainFrame()
-      ? "document-navigation"
-      : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
+    const requestKind = requestKindFor(request);
     const requestHeaderDigest = String(routeInjectedCorrelation?.requestHeaderDigest ||
       correlationHeaderDigest(correlationId));
     pendingRequests.set(request, {
@@ -881,23 +997,28 @@ async function openNativePlaywrightPage(playwright, {
       correlationRouteActionId: String(routeInjectedCorrelation?.correlationRouteActionId || ""),
       correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
       initiatorActionId: String(requestOwnership?.actionId || ""),
-      renderCycleId: requestOwnership === activeRequestOwnership
+      renderCycleId: actionContext
         ? activeRequestRenderCycleId
         : String(requestOwnership?.renderCycleId || ""),
       requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
-      requestActionContext: activeRequestOwnership || null,
+      requestActionContext: actionContext,
+      actionRequestLedgerWrapper: actionRequestOwnership?.ledgerWrapper || null,
+      ledgerOwner,
+      sourceOwner: ledgerOwner === "action" ? "explicit-action-registration" : "page",
+      ownerPhase,
       requestStartedAtMs,
       requestKind,
       method: request.method(),
       path: urlTarget(request.url()),
     });
-    if (activeRequestOwnership) {
-      requestActionOwnershipRegistry.register(activeRequestOwnership, {
+    if (actionContext) {
+      requestActionOwnershipRegistry.register(actionContext, {
         requestId,
         caseId,
-        actionId: String(activeRequestOwnership.actionId || ""),
-        phase: String(activeRequestOwnership.phase || ""),
+        actionId: String(actionContext.actionId || ""),
+        phase: String(actionContext.phase || ""),
       });
+      actionRequestOwnership?.ledgerWrapper?.ledger.bindRequestIdentity(request, identity);
     }
     networkEntries.push({
       phase: "request-start",
@@ -915,8 +1036,12 @@ async function openNativePlaywrightPage(playwright, {
       correlationRouteActionId: String(routeInjectedCorrelation?.correlationRouteActionId || ""),
       correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
       requestHeaderDigest,
+      ledgerOwner,
+      sourceOwner: ledgerOwner === "action" ? "explicit-action-registration" : "page",
+      ownerPhase,
+      actionRegistrationKind: String(actionRequestOwnership?.registrationKind || ""),
       initiatorActionId: String(requestOwnership?.actionId || ""),
-      renderCycleId: requestOwnership === activeRequestOwnership
+      renderCycleId: actionContext
         ? activeRequestRenderCycleId
         : String(requestOwnership?.renderCycleId || ""),
       requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
@@ -1000,6 +1125,10 @@ async function openNativePlaywrightPage(playwright, {
       correlationRouteDigest: String(initiatingRequest?.correlationRouteDigest || ""),
       responseEchoHeaderContract: "not-required",
       responseEchoHeaderObserved: false,
+      ledgerOwner: String(initiatingRequest?.ledgerOwner || "page"),
+      sourceOwner: String(initiatingRequest?.sourceOwner || "page"),
+      ownerPhase: String(initiatingRequest?.ownerPhase ||
+        (initialRouteSettlingAttestation ? "background-refresh" : "bootstrap")),
       initiatorActionId: String(initiatingRequest?.initiatorActionId || ""),
       renderCycleId: String(initiatingRequest?.renderCycleId || ""),
       requestOwnershipKind: String(initiatingRequest?.requestOwnershipKind || ""),
@@ -1014,6 +1143,18 @@ async function openNativePlaywrightPage(playwright, {
       },
     };
     networkEntries.push(entry);
+    if (initiatingRequest?.actionRequestLedgerWrapper) {
+      initiatingRequest.actionRequestLedgerWrapper.ledger.bindResponse(request, {
+        method: request.method(),
+        target: response.url(),
+        status: response.status(),
+        requestId: initiatingRequest.requestId,
+        caseRequestIdentity: initiatingRequest.caseRequestIdentity,
+        caseRequestSequence: initiatingRequest.caseRequestSequence,
+        responseRequestObjectObserved: true,
+      });
+      initiatingRequest.actionRequestLedgerWrapper.responseCount += 1;
+    }
     if (requestKind === "document-navigation") {
       const ledgerEntry = documentNavigationByRequestId.get(entry.requestId);
       if (ledgerEntry) {
@@ -1532,6 +1673,8 @@ async function openNativePlaywrightPage(playwright, {
       correlationId = "",
       ownershipKind = "",
       renderCycleId = "",
+      actionRequestEnvelope = null,
+      actionRequestKind = "application-fetch",
     } = {}) => {
       const context = requestActionOwnershipRegistry.begin({
         caseId,
@@ -1543,8 +1686,16 @@ async function openNativePlaywrightPage(playwright, {
       });
       activeRequestOwnership = context;
       activeRequestRenderCycleId = String(renderCycleId || "");
+      activeActionRequestLedgers = [];
+      activeActionScopeNetworkStart = networkEntries.length;
       activeCorrelationId = String(correlationId || "");
       activeCorrelationInjectionEnabled = Boolean(activeCorrelationId);
+      if (actionRequestEnvelope) {
+        createEnvelopeWrapper(context, actionRequestEnvelope, {
+          requestKind: actionRequestKind,
+          registrationKind: "manifest-envelope",
+        });
+      }
       return activeRequestOwnership;
     },
     validateRequestActionOwnership: (context, expected = {}) =>
@@ -1555,20 +1706,48 @@ async function openNativePlaywrightPage(playwright, {
       }),
     endRequestActionOwnership: async context => {
       const evidence = requestActionOwnershipRegistry.end(context);
+      const envelopeLedgers = activeActionRequestLedgers.map(wrapper => {
+        const ledgerEvidence = wrapper.ledger.close();
+        wrapper.closed = true;
+        return ledgerEvidence;
+      });
+      const scopedEntries = networkEntries.slice(activeActionScopeNetworkStart);
+      const correlationLeakEvidence = assertZeroActionCorrelationLeaks(scopedEntries, {
+        actionId: context.actionId,
+        correlationId: context.correlationId,
+      });
+      completedActionRequestLedgers.push({
+        schema: "media-server.v390-ui-action-request-scope-ledgers.v1",
+        scopeSequence: context.scopeSequence,
+        caseId,
+        phase: context.phase,
+        actionId: context.actionId,
+        actionOwnedRequestLedgers: envelopeLedgers,
+        pageOwnedRequestLedger: scopedEntries.filter(entry => entry.ledgerOwner === "page")
+          .map(entry => ({ ...entry })),
+        actionCorrelationLeakCount:
+          correlationLeakEvidence.actionCorrelationLeakCount,
+      });
       activeRequestOwnership = null;
       activeRequestRenderCycleId = "";
+      activeActionRequestLedgers = [];
       activeCorrelationId = "";
       activeCorrelationInjectionEnabled = false;
-      return evidence;
+      return { ...evidence, envelopeLedgers, correlationLeakEvidence };
     },
     attestRequestActionOwnershipPhase: input =>
       requestActionOwnershipRegistry.attest(input),
     requestActionOwnershipEvidence: () =>
       requestActionOwnershipRegistry.evidence(),
+    actionRequestLedgerEvidence: () =>
+      structuredClone(completedActionRequestLedgers),
+    pageOwnedRequestLedger: () =>
+      structuredClone(networkEntries.filter(entry => entry.ledgerOwner === "page")),
     cleanupRequestActionOwnership: failure => {
       const evidence = requestActionOwnershipRegistry.cleanup({ failure });
       activeRequestOwnership = null;
       activeRequestRenderCycleId = "";
+      activeActionRequestLedgers = [];
       activeExplicitCorrelationRegistration = null;
       activeCorrelationId = "";
       activeCorrelationInjectionEnabled = false;
@@ -1605,6 +1784,24 @@ async function openNativePlaywrightPage(playwright, {
       }
       if (actionContext.ownershipKind !== "case-owned-refresh-action") {
         throw new Error("owned render-cycle context kind must be case-owned-refresh-action");
+      }
+      if (!findAvailableEnvelope({
+        method: expectedMethod,
+        target: expectedPath,
+        requestKind: "application-fetch",
+      })) {
+        createEnvelopeWrapper(actionContext, {
+          method: expectedMethod,
+          urlPath: expectedPath,
+          allowedStatuses: [200],
+          correlationId: ownedCorrelationId,
+          correlationSource: "request-header",
+          initiatorActionId: ownedActionId,
+          requestOwnershipKind: actionContext.phase,
+        }, {
+          requestKind: "application-fetch",
+          registrationKind: "owned-render-cycle",
+        });
       }
       if (activeRequestRenderCycleId &&
           activeRequestRenderCycleId !== ownedRenderCycleId) {
@@ -1839,6 +2036,8 @@ async function openNativePlaywrightPage(playwright, {
       actionContext = null,
       method = "GET",
       urlPath,
+      body = null,
+      allowedStatuses = [200],
       actionId = "",
       correlationId = "",
       renderCycleId = "",
@@ -1866,6 +2065,25 @@ async function openNativePlaywrightPage(playwright, {
       if (explicitCorrelationId && activeExplicitCorrelationRegistration) {
         throw new Error("nested explicit correlation registration is forbidden");
       }
+      let ledgerWrapper = findAvailableEnvelope({
+        method: requestMethod,
+        target: expectedPath,
+        requestKind: "application-fetch",
+      });
+      if (!ledgerWrapper) {
+        ledgerWrapper = createEnvelopeWrapper(actionContext, {
+          method: requestMethod,
+          urlPath: expectedPath,
+          allowedStatuses,
+          correlationId: explicitCorrelationId,
+          correlationSource: explicitCorrelationId ? "request-header" : "none",
+          initiatorActionId: ownedActionId,
+          requestOwnershipKind: ownershipKind,
+        }, {
+          requestKind: "application-fetch",
+          registrationKind: "explicit-inner-request",
+        });
+      }
       const explicitRegistration = explicitCorrelationId
         ? {
             active: true,
@@ -1874,6 +2092,7 @@ async function openNativePlaywrightPage(playwright, {
             actionId: ownedActionId,
             correlationId: explicitCorrelationId,
             outerCorrelationId: String(activeCorrelationId || ""),
+            ledgerWrapper,
           }
         : null;
       activeExplicitCorrelationRegistration = explicitRegistration;
@@ -1883,15 +2102,20 @@ async function openNativePlaywrightPage(playwright, {
           requestMethod: evaluatedMethod,
           requestPath: evaluatedPath,
           requestCorrelationId,
+          requestBody,
         }) => {
           const result = await fetch(evaluatedPath, {
             method: evaluatedMethod,
             credentials: "same-origin",
             cache: "no-store",
             redirect: "follow",
-            headers: requestCorrelationId
-              ? { "x-media-server-correlation-id": requestCorrelationId }
-              : {},
+            headers: {
+              ...(requestCorrelationId
+                ? { "x-media-server-correlation-id": requestCorrelationId }
+                : {}),
+              ...(requestBody === null ? {} : { "Content-Type": "application/json" }),
+            },
+            ...(requestBody === null ? {} : { body: JSON.stringify(requestBody) }),
           });
           const text = await result.text();
           let json = null;
@@ -1907,6 +2131,7 @@ async function openNativePlaywrightPage(playwright, {
           requestMethod,
           requestPath,
           requestCorrelationId: explicitCorrelationId,
+          requestBody: body,
         });
       } catch (error) {
         const routeFailure = correlationRouteFailures.slice(routeFailureStart)

@@ -369,9 +369,12 @@ const ui010ActionBinding = bindActionOwnedRequestLedger(
   ui010ActionStart,
   ui010ActionEntries,
 );
-assert.equal(ui010ActionBinding.requestCount, 2);
-assert.equal(ui010ActionBinding.responseCount, 2);
-assert.equal(ui010ActionBinding.additionalFetchCount, 1);
+assert.equal(ui010ActionBinding.requestCount, 1);
+assert.equal(ui010ActionBinding.responseCount, 1);
+assert.equal(ui010ActionBinding.additionalFetchCount, 0);
+assert.equal(ui010ActionBinding.pageOwnedRequestCount, 1);
+assert.equal(ui010ActionBinding.pageOwnedResponseCount, 1);
+assert.equal(ui010ActionBinding.actionCorrelationLeakCount, 0);
 assert.equal(ui010ActionBinding.primaryResponseStatus, 200);
 for (const mutation of [
   entries => { entries.shift(); },
@@ -384,7 +387,8 @@ for (const mutation of [
   entries => { entries[1].status = 500; },
   entries => { entries.splice(1, 1); },
   entries => { entries.push(...structuredClone(entries.slice(0, 2))); },
-  entries => { entries.push(...entries.splice(0, 2)); },
+  entries => { entries.splice(0, 2, entries[1], entries[0]); },
+  entries => { entries[2].initiatorActionId = ui010InitialPlan.primaryRequest.actionId; },
 ]) assert.throws(() => bindActionOwnedRequestLedger(
   ui010InitialPlan,
   ui010ActionStart,
@@ -971,9 +975,12 @@ function actionRequestEntries(initialPlan, firstSequence, includeAdditional) {
       requestKind: "application-fetch",
       resourceType: "fetch",
       sameOrigin: true,
-      correlationId: initialPlan.primaryRequest.correlationId,
-      initiatorActionId: initialPlan.primaryRequest.actionId,
-      requestOwnershipKind: "primary-action",
+      ledgerOwner: index === 0 ? "action" : "page",
+      sourceOwner: index === 0 ? "explicit-action-registration" : "page",
+      ownerPhase: index === 0 ? "primary-action" : "background-refresh",
+      correlationId: index === 0 ? initialPlan.primaryRequest.correlationId : "",
+      initiatorActionId: index === 0 ? initialPlan.primaryRequest.actionId : "",
+      requestOwnershipKind: index === 0 ? "primary-action" : "",
       method: spec.method,
       url: `http://127.0.0.1${spec.path}`,
     };

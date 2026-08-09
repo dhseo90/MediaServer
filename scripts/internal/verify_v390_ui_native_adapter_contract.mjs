@@ -714,7 +714,7 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   assert(adapterSource.includes('await context.route("**/*"') &&
     adapterSource.includes("activeNavigationOperation?.allowCorrelation === true") &&
     adapterSource.includes("delete headers[correlationHeaderName]") &&
-    adapterSource.includes("outerInjectionEnabled: activeCorrelationInjectionEnabled") &&
+    adapterSource.includes("outerInjectionEnabled: claimedContext") &&
     adapterSource.includes("allowCorrelation: false") &&
     !adapterSource.includes("context.setExtraHTTPHeaders"),
   "adapter does not keep correlation injection request/document scoped");
@@ -747,7 +747,7 @@ check("route-injected application correlation survives request-start to response
     'correlationInjectionSource: "route-continue"',
     "Object.assign(pending, applied)",
     "let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId)",
-    "outerInjectionEnabled: activeCorrelationInjectionEnabled",
+    "outerInjectionEnabled: claimedContext",
     "correlationAllowed,",
     "setCorrelationId: async (",
   ]) {

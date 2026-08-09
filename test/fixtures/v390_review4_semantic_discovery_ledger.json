@@ -3,10 +3,10 @@
   "sourceRelease": "v3.9.0",
   "evidenceBoundary": "static-semantic-audit-only-not-runtime-ui-or-longrun-pass",
   "summary": {
-    "documents": 186,
+    "documents": 187,
     "sourceMarkers": 38,
     "currentProductContracts": 82,
-    "historicalOrSuperseded": 73,
+    "historicalOrSuperseded": 74,
     "conditionalOrTemplate": 27
   },
   "documents": [
@@ -292,7 +292,7 @@
     },
     {
       "path": "docs/development-backlog.md",
-      "contentSha256": "375944ffc5df30275b2bbed9375afcfd7efb60ac5131f6c414d44b305720e36d",
+      "contentSha256": "fa40e2e09bfaf3fec76be3c19b9f2633633ca157ab317254b3e53191f8e71859",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -912,7 +912,7 @@
     },
     {
       "path": "docs/project-feature-test-inventory.md",
-      "contentSha256": "58b9a2675c94bcad64215e25d3c390d8c0b2b00a76fc813b43dc56dd8999736e",
+      "contentSha256": "28c507c366cf3ada6fc102f620e121912aa4a9ac67d7e69e935dcba23c3945d6",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1812,7 +1812,7 @@
     },
     {
       "path": "docs/release-evidence-index.md",
-      "contentSha256": "87aa111179c2d2dc842729cbe2c50e96c771d71f6937b2b21cf391e982b1e5c7",
+      "contentSha256": "9b154c3f551b60b395acba1744331187c4b615870b7ffca7da018bbd29b0f7f2",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1852,7 +1852,7 @@
     },
     {
       "path": "docs/release-test-records.md",
-      "contentSha256": "87ef0108cd574ecd7b058001eb44e84e4e4f42953401d667b0030de8769b08a5",
+      "contentSha256": "a8d413e83ae1e9a68fb177318c8b0957e50dc7edf49368387cec1dadf0fd188b",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1952,7 +1952,7 @@
     },
     {
       "path": "docs/stream-verification.md",
-      "contentSha256": "c6a0011393666de59a057c57bb0647db8a26e34e8bfc339f6c56cc5fc3a2103a",
+      "contentSha256": "16b2553aa31bf980b3677a5b3a17fcd50b09081cc01ce945e08076c93cb4a135",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2489,6 +2489,26 @@
         }
       ],
       "semanticDigest": "982a8451bbf46490d5dfd053c9caf5cae32ff4300b6b5f6c40de59dee833bb8f"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-10-v390-action-request-background-ledger.md",
+      "contentSha256": "a5433307eaa7293f1cdef8a060d8381de30fd7cabd348003802ea4e76762c20c",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Action Request / Background Ledger Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-10-v390-action-request-background-ledger.md",
+          "anchor": "V390 Action Request / Background Ledger Plan"
+        }
+      ],
+      "semanticDigest": "0d75224068cd3fd40f29400845aa594625ea36cbd0c63d21a5f67a022aee7bdb"
     },
     {
       "path": "docs/superpowers/plans/2026-08-10-v390-initial-route-settling-action-ledger.md",

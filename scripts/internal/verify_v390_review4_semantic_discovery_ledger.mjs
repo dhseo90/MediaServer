@@ -24,7 +24,7 @@ Usage:
   ./server.sh verify-v390-review4-semantic-discovery-ledger [--write-ledger]
 
 Checks:
-  - AGENTS.md와 분리된 tracked Markdown 186개 각각의 semantic role/lifecycle/actual owner/evidence를 검증
+  - AGENTS.md와 분리된 tracked Markdown 187개 각각의 semantic role/lifecycle/actual owner/evidence를 검증
   - 38개 source marker 각각의 occurrence identity와 exact disposition을 검증
   - checksum이나 문서 자기참조를 current 제품 의미의 완료 근거로 사용하지 않음
   - stale current claim, generic 분류, owner/evidence 누락을 negative fixture로 거부
@@ -42,9 +42,9 @@ const stored = readJson(fixturePath);
 const negativeCases = readJson(negativeFixturePath);
 const checks = [];
 
-check("all 186 tracked Markdown documents have exact semantic records", () => {
+check("all 187 tracked Markdown documents have exact semantic records", () => {
   const expectedPaths = trackedMarkdownPaths();
-  assert(expectedPaths.length === 186, `expected 186 Markdown files, got ${expectedPaths.length}`);
+  assert(expectedPaths.length === 187, `expected 187 Markdown files, got ${expectedPaths.length}`);
   assert(stored.documents.length === expectedPaths.length, "semantic document ledger count drift");
   assertStableEqual(stored.documents.map(item => item.path), expectedPaths, "semantic document path set drift");
   assert(new Set(stored.documents.map(item => item.path)).size === stored.documents.length, "duplicate document record");

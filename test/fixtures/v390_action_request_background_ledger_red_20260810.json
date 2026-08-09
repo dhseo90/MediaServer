@@ -1,0 +1,46 @@
+{
+  "schema": "media-server.v390-action-request-background-ledger-red.v1",
+  "sourceBranch": "v3.9.0",
+  "sourceCommitSha": "a470638ed64987cace31c9a00cdda7f9d1f4000d",
+  "sourceWorktreeClean": true,
+  "actualRunId": "v390-test-acceptance-20260809174932-60952",
+  "coverage": {
+    "target": 424,
+    "attempted": 9,
+    "pass": 8,
+    "fail": 1,
+    "notRun": 415,
+    "unsupported": 0
+  },
+  "firstFailure": {
+    "caseId": "UI-010",
+    "reason": "UI-010 native execution failed: primary=UI-010 action request/response ledger cardinality mismatch",
+    "declaredRequest": {
+      "method": "GET",
+      "path": "/ops/dashboard",
+      "requestCandidates": 1,
+      "responseCandidates": 1,
+      "correlationPass": true
+    },
+    "leakedBackgroundRequests": {
+      "requestCount": 7,
+      "responseCount": 7,
+      "inheritedActionId": "UI-010:assert-product-state",
+      "inheritedCorrelationId": "UI-010:assert-product-state:completion"
+    }
+  },
+  "artifacts": {
+    "summary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809174932-60952/ui-exact-424/summary.json",
+      "sha256": "821ec7deeb8461ca12dd3d5f0ab2b8eb735336febcd7238a62d71c7c4032b610"
+    },
+    "trace": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809174932-60952/ui-exact-424/traces/UI-010.trace.json",
+      "sha256": "d6e3a74177b8c0516dcfd50e28b828baaa1b1c1f0a0366e20ebef1718241bcd4"
+    },
+    "browserConsole": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809174932-60952/ui-exact-424/logs/UI-010.browser-console.json",
+      "sha256": "32aa9cbffd3a5d4d5127da267b0abf9f609fb98c9208c7ee17b420f244fcf0e6"
+    }
+  }
+}

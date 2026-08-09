@@ -7453,3 +7453,42 @@ final-integrity/semantic/feature/inventory/docs gate는 PASS했습니다. Fixed 
 Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는
 사용자 지시에 따라 미실행이며 정적 PASS를 actual 또는 release 성공으로 승격하지 않습니다.
 별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.
+
+## V390-REVIEW4-65 action request/page background ledger separation
+
+개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 SHA
+`a470638ed64987cace31c9a00cdda7f9d1f4000d` actual은 exact
+`424 target / 9 attempted / 8 PASS / UI-010 FAIL / 415 not-run`입니다. 명시된
+`GET /ops/dashboard` initiating request/response와 correlation은 1/1 exact PASS였지만,
+전역 active owner/correlation을 route interceptor와 request listener가 동시 dashboard
+refresh 7/7에도 적용해 action ledger가 팽창했습니다.
+
+공통 수정은 case ID가 아니라 manifest request envelope를 사용합니다. Canonical 391 census는
+method GET/POST/PUT/DELETE `268/25/92/6`, literal/template-materialized `281/110`,
+document-form/exact-api-fetch `11/380`, unique template/materialized target `47/142`입니다.
+Route interceptor는 explicit registration과 exact method/materialized target/cardinality에 맞는
+첫 initiating Playwright request object만 action-owned로 claim합니다. Bootstrap, polling, SSE,
+WS, background refresh는 source owner와 phase가 있는 page-owned ledger에 남고 primary action ID와
+correlation을 상속하지 않습니다. 같은 endpoint의 후속 request도 request object와 registration
+sequence로 page-owned와 분리합니다.
+
+구현 위치는 `v390_ui_action_request_ledger.mjs`의 census/envelope/object/status/cardinality/leak
+validator, `v390_ui_native_adapter.mjs`의 route/request/response object claim과 두 ledger projection,
+`v390_ui_initial_route_settling.mjs`의 action/page partition binder,
+`run_v390_ui_native_exact_cases.mjs`의 manifest envelope 전달 및 trace projection입니다.
+Missing/duplicate/leak/wrong method·path·status·object·action·correlation·phase/reorder는 fail-closed이고
+UI-010 예외, broad polling allowlist, path-only ownership, cardinality 완화, correlation 제거,
+catch-pass는 없습니다. EVT-004 explicit inner correlation은 byte-identical preserve합니다.
+
+검증은 신규 계약 RED(구현 marker 부재) 뒤 GREEN `5/5`, ownership `4/4`, post-action
+canonical `424/424`·request `391/391`, adapter `48/48`, runtime `63/63`, native `55/55`,
+completion `36/36`, diagnostic/replay `548/548`, Policy/acceptance/final-integrity 계약,
+full C++ build, semantic 986/986, implementation evidence 986/986·negative 15/15,
+inventory/docs/syntax/diff gate PASS로 닫았습니다. `server.sh` line/context와 inventory SHA의
+실제 drift 때문에 implementation manifest refresh generator 1회와 저장 승인 projection 1회를
+실행했고, 문서 discovery ledger generator는 최종 tracked 계획 문서 결속까지 3회 실행했습니다. 새 independent
+reviewer, approval producer, migration producer, native generator, Policy actual producer는 모두 0회입니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는 사용자 지시에
+따라 미실행하며 정적/fixture/replay PASS를 actual 또는 release 성공으로 승격하지 않습니다.
+별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.

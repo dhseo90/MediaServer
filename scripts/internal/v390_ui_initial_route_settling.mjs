@@ -101,7 +101,19 @@ export function buildInitialRouteSettlingPlan(item) {
           actionId: String(primaryAction.semanticCompletion.actionId || ""),
           correlationId: String(primaryAction.semanticCompletion.correlationId || ""),
           method: String(primaryAction.semanticCompletion.request?.method || "").toUpperCase(),
-          path: routePath(primaryAction.semanticCompletion.request?.urlPath || ""),
+          path: requestTarget(primaryAction.semanticCompletion.request?.urlPath || ""),
+          pathTemplate: String(primaryAction.semanticCompletion.request?.urlPathTemplate || ""),
+          requestKind: ["auth-standard-submit", "auth-logout"].includes(
+            String(primaryAction.uiLifecycle?.adapter || ""))
+            ? "document-navigation"
+            : "application-fetch",
+          expectedRequestCount: Number(
+            primaryAction.semanticCompletion.request?.expectedRequestCount ??
+            primaryAction.semanticCompletion.request?.cardinality ?? 1),
+          expectedResponseCount: Number(
+            primaryAction.semanticCompletion.request?.expectedResponseCount ??
+            primaryAction.semanticCompletion.request?.expectedRequestCount ??
+            primaryAction.semanticCompletion.request?.cardinality ?? 1),
           allowedStatuses: [...(primaryAction.semanticCompletion.request?.allowedStatuses || [])]
             .map(Number),
         }
@@ -284,38 +296,59 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries) {
     `${plan.caseId} action source control mismatch`);
   }
   const values = Array.isArray(entries) ? entries : [];
-  const starts = values.filter(entry => entry?.phase === "request-start");
-  const responses = values.filter(entry => entry?.phase === "response");
-  assert(starts.length > 0 && starts.length === responses.length,
+  assert(values.every(entry => ["action", "page"].includes(entry?.ledgerOwner)),
+    `${plan.caseId} request ledger owner classification is missing`);
+  const actionValues = values.filter(entry => entry.ledgerOwner === "action");
+  const pageValues = values.filter(entry => entry.ledgerOwner === "page");
+  const starts = actionValues.filter(entry => entry?.phase === "request-start");
+  const responses = actionValues.filter(entry => entry?.phase === "response");
+  assert(starts.length === plan.primaryRequest.expectedRequestCount &&
+    responses.length === plan.primaryRequest.expectedResponseCount,
     `${plan.caseId} action request/response ledger cardinality mismatch`);
-  for (const entry of values) {
+  for (const entry of actionValues) {
     assert(Number(entry.caseRequestSequence) > Number(ledgerStart.caseRequestSequenceFloor),
       `${plan.caseId} bootstrap request leaked into action ledger`);
     const documentNavigation = entry.requestKind === "document-navigation";
     assert(entry.initiatorActionId === plan.primaryRequest.actionId &&
       entry.requestOwnershipKind === "primary-action" &&
+      entry.ownerPhase === "primary-action" &&
       (documentNavigation
         ? entry.correlationId === ""
         : entry.correlationId === plan.primaryRequest.correlationId),
     `${plan.caseId} action request ownership/correlation mismatch`);
   }
+  const pageCorrelationLeaks = pageValues.filter(entry =>
+    entry.initiatorActionId === plan.primaryRequest.actionId ||
+    entry.correlationId === plan.primaryRequest.correlationId);
+  assert(pageCorrelationLeaks.length === 0,
+    `${plan.caseId} page-owned action correlation leak count mismatch: ${pageCorrelationLeaks.length}`);
+  assert(pageValues.every(entry => entry.sourceOwner === "page" &&
+    typeof entry.ownerPhase === "string" && entry.ownerPhase &&
+    entry.initiatorActionId !== plan.primaryRequest.actionId &&
+    entry.correlationId !== plan.primaryRequest.correlationId),
+  `${plan.caseId} page-owned request source/phase mismatch`);
   const primaryStarts = starts.filter(entry =>
     String(entry.method || "").toUpperCase() === plan.primaryRequest.method &&
-    routePath(entry.url) === plan.primaryRequest.path);
+    requestTarget(entry.url) === plan.primaryRequest.path);
   const primaryResponses = responses.filter(entry =>
     String(entry.method || "").toUpperCase() === plan.primaryRequest.method &&
-    routePath(entry.url) === plan.primaryRequest.path);
-  assert(primaryStarts.length === 1 && primaryResponses.length === 1,
+    requestTarget(entry.url) === plan.primaryRequest.path);
+  assert(primaryStarts.length === plan.primaryRequest.expectedRequestCount &&
+    primaryResponses.length === plan.primaryRequest.expectedResponseCount,
     `${plan.caseId} primary request/response cardinality mismatch`);
+  for (const requestEntry of primaryStarts) {
+    const boundResponses = primaryResponses.filter(responseEntry =>
+      responseEntry.requestId === requestEntry.requestId &&
+      responseEntry.caseRequestIdentity === requestEntry.caseRequestIdentity &&
+      responseEntry.caseRequestSequence === requestEntry.caseRequestSequence);
+    assert(boundResponses.length === 1 &&
+      boundResponses[0].responseRequestObjectObserved === true &&
+      boundResponses[0].requestIdentitySource === "playwright-response-request" &&
+      plan.primaryRequest.allowedStatuses.includes(Number(boundResponses[0].status)),
+    `${plan.caseId} primary request/response object binding mismatch`);
+  }
   const request = primaryStarts[0];
-  const response = primaryResponses[0];
-  assert(request.requestId === response.requestId &&
-    request.caseRequestIdentity === response.caseRequestIdentity &&
-    request.caseRequestSequence === response.caseRequestSequence &&
-    response.responseRequestObjectObserved === true &&
-    response.requestIdentitySource === "playwright-response-request" &&
-    plan.primaryRequest.allowedStatuses.includes(Number(response.status)),
-  `${plan.caseId} primary request/response object binding mismatch`);
+  const response = primaryResponses.find(entry => entry.requestId === request.requestId);
   assert(starts.every((entry, index) => index === 0 ||
     Number(entry.caseRequestSequence) > Number(starts[index - 1].caseRequestSequence)),
   `${plan.caseId} action request sequence reordered/duplicated`);
@@ -336,7 +369,19 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries) {
     primaryResponseStatus: Number(response.status),
     requestCount: starts.length,
     responseCount: responses.length,
-    additionalFetchCount: starts.length - 1,
+    additionalFetchCount: 0,
+    pageOwnedRequestCount: pageValues.filter(entry => entry.phase === "request-start").length,
+    pageOwnedResponseCount: pageValues.filter(entry => entry.phase === "response").length,
+    actionCorrelationLeakCount: 0,
+    pageOwnedRequestLedger: pageValues.map(entry => ({
+      phase: entry.phase,
+      requestId: entry.requestId,
+      caseRequestSequence: entry.caseRequestSequence,
+      method: String(entry.method || "").toUpperCase(),
+      path: requestTarget(entry.url),
+      sourceOwner: entry.sourceOwner,
+      ownerPhase: entry.ownerPhase,
+    })),
     orderedCallFlow: ordered.map(entry => ({
       requestId: entry.requestId,
       caseRequestSequence: entry.caseRequestSequence,
@@ -376,6 +421,15 @@ function routePath(value) {
   if (!text) return "";
   try { return new URL(text, "http://127.0.0.1").pathname; }
   catch { return ""; }
+}
+
+function requestTarget(value) {
+  const text = String(value || "");
+  if (!text) return "";
+  try {
+    const url = new URL(text, "http://127.0.0.1");
+    return `${url.pathname}${url.search}`;
+  } catch { return ""; }
 }
 
 function countBy(values, keyOf) {

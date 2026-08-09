@@ -1014,6 +1014,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       requestActionOwnershipEvidence.activeOwner === null,
     `${item.caseId} request-action ownership lifecycle is incomplete`);
     trace.requestActionOwnershipEvidence = requestActionOwnershipEvidence;
+    trace.actionRequestScopeLedgerEvidence =
+      browser.actionRequestLedgerEvidence();
+    trace.pageOwnedRequestLedger = browser.pageOwnedRequestLedger();
     visualExpectedCase.accountRole = visualMeasurement.accountRole;
     trace.postActionVisualRoleEvidence = {
       schema: "media-server.v390-ui-post-action-visual-role.v1",
@@ -1081,6 +1084,10 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         runtimeState.get("__initialRouteSettling") || null,
       actionOwnedRequestLedgerEvidence:
         trace.actionOwnedRequestLedgerEvidence || null,
+      actionRequestScopeLedgerEvidence:
+        trace.actionRequestScopeLedgerEvidence || null,
+      pageOwnedRequestLedger:
+        trace.pageOwnedRequestLedger || null,
       requestActionOwnershipEvidence:
         trace.requestActionOwnershipEvidence || null,
       postActionLifecycleEvidence: null,
@@ -2513,6 +2520,10 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     actionId: action.semanticCompletion.actionId,
     correlationId: action.semanticCompletion.correlationId,
     ownershipKind: "primary-action",
+    actionRequestEnvelope: action.semanticCompletion.request || null,
+    actionRequestKind: documentFormSubmitContracts.has(item.caseId)
+      ? "document-navigation"
+      : "application-fetch",
   });
   let executedKind = "";
   let typedFormInputs = null;
@@ -2860,6 +2871,8 @@ async function executeEndpointOwnedAction(
     actionId: completionRequest.initiatorActionId || action.semanticCompletion.actionId,
     correlationId: completionRequest.correlationId,
     ownershipKind: completionRequest.requestOwnershipKind || "primary-action",
+    actionRequestEnvelope: completionRequest,
+    actionRequestKind: "application-fetch",
   });
   let response;
   let primaryFailure = null;
@@ -3024,14 +3037,16 @@ async function semanticAssertionResult(
   const completion = action.semanticCompletion;
   let exactObserved = observed;
   let requestCorrelationEvidence = null;
-  // Authoritative catalog observation belongs to the later independent-readback
-  // phase. Keeping it out of the primary scope prevents same-action helper nesting.
+  // 권위 있는 catalog 관찰은 이후의 독립 readback 단계가 소유합니다.
+  // primary 범위에서 분리해 같은 action helper가 중첩되지 않게 합니다.
   if (completion.request) {
     const requestActionContext = await browser.beginRequestActionOwnership({
       phase: "primary-action",
       actionId: completion.request.initiatorActionId || completion.actionId,
       correlationId: completion.correlationId,
       ownershipKind: completion.request.requestOwnershipKind || "primary-action",
+      actionRequestEnvelope: completion.request,
+      actionRequestKind: "application-fetch",
     });
     let primaryFailure = null;
     try {
