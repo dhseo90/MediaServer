@@ -79,25 +79,46 @@ export function buildPostActionLifecyclePlan(item, formResponseIdentity = null) 
     "post-action lifecycle requires one canonical native case");
   const sourceRoute = routePath(item.controlAction?.actionRoute || item.screenRoute);
   const sourceSelector = String(item.controlAction?.targetSelector || "body");
+  const primaryActions = item.actions.filter(action =>
+    action?.semanticCompletion?.phase === "primary-action" &&
+    action.actionId === item.oracle?.primaryActionId);
+  assert(primaryActions.length === 1,
+    `${item.caseId} post-action lifecycle requires exact-one primary completion`);
+  const primaryAction = primaryActions[0];
+  const completionMode = String(primaryAction.semanticCompletion?.completionMode || "");
+  assert(["request", "local", "navigation"].includes(completionMode),
+    `${item.caseId} post-action lifecycle completion mode missing`);
   const documentContract = documentFormSubmitContracts.get(item.caseId) || null;
   const redirectPath = routePath(documentContract?.redirectPath || "");
-  const routeChanged = Boolean(redirectPath && redirectPath !== sourceRoute);
-  const destinationRoute = routeChanged ? redirectPath : sourceRoute;
-  const destinationSelector = routeChanged
+  const localDestination = localTransitionDestination(primaryAction.semanticCompletion?.localTransition);
+  const navigationDestination = completionMode === "navigation"
+    ? routePath(primaryAction.semanticCompletion?.navigationBinding?.expectedObservedPath || item.screenRoute)
+    : "";
+  const destinationRoute = redirectPath || localDestination.route || navigationDestination || sourceRoute;
+  const routeChanged = destinationRoute !== sourceRoute;
+  const destinationSelector = redirectPath
     ? String(destinationControls.get(destinationRoute) || "")
-    : sourceSelector;
+    : localDestination.selector || (completionMode === "navigation" ? "body" : sourceSelector);
+  const transitionKind = redirectPath
+    ? "document-form-redirect"
+    : localDestination.route
+      ? "local-route-transition"
+      : completionMode === "navigation"
+        ? "navigation-completion"
+        : completionMode === "local"
+          ? "local-transition"
+          : "request-completion";
   assert(sourceRoute.startsWith("/"), `${item.caseId} source route missing`);
   assert(sourceSelector, `${item.caseId} source selector missing`);
   assert(destinationRoute.startsWith("/"), `${item.caseId} destination route missing`);
   assert(destinationSelector, `${item.caseId} destination control contract missing: ${destinationRoute}`);
-  assert(!routeChanged || destinationSelector !== sourceSelector,
-    `${item.caseId} redirect destination reuses the stale source selector`);
+  assert(!routeChanged || completionMode === "navigation" ||
+    destinationSelector !== sourceSelector,
+  `${item.caseId} route destination reuses the stale source selector`);
   if (formResponseIdentity !== null && documentContract) {
     validateDocumentFormResponseIdentity(item.caseId, documentContract, formResponseIdentity);
   }
-  const requiredState = routeChanged || item.workflow?.primaryControl?.expectedVisible !== false
-    ? "visible"
-    : "attached";
+  const sourceControlApplicable = sourceSelector !== "body";
   return {
     schema: "media-server.v390-ui-post-action-lifecycle-plan.v1",
     caseId: item.caseId,
@@ -120,14 +141,37 @@ export function buildPostActionLifecyclePlan(item, formResponseIdentity = null) 
         statuses: [...documentContract.statuses],
         redirectPath: redirectPath || null,
       } : null,
+      primaryCompletion: {
+        actionId: String(primaryAction.actionId || ""),
+        kind: String(primaryAction.kind || ""),
+        mode: completionMode,
+        requiredSource: String(primaryAction.semanticCompletion?.requiredSource || ""),
+        correlationId: String(primaryAction.semanticCompletion?.correlationId || ""),
+        navigationBinding: primaryAction.semanticCompletion?.navigationBinding
+          ? structuredClone(primaryAction.semanticCompletion.navigationBinding)
+          : null,
+        localTransition: primaryAction.semanticCompletion?.localTransition
+          ? structuredClone(primaryAction.semanticCompletion.localTransition)
+          : null,
+      },
       phase: "action-request-response-binding",
     },
     postNavigation: {
       route: destinationRoute,
       selector: destinationSelector,
-      requiredState,
+      requiredState: "visible",
       routeChanged,
-      sourceSelectorRewaitAllowed: !routeChanged,
+      transitionKind,
+      sourceSelectorRewaitAllowed: false,
+      sourceControlApplicable,
+      ownerPolicy: routeChanged
+        ? "declared-visible-destination"
+        : completionMode === "navigation" || !sourceControlApplicable
+          ? "visible-document-owner"
+          : "visible-source-else-document-owner",
+      navigationEpochRelation: routeChanged || completionMode === "navigation"
+        ? "advanced"
+        : "same-document",
       phase: "destination-route-control-readback",
     },
   };
@@ -240,51 +284,148 @@ export async function observePostActionLifecycle(browser, plan, {
 }
 
 export function resolvePostActionVisualTarget(plan, {
-  currentRoute = "",
+  visualContext = null,
+  executionOwnerSelector = null,
+  sourceBeforeObservation = null,
   sourceObservation = null,
+  destinationObservation = null,
 } = {}) {
   assert(plan?.schema === "media-server.v390-ui-post-action-lifecycle-plan.v1",
     "post-action visual target plan schema mismatch");
   const sourceSelector = String(plan.preAction?.selector || "");
   assert(sourceSelector, `${plan.caseId} post-action visual source selector missing`);
+  const sourceOwnerSelector = String(executionOwnerSelector || sourceSelector);
+  assert(sourceOwnerSelector,
+    `${plan.caseId} post-action visual execution owner selector missing`);
+  assert(visualContext?.schema === "media-server.v390-ui-post-action-visual-context.v1",
+    `${plan.caseId} post-action visual context missing`);
+  const observedRoute = routePath(visualContext.route);
+  const navigationEpoch = Number(visualContext.navigationEpoch);
+  assert(Number.isInteger(navigationEpoch) && navigationEpoch > 0,
+    `${plan.caseId} post-action visual navigation epoch missing`);
+  assert(observedRoute === plan.postNavigation.route,
+    `${plan.caseId} post-action visual route mismatch`);
+  validateOwnerObservation(plan.caseId, visualContext.documentOwner, {
+    selector: "body",
+    navigationEpoch,
+    requireVisible: true,
+    label: "document owner",
+  });
+  const completionMode = String(plan.action?.primaryCompletion?.mode || "");
   const base = {
     schema: "media-server.v390-ui-post-action-visual-target.v1",
     caseId: plan.caseId,
+    actionId: String(plan.action?.primaryCompletion?.actionId || ""),
+    completionMode,
     sourceSelectorSha256: createHash("sha256").update(sourceSelector).digest("hex"),
-    requestedState: "attached",
+    sourceOwnerSelectorSha256: createHash("sha256").update(sourceOwnerSelector).digest("hex"),
+    requestedState: "visible",
+    observedRoute,
+    navigationEpoch,
+    ownerCandidateCount: 1,
+    sourceSelectorRewaited: false,
   };
-  if (!sourceObservation) {
+  if (plan.postNavigation.routeChanged) {
+    assert(sourceBeforeObservation,
+      `${plan.caseId} route transition source-before observation missing`);
+    validateOwnerObservation(plan.caseId, sourceBeforeObservation, {
+      selector: sourceOwnerSelector,
+      requireVisible: sourceOwnerSelector !== "body",
+      label: "source-before owner",
+    });
+    assert(Number(sourceBeforeObservation.navigationEpoch) < navigationEpoch,
+      `${plan.caseId} route transition navigation epoch did not advance`);
+    validateOwnerObservation(plan.caseId, destinationObservation, {
+      selector: plan.postNavigation.selector,
+      navigationEpoch,
+      requireVisible: true,
+      label: "destination owner",
+    });
     return {
       ...base,
-      selector: sourceSelector,
-      bindingKind: "source-owner-without-action-observation",
-      sourceDetached: false,
-      observedRoute: routeLocation(currentRoute),
+      selector: plan.postNavigation.selector,
+      bindingKind: "post-action-visible-destination-owner",
+      sourceDetached: sourceObservation?.exists === false,
+      sourceHidden: sourceObservation?.exists === true && sourceObservation.visible !== true,
+      epochRelation: "advanced",
     };
   }
-  assert(sourceObservation.selector === sourceSelector,
-    `${plan.caseId} post-action visual source selector binding mismatch`);
-  assert(typeof sourceObservation.exists === "boolean",
-    `${plan.caseId} post-action visual source existence missing`);
-  if (sourceObservation.exists) {
+  if (completionMode === "navigation") {
+    assert(sourceBeforeObservation,
+      `${plan.caseId} navigation source-before observation missing`);
+    validateOwnerObservation(plan.caseId, sourceBeforeObservation, {
+      selector: sourceOwnerSelector,
+      requireVisible: sourceOwnerSelector !== "body",
+      label: "navigation source-before owner",
+    });
+    assert(Number(sourceBeforeObservation.navigationEpoch) < navigationEpoch,
+      `${plan.caseId} navigation completion epoch did not advance`);
+    if (sourceObservation) {
+      validateOwnerObservation(plan.caseId, sourceObservation, {
+        selector: sourceOwnerSelector,
+        navigationEpoch,
+        requireVisible: false,
+        label: "navigation source observation",
+      });
+    }
     return {
       ...base,
-      selector: sourceSelector,
-      bindingKind: "attached-source-owner",
-      sourceDetached: false,
-      observedRoute: routeLocation(currentRoute),
+      selector: "body",
+      bindingKind: "post-action-visible-document-owner",
+      sourceDetached: sourceObservation?.exists === false,
+      sourceHidden: sourceObservation?.exists === true && sourceObservation.visible !== true,
+      epochRelation: "advanced",
     };
   }
-  const observedRoute = routeLocation(currentRoute);
-  const actionRoute = routeLocation(sourceObservation.url);
-  assert(observedRoute && actionRoute && observedRoute === actionRoute,
-    `${plan.caseId} detached source post-action document binding mismatch`);
+  if (sourceSelector === "body") {
+    if (sourceObservation) {
+      validateOwnerObservation(plan.caseId, sourceObservation, {
+        selector: sourceOwnerSelector,
+        navigationEpoch,
+        requireVisible: false,
+        label: "document source observation",
+      });
+    }
+    return {
+      ...base,
+      selector: "body",
+      bindingKind: "post-action-visible-document-owner",
+      sourceDetached: sourceObservation?.exists === false,
+      sourceHidden: sourceObservation?.exists === true && sourceObservation.visible !== true,
+      epochRelation: "same-document",
+    };
+  }
+  assert(sourceBeforeObservation && sourceObservation,
+    `${plan.caseId} source lifecycle observations missing`);
+  validateOwnerObservation(plan.caseId, sourceBeforeObservation, {
+    selector: sourceOwnerSelector,
+    navigationEpoch,
+    requireVisible: true,
+    label: "source-before owner",
+  });
+  validateOwnerObservation(plan.caseId, sourceObservation, {
+    selector: sourceOwnerSelector,
+    navigationEpoch,
+    requireVisible: false,
+    label: "source-after owner",
+  });
+  if (sourceObservation.exists && sourceObservation.visible === true) {
+    return {
+      ...base,
+      selector: sourceOwnerSelector,
+      bindingKind: "post-action-visible-source-owner",
+      sourceDetached: false,
+      sourceHidden: false,
+      epochRelation: "same-document",
+    };
+  }
   return {
     ...base,
     selector: "body",
-    bindingKind: "post-action-document-owner",
-    sourceDetached: true,
-    observedRoute,
+    bindingKind: "post-action-visible-document-owner",
+    sourceDetached: sourceObservation.exists === false,
+    sourceHidden: sourceObservation.exists === true,
+    epochRelation: "same-document",
   };
 }
 
@@ -324,9 +465,38 @@ export function buildCanonicalSharedAdapterImpact(nativeManifest) {
         destinationSelector: plan.postNavigation.selector,
         sourceSelectorRewaitAllowed: plan.postNavigation.sourceSelectorRewaitAllowed,
       },
+      postActionVisualLifecycle: {
+        primaryActionId: plan.action.primaryCompletion.actionId,
+        completionMode: plan.action.primaryCompletion.mode,
+        transitionKind: plan.postNavigation.transitionKind,
+        ownerPolicy: plan.postNavigation.ownerPolicy,
+        navigationEpochRelation: plan.postNavigation.navigationEpochRelation,
+        exactOneOwnerRequired: true,
+        invisibleSourceRewaitAllowed: false,
+        staleSourceScrollAllowed: false,
+        ownerBranches: plan.postNavigation.routeChanged
+          ? ["route-change-visible-destination"]
+          : plan.action.primaryCompletion.mode === "navigation" ||
+              plan.preAction.selector === "body"
+            ? ["navigation-visible-document"]
+            : [
+                "source-visible-source-owner",
+                "source-hidden-document-owner",
+                "source-detached-document-owner",
+              ],
+      },
     };
   });
   const remaining125CaseIds = cases.slice(299).map(item => item.caseId);
+  const lifecycleClassCounts = Object.fromEntries([...new Set(cases.map(item =>
+    item.postActionVisualLifecycle.transitionKind))].sort().map(kind => [
+      kind,
+      cases.filter(item => item.postActionVisualLifecycle.transitionKind === kind).length,
+    ]));
+  const completionModeCounts = Object.fromEntries(["request", "local", "navigation"].map(mode => [
+    mode,
+    cases.filter(item => item.postActionVisualLifecycle.completionMode === mode).length,
+  ]));
   const payload = {
     schema: "media-server.v390-ui-shared-adapter-impact.v1",
     sourceRange: {
@@ -337,8 +507,26 @@ export function buildCanonicalSharedAdapterImpact(nativeManifest) {
     changedFunctions: structuredClone(sharedAdapterChangeBindings),
     caseCount: cases.length,
     routeTransitionCaseIds: cases
+      .filter(item => item.postActionVisualLifecycle.transitionKind === "document-form-redirect")
+      .map(item => item.caseId),
+    visualOwnerRouteChangeCaseIds: cases
       .filter(item => item.routeTransition.routeChanged)
       .map(item => item.caseId),
+    postActionVisualCensus: {
+      exactOneOwnerCaseCount: cases.filter(item =>
+        item.postActionVisualLifecycle.exactOneOwnerRequired).length,
+      completionModeCounts,
+      lifecycleClassCounts,
+      hiddenSourceBranchCaseCount: cases.filter(item =>
+        item.postActionVisualLifecycle.ownerBranches.includes("source-hidden-document-owner")).length,
+      detachedSourceBranchCaseCount: cases.filter(item =>
+        item.postActionVisualLifecycle.ownerBranches.includes("source-detached-document-owner")).length,
+      routeChangeCaseCount: cases.filter(item => item.routeTransition.routeChanged).length,
+      localTransitionCaseCount: cases.filter(item =>
+        item.postActionVisualLifecycle.completionMode === "local").length,
+      navigationCaseCount: cases.filter(item =>
+        item.postActionVisualLifecycle.completionMode === "navigation").length,
+    },
     remaining125CaseCount: remaining125CaseIds.length,
     remaining125CaseIds,
     cases,
@@ -347,6 +535,48 @@ export function buildCanonicalSharedAdapterImpact(nativeManifest) {
     ...payload,
     digest: createHash("sha256").update(JSON.stringify(payload)).digest("hex"),
   };
+}
+
+function localTransitionDestination(localTransition) {
+  if (localTransition?.type !== "follow-link") return { route: "", selector: "" };
+  const urlPostconditions = (localTransition.postconditions || []).filter(item =>
+    item?.property === "url" && item?.operator === "includes" && routePath(item?.value));
+  assert(urlPostconditions.length === 1,
+    "follow-link local transition requires exact-one URL destination owner");
+  return {
+    route: routePath(urlPostconditions[0].value),
+    selector: String(urlPostconditions[0].selector || ""),
+  };
+}
+
+function validateOwnerObservation(caseId, observation, {
+  selector,
+  navigationEpoch = null,
+  requireVisible,
+  label,
+} = {}) {
+  assert(observation && typeof observation === "object",
+    `${caseId} ${label} observation missing`);
+  assert(observation.selector === selector,
+    `${caseId} ${label} selector mismatch`);
+  const candidateCount = Number(observation.candidateCount);
+  assert(Number.isInteger(candidateCount) && candidateCount >= 0 && candidateCount <= 1,
+    `${caseId} ${label} selector cardinality mismatch`);
+  assert(typeof observation.exists === "boolean" &&
+    observation.exists === (candidateCount === 1),
+  `${caseId} ${label} existence/cardinality mismatch`);
+  if (navigationEpoch !== null) {
+    assert(Number(observation.navigationEpoch) === navigationEpoch,
+      `${caseId} ${label} navigation epoch mismatch`);
+  } else {
+    assert(Number.isInteger(Number(observation.navigationEpoch)) &&
+      Number(observation.navigationEpoch) > 0,
+    `${caseId} ${label} navigation epoch missing`);
+  }
+  if (requireVisible) {
+    assert(observation.exists === true && observation.visible === true,
+      `${caseId} ${label} is not visible`);
+  }
 }
 
 function validateDocumentFormResponseIdentity(caseId, contract, identity) {

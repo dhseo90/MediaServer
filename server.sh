@@ -210,6 +210,8 @@ Usage:
                  V390-ADD1-08 native Playwright wait/click/fill/select/screenshot을 실제 검증합니다.
   verify-v390-ui-native-adapter-contract
                  V390-ADD1-08 native Playwright module/capability/evidence contract를 검증합니다.
+  verify-v390-ui-post-action-visual-owner-contract
+                 latest actual RED와 canonical 424 post-action visual exact-one owner lifecycle을 검증합니다.
   prepare-manual-ui-fulltest-seed
                  수동 UI 풀테스트용 VA seed fixture를 dry-run 검증하고, 명시 승인 시 throwaway 서버에 적용합니다.
   verify-docs-links
@@ -508,6 +510,8 @@ Usage:
                  V390-ADD1-08 native Playwright wait/click/fill/select/screenshot을 실제 검증합니다.
   verify-v390-ui-native-adapter-contract
                  V390-ADD1-08 native Playwright module/capability/evidence contract를 검증합니다.
+  verify-v390-ui-post-action-visual-owner-contract
+                 latest actual RED와 canonical 424 post-action visual exact-one owner lifecycle을 검증합니다.
   verify-v390-test-acceptance-bundle
                  v3.9.0 canonical build→기능→30분→exact 424→Policy v4→조건부 120분→final integrity bundle을 실행합니다.
   verify-v390-test-acceptance-bundle-contract
@@ -2443,6 +2447,10 @@ case "${cmd}" in
   verify-v390-ui-native-adapter-contract)
     require_internal verify_v390_ui_native_adapter_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_native_adapter_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-post-action-visual-owner-contract)
+    require_internal verify_v390_ui_post_action_visual_owner_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_post_action_visual_owner_contract.mjs" "$@"
     ;;
   verify-v390-test-acceptance-bundle)
     require_internal verify_v390_test_acceptance_bundle.mjs

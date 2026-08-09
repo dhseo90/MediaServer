@@ -1,0 +1,58 @@
+{
+  "schema": "media-server.v390-ui-post-action-visual-owner-red.v1",
+  "version": "3.9.0",
+  "sourceKind": "latest-canonical-actual-red-replay-only",
+  "releaseEvidenceEligible": false,
+  "sourceCommitSha": "a81feb42f073b8d72688bf91c528500196466598",
+  "runId": "v390-test-acceptance-20260809112234-69642",
+  "artifacts": {
+    "acceptanceSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/summary.json",
+      "sha256": "7c61a277a0b79ef8915bac5b20799177e1c92ed1da7122a70a31b9dda6aa5c65"
+    },
+    "firstFailure": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/first-failure.json",
+      "sha256": "1294d492a5f8eac1176fe86d2d52522d087da2d9f3c164eb14f86a860b41c5be"
+    },
+    "exactSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809112234-69642/ui-exact-424/summary.json",
+      "sha256": "f11d984c28b3af14d3f507cc7992b3e118a258237edc817184e14e2550dd9cc9"
+    },
+    "ui109Trace": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809112234-69642/ui-exact-424/traces/UI-109.trace.json",
+      "sha256": "c727588c657ee2d3a4d5d46435ba7eeaf156591b0581a743f5c2279ed7a53901"
+    }
+  },
+  "coverage": {
+    "target": 424,
+    "attempted": 108,
+    "pass": 107,
+    "fail": 1,
+    "notRun": 316,
+    "unsupported": 0
+  },
+  "firstFailure": {
+    "caseId": "UI-109",
+    "phase": "post-action-visual-measurement",
+    "callsite": "v390_ui_native_adapter.mjs::measureVisualState.scrollIntoViewIfNeeded",
+    "errorClass": "locator.scrollIntoViewIfNeeded-timeout-invisible-owner",
+    "sourceSelector": "#channel-save-selected",
+    "sourceRoute": "/ops/sources",
+    "completionMode": "request",
+    "sourceBefore": {
+      "exists": true,
+      "visible": true
+    },
+    "sourceAfter": {
+      "exists": true,
+      "visible": false,
+      "hidden": true,
+      "disabled": true
+    },
+    "redVisualBindingKind": "attached-source-owner",
+    "redVisualSelector": "#channel-save-selected",
+    "expectedGreenBindingKind": "post-action-visible-document-owner",
+    "expectedGreenSelector": "body"
+  },
+  "boundary": "This fixture freezes the latest canonical actual RED and is replay-only. It cannot qualify Policy v4 or replace a new actual browser run."
+}

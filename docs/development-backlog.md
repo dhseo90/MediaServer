@@ -7367,3 +7367,61 @@ Adapter RED→GREEN, native exact/runtime/completion/diagnostic 25/25, event/cli
 semantic audit/approval 986/986, feature evidence 986/986, inventory/docs와 full build가 PASS했습니다.
 Canonical/native fixture drift가 없어 generator/producer는 각 0회입니다. 이 checkpoint 시점 영향
 diagnostic batch와 `./test_ui.sh`, Policy v4 qualification은 미실행이며 actual PASS로 기록하지 않습니다.
+
+### REVIEW4-65 canonical post-action visual owner lifecycle checkpoint (2026-08-09)
+
+Commit `a81feb42f073b8d72688bf91c528500196466598`의 latest canonical actual은
+`424 target / 108 attempted / 107 PASS / UI-109 FAIL / 316 not-run`입니다.
+UI-109의 endpoint request와 independent readback은 통과했지만, post-action visual 단계가
+숨겨진 `#channel-save-selected` source locator를 다시
+`scrollIntoViewIfNeeded()` 하면서 30초 timeout으로 중단됐습니다.
+
+`v390_ui_shared_adapter_lifecycle.mjs`는 canonical 424의 primary completion을
+request `391`, local `28`, navigation `5`의 exact-one mode로 분류하고,
+post-action visual owner를 navigation epoch와 declared destination route에 결속합니다.
+동일 route에서 source control이 계속 visible하면 exact source owner를 유지하고,
+hidden/detached source는 source를 재대기하지 않은 visible document owner로 전환합니다.
+13개 route-change case는 새 epoch의 exact destination/document owner만 허용합니다.
+Missing/duplicate owner, wrong route/selector/epoch, hidden destination은 즉시 fail-closed이며
+timeout, visibility assertion, selector 범위와 Policy v4 qualification은 완화하지 않습니다.
+
+`v390_ui_native_adapter.mjs`는 main-frame document request마다 monotonic navigation epoch를
+기록하고, post-action owner binding에는 Playwright의 hidden target
+`scrollIntoViewIfNeeded()` retry를 사용하지 않습니다. Exact candidate cardinality와
+computed visibility를 먼저 확인한 뒤 bound visible DOM owner만 최소 scroll/geometry
+measurement에 사용합니다. Runner는 completion action ID와 canonical selector를 공통
+resolver에 넘기며 case ID별 예외는 없습니다.
+
+`test/fixtures/v390_ui_post_action_visual_owner_red_20260809.json`은 latest actual summary,
+first-failure, exact summary와 UI-109 trace SHA-256을 RED 계약으로 보존합니다.
+`v390_ui_shared_adapter_impact.json`은 canonical 424/424 전체에 completion mode,
+source visible/hidden/detached branch, local/route-change/navigation exact-one lifecycle과
+13개 route-change ID를 고정합니다. 전용 verifier는 UI-109 hidden, UI-029 detached,
+UI-109 visible-source 유지, UI-046 local route change, SAFE-016 navigation 및
+wrong route/selector/epoch/cardinality/hidden destination negative를 함께 검증합니다.
+
+Focused GREEN은 post-action census 424/424, adapter 48/48, visual 8/8,
+runtime 63/63, native 55/55, completion 36/36, diagnostic 33/33,
+actual trace replay 548/548와 remaining replay PASS입니다. Replay는 fixed diagnostic
+differential 125/125와 EVT-004 lifecycle을 보존합니다. Policy v4 27/27,
+producer/independence 11/11, eligibility 7/7, acceptance 21/21,
+final integrity 12/12와 full build도 PASS했습니다.
+Release evidence index 8/8, script inventory 11/11, docs links failures 0,
+docs UI assets 10/10, changed MJS 9/9, JSON 5/5, Bash syntax와
+`git diff --check`도 PASS했습니다.
+
+Semantic audit에서 stricter Policy visual evidence file hash로 `SAFE-202`와
+`OPS-169` 두 trust binding만 drift했습니다. 기능 계약, feature PASS/status,
+verifier command, action/state symbol와 enclosing semantic body hash는 불변입니다.
+Migration contract에 따라 984 carry-forward + 두 행 독립 검토를 수행하고
+producer 1회로 audit/approval/implementation/native transaction을 갱신했습니다.
+최종 candidate는 `361e39ff7e5ab2dad3631f654b9a476a4b5e657fcbbc873a7a131a7dfb4ce1ec`,
+semantic audit 51/51, approval 986/986, closure 31/31,
+feature evidence 986/986·negative 15/15입니다. 별도 native generator는 0회이며
+source-built/stored native는 424 = 423 positive + 1 negative, unsupported 0으로 일치합니다.
+
+사용자 지시에 따라 actual browser와 `./test_ui.sh`는 실행하지 않았습니다.
+30분/120분과 release acceptance도 이 correction 범위에서 실행하지 않으며,
+static/fixture/replay 결과를 새 actual UI PASS로 승격하지 않습니다.
+동일 staged snapshot을 임시 `v3.9.0` branch commit으로 구성한 tracked-clean checkout에서도
+full build와 위 공통/Policy/semantic/feature/inventory/docs/syntax gate 전체가 PASS했습니다.

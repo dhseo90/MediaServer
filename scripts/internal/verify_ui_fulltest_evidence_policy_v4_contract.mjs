@@ -944,12 +944,20 @@ function makeRawTrace(nativeCase) {
     postActionVisualTargetEvidence: {
       schema: "media-server.v390-ui-post-action-visual-target.v1",
       caseId: nativeCase.caseId,
+      actionId: expected.actionId,
+      completionMode: expected.completionMode,
       sourceSelectorSha256: "contract-source",
-      requestedState: "attached",
+      requestedState: "visible",
       selector: nativeCase.controlAction.targetSelector || "body",
-      bindingKind: "attached-source-owner",
+      bindingKind: nativeCase.controlAction.targetSelector
+        ? "post-action-visible-source-owner"
+        : "post-action-visible-document-owner",
       sourceDetached: false,
+      sourceHidden: false,
       observedRoute: nativeCase.screenRoute,
+      navigationEpoch: 1,
+      ownerCandidateCount: 1,
+      sourceSelectorRewaited: false,
     },
     postActionVisualRoleEvidence: {
       schema: "media-server.v390-ui-post-action-visual-role.v1",

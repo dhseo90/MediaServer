@@ -93,15 +93,17 @@ const timeoutRows = census.failures.filter(row => row.failureClass === "ui-timeo
 assert(timeoutRows.length === 94, "impact timeout census mismatch");
 for (const row of timeoutRows) {
   const plan = buildPostActionLifecyclePlan(byId.get(row.caseId));
-  assert(plan.postNavigation.routeChanged === false && row.redirectOccurred === false,
-    `${row.caseId} timeout was incorrectly classified as redirect-owned`);
+  const declaredLocalRouteChange = ["UI-046", "RULE-104"].includes(row.caseId);
+  assert(plan.postNavigation.routeChanged === declaredLocalRouteChange &&
+    row.redirectOccurred === false,
+  `${row.caseId} timeout route ownership classification drifted`);
   assert(postActionDestinationLifecycleRequired(plan) === false,
     `${row.caseId} non-redirect source selector would be re-waited`);
 }
 
 const redirectIds = manifest.cases
   .map(item => buildPostActionLifecyclePlan(item))
-  .filter(plan => plan.postNavigation.routeChanged)
+  .filter(plan => postActionDestinationLifecycleRequired(plan))
   .map(plan => plan.caseId);
 assert(redirectIds.length === 9 && redirectIds.every(id => census.originalPassIds.includes(id)),
   "redirect lifecycle prior PASS binding mismatch");
@@ -245,14 +247,23 @@ for (const caseId of latestPassIds) {
   const item = byId.get(caseId);
   const trace = readJson(`${latestRunRelative}/cases/${caseId}/traces/${caseId}.trace.json`);
   const plan = buildPostActionLifecyclePlan(item);
-  if (postActionDestinationLifecycleRequired(plan)) continue;
-  const sourceObservation = [...(trace.rawPrimaryObservations || [])].reverse()
-    .find(observation => observation?.action?.controlSelector === plan.preAction.selector &&
-      observation?.after?.selector === plan.preAction.selector)?.after || null;
+  if (plan.postNavigation.routeChanged) continue;
+  const primaryObservation = [...(trace.rawPrimaryObservations || [])].reverse()
+    .find(observation => observation?.action?.controlSelector === plan.preAction.selector) || null;
+  const sourceBeforeObservation = replayObservation(primaryObservation?.before, 1);
+  const sourceObservation = replayObservation(primaryObservation?.after, 1);
   const currentRoute = sourceObservation?.url || trace.navigation?.url || item.screenRoute;
-  const target = resolvePostActionVisualTarget(plan, { currentRoute, sourceObservation });
-  assert(target.selector === plan.preAction.selector && target.sourceDetached === false,
-    `${caseId} prior PASS post-action visual owner regressed`);
+  const target = resolvePostActionVisualTarget(plan, {
+    visualContext: replayVisualContext(currentRoute, 1),
+    executionOwnerSelector: sourceBeforeObservation?.selector || plan.preAction.selector,
+    sourceBeforeObservation,
+    sourceObservation,
+  });
+  const expectedSelector = sourceObservation?.exists === true &&
+    sourceObservation.visible === true ? sourceBeforeObservation?.selector : "body";
+  assert(target.selector === expectedSelector &&
+    target.sourceSelectorRewaited === false,
+  `${caseId} prior PASS post-action visual owner regressed`);
 }
 
 const timeoutClosureIds = closure.selectedIds.filter(caseId => caseId !== "EVT-004");
@@ -268,20 +279,38 @@ for (const caseId of timeoutClosureIds) {
   const childSummary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
   const trace = JSON.parse(fs.readFileSync(tracePath, "utf8"));
   const plan = buildPostActionLifecyclePlan(byId.get(caseId));
-  const sourceObservation = [...trace.rawPrimaryObservations].reverse()
-    .find(observation => observation?.action?.controlSelector === plan.preAction.selector)?.after;
+  const primaryObservation = [...trace.rawPrimaryObservations].reverse()
+    .find(observation => observation?.action?.controlSelector === plan.preAction.selector);
+  const sourceBeforeObservation = replayObservation(primaryObservation?.before, 1);
+  const destinationEpoch = plan.postNavigation.routeChanged ? 2 : 1;
+  const sourceObservation = replayObservation(primaryObservation?.after, destinationEpoch);
   assert(childSummary.case?.failureClass === "ui-timeout" &&
     childSummary.case?.failureDetail?.includes("locator.waitFor") &&
     sourceObservation?.selector === plan.preAction.selector &&
     sourceObservation.exists === false && sourceObservation.visible === false,
   `${caseId} recorded stale source timeout signature drifted`);
   const target = resolvePostActionVisualTarget(plan, {
-    currentRoute: sourceObservation.url,
+    visualContext: replayVisualContext(plan.postNavigation.route, destinationEpoch),
+    executionOwnerSelector: sourceBeforeObservation?.selector || plan.preAction.selector,
+    sourceBeforeObservation,
     sourceObservation,
+    destinationObservation: plan.postNavigation.routeChanged
+      ? replayObservation({
+          selector: plan.postNavigation.selector,
+          exists: true,
+          visible: true,
+        }, destinationEpoch)
+      : null,
   });
-  assert(target.selector === "body" && target.sourceDetached === true &&
-    target.bindingKind === "post-action-document-owner" &&
-    target.requestedState === "attached",
+  const expectedTargetSelector = plan.postNavigation.routeChanged
+    ? plan.postNavigation.selector
+    : "body";
+  const expectedBindingKind = plan.postNavigation.routeChanged
+    ? "post-action-visible-destination-owner"
+    : "post-action-visible-document-owner";
+  assert(target.selector === expectedTargetSelector && target.sourceDetached === true &&
+    target.bindingKind === expectedBindingKind && target.requestedState === "visible" &&
+    target.sourceSelectorRewaited === false,
   `${caseId} detached source was still selected for post-action visual measurement`);
 }
 
@@ -470,6 +499,31 @@ const markerReplay = buildEventMarkerFlowEvidence({
 assert(markerReplay.pass === true && markerReplay.projectionStages.pass === true,
   "recorded EVT-004 marker response/timeline/DOM lifecycle replay remained failed");
 console.log("final recorded replay: PASS 99/99 prior=98/98 repaired=1/1 first-1-to-0=global-bound-before-filter");
+
+function replayObservation(observation, navigationEpoch) {
+  if (!observation) return null;
+  return {
+    ...structuredClone(observation),
+    candidateCount: observation.exists === true ? 1 : 0,
+    navigationEpoch,
+  };
+}
+
+function replayVisualContext(route, navigationEpoch) {
+  const url = new URL(String(route || "/"), "http://127.0.0.1");
+  return {
+    schema: "media-server.v390-ui-post-action-visual-context.v1",
+    route: url.pathname,
+    navigationEpoch,
+    documentOwner: {
+      selector: "body",
+      candidateCount: 1,
+      navigationEpoch,
+      exists: true,
+      visible: true,
+    },
+  };
+}
 
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));

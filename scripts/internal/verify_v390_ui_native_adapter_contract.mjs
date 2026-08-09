@@ -246,6 +246,20 @@ check("shared adapter impact census covers all canonical 424 cases and the fixed
     JSON.stringify(impact.remaining125CaseIds) ===
       JSON.stringify(nativeManifest.cases.slice(299).map(item => item.caseId)),
   "shared adapter impact census changed the fixed remaining-125 selection");
+  assert(impact.postActionVisualCensus.exactOneOwnerCaseCount === 424 &&
+    JSON.stringify(impact.postActionVisualCensus.completionModeCounts) ===
+      JSON.stringify({ request: 391, local: 28, navigation: 5 }) &&
+    impact.postActionVisualCensus.hiddenSourceBranchCaseCount === 227 &&
+    impact.postActionVisualCensus.detachedSourceBranchCaseCount === 227 &&
+    impact.postActionVisualCensus.routeChangeCaseCount === 13 &&
+    impact.postActionVisualCensus.localTransitionCaseCount === 28 &&
+    impact.postActionVisualCensus.navigationCaseCount === 5,
+  "canonical 424 post-action visual lifecycle census drifted");
+  assert(impact.cases.every(item =>
+    item.postActionVisualLifecycle.exactOneOwnerRequired === true &&
+    item.postActionVisualLifecycle.invisibleSourceRewaitAllowed === false &&
+    item.postActionVisualLifecycle.staleSourceScrollAllowed === false),
+  "canonical post-action visual lifecycle permits ambiguous/stale owners");
   for (const family of ["UI-", "EVT-", "CLIENT-", "MEDIA-", "SAFE-"]) {
     assert(impact.cases.some(item => item.caseId.startsWith(family)),
       `shared adapter impact census omitted ${family} cases`);
@@ -329,7 +343,7 @@ check("post-action lifecycle separates UI-002 source control from the redirect d
     "UI-002 redirect permits a stale source selector rewait");
 });
 
-check("post-action destination lifecycle applies only to redirects", async () => {
+check("legacy destination wait helper remains redirect-scoped", async () => {
   const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
   const ui002 = nativeManifest.cases.find(candidate => candidate.caseId === "UI-002");
   const redirectPlan = buildPostActionLifecyclePlan(ui002, {
@@ -480,66 +494,88 @@ check("post-action visual measurement never re-waits a detached source owner", (
   const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
   const item = nativeManifest.cases.find(candidate => candidate.caseId === "UI-029");
   const plan = buildPostActionLifecyclePlan(item);
+  const observation = ({ selector = plan.preAction.selector, candidateCount = 1,
+    exists = candidateCount === 1, visible = true, navigationEpoch = 1 } = {}) => ({
+    selector,
+    candidateCount,
+    navigationEpoch,
+    exists,
+    visible,
+    url: "http://127.0.0.1:8080/ops/vlm",
+  });
+  const visualContext = {
+    schema: "media-server.v390-ui-post-action-visual-context.v1",
+    route: "/ops/vlm",
+    navigationEpoch: 1,
+    documentOwner: observation({ selector: "body" }),
+  };
   const detached = resolvePostActionVisualTarget(plan, {
-    currentRoute: "/ops/vlm",
-    sourceObservation: {
-      selector: plan.preAction.selector,
-      exists: false,
-      visible: false,
-      url: "http://127.0.0.1:8080/ops/vlm",
-    },
+    visualContext,
+    sourceBeforeObservation: observation(),
+    sourceObservation: observation({ candidateCount: 0, visible: false }),
   });
   assert(detached.selector === "body" &&
-    detached.bindingKind === "post-action-document-owner" &&
+    detached.bindingKind === "post-action-visible-document-owner" &&
     detached.sourceDetached === true &&
+    detached.sourceSelectorRewaited === false &&
     detached.observedRoute === "/ops/vlm",
   "detached source control remained the post-action visual wait owner");
+  const hidden = resolvePostActionVisualTarget(plan, {
+    visualContext,
+    sourceBeforeObservation: observation(),
+    sourceObservation: observation({ visible: false }),
+  });
+  assert(hidden.selector === "body" && hidden.sourceHidden === true &&
+    hidden.bindingKind === "post-action-visible-document-owner",
+  "hidden source control remained the post-action visual wait owner");
   const retained = resolvePostActionVisualTarget(plan, {
-    currentRoute: "/ops/vlm",
-    sourceObservation: {
-      selector: plan.preAction.selector,
-      exists: true,
-      visible: false,
-      url: "http://127.0.0.1:8080/ops/vlm",
-    },
+    visualContext,
+    sourceBeforeObservation: observation(),
+    sourceObservation: observation(),
   });
   assert(retained.selector === plan.preAction.selector &&
-    retained.bindingKind === "attached-source-owner" &&
-    retained.sourceDetached === false,
-  "attached source control lost its existing visual measurement contract");
-  for (const sourceObservation of [
-    { selector: "#wrong", exists: false, visible: false, url: "http://127.0.0.1:8080/ops/vlm" },
-    { selector: plan.preAction.selector, exists: false, visible: false, url: "http://127.0.0.1:8080/wrong" },
+    retained.bindingKind === "post-action-visible-source-owner" &&
+    retained.sourceDetached === false && retained.sourceHidden === false,
+  "visible source control lost its post-action visual contract");
+  for (const invalid of [
+    { sourceObservation: observation({ selector: "#wrong" }) },
+    { sourceObservation: observation({ candidateCount: 2 }) },
+    { sourceObservation: observation({ navigationEpoch: 2 }) },
+    { visualContext: { ...visualContext, route: "/wrong" } },
   ]) {
     let rejected = false;
     try {
-      resolvePostActionVisualTarget(plan, { currentRoute: "/ops/vlm", sourceObservation });
+      resolvePostActionVisualTarget(plan, {
+        visualContext: invalid.visualContext || visualContext,
+        sourceBeforeObservation: observation(),
+        sourceObservation: invalid.sourceObservation || observation(),
+      });
     } catch {
       rejected = true;
     }
-    assert(rejected, "wrong selector/route detached source visual owner passed");
+    assert(rejected, "wrong selector/cardinality/epoch/route visual owner passed");
   }
 });
 
-check("exact runner preserves non-redirect visual behavior and binds redirected destinations", () => {
+check("exact runner preserves visible same-route source owners and binds all destination owners", () => {
   for (const snippet of [
     "buildPostActionLifecyclePlan",
-    "observePostActionLifecycle",
     "postActionLifecyclePlan",
-    "postActionLifecycleEvidence",
-    "postActionDestinationLifecycleRequired(postActionLifecyclePlan)",
+    "browser.observePostActionVisualContext()",
     "resolvePostActionVisualTarget(",
     "trace.postActionVisualTargetEvidence = postActionVisualTarget",
-    "observation?.after?.selector ===",
-    'let visualTargetSelector = item.controlAction.targetSelector || "body";',
-    "visualTargetSelector = postActionLifecyclePlan.postNavigation.selector",
+    "sourceBeforeObservation",
+    "destinationObservation",
+    "ownerBinding: postActionVisualTarget",
   ]) {
     assert(exactRunnerSource.includes(snippet),
       `exact runner post-action lifecycle integration missing ${snippet}`);
   }
-  assert(exactRunnerSource.indexOf("postActionDestinationLifecycleRequired(postActionLifecyclePlan)") <
-    exactRunnerSource.indexOf("visualTargetSelector = postActionLifecyclePlan.postNavigation.selector"),
-  "exact runner did not guard destination visual binding by redirect lifecycle");
+  assert(!exactRunnerSource.includes("postActionDestinationLifecycleRequired(postActionLifecyclePlan)"),
+    "exact runner retained the redirect-only visual owner fork");
+  assert(exactRunnerSource.indexOf("resolvePostActionVisualTarget(") <
+    exactRunnerSource.indexOf("ownerBinding: postActionVisualTarget"),
+  "exact runner did not resolve the owner before visual measurement");
 });
 
 check("canonical selector dialect audit leaves no Playwright selector path in native DOM APIs", () => {

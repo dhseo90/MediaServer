@@ -72,8 +72,6 @@ import {
 } from "./v390_ui_requested_observed_schema.mjs";
 import {
   buildPostActionLifecyclePlan,
-  observePostActionLifecycle,
-  postActionDestinationLifecycleRequired,
   resolvePostActionVisualTarget,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 import {
@@ -814,42 +812,39 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       item,
       completedReadback?.formResponseIdentity || null,
     );
-    const sourceObservation = trace.rawPrimaryObservations
+    const primaryVisualObservation = trace.rawPrimaryObservations
       .slice()
       .reverse()
-      .find(observation => observation?.action?.controlSelector ===
-        postActionLifecyclePlan.preAction.selector &&
-        observation?.after?.selector ===
-          postActionLifecyclePlan.preAction.selector)?.after || null;
-    let postActionLifecycleEvidence = null;
-    let visualTargetSelector = item.controlAction.targetSelector || "body";
-    let visualRoute = item.screenRoute;
-    if (postActionDestinationLifecycleRequired(postActionLifecyclePlan)) {
-      const observedPostAction = await observePostActionLifecycle(
-        browser,
-        postActionLifecyclePlan,
-        {
-          sourceObservation,
-        },
+      .find(observation => observation?.action?.actionId ===
+        postActionLifecyclePlan.action.primaryCompletion.actionId &&
+        observation?.action?.controlSelector ===
+          postActionLifecyclePlan.preAction.selector) || null;
+    const sourceBeforeObservation = primaryVisualObservation?.before || null;
+    const sourceObservation = primaryVisualObservation?.after || null;
+    const visualContext = await browser.observePostActionVisualContext();
+    let destinationObservation = null;
+    if (postActionLifecyclePlan.postNavigation.routeChanged) {
+      await browser.waitForSelector(postActionLifecyclePlan.postNavigation.selector, {
+        state: "visible",
+      });
+      destinationObservation = await browser.snapshot(
+        postActionLifecyclePlan.postNavigation.selector,
       );
-      postActionLifecycleEvidence = observedPostAction.evidence;
-      trace.postActionLifecycleEvidence = postActionLifecycleEvidence;
-      visualTargetSelector = postActionLifecyclePlan.postNavigation.selector;
-      visualRoute = postActionLifecycleEvidence.postNavigation.observedRoute;
-    } else {
-      const postActionVisualTarget = resolvePostActionVisualTarget(
-        postActionLifecyclePlan,
-        {
-          currentRoute: await browser.evaluate(
-            "location.pathname + location.search + location.hash",
-          ),
-          sourceObservation,
-        },
-      );
-      visualTargetSelector = postActionVisualTarget.selector;
-      trace.postActionVisualTargetEvidence = postActionVisualTarget;
-      visualRoute = postActionVisualTarget.observedRoute;
     }
+    const postActionVisualTarget = resolvePostActionVisualTarget(
+      postActionLifecyclePlan,
+      {
+        visualContext,
+        executionOwnerSelector: primaryVisualObservation?.action?.executionOwnerSelector ||
+          sourceBeforeObservation?.selector || postActionLifecyclePlan.preAction.selector,
+        sourceBeforeObservation,
+        sourceObservation,
+        destinationObservation,
+      },
+    );
+    const visualTargetSelector = postActionVisualTarget.selector;
+    trace.postActionVisualTargetEvidence = postActionVisualTarget;
+    const visualRoute = postActionVisualTarget.observedRoute;
     const visualExpectedCase = {
       canonicalCaseId: item.caseId,
       featureId: item.featureId,
@@ -872,6 +867,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         targetSelector: visualTargetSelector,
       },
       requestedTheme: item.theme,
+      ownerBinding: postActionVisualTarget,
     });
     visualExpectedCase.accountRole = visualMeasurement.accountRole;
     trace.postActionVisualRoleEvidence = {
@@ -936,7 +932,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       requireVideoOverlay: false,
       navigation: finalNavigation,
       navigationLifecycleEvidence: trace.navigationLifecycleEvidence || null,
-      postActionLifecycleEvidence,
+      postActionLifecycleEvidence: null,
       eventDomSemanticEvidence: runtimeState.get("__eventDomSemanticEvidence") || null,
       requestCorrelationEvidence: runtimeState.get("__requestCorrelationEvidence") || null,
       requestCorrelationScopeEvidence:

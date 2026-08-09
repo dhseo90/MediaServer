@@ -31,6 +31,7 @@ export const nativeCapabilities = [
   "request-correlation",
   "request-start-ledger",
   "request-action-ownership",
+  "post-action-visual-owner-lifecycle",
   "network-quiet",
   "role-session-switch",
 ];
@@ -713,6 +714,7 @@ async function openNativePlaywrightPage(playwright, {
   let explicitCorrelationScopeSequence = 0;
   const documentNavigationLedger = [];
   const documentNavigationByRequestId = new Map();
+  let documentNavigationEpoch = 0;
   let documentNavigationAfterListenerEndCount = 0;
   let closePromise = null;
   const correlationHeaderDigest = correlationId => correlationId
@@ -900,6 +902,7 @@ async function openNativePlaywrightPage(playwright, {
       requestBody: safeRequestBodyProjection(request),
     });
     if (requestKind === "document-navigation") {
+      documentNavigationEpoch += 1;
       const operation = activeNavigationOperation;
       const navigationKind = operation?.kind ||
         (urlTarget(request.url()) === urlTarget(page.url())
@@ -922,6 +925,7 @@ async function openNativePlaywrightPage(playwright, {
         requestId,
         responseStatus: 0,
         responseBound: false,
+        navigationEpoch: documentNavigationEpoch,
         listenerActive: requestListenerEndSequence === null,
       };
       if (requestListenerEndSequence !== null) {
@@ -1152,6 +1156,7 @@ async function openNativePlaywrightPage(playwright, {
         redirected: entry.redirected,
         responseStatus: entry.responseStatus,
         responseBound: entry.responseBound,
+        navigationEpoch: entry.navigationEpoch,
       })),
       listenerStartSequence: requestListenerStartSequence,
       listenerEndSequence: requestListenerEndSequence,
@@ -1837,13 +1842,18 @@ async function openNativePlaywrightPage(playwright, {
     snapshot: async (selector) => {
       const selectorValue = String(selector || "");
       const locator = page.locator(selectorValue).first();
-      const exists = selectorValue.length > 0 && await locator.count() === 1;
+      const candidateCount = selectorValue.length > 0
+        ? await page.locator(selectorValue).count()
+        : 0;
+      const exists = candidateCount === 1;
       const observed = exists
-        ? await locator.evaluate((element, ownedSelector) => {
+        ? await locator.evaluate((element, { ownedSelector, documentEpoch }) => {
             const rect = element.getBoundingClientRect();
             const style = getComputedStyle(element);
             return {
               selector: ownedSelector,
+              candidateCount: 1,
+              navigationEpoch: documentEpoch,
               exists: true,
               visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== "none" && style.visibility !== "hidden"),
               tag: String(element.tagName || "").toLowerCase(),
@@ -1862,9 +1872,11 @@ async function openNativePlaywrightPage(playwright, {
               optionValues: element.tagName === "SELECT" ? Array.from(element.options).filter(option => !option.disabled).map(option => String(option.value)) : [],
               url: location.href,
             };
-          }, selectorValue)
+          }, { ownedSelector: selectorValue, documentEpoch: documentNavigationEpoch })
         : {
             selector: selectorValue,
+            candidateCount,
+            navigationEpoch: documentNavigationEpoch,
             exists: false,
             visible: false,
             tag: "",
@@ -1885,18 +1897,82 @@ async function openNativePlaywrightPage(playwright, {
           };
       return sanitizeEvidenceValue(observed, observedRuntimeSecrets);
     },
+    observePostActionVisualContext: async () => {
+      const bodyLocator = page.locator("body");
+      const candidateCount = await bodyLocator.count();
+      const documentOwner = candidateCount === 1
+        ? await bodyLocator.evaluate((element, documentEpoch) => {
+            const rect = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            return {
+              selector: "body",
+              candidateCount: 1,
+              navigationEpoch: documentEpoch,
+              exists: true,
+              visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style &&
+                style.display !== "none" && style.visibility !== "hidden"),
+            };
+          }, documentNavigationEpoch)
+        : {
+            selector: "body",
+            candidateCount,
+            navigationEpoch: documentNavigationEpoch,
+            exists: false,
+            visible: false,
+          };
+      return {
+        schema: "media-server.v390-ui-post-action-visual-context.v1",
+        route: await page.evaluate(() => location.pathname),
+        navigationEpoch: documentNavigationEpoch,
+        documentOwner,
+      };
+    },
     measureVisualState: async (selector = "body", {
       caseBinding = null,
       requestedTheme = colorScheme,
       liveVideoSpec = null,
       liveCorrelationId = "",
+      ownerBinding = null,
     } = {}) => {
       const targetSelector = String(selector);
-      const targetLocator = page.locator(targetSelector).first();
-      await targetLocator.waitFor({ state: "attached", timeout: timeoutMs });
+      const targetCandidates = page.locator(targetSelector);
+      const targetLocator = targetCandidates.first();
+      if (ownerBinding) {
+        if (ownerBinding.schema !== "media-server.v390-ui-post-action-visual-target.v1" ||
+            ownerBinding.selector !== targetSelector) {
+          throw new Error("post-action visual owner binding mismatch");
+        }
+        if (urlPath(page.url()) !== ownerBinding.observedRoute) {
+          throw new Error("post-action visual owner route changed before measurement");
+        }
+        if (documentNavigationEpoch !== Number(ownerBinding.navigationEpoch)) {
+          throw new Error("post-action visual owner navigation epoch changed before measurement");
+        }
+        const candidateCount = await targetCandidates.count();
+        if (candidateCount !== 1) {
+          throw new Error(`post-action visual owner selector cardinality mismatch: ${candidateCount}`);
+        }
+        const visible = await targetLocator.evaluate(element => {
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          return Boolean(rect && rect.width > 0 && rect.height > 0 && style &&
+            style.display !== "none" && style.visibility !== "hidden" &&
+            Number(style.opacity || 1) > 0);
+        });
+        if (!visible) throw new Error("post-action visual owner is not visible");
+      } else {
+        await targetLocator.waitFor({ state: "attached", timeout: timeoutMs });
+      }
       const documentTarget = ["body", "html", ":root"].includes(targetSelector.trim());
       if (!documentTarget && !liveVideoSpec?.tileSelector) {
-        await targetLocator.scrollIntoViewIfNeeded({ timeout: timeoutMs });
+        if (ownerBinding) {
+          await targetLocator.evaluate(element => element.scrollIntoView({
+            block: "nearest",
+            inline: "nearest",
+          }));
+        } else {
+          await targetLocator.scrollIntoViewIfNeeded({ timeout: timeoutMs });
+        }
       }
       if (liveVideoSpec?.tileSelector) {
         const liveTileLocator = page.locator(String(liveVideoSpec.tileSelector)).first();
@@ -2132,6 +2208,7 @@ async function openNativePlaywrightPage(playwright, {
       }
       return {
         ...geometry,
+        ...(ownerBinding ? { postActionVisualOwner: structuredClone(ownerBinding) } : {}),
         focus: {
           ...geometry.focus,
           applicable: Number(geometry.focus?.focusableCount || 0) > 0,

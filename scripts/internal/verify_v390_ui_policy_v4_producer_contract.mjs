@@ -406,12 +406,20 @@ function makeRawTrace(value) {
     postActionVisualTargetEvidence: {
       schema: "media-server.v390-ui-post-action-visual-target.v1",
       caseId: value.caseId,
+      actionId: expected.actionId,
+      completionMode: expected.completionMode,
       sourceSelectorSha256: "contract-source",
-      requestedState: "attached",
+      requestedState: "visible",
       selector: value.controlAction.targetSelector || "body",
-      bindingKind: "attached-source-owner",
+      bindingKind: value.controlAction.targetSelector
+        ? "post-action-visible-source-owner"
+        : "post-action-visible-document-owner",
       sourceDetached: false,
+      sourceHidden: false,
       observedRoute: value.screenRoute,
+      navigationEpoch: 1,
+      ownerCandidateCount: 1,
+      sourceSelectorRewaited: false,
     },
     postActionVisualRoleEvidence: {
       schema: "media-server.v390-ui-post-action-visual-role.v1",

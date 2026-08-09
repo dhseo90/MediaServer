@@ -780,8 +780,14 @@ function resolveIndependentVisualBinding(trace, nativeCase, measurement, reasons
     targetSelector = lifecycle.postNavigation.selector;
   } else if (target?.schema === "media-server.v390-ui-post-action-visual-target.v1" &&
       target.caseId === nativeCase?.caseId && target.observedRoute && target.selector &&
-      ["attached-source-owner", "source-owner-without-action-observation", "post-action-document-owner"]
-        .includes(target.bindingKind)) {
+      target.requestedState === "visible" && target.ownerCandidateCount === 1 &&
+      Number.isInteger(target.navigationEpoch) && target.navigationEpoch > 0 &&
+      target.sourceSelectorRewaited === false &&
+      [
+        "post-action-visible-source-owner",
+        "post-action-visible-document-owner",
+        "post-action-visible-destination-owner",
+      ].includes(target.bindingKind)) {
     screenRoute = target.observedRoute;
     targetSelector = target.selector;
   } else {
