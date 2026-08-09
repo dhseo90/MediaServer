@@ -205,7 +205,12 @@ export async function executeCatalogRuntimeOracle({
         domReadinessConfirmed: false,
       }
     : null;
-  if (!requestScopedCorrelationOnly) await browser.setCorrelationId(correlationId);
+  if (!requestScopedCorrelationOnly) {
+    await browser.setCorrelationId(correlationId, {
+      actionId,
+      ownershipKind: "primary-action",
+    });
+  }
   try {
     const declaredVisibleControlValue = await applyDeclaredVisibleControlValue(browser, item, spec);
     const nativePrimaryControl = await observeNativePrimaryControl(browser, item);

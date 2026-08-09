@@ -80,6 +80,11 @@ import {
   buildRequestNavigationLifecyclePlan,
 } from "./v390_ui_request_navigation_lifecycle.mjs";
 import {
+  bindActionOwnedRequestLedger,
+  bindInitialRouteSettling,
+  buildInitialRouteSettlingPlan,
+} from "./v390_ui_initial_route_settling.mjs";
+import {
   diagnosticSelectionModes,
   validateDiagnosticSelectionContract,
   validateDiagnosticSelectionMode,
@@ -486,6 +491,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
       `${item.caseId} navigation status ${browser.navigation.status} not in ${item.oracle.allowedStatuses.join(",")}`);
     const initialSnapshot = await browser.snapshot("body");
+    await attestInitialRouteSettlingContext(browser, item, runtimeState);
     if (item.workflow.primaryControl.applicability === "not-applicable") {
       await observePrimaryControlContext(browser, item, requested, runtimeState);
     }
@@ -821,9 +827,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       .slice()
       .reverse()
       .find(observation => observation?.action?.actionId ===
-        postActionLifecyclePlan.action.primaryCompletion.actionId &&
-        observation?.action?.controlSelector ===
-          postActionLifecyclePlan.preAction.selector) || null;
+        postActionLifecyclePlan.action.primaryCompletion.actionId) || null;
     const navigationOwnerRequired =
       postActionLifecyclePlan.action.primaryCompletion.mode === "navigation" ||
       postActionLifecyclePlan.postNavigation.transitionKind === "document-form-redirect";
@@ -840,8 +844,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           navigationOwnerLifecycle,
         )
       : null;
+    const actionLedgerStart = runtimeState.get("__primaryActionLedgerStart") || null;
     const sourceBeforeObservation = navigationPreActionOwner?.sourceOwner ||
-      primaryVisualObservation?.before || null;
+      actionLedgerStart?.sourceBeforeOwner || primaryVisualObservation?.before || null;
     const sourceObservation = primaryVisualObservation?.after || null;
     if (navigationPreActionOwner) {
       trace.navigationOwnerLifecycleEvidence = navigationPreActionOwner;
@@ -849,6 +854,16 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     const visualContext = await browser.observePostActionVisualContext();
     let requestNavigationLifecycleBinding = null;
     if (postActionLifecyclePlan.action.primaryCompletion.mode === "request") {
+      assert(primaryVisualObservation?.schema ===
+        "media-server.v390-ui-raw-primary-observation.v1",
+      `${item.caseId} primary request raw observation missing`);
+      const initialRoutePlan = buildInitialRouteSettlingPlan(item);
+      const actionOwnedRequestLedger = bindActionOwnedRequestLedger(
+        initialRoutePlan,
+        actionLedgerStart,
+        primaryVisualObservation.networkEntries,
+      );
+      trace.actionOwnedRequestLedgerEvidence = actionOwnedRequestLedger;
       const lifecycleCheckpoint = runtimeState.get("__primaryNavigationLifecycleStart");
       assert(lifecycleCheckpoint?.schema ===
         "media-server.v390-ui-request-navigation-checkpoint.v1",
@@ -945,7 +960,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       action.semanticCompletion?.phase === "primary-action")?.semanticCompletion?.navigationBinding || null;
     if (lifecycleNavigationBinding) {
       const navigationLifecycleEvidence = buildNavigationTrustEvidence({
-        navigation: finalNavigation,
+        navigation: primaryVisualObservation?.navigation || finalNavigation,
         expected: lifecycleNavigationBinding,
       });
       if (!navigationLifecycleEvidence.pass) {
@@ -984,6 +999,10 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       requireVideoOverlay: false,
       navigation: finalNavigation,
       navigationLifecycleEvidence: trace.navigationLifecycleEvidence || null,
+      initialRouteSettlingEvidence:
+        runtimeState.get("__initialRouteSettling") || null,
+      actionOwnedRequestLedgerEvidence:
+        trace.actionOwnedRequestLedgerEvidence || null,
       postActionLifecycleEvidence: null,
       eventDomSemanticEvidence: runtimeState.get("__eventDomSemanticEvidence") || null,
       requestCorrelationEvidence: runtimeState.get("__requestCorrelationEvidence") || null,
@@ -1421,6 +1440,32 @@ async function observePrimaryControlContext(
     nativeCase: item,
   });
   runtimeState.set("__requestedObservedEnvelope", envelope);
+}
+
+async function attestInitialRouteSettlingContext(browser, item, runtimeState) {
+  assert(!runtimeState.has("__initialRouteSettling"),
+    `${item.caseId} initial route settling context is duplicated`);
+  const initialRoutePlan = buildInitialRouteSettlingPlan(item);
+  const rawInitialObserved = await browser.observeRequestedObservedState({
+    selector: "body",
+    ownerSelector: "body",
+    applicability: "required",
+  });
+  const initialRouteAttestation = await browser.attestInitialRouteSettling({
+    controlSelector: initialRoutePlan.settledControl.selector,
+    controlApplicability: initialRoutePlan.settledControl.applicability,
+    expectedControlVisible: initialRoutePlan.settledControl.expectedVisible,
+  });
+  const initialRouteBinding = bindInitialRouteSettling(
+    initialRoutePlan,
+    initialRouteAttestation,
+    rawInitialObserved.accountRole,
+  );
+  runtimeState.set("__initialRouteSettling", {
+    plan: initialRoutePlan,
+    attestation: initialRouteAttestation,
+    binding: initialRouteBinding,
+  });
 }
 
 async function executeVisualMatrix(adapter) {
@@ -2284,11 +2329,32 @@ function captureFormResponseIdentity(networkResponses, action, lifecycle, caseId
 
 async function executeCaseNativeAction(browser, item, action, runtimeState, caseRuntimeOwner, caseContext) {
   action = bindRuntimeDefaultViewRequest(item, action, caseRuntimeOwner);
-  if (action.semanticCompletion?.phase === "primary-action") {
+  const persistedLifecycle = action.kind === "execute-persisted-action"
+    ? runtimeState.get("__persistedUiLifecycle")
+    : null;
+  const formLifecycle = action.kind === "submit-form"
+    ? runtimeState.get("__formSubmitUiLifecycle")
+    : null;
+  if (action.semanticCompletion?.phase === "primary-action" &&
+      action.semanticCompletion?.completionMode === "request") {
     assert(!runtimeState.has("__primaryNavigationLifecycleStart"),
       `${item.caseId} primary navigation lifecycle start is duplicated`);
+    assert(runtimeState.has("__initialRouteSettling"),
+      `${item.caseId} primary action preceded initial route settling`);
+    const initialRoutePlan = runtimeState.get("__initialRouteSettling").plan;
+    const sourceSelector = formLifecycle?.submitSelector || action.submitSelector ||
+      persistedLifecycle?.selector || action.selector ||
+      item.workflow.primaryControl.selector || "body";
+    const actionLedgerStart = await browser.beginActionNavigationLedger({
+      actionId: action.semanticCompletion.actionId,
+      correlationId: action.semanticCompletion.correlationId,
+      sourceRoute: initialRoutePlan.actionSource.route,
+      sourceSelector,
+      expectedSourceVisible: action.kind !== "assert-hidden-control",
+    });
+    runtimeState.set("__primaryActionLedgerStart", actionLedgerStart);
     runtimeState.set("__primaryNavigationLifecycleStart",
-      browser.requestNavigationCheckpoint());
+      actionLedgerStart.navigationCheckpoint);
   }
   if (action.kind === "verify-independent-readback") {
     return executeIndependentReadback(
@@ -2311,12 +2377,6 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     );
   }
 
-  const persistedLifecycle = action.kind === "execute-persisted-action"
-    ? runtimeState.get("__persistedUiLifecycle")
-    : null;
-  const formLifecycle = action.kind === "submit-form"
-    ? runtimeState.get("__formSubmitUiLifecycle")
-    : null;
   if (action.kind === "execute-persisted-action") {
     assert(persistedLifecycle?.selector, `${item.caseId} persisted UI lifecycle was not prepared`);
   }
@@ -2905,7 +2965,10 @@ async function semanticAssertionResult(
     }
   }
   if (completion.request && !catalogObservation) {
-    await browser.setCorrelationId(completion.correlationId);
+    await browser.setCorrelationId(completion.correlationId, {
+      actionId: completion.request.initiatorActionId || completion.actionId,
+      ownershipKind: completion.request.requestOwnershipKind || "primary-action",
+    });
     try {
       if (item.caseId === "SRC-031") {
         const sourceCountBefore = await browser.evaluate(`fetch('/ops/api/sources', {

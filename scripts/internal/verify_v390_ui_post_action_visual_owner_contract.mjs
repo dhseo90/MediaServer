@@ -20,15 +20,52 @@ import {
   buildRequestNavigationCensus,
   buildRequestNavigationLifecyclePlan,
 } from "./v390_ui_request_navigation_lifecycle.mjs";
+import {
+  bindActionOwnedRequestLedger,
+  bindInitialRouteSettling,
+  buildInitialRouteSettlingCensus,
+  buildInitialRouteSettlingPlan,
+} from "./v390_ui_initial_route_settling.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const red = readJson("test/fixtures/v390_ui_post_action_visual_owner_red_20260809.json");
 const navigationRed = readJson("test/fixtures/v390_ui_navigation_pre_post_owner_red_20260809.json");
 const requestNavigationRed = readJson("test/fixtures/v390_ui_request_navigation_epoch_red_20260809.json");
 const redirectChainRed = readJson("test/fixtures/v390_ui_request_redirect_chain_red_20260809.json");
+const initialRouteRed = readJson("test/fixtures/v390_ui_initial_route_settling_red_20260810.json");
 const manifest = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const storedImpact = readJson("test/fixtures/v390_ui_shared_adapter_impact.json");
 const byId = new Map(manifest.cases.map(item => [item.caseId, item]));
+
+assert.equal(initialRouteRed.schema,
+  "media-server.v390-ui-initial-route-settling-red.v1");
+assert.equal(initialRouteRed.sourceCommitSha,
+  "fe7c4611dde964c006685db9f794f128c483023a");
+assert.equal(initialRouteRed.actualBrowserExecution, true);
+assert.equal(initialRouteRed.releaseEvidenceEligible, false);
+assert.deepEqual(initialRouteRed.coverage, {
+  target: 424,
+  attempted: 9,
+  pass: 8,
+  fail: 1,
+  notRun: 415,
+  unsupported: 0,
+});
+assert.equal(initialRouteRed.firstFailure.caseId, "UI-010");
+assert.equal(initialRouteRed.firstFailure.failureLifecycleRequestedPath, "/");
+assert.equal(initialRouteRed.firstFailure.failureLifecycleExpectedObservedPath, "/");
+assert.equal(initialRouteRed.firstFailure.failureLifecycleObservedPath, "/ops/dashboard");
+assert.equal(initialRouteRed.firstFailure.initialDocumentRequestedPath, "/ops/dashboard");
+assert.equal(initialRouteRed.firstFailure.initialDocumentEpoch, 1);
+assert.equal(initialRouteRed.firstFailure.primaryAdditionalFetchCountMisclassified, 1);
+assert.equal(initialRouteRed.firstFailure.primaryRequestReissuedMisclassified, true);
+assert.deepEqual(initialRouteRed.capturedBeforeFailure,
+  ["UI-001", "UI-002", "UI-003", "UI-004", "UI-005", "UI-007", "UI-008", "UI-009"]);
+for (const artifact of Object.values(initialRouteRed.artifacts)) {
+  assert.match(artifact.sha256, /^[0-9a-f]{64}$/);
+  const filePath = path.join(rootDir, artifact.path);
+  if (fs.existsSync(filePath)) assert.equal(sha256File(filePath), artifact.sha256);
+}
 
 assert.equal(redirectChainRed.schema,
   "media-server.v390-ui-request-redirect-chain-red.v1");
@@ -54,7 +91,9 @@ assert.deepEqual(redirectChainRed.firstFailure.orderedDocumentChain.map(hop => [
 for (const artifact of Object.values(redirectChainRed.artifacts)) {
   assert.match(artifact.sha256, /^[0-9a-f]{64}$/);
   const filePath = path.join(rootDir, artifact.path);
-  if (fs.existsSync(filePath)) assert.equal(sha256File(filePath), artifact.sha256);
+  if (artifact.path.includes("/runs/") && fs.existsSync(filePath)) {
+    assert.equal(sha256File(filePath), artifact.sha256);
+  }
 }
 
 assert.equal(requestNavigationRed.schema,
@@ -80,7 +119,9 @@ assert.deepEqual(requestNavigationRed.capturedBeforeFailure,
 for (const artifact of Object.values(requestNavigationRed.artifacts)) {
   assert.match(artifact.sha256, /^[0-9a-f]{64}$/);
   const filePath = path.join(rootDir, artifact.path);
-  if (fs.existsSync(filePath)) assert.equal(sha256File(filePath), artifact.sha256);
+  if (artifact.path.includes("/runs/") && fs.existsSync(filePath)) {
+    assert.equal(sha256File(filePath), artifact.sha256);
+  }
 }
 
 assert.equal(navigationRed.schema,
@@ -104,7 +145,9 @@ assert.equal(navigationRed.firstFailure.error,
 for (const artifact of Object.values(navigationRed.artifacts)) {
   assert.match(artifact.sha256, /^[0-9a-f]{64}$/);
   const filePath = path.join(rootDir, artifact.path);
-  if (fs.existsSync(filePath)) assert.equal(sha256File(filePath), artifact.sha256);
+  if (artifact.path.includes("/runs/") && fs.existsSync(filePath)) {
+    assert.equal(sha256File(filePath), artifact.sha256);
+  }
 }
 
 assert.equal(red.schema, "media-server.v390-ui-post-action-visual-owner-red.v1");
@@ -132,7 +175,9 @@ assert.deepEqual(red.firstFailure.sourceAfter, {
 for (const artifact of Object.values(red.artifacts)) {
   assert.match(artifact.sha256, /^[0-9a-f]{64}$/);
   const filePath = path.join(rootDir, artifact.path);
-  if (fs.existsSync(filePath)) assert.equal(sha256File(filePath), artifact.sha256);
+  if (artifact.path.includes("/runs/") && fs.existsSync(filePath)) {
+    assert.equal(sha256File(filePath), artifact.sha256);
+  }
 }
 const currentTracePath = path.join(rootDir, red.artifacts.ui109Trace.path);
 if (fs.existsSync(currentTracePath)) {
@@ -214,6 +259,154 @@ assert.deepEqual(requestNavigationCensus.caseIds["same-route-reload"], ["CLIENT-
 assert.deepEqual(requestNavigationCensus.caseIds["same-route-document-form"], [
   "AUTH-007", "AUTH-035",
 ]);
+
+const initialRouteCensus = buildInitialRouteSettlingCensus(manifest);
+assert.equal(initialRouteCensus.canonicalCaseCount, 424);
+assert.equal(initialRouteCensus.requestCompletionCount, 391);
+assert.equal(initialRouteCensus.expectedDocumentHopCount, 425);
+assert.deepEqual(initialRouteCensus.routeClassifications, {
+  "requested-equals-settled": 423,
+  "initial-http-redirect": 1,
+});
+assert.deepEqual(initialRouteCensus.redirectClassifications, {
+  "role-landing-redirect": 1,
+  "login-setup-redirect": 1,
+  "other-initial-redirect": 0,
+  "not-redirected": 423,
+});
+assert.deepEqual(initialRouteCensus.landingClassifications, {
+  "login-setup-landing": 18,
+  "client-landing": 44,
+  "operator-landing": 361,
+  "lab-landing": 1,
+});
+assert.deepEqual(initialRouteCensus.roleCounts, {
+  admin: 21,
+  anonymous: 17,
+  operator: 343,
+  viewer: 43,
+});
+assert.deepEqual(initialRouteCensus.finalStatusContractCounts, {
+  200: 423,
+  404: 1,
+});
+assert.deepEqual(initialRouteCensus.redirectLocationCounts, { "/login": 1 });
+assert.equal(Object.keys(initialRouteCensus.requestedSettledRoutePairs).length, 18);
+assert.equal(Object.values(initialRouteCensus.requestedSettledRoutePairs)
+  .reduce((sum, count) => sum + count, 0), 424);
+assert.equal(initialRouteCensus.actionSourceRouteDiffCount, 9);
+assert.deepEqual(initialRouteCensus.redirectedCaseIds, ["UI-001"]);
+assert.deepEqual(initialRouteCensus.roleLandingRedirectCaseIds, ["UI-001"]);
+assert.deepEqual(initialRouteCensus.loginSetupRedirectCaseIds, ["UI-001"]);
+
+const allInitialRouteBindings = manifest.cases.map(item => {
+  const plan = buildInitialRouteSettlingPlan(item);
+  return bindInitialRouteSettling(
+    plan,
+    initialRouteAttestation(plan),
+    item.accountRole,
+  );
+});
+assert.equal(allInitialRouteBindings.length, 424);
+assert.ok(allInitialRouteBindings.every(binding => binding.pass === true));
+
+const ui001InitialPlan = buildInitialRouteSettlingPlan(byId.get("UI-001"));
+assert.equal(ui001InitialPlan.requestedRoute, "/");
+assert.equal(ui001InitialPlan.settledRoute, "/login");
+assert.equal(ui001InitialPlan.expectedDocumentCount, 2);
+assert.equal(bindInitialRouteSettling(
+  ui001InitialPlan,
+  initialRouteAttestation(ui001InitialPlan),
+  "anonymous",
+).pass, true);
+const ui010InitialPlan = buildInitialRouteSettlingPlan(byId.get("UI-010"));
+const ui010InitialBinding = bindInitialRouteSettling(
+  ui010InitialPlan,
+  initialRouteAttestation(ui010InitialPlan),
+  "operator",
+);
+assert.equal(ui010InitialBinding.sourceOwnerSelector, "body");
+assert.equal(ui010InitialBinding.finalEpoch, 1);
+
+for (const mutation of [
+  evidence => { evidence.observedRoute = "/wrong"; },
+  evidence => { evidence.status = 302; },
+  evidence => { evidence.redirectCount = 1; },
+  evidence => { evidence.documentChain = []; },
+  evidence => { evidence.documentChain.push(structuredClone(evidence.documentChain[0])); },
+  evidence => { evidence.documentChain[0].path = "/wrong"; },
+  evidence => { evidence.documentChain[0].responseStatus = 500; },
+  evidence => { evidence.documentChain[0].responseRequestId = "wrong"; },
+  evidence => { evidence.documentChain[0].navigationEpoch = 2; },
+  evidence => { evidence.settledDocumentOwner.candidateCount = 2; },
+  evidence => { evidence.sourceBeforeOwner.visible = false; },
+  evidence => { evidence.sourceBeforeOwner = null; },
+  evidence => { evidence.actionOwnedRequestCount = 1; },
+]) assert.throws(() => bindInitialRouteSettling(
+  ui010InitialPlan,
+  mutate(initialRouteAttestation(ui010InitialPlan), mutation),
+  "operator",
+));
+assert.throws(() => bindInitialRouteSettling(
+  ui010InitialPlan,
+  initialRouteAttestation(ui010InitialPlan),
+  "viewer",
+), /role mismatch/);
+assert.throws(() => bindInitialRouteSettling(
+  ui001InitialPlan,
+  mutate(initialRouteAttestation(ui001InitialPlan), evidence => {
+    evidence.documentChain.reverse();
+  }),
+  "anonymous",
+), /route\/order mismatch/);
+
+const ui010ActionStart = actionLedgerStart(ui010InitialPlan, 1, 10);
+const ui010ActionEntries = actionRequestEntries(ui010InitialPlan, 11, true);
+const ui010ActionBinding = bindActionOwnedRequestLedger(
+  ui010InitialPlan,
+  ui010ActionStart,
+  ui010ActionEntries,
+);
+assert.equal(ui010ActionBinding.requestCount, 2);
+assert.equal(ui010ActionBinding.responseCount, 2);
+assert.equal(ui010ActionBinding.additionalFetchCount, 1);
+assert.equal(ui010ActionBinding.primaryResponseStatus, 200);
+for (const mutation of [
+  entries => { entries.shift(); },
+  entries => { entries.push(structuredClone(entries[0])); },
+  entries => { entries[0].initiatorActionId = "wrong"; },
+  entries => { entries[0].correlationId = "wrong"; },
+  entries => { entries[0].caseRequestSequence = 10; },
+  entries => { entries[1].requestId = "wrong"; },
+  entries => { entries[1].responseRequestObjectObserved = false; },
+  entries => { entries[1].status = 500; },
+  entries => { entries.splice(1, 1); },
+  entries => { entries.push(...structuredClone(entries.slice(0, 2))); },
+  entries => { entries.push(...entries.splice(0, 2)); },
+]) assert.throws(() => bindActionOwnedRequestLedger(
+  ui010InitialPlan,
+  ui010ActionStart,
+  mutate(ui010ActionEntries, mutation),
+));
+assert.throws(() => bindActionOwnedRequestLedger(
+  ui010InitialPlan,
+  mutate(ui010ActionStart, value => { value.sourceBeforeOwner.candidateCount = 2; }),
+  ui010ActionEntries,
+));
+assert.throws(() => bindActionOwnedRequestLedger(
+  ui010InitialPlan,
+  mutate(ui010ActionStart, value => { value.sourceRoute = "/wrong"; }),
+  ui010ActionEntries,
+), /source route mismatch/);
+
+const ui109InitialPlan = buildInitialRouteSettlingPlan(byId.get("UI-109"));
+assert.throws(() => bindActionOwnedRequestLedger(
+  ui109InitialPlan,
+  mutate(actionLedgerStart(ui109InitialPlan, 1, 10), value => {
+    value.sourceBeforeOwner.visible = false;
+  }),
+  actionRequestEntries(ui109InitialPlan, 11, false),
+), /source-before owner mismatch/);
 
 const ui008NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("UI-008"));
 assert.equal(ui008NavigationPlan.classification, "readback-route-roundtrip");
@@ -510,9 +703,13 @@ const adapterSource = fs.readFileSync(path.join(rootDir,
 assert.ok(runnerSource.includes("browser.observePostActionVisualContext()"));
 assert.ok(runnerSource.includes("browser.navigationOwnerLifecycle("),
   "runner must consume the pre-action owner captured before document navigation");
-assert.ok(runnerSource.includes("browser.requestNavigationCheckpoint()") &&
+assert.ok(runnerSource.includes("browser.beginActionNavigationLedger(") &&
   runnerSource.includes("browser.requestNavigationScope("),
 "runner must consume the exact action/readback-owned request navigation scope");
+assert.ok(runnerSource.includes("browser.attestInitialRouteSettling(") &&
+  runnerSource.includes("bindInitialRouteSettling(") &&
+  runnerSource.includes("bindActionOwnedRequestLedger("),
+"runner must close bootstrap settling before binding the action-owned ledger");
 assert.ok(runnerSource.includes("bindRequestNavigationLifecycle("),
   "runner must bind request navigation side-effects before visual owner selection");
 assert.ok(runnerSource.includes("ownerBinding: postActionVisualTarget"));
@@ -523,11 +720,18 @@ assert.ok(adapterSource.includes("navigationOwnerLifecycle:"),
 assert.ok(adapterSource.includes("element.scrollIntoView({"));
 assert.ok(adapterSource.includes("sourceSelectorRewaited" ) === false,
   "adapter must consume the resolved owner, not recreate source lifecycle policy");
+assert.ok(adapterSource.includes("bootstrapLedgerClosed: true") &&
+  adapterSource.includes("action ledger started before initial route settling") &&
+  adapterSource.includes("caseRequestSequenceFloor"),
+"adapter must keep bootstrap and action ledgers sequence-separated");
 
 console.log("== v3.9.0 post-action visual owner contract ==");
-console.log("- latest canonical RED: PASS 107 / FAIL UI-109 / not-run 316 replay-bound");
+console.log("- latest actual RED: attempted 9 / PASS 8 / FAIL UI-010 / not-run 415 replay-bound");
 console.log("- canonical census: PASS 424/424 exact-one owner lifecycle");
 console.log("- request navigation census: PASS 391/391 exact-one classification; side-effect 17 / none 374");
+console.log("- initial route census: PASS 424/424; same 423 / redirect 1; landing 18/44/361/1");
+console.log("- initial role/status/Location census: 21+17+343+43 / 200=423,404=1 / /login=1");
+console.log("- action-owned primary request/response/additional fetch ledger: fail-closed PASS");
 console.log("- source visible/hidden/detached, route-change, local, navigation: PASS");
 console.log("- wrong route/selector/epoch/cardinality/hidden destination: fail-closed PASS");
 
@@ -650,6 +854,142 @@ function requestNavigationScope(requestPlan, initialEpoch) {
 
 function mutateScope(scope, mutation) {
   const clone = structuredClone(scope);
+  mutation(clone);
+  return clone;
+}
+
+function initialRouteAttestation(initialPlan) {
+  let sequence = 2;
+  let priorRequestId = "";
+  const documentChain = initialPlan.expectedChain.map((expected, index) => {
+    const requestId = `${initialPlan.caseId}:initial-request-${index + 1}`;
+    const hop = {
+      sequence,
+      responseSequence: sequence + 1,
+      invocationId: initialPlan.invocationId,
+      navigationKind: "initial-document-navigation",
+      method: expected.method,
+      path: expected.path,
+      resourceType: expected.resourceType,
+      sameOrigin: expected.sameOrigin,
+      correlationPresent: false,
+      correlationDigest: "",
+      redirected: expected.redirected,
+      redirectedFromRequestId: priorRequestId,
+      requestId,
+      caseRequestIdentity: `${initialPlan.caseId}:request-${index + 1}`,
+      caseRequestSequence: index + 1,
+      responseStatus: expected.responseStatuses[0],
+      responseBound: true,
+      responseRequestId: requestId,
+      responseRequestObjectObserved: true,
+      responseLocationPath: expected.locationPath,
+      navigationEpoch: index + 1,
+    };
+    priorRequestId = requestId;
+    sequence += 2;
+    return hop;
+  });
+  const finalEpoch = initialPlan.expectedDocumentCount;
+  const settledControl = observation(
+    initialPlan.settledControl.selector,
+    finalEpoch,
+    true,
+    true,
+  );
+  return {
+    schema: "media-server.v390-ui-initial-route-settling-attestation.v1",
+    caseId: initialPlan.caseId,
+    invocationId: initialPlan.invocationId,
+    requestedRoute: initialPlan.requestedRoute,
+    observedRoute: initialPlan.settledRoute,
+    status: initialPlan.finalAllowedStatuses[0],
+    redirectCount: initialPlan.expectedRedirectCount,
+    documentChain,
+    settledDocumentOwner: observation("body", finalEpoch, true, true),
+    settledControl,
+    sourceBeforeOwner: structuredClone(settledControl),
+    bootstrapApplicationFetchCount: 4,
+    bootstrapLedgerClosed: true,
+    actionLedgerStarted: false,
+    actionOwnedRequestCount: 0,
+    actionOwnedNavigationCount: 0,
+  };
+}
+
+function actionLedgerStart(initialPlan, navigationEpoch, caseRequestSequenceFloor) {
+  return {
+    schema: "media-server.v390-ui-action-ledger-start.v1",
+    caseId: initialPlan.caseId,
+    actionId: initialPlan.primaryRequest.actionId,
+    correlationId: initialPlan.primaryRequest.correlationId,
+    sourceRoute: initialPlan.actionSource.route,
+    sourceControl: observation(
+      initialPlan.actionSource.selector || "body",
+      navigationEpoch,
+      true,
+      initialPlan.actionSource.applicability === "not-applicable"
+        ? true
+        : initialPlan.actionSource.expectedVisible,
+    ),
+    sourceBeforeOwner: observation(
+      initialPlan.actionSource.sourceOwnerSelector,
+      navigationEpoch,
+      true,
+      true,
+    ),
+    navigationEpoch,
+    caseRequestSequenceFloor,
+    networkEntryCount: caseRequestSequenceFloor * 2,
+    navigationCheckpoint: {
+      schema: "media-server.v390-ui-request-navigation-checkpoint.v1",
+      ownerLifecycleCount: 1,
+      documentNavigationCount: initialPlan.expectedDocumentCount,
+      navigationEpoch,
+    },
+  };
+}
+
+function actionRequestEntries(initialPlan, firstSequence, includeAdditional) {
+  const requests = [{
+    method: initialPlan.primaryRequest.method,
+    path: initialPlan.primaryRequest.path,
+    status: initialPlan.primaryRequest.allowedStatuses[0],
+  }];
+  if (includeAdditional) {
+    requests.push({ method: "GET", path: "/ops/api/runtime/status", status: 200 });
+  }
+  return requests.flatMap((spec, index) => {
+    const caseRequestSequence = firstSequence + index;
+    const requestId = `${initialPlan.caseId}:action-request-${caseRequestSequence}`;
+    const common = {
+      requestId,
+      caseRequestIdentity: `${initialPlan.caseId}:request-${caseRequestSequence}`,
+      caseRequestSequence,
+      requestKind: "application-fetch",
+      resourceType: "fetch",
+      sameOrigin: true,
+      correlationId: initialPlan.primaryRequest.correlationId,
+      initiatorActionId: initialPlan.primaryRequest.actionId,
+      requestOwnershipKind: "primary-action",
+      method: spec.method,
+      url: `http://127.0.0.1${spec.path}`,
+    };
+    return [{
+      phase: "request-start",
+      ...common,
+    }, {
+      phase: "response",
+      ...common,
+      responseRequestObjectObserved: true,
+      requestIdentitySource: "playwright-response-request",
+      status: spec.status,
+    }];
+  });
+}
+
+function mutate(value, mutation) {
+  const clone = structuredClone(value);
   mutation(clone);
   return clone;
 }

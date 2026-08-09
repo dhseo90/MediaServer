@@ -720,6 +720,8 @@ async function openNativePlaywrightPage(playwright, {
   let documentNavigationEpoch = 0;
   let documentNavigationAfterListenerEndCount = 0;
   const navigationOwnerLifecycles = [];
+  let initialRouteSettlingAttestation = null;
+  let actionLedgerStart = null;
   let closePromise = null;
   const correlationHeaderDigest = correlationId => correlationId
     ? createHash("sha256").update(JSON.stringify({
@@ -1271,17 +1273,150 @@ async function openNativePlaywrightPage(playwright, {
       requestListenerEndSequence = ++lifecycleSequence;
       requestListenersInstalled = false;
     }
-    return buildNavigationEvidence();
+    return initialRouteSettlingAttestation?.navigation
+      ? structuredClone(initialRouteSettlingAttestation.navigation)
+      : buildNavigationEvidence();
   };
   return {
     get navigation() {
-      return buildNavigationEvidence();
+      return initialRouteSettlingAttestation?.navigation
+        ? structuredClone(initialRouteSettlingAttestation.navigation)
+        : buildNavigationEvidence();
     },
     finalizeNavigationLedger,
     navigationOwnerLifecycle: invocationId =>
       selectExactNavigationOwnerLifecycle(navigationOwnerLifecycles, invocationId),
     navigationOwnerLifecycles: () =>
       structuredClone(navigationOwnerLifecycles),
+    attestInitialRouteSettling: async ({
+      controlSelector = null,
+      controlApplicability = "required",
+      expectedControlVisible = true,
+    } = {}) => {
+      if (initialRouteSettlingAttestation) {
+        throw new Error(`duplicate initial route settling attestation: ${caseId}`);
+      }
+      if (actionLedgerStart) {
+        throw new Error(`initial route settling attested after action ledger start: ${caseId}`);
+      }
+      const lifecycle = selectExactNavigationOwnerLifecycle(
+        navigationOwnerLifecycles,
+        String(navigationInvocationId),
+      );
+      const documentChain = structuredClone(lifecycle.documentChain?.hops || []);
+      const settledDocumentOwner = await captureNavigationOwner("body");
+      const applicability = controlApplicability === "not-applicable"
+        ? "not-applicable"
+        : "required";
+      const settledControl = applicability === "not-applicable"
+        ? {
+            selector: null,
+            candidateCount: 0,
+            navigationEpoch: documentNavigationEpoch,
+            exists: false,
+            visible: false,
+          }
+        : await captureNavigationOwner(String(controlSelector || ""));
+      if (applicability === "required" &&
+          (settledControl.candidateCount !== 1 || settledControl.exists !== true ||
+           settledControl.visible !== (expectedControlVisible === true))) {
+        throw new Error(`initial settled control cardinality/visibility mismatch: ${caseId}`);
+      }
+      const sourceBeforeOwner = expectedControlVisible === true && applicability === "required"
+        ? settledControl
+        : settledDocumentOwner;
+      if (sourceBeforeOwner.candidateCount !== 1 || sourceBeforeOwner.visible !== true) {
+        throw new Error(`initial settled source owner is not exact-one visible: ${caseId}`);
+      }
+      const bootstrapApplicationFetchCount = networkEntries.filter(entry =>
+        entry.phase === "request-start" && entry.requestKind === "application-fetch").length;
+      const actionOwnedRequestCount = networkEntries.filter(entry =>
+        entry.phase === "request-start" && entry.requestOwnershipKind === "primary-action").length;
+      const actionOwnedNavigationCount = documentNavigationLedger.filter(entry =>
+        entry.navigationKind !== "initial-document-navigation").length;
+      if (actionOwnedRequestCount !== 0 || actionOwnedNavigationCount !== 0) {
+        throw new Error(`initial route settling observed action-owned work before attestation: ${caseId}`);
+      }
+      const frozenNavigation = buildNavigationEvidence({
+        requestedPath: navigationRequestedPath,
+        invocationId: String(navigationInvocationId),
+        response: navigationResponse,
+        ledger: documentChain,
+        scopedNetworkEntries: [],
+      });
+      initialRouteSettlingAttestation = {
+        schema: "media-server.v390-ui-initial-route-settling-attestation.v1",
+        caseId: String(caseId || ""),
+        invocationId: String(navigationInvocationId || ""),
+        requestedRoute: navigationRequestedPath,
+        observedRoute: urlTarget(page.url()),
+        status: Number(navigationResponse.status || 0),
+        redirectCount: documentChain.filter(entry => entry.redirected === true).length,
+        documentChain,
+        settledDocumentOwner,
+        settledControl,
+        sourceBeforeOwner,
+        bootstrapApplicationFetchCount,
+        bootstrapLedgerClosed: true,
+        actionLedgerStarted: false,
+        actionOwnedRequestCount,
+        actionOwnedNavigationCount,
+        navigation: frozenNavigation,
+      };
+      return structuredClone(initialRouteSettlingAttestation);
+    },
+    beginActionNavigationLedger: async ({
+      actionId = "",
+      correlationId = "",
+      sourceRoute = "",
+      sourceSelector = "body",
+      expectedSourceVisible = true,
+    } = {}) => {
+      if (!initialRouteSettlingAttestation?.bootstrapLedgerClosed) {
+        throw new Error(`action ledger started before initial route settling: ${caseId}`);
+      }
+      if (actionLedgerStart) {
+        throw new Error(`duplicate action ledger start: ${caseId}`);
+      }
+      const expectedRoute = urlTarget(new URL(sourceRoute, `${httpBase}/`).toString());
+      if (!expectedRoute || urlTarget(page.url()) !== expectedRoute) {
+        throw new Error(`action ledger source route mismatch: ${caseId}`);
+      }
+      const controlOwner = await captureNavigationOwner(String(sourceSelector || "body"));
+      if (controlOwner.candidateCount !== 1 || controlOwner.exists !== true ||
+          controlOwner.visible !== (expectedSourceVisible === true)) {
+        throw new Error(`action ledger source control cardinality/visibility mismatch: ${caseId}`);
+      }
+      const sourceBeforeOwner = expectedSourceVisible === true
+        ? controlOwner
+        : await captureNavigationOwner("body");
+      if (sourceBeforeOwner.candidateCount !== 1 || sourceBeforeOwner.visible !== true) {
+        throw new Error(`action ledger source-before owner is not exact-one visible: ${caseId}`);
+      }
+      const navigationCheckpoint = {
+        schema: "media-server.v390-ui-request-navigation-checkpoint.v1",
+        ownerLifecycleCount: navigationOwnerLifecycles.length,
+        documentNavigationCount: documentNavigationLedger.length,
+        navigationEpoch: documentNavigationEpoch,
+      };
+      const caseRequestSequenceFloor = networkEntries.reduce((maximum, entry) =>
+        Math.max(maximum, Number(entry?.caseRequestSequence || 0)), 0);
+      actionLedgerStart = {
+        schema: "media-server.v390-ui-action-ledger-start.v1",
+        caseId: String(caseId || ""),
+        actionId: String(actionId || ""),
+        correlationId: String(correlationId || ""),
+        sourceRoute: expectedRoute,
+        sourceControl: controlOwner,
+        sourceBeforeOwner,
+        navigationEpoch: documentNavigationEpoch,
+        caseRequestSequenceFloor,
+        networkEntryCount: networkEntries.length,
+        navigationCheckpoint,
+      };
+      initialRouteSettlingAttestation.actionLedgerStarted = true;
+      return structuredClone(actionLedgerStart);
+    },
     requestNavigationCheckpoint: () => ({
       schema: "media-server.v390-ui-request-navigation-checkpoint.v1",
       ownerLifecycleCount: navigationOwnerLifecycles.length,
