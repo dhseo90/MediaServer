@@ -44,6 +44,7 @@ const responseDerivedDomProjectionContracts = Object.freeze({
         selector: "td[data-label='이벤트'] .ops-rule-note",
         mode: "prefixed-text",
         prefix: "rule ",
+        canonicalEmptyValues: Object.freeze(["-"]),
       }),
       scenarioName: Object.freeze({
         selector: "td[data-label='시나리오']",
@@ -374,13 +375,25 @@ export function responseDerivedDomProjectionContractFor({ caseId = "", operator 
 export function auditResponseDerivedDomProjectionContracts() {
   const optionalEmptyUses = [];
   let implicitOptionalUseCount = 0;
+  let canonicalEmptyDomUseCount = 0;
+  let invalidCanonicalEmptyDomUseCount = 0;
   for (const [key, contract] of Object.entries(responseDerivedDomProjectionContracts)) {
     const [caseId, operator, target] = key.split("\n");
     for (const field of contract.fields || []) {
       const options = field[4] || {};
       if (options.optional === true) implicitOptionalUseCount += 1;
       if (options.emptyPolicy === "optional-empty") {
-        optionalEmptyUses.push({ caseId, operator, target, domKey: String(field[1] || "") });
+        const domKey = String(field[1] || "");
+        const descriptor = contract.domFields?.[domKey];
+        const canonicalEmptyValues = descriptor?.canonicalEmptyValues;
+        const canonicalEmptyValid = Array.isArray(canonicalEmptyValues) &&
+          canonicalEmptyValues.length > 0 &&
+          canonicalEmptyValues.every(value => typeof value === "string" && value.length > 0);
+        if (canonicalEmptyValid) canonicalEmptyDomUseCount += 1;
+        else if (canonicalEmptyValues !== undefined) invalidCanonicalEmptyDomUseCount += 1;
+        optionalEmptyUses.push({ caseId, operator, target, domKey });
+      } else if (contract.domFields?.[String(field[1] || "")]?.canonicalEmptyValues !== undefined) {
+        invalidCanonicalEmptyDomUseCount += 1;
       }
     }
   }
@@ -389,6 +402,8 @@ export function auditResponseDerivedDomProjectionContracts() {
     contractCount: Object.keys(responseDerivedDomProjectionContracts).length,
     optionalEmptyUseCount: optionalEmptyUses.length,
     implicitOptionalUseCount,
+    canonicalEmptyDomUseCount,
+    invalidCanonicalEmptyDomUseCount,
     optionalEmptyUses: Object.freeze(optionalEmptyUses.map(Object.freeze)),
   });
 }
@@ -707,7 +722,7 @@ function evaluateDeclaredResponseDomProjection({
       })
       : [];
     const nodes = domOwnerExact ? (fieldFragments ? domCandidates : [domCandidates[0]]) : [];
-    const actual = nodes.length === 0
+    const rawActual = nodes.length === 0
       ? []
       : (source === "identity"
         ? nodes.map(node => String(node.eventId || ""))
@@ -716,6 +731,12 @@ function evaluateDeclaredResponseDomProjection({
             ? node.fields[domKey].map(String) : [])
           : nodes.flatMap(node => Object.prototype.hasOwnProperty.call(node.attributes || {}, domKey)
             ? [String(node.attributes[domKey])] : [])));
+    const canonicalEmptyValues = Array.isArray(contract.domFields?.[domKey]?.canonicalEmptyValues)
+      ? contract.domFields[domKey].canonicalEmptyValues.map(String)
+      : [];
+    const actual = canonicalEmptyValues.length > 0
+      ? rawActual.filter(value => !canonicalEmptyValues.includes(value))
+      : rawActual;
     const emptyPolicy = String(options.emptyPolicy || "required");
     const supportedOptions = new Set(["emptyPolicy", "limit", "minCount"]);
     const unknownOptions = Object.keys(options).filter(key => !supportedOptions.has(key));
@@ -728,6 +749,13 @@ function evaluateDeclaredResponseDomProjection({
     const countPass = expected.length >= Number(options.minCount || 1);
     const valuesPass = optionsValid && (optionalEmpty || (countPass && actual.length === expected.length &&
       expected.every((value, index) => actual[index] === value)));
+    const branchId = !optionsValid
+      ? "invalid-field-presence-policy"
+      : optionalEmpty
+      ? "declared-optional-empty"
+      : valuesPass
+      ? "required-exact-value"
+      : "field-value-mismatch";
     return {
       nameDigest: sha256Text(normalizedProjectionKey(domKey)),
       responseOwnerCount: owners.length,
@@ -735,6 +763,13 @@ function evaluateDeclaredResponseDomProjection({
         ? `${contract.collectionPath}\n${identity}` : `${contract.collectionPath}\n${owners.length}`),
       projectedValueCount: expected.length,
       projectedValueDigest: sha256Text(stable(expected)),
+      rawObservedValueCount: rawActual.length,
+      rawObservedValueDigest: sha256Text(stable(rawActual)),
+      observedValueCount: actual.length,
+      observedValueDigest: sha256Text(stable(actual)),
+      fieldPresencePolicyDigest: sha256Text(stable({ emptyPolicy })),
+      observationTransformDigest: sha256Text(stable({ canonicalEmptyValues })),
+      comparisonBranchDigest: sha256Text(branchId),
       matchedValueCount: valuesPass ? expected.length : expected.filter(value => actual.includes(value)).length,
       valuesPass,
       orderPass: valuesPass,

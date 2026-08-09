@@ -163,7 +163,8 @@ check("EVT-007 binds every projected EventRecord field to one authoritative coll
 
 check("optional-empty is explicit, owner-local, and unique across canonical projection contracts", () => {
   const audit = auditResponseDerivedDomProjectionContracts();
-  assert(audit.optionalEmptyUseCount === 1 && audit.implicitOptionalUseCount === 0,
+  assert(audit.optionalEmptyUseCount === 1 && audit.implicitOptionalUseCount === 0 &&
+    audit.canonicalEmptyDomUseCount === 1 && audit.invalidCanonicalEmptyDomUseCount === 0,
     `optional-empty audit mismatch: ${JSON.stringify(audit)}`);
   assert(JSON.stringify(audit.optionalEmptyUses) === JSON.stringify([{
     caseId: "EVT-007",
@@ -184,13 +185,17 @@ check("optional-empty is explicit, owner-local, and unique across canonical proj
     }] } }],
     observation: { count: 1, visibleCount: 1, semanticNodes: [{
       eventId: fixtureId, attributes: {}, fields: {
-        ruleId: [], scenarioName: [fixtureId],
+        ruleId: ["-"], scenarioName: [fixtureId],
         evidence: [`${fixtureId}.jpg`, `${fixtureId}.mp4`],
       },
     }] },
   };
-  assert(evaluateResponseDerivedDomFieldProjection(base).pass,
-    "declared optional-empty API/DOM absence did not pass");
+  const canonicalEmpty = evaluateResponseDerivedDomFieldProjection(base);
+  assert(canonicalEmpty.pass &&
+    canonicalEmpty.fieldEvidence[1].rawObservedValueCount === 1 &&
+    canonicalEmpty.fieldEvidence[1].observedValueCount === 0 &&
+    canonicalEmpty.fieldEvidence[1].projectedValueCount === 0,
+  "declared renderer canonical-empty API/DOM projection did not pass");
   for (const mutation of [
     value => { value.responseBodies[0].records.records[0].metadata.ruleId = "rule-1"; return value; },
     value => { value.observation.semanticNodes[0].fields.ruleId = ["rule-1"]; return value; },

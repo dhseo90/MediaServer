@@ -4325,6 +4325,7 @@ export function createV390UiCaseRuntime({
             eventType,
             status,
             expectedNodeTokens: [identityValues[0], eventType, status],
+            apiExpectedProjection: Object.freeze({ ...projection }),
           };
         } else if (binding.domKind === "source-health-text") {
           const projection = expectedRows[0].projection;
@@ -4386,7 +4387,7 @@ export function createV390UiCaseRuntime({
           path.basename(expectedProjection.snapshotPath),
           path.basename(expectedProjection.clipPath),
         ]),
-        expectedProjection: Object.freeze(expectedProjection),
+        apiExpectedProjection: Object.freeze(expectedProjection),
       });
     }
     if (item.caseId === "EVT-003" || item.caseId === "EVT-025") {
@@ -4465,6 +4466,7 @@ export function createV390UiCaseRuntime({
         eventType,
         status,
         expectedNodeTokens: [eventId, eventType, status],
+        apiExpectedProjection: Object.freeze({ eventType, status }),
       };
     }
     const canaries = [

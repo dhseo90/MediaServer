@@ -2103,6 +2103,7 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     eventType: "presence",
     status: "open",
     expectedNodeTokens: [eventId, "presence", "open"],
+    apiExpectedProjection: baseline.expectedProjection,
   };
   const fixtureRow = `presence · open eventId ${eventId}`;
   const renderActionId = "EVT-023:assert-visible-read-model:ops-timeline-refresh";
@@ -2224,6 +2225,7 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     visibleCount: 2,
     text: `motion · closed eventId unrelated ${fixtureRow}`,
     nodeTexts: ["motion · closed eventId unrelated", fixtureRow],
+    fixtureIdentityNodes: [{ eventId: "unrelated" }, { eventId }],
     attributes: [],
     values: [],
     descendantCount: 12,
@@ -2282,10 +2284,41 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     passing.responseBaselineMatched.paths[0].candidateCount === 1 &&
     passing.fixtureObserved.domCandidateCount === 2 &&
     passing.fixtureObserved.matchedNodeCount === 1 &&
+    passing.fixtureObserved.apiIdentityCandidateCount === 1 &&
+    passing.fixtureObserved.apiIdentityMatchedCount === 1 &&
+    passing.fixtureObserved.domIdentityCandidateCount === 2 &&
+    passing.fixtureObserved.domIdentityMatchedCount === 1 &&
+    passing.fixtureObserved.expectedFixtureIdentityDigest ===
+      passing.fixtureObserved.apiSelectedOwnerIdentityDigest &&
+    passing.fixtureObserved.expectedFixtureIdentityDigest ===
+      passing.fixtureObserved.domOwnerAttributeIdentityDigest &&
     Object.values(passing.fixtureObserved.fieldMatches).every(field => field.pass),
   "EVT-023 authoritative API row and Ops timeline row did not bind exactly");
   assert(JSON.stringify(passing.fixtureObserved.matchedNodeIndices) === JSON.stringify([1]),
     "EVT-023 selected Ops timeline row index is not preserved");
+  const partialIdentityBoundary = structuredClone(passing);
+  delete partialIdentityBoundary.fixtureObserved.apiProjectionKindDigest;
+  await expectReject(
+    () => Promise.resolve(validateEventDomSemanticCompositeEvidence(partialIdentityBoundary)),
+    "required structured fields are missing",
+  );
+  const missingApiProjectionIdentity = structuredClone(fixtureIdentity);
+  delete missingApiProjectionIdentity.apiExpectedProjection;
+  const missingApiProjection = evidenceFor({ identity: missingApiProjectionIdentity });
+  assert(missingApiProjection.pass === false &&
+    missingApiProjection.fixtureObserved.failureCode === "FIXTURE_IDENTITY_FIELDS_MISSING",
+  "missing typed API identity projection did not fail closed");
+  const missingDomIdentity = evidenceFor({ dom: { ...observed, fixtureIdentityNodes: [] } });
+  assert(missingDomIdentity.pass === false &&
+    missingDomIdentity.fixtureObserved.failureCode === "API_DOM_FIXTURE_IDENTITY_MISMATCH",
+  "missing DOM owner attribute identity did not fail closed");
+  const duplicateDomIdentity = evidenceFor({ dom: {
+    ...observed,
+    fixtureIdentityNodes: [{ eventId }, { eventId }],
+  } });
+  assert(duplicateDomIdentity.pass === false &&
+    duplicateDomIdentity.fixtureObserved.failureCode === "API_DOM_FIXTURE_IDENTITY_MISMATCH",
+  "duplicate DOM owner attribute identity did not fail closed");
   assert(passing.routeLocalDomBinding?.pass === true &&
     passing.routeLocalDomBinding.routeOwner === "/ops/dashboard" &&
     passing.routeLocalDomBinding.rendererOwner === "renderDashboardIncidentTimeline" &&
@@ -2775,12 +2808,14 @@ await check("EVT-026 reuses the exact EventRecord lifecycle preservation contrac
     eventType: "presence",
     status: "open",
     expectedNodeTokens: [eventId, "presence", "open"],
+    apiExpectedProjection: baseline.expectedProjection,
   };
   const observed = {
     count: 1,
     visibleCount: 1,
     text: fixtureRow,
     nodeTexts: [fixtureRow],
+    fixtureIdentityNodes: [{ eventId }],
     attributes: [],
     values: [],
     descendantCount: 4,

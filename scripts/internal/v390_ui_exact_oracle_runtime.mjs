@@ -1,6 +1,7 @@
 // 파일 용도: exact runtime oracle catalog를 실제 브라우저 interaction/API/DOM 관찰로 실행한다.
 
 import { createHash } from "node:crypto";
+import { basename } from "node:path";
 
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import {
@@ -1919,8 +1920,13 @@ async function observeDom(
               .replace(/\\s+/g, ' ').trim().slice(0, 4000));
           if (descriptor?.mode === 'prefixed-text') {
             const prefix = String(descriptor?.prefix || '');
+            const canonicalEmptyValues = Array.isArray(descriptor?.canonicalEmptyValues)
+              ? descriptor.canonicalEmptyValues.map(String)
+              : [];
             return selected.filter(value => value.startsWith(prefix))
-              .map(value => ({ name, text: value.slice(prefix.length) }));
+              .map(value => value.slice(prefix.length))
+              .filter(value => !canonicalEmptyValues.includes(value))
+              .map(text => ({ name, text }));
           }
           if (descriptor?.mode === 'single-text') {
             return selected.slice(0, 1).filter(Boolean).map(text => ({ name, text }));
@@ -1949,6 +1955,12 @@ async function observeDom(
           ])),
         };
       }),
+      fixtureIdentityNodes: [...new Set(nodes.flatMap(node => [
+        ...(node.matches?.('[data-event-semantic-event-id]') ? [node] : []),
+        ...Array.from(node.querySelectorAll('[data-event-semantic-event-id]')),
+      ]))].slice(0, 20).map(node => ({
+        eventId: String(node.getAttribute('data-event-semantic-event-id') || ''),
+      })),
       semanticNodeTexts: nodes.flatMap(node => Array.from(node.querySelectorAll('.root-cause-item')))
         .slice(0, 20)
         .map(node => String(node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 4000)),
@@ -3898,11 +3910,20 @@ export function buildEventDomSemanticCompositeEvidence({
     : null;
   const rowLocalBaselines = Object.values(priorResponseByPath)
     .filter(isEventRowLocalResponseBaseline);
+  const apiIdentityCandidates = rowLocalBaselines.map(baseline => String(baseline.identityValue));
+  const domIdentityCandidates = Array.isArray(observed?.fixtureIdentityNodes)
+    ? observed.fixtureIdentityNodes.map(node => String(node?.eventId || "")).filter(Boolean)
+    : [];
+  const domIdentityMatches = exactFixtureDescriptor
+    ? domIdentityCandidates.filter(identity => identity === String(exactFixtureDescriptor.identityValue))
+    : [];
   const apiFixtureIdentityMatched = exactFixtureIdentity
     ? rowLocalBaselines.length === 1 &&
       String(rowLocalBaselines[0].identityValue) === String(exactFixtureDescriptor.identityValue) &&
       stableEqual(rowLocalBaselines[0].expectedProjection,
-        exactFixtureDescriptor.expectedProjection)
+        exactFixtureDescriptor.apiExpectedProjection) &&
+      (exactFixtureDescriptor.kind !== "event-record" ||
+        domIdentityMatches.length === 1)
     : true;
   const expectedNodeTokens = exactFixtureIdentity
     ? exactFixtureIdentity.expectedNodeTokens.map(String)
@@ -3990,6 +4011,32 @@ export function buildEventDomSemanticCompositeEvidence({
     identityDigest: exactFixtureIdentity
       ? sha256Digest(exactFixtureDescriptor.identityProjection)
       : sha256Digest(normalizedFixtureCandidates),
+    expectedFixtureIdentityDigest: exactFixtureDescriptor
+      ? sha256Digest(exactFixtureDescriptor.identityValue)
+      : sha256Digest(""),
+    apiSelectedOwnerIdentityDigest: apiIdentityCandidates.length === 1
+      ? sha256Digest(apiIdentityCandidates[0])
+      : sha256Digest(""),
+    domOwnerAttributeIdentityDigest: domIdentityMatches.length === 1
+      ? sha256Digest(domIdentityMatches[0])
+      : sha256Digest(""),
+    expectedFixtureIdentitySourceDigest: exactFixtureDescriptor
+      ? sha256Digest("fixture-identity-descriptor")
+      : sha256Digest(""),
+    apiSelectedOwnerIdentitySourceDigest: rowLocalBaselines.length === 1
+      ? sha256Digest(`${rowLocalBaselines[0].collectionPath}:${rowLocalBaselines[0].identityPaths.join("|")}`)
+      : sha256Digest(""),
+    domOwnerAttributeIdentitySourceDigest: sha256Digest("fixtureIdentityNodes[].eventId"),
+    apiIdentityCandidateCount: apiIdentityCandidates.length,
+    apiIdentityMatchedCount: exactFixtureDescriptor
+      ? apiIdentityCandidates.filter(identity =>
+        identity === String(exactFixtureDescriptor.identityValue)).length
+      : 0,
+    domIdentityCandidateCount: domIdentityCandidates.length,
+    domIdentityMatchedCount: domIdentityMatches.length,
+    apiProjectionKindDigest: exactFixtureDescriptor
+      ? sha256Digest(exactFixtureDescriptor.apiProjectionKind)
+      : sha256Digest(""),
     expectedNodeTokensDigest: sha256Digest(expectedNodeTokens),
     observationDigest: sha256Digest(serializedObservation),
   };
@@ -5023,14 +5070,28 @@ function eventDomFixtureIdentityDescriptor(value) {
   if (value.kind === "event-record") {
     if (![value.eventId, value.eventType, value.status]
       .every(field => typeof field === "string" && field.length > 0)) return null;
+    const apiExpectedProjection = value.apiExpectedProjection;
+    if (!apiExpectedProjection || typeof apiExpectedProjection !== "object" ||
+        Array.isArray(apiExpectedProjection)) return null;
+    const apiProjectionKeys = Object.keys(apiExpectedProjection).sort();
+    const eventStateProjection = stableEqual(apiProjectionKeys, ["eventType", "status"]) &&
+      apiExpectedProjection.eventType === value.eventType &&
+      apiExpectedProjection.status === value.status;
+    const eventEvidenceProjection = stableEqual(
+      apiProjectionKeys,
+      ["clipPath", "eventId", "snapshotPath"],
+    ) && apiExpectedProjection.eventId === value.eventId &&
+      [apiExpectedProjection.snapshotPath, apiExpectedProjection.clipPath]
+        .every(field => typeof field === "string" && field.length > 0) &&
+      value.expectedNodeTokens[1] === basename(apiExpectedProjection.snapshotPath) &&
+      value.expectedNodeTokens[2] === basename(apiExpectedProjection.clipPath);
+    if (!eventStateProjection && !eventEvidenceProjection) return null;
     return {
       kind: "event-record",
       identityValue: value.eventId,
       fieldNames: ["eventId", "eventType", "status"],
-      expectedProjection: {
-        eventType: value.eventType,
-        status: value.status,
-      },
+      apiProjectionKind: eventStateProjection ? "event-state" : "event-evidence-paths",
+      apiExpectedProjection,
       identityProjection: {
         kind: "event-record",
         eventId: value.eventId,
@@ -5047,6 +5108,11 @@ function eventDomFixtureIdentityDescriptor(value) {
     identityValue: value.sourceId,
     fieldNames: ["sourceId", "status", "reason"],
     expectedProjection: {
+      status: value.status,
+      reason: value.reason,
+    },
+    apiProjectionKind: "source-health-state",
+    apiExpectedProjection: {
       status: value.status,
       reason: value.reason,
     },
@@ -5199,6 +5265,28 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
   ];
   const structuredFieldSetSupported = supportedStructuredFieldNames.some(fields =>
     stableEqual(structuredFieldNames, [...fields].sort()));
+  const identityBoundaryIntegerFields = [
+    "apiIdentityCandidateCount", "apiIdentityMatchedCount",
+    "domIdentityCandidateCount", "domIdentityMatchedCount",
+  ];
+  const identityBoundaryDigestFields = [
+    "expectedFixtureIdentityDigest", "apiSelectedOwnerIdentityDigest",
+    "domOwnerAttributeIdentityDigest", "expectedFixtureIdentitySourceDigest",
+    "apiSelectedOwnerIdentitySourceDigest", "domOwnerAttributeIdentitySourceDigest",
+    "apiProjectionKindDigest",
+  ];
+  const identityBoundaryFields = [
+    ...identityBoundaryIntegerFields,
+    ...identityBoundaryDigestFields,
+  ];
+  const identityBoundaryPresentCount = identityBoundaryFields.filter(field =>
+    Object.prototype.hasOwnProperty.call(evidence.fixtureObserved || {}, field)).length;
+  const identityBoundaryValid = identityBoundaryPresentCount === 0 ||
+    (identityBoundaryPresentCount === identityBoundaryFields.length &&
+      identityBoundaryIntegerFields.every(field =>
+        Number.isInteger(evidence.fixtureObserved?.[field])) &&
+      identityBoundaryDigestFields.every(field =>
+        /^[0-9a-f]{64}$/.test(evidence.fixtureObserved?.[field] || "")));
   assert(typeof evidence.pass === "boolean" &&
     typeof evidence.actualBrowserExecution === "boolean" &&
     typeof evidence.observationPresent?.pass === "boolean" &&
@@ -5212,6 +5300,7 @@ export function validateEventDomSemanticCompositeEvidence(evidence) {
     Number.isInteger(evidence.fixtureObserved?.candidateCount) &&
     Number.isInteger(evidence.fixtureObserved?.matchedCandidateCount) &&
     Number.isInteger(evidence.fixtureObserved?.matchedNodeCount) &&
+    identityBoundaryValid &&
     Array.isArray(evidence.fixtureObserved?.nodeDigests) &&
     evidence.fixtureObserved.nodeDigests.every(digest => /^[0-9a-f]{64}$/.test(digest)) &&
     Array.isArray(evidence.fixtureObserved?.matchedNodeDigests) &&

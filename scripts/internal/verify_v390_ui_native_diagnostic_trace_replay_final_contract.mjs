@@ -16,6 +16,7 @@ import {
   responseDerivedDomProjectionContractFor,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import {
+  buildEventDomSemanticCompositeEvidence,
   resolveEventDomAssertionForRuntime,
   selectEventDomResponseBaselines,
 } from "./v390_ui_exact_oracle_runtime.mjs";
@@ -129,6 +130,52 @@ const optionalTemplateActual = new Map([
     "a7e3602521b8ef7d3284d6dc3d16608c66fc43a14acfe4a5a60284be9c8bc53f",
     "57e9d8b8ae6582a8034c5c66aa75c560e7610ebb943a38396ece4a489428eef8",
     "RESPONSE_BASELINE_MISSING",
+  )],
+]);
+
+const latestOptionalTemplateRunRoot = path.join(
+  root,
+  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809015110-13427",
+);
+const latestOptionalTemplateSummaryBytes = fs.readFileSync(
+  path.join(latestOptionalTemplateRunRoot, "summary.json"),
+);
+const latestOptionalTemplateSummary = JSON.parse(latestOptionalTemplateSummaryBytes);
+assert.equal(sha256(latestOptionalTemplateSummaryBytes),
+  "bccb2d753f94ab7f0cb53cd53b50b3392fc2c9569d307ff40624f156b7e289bf",
+  "latest optional/template actual parent summary digest drift");
+assert.deepEqual(latestOptionalTemplateSummary.counts,
+  { target: 2, attempted: 2, pass: 0, fail: 2, notRun: 0, unsupported: 0 });
+assert.equal(latestOptionalTemplateSummary.sourceBinding?.gitCommit,
+  "8c7c5421b89695ed825b277ec746d0444a9088b2");
+const readLatestOptionalTemplateFailure = (caseId, summarySha, traceSha, signature) => {
+  const caseRoot = path.join(latestOptionalTemplateRunRoot, "cases", caseId);
+  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
+  const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
+  assert.equal(sha256(summaryBytes), summarySha,
+    `${caseId} latest optional/template summary digest drift`);
+  assert.equal(sha256(traceBytes), traceSha,
+    `${caseId} latest optional/template trace digest drift`);
+  const summary = JSON.parse(summaryBytes);
+  const trace = JSON.parse(traceBytes);
+  assert.equal(summary.case?.status, "FAIL", `${caseId} latest actual RED status drift`);
+  assert.equal(trace.caseId, caseId, `${caseId} latest actual trace identity drift`);
+  assert(`${summary.case?.failureDetail || ""}\n${JSON.stringify(summary.case?.eventDomSemanticEvidence || {})}`
+    .includes(signature), `${caseId} latest actual failure signature drift`);
+  return { summary, trace };
+};
+const latestOptionalTemplateActual = new Map([
+  ["EVT-007", readLatestOptionalTemplateFailure(
+    "EVT-007",
+    "daf857093b2d8e977f3ca759b724284e975b3fcc8b9db9e15d42189d8e42765a",
+    "001b40f6678a8fc5fa4f48685cc236793e05cb4bb16ce0828bf9ccb03a4d507b",
+    "RENDERER_PROJECTION_VALUE_MISMATCH",
+  )],
+  ["EVT-020", readLatestOptionalTemplateFailure(
+    "EVT-020",
+    "9ff408866eeb94e01ab29b132922241d06e709fccb5b2a61b1aed0f8b08986a0",
+    "9d825ed1b64335fe818a111de26204f11be8c2dc05df7f776d09709e62dd4e9e",
+    "API_DOM_FIXTURE_IDENTITY_MISMATCH",
   )],
 ]);
 
@@ -256,10 +303,11 @@ const evt007Projection = evaluateResponseDerivedDomFieldProjection({
       records: [
         {
           eventId: eventRecordFixtureId,
-          scenarioName: "review4 fixture scenario",
-          scenarioPhase: "review",
-          snapshotPath: "/test-owned/evt-007-snapshot.jpg",
-          clipPath: "/test-owned/evt-007-clip.mp4",
+          eventType: "presence",
+          status: "open",
+          scenarioName: "review4-exact",
+          snapshotPath: `/test-owned/${eventRecordFixtureId}.snapshot.json`,
+          clipPath: `/test-owned/${eventRecordFixtureId}.clip.json`,
           metadata: {},
         },
         {
@@ -279,12 +327,41 @@ const evt007Projection = evaluateResponseDerivedDomFieldProjection({
       eventId: eventRecordFixtureId,
       attributes: {},
       fields: {
-        scenarioName: ["review4 fixture scenario · review"],
-        evidence: ["evt-007-snapshot.jpg", "evt-007-clip.mp4"],
+        ruleId: ["-"],
+        scenarioName: ["review4-exact"],
+        evidence: [
+          `${eventRecordFixtureId}.snapshot.json`,
+          `${eventRecordFixtureId}.clip.json`,
+        ],
       },
     }],
   },
 });
+const latestEvt007Projection = latestOptionalTemplateActual.get("EVT-007")
+  .summary.case?.eventDomSemanticEvidence?.responseDerivedDomProjection;
+assert.equal(latestEvt007Projection?.failureCode, "RENDERER_PROJECTION_VALUE_MISMATCH");
+assert.equal(latestEvt007Projection?.fieldEvidence?.[1]?.projectedValueCount, 0);
+assert.equal(latestEvt007Projection?.fieldEvidence?.[1]?.matchedValueCount, 0);
+assert.equal(latestEvt007Projection?.fieldEvidence?.[1]?.valuesPass, false);
+assert.deepEqual({
+  caseIdDigest: evt007Projection.caseIdDigest,
+  operatorDigest: evt007Projection.operatorDigest,
+  targetDigest: evt007Projection.targetDigest,
+  observationDigest: evt007Projection.observationDigest,
+  projectedValueDigests: evt007Projection.fieldEvidence.map(field => field.projectedValueDigest),
+}, {
+  caseIdDigest: latestEvt007Projection.caseIdDigest,
+  operatorDigest: latestEvt007Projection.operatorDigest,
+  targetDigest: latestEvt007Projection.targetDigest,
+  observationDigest: latestEvt007Projection.observationDigest,
+  projectedValueDigests: latestEvt007Projection.fieldEvidence.map(field => field.projectedValueDigest),
+}, "EVT-007 actual-derived replay input/output digest binding drift");
+assert(evt007Projection.pass && evt007Projection.failureCode === "PASS" &&
+  evt007Projection.fieldEvidence[1].rawObservedValueCount === 1 &&
+  evt007Projection.fieldEvidence[1].observedValueCount === 0 &&
+  evt007Projection.fieldEvidence[1].projectedValueCount === 0 &&
+  evt007Projection.fieldEvidence[1].valuesPass === true,
+"EVT-007 declared optional-empty renderer transform did not close the actual-derived RED input");
 close(["EVT-007"],
   responseDerivedDomProjectionContractFor({
     caseId: "EVT-007",
@@ -325,11 +402,103 @@ const evt020SelectedBaseline = selectEventDomResponseBaselines(
   evt020ResolvedAssertion,
   evt020RuntimeContext,
 );
+const evt020SnapshotPath = `/test-owned/${evt020FixtureId}.snapshot.json`;
+const evt020ClipPath = `/test-owned/${evt020FixtureId}.clip.json`;
+evt020Baseline.expectedProjection.snapshotPath = evt020SnapshotPath;
+evt020Baseline.expectedProjection.clipPath = evt020ClipPath;
+const evt020FixtureIdentity = {
+  schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+  kind: "event-record",
+  eventId: evt020FixtureId,
+  eventType: "presence",
+  status: "open",
+  expectedNodeTokens: [
+    evt020FixtureId,
+    `${evt020FixtureId}.snapshot.json`,
+    `${evt020FixtureId}.clip.json`,
+  ],
+  apiExpectedProjection: evt020Baseline.expectedProjection,
+};
+const evt020NodeText = [
+  evt020FixtureId,
+  evt020FixtureIdentity.eventType,
+  evt020FixtureIdentity.status,
+  ...evt020FixtureIdentity.expectedNodeTokens.slice(1),
+].join(" ");
+const evt020Composite = buildEventDomSemanticCompositeEvidence({
+  caseId: "EVT-020",
+  selector: "#eventRecordRows",
+  observed: {
+    count: 1,
+    visibleCount: 1,
+    text: evt020NodeText,
+    nodeTexts: [evt020NodeText],
+    semanticNodes: [{ eventId: evt020FixtureId, attributes: {}, fields: {} }],
+    fixtureIdentityNodes: [{ eventId: evt020FixtureId }],
+    attributes: [{}],
+    values: [],
+    descendantCount: 1,
+  },
+  responseBodies: [{ records: { records: [{
+    eventId: evt020FixtureId,
+    eventType: "presence",
+    status: "open",
+    snapshotPath: evt020SnapshotPath,
+    clipPath: evt020ClipPath,
+  }] } }],
+  priorResponseByPath: { [evt020FixtureId]: evt020Baseline },
+  fixtureCandidates: [evt020FixtureId],
+  fixtureIdentity: evt020FixtureIdentity,
+  fixtureRequired: true,
+  actualBrowserExecution: true,
+});
+const latestEvt020Evidence = latestOptionalTemplateActual.get("EVT-020")
+  .summary.case?.eventDomSemanticEvidence;
+assert.equal(latestEvt020Evidence?.fixtureObserved?.failureCode,
+  "API_DOM_FIXTURE_IDENTITY_MISMATCH",
+  "EVT-020 recorded actual failure branch drift");
+assert.deepEqual({
+  pathCount: evt020Composite.responseBaselineMatched.pathCount,
+  comparedPathCount: evt020Composite.responseBaselineMatched.comparedPathCount,
+  candidateCount: evt020Composite.responseBaselineMatched.candidateCount,
+  pass: evt020Composite.responseBaselineMatched.pass,
+}, {
+  pathCount: latestEvt020Evidence?.responseBaselineMatched?.pathCount,
+  comparedPathCount: latestEvt020Evidence?.responseBaselineMatched?.comparedPathCount,
+  candidateCount: latestEvt020Evidence?.responseBaselineMatched?.candidateCount,
+  pass: latestEvt020Evidence?.responseBaselineMatched?.pass,
+}, "EVT-020 actual-derived response baseline branch drift");
+assert.deepEqual({
+  domCandidateCount: evt020Composite.fixtureObserved.domCandidateCount,
+  candidateCount: evt020Composite.fixtureObserved.candidateCount,
+  matchedCandidateCount: evt020Composite.fixtureObserved.matchedCandidateCount,
+  matchedNodeCount: evt020Composite.fixtureObserved.matchedNodeCount,
+  candidateDigests: evt020Composite.fixtureObserved.candidateDigests,
+}, {
+  domCandidateCount: latestEvt020Evidence?.fixtureObserved?.domCandidateCount,
+  candidateCount: latestEvt020Evidence?.fixtureObserved?.candidateCount,
+  matchedCandidateCount: latestEvt020Evidence?.fixtureObserved?.matchedCandidateCount,
+  matchedNodeCount: latestEvt020Evidence?.fixtureObserved?.matchedNodeCount,
+  candidateDigests: latestEvt020Evidence?.fixtureObserved?.candidateDigests,
+}, "EVT-020 actual-derived identity observation drift");
+assert(latestEvt020Evidence?.fixtureObserved?.apiFixtureIdentityMatched === false &&
+  evt020Composite.pass === true &&
+  evt020Composite.fixtureObserved.apiFixtureIdentityMatched === true &&
+  evt020Composite.fixtureObserved.apiIdentityCandidateCount === 1 &&
+  evt020Composite.fixtureObserved.apiIdentityMatchedCount === 1 &&
+  evt020Composite.fixtureObserved.domIdentityCandidateCount === 1 &&
+  evt020Composite.fixtureObserved.domIdentityMatchedCount === 1 &&
+  evt020Composite.fixtureObserved.expectedFixtureIdentityDigest ===
+    evt020Composite.fixtureObserved.apiSelectedOwnerIdentityDigest &&
+  evt020Composite.fixtureObserved.expectedFixtureIdentityDigest ===
+    evt020Composite.fixtureObserved.domOwnerAttributeIdentityDigest,
+"EVT-020 three-way fixture identity binding did not close the actual-derived RED input");
 const templateAudit = auditEventExactTemplateUsage();
 close(["EVT-020"],
   optionalTemplateActual.get("EVT-020").summary.case?.actualBrowserExecution === true &&
     evt020ResolvedAssertion.target === evt020FixtureId &&
     evt020SelectedBaseline[evt020FixtureId] === evt020Baseline &&
+    evt020Composite.pass &&
     templateAudit.canonicalCaseCount === 424 &&
     templateAudit.responseBaselineTemplateUseCount === 80 &&
     templateAudit.unresolvedTemplateCount === 0 &&
