@@ -1,0 +1,19 @@
+{
+  "schema": "media-server.v390-ui-document-form-response-binding-census.v1",
+  "caseCount": 11,
+  "redirectingCaseCount": 9,
+  "sameRouteCaseCount": 2,
+  "rows": [
+    {"caseId":"UI-002","method":"POST","path":"/setup","status":302,"redirectHops":1,"location":"/login","finalRoute":"/login","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"document-navigation-chain:page-owned","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"UI-003","method":"POST","path":"/login","status":302,"redirectHops":1,"location":"/client/live","finalRoute":"/client/live","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"document-navigation-chain:page-owned","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"UI-004","method":"POST","path":"/password/change","status":302,"redirectHops":1,"location":"/login","finalRoute":"/login","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"document-navigation-chain:page-owned","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"UI-005","method":"POST","path":"/logout","status":302,"redirectHops":1,"location":"/login","finalRoute":"/login","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"document-navigation-chain:page-owned","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"UI-007","method":"POST","path":"/invite/setup","status":302,"redirectHops":1,"location":"/login","finalRoute":"/login","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"document-navigation-chain:page-owned","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"AUTH-004","method":"POST","path":"/login","status":302,"redirectHops":1,"location":"/client/live","finalRoute":"/client/live","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"document-navigation-chain:page-owned","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"AUTH-005","method":"POST","path":"/setup","status":302,"redirectHops":1,"location":"/login","finalRoute":"/login","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"document-navigation-chain:page-owned","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"AUTH-006","method":"POST","path":"/setup","status":302,"redirectHops":1,"location":"/login","finalRoute":"/login","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"document-navigation-chain:page-owned","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"AUTH-007","method":"POST","path":"/login","status":403,"redirectHops":0,"location":"","finalRoute":"/login","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"not-applicable","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"AUTH-034","method":"POST","path":"/invite/setup","status":302,"redirectHops":1,"location":"/login","finalRoute":"/login","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"document-navigation-chain:page-owned","declaredPrimaryCardinality":"1/1"},
+    {"caseId":"AUTH-035","method":"POST","path":"/invite/setup","status":401,"redirectHops":0,"location":"","finalRoute":"/invite/setup","primaryResponseOwnership":"action-envelope:response.request-object-identity","redirectDestinationOwnership":"not-applicable","declaredPrimaryCardinality":"1/1"}
+  ]
+}

@@ -821,6 +821,22 @@ function requestNavigationScope(requestPlan, initialEpoch) {
         responseRequestObjectObserved: true,
         responseLocationPath: expectedHop.redirectTarget,
         navigationEpoch: epoch + hopIndex + 1,
+        ledgerOwner: expectedHop.networkOwnership === "action-envelope"
+          ? "action" : "page",
+        sourceOwner: expectedHop.networkOwnership === "action-envelope"
+          ? "explicit-action-registration"
+          : (expectedHop.networkOwnership === "document-navigation-chain"
+              ? "document-navigation-ledger" : "page"),
+        ownerPhase: expectedHop.networkOwnership === "action-envelope"
+          ? "primary-action"
+          : (expectedHop.networkOwnership === "document-navigation-chain"
+              ? "document-navigation-chain" : "independent-readback"),
+        initiatorActionId: expectedHop.networkOwnership === "action-envelope"
+          ? `${requestPlan.caseId}:submit-form` : "",
+        requestOwnershipKind: expectedHop.networkOwnership === "action-envelope"
+          ? "primary-action"
+          : (expectedHop.networkOwnership === "document-navigation-chain"
+              ? "document-navigation-chain" : ""),
       };
       previousRequestId = requestId;
       caseRequestSequence += 1;

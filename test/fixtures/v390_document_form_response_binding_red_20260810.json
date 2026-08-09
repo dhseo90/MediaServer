@@ -1,0 +1,26 @@
+{
+  "schema": "media-server.v390-document-form-response-binding-red.v1",
+  "sourceBranch": "v3.9.0",
+  "sourceCommitSha": "81d3ec3ddf6cf6055379c5bbb74fbff81395f876",
+  "sourceWorktreeClean": true,
+  "runId": "v390-test-acceptance-20260809221329-18778",
+  "coverage": {"target":424,"attempted":2,"pass":1,"fail":1,"notRun":422,"unsupported":0},
+  "firstFailure": {
+    "caseId": "UI-002",
+    "reason": "action response cardinality mismatch: 0/1",
+    "method": "POST",
+    "path": "/setup",
+    "status": 302,
+    "location": "/login",
+    "finalRoute": "/login",
+    "declaredPrimaryCardinality": "1/1",
+    "observedPrimaryCardinality": "1/0",
+    "rootTiming": "navigation completion reached action finalization before the initiating POST response event was attached to its action envelope"
+  },
+  "artifacts": {
+    "trace": {"path":".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809221329-18778/ui-exact-424/traces/UI-002.trace.json","sha256":"f8484fb439ce49dcef5212c93964a151c83223a4b768f14a28fa7576da6bbed4"},
+    "summary": {"path":".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809221329-18778/ui-exact-424/summary.json","sha256":"3457a94b7f417ecfa9ea7f4add107b383a1857bda3a32546e9e4d2eddbf359f2"},
+    "log": {"path":".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809221329-18778/ui-exact-424.log","sha256":"3d9224c5a420a1ab7b036d471856526c18d6d46a53b5c29c0838dd2a896a06ac"},
+    "browserConsole": {"path":".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809221329-18778/ui-exact-424/logs/UI-002.browser-console.json","sha256":"b99dc1584d07cf650c3f00bf6b39d3f94183613e4083746de93497f74da0ccce"}
+  }
+}

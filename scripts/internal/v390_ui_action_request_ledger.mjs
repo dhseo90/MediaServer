@@ -234,6 +234,112 @@ export function createActionRequestEnvelopeLedger(envelope) {
   });
 }
 
+export function createObjectBoundActionResponseBarrier({
+  expectedResponseCount = 1,
+  label = "action-response",
+} = {}) {
+  assert(Number.isInteger(expectedResponseCount) && expectedResponseCount > 0,
+    "action response barrier cardinality is invalid");
+  const responseHandles = new WeakSet();
+  let responseCount = 0;
+  let settled = false;
+  let settlement = "pending";
+  let failure = null;
+  let resolveCompletion;
+  let rejectCompletion;
+  let activeWaiterCount = 0;
+  let activeTimerCount = 0;
+  const completionPromise = new Promise((resolve, reject) => {
+    resolveCompletion = resolve;
+    rejectCompletion = reject;
+  });
+  // 러너가 barrier에 도달하기 전 실패도 unhandled rejection 없이 fail-closed 상태로 보존한다.
+  completionPromise.catch(() => {});
+  const fail = error => {
+    if (settlement === "failed") return;
+    failure = error instanceof Error ? error : new Error(String(error || label));
+    settled = true;
+    settlement = "failed";
+    if (responseCount < expectedResponseCount) rejectCompletion(failure);
+  };
+  const evidence = () => Object.freeze({
+    schema: "media-server.v390-ui-object-bound-response-barrier.v1",
+    label: String(label),
+    expectedResponseCount,
+    responseCount,
+    settlement,
+    settled,
+    activeWaiterCount,
+    activeTimerCount,
+    pass: settlement === "resolved" &&
+      responseCount === expectedResponseCount &&
+      activeWaiterCount === 0 && activeTimerCount === 0,
+  });
+  return Object.freeze({
+    observe(requestHandle) {
+      assertOpaque(requestHandle, "action response request");
+      if (settled) {
+        const error = new Error(`late action response after barrier ${settlement}: ${label}`);
+        fail(error);
+        throw error;
+      }
+      assert(!responseHandles.has(requestHandle),
+        `duplicate action response object at barrier: ${label}`);
+      responseHandles.add(requestHandle);
+      responseCount += 1;
+      if (responseCount > expectedResponseCount) {
+        const error = new Error(`action response barrier cardinality exceeded: ${label}`);
+        fail(error);
+        throw error;
+      }
+      if (responseCount === expectedResponseCount) {
+        settled = true;
+        settlement = "resolved";
+        resolveCompletion(evidence());
+      }
+      return evidence();
+    },
+    fail,
+    async wait({ timeoutMs } = {}) {
+      assert(Number.isFinite(timeoutMs) && timeoutMs > 0,
+        "action response barrier timeout is invalid");
+      if (failure) throw failure;
+      activeWaiterCount += 1;
+      let timer = null;
+      try {
+        const timeoutPromise = new Promise((_, reject) => {
+          activeTimerCount += 1;
+          timer = setTimeout(() => {
+            activeTimerCount -= 1;
+            timer = null;
+            const error = new Error(
+              `object-bound action response barrier timeout: ${label} ` +
+              `${responseCount}/${expectedResponseCount}`,
+            );
+            fail(error);
+            reject(error);
+          }, timeoutMs);
+        });
+        await Promise.race([completionPromise, timeoutPromise]);
+      } finally {
+        if (timer !== null) {
+          clearTimeout(timer);
+          timer = null;
+          activeTimerCount -= 1;
+        }
+        activeWaiterCount -= 1;
+      }
+      if (failure) throw failure;
+      return evidence();
+    },
+    abort(reason = "action response barrier aborted") {
+      fail(reason instanceof Error ? reason : new Error(String(reason)));
+      return evidence();
+    },
+    evidence,
+  });
+}
+
 export function classifyPageOwnedRequest({
   initialSettlingComplete = false,
   resourceType = "",

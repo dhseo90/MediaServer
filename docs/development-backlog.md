@@ -7454,6 +7454,49 @@ Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_releas
 사용자 지시에 따라 미실행이며 정적 PASS를 actual 또는 release 성공으로 승격하지 않습니다.
 별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.
 
+## V390-REVIEW4-65 document-form initiating response binding
+
+개발 상태는 `개발 완료 / static·replay 검증 완료 / actual 재실행 대기`입니다. 시작 commit
+`81d3ec3ddf6cf6055379c5bbb74fbff81395f876`의 latest actual은 exact
+`424 target / 2 attempted / 1 PASS / UI-002 FAIL / 422 not-run`이며 실패 메시지는
+`primary=action response cardinality mismatch: 0/1`입니다. UI-002의 primary는
+`POST /setup → 302 Location: /login` document form이고 destination은 `GET /login → 200`입니다.
+
+공통 원인은 route interceptor에서 envelope claim을 선행하고 `requestfinished`에서 response binding에
+필요한 Request metadata를 제거하는 동안, navigation click 완료가 exact POST response의 action-envelope
+결속보다 먼저 `endRequestActionOwnership()`을 호출할 수 있었던 timing 경합입니다. Redirect GET도 active
+navigation fallback을 통해 primary owner를 상속할 수 있었습니다.
+
+구현 위치는 `v390_ui_action_request_ledger.mjs`의 object-bound response promise barrier,
+`v390_ui_native_adapter.mjs`의 submit 전 envelope 확인, `page.on("request")` exact Request claim,
+Request 수명과 분리된 response identity WeakMap, `response.request()` 전용 binding, Location projection,
+redirect destination의 page-owned `document-navigation-chain` ledger, finalize/cleanup attestation입니다.
+`v390_ui_request_navigation_lifecycle.mjs`는 primary POST와 redirect GET ownership을 각 hop에 결속하고
+canonical 11-case census를 생성합니다. Census는 redirect 9, same-route 2이며 각 행의 method/path/status,
+redirect hop, Location, final route, response owner, declared primary cardinality `1/1`을 고정합니다.
+
+`verify_v390_ui_document_form_response_binding_contract.mjs`는 SHA-bound actual RED와 11개 모든 branch의
+actual-like late-response ordering을 실행합니다. Missing, duplicate, reordered, wrong-object, status, path,
+Location, redirect destination, late response와 pending waiter/timer는 fail-closed합니다. UI-002/case-ID 예외,
+cardinality 완화, path-only response match, sleep/retry/timeout 증가는 없습니다.
+
+Full build PASS, focused document-form `5/5`·11 cases, action/background ledger `5/5`, adapter `48/48`,
+callback `10/10`, runtime `63/63`, native `55/55`, completion `36/36`, diagnostic replay `548/548`,
+Policy producer/independence `11/11`·`11/11`, Policy v4 `27/27`, eligibility `7/7`, acceptance `21/21`,
+final integrity `12/12`, semantic audit `51/51`, approvals `986/986`, closure `31/31`, implementation
+evidence `986/986`·negative `15/15`, coverage `7/7`, project inventory `17/17`을 확인했습니다.
+
+`server.sh` dispatch와 test inventory 변경으로 implementation evidence line/context/inventory SHA가 실제로
+drift해 manifest refresh generator 1회와 기존 독립 승인 projection 1회를 실행했습니다. 문서 변경으로
+semantic discovery ledger generator는 최종 결속 포함 2회 실행했습니다. Independent reviewer, approval/
+migration producer, native generator, actual Policy producer는 모두 0회입니다. 최초 정적 실행에서 adapter/
+post-action synthetic ownership, mutable current alias hash, code comment 2건, feature manifest와 document ledger
+drift를 발견했고 공통 계약·fixture·문서 projection을 교정한 뒤 모두 재실행 PASS했습니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는 사용자 지시에 따라
+미실행이며 정적/fixture/replay PASS를 actual 또는 release 성공으로 승격하지 않습니다. 별도 tester의
+정확한 명령은 `./test_ui.sh`입니다.
+
 ## V390-REVIEW4-65 browser callback raw-schema reconciliation
 
 개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 commit

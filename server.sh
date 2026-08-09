@@ -184,6 +184,8 @@ Usage:
                  canonical exact 424 bootstrap/primary/readback request-action ownership 순서를 검증합니다.
   verify-v390-ui-action-request-background-ledger-contract
                  canonical request 391건의 action envelope와 page background ledger 분리를 검증합니다.
+  verify-v390-ui-document-form-response-binding-contract
+                 canonical document-form 11건의 initiating POST response identity/barrier와 redirect ledger 분리를 검증합니다.
   verify-v390-ui-browser-callback-free-identifier-contract
                  browser-evaluated callback의 격리 실행, serialized argument/result, 자유 식별자 fail-closed 계약을 검증합니다.
   verify-v390-ui-completion-oracle-contract
@@ -222,6 +224,8 @@ Usage:
                  latest actual RED와 canonical 424 post-action visual exact-one owner lifecycle을 검증합니다.
   verify-v390-ui-action-request-background-ledger-contract
                  canonical request 391건의 action envelope와 page background ledger 분리를 검증합니다.
+  verify-v390-ui-document-form-response-binding-contract
+                 canonical document-form 11건의 initiating POST response identity/barrier와 redirect ledger 분리를 검증합니다.
   verify-v390-ui-browser-callback-free-identifier-contract
                  browser-evaluated callback의 격리 실행, serialized argument/result, 자유 식별자 fail-closed 계약을 검증합니다.
   prepare-manual-ui-fulltest-seed
@@ -2467,6 +2471,10 @@ case "${cmd}" in
   verify-v390-ui-action-request-background-ledger-contract)
     require_internal verify_v390_ui_action_request_background_ledger_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_action_request_background_ledger_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-document-form-response-binding-contract)
+    require_internal verify_v390_ui_document_form_response_binding_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_document_form_response_binding_contract.mjs" "$@"
     ;;
   verify-v390-ui-browser-callback-free-identifier-contract)
     require_internal verify_v390_ui_browser_callback_free_identifier_contract.mjs

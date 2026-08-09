@@ -20,6 +20,7 @@ import {
   assertZeroActionCorrelationLeaks,
   classifyPageOwnedRequest,
   createActionRequestEnvelopeLedger,
+  createObjectBoundActionResponseBarrier,
   normalizeActionRequestEnvelope,
   normalizeRequestTarget,
 } from "./v390_ui_action_request_ledger.mjs";
@@ -215,11 +216,38 @@ export function createAdapterActionRequestEnvelopeWrapper({
       envelope.correlationId !== context.correlationId) {
     throw new Error("action request envelope does not match its active context");
   }
+  const responseBarrier = createObjectBoundActionResponseBarrier({
+    expectedResponseCount: envelope.expectedResponseCount,
+    label: `${envelope.caseId}:${envelope.actionId}:${envelope.method} ${envelope.target}`,
+  });
   return {
     ledger: createActionRequestEnvelopeLedger(envelope),
+    responseBarrier,
     claimCount: 0,
     responseCount: 0,
     closed: false,
+    claimInRequestEvent(request, claim) {
+      if (this.closed) throw new Error("action request arrived after envelope finalization");
+      const result = this.ledger.claim(request, claim);
+      this.claimCount += 1;
+      return result;
+    },
+    bindRequestIdentity(request, identity) {
+      if (this.closed) throw new Error("action request identity arrived after envelope finalization");
+      return this.ledger.bindRequestIdentity(request, identity);
+    },
+    bindResponseRequestObject(request, response) {
+      if (this.closed) throw new Error("late action response after envelope finalization");
+      this.ledger.bindResponse(request, response);
+      this.responseCount += 1;
+      return this.responseBarrier.observe(request);
+    },
+    waitForExpectedResponse(timeoutMs) {
+      return this.responseBarrier.wait({ timeoutMs });
+    },
+    abort(error) {
+      return this.responseBarrier.abort(error);
+    },
   };
 }
 
@@ -498,6 +526,9 @@ export function bindDocumentFormSubmission(entries, {
       primaryRequest.sameOrigin !== true ||
       !primaryRequest.initiatorActionId ||
       primaryRequest.requestOwnershipKind !== "primary-action" ||
+      primaryRequest.ledgerOwner !== "action" ||
+      primaryRequest.sourceOwner !== "explicit-action-registration" ||
+      primaryRequest.ownerPhase !== "primary-action" ||
       primaryRequest.correlationId ||
       primaryRequest.redirectedFromRequestId) {
     throw new Error("document form submit request trust binding mismatch");
@@ -520,8 +551,13 @@ export function bindDocumentFormSubmission(entries, {
       primaryResponse.sameOrigin !== true ||
       primaryResponse.initiatorActionId !== primaryRequest.initiatorActionId ||
       primaryResponse.requestOwnershipKind !== primaryRequest.requestOwnershipKind ||
+      primaryResponse.ledgerOwner !== "action" ||
+      primaryResponse.sourceOwner !== "explicit-action-registration" ||
+      primaryResponse.ownerPhase !== "primary-action" ||
       primaryResponse.correlationId ||
-      !allowedStatuses.includes(primaryResponse.status)) {
+      !allowedStatuses.includes(primaryResponse.status) ||
+      String(primaryResponse.responseLocationPath || "") !==
+        String(expectedRedirectPath || "")) {
     throw new Error("document form submit response trust binding mismatch");
   }
 
@@ -541,6 +577,11 @@ export function bindDocumentFormSubmission(entries, {
         urlTarget(redirectRequest.url) !== expectedRedirectPath ||
         redirectRequest.resourceType !== "document" ||
         redirectRequest.sameOrigin !== true ||
+        redirectRequest.ledgerOwner !== "page" ||
+        redirectRequest.sourceOwner !== "document-navigation-ledger" ||
+        redirectRequest.ownerPhase !== "document-navigation-chain" ||
+        redirectRequest.initiatorActionId ||
+        redirectRequest.requestOwnershipKind !== "document-navigation-chain" ||
         redirectRequest.correlationId) {
       throw new Error("document form submit redirect request trust binding mismatch");
     }
@@ -560,6 +601,11 @@ export function bindDocumentFormSubmission(entries, {
         urlTarget(redirectResponse.url) !== expectedRedirectPath ||
         redirectResponse.resourceType !== "document" ||
         redirectResponse.sameOrigin !== true ||
+        redirectResponse.ledgerOwner !== "page" ||
+        redirectResponse.sourceOwner !== "document-navigation-ledger" ||
+        redirectResponse.ownerPhase !== "document-navigation-chain" ||
+        redirectResponse.initiatorActionId ||
+        redirectResponse.requestOwnershipKind !== "document-navigation-chain" ||
         redirectResponse.correlationId ||
         redirectResponse.status !== 200) {
       throw new Error("document form submit redirect response trust binding mismatch");
@@ -742,6 +788,7 @@ async function openNativePlaywrightPage(playwright, {
     caseId,
   });
   const pendingRequests = new Map();
+  const responseRequestBindings = new WeakMap();
   const routeInjectedCorrelations = new WeakMap();
   const routeRequestOwnerships = new WeakMap();
   const correlationRouteFailures = [];
@@ -799,7 +846,7 @@ async function openNativePlaywrightPage(playwright, {
     activeActionRequestLedgers.find(wrapper => !wrapper.closed &&
       wrapper.claimCount < wrapper.ledger.envelope.expectedRequestCount &&
       wrapper.ledger.matches({ method, target, requestKind })) || null;
-  const claimActionRequest = (request, {
+  const selectActionRequestOwnership = (request, {
     registration = null,
   } = {}) => {
     if (!activeRequestOwnership) return null;
@@ -812,24 +859,8 @@ async function openNativePlaywrightPage(playwright, {
       if (registration?.active === true) {
         throw new Error("explicit action request registration envelope mismatch");
       }
-      if (activeNavigationOperation && requestKind === "document-navigation") {
-        return {
-          context: activeRequestOwnership,
-          ledgerWrapper: null,
-          registrationKind: "explicit-navigation-operation",
-        };
-      }
       return null;
     }
-    wrapper.ledger.claim(request, {
-      method,
-      target,
-      requestKind,
-      registrationKind: registration?.active === true
-        ? "explicit-inner-request"
-        : "manifest-envelope-sequence",
-    });
-    wrapper.claimCount += 1;
     return {
       context: activeRequestOwnership,
       ledgerWrapper: wrapper,
@@ -897,7 +928,7 @@ async function openNativePlaywrightPage(playwright, {
           Boolean(activeExplicitCorrelationRegistration.correlationId) &&
           !explicitCorrelationHeaderPresent
         ? null
-        : claimActionRequest(request, {
+        : selectActionRequestOwnership(request, {
             registration: explicitCorrelationHeaderPresent
               ? activeExplicitCorrelationRegistration
               : null,
@@ -986,14 +1017,21 @@ async function openNativePlaywrightPage(playwright, {
     const identity = requestIdentity(request);
     const requestId = identity.requestId;
     const requestStartedAtMs = Date.now();
-    const actionRequestOwnership = routeRequestOwnerships.get(request) || null;
+    const actionRequestOwnership = routeRequestOwnerships.get(request) ||
+      selectActionRequestOwnership(request);
     const actionContext = actionRequestOwnership?.context || null;
     const implicitPageLoadOwnership = !actionContext && activeNavigationOperation
-      ? {
-          actionId: `${String(activeNavigationOperation.invocationId || "initial-navigation")}:page-load`,
-          renderCycleId: "",
-          ownershipKind: "initial-page-load",
-        }
+      ? (activeNavigationOperation.kind === "form-submit-document-navigation"
+          ? {
+              actionId: "",
+              renderCycleId: "",
+              ownershipKind: "document-navigation-chain",
+            }
+          : {
+              actionId: `${String(activeNavigationOperation.invocationId || "initial-navigation")}:page-load`,
+              renderCycleId: "",
+              ownershipKind: "initial-page-load",
+            })
       : null;
     const pageOwnership = classifyPageOwnedRequest({
       initialSettlingComplete: Boolean(initialRouteSettlingAttestation),
@@ -1004,12 +1042,14 @@ async function openNativePlaywrightPage(playwright, {
     const ledgerOwner = actionContext ? "action" : "page";
     const ownerPhase = actionContext
       ? String(actionContext.phase || "")
-      : (implicitPageLoadOwnership ? "bootstrap" : pageOwnership.ownerPhase);
+      : (implicitPageLoadOwnership?.ownershipKind === "document-navigation-chain"
+          ? "document-navigation-chain"
+          : (implicitPageLoadOwnership ? "bootstrap" : pageOwnership.ownerPhase));
     const redirectedFrom = request.redirectedFrom();
     const requestKind = requestKindFor(request);
     const requestHeaderDigest = String(routeInjectedCorrelation?.requestHeaderDigest ||
       correlationHeaderDigest(correlationId));
-    pendingRequests.set(request, {
+    const pendingRequest = {
       ...identity,
       correlationId,
       requestHeaderDigest,
@@ -1025,21 +1065,41 @@ async function openNativePlaywrightPage(playwright, {
       requestActionContext: actionContext,
       actionRequestLedgerWrapper: actionRequestOwnership?.ledgerWrapper || null,
       ledgerOwner,
-      sourceOwner: ledgerOwner === "action" ? "explicit-action-registration" : "page",
+      sourceOwner: ledgerOwner === "action"
+        ? "explicit-action-registration"
+        : (ownerPhase === "document-navigation-chain"
+            ? "document-navigation-ledger"
+            : "page"),
       ownerPhase,
       requestStartedAtMs,
       requestKind,
       method: request.method(),
       path: urlTarget(request.url()),
-    });
+    };
+    pendingRequests.set(request, pendingRequest);
+    responseRequestBindings.set(request, pendingRequest);
     if (actionContext) {
+      try {
+        actionRequestOwnership.ledgerWrapper.claimInRequestEvent(request, {
+          method: request.method(),
+          target: normalizeRequestTarget(request.url()),
+          requestKind,
+          registrationKind: actionRequestOwnership.registrationKind,
+        });
+      } catch (error) {
+        actionRequestOwnership.ledgerWrapper.abort(error);
+      }
       requestActionOwnershipRegistry.register(actionContext, {
         requestId,
         caseId,
         actionId: String(actionContext.actionId || ""),
         phase: String(actionContext.phase || ""),
       });
-      actionRequestOwnership?.ledgerWrapper?.ledger.bindRequestIdentity(request, identity);
+      try {
+        actionRequestOwnership.ledgerWrapper.bindRequestIdentity(request, identity);
+      } catch (error) {
+        actionRequestOwnership.ledgerWrapper.abort(error);
+      }
     }
     networkEntries.push({
       phase: "request-start",
@@ -1058,7 +1118,11 @@ async function openNativePlaywrightPage(playwright, {
       correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
       requestHeaderDigest,
       ledgerOwner,
-      sourceOwner: ledgerOwner === "action" ? "explicit-action-registration" : "page",
+      sourceOwner: ledgerOwner === "action"
+        ? "explicit-action-registration"
+        : (ownerPhase === "document-navigation-chain"
+            ? "document-navigation-ledger"
+            : "page"),
       ownerPhase,
       actionRegistrationKind: String(actionRequestOwnership?.registrationKind || ""),
       initiatorActionId: String(requestOwnership?.actionId || ""),
@@ -1106,6 +1170,15 @@ async function openNativePlaywrightPage(playwright, {
         responseLocationPath: "",
         navigationEpoch: documentNavigationEpoch,
         listenerActive: requestListenerEndSequence === null,
+        ledgerOwner,
+        sourceOwner: ledgerOwner === "action"
+          ? "explicit-action-registration"
+          : (ownerPhase === "document-navigation-chain"
+              ? "document-navigation-ledger"
+              : "page"),
+        ownerPhase,
+        initiatorActionId: String(requestOwnership?.actionId || ""),
+        requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
       };
       if (requestListenerEndSequence !== null) {
         documentNavigationAfterListenerEndCount += 1;
@@ -1118,7 +1191,7 @@ async function openNativePlaywrightPage(playwright, {
     const { request, initiatingRequest } =
       bindPlaywrightResponseToInitiatingRequest(
         response,
-        pendingRequests,
+        responseRequestBindings,
         requestIdentityRegistry,
       );
     const correlationId = String(initiatingRequest?.correlationId || "");
@@ -1161,20 +1234,27 @@ async function openNativePlaywrightPage(playwright, {
       url: response.url(),
       responseHeaders: {
         "content-type": String(response.headers()["content-type"] || ""),
+        location: String(response.headers().location || ""),
       },
     };
+    entry.responseLocationPath = entry.responseHeaders.location
+      ? urlTarget(new URL(entry.responseHeaders.location, response.url()).toString())
+      : "";
     networkEntries.push(entry);
     if (initiatingRequest?.actionRequestLedgerWrapper) {
-      initiatingRequest.actionRequestLedgerWrapper.ledger.bindResponse(request, {
-        method: request.method(),
-        target: response.url(),
-        status: response.status(),
-        requestId: initiatingRequest.requestId,
-        caseRequestIdentity: initiatingRequest.caseRequestIdentity,
-        caseRequestSequence: initiatingRequest.caseRequestSequence,
-        responseRequestObjectObserved: true,
-      });
-      initiatingRequest.actionRequestLedgerWrapper.responseCount += 1;
+      try {
+        initiatingRequest.actionRequestLedgerWrapper.bindResponseRequestObject(request, {
+          method: request.method(),
+          target: response.url(),
+          status: response.status(),
+          requestId: initiatingRequest.requestId,
+          caseRequestIdentity: initiatingRequest.caseRequestIdentity,
+          caseRequestSequence: initiatingRequest.caseRequestSequence,
+          responseRequestObjectObserved: true,
+        });
+      } catch (error) {
+        initiatingRequest.actionRequestLedgerWrapper.abort(error);
+      }
     }
     if (requestKind === "document-navigation") {
       const ledgerEntry = documentNavigationByRequestId.get(entry.requestId);
@@ -1317,6 +1397,11 @@ async function openNativePlaywrightPage(playwright, {
     responseRequestObjectObserved: entry.responseRequestObjectObserved,
     responseLocationPath: entry.responseLocationPath,
     navigationEpoch: entry.navigationEpoch,
+    ledgerOwner: entry.ledgerOwner,
+    sourceOwner: entry.sourceOwner,
+    ownerPhase: entry.ownerPhase,
+    initiatorActionId: entry.initiatorActionId,
+    requestOwnershipKind: entry.requestOwnershipKind,
   });
   const captureNavigationOwnerLifecycle = async (operation, sourceOwner, action) => {
     if (navigationOwnerLifecycles.some(item =>
@@ -1714,12 +1799,42 @@ async function openNativePlaywrightPage(playwright, {
         phase: expected.phase,
       }),
     endRequestActionOwnership: async context => {
-      const evidence = requestActionOwnershipRegistry.end(context);
-      const envelopeLedgers = activeActionRequestLedgers.map(wrapper => {
-        const ledgerEvidence = wrapper.ledger.close();
-        wrapper.closed = true;
-        return ledgerEvidence;
-      });
+      let evidence;
+      let envelopeLedgers;
+      try {
+        for (const wrapper of activeActionRequestLedgers) {
+          const barrier = wrapper.responseBarrier.evidence();
+          if (barrier.settled !== true || barrier.settlement !== "resolved" ||
+              barrier.responseCount !== barrier.expectedResponseCount) {
+            throw new Error(
+              `action response completion barrier is not resolved: ` +
+              `${barrier.responseCount}/${barrier.expectedResponseCount}`,
+            );
+          }
+        }
+        evidence = requestActionOwnershipRegistry.end(context);
+        envelopeLedgers = activeActionRequestLedgers.map(wrapper => {
+          const ledgerEvidence = wrapper.ledger.close();
+          wrapper.closed = true;
+          const responseBarrier = wrapper.responseBarrier.evidence();
+          if (responseBarrier.pass !== true) {
+            throw new Error("action response completion barrier cleanup is incomplete");
+          }
+          return { ...ledgerEvidence, responseBarrier };
+        });
+      } catch (error) {
+        for (const wrapper of activeActionRequestLedgers) {
+          wrapper.abort(error);
+          wrapper.closed = true;
+        }
+        requestActionOwnershipRegistry.cleanup({ failure: error });
+        activeRequestOwnership = null;
+        activeRequestRenderCycleId = "";
+        activeActionRequestLedgers = [];
+        activeCorrelationId = "";
+        activeCorrelationInjectionEnabled = false;
+        throw error;
+      }
       const scopedEntries = networkEntries.slice(activeActionScopeNetworkStart);
       const correlationLeakEvidence = assertZeroActionCorrelationLeaks(scopedEntries, {
         actionId: context.actionId,
@@ -1754,6 +1869,10 @@ async function openNativePlaywrightPage(playwright, {
       structuredClone(networkEntries.filter(entry => entry.ledgerOwner === "page")),
     cleanupRequestActionOwnership: failure => {
       const evidence = requestActionOwnershipRegistry.cleanup({ failure });
+      for (const wrapper of activeActionRequestLedgers) {
+        wrapper.abort(failure || new Error("request action ownership cleanup"));
+        wrapper.closed = true;
+      }
       activeRequestOwnership = null;
       activeRequestRenderCycleId = "";
       activeActionRequestLedgers = [];
@@ -2226,11 +2345,31 @@ async function openNativePlaywrightPage(playwright, {
       if (sourceOwner.candidateCount !== 1 || sourceOwner.visible !== true) {
         throw new Error(`document form source-before owner is not visible: ${operation.invocationId}`);
       }
+      const documentEnvelopeWrappers = activeActionRequestLedgers.filter(wrapper =>
+        wrapper.closed !== true &&
+        wrapper.ledger.envelope.requestKind === "document-navigation");
+      if (documentEnvelopeWrappers.length !== 1) {
+        throw new Error(
+          `document form action envelope cardinality mismatch before submit: ` +
+          `${documentEnvelopeWrappers.length}/1`,
+        );
+      }
+      const documentEnvelopeWrapper = documentEnvelopeWrappers[0];
+      if (documentEnvelopeWrapper.claimCount !== 0 ||
+          documentEnvelopeWrapper.responseCount !== 0 ||
+          documentEnvelopeWrapper.responseBarrier.evidence().settlement !== "pending") {
+        throw new Error("document form action envelope was not pristine before submit");
+      }
       activeNavigationOperation = operation;
       try {
         await page.locator(selector).click();
+        const responseBarrier = await documentEnvelopeWrapper
+          .waitForExpectedResponse(timeoutMs);
         await captureNavigationOwnerLifecycle(operation, sourceOwner, selector);
-        return { invocationId: operation.invocationId };
+        return {
+          invocationId: operation.invocationId,
+          responseBarrier,
+        };
       } finally {
         activeNavigationOperation = null;
       }

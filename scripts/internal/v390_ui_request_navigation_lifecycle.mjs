@@ -20,6 +20,7 @@ export function buildRequestNavigationLifecyclePlan(item) {
       allowedStatuses: [...request.statuses],
       redirected: false,
       redirectTarget: routePath(request.redirectPath || ""),
+      networkOwnership: "action-envelope",
     }];
     if (request.redirectPath) {
       assert(Array.isArray(request.finalStatuses) && request.finalStatuses.length > 0,
@@ -30,6 +31,7 @@ export function buildRequestNavigationLifecyclePlan(item) {
         allowedStatuses: [...request.finalStatuses],
         redirected: true,
         redirectTarget: "",
+        networkOwnership: "document-navigation-chain",
       });
     }
     steps.push({
@@ -140,6 +142,51 @@ export function buildRequestNavigationCensus(manifest) {
     exactOneClassificationCount: Object.values(counts).reduce((sum, count) => sum + count, 0),
     counts,
     caseIds,
+  };
+}
+
+export function buildDocumentFormResponseBindingCensus(manifest) {
+  assert(Array.isArray(manifest?.cases), "document form response census manifest missing");
+  const rows = manifest.cases.filter(item =>
+    buildPostActionLifecyclePlan(item).action.primaryCompletion.mode === "request")
+    .map(item => ({
+    item,
+    plan: buildRequestNavigationLifecyclePlan(item),
+    })).filter(({ plan }) => plan.steps.some(step =>
+    step.ownershipPhase === "primary-action" &&
+    step.kind === "form-submit-document-navigation"));
+  return {
+    schema: "media-server.v390-ui-document-form-response-binding-census.v1",
+    caseCount: rows.length,
+    redirectingCaseCount: rows.filter(({ plan }) =>
+      plan.classification === "document-form-redirect").length,
+    sameRouteCaseCount: rows.filter(({ plan }) =>
+      plan.classification === "same-route-document-form").length,
+    rows: rows.map(({ item, plan }) => {
+      const step = plan.steps.find(candidate =>
+        candidate.ownershipPhase === "primary-action" &&
+        candidate.kind === "form-submit-document-navigation");
+      const initiating = step.expectedHops[0];
+      const destination = step.expectedHops[1] || null;
+      assert(initiating && initiating.method === "POST" &&
+        initiating.allowedStatuses.length === 1,
+      `${item.caseId} document form initiating response census drift`);
+      return {
+        caseId: item.caseId,
+        method: initiating.method,
+        path: initiating.path,
+        status: initiating.allowedStatuses[0],
+        redirectHops: destination ? 1 : 0,
+        location: initiating.redirectTarget,
+        finalRoute: plan.finalRoute,
+        primaryResponseOwnership:
+          "action-envelope:response.request-object-identity",
+        redirectDestinationOwnership: destination
+          ? "document-navigation-chain:page-owned"
+          : "not-applicable",
+        declaredPrimaryCardinality: "1/1",
+      };
+    }),
   };
 }
 
@@ -256,6 +303,21 @@ export function bindRequestNavigationLifecycle(plan, scope, {
       assert(observedHop.resourceType === "document" && observedHop.sameOrigin === true &&
         observedHop.correlationPresent !== true,
       `${plan.caseId} owned document hop trust boundary mismatch`);
+      if (expectedHop.networkOwnership === "action-envelope") {
+        assert(observedHop.ledgerOwner === "action" &&
+          observedHop.sourceOwner === "explicit-action-registration" &&
+          observedHop.ownerPhase === "primary-action" &&
+          observedHop.requestOwnershipKind === "primary-action" &&
+          Boolean(observedHop.initiatorActionId),
+        `${plan.caseId} initiating document response ownership mismatch`);
+      } else if (expectedHop.networkOwnership === "document-navigation-chain") {
+        assert(observedHop.ledgerOwner === "page" &&
+          observedHop.sourceOwner === "document-navigation-ledger" &&
+          observedHop.ownerPhase === "document-navigation-chain" &&
+          observedHop.requestOwnershipKind === "document-navigation-chain" &&
+          !observedHop.initiatorActionId,
+        `${plan.caseId} redirect destination ownership mismatch`);
+      }
       assert(observedHop.redirected === expectedHop.redirected &&
         routePath(observedHop.responseLocationPath) === expectedHop.redirectTarget,
       `${plan.caseId} owned document redirect target mismatch`);
@@ -327,6 +389,7 @@ function navigationStep(caseId, owner, sourceRoute, destinationRoute, kind) {
       allowedStatuses: [200],
       redirected: false,
       redirectTarget: "",
+      networkOwnership: "independent-readback",
     }],
   };
 }

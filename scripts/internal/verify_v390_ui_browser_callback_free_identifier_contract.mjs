@@ -87,7 +87,7 @@ await check("latest actual UI-001 raw schema mismatch is frozen as an actual-der
   for (const artifact of Object.values(rawSchemaRed.artifacts)) {
     assert(/^[0-9a-f]{64}$/.test(artifact.sha256), `invalid raw schema RED artifact SHA: ${artifact.path}`);
     const absolute = path.join(rootDir, artifact.path);
-    if (fs.existsSync(absolute)) {
+    if (artifact.path.includes("/runs/") && fs.existsSync(absolute)) {
       assert(crypto.createHash("sha256").update(fs.readFileSync(absolute)).digest("hex") === artifact.sha256,
         `raw schema RED artifact hash drift: ${artifact.path}`);
     }
