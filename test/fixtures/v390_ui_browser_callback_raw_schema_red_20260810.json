@@ -1,0 +1,111 @@
+{
+  "schema": "media-server.v390-ui-browser-callback-raw-schema-red.v1",
+  "recordedAt": "2026-08-10T00:00:00.000Z",
+  "sourceCommitSha": "e248d6a904aed3e1c30ddf8e310c0e367d02b4ec",
+  "sourceBranch": "v3.9.0",
+  "sourceWorktreeClean": true,
+  "coverage": {
+    "target": 424,
+    "attempted": 1,
+    "pass": 0,
+    "fail": 1,
+    "notRun": 423,
+    "unsupported": 0
+  },
+  "firstFailure": {
+    "caseId": "UI-001",
+    "error": "runtime-observed-raw-invalid:observed-fields-mismatch,observed-schema-mismatch",
+    "navigation": {
+      "requested": "GET /",
+      "redirect": "302 /login",
+      "observed": "GET /login 200",
+      "status": "PASS"
+    },
+    "actionOwnedRequestCount": 0,
+    "backgroundActionLedgerCount": 0,
+    "correlationLeakCount": 0
+  },
+  "actualDerived": {
+    "derivation": "UI-001 trace runtime viewport/route/navigation plus adapter.runtime-context browser callback's exact returned fields at source commit",
+    "browserRawContext": {
+      "schema": "media-server.v390-ui-browser-callback-result.v1",
+      "callbackId": "adapter.runtime-context",
+      "screenRoute": "/login",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light"
+    },
+    "brokenNodeRawObserved": {
+      "schema": "media-server.v390-ui-browser-callback-result.v1",
+      "callbackId": "adapter.runtime-context",
+      "screenRoute": "/login",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "applicability": "not-applicable",
+        "exists": false,
+        "visible": false,
+        "enabled": false
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "firstTransformationBoundary": "adapter.runtime-context browser raw result -> openNativePlaywrightPage.observeRequestedObservedState Node assembly"
+  },
+  "expectedGreen": {
+    "schema": "media-server.v390-ui-runtime-observed.v1",
+    "screenRoute": "/login",
+    "accountRole": "anonymous",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "controlAction": {
+      "selector": null,
+      "applicability": "not-applicable",
+      "exists": false,
+      "visible": false,
+      "enabled": false
+    },
+    "provenance": {
+      "screenRoute": "browser-location",
+      "accountRole": "session-whoami",
+      "viewport": "browser-inner-size",
+      "theme": "browser-media-query",
+      "controlAction": "dom-selector-state"
+    }
+  },
+  "artifacts": {
+    "acceptanceSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/summary.json",
+      "sha256": "7493beaeabb4dafa57c4ab9f9ac018880c0e65d705a250e2c3bf85f5f777b484"
+    },
+    "firstFailure": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/first-failure.json",
+      "sha256": "89426b01ba6a92125ede972e260b7fa51b4dc406970a19a4788fa0d4570481bb"
+    },
+    "exactSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809205942-5957/ui-exact-424/summary.json",
+      "sha256": "917dbbd997c2f819333cee651ee4fc22ccdf47008b3de85932ef1b0c9fcab5a9"
+    },
+    "ui001Trace": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809205942-5957/ui-exact-424/traces/UI-001.trace.json",
+      "sha256": "521f7113954aee8628c6452afe12eabe2900d7a150e47b526984d3baae557d6f"
+    }
+  },
+  "boundary": "Actual-derived RED only. It is not actual UI PASS evidence and does not authorize browser execution."
+}

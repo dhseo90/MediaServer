@@ -7454,6 +7454,50 @@ Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_releas
 사용자 지시에 따라 미실행이며 정적 PASS를 actual 또는 release 성공으로 승격하지 않습니다.
 별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.
 
+## V390-REVIEW4-65 browser callback raw-schema reconciliation
+
+개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 commit
+`e248d6a904aed3e1c30ddf8e310c0e367d02b4ec`의 latest actual은 exact
+`424 target / 1 attempted / 0 PASS / UI-001 FAIL / 423 not-run`이며,
+navigation `GET / → 302 /login → 200`과 action/background ledger 0, leak 0은 PASS였지만
+`runtime-observed-raw-invalid:observed-fields-mismatch,observed-schema-mismatch`로 중단됐습니다.
+
+최초 변환 경계는 `adapter.runtime-context` browser raw callback envelope에서
+`openNativePlaywrightPage.observeRequestedObservedState` Node assembly로 넘어가는 지점입니다.
+Node가 runtime-observed schema를 먼저 쓴 뒤 callback result를 spread해 schema를 다시 덮어쓰고
+`callbackId`를 누출했습니다. `v390_ui_browser_callback_boundary.mjs`는 14개 callback마다 exact input/raw/
+normalized field·type·SHA-256 계약을 가지며 field 순서와 무관한 structured mapper로만 변환합니다.
+`v390_ui_requested_observed_schema.mjs::mapRuntimeObservedFromBrowserCallback`은 검증된 context 필드와
+control action을 기존 authoritative `media-server.v390-ui-runtime-observed.v1` 7필드로 명시 조립합니다.
+`v390_ui_browser_callback_reachability.mjs`는 canonical 424 각 행을 navigation owner/runtime context/control
+observation과 completion callback schema에 연결하며 runtime context/control/navigation owner 424개씩,
+endpoint 380, pathname 44를 고정합니다. Selector, visibility, disabled/enabled 의미와 navigation epoch는
+손실 없이 보존하고 extra/missing/wrong type/schema는 fail-closed합니다.
+
+`v390_ui_browser_callback_raw_schema_red_20260810.json`은 latest actual summary/first-failure/exact summary/
+UI-001 trace SHA와 actual-derived browser raw, 잘못 조립된 Node raw, 기대 exact GREEN을 보존합니다.
+Focused verifier는 구현 전 schema census 부재 RED 뒤 14/14 callback, 130 callsite/28 file, 424 consumer,
+391 request, raw field-order independence와 negative를 통과했습니다. 기존 negative 오류 문구가 새 mapper의
+더 이른 fail-closed 지점으로 이동해 최초 GREEN 재실행이 1회 실패했고 기대 문구를 교정한 뒤 통과했습니다.
+
+Full build, adapter 48/48, runtime 63/63, native 55/55, completion 36/36, diagnostic 33/33,
+replay 548/548, Policy producer/independence 11/11·11/11, Policy v4 27/27, eligibility 7/7,
+acceptance 21/21, final integrity 12/12, semantic audit 51/51, approvals 986/986, closure 31/31,
+implementation evidence 986/986·negative 15/15, feature completion 14/14, coverage 7/7,
+project inventory 17/17, script inventory 11/11, current evidence 7/7을 확인했습니다.
+Implementation evidence 첫 실행은 inventory 설명 변경에 따른 `inventorySha256 drift` 1건으로 실패했고,
+기존 등록 행 원문을 복원한 뒤 재실행 PASS했습니다. Actual semantic/native drift가 없어 reviewer,
+approval/migration producer, native/semantic generator, actual Policy producer는 모두 0회입니다.
+필수 계획·evidence 문서 4개의 byte 변경은 current semantic discovery ledger가 최초 `6/7`로 거부했고,
+의미 승인과 분리된 파생 문서 ledger만 갱신해 `7/7`로 닫았습니다. Historical REVIEW3 verifier는 현재
+187-document/39-marker baseline을 과거 176-document/38-marker 계약으로 검사해 `3/7`이므로 현 checkpoint의
+완료 gate나 갱신 대상으로 사용하지 않았습니다.
+
+UI-001/case-ID 예외, validator 완화, field mismatch 무시, exists-only, catch-pass, 미정의 `assert` 재도입은
+없습니다. Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, release는 사용자 지시에 따라
+미실행이며 정적/fixture/replay PASS를 actual 또는 release PASS로 승격하지 않습니다. 별도 tester의
+정확한 다음 명령은 `./test_ui.sh`입니다.
+
 ## V390-REVIEW4-65 action request/page background ledger separation
 
 개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 SHA

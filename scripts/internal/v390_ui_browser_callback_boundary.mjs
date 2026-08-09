@@ -1,7 +1,10 @@
 // 파일 용도: Playwright evaluate 콜백을 self-contained registry와 직렬화 가능한 typed 인자/결과 경계로 제한한다.
 
-const callbackArgumentSchema = "media-server.v390-ui-browser-callback-argument.v1";
-const callbackResultSchema = "media-server.v390-ui-browser-callback-result.v1";
+import { createHash } from "node:crypto";
+
+export const callbackArgumentSchema = "media-server.v390-ui-browser-callback-argument.v1";
+export const callbackResultSchema = "media-server.v390-ui-browser-callback-result.v1";
+export const callbackSchemaContract = "media-server.v390-ui-browser-callback-schema-contract.v1";
 
 export const browserCallbackIds = Object.freeze([
   "adapter.navigation-owner",
@@ -20,6 +23,109 @@ export const browserCallbackIds = Object.freeze([
   "oracle.viewport-owner",
 ]);
 
+const callbackContractSpecifications = Object.freeze({
+  "adapter.navigation-owner": callbackContract(
+    { selectorValue: "string", documentEpoch: "integer" },
+    { selector: "string", candidateCount: "integer", navigationEpoch: "integer", exists: "boolean", visible: "boolean" },
+    ["v390_ui_native_adapter.mjs:initial/action navigation owner"],
+  ),
+  "adapter.request": callbackContract(
+    { requestMethod: "string", requestPath: "string", requestCorrelationId: "string", requestBody: "json" },
+    { status: "integer", url: "string", text: "string", json: "json", contentType: "string" },
+    ["v390_ui_native_adapter.mjs:explicit correlated request"],
+  ),
+  "adapter.runtime-context": callbackContract(
+    {},
+    { screenRoute: "string", accountRole: "account-role", viewport: "viewport", theme: "theme" },
+    ["v390_ui_native_adapter.mjs:observeRequestedObservedState", "canonical 424 runtime-observed consumers"],
+  ),
+  "adapter.control-observation": callbackContract(
+    {},
+    { exists: "boolean", visible: "boolean", disabled: "boolean" },
+    ["v390_ui_native_adapter.mjs:observeRequestedObservedState", "canonical 424 exact control owners"],
+  ),
+  "runner.endpoint-request": callbackContract(
+    { method: "string", path: "string", body: "json" },
+    { status: "integer", contentType: "string", text: "string", json: "json" },
+    ["run_v390_ui_native_exact_cases.mjs:exact API fetch completions"],
+  ),
+  "runner.scoped-viewer-dom": callbackContract(
+    { assignedViewId: "string", blockedViewId: "string", disallowedRuleId: "string" },
+    { assignedSourceNodeCount: "integer", blockedSourceNodeCount: "integer", blockedViewTextAbsent: "boolean", disallowedRuleTextAbsent: "boolean" },
+    ["run_v390_ui_native_exact_cases.mjs:RULE-097 readback"],
+  ),
+  "runtime.alert-delivery-dom": callbackContract(
+    {},
+    { previewCount: "integer", resultCount: "integer", preview: "nullable-alert-preview", result: "nullable-alert-result" },
+    ["v390_ui_case_runtime.mjs:alert delivery runtime projection"],
+  ),
+  "runtime.location-pathname": callbackContract(
+    {},
+    { pathname: "string" },
+    ["v390_ui_case_runtime.mjs:document/local/navigation completion"],
+  ),
+  "runtime.whoami": callbackContract(
+    {},
+    { status: "integer", authenticated: "boolean", username: "string", role: "string", scopes: "string-array", setupRequired: "boolean" },
+    ["v390_ui_case_runtime.mjs:UI-002~008 and AUTH principal readback"],
+  ),
+  "runtime.role-boundary": callbackContract(
+    {},
+    { clientStatus: "integer", opsStatus: "integer" },
+    ["v390_ui_case_runtime.mjs:client/ops role boundary readback"],
+  ),
+  "runtime.ops-users-dom": callbackContract(
+    { selector: "string", expectedIdentity: "string", secret: "string" },
+    { identityVisible: "boolean", matchingRowCount: "integer", pendingVisible: "boolean", adminAllScopesVisible: "boolean", forbiddenMarkersAbsent: "boolean", forbiddenSecretAbsent: "boolean" },
+    ["v390_ui_case_runtime.mjs:AUTH user/invite/access-request readback"],
+  ),
+  "runtime.login": callbackContract(
+    { username: "string", password: "string" },
+    { status: "integer", pathname: "string" },
+    ["v390_ui_case_runtime.mjs:isolated privileged form login"],
+  ),
+  "runtime.logout": callbackContract(
+    {},
+    { status: "integer" },
+    ["v390_ui_case_runtime.mjs:isolated privileged form cleanup"],
+  ),
+  "oracle.viewport-owner": callbackContract(
+    { exactSelector: "string" },
+    { pass: "boolean", nodeCount: "integer", scrollerPresent: "boolean" },
+    ["v390_ui_exact_oracle_runtime.mjs:exact DOM viewport owner"],
+  ),
+});
+
+export const browserCallbackSchemaCensus = Object.freeze(browserCallbackIds.map(callbackId => {
+  const specification = callbackContractSpecifications[callbackId];
+  const serializedInputFields = Object.freeze(["schema", "callbackId", ...Object.keys(specification.argumentShape)]);
+  const browserRawOutputFields = Object.freeze(["schema", "callbackId", ...Object.keys(specification.resultShape)]);
+  const serializedInputTypes = exactTypeMap(callbackArgumentSchema, callbackId, specification.argumentShape);
+  const browserRawOutputTypes = exactTypeMap(callbackResultSchema, callbackId, specification.resultShape);
+  const digestSource = {
+    callbackId,
+    serializedInputFields,
+    serializedInputTypes,
+    browserRawOutputFields,
+    browserRawOutputTypes,
+  };
+  return Object.freeze({
+    schema: callbackSchemaContract,
+    callbackId,
+    serializedInputSchema: callbackArgumentSchema,
+    serializedInputFields,
+    serializedInputTypes,
+    browserRawOutputSchema: callbackResultSchema,
+    browserRawOutputFields,
+    browserRawOutputTypes,
+    nodeNormalizedSchema: callbackResultSchema,
+    nodeNormalizedFields: browserRawOutputFields,
+    nodeNormalizedTypes: browserRawOutputTypes,
+    consumers: specification.consumers,
+    schemaSha256: createHash("sha256").update(stableContractStringify(digestSource)).digest("hex"),
+  });
+}));
+
 export function makeBrowserCallbackArgument(callbackId, value = {}) {
   if (!browserCallbackIds.includes(String(callbackId || ""))) {
     throw new Error(`browser callback ID is unknown: ${String(callbackId || "")}`);
@@ -28,11 +134,15 @@ export function makeBrowserCallbackArgument(callbackId, value = {}) {
     ? value
     : null;
   if (!record) throw new Error(`browser callback argument must be an object: ${callbackId}`);
-  const argument = {
-    schema: callbackArgumentSchema,
+  const specification = callbackContractSpecifications[callbackId];
+  const argument = mapExactCallbackRecord({
     callbackId,
-    ...structuredClone(record),
-  };
+    value: record,
+    payloadShape: specification.argumentShape,
+    schema: callbackArgumentSchema,
+    label: "argument",
+    payloadOnly: true,
+  });
   assertSerializable(argument, `browser callback argument ${callbackId}`);
   return argument;
 }
@@ -45,13 +155,27 @@ export async function evaluateRegisteredBrowserCallback(target, callbackId, valu
   }
   const argument = makeBrowserCallbackArgument(callbackId, value);
   definition.validateArgument(argument);
-  const result = await target.evaluate(definition.callback, argument);
-  assertSerializable(result, `browser callback result ${callbackId}`);
+  const rawResult = await target.evaluate(definition.callback, argument);
+  assertSerializable(rawResult, `browser callback result ${callbackId}`);
+  const result = mapBrowserCallbackRawResult(callbackId, rawResult);
   definition.validateResult(result);
   return result;
 }
 
-export const browserCallbackDefinitions = Object.freeze({
+export function mapBrowserCallbackRawResult(callbackId, value) {
+  const specification = callbackContractSpecifications[callbackId];
+  if (!specification) throw new Error(`browser callback ID is unknown: ${String(callbackId || "")}`);
+  return mapExactCallbackRecord({
+    callbackId,
+    value,
+    payloadShape: specification.resultShape,
+    schema: callbackResultSchema,
+    label: "result",
+    payloadOnly: false,
+  });
+}
+
+const callbackImplementations = Object.freeze({
   "adapter.navigation-owner": definition(
     (element, argument) => {
       if (argument?.schema !== "media-server.v390-ui-browser-callback-argument.v1" ||
@@ -439,11 +563,25 @@ export const browserCallbackDefinitions = Object.freeze({
   ),
 });
 
+export const browserCallbackDefinitions = Object.freeze(Object.fromEntries(
+  Object.entries(callbackImplementations).map(([callbackId, implementation]) => [
+    callbackId,
+    Object.freeze({
+      callback: implementation.callback,
+      validateArgument: implementation.validateArgument,
+      validateResult: implementation.validateResult,
+      contract: browserCallbackSchemaCensus.find(item => item.callbackId === callbackId),
+    }),
+  ]),
+));
+
 function definition(callback, validateArgument, validateResult) {
   return Object.freeze({ callback, validateArgument, validateResult });
 }
 
 function requireFields(value, callbackId, required, nullable = []) {
+  requireExactCallbackKeys(value, callbackId, callbackArgumentSchema,
+    callbackContractSpecifications[callbackId]?.argumentShape || {}, "argument");
   if (value?.schema !== callbackArgumentSchema || value?.callbackId !== callbackId) {
     throw new Error(`browser callback argument schema mismatch: ${callbackId}`);
   }
@@ -460,6 +598,8 @@ function requireFields(value, callbackId, required, nullable = []) {
 }
 
 function requireResult(value, callbackId, required, nullable = []) {
+  requireExactCallbackKeys(value, callbackId, callbackResultSchema,
+    callbackContractSpecifications[callbackId]?.resultShape || {}, "result");
   if (value?.schema !== callbackResultSchema || value?.callbackId !== callbackId) {
     throw new Error(`browser callback result schema mismatch: ${callbackId}`);
   }
@@ -488,5 +628,126 @@ function assertSerializable(value, label) {
     JSON.stringify(value);
   } catch (error) {
     throw new Error(`${label} is not serializable: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+function callbackContract(argumentShape, resultShape, consumers) {
+  return Object.freeze({
+    argumentShape: Object.freeze(argumentShape),
+    resultShape: Object.freeze(resultShape),
+    consumers: Object.freeze([...consumers]),
+  });
+}
+
+function exactTypeMap(schema, callbackId, payloadShape) {
+  const entries = [["schema", `literal:${schema}`], ["callbackId", `literal:${callbackId}`]];
+  for (const [field, type] of Object.entries(payloadShape)) entries.push([field, type]);
+  return Object.freeze(Object.fromEntries(entries));
+}
+
+function stableContractStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableContractStringify).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key =>
+      `${JSON.stringify(key)}:${stableContractStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function mapExactCallbackRecord({ callbackId, value, payloadShape, schema, label, payloadOnly }) {
+  const record = value && typeof value === "object" && !Array.isArray(value) ? value : null;
+  if (!record) throw new Error(`browser callback ${label} must be an object: ${callbackId}`);
+  const expectedPayloadKeys = Object.keys(payloadShape);
+  const expectedKeys = payloadOnly ? expectedPayloadKeys : ["schema", "callbackId", ...expectedPayloadKeys];
+  const actualKeys = Object.keys(record);
+  if (!sameFieldSet(actualKeys, expectedKeys)) {
+    throw new Error(`browser callback ${label} fields mismatch: ${callbackId}`);
+  }
+  if (!payloadOnly && (record.schema !== schema || record.callbackId !== callbackId)) {
+    throw new Error(`browser callback ${label} schema mismatch: ${callbackId}`);
+  }
+  const mapped = { schema, callbackId };
+  for (const field of expectedPayloadKeys) {
+    validateContractType(record[field], payloadShape[field], `${callbackId}.${field}`);
+    mapped[field] = structuredClone(record[field]);
+  }
+  assertSerializable(mapped, `browser callback mapped ${label} ${callbackId}`);
+  return mapped;
+}
+
+function requireExactCallbackKeys(value, callbackId, schema, payloadShape, label) {
+  if (!value || typeof value !== "object" || Array.isArray(value) ||
+      value.schema !== schema || value.callbackId !== callbackId) {
+    throw new Error(`browser callback ${label} schema mismatch: ${callbackId}`);
+  }
+  const expected = ["schema", "callbackId", ...Object.keys(payloadShape)];
+  if (!sameFieldSet(Object.keys(value), expected)) {
+    throw new Error(`browser callback ${label} fields mismatch: ${callbackId}`);
+  }
+}
+
+function sameFieldSet(actual, expected) {
+  if (actual.length !== expected.length) return false;
+  const actualSorted = [...actual].sort();
+  const expectedSorted = [...expected].sort();
+  return actualSorted.every((field, index) => field === expectedSorted[index]);
+}
+
+function validateContractType(value, type, label) {
+  if (type === "json") {
+    if (value === undefined) throw new Error(`browser callback field invalid: ${label}`);
+    assertSerializable(value, label);
+    return;
+  }
+  if (type === "account-role") {
+    if (!["anonymous", "admin", "operator", "viewer"].includes(value)) {
+      throw new Error(`browser callback field invalid: ${label}`);
+    }
+    return;
+  }
+  if (type === "theme") {
+    if (!["light", "dark"].includes(value)) throw new Error(`browser callback field invalid: ${label}`);
+    return;
+  }
+  if (type === "viewport") {
+    if (!value || typeof value !== "object" || Array.isArray(value) ||
+        !sameFieldSet(Object.keys(value), ["width", "height"]) ||
+        !Number.isInteger(value.width) || value.width <= 0 ||
+        !Number.isInteger(value.height) || value.height <= 0) {
+      throw new Error(`browser callback field invalid: ${label}`);
+    }
+    return;
+  }
+  if (type === "string-array") {
+    if (!Array.isArray(value) || value.some(item => typeof item !== "string")) {
+      throw new Error(`browser callback field invalid: ${label}`);
+    }
+    return;
+  }
+  if (type === "nullable-alert-preview") {
+    validateNullableExactRecord(value, {
+      schema: "string", deliveryId: "string", eventId: "string", eventType: "string",
+      sourceId: "string", payloadRedacted: "string",
+    }, label);
+    return;
+  }
+  if (type === "nullable-alert-result") {
+    validateNullableExactRecord(value, {
+      status: "string", dryRun: "string", attemptCount: "string",
+      externalDeliveryPerformed: "string", auditAction: "string",
+    }, label);
+    return;
+  }
+  if (!typeMatches(value, type)) throw new Error(`browser callback field invalid: ${label}`);
+}
+
+function validateNullableExactRecord(value, shape, label) {
+  if (value === null) return;
+  if (!value || typeof value !== "object" || Array.isArray(value) ||
+      !sameFieldSet(Object.keys(value), Object.keys(shape))) {
+    throw new Error(`browser callback field invalid: ${label}`);
+  }
+  for (const [field, type] of Object.entries(shape)) {
+    validateContractType(value[field], type, `${label}.${field}`);
   }
 }

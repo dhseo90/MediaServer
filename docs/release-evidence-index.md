@@ -1513,6 +1513,16 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | RED/GREEN 및 gate | 신규 계약은 adapter integration marker 부재로 RED 뒤 `5/5` GREEN. Ownership `4/4`, post-action `424/424`·request `391/391`, adapter `48/48`, runtime `63/63`, native `55/55`, completion `36/36`, replay `548/548`, Policy/acceptance/final-integrity, build, semantic/feature/inventory/docs/syntax/diff PASS | Implementation manifest refresh 1회, 저장 approval projection 1회, tracked 계획 문서를 포함한 최종 discovery ledger refresh 총 3회. 새 reviewer/approval·migration producer/native generator/Policy actual producer는 0회 |
 | Release boundary | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh` 미실행 | Contract/replay는 actual UI나 release PASS가 아니며 clean pushed commit에서 별도 tester가 `./test_ui.sh`를 실행해야 실제 상태가 결정됨 |
 
+## v3.9.0 REVIEW4-65 browser callback raw-schema checkpoint
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| Actual-derived RED | Source `e248d6a904aed3e1c30ddf8e310c0e367d02b4ec`, actual `424/1/0/1/423`, first failure UI-001 observed field/schema mismatch | `test/fixtures/v390_ui_browser_callback_raw_schema_red_20260810.json`; latest summary/first-failure/exact/UI-001 trace SHA와 derived raw/expected GREEN을 보존. Actual PASS evidence가 아님 |
+| Schema census | Callback 14개 exact input/raw/normalized field·type·digest, `scripts/internal` 130 callsite/28 file consumer census | `v390_ui_browser_callback_boundary.mjs`, `verify-v390-ui-browser-callback-free-identifier-contract`; extra/missing/wrong type/schema와 field-order-dependent drift를 fail-closed |
+| Canonical reachability | 424 runtime-observed consumers; navigation owner/context/control 424개씩, exact endpoint 380, pathname 44 | `v390_ui_browser_callback_reachability.mjs`; selector/visibility/navigation epoch 보존과 authoritative runtime-observed 7필드 mapping 검증 |
+| Static/replay GREEN | Callback/schema 10, adapter 48, runtime 63, native 55, completion 36, diagnostic 33, replay 548, Policy/acceptance/final-integrity, semantic/feature/inventory/build PASS | Feature evidence 최초 inventory hash drift 실패 후 원문 복원·재실행 PASS. Current semantic discovery는 문서 byte drift 최초 6/7 뒤 파생 ledger refresh로 7/7. Semantic/native drift 없음; reviewer/producer/generator 각 0회 |
+| Release boundary | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, release 미실행 | Contract/replay는 actual UI나 release PASS가 아님. 별도 tester 명령은 정확히 `./test_ui.sh` |
+
 ## v3.9.0 REVIEW4-65 browser callback free-identifier checkpoint
 
 | Evidence | Binding | 상태/한계 |

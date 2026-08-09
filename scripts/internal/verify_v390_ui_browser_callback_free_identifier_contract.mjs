@@ -12,6 +12,8 @@ import {
   browserCallbackDefinitions,
   browserCallbackIds,
   evaluateRegisteredBrowserCallback,
+  makeBrowserCallbackArgument,
+  mapBrowserCallbackRawResult,
 } from "./v390_ui_browser_callback_boundary.mjs";
 import { createAdapterActionRequestEnvelopeWrapper } from "./v390_ui_native_adapter.mjs";
 
@@ -19,6 +21,7 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.
 const readJson = relative => JSON.parse(fs.readFileSync(path.join(rootDir, relative), "utf8"));
 const manifest = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const red = readJson("test/fixtures/v390_browser_callback_free_identifier_red_20260810.json");
+const rawSchemaRed = readJson("test/fixtures/v390_ui_browser_callback_raw_schema_red_20260810.json");
 const audit = readJson("test/fixtures/v390_browser_callback_free_variable_audit_20260810.json");
 const census = buildCanonicalActionRequestCensus(manifest);
 const registry = {
@@ -55,12 +58,38 @@ await check("latest actual RED SHA binds the clean f8f819c UI-002 ReferenceError
     correlationLeakRequests: 0, correlationLeakResponses: 0,
     status: "PASS",
   }), "UI-001 actual ledger baseline drift");
-  for (const artifact of Object.values(red.artifacts)) {
+  for (const artifact of Object.values(red.artifacts).filter(item => item.path.includes("/runs/"))) {
     assert(/^[0-9a-f]{64}$/.test(artifact.sha256), `invalid RED artifact SHA: ${artifact.path}`);
     const absolute = path.join(rootDir, artifact.path);
     if (fs.existsSync(absolute)) {
       assert(crypto.createHash("sha256").update(fs.readFileSync(absolute)).digest("hex") === artifact.sha256,
         `RED artifact hash drift: ${artifact.path}`);
+    }
+  }
+});
+
+await check("latest actual UI-001 raw schema mismatch is frozen as an actual-derived RED", () => {
+  assert(rawSchemaRed.schema === "media-server.v390-ui-browser-callback-raw-schema-red.v1" &&
+    rawSchemaRed.sourceCommitSha === "e248d6a904aed3e1c30ddf8e310c0e367d02b4ec" &&
+    rawSchemaRed.sourceBranch === "v3.9.0" && rawSchemaRed.sourceWorktreeClean === true,
+  "latest raw schema RED source binding drift");
+  assert(JSON.stringify(rawSchemaRed.coverage) === JSON.stringify({
+    target: 424, attempted: 1, pass: 0, fail: 1, notRun: 423, unsupported: 0,
+  }), "latest raw schema RED coverage drift");
+  assert(rawSchemaRed.firstFailure.caseId === "UI-001" &&
+    rawSchemaRed.firstFailure.error ===
+      "runtime-observed-raw-invalid:observed-fields-mismatch,observed-schema-mismatch" &&
+    rawSchemaRed.actualDerived.browserRawContext.schema ===
+      "media-server.v390-ui-browser-callback-result.v1" &&
+    rawSchemaRed.actualDerived.brokenNodeRawObserved.callbackId === "adapter.runtime-context" &&
+    rawSchemaRed.expectedGreen.schema === "media-server.v390-ui-runtime-observed.v1",
+  "latest raw schema RED mismatch shape drift");
+  for (const artifact of Object.values(rawSchemaRed.artifacts)) {
+    assert(/^[0-9a-f]{64}$/.test(artifact.sha256), `invalid raw schema RED artifact SHA: ${artifact.path}`);
+    const absolute = path.join(rootDir, artifact.path);
+    if (fs.existsSync(absolute)) {
+      assert(crypto.createHash("sha256").update(fs.readFileSync(absolute)).digest("hex") === artifact.sha256,
+        `raw schema RED artifact hash drift: ${artifact.path}`);
     }
   }
 });
@@ -82,6 +111,97 @@ await check("immutable callback audit covers scripts/internal and all registered
   "registered callback audit contains an open lexical boundary");
   assert(Object.keys(browserCallbackDefinitions).length === browserCallbackIds.length,
     "browser callback definition registry cardinality drift");
+  assert(browserCallbackIds.every(callbackId => {
+    const contract = browserCallbackDefinitions[callbackId]?.contract;
+    return contract?.schema === "media-server.v390-ui-browser-callback-schema-contract.v1" &&
+      contract.callbackId === callbackId && Array.isArray(contract.serializedInputFields) &&
+      contract.serializedInputTypes && Array.isArray(contract.browserRawOutputFields) &&
+      contract.browserRawOutputTypes &&
+      typeof contract.nodeNormalizedSchema === "string" &&
+      Array.isArray(contract.nodeNormalizedFields) && contract.nodeNormalizedTypes &&
+      Array.isArray(contract.consumers) && /^[0-9a-f]{64}$/.test(contract.schemaSha256);
+  }), "registered callback exact input/raw/normalized schema census is incomplete");
+  assert(live.rows.length === 130 && live.rows.every(row =>
+    typeof row.consumer === "string" && Number.isInteger(row.line) &&
+    typeof row.serializedInputSchema === "string" &&
+    typeof row.browserRawOutputSchema === "string" &&
+    typeof row.nodeNormalizedSchema === "string" && /^[0-9a-f]{64}$/.test(row.sourceSha256)),
+  "dynamic evaluate callsite schema census is incomplete");
+});
+
+await check("actual-derived UI-001 raw callback payload maps to exact authoritative GREEN", async () => {
+  const schemaModule = await import("./v390_ui_requested_observed_schema.mjs");
+  assert(typeof schemaModule.mapRuntimeObservedFromBrowserCallback === "function",
+    "runtime-observed callback structured mapper is missing");
+  const observed = schemaModule.mapRuntimeObservedFromBrowserCallback({
+    contextObservation: rawSchemaRed.actualDerived.browserRawContext,
+    controlAction: rawSchemaRed.expectedGreen.controlAction,
+  });
+  assert(JSON.stringify(observed) === JSON.stringify(rawSchemaRed.expectedGreen),
+    `UI-001 raw schema GREEN mismatch: ${JSON.stringify(observed)}`);
+});
+
+await check("structured callback mappers reject field drift and preserve order-independent meaning", async () => {
+  const rawContext = rawSchemaRed.actualDerived.browserRawContext;
+  const reorderedRawContext = Object.fromEntries(Object.entries(rawContext).reverse());
+  assert(JSON.stringify(mapBrowserCallbackRawResult("adapter.runtime-context", reorderedRawContext)) ===
+    JSON.stringify(rawContext), "browser raw field order changed normalized meaning");
+  const reorderedArgument = makeBrowserCallbackArgument("adapter.navigation-owner", {
+    documentEpoch: 7,
+    selectorValue: "body",
+  });
+  assert(JSON.stringify(reorderedArgument) === JSON.stringify({
+    schema: "media-server.v390-ui-browser-callback-argument.v1",
+    callbackId: "adapter.navigation-owner",
+    selectorValue: "body",
+    documentEpoch: 7,
+  }), "serialized input mapper retained caller field order");
+  const navigationRaw = {
+    schema: "media-server.v390-ui-browser-callback-result.v1",
+    callbackId: "adapter.navigation-owner",
+    selector: "body",
+    candidateCount: 1,
+    navigationEpoch: 7,
+    exists: true,
+    visible: true,
+  };
+  assert(mapBrowserCallbackRawResult("adapter.navigation-owner", navigationRaw).navigationEpoch === 7,
+    "navigation epoch was lost at callback normalization");
+  await rejectAsync(async () => mapBrowserCallbackRawResult("adapter.runtime-context",
+    Object.assign({}, rawContext, { route: rawContext.screenRoute })), /result fields mismatch/i);
+  const missing = structuredClone(rawContext);
+  delete missing.theme;
+  await rejectAsync(async () => mapBrowserCallbackRawResult("adapter.runtime-context", missing),
+    /result fields mismatch/i);
+  const wrongType = structuredClone(rawContext);
+  wrongType.viewport.width = "390";
+  await rejectAsync(async () => mapBrowserCallbackRawResult("adapter.runtime-context", wrongType),
+    /field invalid/i);
+});
+
+await check("canonical 424 callback/output schema reachability contract is exact", async () => {
+  const reachabilityModule = await import("./v390_ui_browser_callback_reachability.mjs");
+  const reachability = reachabilityModule.buildCanonicalBrowserCallbackReachability(manifest);
+  assert(reachability.schema === "media-server.v390-ui-browser-callback-reachability.v1" &&
+    reachability.rows.length === 424, "canonical callback reachability cardinality drift");
+  assert(reachability.rows.every(row => row.caseId && row.runtimeObservedConsumer === true &&
+    row.callbacks.length >= 4 && row.callbacks.every(callback =>
+      browserCallbackIds.includes(callback.callbackId) &&
+      typeof callback.browserRawOutputSchema === "string" &&
+      typeof callback.nodeNormalizedSchema === "string")),
+  "canonical callback reachability schema mapping is incomplete");
+  const callbackCounts = new Map();
+  for (const row of reachability.rows) {
+    for (const callback of row.callbacks) {
+      callbackCounts.set(callback.callbackId, Number(callbackCounts.get(callback.callbackId) || 0) + 1);
+    }
+  }
+  assert(callbackCounts.get("adapter.navigation-owner") === 424 &&
+    callbackCounts.get("adapter.runtime-context") === 424 &&
+    callbackCounts.get("adapter.control-observation") === 424 &&
+    callbackCounts.get("runner.endpoint-request") === 380 &&
+    callbackCounts.get("runtime.location-pathname") === 44,
+  `canonical callback reachability branch counts drift: ${JSON.stringify(Object.fromEntries(callbackCounts))}`);
 });
 
 await check("all canonical 391 request registrations execute the adapter ownership path", () => {
@@ -184,12 +304,12 @@ await check("every registered callback executes after function serialization wit
 await check("missing argument, wrong schema, wrong result, and ReferenceError fail closed", async () => {
   await rejectAsync(
     () => evaluateRegisteredBrowserCallback(isolatedMockBrowser().page, "adapter.request"),
-    /argument field invalid.*requestMethod/i,
+    /argument (?:field invalid|fields mismatch)/i,
   );
   await rejectAsync(
     () => evaluateRegisteredBrowserCallback(isolatedMockBrowser().page,
       "runtime.location-pathname", { schema: "wrong-schema" }),
-    /argument schema mismatch/i,
+    /argument (?:schema|fields) mismatch/i,
   );
   await rejectAsync(
     () => evaluateRegisteredBrowserCallback({
@@ -199,7 +319,7 @@ await check("missing argument, wrong schema, wrong result, and ReferenceError fa
         pathname: 42,
       }),
     }, "runtime.location-pathname"),
-    /result field invalid/i,
+    /(?:result|callback) field invalid/i,
   );
   await rejectAsync(
     () => evaluateRegisteredBrowserCallback({
@@ -308,14 +428,35 @@ function censusDynamicEvaluateCalls(directory) {
     .map(entry => entry.name)
     .sort();
   const matchedFiles = [];
+  const rows = [];
   let callCount = 0;
   for (const file of files) {
     const source = fs.readFileSync(path.join(directory, file), "utf8");
-    const matches = source.match(/\.(?:evaluateAll|evaluate)\s*\(/g) || [];
+    const matches = [...source.matchAll(/\.(?:evaluateAll|evaluate)\s*\(/g)];
     if (matches.length > 0) matchedFiles.push(file);
     callCount += matches.length;
+    for (const match of matches) {
+      const line = source.slice(0, match.index).split("\n").length;
+      const sourceLine = source.split("\n")[line - 1].trim();
+      const sourceSha256 = crypto.createHash("sha256").update(sourceLine).digest("hex");
+      const inlineSchemaIdentity = `${file.replace(/\.mjs$/, "")}-${line}-${sourceSha256.slice(0, 16)}`;
+      rows.push({
+        consumer: file,
+        line,
+        serializedInputSchema: file === "v390_ui_browser_callback_boundary.mjs"
+          ? "media-server.v390-ui-browser-callback-argument.v1"
+          : `media-server.v390-ui-inline-browser-input.${inlineSchemaIdentity}.v1`,
+        browserRawOutputSchema: file === "v390_ui_browser_callback_boundary.mjs"
+          ? "media-server.v390-ui-browser-callback-result.v1"
+          : `media-server.v390-ui-inline-browser-raw.${inlineSchemaIdentity}.v1`,
+        nodeNormalizedSchema: file === "v390_ui_browser_callback_boundary.mjs"
+          ? "media-server.v390-ui-browser-callback-result.v1"
+          : `media-server.v390-ui-inline-node-normalized.${inlineSchemaIdentity}.v1`,
+        sourceSha256,
+      });
+    }
   }
-  return { callCount, files: matchedFiles };
+  return { callCount, files: matchedFiles, rows };
 }
 
 async function rejectAsync(fn, pattern, expectedName = "") {

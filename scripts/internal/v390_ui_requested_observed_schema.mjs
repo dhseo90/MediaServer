@@ -1,5 +1,7 @@
 // 파일 용도: REVIEW4-57 canonical requested와 runtime observed UI 상태의 공통 typed schema를 정의한다.
 
+import { mapBrowserCallbackRawResult } from "./v390_ui_browser_callback_boundary.mjs";
+
 export const canonicalRequestedSchema = "media-server.v390-ui-canonical-requested.v1";
 export const runtimeObservedSchema = "media-server.v390-ui-runtime-observed.v1";
 export const requestedObservedEnvelopeSchema = "media-server.v390-ui-requested-observed-envelope.v1";
@@ -102,6 +104,32 @@ export function runtimeObservedProjection(value) {
   };
 }
 
+export function mapRuntimeObservedFromBrowserCallback({
+  contextObservation,
+  controlAction,
+} = {}) {
+  const context = mapBrowserCallbackRawResult("adapter.runtime-context", contextObservation);
+  const candidate = {
+    schema: runtimeObservedSchema,
+    screenRoute: context.screenRoute,
+    accountRole: context.accountRole,
+    viewport: {
+      width: context.viewport.width,
+      height: context.viewport.height,
+    },
+    theme: context.theme,
+    controlAction: mapObservedControlAction(controlAction),
+    provenance: {
+      screenRoute: observedProvenance.screenRoute,
+      accountRole: observedProvenance.accountRole,
+      viewport: observedProvenance.viewport,
+      theme: observedProvenance.theme,
+      controlAction: observedProvenance.controlAction,
+    },
+  };
+  return runtimeObservedProjection(candidate);
+}
+
 export function validateRequestedObservedEnvelope({ requested, observed, canonicalCase, nativeCase }) {
   const errors = [];
   validateRequested(requested, errors);
@@ -147,6 +175,28 @@ function validateRequested(value, errors) {
   if (typeof value?.controlAction?.actionAnchor !== "string" || !value.controlAction.actionAnchor) {
     errors.push("requested-controlAction-actionAnchor-invalid");
   }
+}
+
+function mapObservedControlAction(value) {
+  const errors = [];
+  expectExactKeys(value, observedControlKeys, "observed-controlAction", errors);
+  if (!(value?.selector === null || typeof value?.selector === "string")) {
+    errors.push("observed-controlAction-selector-invalid");
+  }
+  if (!["required", "not-applicable"].includes(value?.applicability)) {
+    errors.push("observed-controlAction-applicability-invalid");
+  }
+  for (const field of ["exists", "visible", "enabled"]) {
+    if (typeof value?.[field] !== "boolean") errors.push(`observed-controlAction-${field}-invalid`);
+  }
+  if (errors.length > 0) throw new Error(`runtime-observed-control-invalid:${errors.join(",")}`);
+  return {
+    selector: value.selector,
+    applicability: value.applicability,
+    exists: value.exists,
+    visible: value.visible,
+    enabled: value.enabled,
+  };
 }
 
 function validateObserved(value, errors) {

@@ -3371,6 +3371,29 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 실행 중 정정 | 첫 focused 실행에서 과거 RED fixture가 mutable top-level current alias를 가리켜 SHA가 최신 actual로 바뀐 충돌을 발견해 immutable run-ID artifact만 historical hash 대상으로 제한했습니다. 다음 focused 실행에서 별도 initial phase가 없는 canonical negative-route UI-018을 발견해 `negative-route + 단일 initial-document-navigation binding` 공통 규칙으로 포함했습니다. 424 전수 대입에서 initial settled route와 action source route가 다른 9건을 발견해 attestation 시점을 최초 문서 직후로 분리했습니다 | 세 정정 모두 계약 완화 없이 공통 lifecycle 모델을 보강했습니다. 이후 focused 및 전체 gate가 PASS했습니다 |
 | 미실행 | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, actual acceptance/release, `./test_release.sh` | 사용자 금지. Clean pushed commit에서 별도 tester가 `./test_ui.sh`를 정확히 1회 실행해야 actual GREEN 여부가 결정됩니다 |
 
+## v3.9.0 browser callback raw-schema reconciliation (2026-08-10)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Callback/schema RED | 신규 exact schema census 계약을 구현 전에 실행해 `registered callback exact input/raw/normalized schema census is incomplete` 확인 | fail |
+| Callback/schema GREEN | 14 callback exact field/type/digest, 130 callsite/28 file consumer census, canonical 424 reachability, UI-001 actual-derived raw→GREEN, missing/extra/wrong type/schema, field-order independence, navigation epoch 보존 | pass |
+| Callback/schema 최초 재실행 | 기존 negative가 새 공통 mapper의 더 이른 `browser callback field invalid`에서 거부되어 과거 오류 문구 기대와 불일치 | fail |
+| Callback/schema 최종 재실행 | 동일 fail-closed 의미로 기대 문구 교정 후 10/10, canonical 424, request 391, callback 14 통과 | pass |
+| Adapter/runtime/native/completion | Adapter 48/48, runtime 63/63, native 55/55와 manifest 424=423+1 unsupported 0, completion 36/36 | pass |
+| Diagnostic/replay | Diagnostic contract 33/33, fixed trace replay 548/548, remaining actual trace replay PASS. Diagnostic actual은 미실행 | pass |
+| Policy/acceptance/integrity | Producer/independence 11/11·11/11, Policy v4 27/27, eligibility 7/7, acceptance contract 21/21, final-integrity contract 12/12, current evidence 7/7 | pass |
+| Build | `./server.sh build`, C++ target 100% | pass |
+| Semantic/native | Source audit 51/51, approvals 986/986, closure 31/31, native manifest 424=423+1 unsupported 0. Actual semantic/native drift 없음 | pass |
+| Feature evidence 최초 | 기존 inventory 설명 변경으로 `inventorySha256 drift`, validationErrors 1 | fail |
+| Feature evidence 최종 | Inventory 원문 복원 뒤 implementation evidence 986/986, negative 15/15, validationErrors 0 | pass |
+| Feature/inventory | Feature completion 14/14, coverage 7/7, project inventory 17/17, script inventory 11/11 | pass |
+| Current semantic discovery 최초/최종 | 계획·evidence Markdown 4개 변경으로 최초 document ledger drift 6/7. 파생 ledger refresh 뒤 7/7, 187 documents/38 source markers | pass |
+| Historical REVIEW3 참고 실행 | 과거 verifier가 현재 187 documents/39 source markers를 176/38 baseline으로 검사해 3/7. Current REVIEW4 gate가 아니며 historical ledger/generator는 갱신하지 않음 | 제외 |
+| 생성 경계 | Actual semantic/native drift가 없어 reviewer, approval/migration producer, native/semantic generator, actual Policy producer 미실행. Current semantic discovery 파생 ledger는 최종 문서 결속을 위해 2회 refresh | pass |
+
+미실행/제외: actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, release는 사용자 명시 금지로
+실행하지 않았으며 위 결과는 해당 미실행 영역의 완료 evidence로 사용할 수 없습니다.
+
 ## v3.9.0 action request/page background ledger separation (2026-08-10)
 
 | 항목 | 결과 | 실행 경계 |

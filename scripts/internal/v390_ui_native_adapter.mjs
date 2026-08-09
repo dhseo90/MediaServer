@@ -14,6 +14,7 @@ import {
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 import { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
 import { evaluateRegisteredBrowserCallback } from "./v390_ui_browser_callback_boundary.mjs";
+import { mapRuntimeObservedFromBrowserCallback } from "./v390_ui_requested_observed_schema.mjs";
 import { createRequestActionOwnershipRegistry } from "./v390_ui_request_action_ownership.mjs";
 import {
   assertZeroActionCorrelationLeaks,
@@ -2820,22 +2821,15 @@ async function openNativePlaywrightPage(playwright, {
           );
         }
       }
-      return {
-        schema: "media-server.v390-ui-runtime-observed.v1",
-        ...contextObservation,
-        controlAction: bindRuntimeControlObservationOwner({
+      const controlAction = bindRuntimeControlObservationOwner({
           identitySelector: applicability === "not-applicable" ? null : selectorValue,
           executionOwnerSelector: ownerSelectorValue,
           ownerObservation: controlObservation,
-        }),
-        provenance: {
-          screenRoute: "browser-location",
-          accountRole: "session-whoami",
-          viewport: "browser-inner-size",
-          theme: "browser-media-query",
-          controlAction: "dom-selector-state",
-        },
-      };
+        });
+      return mapRuntimeObservedFromBrowserCallback({
+        contextObservation,
+        controlAction,
+      });
     },
     screenshot: async outputFile => {
       await assertEvidenceDomSecretsAbsent(page, observedRuntimeSecrets);
