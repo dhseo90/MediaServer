@@ -3466,7 +3466,7 @@ export function buildOwnedRefreshStabilityEvidence(cycle = null) {
   };
 }
 
-function buildDeclaredEventDomBindingEvidence({
+export function buildDeclaredEventDomBindingEvidence({
   assertion,
   observed,
   responseBodies,
@@ -3673,7 +3673,13 @@ function buildDeclaredEventDomBindingEvidence({
   }
   const expectedRows = baseline.schema === "media-server.v390-ui-event-row-set-response-baseline.v1"
     ? baseline.expectedRows
-    : [{ identityValue: baseline.identityValue, projection: baseline.expectedProjection }];
+    : [{
+        identityValue: baseline.identityValue,
+        ...(baseline.identityProjection
+          ? { identityProjection: baseline.identityProjection }
+          : {}),
+        projection: baseline.expectedProjection,
+      }];
   const nodeMatchesIdentityProjection = (node, identityProjection) =>
     Object.entries(identityProjection || {}).every(([name, expected]) => {
       const candidates = node.fields?.[name] || [];
@@ -5388,16 +5394,30 @@ function isEventRowSetResponseBaseline(value) {
     value.expectedRows.length === value.identityValues.length;
 }
 
+function eventResponseRowMatchesIdentity(row, {
+  identityPaths = [],
+  identityPathMode = "any",
+  identityValue,
+  identityProjection = null,
+} = {}) {
+  if (identityProjection && typeof identityProjection === "object" &&
+      !Array.isArray(identityProjection) && Object.keys(identityProjection).length > 0) {
+    return Object.entries(identityProjection).every(([responsePath, expected]) => {
+      const values = eventExactValuesAtPath(row, responsePath);
+      return values.length === 1 && String(values[0]) === String(expected);
+    });
+  }
+  const matches = identityPaths.map(identityPath =>
+    eventExactValuesAtPath(row, identityPath)
+      .some(identity => String(identity) === String(identityValue)));
+  return identityPathMode === "all" ? matches.every(Boolean) : matches.some(Boolean);
+}
+
 function eventRowLocalResponseProjections(body, baseline) {
   const rows = eventExactValuesAtPath(body, baseline.collectionPath)
     .flatMap(value => Array.isArray(value) ? value : [value])
     .filter(value => value && typeof value === "object" && !Array.isArray(value));
-  const matchingRows = rows.filter(value => {
-    const matches = baseline.identityPaths.map(identityPath =>
-      eventExactValuesAtPath(value, identityPath)
-        .some(identity => String(identity) === String(baseline.identityValue)));
-    return baseline.identityPathMode === "all" ? matches.every(Boolean) : matches.some(Boolean);
-  });
+  const matchingRows = rows.filter(row => eventResponseRowMatchesIdentity(row, baseline));
   return matchingRows.map(row => Object.fromEntries(baseline.projectionPaths.map(projectionPath => {
     const values = eventExactValuesAtPath(row, projectionPath);
     return [projectionPath, values.length === 1 ? values[0] : values];
@@ -5408,15 +5428,15 @@ function eventRowSetResponseProjections(body, baseline) {
   const rows = eventExactValuesAtPath(body, baseline.collectionPath)
     .flatMap(value => Array.isArray(value) ? value : [value])
     .filter(value => value && typeof value === "object" && !Array.isArray(value));
-  return baseline.identityValues.flatMap(identityValue => rows
-    .filter(row => {
-      const matches = baseline.identityPaths.map(identityPath =>
-        eventExactValuesAtPath(row, identityPath)
-          .some(identity => String(identity) === String(identityValue)));
-      return baseline.identityPathMode === "all" ? matches.every(Boolean) : matches.some(Boolean);
-    })
+  return baseline.expectedRows.flatMap(expectedRow => rows
+    .filter(row => eventResponseRowMatchesIdentity(row, {
+      identityPaths: baseline.identityPaths,
+      identityPathMode: baseline.identityPathMode,
+      identityValue: expectedRow.identityValue,
+      identityProjection: expectedRow.identityProjection,
+    }))
     .map(row => ({
-      identityValue,
+      identityValue: expectedRow.identityValue,
       projection: Object.fromEntries(baseline.projectionPaths.map(projectionPath => {
         const values = eventExactValuesAtPath(row, projectionPath);
         return [projectionPath, values.length === 1 ? values[0] : values];

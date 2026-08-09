@@ -19,6 +19,7 @@ import {
   responseDerivedDomProjectionContractFor,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import {
+  buildDeclaredEventDomBindingEvidence,
   buildEventDomSemanticCompositeEvidence,
   evaluateEventDomActionReadback,
   selectEventDomResponseBodies,
@@ -31,6 +32,8 @@ const closureRunRoot = path.join(root,
   ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809040016-62650");
 const latestRunRoot = path.join(root,
   ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809054053-83497");
+const remaining4RunRoot = path.join(root,
+  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-remaining4-629fddf0");
 const censusPath = path.join(root,
   "test/fixtures/v390_ui_remaining_actual_failure_census_20260809.json");
 const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
@@ -184,6 +187,44 @@ for (const [caseId, expected] of Object.entries(latestActual.cases)) {
     JSON.stringify(summary.case?.eventDomSemanticEvidence || {}).includes(expected.failure),
   `${caseId} latest failure signature drift`);
 }
+
+const remaining4ParentBytes = fs.readFileSync(path.join(remaining4RunRoot, "summary.json"));
+assert.equal(sha256(remaining4ParentBytes),
+  "06c70fcc94293a8a533abd9bdd6b1986ac92f9ed1520c2e0e570ca0cc042e038",
+  "remaining4 actual parent summary digest drift");
+const remaining4Parent = JSON.parse(remaining4ParentBytes);
+assert.deepEqual(remaining4Parent.counts,
+  { target: 7, attempted: 7, pass: 6, fail: 1, notRun: 0, unsupported: 0 });
+assert.equal(remaining4Parent.sourceBinding?.gitCommit,
+  "629fddf0957f24c8d25c4e90e6ea1b73650a5299");
+assert.deepEqual(remaining4Parent.selection?.selectedIds,
+  ["EVT-007", "EVT-017", "EVT-019", "EVT-020", "EVT-022", "EVT-023", "EVT-026"]);
+for (const caseId of ["EVT-007", "EVT-017", "EVT-019", "EVT-020", "EVT-023", "EVT-026"]) {
+  assert.equal(remaining4Parent.cases.find(item => item.caseId === caseId)?.status, "PASS",
+    `${caseId} remaining4 control status drift`);
+}
+const remaining4Evt022Root = path.join(remaining4RunRoot, "cases", "EVT-022");
+const remaining4Evt022SummaryBytes = fs.readFileSync(path.join(remaining4Evt022Root, "summary.json"));
+const remaining4Evt022TraceBytes = fs.readFileSync(
+  path.join(remaining4Evt022Root, "traces", "EVT-022.trace.json"));
+assert.equal(sha256(remaining4Evt022SummaryBytes),
+  "46606193312930dc64c2b8dd1de730355d7e6f58d8bacf060fece53411957bb0",
+  "EVT-022 remaining4 actual summary digest drift");
+assert.equal(sha256(remaining4Evt022TraceBytes),
+  "6ba2afe900fc8dce6e48fee473765a3c3a70aa83a4088b08036f0b5393cd1a49",
+  "EVT-022 remaining4 actual trace digest drift");
+const remaining4Evt022Summary = JSON.parse(remaining4Evt022SummaryBytes);
+const remaining4Evt022Trace = JSON.parse(remaining4Evt022TraceBytes);
+const remaining4Evt022Evidence = remaining4Evt022Summary.case?.eventDomSemanticEvidence;
+assert.equal(remaining4Evt022Trace.caseId, "EVT-022");
+assert.equal(remaining4Evt022Summary.case?.status, "FAIL");
+assert.deepEqual(remaining4Evt022Evidence?.causeCodes,
+  ["FIXTURE_SOURCE_ROW_MISSING", "DECLARED_DOM_FIELD_PROJECTION_MISMATCH"]);
+assert.deepEqual(remaining4Evt022Evidence?.responseBaselineMatched?.mismatchPaths,
+  ["eventId/action"]);
+assert.equal(remaining4Evt022Evidence?.responseBaselineMatched?.candidateCount, 0);
+assert.equal(remaining4Evt022Evidence?.observationPresent?.exists, true);
+assert.equal(remaining4Evt022Evidence?.observationPresent?.visible, true);
 
 const lifecycleMatrix = Object.freeze({
   "EVT-007": Object.freeze({
@@ -622,5 +663,92 @@ assert.throws(() => resolveEventBoundResponseRows({
   fixtureOwners: [auditOwner],
 }), /bound response row cardinality mismatch: event:evt-022-review4-fixture\|event-review-update\/2/,
 "duplicate exact audit identity did not fail closed");
+
+const auditBaseline = {
+  schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+  identityKind: "audit-entry",
+  collectionPath: "entries",
+  identityPaths: ["target", "action"],
+  identityPathMode: "all",
+  identityValue: auditRow.target,
+  identityProjection: { target: auditRow.target, action: auditRow.action },
+  projectionPaths: ["target", "action"],
+  expectedProjection: { target: auditRow.target, action: auditRow.action },
+};
+const auditCompositeEvidence = entries => buildEventDomSemanticCompositeEvidence({
+  caseId: "EVT-022",
+  selector: "#event-review-audit-list [data-audit-list-body] " +
+    `[data-event-semantic-event-id="${auditRow.target}"]`,
+  observed: {
+    count: entries.filter(entry => entry.target === auditRow.target).length,
+    visibleCount: entries.filter(entry => entry.target === auditRow.target).length,
+    text: entries.map(entry => `${entry.target} ${entry.action}`).join(" "),
+    attributes: entries.map(entry => ({ "data-event-semantic-event-id": entry.target })),
+    values: entries.flatMap(entry => [entry.target, entry.action]),
+    descendantCount: entries.length * 2,
+  },
+  responseBodies: [{ entries }],
+  priorResponseByPath: { "eventId/action": auditBaseline },
+  fixtureCandidates: [auditOwner.identity, auditRow.target, auditRow.action],
+  fixtureIdentity: auditRow.target,
+  fixtureRequired: true,
+  actualBrowserExecution: true,
+});
+const auditSiblingRows = [
+  auditRow,
+  { ...auditRow, action: "operator-feature-correction-update" },
+  { ...auditRow, action: "resolution-state-update" },
+  { ...auditRow, action: "operator-resolution-flow-update" },
+];
+const exactAuditEvidence = auditCompositeEvidence(auditSiblingRows);
+assert.equal(exactAuditEvidence.responseBaselineMatched.pass, true,
+  `exact target/action audit row remains RED: ${exactAuditEvidence.responseBaselineMatched.reasonCodes}`);
+assert.equal(exactAuditEvidence.responseBaselineMatched.candidateCount, 1,
+  "exact target/action audit row cardinality is not one");
+assert.equal(auditCompositeEvidence([
+  { ...auditRow, action: "resolution-state-update" },
+]).responseBaselineMatched.reasonCodes[0], "FIXTURE_SOURCE_ROW_MISSING",
+"wrong audit action did not fail closed");
+assert.equal(auditCompositeEvidence([
+  { target: auditRow.target },
+]).responseBaselineMatched.reasonCodes[0], "FIXTURE_SOURCE_ROW_MISSING",
+"partial audit identity did not fail closed");
+assert.equal(auditCompositeEvidence([auditRow, { ...auditRow }])
+  .responseBaselineMatched.reasonCodes[0], "FIXTURE_SOURCE_ROW_DUPLICATE",
+"duplicate exact audit projection did not fail closed");
+
+const auditSemanticNode = entry => ({
+  eventId: String(entry.target || ""),
+  attributes: { eventId: String(entry.target || "") },
+  fields: Object.fromEntries(["target", "action"]
+    .filter(field => Object.prototype.hasOwnProperty.call(entry, field))
+    .map(field => [field, [String(entry[field])]])),
+});
+const auditDomEvidence = entries => buildDeclaredEventDomBindingEvidence({
+  assertion: auditAssertion,
+  observed: {
+    count: entries.length,
+    visibleCount: entries.length,
+    semanticNodes: entries.map(auditSemanticNode),
+  },
+  responseBodies: [{ entries }],
+  eventRuntimeContext: {
+    domResponseBaselineByAssertionKey: {
+      [`${auditAssertion.operator}\n${auditAssertion.target}`]: auditBaseline,
+    },
+  },
+  bindings: { fixtureId: auditOwner.identity },
+  interaction: null,
+});
+const exactAuditDomEvidence = auditDomEvidence(auditSiblingRows);
+assert.equal(exactAuditDomEvidence.pass, true,
+  `exact target/action audit DOM row remains RED: ${exactAuditDomEvidence.failureCode}`);
+assert.equal(exactAuditDomEvidence.expectedRowCount, 1);
+assert.equal(auditDomEvidence([{ ...auditRow, action: "resolution-state-update" }]).pass, false,
+  "wrong-action audit DOM row did not fail closed");
+assert.equal(auditDomEvidence([{ target: auditRow.target }]).pass, false,
+  "partial audit DOM row did not fail closed");
+assert.equal(auditDomEvidence([auditRow, { ...auditRow }]).pass, false,
+  "duplicate exact audit DOM row did not fail closed");
 
 console.log("PASS verify_v390_ui_remaining_actual_trace_replay_contract");
