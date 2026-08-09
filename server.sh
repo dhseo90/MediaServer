@@ -180,6 +180,8 @@ Usage:
                  V390-REVIEW4-65 exact 424 통합 runtime oracle catalog를 검증합니다.
   verify-v390-ui-exact-oracle-runtime-contract
                  V390-REVIEW4-65 actual runtime oracle 실행기의 false-PASS 거부 계약을 검증합니다.
+  verify-v390-ui-request-action-ownership-scope-contract
+                 canonical exact 424 bootstrap/primary/readback request-action ownership 순서를 검증합니다.
   verify-v390-ui-completion-oracle-contract
                  V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
   verify-v390-ui-policy-v4-producer-contract
@@ -210,6 +212,8 @@ Usage:
                  V390-ADD1-08 native Playwright wait/click/fill/select/screenshot을 실제 검증합니다.
   verify-v390-ui-native-adapter-contract
                  V390-ADD1-08 native Playwright module/capability/evidence contract를 검증합니다.
+  verify-v390-ui-request-action-ownership-scope-contract
+                 canonical exact 424 bootstrap/primary/readback request-action ownership 순서를 검증합니다.
   verify-v390-ui-post-action-visual-owner-contract
                  latest actual RED와 canonical 424 post-action visual exact-one owner lifecycle을 검증합니다.
   prepare-manual-ui-fulltest-seed
@@ -2447,6 +2451,10 @@ case "${cmd}" in
   verify-v390-ui-native-adapter-contract)
     require_internal verify_v390_ui_native_adapter_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_native_adapter_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-request-action-ownership-scope-contract)
+    require_internal verify_v390_ui_request_action_ownership_scope_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_request_action_ownership_scope_contract.mjs" "$@"
     ;;
   verify-v390-ui-post-action-visual-owner-contract)
     require_internal verify_v390_ui_post_action_visual_owner_contract.mjs

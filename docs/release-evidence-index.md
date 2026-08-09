@@ -1493,3 +1493,12 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Common ownership contract | `v390_ui_native_adapter.mjs::revealClosedDetailsForSelector`, native adapter contract와 canonical selector dialect audit | Runtime/manifest selector는 `page.locator(selector).first()`가 소유하고 attach 뒤 locator-bound `evaluate()`에서만 closest details를 엽니다. Selector/text identity와 missing timeout은 불변 |
 | Static checkpoint | Adapter `33/33`, native/runtime/completion/diagnostic, canonical 424, semantic/feature/inventory/build PASS | Native DOM API로 Playwright dialect가 도달하는 경로 0; source/native/semantic drift 0, generator/producer 각 0회 |
 | Release boundary | 이 정적 checkpoint의 `./test_ui.sh`, Policy v4, 30분, 120분, release 미실행 | Actual UI PASS evidence가 아님 |
+
+## v3.9.0 REVIEW4-65 request-action ownership scope checkpoint
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| SHA-bound RED | Source `b7391b003f85e77ba5aa86a3c68c9358b593d6e7`, actual `424/8/7/1/416`, first failure `UI-009`, immutable exact summary/trace SHA | `test/fixtures/v390_ui_request_action_ownership_red_20260810.json`; actual browser evidence는 FAIL로 보존 |
+| Canonical ownership census | Exact 424, primary request/local/navigation `391/28/5`, independent readback required/not-applicable `421/3` | `v390_ui_request_action_ownership.mjs`, `verify-v390-ui-request-action-ownership-scope-contract`; phase sequence와 missing/duplicate/nested/stale/wrong/cleanup negative를 fail-closed로 검증 |
+| Static/replay checkpoint | Ownership `4/4`, runtime `63/63`, adapter `48/48`, native `55/55`, completion `36/36`, diagnostic `33/33`, replay `548/548`, Policy/acceptance/final-integrity/semantic/feature/inventory/docs PASS | Reviewer/producer/native generator/Policy actual producer 각 0회, implementation manifest refresh generator 1회. Contract/replay는 actual UI나 release PASS가 아님 |
+| Release boundary | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh` 미실행 | Clean pushed commit에서 별도 tester가 `./test_ui.sh`를 정확히 1회 실행해야 actual 상태가 결정됨 |

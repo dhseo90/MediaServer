@@ -141,6 +141,8 @@ export async function executeCatalogRuntimeOracle({
   primaryAction = null,
   primaryNetworkEntries = [],
   catalogBindings = null,
+  ownershipPhase = "independent-readback",
+  requestActionContext = null,
 }) {
   const baseSpec = exactRuntimeOracleFor(item.caseId);
   assert(baseSpec?.caseId === item.caseId, `${item.caseId} runtime oracle spec missing`);
@@ -205,11 +207,21 @@ export async function executeCatalogRuntimeOracle({
         domReadinessConfirmed: false,
       }
     : null;
-  if (!requestScopedCorrelationOnly) {
-    await browser.setCorrelationId(correlationId, {
+  const ownsOpsTimelineRender = spec.route === "/ops/dashboard" &&
+    spec.requests.some(request =>
+      String(request.method || "GET").toUpperCase() === "GET" &&
+      resolveRuntimeRequestPath(request.path, runtimeBindings) ===
+        "/ops/api/events/status?limit=5&includeArchives=1");
+  let activeActionContext = requestActionContext;
+  let ownsActionContext = false;
+  if (!activeActionContext && !requestScopedCorrelationOnly && !ownsOpsTimelineRender) {
+    activeActionContext = await browser.beginRequestActionOwnership({
+      phase: ownershipPhase,
       actionId,
-      ownershipKind: "primary-action",
+      correlationId,
+      ownershipKind: ownershipPhase,
     });
+    ownsActionContext = true;
   }
   try {
     const declaredVisibleControlValue = await applyDeclaredVisibleControlValue(browser, item, spec);
@@ -254,6 +266,8 @@ export async function executeCatalogRuntimeOracle({
           actionId,
           correlationId,
           runtimeBindings,
+          activeActionContext,
+          ownershipPhase,
         );
     interaction = await completeDeclaredObservationInteraction({
       browser,
@@ -263,6 +277,8 @@ export async function executeCatalogRuntimeOracle({
       correlationId,
       runtimeBindings,
       interaction,
+      requestActionContext: activeActionContext,
+      ownershipPhase,
     });
     if (declaredVisibleControlValue) {
       interaction = { ...interaction, declaredVisibleControlValue };
@@ -316,6 +332,8 @@ export async function executeCatalogRuntimeOracle({
         primaryNetworkEntries,
         eventRuntimeContext,
         interaction,
+        activeActionContext,
+        ownershipPhase,
       );
       responses.push(observation.evidence);
       if (observation.evidence.requestCorrelationEvidence) {
@@ -411,7 +429,9 @@ export async function executeCatalogRuntimeOracle({
     }
     throw error;
   } finally {
-    await browser.setCorrelationId("");
+    if (ownsActionContext) {
+      await browser.endRequestActionOwnership(activeActionContext);
+    }
   }
 }
 
@@ -775,6 +795,8 @@ async function executeTrustedInteraction(
   actionId,
   correlationId,
   runtimeBindings,
+  requestActionContext,
+  ownershipPhase,
 ) {
   if (/^(CLIENT|MEDIA|SAFE)-/.test(item.caseId)) {
     return executeClientSafeInteraction(browser, item, spec, correlationId, runtimeBindings);
@@ -797,7 +819,14 @@ async function executeTrustedInteraction(
     const renderActionId = `${String(actionId || `${item.caseId}:runtime`)}:ops-timeline-refresh`;
     const renderCorrelationId = `${String(correlationId || `${item.caseId}:runtime`)}:ops-timeline-refresh`;
     const renderCycleId = `${renderActionId}:cycle-1`;
-    const opsTimelineRenderCycle = await browser.clickWithRequestOwnership({
+    const opsTimelineRenderCycle = await withRequestActionOwnership(browser, {
+      phase: ownershipPhase,
+      actionId: renderActionId,
+      correlationId: renderCorrelationId,
+      ownershipKind: "case-owned-refresh-action",
+      renderCycleId,
+    }, actionContext => browser.clickWithRequestOwnership({
+      actionContext,
       selector,
       actionId: renderActionId,
       correlationId: renderCorrelationId,
@@ -808,7 +837,7 @@ async function executeTrustedInteraction(
       expectedRenderPhase: "dom-committed",
       minimumObservationMs: 500,
       quietMs: 200,
-    });
+    }));
     const after = await browser.snapshot(selector);
     return {
       kind: "click",
@@ -818,6 +847,8 @@ async function executeTrustedInteraction(
       opsTimelineRenderCycle,
     };
   }
+  assert(requestActionContext,
+    `${item.caseId} refresh interaction request-action context is missing`);
   await browser.click(selector);
   await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
   const after = await browser.snapshot(selector);
@@ -832,6 +863,8 @@ async function completeDeclaredObservationInteraction({
   correlationId,
   runtimeBindings,
   interaction,
+  requestActionContext,
+  ownershipPhase,
 }) {
   const selector = refreshControls[spec.route] || "";
   const opsTimelinePath = "/ops/api/events/status?limit=5&includeArchives=1";
@@ -846,7 +879,14 @@ async function completeDeclaredObservationInteraction({
     const renderActionId = `${String(actionId || `${item.caseId}:runtime`)}:ops-timeline-refresh`;
     const renderCorrelationId = `${String(correlationId || `${item.caseId}:runtime`)}:ops-timeline-refresh`;
     const renderCycleId = `${renderActionId}:cycle-1`;
-    const opsTimelineRenderCycle = await browser.clickWithRequestOwnership({
+    const opsTimelineRenderCycle = await withRequestActionOwnership(browser, {
+      phase: ownershipPhase,
+      actionId: renderActionId,
+      correlationId: renderCorrelationId,
+      ownershipKind: "case-owned-refresh-action",
+      renderCycleId,
+    }, actionContext => browser.clickWithRequestOwnership({
+      actionContext,
       selector,
       actionId: renderActionId,
       correlationId: renderCorrelationId,
@@ -857,7 +897,7 @@ async function completeDeclaredObservationInteraction({
       expectedRenderPhase: "dom-committed",
       minimumObservationMs: 500,
       quietMs: 200,
-    });
+    }));
     completed = { ...completed, opsTimelineRenderCycle };
   }
   const boundedRuntimeRepeat = spec.requests.find(request =>
@@ -1544,6 +1584,51 @@ export async function waitForClientVaOverlayProjection(browser, {
   };
 }
 
+async function withRequestActionOwnership(browser, scope, execute) {
+  assert(typeof browser.beginRequestActionOwnership === "function" &&
+    typeof browser.endRequestActionOwnership === "function",
+  "explicit request-action ownership adapter is unavailable");
+  const context = await browser.beginRequestActionOwnership(scope);
+  let primaryFailure = null;
+  try {
+    return await execute(context);
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
+  } finally {
+    try {
+      await browser.endRequestActionOwnership(context);
+    } catch (endFailure) {
+      if (!primaryFailure) throw endFailure;
+      primaryFailure.requestActionOwnershipEndFailure = String(
+        endFailure?.message || endFailure,
+      );
+      if (typeof browser.cleanupRequestActionOwnership === "function") {
+        primaryFailure.requestActionOwnershipCleanup =
+          browser.cleanupRequestActionOwnership(primaryFailure);
+      }
+    }
+  }
+}
+
+async function requestWithExplicitOwnership(
+  browser,
+  request,
+  actionContext,
+  ownershipPhase,
+) {
+  if (actionContext) {
+    return browser.request({ ...request, actionContext });
+  }
+  return withRequestActionOwnership(browser, {
+    phase: ownershipPhase,
+    actionId: request.actionId,
+    correlationId: request.correlationId,
+    ownershipKind: request.ownershipKind || ownershipPhase,
+    renderCycleId: request.renderCycleId || "",
+  }, context => browser.request({ ...request, actionContext: context }));
+}
+
 async function observeRequest(
   browser,
   item,
@@ -1555,6 +1640,8 @@ async function observeRequest(
   primaryNetworkEntries = [],
   eventRuntimeContext = null,
   interaction = null,
+  requestActionContext = null,
+  ownershipPhase = "independent-readback",
 ) {
   const method = String(request.method || "GET").toUpperCase();
   const urlPath = resolveRuntimeRequestPath(request.path, bindings, eventRuntimeContext);
@@ -1581,13 +1668,13 @@ async function observeRequest(
       const diagnosticReadbackCorrelationId =
         `${correlationId}:ops-timeline-authoritative-readback`;
       const diagnosticNetworkStart = browser.networkEntries().length;
-      const diagnosticReadback = await browser.request({
+      const diagnosticReadback = await requestWithExplicitOwnership(browser, {
         method,
         urlPath,
         actionId: diagnosticReadbackActionId,
         correlationId: diagnosticReadbackCorrelationId,
         ownershipKind: "diagnostic-authoritative-readback",
-      });
+      }, null, ownershipPhase);
       const diagnosticReadbackEvidence = assertCorrelatedRuntimeFetch({
         browser,
         item,
@@ -1655,13 +1742,13 @@ async function observeRequest(
       source = "case-owned-refresh-render-response";
     } else if (["GET", "HEAD"].includes(method)) {
       const fetchNetworkStart = browser.networkEntries().length;
-      const result = await browser.request({
+      const result = await requestWithExplicitOwnership(browser, {
         method,
         urlPath,
         actionId,
         correlationId: request.correlationRequired === false ? "" : correlationId,
-        ownershipKind: "primary-action",
-      });
+        ownershipKind: ownershipPhase,
+      }, requestActionContext, ownershipPhase);
       status = result.status;
       body = result.json ?? result.text;
       contentType = result.contentType || "";

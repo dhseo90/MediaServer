@@ -7425,3 +7425,31 @@ source-built/stored native는 424 = 423 positive + 1 negative, unsupported 0으�
 static/fixture/replay 결과를 새 actual UI PASS로 승격하지 않습니다.
 동일 staged snapshot을 임시 `v3.9.0` branch commit으로 구성한 tracked-clean checkout에서도
 full build와 위 공통/Policy/semantic/feature/inventory/docs/syntax gate 전체가 PASS했습니다.
+
+## V390-REVIEW4-65 request-action ownership scope correction
+
+개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 SHA
+`b7391b003f85e77ba5aa86a3c68c9358b593d6e7`의 최신 actual은 exact
+`424 target / 8 attempted / 7 PASS / UI-009 FAIL / 416 not-run`이며,
+primary ownership 안에서 runtime readback helper가 같은 action scope를 다시 열어
+`nested request action ownership is forbidden`으로 중단됐습니다.
+
+공통 registry는 `bootstrap-settling → source-before-frozen → primary-action →
+independent-readback → post-action-observation` 순서를 고정합니다. Canonical 424 census는
+primary request/local/navigation `391/28/5`, independent readback required/not-applicable
+`421/3`입니다. 같은 action helper는 explicit context만 소비하고, 다른 action은 이전
+scope의 exact end와 phase attestation 뒤 시작합니다. Missing, duplicate, nested, stale,
+wrong action/case/phase와 throw/timeout cleanup은 fail-closed이며 UI-009 예외, nesting 허용,
+global stack, silent auto-close, catch-pass는 없습니다.
+
+구현 위치는 `v390_ui_request_action_ownership.mjs`의 단일-owner registry/census,
+`v390_ui_native_adapter.mjs`의 request register/complete 및 explicit context API,
+`v390_ui_exact_oracle_runtime.mjs`의 same-action context 전달과 sequential distinct action,
+`run_v390_ui_native_exact_cases.mjs`의 primary 종료 후 independent readback 실행입니다.
+전용 verifier와 runtime/adapter/native/completion/diagnostic/replay/Policy/acceptance/
+final-integrity/semantic/feature/inventory/docs gate는 PASS했습니다. Fixed replay는
+`548/548`이고 canonical/native manifest는 `424=423+1`, unsupported `0`을 유지합니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는
+사용자 지시에 따라 미실행이며 정적 PASS를 actual 또는 release 성공으로 승격하지 않습니다.
+별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.

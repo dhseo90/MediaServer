@@ -1031,10 +1031,14 @@ check("exact and legacy runners capture before/after network and completion resu
   for (const snippet of [
     "primaryCompletionEvents.length === 1",
     "browser.networkEntries().slice(networkStart)",
-    "await browser.setCorrelationId(action.semanticCompletion.correlationId, {",
+    "await browser.beginRequestActionOwnership({",
+    "phase: \"primary-action\"",
+    "await endRequestActionOwnershipPreservingPrimary(",
   ]) {
     assert(exactRunnerSource.includes(snippet), `exact runner action binding missing ${snippet}`);
   }
+  assert(!exactRunnerSource.includes("setCorrelationId(action.semanticCompletion.correlationId, {"),
+    "exact runner must not use correlation mutation as action ownership");
   assert(!exactRunnerSource.includes("completionEvents.some(event => event.pass"),
     "exact runner still accepts any PASS completion event");
 });
@@ -2555,8 +2559,8 @@ check("REVIEW4-65 event/client composed workflows bind exact product controls an
     composedSource.includes("vaMetadataSampleId") &&
     composedSource.includes("backend-precreated active session"),
   "CLIENT composed runner bypasses or omits the actual product DOM/network boundary");
-  assert(exactRunnerSource.split("catalogBindings: caseContext?.catalogBindings || null").length - 1 === 2,
-    "current case catalog bindings are not passed to both exact runtime oracle executions");
+  assert(exactRunnerSource.split("catalogBindings: caseContext?.catalogBindings || null").length - 1 === 1,
+    "current case catalog bindings must be passed once to the independent exact runtime readback");
 });
 
 check("REVIEW4-58 form readback snapshots the exact submit control and never relabels the form", () => {
@@ -2829,9 +2833,17 @@ check("REVIEW4-58 rejects pre-existing postconditions and in-flight forbidden di
   }
   assert(completionOracleSource.includes('entry?.phase !== "request-start"'),
     "forbidden requests are not bound to request-start events");
-  assert(exactRunnerSource.indexOf("waitForNetworkQuiet") < exactRunnerSource.indexOf("setCorrelationId(`${item.caseId}:navigation`)",
-    exactRunnerSource.indexOf("waitForNetworkQuiet")),
-  "runner restores action correlation before the settle/quiet boundary");
+  const nativeActionStart = exactRunnerSource.indexOf("async function executeCaseNativeAction");
+  const nativeActionEnd = exactRunnerSource.indexOf("async function executeComposedClientLiveAction", nativeActionStart);
+  const nativeActionSource = exactRunnerSource.slice(nativeActionStart, nativeActionEnd);
+  const quietIndex = nativeActionSource.lastIndexOf("waitForNetworkQuiet");
+  const endOwnershipIndex = nativeActionSource.indexOf("endRequestActionOwnershipPreservingPrimary");
+  const attestOwnershipIndex = nativeActionSource.indexOf("attestRequestActionOwnershipPhase", endOwnershipIndex);
+  assert(quietIndex >= 0 && endOwnershipIndex > quietIndex &&
+    attestOwnershipIndex > endOwnershipIndex,
+  "runner must settle, end primary ownership, then attest before readback");
+  assert(!nativeActionSource.includes("setCorrelationId(`${item.caseId}:navigation`"),
+    "runner must not use correlation reset as request ownership closure");
 });
 
 const result = runChecks();

@@ -4555,6 +4555,7 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
   const entries = [...network];
   let networkReads = 0;
   let correlationId = "";
+  let activeRequestActionContext = null;
   const fixtureIdentityRegistries = new Map();
   const appendFixtureRequestResponse = ({
     caseId,
@@ -4610,6 +4611,31 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
     networkEntries: () => (++networkReads === 1 ? [] : entries),
     requestListenersInstalled: () => true,
     setCorrelationId: async value => { correlationId = String(value || ""); },
+    beginRequestActionOwnership: async scope => {
+      if (activeRequestActionContext) {
+        throw new Error("nested request action ownership is forbidden");
+      }
+      activeRequestActionContext = Object.freeze({
+        schema: "media-server.v390-ui-request-action-context.v1",
+        ...scope,
+      });
+      correlationId = String(scope.correlationId || "");
+      return activeRequestActionContext;
+    },
+    endRequestActionOwnership: async context => {
+      if (!activeRequestActionContext || context !== activeRequestActionContext) {
+        throw new Error("request action context is stale or wrong");
+      }
+      activeRequestActionContext = null;
+      correlationId = "";
+      return { status: "attested" };
+    },
+    cleanupRequestActionOwnership: () => {
+      const clearedActiveOwner = Boolean(activeRequestActionContext);
+      activeRequestActionContext = null;
+      correlationId = "";
+      return { status: "PASS", clearedActiveOwner };
+    },
     waitForSelector: async () => {},
     snapshot: async selector => ({ exists: true, visible: true, disabled: false, selector }),
     click: async () => {},
@@ -4680,6 +4706,7 @@ function clientSequenceBrowser() {
   const entries = [];
   let clickCount = 0;
   let state = { ariaLabel: "타일 1 재생", paused: true };
+  let activeRequestActionContext = null;
   const response = (method, path, body) => entries.push({
     phase: "response",
     method,
@@ -4691,6 +4718,24 @@ function clientSequenceBrowser() {
   return {
     networkEntries: () => entries,
     setCorrelationId: async () => {},
+    beginRequestActionOwnership: async scope => {
+      if (activeRequestActionContext) {
+        throw new Error("nested request action ownership is forbidden");
+      }
+      activeRequestActionContext = Object.freeze({ ...scope });
+      return activeRequestActionContext;
+    },
+    endRequestActionOwnership: async context => {
+      if (context !== activeRequestActionContext) {
+        throw new Error("request action context is stale or wrong");
+      }
+      activeRequestActionContext = null;
+      return { status: "attested" };
+    },
+    cleanupRequestActionOwnership: () => {
+      activeRequestActionContext = null;
+      return { status: "PASS" };
+    },
     snapshot: async selector => ({ exists: true, visible: true, disabled: false, selector }),
     waitForNetworkQuiet: async () => {},
     click: async () => {

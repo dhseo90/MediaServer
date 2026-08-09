@@ -3,10 +3,10 @@
   "sourceRelease": "v3.9.0",
   "evidenceBoundary": "static-semantic-audit-only-not-runtime-ui-or-longrun-pass",
   "summary": {
-    "documents": 181,
+    "documents": 186,
     "sourceMarkers": 38,
     "currentProductContracts": 82,
-    "historicalOrSuperseded": 68,
+    "historicalOrSuperseded": 73,
     "conditionalOrTemplate": 27
   },
   "documents": [
@@ -292,7 +292,7 @@
     },
     {
       "path": "docs/development-backlog.md",
-      "contentSha256": "0f5facb512e7d94c70e63693d37d9908eb8fccc0ad1ee69d25e8951514e4bd81",
+      "contentSha256": "375944ffc5df30275b2bbed9375afcfd7efb60ac5131f6c414d44b305720e36d",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -912,7 +912,7 @@
     },
     {
       "path": "docs/project-feature-test-inventory.md",
-      "contentSha256": "f5154597664b2610ab5a3eef895e5193c2aef8e1b56596e6d97add4e61297da7",
+      "contentSha256": "58b9a2675c94bcad64215e25d3c390d8c0b2b00a76fc813b43dc56dd8999736e",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1812,7 +1812,7 @@
     },
     {
       "path": "docs/release-evidence-index.md",
-      "contentSha256": "edc9f04129227d13b27150f514518a84d712d410f462187a732dcf95302b9671",
+      "contentSha256": "87aa111179c2d2dc842729cbe2c50e96c771d71f6937b2b21cf391e982b1e5c7",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1852,7 +1852,7 @@
     },
     {
       "path": "docs/release-test-records.md",
-      "contentSha256": "bcb5e9aa96df7b980216dc5428732c7db4e11a12c2bd01083eb9b57a5c98010d",
+      "contentSha256": "87ef0108cd574ecd7b058001eb44e84e4e4f42953401d667b0030de8769b08a5",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1952,7 +1952,7 @@
     },
     {
       "path": "docs/stream-verification.md",
-      "contentSha256": "1002294d13a1f2bb62b2177d623892136400afd181e0e9c1e5055c2fb99142e4",
+      "contentSha256": "c6a0011393666de59a057c57bb0647db8a26e34e8bfc339f6c56cc5fc3a2103a",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2409,6 +2409,106 @@
         }
       ],
       "semanticDigest": "2d158de8e8accfb08bd75e182c84ec2d3714928da36b81ecf5d82e15b41deaba"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-09-v390-navigation-pre-post-owner.md",
+      "contentSha256": "ca20c02620a11194973806c9ce44b890431e878c115da859d5039ff997f6c94e",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Navigation Pre/Post Owner Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-09-v390-navigation-pre-post-owner.md",
+          "anchor": "V390 Navigation Pre/Post Owner Implementation Plan"
+        }
+      ],
+      "semanticDigest": "7f1eb0b1c026be39bc53aba5b9efb73a9536d2cde223d20f4d59fbdcc6860f13"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-09-v390-policy-v4-evidence-qualification.md",
+      "contentSha256": "b36268618910d6223771afcc51f329c33b7d76f191a301092c417a2e29f9244f",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Policy v4 Evidence Qualification Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-09-v390-policy-v4-evidence-qualification.md",
+          "anchor": "v3.9.0 Policy v4 Evidence Qualification Implementation Plan"
+        }
+      ],
+      "semanticDigest": "7244ff7a7ef41075ae68ed8672f4174a48d554e73ed08d47251ff7787861f2ec"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-09-v390-request-navigation-epoch.md",
+      "contentSha256": "7dad735c96b06efcfc5ceb13f4381c55bfe3a5cecafb042376656c9e07478593",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Request Navigation Epoch Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-09-v390-request-navigation-epoch.md",
+          "anchor": "V390 Request Navigation Epoch Implementation Plan"
+        }
+      ],
+      "semanticDigest": "a69ba0d6bcaa6c3c5c84ca5f55e4f62b64d05b0bd94c434e0c951603bc0b700b"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-09-v390-request-redirect-chain-cardinality.md",
+      "contentSha256": "11d9e9215a238a1af052a6e65a47b02e1d1dbc830545062c9bc9fd4143738874",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Request Redirect Chain Cardinality Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-09-v390-request-redirect-chain-cardinality.md",
+          "anchor": "V390 Request Redirect Chain Cardinality Plan"
+        }
+      ],
+      "semanticDigest": "982a8451bbf46490d5dfd053c9caf5cae32ff4300b6b5f6c40de59dee833bb8f"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-10-v390-initial-route-settling-action-ledger.md",
+      "contentSha256": "ba05d8d7fc625e41cb1aad15f3ed62732e18153118466b41e4075b6cbfea76ff",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Initial Route Settling / Action Ledger Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-10-v390-initial-route-settling-action-ledger.md",
+          "anchor": "V390 Initial Route Settling / Action Ledger Plan"
+        }
+      ],
+      "semanticDigest": "23068d1ad504a654254bc03f4a44a7d3495102983ddecaec441942ffdda54663"
     },
     {
       "path": "docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md",

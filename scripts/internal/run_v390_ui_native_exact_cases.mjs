@@ -522,6 +522,34 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         networkEntries: browser.networkEntries(),
         semanticReadback: initialCompletion.semanticReadback,
       }));
+      const initialRoutePlan = runtimeState.get("__initialRouteSettling").plan;
+      const actionLedgerStart = await browser.beginActionNavigationLedger({
+        actionId: initialCompletionAction.actionId,
+        correlationId: initialCompletionAction.correlationId,
+        sourceRoute: initialRoutePlan.actionSource.route,
+        sourceSelector: "body",
+        expectedSourceVisible: true,
+      });
+      runtimeState.set("__primaryActionLedgerStart", actionLedgerStart);
+      runtimeState.set("__primaryNavigationLifecycleStart",
+        actionLedgerStart.navigationCheckpoint);
+      const primaryContext = await browser.beginRequestActionOwnership({
+        phase: "primary-action",
+        actionId: initialCompletionAction.actionId,
+        correlationId: initialCompletionAction.correlationId,
+        ownershipKind: "primary-action",
+      });
+      await browser.endRequestActionOwnership(primaryContext);
+      browser.attestRequestActionOwnershipPhase({
+        phase: "primary-action",
+        actionId: initialCompletionAction.actionId,
+        ownershipMode: "initial-negative-navigation-ended-before-attestation",
+      });
+      browser.attestRequestActionOwnershipPhase({
+        phase: "independent-readback",
+        actionId: "",
+        ownershipMode: "not-applicable-negative-route",
+      });
     } else {
       for (const action of item.actions.slice(1)) {
         if (action.kind === "wait-visible") {
@@ -739,14 +767,53 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           trace.completionEvents.push(result.completionOracle);
           trace.rawPrimaryObservations.push(result.rawPrimaryObservation);
         } else if (action.kind === "navigate-negative") {
+          const initialRoutePlan = runtimeState.get("__initialRouteSettling").plan;
+          const actionLedgerStart = await browser.beginActionNavigationLedger({
+            actionId: action.semanticCompletion.actionId,
+            correlationId: action.semanticCompletion.correlationId,
+            sourceRoute: initialRoutePlan.actionSource.route,
+            sourceSelector: "body",
+            expectedSourceVisible: true,
+          });
+          runtimeState.set("__primaryActionLedgerStart", actionLedgerStart);
+          runtimeState.set("__primaryNavigationLifecycleStart",
+            actionLedgerStart.navigationCheckpoint);
           const before = await browser.snapshot(item.controlAction.targetSelector);
           const networkStart = browser.networkEntries().length;
           const navigationBinding = action.semanticCompletion.navigationBinding;
-          await browser.setCorrelationId("");
-          const observed = await browser.navigate(action.route, {
-            invocationId: navigationBinding.invocationId,
-            kind: "negative-document-navigation",
-            lifecycleScope: Array.isArray(navigationBinding.caseLifecycleNavigationSequence) ? "case" : "operation",
+          const primaryContext = await browser.beginRequestActionOwnership({
+            phase: "primary-action",
+            actionId: action.semanticCompletion.actionId,
+            correlationId: action.semanticCompletion.correlationId,
+            ownershipKind: "primary-action",
+          });
+          let observed;
+          let primaryFailure = null;
+          try {
+            observed = await browser.navigate(action.route, {
+              invocationId: navigationBinding.invocationId,
+              kind: "negative-document-navigation",
+              lifecycleScope: Array.isArray(navigationBinding.caseLifecycleNavigationSequence) ? "case" : "operation",
+            });
+          } catch (error) {
+            primaryFailure = error;
+            throw error;
+          } finally {
+            await endRequestActionOwnershipPreservingPrimary(
+              browser,
+              primaryContext,
+              primaryFailure,
+            );
+          }
+          browser.attestRequestActionOwnershipPhase({
+            phase: "primary-action",
+            actionId: action.semanticCompletion.actionId,
+            ownershipMode: "negative-navigation-scope-ended-and-attested",
+          });
+          browser.attestRequestActionOwnershipPhase({
+            phase: "independent-readback",
+            actionId: "",
+            ownershipMode: "not-applicable-negative-route",
           });
           assert(action.allowedStatuses.includes(observed.status),
             `${item.caseId} negative navigation status ${observed.status} not in ${action.allowedStatuses.join(",")}`);
@@ -936,6 +1003,17 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       requestedTheme: item.theme,
       ownerBinding: postActionVisualTarget,
     });
+    browser.attestRequestActionOwnershipPhase({
+      phase: "post-action-observation",
+      actionId: item.oracle.primaryActionId,
+      ownershipMode: "post-action-visual-observation-complete",
+    });
+    const requestActionOwnershipEvidence =
+      browser.requestActionOwnershipEvidence();
+    assert(requestActionOwnershipEvidence.complete === true &&
+      requestActionOwnershipEvidence.activeOwner === null,
+    `${item.caseId} request-action ownership lifecycle is incomplete`);
+    trace.requestActionOwnershipEvidence = requestActionOwnershipEvidence;
     visualExpectedCase.accountRole = visualMeasurement.accountRole;
     trace.postActionVisualRoleEvidence = {
       schema: "media-server.v390-ui-post-action-visual-role.v1",
@@ -1003,6 +1081,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         runtimeState.get("__initialRouteSettling") || null,
       actionOwnedRequestLedgerEvidence:
         trace.actionOwnedRequestLedgerEvidence || null,
+      requestActionOwnershipEvidence:
+        trace.requestActionOwnershipEvidence || null,
       postActionLifecycleEvidence: null,
       eventDomSemanticEvidence: runtimeState.get("__eventDomSemanticEvidence") || null,
       requestCorrelationEvidence: runtimeState.get("__requestCorrelationEvidence") || null,
@@ -2335,8 +2415,7 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   const formLifecycle = action.kind === "submit-form"
     ? runtimeState.get("__formSubmitUiLifecycle")
     : null;
-  if (action.semanticCompletion?.phase === "primary-action" &&
-      action.semanticCompletion?.completionMode === "request") {
+  if (action.semanticCompletion?.phase === "primary-action") {
     assert(!runtimeState.has("__primaryNavigationLifecycleStart"),
       `${item.caseId} primary navigation lifecycle start is duplicated`);
     assert(runtimeState.has("__initialRouteSettling"),
@@ -2429,10 +2508,10 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     beforePostconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
   }
   const networkStart = browser.networkEntries().length;
-  await browser.setCorrelationId(action.semanticCompletion.correlationId, {
-    actionId: action.semanticCompletion.completionMode === "request"
-      ? action.semanticCompletion.actionId
-      : "",
+  const requestActionContext = await browser.beginRequestActionOwnership({
+    phase: "primary-action",
+    actionId: action.semanticCompletion.actionId,
+    correlationId: action.semanticCompletion.correlationId,
     ownershipKind: "primary-action",
   });
   let executedKind = "";
@@ -2442,6 +2521,7 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   let runtimeSecretRedaction = null;
   let inviteDomSecretCapture = null;
   let composedClientLive = null;
+  let primaryFailure = null;
   try {
     if (action.kind === "toggle-details") {
       assert(before.tag === "details", `${item.caseId} details contract mismatch`);
@@ -2542,9 +2622,21 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
       `${item.caseId} issued invite token was not registered or remained in the evidence DOM: ` +
         JSON.stringify({ inviteDomSecretCapture, runtimeSecretRedaction }));
     }
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    await browser.setCorrelationId(`${item.caseId}:navigation`);
+    await endRequestActionOwnershipPreservingPrimary(
+      browser,
+      requestActionContext,
+      primaryFailure,
+    );
   }
+  browser.attestRequestActionOwnershipPhase({
+    phase: "primary-action",
+    actionId: action.semanticCompletion.actionId,
+    ownershipMode: "primary-scope-ended-and-attested",
+  });
   const after = await browser.snapshot(snapshotSelector);
   if (action.kind === "toggle-checkbox") {
     assert(after.checked !== before.checked, `${item.caseId} checkbox did not toggle`);
@@ -2763,11 +2855,14 @@ async function executeEndpointOwnedAction(
   `${item.caseId} endpoint-owned action request/completion binding mismatch`);
   const before = await browser.snapshot("body");
   const networkStart = browser.networkEntries().length;
-  await browser.setCorrelationId(completionRequest.correlationId, {
+  const requestActionContext = await browser.beginRequestActionOwnership({
+    phase: "primary-action",
     actionId: completionRequest.initiatorActionId || action.semanticCompletion.actionId,
+    correlationId: completionRequest.correlationId,
     ownershipKind: completionRequest.requestOwnershipKind || "primary-action",
   });
   let response;
+  let primaryFailure = null;
   try {
     response = await browser.evaluate(async ({ method, path, body }) => {
       const result = await fetch(path, {
@@ -2792,9 +2887,21 @@ async function executeEndpointOwnedAction(
       minimumObservationMs: 750,
       quietMs: 250,
     });
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    await browser.setCorrelationId(`${item.caseId}:navigation`);
+    await endRequestActionOwnershipPreservingPrimary(
+      browser,
+      requestActionContext,
+      primaryFailure,
+    );
   }
+  browser.attestRequestActionOwnershipPhase({
+    phase: "primary-action",
+    actionId: action.semanticCompletion.actionId,
+    ownershipMode: "endpoint-primary-scope-ended-and-attested",
+  });
   assert(request.allowedStatuses.includes(response.status),
     `${item.caseId} endpoint-owned action status mismatch: ${response.status}/${request.allowedStatuses.join(",")}`);
   const networkResponses = browser.networkEntries().slice(networkStart);
@@ -2885,6 +2992,24 @@ function bindRuntimeDefaultViewRequest(item, action, caseRuntimeOwner) {
   };
 }
 
+async function endRequestActionOwnershipPreservingPrimary(
+  browser,
+  context,
+  primaryFailure,
+) {
+  try {
+    return await browser.endRequestActionOwnership(context);
+  } catch (endFailure) {
+    if (!primaryFailure) throw endFailure;
+    primaryFailure.requestActionOwnershipEndFailure = String(
+      endFailure?.message || endFailure,
+    );
+    primaryFailure.requestActionOwnershipCleanup =
+      browser.cleanupRequestActionOwnership(primaryFailure);
+    return null;
+  }
+}
+
 async function semanticAssertionResult(
   browser,
   item,
@@ -2899,76 +3024,16 @@ async function semanticAssertionResult(
   const completion = action.semanticCompletion;
   let exactObserved = observed;
   let requestCorrelationEvidence = null;
-  const catalogObservation = isExistingSpecializedExactOracle(item)
-    ? null
-    : await (async () => {
-      if (item.caseId === "EVT-004") {
-        runtimeState.set("__requestCorrelationWindow", {
-          networkStart,
-          correlationId: completion.correlationId,
-          actionId: completion.actionId,
-          method: "GET",
-          urlPath: "/ops/api/diagnostics/log-tail?limit=50",
-        });
-      }
-      return executeCatalogRuntimeOracleAtSourceRoute({
-        browser,
-        item,
-        fixtureId: caseContext?.fixtureId || exactFixtureId(item),
-        bindings: exactOracleBindings(caseRuntimeOwner, caseContext),
-        actionId: completion.actionId,
-        correlationId: completion.correlationId,
-        catalogBindings: caseContext?.catalogBindings || null,
-        beforeScreenNavigation: item.caseId === "EVT-004"
-          ? () => caseRuntimeOwner.refreshDiagnosticMarkerForDashboard(item, caseContext)
-          : null,
-      });
-    })();
-  if (item.caseId === "EVT-004") {
-    const correlationWindow = runtimeState.get("__requestCorrelationWindow");
-    runtimeState.set("__requestCorrelationWindow", {
-      ...correlationWindow,
-      networkEnd: browser.networkEntries().length,
-    });
-  }
-  if (catalogObservation) {
-    exactObserved = { ...observed, exactRuntimeOracle: catalogObservation };
-    requestCorrelationEvidence = catalogObservation.responses
-      ?.map(response => response.requestCorrelationEvidence)
-      .find(Boolean) || null;
-    const markerEvidenceCandidates = catalogObservation.dom
-      ?.flatMap(dom => dom.semanticEvidence || [])
-      .map(evidence => evidence.compositeEvidence)
-      .filter(evidence => evidence?.markerFlow) || [];
-    if (item.caseId === "EVT-004") {
-      assert(requestCorrelationEvidence?.pass === true,
-        `${item.caseId} marker evaluation preceded correlated response binding`);
-      assert(markerEvidenceCandidates.length === 1,
-        `${item.caseId} marker evaluator evidence count mismatch: ${markerEvidenceCandidates.length}`);
-    }
-    const eventDomSemanticEvidence = markerEvidenceCandidates[0] || null;
-    if (eventDomSemanticEvidence) {
-      runtimeState.set("__eventDomSemanticEvidence", structuredClone(eventDomSemanticEvidence));
-      runtimeState.set("__markerEvidence",
-        structuredClone(eventDomSemanticEvidence.markerFlow));
-    }
-    if (requestCorrelationEvidence) {
-      runtimeState.set("__requestCorrelationEvidence", structuredClone(requestCorrelationEvidence));
-    }
-    if (catalogObservation.correlationScopeEvidence) {
-      runtimeState.set("__requestCorrelationScopeEvidence",
-        structuredClone(catalogObservation.correlationScopeEvidence));
-    }
-    if (catalogObservation.markerStageEvidence) {
-      runtimeState.set("__markerStageEvidence",
-        structuredClone(catalogObservation.markerStageEvidence));
-    }
-  }
-  if (completion.request && !catalogObservation) {
-    await browser.setCorrelationId(completion.correlationId, {
+  // Authoritative catalog observation belongs to the later independent-readback
+  // phase. Keeping it out of the primary scope prevents same-action helper nesting.
+  if (completion.request) {
+    const requestActionContext = await browser.beginRequestActionOwnership({
+      phase: "primary-action",
       actionId: completion.request.initiatorActionId || completion.actionId,
+      correlationId: completion.correlationId,
       ownershipKind: completion.request.requestOwnershipKind || "primary-action",
     });
+    let primaryFailure = null;
     try {
       if (item.caseId === "SRC-031") {
         const sourceCountBefore = await browser.evaluate(`fetch('/ops/api/sources', {
@@ -3058,6 +3123,7 @@ async function semanticAssertionResult(
         };
       } else {
         const response = await browser.request({
+          actionContext: requestActionContext,
           method: completion.request.method,
           urlPath: completion.request.urlPath,
           actionId: completion.actionId,
@@ -3093,14 +3159,38 @@ async function semanticAssertionResult(
         assert(completion.request.allowedStatuses.includes(response.status),
           `${item.caseId} action request status mismatch: ${response.status}`);
       }
+      await browser.waitForNetworkQuiet({
+        correlationId: completion.correlationId,
+        minimumObservationMs: 0,
+        quietMs: 25,
+      });
+    } catch (error) {
+      primaryFailure = error;
+      throw error;
     } finally {
-      await browser.setCorrelationId(`${item.caseId}:navigation`);
+      await endRequestActionOwnershipPreservingPrimary(
+        browser,
+        requestActionContext,
+        primaryFailure,
+      );
     }
   }
+  if (!completion.request) {
+    const requestActionContext = await browser.beginRequestActionOwnership({
+      phase: "primary-action",
+      actionId: completion.actionId,
+      correlationId: completion.correlationId,
+      ownershipKind: "primary-action",
+    });
+    await browser.endRequestActionOwnership(requestActionContext);
+  }
+  browser.attestRequestActionOwnershipPhase({
+    phase: "primary-action",
+    actionId: completion.actionId,
+    ownershipMode: "primary-scope-ended-and-attested",
+  });
   const snapshot = await browser.snapshot(snapshotSelector);
-  const runtimeRequest = catalogObservation?.responses?.length === 1
-    ? catalogObservation.responses[0]
-    : null;
+  const runtimeRequest = null;
   const actionEvidence = {
     ...semanticCompletionAction(action, item),
     ...(runtimeRequest ? {
@@ -3150,6 +3240,13 @@ async function executeIndependentReadback(
   assert(action.expectedBehaviorSha256 === pending.actionEvidence.expectedBehaviorSha256 &&
     action.readbackIdentity === pending.actionEvidence.expectedReadbackIdentity,
   `${item.caseId} independent readback expected behavior/identity mismatch`);
+  const readbackCoordinatorContext = await browser.beginRequestActionOwnership({
+    phase: "independent-readback",
+    actionId: action.semanticCompletion.actionId,
+    correlationId: `${pending.actionEvidence.correlationId}:independent-readback`,
+    ownershipKind: "independent-readback",
+  });
+  await browser.endRequestActionOwnership(readbackCoordinatorContext);
 
   const postconditionSnapshots = {};
   for (const condition of pending.action.semanticCompletion.localTransition?.postconditions || []) {
@@ -3183,8 +3280,16 @@ async function executeIndependentReadback(
   const exactRuntimeReadback = item.workflow.inputs.some(input => input.kind === "exact-runtime-fixture")
     ? await caseRuntimeOwner.verifyExactRuntimeReadback(item, caseContext)
     : null;
-  const catalogRuntimeReadback = !isExistingSpecializedExactOracle(item) &&
-      !pending.explicitObserved?.exactRuntimeOracle
+  if (item.caseId === "EVT-004") {
+    runtimeState.set("__requestCorrelationWindow", {
+      networkStart: browser.networkEntries().length,
+      correlationId: pending.action.semanticCompletion.correlationId,
+      actionId: pending.action.semanticCompletion.actionId,
+      method: "GET",
+      urlPath: "/ops/api/diagnostics/log-tail?limit=50",
+    });
+  }
+  const catalogRuntimeReadback = !isExistingSpecializedExactOracle(item)
     ? await executeCatalogRuntimeOracleAtSourceRoute({
         browser,
         item,
@@ -3200,8 +3305,41 @@ async function executeIndependentReadback(
           ? pending.actionEvidence
           : null,
         primaryNetworkEntries: pending.networkResponses,
+        ownershipPhase: "independent-readback",
       })
     : null;
+  if (item.caseId === "EVT-004") {
+    const correlationWindow = runtimeState.get("__requestCorrelationWindow");
+    runtimeState.set("__requestCorrelationWindow", {
+      ...correlationWindow,
+      networkEnd: browser.networkEntries().length,
+    });
+  }
+  const catalogRequestCorrelationEvidence = catalogRuntimeReadback?.responses
+    ?.map(response => response.requestCorrelationEvidence)
+    .find(Boolean) || null;
+  const catalogMarkerEvidence = catalogRuntimeReadback?.dom
+    ?.flatMap(dom => dom.semanticEvidence || [])
+    .map(evidence => evidence.compositeEvidence)
+    .find(evidence => evidence?.markerFlow) || null;
+  if (catalogRequestCorrelationEvidence) {
+    runtimeState.set("__requestCorrelationEvidence",
+      structuredClone(catalogRequestCorrelationEvidence));
+  }
+  if (catalogRuntimeReadback?.correlationScopeEvidence) {
+    runtimeState.set("__requestCorrelationScopeEvidence",
+      structuredClone(catalogRuntimeReadback.correlationScopeEvidence));
+  }
+  if (catalogRuntimeReadback?.markerStageEvidence) {
+    runtimeState.set("__markerStageEvidence",
+      structuredClone(catalogRuntimeReadback.markerStageEvidence));
+  }
+  if (catalogMarkerEvidence) {
+    runtimeState.set("__eventDomSemanticEvidence",
+      structuredClone(catalogMarkerEvidence));
+    runtimeState.set("__markerEvidence",
+      structuredClone(catalogMarkerEvidence.markerFlow));
+  }
   let rejectedActionReadback = item.workflow.inputs.some(input => input.kind === "rejected-endpoint-fixture")
     ? await caseRuntimeOwner.verifyRejectedActionReadback(item, caseContext)
     : null;
@@ -3272,6 +3410,11 @@ async function executeIndependentReadback(
     }
     throw error;
   }
+  browser.attestRequestActionOwnershipPhase({
+    phase: "independent-readback",
+    actionId: action.semanticCompletion.actionId,
+    ownershipMode: "independent-readback-scopes-ended-and-attested",
+  });
   runtimeState.delete("__pendingPrimaryCompletion");
   runtimeState.set("__completedPrimaryReadback", {
     actionId: completionOracle.actionId,

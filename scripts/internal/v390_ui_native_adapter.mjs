@@ -13,6 +13,7 @@ import {
   selectExactNavigationOwnerLifecycle,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 import { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
+import { createRequestActionOwnershipRegistry } from "./v390_ui_request_action_ownership.mjs";
 
 export { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
 
@@ -713,6 +714,11 @@ async function openNativePlaywrightPage(playwright, {
   let activeCorrelationId = String(navigationCorrelationId || "");
   let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId);
   let activeRequestOwnership = null;
+  let activeRequestRenderCycleId = "";
+  const requestActionOwnershipCaseId = String(caseId || "noncanonical-page");
+  const requestActionOwnershipRegistry = createRequestActionOwnershipRegistry({
+    caseId: requestActionOwnershipCaseId,
+  });
   let activeExplicitCorrelationRegistration = null;
   let explicitCorrelationScopeSequence = 0;
   const documentNavigationLedger = [];
@@ -875,13 +881,24 @@ async function openNativePlaywrightPage(playwright, {
       correlationRouteActionId: String(routeInjectedCorrelation?.correlationRouteActionId || ""),
       correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
       initiatorActionId: String(requestOwnership?.actionId || ""),
-      renderCycleId: String(requestOwnership?.renderCycleId || ""),
+      renderCycleId: requestOwnership === activeRequestOwnership
+        ? activeRequestRenderCycleId
+        : String(requestOwnership?.renderCycleId || ""),
       requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
+      requestActionContext: activeRequestOwnership || null,
       requestStartedAtMs,
       requestKind,
       method: request.method(),
       path: urlTarget(request.url()),
     });
+    if (activeRequestOwnership) {
+      requestActionOwnershipRegistry.register(activeRequestOwnership, {
+        requestId,
+        caseId,
+        actionId: String(activeRequestOwnership.actionId || ""),
+        phase: String(activeRequestOwnership.phase || ""),
+      });
+    }
     networkEntries.push({
       phase: "request-start",
       requestId,
@@ -899,7 +916,9 @@ async function openNativePlaywrightPage(playwright, {
       correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
       requestHeaderDigest,
       initiatorActionId: String(requestOwnership?.actionId || ""),
-      renderCycleId: String(requestOwnership?.renderCycleId || ""),
+      renderCycleId: requestOwnership === activeRequestOwnership
+        ? activeRequestRenderCycleId
+        : String(requestOwnership?.renderCycleId || ""),
       requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
       requestStartedAtMs,
       method: request.method(),
@@ -1080,8 +1099,18 @@ async function openNativePlaywrightPage(playwright, {
       pendingSafeResponseReads.add(read);
     }
   });
-  page.on("requestfinished", request => pendingRequests.delete(request));
-  page.on("requestfailed", request => pendingRequests.delete(request));
+  const completeOwnedRequest = request => {
+    const pending = pendingRequests.get(request);
+    if (pending?.requestActionContext) {
+      requestActionOwnershipRegistry.completeRequest(
+        pending.requestActionContext,
+        pending.requestId,
+      );
+    }
+    pendingRequests.delete(request);
+  };
+  page.on("requestfinished", completeOwnedRequest);
+  page.on("requestfailed", completeOwnedRequest);
   requestListenersInstalled = true;
   const navigationRequestedPath = urlTarget(new URL(pagePath, `${httpBase}/`).toString());
   const navigationOrigin = urlOrigin(new URL(pagePath, `${httpBase}/`).toString());
@@ -1363,6 +1392,11 @@ async function openNativePlaywrightPage(playwright, {
         actionOwnedNavigationCount,
         navigation: frozenNavigation,
       };
+      requestActionOwnershipRegistry.attest({
+        phase: "bootstrap-settling",
+        actionId: String(navigationInvocationId || `${caseId}:initial-navigation`),
+        ownershipMode: "initial-page-load-ended-and-attested",
+      });
       return structuredClone(initialRouteSettlingAttestation);
     },
     beginActionNavigationLedger: async ({
@@ -1414,6 +1448,11 @@ async function openNativePlaywrightPage(playwright, {
         networkEntryCount: networkEntries.length,
         navigationCheckpoint,
       };
+      requestActionOwnershipRegistry.attest({
+        phase: "source-before-frozen",
+        actionId: String(actionId || ""),
+        ownershipMode: "exact-one-visible-source-owner-frozen",
+      });
       initialRouteSettlingAttestation.actionLedgerStarted = true;
       return structuredClone(actionLedgerStart);
     },
@@ -1481,15 +1520,62 @@ async function openNativePlaywrightPage(playwright, {
       correlationId,
       { inject = true, actionId = "", ownershipKind = "" } = {},
     ) => {
+      if (actionId || ownershipKind) {
+        throw new Error("request action ownership requires explicit begin/end scope");
+      }
       activeCorrelationId = String(correlationId || "");
       activeCorrelationInjectionEnabled = Boolean(activeCorrelationId) && inject === true;
-      activeRequestOwnership = actionId ? {
-        actionId: String(actionId),
-        renderCycleId: "",
-        ownershipKind: String(ownershipKind || "primary-action"),
-      } : null;
+    },
+    beginRequestActionOwnership: async ({
+      phase = "",
+      actionId = "",
+      correlationId = "",
+      ownershipKind = "",
+      renderCycleId = "",
+    } = {}) => {
+      const context = requestActionOwnershipRegistry.begin({
+        caseId,
+        phase,
+        actionId,
+        correlationId,
+        ownershipKind,
+        renderCycleId,
+      });
+      activeRequestOwnership = context;
+      activeRequestRenderCycleId = String(renderCycleId || "");
+      activeCorrelationId = String(correlationId || "");
+      activeCorrelationInjectionEnabled = Boolean(activeCorrelationId);
+      return activeRequestOwnership;
+    },
+    validateRequestActionOwnership: (context, expected = {}) =>
+      requestActionOwnershipRegistry.validate(context, {
+        caseId,
+        actionId: expected.actionId,
+        phase: expected.phase,
+      }),
+    endRequestActionOwnership: async context => {
+      const evidence = requestActionOwnershipRegistry.end(context);
+      activeRequestOwnership = null;
+      activeRequestRenderCycleId = "";
+      activeCorrelationId = "";
+      activeCorrelationInjectionEnabled = false;
+      return evidence;
+    },
+    attestRequestActionOwnershipPhase: input =>
+      requestActionOwnershipRegistry.attest(input),
+    requestActionOwnershipEvidence: () =>
+      requestActionOwnershipRegistry.evidence(),
+    cleanupRequestActionOwnership: failure => {
+      const evidence = requestActionOwnershipRegistry.cleanup({ failure });
+      activeRequestOwnership = null;
+      activeRequestRenderCycleId = "";
+      activeExplicitCorrelationRegistration = null;
+      activeCorrelationId = "";
+      activeCorrelationInjectionEnabled = false;
+      return evidence;
     },
     clickWithRequestOwnership: async ({
+      actionContext = null,
       selector,
       actionId,
       correlationId,
@@ -1509,11 +1595,22 @@ async function openNativePlaywrightPage(playwright, {
       if (!ownedActionId || !ownedCorrelationId || !ownedRenderCycleId || !expectedPath) {
         throw new Error("owned request action/correlation/render-cycle binding is incomplete");
       }
-      if (activeRequestOwnership) {
-        throw new Error("nested request action ownership is forbidden");
+      requestActionOwnershipRegistry.validate(actionContext, {
+        caseId,
+        actionId: ownedActionId,
+        phase: String(actionContext?.phase || ""),
+      });
+      if (ownedCorrelationId !== String(actionContext.correlationId || "")) {
+        throw new Error("owned request action correlation does not match its explicit context");
       }
-      const previousCorrelationId = activeCorrelationId;
-      const previousCorrelationInjectionEnabled = activeCorrelationInjectionEnabled;
+      if (actionContext.ownershipKind !== "case-owned-refresh-action") {
+        throw new Error("owned render-cycle context kind must be case-owned-refresh-action");
+      }
+      if (activeRequestRenderCycleId &&
+          activeRequestRenderCycleId !== ownedRenderCycleId) {
+        throw new Error("nested request render-cycle ownership is forbidden");
+      }
+      const scopedRenderCycleId = activeRequestRenderCycleId;
       const networkStart = networkEntries.length;
       const actionStartedAtMs = Date.now();
       const renderOwnerLocator = renderSelector
@@ -1560,13 +1657,7 @@ async function openNativePlaywrightPage(playwright, {
           ownedRenderCycleId,
         });
       }
-      activeRequestOwnership = {
-        actionId: ownedActionId,
-        renderCycleId: ownedRenderCycleId,
-        ownershipKind: "case-owned-refresh-action",
-      };
-      activeCorrelationId = ownedCorrelationId;
-      activeCorrelationInjectionEnabled = true;
+      activeRequestRenderCycleId = ownedRenderCycleId;
       try {
         await page.locator(String(selector || "")).first().click();
         const quietDeadline = Date.now() + timeoutMs;
@@ -1690,9 +1781,7 @@ async function openNativePlaywrightPage(playwright, {
         });
         return result;
       } finally {
-        activeRequestOwnership = null;
-        activeCorrelationId = previousCorrelationId;
-        activeCorrelationInjectionEnabled = previousCorrelationInjectionEnabled;
+        activeRequestRenderCycleId = scopedRenderCycleId;
         if (renderSelector) {
           await page.evaluate(() => {
             globalThis.__mediaServerDiagnosticOwnedRenderCycle?.observer?.disconnect?.();
@@ -1747,6 +1836,7 @@ async function openNativePlaywrightPage(playwright, {
       }
     },
     request: async ({
+      actionContext = null,
       method = "GET",
       urlPath,
       actionId = "",
@@ -1760,11 +1850,16 @@ async function openNativePlaywrightPage(playwright, {
       const networkStart = networkEntries.length;
       const routeFailureStart = correlationRouteFailures.length;
       const startedAt = Date.now();
-      if (activeRequestOwnership) {
-        throw new Error("nested request action ownership is forbidden");
-      }
       const explicitCorrelationId = String(correlationId || "");
       const ownedActionId = String(actionId || "");
+      requestActionOwnershipRegistry.validate(actionContext, {
+        caseId,
+        actionId: ownedActionId,
+        phase: String(actionContext?.phase || ""),
+      });
+      if (explicitCorrelationId !== String(actionContext.correlationId || "")) {
+        throw new Error("request correlation does not match its explicit action context");
+      }
       if (explicitCorrelationId && !ownedActionId) {
         throw new Error("explicit request correlation requires an action ID");
       }
@@ -1782,11 +1877,6 @@ async function openNativePlaywrightPage(playwright, {
           }
         : null;
       activeExplicitCorrelationRegistration = explicitRegistration;
-      activeRequestOwnership = {
-        actionId: ownedActionId,
-        renderCycleId: String(renderCycleId || ""),
-        ownershipKind: String(ownershipKind || "diagnostic-authoritative-readback"),
-      };
       let response;
       try {
         response = await page.evaluate(async ({
@@ -1832,7 +1922,6 @@ async function openNativePlaywrightPage(playwright, {
       } finally {
         if (explicitRegistration) explicitRegistration.active = false;
         activeExplicitCorrelationRegistration = null;
-        activeRequestOwnership = null;
       }
       const deadline = Date.now() + Math.min(timeoutMs, 1000);
       let ledgerSettled = false;

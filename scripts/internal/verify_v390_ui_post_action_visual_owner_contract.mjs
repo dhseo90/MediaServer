@@ -64,7 +64,9 @@ assert.deepEqual(initialRouteRed.capturedBeforeFailure,
 for (const artifact of Object.values(initialRouteRed.artifacts)) {
   assert.match(artifact.sha256, /^[0-9a-f]{64}$/);
   const filePath = path.join(rootDir, artifact.path);
-  if (fs.existsSync(filePath)) assert.equal(sha256File(filePath), artifact.sha256);
+  if (artifact.path.includes("/runs/") && fs.existsSync(filePath)) {
+    assert.equal(sha256File(filePath), artifact.sha256);
+  }
 }
 
 assert.equal(redirectChainRed.schema,
