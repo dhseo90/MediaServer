@@ -2127,6 +2127,22 @@ check("remaining client-safe batch clusters bind dynamic identities and owned li
   }
 });
 
+check("actual read-only and hidden-boundary completion requests use exact runtime oracle paths", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const byId = new Map(rebuilt.cases.map(item => [item.caseId, item]));
+  for (const caseId of ["SAFE-018", "SAFE-031"]) {
+    const request = byId.get(caseId).workflow.expectedResults[0].completion.request;
+    assert(request.urlPathTemplate === "/client/api/views" && request.urlPath === "/client/api/views",
+      `${caseId} hidden-boundary completion did not use its exact runtime API read`);
+  }
+  const sourceRequest = byId.get("SRC-038").workflow.expectedResults[0].completion.request;
+  assert(sourceRequest.urlPathTemplate === "/client/api/views/{viewId}/events" &&
+    sourceRequest.urlPath === "/client/api/views/9001/events" &&
+    sourceRequest.pathParameters.viewId === "9001" &&
+    sourceRequest.parameterSource === "runtime-default-view",
+  "SRC-038 completion did not preserve the runtime default view path binding");
+});
+
 check("all cases declare native action, oracle seed, and artifact plan", () => {
   for (const item of manifest.cases) {
     assert(item.dispatch === "playwright-native", `${item.caseId} dispatch mismatch`);

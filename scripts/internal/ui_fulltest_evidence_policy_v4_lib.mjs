@@ -14,6 +14,7 @@ import {
   visualEvidenceSchema,
 } from "./v390_ui_visual_evidence.mjs";
 import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
+import { qualifyBrowserConsoleMessages } from "./v390_ui_console_evidence.mjs";
 
 const sha256Pattern = /^[a-f0-9]{64}$/;
 export const canonicalImplementationProjectionSchema =
@@ -646,14 +647,16 @@ function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonic
   }, reasons);
   if (traceRef && !sameArtifactReference(raw.traceRef, item?.artifacts?.trace)) reasons.push("raw-trace-ref-artifact-mismatch");
   if (traceRef && canonicalCase && nativeCase) {
+    const tracePayload = readJsonFile(traceRef.path);
     const qualification = qualifyRawCase({
-      trace: readJsonFile(traceRef.path),
+      trace: tracePayload,
       requested: item.requested,
       observed: item.observed,
       canonicalCase,
       nativeCase,
     });
     reasons.push(...qualification.reasons);
+    validateCaseConsole(policy, item, summary, rootDir, tracePayload, nativeCase, reasons);
   }
 
   const visual = item?.visualEvidence || {};
@@ -729,6 +732,25 @@ function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonic
   if (redactionRef) validateCaseRedaction(policy, item, summary, rootDir, redactionRef.path, reasons);
   if (verifyArtifacts) validateArtifacts(policy, item, summary, rootDir, correlationId, reasons);
   return [...new Set(reasons)];
+}
+
+function validateCaseConsole(policy, item, summary, rootDir, trace, nativeCase, reasons) {
+  const artifactRoot = resolveContained(rootDir, summary.sourceBinding?.artifactRoot);
+  const artifact = item?.artifacts?.browserConsole;
+  const resolved = artifactRoot && artifact ? resolveContained(artifactRoot, artifact.path) : null;
+  if (!resolved || !isInside(artifactRoot, resolved) || !fs.existsSync(resolved) ||
+      sha256File(resolved) !== artifact.sha256) return;
+  const payload = isJson(resolved, artifact.contentType) ? readJsonFile(resolved) : null;
+  if (!payload || payload.schema !== policy.attestation.browserConsoleSchema || !Array.isArray(payload.messages)) return;
+  const qualification = qualifyBrowserConsoleMessages({ messages: payload.messages, trace, nativeCase });
+  if (qualification.unapprovedConsoleMessages !== Number(item?.security?.unapprovedConsoleMessages || 0)) {
+    reasons.push("case-console-unapproved-message-count-mismatch");
+  }
+  const actualApprovals = payload.messages.map(message => message.approval || null);
+  const expectedApprovals = qualification.messages.map(message => message.approval || null);
+  if (JSON.stringify(actualApprovals) !== JSON.stringify(expectedApprovals)) {
+    reasons.push("case-console-approval-attestation-mismatch");
+  }
 }
 
 function validateArtifacts(policy, item, summary, rootDir, correlationId, reasons) {

@@ -937,7 +937,7 @@ function validatesPersistedMutationReadback(readback) {
   return false;
 }
 
-function evaluateSemanticExpectation(expected, observation) {
+export function evaluateSemanticExpectation(expected, observation) {
   if (!expected || typeof expected !== "object" || !observation || typeof observation !== "object") return false;
   const before = observation.before || null;
   const after = observation.after || observation.actual || null;

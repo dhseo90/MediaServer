@@ -3546,8 +3546,16 @@ function buildActionSemanticCompletion({
   const authoritativeExactReadRequest = primary &&
     workflowClass === "read-only-state" &&
     productAction.kind === "product-state-read" && exactReadRequests.length === 1 &&
-    String(exactReadRequests[0]?.path || "").startsWith("/ops/api/events/reviews") &&
-    exactReadPathParameters.every(name => ["fixtureId", "id"].includes(name))
+    ((String(exactReadRequests[0]?.path || "").startsWith("/ops/api/events/reviews") &&
+      exactReadPathParameters.every(name => ["fixtureId", "id"].includes(name))) ||
+      (exactReadPathParameters.length === 1 && exactReadPathParameters[0] === "viewId"))
+    ? exactReadRequests[0]
+    : null;
+  const authoritativeHiddenBoundaryReadRequest = primary &&
+    workflowClass === "hidden-disabled" &&
+    productAction.kind === "product-boundary-read" &&
+    exactReadRequests.length === 1 &&
+    exactReadRequests[0]?.path === "/client/api/views"
     ? exactReadRequests[0]
     : null;
   const rootRedirectLifecycle = [
@@ -3683,9 +3691,10 @@ function buildActionSemanticCompletion({
   if (primary) {
     if (navigationBinding) {
       // Route 소유 read model은 최초 문서 이동을 재사용하고 catalog runtime을 통해 API를 결속한다.
-    } else if (authoritativeExactReadRequest || productAction.endpoint) {
+    } else if (authoritativeExactReadRequest || authoritativeHiddenBoundaryReadRequest || productAction.endpoint) {
       request = actionRequestContract(correlationId,
-        authoritativeExactReadRequest || productAction.endpoint, workflowInputs, caseId);
+        authoritativeExactReadRequest || authoritativeHiddenBoundaryReadRequest || productAction.endpoint,
+        workflowInputs, caseId);
     } else {
       localTransition = {
         selector: primaryControl.selector,
@@ -3764,9 +3773,11 @@ function actionRequestContract(correlationId, endpoint, workflowInputs = [], cas
     .map(input => input?.seedReference?.fixtureId || input?.actualValue?.id || "")
     .find(Boolean) || (caseId ? workflowFixtureId(caseId) : "");
   for (const name of parameterNames) {
-    assert(["fixtureId", "id"].includes(name), `${caseId} unsupported endpoint path parameter: ${name}`);
-    assert(fixtureId, `${caseId} endpoint path parameter ${name} has no exact workflow fixture`);
-    pathParameters[name] = fixtureId;
+    assert(["fixtureId", "id", "viewId"].includes(name),
+      `${caseId} unsupported endpoint path parameter: ${name}`);
+    const parameterValue = name === "viewId" ? "9001" : fixtureId;
+    assert(parameterValue, `${caseId} endpoint path parameter ${name} has no exact workflow fixture`);
+    pathParameters[name] = parameterValue;
   }
   const urlPath = String(urlPathTemplate).replace(/\{([^/{}]+)\}/g, (_match, name) =>
     encodeURIComponent(pathParameters[name]));
@@ -3778,6 +3789,7 @@ function actionRequestContract(correlationId, endpoint, workflowInputs = [], cas
     urlPathTemplate,
     urlPath,
     pathParameters,
+    ...(parameterNames.includes("viewId") ? { parameterSource: "runtime-default-view" } : {}),
     allowedStatuses: [...endpoint.allowedStatuses],
   };
 }

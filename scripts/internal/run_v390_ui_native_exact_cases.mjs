@@ -500,7 +500,12 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     assert(initialCompletion.pass, `${item.caseId} navigation completion failed: ${initialCompletion.reason}`);
     trace.completionEvents.push(initialCompletion);
     if (item.disposition === "negative-route") {
-      trace.actions.push({ kind: "navigate", status: "PASS", observedStatus: browser.navigation.status });
+      trace.actions.push({
+        ...initialCompletionAction,
+        executedKind: "navigate-negative",
+        status: "PASS",
+        observedStatus: browser.navigation.status,
+      });
       trace.rawPrimaryObservations.push(makeRawPrimaryObservation({
         actionEvidence: initialCompletionAction,
         after: initialSnapshot,
@@ -2719,12 +2724,13 @@ function bindRuntimeDefaultViewRequest(item, action, caseRuntimeOwner) {
     (candidate.fixtureRefs || []).includes("assigned-view"));
   if ((!assignedViewRuntimeRead && item.workflow.workflowClass !== "read-only-state") ||
       request?.method !== "GET" ||
-      !String(request.urlPathTemplate || "").startsWith("/client/api/views/{id}")) {
+      !/^\/client\/api\/views\/\{(?:id|viewId)\}/.test(String(request.urlPathTemplate || ""))) {
     return action;
   }
   const viewId = String(caseRuntimeOwner.descriptor?.auth?.defaultViewId || "");
   assert(viewId, `${item.caseId} runtime default view is unavailable for client readback`);
-  const runtimeUrlPath = String(request.urlPathTemplate).replace("{id}", encodeURIComponent(viewId));
+  const parameterName = String(request.urlPathTemplate).includes("{viewId}") ? "viewId" : "id";
+  const runtimeUrlPath = String(request.urlPathTemplate).replace(`{${parameterName}}`, encodeURIComponent(viewId));
   return {
     ...action,
     semanticCompletion: {
@@ -2732,7 +2738,7 @@ function bindRuntimeDefaultViewRequest(item, action, caseRuntimeOwner) {
       request: {
         ...request,
         urlPath: runtimeUrlPath,
-        pathParameters: { ...request.pathParameters, id: viewId },
+        pathParameters: { ...request.pathParameters, [parameterName]: viewId },
         parameterSource: "runtime-default-view",
       },
     },
@@ -3142,6 +3148,9 @@ async function executeIndependentReadback(
       after: pending.after,
       networkEntries: pending.networkResponses,
       semanticReadback,
+      requestBinding: pending.formResponseIdentity
+        ? structuredClone(pending.formResponseIdentity)
+        : null,
     }),
   };
 }
@@ -3270,6 +3279,7 @@ function makeRawPrimaryObservation({
   navigation = null,
   networkEntries = [],
   semanticReadback = null,
+  requestBinding = null,
 }) {
   return {
     schema: "media-server.v390-ui-raw-primary-observation.v1",
@@ -3278,6 +3288,8 @@ function makeRawPrimaryObservation({
       actionKind: actionEvidence.actionKind || actionEvidence.kind,
       executedKind: actionEvidence.executedKind || actionEvidence.kind,
       controlSelector: actionEvidence.controlSelector ?? null,
+      executionOwnerSelector: actionEvidence.executedControlSelector ||
+        actionEvidence.controlSelector || null,
       correlationId: actionEvidence.correlationId,
       dispatch: actionEvidence.dispatch,
     },
@@ -3285,6 +3297,7 @@ function makeRawPrimaryObservation({
     after: after ? structuredClone(after) : null,
     navigation: navigation ? structuredClone(navigation) : null,
     networkEntries: structuredClone(networkEntries),
+    requestBinding: requestBinding ? structuredClone(requestBinding) : null,
     semanticReadback: semanticReadback ? structuredClone(semanticReadback) : null,
   };
 }
@@ -3301,6 +3314,7 @@ function semanticCompletionAction(action, item) {
     dispatch: "playwright-native",
     completionPhase: completion.phase,
     actionId: completion.actionId,
+    actionKind: completion.actionKind,
     controlSelector: completion.controlSelector,
     semanticCompletionRequired: true,
     expectedReadbackIdentity: completion.readback.identity,
@@ -3348,6 +3362,7 @@ function semanticReadbackEvidence(action, actionEvidence, before, after, explici
         ? {}
         : { actual: structuredClone(explicitObserved) }),
     };
+    const serializableObservation = JSON.parse(JSON.stringify(observation));
     return {
       schema: "media-server.v390-ui-semantic-readback.v2",
       identity: action.semanticCompletion.readbackIdentity,
@@ -3358,8 +3373,8 @@ function semanticReadbackEvidence(action, actionEvidence, before, after, explici
         ? "readback-request"
         : "browser-dom",
       selector: actionEvidence.controlSelector,
-      observation,
-      observationSha256: domSnapshotDigest(observation),
+      observation: serializableObservation,
+      observationSha256: domSnapshotDigest(serializableObservation),
     };
   }
   return {

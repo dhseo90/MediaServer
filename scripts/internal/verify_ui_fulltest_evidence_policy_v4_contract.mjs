@@ -18,6 +18,7 @@ import {
   validatePolicy,
 } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { expandVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
+import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -316,6 +317,38 @@ try {
       "self-declared cross-cutting PASS survived missing measurement refs");
   });
 
+  check("self-declared console approval is recalculated from exact trace and source contract", () => {
+    const candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    const item = candidate.cases[0];
+    const artifactRoot = path.join(tempRoot, candidate.sourceBinding.artifactRoot);
+    const consolePath = path.join(artifactRoot, item.artifacts.browserConsole.path);
+    const payload = JSON.parse(fs.readFileSync(consolePath, "utf8"));
+    payload.messages = [{
+      kind: "pageerror",
+      level: "error",
+      text: "forged approved error",
+      approval: {
+        schema: "media-server.v390-ui-console-approval.v1",
+        status: "APPROVED",
+        contractKind: "primary-completion-response",
+        responseIdentity: "forged|identity|1",
+      },
+    }];
+    writeJson(consolePath, payload);
+    item.artifacts.browserConsole = artifactMeta(
+      consolePath,
+      "application/json",
+      artifactRoot,
+      item.testId,
+      item.rawEvidence.correlationId,
+    );
+    const result = evaluate(candidate, tempRoot);
+    assert(result.reasons.some(reason => reason.endsWith(":case-console-unapproved-message-count-mismatch")),
+      "forged console approved count was trusted");
+    assert(result.reasons.some(reason => reason.endsWith(":case-console-approval-attestation-mismatch")),
+      "forged console approval attestation was trusted");
+  });
+
   check("legacy and actual-mode contract fixture are ineligible", () => {
     const legacy = evaluateEvidence(policy, { schema: "media-server.v390-ui-automation.v1" }, { rootDir: tempRoot });
     assert(legacy.evidenceEligibility === "ineligible", "legacy v1 must be ineligible");
@@ -347,6 +380,149 @@ try {
     rewriteTrace(candidate, trace => { trace.rawPrimaryObservations[0].semanticReadback = null; });
     const result = evaluate(candidate, tempRoot);
     assert(result.reasons.some(reason => reason.endsWith(":raw-primary-readback-missing")), "missing raw readback passed");
+  });
+
+  check("request qualification filters by exact contract before requiring one request object pair", () => {
+    const nativeCase = nativeById.get("UI-009");
+    const canonicalCase = canonicalManifestSource.cases.find(item => item.testId === "UI-009");
+    const trace = makeRawTrace(nativeCase);
+    const observation = trace.rawPrimaryObservations[0];
+    const expected = nativeCase.workflow.expectedResults[0].completion;
+    observation.networkEntries.push(
+      {
+        phase: "request-start",
+        requestId: "UI-009:unrelated-request",
+        caseRequestIdentity: "UI-009:unrelated-request",
+        caseRequestSequence: 99,
+        correlationId: expected.correlationId,
+        correlationSource: "request-header",
+        method: expected.request.method,
+        status: 0,
+        url: "http://127.0.0.1/ops/api/unrelated",
+      },
+      {
+        phase: "response",
+        requestId: "UI-009:unrelated-request",
+        caseRequestIdentity: "UI-009:unrelated-request",
+        caseRequestSequence: 99,
+        responseRequestObjectObserved: true,
+        requestIdentitySource: "playwright-response-request",
+        correlationId: expected.correlationId,
+        correlationSource: "request-header",
+        method: expected.request.method,
+        status: 200,
+        url: "http://127.0.0.1/ops/api/unrelated",
+      },
+    );
+    const result = qualifyRawCase({
+      trace,
+      requested: nativeCase.requestedProjection,
+      observed: nativeCase.observedProjection,
+      canonicalCase,
+      nativeCase,
+    });
+    assert(result.qualified === true, result.reasons.join("; "));
+    assert(result.derived.request.caseRequestIdentity.endsWith(":contract-request"),
+      "qualified request did not preserve the exact case request identity");
+  });
+
+  check("response must be the same Playwright request object as the exact initiating request", () => {
+    const nativeCase = nativeById.get("UI-009");
+    const canonicalCase = canonicalManifestSource.cases.find(item => item.testId === "UI-009");
+    const trace = makeRawTrace(nativeCase);
+    const response = trace.rawPrimaryObservations[0].networkEntries.find(item => item.phase === "response");
+    response.caseRequestIdentity = "UI-009:other-object";
+    response.responseRequestObjectObserved = true;
+    response.requestIdentitySource = "playwright-response-request";
+    const result = qualifyRawCase({
+      trace,
+      requested: nativeCase.requestedProjection,
+      observed: nativeCase.observedProjection,
+      canonicalCase,
+      nativeCase,
+    });
+    assert(result.reasons.includes("raw-primary-request-response-object-identity-mismatch"),
+      "wrong response request object identity passed");
+  });
+
+  check("native document form submission uses its exact source-owned request binding", () => {
+    const nativeCase = nativeById.get("UI-002");
+    const canonicalCase = canonicalManifestSource.cases.find(item => item.testId === "UI-002");
+    const trace = makeRawTrace(nativeCase);
+    const observation = trace.rawPrimaryObservations[0];
+    for (const entry of observation.networkEntries) {
+      entry.correlationId = "";
+      entry.correlationSource = "none";
+    }
+    observation.requestBinding = {
+      schema: "media-server.v390-ui-document-form-submit-binding.v1",
+      requestId: observation.networkEntries[0].requestId,
+      caseRequestIdentity: observation.networkEntries[0].caseRequestIdentity,
+      caseRequestSequence: observation.networkEntries[0].caseRequestSequence,
+      method: nativeCase.workflow.expectedResults[0].completion.request.method,
+      path: nativeCase.workflow.expectedResults[0].completion.request.urlPath,
+      status: nativeCase.workflow.expectedResults[0].completion.request.allowedStatuses[0],
+      requestKind: "document-navigation",
+      resourceType: "document",
+      sameOrigin: true,
+      correlationObserved: false,
+      responseRequestObjectObserved: true,
+      requestAttemptCount: 1,
+      responseCandidateCount: 1,
+      reissueCount: 0,
+    };
+    const result = qualifyRawCase({
+      trace,
+      requested: nativeCase.requestedProjection,
+      observed: nativeCase.observedProjection,
+      canonicalCase,
+      nativeCase,
+    });
+    assert(result.qualified === true, result.reasons.join("; "));
+    assert(result.derived.request.caseRequestIdentity === observation.requestBinding.caseRequestIdentity,
+      "form request identity was not preserved");
+  });
+
+  check("dynamic execution-owner selectors and hidden controls remain exact and fail closed", () => {
+    for (const [caseId, ownerSelector, visible] of [
+      ["EVT-018", "#alertDeliverySave", true],
+      ["RULE-017", "#opsEventRuleIdInput", false],
+    ]) {
+      const nativeCase = nativeById.get(caseId);
+      const canonicalCase = canonicalManifestSource.cases.find(item => item.testId === caseId);
+      const trace = makeRawTrace(nativeCase);
+      const observation = trace.rawPrimaryObservations[0];
+      observation.action.executionOwnerSelector = ownerSelector;
+      observation.before.selector = ownerSelector;
+      observation.after.selector = ownerSelector;
+      observation.before.visible = visible;
+      observation.after.visible = visible;
+      observation.semanticReadback.selector = nativeCase.workflow.expectedResults[0].completion.controlSelector;
+      const result = qualifyRawCase({
+        trace,
+        requested: nativeCase.requestedProjection,
+        observed: nativeCase.observedProjection,
+        canonicalCase,
+        nativeCase,
+      });
+      assert(result.qualified === true, `${caseId}: ${result.reasons.join("; ")}`);
+    }
+  });
+
+  check("independent qualifier covers every runner semantic readback expectation shape", () => {
+    for (const caseId of ["UI-023", "UI-030", "RULE-095", "RULE-103", "SAFE-016"]) {
+      const nativeCase = nativeById.get(caseId);
+      const canonicalCase = canonicalManifestSource.cases.find(item => item.testId === caseId);
+      const trace = makeRawTrace(nativeCase);
+      const result = qualifyRawCase({
+        trace,
+        requested: nativeCase.requestedProjection,
+        observed: nativeCase.observedProjection,
+        canonicalCase,
+        nativeCase,
+      });
+      assert(result.qualified === true, `${caseId}: ${result.reasons.join("; ")}`);
+    }
   });
 
   check("REVIEW4-58 primary action ID correlation and exact selector are required", () => {
@@ -689,8 +865,30 @@ function makeRawTrace(nativeCase) {
   const after = rawSnapshot(selector, expected, true);
   const readbackObservation = observationForExpectation(expected.readbackExpectation, before, after);
   const networkEntries = expected.request ? [
-    { phase: "request-start", requestId, correlationId: expected.correlationId, correlationSource: "request-header", method: expected.request.method, status: 0, url: `http://127.0.0.1${expected.request.urlPath}` },
-    { phase: "response", requestId, correlationId: expected.correlationId, correlationSource: "request-header", method: expected.request.method, status: expected.request.allowedStatuses[0], url: `http://127.0.0.1${expected.request.urlPath}` },
+    {
+      phase: "request-start",
+      requestId,
+      caseRequestIdentity: requestId,
+      caseRequestSequence: 1,
+      correlationId: expected.correlationId,
+      correlationSource: "request-header",
+      method: expected.request.method,
+      status: 0,
+      url: `http://127.0.0.1${expected.request.urlPath}`,
+    },
+    {
+      phase: "response",
+      requestId,
+      caseRequestIdentity: requestId,
+      caseRequestSequence: 1,
+      responseRequestObjectObserved: true,
+      requestIdentitySource: "playwright-response-request",
+      correlationId: expected.correlationId,
+      correlationSource: "request-header",
+      method: expected.request.method,
+      status: expected.request.allowedStatuses[0],
+      url: `http://127.0.0.1${expected.request.urlPath}`,
+    },
   ] : [];
   const actions = [{
     actionId: expected.actionId,
@@ -745,7 +943,12 @@ function makeRawTrace(nativeCase) {
 }
 
 function rawSnapshot(selector, expected, after) {
-  const value = { selector, exists: true, visible: true, disabled: false };
+  const value = {
+    selector,
+    exists: true,
+    visible: expected.readbackExpectation?.visible === false ? false : true,
+    disabled: false,
+  };
   const transition = expected.localTransition;
   if (transition?.property) {
     const expectedValue = transition.value ?? transition.expectedValue ?? true;
@@ -768,6 +971,9 @@ function observationForExpectation(expected, before, after) {
   if (expected?.minimumNonEmptyOptions !== undefined) {
     return { before, after: { ...after, tag: expected.tag, nonEmptyOptionCount: expected.minimumNonEmptyOptions } };
   }
+  if (Array.isArray(expected?.textIncludesAll) && expected.textIncludesAll.length > 0) {
+    return { before, after: { ...after, text: expected.textIncludesAll.join(" ") } };
+  }
   if (Array.isArray(expected?.postconditions)) {
     const beforeSnapshots = {};
     const snapshots = {};
@@ -784,7 +990,31 @@ function observationForExpectation(expected, before, after) {
         snapshot[condition.property] = expectedValue;
       }
     }
-    return { beforeSnapshots, snapshots };
+    return {
+      beforeSnapshots,
+      snapshots,
+      ...(expected.independentRejectedReadbackRequired === true ? {
+        rejectedActionReadback: {
+          schema: "media-server.v390-ui-rejected-action-readback.v1",
+          runtimeProductResponseObserved: true,
+          registryUnchanged: true,
+          productErrors: clone(expected.independentProductErrors),
+        },
+      } : {}),
+    };
+  }
+  if (expected?.persistedMutationObserved === true) {
+    return {
+      runtimeMutationReadback: {
+        schema: "media-server.v390-ui-runtime-mutation-readback.v1",
+        method: "PUT",
+        persistedMutationObserved: true,
+        changed: true,
+        beforeSha256: "1".repeat(64),
+        observedSha256: "2".repeat(64),
+        observedPresent: true,
+      },
+    };
   }
   if (expected?.navigationStatus !== undefined) return { navigation: { status: expected.navigationStatus } };
   return { actual: clone(expected) };
@@ -826,7 +1056,7 @@ function contractVisualMeasurement(canonicalCase) {
       fontSizePx: 14,
       fontWeight: "400",
     }],
-    focusSamples: [{ tag: "button", id: canonicalCase.testId, testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" }],
+    focusSamples: [{ focusIdentity: `#${canonicalCase.testId}`, tag: "button", id: canonicalCase.testId, testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" }],
     liveVideo: null,
   };
 }

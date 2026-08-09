@@ -9840,7 +9840,7 @@
           "symbol": "AppendClientShellScript",
           "anchor": "out << R\"CLIENTSCRIPT(  <script>",
           "line": 46,
-          "contextSha256": "3a9ce5c8d8bfe11602f8f64cd1ed5a665114709184cace0f717d868e70ce8bd9"
+        "contextSha256": "cd558f459c922972535bc5a5d5566e7be74aa4cbf233a524e4e1909adbf49cdd"
         },
         "action": {
           "file": "src/ingress/product_ui_client_scripts.cpp",

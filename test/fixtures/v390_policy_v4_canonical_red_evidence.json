@@ -1,0 +1,43 @@
+{
+  "schema": "media-server.v390-policy-v4-canonical-red-evidence.v1",
+  "version": "3.9.0",
+  "sourceKind": "audit-only-historical-red-fixture",
+  "releaseEvidenceEligible": false,
+  "sourceCommitSha": "bab203bd012d37515463c7b346334c32bbf58301",
+  "sourceSummarySha256": "e5e567a27383fc8f45087006c9541452121da4de58a27d38cf8be38be639d4a5",
+  "sourceEvaluationSha256": "b6f3fa8bfb9509671d51b5cc646f3bec469ae28b9f80a473d2c4409029c87b57",
+  "redQualification": {
+    "evidenceEligibility": "ineligible",
+    "qualifiedCaseCount": 0,
+    "exactCaseCount": 424,
+    "uiFulltestPass": false,
+    "reasonCount": 954
+  },
+  "reasonCounts": {
+    "independent-case-visual-not-pass": 424,
+    "raw-primary-request-ambiguous": 344,
+    "raw-primary-readback-observation-mismatch": 145,
+    "raw-primary-readback-observation-digest-mismatch": 11,
+    "raw-primary-request-pair-missing": 9,
+    "raw-primary-snapshot-selector-mismatch": 8,
+    "raw-primary-request-path-mismatch": 3,
+    "raw-independent-readback-action-count-mismatch": 2,
+    "cross-cutting-video-overlay-crop-independent-live-evidence-missing": 1,
+    "cross-cutting-visual-quality-independent-matrix-not-pass": 1,
+    "cross-cutting-visual-quality-independent-visual-failed": 1,
+    "derived-case-fail-must-be-zero": 1,
+    "raw-primary-action-count-mismatch": 1,
+    "raw-primary-action-kind-mismatch": 1,
+    "raw-primary-control-not-visible": 1,
+    "unapproved-console-message-present": 1
+  },
+  "clusterCounts": {
+    "action-selector-identity": 11,
+    "console-security": 1,
+    "cross-cutting-and-case-visual": 427,
+    "readback-identity": 158,
+    "request-response-identity": 356,
+    "suite-derived-closure": 1
+  },
+  "boundary": "This fixture freezes the canonical RED diagnosis only. It cannot be used as current or release evidence."
+}

@@ -44,7 +44,7 @@ void AppendClientAccessRequestScript(std::ostringstream& out) {
 
 void AppendClientShellScript(std::ostringstream& out) {
     out << R"CLIENTSCRIPT(  <script>
-    const activePage = document.body.dataset.clientActive || 'dashboard';
+    const activePage = document.body?.dataset?.clientActive || 'dashboard';
     let payload = { views: [] };
     try {
       payload = JSON.parse(document.querySelector('#views-data')?.textContent || '{"views":[]}');
@@ -58,7 +58,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     const views = Array.isArray(payload.views) ? payload.views : [];
     const clientHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
     let selectedViewId = clientHashParams().get('view') || views[0]?.viewId || '';
-    const isPreviewMode = document.body.dataset.clientPreview === 'true';
+    const isPreviewMode = document.body?.dataset?.clientPreview === 'true';
     const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions, showToast, currentLanguage, translateText } = window.MediaServerUi;
     let clientWebRtcConfigPromise = null;
     const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;

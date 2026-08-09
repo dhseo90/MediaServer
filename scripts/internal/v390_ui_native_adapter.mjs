@@ -9,6 +9,9 @@ import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 
 import { bindRuntimeControlObservationOwner } from "./v390_ui_shared_adapter_lifecycle.mjs";
+import { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
+
+export { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
 
 const require = createRequire(import.meta.url);
 export const nativeCapabilities = [
@@ -86,6 +89,32 @@ export function resolvePlaywrightModule({ modulePath = "", requireExplicit = fal
 export function isResolvedPlaywrightTimeoutError(playwright, error) {
   const TimeoutError = playwright?.errors?.TimeoutError;
   return typeof TimeoutError === "function" && error instanceof TimeoutError;
+}
+
+export async function collectUniqueFocusSamples({ pressTab, observeFocus, maxSteps = 64 }) {
+  const samples = [];
+  const seen = new Set();
+  for (let index = 0; index < maxSteps; index += 1) {
+    await pressTab();
+    const sample = await observeFocus(index);
+    const identity = String(sample?.focusIdentity || "");
+    if (identity && seen.has(identity)) break;
+    if (identity) seen.add(identity);
+    samples.push(sample);
+  }
+  return samples;
+}
+
+export function visualEvidenceScrollDelta(targetRect, liveTileRect, viewportHeight) {
+  const rectTop = rect => Number(rect?.top ?? rect?.y);
+  const rectBottom = rect => Number(rect?.bottom ?? (Number(rect?.y) + Number(rect?.height)));
+  const top = Math.min(rectTop(targetRect), rectTop(liveTileRect));
+  const bottom = Math.max(rectBottom(targetRect), rectBottom(liveTileRect));
+  const height = Number(viewportHeight);
+  if (![top, bottom, height].every(Number.isFinite) || height <= 0 || bottom - top > height) return 0;
+  if (top < 0) return top;
+  if (bottom > height) return bottom - height;
+  return 0;
 }
 
 export async function createNativePlaywrightAdapter({ modulePath = "", chromePath = "" } = {}) {
@@ -768,10 +797,21 @@ async function openNativePlaywrightPage(playwright, {
   const page = await context.newPage();
   page.setDefaultTimeout(timeoutMs);
   page.on("console", message => {
-    consoleEntries.push({ level: message.type(), text: message.text() });
+    consoleEntries.push({
+      kind: "console",
+      level: message.type(),
+      text: message.text(),
+      location: message.location(),
+      observedAtMs: Date.now(),
+    });
   });
   page.on("pageerror", error => {
-    consoleEntries.push({ level: "error", text: error instanceof Error ? error.message : String(error) });
+    consoleEntries.push({
+      kind: "pageerror",
+      level: "error",
+      text: error instanceof Error ? error.message : String(error),
+      observedAtMs: Date.now(),
+    });
   });
   const requestIdentity = request => {
     return requestIdentityRegistry.registerPlaywrightRequest(request);
@@ -1826,6 +1866,16 @@ async function openNativePlaywrightPage(playwright, {
       const targetSelector = String(selector);
       const targetLocator = page.locator(targetSelector).first();
       await targetLocator.waitFor({ state: "attached", timeout: timeoutMs });
+      if (liveVideoSpec?.tileSelector) {
+        const liveTileLocator = page.locator(String(liveVideoSpec.tileSelector)).first();
+        await liveTileLocator.waitFor({ state: "attached", timeout: timeoutMs });
+        const [targetBox, liveTileBox] = await Promise.all([
+          targetLocator.boundingBox(),
+          liveTileLocator.boundingBox(),
+        ]);
+        const scrollDelta = visualEvidenceScrollDelta(targetBox, liveTileBox, height);
+        if (scrollDelta !== 0) await page.evaluate(delta => window.scrollBy(0, delta), scrollDelta);
+      }
       const geometry = await targetLocator.evaluate(async (target, {
         targetSelector: browserTargetSelector,
         binding,
@@ -1895,7 +1945,7 @@ async function openNativePlaywrightPage(playwright, {
             tileIdentity,
             tile: { selector: liveSpec.tileSelector, identity: tileIdentity, viewId: String(tile.getAttribute("data-view-id") || ""), visible: isVisible(tile), rect: rectValue(tile) },
             stage: { selector: liveSpec.stageSelector, tileIdentity, visible: isVisible(stage), rect: stageRect },
-            video: { selector: liveSpec.videoSelector, tileIdentity, visible: isVisible(video), rect: videoRect },
+            videoEvidence: { selector: liveSpec.videoSelector, tileIdentity, visible: isVisible(video), rect: videoRect },
             placeholder: { selector: liveSpec.placeholderSelector, tileIdentity, hidden: Boolean(placeholder?.hidden || !isVisible(placeholder)) },
             modeControls: { selector: liveSpec.modeControlsSelector, tileIdentity, visible: isVisible(modeControls) },
             mode: { selector: liveSpec.modeSelector, tileIdentity, active: Boolean(mode && mode.getAttribute("aria-pressed") === "true"), value: String(mode?.getAttribute("data-mode-action") || "") },
@@ -1919,24 +1969,34 @@ async function openNativePlaywrightPage(playwright, {
               visible: true,
               rect: rectValue(element),
             })),
-            video,
+            videoElement: video,
           };
         };
         const liveBefore = sampleLive();
-        if (liveBefore?.video) {
-          await Promise.race([
-            new Promise(resolve => {
-              if (typeof liveBefore.video.requestVideoFrameCallback === "function") liveBefore.video.requestVideoFrameCallback(() => resolve());
-              else setTimeout(resolve, 350);
-            }),
-            new Promise(resolve => setTimeout(resolve, 600)),
-          ]);
+        let liveAfter = liveBefore;
+        if (liveBefore?.videoElement) {
+          for (let attempt = 0; attempt < 12; attempt += 1) {
+            await Promise.race([
+              new Promise(resolve => {
+                if (typeof liveBefore.videoElement.requestVideoFrameCallback === "function") {
+                  liveBefore.videoElement.requestVideoFrameCallback(() => resolve());
+                } else {
+                  setTimeout(resolve, 100);
+                }
+              }),
+              new Promise(resolve => setTimeout(resolve, 250)),
+            ]);
+            liveAfter = sampleLive();
+            if (Number(liveAfter?.playback?.currentTime || 0) > Number(liveBefore.playback.currentTime || 0) &&
+                Number(liveAfter?.playback?.presentedFrames || 0) > Number(liveBefore.playback.presentedFrames || 0)) {
+              break;
+            }
+          }
         }
-        const liveAfter = sampleLive();
         const liveVideo = liveAfter ? {
           tile: liveAfter.tile,
           stage: liveAfter.stage,
-          video: liveAfter.video,
+          video: liveAfter.videoEvidence,
           placeholder: liveAfter.placeholder,
           modeControls: liveAfter.modeControls,
           mode: liveAfter.mode,
@@ -1971,15 +2031,35 @@ async function openNativePlaywrightPage(playwright, {
         requestedThemeValue: String(requestedTheme),
         liveSpec: liveVideoSpec,
       });
-      const focusSamples = [];
-      for (let index = 0; index < 8; index += 1) {
-        await page.keyboard.press("Tab");
-        focusSamples.push(await page.evaluate(`(() => {
+      const focusSamples = await collectUniqueFocusSamples({
+        pressTab: () => page.keyboard.press("Tab"),
+        observeFocus: index => page.evaluate(indexValue => {
           const element = document.activeElement;
           const style = element ? getComputedStyle(element) : null;
           const rect = element?.getBoundingClientRect?.();
+          const focusIdentity = (() => {
+            if (!element || element === document.documentElement) return "document";
+            if (element.id) return `#${CSS.escape(element.id)}`;
+            const testId = String(element.getAttribute?.("data-testid") || "");
+            if (testId) return `[data-testid="${CSS.escape(testId)}"]`;
+            const segments = [];
+            let current = element;
+            while (current && current.nodeType === Node.ELEMENT_NODE) {
+              const tag = String(current.tagName || "").toLowerCase();
+              if (!tag) break;
+              const siblings = current.parentElement
+                ? Array.from(current.parentElement.children).filter(item => item.tagName === current.tagName)
+                : [];
+              const position = siblings.length > 1 ? `:nth-of-type(${siblings.indexOf(current) + 1})` : "";
+              segments.unshift(`${tag}${position}`);
+              if (current === document.body) break;
+              current = current.parentElement;
+            }
+            return segments.join(" > ");
+          })();
           return {
-            index: ${index},
+            index: indexValue,
+            focusIdentity,
             tag: String(element?.tagName || '').toLowerCase(),
             id: String(element?.id || ''),
             testId: String(element?.getAttribute?.('data-testid') || ''),
@@ -1988,8 +2068,9 @@ async function openNativePlaywrightPage(playwright, {
             outlineWidth: String(style?.outlineWidth || ''),
             boxShadow: String(style?.boxShadow || ''),
           };
-        })()`));
-      }
+        }, index),
+        maxSteps: 64,
+      });
       if (geometry.liveVideo) {
         await Promise.all([...pendingSafeResponseReads]);
         geometry.liveVideo.session = buildLiveSessionEvidence(
@@ -2078,7 +2159,10 @@ async function openNativePlaywrightPage(playwright, {
       await assertEvidenceDomSecretsAbsent(page, observedRuntimeSecrets);
       return page.screenshot({ path: outputFile, fullPage: false });
     },
-    consoleEntries: () => sanitizeEvidenceValue(consoleEntries, observedRuntimeSecrets),
+    consoleEntries: () => sanitizeEvidenceValue(
+      bindBrowserConsoleResponseMessages(consoleEntries, networkEntries),
+      observedRuntimeSecrets,
+    ),
     networkEntries: () => sanitizeEvidenceValue(networkEntries.map(item => ({ ...item })), observedRuntimeSecrets),
     close: async () => {
       if (!closePromise) {

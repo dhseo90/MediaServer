@@ -2239,10 +2239,18 @@ check("REVIEW4-58 exact 424 primary completion contracts bind product action and
       const exactReadRequests = (exactRuntimeOracleFor(item.caseId)?.requests || [])
         .filter(request => request?.method === "GET");
       const authoritativeRead = exactReadRequests.length === 1 ? exactReadRequests[0] : null;
-      const authoritativeReadBound = item.workflow.workflowClass === "read-only-state" &&
-        item.workflow.productAction.kind === "product-state-read" &&
-        endpoint.method === "GET" && endpoint.path === item.canonicalRoute &&
-        authoritativeRead?.path?.startsWith("/ops/api/events/reviews") &&
+      const authoritativePathParameters =
+        [...String(authoritativeRead?.path || "").matchAll(/\{([^/{}]+)\}/g)].map(match => match[1]);
+      const sourceOwnsAuthoritativeRead =
+        (item.workflow.workflowClass === "read-only-state" &&
+          item.workflow.productAction.kind === "product-state-read" &&
+          ((authoritativeRead?.path?.startsWith("/ops/api/events/reviews") &&
+            authoritativePathParameters.every(name => ["fixtureId", "id"].includes(name))) ||
+            JSON.stringify(authoritativePathParameters) === JSON.stringify(["viewId"]))) ||
+        (item.workflow.workflowClass === "hidden-disabled" &&
+          item.workflow.productAction.kind === "product-boundary-read" &&
+          authoritativeRead?.path === "/client/api/views");
+      const authoritativeReadBound = sourceOwnsAuthoritativeRead &&
         completion.request.method === authoritativeRead.method &&
         completion.request.urlPathTemplate === authoritativeRead.path &&
         JSON.stringify(completion.request.allowedStatuses) ===

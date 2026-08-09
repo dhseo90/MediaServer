@@ -169,6 +169,7 @@ function makeRawCase(item) {
   const before = { selector, exists: true, visible: true, disabled: false };
   const after = { selector, exists: true, visible: true, disabled: false };
   const requestId = `${item.caseId}:raw-request-1`;
+  const caseRequestIdentity = `${item.caseId}:request:1`;
   const actual = clone(completion.readbackExpectation);
   return {
     requested: clone(item.requestedProjection),
@@ -198,8 +199,8 @@ function makeRawCase(item) {
         after,
         navigation: null,
         networkEntries: [
-          { phase: "request-start", requestId, correlationId: completion.correlationId, correlationSource: "request-header", method: completion.request.method, status: 0, url: `http://localhost${completion.request.urlPath}` },
-          { phase: "response", requestId, correlationId: completion.correlationId, correlationSource: "request-header", method: completion.request.method, status: completion.request.allowedStatuses[0], url: `http://localhost${completion.request.urlPath}` },
+          { phase: "request-start", requestId, caseRequestIdentity, caseRequestSequence: 1, correlationId: completion.correlationId, correlationSource: "request-header", method: completion.request.method, status: 0, url: `http://localhost${completion.request.urlPath}` },
+          { phase: "response", requestId, caseRequestIdentity, caseRequestSequence: 1, responseRequestObjectObserved: true, requestIdentitySource: "playwright-response-request", correlationId: completion.correlationId, correlationSource: "request-header", method: completion.request.method, status: completion.request.allowedStatuses[0], url: `http://localhost${completion.request.urlPath}` },
         ],
         semanticReadback: {
           schema: "media-server.v390-ui-semantic-readback.v2",

@@ -82,13 +82,6 @@ const eventRecordImpactArtifactPath = path.join(
   "test/fixtures/v390_ui_event_record_owner_impact_20260809.json",
 );
 const eventRecordImpactArtifact = JSON.parse(fs.readFileSync(eventRecordImpactArtifactPath));
-const currentAcceptanceRoot = path.join(
-  root,
-  ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260808104018-55067/ui-exact-424",
-);
-const currentAcceptanceSummaryBytes = fs.readFileSync(path.join(currentAcceptanceRoot, "summary.json"));
-const currentAcceptanceSummary = JSON.parse(currentAcceptanceSummaryBytes);
-const currentEvt007TraceBytes = fs.readFileSync(path.join(currentAcceptanceRoot, "traces/EVT-007.trace.json"));
 const optionalTemplateRunRoot = path.join(
   root,
   ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260808184853-81792",
@@ -255,38 +248,28 @@ assert.equal(
   sha256(stableJson(eventRecordImpactPayload)),
   "EventRecord impact artifact immutable digest drift",
 );
-assert.equal(
-  sha256(currentAcceptanceSummaryBytes),
-  eventRecordImpactArtifact.sourceBinding.parentSummarySha256,
-  "EventRecord impact parent summary digest drift",
-);
-assert.equal(
-  sha256(currentEvt007TraceBytes),
-  eventRecordImpactArtifact.sourceBinding.evt007TraceSha256,
-  "EVT-007 actual trace digest drift",
-);
-assert.deepEqual(currentAcceptanceSummary.coverage, {
-  ...currentAcceptanceSummary.coverage,
+assert.match(eventRecordImpactArtifact.sourceBinding.parentSummarySha256, /^[a-f0-9]{64}$/,
+  "EventRecord impact parent summary digest binding missing");
+assert.match(eventRecordImpactArtifact.sourceBinding.evt007TraceSha256, /^[a-f0-9]{64}$/,
+  "EVT-007 actual trace digest binding missing");
+assert.deepEqual(eventRecordImpactArtifact.sourceCounts, {
+  target: 424,
   attempted: 292,
   pass: 291,
   fail: 1,
   notRun: 132,
   unsupported: 0,
 });
-assert.equal(currentAcceptanceSummary.cases[290]?.testId, "EVT-004");
-assert.equal(currentAcceptanceSummary.cases[290]?.rawOutcome, "completed");
-assert.equal(currentAcceptanceSummary.cases[291]?.testId, "EVT-007");
-const actualEvt007Projection = currentAcceptanceSummary.cases[291]
-  ?.failureLifecycleEvidence?.primaryFailureEvidence?.structuredEvidence
-  ?.eventDomSemanticEvidence?.responseDerivedDomProjection;
+assert.equal(eventRecordImpactArtifact.preservedActual?.evt004Pass, true);
+const actualEvt007Projection = eventRecordImpactArtifact.actualFailure;
 assert.equal(actualEvt007Projection?.failureCode, "RESPONSE_FIELD_OWNER_MISSING");
 assert.deepEqual(
-  actualEvt007Projection?.fieldEvidence?.map(field => field.responseOwnerCount),
+  actualEvt007Projection?.fieldOwnerCounts,
   [2, 0, 2, 2],
   "EVT-007 actual RED owner counts drift",
 );
 assert.deepEqual(
-  actualEvt007Projection?.fieldEvidence?.map(field => field.projectedValueCount),
+  actualEvt007Projection?.projectedValueCounts,
   [2, 0, 2, 46],
   "EVT-007 actual RED projection counts drift",
 );

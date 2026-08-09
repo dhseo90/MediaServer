@@ -215,8 +215,10 @@ export function evaluateVisualArtifact({
   const focusSamples = measurement.focusSamples || [];
   const visibleFocus = focusSamples.filter(item => item.visible === true && hasVisibleFocusIndicator(item));
   const visibleFocusSamples = focusSamples.filter(item => item.visible === true);
-  const uniqueFocusOrder = new Set(visibleFocusSamples.map(item => `${item.tag}:${item.id}:${item.testId}`));
+  const focusIdentities = visibleFocusSamples.map(item => String(item.focusIdentity || ""));
+  const uniqueFocusOrder = new Set(focusIdentities);
   if (focusSamples.length === 0 || visibleFocus.length === 0) failures.push("focus-visible-missing");
+  if (focusIdentities.some(identity => identity.length === 0)) failures.push("focus-owner-identity-missing");
   if (uniqueFocusOrder.size !== visibleFocusSamples.length) failures.push("focus-order-repeated");
 
   const liveRequired = Boolean(expected.liveVideoRequired || liveVideoSpec || requireVideoOverlay);

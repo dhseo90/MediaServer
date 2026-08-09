@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { evaluateEvidence, sha256File, sha256Text, validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
+import { censusQualificationReasons } from "./v390_ui_policy_v4_reason_census.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -75,6 +76,8 @@ const currentActualSource = summary.schema === "media-server.ui-automation-evide
   summary.sourceBinding?.worktreePatchSha256 === currentSource.worktreePatchSha256;
 const currentNotRunSource = summary.schema === "media-server.v390-ui-current-evidence-state.v2" &&
   summary.sourceKind === "current-not-run-state" && summary.status === "not-run";
+const actualBrowserEvidence = summary.schema === "media-server.ui-automation-evidence.v4" &&
+  summary.contractFixture !== true && summary.fixture === false;
 if (currentNotRunSource) {
   evaluation.reasons = evaluation.reasons.filter(reason =>
     !reason.startsWith("legacy-or-unsupported-schema:media-server.v390-ui-current-evidence-state."));
@@ -101,6 +104,10 @@ if (!currentWorkflowReady) {
   evaluation.evidenceEligibility = "ineligible";
 }
 
+const reasonCensus = currentActualSource
+  ? censusQualificationReasons(evaluation.reasons)
+  : null;
+
 const result = {
   schema: "media-server.ui-fulltest-evidence-policy-evaluation.v4",
   policySchema: policy.schema,
@@ -124,10 +131,15 @@ const result = {
     nativeExecutablePositive: currentCounts.nativeExecutablePositive ?? null,
     negativeRouteExecutable: currentCounts.negativeRouteExecutable ?? null,
     unsupported: currentCounts.unsupported ?? null,
-    executedPass: coveragePolicy.defaultExecutionState?.pass ?? null,
-    notRun: coveragePolicy.defaultExecutionState?.notRun ?? null,
+    executedPass: actualBrowserEvidence
+      ? Number(summary.coverage?.pass ?? summary.pass ?? 0)
+      : (coveragePolicy.defaultExecutionState?.pass ?? null),
+    notRun: actualBrowserEvidence
+      ? Number(summary.coverage?.notRun ?? summary.notRun ?? 0)
+      : (coveragePolicy.defaultExecutionState?.notRun ?? null),
   },
   qualification: evaluation,
+  reasonCensus,
   suiteClosure: {
     actualBrowserExecution: summary.schema === "media-server.ui-automation-evidence.v4" &&
       summary.contractFixture !== true && summary.fixture === false,
@@ -253,6 +265,10 @@ function readText(relativePath) {
 function writeOutputs(outputDir, payload) {
   fs.mkdirSync(outputDir, { recursive: true });
   fs.writeFileSync(path.join(outputDir, "evaluation.json"), `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  if (payload.reasonCensus) {
+    fs.writeFileSync(path.join(outputDir, "reason-census.json"),
+      `${JSON.stringify(payload.reasonCensus, null, 2)}\n`, "utf8");
+  }
   const lines = [
     "# Policy v4 UI Fulltest Evidence Evaluation",
     "",

@@ -205,6 +205,58 @@ check("producer visual and cross-cutting artifacts remain unqualified", () => {
     "producer emitted cross-cutting status");
 });
 
+check("producer approves only an exact trace-bound source contract console response", () => {
+  const trace = makeRawTrace(item);
+  const response = {
+    phase: "response",
+    requestId: "console-request-1",
+    caseRequestIdentity: `${item.caseId}:console-request-1`,
+    caseRequestSequence: 91,
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+    requestKind: "application-fetch",
+    sameOrigin: true,
+    requestOwnershipKind: "",
+    initiatorActionId: "",
+    method: "GET",
+    status: 401,
+    url: "http://localhost/auth/whoami",
+  };
+  trace.completionEvents = [{ networkResponses: [response] }];
+  writeJson(tracePath, trace);
+  writeJson(consolePath, {
+    schema: "media-server.v390-ui-native-browser-console.v1",
+    caseId: item.caseId,
+    entries: [{
+      kind: "console",
+      level: "error",
+      text: "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      location: { url: response.url, lineNumber: 0, columnNumber: 0 },
+      responseBinding: {
+        schema: "media-server.v390-ui-console-response-binding.v1",
+        ...response,
+        path: "/auth/whoami",
+      },
+      responseBindingCandidateCount: 1,
+    }],
+  });
+  const approved = produce(makeResult()).summary.cases[0];
+  assert(approved.security.unapprovedConsoleMessages === 0,
+    "exact anonymous whoami response binding was not approved");
+  const approvedConsole = readJson(path.join(outputDir, approved.artifacts.browserConsole.path));
+  assert(approvedConsole.messages[0].approval?.contractKind === "anonymous-whoami-unauthorized",
+    "source contract approval attestation missing");
+
+  const wrongTrace = structuredClone(trace);
+  wrongTrace.completionEvents[0].networkResponses[0].url = "http://localhost/unrelated";
+  writeJson(tracePath, wrongTrace);
+  const rejected = produce(makeResult()).summary.cases[0];
+  assert(rejected.security.unapprovedConsoleMessages === 1,
+    "wrong trace response identity was approved");
+  writeJson(tracePath, makeRawTrace(item));
+  writeJson(consolePath, { schema: "media-server.v390-ui-native-browser-console.v1", caseId: item.caseId, entries: [] });
+});
+
 check("producer cannot repair a wrong raw request with runner PASS", () => {
   const trace = makeRawTrace(item);
   trace.rawPrimaryObservations[0].networkEntries[1].method = "DELETE";
@@ -215,7 +267,7 @@ check("producer cannot repair a wrong raw request with runner PASS", () => {
     canonicalCase,
     nativeCase: item,
   });
-  assert(result.qualified === false && result.reasons.includes("raw-primary-request-method-mismatch"),
+  assert(result.qualified === false && result.reasons.includes("raw-primary-request-pair-missing"),
     "wrong raw request became qualified");
 });
 

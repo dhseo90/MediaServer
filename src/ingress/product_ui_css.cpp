@@ -31,7 +31,7 @@ std::string ProductDesignTokensCss() {
       --color-danger: #dc2626;
       --color-danger-hover: #b91c1c;
       --color-danger-weak-bg: #fff1f1;
-      --color-info: #2563eb;
+      --color-info: #1d4ed8;
       --color-neutral: #64748b;
       --color-on-primary: #ffffff;
       --color-on-danger: #ffffff;

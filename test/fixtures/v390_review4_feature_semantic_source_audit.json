@@ -3378,7 +3378,7 @@
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderLiveMonitor",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "5d737f4299a4c3143aabeaf749c0245d8e4d531cacd0a6e497e63d43fce975fd",
             "enclosingBodyStartLine": 2204,
             "enclosingBodyEndLine": 2242,
@@ -3387,7 +3387,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderLiveMonitor",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "5d737f4299a4c3143aabeaf749c0245d8e4d531cacd0a6e497e63d43fce975fd",
             "enclosingBodyStartLine": 2204,
             "enclosingBodyEndLine": 2242,
@@ -3396,7 +3396,7 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "liveMonitorHtml",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "467a6ce892caac8f0210419e6f0d605e128d25b678d842be936d43840f5b3bd0",
             "enclosingBodyStartLine": 1868,
             "enclosingBodyEndLine": 1929,
@@ -3405,7 +3405,7 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "liveMonitorHtml",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "467a6ce892caac8f0210419e6f0d605e128d25b678d842be936d43840f5b3bd0",
             "enclosingBodyStartLine": 1868,
             "enclosingBodyEndLine": 1929,
@@ -3606,7 +3606,7 @@
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "loadDetail",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "9ee4923a8638cf3138a8f083f052c65f7f7f265415aa2c35caab1ee5e175e946",
             "enclosingBodyStartLine": 2671,
             "enclosingBodyEndLine": 2699,
@@ -3615,7 +3615,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "loadDetail",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "9ee4923a8638cf3138a8f083f052c65f7f7f265415aa2c35caab1ee5e175e946",
             "enclosingBodyStartLine": 2671,
             "enclosingBodyEndLine": 2699,
@@ -3624,7 +3624,7 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderDashboard",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "b0f066c183b32db61ce438f966e28e6b8528d6dfda0c98714b682c864c000c38",
             "enclosingBodyStartLine": 940,
             "enclosingBodyEndLine": 1090,
@@ -3633,7 +3633,7 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderDashboard",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "b0f066c183b32db61ce438f966e28e6b8528d6dfda0c98714b682c864c000c38",
             "enclosingBodyStartLine": 940,
             "enclosingBodyEndLine": 1090,
@@ -3834,7 +3834,7 @@
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "loadDetail",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "9ee4923a8638cf3138a8f083f052c65f7f7f265415aa2c35caab1ee5e175e946",
             "enclosingBodyStartLine": 2671,
             "enclosingBodyEndLine": 2699,
@@ -3843,7 +3843,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "loadDetail",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "9ee4923a8638cf3138a8f083f052c65f7f7f265415aa2c35caab1ee5e175e946",
             "enclosingBodyStartLine": 2671,
             "enclosingBodyEndLine": 2699,
@@ -3852,7 +3852,7 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -3861,7 +3861,7 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -4051,7 +4051,7 @@
           "sha256": "a07299ae9edbc3ed6cd247785383c48072eeba409eb86d7bd767264665cb36ff"
         }
       },
-      "sourceFlowDigest": "745c1faf871a574d64868fb11ad0723cfd12e352bdeab47c185179f2d078e797",
+      "sourceFlowDigest": "1aa9e3b6768e7685d144862a6b1fc6afe4287f112c3e371e9f9c122d8b66b0ca",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -4094,7 +4094,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
             "symbol": "negative-route-oracle:UI-018",
-            "trackedBlobSha256": "dc62eeec9bdb580f64b563cea5da21a1f3267ffbebe2fd76e074ddb66634480d",
+            "trackedBlobSha256": "4708bd84ef9e7432e3bcaef20e4f74b10d3c4e0df5481494819bd79f7eb5f6ae",
             "enclosingBodySha256": "921631115ed367215c0b7738f8fc3e64ec1184f87686dbc717424f2f273b6bb7",
             "enclosingBodyStartLine": 2007,
             "enclosingBodyEndLine": 2022,
@@ -4109,7 +4109,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "dc62eeec9bdb580f64b563cea5da21a1f3267ffbebe2fd76e074ddb66634480d",
+        "verifierFileSha256": "4708bd84ef9e7432e3bcaef20e4f74b10d3c4e0df5481494819bd79f7eb5f6ae",
         "dispatch": {
           "command": "verify-v390-ui-native-exact-cases-contract",
           "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
@@ -4498,7 +4498,7 @@
           "owner": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "64f2bd4536ca7c374cfa534dcb1062b66fc4d47d655b11d208d616c8798c4689",
+            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
             "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
             "enclosingBodyStartLine": 210,
             "enclosingBodyEndLine": 5620,
@@ -4507,7 +4507,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "64f2bd4536ca7c374cfa534dcb1062b66fc4d47d655b11d208d616c8798c4689",
+            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
             "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
             "enclosingBodyStartLine": 210,
             "enclosingBodyEndLine": 5620,
@@ -4516,7 +4516,7 @@
           "action": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "64f2bd4536ca7c374cfa534dcb1062b66fc4d47d655b11d208d616c8798c4689",
+            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
             "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
             "enclosingBodyStartLine": 210,
             "enclosingBodyEndLine": 5620,
@@ -4525,7 +4525,7 @@
           "state": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "64f2bd4536ca7c374cfa534dcb1062b66fc4d47d655b11d208d616c8798c4689",
+            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
             "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
             "enclosingBodyStartLine": 210,
             "enclosingBodyEndLine": 5620,
@@ -4718,7 +4718,7 @@
           "owner": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "64f2bd4536ca7c374cfa534dcb1062b66fc4d47d655b11d208d616c8798c4689",
+            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
             "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
             "enclosingBodyStartLine": 210,
             "enclosingBodyEndLine": 5620,
@@ -4727,7 +4727,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "64f2bd4536ca7c374cfa534dcb1062b66fc4d47d655b11d208d616c8798c4689",
+            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
             "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
             "enclosingBodyStartLine": 210,
             "enclosingBodyEndLine": 5620,
@@ -4736,7 +4736,7 @@
           "action": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "64f2bd4536ca7c374cfa534dcb1062b66fc4d47d655b11d208d616c8798c4689",
+            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
             "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
             "enclosingBodyStartLine": 210,
             "enclosingBodyEndLine": 5620,
@@ -4745,7 +4745,7 @@
           "state": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "64f2bd4536ca7c374cfa534dcb1062b66fc4d47d655b11d208d616c8798c4689",
+            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
             "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
             "enclosingBodyStartLine": 210,
             "enclosingBodyEndLine": 5620,
@@ -16257,7 +16257,7 @@
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -16266,7 +16266,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -16275,7 +16275,7 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientSafeResolutionDigest",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "8793010ac5e18daeead4a50974182dfa2055f8d8393502841e1014df6bc91e35",
             "enclosingBodyStartLine": 375,
             "enclosingBodyEndLine": 401,
@@ -16284,7 +16284,7 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientSafeResolutionDigest",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "8793010ac5e18daeead4a50974182dfa2055f8d8393502841e1014df6bc91e35",
             "enclosingBodyStartLine": 375,
             "enclosingBodyEndLine": 401,
@@ -17326,7 +17326,7 @@
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -17335,7 +17335,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -17344,7 +17344,7 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientSafeSourceStatusDigest",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "c6f7c502cd67de77bfa9468ab4fb8fa3aee06c33a97ea418761007dc0fcc5918",
             "enclosingBodyStartLine": 402,
             "enclosingBodyEndLine": 428,
@@ -17353,7 +17353,7 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientSafeSourceStatusDigest",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "c6f7c502cd67de77bfa9468ab4fb8fa3aee06c33a97ea418761007dc0fcc5918",
             "enclosingBodyStartLine": 402,
             "enclosingBodyEndLine": 428,
@@ -18663,7 +18663,7 @@
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -18672,7 +18672,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -18681,7 +18681,7 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientSafeMaintenanceDigest",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "0ffe8cc112fced835aaa046497b866e7179263710ad0340308fb29c763976b3d",
             "enclosingBodyStartLine": 429,
             "enclosingBodyEndLine": 455,
@@ -18690,7 +18690,7 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientSafeMaintenanceDigest",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "0ffe8cc112fced835aaa046497b866e7179263710ad0340308fb29c763976b3d",
             "enclosingBodyStartLine": 429,
             "enclosingBodyEndLine": 455,
@@ -20220,7 +20220,7 @@
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -20229,7 +20229,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -20238,7 +20238,7 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientImpactForecast",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "d5149b99a3d30ce25c0949aebcae9284e72ede7fda6870067c96581b8b66e72b",
             "enclosingBodyStartLine": 508,
             "enclosingBodyEndLine": 535,
@@ -20247,7 +20247,7 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientImpactForecast",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "d5149b99a3d30ce25c0949aebcae9284e72ede7fda6870067c96581b8b66e72b",
             "enclosingBodyStartLine": 508,
             "enclosingBodyEndLine": 535,
@@ -20477,7 +20477,7 @@
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -20486,7 +20486,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -20495,7 +20495,7 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientOperationsNotice",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "9370a85a684656712fc41ca1f4ffa78c2c1672c62b5717c6cca08cbee44257ce",
             "enclosingBodyStartLine": 456,
             "enclosingBodyEndLine": 479,
@@ -20504,7 +20504,7 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientOperationsNotice",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "9370a85a684656712fc41ca1f4ffa78c2c1672c62b5717c6cca08cbee44257ce",
             "enclosingBodyStartLine": 456,
             "enclosingBodyEndLine": 479,
@@ -25239,7 +25239,7 @@
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -25248,7 +25248,7 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderEventPage",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "87a9ddb9b551f2241d5e653e8153b28dc651bdc1b57c65df0ce8cf64c0872a03",
             "enclosingBodyStartLine": 1106,
             "enclosingBodyEndLine": 1137,
@@ -25257,7 +25257,7 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientActionNoticePreview",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "a8be8819c73ea344ffdd067b888a0a480e970d7d10af6b6376f871d035a2bf0e",
             "enclosingBodyStartLine": 480,
             "enclosingBodyEndLine": 507,
@@ -25266,7 +25266,7 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "renderClientActionNoticePreview",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
             "enclosingBodySha256": "a8be8819c73ea344ffdd067b888a0a480e970d7d10af6b6376f871d035a2bf0e",
             "enclosingBodyStartLine": 480,
             "enclosingBodyEndLine": 507,
@@ -102879,7 +102879,7 @@
           "symbol": "AppendClientShellScript",
           "anchor": "out << R\"CLIENTSCRIPT(  <script>",
           "line": 46,
-          "contextSha256": "3a9ce5c8d8bfe11602f8f64cd1ed5a665114709184cace0f717d868e70ce8bd9"
+          "contextSha256": "cd558f459c922972535bc5a5d5566e7be74aa4cbf233a524e4e1909adbf49cdd"
         },
         "action": {
           "file": "src/ingress/product_ui_client_scripts.cpp",
@@ -102994,15 +102994,15 @@
           "sha256": "2dde53fd0178bdee4128b38b674f81d28f3549561798f0c90dec0b80ecdbeabb"
         }
       },
-      "sourceFlowDigest": "1fab34f3190a7a330a42bffb1628e2f66c64a345c52d7bae2b8470b16d4a721f",
+      "sourceFlowDigest": "017c7e7fd22688c65710ac9e134691653afb0835de47ebc33ad2dd35e6914022",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -103010,8 +103010,8 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -103019,8 +103019,8 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -103028,8 +103028,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -103453,7 +103453,7 @@
           "sha256": "f5d258723cb68cbf8a5991b1afec76da560e6d2fe14896fafbf2fbc7a4f3d8af"
         }
       },
-      "sourceFlowDigest": "a3cb834c1e66075b59e650ea9c6933b21b42a75dd73277c6c3616333423adb39",
+      "sourceFlowDigest": "6d9a6ab3b2da0b96faae8847629734580397db3f6783c87fd993dcfdfbe95d56",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -103487,8 +103487,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -103686,7 +103686,7 @@
           "sha256": "31b1c92ef06b5a1f0e37cbbf554f74e807877283275d20942b74b28ba6be6ffa"
         }
       },
-      "sourceFlowDigest": "f1ceba004c38706b2ea8ed9a71ac39c6e2fa56c832d88baafdf8b524c39e7dce",
+      "sourceFlowDigest": "6e3f2010c1fa08b075e519421d6ffb8491ed1109c709fed957bc4d56652ea4e4",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -103720,8 +103720,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -103907,7 +103907,7 @@
           "sha256": "cc1c7c90989a9ff7204fbc10bc49832d0b661def627964cad301250db9884341"
         }
       },
-      "sourceFlowDigest": "fb26c3c05aed773511f2c639c98fbc7afee793c010a9a7eab63adfc3fd4ea373",
+      "sourceFlowDigest": "fb59eb8503c388a4a9fe4b3dbb72d36af12186c4033d9f07a5e3fed0a8e89006",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -103941,8 +103941,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -104128,7 +104128,7 @@
           "sha256": "9ecbead2c033b85d09fc0693f76607f36fb1fc45e4f24fd5e26aaa42db6ead76"
         }
       },
-      "sourceFlowDigest": "1cd05f863f3be091fe8e29003665bf47e80df5aa91fa24cd4a14638efde76606",
+      "sourceFlowDigest": "c7d1617b8f5d5bd7cdfd7d45194dcfedada1cebeda54f30d711d4bb28c5031b0",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -104162,8 +104162,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -104570,7 +104570,7 @@
           "sha256": "dcc168c83fa5c32e7e8170f1da838b29c3ccbff397cd56e86e102971662ff825"
         }
       },
-      "sourceFlowDigest": "a3c13a3d329d074e82b70b45c87fe80b6b3dde9291887af5ee7eedb5e190019f",
+      "sourceFlowDigest": "b5f6fac25da0b26e57544622dde4744e471ea930060981a6207552a5781420e3",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -104604,8 +104604,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -104791,7 +104791,7 @@
           "sha256": "54a75ecc6255738aa72f7dda1d2ac91d7e8655e1b0398ca245c3a53ccdd9d112"
         }
       },
-      "sourceFlowDigest": "64601e57b88167811c6a23bf4551512d2be280d49f8647f648795ad2caf65fbb",
+      "sourceFlowDigest": "7716e32b0ed33c23fc344839ce5a7f59f4883349b73e35354bda7461d369b707",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -104825,8 +104825,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -105012,7 +105012,7 @@
           "sha256": "b183cf1bd8a4c80f461d74aac5baa840b626721cc7f1e69ffadeadcd78bea980"
         }
       },
-      "sourceFlowDigest": "18639a3ec25204fd68cc2b6485085e83b292968901a81627d6cb2c5aafe8aaaa",
+      "sourceFlowDigest": "d4de5b412b1603a9731157e4e3ddaca716b6759d05b2d79c8067892597bb1f1a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -105046,8 +105046,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -105233,7 +105233,7 @@
           "sha256": "a406b4d51317d4e5c5861a152fabd227ce8657bb152b09be78a4424cec874020"
         }
       },
-      "sourceFlowDigest": "fdefbd00476aaff5ef9804498e8c906ea6ba3e97442e5dc9fdaaf735bfbe54e1",
+      "sourceFlowDigest": "4972095617a35174ecbc8a8e8e6bb769e9660c0780286e47cbc8ad5d67fd6a77",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -105267,8 +105267,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -114297,15 +114297,15 @@
           "sha256": "846dbf14761f2007f92fbc52f6c0b106faf2b4ec5d356334287a2c0ccb09c9d5"
         }
       },
-      "sourceFlowDigest": "8f8454480652049ee9994bba6286f18b2c8d7a929eaba1de5f5c724c2eb4a7ef",
+      "sourceFlowDigest": "084e32b03549215f94acf33c3373eb2b0e8fd209a25b790295f322a312f89253",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -114313,8 +114313,8 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -114322,8 +114322,8 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -114331,8 +114331,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -150680,15 +150680,15 @@
           "sha256": "984fcdfdf65dbfb2b6bcd350dfae0e9fee4a584a745bdd8c4b83fb6ba1e28eec"
         }
       },
-      "sourceFlowDigest": "da1bbf551028740fe7c3e8693fc022324a159601d4dfaa71071753b88e2ecd08",
+      "sourceFlowDigest": "ce8ff530b654ba49d03573af3830c08b0d7939c4655452b1231d758f6b0ddee8",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -150696,8 +150696,8 @@
           "dispatch": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -150705,8 +150705,8 @@
           "action": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -150714,8 +150714,8 @@
           "state": {
             "file": "src/ingress/product_ui_client_scripts.cpp",
             "symbol": "AppendClientShellScript",
-            "trackedBlobSha256": "4ad833bcd06652f11e7b9624ab332fe71141186052894c35691cab2a44cf7ca0",
-            "enclosingBodySha256": "0dca10fa4afb769bdf850ff960c88cfc9d4803b8f400df9e0808a06ad0a6a111",
+            "trackedBlobSha256": "c78314825c599a954a7a9f909f0ee79fa0b767ab6b8aeac3e44a8d693ad5eba4",
+            "enclosingBodySha256": "5f33d7fbf5f3dc3f9bb8c7c90aea00c8f51fa9bb800ee4721814e61e3af26cb6",
             "enclosingBodyStartLine": 45,
             "enclosingBodyEndLine": 2745,
             "enclosingBodyScope": "declared-symbol"
@@ -196158,35 +196158,35 @@
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "export function evaluateEvidence(policy, summary, options = {}) {",
-          "line": 86,
+          "line": 87,
           "contextSha256": "56349bafa3648e5313a2f1d0a65273134250d53a11ca48a12ee14096b475bf8b"
         },
         "dispatch": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "if (summary?.schema !== \"media-server.ui-automation-evidence.v4\") {",
-          "line": 94,
+          "line": 95,
           "contextSha256": "86805b96191ecb8fa57caeb362c1f394ebb7a5cb5c381a10f1d2abf97374d56b"
         },
         "action": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const caseReasons = validateCase(policy, item, summary, rootDir, {",
-          "line": 117,
+          "line": 118,
           "contextSha256": "3965cf508a1beaaccd87390f22d66df4342c49e7b6b70d45f3f5e39e1d248b1b"
         },
         "state": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const uiFulltestPass = policyErrors.length === 0 && suiteCandidate && allCasesEligible && reasons.length === 0;",
-          "line": 198,
+          "line": 199,
           "contextSha256": "077152c50a8951c46ec0ffc110d782e6dca0ff0317e19f881f8e29ddc7083952"
         },
         "readback": {
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
           "symbol": "check:requested observed aliases missing fields and copied control claims are rejected",
           "anchor": "assert(result.uiFulltestPass === false, \"requested/observed defect became UI fulltest PASS\");",
-          "line": 125,
+          "line": 126,
           "contextSha256": "24afc4f54a800961e6659b18e7d04f7e51ab4dc9a8ef74e512053b9542075154"
         },
         "verifier": {
@@ -196203,39 +196203,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-202 owner-dispatch",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:86",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:94"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:87",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:95"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-202 dispatch-action",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:94",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:117"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:95",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:118"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-202 action-state",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:117",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:198"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:118",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:199"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-202 state-readback",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:198",
-          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:125"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:199",
+          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:126"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ui-fulltest-evidence-policy-v4-contract",
-          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:125",
+          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:126",
           "target": "server.sh:2431"
         }
       ],
@@ -196297,53 +196297,53 @@
           "sha256": "f8e6a3b2a46a1a5917cc912afe7ee42f3434503f92752c93a2a8341ca23ba925"
         }
       },
-      "sourceFlowDigest": "5cacc518e6edf7bc30602c5d80810d80c57d70c9070f303e499a52fdb20c8a5b",
+      "sourceFlowDigest": "86768ae10333394694ca952a0c1493658eb29e5fd3a1ae756092b2ed16fdc970",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "6a2a8856a435cced601824f80d290588d3aa907769c9830c999dea7cc1a02dce",
+            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 200,
+            "enclosingBodyStartLine": 87,
+            "enclosingBodyEndLine": 201,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "6a2a8856a435cced601824f80d290588d3aa907769c9830c999dea7cc1a02dce",
+            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 200,
+            "enclosingBodyStartLine": 87,
+            "enclosingBodyEndLine": 201,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "6a2a8856a435cced601824f80d290588d3aa907769c9830c999dea7cc1a02dce",
+            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 200,
+            "enclosingBodyStartLine": 87,
+            "enclosingBodyEndLine": 201,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "6a2a8856a435cced601824f80d290588d3aa907769c9830c999dea7cc1a02dce",
+            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 200,
+            "enclosingBodyStartLine": 87,
+            "enclosingBodyEndLine": 201,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:requested observed aliases missing fields and copied control claims are rejected",
-            "trackedBlobSha256": "faae7b3611435aa0bcb0861f223199d26f4c74e624711130895a40a6a3d99c82",
+            "trackedBlobSha256": "5bdcea418856f27d442ebdea4bee98a00e5d151ca0bfd1401a09515326913f85",
             "enclosingBodySha256": "ad6ce4d9144b106f83d3faeea30e4634e180d0fd320f4c6e92deec81132c11dc",
-            "enclosingBodyStartLine": 116,
-            "enclosingBodyEndLine": 126,
+            "enclosingBodyStartLine": 117,
+            "enclosingBodyEndLine": 127,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -196355,7 +196355,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "faae7b3611435aa0bcb0861f223199d26f4c74e624711130895a40a6a3d99c82",
+        "verifierFileSha256": "5bdcea418856f27d442ebdea4bee98a00e5d151ca0bfd1401a09515326913f85",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -231524,35 +231524,35 @@
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "export function evaluateEvidence(policy, summary, options = {}) {",
-          "line": 86,
+          "line": 87,
           "contextSha256": "56349bafa3648e5313a2f1d0a65273134250d53a11ca48a12ee14096b475bf8b"
         },
         "dispatch": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "if (summary?.schema !== \"media-server.ui-automation-evidence.v4\") {",
-          "line": 94,
+          "line": 95,
           "contextSha256": "86805b96191ecb8fa57caeb362c1f394ebb7a5cb5c381a10f1d2abf97374d56b"
         },
         "action": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const caseReasons = validateCase(policy, item, summary, rootDir, {",
-          "line": 117,
+          "line": 118,
           "contextSha256": "3965cf508a1beaaccd87390f22d66df4342c49e7b6b70d45f3f5e39e1d248b1b"
         },
         "state": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const uiFulltestPass = policyErrors.length === 0 && suiteCandidate && allCasesEligible && reasons.length === 0;",
-          "line": 198,
+          "line": 199,
           "contextSha256": "077152c50a8951c46ec0ffc110d782e6dca0ff0317e19f881f8e29ddc7083952"
         },
         "readback": {
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
           "symbol": "check:contract-only exact 424 closure satisfies suite algorithm",
           "anchor": "assert(result.uiFulltestPass === true, \"exact 424 closure should satisfy contract algorithm\");",
-          "line": 89,
+          "line": 90,
           "contextSha256": "9c796962b794bc0007cd2b646ee6a1115663dfff8f66320f6966ae9145276593"
         },
         "verifier": {
@@ -231569,39 +231569,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-169 owner-dispatch",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:86",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:94"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:87",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:95"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "OPS-169 dispatch-action",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:94",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:117"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:95",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:118"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "OPS-169 action-state",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:117",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:198"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:118",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:199"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-169 state-readback",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:198",
-          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:89"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:199",
+          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:90"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ui-fulltest-evidence-policy-v4-contract",
-          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:89",
+          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:90",
           "target": "server.sh:2431"
         }
       ],
@@ -231651,53 +231651,53 @@
           "sha256": "f264fc72bb125ca03576d7091059fac0288a873b42a63c564f19ec8348609158"
         }
       },
-      "sourceFlowDigest": "ff199a00b2dab245761ac727f796c7c5f761dce36f96c808cb19dfbb3c276287",
+      "sourceFlowDigest": "4f87d4ead47ce7b9c4c8d014a0c1f20ce10f2119b9a1eb396bc178d807862d30",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "6a2a8856a435cced601824f80d290588d3aa907769c9830c999dea7cc1a02dce",
+            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 200,
+            "enclosingBodyStartLine": 87,
+            "enclosingBodyEndLine": 201,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "6a2a8856a435cced601824f80d290588d3aa907769c9830c999dea7cc1a02dce",
+            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 200,
+            "enclosingBodyStartLine": 87,
+            "enclosingBodyEndLine": 201,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "6a2a8856a435cced601824f80d290588d3aa907769c9830c999dea7cc1a02dce",
+            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 200,
+            "enclosingBodyStartLine": 87,
+            "enclosingBodyEndLine": 201,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "6a2a8856a435cced601824f80d290588d3aa907769c9830c999dea7cc1a02dce",
+            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
-            "enclosingBodyStartLine": 86,
-            "enclosingBodyEndLine": 200,
+            "enclosingBodyStartLine": 87,
+            "enclosingBodyEndLine": 201,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:contract-only exact 424 closure satisfies suite algorithm",
-            "trackedBlobSha256": "faae7b3611435aa0bcb0861f223199d26f4c74e624711130895a40a6a3d99c82",
+            "trackedBlobSha256": "5bdcea418856f27d442ebdea4bee98a00e5d151ca0bfd1401a09515326913f85",
             "enclosingBodySha256": "efa13ba70d3d1b6499e00fc72b76befdb14fc74a27ab691298bb861bf72aab35",
-            "enclosingBodyStartLine": 84,
-            "enclosingBodyEndLine": 90,
+            "enclosingBodyStartLine": 85,
+            "enclosingBodyEndLine": 91,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -231709,7 +231709,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "faae7b3611435aa0bcb0861f223199d26f4c74e624711130895a40a6a3d99c82",
+        "verifierFileSha256": "5bdcea418856f27d442ebdea4bee98a00e5d151ca0bfd1401a09515326913f85",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -235283,5 +235283,5 @@
       }
     }
   ],
-  "candidateDigest": "81e7b365520e8f22e92aad275d25ab27cb5ce11a0555918ccde1ee8301789af6"
+  "candidateDigest": "d594b446fdd88442e29160eb90dfc5220950328adc207b50869e2c2b154512b3"
 }

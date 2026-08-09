@@ -21,6 +21,7 @@ const tempRoot = path.join(rootDir, ".tmp-v390-visual-contract");
 const plan = readJson("test/fixtures/v390_ui_visual_matrix_plan.json");
 const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
 const native = readJson("test/fixtures/v390_ui_native_exact_cases.json");
+const productCss = fs.readFileSync(path.join(rootDir, "src/ingress/product_ui_css.cpp"), "utf8");
 const checks = [];
 cleanup();
 fs.mkdirSync(tempRoot, { recursive: true });
@@ -32,6 +33,13 @@ check("대표 route plan은 canonical/native 10개 화면과 80개 조합에 결
   assert(result.variantCount === 80, "visual variant count drift");
   assert(result.liveVariantCount === 8, "client/live variant count drift");
   assert(result.planSha256.length === 64, "plan digest missing");
+});
+
+check("light info chip token keeps WCAG small-text contrast above 4.5", () => {
+  assert(productCss.includes("--color-info: #1d4ed8;"),
+    "light info chip foreground is not the contrast-qualified source token");
+  assert(productCss.includes("--color-info-bg: #dbeafe;"),
+    "light info chip background token drifted");
 });
 
 check("malformed explicit regex는 browser 실행 전 digest-bound context로 거부된다", () => {
@@ -193,8 +201,8 @@ function makeMeasurement(variant) {
     target: { selector: variant.targetSelector, visible: true, rect: targetRect },
     textSamples: [{ foreground: variant.theme === "dark" ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)", background: variant.theme === "dark" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)", fontSizePx: 14, fontWeight: "400" }],
     focusSamples: [
-      { index: 0, tag: "button", id: "a", testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" },
-      { index: 1, tag: "a", id: "b", testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" }
+      { index: 0, focusIdentity: "#a", tag: "button", id: "a", testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" },
+      { index: 1, focusIdentity: "#b", tag: "a", id: "b", testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" }
     ],
     liveVideo: null,
   };

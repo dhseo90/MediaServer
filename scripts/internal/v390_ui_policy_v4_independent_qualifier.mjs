@@ -2,6 +2,8 @@
 
 import crypto from "node:crypto";
 
+import { evaluateSemanticExpectation } from "./v390_ui_completion_oracle_lib.mjs";
+
 const traceSchema = "media-server.v390-ui-native-interaction-trace.v2";
 const observationSchema = "media-server.v390-ui-raw-primary-observation.v1";
 
@@ -30,7 +32,9 @@ export function qualifyRawCase({ trace, requested, observed, canonicalCase, nati
     .map((action, index) => ({ action, index }))
     .filter(({ action }) => action?.kind === "verify-independent-readback" &&
       action?.linkedPrimaryActionId === expected.actionId);
-  if (nativeCase?.disposition !== "negative-route" && readbackIndexes.length !== 1) {
+  const negativeWorkflow = nativeCase?.disposition === "negative-route" ||
+    nativeCase?.workflow?.workflowClass === "negative-route";
+  if (!negativeWorkflow && readbackIndexes.length !== 1) {
     reasons.push("raw-independent-readback-action-count-mismatch");
   }
   if (primaryIndexes.length === 1 && readbackIndexes.length === 1 &&
@@ -53,10 +57,14 @@ export function qualifyRawCase({ trace, requested, observed, canonicalCase, nati
   if (action.correlationId !== expected.correlationId) reasons.push("raw-primary-correlation-mismatch");
   if (action.dispatch !== "playwright-native") reasons.push("raw-primary-dispatch-untrusted");
   if (expected.controlSelector !== null) {
-    if (value.before?.selector !== expected.controlSelector || value.after?.selector !== expected.controlSelector) {
+    const executionOwnerSelector = action.executionOwnerSelector || expected.controlSelector;
+    if (value.before?.selector !== executionOwnerSelector || value.after?.selector !== executionOwnerSelector) {
       reasons.push("raw-primary-snapshot-selector-mismatch");
     }
-    if (value.before?.exists !== true || value.before?.visible !== true) {
+    const expectedVisible = expected.readbackExpectation?.visible;
+    if (value.before?.exists !== true ||
+        (expectedVisible === true && value.before?.visible !== true) ||
+        (expectedVisible === false && value.before?.visible !== false)) {
       reasons.push("raw-primary-control-not-visible");
     }
   }
@@ -107,10 +115,17 @@ function validateObserved(value, nativeCase, reasons) {
 function qualifyRequest(value, expected, reasons) {
   if (!expected.request) return null;
   const entries = Array.isArray(value.networkEntries) ? value.networkEntries : [];
+  if (value.requestBinding?.schema === "media-server.v390-ui-document-form-submit-binding.v1") {
+    return qualifyDocumentFormRequest(value.requestBinding, entries, expected, reasons);
+  }
   const starts = entries.filter(entry => entry?.phase === "request-start" &&
-    entry?.correlationId === expected.correlationId);
+    entry?.correlationId === expected.correlationId &&
+    upper(entry?.method) === expected.request.method &&
+    requestTarget(entry?.url) === expected.request.urlPath);
   const responses = entries.filter(entry => entry?.phase === "response" &&
-    entry?.correlationId === expected.correlationId);
+    entry?.correlationId === expected.correlationId &&
+    upper(entry?.method) === expected.request.method &&
+    requestTarget(entry?.url) === expected.request.urlPath);
   if (starts.length !== 1 || responses.length !== 1) {
     reasons.push(starts.length > 1 || responses.length > 1
       ? "raw-primary-request-ambiguous"
@@ -120,6 +135,12 @@ function qualifyRequest(value, expected, reasons) {
   const start = starts[0];
   const response = responses[0];
   if (!start.requestId || start.requestId !== response.requestId) reasons.push("raw-primary-request-id-mismatch");
+  if (!start.caseRequestIdentity || start.caseRequestIdentity !== response.caseRequestIdentity ||
+      !Number.isInteger(start.caseRequestSequence) || start.caseRequestSequence !== response.caseRequestSequence ||
+      response.responseRequestObjectObserved !== true ||
+      response.requestIdentitySource !== "playwright-response-request") {
+    reasons.push("raw-primary-request-response-object-identity-mismatch");
+  }
   if (start.correlationSource !== "request-header" || response.correlationSource !== "request-header") {
     reasons.push("raw-primary-request-correlation-source-mismatch");
   }
@@ -133,9 +154,57 @@ function qualifyRequest(value, expected, reasons) {
   if (!expected.request.allowedStatuses.includes(Number(response.status))) reasons.push("raw-primary-request-status-mismatch");
   return {
     requestId: start.requestId,
+    caseRequestIdentity: start.caseRequestIdentity,
+    caseRequestSequence: start.caseRequestSequence,
     method: upper(start.method),
     urlPath: requestTarget(start.url),
     status: Number(response.status),
+  };
+}
+
+function qualifyDocumentFormRequest(binding, entries, expected, reasons) {
+  const starts = entries.filter(entry => entry?.phase === "request-start" &&
+    entry?.requestId === binding.requestId);
+  const responses = entries.filter(entry => entry?.phase === "response" &&
+    entry?.requestId === binding.requestId);
+  if (starts.length !== 1 || responses.length !== 1) {
+    reasons.push(starts.length > 1 || responses.length > 1
+      ? "raw-primary-request-ambiguous"
+      : "raw-primary-request-pair-missing");
+    return null;
+  }
+  const start = starts[0];
+  const response = responses[0];
+  const exactIdentity = Boolean(binding.requestId &&
+    binding.caseRequestIdentity === start.caseRequestIdentity &&
+    binding.caseRequestIdentity === response.caseRequestIdentity &&
+    Number.isInteger(binding.caseRequestSequence) &&
+    binding.caseRequestSequence === start.caseRequestSequence &&
+    binding.caseRequestSequence === response.caseRequestSequence &&
+    response.responseRequestObjectObserved === true &&
+    response.requestIdentitySource === "playwright-response-request");
+  if (!exactIdentity) reasons.push("raw-primary-request-response-object-identity-mismatch");
+  if (binding.method !== expected.request.method || upper(start.method) !== expected.request.method ||
+      upper(response.method) !== expected.request.method) reasons.push("raw-primary-request-method-mismatch");
+  if (binding.path !== expected.request.urlPath || requestTarget(start.url) !== expected.request.urlPath ||
+      requestTarget(response.url) !== expected.request.urlPath) reasons.push("raw-primary-request-path-mismatch");
+  if (binding.status !== Number(response.status) ||
+      !expected.request.allowedStatuses.includes(Number(response.status))) {
+    reasons.push("raw-primary-request-status-mismatch");
+  }
+  if (binding.requestKind !== "document-navigation" || binding.resourceType !== "document" ||
+      binding.sameOrigin !== true || binding.correlationObserved !== false ||
+      start.correlationId || response.correlationId || binding.responseRequestObjectObserved !== true ||
+      binding.requestAttemptCount !== 1 || binding.responseCandidateCount !== 1 || binding.reissueCount !== 0) {
+    reasons.push("raw-primary-document-form-request-binding-invalid");
+  }
+  return {
+    requestId: binding.requestId,
+    caseRequestIdentity: binding.caseRequestIdentity,
+    caseRequestSequence: binding.caseRequestSequence,
+    method: binding.method,
+    urlPath: binding.path,
+    status: binding.status,
   };
 }
 
@@ -159,7 +228,7 @@ function qualifyReadback(value, expected, reasons) {
   if (readback.observationSource === "browser-dom" && readback.selector !== expected.controlSelector) {
     reasons.push("raw-primary-readback-selector-mismatch");
   }
-  if (!evaluateExpectation(expected.readbackExpectation, readback.observation)) {
+  if (!evaluateSemanticExpectation(expected.readbackExpectation, readback.observation)) {
     reasons.push("raw-primary-readback-observation-mismatch");
   }
   if (readback.observationSha256 !== undefined &&
@@ -191,39 +260,6 @@ function qualifyNegativeNavigation(value, expected, reasons) {
   if (!expected.navigationBinding?.allowedStatuses?.includes(Number(value.navigation?.status))) {
     reasons.push("raw-primary-negative-navigation-status-mismatch");
   }
-}
-
-function evaluateExpectation(expected, observation) {
-  if (!expected || typeof expected !== "object" || !observation || typeof observation !== "object") return false;
-  const before = observation.before || null;
-  const after = observation.after || observation.actual || null;
-  if (expected.changedProperty) {
-    return expected.changed === true && before && after && !same(before[expected.changedProperty], after[expected.changedProperty]);
-  }
-  if (expected.property) return after && same(after[expected.property], expected.value);
-  if (expected.hrefKind) return after?.tag === expected.tag && expected.hrefKind === "same-origin-path" && String(after?.href || "").startsWith("/");
-  if (expected.minimumNonEmptyOptions !== undefined) {
-    return after?.tag === expected.tag && Number(after?.nonEmptyOptionCount ?? after?.optionValues?.filter(Boolean)?.length ?? 0) >= Number(expected.minimumNonEmptyOptions);
-  }
-  if (Array.isArray(expected.postconditions) && expected.postconditions.length > 0) {
-    const beforeSnapshots = observation.beforeSnapshots || {};
-    const snapshots = observation.snapshots || {};
-    return expected.postconditions.every(condition => matchesCondition(snapshots[condition.selector], condition)) &&
-      expected.postconditions.some(condition => !matchesCondition(beforeSnapshots[condition.selector], condition));
-  }
-  if (expected.navigationStatus !== undefined) return Number(observation.navigation?.status) === Number(expected.navigationStatus);
-  const actual = after || observation.actual || observation;
-  return Object.entries(expected).every(([key, value]) => same(actual?.[key], value));
-}
-
-function matchesCondition(snapshot, condition) {
-  if (!snapshot || snapshot.selector !== condition.selector) return false;
-  const actual = snapshot[condition.property];
-  if (condition.operator === "equals") return same(actual, condition.value);
-  if (condition.operator === "includes") return String(actual || "").includes(String(condition.value));
-  if (condition.operator === "startsWith") return String(actual || "").startsWith(String(condition.value));
-  if (condition.operator === "in") return Array.isArray(condition.values) && condition.values.includes(actual);
-  return false;
 }
 
 function finish(reasons, derived) {

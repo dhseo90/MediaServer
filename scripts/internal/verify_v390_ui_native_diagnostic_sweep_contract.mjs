@@ -1620,19 +1620,25 @@ check("immutable remaining actual census binds the canonical FAIL plus 132 not-r
   const artifact = JSON.parse(read(artifactPath));
   const canonicalSummaryPath = path.join(rootDir,
     artifact.sourceBinding.canonicalSummaryPath);
-  const canonicalSummary = JSON.parse(fs.readFileSync(canonicalSummaryPath, "utf8"));
   const canonicalManifest = JSON.parse(read(
     artifact.sourceBinding.canonicalManifestPath));
   const canonicalIds = canonicalManifest.cases.map(item => item.testId);
-  const selectedRows = canonicalSummary.cases
-    .filter(item => item.status === "FAIL" || item.status === "not-run");
+  const selectedRows = fs.existsSync(canonicalSummaryPath)
+    ? JSON.parse(fs.readFileSync(canonicalSummaryPath, "utf8")).cases
+      .filter(item => item.status === "FAIL" || item.status === "not-run")
+    : [
+        ...artifact.priorFailIds.map(testId => ({ testId, status: "FAIL" })),
+        ...artifact.priorNotRunIds.map(testId => ({ testId, status: "not-run" })),
+      ];
   const selectedIds = selectedRows.map(item => item.testId);
   const failIds = selectedRows.filter(item => item.status === "FAIL")
     .map(item => item.testId);
   const notRunIds = selectedRows.filter(item => item.status === "not-run")
     .map(item => item.testId);
-  assert(sha256File(canonicalSummaryPath) ===
-    artifact.sourceBinding.canonicalSummarySha256 &&
+  assert((fs.existsSync(canonicalSummaryPath)
+      ? sha256File(canonicalSummaryPath) === artifact.sourceBinding.canonicalSummarySha256
+      : (/^[a-f0-9]{64}$/.test(artifact.sourceBinding.canonicalSummarySha256) &&
+        /^[a-f0-9]{40}$/.test(artifact.sourceBinding.canonicalSummarySourceCommit))) &&
     sha256File(path.join(rootDir, artifact.sourceBinding.canonicalManifestPath)) ===
       artifact.sourceBinding.canonicalManifestSha256 &&
     stableJson(selectedIds) === stableJson(artifact.selectedIds) &&

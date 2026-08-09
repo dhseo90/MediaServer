@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
   bindDocumentFormSubmission,
+  bindBrowserConsoleResponseMessages,
   bindFixtureResponseToInitiatingRequest,
   bindPlaywrightResponseToInitiatingRequest,
   buildDiagnosticMarkerResponseStageEvidence,
@@ -17,6 +18,7 @@ import {
   captureDiagnosticMarkerResponseProjection,
   captureEndpointOwnedResponseProjection,
   captureOpsIncidentTimelineResponseProjection,
+  collectUniqueFocusSamples,
   createCaseOwnedRequestIdentityRegistry,
   formatSafeResponseReadFailure,
   nativeCapabilities,
@@ -25,6 +27,7 @@ import {
   resolveRequestCorrelationPrecedence,
   resolvePlaywrightModule,
   secretStrippedBrowserEnv,
+  visualEvidenceScrollDelta,
 } from "./v390_ui_native_adapter.mjs";
 import {
   bindRuntimeControlObservationOwner,
@@ -1061,7 +1064,7 @@ check("issued invite tokens are registered and redacted at every evidence bounda
     "safeResponseReadFailures",
     "redactObservedSecrets",
     "assertEvidenceDomSecretsAbsent",
-    "sanitizeEvidenceValue(consoleEntries",
+    "bindBrowserConsoleResponseMessages(consoleEntries, networkEntries)",
     "sanitizeEvidenceValue(networkEntries",
     "persistentSecretFieldsPresent",
   ]) {
@@ -1385,6 +1388,75 @@ check("live session evidence preserves request view and response session identit
   assert(evidence.responseSessionId === "session-b" && evidence.answerSessionId === "session-b", "response/answer session identity missing");
   assert(evidence.offerReceived === true, "safe offer response evidence missing");
   assert(entries[3].safeResponseBody.ok === true, "safe answer response evidence missing");
+});
+
+check("visual focus sampling preserves exact DOM identity and stops before a repeated owner", async () => {
+  const observed = [
+    { focusIdentity: "#first", visible: true },
+    { focusIdentity: "button:nth-of-type(2)", visible: true },
+    { focusIdentity: "#first", visible: true },
+  ];
+  let cursor = 0;
+  const samples = await collectUniqueFocusSamples({
+    pressTab: async () => {},
+    observeFocus: async index => ({ index, ...observed[cursor++] }),
+    maxSteps: 8,
+  });
+  assert(JSON.stringify(samples.map(item => item.focusIdentity)) ===
+    JSON.stringify(["#first", "button:nth-of-type(2)"]),
+  "focus sampler retained a repeated DOM owner");
+});
+
+check("live visual sampling keeps serializable video evidence separate from the DOM element", () => {
+  assert(adapterSource.includes("videoEvidence:"),
+    "live visual sample does not expose a serializable video evidence field");
+  assert(adapterSource.includes("videoElement:"),
+    "live visual sample does not retain a private video DOM element field");
+  assert(!/genericDomOverlays:[\s\S]{0,500}\n\s*video,\n\s*\};/.test(adapterSource),
+    "live visual sample still overwrites serialized video evidence with a DOM node");
+});
+
+check("live visual capture scrolls the target and tile union by the minimum bounded delta", () => {
+  assert(visualEvidenceScrollDelta({ top: 341, bottom: 683 }, { top: 707, bottom: 897.125 }, 844) === 53.125,
+    "live target/tile union did not use the minimum lower-edge correction");
+  assert(visualEvidenceScrollDelta({ top: 20, bottom: 200 }, { top: 210, bottom: 500 }, 844) === 0,
+    "already contained live evidence requested a scroll");
+  assert(visualEvidenceScrollDelta({ top: 0, bottom: 900 }, { top: 910, bottom: 1200 }, 844) === 0,
+    "oversized target/tile union must remain fail-closed instead of manufacturing containment");
+});
+
+check("browser resource console errors bind one exact Playwright response and fail closed on duplicates", () => {
+  const message = {
+    kind: "console",
+    level: "error",
+    text: "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    location: { url: "http://localhost/auth/whoami", lineNumber: 0, columnNumber: 0 },
+    observedAtMs: 20,
+  };
+  const response = {
+    phase: "response",
+    requestId: "request-1",
+    caseRequestIdentity: "UI-002:request-1",
+    caseRequestSequence: 1,
+    responseRequestObjectObserved: true,
+    requestIdentitySource: "playwright-response-request",
+    requestKind: "application-fetch",
+    sameOrigin: true,
+    method: "GET",
+    status: 401,
+    url: "http://localhost/auth/whoami",
+    responseObservedAtMs: 10,
+  };
+  const bound = bindBrowserConsoleResponseMessages([message], [response]);
+  assert(bound[0].responseBinding?.requestId === "request-1" &&
+    bound[0].responseBinding?.caseRequestIdentity === "UI-002:request-1",
+  "resource console message lost exact response identity");
+  const duplicate = bindBrowserConsoleResponseMessages([message], [
+    response,
+    { ...response, requestId: "request-2", caseRequestIdentity: "UI-002:request-2" },
+  ]);
+  assert(duplicate[0].responseBinding === null && duplicate[0].responseBindingCandidateCount === 2,
+    "ambiguous resource response binding selected an arbitrary response");
 });
 
 check("UI runner selects native Playwright and rejects CDP promotion", () => {

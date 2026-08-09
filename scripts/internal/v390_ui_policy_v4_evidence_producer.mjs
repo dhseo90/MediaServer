@@ -7,6 +7,7 @@ import { execFileSync } from "node:child_process";
 
 import { assertRequestedObservedEnvelope } from "./v390_ui_requested_observed_schema.mjs";
 import { serializeFailureLifecycleEvidence } from "./v390_ui_failure_lifecycle_evidence.mjs";
+import { qualifyBrowserConsoleMessages } from "./v390_ui_console_evidence.mjs";
 
 const evidenceSchema = "media-server.ui-automation-evidence.v4";
 const evidenceRefSchema = "media-server.ui-evidence-ref.v1";
@@ -258,7 +259,12 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
   const visualMeasurementPath = path.join(caseRoot, "visual-measurement.json");
   const redactionPath = path.join(caseRoot, "redaction.json");
   fs.copyFileSync(sourceTracePath, tracePath);
-  const consoleMessages = Array.isArray(consoleSource.entries) ? consoleSource.entries : [];
+  const consoleQualification = qualifyBrowserConsoleMessages({
+    messages: Array.isArray(consoleSource.entries) ? consoleSource.entries : [],
+    trace: traceSource,
+    nativeCase: manifestCase,
+  });
+  const consoleMessages = consoleQualification.messages;
   writeJson(consolePath, {
     schema: consoleSchema,
     caseId: result.caseId,
@@ -329,7 +335,7 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
     security: {
       scanOutcome: findings.length === 0 ? "clean" : "findings-present",
       forbiddenMaterialFindings: findings.length,
-      unapprovedConsoleMessages: consoleMessages.filter(item => ["error", "warning", "warn"].includes(item.level)).length,
+      unapprovedConsoleMessages: consoleQualification.unapprovedConsoleMessages,
       findings,
       correlationId,
       evidenceRef: evidenceRef(redactionScan),
