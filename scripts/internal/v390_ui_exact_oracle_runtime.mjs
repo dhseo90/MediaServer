@@ -10,7 +10,9 @@ import {
   evaluateEventExactResponseAssertion,
   eventExactSemanticEvidenceKey,
   eventExactValuesAtPath,
+  materializeEventExactTemplate,
   responseDerivedDomProjectionContractFor,
+  resolveEventExactTemplate,
   validateIncidentMemorySearchResponseProjection,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import { materializeClientSafeExactOracle } from "./v390_ui_exact_client_safe_oracles.mjs";
@@ -770,7 +772,7 @@ async function executeTrustedInteraction(
   const ownsOpsTimelineRender = spec.route === "/ops/dashboard" &&
     spec.requests.some(request =>
       String(request.method || "GET").toUpperCase() === "GET" &&
-      expand(String(request.path || ""), runtimeBindings) === opsTimelinePath);
+      resolveRuntimeRequestPath(request.path, runtimeBindings) === opsTimelinePath);
   if (ownsOpsTimelineRender) {
     assert(typeof browser.clickWithRequestOwnership === "function",
       `${item.caseId} request-action ownership adapter is unavailable`);
@@ -818,7 +820,7 @@ async function completeDeclaredObservationInteraction({
   const ownsOpsTimelineRender = spec.route === "/ops/dashboard" &&
     spec.requests.some(request =>
       String(request.method || "GET").toUpperCase() === "GET" &&
-      expand(String(request.path || ""), runtimeBindings) === opsTimelinePath);
+      resolveRuntimeRequestPath(request.path, runtimeBindings) === opsTimelinePath);
   let completed = interaction || { kind: "no-primary-interaction" };
   if (ownsOpsTimelineRender && !completed.opsTimelineRenderCycle) {
     assert(selector && typeof browser.clickWithRequestOwnership === "function",
@@ -842,7 +844,7 @@ async function completeDeclaredObservationInteraction({
   }
   const boundedRuntimeRepeat = spec.requests.find(request =>
     String(request.method || "GET").toUpperCase() === "GET" &&
-    expand(String(request.path || ""), runtimeBindings) === "/ops/api/runtime/status" &&
+    resolveRuntimeRequestPath(request.path, runtimeBindings) === "/ops/api/runtime/status" &&
     Number(request.repeat?.count || 1) > 1);
   if (boundedRuntimeRepeat) {
     assert(selector, `${item.caseId} bounded dashboard observation refresh control is missing`);
@@ -1178,7 +1180,7 @@ async function materializeEventReviewRenderProjection({
 }) {
   const supported = ["q", "ruleId", "sourceId", "incidentStatus", "startTimeMs", "endTimeMs"];
   const requests = (spec.requests || []).map(request => {
-    const path = expand(String(request.path || ""), bindings);
+    const path = resolveRuntimeRequestPath(request.path, bindings);
     const url = new URL(path, "http://runtime.invalid");
     const fields = Object.fromEntries(supported
       .map(name => [name, url.searchParams.get(name)])
@@ -1531,7 +1533,7 @@ async function observeRequest(
   interaction = null,
 ) {
   const method = String(request.method || "GET").toUpperCase();
-  const urlPath = expand(String(request.path || ""), bindings);
+  const urlPath = resolveRuntimeRequestPath(request.path, bindings, eventRuntimeContext);
   const allowedStatuses = request.allowedStatuses || request.statuses || [200];
   const repeatCount = Number(request.repeat?.count || 1);
   const repeatIntervalMs = Number(request.repeat?.intervalMs || 0);
@@ -3442,8 +3444,11 @@ function evaluateDomSemanticAssertions(
   eventReviewRenderBinding = null,
 ) {
   return assertions.map(assertion => {
-    const operator = String(assertion.operator || "");
-    const target = expand(String(assertion.target || ""), bindings);
+    const resolvedAssertion = resolveEventDomAssertionForRuntime({
+      caseId, assertion, bindings, eventRuntimeContext,
+    });
+    const operator = String(resolvedAssertion.operator || "");
+    const target = String(resolvedAssertion.target || "");
     const responseValues = responseBodies.flatMap(body => target.split("|").flatMap(path => resolvePath(body, path)));
     if (operator === "samples-derived-from-responses") {
       const expected = dashboardRuntimeTrendSample(responseBodies);
@@ -3576,12 +3581,12 @@ function evaluateDomSemanticAssertions(
         eventRuntimeContext?.templateValues?.sourceId,
       ].filter(Boolean).map(String);
       const fixtureBoundOperator = /(?:fixture|selected-event|source-status|event-and-evidence|audit)/.test(operator);
-      const selectedResponseBaselines = assertion.binding?.mode === "direct-dom"
+      const selectedResponseBaselines = resolvedAssertion.binding?.mode === "direct-dom"
         ? {}
-        : selectEventDomResponseBaselines(assertion, eventRuntimeContext);
+        : selectEventDomResponseBaselines(resolvedAssertion, eventRuntimeContext);
       const responseDerivedDomProjection = buildResponseDerivedEventDomProjectionEvidence({
         caseId,
-        assertion: { ...assertion, target },
+        assertion: resolvedAssertion,
         observed,
         responseBodies,
         fixtureCandidates,
@@ -3590,7 +3595,7 @@ function evaluateDomSemanticAssertions(
       });
       const markerEvaluationRequired = caseId === "EVT-004" &&
         operator === "contains-fixture-marker" &&
-        assertion.target === "marker";
+        resolvedAssertion.target === "marker";
       if (markerEvaluationRequired) {
         markerEvaluationTracker.invocationCount += 1;
       }
@@ -4735,7 +4740,9 @@ export function selectEventDomResponseBaselines(assertionOrTarget, eventRuntimeC
       return {};
     }
     const assertionKey = `${String(assertion.operator || "")}\n${target}`;
-    const explicit = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[assertionKey];
+    const sourceAssertionKey = `${String(assertion.operator || "")}\n${String(assertion.templateTarget || target)}`;
+    const explicit = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[assertionKey] ||
+      eventRuntimeContext?.domResponseBaselineByAssertionKey?.[sourceAssertionKey];
     if (explicit) return { [target]: explicit };
     if (["row-local-response", "row-set-response"].includes(assertion.binding?.mode)) {
       assert(false, `declared DOM response baseline is missing: ${assertionKey}`);
@@ -4759,6 +4766,23 @@ export function selectEventDomResponseBaselines(assertionOrTarget, eventRuntimeC
       targetDigest: sha256Digest(String(target || "")),
     },
   };
+}
+
+export function resolveEventDomAssertionForRuntime({
+  caseId = "", assertion = {}, bindings = {}, eventRuntimeContext = null,
+} = {}) {
+  const templateTarget = String(assertion?.target || "");
+  if (!String(caseId).startsWith("EVT-") || !/[{}]/u.test(templateTarget)) {
+    return Object.freeze({ ...assertion, target: expand(templateTarget, bindings) });
+  }
+  const templateValues = {
+    ...bindings,
+    ...(eventRuntimeContext?.templateValues || {}),
+  };
+  const target = resolveEventExactTemplate(templateTarget, templateValues, {
+    context: "semantic-target",
+  });
+  return Object.freeze({ ...assertion, target, templateTarget });
 }
 
 function responseBaselineSelectionMissing(selectedResponseBaselines) {
@@ -5502,6 +5526,13 @@ function fixtureBindingValues(bindings) {
 
 function expand(value, bindings) {
   return value.replace(/\{([A-Za-z][A-Za-z0-9]*)\}/g, (_, key) => String(bindings[key] ?? `{${key}}`));
+}
+
+function resolveRuntimeRequestPath(template, bindings = {}, eventRuntimeContext = null) {
+  return materializeEventExactTemplate(String(template || ""), {
+    ...bindings,
+    ...(eventRuntimeContext?.templateValues || {}),
+  }, { context: "request-path" });
 }
 
 function stableDigest(value) {

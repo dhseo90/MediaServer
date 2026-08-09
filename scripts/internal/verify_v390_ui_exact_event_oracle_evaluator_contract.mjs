@@ -4,6 +4,8 @@
 import crypto from "node:crypto";
 
 import {
+  auditEventExactTemplateUsage,
+  auditResponseDerivedDomProjectionContracts,
   assertEventExactRuntimeBindings,
   createEventExactOracleEvaluationPlan,
   evaluateEventExactDomAssertion,
@@ -18,8 +20,13 @@ import {
   eventExactSemanticEvidenceKey,
   eventExactValuesAtPath,
   materializeEventExactTemplate,
+  resolveEventExactTemplate,
   responseDerivedDomProjectionContractFor,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
+import {
+  resolveEventDomAssertionForRuntime,
+  selectEventDomResponseBaselines,
+} from "./v390_ui_exact_oracle_runtime.mjs";
 import {
   eventExactOracleCaseIds,
   eventExactOracleFor,
@@ -92,6 +99,9 @@ check("EVT-007 binds every projected EventRecord field to one authoritative coll
   assert(contract?.collectionPath === "records.records" &&
     JSON.stringify(contract.identityPaths) === JSON.stringify(["eventId"]),
   "EVT-007 authoritative EventRecord owner contract is missing");
+  assert(contract.fields[1][4]?.emptyPolicy === "optional-empty" &&
+    contract.fields[1][4]?.optional !== true,
+  "EVT-007 ruleId must declare the explicit optional-empty field policy");
   const pass = evaluateResponseDerivedDomFieldProjection(base);
   assert(pass.pass && pass.fieldCount === 4 && pass.matchedFieldCount === 4,
     `EVT-007 owner-local projection did not pass: ${pass.failureCode}`);
@@ -151,11 +161,98 @@ check("EVT-007 binds every projected EventRecord field to one authoritative coll
     ] } });
 });
 
-check("template materialization requires every dynamic value and URL-encodes it", () => {
-  assert(materializeEventExactTemplate("/reviews/{fixtureId}", { fixtureId: "fixture a" }) === "/reviews/fixture%20a", "template encoding mismatch");
-  let message = "";
-  try { materializeEventExactTemplate("/reviews/{fixtureId}", {}); } catch (error) { message = String(error?.message || error); }
-  assert(message.includes("missing exact oracle template value"), "missing template value did not fail closed");
+check("optional-empty is explicit, owner-local, and unique across canonical projection contracts", () => {
+  const audit = auditResponseDerivedDomProjectionContracts();
+  assert(audit.optionalEmptyUseCount === 1 && audit.implicitOptionalUseCount === 0,
+    `optional-empty audit mismatch: ${JSON.stringify(audit)}`);
+  assert(JSON.stringify(audit.optionalEmptyUses) === JSON.stringify([{
+    caseId: "EVT-007",
+    operator: "row-fields-equal-response",
+    target: "eventId/ruleId/scenarioName/evidence",
+    domKey: "ruleId",
+  }]), "optional-empty use is not limited to the declared EVT-007 ruleId field");
+
+  const fixtureId = "evt-007-review4-fixture";
+  const base = {
+    caseId: "EVT-007", operator: "row-fields-equal-response",
+    target: "eventId/ruleId/scenarioName/evidence",
+    fixtureCandidates: [fixtureId], fixtureIdentity: fixtureId,
+    responseBodies: [{ records: { records: [{
+      eventId: fixtureId, scenarioName: fixtureId,
+      snapshotPath: `snapshots/${fixtureId}.jpg`, clipPath: `clips/${fixtureId}.mp4`,
+      metadata: {},
+    }] } }],
+    observation: { count: 1, visibleCount: 1, semanticNodes: [{
+      eventId: fixtureId, attributes: {}, fields: {
+        ruleId: [], scenarioName: [fixtureId],
+        evidence: [`${fixtureId}.jpg`, `${fixtureId}.mp4`],
+      },
+    }] },
+  };
+  assert(evaluateResponseDerivedDomFieldProjection(base).pass,
+    "declared optional-empty API/DOM absence did not pass");
+  for (const mutation of [
+    value => { value.responseBodies[0].records.records[0].metadata.ruleId = "rule-1"; return value; },
+    value => { value.observation.semanticNodes[0].fields.ruleId = ["rule-1"]; return value; },
+    value => { value.responseBodies[0].records.records.push(
+      structuredClone(value.responseBodies[0].records.records[0])); return value; },
+    value => { value.observation.semanticNodes.push(
+      structuredClone(value.observation.semanticNodes[0])); value.observation.count = 2;
+      value.observation.visibleCount = 2; return value; },
+  ]) {
+    assert(!evaluateResponseDerivedDomFieldProjection(mutation(structuredClone(base))).pass,
+      "optional-empty negative mutation passed");
+  }
+});
+
+check("typed template materialization closes every canonical response/baseline path before lookup", () => {
+  assert(materializeEventExactTemplate("/reviews?q={q}", { q: "fixture a" }) === "/reviews?q=fixture%20a", "template encoding mismatch");
+  const rejected = (template, values, expected) => {
+    let message = "";
+    try { resolveEventExactTemplate(template, values, { context: "response-baseline-path" }); }
+    catch (error) { message = String(error?.message || error); }
+    assert(message.includes(expected), `${expected} was not rejected: ${message}`);
+  };
+  rejected("/reviews/{unknown}", { unknown: "fixture" }, "unknown exact oracle template variable");
+  rejected("/reviews/{fixtureId}", {}, "missing exact oracle template value");
+  rejected("/reviews/{fixtureId}", { fixtureId: "" }, "empty exact oracle template value");
+  rejected("/reviews/{fixtureId}", { fixtureId: "{fixtureId}" }, "recursive exact oracle template substitution");
+  rejected("/reviews/{fixtureId}", { fixtureId: "../fixture" }, "path traversal exact oracle template value");
+  rejected("/reviews/{fixtureId", { fixtureId: "fixture" }, "malformed exact oracle template");
+
+  const audit = auditEventExactTemplateUsage();
+  assert(audit.canonicalCaseCount === 424 && audit.unresolvedTemplateCount === 0 &&
+    audit.unknownVariableCount === 0 && audit.recursiveSubstitutionCount === 0,
+  `canonical template audit failed: ${JSON.stringify(audit)}`);
+  assert(audit.responseBaselineTemplateUseCount > 0,
+    "canonical response/baseline template audit found no uses");
+});
+
+check("EVT-020 resolves one typed assertion target before authoritative baseline selection", () => {
+  const fixtureId = "evt-020-review4-fixture";
+  const assertion = { operator: "contains-event-and-evidence", target: "{fixtureId}" };
+  const eventRuntimeContext = {
+    templateValues: { fixtureId },
+    domResponseBaselineByTarget: {
+      [fixtureId]: {
+        schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+        collectionPath: "records.records",
+        identityPaths: ["eventId"],
+        identityValue: fixtureId,
+        projectionPaths: ["eventId", "snapshotPath", "clipPath"],
+        expectedProjection: { eventId: fixtureId, snapshotPath: "snapshot.jpg", clipPath: "clip.mp4" },
+      },
+    },
+    rowLocalResponseTargets: [fixtureId],
+  };
+  const resolved = resolveEventDomAssertionForRuntime({
+    caseId: "EVT-020", assertion, bindings: {}, eventRuntimeContext,
+  });
+  assert(resolved.target === fixtureId && !/[{}]/.test(resolved.target),
+    "EVT-020 assertion target remained unresolved");
+  const selected = selectEventDomResponseBaselines(resolved, eventRuntimeContext);
+  assert(selected[fixtureId]?.schema === "media-server.v390-ui-event-row-local-response-baseline.v1",
+    "EVT-020 resolved target did not select its authoritative response baseline");
 });
 
 check("response evaluator executes equals, number-gte, and forbidden path checks", () => {

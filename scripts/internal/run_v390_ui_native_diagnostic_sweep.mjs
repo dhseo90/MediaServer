@@ -601,6 +601,29 @@ function selectedDiagnosticCases({
     selected.forEach(assertDiagnosticRuntimeBinding);
     return selected;
   }
+  if (selectionMode === diagnosticSelectionModes.eventRecordOptionalTemplateClosureSweep) {
+    assert(!caseId, "EventRecord optional/template closure selection cannot receive --case-id");
+    const artifact = readJson(selectionArtifact);
+    assert(artifact.schema === "media-server.v390-ui-event-record-optional-template-closure.v1",
+      "EventRecord optional/template closure schema mismatch");
+    const { digest, ...payload } = artifact;
+    assert(/^[0-9a-f]{64}$/.test(digest) && sha256(stableJson(payload)) === digest,
+      "EventRecord optional/template closure immutable digest mismatch");
+    const selectedIds = artifact.selectedIds;
+    assert(Array.isArray(selectedIds) &&
+      stableJson(selectedIds) === stableJson(["EVT-007", "EVT-020"]) &&
+      new Set(selectedIds).size === 2,
+    "EventRecord optional/template closure must contain exactly EVT-007 and EVT-020");
+    const byId = new Map(manifestCases.map(item => [item.caseId, item]));
+    const selected = selectedIds.map(selectedCaseId => byId.get(selectedCaseId));
+    assert(selected.every(Boolean),
+      "EventRecord optional/template closure contains an unknown case ID");
+    assert(selected.every((item, index) => index === 0 ||
+      manifestCases.indexOf(selected[index - 1]) < manifestCases.indexOf(item)),
+    "EventRecord optional/template closure order does not match the canonical manifest");
+    selected.forEach(assertDiagnosticRuntimeBinding);
+    return selected;
+  }
   assert(selectionMode === diagnosticSelectionModes.explicitPositiveCase,
     "unsupported diagnostic selection mode");
   assert(caseId, "explicit diagnostic selection requires --case-id");

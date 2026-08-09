@@ -9,10 +9,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  auditEventExactTemplateUsage,
+  auditResponseDerivedDomProjectionContracts,
   evaluateEventExactResponseAssertion,
   evaluateResponseDerivedDomFieldProjection,
   responseDerivedDomProjectionContractFor,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
+import {
+  resolveEventDomAssertionForRuntime,
+  selectEventDomResponseBaselines,
+} from "./v390_ui_exact_oracle_runtime.mjs";
 import {
   buildNavigationTrustEvidence,
   domSnapshotDigest,
@@ -82,6 +88,49 @@ const currentAcceptanceRoot = path.join(
 const currentAcceptanceSummaryBytes = fs.readFileSync(path.join(currentAcceptanceRoot, "summary.json"));
 const currentAcceptanceSummary = JSON.parse(currentAcceptanceSummaryBytes);
 const currentEvt007TraceBytes = fs.readFileSync(path.join(currentAcceptanceRoot, "traces/EVT-007.trace.json"));
+const optionalTemplateRunRoot = path.join(
+  root,
+  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260808184853-81792",
+);
+const optionalTemplateSummaryBytes = fs.readFileSync(path.join(optionalTemplateRunRoot, "summary.json"));
+const optionalTemplateSummary = JSON.parse(optionalTemplateSummaryBytes);
+assert.equal(sha256(optionalTemplateSummaryBytes),
+  "66e75230648b2b635a1f75737e812a113d2d0e83679ed4bd9d20812a9d30ebc5",
+  "optional/template actual parent summary digest drift");
+assert.deepEqual(optionalTemplateSummary.counts,
+  { target: 6, attempted: 6, pass: 4, fail: 2, notRun: 0, unsupported: 0 });
+assert.deepEqual(optionalTemplateSummary.cases
+  .filter(item => item.status === "PASS").map(item => item.caseId),
+["EVT-023", "EVT-026", "EVT-048", "EVT-049"],
+"EventRecord four-case actual PASS set drift");
+const readOptionalTemplateFailure = (caseId, summarySha, traceSha, signature) => {
+  const caseRoot = path.join(optionalTemplateRunRoot, "cases", caseId);
+  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
+  const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
+  assert.equal(sha256(summaryBytes), summarySha, `${caseId} optional/template summary digest drift`);
+  assert.equal(sha256(traceBytes), traceSha, `${caseId} optional/template trace digest drift`);
+  const summary = JSON.parse(summaryBytes);
+  const trace = JSON.parse(traceBytes);
+  assert.equal(summary.case?.status, "FAIL", `${caseId} optional/template actual RED status drift`);
+  assert.equal(trace.caseId, caseId, `${caseId} optional/template trace identity drift`);
+  assert(`${summary.case?.failureDetail || ""}\n${JSON.stringify(summary.case?.eventDomSemanticEvidence || {})}`
+    .includes(signature), `${caseId} optional/template failure signature drift`);
+  return { summary, trace };
+};
+const optionalTemplateActual = new Map([
+  ["EVT-007", readOptionalTemplateFailure(
+    "EVT-007",
+    "6cdcd91f75cbe607ce635ad46db2c37fd03a9473c03c03113a97350a0fc1a472",
+    "aedce87e229e2354ef4df35ec40a7e0938f79dfa032c16d930775742b7b41ce3",
+    "RENDERER_PROJECTION_VALUE_MISMATCH",
+  )],
+  ["EVT-020", readOptionalTemplateFailure(
+    "EVT-020",
+    "a7e3602521b8ef7d3284d6dc3d16608c66fc43a14acfe4a5a60284be9c8bc53f",
+    "57e9d8b8ae6582a8034c5c66aa75c560e7610ebb943a38396ece4a489428eef8",
+    "RESPONSE_BASELINE_MISSING",
+  )],
+]);
 
 const failures = [];
 const closures = new Set();
@@ -241,8 +290,52 @@ close(["EVT-007"],
     caseId: "EVT-007",
     operator: "row-fields-equal-response",
     target: "eventId/ruleId/scenarioName/evidence",
-  })?.collectionPath === "records.records" && evt007Projection.pass,
+  })?.collectionPath === "records.records" && evt007Projection.pass &&
+    optionalTemplateActual.get("EVT-007").summary.case?.actualBrowserExecution === true &&
+    auditResponseDerivedDomProjectionContracts().optionalEmptyUseCount === 1 &&
+    auditResponseDerivedDomProjectionContracts().implicitOptionalUseCount === 0,
   "EventRecord fields are not bound to one fixture-owned collection row and DOM owner");
+
+const evt020FixtureId = "evt-020-review4-fixture";
+const evt020Baseline = {
+  schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+  identityKind: "event-record",
+  collectionPath: "records.records",
+  identityPaths: ["eventId"],
+  identityValue: evt020FixtureId,
+  projectionPaths: ["eventId", "snapshotPath", "clipPath"],
+  expectedProjection: {
+    eventId: evt020FixtureId,
+    snapshotPath: "snapshots/evt-020.jpg",
+    clipPath: "clips/evt-020.mp4",
+  },
+};
+const evt020RuntimeContext = {
+  templateValues: { fixtureId: evt020FixtureId },
+  domResponseBaselineByTarget: { [evt020FixtureId]: evt020Baseline },
+  rowLocalResponseTargets: [evt020FixtureId],
+};
+const evt020ResolvedAssertion = resolveEventDomAssertionForRuntime({
+  caseId: "EVT-020",
+  assertion: { operator: "contains-event-and-evidence", target: "{fixtureId}" },
+  bindings: {},
+  eventRuntimeContext: evt020RuntimeContext,
+});
+const evt020SelectedBaseline = selectEventDomResponseBaselines(
+  evt020ResolvedAssertion,
+  evt020RuntimeContext,
+);
+const templateAudit = auditEventExactTemplateUsage();
+close(["EVT-020"],
+  optionalTemplateActual.get("EVT-020").summary.case?.actualBrowserExecution === true &&
+    evt020ResolvedAssertion.target === evt020FixtureId &&
+    evt020SelectedBaseline[evt020FixtureId] === evt020Baseline &&
+    templateAudit.canonicalCaseCount === 424 &&
+    templateAudit.responseBaselineTemplateUseCount === 80 &&
+    templateAudit.unresolvedTemplateCount === 0 &&
+    templateAudit.unknownVariableCount === 0 &&
+    templateAudit.recursiveSubstitutionCount === 0,
+  "typed response/baseline target remained unresolved or selected a stale owner");
 
 const fullSrc031Inputs = [{
   kind: "endpoint-action-fixture",
@@ -319,12 +412,12 @@ assert(evaluatorSource.includes("RESPONSE_FIELD_OWNER_AMBIGUOUS") &&
   evaluatorSource.includes("RENDERER_PROJECTION_VALUE_MISMATCH"),
 "response/DOM fail-closed failure classes were removed");
 
-if (failures.length > 0 || closures.size !== 12) {
+if (failures.length > 0 || closures.size !== 13) {
   failures.forEach(failure => console.error(`RED ${failure}`));
-  console.error(`v390 UI native diagnostic final trace replay: FAIL ${closures.size}/12`);
+  console.error(`v390 UI native diagnostic final trace replay: FAIL ${closures.size}/13`);
   process.exit(1);
 }
-console.log(`v390 UI native diagnostic final trace replay: PASS ${closures.size}/12`);
+console.log(`v390 UI native diagnostic final trace replay: PASS ${closures.size}/13`);
 
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;

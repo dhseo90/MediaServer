@@ -4343,6 +4343,52 @@ export function createV390UiCaseRuntime({
         }
       }
     }
+    if (eventRecordFixtureFamilyCaseIds.includes(item.caseId)) {
+      const records = responseByPath["records.records"];
+      assert(Array.isArray(records),
+        `${item.caseId} authoritative EventRecord response baseline is unavailable`);
+      const owners = records.filter(record =>
+        String(record?.eventId || "") === String(context.fixtureId));
+      assert(owners.length === 1,
+        `${item.caseId} authoritative EventRecord response owner cardinality mismatch: ${owners.length}`);
+      const owner = owners[0];
+      const expectedProjection = {
+        eventId: String(owner.eventId || ""),
+        snapshotPath: String(owner.snapshotPath || ""),
+        clipPath: String(owner.clipPath || ""),
+      };
+      assert(expectedProjection.eventId && expectedProjection.snapshotPath && expectedProjection.clipPath,
+        `${item.caseId} authoritative EventRecord response baseline fields are incomplete`);
+      const target = materializeEventExactTemplate("{fixtureId}", templateValues, {
+        context: "semantic-target",
+      });
+      assert(!Object.prototype.hasOwnProperty.call(domResponseBaselineByTarget, target),
+        `${item.caseId} duplicate fixture response baseline target`);
+      domResponseBaselineByTarget[target] = Object.freeze({
+        schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
+        identityKind: "event-record",
+        collectionPath: "records.records",
+        identityPaths: Object.freeze(["eventId"]),
+        identityPathMode: "all",
+        identityValue: target,
+        projectionPaths: Object.freeze(["eventId", "snapshotPath", "clipPath"]),
+        expectedProjection: Object.freeze(expectedProjection),
+      });
+      rowLocalResponseTargets.push(target);
+      domFixtureIdentityByTarget[target] = Object.freeze({
+        schema: "media-server.v390-ui-event-dom-fixture-identity.v1",
+        kind: "event-record",
+        eventId: target,
+        eventType: String(owner.eventType || "event"),
+        status: String(owner.status || "recorded"),
+        expectedNodeTokens: Object.freeze([
+          target,
+          path.basename(expectedProjection.snapshotPath),
+          path.basename(expectedProjection.clipPath),
+        ]),
+        expectedProjection: Object.freeze(expectedProjection),
+      });
+    }
     if (item.caseId === "EVT-003" || item.caseId === "EVT-025") {
       const sourceId = templateValues.sourceId;
       const sourceHealth = responseByPath.sourceHealth;

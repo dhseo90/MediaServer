@@ -9,6 +9,7 @@ export const diagnosticSelectionModes = Object.freeze({
   diagnosticFailureCensusSweep: "diagnostic-failure-census-sweep",
   diagnosticFailureClosureSweep: "diagnostic-failure-closure-sweep",
   eventRecordOwnerImpactSweep: "event-record-owner-impact-sweep",
+  eventRecordOptionalTemplateClosureSweep: "event-record-optional-template-closure-sweep",
 });
 
 export const diagnosticSelectionModeRegistry = Object.freeze([
@@ -52,6 +53,13 @@ export const diagnosticSelectionModeRegistry = Object.freeze([
     artifactSchema: "media-server.v390-ui-event-record-owner-impact.v1",
     selectionKind: "immutable-event-record-owner-impact",
     expectedCount: 6,
+    expectedStartCaseId: null,
+  }),
+  Object.freeze({
+    mode: diagnosticSelectionModes.eventRecordOptionalTemplateClosureSweep,
+    artifactSchema: "media-server.v390-ui-event-record-optional-template-closure.v1",
+    selectionKind: "immutable-event-record-optional-template-closure",
+    expectedCount: 2,
     expectedStartCaseId: null,
   }),
 ]);

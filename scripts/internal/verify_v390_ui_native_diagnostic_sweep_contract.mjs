@@ -1184,6 +1184,7 @@ check("parent and child share one fail-closed diagnostic selection registry", ()
       "diagnostic-failure-census-sweep",
       "diagnostic-failure-closure-sweep",
       "event-record-owner-impact-sweep",
+      "event-record-optional-template-closure-sweep",
     ]), "diagnostic selection registry mode set drift");
   assert(diagnosticSelectionModeForArtifactSchema(
     "media-server.v390-ui-shared-adapter-impact.v1") ===
@@ -1196,7 +1197,10 @@ check("parent and child share one fail-closed diagnostic selection registry", ()
       diagnosticSelectionModes.diagnosticFailureClosureSweep &&
     diagnosticSelectionModeForArtifactSchema(
       "media-server.v390-ui-event-record-owner-impact.v1") ===
-        diagnosticSelectionModes.eventRecordOwnerImpactSweep,
+        diagnosticSelectionModes.eventRecordOwnerImpactSweep &&
+    diagnosticSelectionModeForArtifactSchema(
+      "media-server.v390-ui-event-record-optional-template-closure.v1") ===
+        diagnosticSelectionModes.eventRecordOptionalTemplateClosureSweep,
   "diagnostic artifact schema registry drift");
   for (const stale of ["", "stale-mode", "diagnostic-failure-census-sweep-v0"]) {
     let failed = false;
@@ -1563,6 +1567,44 @@ check("immutable EventRecord owner impact selects the exact six through the real
     `${wrongFamilyRun.stderr || ""}${wrongFamilyRun.stdout || ""}`.includes(
       "EventRecord owner impact case family mismatch"),
   "a correctly digested but unrelated six-case selection was accepted");
+});
+
+check("immutable optional/template closure selects exactly EVT-007 and EVT-020 through child preflight", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "event-record-optional-template-contract-"));
+  temporaryDirs.push(outputDir);
+  const artifactPath =
+    "test/fixtures/v390_ui_event_record_optional_template_closure_20260809.json";
+  const artifact = JSON.parse(read(artifactPath));
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", artifactPath,
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0,
+    `EventRecord optional/template closure plan failed: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  assert(summary.selection?.mode === "event-record-optional-template-closure-sweep" &&
+    summary.selection?.targetCaseCount === 2 &&
+    JSON.stringify(summary.selection?.selectedIds) === JSON.stringify(["EVT-007", "EVT-020"]) &&
+    summary.counts.target === 2 && summary.counts.attempted === 0 &&
+    summary.counts.pass === 0 && summary.counts.fail === 0 &&
+    summary.counts.notRun === 2 && summary.counts.unsupported === 0 &&
+    summary.actualBrowserExecution === false,
+  "optional/template closure selection drifted or started a browser");
+  const childPreflight = summary.childSelectionPreflight;
+  assert(childPreflight?.phase === "child-selection-preflight" &&
+    childPreflight.status === "PASS" && childPreflight.exitCode === 0 &&
+    childPreflight.actualBrowserExecution === false &&
+    childPreflight.selectionMode === "event-record-optional-template-closure-sweep" &&
+    childPreflight.targetCaseCount === 2 &&
+    childPreflight.targetCaseIdsSha256 === summary.selection.targetCaseIdsSha256 &&
+    childPreflight.childAcceptedTargetCaseCount === 2 &&
+    childPreflight.childAcceptedTargetCaseIdsSha256 ===
+      summary.selection.targetCaseIdsSha256,
+  "optional/template closure did not pass the real no-browser child subprocess preflight");
 });
 
 check("child selection preflight failure preserves process evidence without attempting a UI case", () => {

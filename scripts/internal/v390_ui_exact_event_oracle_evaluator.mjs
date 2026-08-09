@@ -5,6 +5,23 @@ import crypto from "node:crypto";
 import {
   eventExactOracleFor,
 } from "./v390_ui_exact_event_oracles.mjs";
+import {
+  buildExactRuntimeOracleCatalog,
+} from "./v390_ui_exact_oracle_catalog.mjs";
+
+const eventExactTemplateVariableSchema = Object.freeze({
+  fixtureId: Object.freeze({ type: "identifier" }),
+  viewId: Object.freeze({ type: "identifier" }),
+  sourceId: Object.freeze({ type: "identifier" }),
+  ruleId: Object.freeze({ type: "identifier" }),
+  q: Object.freeze({ type: "query-text" }),
+  evidence: Object.freeze({ type: "identifier" }),
+  incidentStatus: Object.freeze({ type: "identifier" }),
+  startTimeMs: Object.freeze({ type: "unsigned-integer" }),
+  endTimeMs: Object.freeze({ type: "unsigned-integer" }),
+  limit: Object.freeze({ type: "unsigned-integer" }),
+  offset: Object.freeze({ type: "unsigned-integer" }),
+});
 
 const DIRECT_RESPONSE_OPERATORS = new Set([
   "array", "boolean", "equals", "equals-fixture", "non-empty", "number", "number-gte", "object",
@@ -40,7 +57,7 @@ const responseDerivedDomProjectionContracts = Object.freeze({
     }),
     fields: [
       ["$identity", "eventId", "identity"],
-      ["metadata.ruleId|ruleId|vaRuleId", "ruleId", "field-text", "first-non-empty", { optional: true }],
+      ["metadata.ruleId|ruleId|vaRuleId", "ruleId", "field-text", "first-non-empty", { emptyPolicy: "optional-empty" }],
       ["scenarioName|scenarioPhase|className", "scenarioName", "field-text", "renderer-scenario"],
       ["snapshotPath|clipPath", "evidence", "field-text", "renderer-evidence-names", { minCount: 2 }],
     ],
@@ -352,6 +369,28 @@ const responseDerivedDomProjectionContracts = Object.freeze({
 
 export function responseDerivedDomProjectionContractFor({ caseId = "", operator = "", target = "" } = {}) {
   return responseDerivedDomProjectionContracts[`${caseId}\n${operator}\n${target}`] || null;
+}
+
+export function auditResponseDerivedDomProjectionContracts() {
+  const optionalEmptyUses = [];
+  let implicitOptionalUseCount = 0;
+  for (const [key, contract] of Object.entries(responseDerivedDomProjectionContracts)) {
+    const [caseId, operator, target] = key.split("\n");
+    for (const field of contract.fields || []) {
+      const options = field[4] || {};
+      if (options.optional === true) implicitOptionalUseCount += 1;
+      if (options.emptyPolicy === "optional-empty") {
+        optionalEmptyUses.push({ caseId, operator, target, domKey: String(field[1] || "") });
+      }
+    }
+  }
+  return Object.freeze({
+    schema: "media-server.v390-ui-response-dom-optional-empty-audit.v1",
+    contractCount: Object.keys(responseDerivedDomProjectionContracts).length,
+    optionalEmptyUseCount: optionalEmptyUses.length,
+    implicitOptionalUseCount,
+    optionalEmptyUses: Object.freeze(optionalEmptyUses.map(Object.freeze)),
+  });
 }
 
 function isObject(value) {
@@ -677,10 +716,18 @@ function evaluateDeclaredResponseDomProjection({
             ? node.fields[domKey].map(String) : [])
           : nodes.flatMap(node => Object.prototype.hasOwnProperty.call(node.attributes || {}, domKey)
             ? [String(node.attributes[domKey])] : [])));
-    const optionalEmpty = options.optional === true && expected.length === 0 && actual.length === 0;
+    const emptyPolicy = String(options.emptyPolicy || "required");
+    const supportedOptions = new Set(["emptyPolicy", "limit", "minCount"]);
+    const unknownOptions = Object.keys(options).filter(key => !supportedOptions.has(key));
+    const optionsValid = unknownOptions.length === 0 &&
+      ["required", "optional-empty"].includes(emptyPolicy);
+    const canonicalEmpty = values => values.length === 0 ||
+      (values.length === 1 && String(values[0] ?? "").trim().length === 0);
+    const optionalEmpty = optionsValid && emptyPolicy === "optional-empty" &&
+      canonicalEmpty(expected) && canonicalEmpty(actual);
     const countPass = expected.length >= Number(options.minCount || 1);
-    const valuesPass = optionalEmpty || (countPass && actual.length === expected.length &&
-      expected.every((value, index) => actual[index] === value));
+    const valuesPass = optionsValid && (optionalEmpty || (countPass && actual.length === expected.length &&
+      expected.every((value, index) => actual[index] === value)));
     return {
       nameDigest: sha256Text(normalizedProjectionKey(domKey)),
       responseOwnerCount: owners.length,
@@ -929,15 +976,134 @@ export function eventExactValuesAtPath(root, path) {
   return values;
 }
 
-function normalizeTemplateValues(values = {}) {
-  return Object.fromEntries(Object.entries(values).map(([key, value]) => [key, String(value)]));
+function normalizeExactTemplateValue(key, value) {
+  const descriptor = eventExactTemplateVariableSchema[key];
+  if (!descriptor) throw new Error(`unknown exact oracle template variable: ${key}`);
+  if (value === undefined || value === null) {
+    throw new Error(`missing exact oracle template value: ${key}`);
+  }
+  const normalized = String(value).normalize("NFKC").trim();
+  if (!normalized) throw new Error(`empty exact oracle template value: ${key}`);
+  if (/[{}]/u.test(normalized)) {
+    throw new Error(`recursive exact oracle template substitution: ${key}`);
+  }
+  if (/\p{Cc}/u.test(normalized)) {
+    throw new Error(`control character exact oracle template value: ${key}`);
+  }
+  if (descriptor.type === "unsigned-integer" && !/^\d+$/u.test(normalized)) {
+    throw new Error(`invalid unsigned integer exact oracle template value: ${key}`);
+  }
+  if (descriptor.type === "identifier") {
+    if (/(?:^|[./\\])\.\.(?:$|[./\\])|[/\\]/u.test(normalized)) {
+      throw new Error(`path traversal exact oracle template value: ${key}`);
+    }
+    if (!/^[\p{L}\p{N}][\p{L}\p{N}._:-]*$/u.test(normalized)) {
+      throw new Error(`invalid identifier exact oracle template value: ${key}`);
+    }
+  }
+  return normalized;
 }
 
-export function materializeEventExactTemplate(template, values = {}) {
-  const normalized = normalizeTemplateValues(values);
-  return String(template || "").replace(/\{([A-Za-z][A-Za-z0-9]*)\}/g, (_, key) => {
-    if (!(key in normalized)) throw new Error(`missing exact oracle template value: ${key}`);
-    return encodeURIComponent(normalized[key]);
+export function resolveEventExactTemplate(template, values = {}, { context = "request-path" } = {}) {
+  const source = String(template ?? "");
+  let result = "";
+  let cursor = 0;
+  while (cursor < source.length) {
+    const character = source[cursor];
+    if (character === "}") throw new Error("malformed exact oracle template: unexpected closing brace");
+    if (character !== "{") {
+      result += character;
+      cursor += 1;
+      continue;
+    }
+    const closing = source.indexOf("}", cursor + 1);
+    if (closing < 0) throw new Error("malformed exact oracle template: missing closing brace");
+    const key = source.slice(cursor + 1, closing);
+    if (!/^[A-Za-z][A-Za-z0-9]*$/u.test(key)) {
+      throw new Error(`malformed exact oracle template variable: ${key}`);
+    }
+    if (!Object.prototype.hasOwnProperty.call(eventExactTemplateVariableSchema, key)) {
+      throw new Error(`unknown exact oracle template variable: ${key}`);
+    }
+    if (!Object.prototype.hasOwnProperty.call(values, key)) {
+      throw new Error(`missing exact oracle template value: ${key}`);
+    }
+    const normalized = normalizeExactTemplateValue(key, values[key]);
+    result += context === "literal" || context === "selector" || context === "semantic-target"
+      ? normalized
+      : encodeURIComponent(normalized);
+    cursor = closing + 1;
+  }
+  if (/[{}]/u.test(result)) throw new Error("unresolved exact oracle template remained after resolution");
+  if (context.includes("path")) {
+    if (!result.startsWith("/")) throw new Error("exact oracle path template must resolve to an absolute path");
+    const url = new URL(result, "http://exact-runtime.invalid");
+    if (url.origin !== "http://exact-runtime.invalid" || /(?:^|\/)\.\.(?:\/|$)/u.test(url.pathname)) {
+      throw new Error("path traversal exact oracle template result");
+    }
+  }
+  return result;
+}
+
+export function materializeEventExactTemplate(template, values = {}, options = {}) {
+  return resolveEventExactTemplate(template, values, options);
+}
+
+export function auditEventExactTemplateUsage() {
+  const values = Object.freeze({
+    fixtureId: "audit-fixture", viewId: "9001", sourceId: "audit-source",
+    ruleId: "audit-rule", q: "audit query", evidence: "snapshot",
+    incidentStatus: "open", startTimeMs: "0", endTimeMs: "1",
+    limit: "100", offset: "0",
+  });
+  let responseBaselineTemplateUseCount = 0;
+  let unresolvedTemplateCount = 0;
+  let unknownVariableCount = 0;
+  let recursiveSubstitutionCount = 0;
+  const uses = [];
+  const catalog = buildExactRuntimeOracleCatalog();
+  for (const spec of catalog) {
+    for (const [index, request] of (spec.requests || []).entries()) {
+      const template = String(request.path || "");
+      if (!/[{}]/u.test(template)) continue;
+      responseBaselineTemplateUseCount += 1;
+      try {
+        const resolved = resolveEventExactTemplate(template, values, { context: "response-baseline-path" });
+        if (/[{}]/u.test(resolved)) unresolvedTemplateCount += 1;
+      } catch (error) {
+        const message = String(error?.message || error);
+        if (message.includes("unknown exact oracle template variable")) unknownVariableCount += 1;
+        else if (message.includes("recursive exact oracle template substitution")) recursiveSubstitutionCount += 1;
+        else unresolvedTemplateCount += 1;
+      }
+      uses.push(Object.freeze({ caseId: spec.caseId, kind: "request-path", index }));
+    }
+    for (const [domIndex, dom] of (spec.dom || []).entries()) {
+      for (const [assertionIndex, assertion] of (dom.assertions || []).entries()) {
+        const template = String(assertion.target || "");
+        if (!/[{}]/u.test(template)) continue;
+        responseBaselineTemplateUseCount += 1;
+        try {
+          const resolved = resolveEventExactTemplate(template, values, { context: "semantic-target" });
+          if (/[{}]/u.test(resolved)) unresolvedTemplateCount += 1;
+        } catch (error) {
+          const message = String(error?.message || error);
+          if (message.includes("unknown exact oracle template variable")) unknownVariableCount += 1;
+          else if (message.includes("recursive exact oracle template substitution")) recursiveSubstitutionCount += 1;
+          else unresolvedTemplateCount += 1;
+        }
+        uses.push(Object.freeze({ caseId: spec.caseId, kind: "dom-assertion-target", index: `${domIndex}.${assertionIndex}` }));
+      }
+    }
+  }
+  return Object.freeze({
+    schema: "media-server.v390-ui-exact-template-usage-audit.v1",
+    canonicalCaseCount: catalog.length,
+    responseBaselineTemplateUseCount,
+    unresolvedTemplateCount,
+    unknownVariableCount,
+    recursiveSubstitutionCount,
+    uses: Object.freeze(uses),
   });
 }
 
@@ -1377,7 +1543,11 @@ export function evaluateEventExactRequests({ spec, exchanges = [], context = {} 
   for (const request of spec.requests) {
     let path;
     try {
-      path = materializeEventExactTemplate(request.path, context.templateValues || { fixtureId: context.fixtureId });
+      path = materializeEventExactTemplate(
+        request.path,
+        context.templateValues || { fixtureId: context.fixtureId },
+        { context: "request-path" },
+      );
     } catch (error) {
       results.push({ pass: false, kind: "request-template", request, reason: String(error?.message || error) });
       continue;
@@ -1426,6 +1596,7 @@ function evaluateDirectDom({ assertion, observation, context }) {
       const selector = materializeEventExactTemplate(
         assertion.target,
         context.templateValues || { fixtureId: context.fixtureId },
+        { context: "selector" },
       );
       const match = (observation.descendantMatches || [])
         .find(candidate => candidate?.selector === selector);
@@ -1492,7 +1663,11 @@ export function evaluateEventExactDom({ spec, observations = [], context = {} })
   for (const contract of spec.dom) {
     let selector;
     try {
-      selector = materializeEventExactTemplate(contract.selector, context.templateValues || { fixtureId: context.fixtureId });
+      selector = materializeEventExactTemplate(
+        contract.selector,
+        context.templateValues || { fixtureId: context.fixtureId },
+        { context: "selector" },
+      );
     } catch (error) {
       results.push({ pass: false, kind: "dom-template", contract, reason: String(error?.message || error) });
       continue;
@@ -1512,7 +1687,11 @@ export function evaluateEventExactDom({ spec, observations = [], context = {} })
     }
     for (const attribute of contract.requiredAttributes) {
       const actual = observation.attributes?.[attribute.name];
-      const expected = attribute.value === null ? null : materializeEventExactTemplate(attribute.value, context.templateValues || { fixtureId: context.fixtureId });
+      const expected = attribute.value === null ? null : materializeEventExactTemplate(
+        attribute.value,
+        context.templateValues || { fixtureId: context.fixtureId },
+        { context: "literal" },
+      );
       const pass = attribute.value === null ? actual !== undefined : String(actual) === String(expected);
       results.push({ pass, kind: "dom-required-attribute", contract, actual, expected, reason: `required DOM attribute: ${attribute.name}` });
     }
@@ -1526,7 +1705,11 @@ export function evaluateEventExactDom({ spec, observations = [], context = {} })
 export function evaluateEventExactVisibleControl({ spec, observations = [], context = {} }) {
   let selector;
   try {
-    selector = materializeEventExactTemplate(spec.visibleControl.selector, context.templateValues || { fixtureId: context.fixtureId });
+    selector = materializeEventExactTemplate(
+      spec.visibleControl.selector,
+      context.templateValues || { fixtureId: context.fixtureId },
+      { context: "selector" },
+    );
   } catch (error) {
     return [{ pass: false, kind: "visible-control-template", reason: String(error?.message || error) }];
   }
