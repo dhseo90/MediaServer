@@ -13,6 +13,7 @@ const checks = [];
 
 check("server exposes persistent ops audit API", () => {
   const server = readWebRtcHttpServerBundle(readText);
+  const auditProducer = readText("src/ingress/webrtc_http_server_ops_incidents.cpp");
   const required = [
     "/ops/api/audit",
     "OpsAuditStoragePath",
@@ -28,8 +29,6 @@ check("server exposes persistent ops audit API", () => {
     "\"user\"",
     "\"fromMs\"",
     "\"toMs\"",
-    "\\\"dateRangeFields\\\"",
-    "\\\"exportLimitMax\\\":2000",
     "\\\"scanned\\\"",
     "ops-audit-diff.json",
     "\"offset\"",
@@ -42,6 +41,9 @@ check("server exposes persistent ops audit API", () => {
   ];
   for (const snippet of required) {
     assert(server.includes(snippet), `server audit persistence is missing snippet: ${snippet}`);
+  }
+  for (const snippet of ["\\\"dateRangeFields\\\"", "\\\"exportLimitMax\\\":2000"]) {
+    assert(auditProducer.includes(snippet), `server audit producer is missing snippet: ${snippet}`);
   }
 });
 
@@ -58,6 +60,15 @@ check("shared UI writes audit records with local fallback", () => {
     "auditEntryTimeLabel",
     "receivedAtMs",
     "openOpsAuditDetail",
+    "fetchOpsAuditDetail",
+    "normalizeOpsAuditDetail",
+    "opsAuditDetailRequestSequence",
+    "data-audit-detail-state",
+    "data-audit-detail-owner-target",
+    "data-audit-detail-owner-action",
+    "data-audit-detail-response-path",
+    "data-audit-detail-request-id",
+    "data-audit-detail-render-cycle",
     "data-audit-export=\"diff-json\"",
     "-audit-user",
     "-audit-target",

@@ -693,7 +693,7 @@ const specs = [
           domField("action", "action", "field-text"),
         ],
       })]),
-      dom("#opsAuditDetail", ["detail-equals-response", "before/after", true, rowLocalDom({
+      dom("#opsAuditDetailDialog", ["detail-equals-response", "before/after", true, rowLocalDom({
         collectionPath: "entries",
         identityPaths: ["target", "action"],
         identitySource: "fixture-owner",
@@ -702,9 +702,15 @@ const specs = [
           { responsePath: "target", ownerPath: "identity", prefix: "event:" },
           { responsePath: "action", ownerPath: "auditAction" },
         ],
-        responseSource: responseSource("/ops/api/audit?eventId={fixtureId}"),
+        responseSource: responseSource("/ops/api/audit?format=diff-json&eventId={fixtureId}"),
         domKind: "audit-detail-modal",
-        action: { kind: "click", controlSelector: "#event-review-audit-list [data-event-semantic-event-id=\"event:{fixtureId}\"]:has([data-event-semantic-field=\"action\"][data-event-semantic-value=\"{auditAction}\"]) [data-audit-detail]" },
+        action: {
+          kind: "click",
+          controlSelector: "#event-review-audit-list [data-event-semantic-event-id=\"event:{fixtureId}\"]:has([data-event-semantic-field=\"action\"][data-event-semantic-value=\"{auditAction}\"]) [data-audit-detail]",
+          waitForSelector: '#opsAuditDetailDialog[open][data-audit-detail-state="rendered"]' +
+            '[data-audit-detail-owner-target="event:{fixtureId}"]' +
+            '[data-audit-detail-owner-action="{auditAction}"]',
+        },
         fields: [domField("before", "before", "audit-json"), domField("after", "after", "audit-json")],
       })]),
       dom("#event-review-audit-list [data-audit-export=json], #event-review-audit-list [data-audit-export=csv], #event-review-audit-list [data-audit-export=diff-json]", ["export-download-matches-api", "fixtureId", true, directDom("audit-export-controls", {

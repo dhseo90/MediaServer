@@ -1932,6 +1932,12 @@ async function executeDeclaredDomActions({
     else if (action.kind === "fill") await browser.fill(controlSelector, expectedValue);
     else if (action.kind === "click") await browser.click(controlSelector);
     else assert(false, `${item.caseId} unsupported declared DOM action: ${action.kind}`);
+    if (action.waitForSelector) {
+      const waitForSelector = materializeEventExactTemplate(action.waitForSelector, templateValues, {
+        context: "selector",
+      });
+      await browser.waitForSelector(waitForSelector, { state: "visible" });
+    }
     const readback = binding.readback;
     if (!readback) continue;
     const observation = await browser.evaluate(`(() => {
@@ -2252,10 +2258,16 @@ async function observeDom(
       }),
       descendantCount: nodes.reduce((count, node) => count + node.querySelectorAll('*').length, 0),
       auditDetail: (() => {
-        const dialog = document.getElementById('opsAuditDetail');
+        const dialog = document.getElementById('opsAuditDetailDialog');
         return {
           count: dialog ? 1 : 0,
           open: Boolean(dialog?.open || dialog?.hasAttribute('open')),
+          state: String(dialog?.getAttribute('data-audit-detail-state') || ''),
+          ownerTarget: String(dialog?.getAttribute('data-audit-detail-owner-target') || ''),
+          ownerAction: String(dialog?.getAttribute('data-audit-detail-owner-action') || ''),
+          responsePath: String(dialog?.getAttribute('data-audit-detail-response-path') || ''),
+          requestId: String(dialog?.getAttribute('data-audit-detail-request-id') || ''),
+          renderCycleId: String(dialog?.getAttribute('data-audit-detail-render-cycle') || ''),
           before: String(document.getElementById('opsAuditDetailBefore')?.textContent || ''),
           after: String(document.getElementById('opsAuditDetailAfter')?.textContent || ''),
         };
@@ -3466,6 +3478,94 @@ export function buildOwnedRefreshStabilityEvidence(cycle = null) {
   };
 }
 
+export function buildAuditDetailLifecycleEvidence({ observed = {}, baseline = {} } = {}) {
+  const hasOwn = (value, key) => value && typeof value === "object" &&
+    Object.prototype.hasOwnProperty.call(value, key);
+  const valueKind = value => value === null
+    ? "null"
+    : (Array.isArray(value) ? "array" : typeof value);
+  const parseField = name => {
+    const raw = observed?.[name];
+    if (typeof raw !== "string" || raw.trim() === "") {
+      return { name, present: false, parsed: false, value: undefined, kind: "missing" };
+    }
+    try {
+      const value = JSON.parse(raw);
+      return { name, present: true, parsed: true, value, kind: valueKind(value) };
+    } catch {
+      return { name, present: true, parsed: false, value: undefined, kind: "invalid-json" };
+    }
+  };
+  const expected = baseline?.expectedProjection;
+  const expectedOwner = baseline?.identityProjection;
+  const expectedSource = String(baseline?.responseSource?.path || "");
+  const ownerPresent = String(observed?.ownerTarget || "").length > 0 &&
+    String(observed?.ownerAction || "").length > 0;
+  const ownerMatched = ownerPresent &&
+    String(observed.ownerTarget) === String(expectedOwner?.target || "") &&
+    String(observed.ownerAction) === String(expectedOwner?.action || "");
+  const sourceMatched = expectedSource.length > 0 &&
+    String(observed?.responsePath || "") === expectedSource;
+  const lifecycleCurrent = String(observed?.state || "") === "rendered" &&
+    String(observed?.requestId || "").length > 0 &&
+    String(observed?.requestId || "") === String(observed?.renderCycleId || "");
+  const fields = ["before", "after"].map(name => {
+    const actual = parseField(name);
+    const expectedPresent = hasOwn(expected, name);
+    const expectedValue = expectedPresent ? expected[name] : undefined;
+    const expectedKind = expectedPresent ? valueKind(expectedValue) : "missing";
+    return {
+      ...actual,
+      expectedPresent,
+      expected: expectedValue,
+      expectedKind,
+      typeMatched: actual.parsed && expectedPresent && actual.kind === expectedKind,
+      valueMatched: actual.parsed && expectedPresent && stableEqual(actual.value, expectedValue),
+    };
+  });
+  const reasonCodes = [
+    ...(Number(observed?.count || 0) === 1 ? [] : ["AUDIT_DETAIL_DIALOG_MISSING"]),
+    ...(observed?.open === true ? [] : ["AUDIT_DETAIL_DIALOG_NOT_OPEN"]),
+    ...(ownerPresent ? [] : ["AUDIT_DETAIL_OWNER_MISSING"]),
+    ...(!ownerPresent || ownerMatched ? [] : ["AUDIT_DETAIL_OWNER_MISMATCH"]),
+    ...(sourceMatched ? [] : ["AUDIT_DETAIL_RESPONSE_SOURCE_MISMATCH"]),
+    ...(lifecycleCurrent ? [] : ["AUDIT_DETAIL_LIFECYCLE_STALE"]),
+    ...(fields.every(field => field.present && field.parsed && field.expectedPresent)
+      ? [] : ["AUDIT_DETAIL_FIELD_MISSING"]),
+    ...(fields.every(field => !field.parsed || !field.expectedPresent || field.typeMatched)
+      ? [] : ["AUDIT_DETAIL_FIELD_TYPE_MISMATCH"]),
+    ...(fields.every(field => !field.parsed || !field.expectedPresent || field.valueMatched)
+      ? [] : ["AUDIT_DETAIL_FIELD_VALUE_MISMATCH"]),
+  ];
+  return {
+    schema: "media-server.v390-ui-audit-detail-lifecycle-evidence.v1",
+    pass: reasonCodes.length === 0,
+    failureCode: reasonCodes.length === 0 ? "PASS" : "AUDIT_DETAIL_RESPONSE_MISMATCH",
+    reasonCodes,
+    owner: {
+      present: ownerPresent,
+      matched: ownerMatched,
+      expectedDigest: sha256Digest(expectedOwner || null),
+      actualDigest: sha256Digest({
+        target: String(observed?.ownerTarget || ""),
+        action: String(observed?.ownerAction || ""),
+      }),
+    },
+    responseSource: {
+      matched: sourceMatched,
+      expectedDigest: sha256Digest(expectedSource),
+      actualDigest: sha256Digest(String(observed?.responsePath || "")),
+    },
+    lifecycle: {
+      current: lifecycleCurrent,
+      stateDigest: sha256Digest(String(observed?.state || "")),
+      requestIdDigest: sha256Digest(String(observed?.requestId || "")),
+      renderCycleIdDigest: sha256Digest(String(observed?.renderCycleId || "")),
+    },
+    fields,
+  };
+}
+
 export function buildDeclaredEventDomBindingEvidence({
   assertion,
   observed,
@@ -3493,7 +3593,7 @@ export function buildDeclaredEventDomBindingEvidence({
     observedNodeCount: Number(observed?.count || 0),
     semanticNodeCount: semanticNodes.length,
   };
-  const finish = ({ pass, failureCode = "PASS", expectedRows = [], fields = [] }) => ({
+  const finish = ({ pass, failureCode = "PASS", expectedRows = [], fields = [], ...details }) => ({
     ...evidenceBase,
     pass,
     failureCode: pass ? "PASS" : failureCode,
@@ -3506,6 +3606,7 @@ export function buildDeclaredEventDomBindingEvidence({
       actualDigest: sha256Digest(field.actual),
       candidateCount: Number(field.candidateCount || 0),
     })),
+    ...details,
   });
   if (mode === "direct-dom") {
     const serialized = `${String(observed?.text || "")} ${JSON.stringify(observed?.attributes || [])} ` +
@@ -3637,29 +3738,29 @@ export function buildDeclaredEventDomBindingEvidence({
   const baseline = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[assertionKey];
   if (!baseline) return finish({ pass: false, failureCode: "DECLARED_RESPONSE_BASELINE_MISSING" });
   if (binding.domKind === "audit-detail-modal") {
-    const parseAuditJson = value => {
-      try { return JSON.parse(String(value || "")); } catch { return { invalidAuditJson: true }; }
-    };
-    const expected = baseline.expectedProjection || {};
-    const actual = {
-      before: parseAuditJson(observed?.auditDetail?.before),
-      after: parseAuditJson(observed?.auditDetail?.after),
-    };
-    const pass = Number(observed?.auditDetail?.count || 0) === 1 &&
-      observed?.auditDetail?.open === true &&
-      stableEqual(actual.before, expected.before) &&
-      stableEqual(actual.after, expected.after);
+    const lifecycle = buildAuditDetailLifecycleEvidence({
+      observed: observed?.auditDetail,
+      baseline,
+    });
     return finish({
-      pass,
+      pass: lifecycle.pass,
       failureCode: "AUDIT_DETAIL_RESPONSE_MISMATCH",
-      expectedRows: [{ identityValue: baseline.identityValue, projection: expected }],
-      fields: ["before", "after"].map(name => ({
-        name,
-        pass: stableEqual(actual[name], expected[name]),
-        expected: expected[name],
-        actual: actual[name],
-        candidateCount: actual[name]?.invalidAuditJson === true ? 0 : 1,
+      expectedRows: [{
+        identityValue: baseline.identityValue,
+        identityProjection: baseline.identityProjection,
+        projection: baseline.expectedProjection,
+      }],
+      fields: lifecycle.fields.map(field => ({
+        name: field.name,
+        pass: field.typeMatched && field.valueMatched,
+        expected: field.expected,
+        actual: field.value,
+        candidateCount: field.parsed ? 1 : 0,
       })),
+      reasonCodes: lifecycle.reasonCodes,
+      ownerEvidence: lifecycle.owner,
+      responseSourceEvidence: lifecycle.responseSource,
+      lifecycleEvidence: lifecycle.lifecycle,
     });
   }
   if (["behavior-only", "event-record-text", "source-health-text"].includes(binding.domKind)) {

@@ -19,6 +19,7 @@ import {
   responseDerivedDomProjectionContractFor,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import {
+  buildAuditDetailLifecycleEvidence,
   buildDeclaredEventDomBindingEvidence,
   buildEventDomSemanticCompositeEvidence,
   evaluateEventDomActionReadback,
@@ -34,6 +35,8 @@ const latestRunRoot = path.join(root,
   ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809054053-83497");
 const remaining4RunRoot = path.join(root,
   ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-remaining4-629fddf0");
+const final7RunRoot = path.join(root,
+  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-final7-9e43fd27");
 const censusPath = path.join(root,
   "test/fixtures/v390_ui_remaining_actual_failure_census_20260809.json");
 const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
@@ -225,6 +228,43 @@ assert.deepEqual(remaining4Evt022Evidence?.responseBaselineMatched?.mismatchPath
 assert.equal(remaining4Evt022Evidence?.responseBaselineMatched?.candidateCount, 0);
 assert.equal(remaining4Evt022Evidence?.observationPresent?.exists, true);
 assert.equal(remaining4Evt022Evidence?.observationPresent?.visible, true);
+
+const final7ParentBytes = fs.readFileSync(path.join(final7RunRoot, "summary.json"));
+assert.equal(sha256(final7ParentBytes),
+  "d04f4015f2ca657a22def026b417fcb824568965e148877175108d63285edb9b",
+  "final7 actual parent summary digest drift");
+const final7Parent = JSON.parse(final7ParentBytes);
+assert.deepEqual(final7Parent.counts,
+  { target: 7, attempted: 7, pass: 6, fail: 1, notRun: 0, unsupported: 0 });
+assert.equal(final7Parent.sourceBinding?.gitCommit,
+  "9e43fd274b5ebde91f116ce5477b558bcc577ab6");
+assert.deepEqual(final7Parent.selection?.selectedIds,
+  ["EVT-007", "EVT-017", "EVT-019", "EVT-020", "EVT-022", "EVT-023", "EVT-026"]);
+for (const caseId of ["EVT-007", "EVT-017", "EVT-019", "EVT-020", "EVT-023", "EVT-026"]) {
+  assert.equal(final7Parent.cases.find(item => item.caseId === caseId)?.status, "PASS",
+    `${caseId} final7 control status drift`);
+}
+const final7Evt022Root = path.join(final7RunRoot, "cases", "EVT-022");
+const final7Evt022SummaryBytes = fs.readFileSync(path.join(final7Evt022Root, "summary.json"));
+const final7Evt022TraceBytes = fs.readFileSync(
+  path.join(final7Evt022Root, "traces", "EVT-022.trace.json"));
+assert.equal(sha256(final7Evt022SummaryBytes),
+  "00b7e090028258dd61036721802399a38ad166928486d15dfec824e51887215d",
+  "EVT-022 final7 actual summary digest drift");
+assert.equal(sha256(final7Evt022TraceBytes),
+  "c0d7a1a875e60bdf821ddceb7c72e511a15762ad4470557c0a9cd748a7ad4ad1",
+  "EVT-022 final7 actual trace digest drift");
+const final7Evt022Summary = JSON.parse(final7Evt022SummaryBytes);
+const final7Evt022Trace = JSON.parse(final7Evt022TraceBytes);
+const final7Evt022Evidence = final7Evt022Summary.case?.eventDomSemanticEvidence;
+assert.equal(final7Evt022Trace.caseId, "EVT-022");
+assert.equal(final7Evt022Summary.case?.status, "FAIL");
+assert.deepEqual(final7Evt022Evidence?.causeCodes,
+  ["DOM_OBSERVATION_MISSING", "AUDIT_DETAIL_RESPONSE_MISMATCH"]);
+assert.equal(final7Evt022Evidence?.responseBaselineMatched?.pass, true);
+assert.equal(final7Evt022Evidence?.observationPresent?.exists, false);
+assert.equal(final7Evt022Evidence?.declaredDomBinding?.failureCode,
+  "AUDIT_DETAIL_RESPONSE_MISMATCH");
 
 const lifecycleMatrix = Object.freeze({
   "EVT-007": Object.freeze({
@@ -495,6 +535,12 @@ const auditDetailAssertion = eventExactOracleFor("EVT-022").domAssertions
   .find(assertion => assertion.operator === "detail-equals-response");
 assert.equal(auditDetailAssertion?.binding?.domKind, "audit-detail-modal");
 assert.equal(auditDetailAssertion?.binding?.action?.kind, "click");
+assert.equal(auditDetailAssertion?.binding?.responseSource?.path,
+  "/ops/api/audit?format=diff-json&eventId={fixtureId}");
+assert.equal(auditDetailAssertion?.binding?.action?.waitForSelector,
+  '#opsAuditDetailDialog[open][data-audit-detail-state="rendered"]' +
+  '[data-audit-detail-owner-target="event:{fixtureId}"]' +
+  '[data-audit-detail-owner-action="{auditAction}"]');
 const auditExportAssertion = eventExactOracleFor("EVT-022").domAssertions
   .flatMap(entry => entry.assertions)
   .find(assertion => assertion.operator === "export-download-matches-api");
@@ -750,5 +796,81 @@ assert.equal(auditDomEvidence([{ target: auditRow.target }]).pass, false,
   "partial audit DOM row did not fail closed");
 assert.equal(auditDomEvidence([auditRow, { ...auditRow }]).pass, false,
   "duplicate exact audit DOM row did not fail closed");
+
+const auditDetailBaseline = {
+  ...auditBaseline,
+  projectionPaths: ["before", "after"],
+  expectedProjection: { before: auditRow.before, after: auditRow.after },
+  responseSource: {
+    method: "GET",
+    path: "/ops/api/audit?format=diff-json&eventId=evt-022-review4-fixture",
+  },
+};
+const auditDetailObservation = {
+  count: 1,
+  open: true,
+  state: "rendered",
+  ownerTarget: auditRow.target,
+  ownerAction: auditRow.action,
+  responsePath: auditDetailBaseline.responseSource.path,
+  requestId: "audit-detail-1",
+  renderCycleId: "audit-detail-1",
+  before: JSON.stringify(auditRow.before),
+  after: JSON.stringify(auditRow.after),
+};
+const exactAuditDetail = buildAuditDetailLifecycleEvidence({
+  observed: auditDetailObservation,
+  baseline: auditDetailBaseline,
+});
+assert.equal(exactAuditDetail.pass, true,
+  `exact audit detail lifecycle remains RED: ${exactAuditDetail.reasonCodes}`);
+for (const [label, observed, reasonCode] of [
+  ["missing owner", { ...auditDetailObservation, ownerTarget: "", ownerAction: "" },
+    "AUDIT_DETAIL_OWNER_MISSING"],
+  ["wrong selected row", { ...auditDetailObservation, ownerAction: "resolution-state-update" },
+    "AUDIT_DETAIL_OWNER_MISMATCH"],
+  ["swapped before/after", { ...auditDetailObservation,
+    before: auditDetailObservation.after, after: auditDetailObservation.before },
+    "AUDIT_DETAIL_FIELD_VALUE_MISMATCH"],
+  ["missing before", { ...auditDetailObservation, before: "" },
+    "AUDIT_DETAIL_FIELD_MISSING"],
+  ["after type drift", { ...auditDetailObservation, after: JSON.stringify("confirmed") },
+    "AUDIT_DETAIL_FIELD_TYPE_MISMATCH"],
+  ["stale response", { ...auditDetailObservation, renderCycleId: "audit-detail-2" },
+    "AUDIT_DETAIL_LIFECYCLE_STALE"],
+  ["wrong response source", { ...auditDetailObservation,
+    responsePath: "/ops/api/audit?eventId=evt-022-review4-fixture" },
+    "AUDIT_DETAIL_RESPONSE_SOURCE_MISMATCH"],
+]) {
+  const evidence = buildAuditDetailLifecycleEvidence({ observed, baseline: auditDetailBaseline });
+  assert.equal(evidence.pass, false, `${label} did not fail closed`);
+  assert(evidence.reasonCodes.includes(reasonCode), `${label} reason code drift`);
+}
+assert.throws(() => selectEventDomResponseBodies(auditDetailAssertion, {
+  templateValues: { fixtureId: auditOwner.identity },
+  domResponseBaselineByAssertionKey: {
+    [`${auditDetailAssertion.operator}\n${auditDetailAssertion.target}`]: auditDetailBaseline,
+  },
+}, [
+  { method: "GET", urlPath: auditDetailBaseline.responseSource.path },
+  { method: "GET", urlPath: auditDetailBaseline.responseSource.path },
+], [{ entries: [auditRow] }, { entries: [auditRow] }]),
+/DOM authoritative runtime response owner cardinality mismatch: 2/,
+"duplicate diff response did not fail closed");
+
+const productUiSource = source("src/ingress/product_ui_js.cpp");
+for (const required of [
+  "fetchOpsAuditDetail",
+  "normalizeOpsAuditDetail",
+  "opsAuditDetailRequestSequence",
+  "data-audit-detail-state",
+  "data-audit-detail-owner-target",
+  "data-audit-detail-owner-action",
+  "data-audit-detail-response-path",
+  "data-audit-detail-request-id",
+  "data-audit-detail-render-cycle",
+]) {
+  assert(productUiSource.includes(required), `product audit detail lifecycle missing: ${required}`);
+}
 
 console.log("PASS verify_v390_ui_remaining_actual_trace_replay_contract");

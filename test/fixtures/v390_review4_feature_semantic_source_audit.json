@@ -4162,14 +4162,14 @@
           "file": "src/ingress/product_ui_js.cpp",
           "symbol": "AppendProductThemeScript",
           "anchor": "void AppendProductThemeScript(std::ostringstream& out) {",
-          "line": 1620,
+          "line": 1696,
           "contextSha256": "9d6123af043f63cb233e24dfb89289b8bd2d4c6451aba20baaa6cbc027ec34cb"
         },
         "state": {
           "file": "src/ingress/product_ui_js.cpp",
           "symbol": "AppendProductThemeScript",
           "anchor": "localStorage.setItem('mediaServerTheme', next);",
-          "line": 1640,
+          "line": 1716,
           "contextSha256": "37d79cf8d9a6d52e1d00f4cdb57daf3ffe5f8a4538efbc311bfaef72993de532"
         },
         "readback": {
@@ -4202,22 +4202,22 @@
           "kind": "direct-callsite",
           "witness": "AppendProductThemeScript(out);",
           "source": "src/ingress/product_ui_server_pages.cpp:148",
-          "target": "src/ingress/product_ui_js.cpp:1620"
+          "target": "src/ingress/product_ui_js.cpp:1696"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "AppendProductThemeScript persists light/dark mediaServerTheme state",
-          "source": "src/ingress/product_ui_js.cpp:1620",
-          "target": "src/ingress/product_ui_js.cpp:1640"
+          "source": "src/ingress/product_ui_js.cpp:1696",
+          "target": "src/ingress/product_ui_js.cpp:1716"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "mediaServerTheme is asserted from the bounded AppendProductThemeScript source block",
-          "source": "src/ingress/product_ui_js.cpp:1640",
+          "source": "src/ingress/product_ui_js.cpp:1716",
           "target": "scripts/internal/verify_docs_ui_assets.mjs:130"
         },
         {
@@ -4296,19 +4296,19 @@
           "action": {
             "file": "src/ingress/product_ui_js.cpp",
             "symbol": "AppendProductThemeScript",
-            "trackedBlobSha256": "7d219d3c30db4101c91a860df19f9a43b132c3615932d6dde1e5c41365b748b5",
+            "trackedBlobSha256": "ebb1c04fdea59f89fe65a042ad7ed6d8d10b3beee2e9bde147f7fad6617399ad",
             "enclosingBodySha256": "801faaaf7a7169b140c3b587cad31d4db952bf523d20d40aa2f75fea61a39ccb",
-            "enclosingBodyStartLine": 1620,
-            "enclosingBodyEndLine": 1647,
+            "enclosingBodyStartLine": 1696,
+            "enclosingBodyEndLine": 1723,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "src/ingress/product_ui_js.cpp",
             "symbol": "AppendProductThemeScript",
-            "trackedBlobSha256": "7d219d3c30db4101c91a860df19f9a43b132c3615932d6dde1e5c41365b748b5",
+            "trackedBlobSha256": "ebb1c04fdea59f89fe65a042ad7ed6d8d10b3beee2e9bde147f7fad6617399ad",
             "enclosingBodySha256": "801faaaf7a7169b140c3b587cad31d4db952bf523d20d40aa2f75fea61a39ccb",
-            "enclosingBodyStartLine": 1620,
-            "enclosingBodyEndLine": 1647,
+            "enclosingBodyStartLine": 1696,
+            "enclosingBodyEndLine": 1723,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
