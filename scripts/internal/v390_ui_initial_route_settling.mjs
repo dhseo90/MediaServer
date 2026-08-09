@@ -1,5 +1,8 @@
 // 파일 용도: canonical initial/bootstrap document route settling과 이후 action-owned request ledger를 분리해 exact 결속한다.
 
+import { assertCanonicalRequestLifecycleTuple }
+  from "./v390_ui_action_request_ledger.mjs";
+
 export function buildInitialRouteSettlingPlan(item) {
   assert(item?.caseId && Array.isArray(item?.actions) && item?.workflow?.primaryControl,
     "initial route settling requires one canonical native case");
@@ -309,8 +312,12 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries) {
     assert(Number(entry.caseRequestSequence) > Number(ledgerStart.caseRequestSequenceFloor),
       `${plan.caseId} bootstrap request leaked into action ledger`);
     const documentNavigation = entry.requestKind === "document-navigation";
+    assertCanonicalRequestLifecycleTuple(entry, {
+      lifecycleClass: entry.lifecycleClass || "primary-action",
+    });
     assert(entry.initiatorActionId === plan.primaryRequest.actionId &&
       entry.requestOwnershipKind === "primary-action" &&
+      entry.sourceOwner === "explicit-action-registration" &&
       entry.ownerPhase === "primary-action" &&
       (documentNavigation
         ? entry.correlationId === ""
@@ -322,11 +329,13 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries) {
     entry.correlationId === plan.primaryRequest.correlationId);
   assert(pageCorrelationLeaks.length === 0,
     `${plan.caseId} page-owned action correlation leak count mismatch: ${pageCorrelationLeaks.length}`);
-  assert(pageValues.every(entry => entry.sourceOwner === "page" &&
-    typeof entry.ownerPhase === "string" && entry.ownerPhase &&
-    entry.initiatorActionId !== plan.primaryRequest.actionId &&
-    entry.correlationId !== plan.primaryRequest.correlationId),
-  `${plan.caseId} page-owned request source/phase mismatch`);
+  for (const entry of pageValues) {
+    const lifecycleClass = entry.lifecycleClass || pageLifecycleClassFromTuple(entry);
+    assertCanonicalRequestLifecycleTuple(entry, { lifecycleClass });
+    assert(entry.initiatorActionId !== plan.primaryRequest.actionId &&
+      entry.correlationId !== plan.primaryRequest.correlationId,
+    `${plan.caseId} page-owned request source/phase mismatch`);
+  }
   const primaryStarts = starts.filter(entry =>
     String(entry.method || "").toUpperCase() === plan.primaryRequest.method &&
     requestTarget(entry.url) === plan.primaryRequest.path);
@@ -381,6 +390,8 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries) {
       path: requestTarget(entry.url),
       sourceOwner: entry.sourceOwner,
       ownerPhase: entry.ownerPhase,
+      requestOwnershipKind: entry.requestOwnershipKind,
+      lifecycleClass: entry.lifecycleClass || pageLifecycleClassFromTuple(entry),
     })),
     orderedCallFlow: ordered.map(entry => ({
       requestId: entry.requestId,
@@ -390,6 +401,25 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries) {
     })),
     pass: true,
   };
+}
+
+function pageLifecycleClassFromTuple(entry) {
+  const tuple = [entry?.ledgerOwner, entry?.sourceOwner,
+    entry?.ownerPhase, entry?.requestOwnershipKind].join("/");
+  const classes = {
+    "page/page/bootstrap/initial-page-load": "bootstrap-document",
+    "page/page/bootstrap/bootstrap": "bootstrap-fetch",
+    "page/page/background-refresh/background-refresh": "background-fetch",
+    "page/page/page-subresource/page-subresource": "page-subresource",
+    "page/page/sse/sse": "sse",
+    "page/page/websocket/websocket": "websocket",
+    "page/document-navigation-ledger/document-navigation-chain/document-navigation-chain":
+      "document-redirect-chain",
+    "page/page/independent-readback/independent-readback": "independent-readback",
+  };
+  const lifecycleClass = classes[tuple];
+  assert(lifecycleClass, `page-owned request lifecycle tuple is unclassified: ${tuple}`);
+  return lifecycleClass;
 }
 
 function classifyRedirect(requestedRoute, settledRoute) {

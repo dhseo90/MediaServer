@@ -18,7 +18,7 @@ import { mapRuntimeObservedFromBrowserCallback } from "./v390_ui_requested_obser
 import { createRequestActionOwnershipRegistry } from "./v390_ui_request_action_ownership.mjs";
 import {
   assertZeroActionCorrelationLeaks,
-  classifyPageOwnedRequest,
+  classifyRequestLifecycleOwnership,
   createActionRequestEnvelopeLedger,
   createObjectBoundActionResponseBarrier,
   normalizeActionRequestEnvelope,
@@ -1020,33 +1020,25 @@ async function openNativePlaywrightPage(playwright, {
     const actionRequestOwnership = routeRequestOwnerships.get(request) ||
       selectActionRequestOwnership(request);
     const actionContext = actionRequestOwnership?.context || null;
-    const implicitPageLoadOwnership = !actionContext && activeNavigationOperation
-      ? (activeNavigationOperation.kind === "form-submit-document-navigation"
-          ? {
-              actionId: "",
-              renderCycleId: "",
-              ownershipKind: "document-navigation-chain",
-            }
-          : {
-              actionId: `${String(activeNavigationOperation.invocationId || "initial-navigation")}:page-load`,
-              renderCycleId: "",
-              ownershipKind: "initial-page-load",
-            })
-      : null;
-    const pageOwnership = classifyPageOwnedRequest({
+    const requestKind = requestKindFor(request);
+    const redirectedFrom = request.redirectedFrom();
+    const lifecycleOwnership = classifyRequestLifecycleOwnership({
       initialSettlingComplete: Boolean(initialRouteSettlingAttestation),
       resourceType: request.resourceType(),
-      requestKind: requestKindFor(request),
+      requestKind,
+      redirectedFromRequest: redirectedFrom,
+      actionInvocation: actionContext,
+      phase: String(actionContext?.phase || activeNavigationOperation?.kind ||
+        activeRequestOwnership?.phase ||
+        (initialRouteSettlingAttestation ? "post-action-observation" : "bootstrap-settling")),
     });
-    const requestOwnership = actionContext || implicitPageLoadOwnership || pageOwnership;
-    const ledgerOwner = actionContext ? "action" : "page";
-    const ownerPhase = actionContext
-      ? String(actionContext.phase || "")
-      : (implicitPageLoadOwnership?.ownershipKind === "document-navigation-chain"
-          ? "document-navigation-chain"
-          : (implicitPageLoadOwnership ? "bootstrap" : pageOwnership.ownerPhase));
-    const redirectedFrom = request.redirectedFrom();
-    const requestKind = requestKindFor(request);
+    const ledgerOwner = lifecycleOwnership.ledgerOwner;
+    const ownerPhase = lifecycleOwnership.ownerPhase;
+    const lifecycleActionId = actionContext
+      ? String(actionContext.actionId || "")
+      : (lifecycleOwnership.lifecycleClass === "bootstrap-document"
+          ? `${String(activeNavigationOperation?.invocationId || "initial-navigation")}:page-load`
+          : "");
     const requestHeaderDigest = String(routeInjectedCorrelation?.requestHeaderDigest ||
       correlationHeaderDigest(correlationId));
     const pendingRequest = {
@@ -1057,19 +1049,16 @@ async function openNativePlaywrightPage(playwright, {
       correlationRouteState: String(routeInjectedCorrelation?.correlationRouteState || "correlation-absent"),
       correlationRouteActionId: String(routeInjectedCorrelation?.correlationRouteActionId || ""),
       correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
-      initiatorActionId: String(requestOwnership?.actionId || ""),
+      initiatorActionId: lifecycleActionId,
       renderCycleId: actionContext
         ? activeRequestRenderCycleId
-        : String(requestOwnership?.renderCycleId || ""),
-      requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
+        : String(actionContext?.renderCycleId || ""),
+      requestOwnershipKind: lifecycleOwnership.requestOwnershipKind,
+      lifecycleClass: lifecycleOwnership.lifecycleClass,
       requestActionContext: actionContext,
       actionRequestLedgerWrapper: actionRequestOwnership?.ledgerWrapper || null,
       ledgerOwner,
-      sourceOwner: ledgerOwner === "action"
-        ? "explicit-action-registration"
-        : (ownerPhase === "document-navigation-chain"
-            ? "document-navigation-ledger"
-            : "page"),
+      sourceOwner: lifecycleOwnership.sourceOwner,
       ownerPhase,
       requestStartedAtMs,
       requestKind,
@@ -1118,18 +1107,15 @@ async function openNativePlaywrightPage(playwright, {
       correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
       requestHeaderDigest,
       ledgerOwner,
-      sourceOwner: ledgerOwner === "action"
-        ? "explicit-action-registration"
-        : (ownerPhase === "document-navigation-chain"
-            ? "document-navigation-ledger"
-            : "page"),
+      sourceOwner: lifecycleOwnership.sourceOwner,
       ownerPhase,
       actionRegistrationKind: String(actionRequestOwnership?.registrationKind || ""),
-      initiatorActionId: String(requestOwnership?.actionId || ""),
+      initiatorActionId: lifecycleActionId,
       renderCycleId: actionContext
         ? activeRequestRenderCycleId
-        : String(requestOwnership?.renderCycleId || ""),
-      requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
+        : String(actionContext?.renderCycleId || ""),
+      requestOwnershipKind: lifecycleOwnership.requestOwnershipKind,
+      lifecycleClass: lifecycleOwnership.lifecycleClass,
       requestStartedAtMs,
       method: request.method(),
       status: 0,
@@ -1171,14 +1157,11 @@ async function openNativePlaywrightPage(playwright, {
         navigationEpoch: documentNavigationEpoch,
         listenerActive: requestListenerEndSequence === null,
         ledgerOwner,
-        sourceOwner: ledgerOwner === "action"
-          ? "explicit-action-registration"
-          : (ownerPhase === "document-navigation-chain"
-              ? "document-navigation-ledger"
-              : "page"),
+        sourceOwner: lifecycleOwnership.sourceOwner,
         ownerPhase,
-        initiatorActionId: String(requestOwnership?.actionId || ""),
-        requestOwnershipKind: String(requestOwnership?.ownershipKind || ""),
+        initiatorActionId: lifecycleActionId,
+        requestOwnershipKind: lifecycleOwnership.requestOwnershipKind,
+        lifecycleClass: lifecycleOwnership.lifecycleClass,
       };
       if (requestListenerEndSequence !== null) {
         documentNavigationAfterListenerEndCount += 1;
@@ -1226,6 +1209,7 @@ async function openNativePlaywrightPage(playwright, {
       initiatorActionId: String(initiatingRequest?.initiatorActionId || ""),
       renderCycleId: String(initiatingRequest?.renderCycleId || ""),
       requestOwnershipKind: String(initiatingRequest?.requestOwnershipKind || ""),
+      lifecycleClass: String(initiatingRequest?.lifecycleClass || ""),
       requestStartedAtMs: Number(initiatingRequest?.requestStartedAtMs || 0),
       responseObservedAtMs: Date.now(),
       method: request.method(),

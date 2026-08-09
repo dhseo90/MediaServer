@@ -996,7 +996,8 @@ function actionRequestEntries(initialPlan, firstSequence, includeAdditional) {
       ownerPhase: index === 0 ? "primary-action" : "background-refresh",
       correlationId: index === 0 ? initialPlan.primaryRequest.correlationId : "",
       initiatorActionId: index === 0 ? initialPlan.primaryRequest.actionId : "",
-      requestOwnershipKind: index === 0 ? "primary-action" : "",
+      requestOwnershipKind: index === 0 ? "primary-action" : "background-refresh",
+      lifecycleClass: index === 0 ? "primary-action" : "background-fetch",
       method: spec.method,
       url: `http://127.0.0.1${spec.path}`,
     };

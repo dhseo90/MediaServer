@@ -3249,7 +3249,6 @@ async function executeIndependentReadback(
     correlationId: `${pending.actionEvidence.correlationId}:independent-readback`,
     ownershipKind: "independent-readback",
   });
-  await browser.endRequestActionOwnership(readbackCoordinatorContext);
 
   const postconditionSnapshots = {};
   for (const condition of pending.action.semanticCompletion.localTransition?.postconditions || []) {
@@ -3407,6 +3406,7 @@ async function executeIndependentReadback(
     }
     throw error;
   }
+  await browser.endRequestActionOwnership(readbackCoordinatorContext);
   browser.attestRequestActionOwnershipPhase({
     phase: "independent-readback",
     actionId: action.semanticCompletion.actionId,

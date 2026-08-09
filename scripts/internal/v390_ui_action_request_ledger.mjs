@@ -340,27 +340,174 @@ export function createObjectBoundActionResponseBarrier({
   });
 }
 
+const requestLifecycleTupleByClass = Object.freeze({
+  "bootstrap-document": Object.freeze(["page", "page", "bootstrap", "initial-page-load"]),
+  "bootstrap-fetch": Object.freeze(["page", "page", "bootstrap", "bootstrap"]),
+  "background-fetch": Object.freeze(["page", "page", "background-refresh", "background-refresh"]),
+  "page-subresource": Object.freeze(["page", "page", "page-subresource", "page-subresource"]),
+  sse: Object.freeze(["page", "page", "sse", "sse"]),
+  websocket: Object.freeze(["page", "page", "websocket", "websocket"]),
+  "primary-action": Object.freeze(["action", "explicit-action-registration", "primary-action", "primary-action"]),
+  "same-route-form-rejection": Object.freeze(["action", "explicit-action-registration", "primary-action", "primary-action"]),
+  "document-redirect-chain": Object.freeze(["page", "document-navigation-ledger", "document-navigation-chain", "document-navigation-chain"]),
+  "independent-readback": Object.freeze(["page", "page", "independent-readback", "independent-readback"]),
+});
+
+export function classifyRequestLifecycleOwnership({
+  requestKind = "", resourceType = "", redirectedFromRequest = null,
+  actionInvocation = null, phase = "", initialSettlingComplete = false,
+  sameRouteFormRejection = false,
+} = {}) {
+  const kind = String(requestKind || "");
+  const type = String(resourceType || "");
+  const lifecyclePhase = String(phase || "");
+  const redirected = redirectedFromRequest !== null && redirectedFromRequest !== undefined;
+  if (redirected) assertOpaque(redirectedFromRequest, "redirectedFrom request");
+  if (redirected && initialSettlingComplete !== true) {
+    throw new Error("bootstrap/redirect lifecycle mixing is forbidden");
+  }
+  if (redirected) {
+    assert(kind === "document-navigation" && type === "document",
+      "redirect lifecycle requires a document-navigation/document request");
+    assert(!actionInvocation && lifecyclePhase === "form-submit-document-navigation",
+      "redirect lifecycle action/phase mismatch");
+    return lifecycleBinding("document-redirect-chain");
+  }
+  if (actionInvocation) {
+    assert(typeof actionInvocation === "object" && String(actionInvocation.actionId || "") &&
+      String(actionInvocation.phase || "") === "primary-action" &&
+      lifecyclePhase === "primary-action", "primary action invocation/phase mismatch");
+    assert(["document-navigation", "application-fetch"].includes(kind),
+      "primary action request kind mismatch");
+    return lifecycleBinding(sameRouteFormRejection
+      ? "same-route-form-rejection" : "primary-action");
+  }
+  if (lifecyclePhase === "form-submit-document-navigation") {
+    throw new Error("document redirect lifecycle is missing redirectedFrom request object");
+  }
+  if (lifecyclePhase === "independent-readback") {
+    assert(kind === "application-fetch" && type === "fetch",
+      "independent readback requires application-fetch/fetch");
+    return lifecycleBinding("independent-readback");
+  }
+  if (initialSettlingComplete !== true) {
+    if (kind === "document-navigation" && type === "document") {
+      return lifecycleBinding("bootstrap-document");
+    }
+    assert(kind === "application-fetch" && type === "fetch",
+      "bootstrap request lifecycle is unclassified");
+    return lifecycleBinding("bootstrap-fetch");
+  }
+  if (type === "eventsource") return lifecycleBinding("sse");
+  if (type === "websocket") return lifecycleBinding("websocket");
+  if (kind === "application-fetch" && type === "fetch") return lifecycleBinding("background-fetch");
+  if (kind === "subresource" && type && type !== "document") return lifecycleBinding("page-subresource");
+  throw new Error(`page-owned request lifecycle is unclassified: ${kind}/${type}`);
+}
+
+export function assertCanonicalRequestLifecycleTuple(value, {
+  lifecycleClass = String(value?.lifecycleClass || ""),
+} = {}) {
+  const expected = requestLifecycleTupleByClass[lifecycleClass];
+  assert(expected, `request lifecycle class is invalid: ${lifecycleClass || "(missing)"}`);
+  const observed = [String(value?.ledgerOwner || ""), String(value?.sourceOwner || ""),
+    String(value?.ownerPhase || ""), String(value?.requestOwnershipKind || "")];
+  assert(JSON.stringify(observed) === JSON.stringify(expected),
+    `request lifecycle tuple mismatch: ${lifecycleClass}`);
+  return true;
+}
+
+export function validateRequestLifecycleLedger(entries, {
+  primaryActionId = "", primaryCorrelationId = "",
+  expectedPrimaryRequestCount = null, expectedPrimaryResponseCount = null,
+} = {}) {
+  const values = Array.isArray(entries) ? entries : [];
+  const starts = values.filter(entry => entry?.phase === "request-start");
+  const responses = values.filter(entry => entry?.phase === "response");
+  const startObjects = new Set();
+  const startById = new Map();
+  for (const current of starts) {
+    assertCanonicalRequestLifecycleTuple(current);
+    assertOpaque(current.requestObject, "request lifecycle request object");
+    assert(!startObjects.has(current.requestObject) && !startById.has(current.requestId),
+      "duplicate request lifecycle object/identity");
+    startObjects.add(current.requestObject);
+    startById.set(current.requestId, current);
+  }
+  const responseIds = new Set();
+  for (const current of responses) {
+    assertCanonicalRequestLifecycleTuple(current);
+    const start = startById.get(current.requestId);
+    assert(start && current.responseRequestObjectObserved === true &&
+      current.requestIdentitySource === "playwright-response-request" &&
+      current.responseRequestObject === start.requestObject,
+    "request lifecycle response object identity mismatch");
+    assert(!responseIds.has(current.requestId), "duplicate request lifecycle response");
+    responseIds.add(current.requestId);
+  }
+  const primaryClasses = new Set(["primary-action", "same-route-form-rejection"]);
+  const primaryStarts = starts.filter(entry => primaryClasses.has(entry.lifecycleClass));
+  const primaryResponses = responses.filter(entry => primaryClasses.has(entry.lifecycleClass));
+  if (expectedPrimaryRequestCount !== null) assert(primaryStarts.length === Number(expectedPrimaryRequestCount),
+    "primary request lifecycle cardinality mismatch");
+  if (expectedPrimaryResponseCount !== null) assert(primaryResponses.length === Number(expectedPrimaryResponseCount),
+    "primary response lifecycle cardinality mismatch");
+  assert(primaryStarts.concat(primaryResponses).every(entry =>
+    !primaryActionId || entry.initiatorActionId === primaryActionId),
+  "primary request lifecycle action mismatch");
+  const leaks = values.filter(entry => entry.ledgerOwner === "page" &&
+    ((primaryActionId && entry.initiatorActionId === primaryActionId) ||
+      (primaryCorrelationId && entry.correlationId === primaryCorrelationId)));
+  assert(leaks.length === 0, `page-owned action correlation leak: ${leaks.length}`);
+  const redirectStarts = starts.filter(entry => entry.lifecycleClass === "document-redirect-chain");
+  assert(redirectStarts.every(entry => entry.redirectedFromRequest &&
+    startObjects.has(entry.redirectedFromRequest)), "redirect lifecycle redirectedFrom object mismatch");
+  return Object.freeze({
+    schema: "media-server.v390-ui-request-lifecycle-ledger-evidence.v1",
+    requestCount: starts.length, responseCount: responses.length,
+    primaryRequestCount: primaryStarts.length, primaryResponseCount: primaryResponses.length,
+    redirectDestinationRequestCount: redirectStarts.length,
+    redirectDestinationPrimaryCardinalityContribution: 0,
+    actionCorrelationLeakCount: 0, pass: true,
+  });
+}
+
+export function buildCanonicalRequestLifecycleTupleCensus(manifest, documentForms) {
+  assert(Array.isArray(manifest?.cases), "request lifecycle census manifest missing");
+  assert(Array.isArray(documentForms?.rows), "request lifecycle document form census missing");
+  const primary = manifest.cases.flatMap(item => (item.actions || []).filter(action =>
+    action?.semanticCompletion?.phase === "primary-action"));
+  const requestPrimary = primary.filter(action => action.semanticCompletion?.completionMode === "request");
+  const readbacks = manifest.cases.flatMap(item => (item.actions || []).filter(action =>
+    action?.semanticCompletion?.phase === "independent-readback"));
+  const redirects = documentForms.rows.filter(row => Number(row.redirectHops) === 1);
+  const sameRoute = documentForms.rows.filter(row => Number(row.redirectHops) === 0);
+  assert(primary.length === manifest.cases.length && requestPrimary.length === 391 &&
+    documentForms.rows.length === 11 && redirects.length === 9 && sameRoute.length === 2,
+  "request lifecycle canonical census cardinality mismatch");
+  return Object.freeze({
+    schema: "media-server.v390-ui-request-lifecycle-tuple-census.v1",
+    canonicalCaseCount: manifest.cases.length, bootstrapDocumentCount: manifest.cases.length,
+    requestCompletionCount: requestPrimary.length, primaryActionCount: requestPrimary.length,
+    primaryResponseCardinality: `${requestPrimary.length}/${requestPrimary.length}`,
+    documentFormCount: documentForms.rows.length,
+    documentFormRedirectCount: redirects.length,
+    documentFormSameRouteRejectionCount: sameRoute.length,
+    independentReadbackCount: readbacks.length,
+    redirectDestinationPrimaryCardinalityContribution: 0,
+    authoritativeTupleClassCount: Object.keys(requestLifecycleTupleByClass).length,
+    invalidClassificationCount: 0,
+  });
+}
+
 export function classifyPageOwnedRequest({
   initialSettlingComplete = false,
   resourceType = "",
   requestKind = "",
 } = {}) {
-  const type = String(resourceType || "");
-  const kind = String(requestKind || "");
-  const ownerPhase = !initialSettlingComplete
-    ? "bootstrap"
-    : (type === "eventsource"
-        ? "sse"
-        : (type === "websocket"
-            ? "websocket"
-            : (kind === "application-fetch" ? "background-refresh" : "page-subresource")));
-  return Object.freeze({
-    ledgerOwner: "page",
-    sourceOwner: "page",
-    ownerPhase,
-    initiatorActionId: "",
-    requestOwnershipKind: "",
-    correlationId: "",
+  return classifyRequestLifecycleOwnership({
+    initialSettlingComplete, resourceType, requestKind,
+    phase: initialSettlingComplete ? "post-action-observation" : "bootstrap-settling",
   });
 }
 
@@ -398,6 +545,16 @@ export function normalizeRequestTarget(value) {
 function assertOpaque(value, label) {
   assert((typeof value === "object" || typeof value === "function") && value !== null,
     `${label} must be an opaque object`);
+}
+
+function lifecycleBinding(lifecycleClass) {
+  const values = requestLifecycleTupleByClass[lifecycleClass];
+  assert(values, `request lifecycle class is invalid: ${lifecycleClass}`);
+  return Object.freeze({
+    lifecycleClass, ledgerOwner: values[0], sourceOwner: values[1],
+    ownerPhase: values[2], requestOwnershipKind: values[3],
+    initiatorActionId: "", correlationId: "",
+  });
 }
 
 function assert(condition, message) {
