@@ -4355,6 +4355,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           const eventHtml = `<div class="ops-rule-value-stack">
             <span class="table-identity-pill table-identity-id">${escapeHtml(display(eventId || '-'))}</span>
             <span class="ops-rule-note">${escapeHtml(display(event?.eventType || event?.className || 'event'))}${scenarioParts.length ? ` · ${escapeHtml(scenarioParts.join(' · '))}` : ''}</span>
+            <span data-event-semantic-field="snapshotPath" data-event-semantic-value="${escapeHtml(event?.snapshotPath || '')}" hidden></span>
+            <span data-event-semantic-field="clipPath" data-event-semantic-value="${escapeHtml(event?.clipPath || '')}" hidden></span>
           </div>`;
           const note = String(review.note || '');
           const noteHtml = `<input class="event-review-note-input" data-event-review-field="note" maxlength="500" value="${escapeHtml(note)}" placeholder="운영자 메모" />`;

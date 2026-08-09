@@ -784,8 +784,11 @@ function evaluateDeclaredResponseDomProjection({
       ["required", "optional-empty"].includes(emptyPolicy);
     const canonicalEmpty = values => values.length === 0 ||
       (values.length === 1 && String(values[0] ?? "").trim().length === 0);
+    const rendererOwnsCanonicalEmpty = rawActual.length === 1 &&
+      (String(rawActual[0] ?? "").trim().length === 0 ||
+        canonicalEmptyValues.includes(String(rawActual[0])));
     const optionalEmpty = optionsValid && emptyPolicy === "optional-empty" &&
-      canonicalEmpty(expected) && canonicalEmpty(actual);
+      canonicalEmpty(expected) && canonicalEmpty(actual) && rendererOwnsCanonicalEmpty;
     const countPass = expected.length >= Number(options.minCount || 1);
     const valuesPass = optionsValid && (optionalEmpty || (countPass && actual.length === expected.length &&
       expected.every((value, index) => actual[index] === value)));

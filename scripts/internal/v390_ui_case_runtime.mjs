@@ -3417,6 +3417,16 @@ export function createV390UiCaseRuntime({
         ? context.fixtureId
         : `${context.fixtureId}-${plan.related ? "related" : "state"}-${index}`);
     });
+    const fixtureOwners = eventIds.map((identity, index) => {
+      const familyRecord = familyExpectedRecords[index] || null;
+      const archived = familyRecord?.status === "archived" ||
+        (!familyRecord && index === 1 && plan.archivedRecord === true);
+      return Object.freeze({
+        kind: "event-record",
+        role: archived ? "archive" : (index === 0 ? "primary" : "related"),
+        identity,
+      });
+    });
     if (incidentTimelineExpectedFixtureDigestCaseIds.includes(item.caseId)) {
       assert(String(spec?.seed?.fixtureId || "") === "{fixtureId}",
         `${item.caseId} canonical fixture seed template drifted`);
@@ -3611,7 +3621,29 @@ export function createV390UiCaseRuntime({
       );
       assert(String(delivery.json?.delivery?.id || delivery.json?.id || "") === deliveryId,
         `${item.caseId} alert delivery seed identity is missing from the authoritative write response`);
+      const deliveryReadback = await requestEndpoint(
+        "GET",
+        "/ops/api/alerts/deliveries",
+        null,
+        item,
+        context,
+        [200],
+        { roleOverride: "operator" },
+      );
+      const deliveryRows = Array.isArray(deliveryReadback.json?.integrations)
+        ? deliveryReadback.json.integrations.filter(row => String(row?.id || "") === deliveryId)
+        : [];
+      assert(deliveryRows.length === 1 &&
+        deliveryRows[0]?.kind === "webhook" &&
+        deliveryRows[0]?.enabled === true &&
+        String(deliveryRows[0]?.label || "") === `REVIEW4 ${item.caseId} delivery`,
+      `${item.caseId} alert delivery seed is missing from the authoritative collection readback`);
       alertIds = [deliveryId];
+      fixtureOwners.push(Object.freeze({
+        kind: "alert-delivery",
+        role: "primary",
+        identity: deliveryId,
+      }));
     }
 
     if (["operator", "admin"].includes(item.accountRole) && eventIds.length > 0) {
@@ -3689,6 +3721,7 @@ export function createV390UiCaseRuntime({
       sourceId: source.sourceId,
       viewId: source.viewId || descriptor.auth?.defaultViewId || "9001",
       alertIds,
+      fixtureOwners: Object.freeze([...fixtureOwners]),
       sourceHealth: plan.sourceHealthReadback
         ? source.status
         : (plan.sourceHealth ? "degraded" : "available"),
@@ -4069,6 +4102,7 @@ export function createV390UiCaseRuntime({
     const incidentMemorySearchEvidenceByRequest = {};
     const mergedQuery = {};
     const baselineBodies = [];
+    const baselineResponses = [];
     for (const request of spec.requests) {
       assert(["GET", "HEAD"].includes(request.method),
         `${item.caseId} event runtime baseline cannot pre-dispatch a mutation: ${request.method} ${request.path}`);
@@ -4132,6 +4166,12 @@ export function createV390UiCaseRuntime({
       responseByRequest[identity] = samples.at(-1);
       const body = samples.at(-1)?.json ?? samples.at(-1)?.text ?? null;
       baselineBodies.push(body);
+      baselineResponses.push(Object.freeze({
+        method: String(request.method).toUpperCase(),
+        requestPathTemplate: String(request.path),
+        requestPath: endpoint,
+        body,
+      }));
       if ((request.assertions || []).some(assertion =>
         assertion.path === "memorySearch.hits[].matchedTerms")) {
         incidentMemorySearchEvidenceByRequest[identity] =
@@ -4238,7 +4278,7 @@ export function createV390UiCaseRuntime({
     }
     const assertionBindingKey = assertion =>
       `${String(assertion?.operator || "")}\n${String(assertion?.target || "")}`;
-    const rowsAtPath = collectionPath => baselineBodies
+    const rowsAtPath = (bodies, collectionPath) => bodies
       .flatMap(body => eventExactValuesAtPath(body, collectionPath))
       .flatMap(value => Array.isArray(value) ? value : [value])
       .filter(value => value && typeof value === "object" && !Array.isArray(value));
@@ -4262,10 +4302,38 @@ export function createV390UiCaseRuntime({
         assert(typeof binding.collectionPath === "string" && binding.collectionPath &&
           Array.isArray(binding.identityPaths) && binding.identityPaths.length > 0 &&
           ["all", "any"].includes(binding.identityPathMode) &&
+          (!binding.responseSource || (binding.responseSource.method === "GET" &&
+            typeof binding.responseSource.path === "string" && binding.responseSource.path)) &&
           Array.isArray(binding.fields) && binding.fields.length > 0,
         `${item.caseId} DOM response binding is incomplete: ${assertion.operator}/${assertion.target}`);
+        const responsePath = binding.responseSource
+          ? materializeEventExactTemplate(binding.responseSource.path, templateValues)
+          : "";
+        const responseOwners = binding.responseSource
+          ? baselineResponses.filter(response =>
+              response.method === binding.responseSource.method &&
+              response.requestPathTemplate === binding.responseSource.path &&
+              response.requestPath === responsePath)
+          : baselineResponses;
+        if (binding.responseSource) {
+          assert(responseOwners.length === 1,
+            `${item.caseId} DOM authoritative response owner cardinality mismatch: ${responseOwners.length}`);
+        }
+        const declaredFixtureOwners = binding.identitySource === "fixture-owner"
+          ? (context.catalogBindings.fixtureOwners || []).filter(owner =>
+              owner?.kind === binding.fixtureOwner?.kind &&
+              owner?.role === binding.fixtureOwner?.role)
+          : [];
+        if (binding.identitySource === "fixture-owner") {
+          assert(typeof binding.fixtureOwner?.kind === "string" && binding.fixtureOwner.kind &&
+            typeof binding.fixtureOwner?.role === "string" && binding.fixtureOwner.role &&
+            declaredFixtureOwners.length === 1,
+          `${item.caseId} materialized fixture owner cardinality mismatch: ${declaredFixtureOwners.length}`);
+        }
         const identityValues = binding.identitySource === "eventIds"
           ? (Array.isArray(context.catalogBindings.eventIds) ? context.catalogBindings.eventIds.map(String) : [])
+          : binding.identitySource === "fixture-owner"
+          ? [`${String(binding.identityPrefix || "")}${String(declaredFixtureOwners[0].identity)}`]
           : binding.identitySource === "sourceId"
           ? [String(templateValues.sourceId)]
           : [String(context.fixtureId)];
@@ -4274,7 +4342,7 @@ export function createV390UiCaseRuntime({
           : 1;
         assert(identityValues.length === expectedCardinality && new Set(identityValues).size === expectedCardinality,
           `${item.caseId} DOM response identity set cardinality mismatch`);
-        const rows = rowsAtPath(binding.collectionPath);
+        const rows = rowsAtPath(responseOwners.map(response => response.body), binding.collectionPath);
         const expectedRows = identityValues.map(identityValue => {
           const matches = rows.filter(row => rowMatchesIdentity(
             row,
@@ -4298,6 +4366,11 @@ export function createV390UiCaseRuntime({
               identityValues,
               projectionPaths: binding.fields.map(field => field.responsePath),
               expectedRows,
+              ...(binding.responseSource ? { responseSource: Object.freeze({
+                method: responseOwners[0].method,
+                pathTemplate: responseOwners[0].requestPathTemplate,
+                path: responseOwners[0].requestPath,
+              }) } : {}),
             }
           : {
               schema: "media-server.v390-ui-event-row-local-response-baseline.v1",
@@ -4310,6 +4383,11 @@ export function createV390UiCaseRuntime({
               identityValue: identityValues[0],
               projectionPaths: binding.fields.map(field => field.responsePath),
               expectedProjection: expectedRows[0].projection,
+              ...(binding.responseSource ? { responseSource: Object.freeze({
+                method: responseOwners[0].method,
+                pathTemplate: responseOwners[0].requestPathTemplate,
+                path: responseOwners[0].requestPath,
+              }) } : {}),
             };
         domResponseBaselineByAssertionKey[assertionBindingKey(assertion)] = baseline;
         if (binding.domKind === "event-record-text") {
@@ -4497,6 +4575,7 @@ export function createV390UiCaseRuntime({
         repeatedRequests: requirements.repeatedRequests,
         requestRowLocalBaselineByAssertionKey,
         requestRowLocalBaselines: Object.freeze(requestRowLocalBaselines),
+        fixtureOwners: Object.freeze([...(context.catalogBindings.fixtureOwners || [])]),
         incidentMemorySearchEvidenceByRequest,
       },
     };

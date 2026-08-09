@@ -292,15 +292,30 @@ const dom = (selector, ...assertions) => ({
   })),
 });
 const directDom = validator => ({ mode: "direct-dom", validator });
-const rowLocalDom = ({ collectionPath, identityPaths, fields, domKind = "semantic-fields", identityPathMode = "all", identitySource = "fixtureId" }) => ({
+const rowLocalDom = ({
+  collectionPath,
+  identityPaths,
+  fields,
+  responseSource,
+  fixtureOwner,
+  identityPrefix = "",
+  domKind = "semantic-fields",
+  identityPathMode = "all",
+  identitySource = "fixtureId",
+}) => ({
   mode: "row-local-response",
   collectionPath,
   identityPaths,
   identityPathMode,
   identitySource,
+  ...(responseSource ? { responseSource } : {}),
+  ...(fixtureOwner ? { fixtureOwner } : {}),
+  ...(identityPrefix ? { identityPrefix } : {}),
   domKind,
   fields,
 });
+const responseSource = path => ({ method: "GET", path });
+const fixtureOwner = (kind, role = "primary") => ({ kind, role });
 const rowSetDom = ({ collectionPath, identityPaths, fields, cardinality, identityPathMode = "all" }) => ({
   mode: "row-set-response",
   collectionPath,
@@ -464,7 +479,15 @@ const specs = [
     ))],
     domAssertions: [
       dom("#eventRecordRows", ["row-fields-equal-response", "eventId/ruleId/scenarioName/evidence", true]),
-      dom("#eventRecordsIncludeArchives", ["archive-toggle-changes-result", "fixtureArchiveEventId", true]),
+      dom("#eventRecordsIncludeArchives", ["archive-toggle-changes-result", "fixtureArchiveEventId", true, rowLocalDom({
+        collectionPath: "records.records",
+        identityPaths: ["eventId"],
+        identitySource: "fixture-owner",
+        fixtureOwner: fixtureOwner("event-record", "archive"),
+        responseSource: responseSource("/ops/api/events/status?limit={limit}&offset={offset}&evidence={evidence}&includeArchives=1"),
+        domKind: "behavior-only",
+        fields: [domField("eventId", "eventId", "identity")],
+      })]),
       dom("#eventRecordsPrev, #eventRecordsNext", ["pagination-offset-equals-request", "offset", true]),
     ],
   }),
@@ -494,7 +517,19 @@ const specs = [
     ))],
     forbiddenFields: [...SENSITIVE_FIELDS, "endpoint"],
     domAssertions: [
-      dom("#alertDeliveryRows", ["row-fields-equal-response", "id/kind/enabled/label", true]),
+      dom("#alertDeliveryRows", ["row-fields-equal-response", "id/kind/enabled/label", true, rowLocalDom({
+        collectionPath: "integrations",
+        identityPaths: ["id"],
+        identitySource: "fixture-owner",
+        fixtureOwner: fixtureOwner("alert-delivery"),
+        responseSource: responseSource("/ops/api/alerts/deliveries"),
+        fields: [
+          domField("id", "id", "field-text"),
+          domField("kind", "kind", "field-text"),
+          domField("enabled", "enabled", "field-text"),
+          domField("label", "label", "field-text"),
+        ],
+      })]),
       dom("#alertDeliveryKindFilter", ["filter-result-exact", "kind", true]),
       dom("#alertDeliveryEnabledFilter", ["filter-result-exact", "enabled", true]),
       dom("#alertDeliveryFilter", ["unmatched-query-produces-empty", "fixture-unmatched", true]),
@@ -532,7 +567,18 @@ const specs = [
         ["records[].review.classification", "equals-seed", true]
       )),
     ],
-    domAssertions: [dom("[data-event-review-row][data-event-id=evt-019-review4-fixture]", ["fields-equal-response", "event/review", true], ["contains-descendant", "[data-testid=ops-vlm-event-review-card]", true])],
+    domAssertions: [dom("[data-event-review-row][data-event-id=evt-019-review4-fixture]", ["fields-equal-response", "event/review", true, rowLocalDom({
+      collectionPath: "records",
+      identityPaths: ["event.eventId", "review.eventId"],
+      identitySource: "fixture-owner",
+      fixtureOwner: fixtureOwner("event-record"),
+      responseSource: responseSource("/ops/api/events/reviews/evt-019-review4-fixture"),
+      fields: [
+        domField("event.eventId", "eventId", "identity"),
+        domField("review.reviewStatus", "reviewStatus", "field-text"),
+        domField("review.classification", "classification", "field-text"),
+      ],
+    })], ["contains-descendant", "[data-testid=ops-vlm-event-review-card]", true])],
   }),
   eventSpec("EVT-020", {
     featureMeaning: "event list and review detail expose evidence references, review status, and operator note",
@@ -549,7 +595,28 @@ const specs = [
     ],
     domAssertions: [
       dom("#eventRecordRows", ["contains-event-and-evidence", "evt-020-review4-fixture", true]),
-      dom("[data-event-review-row][data-event-id=evt-020-review4-fixture]", ["field-value-equals-response", "reviewStatus/note", true], ["evidence-links-match-seed", "snapshotPath/clipPath", true]),
+      dom("[data-event-review-row][data-event-id=evt-020-review4-fixture]", ["field-value-equals-response", "reviewStatus/note", true, rowLocalDom({
+        collectionPath: "records",
+        identityPaths: ["event.eventId", "review.eventId"],
+        identitySource: "fixture-owner",
+        fixtureOwner: fixtureOwner("event-record"),
+        responseSource: responseSource("/ops/api/events/reviews/evt-020-review4-fixture"),
+        fields: [
+          domField("review.reviewStatus", "reviewStatus", "field-text"),
+          domField("review.note", "note", "field-text"),
+        ],
+      })], ["evidence-links-match-seed", "snapshotPath/clipPath", true, rowLocalDom({
+        collectionPath: "records.records",
+        identityPaths: ["eventId"],
+        identitySource: "fixture-owner",
+        fixtureOwner: fixtureOwner("event-record"),
+        responseSource: responseSource("/ops/api/events/status?limit=50"),
+        domKind: "event-review-evidence",
+        fields: [
+          domField("snapshotPath", "snapshotPath", "field-text"),
+          domField("clipPath", "clipPath", "field-text"),
+        ],
+      })]),
     ],
   }),
   eventSpec("EVT-021", {
@@ -578,13 +645,16 @@ const specs = [
       api("GET", "/ops/api/audit?format=diff-json&eventId=evt-022-review4-fixture", body(["entries", "contains-fixture-diff", true], ["entries[].after", "object", true])),
     ],
     domAssertions: [
-      dom("#event-review-audit-list [data-audit-list-body]", ["contains-fixture-audit", "eventId/action", true, rowLocalDom({
+      dom("#event-review-audit-list [data-audit-list-body] [data-event-semantic-event-id=\"event:{fixtureId}\"]", ["contains-fixture-audit", "eventId/action", true, rowLocalDom({
         collectionPath: "entries",
-        identityPaths: ["eventId"],
-        domKind: "audit-entry-text",
+        identityPaths: ["target"],
+        identitySource: "fixture-owner",
+        fixtureOwner: fixtureOwner("event-record"),
+        identityPrefix: "event:",
+        responseSource: responseSource("/ops/api/audit?eventId=evt-022-review4-fixture"),
         fields: [
-          domField("eventId", "eventId", "text"),
-          domField("action", "action", "text"),
+          domField("target", "target", "field-text"),
+          domField("action", "action", "field-text"),
         ],
       })]),
       dom("#event-review-audit-list [data-audit-detail]", ["detail-equals-response", "before/after", true]),

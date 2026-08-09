@@ -1425,7 +1425,9 @@ std::string ProductSharedUiScript() {
           events: '이벤트'
         })[String(value || '')] || display(value);
         list.innerHTML = `${sourceLabel ? `<div class="audit-source-label">${escapeHtml(sourceLabel)}${Number.isFinite(page.total) ? ` · ${escapeHtml(display(page.offset + 1))}-${escapeHtml(display(page.offset + entries.length))} / ${escapeHtml(display(page.total))}` : ''}</div>` : ''}` + entries.map((entry, index) => `
-          <article class="audit-entry">
+          <article class="audit-entry" data-event-semantic-event-id="${escapeHtml(entry.target || '')}">
+            <span data-event-semantic-field="target" data-event-semantic-value="${escapeHtml(entry.target || '')}" hidden></span>
+            <span data-event-semantic-field="action" data-event-semantic-value="${escapeHtml(entry.action || '')}" hidden></span>
             <div class="audit-entry-head">
               <strong>${escapeHtml(areaLabel(entry.area))} ${escapeHtml(actionLabel(entry.action))}</strong>
               <span>${escapeHtml(auditEntryTimeLabel(entry))}</span>

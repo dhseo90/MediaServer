@@ -88,7 +88,7 @@ check("EVT-007 binds every projected EventRecord field to one authoritative coll
         eventId: fixtureId,
         attributes: {},
         fields: {
-          ruleId: [],
+          ruleId: [""],
           scenarioName: [fixtureId],
           evidence: [`${fixtureId}.jpg`, `${fixtureId}.mp4`],
         },
@@ -135,6 +135,13 @@ check("EVT-007 binds every projected EventRecord field to one authoritative coll
     observation: { ...base.observation, semanticNodes: [{
       ...base.observation.semanticNodes[0],
       fields: { ...base.observation.semanticNodes[0].fields, ruleId: ["fabricated-rule"] },
+    }] },
+  });
+  expectFail("optional-rule-owner-missing", {
+    ...base,
+    observation: { ...base.observation, semanticNodes: [{
+      ...base.observation.semanticNodes[0],
+      fields: { ...base.observation.semanticNodes[0].fields, ruleId: [] },
     }] },
   });
   expectFail("evidence-order", {

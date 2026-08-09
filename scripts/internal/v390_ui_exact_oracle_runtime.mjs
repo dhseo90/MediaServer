@@ -1833,7 +1833,18 @@ async function observeDom(
     }))
     .filter(Boolean);
   const projectionDomFields = projectionContracts[0]?.domFields || {};
-  const selector = expand(String(projectionSelectors[0] || assertion.selector || ""), bindings);
+  const projectionOwnerIdentities = (assertion.assertions || []).flatMap(candidate => {
+    const key = `${String(candidate.operator || "")}\n${String(candidate.target || "")}`;
+    const identity = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[key]?.identityValue;
+    return identity === undefined ? [] : [String(identity)];
+  });
+  const uniqueProjectionOwnerIdentities = [...new Set(projectionOwnerIdentities)];
+  assert(uniqueProjectionOwnerIdentities.length <= 1,
+    `${item.caseId} DOM projection contracts disagree on the fixture owner identity`);
+  const selectorBindings = projectionSelectors.length === 1 && uniqueProjectionOwnerIdentities.length === 1
+    ? { ...bindings, fixtureId: uniqueProjectionOwnerIdentities[0] }
+    : bindings;
+  const selector = expand(String(projectionSelectors[0] || assertion.selector || ""), selectorBindings);
   if ((assertion.propertyAssertions || []).some(candidate =>
       candidate.name === "boundingRectWithinViewport")) {
     await prepareExactViewportObservation(browser, selector);
@@ -2202,6 +2213,7 @@ async function observeDom(
   let semanticEvidence = evaluateDomSemanticAssertions(
     assertion.assertions || [],
     observed,
+    responses,
     responseBodies,
     bindings,
     item.caseId,
@@ -3385,7 +3397,7 @@ function buildDeclaredEventDomBindingEvidence({
   const assertionKey = `${String(assertion.operator || "")}\n${String(assertion.target || "")}`;
   const baseline = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[assertionKey];
   if (!baseline) return finish({ pass: false, failureCode: "DECLARED_RESPONSE_BASELINE_MISSING" });
-  if (["audit-entry-text", "event-record-text", "source-health-text"].includes(binding.domKind)) {
+  if (["audit-entry-text", "behavior-only", "event-record-text", "source-health-text"].includes(binding.domKind)) {
     return finish({
       pass: true,
       expectedRows: baseline.expectedRows || [{
@@ -3426,10 +3438,12 @@ function buildDeclaredEventDomBindingEvidence({
           ? rawExpected.slice(0, 2).map(String).join(" · ")
           : "운영자 질문 없음"}`;
       }
-      const candidates = field.source === "field-text"
-        ? (node.fields?.[field.domKey] || [])
-        : (Object.prototype.hasOwnProperty.call(node.attributes || {}, field.domKey)
-          ? [node.attributes[field.domKey]] : []);
+      const candidates = field.source === "identity"
+        ? [String(node.eventId || "")]
+        : (field.source === "field-text"
+          ? (node.fields?.[field.domKey] || [])
+          : (Object.prototype.hasOwnProperty.call(node.attributes || {}, field.domKey)
+            ? [node.attributes[field.domKey]] : []));
       const fieldPass = candidates.length === 1 && candidates[0] === expected;
       pass = pass && fieldPass;
       fieldEvidence.push({
@@ -3452,6 +3466,7 @@ function buildDeclaredEventDomBindingEvidence({
 function evaluateDomSemanticAssertions(
   assertions,
   observed,
+  responses,
   responseBodies,
   bindings,
   caseId,
@@ -3470,7 +3485,14 @@ function evaluateDomSemanticAssertions(
     });
     const operator = String(resolvedAssertion.operator || "");
     const target = String(resolvedAssertion.target || "");
-    const responseValues = responseBodies.flatMap(body => target.split("|").flatMap(path => resolvePath(body, path)));
+    const assertionResponseBodies = selectEventDomResponseBodies(
+      resolvedAssertion,
+      eventRuntimeContext,
+      responses,
+      responseBodies,
+    );
+    const responseValues = assertionResponseBodies
+      .flatMap(body => target.split("|").flatMap(path => resolvePath(body, path)));
     if (operator === "samples-derived-from-responses") {
       const expected = dashboardRuntimeTrendSample(responseBodies);
       const samples = Array.isArray(observed.properties?.runtimeTrendSamples)
@@ -3580,7 +3602,7 @@ function evaluateDomSemanticAssertions(
       const responseValueMap = {};
       const alternativeValues = [];
       for (const path of target.split("|").filter(Boolean)) {
-        const values = responseBodies.flatMap(body => eventExactValuesAtPath(body, path));
+        const values = assertionResponseBodies.flatMap(body => eventExactValuesAtPath(body, path));
         if (values.length > 0) {
           responseValueMap[path] = values.length === 1 ? values[0] : values;
           alternativeValues.push(responseValueMap[path]);
@@ -3609,9 +3631,11 @@ function evaluateDomSemanticAssertions(
         caseId,
         assertion: resolvedAssertion,
         observed,
-        responseBodies,
+        responseBodies: assertionResponseBodies,
         fixtureCandidates,
-        fixtureIdentity: eventRuntimeContext?.templateValues?.fixtureId || bindings.fixtureId || "",
+        fixtureIdentity: selectedResponseBaselines[target]?.identityValue ||
+          Object.values(selectedResponseBaselines)[0]?.identityValue ||
+          eventRuntimeContext?.templateValues?.fixtureId || bindings.fixtureId || "",
         selectedResponseBaselines,
       });
       const markerEvaluationRequired = caseId === "EVT-004" &&
@@ -3624,7 +3648,7 @@ function evaluateDomSemanticAssertions(
         caseId,
         selector,
         observed,
-        responseBodies,
+        responseBodies: assertionResponseBodies,
         priorResponseByPath: responseDerivedDomProjection ? {} : selectedResponseBaselines,
         fixtureCandidates,
         fixtureIdentity: eventRuntimeContext?.domFixtureIdentityByTarget?.[target] || null,
@@ -3648,7 +3672,7 @@ function evaluateDomSemanticAssertions(
         declaredDomBinding: buildDeclaredEventDomBindingEvidence({
           assertion,
           observed,
-          responseBodies,
+          responseBodies: assertionResponseBodies,
           eventRuntimeContext,
           bindings,
           interaction,
@@ -4837,6 +4861,32 @@ export function selectEventDomResponseBaselines(assertionOrTarget, eventRuntimeC
       targetDigest: sha256Digest(String(target || "")),
     },
   };
+}
+
+export function selectEventDomResponseBodies(
+  assertion,
+  eventRuntimeContext = {},
+  responses = [],
+  responseBodies = [],
+) {
+  assert(Array.isArray(responses) && Array.isArray(responseBodies) &&
+    responses.length === responseBodies.length,
+  "DOM response owner selection requires aligned response evidence and bodies");
+  const baselines = selectEventDomResponseBaselines(assertion, eventRuntimeContext);
+  const sources = [...new Map(Object.values(baselines)
+    .filter(baseline => baseline?.responseSource)
+    .map(baseline => [stableSerialize(baseline.responseSource), baseline.responseSource])).values()];
+  if (sources.length === 0) return responseBodies;
+  assert(sources.length === 1,
+    "DOM assertion declares multiple authoritative response owners");
+  const source = sources[0];
+  const matches = responses.map((response, index) => ({ response, index }))
+    .filter(({ response }) =>
+      String(response?.method || "").toUpperCase() === String(source.method || "").toUpperCase() &&
+      String(response?.urlPath || "") === String(source.path || ""));
+  assert(matches.length === 1,
+    `DOM authoritative runtime response owner cardinality mismatch: ${matches.length}`);
+  return [responseBodies[matches[0].index]];
 }
 
 export function resolveEventDomAssertionForRuntime({
