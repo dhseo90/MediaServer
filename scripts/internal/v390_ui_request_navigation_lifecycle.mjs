@@ -13,14 +13,36 @@ export function buildRequestNavigationLifecyclePlan(item) {
     `${item?.caseId || "unknown"} request navigation plan requires request completion`);
   const steps = [];
   if (lifecycle.action.documentRequest) {
+    const request = lifecycle.action.documentRequest;
+    const expectedHops = [{
+      method: request.method,
+      path: routePath(request.path),
+      allowedStatuses: [...request.statuses],
+      redirected: false,
+      redirectTarget: routePath(request.redirectPath || ""),
+    }];
+    if (request.redirectPath) {
+      assert(Array.isArray(request.finalStatuses) && request.finalStatuses.length > 0,
+        `${item.caseId} document redirect final status contract missing`);
+      expectedHops.push({
+        method: "GET",
+        path: routePath(request.redirectPath),
+        allowedStatuses: [...request.finalStatuses],
+        redirected: true,
+        redirectTarget: "",
+      });
+    }
     steps.push({
-      invocationId: lifecycle.action.documentRequest.navigationInvocationId,
+      invocationId: request.navigationInvocationId,
       kind: "form-submit-document-navigation",
       action: lifecycle.preAction.selector,
       sourceRoute: lifecycle.preAction.route,
       destinationRoute: lifecycle.postNavigation.route,
       sourceSelector: lifecycle.preAction.selector,
       owner: "primary-document-form",
+      ownershipPhase: "primary-action",
+      declaredHopCount: expectedHops.length,
+      expectedHops,
     });
   }
 
@@ -79,6 +101,13 @@ export function buildRequestNavigationLifecyclePlan(item) {
     sourceRoute: lifecycle.preAction.route,
     sourceSelector: lifecycle.preAction.selector,
     finalRoute: lifecycle.postNavigation.route,
+    declaredHopCount: steps.reduce((sum, step) => sum + step.declaredHopCount, 0),
+    primaryHopCount: steps
+      .filter(step => step.ownershipPhase === "primary-action")
+      .reduce((sum, step) => sum + step.declaredHopCount, 0),
+    readbackHopCount: steps
+      .filter(step => step.ownershipPhase === "independent-readback")
+      .reduce((sum, step) => sum + step.declaredHopCount, 0),
     steps,
   };
 }
@@ -107,20 +136,26 @@ export function buildRequestNavigationCensus(manifest) {
     schema: "media-server.v390-ui-request-navigation-census.v1",
     requestCompletionCount: rows.length,
     navigationSideEffectCount: rows.filter(row => row.steps.length > 0).length,
+    declaredDocumentHopCount: rows.reduce((sum, row) => sum + row.declaredHopCount, 0),
     exactOneClassificationCount: Object.values(counts).reduce((sum, count) => sum + count, 0),
     counts,
     caseIds,
   };
 }
 
-export function bindRequestNavigationLifecycle(plan, lifecycles, {
+export function bindRequestNavigationLifecycle(plan, scope, {
   sourceBeforeObservation = null,
   sourceObservation = null,
   visualContext = null,
 } = {}) {
   assert(plan?.schema === "media-server.v390-ui-request-navigation-lifecycle-plan.v1",
     "request navigation lifecycle plan schema mismatch");
-  assert(Array.isArray(lifecycles), `${plan.caseId} request navigation lifecycle collection missing`);
+  assert(scope?.schema === "media-server.v390-ui-request-navigation-scope.v1",
+    `${plan.caseId} request navigation scope missing`);
+  const lifecycles = scope.ownerLifecycles;
+  const documentNavigations = scope.documentNavigations;
+  assert(Array.isArray(lifecycles) && Array.isArray(documentNavigations),
+    `${plan.caseId} request navigation scope collections missing`);
   assert(lifecycles.length === plan.steps.length,
     `${plan.caseId} request navigation lifecycle cardinality mismatch: ${lifecycles.length}/${plan.steps.length}`);
   assert(sourceBeforeObservation?.exists === true && sourceBeforeObservation.visible === true,
@@ -133,9 +168,18 @@ export function bindRequestNavigationLifecycle(plan, lifecycles, {
   const finalEpoch = Number(visualContext.navigationEpoch);
   assertOwner(plan.caseId, visualContext.documentOwner, "body", finalEpoch,
     "request final document owner");
+  const sourceBeforeEpoch = Number(sourceBeforeObservation.navigationEpoch);
+  assert(Number(scope.startEpoch) === sourceBeforeEpoch,
+    `${plan.caseId} request source-before checkpoint epoch mismatch`);
+  assert(Number(scope.endEpoch) === finalEpoch,
+    `${plan.caseId} request destination-after checkpoint epoch mismatch`);
+  assert(plan.declaredHopCount === plan.primaryHopCount + plan.readbackHopCount,
+    `${plan.caseId} request declared hop partition mismatch`);
 
   if (plan.steps.length === 0) {
-    const sourceEpoch = Number(sourceBeforeObservation.navigationEpoch);
+    assert(documentNavigations.length === 0,
+      `${plan.caseId} unrelated request document navigation observed`);
+    const sourceEpoch = sourceBeforeEpoch;
     assert(Number.isInteger(sourceEpoch) && sourceEpoch === finalEpoch,
       `${plan.caseId} unexpected request navigation epoch advance`);
     if (sourceObservation) {
@@ -148,6 +192,10 @@ export function bindRequestNavigationLifecycle(plan, lifecycles, {
 
   let previousDestinationEpoch = null;
   let previousDestinationRoute = "";
+  const ownedDocumentHops = [];
+  const requestIds = new Set();
+  let previousResponseSequence = 0;
+  let previousCaseRequestSequence = 0;
   for (let index = 0; index < plan.steps.length; index += 1) {
     const expected = plan.steps[index];
     const observed = lifecycles[index];
@@ -170,8 +218,18 @@ export function bindRequestNavigationLifecycle(plan, lifecycles, {
       "request navigation source owner");
     assertOwner(plan.caseId, observed.destinationOwner, "body", destinationEpoch,
       "request navigation destination owner");
-    assert(destinationEpoch === sourceEpoch + 1,
-      `${plan.caseId} request navigation epoch did not advance exactly once`);
+    assert(observed.documentChain?.schema === "media-server.v390-ui-owned-document-chain.v1" &&
+      observed.documentChain.invocationId === expected.invocationId &&
+      observed.documentChain.kind === expected.kind &&
+      Array.isArray(observed.documentChain.hops),
+    `${plan.caseId} owned document chain schema/identity mismatch`);
+    const observedHops = observed.documentChain.hops;
+    assert(observed.documentChain.hopCount === expected.declaredHopCount &&
+      observedHops.length === expected.declaredHopCount &&
+      expected.expectedHops.length === expected.declaredHopCount,
+    `${plan.caseId} owned document chain cardinality mismatch`);
+    assert(destinationEpoch === sourceEpoch + expected.declaredHopCount,
+      `${plan.caseId} request navigation epoch delta does not match owned document commits`);
     if (index === 0) {
       assert(sourceEpoch === Number(sourceBeforeObservation.navigationEpoch),
         `${plan.caseId} request source-before owner navigation epoch mismatch`);
@@ -180,8 +238,62 @@ export function bindRequestNavigationLifecycle(plan, lifecycles, {
         expected.sourceRoute === previousDestinationRoute,
       `${plan.caseId} request navigation lifecycle sequence is discontinuous`);
     }
+    let priorHopRequestId = "";
+    for (let hopIndex = 0; hopIndex < expected.expectedHops.length; hopIndex += 1) {
+      const expectedHop = expected.expectedHops[hopIndex];
+      const observedHop = observedHops[hopIndex];
+      assert(observedHop?.invocationId === expected.invocationId &&
+        observedHop.navigationKind === expected.kind,
+      `${plan.caseId} owned document hop invocation/kind mismatch`);
+      assert(String(observedHop.method || "").toUpperCase() === expectedHop.method &&
+        routePath(observedHop.path) === expectedHop.path,
+      `${plan.caseId} owned document hop method/route mismatch`);
+      assert(expectedHop.allowedStatuses.includes(Number(observedHop.responseStatus)) &&
+        observedHop.responseBound === true &&
+        observedHop.responseRequestObjectObserved === true &&
+        observedHop.responseRequestId === observedHop.requestId,
+      `${plan.caseId} owned document hop response/status/request binding mismatch`);
+      assert(observedHop.resourceType === "document" && observedHop.sameOrigin === true &&
+        observedHop.correlationPresent !== true,
+      `${plan.caseId} owned document hop trust boundary mismatch`);
+      assert(observedHop.redirected === expectedHop.redirected &&
+        routePath(observedHop.responseLocationPath) === expectedHop.redirectTarget,
+      `${plan.caseId} owned document redirect target mismatch`);
+      assert(String(observedHop.redirectedFromRequestId || "") === priorHopRequestId,
+        `${plan.caseId} owned document redirect request chain mismatch`);
+      assert(typeof observedHop.requestId === "string" && observedHop.requestId &&
+        typeof observedHop.caseRequestIdentity === "string" && observedHop.caseRequestIdentity &&
+        Number.isInteger(Number(observedHop.caseRequestSequence)) &&
+        Number(observedHop.caseRequestSequence) > previousCaseRequestSequence &&
+        !requestIds.has(observedHop.requestId),
+      `${plan.caseId} owned document request object/sequence identity mismatch`);
+      assert(Number.isInteger(Number(observedHop.sequence)) &&
+        Number.isInteger(Number(observedHop.responseSequence)) &&
+        Number(observedHop.sequence) > previousResponseSequence &&
+        Number(observedHop.responseSequence) > Number(observedHop.sequence),
+      `${plan.caseId} owned document request/response order mismatch`);
+      assert(Number(observedHop.navigationEpoch) === sourceEpoch + hopIndex + 1,
+        `${plan.caseId} owned document hop epoch mismatch`);
+      requestIds.add(observedHop.requestId);
+      previousCaseRequestSequence = Number(observedHop.caseRequestSequence);
+      previousResponseSequence = Number(observedHop.responseSequence);
+      priorHopRequestId = observedHop.requestId;
+      ownedDocumentHops.push(observedHop);
+    }
     previousDestinationEpoch = destinationEpoch;
     previousDestinationRoute = expected.destinationRoute;
+  }
+  assert(ownedDocumentHops.length === plan.declaredHopCount &&
+    documentNavigations.length === plan.declaredHopCount,
+  `${plan.caseId} request document scope cardinality mismatch`);
+  for (let index = 0; index < ownedDocumentHops.length; index += 1) {
+    const owned = ownedDocumentHops[index];
+    const scoped = documentNavigations[index];
+    assert(scoped?.requestId === owned.requestId &&
+      scoped.sequence === owned.sequence &&
+      scoped.responseSequence === owned.responseSequence &&
+      scoped.invocationId === owned.invocationId,
+    `${plan.caseId} unrelated/polling document navigation observed`);
   }
   assert(previousDestinationEpoch === finalEpoch && previousDestinationRoute === plan.finalRoute,
     `${plan.caseId} request navigation final owner mismatch`);
@@ -191,8 +303,11 @@ export function bindRequestNavigationLifecycle(plan, lifecycles, {
       (observedEpoch === Number(sourceBeforeObservation.navigationEpoch) || observedEpoch === finalEpoch),
     `${plan.caseId} request source-after owner lifecycle mismatch`);
   }
-  return binding(plan, plan.steps.length, Number(sourceBeforeObservation.navigationEpoch),
-    finalEpoch, "advanced-readback");
+  const epochRelation = plan.readbackHopCount > 0
+    ? "advanced-readback"
+    : "advanced-action";
+  return binding(plan, plan.declaredHopCount, sourceBeforeEpoch,
+    finalEpoch, epochRelation);
 }
 
 function navigationStep(caseId, owner, sourceRoute, destinationRoute, kind) {
@@ -204,17 +319,37 @@ function navigationStep(caseId, owner, sourceRoute, destinationRoute, kind) {
     destinationRoute: routePath(destinationRoute),
     sourceSelector: "body",
     owner,
+    ownershipPhase: "independent-readback",
+    declaredHopCount: 1,
+    expectedHops: [{
+      method: "GET",
+      path: routePath(destinationRoute),
+      allowedStatuses: [200],
+      redirected: false,
+      redirectTarget: "",
+    }],
   };
 }
 
 function binding(plan, navigationCount, sourceEpoch, finalEpoch, epochRelation) {
+  const epochDelta = finalEpoch - sourceEpoch;
   return {
     schema: "media-server.v390-ui-request-navigation-lifecycle-binding.v1",
     caseId: plan.caseId,
     classification: plan.classification,
-    navigationCount,
+    navigationCount: plan.steps.length,
+    declaredHopCount: plan.declaredHopCount,
+    ownedDocumentCommitCount: navigationCount,
+    primaryHopCount: plan.primaryHopCount,
+    readbackHopCount: plan.readbackHopCount,
     sourceEpoch,
     finalEpoch,
+    epochDelta,
+    hopMode: navigationCount === 0
+      ? "zero-hop"
+      : navigationCount === 1
+        ? "single-hop"
+        : "multi-hop",
     finalRoute: plan.finalRoute,
     epochRelation,
     pass: true,

@@ -849,15 +849,17 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     const visualContext = await browser.observePostActionVisualContext();
     let requestNavigationLifecycleBinding = null;
     if (postActionLifecyclePlan.action.primaryCompletion.mode === "request") {
-      const lifecycleStart = runtimeState.get("__primaryNavigationLifecycleStart");
-      assert(Number.isInteger(lifecycleStart) && lifecycleStart >= 0,
+      const lifecycleCheckpoint = runtimeState.get("__primaryNavigationLifecycleStart");
+      assert(lifecycleCheckpoint?.schema ===
+        "media-server.v390-ui-request-navigation-checkpoint.v1",
         `${item.caseId} primary request navigation lifecycle start missing`);
       const requestNavigationPlan = buildRequestNavigationLifecyclePlan(item);
-      const requestNavigationLifecycles = browser.navigationOwnerLifecycles()
-        .slice(lifecycleStart);
+      const requestNavigationScope = browser.requestNavigationScope(
+        lifecycleCheckpoint,
+      );
       requestNavigationLifecycleBinding = bindRequestNavigationLifecycle(
         requestNavigationPlan,
-        requestNavigationLifecycles,
+        requestNavigationScope,
         {
           sourceBeforeObservation,
           sourceObservation,
@@ -866,7 +868,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       );
       trace.requestNavigationLifecycleEvidence = {
         plan: requestNavigationPlan,
-        lifecycles: requestNavigationLifecycles,
+        scope: requestNavigationScope,
         binding: requestNavigationLifecycleBinding,
       };
     }
@@ -2286,7 +2288,7 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     assert(!runtimeState.has("__primaryNavigationLifecycleStart"),
       `${item.caseId} primary navigation lifecycle start is duplicated`);
     runtimeState.set("__primaryNavigationLifecycleStart",
-      browser.navigationOwnerLifecycles().length);
+      browser.requestNavigationCheckpoint());
   }
   if (action.kind === "verify-independent-readback") {
     return executeIndependentReadback(

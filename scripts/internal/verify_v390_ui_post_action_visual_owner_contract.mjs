@@ -25,9 +25,37 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.
 const red = readJson("test/fixtures/v390_ui_post_action_visual_owner_red_20260809.json");
 const navigationRed = readJson("test/fixtures/v390_ui_navigation_pre_post_owner_red_20260809.json");
 const requestNavigationRed = readJson("test/fixtures/v390_ui_request_navigation_epoch_red_20260809.json");
+const redirectChainRed = readJson("test/fixtures/v390_ui_request_redirect_chain_red_20260809.json");
 const manifest = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const storedImpact = readJson("test/fixtures/v390_ui_shared_adapter_impact.json");
 const byId = new Map(manifest.cases.map(item => [item.caseId, item]));
+
+assert.equal(redirectChainRed.schema,
+  "media-server.v390-ui-request-redirect-chain-red.v1");
+assert.equal(redirectChainRed.sourceCommitSha,
+  "5a02ce81407de7f297d83d56951f3dc84c57ca9d");
+assert.equal(redirectChainRed.actualBrowserExecution, true);
+assert.equal(redirectChainRed.releaseEvidenceEligible, false);
+assert.deepEqual(redirectChainRed.coverage, {
+  target: 424,
+  attempted: 2,
+  pass: 1,
+  fail: 1,
+  notRun: 422,
+  unsupported: 0,
+});
+assert.equal(redirectChainRed.firstFailure.caseId, "UI-002");
+assert.equal(redirectChainRed.firstFailure.sourceBeforeEpoch, 1);
+assert.equal(redirectChainRed.firstFailure.destinationAfterEpoch, 3);
+assert.equal(redirectChainRed.firstFailure.actualOwnedDocumentCommits, 2);
+assert.deepEqual(redirectChainRed.firstFailure.orderedDocumentChain.map(hop => [
+  hop.method, hop.path, hop.responseStatus, hop.navigationEpoch,
+]), [["POST", "/setup", 302, 2], ["GET", "/login", 200, 3]]);
+for (const artifact of Object.values(redirectChainRed.artifacts)) {
+  assert.match(artifact.sha256, /^[0-9a-f]{64}$/);
+  const filePath = path.join(rootDir, artifact.path);
+  if (fs.existsSync(filePath)) assert.equal(sha256File(filePath), artifact.sha256);
+}
 
 assert.equal(requestNavigationRed.schema,
   "media-server.v390-ui-request-navigation-epoch-red.v1");
@@ -177,6 +205,7 @@ assert.deepEqual(requestNavigationCensus.counts, {
 });
 assert.equal(requestNavigationCensus.requestCompletionCount, 391);
 assert.equal(requestNavigationCensus.navigationSideEffectCount, 17);
+assert.equal(requestNavigationCensus.declaredDocumentHopCount, 33);
 assert.equal(requestNavigationCensus.exactOneClassificationCount, 391);
 assert.deepEqual(requestNavigationCensus.caseIds["readback-route-roundtrip"], [
   "UI-008", "AUTH-036", "EVT-058", "SAFE-033", "SAFE-041",
@@ -194,7 +223,7 @@ assert.deepEqual(ui008NavigationPlan.steps.map(step => step.invocationId), [
 ]);
 const ui008NavigationBinding = bindRequestNavigationLifecycle(
   ui008NavigationPlan,
-  requestNavigationLifecycles(ui008NavigationPlan, 1),
+  requestNavigationScope(ui008NavigationPlan, 1),
   {
     sourceBeforeObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
     sourceObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
@@ -202,6 +231,9 @@ const ui008NavigationBinding = bindRequestNavigationLifecycle(
   },
 );
 assert.equal(ui008NavigationBinding.navigationCount, 2);
+assert.equal(ui008NavigationBinding.declaredHopCount, 2);
+assert.equal(ui008NavigationBinding.ownedDocumentCommitCount, 2);
+assert.equal(ui008NavigationBinding.epochDelta, 2);
 assert.equal(ui008NavigationBinding.epochRelation, "advanced-readback");
 const ui008VisualTarget = resolvePostActionVisualTarget(plan("UI-008"), {
   visualContext: context("/client/request-access", 3),
@@ -215,6 +247,7 @@ assert.equal(ui008VisualTarget.bindingKind, "post-readback-visible-document-owne
 const auth006NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("AUTH-006"));
 assert.equal(auth006NavigationPlan.classification, "document-form-redirect");
 assert.equal(auth006NavigationPlan.steps.length, 3);
+assert.equal(auth006NavigationPlan.declaredHopCount, 4);
 const evt058NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("EVT-058"));
 assert.equal(evt058NavigationPlan.classification, "readback-route-roundtrip");
 assert.equal(evt058NavigationPlan.steps.length, 2);
@@ -224,37 +257,22 @@ assert.equal(client010NavigationPlan.steps.length, 1);
 const ui109NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("UI-109"));
 assert.equal(ui109NavigationPlan.classification, "same-document-no-navigation");
 assert.equal(ui109NavigationPlan.steps.length, 0);
+assert.equal(ui109NavigationPlan.declaredHopCount, 0);
 
 for (const mutation of [
-  lifecycles => lifecycles.slice(1),
-  lifecycles => [...lifecycles, structuredClone(lifecycles[0])],
-  lifecycles => [{ ...lifecycles[0], invocationId: "wrong" }, ...lifecycles.slice(1)],
-  lifecycles => [{ ...lifecycles[0], sourceRoute: "/wrong" }, ...lifecycles.slice(1)],
-  lifecycles => [{ ...lifecycles[0], destinationRoute: "/wrong" }, ...lifecycles.slice(1)],
-  lifecycles => [{ ...lifecycles[0], kind: "wrong" }, ...lifecycles.slice(1)],
-  lifecycles => [{
-    ...lifecycles[0],
-    sourceOwner: { ...lifecycles[0].sourceOwner, selector: "#wrong" },
-  }, ...lifecycles.slice(1)],
-  lifecycles => [{
-    ...lifecycles[0],
-    sourceOwner: { ...lifecycles[0].sourceOwner, navigationEpoch: 0 },
-    destinationOwner: { ...lifecycles[0].destinationOwner, navigationEpoch: 1 },
-  }, ...lifecycles.slice(1)],
-  lifecycles => [{
-    ...lifecycles[0],
-    destinationOwner: {
-      ...lifecycles[0].destinationOwner,
-      navigationEpoch: lifecycles[0].sourceOwner.navigationEpoch,
-    },
-  }, ...lifecycles.slice(1)],
-  lifecycles => [{
-    ...lifecycles[0],
-    sourceOwner: { ...lifecycles[0].sourceOwner, visible: false },
-  }, ...lifecycles.slice(1)],
+  scope => { scope.ownerLifecycles.shift(); },
+  scope => { scope.ownerLifecycles.push(structuredClone(scope.ownerLifecycles[0])); },
+  scope => { scope.ownerLifecycles[0].invocationId = "wrong"; },
+  scope => { scope.ownerLifecycles[0].sourceRoute = "/wrong"; },
+  scope => { scope.ownerLifecycles[0].destinationRoute = "/wrong"; },
+  scope => { scope.ownerLifecycles[0].kind = "wrong"; },
+  scope => { scope.ownerLifecycles[0].sourceOwner.selector = "#wrong"; },
+  scope => { scope.startEpoch = 0; },
+  scope => { scope.ownerLifecycles[0].destinationOwner.navigationEpoch = 1; },
+  scope => { scope.ownerLifecycles[0].sourceOwner.visible = false; },
 ]) assert.throws(() => bindRequestNavigationLifecycle(
   ui008NavigationPlan,
-  mutation(requestNavigationLifecycles(ui008NavigationPlan, 1)),
+  mutateScope(requestNavigationScope(ui008NavigationPlan, 1), mutation),
   {
     sourceBeforeObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
     sourceObservation: observation(ui008NavigationPlan.sourceSelector, 1, true, true),
@@ -263,13 +281,75 @@ for (const mutation of [
 ));
 assert.throws(() => bindRequestNavigationLifecycle(
   ui109NavigationPlan,
-  [requestNavigationLifecycles(ui008NavigationPlan, 1)[0]],
+  requestNavigationScope(ui008NavigationPlan, 1),
   {
     sourceBeforeObservation: observation(ui109NavigationPlan.sourceSelector, 1, true, true),
     sourceObservation: observation(ui109NavigationPlan.sourceSelector, 1, true, true),
     visualContext: context("/ops/sources", 2),
   },
 ), /cardinality mismatch/);
+
+const ui002NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("UI-002"));
+assert.equal(ui002NavigationPlan.classification, "document-form-redirect");
+assert.equal(ui002NavigationPlan.steps.length, 1);
+assert.equal(ui002NavigationPlan.declaredHopCount, 2);
+assert.deepEqual(ui002NavigationPlan.steps[0].expectedHops.map(hop => [
+  hop.method, hop.path, hop.allowedStatuses, hop.redirectTarget,
+]), [
+  ["POST", "/setup", [302], "/login"],
+  ["GET", "/login", [200], ""],
+]);
+const ui002NavigationBinding = bindRequestNavigationLifecycle(
+  ui002NavigationPlan,
+  requestNavigationScope(ui002NavigationPlan, 1),
+  {
+    sourceBeforeObservation: observation(ui002NavigationPlan.sourceSelector, 1, true, true),
+    sourceObservation: observation(ui002NavigationPlan.sourceSelector, 1, false, false),
+    visualContext: context("/login", 3),
+  },
+);
+assert.equal(ui002NavigationBinding.navigationCount, 1);
+assert.equal(ui002NavigationBinding.declaredHopCount, 2);
+assert.equal(ui002NavigationBinding.ownedDocumentCommitCount, 2);
+assert.equal(ui002NavigationBinding.epochDelta, 2);
+assert.equal(ui002NavigationBinding.hopMode, "multi-hop");
+assert.equal(ui002NavigationBinding.epochRelation, "advanced-action");
+
+for (const mutation of [
+  scope => {
+    scope.ownerLifecycles[0].documentChain.hops.pop();
+    scope.ownerLifecycles[0].documentChain.hopCount = 1;
+    scope.documentNavigations.pop();
+  },
+  scope => {
+    scope.ownerLifecycles[0].documentChain.hops.push(
+      structuredClone(scope.ownerLifecycles[0].documentChain.hops[1]),
+    );
+    scope.ownerLifecycles[0].documentChain.hopCount = 3;
+    scope.documentNavigations.push(structuredClone(scope.documentNavigations[1]));
+  },
+  scope => {
+    scope.ownerLifecycles[0].documentChain.hops.reverse();
+    scope.documentNavigations.reverse();
+  },
+  scope => { scope.ownerLifecycles[0].documentChain.hops[0].responseLocationPath = "/wrong"; },
+  scope => { scope.ownerLifecycles[0].documentChain.hops[0].responseStatus = 200; },
+  scope => { scope.ownerLifecycles[0].documentChain.hops[1].path = "/wrong"; },
+  scope => { scope.ownerLifecycles[0].documentChain.hops[1].responseRequestId = "wrong"; },
+  scope => { scope.ownerLifecycles[0].documentChain.hops[1].redirectedFromRequestId = "wrong"; },
+  scope => { scope.ownerLifecycles[0].documentChain.hops[1].navigationEpoch = 2; },
+  scope => { scope.ownerLifecycles[0].documentChain.hops[1].sequence = 4; },
+  scope => { scope.documentNavigations.push(structuredClone(scope.documentNavigations[1])); },
+  scope => { scope.endEpoch = 4; },
+]) assert.throws(() => bindRequestNavigationLifecycle(
+  ui002NavigationPlan,
+  mutateScope(requestNavigationScope(ui002NavigationPlan, 1), mutation),
+  {
+    sourceBeforeObservation: observation(ui002NavigationPlan.sourceSelector, 1, true, true),
+    sourceObservation: observation(ui002NavigationPlan.sourceSelector, 1, false, false),
+    visualContext: context("/login", 3),
+  },
+));
 
 const ui109 = plan("UI-109");
 const ui109Hidden = resolvePostActionVisualTarget(ui109, {
@@ -430,8 +510,9 @@ const adapterSource = fs.readFileSync(path.join(rootDir,
 assert.ok(runnerSource.includes("browser.observePostActionVisualContext()"));
 assert.ok(runnerSource.includes("browser.navigationOwnerLifecycle("),
   "runner must consume the pre-action owner captured before document navigation");
-assert.ok(runnerSource.includes("browser.navigationOwnerLifecycles()"),
-  "runner must consume the exact post-action request navigation lifecycle sequence");
+assert.ok(runnerSource.includes("browser.requestNavigationCheckpoint()") &&
+  runnerSource.includes("browser.requestNavigationScope("),
+"runner must consume the exact action/readback-owned request navigation scope");
 assert.ok(runnerSource.includes("bindRequestNavigationLifecycle("),
   "runner must bind request navigation side-effects before visual owner selection");
 assert.ok(runnerSource.includes("ownerBinding: postActionVisualTarget"));
@@ -499,9 +580,44 @@ function navigationLifecycle(lifecyclePlan, {
   };
 }
 
-function requestNavigationLifecycles(requestPlan, initialEpoch) {
+function requestNavigationScope(requestPlan, initialEpoch) {
   let epoch = initialEpoch;
-  return requestPlan.steps.map(step => {
+  let sequence = 10;
+  let caseRequestSequence = 1;
+  const documentNavigations = [];
+  const ownerLifecycles = requestPlan.steps.map(step => {
+    let previousRequestId = "";
+    const hops = step.expectedHops.map((expectedHop, hopIndex) => {
+      const requestId = `${requestPlan.caseId}:request-${caseRequestSequence}`;
+      const hop = {
+        sequence,
+        responseSequence: sequence + 1,
+        invocationId: step.invocationId,
+        navigationKind: step.kind,
+        method: expectedHop.method,
+        path: expectedHop.path,
+        resourceType: "document",
+        sameOrigin: true,
+        correlationPresent: false,
+        correlationDigest: "",
+        redirected: expectedHop.redirected,
+        redirectedFromRequestId: previousRequestId,
+        requestId,
+        caseRequestIdentity: `${requestPlan.caseId}:case-request-${caseRequestSequence}`,
+        caseRequestSequence,
+        responseStatus: expectedHop.allowedStatuses[0],
+        responseBound: true,
+        responseRequestId: requestId,
+        responseRequestObjectObserved: true,
+        responseLocationPath: expectedHop.redirectTarget,
+        navigationEpoch: epoch + hopIndex + 1,
+      };
+      previousRequestId = requestId;
+      caseRequestSequence += 1;
+      sequence += 2;
+      documentNavigations.push(structuredClone(hop));
+      return hop;
+    });
     const lifecycle = {
       schema: "media-server.v390-ui-navigation-owner-lifecycle.v1",
       caseId: requestPlan.caseId,
@@ -511,11 +627,31 @@ function requestNavigationLifecycles(requestPlan, initialEpoch) {
       sourceRoute: step.sourceRoute,
       destinationRoute: step.destinationRoute,
       sourceOwner: observation(step.sourceSelector, epoch, true, true),
-      destinationOwner: observation("body", epoch + 1, true, true),
+      destinationOwner: observation("body", epoch + step.declaredHopCount, true, true),
+      documentChain: {
+        schema: "media-server.v390-ui-owned-document-chain.v1",
+        invocationId: step.invocationId,
+        kind: step.kind,
+        hopCount: step.declaredHopCount,
+        hops,
+      },
     };
-    epoch += 1;
+    epoch += step.declaredHopCount;
     return lifecycle;
   });
+  return {
+    schema: "media-server.v390-ui-request-navigation-scope.v1",
+    startEpoch: initialEpoch,
+    endEpoch: epoch,
+    ownerLifecycles,
+    documentNavigations,
+  };
+}
+
+function mutateScope(scope, mutation) {
+  const clone = structuredClone(scope);
+  mutation(clone);
+  return clone;
 }
 
 function readJson(relativePath) {

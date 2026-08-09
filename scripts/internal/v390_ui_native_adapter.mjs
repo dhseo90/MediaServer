@@ -926,9 +926,17 @@ async function openNativePlaywrightPage(playwright, {
           ? createHash("sha256").update(correlationId).digest("hex")
           : "",
         redirected: Boolean(redirectedFrom),
+        redirectedFromRequestId: redirectedFrom
+          ? requestIdentity(redirectedFrom).requestId
+          : "",
         requestId,
+        caseRequestIdentity: identity.caseRequestIdentity,
+        caseRequestSequence: identity.caseRequestSequence,
         responseStatus: 0,
         responseBound: false,
+        responseRequestId: "",
+        responseRequestObjectObserved: false,
+        responseLocationPath: "",
         navigationEpoch: documentNavigationEpoch,
         listenerActive: requestListenerEndSequence === null,
       };
@@ -991,6 +999,12 @@ async function openNativePlaywrightPage(playwright, {
         ledgerEntry.responseSequence = ++lifecycleSequence;
         ledgerEntry.responseStatus = response.status();
         ledgerEntry.responseBound = true;
+        ledgerEntry.responseRequestId = String(initiatingRequest?.requestId || "");
+        ledgerEntry.responseRequestObjectObserved = Boolean(initiatingRequest);
+        const location = String(response.headers().location || "");
+        ledgerEntry.responseLocationPath = location
+          ? urlTarget(new URL(location, response.url()).toString())
+          : "";
       }
     }
     const clientLiveSessionProjection = captureClientLiveSessionResponseProjection({
@@ -1100,12 +1114,38 @@ async function openNativePlaywrightPage(playwright, {
         };
     return sanitizeEvidenceValue(owner, observedRuntimeSecrets);
   };
+  const projectDocumentNavigationEntry = entry => ({
+    sequence: entry.sequence,
+    responseSequence: entry.responseSequence,
+    invocationId: entry.invocationId,
+    navigationKind: entry.navigationKind,
+    method: entry.method,
+    path: entry.path,
+    resourceType: entry.resourceType,
+    sameOrigin: entry.sameOrigin,
+    correlationPresent: entry.correlationPresent,
+    correlationDigest: entry.correlationDigest,
+    redirected: entry.redirected,
+    redirectedFromRequestId: entry.redirectedFromRequestId,
+    requestId: entry.requestId,
+    caseRequestIdentity: entry.caseRequestIdentity,
+    caseRequestSequence: entry.caseRequestSequence,
+    responseStatus: entry.responseStatus,
+    responseBound: entry.responseBound,
+    responseRequestId: entry.responseRequestId,
+    responseRequestObjectObserved: entry.responseRequestObjectObserved,
+    responseLocationPath: entry.responseLocationPath,
+    navigationEpoch: entry.navigationEpoch,
+  });
   const captureNavigationOwnerLifecycle = async (operation, sourceOwner, action) => {
     if (navigationOwnerLifecycles.some(item =>
       item.invocationId === operation.invocationId)) {
       throw new Error(`duplicate navigation owner invocation: ${operation.invocationId}`);
     }
     const destinationOwner = await captureNavigationOwner("body");
+    const documentChain = documentNavigationLedger
+      .slice(operation.documentLedgerStart)
+      .map(projectDocumentNavigationEntry);
     const lifecycle = {
       schema: "media-server.v390-ui-navigation-owner-lifecycle.v1",
       caseId: String(caseId || ""),
@@ -1116,6 +1156,13 @@ async function openNativePlaywrightPage(playwright, {
       destinationRoute: page.url(),
       sourceOwner: { ...sourceOwner },
       destinationOwner,
+      documentChain: {
+        schema: "media-server.v390-ui-owned-document-chain.v1",
+        invocationId: operation.invocationId,
+        kind: operation.kind,
+        hopCount: documentChain.length,
+        hops: documentChain,
+      },
     };
     delete lifecycle.sourceOwner.route;
     navigationOwnerLifecycles.push(lifecycle);
@@ -1133,6 +1180,7 @@ async function openNativePlaywrightPage(playwright, {
       invocationId: String(invocationId || `native-document-navigation-${++navigationOperationSequence}`),
       kind,
       allowCorrelation,
+      documentLedgerStart: documentNavigationLedger.length,
     };
     const sourceOwner = {
       ...(await captureNavigationOwner("body")),
@@ -1207,20 +1255,7 @@ async function openNativePlaywrightPage(playwright, {
       requestReissued: candidates.length !== 1,
       totalDocumentNavigationCount: ledger.length,
       orderedDocumentNavigations: ledger.map(entry => ({
-        sequence: entry.sequence,
-        responseSequence: entry.responseSequence,
-        invocationId: entry.invocationId,
-        navigationKind: entry.navigationKind,
-        method: entry.method,
-        path: entry.path,
-        resourceType: entry.resourceType,
-        sameOrigin: entry.sameOrigin,
-        correlationPresent: entry.correlationPresent,
-        correlationDigest: entry.correlationDigest,
-        redirected: entry.redirected,
-        responseStatus: entry.responseStatus,
-        responseBound: entry.responseBound,
-        navigationEpoch: entry.navigationEpoch,
+        ...projectDocumentNavigationEntry(entry),
       })),
       listenerStartSequence: requestListenerStartSequence,
       listenerEndSequence: requestListenerEndSequence,
@@ -1247,6 +1282,39 @@ async function openNativePlaywrightPage(playwright, {
       selectExactNavigationOwnerLifecycle(navigationOwnerLifecycles, invocationId),
     navigationOwnerLifecycles: () =>
       structuredClone(navigationOwnerLifecycles),
+    requestNavigationCheckpoint: () => ({
+      schema: "media-server.v390-ui-request-navigation-checkpoint.v1",
+      ownerLifecycleCount: navigationOwnerLifecycles.length,
+      documentNavigationCount: documentNavigationLedger.length,
+      navigationEpoch: documentNavigationEpoch,
+    }),
+    requestNavigationScope: checkpoint => {
+      if (checkpoint?.schema !== "media-server.v390-ui-request-navigation-checkpoint.v1") {
+        throw new Error("request navigation checkpoint schema mismatch");
+      }
+      const ownerLifecycleCount = Number(checkpoint.ownerLifecycleCount);
+      const documentNavigationCount = Number(checkpoint.documentNavigationCount);
+      const startEpoch = Number(checkpoint.navigationEpoch);
+      if (![ownerLifecycleCount, documentNavigationCount, startEpoch]
+          .every(value => Number.isInteger(value) && value >= 0) ||
+          ownerLifecycleCount > navigationOwnerLifecycles.length ||
+          documentNavigationCount > documentNavigationLedger.length ||
+          startEpoch > documentNavigationEpoch) {
+        throw new Error("request navigation checkpoint bounds mismatch");
+      }
+      return {
+        schema: "media-server.v390-ui-request-navigation-scope.v1",
+        startEpoch,
+        endEpoch: documentNavigationEpoch,
+        ownerLifecycles: structuredClone(
+          navigationOwnerLifecycles.slice(ownerLifecycleCount),
+        ),
+        documentNavigations: structuredClone(
+          documentNavigationLedger.slice(documentNavigationCount)
+            .map(projectDocumentNavigationEntry),
+        ),
+      };
+    },
     waitForSelector: async (selector, options = {}) => {
       return revealClosedDetailsForSelector(page, selector, {
         state: options.state || "visible",
@@ -1720,6 +1788,7 @@ async function openNativePlaywrightPage(playwright, {
         invocationId: String(invocationId || `native-document-form-${++navigationOperationSequence}`),
         kind: "form-submit-document-navigation",
         allowCorrelation: false,
+        documentLedgerStart: documentNavigationLedger.length,
       };
       const sourceOwner = {
         ...(await captureNavigationOwner(selector)),

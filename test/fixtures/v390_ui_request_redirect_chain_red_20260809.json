@@ -1,0 +1,68 @@
+{
+  "schema": "media-server.v390-ui-request-redirect-chain-red.v1",
+  "sourceCommitSha": "5a02ce81407de7f297d83d56951f3dc84c57ca9d",
+  "actualBrowserExecution": true,
+  "releaseEvidenceEligible": false,
+  "coverage": {
+    "target": 424,
+    "attempted": 2,
+    "pass": 1,
+    "fail": 1,
+    "notRun": 422,
+    "unsupported": 0
+  },
+  "firstFailure": {
+    "caseId": "UI-002",
+    "completionMode": "request",
+    "error": "request navigation epoch did not advance exactly once",
+    "sourceRoute": "/setup",
+    "sourceSelector": "[data-testid=\"auth-setup-form\"] button[type=\"submit\"]",
+    "sourceBeforeEpoch": 1,
+    "destinationRoute": "/login",
+    "destinationAfterEpoch": 3,
+    "actualOwnedDocumentCommits": 2,
+    "orderedDocumentChain": [
+      {
+        "sequence": 4,
+        "responseSequence": 5,
+        "invocationId": "UI-002:form-submit-document-navigation",
+        "method": "POST",
+        "path": "/setup",
+        "responseStatus": 302,
+        "redirected": false,
+        "navigationEpoch": 2
+      },
+      {
+        "sequence": 6,
+        "responseSequence": 7,
+        "invocationId": "UI-002:form-submit-document-navigation",
+        "method": "GET",
+        "path": "/login",
+        "responseStatus": 200,
+        "redirected": true,
+        "navigationEpoch": 3
+      }
+    ]
+  },
+  "capturedBeforeFailure": [
+    "UI-001"
+  ],
+  "artifacts": {
+    "acceptanceSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/summary.json",
+      "sha256": "b42db32568ee7f8889c0a2bee13de12c68e7018185bfe83b1f115def90ca5108"
+    },
+    "firstFailure": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/first-failure.json",
+      "sha256": "b124d846804d0081f8f6e804721e5e61c86cd11b54b3a350ec5cff26db85142c"
+    },
+    "exactSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809135903-12970/ui-exact-424/summary.json",
+      "sha256": "c555c0158f20130225313dee590dbbff86d20498d9e3884b50d0369b74ad7884"
+    },
+    "ui002Trace": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809135903-12970/ui-exact-424/traces/UI-002.trace.json",
+      "sha256": "f30c0914018420aa3b87f1b078abccfd4de86d0ea0cb077210054855730f493a"
+    }
+  }
+}

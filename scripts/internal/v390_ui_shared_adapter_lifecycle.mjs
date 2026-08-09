@@ -3,16 +3,16 @@
 import { createHash } from "node:crypto";
 
 const documentFormSubmitContracts = new Map([
-  ["UI-002", { path: "/setup", statuses: [302], redirectPath: "/login" }],
-  ["UI-003", { path: "/login", statuses: [302], redirectPath: "/client/live" }],
-  ["UI-004", { path: "/password/change", statuses: [302], redirectPath: "/login" }],
-  ["UI-005", { path: "/logout", statuses: [302], redirectPath: "/login" }],
-  ["UI-007", { path: "/invite/setup", statuses: [302], redirectPath: "/login" }],
-  ["AUTH-004", { path: "/login", statuses: [302], redirectPath: "/client/live" }],
-  ["AUTH-005", { path: "/setup", statuses: [302], redirectPath: "/login" }],
-  ["AUTH-006", { path: "/setup", statuses: [302], redirectPath: "/login" }],
+  ["UI-002", { path: "/setup", statuses: [302], redirectPath: "/login", finalStatuses: [200] }],
+  ["UI-003", { path: "/login", statuses: [302], redirectPath: "/client/live", finalStatuses: [200] }],
+  ["UI-004", { path: "/password/change", statuses: [302], redirectPath: "/login", finalStatuses: [200] }],
+  ["UI-005", { path: "/logout", statuses: [302], redirectPath: "/login", finalStatuses: [200] }],
+  ["UI-007", { path: "/invite/setup", statuses: [302], redirectPath: "/login", finalStatuses: [200] }],
+  ["AUTH-004", { path: "/login", statuses: [302], redirectPath: "/client/live", finalStatuses: [200] }],
+  ["AUTH-005", { path: "/setup", statuses: [302], redirectPath: "/login", finalStatuses: [200] }],
+  ["AUTH-006", { path: "/setup", statuses: [302], redirectPath: "/login", finalStatuses: [200] }],
   ["AUTH-007", { path: "/login", statuses: [403], redirectPath: "" }],
-  ["AUTH-034", { path: "/invite/setup", statuses: [302], redirectPath: "/login" }],
+  ["AUTH-034", { path: "/invite/setup", statuses: [302], redirectPath: "/login", finalStatuses: [200] }],
   ["AUTH-035", { path: "/invite/setup", statuses: [401], redirectPath: "" }],
 ]);
 
@@ -141,6 +141,9 @@ export function buildPostActionLifecyclePlan(item, formResponseIdentity = null) 
         path: documentContract.path,
         statuses: [...documentContract.statuses],
         redirectPath: redirectPath || null,
+        finalStatuses: documentContract.finalStatuses
+          ? [...documentContract.finalStatuses]
+          : null,
       } : null,
       primaryCompletion: {
         actionId: String(primaryAction.actionId || ""),
