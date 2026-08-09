@@ -12,7 +12,7 @@
   },
   "nativeExactManifest": {
     "path": "test/fixtures/v390_ui_native_exact_cases.json",
-    "sha256": "300d09396e2bfdbe805642faf5ae07cc07dacbe4b9174a7818ea5b946c0c4858"
+    "sha256": "5c96821a7c1afe8c520bf90b064b672acb61523e944a630cdf6e952e2b4cadbc"
   },
   "visualMatrixPlan": {
     "path": "test/fixtures/v390_ui_visual_matrix_plan.json",

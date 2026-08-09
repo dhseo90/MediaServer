@@ -292,7 +292,7 @@
     },
     {
       "path": "docs/development-backlog.md",
-      "contentSha256": "fa40e2e09bfaf3fec76be3c19b9f2633633ca157ab317254b3e53191f8e71859",
+      "contentSha256": "57ba620bcc503a7618509ec0c7a995138191162ca3a62fec57c88d2bb4073312",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -912,7 +912,7 @@
     },
     {
       "path": "docs/project-feature-test-inventory.md",
-      "contentSha256": "28c507c366cf3ada6fc102f620e121912aa4a9ac67d7e69e935dcba23c3945d6",
+      "contentSha256": "147d25841a9cb65cb8629695ec457c02b3e01e5e4e41f9d80d8fe1c8440d2323",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1812,7 +1812,7 @@
     },
     {
       "path": "docs/release-evidence-index.md",
-      "contentSha256": "9b154c3f551b60b395acba1744331187c4b615870b7ffca7da018bbd29b0f7f2",
+      "contentSha256": "fd77bc00a6aa020affed4803a7bd7f223dc5ce06c028d487237c4c0555118a02",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1852,7 +1852,7 @@
     },
     {
       "path": "docs/release-test-records.md",
-      "contentSha256": "a8d413e83ae1e9a68fb177318c8b0957e50dc7edf49368387cec1dadf0fd188b",
+      "contentSha256": "5100db31ef992f46433c3a1d47bde40095b238c854472412cf4b1e547aaf68a1",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1952,7 +1952,7 @@
     },
     {
       "path": "docs/stream-verification.md",
-      "contentSha256": "16b2553aa31bf980b3677a5b3a17fcd50b09081cc01ce945e08076c93cb4a135",
+      "contentSha256": "52c17f21a2086b8964a8ee851caac606fa74e169f21cdf89f43f8e6b8ded0553",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",

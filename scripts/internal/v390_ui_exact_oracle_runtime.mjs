@@ -18,6 +18,7 @@ import {
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import { materializeClientSafeExactOracle } from "./v390_ui_exact_client_safe_oracles.mjs";
 import { buildRequestCorrelationEvidence } from "./v390_ui_completion_oracle_lib.mjs";
+import { evaluateRegisteredBrowserCallback } from "./v390_ui_browser_callback_boundary.mjs";
 
 const refreshControls = Object.freeze({
   "/ops": "#opsHomeRefresh",
@@ -1886,16 +1887,9 @@ async function observeRequest(
 }
 
 async function prepareExactViewportObservation(browser, selector) {
-  const prepared = await browser.evaluate(async exactSelector => {
-    const nodes = Array.from(document.querySelectorAll(exactSelector));
-    const scroller = document.scrollingElement;
-    if (nodes.length !== 1 || !scroller) {
-      return { pass: false, nodeCount: nodes.length, scrollerPresent: Boolean(scroller) };
-    }
-    nodes[0].scrollIntoView({ behavior: 'instant', block: 'center', inline: 'center' });
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    return { pass: true, nodeCount: 1, scrollerPresent: true };
-  }, selector);
+  const prepared = await evaluateRegisteredBrowserCallback(browser, "oracle.viewport-owner", {
+    exactSelector: selector,
+  });
   assert(prepared?.pass === true && prepared.nodeCount === 1 && prepared.scrollerPresent === true,
     `exact viewport observation owner is unavailable: ${selector}`);
 }

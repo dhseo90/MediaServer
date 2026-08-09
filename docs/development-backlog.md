@@ -7492,3 +7492,38 @@ reviewer, approval producer, migration producer, native generator, Policy actual
 Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는 사용자 지시에
 따라 미실행하며 정적/fixture/replay PASS를 actual 또는 release 성공으로 승격하지 않습니다.
 별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.
+
+## V390-REVIEW4-65 browser callback free-identifier boundary
+
+개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 commit
+`f8f819c0c7f6c84cd18f5f7b479e1deb51d58127`의 latest actual은 exact
+`424 target / 2 attempted / 1 PASS / UI-002 FAIL / 422 not-run`이며 실패 메시지는
+`primary=assert is not defined`입니다. UI-001 actual ledger는 action-owned `0`, page
+request/response `5/5`, background request/response `2/2`, action/correlation leak `0/0` PASS입니다.
+
+직접 callsite는 `executeCaseNativeAction → beginRequestActionOwnership → createEnvelopeWrapper`이고,
+adapter의 browser callback wrapper를 만들면서 Node lexical `assert`를 참조했지만 해당 모듈에는
+정의/import가 없었습니다. `page.evaluate` 계열은 callback을 browser realm에서 직렬화 실행하므로
+outer helper/constant를 포획할 수 없습니다. 공통 수정은 runner/adapter/runtime/oracle 14개 callback을
+`v390_ui_browser_callback_boundary.mjs`에 등록하고 exact serialized argument/result schema와 Web API만
+사용하게 했으며 결과 validation은 Node 쪽에서 수행합니다. `window.assert`, UI-002 예외,
+`ReferenceError` catch-pass, validation 삭제는 없습니다.
+
+`verify-v390-ui-browser-callback-free-identifier-contract`는 callback source를 실제 직렬화해 격리 VM
+mock-browser에서 14개 전부 실행하고 canonical exact 424와 request 391 branch reachability를 증명합니다.
+Missing argument, wrong schema, wrong browser result, `ReferenceError`는 모두 fail-closed입니다.
+Immutable RED와 130 dynamic callsite/28 file census는 각각
+`v390_browser_callback_free_identifier_red_20260810.json`,
+`v390_browser_callback_free_variable_audit_20260810.json`에 보존합니다.
+
+최종 static/replay 검증은 신규 계약 `6/6`, action/background `5/5`, ownership `4/4`,
+post-action `424/424`, adapter `48/48`, runtime `63/63`, native `55/55`, completion `36/36`,
+diagnostic replay `548/548`, Policy/acceptance/final-integrity, semantic/feature/inventory/docs와 full build를
+포함합니다. Source locator drift는 candidate `0f8a14e7...a28a`의 985 carry-forward + UI-018
+독립 검토 1행으로 재결속했습니다. Reviewer 1회, migration-aware producer 성공 1회,
+native generator와 actual Policy producer는 0회입니다. Producer의 sandbox index 실패와 성공 뒤 stale
+snapshot 재호출은 atomic replacement 전 실패 2회로 별도 보존합니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는 사용자 지시에
+따라 미실행하며 정적/fixture/replay PASS를 actual 또는 release 성공으로 승격하지 않습니다.
+별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.

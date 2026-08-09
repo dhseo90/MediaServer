@@ -55,6 +55,11 @@ const runtimeSource = fs.readFileSync(
   new URL("./v390_ui_exact_oracle_runtime.mjs", import.meta.url),
   "utf8",
 );
+const browserCallbackSource = fs.readFileSync(
+  new URL("./v390_ui_browser_callback_boundary.mjs", import.meta.url),
+  "utf8",
+);
+const runtimeBrowserSource = `${runtimeSource}\n${browserCallbackSource}`;
 const dynamicRegExpAudit = auditInternalDynamicRegExpBoundaries();
 
 await check("fixture-derived literals use one serializable non-RegExp matcher", async () => {
@@ -4052,7 +4057,7 @@ await check("client media readiness and nullable fields preserve their product o
     "scrollIntoView({ behavior: 'instant', block: 'center', inline: 'center' })",
     "requestAnimationFrame(() => requestAnimationFrame(resolve))",
   ]) {
-    assert(runtimeSource.includes(snippet),
+    assert(runtimeBrowserSource.includes(snippet),
       `client runtime lifecycle source missing ${snippet}`);
   }
   assert(!runtimeSource.includes("videoCount >= minimumPlaying"),

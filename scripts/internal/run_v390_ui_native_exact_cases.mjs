@@ -11,6 +11,7 @@ import {
   bindDocumentFormSubmission,
   createNativePlaywrightAdapter,
 } from "./v390_ui_native_adapter.mjs";
+import { evaluateRegisteredBrowserCallback } from "./v390_ui_browser_callback_boundary.mjs";
 import {
   assertExpectedFixtureDigestBeforeBrowser,
   createV390UiCaseRuntime,
@@ -2877,24 +2878,11 @@ async function executeEndpointOwnedAction(
   let response;
   let primaryFailure = null;
   try {
-    response = await browser.evaluate(async ({ method, path, body }) => {
-      const result = await fetch(path, {
-        method,
-        credentials: "same-origin",
-        cache: "no-store",
-        headers: body === null ? {} : { "Content-Type": "application/json" },
-        ...(body === null ? {} : { body: JSON.stringify(body) }),
-      });
-      const text = await result.text();
-      let json = null;
-      try { json = text ? JSON.parse(text) : null; } catch (_) {}
-      return {
-        status: result.status,
-        contentType: result.headers.get("content-type") || "",
-        text,
-        json,
-      };
-    }, { method: request.method, path: request.path, body: request.body });
+    response = await evaluateRegisteredBrowserCallback(browser, "runner.endpoint-request", {
+      method: request.method,
+      path: request.path,
+      body: request.body,
+    });
     await browser.waitForNetworkQuiet({
       correlationId: completionRequest.correlationId,
       minimumObservationMs: 750,
@@ -3359,17 +3347,11 @@ async function executeIndependentReadback(
     ? await caseRuntimeOwner.verifyRejectedActionReadback(item, caseContext)
     : null;
   if (item.caseId === "RULE-097" && rejectedActionReadback) {
-    const domScopeReadback = await browser.evaluate(({ assignedViewId, blockedViewId, disallowedRuleId }) => {
-      const assigned = document.querySelectorAll(`[data-source-view="${CSS.escape(assignedViewId)}"]`);
-      const blocked = document.querySelectorAll(`[data-source-view="${CSS.escape(blockedViewId)}"]`);
-      const text = String(document.body?.innerText || "");
-      return {
-        assignedSourceNodeCount: assigned.length,
-        blockedSourceNodeCount: blocked.length,
-        blockedViewTextAbsent: !text.includes(blockedViewId),
-        disallowedRuleTextAbsent: !text.includes(disallowedRuleId),
-      };
-    }, rejectedActionReadback);
+    const domScopeReadback = await evaluateRegisteredBrowserCallback(
+      browser,
+      "runner.scoped-viewer-dom",
+      rejectedActionReadback,
+    );
     assert(domScopeReadback.assignedSourceNodeCount === 1 &&
       domScopeReadback.blockedSourceNodeCount === 0 &&
       domScopeReadback.blockedViewTextAbsent === true &&

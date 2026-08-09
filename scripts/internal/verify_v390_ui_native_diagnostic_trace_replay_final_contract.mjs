@@ -71,6 +71,8 @@ const manifest = JSON.parse(fs.readFileSync(path.join(runRoot, "diagnostic-nativ
 const source = name => fs.readFileSync(path.join(root, name), "utf8");
 const evaluatorSource = source("scripts/internal/v390_ui_exact_event_oracle_evaluator.mjs");
 const runtimeSource = source("scripts/internal/v390_ui_exact_oracle_runtime.mjs");
+const browserCallbackSource = source("scripts/internal/v390_ui_browser_callback_boundary.mjs");
+const viewportRuntimeSource = `${runtimeSource}\n${browserCallbackSource}`;
 const caseRuntimeSource = source("scripts/internal/v390_ui_case_runtime.mjs");
 const completionSource = source("scripts/internal/v390_ui_completion_oracle_lib.mjs");
 const adapterSource = source("scripts/internal/v390_ui_native_adapter.mjs");
@@ -538,10 +540,10 @@ close(["EVT-075"], evt075Completion.pass &&
   "query-bearing authoritative response is not bound to its actual 1/1 correlation evidence");
 
 close(["CLIENT-019"],
-  runtimeSource.includes("prepareExactViewportObservation") &&
-    runtimeSource.includes("document.scrollingElement") &&
-    runtimeSource.includes("block: 'center'") &&
-    runtimeSource.includes("requestAnimationFrame(() => requestAnimationFrame(resolve))"),
+  viewportRuntimeSource.includes("prepareExactViewportObservation") &&
+    viewportRuntimeSource.includes("document.scrollingElement") &&
+    viewportRuntimeSource.includes("block: 'center'") &&
+    viewportRuntimeSource.includes("requestAnimationFrame(() => requestAnimationFrame(resolve))"),
   "viewport observation is not centered on the authoritative document scroller before strict measurement");
 
 for (const caseId of ["SAFE-016", "SAFE-017"]) {

@@ -3460,11 +3460,14 @@ check("runner and producer share typed capture schema while qualifier is indepen
   assert(runnerSource.includes("observeRequestedObservedState"),
     "runner does not independently observe screen route/role/viewport/theme/control action");
   const adapterSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
-  assert(adapterSource.includes("response.status === 401") &&
-    adapterSource.includes("whoami observation failed with status") &&
-    adapterSource.includes("whoami observation returned an invalid authenticated principal"),
+  const browserCallbackSource = fs.readFileSync(path.join(rootDir,
+    "scripts/internal/v390_ui_browser_callback_boundary.mjs"), "utf8");
+  const adapterBrowserSource = `${adapterSource}\n${browserCallbackSource}`;
+  assert(adapterBrowserSource.includes("response.status === 401") &&
+    adapterBrowserSource.includes("whoami observation failed with status") &&
+    adapterBrowserSource.includes("whoami observation returned an invalid authenticated principal"),
   "adapter folds whoami transport/status/schema failures into anonymous role");
-  assert(!adapterSource.includes("principal = null"),
+  assert(!adapterBrowserSource.includes("principal = null"),
     "adapter retains whoami failure-to-anonymous fallback");
   assert(!producerSource.includes("result.observed || result.requested"),
     "producer still falls back from missing observed to requested");

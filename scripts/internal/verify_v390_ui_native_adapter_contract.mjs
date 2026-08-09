@@ -56,6 +56,8 @@ runner integration, dispatch/docs, and preserved standalone native evidence.
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const adapterSource = readText("scripts/internal/v390_ui_native_adapter.mjs");
+const browserCallbackSource = readText("scripts/internal/v390_ui_browser_callback_boundary.mjs");
+const adapterBrowserSource = `${adapterSource}\n${browserCallbackSource}`;
 const runnerSource = readText("scripts/internal/verify_v390_ui_automation.mjs");
 const exactRunnerSource = readText("scripts/internal/run_v390_ui_native_exact_cases.mjs");
 const caseRuntimeSource = readText("scripts/internal/v390_ui_case_runtime.mjs");
@@ -1077,13 +1079,13 @@ check("fixture responses use an exact opaque initiating request handle", () => {
 });
 
 check("whoami observation keeps setup-required and unauthorized sessions anonymous", () => {
-  const unauthenticatedBranches = adapterSource.match(/principal\?\.authenticated === false/g) || [];
+  const unauthenticatedBranches = adapterBrowserSource.match(/principal\?\.authenticated === false/g) || [];
   assert(unauthenticatedBranches.length === 2,
     `setup-required anonymous handling must cover requested/observed and visual capture: ${unauthenticatedBranches.length}`);
-  assert(/if \(response\.status === 401\) \{\s+accountRole = ["']anonymous["'];/.test(adapterSource) &&
-    /if \(principal\?\.authenticated === false\) \{\s+accountRole = ["']anonymous["'];/.test(adapterSource),
+  assert(/if \(response\.status === 401\) \{\s+accountRole = ["']anonymous["'];/.test(adapterBrowserSource) &&
+    /if \(principal\?\.authenticated === false\) \{\s+accountRole = ["']anonymous["'];/.test(adapterBrowserSource),
   "whoami observation does not distinguish 401 and setup-required unauthenticated principals");
-  assert(/principal\?\.authenticated === true && typeof principal\?\.role === ["']string["']/.test(adapterSource),
+  assert(/principal\?\.authenticated === true && typeof principal\?\.role === ["']string["']/.test(adapterBrowserSource),
     "authenticated whoami observation no longer requires an exact role");
 });
 
@@ -1750,6 +1752,8 @@ function cssOnlyNativeSelectorOwners() {
     "ui_visual_smoke_lib.mjs::item",
     "ui_visual_smoke_lib.mjs::selector",
     "v390_ui_case_runtime.mjs::selector",
+    "v390_ui_browser_callback_boundary.mjs::argument.selector",
+    "v390_ui_browser_callback_boundary.mjs::argument.exactSelector",
     "v390_ui_exact_oracle_runtime.mjs::descendantSelector",
     "v390_ui_exact_oracle_runtime.mjs::exactSelector",
     "v390_ui_exact_oracle_runtime.mjs::memorySelector",

@@ -13,6 +13,7 @@ import {
   selectExactNavigationOwnerLifecycle,
 } from "./v390_ui_shared_adapter_lifecycle.mjs";
 import { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
+import { evaluateRegisteredBrowserCallback } from "./v390_ui_browser_callback_boundary.mjs";
 import { createRequestActionOwnershipRegistry } from "./v390_ui_request_action_ownership.mjs";
 import {
   assertZeroActionCorrelationLeaks,
@@ -186,6 +187,40 @@ export function secretStrippedBrowserEnv(sourceEnv = process.env) {
 }
 
 const correlationHeaderName = "x-media-server-correlation-id";
+
+export function createAdapterActionRequestEnvelopeWrapper({
+  requestActionOwnershipRegistry,
+  context,
+  requestEnvelope,
+  caseId = "",
+  requestKind = "application-fetch",
+  registrationKind = "manifest-envelope",
+} = {}) {
+  requestActionOwnershipRegistry.validate(context, {
+    caseId,
+    actionId: context.actionId,
+    phase: context.phase,
+  });
+  const envelope = normalizeActionRequestEnvelope(requestEnvelope, {
+    caseId,
+    phase: context.phase,
+    actionId: context.actionId,
+    correlationId: context.correlationId,
+    requestKind,
+    registrationKind,
+  });
+  if (envelope.actionId !== context.actionId ||
+      envelope.phase !== context.phase ||
+      envelope.correlationId !== context.correlationId) {
+    throw new Error("action request envelope does not match its active context");
+  }
+  return {
+    ledger: createActionRequestEnvelopeLedger(envelope),
+    claimCount: 0,
+    responseCount: 0,
+    closed: false,
+  };
+}
 
 function correlationDigest(value) {
   return value
@@ -748,29 +783,14 @@ async function openNativePlaywrightPage(playwright, {
     requestKind = "application-fetch",
     registrationKind = "manifest-envelope",
   } = {}) => {
-    requestActionOwnershipRegistry.validate(context, {
+    const wrapper = createAdapterActionRequestEnvelopeWrapper({
+      requestActionOwnershipRegistry,
+      context,
+      requestEnvelope,
       caseId,
-      actionId: context.actionId,
-      phase: context.phase,
-    });
-    const envelope = normalizeActionRequestEnvelope(requestEnvelope, {
-      caseId,
-      phase: context.phase,
-      actionId: context.actionId,
-      correlationId: context.correlationId,
       requestKind,
       registrationKind,
     });
-    assert(envelope.actionId === context.actionId &&
-      envelope.phase === context.phase &&
-      envelope.correlationId === context.correlationId,
-    "action request envelope does not match its active context");
-    const wrapper = {
-      ledger: createActionRequestEnvelopeLedger(envelope),
-      claimCount: 0,
-      responseCount: 0,
-      closed: false,
-    };
     activeActionRequestLedgers.push(wrapper);
     return wrapper;
   };
@@ -1260,23 +1280,11 @@ async function openNativePlaywrightPage(playwright, {
     const candidates = page.locator(ownedSelector);
     const candidateCount = ownedSelector ? await candidates.count() : 0;
     const owner = candidateCount === 1
-      ? await candidates.first().evaluate((element, { selectorValue, documentEpoch }) => {
-          const rect = element.getBoundingClientRect();
-          const style = getComputedStyle(element);
-          const viewportDocumentOwner = selectorValue === "body" &&
-            document.visibilityState === "visible" &&
-            document.documentElement.clientWidth > 0 &&
-            document.documentElement.clientHeight > 0;
-          return {
-            selector: selectorValue,
-            candidateCount: 1,
-            navigationEpoch: documentEpoch,
-            exists: true,
-            visible: Boolean(style && style.display !== "none" &&
-              style.visibility !== "hidden" && Number(style.opacity || 1) > 0 &&
-              ((rect.width > 0 && rect.height > 0) || viewportDocumentOwner)),
-          };
-        }, { selectorValue: ownedSelector, documentEpoch: documentNavigationEpoch })
+      ? await evaluateRegisteredBrowserCallback(
+          candidates.first(),
+          "adapter.navigation-owner",
+          { selectorValue: ownedSelector, documentEpoch: documentNavigationEpoch },
+        )
       : {
           selector: ownedSelector,
           candidateCount,
@@ -2098,36 +2106,7 @@ async function openNativePlaywrightPage(playwright, {
       activeExplicitCorrelationRegistration = explicitRegistration;
       let response;
       try {
-        response = await page.evaluate(async ({
-          requestMethod: evaluatedMethod,
-          requestPath: evaluatedPath,
-          requestCorrelationId,
-          requestBody,
-        }) => {
-          const result = await fetch(evaluatedPath, {
-            method: evaluatedMethod,
-            credentials: "same-origin",
-            cache: "no-store",
-            redirect: "follow",
-            headers: {
-              ...(requestCorrelationId
-                ? { "x-media-server-correlation-id": requestCorrelationId }
-                : {}),
-              ...(requestBody === null ? {} : { "Content-Type": "application/json" }),
-            },
-            ...(requestBody === null ? {} : { body: JSON.stringify(requestBody) }),
-          });
-          const text = await result.text();
-          let json = null;
-          try { json = text ? JSON.parse(text) : null; } catch (_) {}
-          return {
-            status: result.status,
-            url: result.url,
-            text,
-            json,
-            contentType: result.headers.get("content-type") || "",
-          };
-        }, {
+        response = await evaluateRegisteredBrowserCallback(page, "adapter.request", {
           requestMethod,
           requestPath,
           requestCorrelationId: explicitCorrelationId,
@@ -2827,43 +2806,18 @@ async function openNativePlaywrightPage(playwright, {
     } = {}) => {
       const selectorValue = selector === null ? null : String(selector);
       const ownerSelectorValue = ownerSelector === null ? selectorValue : String(ownerSelector);
-      const contextObservation = await page.evaluate(async () => {
-        const response = await fetch("/auth/whoami", { credentials: "same-origin", cache: "no-store" });
-        let accountRole = "";
-        if (response.status === 401) {
-          accountRole = "anonymous";
-        } else {
-          if (!response.ok) throw new Error(`whoami observation failed with status ${response.status}`);
-          const principal = await response.json();
-          if (principal?.authenticated === false) {
-            accountRole = "anonymous";
-          } else if (principal?.authenticated === true && typeof principal?.role === "string") {
-            accountRole = principal.role;
-          } else {
-            throw new Error("whoami observation returned an invalid authenticated principal");
-          }
-        }
-        return {
-          screenRoute: location.pathname,
-          accountRole,
-          viewport: { width: innerWidth, height: innerHeight },
-          theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-        };
-      });
+      const contextObservation = await evaluateRegisteredBrowserCallback(
+        page,
+        "adapter.runtime-context",
+      );
       let controlObservation = { exists: false, visible: false, disabled: false };
       if (ownerSelectorValue) {
         const locator = page.locator(ownerSelectorValue).first();
         if (await locator.count() === 1) {
-          controlObservation = await locator.evaluate(element => {
-            const rect = element.getBoundingClientRect();
-            const style = getComputedStyle(element);
-            return {
-              exists: true,
-              visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style &&
-                style.display !== "none" && style.visibility !== "hidden"),
-              disabled: Boolean("disabled" in element && element.disabled),
-            };
-          });
+          controlObservation = await evaluateRegisteredBrowserCallback(
+            locator,
+            "adapter.control-observation",
+          );
         }
       }
       return {

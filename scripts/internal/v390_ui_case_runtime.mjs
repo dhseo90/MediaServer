@@ -15,6 +15,7 @@ import {
   validateIncidentMemorySearchResponseProjection,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import { ruleRelationshipFixtureIdentity } from "./v390_ui_native_exact_cases_lib.mjs";
+import { evaluateRegisteredBrowserCallback } from "./v390_ui_browser_callback_boundary.mjs";
 
 const descriptorSchema = "media-server.v390-ui-runtime-descriptor.v1";
 const roleMapSchema = "media-server.v390-ui-role-state-map.v1";
@@ -5533,31 +5534,10 @@ export function createV390UiCaseRuntime({
       );
       assert(runtime.browser && typeof runtime.browser.evaluate === "function",
         `${item.caseId} alert dry-run browser readback is unavailable`);
-      const dom = await runtime.browser.evaluate(() => {
-        const previews = document.querySelectorAll('#alertDeliveryPayloadPreview');
-        const results = document.querySelectorAll('#alertDeliveryDryRunResult');
-        const preview = previews.length === 1 ? previews[0] : null;
-        const result = results.length === 1 ? results[0] : null;
-        return {
-          previewCount: previews.length,
-          resultCount: results.length,
-          preview: preview ? {
-            schema: preview.dataset.eventSemanticSchema || '',
-            deliveryId: preview.dataset.eventSemanticDeliveryId || '',
-            eventId: preview.dataset.eventSemanticEventId || '',
-            eventType: preview.dataset.eventSemanticEventType || '',
-            sourceId: preview.dataset.eventSemanticSourceId || '',
-            payloadRedacted: preview.dataset.eventSemanticPayloadRedacted || '',
-          } : null,
-          result: result ? {
-            status: result.dataset.eventSemanticStatus || '',
-            dryRun: result.dataset.eventSemanticDryRun || '',
-            attemptCount: result.dataset.eventSemanticAttemptCount || '',
-            externalDeliveryPerformed: result.dataset.eventSemanticExternalDeliveryPerformed || '',
-            auditAction: result.dataset.eventSemanticAuditAction || '',
-          } : null,
-        };
-      });
+      const dom = await evaluateRegisteredBrowserCallback(
+        runtime.browser,
+        "runtime.alert-delivery-dom",
+      );
       return validateAlertDeliveryDryRunReadback({
         caseId: item.caseId,
         fixtureId: context.fixtureId,
@@ -5736,7 +5716,10 @@ export function createV390UiCaseRuntime({
       assert(principal.status === 200 && principal.authenticated === true &&
         principal.username === values.username && principal.role === "viewer",
       `${item.caseId} login principal authoritative readback mismatch`);
-      const landing = await browser.evaluate(() => location.pathname);
+      const landing = (await evaluateRegisteredBrowserCallback(
+        browser,
+        "runtime.location-pathname",
+      )).pathname;
       const boundary = await observeBrowserRoleBoundary(browser);
       return {
         ...common,
@@ -6880,23 +6863,7 @@ function stableUsersAuthSha256(usersFile) {
 
 async function observeBrowserWhoami(browser, caseId) {
   assert(browser?.evaluate, `${caseId} browser whoami readback adapter missing`);
-  const principal = await browser.evaluate(async () => {
-    const response = await fetch("/auth/whoami", {
-      credentials: "same-origin",
-      cache: "no-store",
-      redirect: "follow",
-    });
-    let body = {};
-    try { body = await response.json(); } catch { body = {}; }
-    return {
-      status: response.status,
-      authenticated: body?.authenticated === true,
-      username: typeof body?.username === "string" ? body.username : "",
-      role: typeof body?.role === "string" ? body.role : "",
-      scopes: Array.isArray(body?.scopes) ? body.scopes.map(value => String(value)) : [],
-      setupRequired: body?.setupRequired === true,
-    };
-  });
+  const principal = await evaluateRegisteredBrowserCallback(browser, "runtime.whoami");
   assert(principal && Number.isInteger(principal.status), `${caseId} browser whoami result invalid`);
   return principal;
 }
@@ -6911,20 +6878,7 @@ function safePrincipal(value) {
 }
 
 async function observeBrowserRoleBoundary(browser) {
-  return browser.evaluate(async () => {
-    const request = async path => {
-      const response = await fetch(path, {
-        credentials: "same-origin",
-        cache: "no-store",
-        redirect: "follow",
-      });
-      return response.status;
-    };
-    return {
-      clientStatus: await request("/client/api/views"),
-      opsStatus: await request("/ops/api/users"),
-    };
-  });
+  return evaluateRegisteredBrowserCallback(browser, "runtime.role-boundary");
 }
 
 async function observeCurrentOpsUsersUi(browser, {
@@ -6934,21 +6888,11 @@ async function observeCurrentOpsUsersUi(browser, {
 } = {}) {
   assert(sectionSelector && identity, "ops users UI readback identity is incomplete");
   await browser.waitForSelector(`${sectionSelector} tr:has-text(${JSON.stringify(identity)})`);
-  return browser.evaluate(({ selector, expectedIdentity, secret }) => {
-    const section = document.querySelector(selector);
-    const text = String(section?.innerText || "");
-    const bodyText = String(document.body?.innerText || "");
-    const matchingRows = Array.from(section?.querySelectorAll("tr") || [])
-      .filter(row => String(row.innerText || "").includes(expectedIdentity));
-    return {
-      identityVisible: matchingRows.length === 1,
-      matchingRowCount: matchingRows.length,
-      pendingVisible: text.includes(expectedIdentity) && /대기|pending/i.test(text),
-      adminAllScopesVisible: text.includes(expectedIdentity) && text.includes("모든 범위"),
-      forbiddenMarkersAbsent: !/passwordHash|passwordHistory|tokenHash/i.test(bodyText),
-      forbiddenSecretAbsent: !secret || !text.includes(secret),
-    };
-  }, { selector: sectionSelector, expectedIdentity: identity, secret: forbiddenSecret });
+  return evaluateRegisteredBrowserCallback(browser, "runtime.ops-users-dom", {
+    selector: sectionSelector,
+    expectedIdentity: identity,
+    secret: forbiddenSecret,
+  });
 }
 
 async function inspectOpsUsersUiWithLogin(browser, {
@@ -6964,16 +6908,10 @@ async function inspectOpsUsersUiWithLogin(browser, {
   browser.registerRuntimeSecret(password);
   let observation = null;
   try {
-    const login = await browser.evaluate(async credentials => {
-      const response = await fetch("/login", {
-        method: "POST",
-        credentials: "same-origin",
-        redirect: "follow",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams(credentials),
-      });
-      return { status: response.status, pathname: new URL(response.url).pathname };
-    }, { username, password });
+    const login = await evaluateRegisteredBrowserCallback(browser, "runtime.login", {
+      username,
+      password,
+    });
     assert(login.status === 200 && login.pathname.startsWith("/ops/"),
       "ops users isolated UI readback login failed");
     const navigation = await browser.navigate("/ops/users", {
@@ -6983,15 +6921,7 @@ async function inspectOpsUsersUiWithLogin(browser, {
     assert(navigation.status === 200, "ops users isolated UI readback navigation failed");
     observation = await observeCurrentOpsUsersUi(browser, { sectionSelector, identity });
   } finally {
-    await browser.evaluate(async () => {
-      try {
-        await fetch("/logout", {
-          method: "POST",
-          credentials: "same-origin",
-          redirect: "manual",
-        });
-      } catch {}
-    });
+    await evaluateRegisteredBrowserCallback(browser, "runtime.logout");
     await browser.navigate(returnPath, {
       invocationId: `${caseId}:form-readback-restore-navigation`,
       kind: "form-readback-restore-navigation",
