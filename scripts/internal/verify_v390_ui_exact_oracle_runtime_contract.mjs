@@ -2309,9 +2309,26 @@ await check("EVT-023 binds one authoritative event row to one Ops timeline row",
     missingApiProjection.fixtureObserved.failureCode === "FIXTURE_IDENTITY_FIELDS_MISSING",
   "missing typed API identity projection did not fail closed");
   const missingDomIdentity = evidenceFor({ dom: { ...observed, fixtureIdentityNodes: [] } });
-  assert(missingDomIdentity.pass === false &&
-    missingDomIdentity.fixtureObserved.failureCode === "API_DOM_FIXTURE_IDENTITY_MISMATCH",
-  "missing DOM owner attribute identity did not fail closed");
+  assert(missingDomIdentity.pass === true &&
+    missingDomIdentity.fixtureObserved.routeLocalRendererIdentityMatched === true &&
+    missingDomIdentity.fixtureObserved.domIdentityCandidateCount === 1 &&
+    missingDomIdentity.fixtureObserved.domIdentityMatchedCount === 1,
+  "route-local renderer identity did not close the missing generic owner attribute boundary");
+  const missingRouteLocalDomIdentity = evidenceFor({ dom: {
+    ...observed,
+    fixtureIdentityNodes: [],
+    properties: {
+      ...observed.properties,
+      routeLocalIncidentTimeline: {
+        ...observed.properties.routeLocalIncidentTimeline,
+        domEventIdentityDigests: [unrelatedDigest],
+      },
+    },
+  } });
+  assert(missingRouteLocalDomIdentity.pass === false &&
+    missingRouteLocalDomIdentity.fixtureObserved.failureCode === "API_DOM_FIXTURE_IDENTITY_MISMATCH" &&
+    missingRouteLocalDomIdentity.fixtureObserved.routeLocalRendererIdentityMatched === false,
+  "missing route-local DOM identity did not fail closed");
   const duplicateDomIdentity = evidenceFor({ dom: {
     ...observed,
     fixtureIdentityNodes: [{ eventId }, { eventId }],

@@ -1185,6 +1185,7 @@ check("parent and child share one fail-closed diagnostic selection registry", ()
       "diagnostic-failure-closure-sweep",
       "event-record-owner-impact-sweep",
       "event-record-optional-template-closure-sweep",
+      "remaining-actual-census-sweep",
     ]), "diagnostic selection registry mode set drift");
   assert(diagnosticSelectionModeForArtifactSchema(
     "media-server.v390-ui-shared-adapter-impact.v1") ===
@@ -1200,7 +1201,10 @@ check("parent and child share one fail-closed diagnostic selection registry", ()
         diagnosticSelectionModes.eventRecordOwnerImpactSweep &&
     diagnosticSelectionModeForArtifactSchema(
       "media-server.v390-ui-event-record-optional-template-closure.v1") ===
-        diagnosticSelectionModes.eventRecordOptionalTemplateClosureSweep,
+        diagnosticSelectionModes.eventRecordOptionalTemplateClosureSweep &&
+    diagnosticSelectionModeForArtifactSchema(
+      "media-server.v390-ui-remaining-actual-census-selection.v1") ===
+        diagnosticSelectionModes.remainingActualCensusSweep,
   "diagnostic artifact schema registry drift");
   for (const stale of ["", "stale-mode", "diagnostic-failure-census-sweep-v0"]) {
     let failed = false;
@@ -1607,6 +1611,80 @@ check("immutable optional/template closure selects exactly EVT-007 and EVT-020 t
   "optional/template closure did not pass the real no-browser child subprocess preflight");
 });
 
+check("immutable remaining actual census binds the canonical FAIL plus 132 not-run cases", () => {
+  const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const outputDir = fs.mkdtempSync(path.join(parent, "remaining-actual-census-contract-"));
+  temporaryDirs.push(outputDir);
+  const artifactPath = "test/fixtures/v390_ui_remaining_actual_census_20260809.json";
+  const artifact = JSON.parse(read(artifactPath));
+  const canonicalSummaryPath = path.join(rootDir,
+    artifact.sourceBinding.canonicalSummaryPath);
+  const canonicalSummary = JSON.parse(fs.readFileSync(canonicalSummaryPath, "utf8"));
+  const canonicalManifest = JSON.parse(read(
+    artifact.sourceBinding.canonicalManifestPath));
+  const canonicalIds = canonicalManifest.cases.map(item => item.testId);
+  const selectedRows = canonicalSummary.cases
+    .filter(item => item.status === "FAIL" || item.status === "not-run");
+  const selectedIds = selectedRows.map(item => item.testId);
+  const failIds = selectedRows.filter(item => item.status === "FAIL")
+    .map(item => item.testId);
+  const notRunIds = selectedRows.filter(item => item.status === "not-run")
+    .map(item => item.testId);
+  assert(sha256File(canonicalSummaryPath) ===
+    artifact.sourceBinding.canonicalSummarySha256 &&
+    sha256File(path.join(rootDir, artifact.sourceBinding.canonicalManifestPath)) ===
+      artifact.sourceBinding.canonicalManifestSha256 &&
+    stableJson(selectedIds) === stableJson(artifact.selectedIds) &&
+    stableJson(failIds) === stableJson(artifact.priorFailIds) &&
+    stableJson(notRunIds) === stableJson(artifact.priorNotRunIds) &&
+    selectedIds.length === 133 && new Set(selectedIds).size === 133 &&
+    stableJson(selectedIds) === stableJson(canonicalIds.slice(291)) &&
+    artifact.sourceBinding.selectedStatusBindingSha256 === sha256(
+      selectedRows.map(item => `${item.testId}\t${item.status}`).join("\n")),
+  "remaining actual census source, status, order, or digest binding mismatch");
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", artifactPath,
+    "--plan-only",
+    "--output-dir", outputDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status === 0, `remaining actual census plan failed: ${run.stderr || run.stdout}`);
+  const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
+  assert(summary.selection?.mode === "remaining-actual-census-sweep" &&
+    summary.selection?.targetCaseCount === 133 &&
+    stableJson(summary.selection?.selectedIds) === stableJson(artifact.selectedIds) &&
+    new Set(summary.selection?.selectedIds || []).size === 133 &&
+    summary.counts.target === 133 && summary.counts.attempted === 0 &&
+    summary.counts.pass === 0 && summary.counts.fail === 0 &&
+    summary.counts.notRun === 133 && summary.counts.unsupported === 0 &&
+    summary.actualBrowserExecution === false,
+  "remaining actual census plan count/order/browser boundary mismatch");
+  const childPreflight = summary.childSelectionPreflight;
+  assert(childPreflight?.status === "PASS" && childPreflight.exitCode === 0 &&
+    childPreflight.actualBrowserExecution === false &&
+    childPreflight.selectionMode === "remaining-actual-census-sweep" &&
+    childPreflight.targetCaseCount === 133 &&
+    childPreflight.targetCaseIdsSha256 === summary.selection.targetCaseIdsSha256 &&
+    childPreflight.childAcceptedTargetCaseCount === 133 &&
+    childPreflight.childAcceptedTargetCaseIdsSha256 ===
+      summary.selection.targetCaseIdsSha256,
+  "remaining actual census child selection preflight binding mismatch");
+  const tampered = structuredClone(artifact);
+  tampered.selectedIds = tampered.selectedIds.slice(1);
+  const tamperedPath = path.join(outputDir, "tampered-remaining-census.json");
+  fs.writeFileSync(tamperedPath, `${JSON.stringify(tampered)}\n`, "utf8");
+  const rejected = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-diagnostic-sweep",
+    "--selection-artifact", tamperedPath,
+    "--plan-only",
+    "--output-dir", path.join(outputDir, "tampered-output"),
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(rejected.status !== 0 &&
+    `${rejected.stderr || ""}${rejected.stdout || ""}`.includes("immutable digest mismatch"),
+  "tampered remaining actual census selection was accepted");
+});
+
 check("child selection preflight failure preserves process evidence without attempting a UI case", () => {
   const parent = path.join(rootDir, ".media_server.test", "v3.9.0", "ui-diagnostic-sweep");
   fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
@@ -1847,6 +1925,14 @@ function writeSelectionContract(outputDir, mode, selectedIds) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function sha256(value) {
+  return createHash("sha256").update(String(value)).digest("hex");
+}
+
+function sha256File(filePath) {
+  return createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 }
 
 function stableJson(value) {

@@ -1907,6 +1907,7 @@ async function observeDom(
       semanticNodes: nodes.slice(0, 20).map((node, index) => {
         const row = node.closest('[data-event-review-row]');
         const semanticOwner = node.closest('[data-event-semantic-event-id]');
+        const alertDeliveryOwner = node.closest('[data-alert-delivery-id]');
         const resolutionOwner = node.closest('[data-v320-resolution-detail]');
         const incidentMemoryOwner = node.closest('[data-incident-memory-hit]');
         const fieldEntries = Array.from(node.querySelectorAll('[data-event-semantic-field]')).map(field => ({
@@ -1936,6 +1937,13 @@ async function observeDom(
             return selected.flatMap(value => delimiter ? value.split(delimiter) : [value])
               .map(value => value.trim()).filter(Boolean).map(text => ({ name, text }));
           }
+          if (descriptor?.mode === 'control-value') {
+            return Array.from(node.querySelectorAll(String(descriptor?.selector || '')))
+              .map(field => field instanceof HTMLInputElement && field.type === 'checkbox'
+                ? String(field.checked)
+                : String(field.value ?? ''))
+              .map(text => ({ name, text }));
+          }
           return [];
         });
         fieldEntries.push(...declaredFieldEntries);
@@ -1944,6 +1952,7 @@ async function observeDom(
           index,
           eventId: String(row?.getAttribute('data-event-id') ||
             semanticOwner?.getAttribute('data-event-semantic-event-id') ||
+            alertDeliveryOwner?.getAttribute('data-alert-delivery-id') ||
             resolutionOwner?.getAttribute('data-v320-resolution-detail') ||
             incidentMemoryOwner?.getAttribute('data-incident-memory-hit') || ''),
           attributes: Object.fromEntries(Array.from(node.attributes || [])
@@ -3376,7 +3385,7 @@ function buildDeclaredEventDomBindingEvidence({
   const assertionKey = `${String(assertion.operator || "")}\n${String(assertion.target || "")}`;
   const baseline = eventRuntimeContext?.domResponseBaselineByAssertionKey?.[assertionKey];
   if (!baseline) return finish({ pass: false, failureCode: "DECLARED_RESPONSE_BASELINE_MISSING" });
-  if (["event-record-text", "source-health-text"].includes(binding.domKind)) {
+  if (["audit-entry-text", "event-record-text", "source-health-text"].includes(binding.domKind)) {
     return finish({
       pass: true,
       expectedRows: baseline.expectedRows || [{
@@ -3911,9 +3920,21 @@ export function buildEventDomSemanticCompositeEvidence({
   const rowLocalBaselines = Object.values(priorResponseByPath)
     .filter(isEventRowLocalResponseBaseline);
   const apiIdentityCandidates = rowLocalBaselines.map(baseline => String(baseline.identityValue));
-  const domIdentityCandidates = Array.isArray(observed?.fixtureIdentityNodes)
+  const genericDomIdentityCandidates = Array.isArray(observed?.fixtureIdentityNodes)
     ? observed.fixtureIdentityNodes.map(node => String(node?.eventId || "")).filter(Boolean)
     : [];
+  const routeLocalRendererIdentityMatched = Boolean(exactFixtureDescriptor &&
+    genericDomIdentityCandidates.length === 0 &&
+    routeLocalDomBinding?.pass === true &&
+    routeLocalDomBinding.rendererOwner === "renderDashboardIncidentTimeline" &&
+    routeLocalDomBinding.stageFixtureMatches?.dom === 1 &&
+    routeLocalDomBinding.domEventIdentityDigests?.length ===
+      routeLocalDomBinding.domEventRecordCount &&
+    routeLocalDomBinding.domEventIdentityDigests?.filter(digest =>
+      digest === routeLocalDomBinding.expectedFixtureDigest).length === 1);
+  const domIdentityCandidates = routeLocalRendererIdentityMatched
+    ? [...genericDomIdentityCandidates, String(exactFixtureDescriptor.identityValue)]
+    : genericDomIdentityCandidates;
   const domIdentityMatches = exactFixtureDescriptor
     ? domIdentityCandidates.filter(identity => identity === String(exactFixtureDescriptor.identityValue))
     : [];
@@ -4026,7 +4047,10 @@ export function buildEventDomSemanticCompositeEvidence({
     apiSelectedOwnerIdentitySourceDigest: rowLocalBaselines.length === 1
       ? sha256Digest(`${rowLocalBaselines[0].collectionPath}:${rowLocalBaselines[0].identityPaths.join("|")}`)
       : sha256Digest(""),
-    domOwnerAttributeIdentitySourceDigest: sha256Digest("fixtureIdentityNodes[].eventId"),
+    domOwnerAttributeIdentitySourceDigest: sha256Digest(routeLocalRendererIdentityMatched
+      ? "routeLocalDomBinding.domEventIdentityDigests"
+      : "fixtureIdentityNodes[].eventId"),
+    routeLocalRendererIdentityMatched,
     apiIdentityCandidateCount: apiIdentityCandidates.length,
     apiIdentityMatchedCount: exactFixtureDescriptor
       ? apiIdentityCandidates.filter(identity =>

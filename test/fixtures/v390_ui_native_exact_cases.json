@@ -5,9 +5,9 @@
     "canonicalSha256": "78e496f53fe2b8c9484e548cf430273dcaa8af4a8a67338f647a1b5028dd12dc",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "4454be2ffc7648b22a1f7b3512ce8e7e60c454a5ae4a416147da8a83e027c905",
+    "implementationProjectionSha256": "239d8f2db6ee6b9c76697b43a2eed5529f08dcfeafda82ff3036d8a84f45c35d",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "44ac31b20e2457460cbccd5023dc1b57249f63934b84b12b73f38c81595286e2",
+    "runtimeOracleCatalogSha256": "7b4aa1eed739f95274c284e94607539bcbc2e4eec2188ab41b8d1c66274a2bd2",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -204264,7 +204264,7 @@
           "route": "/ops/events",
           "role": "operator",
           "featureMeaning": "audit list filtering, detail, and JSON/CSV/diff export represent the same audit events",
-          "specSha256": "f6a53053be79f4b640f920dc72437a6fb9393c284d9ce284e0aaca293a623887",
+          "specSha256": "1272e76bd180b43cdb13c2ba4320f28f82c339a7fcf1ddb658964c19b991930e",
           "requestCount": 3,
           "domAssertionCount": 3,
           "stateSnapshotCount": 10,

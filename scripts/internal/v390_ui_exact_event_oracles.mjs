@@ -578,7 +578,15 @@ const specs = [
       api("GET", "/ops/api/audit?format=diff-json&eventId=evt-022-review4-fixture", body(["entries", "contains-fixture-diff", true], ["entries[].after", "object", true])),
     ],
     domAssertions: [
-      dom("#event-review-audit-list [data-audit-list-body]", ["contains-fixture-audit", "eventId/action", true]),
+      dom("#event-review-audit-list [data-audit-list-body]", ["contains-fixture-audit", "eventId/action", true, rowLocalDom({
+        collectionPath: "entries",
+        identityPaths: ["eventId"],
+        domKind: "audit-entry-text",
+        fields: [
+          domField("eventId", "eventId", "text"),
+          domField("action", "action", "text"),
+        ],
+      })]),
       dom("#event-review-audit-list [data-audit-detail]", ["detail-equals-response", "before/after", true]),
       dom("#event-review-audit-list [data-audit-export=json], #event-review-audit-list [data-audit-export=csv], #event-review-audit-list [data-audit-export=diff-json]", ["export-download-matches-api", "fixtureId", true]),
     ],

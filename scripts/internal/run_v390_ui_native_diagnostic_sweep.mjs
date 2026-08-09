@@ -624,6 +624,49 @@ function selectedDiagnosticCases({
     selected.forEach(assertDiagnosticRuntimeBinding);
     return selected;
   }
+  if (selectionMode === diagnosticSelectionModes.remainingActualCensusSweep) {
+    assert(!caseId, "remaining actual census selection cannot receive --case-id");
+    const artifact = readJson(selectionArtifact);
+    assert(artifact.schema === "media-server.v390-ui-remaining-actual-census-selection.v1",
+      "remaining actual census schema mismatch");
+    const { digest, ...payload } = artifact;
+    assert(/^[0-9a-f]{64}$/.test(digest) && sha256(stableJson(payload)) === digest,
+      "remaining actual census immutable digest mismatch");
+    const selectedIds = artifact.selectedIds;
+    const priorFailIds = artifact.priorFailIds;
+    const priorNotRunIds = artifact.priorNotRunIds;
+    assert(Array.isArray(selectedIds) && selectedIds.length === 133 &&
+      new Set(selectedIds).size === selectedIds.length &&
+      Array.isArray(priorFailIds) && stableJson(priorFailIds) === stableJson(["EVT-007"]) &&
+      Array.isArray(priorNotRunIds) && priorNotRunIds.length === 132 &&
+      stableJson(selectedIds) === stableJson([...priorFailIds, ...priorNotRunIds]) &&
+      artifact.targetCaseCount === 133 && artifact.automaticRetryCount === 0 &&
+      artifact.sourceBinding?.priorFailCount === 1 &&
+      artifact.sourceBinding?.priorNotRunCount === 132 &&
+      artifact.sourceBinding?.canonicalCaseCount === 424 &&
+      artifact.sourceBinding?.passPrefixCount === 291 &&
+      artifact.sourceBinding?.selectionStartIndex === 291 &&
+      artifact.sourceBinding?.selectionEndIndex === 423 &&
+      artifact.sourceBinding?.selectedIdsSha256 === sha256(selectedIds.join("\n")),
+    "remaining actual census must contain the exact prior FAIL plus 132 not-run IDs");
+    const canonicalIds = canonical.cases.map(item => item.testId);
+    assert(artifact.sourceBinding?.canonicalManifestPath ===
+      "test/fixtures/ui_fulltest_case_manifest_policy_v4.json" &&
+      artifact.sourceBinding?.canonicalManifestSha256 === sha256File(
+        path.join(rootDir, artifact.sourceBinding.canonicalManifestPath)) &&
+      artifact.sourceBinding?.canonicalManifestOrderedIdsSha256 ===
+        sha256(canonicalIds.join("\n")) &&
+      stableJson(selectedIds) === stableJson(canonicalIds.slice(291)),
+    "remaining actual census canonical manifest/source binding mismatch");
+    const byId = new Map(manifestCases.map(item => [item.caseId, item]));
+    const selected = selectedIds.map(selectedCaseId => byId.get(selectedCaseId));
+    assert(selected.every(Boolean), "remaining actual census contains an unknown case ID");
+    assert(selected.every((item, index) => index === 0 ||
+      manifestCases.indexOf(selected[index - 1]) < manifestCases.indexOf(item)),
+    "remaining actual census order does not match the canonical manifest");
+    selected.forEach(assertDiagnosticRuntimeBinding);
+    return selected;
+  }
   assert(selectionMode === diagnosticSelectionModes.explicitPositiveCase,
     "unsupported diagnostic selection mode");
   assert(caseId, "explicit diagnostic selection requires --case-id");

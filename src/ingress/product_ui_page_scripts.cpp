@@ -4215,12 +4215,12 @@ void AppendOpsShellScript(std::ostringstream& out,
           return;
         }
         tbody.innerHTML = items.map(item => {
-          const ruleId = display(item?.metadata?.ruleId || item?.ruleId || item?.vaRuleId || '');
+          const ruleId = String(item?.metadata?.ruleId || item?.ruleId || item?.vaRuleId || '').trim();
           const streamLabel = opsSafeSourceLabel(item?.streamId || item?.channelId || '-');
           const eventHtml = `<div class="ops-rule-value-stack">
             <span class="table-identity-pill table-identity-id">${escapeHtml(display(item?.eventId || '-'))}</span>
             <span class="ops-rule-note">${escapeHtml(display(item?.eventType || 'event'))}</span>
-            ${ruleId ? `<span class="ops-rule-note">rule ${escapeHtml(ruleId)}</span>` : ''}
+            <span class="ops-rule-note" data-event-semantic-field="ruleId" data-event-semantic-value="${escapeHtml(ruleId)}">${ruleId ? `rule ${escapeHtml(ruleId)}` : ''}</span>
           </div>`;
           const scenarioParts = [item?.scenarioName, item?.scenarioPhase].filter(Boolean).map(display);
           return `<tr data-event-semantic-event-id="${escapeHtml(item?.eventId || '')}" data-event-semantic-event-type="${escapeHtml(item?.eventType || '')}" data-event-semantic-scenario="${escapeHtml(item?.scenarioPhase || '')}" data-event-semantic-evidence-state="${eventRecordEvidenceState(item)}">
@@ -5998,11 +5998,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         tbody.innerHTML = filteredIntegrations.map(item => {
           const attempt = latestById.get(String(item?.id || '')) || {};
           const retry = item?.retryPolicy || {};
-          return `<tr>
+          return `<tr data-alert-delivery-id="${escapeHtml(item?.id || '')}">
             ${tableCellHtml('Integration', `
               <div class="table-cell-main">
-                <strong>${escapeHtml(display(item?.label || item?.id))}</strong>
-                <span>${escapeHtml(display(item?.kind))} · ${escapeHtml(display(item?.endpointMasked || 'redacted'))}</span>
+                <strong data-event-semantic-field="label" data-event-semantic-value="${escapeHtml(item?.label || item?.id || '')}">${escapeHtml(display(item?.label || item?.id))}</strong>
+                <span><span data-event-semantic-field="kind" data-event-semantic-value="${escapeHtml(item?.kind || '')}">${escapeHtml(display(item?.kind))}</span> · ${escapeHtml(display(item?.endpointMasked || 'redacted'))}</span>
+                <span data-event-semantic-field="id" data-event-semantic-value="${escapeHtml(item?.id || '')}" hidden></span>
+                <span data-event-semantic-field="enabled" data-event-semantic-value="${item?.enabled ? 'true' : 'false'}" hidden></span>
               </div>`)}
             ${tableCellHtml('상태', badge(item?.enabled ? '활성' : '비활성', item?.enabled ? '' : 'warn'), 'status')}
             ${tableCellHtml('Retry', escapeHtml(`${display(retry.maxAttempts)}회 · ${display(retry.backoffMs)}ms`))}

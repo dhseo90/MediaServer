@@ -63,6 +63,46 @@ const responseDerivedDomProjectionContracts = Object.freeze({
       ["snapshotPath|clipPath", "evidence", "field-text", "renderer-evidence-names", { minCount: 2 }],
     ],
   }),
+  "EVT-017\nrow-fields-equal-response\nid/kind/enabled/label": Object.freeze({
+    selector: "#alertDeliveryRows [data-alert-delivery-id={fixtureId}]",
+    collectionPath: "integrations",
+    identityPaths: ["id"],
+    fields: [
+      ["$identity", "id", "identity"],
+      ["kind", "kind", "field-text"],
+      ["enabled", "enabled", "field-text"],
+      ["label", "label", "field-text"],
+    ],
+  }),
+  "EVT-019\nfields-equal-response\nevent/review": Object.freeze({
+    selector: "[data-event-review-row][data-event-id={fixtureId}]",
+    collectionPath: "records",
+    identityPaths: ["event.eventId", "review.eventId"],
+    identityPathMode: "all",
+    domFields: Object.freeze({
+      reviewStatus: Object.freeze({ selector: "[data-event-review-field='reviewStatus']", mode: "control-value" }),
+      classification: Object.freeze({ selector: "[data-event-review-field='classification']", mode: "control-value" }),
+    }),
+    fields: [
+      ["$identity", "eventId", "identity"],
+      ["review.reviewStatus", "reviewStatus", "field-text"],
+      ["review.classification", "classification", "field-text"],
+    ],
+  }),
+  "EVT-020\nfield-value-equals-response\nreviewStatus/note": Object.freeze({
+    selector: "[data-event-review-row][data-event-id={fixtureId}]",
+    collectionPath: "records",
+    identityPaths: ["event.eventId", "review.eventId"],
+    identityPathMode: "all",
+    domFields: Object.freeze({
+      reviewStatus: Object.freeze({ selector: "[data-event-review-field='reviewStatus']", mode: "control-value" }),
+      note: Object.freeze({ selector: "[data-event-review-field='note']", mode: "control-value" }),
+    }),
+    fields: [
+      ["review.reviewStatus", "reviewStatus", "field-text"],
+      ["review.note", "note", "field-text"],
+    ],
+  }),
   "EVT-041\nmatched-terms-equal-response\nmatchedTerms": Object.freeze({
     selector: "#opsIncidentSearchRows [data-incident-memory-hit='event-record:{fixtureId}']",
     collectionPath: "memorySearch.hits", identityPaths: ["documentId"],
