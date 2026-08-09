@@ -42,6 +42,21 @@ check("runner persists a v2 raw primary observation ledger", () => {
   ]) assert(source.includes(required), `runner raw ledger field missing: ${required}`);
 });
 
+check("primary completion declares one exact action mode", () => {
+  for (const item of native.cases) {
+    const completion = item.workflow.expectedResults[0].completion;
+    assert(["request", "local", "navigation", "readback"].includes(completion.completionMode),
+      `${item.caseId} completion mode missing`);
+    const activeModes = [
+      Boolean(completion.request),
+      Boolean(completion.localTransition),
+      Boolean(completion.navigationBinding),
+      completion.completionMode === "readback",
+    ].filter(Boolean).length;
+    assert(activeModes === 1, `${item.caseId} completion mode is not exact-one`);
+  }
+});
+
 check("current consumers independently qualify raw capture and source fingerprints", () => {
   const coverageSource = readText("scripts/internal/verify_v390_ui_automation_coverage.mjs");
   const policySource = readText("scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs");
@@ -102,6 +117,8 @@ if (qualifier) {
       ["path", value => { value.trace.rawPrimaryObservations[0].networkEntries[1].url = "http://localhost/other"; }],
       ["status", value => { value.trace.rawPrimaryObservations[0].networkEntries[1].status = 599; }],
       ["correlation-source", value => { value.trace.rawPrimaryObservations[0].networkEntries[1].correlationSource = "none"; }],
+      ["wrong-action", value => { value.trace.rawPrimaryObservations[0].networkEntries[1].initiatorActionId = "OTHER:action"; }],
+      ["stale-owner", value => { value.trace.rawPrimaryObservations[0].networkEntries[0].requestOwnershipKind = "initial-page-load"; }],
       ["duplicate", value => { value.trace.rawPrimaryObservations[0].networkEntries.push(clone(value.trace.rawPrimaryObservations[0].networkEntries[1])); }],
     ];
     for (const [label, mutate] of mutations) {
@@ -194,13 +211,24 @@ function makeRawCase(item) {
           controlSelector: selector,
           correlationId: completion.correlationId,
           dispatch: "playwright-native",
+          completionMode: completion.completionMode,
+          declaredRequest: {
+            correlationId: completion.correlationId,
+            method: completion.request.method,
+            urlPath: completion.request.urlPath,
+            urlPathTemplate: completion.request.urlPathTemplate,
+            allowedStatuses: clone(completion.request.allowedStatuses),
+            initiatorActionId: completion.actionId,
+            requestOwnershipKind: "primary-action",
+            runtimeBindingSource: "native-completion-contract",
+          },
         },
         before,
         after,
         navigation: null,
         networkEntries: [
-          { phase: "request-start", requestId, caseRequestIdentity, caseRequestSequence: 1, correlationId: completion.correlationId, correlationSource: "request-header", method: completion.request.method, status: 0, url: `http://localhost${completion.request.urlPath}` },
-          { phase: "response", requestId, caseRequestIdentity, caseRequestSequence: 1, responseRequestObjectObserved: true, requestIdentitySource: "playwright-response-request", correlationId: completion.correlationId, correlationSource: "request-header", method: completion.request.method, status: completion.request.allowedStatuses[0], url: `http://localhost${completion.request.urlPath}` },
+          { phase: "request-start", requestId, caseRequestIdentity, caseRequestSequence: 1, initiatorActionId: completion.actionId, requestOwnershipKind: "primary-action", correlationId: completion.correlationId, correlationSource: "request-header", method: completion.request.method, status: 0, url: `http://localhost${completion.request.urlPath}` },
+          { phase: "response", requestId, caseRequestIdentity, caseRequestSequence: 1, initiatorActionId: completion.actionId, requestOwnershipKind: "primary-action", responseRequestObjectObserved: true, requestIdentitySource: "playwright-response-request", correlationId: completion.correlationId, correlationSource: "request-header", method: completion.request.method, status: completion.request.allowedStatuses[0], url: `http://localhost${completion.request.urlPath}` },
         ],
         semanticReadback: {
           schema: "media-server.v390-ui-semantic-readback.v2",

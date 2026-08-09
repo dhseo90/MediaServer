@@ -80,6 +80,17 @@ export function producePolicyV4Evidence({
   const crossCuttingObligations = requiredCrossCutting.map(id => {
     const correlationId = `v390-cross-${id}`;
     const filePath = path.join(policyRoot, "cross-cutting", `${id}.json`);
+    const sourceCaseEvidence = id === "video-overlay-crop" && !contractFixture
+      ? visualMatrixPlan.liveVideoProbe.requiredObligationIds.map(caseId => {
+          const item = cases.find(candidate => candidate.testId === caseId);
+          assert(item?.rawEvidence?.traceRef, `${caseId} live source trace evidence missing`);
+          return {
+            caseId,
+            actionId: manifestById.get(caseId)?.workflow?.expectedResults?.[0]?.completion?.actionId || "",
+            traceRef: structuredClone(item.rawEvidence.traceRef),
+          };
+        })
+      : [];
     writeJson(filePath, {
       schema: crossCuttingSchema,
       obligationId: id,
@@ -88,6 +99,7 @@ export function producePolicyV4Evidence({
       caseSetSha256,
       measuredEvidenceRefs: matrix.evidenceRefs,
       rawVariantCount: matrix.rawVariantCount,
+      sourceCaseEvidence,
     });
     return {
       id,
@@ -270,6 +282,7 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
     caseId: result.caseId,
     correlationId,
     messages: consoleMessages,
+    census: consoleQualification.census,
   });
   const sourceLog = fs.readFileSync(serverLogPath, "utf8");
   const selectedLogLines = sourceLog.split(/\r?\n/).filter(line => line.includes(correlationId) || line.includes(result.caseId));
@@ -336,6 +349,7 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
       scanOutcome: findings.length === 0 ? "clean" : "findings-present",
       forbiddenMaterialFindings: findings.length,
       unapprovedConsoleMessages: consoleQualification.unapprovedConsoleMessages,
+      consoleCensus: consoleQualification.census,
       findings,
       correlationId,
       evidenceRef: evidenceRef(redactionScan),

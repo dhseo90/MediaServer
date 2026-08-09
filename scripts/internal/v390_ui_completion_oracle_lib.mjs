@@ -1131,6 +1131,8 @@ function findDocumentFormSubmission(entries, action) {
       typeof binding.requestId !== "string" || !binding.requestId ||
       typeof binding.caseRequestIdentity !== "string" || !binding.caseRequestIdentity ||
       !Number.isInteger(binding.caseRequestSequence) || binding.caseRequestSequence < 1 ||
+      binding.initiatorActionId !== action.actionId ||
+      binding.requestOwnershipKind !== "primary-action" ||
       String(binding.method || "").toUpperCase() !== String(expected?.method || "").toUpperCase() ||
       requestTarget(binding.path) !== requestTarget(expected?.urlPath) ||
       !(expected?.allowedStatuses || []).includes(Number(binding.status))) {
@@ -1144,6 +1146,8 @@ function findDocumentFormSubmission(entries, action) {
     entry.requestKind === "document-navigation" &&
     entry.resourceType === "document" &&
     entry.sameOrigin === true &&
+    entry.initiatorActionId === action.actionId &&
+    entry.requestOwnershipKind === "primary-action" &&
     entry.correlationId === "" &&
     String(entry.method || "").toUpperCase() === String(expected.method || "").toUpperCase() &&
     requestTarget(entry.url) === requestTarget(expected.urlPath),
@@ -1156,6 +1160,8 @@ function findDocumentFormSubmission(entries, action) {
     entry.requestKind === "document-navigation" &&
     entry.resourceType === "document" &&
     entry.sameOrigin === true &&
+    entry.initiatorActionId === action.actionId &&
+    entry.requestOwnershipKind === "primary-action" &&
     entry.correlationId === "" &&
     entry.responseRequestObjectObserved === true &&
     String(entry.method || "").toUpperCase() === String(expected.method || "").toUpperCase() &&

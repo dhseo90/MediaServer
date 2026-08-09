@@ -3,6 +3,7 @@
 import crypto from "node:crypto";
 
 import { evaluateSemanticExpectation } from "./v390_ui_completion_oracle_lib.mjs";
+import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 
 const traceSchema = "media-server.v390-ui-native-interaction-trace.v2";
 const observationSchema = "media-server.v390-ui-raw-primary-observation.v1";
@@ -56,6 +57,7 @@ export function qualifyRawCase({ trace, requested, observed, canonicalCase, nati
   if (action.controlSelector !== expected.controlSelector) reasons.push("raw-primary-control-selector-mismatch");
   if (action.correlationId !== expected.correlationId) reasons.push("raw-primary-correlation-mismatch");
   if (action.dispatch !== "playwright-native") reasons.push("raw-primary-dispatch-untrusted");
+  if (action.completionMode !== expected.completionMode) reasons.push("raw-primary-completion-mode-mismatch");
   if (expected.controlSelector !== null) {
     const executionOwnerSelector = action.executionOwnerSelector || expected.controlSelector;
     if (value.before?.selector !== executionOwnerSelector || value.after?.selector !== executionOwnerSelector) {
@@ -69,7 +71,7 @@ export function qualifyRawCase({ trace, requested, observed, canonicalCase, nati
     }
   }
 
-  const request = qualifyRequest(value, expected, reasons);
+  const request = qualifyRequest(value, expected, nativeCase, reasons);
   qualifyReadback(value, expected, reasons);
   qualifyLocalTransition(value, expected, reasons);
   if (nativeCase?.disposition === "negative-route") qualifyNegativeNavigation(value, expected, reasons);
@@ -112,21 +114,66 @@ function validateObserved(value, nativeCase, reasons) {
   if (!same(value.provenance, expectedProvenance)) reasons.push("raw-observed-provenance-mismatch");
 }
 
-function qualifyRequest(value, expected, reasons) {
-  if (!expected.request) return null;
+function qualifyRequest(value, expected, nativeCase, reasons) {
+  const mode = expected.completionMode || (expected.navigationBinding
+    ? "navigation"
+    : (expected.request ? "request" : (expected.localTransition ? "local" : "readback")));
+  if (mode !== "request") {
+    if (expected.request) reasons.push("raw-primary-completion-mode-request-mismatch");
+    return null;
+  }
+  if (!expected.request) {
+    reasons.push("raw-primary-request-contract-missing");
+    return null;
+  }
+  const declared = value.action?.declaredRequest;
+  if (!declared || typeof declared !== "object") {
+    reasons.push("raw-primary-declared-request-missing");
+    return null;
+  }
+  const runtimeBound = declared.runtimeBindingSource === "exact-runtime-oracle";
+  if (declared.correlationId !== expected.correlationId ||
+      declared.initiatorActionId !== expected.actionId ||
+      declared.requestOwnershipKind !== "primary-action" ||
+      upper(declared.method) === "" || !declared.urlPath ||
+      !Array.isArray(declared.allowedStatuses) || declared.allowedStatuses.length === 0) {
+    reasons.push("raw-primary-declared-request-invalid");
+  }
+  if (runtimeBound) {
+    qualifyRuntimeRequestDeclaration(value, declared, nativeCase, reasons);
+  } else if (upper(declared.method) !== upper(expected.request.method) ||
+      declared.urlPath !== expected.request.urlPath ||
+      !same(declared.allowedStatuses, expected.request.allowedStatuses)) {
+    reasons.push("raw-primary-declared-request-static-mismatch");
+  }
   const entries = Array.isArray(value.networkEntries) ? value.networkEntries : [];
   if (value.requestBinding?.schema === "media-server.v390-ui-document-form-submit-binding.v1") {
     return qualifyDocumentFormRequest(value.requestBinding, entries, expected, reasons);
   }
-  const starts = entries.filter(entry => entry?.phase === "request-start" &&
-    entry?.correlationId === expected.correlationId &&
-    upper(entry?.method) === expected.request.method &&
-    requestTarget(entry?.url) === expected.request.urlPath);
-  const responses = entries.filter(entry => entry?.phase === "response" &&
-    entry?.correlationId === expected.correlationId &&
-    upper(entry?.method) === expected.request.method &&
-    requestTarget(entry?.url) === expected.request.urlPath);
+  const actionId = declared.initiatorActionId;
+  const ownershipKind = declared.requestOwnershipKind;
+  const correlated = entries.filter(entry => entry?.correlationId === expected.correlationId);
+  const owned = correlated.filter(entry => entry?.initiatorActionId === actionId &&
+    entry?.requestOwnershipKind === ownershipKind);
+  const starts = owned.filter(entry => entry?.phase === "request-start" &&
+    upper(entry?.method) === upper(declared.method) && requestTarget(entry?.url) === declared.urlPath);
+  const responses = owned.filter(entry => entry?.phase === "response" &&
+    upper(entry?.method) === upper(declared.method) && requestTarget(entry?.url) === declared.urlPath);
   if (starts.length !== 1 || responses.length !== 1) {
+    if (owned.some(entry => requestTarget(entry?.url) === declared.urlPath &&
+        upper(entry?.method) !== upper(declared.method))) {
+      reasons.push("raw-primary-request-method-mismatch");
+    }
+    if (owned.some(entry => upper(entry?.method) === upper(declared.method) &&
+        requestTarget(entry?.url) !== declared.urlPath)) {
+      reasons.push("raw-primary-request-path-mismatch");
+    }
+    const declaredCandidates = correlated.filter(entry =>
+      upper(entry?.method) === upper(declared.method) || requestTarget(entry?.url) === declared.urlPath);
+    if (declaredCandidates.some(entry => entry?.initiatorActionId !== actionId ||
+        entry?.requestOwnershipKind !== ownershipKind)) {
+      reasons.push("raw-primary-request-action-ownership-mismatch");
+    }
     reasons.push(starts.length > 1 || responses.length > 1
       ? "raw-primary-request-ambiguous"
       : "raw-primary-request-pair-missing");
@@ -134,6 +181,10 @@ function qualifyRequest(value, expected, reasons) {
   }
   const start = starts[0];
   const response = responses[0];
+  if (start.initiatorActionId !== actionId || response.initiatorActionId !== actionId ||
+      start.requestOwnershipKind !== ownershipKind || response.requestOwnershipKind !== ownershipKind) {
+    reasons.push("raw-primary-request-action-ownership-mismatch");
+  }
   if (!start.requestId || start.requestId !== response.requestId) reasons.push("raw-primary-request-id-mismatch");
   if (!start.caseRequestIdentity || start.caseRequestIdentity !== response.caseRequestIdentity ||
       !Number.isInteger(start.caseRequestSequence) || start.caseRequestSequence !== response.caseRequestSequence ||
@@ -144,14 +195,14 @@ function qualifyRequest(value, expected, reasons) {
   if (start.correlationSource !== "request-header" || response.correlationSource !== "request-header") {
     reasons.push("raw-primary-request-correlation-source-mismatch");
   }
-  if (upper(start.method) !== expected.request.method || upper(response.method) !== expected.request.method) {
+  if (upper(start.method) !== upper(declared.method) || upper(response.method) !== upper(declared.method)) {
     reasons.push("raw-primary-request-method-mismatch");
   }
-  if (requestTarget(start.url) !== expected.request.urlPath ||
-      requestTarget(response.url) !== expected.request.urlPath) {
+  if (requestTarget(start.url) !== declared.urlPath ||
+      requestTarget(response.url) !== declared.urlPath) {
     reasons.push("raw-primary-request-path-mismatch");
   }
-  if (!expected.request.allowedStatuses.includes(Number(response.status))) reasons.push("raw-primary-request-status-mismatch");
+  if (!declared.allowedStatuses.includes(Number(response.status))) reasons.push("raw-primary-request-status-mismatch");
   return {
     requestId: start.requestId,
     caseRequestIdentity: start.caseRequestIdentity,
@@ -160,6 +211,39 @@ function qualifyRequest(value, expected, reasons) {
     urlPath: requestTarget(start.url),
     status: Number(response.status),
   };
+}
+
+function qualifyRuntimeRequestDeclaration(value, declared, nativeCase, reasons) {
+  const spec = exactRuntimeOracleFor(nativeCase?.caseId);
+  const requests = Array.isArray(spec?.requests) ? spec.requests : [];
+  const sourceMatches = requests.filter(request =>
+    upper(request?.method) === upper(declared.method) &&
+    runtimeTemplateMatches(request?.path, declared.urlPath) &&
+    (request?.allowedStatuses || request?.statuses || [200]).includes(
+      Number(declared.allowedStatuses?.[0])));
+  const responses = value.semanticReadback?.observation?.actual?.exactRuntimeOracle?.responses || [];
+  const responseMatches = responses.filter(response =>
+    upper(response?.method) === upper(declared.method) &&
+    requestTarget(response?.urlPath) === declared.urlPath &&
+    declared.allowedStatuses.includes(Number(response?.status)) &&
+    response?.requestCorrelationEvidence?.schema ===
+      "media-server.v390-ui-request-correlation-evidence.v1" &&
+    response.requestCorrelationEvidence.pass === true &&
+    response.requestCorrelationEvidence.expectedActionId === declared.initiatorActionId &&
+    requestTarget(response.requestCorrelationEvidence.expectedPath) === declared.urlPath);
+  if (sourceMatches.length !== 1 || responseMatches.length !== 1) {
+    reasons.push("raw-primary-runtime-request-source-binding-mismatch");
+  }
+}
+
+function runtimeTemplateMatches(template, actual) {
+  const escaped = String(template || "")
+    .split(/(\{[^/{}]+\})/g)
+    .map(part => /^\{[^/{}]+\}$/.test(part)
+      ? "[^/?&#]+"
+      : part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("");
+  return escaped.length > 0 && new RegExp(`^${escaped}$`).test(String(actual || ""));
 }
 
 function qualifyDocumentFormRequest(binding, entries, expected, reasons) {
@@ -184,6 +268,13 @@ function qualifyDocumentFormRequest(binding, entries, expected, reasons) {
     response.responseRequestObjectObserved === true &&
     response.requestIdentitySource === "playwright-response-request");
   if (!exactIdentity) reasons.push("raw-primary-request-response-object-identity-mismatch");
+  if (binding.initiatorActionId !== expected.actionId ||
+      binding.requestOwnershipKind !== "primary-action" ||
+      start.initiatorActionId !== expected.actionId || response.initiatorActionId !== expected.actionId ||
+      start.requestOwnershipKind !== "primary-action" ||
+      response.requestOwnershipKind !== "primary-action") {
+    reasons.push("raw-primary-request-action-ownership-mismatch");
+  }
   if (binding.method !== expected.request.method || upper(start.method) !== expected.request.method ||
       upper(response.method) !== expected.request.method) reasons.push("raw-primary-request-method-mismatch");
   if (binding.path !== expected.request.urlPath || requestTarget(start.url) !== expected.request.urlPath ||

@@ -16,7 +16,11 @@ const fixture = readJson(path.join(rootDir, "test/fixtures/v390_policy_v4_canoni
 assert.equal(fixture.schema, "media-server.v390-policy-v4-canonical-red-evidence.v1");
 assert.equal(fixture.releaseEvidenceEligible, false);
 assert.equal(fixture.redQualification.evidenceEligibility, "ineligible");
-assert.equal(fixture.redQualification.qualifiedCaseCount, 0);
+assert.equal(fixture.redQualification.qualifiedCaseCount, 11);
+assert.deepEqual(fixture.redQualification.qualifiedCaseIds, [
+  "UI-001", "UI-008", "UI-023", "UI-026", "UI-028", "EVT-018",
+  "CLIENT-002", "CLIENT-005", "CLIENT-009", "CLIENT-018", "CLIENT-021",
+]);
 assert.equal(fixture.redQualification.exactCaseCount, 424);
 assert.equal(fixture.redQualification.uiFulltestPass, false);
 
@@ -35,7 +39,7 @@ assert.deepEqual(census.unassignedReasons, []);
 assert.deepEqual(census.multiplyAssignedReasons, []);
 
 const authoritativeRun = path.join(rootDir,
-  ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809080923-20972");
+  ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809095251-44954");
 const authoritativeSummary = path.join(authoritativeRun, "ui-exact-424/summary.json");
 const authoritativeEvaluation = path.join(authoritativeRun, "ui-fulltest-qualification/evaluation.json");
 if (fs.existsSync(authoritativeSummary) && fs.existsSync(authoritativeEvaluation)) {
@@ -43,7 +47,9 @@ if (fs.existsSync(authoritativeSummary) && fs.existsSync(authoritativeEvaluation
   assert.equal(sha256(authoritativeEvaluation), fixture.sourceEvaluationSha256);
   const evaluation = readJson(authoritativeEvaluation);
   assert.equal(evaluation.qualification.evidenceEligibility, "ineligible");
-  assert.equal(evaluation.qualification.qualifiedCaseCount, 0);
+  assert.equal(evaluation.qualification.qualifiedCaseCount, 11);
+  assert.deepEqual(evaluation.qualification.qualifiedCaseIds,
+    fixture.redQualification.qualifiedCaseIds);
   assert.equal(evaluation.uiFulltestPass, false);
   const actualCensus = censusQualificationReasons(evaluation.qualification.reasons);
   assert.deepEqual(actualCensus.reasonCounts, fixture.reasonCounts);

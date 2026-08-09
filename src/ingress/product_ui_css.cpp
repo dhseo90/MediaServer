@@ -5615,6 +5615,46 @@ std::string ProductUiCss() {
         grid-template-columns: 1fr;
       }
     }
+    @media (max-width: 760px) {
+      body.ops-shell [data-testid="ops-events-page"] :where(
+        .grid,
+        .ops-workspace-event-grid,
+        .ops-command-flow-grid,
+        .ops-action-control-flow-grid,
+        .ops-action-outcome-grid,
+        .event-review-grid,
+        .incident-brief-slot-grid
+      ) {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.ops-shell [data-testid="ops-events-page"],
+      body.ops-shell [data-testid="ops-events-page"] :where(
+        section,
+        article,
+        form,
+        fieldset,
+        .section-card,
+        .panel,
+        .toolbar,
+        .actions,
+        .table-wrap
+      ) {
+        min-width: 0;
+        max-width: 100%;
+      }
+      body.ops-shell [data-testid="ops-events-page"] :where(
+        input,
+        select,
+        textarea,
+        button,
+        pre,
+        code
+      ) {
+        min-width: 0;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+      }
+    }
   </style>
 )CSS";
 }

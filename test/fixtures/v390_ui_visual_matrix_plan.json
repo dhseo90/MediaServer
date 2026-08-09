@@ -91,7 +91,7 @@
   "liveVideoProbe": {
     "screenId": "client-live",
     "requiredEveryVariant": true,
-    "requiredObligationIds": ["CLIENT-019", "CLIENT-020", "CLIENT-021"],
+    "requiredObligationIds": ["MEDIA-016", "MEDIA-017", "CLIENT-019", "CLIENT-020", "CLIENT-021"],
     "tileSelector": ".live-drop-tile[data-tile=\"0\"][data-view-id]:not([data-view-id=\"\"])",
     "stageSelector": ".live-drop-tile[data-tile=\"0\"] .tile-stage",
     "videoSelector": ".live-drop-tile[data-tile=\"0\"] .tile-stage video",

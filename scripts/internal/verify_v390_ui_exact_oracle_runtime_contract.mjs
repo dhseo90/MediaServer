@@ -3114,10 +3114,14 @@ await check("EVT-024 executes all three bounded samples with authoritative basel
     },
   });
   let fetchCount = 0;
+  const request = browser.request;
+  browser.request = async args => {
+    fetchCount += 1;
+    return request(args);
+  };
   const evaluate = browser.evaluate;
   browser.evaluate = async script => {
     if (String(script).includes("dashboardRuntimeTrendSamples.length")) return 3;
-    if (String(script).startsWith("fetch(")) fetchCount += 1;
     return evaluate(script);
   };
   const result = await executeCatalogRuntimeOracle({
@@ -3229,24 +3233,21 @@ await check("API source assertions use one fetch on the current screen without d
   let primaryWaits = 0;
   const selector = '[data-testid="ops-sources-page"]';
   const browser = coreBrowser();
+  const request = browser.request;
+  browser.request = async args => {
+    assert(route === "/ops/sources",
+      "SRC-034 exact fetch did not preserve the product screen route");
+    fetches += 1;
+    const result = await request(args);
+    const json = {
+      schema: "media-server.ops.v330-source-onboarding-quality-summary.v1",
+      onboardingQualitySummary: { inputKinds: ["ONVIF", "WHEP", "RTSP"] },
+    };
+    return { ...result, status: 200, text: JSON.stringify(json), json, contentType: "application/json" };
+  };
   browser.evaluate = async script => {
     if (script === "location.pathname + location.search + location.hash") return route;
     if (script === "location.pathname") return new URL(route, "http://runtime.invalid").pathname;
-    if (String(script).startsWith("fetch(")) {
-      assert(route === "/ops/sources",
-        "SRC-034 exact fetch did not preserve the product screen route");
-      fetches += 1;
-      const json = {
-        schema: "media-server.ops.v330-source-onboarding-quality-summary.v1",
-        onboardingQualitySummary: { inputKinds: ["ONVIF", "WHEP", "RTSP"] },
-      };
-      return {
-        status: 200,
-        text: JSON.stringify(json),
-        json,
-        contentType: "application/json",
-      };
-    }
     assert(route === "/ops/sources", "SRC-034 DOM assertion left the product screen route");
     domReads += 1;
     return {
@@ -3315,22 +3316,19 @@ await check("API fetch and screen preparation failures remain fail-closed withou
     let fetches = 0;
     let domReads = 0;
     const browser = coreBrowser();
+    const request = browser.request;
+    browser.request = async args => {
+      fetches += 1;
+      const result = await request(args);
+      const json = {
+        schema: "media-server.ops.v330-source-onboarding-quality-summary.v1",
+        onboardingQualitySummary: {},
+      };
+      return { ...result, status: apiStatus, text: JSON.stringify(json), json, contentType: "application/json" };
+    };
     browser.evaluate = async script => {
       if (script === "location.pathname + location.search + location.hash") return route;
       if (script === "location.pathname") return new URL(route, "http://runtime.invalid").pathname;
-      if (String(script).startsWith("fetch(")) {
-        fetches += 1;
-        const json = {
-          schema: "media-server.ops.v330-source-onboarding-quality-summary.v1",
-          onboardingQualitySummary: {},
-        };
-        return {
-          status: apiStatus,
-          text: JSON.stringify(json),
-          json,
-          contentType: "application/json",
-        };
-      }
       domReads += 1;
       return {
         count: 1,
@@ -3361,7 +3359,7 @@ await check("API fetch and screen preparation failures remain fail-closed withou
     actionId: "SRC-034:assert-product-state",
     fixtureId: "src-034-api-failure-contract",
     correlationId: "SRC-034:contract",
-  }), "exact request status mismatch");
+  }), "RESPONSE_STATUS_MISMATCH");
   assert(apiFailure.navigations.length === 0 &&
     apiFailure.fetches() === 1 &&
     apiFailure.domReads() === 0,

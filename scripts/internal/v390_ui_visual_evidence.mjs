@@ -41,7 +41,9 @@ const requiredRepresentativeScreens = Object.freeze([
   ["client-dashboard", "UI-016", "/client/dashboard", "viewer"],
   ["client-events", "UI-017", "/client/events", "viewer"],
 ]);
-const requiredLiveObligations = Object.freeze(["CLIENT-019", "CLIENT-020", "CLIENT-021"]);
+const requiredLiveObligations = Object.freeze([
+  "MEDIA-016", "MEDIA-017", "CLIENT-019", "CLIENT-020", "CLIENT-021",
+]);
 
 export function validateVisualMatrixPlan({ plan, canonical, native }) {
   assert(plan?.schema === visualMatrixPlanSchema, "visual matrix plan schema mismatch");
@@ -199,7 +201,9 @@ export function evaluateVisualArtifact({
   const targetRect = measurement.target?.rect;
   const horizontalOverflowPx = Math.max(0, Number(documentGeometry.scrollWidth || 0) - Number(documentGeometry.clientWidth || 0));
   const verticalOverflowPx = Math.max(0, Number(documentGeometry.scrollHeight || 0) - Number(documentGeometry.clientHeight || 0));
-  const targetClipped = !measurement.target?.visible || !rectInsideViewport(targetRect, viewport);
+  const targetClipped = !measurement.target?.visible || (measurement.target?.documentTarget === true
+    ? !rectIntersectsViewport(targetRect, viewport)
+    : !rectInsideViewport(targetRect, viewport));
   if (horizontalOverflowPx > 1) failures.push("horizontal-overflow");
   if (targetClipped) failures.push("target-clipped");
 
@@ -213,13 +217,17 @@ export function evaluateVisualArtifact({
   if (failingContrast.length > 0) failures.push("contrast-threshold-failed");
 
   const focusSamples = measurement.focusSamples || [];
+  const focusApplicable = measurement.focus?.applicable === true;
+  const focusableCount = Number(measurement.focus?.focusableCount ?? -1);
   const visibleFocus = focusSamples.filter(item => item.visible === true && hasVisibleFocusIndicator(item));
   const visibleFocusSamples = focusSamples.filter(item => item.visible === true);
   const focusIdentities = visibleFocusSamples.map(item => String(item.focusIdentity || ""));
   const uniqueFocusOrder = new Set(focusIdentities);
-  if (focusSamples.length === 0 || visibleFocus.length === 0) failures.push("focus-visible-missing");
-  if (focusIdentities.some(identity => identity.length === 0)) failures.push("focus-owner-identity-missing");
-  if (uniqueFocusOrder.size !== visibleFocusSamples.length) failures.push("focus-order-repeated");
+  if (focusableCount < 0 || (focusApplicable && focusableCount === 0) ||
+      (!focusApplicable && focusableCount !== 0)) failures.push("focus-applicability-invalid");
+  if (focusApplicable && (focusSamples.length === 0 || visibleFocus.length === 0)) failures.push("focus-visible-missing");
+  if (focusApplicable && focusIdentities.some(identity => identity.length === 0)) failures.push("focus-owner-identity-missing");
+  if (focusApplicable && uniqueFocusOrder.size !== visibleFocusSamples.length) failures.push("focus-order-repeated");
 
   const liveRequired = Boolean(expected.liveVideoRequired || liveVideoSpec || requireVideoOverlay);
   const liveMetrics = evaluateLiveVideoEvidence({
@@ -270,7 +278,7 @@ export function evaluateVisualArtifact({
     metrics: {
       geometry: { horizontalOverflowPx, verticalOverflowPx, targetClipped },
       contrast: { sampleCount: contrastSamples.length, failingCount: failingContrast.length, minimumRatio: minimum(contrastSamples.map(item => item.ratio)) },
-      focus: { sampleCount: focusSamples.length, visibleIndicatorCount: visibleFocus.length, uniqueOrderCount: uniqueFocusOrder.size },
+      focus: { applicable: focusApplicable, focusableCount, sampleCount: focusSamples.length, visibleIndicatorCount: visibleFocus.length, uniqueOrderCount: uniqueFocusOrder.size },
       liveVideo: liveMetrics,
       videoOverlay: {
         required: liveRequired,
@@ -623,6 +631,12 @@ function hasVisibleFocusIndicator(item) {
 function rectInsideViewport(rect, viewport) {
   return Boolean(rect && Number.isFinite(rect.left) && Number.isFinite(rect.top) && Number.isFinite(rect.right) && Number.isFinite(rect.bottom) &&
     rect.left >= -1 && rect.top >= -1 && rect.right <= Number(viewport.width || 0) + 1 && rect.bottom <= Number(viewport.height || 0) + 1);
+}
+
+function rectIntersectsViewport(rect, viewport) {
+  return Boolean(rect && Number(rect.width) > 0 && Number(rect.height) > 0 &&
+    Number(rect.right) > 0 && Number(rect.bottom) > 0 &&
+    Number(rect.left) < Number(viewport.width) && Number(rect.top) < Number(viewport.height));
 }
 
 function rectContained(inner, outer) {

@@ -1031,7 +1031,7 @@ check("exact and legacy runners capture before/after network and completion resu
   for (const snippet of [
     "primaryCompletionEvents.length === 1",
     "browser.networkEntries().slice(networkStart)",
-    "await browser.setCorrelationId(action.semanticCompletion.correlationId)",
+    "await browser.setCorrelationId(action.semanticCompletion.correlationId, {",
   ]) {
     assert(exactRunnerSource.includes(snippet), `exact runner action binding missing ${snippet}`);
   }
@@ -2600,6 +2600,8 @@ check("document form completion requires one exact uncorrelated request and resp
       requestId: "native-request-3",
       caseRequestIdentity: "UI-002:request-3",
       caseRequestSequence: 3,
+      initiatorActionId: "UI-002:submit-form",
+      requestOwnershipKind: "primary-action",
       method: "POST",
       path: "/setup",
       status: 302,
@@ -2618,7 +2620,8 @@ check("document form completion requires one exact uncorrelated request and resp
   const request = {
     phase: "request-start", requestId: "native-request-3", caseRequestIdentity: "UI-002:request-3",
     caseRequestSequence: 3, requestKind: "document-navigation", resourceType: "document",
-    sameOrigin: true, correlationId: "", method: "POST", url: "http://127.0.0.1/setup",
+    sameOrigin: true, initiatorActionId: "UI-002:submit-form", requestOwnershipKind: "primary-action",
+    correlationId: "", method: "POST", url: "http://127.0.0.1/setup",
   };
   const response = {
     ...request, phase: "response", status: 302, responseRequestObjectObserved: true,

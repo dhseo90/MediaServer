@@ -2,6 +2,7 @@
 
 export const consoleResponseBindingSchema = "media-server.v390-ui-console-response-binding.v1";
 export const consoleApprovalSchema = "media-server.v390-ui-console-approval.v1";
+export const consoleCensusSchema = "media-server.v390-ui-console-census.v1";
 
 const resourceErrorPattern = /^Failed to load resource: the server responded with a status of ([0-9]{3}) \([^)]+\)$/;
 const severeLevels = new Set(["error", "warning", "warn"]);
@@ -52,10 +53,42 @@ export function qualifyBrowserConsoleMessages({ messages, trace, nativeCase }) {
     };
     return value;
   });
-  return { messages: qualifiedMessages, unapprovedConsoleMessages };
+  return {
+    messages: qualifiedMessages,
+    unapprovedConsoleMessages,
+    census: buildBrowserConsoleCensus(qualifiedMessages, nativeCase?.caseId || ""),
+  };
+}
+
+export function buildBrowserConsoleCensus(messages, caseId = "") {
+  const groups = new Map();
+  for (const message of messages || []) {
+    const entry = {
+      messageClass: consoleMessageClass(message),
+      callsite: consoleCallsite(message),
+      phase: String(message?.phase || "unowned"),
+      caseId: String(message?.caseId || caseId || ""),
+      actionId: String(message?.actionId || ""),
+      approvalStatus: String(message?.approval?.status || "NOT-APPLICABLE"),
+    };
+    const key = JSON.stringify(entry);
+    groups.set(key, { ...entry, count: (groups.get(key)?.count || 0) + 1 });
+  }
+  const entries = [...groups.values()].sort((left, right) =>
+    JSON.stringify(left).localeCompare(JSON.stringify(right)));
+  return {
+    schema: consoleCensusSchema,
+    messageCount: (messages || []).length,
+    severeMessageCount: (messages || []).filter(message =>
+      severeLevels.has(String(message?.level || ""))).length,
+    unapprovedMessageCount: (messages || []).filter(message =>
+      message?.approval?.status === "UNAPPROVED").length,
+    entries,
+  };
 }
 
 function validateConsoleMessage(message, traceResponses, nativeCase) {
+  if (message.secretBearing === true) return "console-secret-bearing-message";
   if (message.kind !== "console") return "console-message-not-resource-console";
   if (resourceConsoleStatus(message) === null) return "console-message-pattern-unapproved";
   const binding = message.responseBinding;
@@ -73,6 +106,11 @@ function validateConsoleMessage(message, traceResponses, nativeCase) {
   }
   const exact = traceResponses.filter(response => responseMatchesBinding(response, binding));
   if (exact.length !== 1) return "console-response-trace-identity-mismatch";
+  if (message.caseId !== nativeCase?.caseId ||
+      message.actionId !== binding.initiatorActionId ||
+      message.phase !== binding.requestOwnershipKind) {
+    return "console-message-action-phase-binding-mismatch";
+  }
   return sourceContractKind(binding, nativeCase) ? "" : "console-response-source-contract-unapproved";
 }
 
@@ -82,10 +120,13 @@ function sourceContractKind(binding, nativeCase) {
   const status = Number(binding?.status || 0);
   const completionRequest = nativeCase?.workflow?.expectedResults?.[0]?.completion?.request;
   if (completionRequest && method === completionRequest.method && path === completionRequest.urlPath &&
-      completionRequest.allowedStatuses?.includes(status)) {
+      completionRequest.allowedStatuses?.includes(status) &&
+      binding.initiatorActionId === nativeCase?.workflow?.expectedResults?.[0]?.completion?.actionId &&
+      binding.requestOwnershipKind === "primary-action") {
     return "primary-completion-response";
   }
-  if (nativeCase?.accountRole === "anonymous" && method === "GET" && path === "/auth/whoami" && status === 401) {
+  if (nativeCase?.accountRole === "anonymous" && method === "GET" && path === "/auth/whoami" && status === 401 &&
+      binding.requestOwnershipKind === "initial-page-load" && binding.initiatorActionId) {
     return "anonymous-whoami-unauthorized";
   }
   if (nativeCase?.accountRole === "operator" && method === "GET" && path === "/ops/api/users" && status === 403 &&
@@ -94,10 +135,26 @@ function sourceContractKind(binding, nativeCase) {
   }
   const screenRoute = nativeCase?.requestedProjection?.screenRoute;
   if (binding.requestKind === "document-navigation" && method === "GET" && path === screenRoute &&
-      nativeCase?.oracle?.allowedStatuses?.includes(status)) {
+      nativeCase?.oracle?.allowedStatuses?.includes(status) &&
+      binding.requestOwnershipKind === "initial-page-load" && binding.initiatorActionId) {
     return "canonical-document-navigation-response";
   }
   return "";
+}
+
+function consoleMessageClass(message) {
+  if (message?.kind === "pageerror") return "pageerror";
+  const status = resourceConsoleStatus(message);
+  if (status !== null) return `resource-http-${status}`;
+  return `${String(message?.kind || "unknown")}:${String(message?.level || "unknown")}`;
+}
+
+function consoleCallsite(message) {
+  const location = message?.location || {};
+  if (location.url) {
+    return `${String(location.url)}:${Number(location.lineNumber || 0)}:${Number(location.columnNumber || 0)}`;
+  }
+  return String(message?.callsite || "unavailable");
 }
 
 function collectTraceResponses(trace) {

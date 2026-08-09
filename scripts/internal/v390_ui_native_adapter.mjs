@@ -448,6 +448,8 @@ export function bindDocumentFormSubmission(entries, {
   const primaryRequest = primaryRequests[0];
   if (primaryRequest.resourceType !== "document" ||
       primaryRequest.sameOrigin !== true ||
+      !primaryRequest.initiatorActionId ||
+      primaryRequest.requestOwnershipKind !== "primary-action" ||
       primaryRequest.correlationId ||
       primaryRequest.redirectedFromRequestId) {
     throw new Error("document form submit request trust binding mismatch");
@@ -468,6 +470,8 @@ export function bindDocumentFormSubmission(entries, {
       urlTarget(primaryResponse.url) !== expectedPath ||
       primaryResponse.resourceType !== "document" ||
       primaryResponse.sameOrigin !== true ||
+      primaryResponse.initiatorActionId !== primaryRequest.initiatorActionId ||
+      primaryResponse.requestOwnershipKind !== primaryRequest.requestOwnershipKind ||
       primaryResponse.correlationId ||
       !allowedStatuses.includes(primaryResponse.status)) {
     throw new Error("document form submit response trust binding mismatch");
@@ -519,6 +523,8 @@ export function bindDocumentFormSubmission(entries, {
     requestId: primaryRequest.requestId,
     caseRequestIdentity: primaryRequest.caseRequestIdentity,
     caseRequestSequence: primaryRequest.caseRequestSequence,
+    initiatorActionId: primaryRequest.initiatorActionId,
+    requestOwnershipKind: primaryRequest.requestOwnershipKind,
     method: expectedMethod,
     path: expectedPath,
     status: primaryResponse.status,
@@ -797,19 +803,33 @@ async function openNativePlaywrightPage(playwright, {
   const page = await context.newPage();
   page.setDefaultTimeout(timeoutMs);
   page.on("console", message => {
+    const location = message.location();
     consoleEntries.push({
       kind: "console",
       level: message.type(),
       text: message.text(),
-      location: message.location(),
+      location,
+      callsite: `${String(location?.url || "")}:${Number(location?.lineNumber || 0)}:${Number(location?.columnNumber || 0)}`,
+      caseId,
+      actionId: String(activeRequestOwnership?.actionId || ""),
+      phase: String(activeRequestOwnership?.ownershipKind ||
+        (activeNavigationOperation ? "initial-page-load" : "unowned")),
+      secretBearing: false,
       observedAtMs: Date.now(),
     });
   });
   page.on("pageerror", error => {
+    const stack = error instanceof Error ? String(error.stack || "") : "";
     consoleEntries.push({
       kind: "pageerror",
       level: "error",
       text: error instanceof Error ? error.message : String(error),
+      callsite: stack.split("\n").slice(1).map(line => line.trim()).find(Boolean) || "unavailable",
+      caseId,
+      actionId: String(activeRequestOwnership?.actionId || ""),
+      phase: String(activeRequestOwnership?.ownershipKind ||
+        (activeNavigationOperation ? "initial-page-load" : "unowned")),
+      secretBearing: false,
       observedAtMs: Date.now(),
     });
   });
@@ -1181,9 +1201,17 @@ async function openNativePlaywrightPage(playwright, {
         scopedNetworkEntries: networkEntries.slice(networkStart),
       });
     },
-    setCorrelationId: async (correlationId, { inject = true } = {}) => {
+    setCorrelationId: async (
+      correlationId,
+      { inject = true, actionId = "", ownershipKind = "" } = {},
+    ) => {
       activeCorrelationId = String(correlationId || "");
       activeCorrelationInjectionEnabled = Boolean(activeCorrelationId) && inject === true;
+      activeRequestOwnership = actionId ? {
+        actionId: String(actionId),
+        renderCycleId: "",
+        ownershipKind: String(ownershipKind || "primary-action"),
+      } : null;
     },
     clickWithRequestOwnership: async ({
       selector,
@@ -1866,6 +1894,10 @@ async function openNativePlaywrightPage(playwright, {
       const targetSelector = String(selector);
       const targetLocator = page.locator(targetSelector).first();
       await targetLocator.waitFor({ state: "attached", timeout: timeoutMs });
+      const documentTarget = ["body", "html", ":root"].includes(targetSelector.trim());
+      if (!documentTarget && !liveVideoSpec?.tileSelector) {
+        await targetLocator.scrollIntoViewIfNeeded({ timeout: timeoutMs });
+      }
       if (liveVideoSpec?.tileSelector) {
         const liveTileLocator = page.locator(String(liveVideoSpec.tileSelector)).first();
         await liveTileLocator.waitFor({ state: "attached", timeout: timeoutMs });
@@ -1889,6 +1921,8 @@ async function openNativePlaywrightPage(playwright, {
           if (!rect) return null;
           return { x: rect.x, y: rect.y, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
         };
+        const intersectsViewport = rect => Boolean(rect && rect.right > 0 && rect.bottom > 0 &&
+          rect.left < innerWidth && rect.top < innerHeight);
         const isVisible = element => {
           const rect = element?.getBoundingClientRect?.();
           const style = element ? getComputedStyle(element) : null;
@@ -1905,8 +1939,18 @@ async function openNativePlaywrightPage(playwright, {
           }
           return document.documentElement.dataset.theme === "dark" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)";
         };
-        const elements = Array.from(document.querySelectorAll("body *")).filter(isVisible).slice(0, 400);
-        const textSamples = elements.filter(element => String(element.innerText || "").trim().length > 0).slice(0, 120).map(element => {
+        const textOwners = [];
+        const textOwnerSet = new Set();
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode() && textOwners.length < 120) {
+          if (!String(walker.currentNode.nodeValue || "").trim()) continue;
+          const element = walker.currentNode.parentElement;
+          const rect = element?.getBoundingClientRect?.();
+          if (!element || textOwnerSet.has(element) || !isVisible(element) || !intersectsViewport(rect)) continue;
+          textOwnerSet.add(element);
+          textOwners.push(element);
+        }
+        const textSamples = textOwners.map(element => {
           const style = getComputedStyle(element);
           return { foreground: style.color, background: effectiveBackground(element), fontSizePx: Number.parseFloat(style.fontSize || "0"), fontWeight: style.fontWeight, rect: rectValue(element) };
         });
@@ -2013,7 +2057,7 @@ async function openNativePlaywrightPage(playwright, {
         } : null;
         return {
           schema: "media-server.ui-browser-visual-measurement.v2",
-          caseBinding: binding,
+          caseBinding: { ...binding, accountRole },
           route: location.pathname,
           accountRole,
           requestedTheme: requestedThemeValue,
@@ -2021,8 +2065,14 @@ async function openNativePlaywrightPage(playwright, {
           mediaTheme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
           viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
           document: { scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, clientWidth: document.documentElement.clientWidth, clientHeight: document.documentElement.clientHeight },
-          target: { selector: browserTargetSelector, visible: isVisible(target), rect: rectValue(target) },
+          target: { selector: browserTargetSelector, visible: isVisible(target), documentTarget: ["body", "html", ":root"].includes(browserTargetSelector.trim()), rect: rectValue(target) },
           textSamples,
+          focus: {
+            focusableCount: Array.from(document.querySelectorAll('a[href],button,input,select,textarea,[tabindex]')).filter(element => {
+              const tabIndex = Number(element.getAttribute('tabindex') || 0);
+              return isVisible(element) && !element.disabled && tabIndex >= 0;
+            }).length,
+          },
           liveVideo,
         };
       }, {
@@ -2080,7 +2130,14 @@ async function openNativePlaywrightPage(playwright, {
           geometry.liveVideo.tile?.viewId || "",
         );
       }
-      return { ...geometry, focusSamples };
+      return {
+        ...geometry,
+        focus: {
+          ...geometry.focus,
+          applicable: Number(geometry.focus?.focusableCount || 0) > 0,
+        },
+        focusSamples,
+      };
     },
     waitForLiveVideoReady: async ({ videoSelector, modeSelector, timeout = timeoutMs }) => {
       await page.waitForFunction(({ videoSelectorValue, modeSelectorValue }) => {

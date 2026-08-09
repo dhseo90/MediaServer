@@ -216,8 +216,8 @@ check("producer approves only an exact trace-bound source contract console respo
     requestIdentitySource: "playwright-response-request",
     requestKind: "application-fetch",
     sameOrigin: true,
-    requestOwnershipKind: "",
-    initiatorActionId: "",
+    requestOwnershipKind: "initial-page-load",
+    initiatorActionId: `${item.caseId}:initial-document-navigation:page-load`,
     method: "GET",
     status: 401,
     url: "http://localhost/auth/whoami",
@@ -238,6 +238,10 @@ check("producer approves only an exact trace-bound source contract console respo
         path: "/auth/whoami",
       },
       responseBindingCandidateCount: 1,
+      caseId: item.caseId,
+      actionId: response.initiatorActionId,
+      phase: response.requestOwnershipKind,
+      secretBearing: false,
     }],
   });
   const approved = produce(makeResult()).summary.cases[0];
@@ -267,7 +271,7 @@ check("producer cannot repair a wrong raw request with runner PASS", () => {
     canonicalCase,
     nativeCase: item,
   });
-  assert(result.qualified === false && result.reasons.includes("raw-primary-request-pair-missing"),
+  assert(result.qualified === false && result.reasons.includes("raw-primary-request-method-mismatch"),
     "wrong raw request became qualified");
 });
 
@@ -399,19 +403,55 @@ function makeRawTrace(value) {
     dispatch: "playwright-native",
     requested: structuredClone(value.requestedProjection),
     observed: structuredClone(value.observedProjection),
+    postActionVisualTargetEvidence: {
+      schema: "media-server.v390-ui-post-action-visual-target.v1",
+      caseId: value.caseId,
+      sourceSelectorSha256: "contract-source",
+      requestedState: "attached",
+      selector: value.controlAction.targetSelector || "body",
+      bindingKind: "attached-source-owner",
+      sourceDetached: false,
+      observedRoute: value.screenRoute,
+    },
+    postActionVisualRoleEvidence: {
+      schema: "media-server.v390-ui-post-action-visual-role.v1",
+      caseId: value.caseId,
+      actionId: expected.actionId,
+      route: value.screenRoute,
+      accountRole: value.accountRole,
+      source: "browser-auth-whoami",
+    },
     actions: [
       { actionId: expected.actionId, kind: expected.actionKind, controlSelector: selector, dispatch: "playwright-native" },
       { actionId: `${value.caseId}:verify-independent-readback`, kind: "verify-independent-readback", linkedPrimaryActionId: expected.actionId, dispatch: "playwright-native" },
     ],
     rawPrimaryObservations: [{
       schema: "media-server.v390-ui-raw-primary-observation.v1",
-      action: { actionId: expected.actionId, actionKind: expected.actionKind, executedKind: "submit", controlSelector: selector, correlationId: expected.correlationId, dispatch: "playwright-native" },
+      action: {
+        actionId: expected.actionId,
+        actionKind: expected.actionKind,
+        executedKind: "submit",
+        controlSelector: selector,
+        correlationId: expected.correlationId,
+        dispatch: "playwright-native",
+        completionMode: expected.completionMode,
+        declaredRequest: {
+          correlationId: expected.correlationId,
+          method: expected.request.method,
+          urlPath: expected.request.urlPath,
+          urlPathTemplate: expected.request.urlPathTemplate,
+          allowedStatuses: structuredClone(expected.request.allowedStatuses),
+          initiatorActionId: expected.actionId,
+          requestOwnershipKind: "primary-action",
+          runtimeBindingSource: "native-completion-contract",
+        },
+      },
       before: { selector, exists: true, visible: true, disabled: false },
       after: { selector, exists: true, visible: true, disabled: false },
       navigation: null,
       networkEntries: [
-        { phase: "request-start", requestId, correlationId: expected.correlationId, correlationSource: "request-header", method: expected.request.method, status: 0, url: `http://localhost${expected.request.urlPath}` },
-        { phase: "response", requestId, correlationId: expected.correlationId, correlationSource: "request-header", method: expected.request.method, status: expected.request.allowedStatuses[0], url: `http://localhost${expected.request.urlPath}` },
+        { phase: "request-start", requestId, caseRequestIdentity: requestId, caseRequestSequence: 1, initiatorActionId: expected.actionId, requestOwnershipKind: "primary-action", correlationId: expected.correlationId, correlationSource: "request-header", method: expected.request.method, status: 0, url: `http://localhost${expected.request.urlPath}` },
+        { phase: "response", requestId, caseRequestIdentity: requestId, caseRequestSequence: 1, initiatorActionId: expected.actionId, requestOwnershipKind: "primary-action", responseRequestObjectObserved: true, requestIdentitySource: "playwright-response-request", correlationId: expected.correlationId, correlationSource: "request-header", method: expected.request.method, status: expected.request.allowedStatuses[0], url: `http://localhost${expected.request.urlPath}` },
       ],
       semanticReadback: {
         schema: "media-server.v390-ui-semantic-readback.v2",
@@ -439,8 +479,9 @@ function makeMeasurement(value) {
     mediaTheme: value.theme,
     viewport: { ...value.viewport, devicePixelRatio: 1 },
     document: { scrollWidth: value.viewport.width, scrollHeight: value.viewport.height, clientWidth: value.viewport.width, clientHeight: value.viewport.height },
-    target: { selector: targetSelector, visible: true, rect: { left: 0, top: 0, right: value.viewport.width, bottom: 100, width: value.viewport.width, height: 100 } },
+    target: { selector: targetSelector, visible: true, documentTarget: targetSelector === "body", rect: { left: 0, top: 0, right: value.viewport.width, bottom: 100, width: value.viewport.width, height: 100 } },
     textSamples: [],
+    focus: { applicable: false, focusableCount: 0 },
     focusSamples: [],
     liveVideo: null,
   };

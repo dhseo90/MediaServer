@@ -198,8 +198,9 @@ function makeMeasurement(variant) {
     mediaTheme: variant.theme,
     viewport: { width: variant.width, height: variant.height, devicePixelRatio: 1 },
     document: { scrollWidth: variant.width, scrollHeight: variant.height, clientWidth: variant.width, clientHeight: variant.height },
-    target: { selector: variant.targetSelector, visible: true, rect: targetRect },
+    target: { selector: variant.targetSelector, visible: true, documentTarget: variant.targetSelector === "body", rect: targetRect },
     textSamples: [{ foreground: variant.theme === "dark" ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)", background: variant.theme === "dark" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)", fontSizePx: 14, fontWeight: "400" }],
+    focus: { applicable: true, focusableCount: 2 },
     focusSamples: [
       { index: 0, focusIdentity: "#a", tag: "button", id: "a", testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" },
       { index: 1, focusIdentity: "#b", tag: "a", id: "b", testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" }

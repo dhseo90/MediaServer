@@ -1978,8 +1978,21 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
       Boolean(primaryCompletion.request),
       Boolean(primaryCompletion.localTransition),
       Boolean(primaryCompletion.navigationBinding),
+      primaryCompletion.completionMode === "readback",
     ].filter(Boolean).length === 1,
-    `${item.caseId} primary request/local transition/navigation binding must be exclusive`);
+    `${item.caseId} primary request/local transition/navigation/readback binding must be exclusive`);
+    const expectedCompletionMode = primaryCompletion.navigationBinding
+      ? "navigation"
+      : (primaryCompletion.request
+          ? "request"
+          : (primaryCompletion.localTransition ? "local" : "readback"));
+    assert(primaryCompletion.completionMode === expectedCompletionMode,
+      `${item.caseId} primary completion mode drift`);
+    if (primaryCompletion.request) {
+      assert(primaryCompletion.request.initiatorActionId === primaryCompletion.actionId &&
+        primaryCompletion.request.requestOwnershipKind === "primary-action",
+      `${item.caseId} primary request action ownership drift`);
+    }
     if (primaryCompletion.navigationBinding) {
       const binding = primaryCompletion.navigationBinding;
       const endpoint = item.workflow.productAction.endpoint;
@@ -3694,7 +3707,7 @@ function buildActionSemanticCompletion({
     } else if (authoritativeExactReadRequest || authoritativeHiddenBoundaryReadRequest || productAction.endpoint) {
       request = actionRequestContract(correlationId,
         authoritativeExactReadRequest || authoritativeHiddenBoundaryReadRequest || productAction.endpoint,
-        workflowInputs, caseId);
+        workflowInputs, caseId, action.actionId);
     } else {
       localTransition = {
         selector: primaryControl.selector,
@@ -3710,19 +3723,24 @@ function buildActionSemanticCompletion({
       method: "GET",
       path: screenRoute,
       allowedStatuses: [200],
-    });
+    }, workflowInputs, caseId, action.actionId);
   } else if (setupNavigation && !navigationBinding) {
     request = actionRequestContract(correlationId, {
       method: "GET",
       path: action.route,
       allowedStatuses: [200],
-    });
+    }, workflowInputs, caseId, action.actionId);
   }
+  const completionMode = navigationBinding
+    ? "navigation"
+    : (request ? "request" : (localTransition ? "local" : "readback"));
   const requiredSource = negative
     ? "negative-route-status"
     : (navigationBinding
         ? "navigation-network-dom"
-        : (localTransition ? "local-transition-readback" : "endpoint-dom"));
+        : (request
+            ? "endpoint-dom"
+            : (localTransition ? "local-transition-readback" : "browser-dom-readback")));
   return {
     schema: "media-server.v390-ui-action-completion.v2",
     required: true,
@@ -3731,6 +3749,7 @@ function buildActionSemanticCompletion({
     actionKind: action.kind,
     controlSelector: primary ? primaryControl.selector : (action.selector || null),
     linkedPrimaryActionId: independent ? primaryActionId : null,
+    completionMode,
     requiredSource,
     correlationId,
     request,
@@ -3765,7 +3784,13 @@ function buildActionSemanticCompletion({
   };
 }
 
-function actionRequestContract(correlationId, endpoint, workflowInputs = [], caseId = "") {
+function actionRequestContract(
+  correlationId,
+  endpoint,
+  workflowInputs = [],
+  caseId = "",
+  initiatorActionId = "",
+) {
   const urlPathTemplate = endpoint.path;
   const pathParameters = {};
   const parameterNames = [...String(urlPathTemplate).matchAll(/\{([^/{}]+)\}/g)].map(match => match[1]);
@@ -3782,6 +3807,8 @@ function actionRequestContract(correlationId, endpoint, workflowInputs = [], cas
   const urlPath = String(urlPathTemplate).replace(/\{([^/{}]+)\}/g, (_match, name) =>
     encodeURIComponent(pathParameters[name]));
   return {
+    initiatorActionId,
+    requestOwnershipKind: "primary-action",
     correlationHeader: "x-media-server-correlation-id",
     correlationId,
     correlationSource: "request-header",

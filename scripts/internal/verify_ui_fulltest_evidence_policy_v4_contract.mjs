@@ -459,6 +459,8 @@ try {
       requestId: observation.networkEntries[0].requestId,
       caseRequestIdentity: observation.networkEntries[0].caseRequestIdentity,
       caseRequestSequence: observation.networkEntries[0].caseRequestSequence,
+      initiatorActionId: nativeCase.workflow.expectedResults[0].completion.actionId,
+      requestOwnershipKind: "primary-action",
       method: nativeCase.workflow.expectedResults[0].completion.request.method,
       path: nativeCase.workflow.expectedResults[0].completion.request.urlPath,
       status: nativeCase.workflow.expectedResults[0].completion.request.allowedStatuses[0],
@@ -639,6 +641,16 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
   const crossCuttingObligations = policyValue.suiteClosure.requiredCrossCuttingObligations.map(id => {
     const correlationId = `contract-cross-${id}`;
     const filePath = path.join(artifactRoot, "cross-cutting", `${id}.json`);
+    const sourceCaseEvidence = id === "video-overlay-crop" && scopeKind === "full-suite"
+      ? visualMatrixPlan.liveVideoProbe.requiredObligationIds.map(caseId => {
+          const item = cases.find(candidate => candidate.testId === caseId);
+          return {
+            caseId,
+            actionId: item.rawEvidence.actionId,
+            traceRef: clone(item.rawEvidence.traceRef),
+          };
+        })
+      : [];
     writeJson(filePath, {
       schema: policyValue.attestation.crossCuttingSchema,
       obligationId: id,
@@ -647,6 +659,7 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
       caseSetSha256,
       measuredEvidenceRefs: matrixBundle.refs,
       rawVariantCount: matrixBundle.rawVariantCount,
+      sourceCaseEvidence,
     });
     return {
       id,
@@ -785,6 +798,7 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) 
     caseId: canonicalCase.testId,
     correlationId,
     messages: [],
+    census: emptyConsoleCensus(),
   });
   fs.writeFileSync(logPath, "", "utf8");
   const screenshot = artifactMeta(pngPath, "image/png", artifactRoot, canonicalCase.testId, correlationId);
@@ -850,10 +864,22 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) 
     security: {
       scanOutcome: "clean",
       forbiddenMaterialFindings: 0,
+      unapprovedConsoleMessages: 0,
+      consoleCensus: emptyConsoleCensus(),
       correlationId,
       evidenceRef: evidenceRef(redactionScan, policyValue),
     },
     artifacts: { screenshot, trace, browserConsole, serverLog, visualMeasurement, visualDiff, redactionScan },
+  };
+}
+
+function emptyConsoleCensus() {
+  return {
+    schema: "media-server.v390-ui-console-census.v1",
+    messageCount: 0,
+    severeMessageCount: 0,
+    unapprovedMessageCount: 0,
+    entries: [],
   };
 }
 
@@ -870,6 +896,8 @@ function makeRawTrace(nativeCase) {
       requestId,
       caseRequestIdentity: requestId,
       caseRequestSequence: 1,
+      initiatorActionId: expected.actionId,
+      requestOwnershipKind: "primary-action",
       correlationId: expected.correlationId,
       correlationSource: "request-header",
       method: expected.request.method,
@@ -881,6 +909,8 @@ function makeRawTrace(nativeCase) {
       requestId,
       caseRequestIdentity: requestId,
       caseRequestSequence: 1,
+      initiatorActionId: expected.actionId,
+      requestOwnershipKind: "primary-action",
       responseRequestObjectObserved: true,
       requestIdentitySource: "playwright-response-request",
       correlationId: expected.correlationId,
@@ -911,6 +941,24 @@ function makeRawTrace(nativeCase) {
     dispatch: "playwright-native",
     requested: clone(nativeCase.requestedProjection),
     observed: clone(nativeCase.observedProjection),
+    postActionVisualTargetEvidence: {
+      schema: "media-server.v390-ui-post-action-visual-target.v1",
+      caseId: nativeCase.caseId,
+      sourceSelectorSha256: "contract-source",
+      requestedState: "attached",
+      selector: nativeCase.controlAction.targetSelector || "body",
+      bindingKind: "attached-source-owner",
+      sourceDetached: false,
+      observedRoute: nativeCase.screenRoute,
+    },
+    postActionVisualRoleEvidence: {
+      schema: "media-server.v390-ui-post-action-visual-role.v1",
+      caseId: nativeCase.caseId,
+      actionId: expected.actionId,
+      route: nativeCase.screenRoute,
+      accountRole: nativeCase.accountRole,
+      source: "browser-auth-whoami",
+    },
     actions,
     rawPrimaryObservations: [{
       schema: "media-server.v390-ui-raw-primary-observation.v1",
@@ -921,6 +969,17 @@ function makeRawTrace(nativeCase) {
         controlSelector: selector,
         correlationId: expected.correlationId,
         dispatch: "playwright-native",
+        completionMode: expected.completionMode,
+        declaredRequest: expected.request ? {
+          correlationId: expected.correlationId,
+          method: expected.request.method,
+          urlPath: expected.request.urlPath,
+          urlPathTemplate: expected.request.urlPathTemplate,
+          allowedStatuses: clone(expected.request.allowedStatuses),
+          initiatorActionId: expected.actionId,
+          requestOwnershipKind: "primary-action",
+          runtimeBindingSource: "native-completion-contract",
+        } : null,
       },
       before,
       after,
@@ -1049,13 +1108,14 @@ function contractVisualMeasurement(canonicalCase) {
     mediaTheme: canonicalCase.theme,
     viewport: { width, height, devicePixelRatio: 1 },
     document: { scrollWidth: width, scrollHeight: height, clientWidth: width, clientHeight: height },
-    target: { selector: targetSelector, visible: true, rect: { left: 0, top: 0, right: width, bottom: Math.min(height, 120), width, height: Math.min(height, 120) } },
+    target: { selector: targetSelector, visible: true, documentTarget: targetSelector === "body", rect: { left: 0, top: 0, right: width, bottom: Math.min(height, 120), width, height: Math.min(height, 120) } },
     textSamples: [{
       foreground: dark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
       background: dark ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)",
       fontSizePx: 14,
       fontWeight: "400",
     }],
+    focus: { applicable: true, focusableCount: 1 },
     focusSamples: [{ focusIdentity: `#${canonicalCase.testId}`, tag: "button", id: canonicalCase.testId, testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" }],
     liveVideo: null,
   };

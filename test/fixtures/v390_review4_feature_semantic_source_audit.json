@@ -4491,44 +4491,44 @@
           "sha256": "cdcc7a8da281f7b9df58491e9ab65a16b290b58676800a63125bec69aea2b42e"
         }
       },
-      "sourceFlowDigest": "d616271b2b29faa5407ececaf85d39d4f470c24c9f3fd5450009c4d7877ed925",
+      "sourceFlowDigest": "797a3b5a24faa8810e48a3dc5b3bdc283b67ce3a61e397f1d684a08409974822",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
-            "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
+            "trackedBlobSha256": "6891cdc622a02ed4d60b6281d298c17fe43ff2663b2bf86ae2cf61a8dd79e486",
+            "enclosingBodySha256": "cfbfe1e3209ad785c24d6748ed154e0c8d2e5ee6b1d2883c2042860e19705a9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5620,
+            "enclosingBodyEndLine": 5660,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
-            "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
+            "trackedBlobSha256": "6891cdc622a02ed4d60b6281d298c17fe43ff2663b2bf86ae2cf61a8dd79e486",
+            "enclosingBodySha256": "cfbfe1e3209ad785c24d6748ed154e0c8d2e5ee6b1d2883c2042860e19705a9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5620,
+            "enclosingBodyEndLine": 5660,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
-            "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
+            "trackedBlobSha256": "6891cdc622a02ed4d60b6281d298c17fe43ff2663b2bf86ae2cf61a8dd79e486",
+            "enclosingBodySha256": "cfbfe1e3209ad785c24d6748ed154e0c8d2e5ee6b1d2883c2042860e19705a9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5620,
+            "enclosingBodyEndLine": 5660,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
-            "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
+            "trackedBlobSha256": "6891cdc622a02ed4d60b6281d298c17fe43ff2663b2bf86ae2cf61a8dd79e486",
+            "enclosingBodySha256": "cfbfe1e3209ad785c24d6748ed154e0c8d2e5ee6b1d2883c2042860e19705a9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5620,
+            "enclosingBodyEndLine": 5660,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
@@ -4711,44 +4711,44 @@
           "sha256": "96e3a3bee7167983528bbd73514cd166bf8cb64bee78564a195ece8160c08349"
         }
       },
-      "sourceFlowDigest": "5966b4a56dc33572123af11e0296cf89dd4c06536b346bff9369c0634f112a5d",
+      "sourceFlowDigest": "dfd397c18fed84224eec08a23111df3884c55c2018f300f9501892c6aa1b251c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
-            "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
+            "trackedBlobSha256": "6891cdc622a02ed4d60b6281d298c17fe43ff2663b2bf86ae2cf61a8dd79e486",
+            "enclosingBodySha256": "cfbfe1e3209ad785c24d6748ed154e0c8d2e5ee6b1d2883c2042860e19705a9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5620,
+            "enclosingBodyEndLine": 5660,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
-            "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
+            "trackedBlobSha256": "6891cdc622a02ed4d60b6281d298c17fe43ff2663b2bf86ae2cf61a8dd79e486",
+            "enclosingBodySha256": "cfbfe1e3209ad785c24d6748ed154e0c8d2e5ee6b1d2883c2042860e19705a9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5620,
+            "enclosingBodyEndLine": 5660,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
-            "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
+            "trackedBlobSha256": "6891cdc622a02ed4d60b6281d298c17fe43ff2663b2bf86ae2cf61a8dd79e486",
+            "enclosingBodySha256": "cfbfe1e3209ad785c24d6748ed154e0c8d2e5ee6b1d2883c2042860e19705a9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5620,
+            "enclosingBodyEndLine": 5660,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "c8e01913171321cb691238648e7267ce89c9ca236727686b8ab32c1d0e1428a4",
-            "enclosingBodySha256": "ab18f4c4bbc8c6fd0a157e037371cd82f7e43e03da3403156872421929831f01",
+            "trackedBlobSha256": "6891cdc622a02ed4d60b6281d298c17fe43ff2663b2bf86ae2cf61a8dd79e486",
+            "enclosingBodySha256": "cfbfe1e3209ad785c24d6748ed154e0c8d2e5ee6b1d2883c2042860e19705a9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5620,
+            "enclosingBodyEndLine": 5660,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
@@ -196297,14 +196297,14 @@
           "sha256": "f8e6a3b2a46a1a5917cc912afe7ee42f3434503f92752c93a2a8341ca23ba925"
         }
       },
-      "sourceFlowDigest": "86768ae10333394694ca952a0c1493658eb29e5fd3a1ae756092b2ed16fdc970",
+      "sourceFlowDigest": "19cb21f8b1d423f90b9efc2ce9d19574fdb49909248f745cd2cb2e4746720797",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
+            "trackedBlobSha256": "cf1afe1dd5739906ed9bf04d822ff07e3b8bdf6d15bd150c475079d38433ba2d",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
             "enclosingBodyStartLine": 87,
             "enclosingBodyEndLine": 201,
@@ -196313,7 +196313,7 @@
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
+            "trackedBlobSha256": "cf1afe1dd5739906ed9bf04d822ff07e3b8bdf6d15bd150c475079d38433ba2d",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
             "enclosingBodyStartLine": 87,
             "enclosingBodyEndLine": 201,
@@ -196322,7 +196322,7 @@
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
+            "trackedBlobSha256": "cf1afe1dd5739906ed9bf04d822ff07e3b8bdf6d15bd150c475079d38433ba2d",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
             "enclosingBodyStartLine": 87,
             "enclosingBodyEndLine": 201,
@@ -196331,7 +196331,7 @@
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
+            "trackedBlobSha256": "cf1afe1dd5739906ed9bf04d822ff07e3b8bdf6d15bd150c475079d38433ba2d",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
             "enclosingBodyStartLine": 87,
             "enclosingBodyEndLine": 201,
@@ -196340,7 +196340,7 @@
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:requested observed aliases missing fields and copied control claims are rejected",
-            "trackedBlobSha256": "5bdcea418856f27d442ebdea4bee98a00e5d151ca0bfd1401a09515326913f85",
+            "trackedBlobSha256": "8bea6895bdc0434f4af8f4f49c0c1fed93dcc0343e3e9ab64d9225622c511024",
             "enclosingBodySha256": "ad6ce4d9144b106f83d3faeea30e4634e180d0fd320f4c6e92deec81132c11dc",
             "enclosingBodyStartLine": 117,
             "enclosingBodyEndLine": 127,
@@ -196355,7 +196355,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "5bdcea418856f27d442ebdea4bee98a00e5d151ca0bfd1401a09515326913f85",
+        "verifierFileSha256": "8bea6895bdc0434f4af8f4f49c0c1fed93dcc0343e3e9ab64d9225622c511024",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -231651,14 +231651,14 @@
           "sha256": "f264fc72bb125ca03576d7091059fac0288a873b42a63c564f19ec8348609158"
         }
       },
-      "sourceFlowDigest": "4f87d4ead47ce7b9c4c8d014a0c1f20ce10f2119b9a1eb396bc178d807862d30",
+      "sourceFlowDigest": "496ac3e1f9c817ffbd60b9763ceb92737d4a4555058e1782a8ca309b2275eba1",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
+            "trackedBlobSha256": "cf1afe1dd5739906ed9bf04d822ff07e3b8bdf6d15bd150c475079d38433ba2d",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
             "enclosingBodyStartLine": 87,
             "enclosingBodyEndLine": 201,
@@ -231667,7 +231667,7 @@
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
+            "trackedBlobSha256": "cf1afe1dd5739906ed9bf04d822ff07e3b8bdf6d15bd150c475079d38433ba2d",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
             "enclosingBodyStartLine": 87,
             "enclosingBodyEndLine": 201,
@@ -231676,7 +231676,7 @@
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
+            "trackedBlobSha256": "cf1afe1dd5739906ed9bf04d822ff07e3b8bdf6d15bd150c475079d38433ba2d",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
             "enclosingBodyStartLine": 87,
             "enclosingBodyEndLine": 201,
@@ -231685,7 +231685,7 @@
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "18fabfe3d60f813f7827856736049c469589f6ccef0b4debe99929c0fc6af9f5",
+            "trackedBlobSha256": "cf1afe1dd5739906ed9bf04d822ff07e3b8bdf6d15bd150c475079d38433ba2d",
             "enclosingBodySha256": "a87574f73dd52049e92325f67e08ddf2cbeb3990c07fb549878301e66913f4b9",
             "enclosingBodyStartLine": 87,
             "enclosingBodyEndLine": 201,
@@ -231694,7 +231694,7 @@
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:contract-only exact 424 closure satisfies suite algorithm",
-            "trackedBlobSha256": "5bdcea418856f27d442ebdea4bee98a00e5d151ca0bfd1401a09515326913f85",
+            "trackedBlobSha256": "8bea6895bdc0434f4af8f4f49c0c1fed93dcc0343e3e9ab64d9225622c511024",
             "enclosingBodySha256": "efa13ba70d3d1b6499e00fc72b76befdb14fc74a27ab691298bb861bf72aab35",
             "enclosingBodyStartLine": 85,
             "enclosingBodyEndLine": 91,
@@ -231709,7 +231709,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "5bdcea418856f27d442ebdea4bee98a00e5d151ca0bfd1401a09515326913f85",
+        "verifierFileSha256": "8bea6895bdc0434f4af8f4f49c0c1fed93dcc0343e3e9ab64d9225622c511024",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -235283,5 +235283,5 @@
       }
     }
   ],
-  "candidateDigest": "d594b446fdd88442e29160eb90dfc5220950328adc207b50869e2c2b154512b3"
+  "candidateDigest": "518adb36bbb706f7d4e237d8b52197e2baf92457ccac7cea9e9d0409c8c7a7d9"
 }

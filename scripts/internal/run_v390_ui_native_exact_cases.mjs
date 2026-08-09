@@ -751,7 +751,13 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
             navigation: observed,
             allowedStatuses: action.allowedStatuses,
             networkResponses,
-            semanticReadback: semanticReadbackEvidence(action, completionEvidenceAction, before, after),
+            semanticReadback: semanticReadbackEvidence(
+              action,
+              completionEvidenceAction,
+              before,
+              after,
+              { navigationStatus: observed.status },
+            ),
           });
           assertCompletionEvidence(completionOracle, item.caseId);
           assert(completionOracle.pass, `${item.caseId} negative navigation completion failed: ${completionOracle.reason}`);
@@ -817,6 +823,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           postActionLifecyclePlan.preAction.selector)?.after || null;
     let postActionLifecycleEvidence = null;
     let visualTargetSelector = item.controlAction.targetSelector || "body";
+    let visualRoute = item.screenRoute;
     if (postActionDestinationLifecycleRequired(postActionLifecyclePlan)) {
       const observedPostAction = await observePostActionLifecycle(
         browser,
@@ -828,6 +835,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       postActionLifecycleEvidence = observedPostAction.evidence;
       trace.postActionLifecycleEvidence = postActionLifecycleEvidence;
       visualTargetSelector = postActionLifecyclePlan.postNavigation.selector;
+      visualRoute = postActionLifecycleEvidence.postNavigation.observedRoute;
     } else {
       const postActionVisualTarget = resolvePostActionVisualTarget(
         postActionLifecyclePlan,
@@ -840,12 +848,13 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       );
       visualTargetSelector = postActionVisualTarget.selector;
       trace.postActionVisualTargetEvidence = postActionVisualTarget;
+      visualRoute = postActionVisualTarget.observedRoute;
     }
     const visualExpectedCase = {
       canonicalCaseId: item.caseId,
       featureId: item.featureId,
       screenId: item.caseId,
-      screenRoute: item.screenRoute,
+      screenRoute: visualRoute,
       accountRole: item.accountRole,
       targetSelector: visualTargetSelector,
       width: item.viewport.width,
@@ -858,12 +867,21 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         canonicalCaseId: item.caseId,
         featureId: item.featureId,
         screenId: item.caseId,
-        screenRoute: item.screenRoute,
+        screenRoute: visualRoute,
         accountRole: item.accountRole,
         targetSelector: visualTargetSelector,
       },
       requestedTheme: item.theme,
     });
+    visualExpectedCase.accountRole = visualMeasurement.accountRole;
+    trace.postActionVisualRoleEvidence = {
+      schema: "media-server.v390-ui-post-action-visual-role.v1",
+      caseId: item.caseId,
+      actionId: item.oracle.primaryActionId,
+      route: visualRoute,
+      accountRole: visualMeasurement.accountRole,
+      source: "browser-auth-whoami",
+    };
     await browser.screenshot(screenshotPath);
     await executeWorkflowCleanup(browser, item, runtimeState, caseRuntime, caseContext, trace);
     browserCloseAttempted = true;
@@ -2297,7 +2315,12 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     beforePostconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
   }
   const networkStart = browser.networkEntries().length;
-  await browser.setCorrelationId(action.semanticCompletion.correlationId);
+  await browser.setCorrelationId(action.semanticCompletion.correlationId, {
+    actionId: action.semanticCompletion.completionMode === "request"
+      ? action.semanticCompletion.actionId
+      : "",
+    ownershipKind: "primary-action",
+  });
   let executedKind = "";
   let typedFormInputs = null;
   let submittedFormInput = null;
@@ -2626,7 +2649,10 @@ async function executeEndpointOwnedAction(
   `${item.caseId} endpoint-owned action request/completion binding mismatch`);
   const before = await browser.snapshot("body");
   const networkStart = browser.networkEntries().length;
-  await browser.setCorrelationId(completionRequest.correlationId);
+  await browser.setCorrelationId(completionRequest.correlationId, {
+    actionId: completionRequest.initiatorActionId || action.semanticCompletion.actionId,
+    ownershipKind: completionRequest.requestOwnershipKind || "primary-action",
+  });
   let response;
   try {
     response = await browser.evaluate(async ({ method, path, body }) => {
@@ -2918,6 +2944,8 @@ async function semanticAssertionResult(
           method: completion.request.method,
           urlPath: completion.request.urlPath,
           actionId: completion.actionId,
+          correlationId: completion.correlationId,
+          ownershipKind: "primary-action",
         });
         requestCorrelationEvidence = buildRequestCorrelationEvidence({
           entries: browser.networkEntries().slice(networkStart),
@@ -2953,8 +2981,26 @@ async function semanticAssertionResult(
     }
   }
   const snapshot = await browser.snapshot(snapshotSelector);
+  const runtimeRequest = catalogObservation?.responses?.length === 1
+    ? catalogObservation.responses[0]
+    : null;
   const actionEvidence = {
     ...semanticCompletionAction(action, item),
+    ...(runtimeRequest ? {
+      expectedEndpoint: {
+        correlationId: completion.correlationId,
+        method: String(runtimeRequest.method || "").toUpperCase(),
+        urlPath: runtimeRequest.urlPath,
+        urlPathTemplate: exactRuntimeOracleFor(item.caseId)?.requests?.[0]?.path || runtimeRequest.urlPath,
+        allowedStatuses: [...new Set([
+          Number(runtimeRequest.status),
+          ...(completion.request?.allowedStatuses || []),
+        ])],
+        initiatorActionId: completion.actionId,
+        requestOwnershipKind: "primary-action",
+        runtimeBindingSource: "exact-runtime-oracle",
+      },
+    } : {}),
     observed: exactObserved,
     status: "PASS",
   };
@@ -3150,7 +3196,9 @@ async function executeIndependentReadback(
       semanticReadback,
       requestBinding: pending.formResponseIdentity
         ? structuredClone(pending.formResponseIdentity)
-        : null,
+        : (pending.requestCorrelationEvidence
+            ? structuredClone(pending.requestCorrelationEvidence)
+            : null),
     }),
   };
 }
@@ -3292,6 +3340,10 @@ function makeRawPrimaryObservation({
         actionEvidence.controlSelector || null,
       correlationId: actionEvidence.correlationId,
       dispatch: actionEvidence.dispatch,
+      completionMode: actionEvidence.completionMode,
+      declaredRequest: actionEvidence.expectedEndpoint
+        ? structuredClone(actionEvidence.expectedEndpoint)
+        : null,
     },
     before: before ? structuredClone(before) : null,
     after: after ? structuredClone(after) : null,
@@ -3317,6 +3369,7 @@ function semanticCompletionAction(action, item) {
     actionKind: completion.actionKind,
     controlSelector: completion.controlSelector,
     semanticCompletionRequired: true,
+    completionMode: completion.completionMode,
     expectedReadbackIdentity: completion.readback.identity,
     expectedBehaviorSha256: completion.expectedBehaviorSha256,
     expectedReadbackExpectation: structuredClone(completion.readbackExpectation),
@@ -3326,6 +3379,9 @@ function semanticCompletionAction(action, item) {
       urlPath: completion.request.urlPath,
       urlPathTemplate: completion.request.urlPathTemplate,
       allowedStatuses: [...completion.request.allowedStatuses],
+      initiatorActionId: completion.request.initiatorActionId || completion.actionId,
+      requestOwnershipKind: completion.request.requestOwnershipKind || "primary-action",
+      runtimeBindingSource: completion.request.runtimeBindingSource || "native-completion-contract",
     } : null,
     expectedLocalTransition: completion.localTransition ? structuredClone(completion.localTransition) : null,
     expectedNavigationBinding: completion.navigationBinding

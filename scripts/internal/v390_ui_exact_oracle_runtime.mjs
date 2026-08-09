@@ -1632,21 +1632,13 @@ async function observeRequest(
       source = "case-owned-refresh-render-response";
     } else if (["GET", "HEAD"].includes(method)) {
       const fetchNetworkStart = browser.networkEntries().length;
-      const result = item.caseId === "EVT-004"
-        ? await browser.request({
-            method,
-            urlPath,
-            actionId,
-            correlationId: request.correlationRequired === false ? "" : correlationId,
-          })
-        : await browser.evaluate(`fetch(${JSON.stringify(urlPath)}, {
-            method: ${JSON.stringify(method)}, credentials: 'same-origin', cache: 'no-store'
-          }).then(async response => {
-            const text = await response.text();
-            let json = null;
-            try { json = JSON.parse(text); } catch (_) {}
-            return { status: response.status, text, json, contentType: response.headers.get('content-type') || '' };
-          })`);
+      const result = await browser.request({
+        method,
+        urlPath,
+        actionId,
+        correlationId: request.correlationRequired === false ? "" : correlationId,
+        ownershipKind: "primary-action",
+      });
       status = result.status;
       body = result.json ?? result.text;
       contentType = result.contentType || "";
@@ -1661,13 +1653,7 @@ async function observeRequest(
           correlationId,
           networkStart: fetchNetworkStart,
           status,
-          requestResult: item.caseId === "EVT-004"
-            ? result
-            : {
-                actionId,
-                requestAttemptCount: 1,
-                requestReissued: false,
-              },
+          requestResult: result,
         });
       }
     } else {

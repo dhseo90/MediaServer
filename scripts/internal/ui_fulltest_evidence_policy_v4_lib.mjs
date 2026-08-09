@@ -215,6 +215,9 @@ function validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, 
     reasons.push(`cross-cutting-${obligation}-visual-plan-invalid`);
     return null;
   }
+  if (obligation === "video-overlay-crop" && summary.scopeKind === "full-suite") {
+    validateLiveSourceCaseEvidence(policy, summary, rootDir, plan, payload, reasons);
+  }
   const refs = Array.isArray(payload?.measuredEvidenceRefs) ? payload.measuredEvidenceRefs : [];
   if (refs.length !== requiredVariants.length * 2 || payload?.rawVariantCount !== requiredVariants.length) {
     reasons.push(`cross-cutting-${obligation}-measurement-ref-count-invalid`);
@@ -289,6 +292,29 @@ function validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, 
     reasons.push(`cross-cutting-${obligation}-independent-matrix-not-pass`);
   }
   return recalculatedMatrix;
+}
+
+function validateLiveSourceCaseEvidence(policy, summary, rootDir, plan, payload, reasons) {
+  const requiredIds = plan?.liveVideoProbe?.requiredObligationIds || [];
+  const evidence = Array.isArray(payload?.sourceCaseEvidence) ? payload.sourceCaseEvidence : [];
+  if (JSON.stringify(evidence.map(item => item?.caseId)) !== JSON.stringify(requiredIds)) {
+    reasons.push("cross-cutting-video-overlay-crop-source-case-set-mismatch");
+    return;
+  }
+  for (const source of evidence) {
+    const item = summary.cases?.find(candidate => candidate.testId === source.caseId);
+    if (!item || source.actionId !== item.rawEvidence?.actionId ||
+        JSON.stringify(source.traceRef) !== JSON.stringify(item.rawEvidence?.traceRef)) {
+      reasons.push(`cross-cutting-video-overlay-crop-source-case-binding-mismatch:${source.caseId}`);
+      continue;
+    }
+    validateEvidenceRef(policy, summary, rootDir, source.traceRef, {
+      expectedCaseId: source.caseId,
+      expectedCorrelationId: item.rawEvidence?.correlationId,
+      expectedContentType: "application/json",
+      prefix: "cross-cutting-video-overlay-crop-source-trace-ref",
+    }, reasons);
+  }
 }
 
 function validateCrossCuttingObligation(obligation, matrix, reasons) {
@@ -619,6 +645,7 @@ function validateCleanup(summary, reasons) {
 
 function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonicalCase, nativeCase }) {
   const reasons = [];
+  let tracePayload = null;
   if (!item?.testId) reasons.push("test-id-missing");
   if (!canonicalCase) {
     reasons.push("unknown-canonical-case-id");
@@ -647,7 +674,7 @@ function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonic
   }, reasons);
   if (traceRef && !sameArtifactReference(raw.traceRef, item?.artifacts?.trace)) reasons.push("raw-trace-ref-artifact-mismatch");
   if (traceRef && canonicalCase && nativeCase) {
-    const tracePayload = readJsonFile(traceRef.path);
+    tracePayload = readJsonFile(traceRef.path);
     const qualification = qualifyRawCase({
       trace: tracePayload,
       requested: item.requested,
@@ -694,13 +721,19 @@ function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonic
       reasons.push("raw-visual-binding-payload-invalid");
     }
     const measurement = readJsonFile(measurementRef.path);
+    const expectedVisualBinding = resolveIndependentVisualBinding(
+      tracePayload,
+      nativeCase,
+      measurement,
+      reasons,
+    );
     const expectedCase = {
       canonicalCaseId: item.testId,
       featureId: item.featureId,
       screenId: item.testId,
-      screenRoute: nativeCase?.screenRoute,
-      accountRole: nativeCase?.accountRole,
-      targetSelector: nativeCase?.controlAction?.targetSelector || "body",
+      screenRoute: expectedVisualBinding.screenRoute,
+      accountRole: expectedVisualBinding.accountRole,
+      targetSelector: expectedVisualBinding.targetSelector,
       width: nativeCase?.viewport?.width,
       height: nativeCase?.viewport?.height,
       theme: nativeCase?.theme,
@@ -734,6 +767,42 @@ function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonic
   return [...new Set(reasons)];
 }
 
+function resolveIndependentVisualBinding(trace, nativeCase, measurement, reasons) {
+  const lifecycle = trace?.postActionLifecycleEvidence;
+  const target = trace?.postActionVisualTargetEvidence;
+  let screenRoute = nativeCase?.screenRoute || "";
+  let targetSelector = nativeCase?.controlAction?.targetSelector || "body";
+  if (lifecycle?.schema === "media-server.v390-ui-post-action-lifecycle-evidence.v1" &&
+      lifecycle.caseId === nativeCase?.caseId && lifecycle.pass === true &&
+      lifecycle.postNavigation?.observedRoute === lifecycle.postNavigation?.route &&
+      lifecycle.postNavigation?.destinationExists === true) {
+    screenRoute = lifecycle.postNavigation.observedRoute;
+    targetSelector = lifecycle.postNavigation.selector;
+  } else if (target?.schema === "media-server.v390-ui-post-action-visual-target.v1" &&
+      target.caseId === nativeCase?.caseId && target.observedRoute && target.selector &&
+      ["attached-source-owner", "source-owner-without-action-observation", "post-action-document-owner"]
+        .includes(target.bindingKind)) {
+    screenRoute = target.observedRoute;
+    targetSelector = target.selector;
+  } else {
+    reasons.push("independent-visual-lifecycle-binding-missing");
+  }
+  const role = trace?.postActionVisualRoleEvidence;
+  if (role?.schema !== "media-server.v390-ui-post-action-visual-role.v1" ||
+      role.caseId !== nativeCase?.caseId || role.actionId !==
+        nativeCase?.workflow?.expectedResults?.[0]?.completion?.actionId ||
+      role.route !== screenRoute || role.source !== "browser-auth-whoami" ||
+      !["anonymous", "viewer", "operator", "admin"].includes(role.accountRole) ||
+      role.accountRole !== measurement?.accountRole) {
+    reasons.push("independent-visual-role-binding-mismatch");
+  }
+  return {
+    screenRoute,
+    targetSelector,
+    accountRole: role?.accountRole || nativeCase?.accountRole,
+  };
+}
+
 function validateCaseConsole(policy, item, summary, rootDir, trace, nativeCase, reasons) {
   const artifactRoot = resolveContained(rootDir, summary.sourceBinding?.artifactRoot);
   const artifact = item?.artifacts?.browserConsole;
@@ -743,6 +812,10 @@ function validateCaseConsole(policy, item, summary, rootDir, trace, nativeCase, 
   const payload = isJson(resolved, artifact.contentType) ? readJsonFile(resolved) : null;
   if (!payload || payload.schema !== policy.attestation.browserConsoleSchema || !Array.isArray(payload.messages)) return;
   const qualification = qualifyBrowserConsoleMessages({ messages: payload.messages, trace, nativeCase });
+  if (JSON.stringify(payload.census) !== JSON.stringify(qualification.census) ||
+      JSON.stringify(item?.security?.consoleCensus) !== JSON.stringify(qualification.census)) {
+    reasons.push("case-console-census-mismatch");
+  }
   if (qualification.unapprovedConsoleMessages !== Number(item?.security?.unapprovedConsoleMessages || 0)) {
     reasons.push("case-console-unapproved-message-count-mismatch");
   }

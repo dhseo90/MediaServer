@@ -713,7 +713,7 @@ check("route-injected application correlation survives request-start to response
     "let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId)",
     "outerInjectionEnabled: activeCorrelationInjectionEnabled",
     "correlationAllowed,",
-    "setCorrelationId: async (correlationId, { inject = true } = {})",
+    "setCorrelationId: async (",
   ]) {
     assert(adapterSource.includes(snippet),
       `route-injected correlation is not preserved through response binding: ${snippet}`);
@@ -885,6 +885,8 @@ check("document form responses bind exact request identity and redirect chain", 
     requestKind: "document-navigation",
     resourceType: "document",
     sameOrigin: true,
+    initiatorActionId: "UI-002:submit-form",
+    requestOwnershipKind: "primary-action",
     redirectedFromRequestId: "",
     correlationId: "",
     method: "POST",
@@ -901,6 +903,8 @@ check("document form responses bind exact request identity and redirect chain", 
     requestKind: "document-navigation",
     resourceType: "document",
     sameOrigin: true,
+    initiatorActionId: request.initiatorActionId,
+    requestOwnershipKind: request.requestOwnershipKind,
     correlationId: "",
     method: "POST",
     status: 302,
@@ -935,6 +939,8 @@ check("document form responses bind exact request identity and redirect chain", 
     binding.caseRequestIdentity === request.caseRequestIdentity &&
     binding.redirectCount === 1 &&
     binding.redirectPath === "/login" &&
+    binding.initiatorActionId === request.initiatorActionId &&
+    binding.requestOwnershipKind === "primary-action" &&
     binding.correlationObserved === false,
   "exact document form response binding did not pass");
 
@@ -966,6 +972,8 @@ check("document form responses bind exact request identity and redirect chain", 
     entry === response ? { ...entry, requestId: "native-request-other" } : entry));
   expectRejected("correlated document request", entries.map(entry =>
     entry === request ? { ...entry, correlationId: "forbidden" } : entry));
+  expectRejected("wrong action owner", entries.map(entry =>
+    entry === response ? { ...entry, initiatorActionId: "OTHER:action" } : entry));
   expectRejected("wrong method", entries, { method: "PUT" });
   expectRejected("wrong path", entries, { path: "/other" });
   expectRejected("wrong status", entries.map(entry =>
