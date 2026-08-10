@@ -1022,11 +1022,16 @@ async function openNativePlaywrightPage(playwright, {
     const actionContext = actionRequestOwnership?.context || null;
     const requestKind = requestKindFor(request);
     const redirectedFrom = request.redirectedFrom();
+    const redirectedFromLifecycle = redirectedFrom
+      ? responseRequestBindings.get(redirectedFrom) || null
+      : null;
     const lifecycleOwnership = classifyRequestLifecycleOwnership({
       initialSettlingComplete: Boolean(initialRouteSettlingAttestation),
       resourceType: request.resourceType(),
       requestKind,
       redirectedFromRequest: redirectedFrom,
+      redirectedFromLifecycle,
+      navigationInvocation: activeNavigationOperation,
       actionInvocation: actionContext,
       phase: String(actionContext?.phase || activeNavigationOperation?.kind ||
         activeRequestOwnership?.phase ||
@@ -1034,11 +1039,7 @@ async function openNativePlaywrightPage(playwright, {
     });
     const ledgerOwner = lifecycleOwnership.ledgerOwner;
     const ownerPhase = lifecycleOwnership.ownerPhase;
-    const lifecycleActionId = actionContext
-      ? String(actionContext.actionId || "")
-      : (lifecycleOwnership.lifecycleClass === "bootstrap-document"
-          ? `${String(activeNavigationOperation?.invocationId || "initial-navigation")}:page-load`
-          : "");
+    const lifecycleActionId = actionContext ? String(actionContext.actionId || "") : "";
     const requestHeaderDigest = String(routeInjectedCorrelation?.requestHeaderDigest ||
       correlationHeaderDigest(correlationId));
     const pendingRequest = {
@@ -1055,6 +1056,9 @@ async function openNativePlaywrightPage(playwright, {
         : String(actionContext?.renderCycleId || ""),
       requestOwnershipKind: lifecycleOwnership.requestOwnershipKind,
       lifecycleClass: lifecycleOwnership.lifecycleClass,
+      actionInvocationId: lifecycleOwnership.actionInvocationId,
+      navigationInvocationId: lifecycleOwnership.navigationInvocationId,
+      requestObject: request,
       requestActionContext: actionContext,
       actionRequestLedgerWrapper: actionRequestOwnership?.ledgerWrapper || null,
       ledgerOwner,
@@ -1116,6 +1120,8 @@ async function openNativePlaywrightPage(playwright, {
         : String(actionContext?.renderCycleId || ""),
       requestOwnershipKind: lifecycleOwnership.requestOwnershipKind,
       lifecycleClass: lifecycleOwnership.lifecycleClass,
+      actionInvocationId: lifecycleOwnership.actionInvocationId,
+      navigationInvocationId: lifecycleOwnership.navigationInvocationId,
       requestStartedAtMs,
       method: request.method(),
       status: 0,
@@ -1162,6 +1168,8 @@ async function openNativePlaywrightPage(playwright, {
         initiatorActionId: lifecycleActionId,
         requestOwnershipKind: lifecycleOwnership.requestOwnershipKind,
         lifecycleClass: lifecycleOwnership.lifecycleClass,
+        actionInvocationId: lifecycleOwnership.actionInvocationId,
+        navigationInvocationId: lifecycleOwnership.navigationInvocationId,
       };
       if (requestListenerEndSequence !== null) {
         documentNavigationAfterListenerEndCount += 1;
@@ -1210,6 +1218,8 @@ async function openNativePlaywrightPage(playwright, {
       renderCycleId: String(initiatingRequest?.renderCycleId || ""),
       requestOwnershipKind: String(initiatingRequest?.requestOwnershipKind || ""),
       lifecycleClass: String(initiatingRequest?.lifecycleClass || ""),
+      actionInvocationId: String(initiatingRequest?.actionInvocationId || ""),
+      navigationInvocationId: String(initiatingRequest?.navigationInvocationId || ""),
       requestStartedAtMs: Number(initiatingRequest?.requestStartedAtMs || 0),
       responseObservedAtMs: Date.now(),
       method: request.method(),
@@ -1386,6 +1396,8 @@ async function openNativePlaywrightPage(playwright, {
     ownerPhase: entry.ownerPhase,
     initiatorActionId: entry.initiatorActionId,
     requestOwnershipKind: entry.requestOwnershipKind,
+    actionInvocationId: entry.actionInvocationId,
+    navigationInvocationId: entry.navigationInvocationId,
   });
   const captureNavigationOwnerLifecycle = async (operation, sourceOwner, action) => {
     if (navigationOwnerLifecycles.some(item =>
@@ -2339,6 +2351,7 @@ async function openNativePlaywrightPage(playwright, {
         );
       }
       const documentEnvelopeWrapper = documentEnvelopeWrappers[0];
+      operation.actionId = String(documentEnvelopeWrapper.ledger.envelope.actionId || "");
       if (documentEnvelopeWrapper.claimCount !== 0 ||
           documentEnvelopeWrapper.responseCount !== 0 ||
           documentEnvelopeWrapper.responseBarrier.evidence().settlement !== "pending") {

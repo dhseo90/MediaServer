@@ -355,6 +355,7 @@ const requestLifecycleTupleByClass = Object.freeze({
 
 export function classifyRequestLifecycleOwnership({
   requestKind = "", resourceType = "", redirectedFromRequest = null,
+  redirectedFromLifecycle = null, navigationInvocation = null,
   actionInvocation = null, phase = "", initialSettlingComplete = false,
   sameRouteFormRejection = false,
 } = {}) {
@@ -363,41 +364,89 @@ export function classifyRequestLifecycleOwnership({
   const lifecyclePhase = String(phase || "");
   const redirected = redirectedFromRequest !== null && redirectedFromRequest !== undefined;
   if (redirected) assertOpaque(redirectedFromRequest, "redirectedFrom request");
-  if (redirected && initialSettlingComplete !== true) {
-    throw new Error("bootstrap/redirect lifecycle mixing is forbidden");
-  }
-  if (redirected) {
-    assert(kind === "document-navigation" && type === "document",
-      "redirect lifecycle requires a document-navigation/document request");
-    assert(!actionInvocation && lifecyclePhase === "form-submit-document-navigation",
-      "redirect lifecycle action/phase mismatch");
-    return lifecycleBinding("document-redirect-chain");
-  }
   if (actionInvocation) {
-    assert(typeof actionInvocation === "object" && String(actionInvocation.actionId || "") &&
+    assert(initialSettlingComplete === true && !redirected &&
+      typeof actionInvocation === "object" && String(actionInvocation.actionId || "") &&
       String(actionInvocation.phase || "") === "primary-action" &&
       lifecyclePhase === "primary-action", "primary action invocation/phase mismatch");
     assert(["document-navigation", "application-fetch"].includes(kind),
       "primary action request kind mismatch");
+    if (kind === "document-navigation") {
+      assert(type === "document" && isNavigationInvocation(navigationInvocation,
+        "form-submit-document-navigation") &&
+        String(navigationInvocation.actionId || "") ===
+          String(actionInvocation.actionId || ""),
+      "primary document action navigation invocation mismatch");
+    } else {
+      assert(type === "fetch" && !navigationInvocation,
+        "primary fetch action resource/invocation mismatch");
+      assert(sameRouteFormRejection !== true,
+        "same-route form rejection requires a document action");
+    }
     return lifecycleBinding(sameRouteFormRejection
-      ? "same-route-form-rejection" : "primary-action");
-  }
-  if (lifecyclePhase === "form-submit-document-navigation") {
-    throw new Error("document redirect lifecycle is missing redirectedFrom request object");
-  }
-  if (lifecyclePhase === "independent-readback") {
-    assert(kind === "application-fetch" && type === "fetch",
-      "independent readback requires application-fetch/fetch");
-    return lifecycleBinding("independent-readback");
+      ? "same-route-form-rejection" : "primary-action", {
+      actionInvocationId: String(actionInvocation.actionId || ""),
+      navigationInvocationId: String(navigationInvocation?.invocationId || ""),
+    });
   }
   if (initialSettlingComplete !== true) {
     if (kind === "document-navigation" && type === "document") {
-      return lifecycleBinding("bootstrap-document");
+      assert(isNavigationInvocation(navigationInvocation,
+        "initial-document-navigation") &&
+        lifecyclePhase === "initial-document-navigation",
+      "bootstrap document initial invocation mismatch");
+      if (redirected) {
+        assertRedirectParent(redirectedFromRequest, redirectedFromLifecycle, {
+          lifecycleClass: "bootstrap-document",
+          navigationInvocationId: String(navigationInvocation.invocationId),
+        }, "bootstrap redirect chain");
+      } else {
+        assert(!redirectedFromLifecycle,
+          "bootstrap initial document has stale redirectedFrom lifecycle");
+      }
+      return lifecycleBinding("bootstrap-document", {
+        navigationInvocationId: String(navigationInvocation.invocationId),
+      });
     }
+    assert(!redirected && !redirectedFromLifecycle,
+      "bootstrap fetch carries document redirect state");
+    assert(!navigationInvocation || isNavigationInvocation(navigationInvocation,
+      "initial-document-navigation"),
+    "bootstrap fetch carries a non-initial navigation invocation");
     assert(kind === "application-fetch" && type === "fetch",
       "bootstrap request lifecycle is unclassified");
     return lifecycleBinding("bootstrap-fetch");
   }
+  if (redirected) {
+    assert(kind === "document-navigation" && type === "document",
+      "redirect lifecycle requires a document-navigation/document request");
+    assert(lifecyclePhase === "form-submit-document-navigation" &&
+      isNavigationInvocation(navigationInvocation, "form-submit-document-navigation") &&
+      String(navigationInvocation.actionId || ""),
+    "redirect lifecycle action/phase/invocation mismatch");
+    assertRedirectParent(redirectedFromRequest, redirectedFromLifecycle, {
+      lifecycleClass: "primary-action",
+      requestKind: "document-navigation",
+      resourceType: "document",
+      actionInvocationId: String(navigationInvocation.actionId),
+    }, "action redirect chain");
+    return lifecycleBinding("document-redirect-chain", {
+      actionInvocationId: String(navigationInvocation.actionId),
+      navigationInvocationId: String(navigationInvocation.invocationId),
+    });
+  }
+  assert(!redirectedFromLifecycle,
+    "non-redirect request carries stale redirectedFrom lifecycle");
+  if (lifecyclePhase === "form-submit-document-navigation") {
+    throw new Error("document redirect lifecycle is missing redirectedFrom request object");
+  }
+  if (lifecyclePhase === "independent-readback") {
+    assert(kind === "application-fetch" && type === "fetch" && !navigationInvocation,
+      "independent readback requires application-fetch/fetch without navigation invocation");
+    return lifecycleBinding("independent-readback");
+  }
+  assert(!navigationInvocation || isAnyNavigationInvocation(navigationInvocation),
+  "page-owned request carries invalid navigation invocation");
   if (type === "eventsource") return lifecycleBinding("sse");
   if (type === "websocket") return lifecycleBinding("websocket");
   if (kind === "application-fetch" && type === "fetch") return lifecycleBinding("background-fetch");
@@ -442,6 +491,14 @@ export function validateRequestLifecycleLedger(entries, {
       current.requestIdentitySource === "playwright-response-request" &&
       current.responseRequestObject === start.requestObject,
     "request lifecycle response object identity mismatch");
+    const lifecycleIdentityKeys = [
+      "lifecycleClass", "ledgerOwner", "sourceOwner", "ownerPhase",
+      "requestOwnershipKind", "initiatorActionId", "actionInvocationId",
+      "navigationInvocationId", "requestKind", "resourceType",
+    ];
+    assert(lifecycleIdentityKeys.every(key =>
+      String(current[key] || "") === String(start[key] || "")),
+    "request lifecycle identity changed between request and response");
     assert(!responseIds.has(current.requestId), "duplicate request lifecycle response");
     responseIds.add(current.requestId);
   }
@@ -459,13 +516,30 @@ export function validateRequestLifecycleLedger(entries, {
     ((primaryActionId && entry.initiatorActionId === primaryActionId) ||
       (primaryCorrelationId && entry.correlationId === primaryCorrelationId)));
   assert(leaks.length === 0, `page-owned action correlation leak: ${leaks.length}`);
+  const bootstrapStarts = starts.filter(entry => entry.lifecycleClass === "bootstrap-document");
+  assert(bootstrapStarts.every(entry => !entry.initiatorActionId &&
+    entry.navigationInvocationId),
+  "bootstrap initial document action/invocation binding mismatch");
+  const bootstrapRedirectStarts = bootstrapStarts.filter(entry => entry.redirectedFromRequest);
+  assert(bootstrapRedirectStarts.every(entry => {
+    const parent = starts.find(candidate => candidate.requestObject === entry.redirectedFromRequest);
+    return parent?.lifecycleClass === "bootstrap-document" &&
+      parent.navigationInvocationId === entry.navigationInvocationId;
+  }), "bootstrap redirect lifecycle redirectedFrom invocation mismatch");
   const redirectStarts = starts.filter(entry => entry.lifecycleClass === "document-redirect-chain");
   assert(redirectStarts.every(entry => entry.redirectedFromRequest &&
-    startObjects.has(entry.redirectedFromRequest)), "redirect lifecycle redirectedFrom object mismatch");
+    startObjects.has(entry.redirectedFromRequest) && entry.actionInvocationId &&
+    entry.navigationInvocationId && !entry.initiatorActionId &&
+    starts.some(parent => parent.requestObject === entry.redirectedFromRequest &&
+      primaryClasses.has(parent.lifecycleClass) &&
+      parent.actionInvocationId === entry.actionInvocationId)),
+  "redirect lifecycle redirectedFrom object/action invocation mismatch");
   return Object.freeze({
     schema: "media-server.v390-ui-request-lifecycle-ledger-evidence.v1",
     requestCount: starts.length, responseCount: responses.length,
     primaryRequestCount: primaryStarts.length, primaryResponseCount: primaryResponses.length,
+    bootstrapInitialDocumentRequestCount: bootstrapStarts.length,
+    bootstrapRedirectDestinationRequestCount: bootstrapRedirectStarts.length,
     redirectDestinationRequestCount: redirectStarts.length,
     redirectDestinationPrimaryCardinalityContribution: 0,
     actionCorrelationLeakCount: 0, pass: true,
@@ -547,13 +621,37 @@ function assertOpaque(value, label) {
     `${label} must be an opaque object`);
 }
 
-function lifecycleBinding(lifecycleClass) {
+function isNavigationInvocation(value, kind) {
+  return Boolean(value && typeof value === "object" &&
+    String(value.invocationId || "") && String(value.kind || "") === kind);
+}
+
+function isAnyNavigationInvocation(value) {
+  return Boolean(value && typeof value === "object" &&
+    String(value.invocationId || "") && String(value.kind || ""));
+}
+
+function assertRedirectParent(request, parent, expected, label) {
+  assert(parent && typeof parent === "object" && parent.requestObject === request,
+    `${label} redirectedFrom object mismatch`);
+  for (const [key, value] of Object.entries(expected)) {
+    const observed = key === "actionInvocationId"
+      ? String(parent.actionInvocationId || parent.initiatorActionId || "")
+      : String(parent[key] || "");
+    assert(observed === String(value), `${label} parent ${key} mismatch`);
+  }
+}
+
+function lifecycleBinding(lifecycleClass, {
+  actionInvocationId = "", navigationInvocationId = "",
+} = {}) {
   const values = requestLifecycleTupleByClass[lifecycleClass];
   assert(values, `request lifecycle class is invalid: ${lifecycleClass}`);
   return Object.freeze({
     lifecycleClass, ledgerOwner: values[0], sourceOwner: values[1],
     ownerPhase: values[2], requestOwnershipKind: values[3],
-    initiatorActionId: "", correlationId: "",
+    initiatorActionId: "", actionInvocationId: String(actionInvocationId || ""),
+    navigationInvocationId: String(navigationInvocationId || ""), correlationId: "",
   });
 }
 

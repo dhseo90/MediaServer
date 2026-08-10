@@ -3373,6 +3373,26 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 실행 중 정정 | 첫 focused 실행에서 과거 RED fixture가 mutable top-level current alias를 가리켜 SHA가 최신 actual로 바뀐 충돌을 발견해 immutable run-ID artifact만 historical hash 대상으로 제한했습니다. 다음 focused 실행에서 별도 initial phase가 없는 canonical negative-route UI-018을 발견해 `negative-route + 단일 initial-document-navigation binding` 공통 규칙으로 포함했습니다. 424 전수 대입에서 initial settled route와 action source route가 다른 9건을 발견해 attestation 시점을 최초 문서 직후로 분리했습니다 | 세 정정 모두 계약 완화 없이 공통 lifecycle 모델을 보강했습니다. 이후 focused 및 전체 gate가 PASS했습니다 |
 | 미실행 | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, actual acceptance/release, `./test_release.sh` | 사용자 금지. Clean pushed commit에서 별도 tester가 `./test_ui.sh`를 정확히 1회 실행해야 actual GREEN 여부가 결정됩니다 |
 
+## v3.9.0 bootstrap/action redirect lifecycle classifier correction (2026-08-10)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Runner-start actual RED | 시작 SHA `6c5c2f613567faf82edd574de7ec3b312aff65df`, canonical `424/0`, UI-001 `GET / → 302 → GET /login` bootstrap redirect가 line 367 `bootstrap/redirect lifecycle mixing is forbidden`에서 실행 전 중단 | fail |
+| Focused TDD RED | UI-001 initial invocation과 redirectedFrom parent identity를 가진 actual-like chain을 신규 계약에 추가한 뒤 기존 classifier가 동일 mixing 오류로 거부함을 확인 | fail |
+| Initial settling census | Canonical `424`, initial redirect `1`, no redirect `423`, document hop `425`, redirected case exact `UI-001` | pass |
+| Document form census | Canonical form `11`, redirect `9`, same-route rejection `2`; primary POST request/response `1/1`, redirect GET primary cardinality contribution `0` | pass |
+| Exact classifier | Bootstrap hop `page/page/bootstrap/initial-page-load`, form POST `action/explicit-action-registration/primary-action/primary-action`, action redirect GET `page/document-navigation-ledger/document-navigation-chain/document-navigation-chain`; settling/invocation/action/phase/kind/type/parent object를 동시 검증 | pass |
+| Fail-closed negative | Missing/duplicate/cross-chain/stale/wrong invocation·object·tuple·action·correlation과 request/response lifecycle identity drift, form status/path/Location/destination/late response를 거부 | pass |
+| Focused GREEN | Lifecycle `9/9`, action/background `5/5`, document form `5/5`·11 cases, callback `10/10`, ownership `4/4`, post-action `424/424`·request `391/391`, adapter `48/48`, runtime `63/63`, native `55/55`, completion `36/36` | pass |
+| Diagnostic/replay | Diagnostic contract `33/33`, fixed trace replay `548/548`, remaining actual replay PASS. Diagnostic actual은 미실행 | pass |
+| Policy/acceptance/integrity | Producer/independence `11/11`·`11/11`, Policy v4 `27/27`, visual `8/8`, eligibility `7/7`, current evidence `7/7`, acceptance `21/21`, final-integrity `12/12` | pass |
+| Build/semantic/feature/inventory | Full build 100%, semantic audit `51/51`·approval `986/986`·closure `31/31`, feature evidence `986/986`·negative `15/15`, coverage `7/7`, completion `14/14`, project `17/17`, script `11/11` | pass |
+| Generation boundary | Feature inventory SHA drift를 official gate가 거부한 뒤 implementation manifest refresh `1`회·기존 independently approved source-flow projection `1`회, 문서 drift에 따른 semantic discovery ledger writer `2`회를 실행했습니다. 최종 semantic `986/986`와 native `424=423+1`은 PASS했고 independent reviewer `0`, approval/migration-aware producer `0`, native generator `0`, actual Policy producer `0`입니다 | pass |
+| 미실행 | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, actual acceptance/release, `./test_release.sh` | fail |
+
+미실행 항목은 사용자 명시 금지이며 완료 evidence로 사용할 수 없습니다. 별도 tester의 다음 명령은
+정확히 `./test_ui.sh`입니다.
+
 ## v3.9.0 browser callback raw-schema reconciliation (2026-08-10)
 
 | 제목 | 수행내용 | 결과(pass/fail) |

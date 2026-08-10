@@ -7454,6 +7454,47 @@ Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_releas
 사용자 지시에 따라 미실행이며 정적 PASS를 actual 또는 release 성공으로 승격하지 않습니다.
 별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.
 
+## V390-REVIEW4-65 bootstrap/action redirect lifecycle classifier correction
+
+개발 상태는 `개발 완료 / static·replay 검증 완료 / actual 재실행 대기`입니다. 시작 commit
+`6c5c2f613567faf82edd574de7ec3b312aff65df`의 latest actual은 canonical case 실행 전
+`424 target / 0 attempted / 424 not-run`으로 중단됐고, UI-001 initial document
+`GET / → 302 Location: /login → GET /login 200`의 두 번째 hop에서
+`bootstrap/redirect lifecycle mixing is forbidden`이 발생했습니다. 이 runner-start RED는
+`test/fixtures/v390_bootstrap_action_redirect_lifecycle_red_20260810.json`에 actual FAIL 경계로 보존합니다.
+
+공통 수정은 `redirectedFrom` 단독 분기를 제거하고 settling state, request kind/resource type,
+exact navigation invocation identity/kind, action invocation/phase, redirectedFrom parent object와
+parent lifecycle identity를 함께 판정합니다. Initial census는 canonical 424 중 redirect `1`
+(UI-001), no redirect `423`, total document hop `425`입니다. Document form census는 11개 중
+redirect `9`, same-route rejection `2`이며 모든 primary POST는 request/response `1/1`입니다.
+Bootstrap initial document와 redirect hop은 `page/page/bootstrap/initial-page-load`, form primary
+POST는 `action/explicit-action-registration/primary-action/primary-action`, action destination GET은
+`page/document-navigation-ledger/document-navigation-chain/document-navigation-chain`입니다.
+Bootstrap hop은 action redirect cardinality에서 제외하고 action redirect는 bootstrap ledger에서 제외합니다.
+
+구현 위치는 `v390_ui_action_request_ledger.mjs`의 exact classifier, parent-chain/invocation validator와
+bootstrap/action cardinality evidence, `v390_ui_native_adapter.mjs`의 initial/form navigation invocation 및
+exact redirectedFrom Request metadata 전달, `verify_v390_ui_page_owned_request_lifecycle_contract.mjs`의
+UI-001 actual-like chain, canonical census, 11 document-form actual-like와 stale/cross-chain negative입니다.
+Request/response lifecycle identity도 object identity와 함께 exact 비교합니다. Case ID/path exception,
+broad allowlist, redirect validation 삭제, cardinality 완화, catch-pass는 없습니다.
+
+최초 focused RED는 기존 line 367의 동일 mixing 오류로 재현했고 최종 lifecycle `9/9`, action/background
+`5/5`, form `5/5`, callback `10/10`, ownership `4/4`, post-action canonical `424/424`, adapter `48/48`,
+runtime `63/63`, native `55/55`, completion `36/36`, diagnostic replay `548/548`, remaining replay,
+Policy/acceptance/final-integrity, semantic `986/986`, feature evidence `986/986`·negative `15/15`,
+inventory와 full build를 통과했습니다. Inventory 문구 변경을 official feature evidence gate가
+`inventorySha256 drift`로 거부한 뒤 implementation manifest refresh 1회와 기존 independently approved
+source-flow projection 1회만 실행했고, source audit `51/51`이 candidate `986/986`과 저장 approval
+`986/986`을 재검증했습니다. 문서 drift는 current semantic discovery ledger writer 2회로 최종
+187 documents/38 markers에 결속했습니다. Independent reviewer, approval/migration-aware producer,
+native generator, actual Policy producer는 모두 0회입니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는 사용자 지시에 따라
+미실행이며 정적/fixture/replay PASS를 actual 또는 release 성공으로 승격하지 않습니다. 별도 tester의
+정확한 다음 명령은 `./test_ui.sh`입니다.
+
 ## V390-REVIEW4-65 document-form initiating response binding
 
 개발 상태는 `개발 완료 / static·replay 검증 완료 / actual 재실행 대기`입니다. 시작 commit
