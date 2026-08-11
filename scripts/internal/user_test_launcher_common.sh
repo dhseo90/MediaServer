@@ -131,7 +131,8 @@ media_server_run_user_test() {
   fi
 
   if [[ -f "${summary_path}" ]]; then
-    node - "${summary_path}" "${user_command}" <<'NODE'
+    local summary_status=0
+    if node - "${summary_path}" "${user_command}" <<'NODE'
 const fs = require("node:fs");
 const path = require("node:path");
 const summaryPath = process.argv[2];
@@ -157,18 +158,53 @@ if (failureStage || first) {
   console.log(`[test] laterNotRun=${ledger.filter(item => item.status === "not-run").map(item => item.id).join(",")}`);
 }
 const uiSummaryPath = summary.uiAutomation?.summaryPath || "";
-if (uiSummaryPath && fs.existsSync(uiSummaryPath)) {
+if (!uiSummaryPath || !fs.existsSync(uiSummaryPath)) {
+  for (const field of ["exactUiSelected", "exactUiAttempted", "exactUiPass", "exactUiFail",
+    "exactUiNotRun", "exactUiUnsupported", "exactUiRunnerAbort",
+    "exactUiFailureCensusCount", "exactUiFailureCensusPath", "policyEligible",
+    "policyQualified", "uiFulltestPass", "finalIntegrity",
+    "finalIntegrityPath"]) console.log(`[test] ${field}=`);
+  process.exitCode = 1;
+} else {
   const ui = JSON.parse(fs.readFileSync(uiSummaryPath, "utf8"));
-  const coverage = ui.coverage || {};
-  console.log(`[test] exactUiTarget=${coverage.targetCount ?? 424}`);
-  console.log(`[test] exactUiAttempted=${coverage.attempted ?? ui.executed ?? ""}`);
-  console.log(`[test] exactUiPass=${coverage.pass ?? ui.pass ?? ""}`);
-  console.log(`[test] exactUiFail=${coverage.fail ?? ui.fail ?? ""}`);
-  console.log(`[test] exactUiNotRun=${coverage.notRun ?? ui.notRun ?? ""}`);
+  const canonical = ui.schema === "media-server.v390-ui-canonical-parent.v1";
+  const coverage = canonical ? ui.counts : ui.coverage;
+  const selected = canonical ? coverage?.selected : coverage?.targetCount;
+  console.log(`[test] exactUiSelected=${Number.isSafeInteger(selected) ? selected : ""}`);
+  console.log(`[test] exactUiAttempted=${Number.isSafeInteger(coverage?.attempted) ? coverage.attempted : ""}`);
+  console.log(`[test] exactUiPass=${Number.isSafeInteger(coverage?.pass) ? coverage.pass : ""}`);
+  console.log(`[test] exactUiFail=${Number.isSafeInteger(coverage?.fail) ? coverage.fail : ""}`);
+  console.log(`[test] exactUiNotRun=${Number.isSafeInteger(coverage?.notRun) ? coverage.notRun : ""}`);
+  console.log(`[test] exactUiUnsupported=${Number.isSafeInteger(coverage?.unsupported) ? coverage.unsupported : ""}`);
+  console.log(`[test] exactUiRunnerAbort=${canonical && Number.isSafeInteger(coverage?.runnerAbort) ? coverage.runnerAbort : ""}`);
+  console.log(`[test] exactUiFailureCensusCount=${Array.isArray(ui.failureCensus) ? ui.failureCensus.length : ""}`);
+  console.log(`[test] exactUiFailureCensusPath=${canonical ? uiSummaryPath : ""}`);
   const failedCase = Array.isArray(ui.cases)
     ? ui.cases.find(item => item.status === "FAIL" || item.result === "FAIL")
     : null;
   if (failedCase) console.log(`[test] testcaseId=${failedCase.testId || failedCase.caseId || ""}`);
+  const qualification = summary.uiFulltestQualification;
+  const policyEligible = qualification?.policyEligible === true || qualification?.finalEvidenceEligible === true;
+  const policyQualified = qualification?.policyQualified === true ||
+    (qualification?.qualifiedCaseCount === 424 && qualification?.uiFulltestPass === true);
+  const uiFulltestPass = qualification?.uiFulltestPass === true;
+  const finalIntegrity = summary.suite === "ui"
+    ? (summary.uiFinalIntegrity?.status || "not-run")
+    : (ledger.find(item => item.id === "final-integrity")?.status || "not-run");
+  const finalIntegrityPath = summary.suite === "ui"
+    ? (summary.uiFinalIntegrity?.path || "")
+    : (ledger.find(item => item.id === "final-integrity")?.summaryPath || "");
+  console.log(`[test] policyEligible=${policyEligible}`);
+  console.log(`[test] policyQualified=${policyQualified}`);
+  console.log(`[test] uiFulltestPass=${uiFulltestPass}`);
+  console.log(`[test] finalIntegrity=${finalIntegrity}`);
+  console.log(`[test] finalIntegrityPath=${finalIntegrityPath}`);
+  const exactPass = canonical && selected === 424 && coverage?.attempted === 424 &&
+    coverage?.pass === 424 && coverage?.fail === 0 && coverage?.notRun === 0 &&
+    coverage?.unsupported === 0 && coverage?.runnerAbort === 0 &&
+    Array.isArray(ui.failureCensus) && ui.failureCensus.length === 0;
+  if (!(exactPass && policyEligible && policyQualified && uiFulltestPass &&
+      finalIntegrity === "PASS" && summary.cleanup?.status === "PASS")) process.exitCode = 1;
 }
 if (summary.longrun120?.decision) {
   console.log(`[test] longrun120Decision=${summary.longrun120.decision.executionDecision || ""}`);
@@ -182,7 +218,24 @@ console.log(`[test] cleanup=${summary.cleanup?.status || "not-run"}`);
 console.log(`[test] summary=${summaryPath}`);
 console.log(`[test] report=${summary.reportPath || path.join(path.dirname(summaryPath), "report.md")}`);
 NODE
+    then
+      summary_status=0
+    else
+      summary_status=$?
+    fi
+    if [[ "${test_status}" -eq 0 && "${summary_status}" -ne 0 ]]; then
+      test_status="${summary_status}"
+    fi
   else
+    local blank_field
+    for blank_field in \
+      result summary report failureStage testcaseId exitCode logPath laterNotRun \
+      exactUiSelected exactUiAttempted exactUiPass exactUiFail exactUiNotRun \
+      exactUiUnsupported exactUiRunnerAbort exactUiFailureCensusCount \
+      exactUiFailureCensusPath policyEligible policyQualified uiFulltestPass \
+      finalIntegrity finalIntegrityPath cleanup; do
+      echo "[test] ${blank_field}="
+    done
     echo "[test] summary missing: ${summary_path}" >&2
     echo "[test] reproductionCommand=${user_command}" >&2
     test_status=1

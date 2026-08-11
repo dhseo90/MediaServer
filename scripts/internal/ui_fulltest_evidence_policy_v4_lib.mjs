@@ -15,6 +15,7 @@ import {
 } from "./v390_ui_visual_evidence.mjs";
 import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
 import { qualifyBrowserConsoleMessages } from "./v390_ui_console_evidence.mjs";
+import { validateCanonicalParentAcceptanceSummary } from "./v390_ui_native_exact_cases_lib.mjs";
 
 const sha256Pattern = /^[a-f0-9]{64}$/;
 export const canonicalImplementationProjectionSchema =
@@ -107,6 +108,10 @@ export function evaluateEvidence(policy, summary, options = {}) {
     currentSource: options.currentSource,
   });
   const canonicalBinding = loadCanonicalCaseBinding(policy, summary, rootDir, reasons);
+  if (!contractMode) {
+    validateCanonicalParentPolicyBinding(summary, rootDir, reasons, canonicalBinding.orderedTestIds,
+      options.expectedVerificationBranch ?? options.currentSource?.gitBranch);
+  }
   validateAdapter(policy, summary, reasons);
   const cases = Array.isArray(summary.cases) ? summary.cases : [];
   validateSecurity(policy, summary, rootDir, cases, reasons);
@@ -153,7 +158,11 @@ export function evaluateEvidence(policy, summary, options = {}) {
   if (new Set(obligationIds).size !== obligationIds.length) reasons.push("coverage-obligation-id-duplicate");
   if (JSON.stringify(obligationIds) !== JSON.stringify(cases.map(item => item.testId))) reasons.push("coverage-obligation-case-order-mismatch");
   for (const field of ["notRun", "unsupported", "unapprovedExclusions", "manualIntervention"]) {
-    if (Number(coverage[field] || 0) !== 0) reasons.push(`coverage-${field}-must-be-zero`);
+    if (!Number.isSafeInteger(coverage[field])) {
+      reasons.push(`coverage-${field}-must-be-integer`);
+    } else if (coverage[field] !== 0) {
+      reasons.push(`coverage-${field}-must-be-zero`);
+    }
   }
   if (cases.length - eligibleCaseIds.length !== 0) reasons.push("derived-case-fail-must-be-zero");
 
@@ -198,6 +207,77 @@ export function evaluateEvidence(policy, summary, options = {}) {
   }
   const uiFulltestPass = policyErrors.length === 0 && suiteCandidate && allCasesEligible && reasons.length === 0;
   return finish(policy, summary, reasons, eligibleCaseIds, uiFulltestPass);
+}
+
+function validateCanonicalParentPolicyBinding(summary, rootDir, reasons, canonicalCaseIds,
+    expectedVerificationBranch) {
+  const binding = summary?.canonicalParentBinding;
+  if (!binding || typeof binding !== "object") {
+    reasons.push("canonical-parent-binding-missing");
+    return;
+  }
+  const counts = binding.counts;
+  const exactCounts = counts && ["selected", "attempted", "pass", "fail", "notRun",
+    "unsupported", "runnerAbort"].every(field => Number.isSafeInteger(counts[field]));
+  if (binding.schema !== "media-server.v390-ui-canonical-parent.v1" ||
+      typeof binding.runId !== "string" || !binding.runId || !exactCounts ||
+      counts.selected !== 424 || counts.attempted !== 424 || counts.pass !== 424 ||
+      counts.fail !== 0 || counts.notRun !== 0 || counts.unsupported !== 0 ||
+      counts.runnerAbort !== 0 || summary.actualBrowserExecution !== true) {
+    reasons.push("canonical-parent-binding-exact-counts-invalid");
+  }
+  const source = binding.sourceBinding;
+  if (typeof expectedVerificationBranch !== "string" || !expectedVerificationBranch) {
+    reasons.push("canonical-parent-binding-expected-branch-missing");
+  } else if (source?.verificationBranch !== expectedVerificationBranch) {
+    reasons.push("canonical-parent-binding-verification-branch-mismatch");
+  }
+  if (source?.verificationCommitSha !== summary.sourceBinding?.gitCommit ||
+      source?.manifestSha256 !== summary.sourceBinding?.nativeExactManifestSha256 ||
+      source?.buildSha256 !== summary.sourceBinding?.buildSha256 ||
+      source?.childImplementationBinding?.runnerSha256 !== summary.sourceBinding?.runnerSha256) {
+    reasons.push("canonical-parent-binding-source-digest-mismatch");
+  }
+  if (counts && (counts.selected !== summary.coverage?.targetCount ||
+      counts.attempted !== summary.coverage?.attempted || counts.pass !== summary.coverage?.pass ||
+      counts.fail !== summary.coverage?.fail || counts.notRun !== summary.coverage?.notRun ||
+      counts.unsupported !== summary.coverage?.unsupported)) {
+    reasons.push("canonical-parent-binding-coverage-mismatch");
+  }
+  const parentPath = resolveContained(rootDir, binding.parentSummaryPath);
+  try {
+    if (!binding.parentSummaryPath || !/^[a-f0-9]{64}$/.test(String(binding.parentSummarySha256 || "")) ||
+        !parentPath || !fs.statSync(parentPath).isFile() || sha256File(parentPath) !== binding.parentSummarySha256) {
+      reasons.push("canonical-parent-binding-summary-integrity-failed");
+    } else {
+      const parent = readJsonFile(parentPath);
+      if (parent?.schema !== binding.schema || parent?.runBinding?.runId !== binding.runId ||
+          parent?.result !== "PASS" || parent?.firstFailure !== null ||
+          parent?.actualBrowserExecution !== true || parent?.suiteFinalizer?.status !== "PASS" ||
+          !Array.isArray(parent?.cases) ||
+          parent.cases.length !== 424 || JSON.stringify(parent?.counts) !== JSON.stringify(counts) ||
+          JSON.stringify(parent?.sourceBinding) !== JSON.stringify(source)) {
+        reasons.push("canonical-parent-binding-summary-content-mismatch");
+      }
+      const strictValidation = validateCanonicalParentAcceptanceSummary({
+        summary: parent,
+        canonicalCaseIds,
+        artifactRoot: path.dirname(parentPath),
+        summaryPath: parentPath,
+        expectedVerificationCommitSha: summary.sourceBinding?.gitCommit,
+        expectedVerificationBranch,
+        expectedManifestSha256: summary.sourceBinding?.nativeExactManifestSha256,
+        expectedBuildSha256: summary.sourceBinding?.buildSha256,
+      });
+      if (strictValidation.censusComplete !== true || strictValidation.eligible !== true) {
+        reasons.push("canonical-parent-binding-strict-validation-failed");
+        reasons.push(...strictValidation.reasons.map(reason =>
+          `canonical-parent-binding-strict:${reason}`));
+      }
+    }
+  } catch {
+    reasons.push("canonical-parent-binding-summary-integrity-failed");
+  }
 }
 
 function validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, payload, reasons) {
@@ -822,7 +902,8 @@ function validateCaseConsole(policy, item, summary, rootDir, trace, nativeCase, 
       JSON.stringify(item?.security?.consoleCensus) !== JSON.stringify(qualification.census)) {
     reasons.push("case-console-census-mismatch");
   }
-  if (qualification.unapprovedConsoleMessages !== Number(item?.security?.unapprovedConsoleMessages || 0)) {
+  if (!Number.isSafeInteger(item?.security?.unapprovedConsoleMessages) ||
+      qualification.unapprovedConsoleMessages !== item.security.unapprovedConsoleMessages) {
     reasons.push("case-console-unapproved-message-count-mismatch");
   }
   const actualApprovals = payload.messages.map(message => message.approval || null);
@@ -968,7 +1049,7 @@ function finish(policy, summary, reasons, eligibleCaseIds, uiFulltestPass) {
   const uniqueReasons = [...new Set(reasons)].sort();
   return {
     policySchema: policy?.schema || "",
-    policyVersion: policy?.policyVersion || 0,
+    policyVersion: policy?.policyVersion,
     policyValidationResult: validatePolicy(policy).length === 0 ? "PASS" : "FAIL",
     evidenceSchema: summary?.schema || "",
     evidenceEligibility: uniqueReasons.length === 0 ? "eligible" : "ineligible",
@@ -993,9 +1074,24 @@ function resolveContained(baseDir, candidate) {
   const resolved = path.resolve(baseDir, candidate);
   if (!isInside(baseDir, resolved)) return null;
   if (!fs.existsSync(resolved)) return resolved;
+  if (hasSymlinkAncestor(baseDir, resolved)) return null;
   const realBase = fs.existsSync(baseDir) ? fs.realpathSync(baseDir) : path.resolve(baseDir);
   const realResolved = fs.realpathSync(resolved);
   return isInside(realBase, realResolved) ? realResolved : null;
+}
+
+function hasSymlinkAncestor(baseDir, candidate) {
+  const relative = path.relative(path.resolve(baseDir), path.resolve(candidate));
+  let current = path.resolve(baseDir);
+  try {
+    for (const part of relative.split(path.sep)) {
+      current = path.join(current, part);
+      if (fs.lstatSync(current).isSymbolicLink()) return true;
+    }
+    return false;
+  } catch {
+    return true;
+  }
 }
 
 function isInside(baseDir, candidate) {

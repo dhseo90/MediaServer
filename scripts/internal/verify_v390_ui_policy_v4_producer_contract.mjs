@@ -5,12 +5,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 import { evaluateEvidence } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
 import {
   assertPolicyV4ArtifactRoot,
+  evaluateCanonicalParentPolicyV4,
   producePolicyV4Evidence,
 } from "./v390_ui_policy_v4_evidence_producer.mjs";
 import {
@@ -55,6 +57,49 @@ const now = Date.now();
 
 const produced = produce(makeResult());
 
+check("canonical parent Policy qualification requires validated complete census and exact rows", () => {
+  const ids = canonicalSource.cases.map(value => value.testId);
+  const rows = ids.map(testId => ({ testId, qualified: true }));
+  const missingCensus = evaluateCanonicalParentPolicyV4({
+    canonicalParentValidation: { eligible: true, reasons: [] },
+    canonicalCaseIds: ids,
+    policyRows: rows,
+  });
+  assert(missingCensus.policyQualified === false && missingCensus.uiFulltestPass === false,
+    "Policy qualification accepted a fabricated eligible flag without censusComplete");
+  const eligible = { censusComplete: true, eligible: true, reasons: [] };
+  const qualified = evaluateCanonicalParentPolicyV4({
+    canonicalParentValidation: eligible,
+    canonicalCaseIds: ids,
+    policyRows: rows,
+  });
+  assert(qualified.policyEligible === true && qualified.policyQualified === true &&
+    qualified.qualifiedCaseCount === 424 && qualified.uiFulltestPass === true,
+  "exact eligible canonical parent with 424 qualified rows did not qualify");
+  for (const candidate of [
+    rows.slice(0, 423),
+    [...rows.slice(0, 423), structuredClone(rows[0])],
+    [rows[1], rows[0], ...rows.slice(2)],
+    rows.map((row, index) => index === 17 ? { ...row, qualified: false } : row),
+  ]) {
+    const rejected = evaluateCanonicalParentPolicyV4({
+      canonicalParentValidation: eligible,
+      canonicalCaseIds: ids,
+      policyRows: candidate,
+    });
+    assert(rejected.policyQualified === false && rejected.uiFulltestPass === false,
+      "partial/duplicate/reordered/unqualified Policy rows were accepted");
+  }
+  const failedBatch = evaluateCanonicalParentPolicyV4({
+    canonicalParentValidation: { censusComplete: true, eligible: false, reasons: [] },
+    canonicalCaseIds: ids,
+    policyRows: rows,
+  });
+  assert(failedBatch.policyEligible === false && failedBatch.policyQualified === false &&
+    failedBatch.uiFulltestPass === false,
+  "complete failure census became Policy eligible or fulltest PASS");
+});
+
 check("producer emits captured raw envelope without qualification claims", () => {
   const summary = produced.summary;
   const value = summary.cases[0];
@@ -67,6 +112,93 @@ check("producer emits captured raw envelope without qualification claims", () =>
   }
   assert(value.rawEvidence.actionId === completion.actionId && value.rawEvidence.correlationId === completion.correlationId,
     "raw primary reference binding missing");
+});
+
+check("core Policy evaluator rejects actual full-suite evidence without canonical parent binding", () => {
+  const policy = readJson(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  const candidate = structuredClone(produced.summary);
+  candidate.contractFixture = false;
+  candidate.canonicalParentBinding = null;
+  const evaluation = evaluateEvidence(policy, candidate, {
+    rootDir,
+    verifyArtifacts: false,
+    contractMode: false,
+    verifyCurrentSource: false,
+    now: new Date(),
+  });
+  assert(evaluation.evidenceEligibility === "ineligible" &&
+    evaluation.reasons.includes("canonical-parent-binding-missing"),
+  "general producer evidence without canonical parent binding became Policy eligible");
+});
+
+check("core Policy evaluator rejects a hash-valid synthetic canonical parent without child refs", () => {
+  const policy = readJson(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  const candidate = structuredClone(produced.summary);
+  candidate.contractFixture = false;
+  candidate.fixture = false;
+  candidate.actualBrowserExecution = true;
+  candidate.coverage = {
+    targetCount: 424, attempted: 424, pass: 424, captured: 424,
+    fail: 0, notRun: 0, unsupported: 0, unapprovedExclusions: 0,
+    manualIntervention: 0, obligationIds: canonicalSource.cases.map(value => value.testId),
+  };
+  const runId = "round2-synthetic-parent";
+  const sourceBinding = {
+    verificationCommitSha: candidate.sourceBinding.gitCommit,
+    manifestSha256: candidate.sourceBinding.nativeExactManifestSha256,
+    buildSha256: candidate.sourceBinding.buildSha256,
+    childImplementationBinding: { runnerSha256: candidate.sourceBinding.runnerSha256 },
+  };
+  const counts = { selected: 424, attempted: 424, pass: 424, fail: 0,
+    notRun: 0, unsupported: 0, runnerAbort: 0 };
+  const parentPath = path.join(outputDir, "synthetic-parent.json");
+  const parent = {
+    schema: "media-server.v390-ui-canonical-parent.v1",
+    result: "PASS",
+    firstFailure: null,
+    actualBrowserExecution: true,
+    runBinding: { runId },
+    sourceBinding,
+    counts,
+    suiteFinalizer: { status: "PASS" },
+    cases: canonicalSource.cases.map(value => ({ caseId: value.testId, status: "PASS" })),
+  };
+  const serialized = `${JSON.stringify(parent, null, 2)}\n`;
+  fs.writeFileSync(parentPath, serialized, { mode: 0o600 });
+  candidate.canonicalParentBinding = {
+    schema: parent.schema,
+    runId,
+    counts,
+    sourceBinding,
+    parentSummaryPath: path.relative(rootDir, parentPath),
+    parentSummarySha256: createHash("sha256").update(serialized).digest("hex"),
+  };
+  const evaluation = evaluateEvidence(policy, candidate, {
+    rootDir,
+    verifyArtifacts: false,
+    contractMode: false,
+    verifyCurrentSource: false,
+    now: new Date(),
+  });
+  assert(evaluation.reasons.includes("canonical-parent-binding-strict-validation-failed"),
+    "hash-valid synthetic parent bypassed core strict child/ref validation");
+  assert(evaluation.reasons.includes("canonical-parent-binding-expected-branch-missing"),
+    "core Policy silently trusted the parent-claimed verification branch");
+  candidate.canonicalParentBinding.sourceBinding.verificationBranch = "forged-self-consistent-branch";
+  parent.sourceBinding.verificationBranch = "forged-self-consistent-branch";
+  fs.writeFileSync(parentPath, `${JSON.stringify(parent, null, 2)}\n`, { mode: 0o600 });
+  candidate.canonicalParentBinding.parentSummarySha256 = createHash("sha256")
+    .update(fs.readFileSync(parentPath)).digest("hex");
+  const wrongBranch = evaluateEvidence(policy, candidate, {
+    rootDir,
+    verifyArtifacts: false,
+    contractMode: false,
+    verifyCurrentSource: false,
+    expectedVerificationBranch: "independent-current-branch",
+    now: new Date(),
+  });
+  assert(wrongBranch.reasons.includes("canonical-parent-binding-verification-branch-mismatch"),
+    "self-consistent forged parent branch bypassed the independent expected branch");
 });
 
 check("canonical failed-case envelope preserves typed EVT-004 lifecycle failures", () => {
@@ -317,6 +449,37 @@ check("contract fixture cannot become execution evidence", () => {
   });
   assert(evaluation.uiFulltestPass === false && evaluation.reasons.includes("contract-fixture-is-not-execution-evidence"),
     "contract fixture became execution evidence");
+});
+
+check("Policy v4 rejects missing zero-count fields instead of defaulting them", () => {
+  const policy = readJson(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  const freshSummary = produce(makeResult()).summary;
+  for (const field of ["unapprovedExclusions", "manualIntervention"]) {
+    const missing = structuredClone(freshSummary);
+    delete missing.coverage[field];
+    const evaluation = evaluateEvidence(policy, missing, {
+      rootDir,
+      verifyArtifacts: true,
+      contractMode: false,
+      verifyCurrentSource: false,
+      now: new Date(),
+    });
+    assert(evaluation.uiFulltestPass === false &&
+      evaluation.reasons.includes(`coverage-${field}-must-be-integer`),
+    `missing ${field} was defaulted instead of rejected with an exact type reason`);
+  }
+  const missingCaseCount = structuredClone(freshSummary);
+  delete missingCaseCount.cases[0].security.unapprovedConsoleMessages;
+  const caseEvaluation = evaluateEvidence(policy, missingCaseCount, {
+    rootDir,
+    verifyArtifacts: true,
+    contractMode: false,
+    verifyCurrentSource: false,
+    now: new Date(),
+  });
+  assert(caseEvaluation.reasons.some(reason =>
+    reason.endsWith(":case-console-unapproved-message-count-mismatch")),
+    `missing case console count was defaulted instead of rejected: ${caseEvaluation.reasons.join(",")}`);
 });
 
 check("producer rejects artifact path escape", () => {

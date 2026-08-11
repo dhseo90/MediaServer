@@ -129,6 +129,10 @@ if (currentEvidenceAvailable) {
     currentSource: {
       version: fs.readFileSync(path.join(rootDir, "VERSION"), "utf8").trim(),
       gitCommit: currentHead(),
+      gitBranch: execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+        cwd: rootDir,
+        encoding: "utf8",
+      }).trim(),
       worktreePatchSha256: crypto.createHash("sha256")
         .update(execFileSync("git", ["diff", "--binary", "HEAD"], {
           cwd: rootDir,

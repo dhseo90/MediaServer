@@ -166,6 +166,10 @@ Usage:
                  V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
   verify-v390-ui-native-exact-cases-contract
                  V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-ui-case-child-isolation-contract
+                 verification rebase single-case child의 finally summary/격리/infra-fatal 계약을 검증합니다.
+  verify-v390-ui-canonical-parent-isolation-contract
+                 verification rebase canonical parent의 exact-once 424 child/fail-continue/infra 계약을 검증합니다.
   verify-v390-review4-source-fixture-ids
                  V390-REVIEW4-65 numeric source/view fixture를 실제 격리 제품 서버에서 검증합니다.
   verify-v390-ui-exact-core-oracles-contract
@@ -186,6 +190,8 @@ Usage:
                  canonical request 391건의 action envelope와 page background ledger 분리를 검증합니다.
   verify-v390-ui-page-owned-request-lifecycle-contract
                  canonical 424/391/11 request lifecycle tuple의 exact-one 분류를 검증합니다.
+  verify-v390-ui-request-lifecycle-rebase-contract
+                 actual-like object graph로 request recorder/evaluator lifecycle 계약을 검증합니다.
   verify-v390-ui-document-form-response-binding-contract
                  canonical document-form 11건의 initiating POST response identity/barrier와 redirect ledger 분리를 검증합니다.
   verify-v390-ui-browser-callback-free-identifier-contract
@@ -496,6 +502,10 @@ Usage:
                  V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
   verify-v390-ui-native-exact-cases-contract
                  V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-ui-case-child-isolation-contract
+                 verification rebase single-case child의 finally summary/격리/infra-fatal 계약을 검증합니다.
+  verify-v390-ui-canonical-parent-isolation-contract
+                 verification rebase canonical parent의 exact-once 424 child/fail-continue/infra 계약을 검증합니다.
   verify-v390-review4-source-fixture-ids
                  V390-REVIEW4-65 numeric source/view fixture를 실제 격리 제품 서버에서 검증합니다.
   verify-v390-ui-completion-oracle-contract
@@ -2374,6 +2384,14 @@ case "${cmd}" in
     require_internal verify_v390_ui_native_exact_cases_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_native_exact_cases_contract.mjs" "$@"
     ;;
+  verify-v390-ui-case-child-isolation-contract)
+    require_internal verify_v390_ui_case_child_isolation_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_case_child_isolation_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-canonical-parent-isolation-contract)
+    require_internal verify_v390_ui_canonical_parent_isolation_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_canonical_parent_isolation_contract.mjs" "$@"
+    ;;
   verify-v390-review4-source-fixture-ids)
     require_internal verify_v390_review4_source_fixture_ids.mjs
     exec "${INTERNAL_DIR}/verify_v390_review4_source_fixture_ids.mjs" "$@"
@@ -2477,6 +2495,10 @@ case "${cmd}" in
   verify-v390-ui-page-owned-request-lifecycle-contract)
     require_internal verify_v390_ui_page_owned_request_lifecycle_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_page_owned_request_lifecycle_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-request-lifecycle-rebase-contract)
+    require_internal verify_v390_ui_request_lifecycle_rebase_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_request_lifecycle_rebase_contract.mjs" "$@"
     ;;
   verify-v390-ui-document-form-response-binding-contract)
     require_internal verify_v390_ui_document_form_response_binding_contract.mjs

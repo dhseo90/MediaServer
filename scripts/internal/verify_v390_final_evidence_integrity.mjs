@@ -15,6 +15,11 @@ import {
   sha256Text,
 } from "./evidence_integrity_lib.mjs";
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
+import { evaluateEvidence } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
+import {
+  validateCanonicalFinalIntegrityBindings,
+  validateCanonicalParentAcceptanceSummary,
+} from "./v390_ui_native_exact_cases_lib.mjs";
 import {
   validateCleanupMeasurement,
   validateIterationLedger,
@@ -57,6 +62,68 @@ const fullSuiteEligibility = evaluateV390FullSuiteEligibility({
   executionMode: summary.executionMode,
   policyEvaluation: summary.policyV4Evaluation,
   canonicalCaseIds: canonicalUiCaseIds,
+});
+
+check("canonical parent, child census, Policy source, and cleanup form one run", () => {
+  const parentSummaryPath = path.resolve(String(summary.uiAutomation?.summaryPath || ""));
+  if (options.allowFixture && (!summary.uiAutomation?.summaryPath ||
+      !fs.existsSync(parentSummaryPath) ||
+      JSON.parse(fs.readFileSync(parentSummaryPath, "utf8"))?.schema !==
+        "media-server.v390-ui-canonical-parent.v1")) return;
+  const parentSummaryReal = requireContainedFile(outputReal, parentSummaryPath, "canonical parent summary");
+  const parentSummary = JSON.parse(fs.readFileSync(parentSummaryReal, "utf8"));
+  const nativeManifest = JSON.parse(fs.readFileSync(path.join(repositoryRoot,
+    "test/fixtures/v390_ui_native_exact_cases.json"), "utf8"));
+  const parentValidation = validateCanonicalParentAcceptanceSummary({
+    summary: parentSummary,
+    canonicalCaseIds: canonicalUiCaseIds,
+    artifactRoot: path.dirname(parentSummaryReal),
+    summaryPath: parentSummaryReal,
+    expectedVerificationCommitSha: currentProvenance.commitSha,
+    expectedVerificationBranch: currentProvenance.branch,
+    expectedManifestSha256: sha256Text(canonicalStableJson(nativeManifest)),
+    expectedBuildSha256: summary.uiBuildBinding?.buildSha256 || "",
+  });
+  const completeFailure = parentSummary.result === "FAIL" &&
+    Number(parentSummary.counts?.fail) > 0;
+  assert(parentValidation.censusComplete === true,
+    `canonical parent census is incomplete: ${parentValidation.reasons.join(", ")}`);
+  assert(completeFailure ? parentValidation.eligible === false : parentValidation.eligible === true,
+    `canonical parent eligibility state mismatch: ${parentValidation.reasons.join(", ")}`);
+  let policySummaryPath = "";
+  let policyRawSummary = null;
+  let independentPolicyEvaluation = null;
+  if (!completeFailure) {
+    policySummaryPath = path.resolve(String(summary.policyV4Evaluation?.sourceSummary || ""));
+    policyRawSummary = JSON.parse(fs.readFileSync(
+      requireContainedFile(outputReal, policySummaryPath, "Policy v4 raw source summary"), "utf8"));
+    independentPolicyEvaluation = evaluateEvidence(
+      JSON.parse(fs.readFileSync(path.join(repositoryRoot,
+        "test/fixtures/ui_fulltest_evidence_policy_v4.json"), "utf8")),
+      policyRawSummary,
+      { rootDir: repositoryRoot, verifyArtifacts: true, currentSource: {
+        version: fs.readFileSync(path.join(repositoryRoot, "VERSION"), "utf8").trim(),
+        gitCommit: currentProvenance.commitSha,
+        gitBranch: currentProvenance.branch,
+        worktreePatchSha256: sha256Text(execFileSync("git", ["diff", "--binary", "HEAD"],
+          { cwd: repositoryRoot, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })),
+      } },
+    );
+  }
+  const finalBinding = validateCanonicalFinalIntegrityBindings({
+    acceptanceSummary: summary,
+    parentSummary,
+    parentValidation,
+    policyEvaluation: summary.policyV4Evaluation,
+    policyRawSummary,
+    independentPolicyEvaluation,
+    expectedCurrentSource: options.allowFixture ? summary.sourceProvenanceEnd : currentProvenance,
+    canonicalCaseIds: canonicalUiCaseIds,
+    parentSummaryPath: parentSummaryReal,
+    policySummaryPath,
+  });
+  assert(finalBinding.pass === true,
+    `canonical final binding failed: ${finalBinding.reasons.join(", ")}`);
 });
 
 check("acceptance summary and actual eligibility", () => {
@@ -225,15 +292,14 @@ check("Policy v4 evaluation is bound to its actual source summary", () => {
   requireContainedFile(outputReal, sourcePath, "Policy v4 source summary");
   assert(sha256File(sourcePath) === summary.policyV4Evaluation.sourceSummarySha256,
     "Policy v4 source summary hash mismatch");
-  const uiSummaryPath = summary.uiAutomation?.summaryPath;
-  const uiSummaryReal = requireContainedFile(outputReal, uiSummaryPath, "Policy v4 UI source summary");
-  const uiSummary = JSON.parse(fs.readFileSync(uiSummaryReal, "utf8"));
-  assert(uiSummary.schema === "media-server.ui-automation-evidence.v4", "Policy v4 source is not exact UI evidence v4");
-  assert(uiSummary.sourceBinding?.currentSourceVerified === true, "UI evidence current-source binding missing");
-  assert(uiSummary.sourceBinding?.gitCommit === currentProvenance.commitSha, "UI evidence source commit is not current HEAD");
-  const artifactRoot = path.resolve(repositoryRoot, uiSummary.sourceBinding?.artifactRoot || "");
+  const rawPolicySummary = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
+  assert(rawPolicySummary.schema === "media-server.ui-automation-evidence.v4",
+    "Policy v4 source is not exact raw UI evidence v4");
+  assert(rawPolicySummary.sourceBinding?.gitCommit === currentProvenance.commitSha,
+    "Policy v4 raw source commit is not independently current");
+  const artifactRoot = path.resolve(repositoryRoot, rawPolicySummary.sourceBinding?.artifactRoot || "");
   const artifactReal = requireContainedDirectory(outputReal, artifactRoot, "UI evidence artifact root");
-  assert(isWithin(path.dirname(uiSummaryReal), artifactReal) || isWithin(artifactReal, path.dirname(uiSummaryReal)),
+  assert(isWithin(path.dirname(sourcePath), artifactReal) || isWithin(artifactReal, path.dirname(sourcePath)),
     "UI source summary and artifact root are unrelated");
 });
 
@@ -306,27 +372,12 @@ check("actual child evidence uses measured cleanup", () => {
   remeasureCleanupAfter(longrun.cleanup?.measurement, "30-minute");
   assert(longrun.cleanup?.checks?.every(item => item.status === "PASS"), "30-minute cleanup check failed");
   const ui = readChild(summary.uiAutomation?.summaryPath, "UI automation");
-  assert(ui.cleanup?.verificationSource === "pid-port-artifact-before-after-observation", "UI cleanup source mismatch");
-  assert(validateCleanupMeasurement(ui.cleanup?.measurement).length === 0, "UI raw cleanup measurement invalid");
-  remeasureCleanupAfter(ui.cleanup?.measurement, "UI");
-  assert(ui.cleanup?.checks?.every(item => item.status === "PASS"), "UI cleanup check failed");
-  assert(ui.artifactIntegrity?.placeholderVideoFiles === 0, "UI placeholder video remains");
-  if (ui.schema === "media-server.ui-automation-evidence.v4") {
-    assert(ui.cleanup?.serversStopped === true && ui.cleanup?.portsClean === true, "exact UI server/port cleanup mismatch");
-    assert(ui.coverage?.targetCount === 424 && ui.coverage?.fail === 0 && ui.coverage?.notRun === 0 && ui.coverage?.unsupported === 0,
-      "exact UI coverage closure mismatch");
-    assert((ui.cases || []).every(item => item.artifacts?.screenshot && item.artifacts?.visualMeasurement && item.artifacts?.visualDiff),
-      "exact UI visual artifact boundary mismatch");
-    for (const item of ui.cases || []) {
-      for (const [kind, artifactPath] of Object.entries(item.artifacts || {})) {
-        if (typeof artifactPath === "string" && artifactPath) {
-          requireContainedFile(outputReal, artifactPath, `${item.testId || item.caseId || "UI case"} ${kind}`);
-        }
-      }
-    }
-  } else {
-    assert((ui.cases || []).every(item => item.videoPath === "" && item.videoEvidence?.status === "not-captured" && item.videoEvidence?.placeholderCreated === false), "UI video boundary mismatch");
-  }
+  assert(ui.schema === "media-server.v390-ui-canonical-parent.v1",
+    "UI child evidence is not the canonical parent summary");
+  assert(ui.counts?.selected === 424 && ui.counts?.attempted === 424 &&
+    ui.counts?.pass === 424 && ui.counts?.fail === 0 && ui.counts?.notRun === 0 &&
+    ui.counts?.unsupported === 0 && ui.counts?.runnerAbort === 0,
+  "canonical UI parent exact census mismatch");
   if (summary.longrun120?.status === "PASS") {
     const longrun120 = readChild(summary.longrun120?.summaryPath, "120-minute");
     validateLongrunChild(longrun120, 120, "120-minute");
@@ -402,9 +453,32 @@ function requireContainedFile(parent, candidate, label) {
   assert(fs.existsSync(resolved), `${label} does not exist: ${resolved}`);
   const real = fs.realpathSync(resolved);
   const parentReal = fs.realpathSync(path.resolve(parent));
+  const lexicalRelative = path.relative(parentReal, resolved);
+  const scanCandidate = lexicalRelative && !lexicalRelative.startsWith("..") &&
+    !path.isAbsolute(lexicalRelative) ? resolved : real;
+  assert(!pathHasSymlinkAncestor(parentReal, scanCandidate),
+    `${label} has a symlink ancestor: ${resolved}`);
   assert(isWithin(parentReal, real), `${label} escapes artifact root: ${real}`);
   assert(fs.statSync(real).isFile(), `${label} is not a file: ${real}`);
   return real;
+}
+
+function pathHasSymlinkAncestor(boundary, candidate) {
+  const root = path.resolve(boundary);
+  const resolved = path.resolve(candidate);
+  const relative = path.relative(root, resolved);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) return true;
+  let current = root;
+  try {
+    if (fs.lstatSync(root).isSymbolicLink()) return true;
+    for (const part of relative.split(path.sep)) {
+      current = path.join(current, part);
+      if (fs.lstatSync(current).isSymbolicLink()) return true;
+    }
+    return false;
+  } catch {
+    return true;
+  }
 }
 
 function requireContainedDirectory(parent, candidate, label) {
@@ -413,6 +487,13 @@ function requireContainedDirectory(parent, candidate, label) {
   assert(fs.existsSync(resolved), `${label} does not exist: ${resolved}`);
   const real = fs.realpathSync(resolved);
   const parentReal = fs.realpathSync(path.resolve(parent));
+  const lexicalRelative = path.relative(parentReal, resolved);
+  const scanCandidate = lexicalRelative && !lexicalRelative.startsWith("..") &&
+    !path.isAbsolute(lexicalRelative) ? resolved : real;
+  if (scanCandidate !== parentReal) {
+    assert(!pathHasSymlinkAncestor(parentReal, scanCandidate),
+      `${label} has a symlink ancestor: ${resolved}`);
+  }
   assert(isWithin(parentReal, real), `${label} escapes artifact root: ${real}`);
   assert(fs.statSync(real).isDirectory(), `${label} is not a directory: ${real}`);
   return real;
@@ -434,6 +515,13 @@ function runChecks() {
     }
   }
   return { pass, fail };
+}
+
+function canonicalStableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalStableJson).join(",")}]`;
+  if (value && typeof value === "object") return `{${Object.keys(value).sort()
+    .map(key => `${JSON.stringify(key)}:${canonicalStableJson(value[key])}`).join(",")}}`;
+  return JSON.stringify(value);
 }
 
 function assert(condition, message) { if (!condition) throw new Error(message); }

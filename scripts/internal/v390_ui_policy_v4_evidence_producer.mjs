@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { assertRequestedObservedEnvelope } from "./v390_ui_requested_observed_schema.mjs";
 import { serializeFailureLifecycleEvidence } from "./v390_ui_failure_lifecycle_evidence.mjs";
 import { qualifyBrowserConsoleMessages } from "./v390_ui_console_evidence.mjs";
+import { qualifyCanonicalParentPolicyRows } from "./v390_ui_native_exact_cases_lib.mjs";
 
 const evidenceSchema = "media-server.ui-automation-evidence.v4";
 const evidenceRefSchema = "media-server.ui-evidence-ref.v1";
@@ -27,6 +28,75 @@ const requiredCrossCutting = [
   "accessibility-focus-contrast",
 ];
 
+export function evaluateCanonicalParentPolicyV4({
+  canonicalParentValidation,
+  canonicalCaseIds,
+  policyRows,
+} = {}) {
+  return qualifyCanonicalParentPolicyRows({
+    validation: canonicalParentValidation,
+    canonicalCaseIds,
+    policyRows,
+  });
+}
+
+export function producePolicyV4EvidenceFromCanonicalParent({
+  canonicalParentSummary,
+  canonicalParentValidation,
+  rootDir,
+  outputDir,
+  manifest,
+  canonical,
+  selectedAdapter,
+  buildPath,
+  runnerPath,
+  serverLogPath,
+  visualMatrixProbes,
+  summaryFilePath,
+  canonicalParentSummaryPath,
+} = {}) {
+  assert(canonicalParentSummary?.schema === "media-server.v390-ui-canonical-parent.v1",
+    "canonical parent schema is required for Policy production");
+  assert(canonicalParentValidation?.eligible === true &&
+    canonicalParentValidation?.censusComplete === true,
+  "canonical parent must be eligible with a complete census before Policy production");
+  const results = canonicalParentValidation.childSummaries.map((child, index) => {
+    const ref = child?.policyInputRef;
+    assert(ref?.schema === "media-server.v390-ui-case-policy-input-ref.v1",
+      `canonical child Policy input ref missing at ${index}`);
+    const policyInput = readJson(ref.path);
+    assert(policyInput?.schema === "media-server.v390-ui-case-policy-input.v1" &&
+      policyInput.caseId === canonicalParentSummary.selection.selectedIds[index] &&
+      policyInput.runId === canonicalParentSummary.runBinding.runId,
+    `canonical child Policy input binding mismatch at ${index}`);
+    return policyInput.result;
+  });
+  return producePolicyV4Evidence({
+    rootDir,
+    outputDir,
+    manifest,
+    canonical,
+    results,
+    selectedAdapter,
+    startedAt: canonicalParentSummary.timing.startedAt,
+    finishedAt: canonicalParentSummary.timing.finishedAt,
+    buildPath,
+    runnerPath,
+    serverLogPath,
+    visualMatrixProbes,
+    contractFixture: false,
+    summaryFilePath,
+    canonicalParentBinding: {
+      schema: canonicalParentSummary.schema,
+      runId: canonicalParentSummary.runBinding.runId,
+      sourceBinding: structuredClone(canonicalParentSummary.sourceBinding),
+      counts: structuredClone(canonicalParentSummary.counts),
+      parentSummaryPath: relativeInside(rootDir, path.resolve(canonicalParentSummaryPath)),
+      parentSummarySha256: sha256File(path.resolve(canonicalParentSummaryPath)),
+    },
+  });
+}
+
 export function producePolicyV4Evidence({
   rootDir,
   outputDir,
@@ -41,6 +111,8 @@ export function producePolicyV4Evidence({
   serverLogPath,
   visualMatrixProbes = [],
   contractFixture = false,
+  summaryFilePath = "",
+  canonicalParentBinding = null,
 }) {
   const artifactRoot = assertPolicyV4ArtifactRoot({ rootDir, outputDir });
   const resolvedRoot = artifactRoot.rootDir;
@@ -132,6 +204,11 @@ export function producePolicyV4Evidence({
   const notRun = cases.filter(item => item.status === "not-run").length;
   const unsupported = cases.filter(item => item.status === "unsupported").length;
   const attempted = captured + fail;
+  const securityBearingCases = cases.filter(item => item.security !== undefined);
+  assert(securityBearingCases.every(item => Number.isSafeInteger(item.security.unapprovedConsoleMessages)),
+    "Policy v4 case console counts must be exact integers");
+  const unapprovedConsoleMessages = securityBearingCases.reduce(
+    (sum, item) => sum + item.security.unapprovedConsoleMessages, 0);
   assert(attempted + notRun + unsupported === manifest.cases.length,
     `Policy v4 coverage total mismatch: ${attempted}+${notRun}+${unsupported} != ${manifest.cases.length}`);
   const resolvedBuild = path.resolve(buildPath);
@@ -170,9 +247,11 @@ export function producePolicyV4Evidence({
       artifactRoot: artifactRoot.artifactRoot,
       sourceFingerprintOnly: true,
     },
+    canonicalParentBinding: canonicalParentBinding === null
+      ? null : structuredClone(canonicalParentBinding),
     security: {
       redactionStatus: suiteFindings.length === 0 ? "PASS" : "FAIL",
-      unapprovedConsoleMessages: cases.reduce((sum, item) => sum + Number(item.security?.unapprovedConsoleMessages || 0), 0),
+      unapprovedConsoleMessages,
       forbiddenMaterialFindings: suiteFindings.length,
       correlationId: suiteCorrelationId,
       evidenceRef: suiteRedactionRef,
@@ -200,7 +279,10 @@ export function producePolicyV4Evidence({
     uiFulltestPass: false,
     evidenceBoundary: "raw artifacts only; the independent Policy v4 qualifier owns action, completion, visual, and suite PASS decisions",
   };
-  const summaryPath = path.join(resolvedOutput, "summary.json");
+  const summaryPath = summaryFilePath
+    ? path.resolve(summaryFilePath)
+    : path.join(resolvedOutput, "summary.json");
+  assert(isInside(resolvedOutput, summaryPath), "Policy v4 summary path escapes artifact root");
   writeJson(summaryPath, summary);
   return { summary, summaryPath };
 }

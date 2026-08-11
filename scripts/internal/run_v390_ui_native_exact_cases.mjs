@@ -4,11 +4,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { execFileSync, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import {
   bindDocumentFormSubmission,
+  createNativeRequestLifecycleLedger,
   createNativePlaywrightAdapter,
 } from "./v390_ui_native_adapter.mjs";
 import { evaluateRegisteredBrowserCallback } from "./v390_ui_browser_callback_boundary.mjs";
@@ -27,8 +29,12 @@ import {
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
 import {
+  createNativeExactCaseChildSummary,
   createNativeExactExecutionFailureSummary,
   createNativeExactPreExecutionFailureSummary,
+  runCanonicalParentOrchestration,
+  selectCanonicalParentCases,
+  writeCanonicalParentSummaryAtomic,
   ruleRelationshipFixtureIdentity,
   traceSafeWorkflowInputs,
   validateNativeExactCaptureSummary,
@@ -92,6 +98,68 @@ import {
 } from "./v390_ui_diagnostic_selection_registry.mjs";
 
 const runnerWorkflowSchema = "media-server.v390-ui-case-native-workflow.v2";
+const verificationRebaseBaselineSourceCommit = "327afe0d4b3282400f1925252c59a53b87827224";
+const caseChildInfraFatalExitCode = 70;
+const caseChildInfraFatalMarker = "V390_UI_CASE_CHILD_INFRA_FATAL:SUMMARY_WRITE_FAILED";
+const canonicalParentInfraFatalExitCode = 70;
+const canonicalParentInfraFatalMarker =
+  "V390_UI_CANONICAL_PARENT_INFRA_FATAL:SUMMARY_WRITE_FAILED";
+const suiteFinalizerInfraFatalExitCode = 70;
+const suiteFinalizerInfraFatalMarker =
+  "V390_UI_SUITE_FINALIZER_INFRA_FATAL:SUMMARY_WRITE_FAILED";
+const caseChildContractFixtureModes = Object.freeze(new Set([
+  "pass",
+  "callback-capture-error",
+  "lifecycle-duplicate-response",
+  "dom-assertion-error",
+  "api-assertion-error",
+  "rejected-promise",
+  "timeout-like",
+  "cleanup-error-after-assertion",
+  "dom-multi-lifecycle-secret-error",
+  "api-multi-lifecycle-secret-error",
+  "serialized-secret-lifecycle-fallback",
+  "serialized-secret-scanner-throws",
+  "evaluator-throw-composite-error",
+  "subdir-preflight-error",
+  "adapter-bootstrap-error",
+  "runtime-bootstrap-error",
+  "source-binding-error",
+  "summary-build-error",
+  "summary-serialize-error",
+  "release-secrets-error",
+  "summary-write-failure",
+  "disk-secret",
+]));
+const canonicalParentPreflightFixtureModes = Object.freeze(new Set([
+  "selection-error",
+  "source-binding-error",
+  "runtime-inspector-error",
+]));
+const canonicalParentContractFixtureModes = Object.freeze(new Set([
+  "pass-fail-pass",
+]));
+const suiteFinalizerContractFixtureModes = Object.freeze(new Set([
+  "pass",
+  "matrix-failure",
+  "probe-secret",
+  "adapter-secret",
+  "disk-secret",
+]));
+const caseChildImplementationFiles = Object.freeze({
+  runner: "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+  library: "scripts/internal/v390_ui_native_exact_cases_lib.mjs",
+  adapter: "scripts/internal/v390_ui_native_adapter.mjs",
+  recorder: "scripts/internal/v390_ui_request_event_recorder.mjs",
+  evaluator: "scripts/internal/v390_ui_request_lifecycle_evaluator.mjs",
+});
+const caseChildContractSecretCanaries = Object.freeze([
+  "review-json-password-value",
+  "review-bearer-token-value",
+  "review-cookie-value",
+  "review-query-token-value",
+  "review-registered-runtime-value",
+]);
 const supportedSetupKinds = Object.freeze([
   "bind-action-role-session",
   "bind-role-session",
@@ -142,8 +210,27 @@ const options = parseArgs(process.argv.slice(2));
 const outputDir = resolveRootOrAbsolute(options.outputDir);
 const summaryPath = path.join(outputDir, "summary.json");
 const diagnosticChild = options.diagnosticChild;
+const suiteFinalizerChild = options.suiteFinalizerChild;
+let buildPath = "";
+let serverLogPath = "";
+let caseRuntimeSecretScanComplete = false;
 if (diagnosticChild) assertDiagnosticChildOutputRoot(outputDir);
-fs.mkdirSync(outputDir, { recursive: true });
+try {
+  fs.mkdirSync(outputDir, { recursive: true });
+} catch (error) {
+  if (!options.caseChild) throw error;
+  console.error(caseChildInfraFatalMarker);
+  process.exit(caseChildInfraFatalExitCode);
+}
+let caseChildImplementationBinding = null;
+let caseChildSourceBindingFailure = null;
+if (options.caseChild || suiteFinalizerChild || (!options.diagnosticChild && !options.planOnly)) {
+  try {
+    caseChildImplementationBinding = precomputeCaseChildImplementationBinding();
+  } catch (error) {
+    caseChildSourceBindingFailure = error;
+  }
+}
 let manifest = null;
 let canonical = null;
 let visualMatrixPlan = null;
@@ -175,6 +262,23 @@ try {
     });
   }
 } catch (error) {
+  if (options.caseChild) {
+    const exitCode = finalizeCaseChildAttempt({
+      item: { caseId: options.caseId, featureId: "" },
+      primaryFailure: structuredCaseChildFailure({
+        failureClass: "case-child-preflight-failure",
+        phase: "case-child-preflight",
+        code: "CASE_CHILD_PREFLIGHT_FAILED",
+        message: "case child preflight failed",
+      }),
+      cleanupAttestation: contractCaseChildCleanupAttestation({ primaryFailure: error, cleanupFailure: null }),
+      actualBrowserExecution: false,
+      executionStatus: "case-child-preflight-failed",
+      startedAtMs: Date.now(),
+      caseRuntimeHandle: null,
+    });
+    process.exit(exitCode);
+  }
   const summary = diagnosticChild
     ? createDiagnosticPreExecutionSummary(options.diagnosticCaseId, "manifest-or-contract-preflight")
     : createNativeExactPreExecutionFailureSummary({ error, manifest, canonical });
@@ -183,6 +287,22 @@ try {
   process.exit(1);
 }
 const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
+let caseChildSelection = null;
+if (options.caseChild) {
+  try {
+    caseChildSelection = selectExactCaseChild(manifest.cases, options.caseId);
+  } catch (error) {
+    console.error(`case child usage error: ${safeCaseChildFailureMessage(error)}`);
+    process.exit(2);
+  }
+}
+if (options.caseChild && options.contractCaseChildFixture) {
+  if (options.contractCaseChildParentInvocation) {
+    writeContractCaseChildParentInvocation();
+  }
+  const exitCode = await runContractCaseChildFixture(caseChildSelection.item);
+  process.exit(exitCode);
+}
 const diagnosticSelection = diagnosticChild
   ? selectDiagnosticCase(
     manifest.cases,
@@ -195,10 +315,33 @@ const tracesDir = path.join(outputDir, "traces");
 const screenshotsDir = path.join(outputDir, "screenshots");
 const logsDir = path.join(outputDir, "logs");
 const visualMatrixDir = path.join(outputDir, "visual-matrix");
-fs.mkdirSync(tracesDir, { recursive: true });
-fs.mkdirSync(screenshotsDir, { recursive: true });
-fs.mkdirSync(logsDir, { recursive: true });
-if (!diagnosticChild) fs.mkdirSync(visualMatrixDir, { recursive: true });
+try {
+  if (options.caseChild && options.contractCaseChildPathFixture === "subdir-preflight-error") {
+    throw new Error("contract subdirectory preflight failure");
+  }
+  fs.mkdirSync(tracesDir, { recursive: true });
+  fs.mkdirSync(screenshotsDir, { recursive: true });
+  fs.mkdirSync(logsDir, { recursive: true });
+  if (!diagnosticChild) fs.mkdirSync(visualMatrixDir, { recursive: true });
+} catch (error) {
+  if (!options.caseChild) throw error;
+  const failure = structuredCaseChildFailure({
+    failureClass: "case-child-preflight-failure",
+    phase: "case-child-preflight",
+    code: "CASE_CHILD_PREFLIGHT_FAILED",
+    message: "case child subdirectory preflight failed",
+  });
+  const exitCode = finalizeCaseChildAttempt({
+    item: caseChildSelection.item,
+    primaryFailure: failure,
+    cleanupAttestation: contractCaseChildCleanupAttestation({ primaryFailure: failure, cleanupFailure: null }),
+    actualBrowserExecution: false,
+    executionStatus: "case-child-preflight-failed",
+    startedAtMs: Date.now(),
+    caseRuntimeHandle: null,
+  });
+  process.exit(exitCode);
+}
 
 if (options.planOnly) {
   if (diagnosticChild) {
@@ -236,8 +379,6 @@ if (options.planOnly) {
   process.exit(0);
 }
 
-let buildPath = "";
-let serverLogPath = "";
 try {
   if (diagnosticChild) assertDiagnosticChildOutputRoot(outputDir);
   else assertPolicyV4ArtifactRoot({ rootDir, outputDir });
@@ -252,6 +393,24 @@ try {
   serverLogPath = resolveRootOrAbsolute(options.serverLog);
   assert(fs.existsSync(serverLogPath), `server log does not exist: ${serverLogPath}`);
 } catch (error) {
+  if (options.caseChild) {
+    const failure = structuredCaseChildFailure({
+      failureClass: "case-child-preflight-failure",
+      phase: "case-child-preflight",
+      code: "CASE_CHILD_PREFLIGHT_FAILED",
+      message: "case child actual preflight failed",
+    });
+    const exitCode = finalizeCaseChildAttempt({
+      item: caseChildSelection.item,
+      primaryFailure: failure,
+      cleanupAttestation: contractCaseChildCleanupAttestation({ primaryFailure: failure, cleanupFailure: null }),
+      actualBrowserExecution: false,
+      executionStatus: "case-child-preflight-failed",
+      startedAtMs: Date.now(),
+      caseRuntimeHandle: null,
+    });
+    process.exit(exitCode);
+  }
   const summary = diagnosticChild
     ? createDiagnosticPreExecutionSummary(options.diagnosticCaseId, "actual-runner-preflight")
     : createNativeExactPreExecutionFailureSummary({
@@ -265,15 +424,49 @@ try {
   process.exit(1);
 }
 const actualStartedAt = new Date().toISOString();
+if (!options.caseChild && !diagnosticChild && !suiteFinalizerChild) {
+  const exitCode = await runCanonicalExactParent();
+  process.exit(exitCode);
+}
 let roleStateMap = null;
 let adapter = null;
 let caseRuntime = null;
+let caseChildBootstrapPhase = "role-state-bootstrap";
 try {
+  if (suiteFinalizerChild && options.contractSuiteFinalizerFixture) {
+    roleStateMap = { schema: "media-server.v390-ui-role-state-map.v1", roles: {} };
+    adapter = {
+      summary: {
+        tool: "contract-injected-playwright-adapter",
+        engine: "playwright-native",
+        fallbackUsed: false,
+        visualOnly: false,
+        ...(options.contractSuiteFinalizerFixture === "adapter-secret"
+          ? { contractDiagnostic: "round2-finalizer-secret-canary" } : {}),
+      },
+    };
+    caseRuntime = createV390UiCaseRuntime({
+      rootDir,
+      httpBase: options.httpBase,
+    });
+    assert(typeof caseRuntime.verifyCleanupReadback === "function",
+      "suite finalizer contract runtime owner missing");
+  } else {
+  if (options.contractCaseChildPathFixture === "adapter-bootstrap-error") {
+    caseChildBootstrapPhase = "adapter-bootstrap";
+    throw new Error("contract production-path adapter bootstrap failure");
+  }
+  if (options.contractCaseChildPathFixture === "runtime-bootstrap-error") {
+    caseChildBootstrapPhase = "runtime-bootstrap";
+    throw new Error("contract production-path runtime bootstrap failure");
+  }
   roleStateMap = loadRoleStateMap(options.roleStateMap);
+  caseChildBootstrapPhase = "adapter-bootstrap";
   adapter = await createNativePlaywrightAdapter({
     modulePath: options.playwrightModulePath,
     chromePath: options.chromePath,
   });
+  caseChildBootstrapPhase = "runtime-bootstrap";
   caseRuntime = createV390UiCaseRuntime({
     rootDir,
     httpBase: options.httpBase,
@@ -282,7 +475,31 @@ try {
   });
   assert(typeof caseRuntime.verifyCleanupReadback === "function",
     "exact case runtime verifyCleanupReadback owner missing");
+  }
 } catch (error) {
+  if (options.caseChild) {
+    const adapterBootstrapFailure = caseChildBootstrapPhase === "adapter-bootstrap";
+    const failure = structuredCaseChildFailure({
+      failureClass: adapterBootstrapFailure
+        ? "case-child-adapter-bootstrap-failure"
+        : "case-child-runtime-bootstrap-failure",
+      phase: adapterBootstrapFailure ? "adapter-bootstrap" : "runtime-bootstrap",
+      code: adapterBootstrapFailure
+        ? "CASE_CHILD_ADAPTER_BOOTSTRAP_FAILED"
+        : "CASE_CHILD_RUNTIME_BOOTSTRAP_FAILED",
+      message: "case child runtime bootstrap failed",
+    });
+    const exitCode = finalizeCaseChildAttempt({
+      item: caseChildSelection.item,
+      primaryFailure: failure,
+      cleanupAttestation: contractCaseChildCleanupAttestation({ primaryFailure: failure, cleanupFailure: null }),
+      actualBrowserExecution: false,
+      executionStatus: "case-child-runtime-bootstrap-failed",
+      startedAtMs: Date.now(),
+      caseRuntimeHandle: caseRuntime,
+    });
+    process.exit(exitCode);
+  }
   const summary = diagnosticChild
     ? createDiagnosticPreExecutionSummary(options.diagnosticCaseId, "runtime-bootstrap")
     : createNativeExactPreExecutionFailureSummary({
@@ -295,7 +512,6 @@ try {
   printSummary(summary, summaryPath);
   process.exit(1);
 }
-let caseRuntimeSecretScanComplete = false;
 process.on("exit", () => {
   if (caseRuntimeSecretScanComplete) return;
   try {
@@ -307,6 +523,16 @@ process.on("exit", () => {
     caseRuntime.releaseSecrets();
   }
 });
+
+if (options.caseChild) {
+  const exitCode = await runActualCaseChild(caseChildSelection.item);
+  process.exit(exitCode);
+}
+
+if (suiteFinalizerChild) {
+  const exitCode = await runCanonicalSuiteFinalizerChild();
+  process.exit(exitCode);
+}
 
 const results = [];
 let stopped = false;
@@ -429,6 +655,1528 @@ caseRuntime.releaseSecrets();
 printSummary(summary, summaryPath);
 if (captureErrors.length > 0 || (diagnosticChild && summary.result !== "PASS")) process.exit(1);
 
+async function runCanonicalExactParent() {
+  let selectedCases = Object.freeze([...manifest.cases]);
+  let expectedSourceBinding = null;
+  let aggregate = null;
+  let aggregateWriteFailed = false;
+  try {
+    if (options.contractCanonicalParentPreflightFixture === "selection-error") {
+      throw new Error("contract canonical parent selection failure");
+    }
+    const contractCaseCount = options.contractCanonicalParentFixture ? 3 : 424;
+    selectedCases = selectCanonicalParentCases({
+      manifestCases: manifest.cases,
+      canonicalCases: canonical.cases,
+      selectedIds: options.contractCanonicalParentFixture
+        ? canonical.cases.slice(0, contractCaseCount).map(item => item.testId)
+        : null,
+      requireFullCanonical: !options.contractCanonicalParentFixture,
+    });
+    if (options.contractCanonicalParentPreflightFixture === "source-binding-error") {
+      caseChildImplementationBinding = null;
+      caseChildSourceBindingFailure = new Error("contract canonical parent source binding failure");
+    }
+    expectedSourceBinding = caseChildSourceBinding();
+    if (options.contractCanonicalParentPreflightFixture === "runtime-inspector-error") {
+      throw new Error("contract canonical parent runtime inspector failure");
+    }
+    const inspectRuntime = createCanonicalParentRuntimeInspector();
+    aggregate = await runCanonicalParentOrchestration({
+      selectedCases,
+      caseOutputRoot: path.join(outputDir, "cases"),
+      expectedSourceBinding,
+      requireFullCanonical: !options.contractCanonicalParentFixture,
+      expectedCanonicalCount: 424,
+      inspectRuntime,
+      spawnChild: runCanonicalCaseChild,
+    });
+    if (aggregate.result === "PASS") {
+      const finalizer = await runCanonicalSuiteFinalizerProcess(aggregate.runBinding.runId);
+      aggregate = {
+        ...aggregate,
+        result: finalizer.status === "PASS" ? aggregate.result : "FAIL",
+        executionStatus: finalizer.status === "PASS"
+          ? aggregate.executionStatus : "canonical-parent-suite-finalizer-failed",
+        suiteFinalizer: finalizer,
+      };
+    }
+  } catch {
+    aggregate = canonicalParentFallbackSummary({
+      selectedCases,
+      expectedSourceBinding: expectedSourceBinding || fallbackCaseChildSourceBinding(),
+      code: "SUMMARY_WRITE_FAILED",
+      phase: "parent-preflight-or-orchestration",
+    });
+  } finally {
+    try {
+      writeCanonicalParentSummaryAtomic(summaryPath, aggregate);
+    } catch {
+      aggregateWriteFailed = true;
+      console.error(canonicalParentInfraFatalMarker);
+    }
+  }
+  if (aggregateWriteFailed) return canonicalParentInfraFatalExitCode;
+  printSummary(aggregate, summaryPath);
+  return aggregate.result === "PASS" ? 0 : 1;
+}
+
+async function runCanonicalSuiteFinalizerProcess(runId) {
+  const finalizerDir = path.join(outputDir, "suite-finalizer");
+  const finalizerSummaryPath = path.join(finalizerDir, "summary.json");
+  const args = [
+    fileURLToPath(import.meta.url),
+    "--suite-finalizer-child",
+    "--parent-run-id", runId,
+    "--manifest", resolveRootOrAbsolute(options.manifest),
+    "--output-dir", finalizerDir,
+    "--http-base", options.httpBase,
+    "--role-state-map", resolveRootOrAbsolute(options.roleStateMap),
+    "--server-log", resolveRootOrAbsolute(options.serverLog),
+    "--runtime-descriptor", resolveRootOrAbsolute(options.runtimeDescriptor),
+    "--build-path", buildPath,
+    "--timeout-ms", String(options.timeoutMs),
+  ];
+  if (options.playwrightModulePath) args.push("--playwright-module-path", resolveRootOrAbsolute(options.playwrightModulePath));
+  if (options.chromePath) args.push("--chrome-path", resolveRootOrAbsolute(options.chromePath));
+  const child = await runCanonicalChildProcess(process.execPath, args);
+  try {
+    const value = JSON.parse(fs.readFileSync(finalizerSummaryPath, "utf8"));
+    const stat = fs.lstatSync(finalizerSummaryPath);
+    assert(child.exitCode === 0 && !child.signal && !child.spawnError &&
+      value?.schema === "media-server.v390-ui-suite-finalizer.v1" && value?.result === "PASS" &&
+      value?.runId === runId && stableJson(value?.sourceBinding) === stableJson(caseChildSourceBinding()) &&
+      Array.isArray(value?.visualMatrixProbes) && value.visualMatrixProbes.length > 0 &&
+      value?.secretArtifactIntegrity?.status === "PASS" &&
+      value?.secretArtifactIntegrity?.verificationStage === "suite-finalizer-secret-artifact-integrity" &&
+      stat.isFile() && !stat.isSymbolicLink() && (stat.mode & 0o777) === 0o600,
+    "canonical suite finalizer validation failed");
+    return {
+      status: "PASS",
+      runId,
+      summaryPath: finalizerSummaryPath,
+      summarySha256: sha256File(finalizerSummaryPath),
+      automaticRetryCount: 0,
+    };
+  } catch {
+    return { status: "FAIL", runId, summaryPath: finalizerSummaryPath,
+      summarySha256: fs.existsSync(finalizerSummaryPath) ? sha256File(finalizerSummaryPath) : "",
+      automaticRetryCount: 0 };
+  }
+}
+
+async function runCanonicalSuiteFinalizerChild() {
+  let summary = null;
+  try {
+    const visualMatrixProbes = await executeVisualMatrix(adapter);
+    summary = {
+      schema: "media-server.v390-ui-suite-finalizer.v1",
+      result: "PASS",
+      runId: options.parentRunId,
+      sourceBinding: caseChildSourceBinding(),
+      selectedAdapter: structuredClone(adapter.summary),
+      visualMatrixProbes,
+      actualBrowserExecution: true,
+      automaticRetryCount: 0,
+    };
+  } catch {
+    summary = {
+      schema: "media-server.v390-ui-suite-finalizer.v1",
+      result: "FAIL",
+      runId: options.parentRunId,
+      sourceBinding: fallbackCaseChildSourceBinding(),
+      selectedAdapter: null,
+      visualMatrixProbes: [],
+      actualBrowserExecution: true,
+      automaticRetryCount: 0,
+      failure: { failureClass: "suite-finalizer-execution-failed",
+        phase: "suite-finalizer", code: "SUITE_FINALIZER_FAILED" },
+    };
+  }
+  let treeScan = null;
+  let failedTreeScan = null;
+  try {
+    treeScan = caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
+  } catch {
+    const removal = caseRuntime.removeTaintedArtifacts(outputDir);
+    const cleanTreeScan = caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
+    failedTreeScan = {
+      status: "FAIL",
+      removedArtifactCount: removal.removedArtifactCount,
+      independentRescan: {
+        status: cleanTreeScan.status,
+        verificationSource: cleanTreeScan.verificationSource,
+        scannedFiles: cleanTreeScan.scannedFiles,
+        scannedBytes: cleanTreeScan.scannedBytes,
+      },
+    };
+    summary = {
+      schema: "media-server.v390-ui-suite-finalizer.v1",
+      result: "FAIL",
+      runId: options.parentRunId,
+      sourceBinding: fallbackCaseChildSourceBinding(),
+      selectedAdapter: null,
+      visualMatrixProbes: [],
+      actualBrowserExecution: true,
+      automaticRetryCount: 0,
+      failure: { failureClass: "suite-finalizer-secret-artifact-failure",
+        phase: "suite-finalizer-secret-artifact-integrity",
+        code: "SUITE_FINALIZER_SECRET_ARTIFACT_FAILED" },
+    };
+  }
+  let artifactIntegrity = treeScan ? {
+    ...treeScan,
+    verificationStage: "suite-finalizer-secret-artifact-integrity",
+    treeScan: structuredClone(treeScan),
+    serializedSummaryScan: null,
+  } : {
+    status: "FAIL",
+    verificationStage: "suite-finalizer-secret-artifact-integrity",
+    failureClass: "retained-secret-artifact-scan-failed",
+    treeScan: failedTreeScan || { status: "FAIL" },
+    serializedSummaryScan: null,
+  };
+  let serialized = `${JSON.stringify({ ...summary, secretArtifactIntegrity: artifactIntegrity }, null, 2)}\n`;
+  try {
+    const serializedSummaryScan = caseRuntime.assertRetainedSecretsAbsentFromSerializedValue(serialized);
+    artifactIntegrity = {
+      ...artifactIntegrity,
+      serializedSummaryScan: {
+        status: serializedSummaryScan.status,
+        verificationSource: serializedSummaryScan.verificationSource,
+        retainedSecretCount: serializedSummaryScan.retainedSecretCount,
+      },
+    };
+    summary = { ...summary, secretArtifactIntegrity: artifactIntegrity };
+    serialized = `${JSON.stringify(summary, null, 2)}\n`;
+    caseRuntime.assertRetainedSecretsAbsentFromSerializedValue(serialized);
+  } catch {
+    const safeTreeScan = treeScan ? structuredClone(treeScan) : { status: "FAIL" };
+    summary = {
+      schema: "media-server.v390-ui-suite-finalizer.v1",
+      result: "FAIL",
+      runId: options.parentRunId,
+      sourceBinding: fallbackCaseChildSourceBinding(),
+      selectedAdapter: null,
+      visualMatrixProbes: [],
+      actualBrowserExecution: true,
+      automaticRetryCount: 0,
+      failure: { failureClass: "suite-finalizer-secret-artifact-failure",
+        phase: "suite-finalizer-secret-artifact-integrity",
+        code: "SUITE_FINALIZER_SECRET_ARTIFACT_FAILED" },
+      secretArtifactIntegrity: {
+      status: "FAIL",
+      verificationStage: "suite-finalizer-secret-artifact-integrity",
+      failureClass: "retained-secret-summary-scan-failed",
+      treeScan: safeTreeScan,
+      serializedSummaryScan: null,
+    } };
+    serialized = `${JSON.stringify(summary, null, 2)}\n`;
+    const safeSerializedScan = caseRuntime.assertRetainedSecretsAbsentFromSerializedValue(serialized);
+    summary.secretArtifactIntegrity.serializedSummaryScan = {
+      status: safeSerializedScan.status,
+      verificationSource: safeSerializedScan.verificationSource,
+      retainedSecretCount: safeSerializedScan.retainedSecretCount,
+    };
+    serialized = `${JSON.stringify(summary, null, 2)}\n`;
+    caseRuntime.assertRetainedSecretsAbsentFromSerializedValue(serialized);
+  }
+  let summaryWriteFailed = false;
+  try {
+    writeAtomicCaseArtifact(summaryPath, serialized);
+  } catch {
+    summaryWriteFailed = true;
+    console.error(suiteFinalizerInfraFatalMarker);
+  } finally {
+    caseRuntime?.releaseSecrets();
+    caseRuntimeSecretScanComplete = true;
+  }
+  if (summaryWriteFailed) return suiteFinalizerInfraFatalExitCode;
+  return summary?.result === "PASS" && artifactIntegrity.status === "PASS" ? 0 : 1;
+}
+
+async function runCanonicalCaseChild({
+  item,
+  index,
+  spawnToken,
+  runId,
+  outputDir: childOutputDir,
+  summaryPath: childSummaryPath,
+}) {
+  const args = [
+    fileURLToPath(import.meta.url),
+    "--case-child",
+    "--case-id", item.caseId,
+    "--parent-run-id", runId,
+    "--manifest", resolveRootOrAbsolute(options.manifest),
+    "--output-dir", childOutputDir,
+    "--http-base", options.httpBase,
+    "--role-state-map", resolveRootOrAbsolute(options.roleStateMap),
+    "--server-log", resolveRootOrAbsolute(options.serverLog),
+    "--runtime-descriptor", resolveRootOrAbsolute(options.runtimeDescriptor),
+    "--build-path", buildPath,
+    "--timeout-ms", String(options.timeoutMs),
+  ];
+  if (options.playwrightModulePath) {
+    args.push("--playwright-module-path", resolveRootOrAbsolute(options.playwrightModulePath));
+  }
+  if (options.chromePath) args.push("--chrome-path", resolveRootOrAbsolute(options.chromePath));
+  if (options.contractCanonicalParentFixture === "pass-fail-pass") {
+    args.push(
+      "--contract-case-child-fixture",
+      index === 1 ? "dom-assertion-error" : "pass",
+      "--contract-case-child-parent-invocation",
+      "--contract-case-child-build-binding",
+    );
+  }
+  const childProcess = await runCanonicalChildProcess(process.execPath, args);
+  let childSummary = null;
+  try {
+    childSummary = JSON.parse(fs.readFileSync(childSummaryPath, "utf8"));
+  } catch {
+    childSummary = null;
+  }
+  return {
+    exitCode: childProcess.exitCode,
+    stdout: childProcess.stdout,
+    stderr: childProcess.stderr,
+    signal: childProcess.signal,
+    spawnError: childProcess.spawnError,
+    summary: childSummary,
+    spawnToken,
+    outputDir: childOutputDir,
+    summaryPath: childSummaryPath,
+  };
+}
+
+function runCanonicalChildProcess(file, args) {
+  return new Promise(resolve => {
+    const stdout = createBoundedCanonicalChildCapture();
+    const stderr = createBoundedCanonicalChildCapture();
+    let settled = false;
+    let spawnError = false;
+    const child = spawn(file, args, {
+      cwd: rootDir,
+      env: { ...process.env },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    child.stdout.on("data", chunk => stdout.append(chunk));
+    child.stderr.on("data", chunk => stderr.append(chunk));
+    child.on("error", () => {
+      spawnError = true;
+    });
+    child.on("close", (code, signal) => {
+      if (settled) return;
+      settled = true;
+      resolve({
+        exitCode: Number.isInteger(code) ? code : 1,
+        signal: String(signal || ""),
+        spawnError,
+        stdout: stdout.value(),
+        stderr: stderr.value(),
+      });
+    });
+  });
+}
+
+function createBoundedCanonicalChildCapture(limit = 64 * 1024) {
+  let value = "";
+  return {
+    append(chunk) {
+      value += Buffer.from(chunk).toString("utf8");
+      if (Buffer.byteLength(value, "utf8") > limit) value = value.slice(-limit);
+    },
+    value() {
+      return value;
+    },
+  };
+}
+
+function createCanonicalParentRuntimeInspector() {
+  if (options.contractCanonicalParentFixture) {
+    return async () => ({
+      status: "PASS",
+      ownership: {
+        pid: process.pid,
+        httpPort: 18424,
+        rtspPort: 19424,
+        runtimeRoot: outputDir,
+        runtimeRootSha256: sha256Text(outputDir),
+      },
+    });
+  }
+  let expected = null;
+  return async ({ phase }) => {
+    const failureCode = phase === "before-batch"
+      ? "SERVER_BOOTSTRAP_FAILED"
+      : "PORT_RUNTIME_CONTAMINATION";
+    try {
+      assert(options.runtimeDescriptor, "canonical parent runtime descriptor is required");
+      const descriptorPath = resolveRootOrAbsolute(options.runtimeDescriptor);
+      const descriptor = JSON.parse(fs.readFileSync(descriptorPath, "utf8"));
+      assert(descriptor.schema === "media-server.v390-ui-runtime-descriptor.v1",
+        "canonical parent runtime descriptor schema mismatch");
+      assert(descriptor.ownership === "self-contained-pid-port-artifact-ownership",
+        "canonical parent runtime ownership mismatch");
+      assert(descriptor.httpBase === options.httpBase,
+        "canonical parent runtime HTTP base mismatch");
+      const pid = Number(descriptor.serverPid || 0);
+      const httpPort = Number(descriptor.httpPort || 0);
+      const rtspPort = Number(descriptor.rtspPort || 0);
+      const runtimeRoot = path.resolve(String(descriptor.temporaryRoot || ""));
+      assert(Number.isSafeInteger(pid) && pid > 1 && canonicalParentProcessAlive(pid),
+        "canonical parent owned server PID is not alive");
+      assert([httpPort, rtspPort].every(port => Number.isInteger(port) && port > 0 && port <= 65535),
+        "canonical parent owned ports are invalid");
+      assert(fs.statSync(runtimeRoot).isDirectory(),
+        "canonical parent runtime root is missing");
+      assertCanonicalRuntimeOwnedPath(runtimeRoot, descriptorPath, "runtime descriptor");
+      assertCanonicalRuntimeOwnedPath(runtimeRoot, resolveRootOrAbsolute(options.roleStateMap), "role state map");
+      assertCanonicalRuntimeOwnedPath(runtimeRoot, resolveRootOrAbsolute(options.serverLog), "server log");
+      assert(path.resolve(String(descriptor.roleStateMapPath || "")) ===
+        resolveRootOrAbsolute(options.roleStateMap),
+      "canonical parent role state path mismatch");
+      assert(path.resolve(String(descriptor.serverLogPath || "")) ===
+        resolveRootOrAbsolute(options.serverLog),
+      "canonical parent server log path mismatch");
+      const httpOwners = canonicalParentListenerPids(httpPort);
+      const rtspOwners = canonicalParentListenerPids(rtspPort);
+      assert(httpOwners.length === 1 && httpOwners[0] === pid &&
+        rtspOwners.length === 1 && rtspOwners[0] === pid,
+      "canonical parent owned port listener contamination detected");
+      const current = {
+        pid,
+        httpPort,
+        rtspPort,
+        runtimeRoot,
+        runtimeRootSha256: sha256Text(runtimeRoot),
+        descriptorSha256: sha256File(descriptorPath),
+      };
+      if (!expected) expected = current;
+      assert(expected.pid === current.pid && expected.httpPort === current.httpPort &&
+        expected.rtspPort === current.rtspPort && expected.runtimeRoot === current.runtimeRoot &&
+        expected.descriptorSha256 === current.descriptorSha256,
+      "canonical parent runtime ownership changed during batch");
+      return { status: "PASS", ownership: current };
+    } catch {
+      return { status: "FAIL", code: failureCode, ownership: expected };
+    }
+  };
+}
+
+function canonicalParentListenerPids(port) {
+  try {
+    return [...new Set(execFileSync("lsof", [
+      "-nP", `-iTCP:${Number(port)}`, "-sTCP:LISTEN", "-t",
+    ], { cwd: rootDir, encoding: "utf8" })
+      .split(/\r?\n/)
+      .map(value => Number(value.trim()))
+      .filter(Number.isSafeInteger))].sort((left, right) => left - right);
+  } catch {
+    return [];
+  }
+}
+
+function canonicalParentProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function assertCanonicalRuntimeOwnedPath(runtimeRoot, candidate, label) {
+  const relative = path.relative(runtimeRoot, path.resolve(candidate));
+  assert(relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative),
+    `canonical parent ${label} escapes runtime root`);
+}
+
+function canonicalParentFallbackSummary({ selectedCases, expectedSourceBinding, code, phase }) {
+  const now = Date.now();
+  const runId = randomUUID();
+  return {
+    schema: "media-server.v390-ui-canonical-parent.v1",
+    result: "FAIL",
+    executionStatus: "canonical-parent-infra-fatal",
+    releaseEvidenceEligible: false,
+    policyV4Qualification: "not-eligible-task-6-parent-contract",
+    uiFulltestPass: false,
+    actualBrowserExecution: false,
+    selection: {
+      selectedIds: selectedCases.map(item => item.caseId),
+      selected: selectedCases.length,
+      exactOrderPreserved: true,
+      automaticRetryCount: 0,
+      spawnTokenCount: 0,
+    },
+    counts: {
+      selected: selectedCases.length,
+      attempted: 0,
+      pass: 0,
+      fail: 0,
+      notRun: selectedCases.length,
+      unsupported: 0,
+      runnerAbort: 1,
+    },
+    sourceBinding: structuredClone(expectedSourceBinding),
+    runBinding: {
+      schema: "media-server.v390-ui-canonical-parent-run.v1",
+      runId,
+      caseOutputRoot: path.join(outputDir, "cases"),
+      childSummarySchema: "media-server.v390-ui-case-child.v1",
+    },
+    runtimeOwnership: {
+      parentOwned: true,
+      childrenBootstrapRuntime: false,
+      initial: null,
+      final: null,
+    },
+    infraFatal: { code, phase, caseId: "", detailCode: code },
+    cases: selectedCases.map(item => ({
+      caseId: item.caseId,
+      featureId: String(item.featureId || ""),
+      status: "not-run",
+      infraCode: code,
+      reason: `not run after ${code}`,
+    })),
+    failureCensus: [],
+    firstFailure: null,
+    timing: {
+      startedAtMs: now,
+      finishedAtMs: now,
+      durationMs: 0,
+      startedAt: new Date(now).toISOString(),
+      finishedAt: new Date(now).toISOString(),
+    },
+  };
+}
+
+async function runContractCaseChildFixture(item) {
+  const startedAtMs = Date.now();
+  let primaryFailure = null;
+  let cleanupFailure = null;
+  let requestLifecycleEvaluation = null;
+  let contractCaseRuntime = null;
+  if (options.contractCaseChildFixture === "disk-secret") {
+    contractCaseRuntime = createV390UiCaseRuntime({
+      rootDir,
+      httpBase: "http://127.0.0.1:1",
+      roleSecretsJson: JSON.stringify({
+        roles: { operator: "round5-case-child-secret-canary" },
+        refs: {},
+      }),
+    });
+    fs.writeFileSync(path.join(outputDir, "retained-secret.txt"),
+      "round5-case-child-secret-canary\n", { mode: 0o600 });
+    fs.writeFileSync(path.join(outputDir, "unrelated.txt"),
+      "unrelated artifact must remain\n", { mode: 0o600 });
+  }
+  try {
+    const phaseFailures = {
+      "subdir-preflight-error": ["case-child-preflight-failure", "case-child-preflight", "CASE_CHILD_PREFLIGHT_FAILED"],
+      "adapter-bootstrap-error": ["case-child-adapter-bootstrap-failure", "adapter-bootstrap", "CASE_CHILD_ADAPTER_BOOTSTRAP_FAILED"],
+      "runtime-bootstrap-error": ["case-child-runtime-bootstrap-failure", "runtime-bootstrap", "CASE_CHILD_RUNTIME_BOOTSTRAP_FAILED"],
+    };
+    if (phaseFailures[options.contractCaseChildFixture]) {
+      const [failureClass, phase, code] = phaseFailures[options.contractCaseChildFixture];
+      throw structuredCaseChildFailure({
+        failureClass,
+        phase,
+        code,
+        message: "contract case child phase failed",
+      });
+    }
+    if (options.contractCaseChildFixture === "evaluator-throw-composite-error") {
+      const primary = structuredCaseChildFailure({
+        failureClass: "dom-assertion-failure",
+        phase: "dom-assertion",
+        code: "DOM_ASSERTION_FAILED",
+        message: "contract DOM assertion failed before lifecycle evaluation",
+      });
+      try {
+        await executeContractRequestLifecycleFixture(
+          item.caseId,
+          options.contractCaseChildFixture,
+        );
+      } catch {
+        primary.requestLifecycleFailure = structuredCaseChildFailure({
+          failureClass: "request-lifecycle-failure",
+          phase: "request-lifecycle-evaluation",
+          code: "REQUEST_LIFECYCLE_EVALUATOR_FAILED",
+          message: "contract lifecycle evaluator failed",
+        });
+        primary.cleanupFailure = { message: "contract cleanup failed" };
+        primary.browserCloseFailure = { message: "contract browser close failed" };
+        primary.lifecycleFinalizationFailure = { message: "contract finalization failed" };
+      }
+      throw primary;
+    }
+    requestLifecycleEvaluation = await executeContractRequestLifecycleFixture(
+      item.caseId,
+      options.contractCaseChildFixture,
+    );
+    if (["serialized-secret-lifecycle-fallback", "serialized-secret-scanner-throws"]
+      .includes(options.contractCaseChildFixture)) {
+      requestLifecycleEvaluation = structuredClone(requestLifecycleEvaluation);
+      requestLifecycleEvaluation.requests[0].requestIdentity =
+        "review-registered-runtime-value";
+    }
+    if (requestLifecycleEvaluation.status !== "PASS" &&
+        !["dom-multi-lifecycle-secret-error", "api-multi-lifecycle-secret-error"]
+          .includes(options.contractCaseChildFixture)) {
+      throw structuredCaseChildFailure({
+        failureClass: "request-lifecycle-failure",
+        phase: "request-lifecycle-evaluation",
+        code: "REQUEST_LIFECYCLE_FAILED",
+        message: "request lifecycle evaluation failed",
+        requestLifecycleEvaluation,
+      });
+    }
+    if (options.contractCaseChildFixture === "dom-assertion-error" ||
+        options.contractCaseChildFixture === "cleanup-error-after-assertion" ||
+        options.contractCaseChildFixture === "dom-multi-lifecycle-secret-error") {
+      throw structuredCaseChildFailure({
+        failureClass: "dom-assertion-failure",
+        phase: "dom-assertion",
+        code: "DOM_ASSERTION_FAILED",
+        message: options.contractCaseChildFixture === "dom-multi-lifecycle-secret-error"
+          ? '{"password":"review-json-password-value"} Authorization: Bearer review-bearer-token-value; cookie=review-cookie-value; https://example.invalid/path?token=review-query-token-value; registered=review-registered-runtime-value'
+          : "contract DOM assertion failed",
+      });
+    }
+    if (options.contractCaseChildFixture === "api-assertion-error") {
+      throw structuredCaseChildFailure({
+        failureClass: "api-assertion-failure",
+        phase: "api-assertion",
+        code: "API_ASSERTION_FAILED",
+        message: "contract API assertion failed",
+      });
+    }
+    if (options.contractCaseChildFixture === "api-multi-lifecycle-secret-error") {
+      throw structuredCaseChildFailure({
+        failureClass: "api-assertion-failure",
+        phase: "api-assertion",
+        code: "API_ASSERTION_FAILED",
+        message: '{"password":"review-json-password-value"} Authorization: Bearer review-bearer-token-value; cookie=review-cookie-value; https://example.invalid/path?token=review-query-token-value; registered=review-registered-runtime-value',
+      });
+    }
+    if (options.contractCaseChildFixture === "rejected-promise") {
+      await Promise.reject(structuredCaseChildFailure({
+        failureClass: "ordinary-child-rejection",
+        phase: "case-execution",
+        code: "CHILD_PROMISE_REJECTED",
+        message: "contract child promise rejected",
+      }));
+    }
+    if (options.contractCaseChildFixture === "timeout-like") {
+      const timeout = structuredCaseChildFailure({
+        failureClass: "ordinary-child-timeout",
+        phase: "case-execution",
+        code: "CHILD_TIMEOUT",
+        message: "contract child operation timed out",
+      });
+      timeout.name = "TimeoutError";
+      throw timeout;
+    }
+  } catch (error) {
+    primaryFailure = error;
+  } finally {
+    if (options.contractCaseChildFixture === "cleanup-error-after-assertion") {
+      cleanupFailure = structuredCaseChildFailure({
+        failureClass: "case-cleanup-failure",
+        phase: "case-cleanup",
+        code: "CASE_RUNTIME_CLEANUP_FAILED",
+        message: "contract case cleanup failed",
+      });
+    }
+    return finalizeCaseChildAttempt({
+      item,
+      primaryFailure,
+      cleanupFailure,
+      requestLifecycleEvaluation,
+      cleanupAttestation: contractCaseChildCleanupAttestation({
+        primaryFailure,
+        cleanupFailure,
+      }),
+      actualBrowserExecution: false,
+      executionStatus: "case-child-contract-fixture-not-browser-evidence",
+      startedAtMs,
+      caseRuntimeHandle: contractCaseRuntime,
+      contractFixtureMode: options.contractCaseChildFixture,
+      assertSerializedSecretsAbsent:
+        [
+          "dom-multi-lifecycle-secret-error",
+          "api-multi-lifecycle-secret-error",
+          "serialized-secret-lifecycle-fallback",
+          "serialized-secret-scanner-throws",
+        ]
+          .includes(options.contractCaseChildFixture)
+          ? serialized => {
+              if (options.contractCaseChildFixture === "serialized-secret-scanner-throws") {
+                throw new Error("contract retained-secret scanner failed");
+              }
+              assertContractSecretsAbsent(serialized);
+            }
+          : null,
+    });
+  }
+}
+
+async function runActualCaseChild(item) {
+  const startedAtMs = Date.now();
+  let result = null;
+  let primaryFailure = null;
+  let cleanupFailure = null;
+  try {
+    result = await executeCase(item, adapter, roleStateMap, serverLogPath);
+  } catch (error) {
+    primaryFailure = error;
+    result = createFailedCaseResult(item, error, false);
+  } finally {
+    return finalizeCaseChildAttempt({
+      item,
+      result,
+      primaryFailure,
+      cleanupFailure,
+      requestLifecycleEvaluation:
+        result?.requestLifecycleEvaluation ||
+        primaryFailure?.partialArtifacts?.requestLifecycleEvaluation || null,
+      cleanupAttestation:
+        cleanupFailure
+          ? contractCaseChildCleanupAttestation({ primaryFailure, cleanupFailure })
+          : (result?.cleanupAttestation ||
+              primaryFailure?.partialArtifacts?.cleanupAttestation ||
+              contractCaseChildCleanupAttestation({ primaryFailure, cleanupFailure })),
+      actualBrowserExecution:
+        result?.actualBrowserExecution === true || primaryFailure?.actualBrowserExecution === true,
+      executionStatus: "case-child-browser-evidence",
+      startedAtMs,
+      caseRuntimeHandle: caseRuntime,
+    });
+  }
+}
+
+async function executeContractRequestLifecycleFixture(caseId, mode) {
+  let clockValue = 1000;
+  const ledger = createNativeRequestLifecycleLedger({
+    caseId,
+    correlationDigest: sha256Text(`${caseId}:contract-request`),
+    clock: () => ++clockValue,
+  });
+  const request = {
+    method: () => "GET",
+    url: () => "http://127.0.0.1/ops/api/runtime",
+    resourceType: () => {
+      if (mode === "callback-capture-error" ||
+          ["dom-multi-lifecycle-secret-error", "api-multi-lifecycle-secret-error"].includes(mode)) {
+        throw new Error("contract request property read failed with review-registered-runtime-value");
+      }
+      return "fetch";
+    },
+    isNavigationRequest: () => false,
+    redirectedFrom: () => null,
+  };
+  const response = {
+    request: () => request,
+    status: () => 200,
+    url: () => request.url(),
+  };
+  const envelope = ledger.requestLifecycleRecorder.recordRequest(
+    request,
+    ledger.captureContext(),
+  );
+  ledger.registerCapturedRequest(envelope);
+  if (envelope) {
+    ledger.requestLifecycleRecorder.recordResponse(response);
+    if (mode === "lifecycle-duplicate-response") {
+      ledger.requestLifecycleRecorder.recordResponse(response);
+    }
+    ledger.requestLifecycleRecorder.recordRequestFinished(request);
+  }
+  if (["dom-multi-lifecycle-secret-error", "api-multi-lifecycle-secret-error"].includes(mode)) {
+    const secondRequest = {
+      method: () => "GET",
+      url: () => "http://127.0.0.1/ops/api/runtime/second",
+      resourceType: () => "fetch",
+      isNavigationRequest: () => false,
+      redirectedFrom: () => null,
+    };
+    const secondResponse = {
+      request: () => secondRequest,
+      status: () => 200,
+      url: () => secondRequest.url(),
+    };
+    const secondEnvelope = ledger.requestLifecycleRecorder.recordRequest(
+      secondRequest,
+      ledger.captureContext(),
+    );
+    ledger.registerCapturedRequest(secondEnvelope);
+    ledger.requestLifecycleRecorder.recordResponse(secondResponse);
+    ledger.requestLifecycleRecorder.recordResponse(secondResponse);
+    ledger.requestLifecycleRecorder.recordRequestFinished(secondRequest);
+  }
+  const browser = {
+    close: async () => {
+      ledger.sealRequestLifecycleLedger();
+      return { status: 200 };
+    },
+    evaluateRequestLifecycleLedger: () => ledger.evaluateRequestLifecycleLedger(),
+    safeRequestLifecycleProjection: () => ledger.safeRequestLifecycleProjection(),
+  };
+  if (mode === "evaluator-throw-composite-error") {
+    browser.evaluateRequestLifecycleLedger = () => {
+      throw new Error("contract evaluator projection failure");
+    };
+  }
+  await browser.close();
+  return evaluateClosedCaseRequestLifecycle(browser);
+}
+
+function evaluateClosedCaseRequestLifecycle(browser) {
+  const evaluation = browser.evaluateRequestLifecycleLedger();
+  const safeEvaluation = browser.safeRequestLifecycleProjection();
+  if (!evaluation || typeof evaluation !== "object" ||
+      !safeEvaluation || typeof safeEvaluation !== "object") {
+    throw structuredCaseChildFailure({
+      failureClass: "request-lifecycle-failure",
+      phase: "request-lifecycle-evaluation",
+      code: "REQUEST_LIFECYCLE_INVALID",
+      message: "request lifecycle evaluation is invalid",
+    });
+  }
+  return safeEvaluation;
+}
+
+function buildCaseChildSummary({
+  item,
+  result = null,
+  primaryFailure = null,
+  cleanupFailure = null,
+  requestLifecycleEvaluation = null,
+  additionalFailures = [],
+  cleanupAttestation,
+  actualBrowserExecution,
+  policyInputRef = null,
+  executionStatus,
+  startedAtMs,
+  finishedAtMs,
+  sourceBinding = caseChildSourceBinding(),
+}) {
+  const failed = Boolean(primaryFailure || cleanupFailure || additionalFailures.length > 0 || result?.status === "FAIL" ||
+    cleanupAttestation?.pass !== true || requestLifecycleEvaluation?.status === "FAIL");
+  const primary = primaryFailure || (result?.status === "FAIL"
+    ? structuredCaseChildFailure({
+        failureClass: String(result.reason || "case-execution-failure"),
+        phase: String(result.failureProvenance?.phase || "case-execution"),
+        code: String(result.failureProvenance?.failureClass || "CASE_EXECUTION_FAILED")
+          .replace(/[^A-Za-z0-9]+/g, "_").toUpperCase(),
+        message: String(result.reason || "case execution failed"),
+      })
+    : null);
+  const failureCensus = caseChildFailureCensus({
+    primaryFailure: primary,
+    cleanupFailure,
+    requestLifecycleEvaluation,
+    additionalFailures,
+  });
+  const primaryEntry = primary
+    ? caseChildFailureEntry(primary)
+    : (cleanupFailure ? caseChildFailureEntry(cleanupFailure) : failureCensus[0]);
+  return createNativeExactCaseChildSummary({
+    item,
+    status: failed ? "FAIL" : "PASS",
+    executionStatus,
+    sourceBinding,
+    failureClass: primaryEntry?.failureClass || "",
+    failurePhase: primaryEntry?.phase || "",
+    failureCode: primaryEntry?.code || "",
+    failureMessage: primaryEntry?.message || "",
+    failureCensus,
+    requestLifecycleEvaluation,
+    cleanupAttestation,
+    actualBrowserExecution,
+    policyInputRef,
+    startedAtMs,
+    finishedAtMs,
+  });
+}
+
+function caseChildFailureCensus({
+  primaryFailure,
+  cleanupFailure,
+  requestLifecycleEvaluation,
+  additionalFailures = [],
+}) {
+  const census = [];
+  if (primaryFailure && primaryFailure.failureCode !== "REQUEST_LIFECYCLE_FAILED") {
+    census.push(caseChildFailureEntry(primaryFailure));
+  }
+  if (requestLifecycleEvaluation?.status === "FAIL") {
+    for (const failure of requestLifecycleEvaluation.failures || []) {
+      census.push({
+        failureClass: "request-lifecycle-failure",
+        phase: "request-lifecycle-evaluation",
+        code: allowlistedCaseChildFailureCode(failure.code, "REQUEST_LIFECYCLE_FAILED"),
+        message: genericCaseChildFailureMessage(
+          allowlistedCaseChildFailureCode(failure.code, "REQUEST_LIFECYCLE_FAILED"),
+          "request-lifecycle-evaluation",
+        ),
+        requestIdentity: String(failure.requestIdentity || ""),
+        responseIdentity: String(failure.responseIdentity || ""),
+      });
+    }
+    if (census.length === 0) {
+      census.push({
+        failureClass: "request-lifecycle-failure",
+        phase: "request-lifecycle-evaluation",
+        code: "REQUEST_LIFECYCLE_FAILED",
+        message: genericCaseChildFailureMessage("REQUEST_LIFECYCLE_FAILED", "request-lifecycle-evaluation"),
+        requestIdentity: "",
+        responseIdentity: "",
+      });
+    }
+  } else if (primaryFailure && census.length === 0) {
+    census.push(caseChildFailureEntry(primaryFailure));
+  }
+  if (primaryFailure?.requestLifecycleFailure &&
+      requestLifecycleEvaluation?.status !== "FAIL") {
+    const lifecycleEntry = caseChildFailureEntry(primaryFailure.requestLifecycleFailure);
+    if (!census.some((entry, index) => index === 0 &&
+        entry.code === lifecycleEntry.code && entry.phase === lifecycleEntry.phase)) {
+      census.push(lifecycleEntry);
+    }
+  }
+  if (cleanupFailure) census.push(caseChildFailureEntry(cleanupFailure));
+  for (const failure of additionalFailures) census.push(caseChildFailureEntry(failure));
+  if (primaryFailure?.cleanupFailure) {
+    census.push({
+      failureClass: "case-cleanup-failure",
+      phase: "case-cleanup",
+      code: "CASE_RUNTIME_CLEANUP_FAILED",
+      message: genericCaseChildFailureMessage("CASE_RUNTIME_CLEANUP_FAILED", "case-cleanup"),
+      requestIdentity: "",
+      responseIdentity: "",
+    });
+  }
+  if (primaryFailure?.browserCloseFailure) {
+    census.push({
+      failureClass: "browser-close-failure",
+      phase: "browser-close",
+      code: "BROWSER_CLOSE_FAILED",
+      message: genericCaseChildFailureMessage("BROWSER_CLOSE_FAILED", "browser-close"),
+      requestIdentity: "",
+      responseIdentity: "",
+    });
+  }
+  if (primaryFailure?.lifecycleFinalizationFailure) {
+    census.push({
+      failureClass: "lifecycle-finalization-failure",
+      phase: "lifecycle-finalization",
+      code: "LIFECYCLE_FINALIZATION_FAILED",
+      message: genericCaseChildFailureMessage("LIFECYCLE_FINALIZATION_FAILED", "lifecycle-finalization"),
+      requestIdentity: "",
+      responseIdentity: "",
+    });
+  }
+  return census;
+}
+
+function caseChildFailureEntry(error) {
+  const code = allowlistedCaseChildFailureCode(error?.failureCode, "CASE_EXECUTION_FAILED");
+  const phase = allowlistedCaseChildFailurePhase(error?.failurePhase);
+  return {
+    failureClass: caseChildFailureClassForCode(code),
+    phase,
+    code,
+    message: genericCaseChildFailureMessage(code, phase),
+    requestIdentity: "",
+    responseIdentity: "",
+  };
+}
+
+function allowlistedCaseChildFailureCode(value, fallback) {
+  const code = String(value || "");
+  const allowed = new Set([
+    "API_ASSERTION_FAILED", "BROWSER_CLOSE_FAILED", "CALLBACK_CAPTURE_ERROR", "CAPTURE_ERROR",
+    "CASE_CHILD_ADAPTER_BOOTSTRAP_FAILED", "CASE_CHILD_PREFLIGHT_FAILED",
+    "CASE_CHILD_RUNNER_PROVENANCE_FAILED", "CASE_CHILD_RUNTIME_BOOTSTRAP_FAILED",
+    "CASE_CHILD_SECRET_RELEASE_FAILED", "CASE_CHILD_SUMMARY_BUILD_FAILED",
+    "CASE_CHILD_SUMMARY_SERIALIZE_FAILED", "CASE_EXECUTION_FAILED", "CASE_RUNTIME_CLEANUP_FAILED",
+    "CHILD_PROMISE_REJECTED", "CHILD_TIMEOUT", "CLASSIFICATION_MULTIPLE",
+    "CLASSIFICATION_UNCLASSIFIED", "CROSS_ACTION_LEAK", "DOM_ASSERTION_FAILED", "INPUT_INVALID",
+    "INVOCATION_LEDGER_MISSING", "INVOCATION_MEMBERSHIP_MISSING",
+    "INVOCATION_PROJECTION_MISMATCH", "INVOCATION_STALE", "LIFECYCLE_FINALIZATION_FAILED",
+    "REDIRECT_CHAIN_MISMATCH", "REDIRECT_PARENT_MISSING", "REDIRECT_PARENT_WRONG",
+    "REQUEST_DUPLICATE", "REQUEST_FAILED", "REQUEST_IDENTITY_MISSING", "REQUEST_KIND_INVALID",
+    "REQUEST_LIFECYCLE_EVALUATOR_FAILED", "REQUEST_LIFECYCLE_FAILED",
+    "REQUEST_LIFECYCLE_INVALID", "RESOURCE_TYPE_MISSING",
+    "RESPONSE_DUPLICATE", "RESPONSE_IDENTITY_MISMATCH", "RESPONSE_IDENTITY_MISSING",
+    "RESPONSE_MISSING", "RESPONSE_REQUEST_UNKNOWN", "SECRET_ARTIFACT_INTEGRITY_FAILED",
+  ]);
+  return allowed.has(code) ? code : fallback;
+}
+
+function allowlistedCaseChildFailurePhase(value) {
+  const phase = String(value || "");
+  const allowed = new Set([
+    "adapter-bootstrap", "api-assertion", "browser-close", "case-child-preflight",
+    "case-cleanup", "case-execution", "dom-assertion", "lifecycle-finalization",
+    "request-lifecycle-evaluation", "runner-provenance", "runtime-bootstrap",
+    "secret-release", "summary-build", "summary-serialize",
+  ]);
+  return allowed.has(phase) ? phase : "case-execution";
+}
+
+function caseChildFailureClassForCode(code) {
+  if (code.startsWith("REQUEST_") || code.startsWith("RESPONSE_") ||
+      code.startsWith("INVOCATION_") || code === "CAPTURE_ERROR" ||
+      code.startsWith("CLASSIFICATION_") || code.startsWith("REDIRECT_") ||
+      code === "CROSS_ACTION_LEAK" || code === "RESOURCE_TYPE_MISSING") {
+    return "request-lifecycle-failure";
+  }
+  if (code.includes("CLEANUP") || code.includes("SECRET") || code.includes("CLOSE")) {
+    return "case-cleanup-failure";
+  }
+  if (code.includes("PREFLIGHT") || code.includes("BOOTSTRAP") ||
+      code.includes("PROVENANCE") || code.includes("SUMMARY")) {
+    return "case-child-finalization-failure";
+  }
+  return "case-execution-failure";
+}
+
+function genericCaseChildFailureMessage(code, phase) {
+  return `case child failure ${code} at ${phase}`;
+}
+
+function structuredCaseChildFailure({
+  failureClass,
+  phase,
+  code,
+  message,
+  requestLifecycleEvaluation = null,
+}) {
+  const error = new Error(String(message || "case child failure"));
+  error.failureClass = String(failureClass || "case-failure");
+  error.failurePhase = String(phase || "case-execution");
+  error.failureCode = String(code || "CASE_EXECUTION_FAILED");
+  if (requestLifecycleEvaluation) {
+    error.requestLifecycleEvaluation = structuredClone(requestLifecycleEvaluation);
+  }
+  return error;
+}
+
+function contractCaseChildCleanupAttestation({ primaryFailure, cleanupFailure }) {
+  const pass = !cleanupFailure;
+  return {
+    schema: "media-server.v390-ui-case-cleanup-attestation.v1",
+    pass,
+    primaryFailurePresent: Boolean(primaryFailure),
+    primaryFailurePreserved: Boolean(primaryFailure),
+    caseRuntimeRestoreAttempted: true,
+    caseRuntimeRestored: !cleanupFailure,
+    browserCloseAttempted: false,
+    browserContextClosed: true,
+    cleanupEntryCount: 1,
+    failureCode: pass ? "" : "CASE_RUNTIME_CLEANUP_FAILED",
+  };
+}
+
+function caseChildFinalCleanupAttestation(base, primaryFailure, cleanupFailure, additionalFailures) {
+  const finalizationFailure = additionalFailures.length > 0;
+  const pass = base?.pass === true && !cleanupFailure && !finalizationFailure;
+  return {
+    schema: "media-server.v390-ui-case-cleanup-attestation.v1",
+    pass,
+    primaryFailurePresent: Boolean(primaryFailure || base?.primaryFailurePresent),
+    primaryFailurePreserved: Boolean(primaryFailure || base?.primaryFailurePreserved),
+    caseRuntimeRestoreAttempted: base?.caseRuntimeRestoreAttempted !== false,
+    caseRuntimeRestored: pass && base?.caseRuntimeRestored !== false,
+    browserCloseAttempted: Boolean(base?.browserCloseAttempted),
+    browserContextClosed: base?.browserContextClosed !== false,
+    cleanupEntryCount: Math.max(1, Number(base?.cleanupEntryCount || 0)) + additionalFailures.length,
+    failureCode: pass
+      ? ""
+      : allowlistedCaseChildFailureCode(
+          cleanupFailure?.failureCode || additionalFailures[0]?.failureCode || base?.failureCode,
+          "CASE_RUNTIME_CLEANUP_FAILED",
+        ),
+  };
+}
+
+function assertContractSecretsAbsent(serialized) {
+  assert(typeof serialized === "string", "contract serialized summary is invalid");
+  assert(!caseChildContractSecretCanaries.some(secret => serialized.includes(secret)),
+    "serialized value contains a retained runtime secret");
+}
+
+function caseChildSourceBinding() {
+  if (!caseChildImplementationBinding) throw caseChildSourceBindingFailure ||
+    new Error("case child implementation source binding is unavailable");
+  const sourceBuildPath = buildPath || (options.contractCaseChildBuildBinding
+    ? resolveRootOrAbsolute(options.buildPath)
+    : "");
+  return {
+    baselineSourceCommitSha: verificationRebaseBaselineSourceCommit,
+    verificationCommitSha: caseChildImplementationBinding.verificationCommitSha,
+    verificationBranch: caseChildImplementationBinding.verificationBranch,
+    runnerSchema: "media-server.v390-ui-canonical-parent.v1",
+    manifestSha256: sha256Text(stableJson(manifest)),
+    implementationFiles: structuredClone(caseChildImplementationBinding.implementationFiles),
+    implementationSha256: caseChildImplementationBinding.implementationSha256,
+    buildSha256: sourceBuildPath && fs.existsSync(sourceBuildPath)
+      ? sha256File(sourceBuildPath)
+      : "",
+  };
+}
+
+function writeContractCaseChildParentInvocation() {
+  const target = path.join(outputDir, "parent-invocation.json");
+  const value = {
+    schema: "media-server.v390-ui-canonical-parent-child-invocation.v1",
+    caseId: options.caseId,
+    argv: {
+      caseChildCount: process.argv.filter(value => value === "--case-child").length,
+      caseIds: [options.caseId],
+      manifest: resolveRootOrAbsolute(options.manifest),
+      outputDir,
+      httpBase: options.httpBase,
+      roleStateMap: resolveRootOrAbsolute(options.roleStateMap),
+      serverLog: resolveRootOrAbsolute(options.serverLog),
+      runtimeDescriptor: resolveRootOrAbsolute(options.runtimeDescriptor),
+      buildPath: resolveRootOrAbsolute(options.buildPath),
+    },
+    env: {
+      roleSecretsSha256: sha256Text(process.env.MEDIA_SERVER_V390_UI_ROLE_SECRETS || ""),
+      runtimeCanarySha256: sha256Text(process.env.MEDIA_SERVER_V390_PARENT_RUNTIME_CANARY || ""),
+    },
+  };
+  fs.writeFileSync(target, `${JSON.stringify(value, null, 2)}\n`, {
+    encoding: "utf8",
+    mode: 0o600,
+    flag: "wx",
+  });
+}
+
+function precomputeCaseChildImplementationBinding() {
+  const verificationCommitSha = execFileSync("git", ["rev-parse", "HEAD"], {
+    cwd: rootDir,
+    encoding: "utf8",
+  }).trim();
+  assert(/^[0-9a-f]{40}$/.test(verificationCommitSha),
+    "case child verification commit SHA is invalid");
+  const verificationBranch = execFileSync("git", ["branch", "--show-current"], {
+    cwd: rootDir,
+    encoding: "utf8",
+  }).trim();
+  assert(verificationBranch, "case child verification branch is invalid");
+  const implementationFiles = Object.fromEntries(
+    Object.entries(caseChildImplementationFiles).map(([name, relativePath]) => [
+      name,
+      { path: relativePath, sha256: sha256File(path.join(rootDir, relativePath)) },
+    ]),
+  );
+  return Object.freeze({
+    verificationCommitSha,
+    verificationBranch,
+    implementationFiles: Object.freeze(implementationFiles),
+    implementationSha256: sha256Text(stableJson(implementationFiles)),
+  });
+}
+
+function fallbackCaseChildSourceBinding() {
+  let verificationCommitSha = caseChildImplementationBinding?.verificationCommitSha || "";
+  if (!verificationCommitSha) {
+    try {
+      verificationCommitSha = execFileSync("git", ["rev-parse", "HEAD"], {
+        cwd: rootDir,
+        encoding: "utf8",
+      }).trim();
+    } catch {
+      verificationCommitSha = "0000000000000000000000000000000000000000";
+    }
+  }
+  return {
+    baselineSourceCommitSha: verificationRebaseBaselineSourceCommit,
+    verificationCommitSha,
+    verificationBranch: caseChildImplementationBinding?.verificationBranch || "unknown",
+    runnerSchema: "media-server.v390-ui-canonical-parent.v1",
+    manifestSha256: sha256Text(stableJson(manifest)),
+    implementationFiles: {},
+    implementationSha256: "",
+    buildSha256: "",
+    provenanceComplete: false,
+  };
+}
+
+function finalizeCaseChildAttempt({
+  item,
+  result = null,
+  primaryFailure = null,
+  cleanupFailure = null,
+  requestLifecycleEvaluation = null,
+  cleanupAttestation,
+  actualBrowserExecution = false,
+  executionStatus,
+  startedAtMs,
+  caseRuntimeHandle = null,
+  contractFixtureMode = "",
+  assertSerializedSecretsAbsent = null,
+}) {
+  const additionalFailures = [];
+  let sourceBinding = null;
+  let policyInputRef = null;
+  if (contractFixtureMode === "source-binding-error") {
+    caseChildSourceBindingFailure = new Error("contract source binding failure");
+    caseChildImplementationBinding = null;
+  }
+  try {
+    sourceBinding = caseChildSourceBinding();
+  } catch {
+    additionalFailures.push(structuredCaseChildFailure({
+      failureClass: "case-child-runner-provenance-failure",
+      phase: "runner-provenance",
+      code: "CASE_CHILD_RUNNER_PROVENANCE_FAILED",
+      message: "case child runner provenance failed",
+    }));
+    sourceBinding = fallbackCaseChildSourceBinding();
+  }
+
+  if (caseRuntimeHandle) {
+    try {
+      caseRuntimeHandle.assertSecretsAbsentFromArtifacts(outputDir);
+    } catch {
+      caseRuntimeHandle.removeTaintedArtifacts(outputDir);
+      caseRuntimeHandle.assertSecretsAbsentFromArtifacts(outputDir);
+      additionalFailures.push(structuredCaseChildFailure({
+        failureClass: "secret-artifact-integrity-failure",
+        phase: "case-cleanup",
+        code: "SECRET_ARTIFACT_INTEGRITY_FAILED",
+        message: "secret artifact integrity failed",
+      }));
+    }
+  }
+
+  if (caseRuntimeHandle && result) {
+    try {
+      const policyInput = projectCasePolicyInput({
+        item,
+        result,
+        runId: options.parentRunId,
+      });
+      const serializedPolicyInput = `${JSON.stringify(policyInput, null, 2)}\n`;
+      caseRuntimeHandle.assertRetainedSecretsAbsentFromSerializedValue(serializedPolicyInput);
+      const policyInputPath = path.join(outputDir, "policy-input.json");
+      writeAtomicCaseArtifact(policyInputPath, serializedPolicyInput);
+      policyInputRef = {
+        schema: "media-server.v390-ui-case-policy-input-ref.v1",
+        caseId: item.caseId,
+        runId: options.parentRunId,
+        path: policyInputPath,
+        bytes: Buffer.byteLength(serializedPolicyInput),
+        sha256: sha256File(policyInputPath),
+      };
+    } catch {
+      additionalFailures.push(structuredCaseChildFailure({
+        failureClass: "case-policy-input-failure",
+        phase: "policy-input",
+        code: "CASE_POLICY_INPUT_FAILED",
+        message: "case Policy input materialization failed",
+      }));
+      policyInputRef = null;
+    }
+  }
+
+  const effectiveCleanupAttestation = () => caseChildFinalCleanupAttestation(
+    cleanupAttestation,
+    primaryFailure,
+    cleanupFailure,
+    additionalFailures,
+  );
+  const summaryInput = () => ({
+    item,
+    result,
+    primaryFailure,
+    cleanupFailure,
+    requestLifecycleEvaluation,
+    additionalFailures,
+    cleanupAttestation: effectiveCleanupAttestation(),
+    actualBrowserExecution,
+    policyInputRef,
+    executionStatus,
+    startedAtMs,
+    finishedAtMs: Math.max(startedAtMs, Date.now()),
+    sourceBinding,
+  });
+  let childSummary = null;
+  try {
+    if (contractFixtureMode === "summary-build-error") {
+      throw new Error("contract summary build failure");
+    }
+    childSummary = buildCaseChildSummary(summaryInput());
+  } catch {
+    additionalFailures.push(structuredCaseChildFailure({
+      failureClass: "case-child-summary-build-failure",
+      phase: "summary-build",
+      code: "CASE_CHILD_SUMMARY_BUILD_FAILED",
+      message: "case child summary build failed",
+    }));
+    childSummary = buildMinimalCaseChildSummary(summaryInput());
+  }
+
+  let serialized = "";
+  try {
+    if (contractFixtureMode === "summary-serialize-error") {
+      throw new Error("contract summary serialization failure");
+    }
+    serialized = serializeCaseChildSummary(childSummary);
+  } catch {
+    additionalFailures.push(structuredCaseChildFailure({
+      failureClass: "case-child-summary-serialization-failure",
+      phase: "summary-serialize",
+      code: "CASE_CHILD_SUMMARY_SERIALIZE_FAILED",
+      message: "case child summary serialization failed",
+    }));
+    childSummary = buildMinimalCaseChildSummary(summaryInput());
+    serialized = serializeCaseChildSummary(childSummary);
+  }
+  const scanSerializedSummary = () => {
+    if (caseRuntimeHandle) caseRuntimeHandle.assertRetainedSecretsAbsentFromSerializedValue(serialized);
+    if (assertSerializedSecretsAbsent) assertSerializedSecretsAbsent(serialized);
+  };
+  const rebuildIndependentSummaryAfterScanFailure = () => {
+    if (!additionalFailures.some(error =>
+      error?.failureCode === "CASE_CHILD_SUMMARY_SERIALIZE_FAILED")) {
+      additionalFailures.push(structuredCaseChildFailure({
+        failureClass: "case-child-summary-serialization-failure",
+        phase: "summary-serialize",
+        code: "CASE_CHILD_SUMMARY_SERIALIZE_FAILED",
+        message: "case child serialized secret scan failed",
+      }));
+    }
+    childSummary = buildMinimalCaseChildSummary(summaryInput());
+    serialized = serializeCaseChildSummary(childSummary);
+    try {
+      scanSerializedSummary();
+    } catch {
+      // 독립 최소 요약은 allowlist metadata만 포함하므로 scanner 고장도 tainted bytes를 쓰거나 요약 시도를 막지 못한다.
+    }
+  };
+  try {
+    scanSerializedSummary();
+  } catch {
+    rebuildIndependentSummaryAfterScanFailure();
+  }
+
+  if (caseRuntimeHandle || contractFixtureMode === "release-secrets-error") {
+    try {
+      if (contractFixtureMode === "release-secrets-error") {
+        throw new Error("contract secret release failure");
+      }
+      caseRuntimeHandle.releaseSecrets();
+    } catch {
+      additionalFailures.push(structuredCaseChildFailure({
+        failureClass: "case-child-secret-release-failure",
+        phase: "secret-release",
+        code: "CASE_CHILD_SECRET_RELEASE_FAILED",
+        message: "case child secret release failed",
+      }));
+      childSummary = buildMinimalCaseChildSummary(summaryInput());
+      serialized = serializeCaseChildSummary(childSummary);
+      try {
+        scanSerializedSummary();
+      } catch {
+        rebuildIndependentSummaryAfterScanFailure();
+      }
+    } finally {
+      caseRuntimeSecretScanComplete = true;
+    }
+  }
+
+  try {
+    writeCaseChildSummaryAtomic(summaryPath, serialized);
+  } catch {
+    console.error(caseChildInfraFatalMarker);
+    return caseChildInfraFatalExitCode;
+  }
+  printCaseChildSummary(childSummary, summaryPath);
+  return childSummary.result === "PASS" ? 0 : 1;
+}
+
+function buildMinimalCaseChildSummary(input) {
+  const primaryEntry = caseChildFailureEntry(
+    input.primaryFailure || input.cleanupFailure || input.additionalFailures[0],
+  );
+  const failureCensus = caseChildFailureCensus({
+    primaryFailure: input.primaryFailure,
+    cleanupFailure: input.cleanupFailure,
+    requestLifecycleEvaluation: null,
+    additionalFailures: input.additionalFailures,
+  }).map(entry => ({
+    failureClass: caseChildFailureClassForCode(
+      allowlistedCaseChildFailureCode(entry.code, "CASE_EXECUTION_FAILED"),
+    ),
+    phase: allowlistedCaseChildFailurePhase(entry.phase),
+    code: allowlistedCaseChildFailureCode(entry.code, "CASE_EXECUTION_FAILED"),
+    message: genericCaseChildFailureMessage(
+      allowlistedCaseChildFailureCode(entry.code, "CASE_EXECUTION_FAILED"),
+      allowlistedCaseChildFailurePhase(entry.phase),
+    ),
+    requestIdentity: "",
+    responseIdentity: "",
+  }));
+  const startedAtMs = Number.isSafeInteger(input.startedAtMs) ? input.startedAtMs : Date.now();
+  const finishedAtMs = Number.isSafeInteger(input.finishedAtMs)
+    ? Math.max(startedAtMs, input.finishedAtMs)
+    : Math.max(startedAtMs, Date.now());
+  const caseId = String(input.item?.caseId || options.caseId || "UNKNOWN-000");
+  return {
+    schema: "media-server.v390-ui-case-child.v1",
+    result: "FAIL",
+    executionStatus: "case-child-finalization-failed",
+    releaseEvidenceEligible: false,
+    policyV4Qualification: "not-eligible-single-case-child",
+    uiFulltestPass: false,
+    actualBrowserExecution: input.actualBrowserExecution === true,
+    sourceBinding: input.sourceBinding && typeof input.sourceBinding === "object"
+      ? structuredClone(input.sourceBinding)
+      : fallbackCaseChildSourceBinding(),
+    selection: { caseId, selectedIds: [caseId], selected: 1 },
+    counts: {
+      selected: 1,
+      attempted: 1,
+      pass: 0,
+      fail: 1,
+      notRun: 0,
+      unsupported: 0,
+      runnerAbort: 0,
+    },
+    case: {
+      caseId,
+      featureId: String(input.item?.featureId || ""),
+      status: "FAIL",
+      failureClass: primaryEntry.failureClass,
+      failurePhase: primaryEntry.phase,
+      failureCode: primaryEntry.code,
+      failureMessage: primaryEntry.message,
+      failureCensus,
+      requestLifecycleEvaluation: null,
+      cleanupAttestation: {
+        schema: "media-server.v390-ui-case-cleanup-attestation.v1",
+        pass: false,
+        primaryFailurePresent: Boolean(input.primaryFailure),
+        primaryFailurePreserved: Boolean(input.primaryFailure),
+        caseRuntimeRestoreAttempted: true,
+        caseRuntimeRestored: false,
+        browserCloseAttempted: false,
+        browserContextClosed: true,
+        cleanupEntryCount: Math.max(1, failureCensus.length),
+        failureCode: failureCensus[0]?.code || "CASE_EXECUTION_FAILED",
+      },
+    },
+    timing: {
+      startedAtMs,
+      finishedAtMs,
+      durationMs: finishedAtMs - startedAtMs,
+      startedAt: new Date(startedAtMs).toISOString(),
+      finishedAt: new Date(finishedAtMs).toISOString(),
+    },
+  };
+}
+
+function serializeCaseChildSummary(value) {
+  return `${JSON.stringify(value, null, 2)}\n`;
+}
+
+function writeCaseChildSummaryAtomic(filePath, serialized) {
+  return writeAtomicCaseArtifact(filePath, serialized);
+}
+
+function writeAtomicCaseArtifact(filePath, serialized) {
+  const directory = path.dirname(filePath);
+  const metadata = fs.statSync(directory);
+  if (!metadata.isDirectory() || fs.existsSync(filePath)) {
+    throw new Error("case child summary target is invalid");
+  }
+  const temporaryPath = path.join(
+    directory,
+    `.${path.basename(filePath)}.${process.pid}.${Date.now()}.tmp`,
+  );
+  let descriptor = null;
+  try {
+    descriptor = fs.openSync(temporaryPath, "wx", 0o600);
+    fs.writeFileSync(descriptor, serialized, "utf8");
+    fs.fsyncSync(descriptor);
+    fs.closeSync(descriptor);
+    descriptor = null;
+    if (fs.existsSync(filePath)) throw new Error("case child summary target already exists");
+    fs.renameSync(temporaryPath, filePath);
+  } catch (error) {
+    if (descriptor !== null) {
+      try { fs.closeSync(descriptor); } catch {}
+    }
+    try {
+      if (fs.existsSync(temporaryPath)) fs.unlinkSync(temporaryPath);
+    } catch {}
+    throw error;
+  }
+}
+
+function projectCasePolicyInput({ item, result, runId }) {
+  assert(typeof runId === "string" && runId, "case Policy input parent run ID is missing");
+  const value = {
+    schema: "media-server.v390-ui-case-policy-input.v1",
+    caseId: item.caseId,
+    runId,
+    result: {
+      caseId: item.caseId,
+      featureId: String(result?.featureId || item.featureId || ""),
+      status: result?.status,
+      dispatch: String(result?.dispatch || ""),
+      manualIntervention: result?.manualIntervention,
+      actualBrowserExecution: result?.actualBrowserExecution,
+      requested: result?.requested ? structuredClone(result.requested) : null,
+      observed: result?.observed ? structuredClone(result.observed) : null,
+      visibleAssertion: result?.visibleAssertion ? structuredClone(result.visibleAssertion) : null,
+      visualMeasurement: result?.visualMeasurement ? structuredClone(result.visualMeasurement) : null,
+      visualExpectedCase: result?.visualExpectedCase ? structuredClone(result.visualExpectedCase) : null,
+      screenshotPath: String(result?.screenshotPath || ""),
+      tracePath: String(result?.tracePath || ""),
+      browserConsolePath: String(result?.browserConsolePath || ""),
+      cleanupAttestation: result?.cleanupAttestation ? structuredClone(result.cleanupAttestation) : null,
+      requestLifecycleEvaluation: result?.requestLifecycleEvaluation
+        ? structuredClone(result.requestLifecycleEvaluation) : null,
+    },
+  };
+  assert(["PASS", "FAIL"].includes(value.result.status), "case Policy input status is invalid");
+  if (value.result.status === "PASS") {
+    assert(value.result.actualBrowserExecution === true && value.result.manualIntervention === false &&
+      value.result.requested && value.result.observed && value.result.visualMeasurement &&
+      value.result.screenshotPath && value.result.tracePath && value.result.browserConsolePath,
+    "PASS case Policy input is incomplete");
+  }
+  return value;
+}
+
+function printCaseChildSummary(value, filePath) {
+  console.log("== v3.9.0 exact native UI case child ==");
+  console.log(`- result: ${value.result}`);
+  console.log(`- caseId: ${value.case.caseId}`);
+  console.log(`- attempted: ${value.counts.attempted}`);
+  console.log(`- pass: ${value.counts.pass}`);
+  console.log(`- fail: ${value.counts.fail}`);
+  console.log(`- summaryPath: ${filePath}`);
+}
+
+function safeCaseChildFailureMessage(error) {
+  return String(error instanceof Error ? error.message : (error || "case execution failed"))
+    .replace(/(?:https?|rtsp|rtsps):\/\/[^\s,;)]+/ig, "[redacted-url]")
+    .replace(/\b(?:password|credential|secret|token|cookie|authorization)\s*[=:]\s*[^\s,;]+/ig,
+      "[redacted-sensitive-material]")
+    .replace(/[\r\n\t]+/g, " ")
+    .slice(0, 500);
+}
+
 async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   const screenshotPath = path.join(screenshotsDir, `${item.caseId}.png`);
   const tracePath = path.join(tracesDir, `${item.caseId}.trace.json`);
@@ -460,9 +2208,43 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   let cleanupFailure = null;
   let browserCloseFailure = null;
   let lifecycleFinalizationFailure = null;
+  let requestLifecycleFailure = null;
+  let requestLifecycleEvaluation = null;
+  let requestLifecycleEvaluationAttempted = false;
   let browserCloseAttempted = false;
   let failureLifecycleEvidence = null;
   let executionPhase = "prepare-case";
+  const evaluateRequestLifecycleAfterClose = () => {
+    if (requestLifecycleEvaluationAttempted) return requestLifecycleEvaluation;
+    requestLifecycleEvaluationAttempted = true;
+    try {
+      requestLifecycleEvaluation = evaluateClosedCaseRequestLifecycle(browser);
+      trace.requestLifecycleEvaluation = structuredClone(requestLifecycleEvaluation);
+      if (requestLifecycleEvaluation.status !== "PASS") {
+        throw structuredCaseChildFailure({
+          failureClass: "request-lifecycle-failure",
+          phase: "request-lifecycle-evaluation",
+          code: "REQUEST_LIFECYCLE_FAILED",
+          message: "request lifecycle evaluation failed",
+          requestLifecycleEvaluation,
+        });
+      }
+      return requestLifecycleEvaluation;
+    } catch (error) {
+      if (error?.requestLifecycleEvaluation) {
+        requestLifecycleEvaluation = structuredClone(error.requestLifecycleEvaluation);
+      }
+      requestLifecycleFailure = error?.failureCode
+        ? error
+        : structuredCaseChildFailure({
+            failureClass: "request-lifecycle-failure",
+            phase: "request-lifecycle-evaluation",
+            code: "REQUEST_LIFECYCLE_EVALUATOR_FAILED",
+            message: "request lifecycle evaluator failed",
+          });
+      throw requestLifecycleFailure;
+    }
+  };
   try {
     caseContext = await caseRuntime.prepareCase(item);
     executionPhase = "expected-fixture-digest";
@@ -1038,6 +2820,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       throw error;
     }
     trace.navigation = structuredClone(finalNavigation);
+    executionPhase = "request-lifecycle-evaluation";
+    evaluateRequestLifecycleAfterClose();
+    executionPhase = "post-case-evidence";
     const lifecycleNavigationBinding = item.actions.find(action =>
       action.semanticCompletion?.phase === "primary-action")?.semanticCompletion?.navigationBinding || null;
     if (lifecycleNavigationBinding) {
@@ -1091,6 +2876,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         trace.pageOwnedRequestLedger || null,
       requestActionOwnershipEvidence:
         trace.requestActionOwnershipEvidence || null,
+      requestLifecycleEvaluation,
       postActionLifecycleEvidence: null,
       eventDomSemanticEvidence: runtimeState.get("__eventDomSemanticEvidence") || null,
       requestCorrelationEvidence: runtimeState.get("__requestCorrelationEvidence") || null,
@@ -1222,6 +3008,13 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     cleanupFailure ||= finalized.cleanupFailure;
     browserCloseFailure ||= finalized.browserCloseFailure;
     lifecycleFinalizationFailure ||= finalized.lifecycleFinalizationFailure;
+    if (browser && !requestLifecycleEvaluationAttempted) {
+      try {
+        evaluateRequestLifecycleAfterClose();
+      } catch {
+        // 구조화된 lifecycle failure는 별도로 보존한 뒤 아래에서 직렬화한다.
+      }
+    }
     failureLifecycleEvidence = finalized.failureLifecycleEvidence ||
       buildFallbackFailureLifecycleEvidence({
         primaryFailure,
@@ -1251,7 +3044,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       trace.failureLifecycleEvidence = structuredClone(failureLifecycleEvidence);
     }
     if (primaryFailure || cleanupFailure || browserCloseFailure ||
-        lifecycleFinalizationFailure) {
+        lifecycleFinalizationFailure || requestLifecycleFailure) {
       trace.failureLifecycleEvidence = structuredClone(failureLifecycleEvidence);
       try {
         writeJson(consolePath, {
@@ -1275,7 +3068,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     }
   }
   if (primaryFailure || cleanupFailure || browserCloseFailure ||
-      lifecycleFinalizationFailure) {
+      lifecycleFinalizationFailure || requestLifecycleFailure) {
     const primaryFailureEvidence = serializeDiagnosticPrimaryFailureEvidence(
       primaryFailure,
       {
@@ -1289,6 +3082,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       cleanupFailure,
       browserCloseFailure,
       lifecycleFinalizationFailure,
+      requestLifecycleFailure,
+      requestLifecycleEvaluation,
       actualBrowserExecution: browserContextCreated,
       failurePhase: executionPhase,
     });
@@ -1297,6 +3092,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       cleanupFailure,
       browserCloseFailure,
       lifecycleFinalizationFailure,
+      requestLifecycleFailure,
+      requestLifecycleEvaluation,
       artifactPaths: { screenshotPath, tracePath, consolePath },
       requestedObserved: runtimeState.get("__requestedObservedEnvelope") || {
         requested,
@@ -1347,6 +3144,8 @@ function caseExecutionFailure(
     cleanupFailure,
     browserCloseFailure,
     lifecycleFinalizationFailure,
+    requestLifecycleFailure,
+    requestLifecycleEvaluation,
     artifactPaths = {},
     requestedObserved = null,
     actualBrowserExecution = false,
@@ -1364,6 +3163,9 @@ function caseExecutionFailure(
     lifecycleFinalizationFailure
       ? `lifecycle-finalization=${messageFor(lifecycleFinalizationFailure)}`
       : "",
+    requestLifecycleFailure
+      ? `request-lifecycle=${messageFor(requestLifecycleFailure)}`
+      : "",
   ].filter(Boolean);
   const error = new Error(`${caseId} native execution failed: ${parts.join("; ")}`);
   error.primaryFailureEvidence = primaryFailureEvidence ||
@@ -1377,6 +3179,39 @@ function caseExecutionFailure(
   error.lifecycleFinalizationFailure = lifecycleFinalizationFailure
     ? { message: messageFor(lifecycleFinalizationFailure) }
     : null;
+  error.requestLifecycleFailure = requestLifecycleFailure
+    ? {
+        failureClass: "request-lifecycle-failure",
+        failurePhase: "request-lifecycle-evaluation",
+        failureCode: allowlistedCaseChildFailureCode(
+          requestLifecycleFailure.failureCode,
+          "REQUEST_LIFECYCLE_EVALUATOR_FAILED",
+        ),
+        message: genericCaseChildFailureMessage(
+          allowlistedCaseChildFailureCode(
+            requestLifecycleFailure.failureCode,
+            "REQUEST_LIFECYCLE_EVALUATOR_FAILED",
+          ),
+          "request-lifecycle-evaluation",
+        ),
+      }
+    : null;
+  error.failureClass = String(
+    primaryFailure?.failureClass ||
+    requestLifecycleFailure?.failureClass ||
+    "case-execution-failure",
+  );
+  error.failurePhase = String(
+    primaryFailure?.failurePhase ||
+    requestLifecycleFailure?.failurePhase ||
+    failurePhase ||
+    "case-execution",
+  );
+  error.failureCode = String(
+    primaryFailure?.failureCode ||
+    requestLifecycleFailure?.failureCode ||
+    "CASE_EXECUTION_FAILED",
+  );
   error.actualBrowserExecution = actualBrowserExecution === true;
   error.failureProvenance = failureProvenance || Object.freeze({
     schema: "media-server.v390-ui-diagnostic-failure-provenance.v1",
@@ -1402,6 +3237,10 @@ function caseExecutionFailure(
   }
   error.partialArtifacts.failureProvenance =
     structuredClone(error.failureProvenance);
+  if (requestLifecycleEvaluation) {
+    error.partialArtifacts.requestLifecycleEvaluation =
+      structuredClone(requestLifecycleEvaluation);
+  }
   if (primaryFailure?.eventDomSemanticEvidence) {
     error.partialArtifacts.eventDomSemanticEvidence =
       structuredClone(primaryFailure.eventDomSemanticEvidence);
@@ -1557,6 +3396,34 @@ async function attestInitialRouteSettlingContext(browser, item, runtimeState) {
 }
 
 async function executeVisualMatrix(adapter) {
+  if (options.contractSuiteFinalizerFixture === "matrix-failure") {
+    throw new Error("contract suite finalizer matrix failure");
+  }
+  if (["pass", "probe-secret", "adapter-secret", "disk-secret"].includes(
+    options.contractSuiteFinalizerFixture)) {
+    if (options.contractSuiteFinalizerFixture === "disk-secret") {
+      fs.writeFileSync(path.join(outputDir, "retained-secret.txt"),
+        "round2-finalizer-secret-canary\n", { mode: 0o600 });
+    }
+    return [{
+      id: "contract-suite-finalizer-visual-probe",
+      canonicalCaseId: "UI-001",
+      featureId: "V390-CONTRACT",
+      screenId: "contract",
+      screenRoute: "/contract",
+      role: "operator",
+      width: 1280,
+      height: 720,
+      theme: "light",
+      correlationId: "contract-suite-finalizer-visual-probe:navigation",
+      screenshotPath: "",
+      measurement: { status: "PASS",
+        ...(options.contractSuiteFinalizerFixture === "probe-secret"
+          ? { contractDiagnostic: "round2-finalizer-secret-canary" } : {}) },
+      expectedCase: { contractFixture: true },
+      liveVideoSpec: null,
+    }];
+  }
   const probes = [];
   const nativeById = new Map(manifest.cases.map(item => [item.caseId, item]));
   for (const variant of expandVisualMatrixPlan(visualMatrixPlan)) {
@@ -3925,6 +5792,17 @@ function selectDiagnosticCase(cases, caseId, selectionMode, selectionContract) {
   return diagnosticSingleCaseSelection(item, selectionMode);
 }
 
+function selectExactCaseChild(cases, caseId) {
+  const matches = cases.filter(item => item?.caseId === caseId);
+  assert(matches.length === 1, "case child selection must resolve exactly one manifest case");
+  assert(canonicalById.has(caseId), "case child selection is not canonical");
+  return {
+    item: matches[0],
+    selectedIds: [caseId],
+    selected: 1,
+  };
+}
+
 function diagnosticSingleCaseSelection(item, mode) {
   return {
     item,
@@ -4402,6 +6280,16 @@ function parseArgs(args) {
     buildPath: "build/media_server",
     timeoutMs: 30000,
     planOnly: false,
+    caseChild: false,
+    caseId: "",
+    caseIdCount: 0,
+    parentRunId: "",
+    contractCaseChildFixture: "",
+    contractCaseChildPathFixture: "",
+    contractCaseChildParentInvocation: false,
+    contractCaseChildBuildBinding: false,
+    contractCanonicalParentPreflightFixture: "",
+    contractCanonicalParentFixture: "",
     diagnosticChild: false,
     diagnosticCaseId: "",
     diagnosticSelectionMode: diagnosticSelectionModes.fixedRemainingSweep,
@@ -4410,6 +6298,8 @@ function parseArgs(args) {
     diagnosticManifestSha256: "",
     diagnosticBuildSha256: "",
     diagnosticRunId: "",
+    suiteFinalizerChild: false,
+    contractSuiteFinalizerFixture: "",
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -4424,6 +6314,30 @@ function parseArgs(args) {
     else if (arg === "--build-path") value.buildPath = args[++index] || "";
     else if (arg === "--timeout-ms") value.timeoutMs = Number(args[++index] || 0);
     else if (arg === "--plan-only") value.planOnly = true;
+    else if (arg === "--case-child") value.caseChild = true;
+    else if (arg === "--case-id") {
+      value.caseIdCount += 1;
+      value.caseId = args[++index] || "";
+    }
+    else if (arg === "--parent-run-id") value.parentRunId = args[++index] || "";
+    else if (arg === "--contract-case-child-fixture") {
+      value.contractCaseChildFixture = args[++index] || "";
+    }
+    else if (arg === "--contract-case-child-path-fixture") {
+      value.contractCaseChildPathFixture = args[++index] || "";
+    }
+    else if (arg === "--contract-case-child-parent-invocation") {
+      value.contractCaseChildParentInvocation = true;
+    }
+    else if (arg === "--contract-case-child-build-binding") {
+      value.contractCaseChildBuildBinding = true;
+    }
+    else if (arg === "--contract-canonical-parent-preflight-fixture") {
+      value.contractCanonicalParentPreflightFixture = args[++index] || "";
+    }
+    else if (arg === "--contract-canonical-parent-fixture") {
+      value.contractCanonicalParentFixture = args[++index] || "";
+    }
     else if (arg === "--diagnostic-child") value.diagnosticChild = true;
     else if (arg === "--diagnostic-case-id") value.diagnosticCaseId = args[++index] || "";
     else if (arg === "--diagnostic-selection-mode") value.diagnosticSelectionMode = args[++index] || "";
@@ -4432,10 +6346,73 @@ function parseArgs(args) {
     else if (arg === "--diagnostic-manifest-sha256") value.diagnosticManifestSha256 = args[++index] || "";
     else if (arg === "--diagnostic-build-sha256") value.diagnosticBuildSha256 = args[++index] || "";
     else if (arg === "--diagnostic-run-id") value.diagnosticRunId = args[++index] || "";
+    else if (arg === "--suite-finalizer-child") value.suiteFinalizerChild = true;
+    else if (arg === "--contract-suite-finalizer-fixture") {
+      value.contractSuiteFinalizerFixture = args[++index] || "";
+    }
     else throw new Error(`unknown option: ${arg}`);
   }
   assert(value.outputDir, "--output-dir is required");
   assert(Number.isFinite(value.timeoutMs) && value.timeoutMs > 0, "--timeout-ms must be positive");
+  if (value.caseChild && value.caseIdCount !== 1) {
+    console.error("case child usage error: --case-child requires exactly one --case-id");
+    process.exit(2);
+  }
+  assert(!value.caseId || value.caseChild, "--case-id requires --case-child");
+  assert(!value.parentRunId || value.caseChild || value.suiteFinalizerChild,
+    "--parent-run-id requires --case-child or --suite-finalizer-child");
+  assert(!value.caseChild || value.contractCaseChildFixture || value.contractCaseChildPathFixture || value.parentRunId,
+    "actual --case-child requires --parent-run-id");
+  assert(!value.caseChild || /^[A-Z][A-Z0-9]*-\d{3}$/.test(value.caseId),
+    "--case-id must be a canonical case ID");
+  assert(!(value.caseChild && value.diagnosticChild),
+  "--case-child and --diagnostic-child are mutually exclusive");
+  assert(!(value.suiteFinalizerChild && (value.caseChild || value.diagnosticChild)),
+    "--suite-finalizer-child is mutually exclusive with case/diagnostic child");
+  assert(!value.suiteFinalizerChild || value.parentRunId,
+    "--suite-finalizer-child requires --parent-run-id");
+  assert(!value.contractSuiteFinalizerFixture || value.suiteFinalizerChild,
+    "--contract-suite-finalizer-fixture requires --suite-finalizer-child");
+  assert(!value.contractSuiteFinalizerFixture ||
+    suiteFinalizerContractFixtureModes.has(value.contractSuiteFinalizerFixture),
+  "unknown suite finalizer contract fixture mode");
+  assert(!value.contractCaseChildFixture || value.caseChild,
+    "--contract-case-child-fixture requires --case-child");
+  assert(!value.contractCaseChildFixture ||
+    caseChildContractFixtureModes.has(value.contractCaseChildFixture),
+  "unknown case child contract fixture mode");
+  assert(!value.contractCaseChildPathFixture || value.caseChild,
+    "--contract-case-child-path-fixture requires --case-child");
+  assert(!value.contractCaseChildPathFixture || [
+    "subdir-preflight-error",
+    "adapter-bootstrap-error",
+    "runtime-bootstrap-error",
+  ].includes(value.contractCaseChildPathFixture),
+  "unknown case child production-path fixture mode");
+  assert(!value.contractCaseChildParentInvocation || value.caseChild,
+    "--contract-case-child-parent-invocation requires --case-child");
+  assert(!value.contractCaseChildParentInvocation || value.contractCaseChildFixture,
+    "--contract-case-child-parent-invocation requires a contract child fixture");
+  assert(!value.contractCaseChildBuildBinding ||
+    (value.caseChild && value.contractCaseChildFixture),
+  "--contract-case-child-build-binding requires a contract child fixture");
+  assert(!value.contractCanonicalParentPreflightFixture ||
+    canonicalParentPreflightFixtureModes.has(value.contractCanonicalParentPreflightFixture),
+  "unknown canonical parent preflight fixture mode");
+  assert(!value.contractCanonicalParentFixture ||
+    canonicalParentContractFixtureModes.has(value.contractCanonicalParentFixture),
+  "unknown canonical parent contract fixture mode");
+  assert(!(value.contractCanonicalParentPreflightFixture && value.contractCanonicalParentFixture),
+    "canonical parent fixture modes are mutually exclusive");
+  assert(!value.contractCanonicalParentPreflightFixture ||
+    (!value.caseChild && !value.diagnosticChild && !value.planOnly),
+  "canonical parent preflight fixture requires normal actual parent mode");
+  assert(!value.contractCanonicalParentFixture ||
+    (!value.caseChild && !value.diagnosticChild && !value.planOnly),
+  "canonical parent contract fixture requires normal actual parent mode");
+  assert(!(value.contractCaseChildFixture && value.contractCaseChildPathFixture),
+    "case child fixture modes are mutually exclusive");
+  assert(!value.caseChild || !value.planOnly, "--case-child does not accept --plan-only");
   assert(!value.diagnosticCaseId || value.diagnosticChild,
     "--diagnostic-case-id requires --diagnostic-child");
   validateDiagnosticSelectionMode(value.diagnosticSelectionMode);
@@ -4462,12 +6439,13 @@ function printSummary(value, summaryPath) {
   console.log("== v3.9.0 exact native UI runner summary ==");
   console.log(`- result: ${value.result}`);
   console.log(`- executionStatus: ${value.executionStatus}`);
-  console.log(`- exactCases: ${value.requestedExactCases || value.counts?.caseCount || value.coverage?.targetCount || 0}`);
-  console.log(`- attempted: ${value.executed ?? value.coverage?.attempted ?? 0}`);
-  console.log(`- pass: ${value.coverage?.pass ?? value.coverage?.captured ?? 0}`);
-  console.log(`- fail: ${value.coverage?.fail ?? 0}`);
-  console.log(`- notRun: ${value.notRun ?? value.coverage?.notRun ?? 0}`);
-  console.log(`- unsupported: ${value.unsupported ?? value.coverage?.unsupported ?? 0}`);
+  console.log(`- exactCases: ${value.counts?.selected ?? value.requestedExactCases ?? value.counts?.caseCount ?? value.coverage?.targetCount ?? 0}`);
+  console.log(`- attempted: ${value.counts?.attempted ?? value.executed ?? value.coverage?.attempted ?? 0}`);
+  console.log(`- pass: ${value.counts?.pass ?? value.coverage?.pass ?? value.coverage?.captured ?? 0}`);
+  console.log(`- fail: ${value.counts?.fail ?? value.coverage?.fail ?? 0}`);
+  console.log(`- notRun: ${value.counts?.notRun ?? value.notRun ?? value.coverage?.notRun ?? 0}`);
+  console.log(`- unsupported: ${value.counts?.unsupported ?? value.unsupported ?? value.coverage?.unsupported ?? 0}`);
+  console.log(`- failureCensus: ${Array.isArray(value.failureCensus) ? value.failureCensus.length : 0}`);
   console.log(`- uiFulltestPass: ${value.uiFulltestPass}`);
   console.log(`- summaryPath: ${summaryPath}`);
 }

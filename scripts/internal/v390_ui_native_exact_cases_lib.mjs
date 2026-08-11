@@ -24,8 +24,1010 @@ export const nativeExactManifestSchema = "media-server.v390-ui-native-exact-case
 export const canonicalManifestSchema = "media-server.ui-fulltest-canonical-case-manifest.v1";
 export const implementationManifestSchema = "media-server.feature-implementation-evidence.v2";
 export const caseNativeWorkflowSchema = "media-server.v390-ui-case-native-workflow.v2";
+export const nativeExactCaseChildSchema = "media-server.v390-ui-case-child.v1";
+export const canonicalParentInfraFatalCodes = Object.freeze([
+  "SERVER_BOOTSTRAP_FAILED",
+  "PORT_RUNTIME_CONTAMINATION",
+  "SUMMARY_WRITE_FAILED",
+]);
 export const nativeExactPreExecutionFailureStatus = "pre-execution-failed";
 export const nativeExactExecutionFailureStatus = "execution-failed";
+
+export function validateCanonicalParentAcceptanceSummary({
+  summary,
+  canonicalCaseIds,
+  artifactRoot,
+  summaryPath = "",
+  expectedVerificationCommitSha = "",
+  expectedVerificationBranch = "",
+  expectedManifestSha256 = "",
+  expectedBuildSha256 = "",
+} = {}) {
+  const reasons = [];
+  const eligibilityOnlyReasons = [];
+  const reject = reason => reasons.push(reason);
+  const exactInteger = (value, name) => {
+    if (!Number.isSafeInteger(value) || value < 0) reject(`${name}-must-be-nonnegative-integer`);
+    return Number.isSafeInteger(value) && value >= 0;
+  };
+  if (!Array.isArray(canonicalCaseIds) || canonicalCaseIds.length !== 424 ||
+      new Set(canonicalCaseIds).size !== 424 || !canonicalCaseIds.every(value => typeof value === "string" && value)) {
+    reject("canonical-case-ids-must-be-exact-unique-424");
+  }
+  if (summary?.schema !== "media-server.v390-ui-canonical-parent.v1") reject("canonical-parent-schema-mismatch");
+  if (summary?.executionStatus !== "canonical-parent-complete-failure-census") {
+    reject("canonical-parent-execution-status-mismatch");
+  }
+  if (summary?.actualBrowserExecution !== true) reject("canonical-parent-not-actual-browser-execution");
+  if (summary?.selection?.exactOrderPreserved !== true) reject("canonical-parent-order-not-attested");
+  if (summary?.selection?.automaticRetryCount !== 0) reject("canonical-parent-retry-count-not-zero");
+  if (!Array.isArray(summary?.selection?.selectedIds)) reject("canonical-parent-selected-ids-missing");
+  else if (JSON.stringify(summary.selection.selectedIds) !== JSON.stringify(canonicalCaseIds)) {
+    reject("canonical-parent-selected-ids-not-canonical-order");
+  }
+  const counts = summary?.counts;
+  const countNames = ["selected", "attempted", "pass", "fail", "notRun", "unsupported", "runnerAbort"];
+  if (!counts || typeof counts !== "object" || Array.isArray(counts)) reject("canonical-parent-counts-missing");
+  const countsValid = countNames.every(name => exactInteger(counts?.[name], `canonical-parent-${name}`));
+  if (countsValid) {
+    if (counts.selected !== 424 || summary?.selection?.selected !== 424) reject("canonical-parent-selected-not-424");
+    if (counts.attempted !== counts.pass + counts.fail) reject("canonical-parent-attempted-count-mismatch");
+    if (counts.attempted !== 424) reject("canonical-parent-attempted-not-424");
+    if (counts.notRun !== 0) reject("canonical-parent-not-run-not-zero");
+    if (counts.unsupported !== 0) reject("canonical-parent-unsupported-not-zero");
+    if (counts.runnerAbort !== 0) reject("canonical-parent-runner-abort-not-zero");
+  }
+  if (summary?.infraFatal !== null) reject("canonical-parent-infra-fatal-present");
+  const runBinding = summary?.runBinding;
+  if (runBinding?.schema !== "media-server.v390-ui-canonical-parent-run.v1" ||
+      typeof runBinding?.runId !== "string" || !runBinding.runId ||
+      runBinding?.childSummarySchema !== nativeExactCaseChildSchema ||
+      typeof runBinding?.caseOutputRoot !== "string" || !path.isAbsolute(runBinding.caseOutputRoot)) {
+    reject("canonical-parent-run-binding-mismatch");
+  }
+  const source = summary?.sourceBinding;
+  if (!source || typeof source !== "object" || Array.isArray(source) ||
+      !/^[a-f0-9]{40}$/.test(String(source?.baselineSourceCommitSha || "")) ||
+      !/^[a-f0-9]{40}$/.test(String(source?.verificationCommitSha || "")) ||
+      typeof source?.verificationBranch !== "string" || !source.verificationBranch ||
+      source?.runnerSchema !== "media-server.v390-ui-canonical-parent.v1" ||
+      !/^[a-f0-9]{64}$/.test(String(source?.manifestSha256 || "")) ||
+      !/^[a-f0-9]{64}$/.test(String(source?.buildSha256 || "")) ||
+      !/^[a-f0-9]{64}$/.test(String(source?.implementationSha256 || ""))) {
+    reject("canonical-parent-source-binding-mismatch");
+  }
+  if (expectedVerificationCommitSha && source?.verificationCommitSha !== expectedVerificationCommitSha) {
+    reject("canonical-parent-current-commit-mismatch");
+  }
+  if (expectedVerificationBranch && source?.verificationBranch !== expectedVerificationBranch) {
+    reject("canonical-parent-current-branch-mismatch");
+  }
+  if (expectedManifestSha256 && source?.manifestSha256 !== expectedManifestSha256) {
+    reject("canonical-parent-current-manifest-mismatch");
+  }
+  if (expectedBuildSha256 && source?.buildSha256 !== expectedBuildSha256) {
+    reject("canonical-parent-current-build-mismatch");
+  }
+  const root = path.resolve(String(artifactRoot || ""));
+  if (!artifactRoot || !path.isAbsolute(root) || !fs.existsSync(root) || !fs.statSync(root).isDirectory()) {
+    reject("canonical-parent-artifact-root-invalid");
+  }
+  if (runBinding?.caseOutputRoot && path.resolve(runBinding.caseOutputRoot) !== path.join(root, "cases")) {
+    reject("canonical-parent-case-output-root-mismatch");
+  }
+  if (summaryPath && path.resolve(summaryPath) !== path.join(root, "summary.json")) {
+    reject("canonical-parent-summary-path-mismatch");
+  }
+  const cases = summary?.cases;
+  const childSummaries = [];
+  if (!Array.isArray(cases) || cases.length !== 424) reject("canonical-parent-child-census-not-424");
+  else {
+    const seenPaths = new Set();
+    for (let index = 0; index < cases.length; index += 1) {
+      const item = cases[index];
+      const expectedCaseId = canonicalCaseIds?.[index];
+      if (item?.caseId !== expectedCaseId) reject(`canonical-parent-child-order-mismatch:${index}`);
+      if (item?.runId !== runBinding?.runId) reject(`canonical-parent-child-run-id-mismatch:${expectedCaseId}`);
+      if (!(["PASS", "FAIL"].includes(item?.status))) reject(`canonical-parent-child-status-mismatch:${expectedCaseId}`);
+      if (typeof item?.summaryPath !== "string" || !path.isAbsolute(item.summaryPath)) {
+        reject(`canonical-parent-child-summary-path-missing:${expectedCaseId}`);
+        continue;
+      }
+      const resolved = path.resolve(item.summaryPath);
+      const relative = path.relative(path.join(root, "cases"), resolved);
+      if (!relative || relative.startsWith("..") || path.isAbsolute(relative) || seenPaths.has(resolved)) {
+        reject(`canonical-parent-child-summary-path-invalid:${expectedCaseId}`);
+        continue;
+      }
+      if (canonicalPathHasSymlinkAncestor(root, resolved)) {
+        reject(`canonical-parent-child-summary-symlink-ancestor:${expectedCaseId}`);
+        continue;
+      }
+      seenPaths.add(resolved);
+      try {
+        const stat = fs.lstatSync(resolved);
+        if (!stat.isFile() || stat.isSymbolicLink() || (stat.mode & 0o777) !== 0o600) {
+          reject(`canonical-parent-child-summary-file-invalid:${expectedCaseId}`);
+          continue;
+        }
+        if (!/^[a-f0-9]{64}$/.test(String(item.summarySha256 || "")) ||
+            sha256FileLocal(resolved) !== item.summarySha256) {
+          reject(`canonical-parent-child-summary-digest-mismatch:${expectedCaseId}`);
+          continue;
+        }
+        const child = JSON.parse(fs.readFileSync(resolved, "utf8"));
+        childSummaries.push(child);
+        if (child?.schema !== nativeExactCaseChildSchema || child?.selection?.caseId !== expectedCaseId ||
+            child?.case?.caseId !== expectedCaseId || child?.result !== item.status ||
+            child?.actualBrowserExecution !== true || item?.actualBrowserExecution !== true ||
+            child?.actualBrowserExecution !== item?.actualBrowserExecution ||
+            canonicalParentStableJson(child?.case?.cleanupAttestation) !==
+              canonicalParentStableJson(item?.cleanupAttestation) ||
+            canonicalParentStableJson(child?.sourceBinding) !== canonicalParentStableJson(source)) {
+          reject(`canonical-parent-child-summary-binding-mismatch:${expectedCaseId}`);
+        }
+        const expectedCounts = item.status === "PASS"
+          ? { selected: 1, attempted: 1, pass: 1, fail: 0, notRun: 0, unsupported: 0, runnerAbort: 0 }
+          : { selected: 1, attempted: 1, pass: 0, fail: 1, notRun: 0, unsupported: 0, runnerAbort: 0 };
+        if (canonicalParentStableJson(child?.counts) !== canonicalParentStableJson(expectedCounts)) {
+          reject(`canonical-parent-child-count-mismatch:${expectedCaseId}`);
+        }
+        if (item.status === "PASS" && child?.case?.cleanupAttestation?.pass !== true) {
+          reject(`canonical-parent-child-cleanup-failed:${expectedCaseId}`);
+        }
+        const policyRef = item?.policyInputRef;
+        if (!policyRef || canonicalParentStableJson(policyRef) !==
+            canonicalParentStableJson(child?.policyInputRef)) {
+          reject(`canonical-parent-policy-input-ref-mismatch:${expectedCaseId}`);
+        } else {
+          try {
+            const policyPath = path.resolve(String(policyRef.path || ""));
+            const policyRelative = path.relative(path.dirname(resolved), policyPath);
+            const policyStat = fs.lstatSync(policyPath);
+            if (!policyRelative || policyRelative.startsWith("..") || path.isAbsolute(policyRelative) ||
+                canonicalPathHasSymlinkAncestor(root, policyPath) ||
+                !policyStat.isFile() || policyStat.isSymbolicLink() || (policyStat.mode & 0o777) !== 0o600 ||
+                policyStat.size !== policyRef.bytes || sha256FileLocal(policyPath) !== policyRef.sha256) {
+              reject(`canonical-parent-policy-input-file-invalid:${expectedCaseId}`);
+            } else {
+              const policyInput = JSON.parse(fs.readFileSync(policyPath, "utf8"));
+              if (policyRef.schema !== "media-server.v390-ui-case-policy-input-ref.v1" ||
+                  policyInput?.schema !== "media-server.v390-ui-case-policy-input.v1" ||
+                  policyRef.caseId !== expectedCaseId || policyInput.caseId !== expectedCaseId ||
+                  policyRef.runId !== runBinding?.runId || policyInput.runId !== runBinding?.runId ||
+                  policyInput?.result?.caseId !== expectedCaseId || policyInput?.result?.status !== item.status ||
+                  policyInput?.result?.actualBrowserExecution !== true ||
+                  policyInput?.result?.actualBrowserExecution !== child?.actualBrowserExecution ||
+                  policyInput?.result?.manualIntervention !== false) {
+                reject(`canonical-parent-policy-input-binding-mismatch:${expectedCaseId}`);
+              }
+            }
+          } catch {
+            reject(`canonical-parent-policy-input-unreadable:${expectedCaseId}`);
+          }
+        }
+      } catch {
+        reject(`canonical-parent-child-summary-unreadable:${expectedCaseId}`);
+      }
+    }
+  }
+  const failedCases = Array.isArray(cases) ? cases.filter(item => item?.status === "FAIL") : [];
+  const census = summary?.failureCensus;
+  if (!Array.isArray(census)) reject("canonical-parent-failure-census-missing");
+  else {
+    if (countsValid && census.length !== counts.fail) reject("canonical-parent-failure-census-length-mismatch");
+    const censusIds = census.map(item => item?.caseId);
+    if (new Set(censusIds).size !== censusIds.length) reject("canonical-parent-failure-census-duplicate");
+    if (JSON.stringify(censusIds) !== JSON.stringify(failedCases.map(item => item.caseId))) {
+      reject("canonical-parent-failure-census-order-mismatch");
+    }
+  }
+  if ((Array.isArray(census) && census.length === 0 && summary?.firstFailure !== null) ||
+      (Array.isArray(census) && census.length > 0 &&
+        canonicalParentStableJson(summary?.firstFailure) !== canonicalParentStableJson(census[0]))) {
+    reject("canonical-parent-first-failure-mismatch");
+  }
+  const finalizer = summary?.suiteFinalizer;
+  try {
+    const finalizerPath = path.resolve(String(finalizer?.summaryPath || ""));
+    const finalizerStat = fs.lstatSync(finalizerPath);
+    const finalizerSummary = JSON.parse(fs.readFileSync(finalizerPath, "utf8"));
+    const relative = path.relative(root, finalizerPath);
+    if (finalizer?.status !== "PASS" || finalizer?.runId !== runBinding?.runId ||
+        finalizer?.automaticRetryCount !== 0 || !relative || relative.startsWith("..") ||
+        path.isAbsolute(relative) || canonicalPathHasSymlinkAncestor(root, finalizerPath) ||
+        !finalizerStat.isFile() || finalizerStat.isSymbolicLink() ||
+        (finalizerStat.mode & 0o777) !== 0o600 ||
+        sha256FileLocal(finalizerPath) !== finalizer?.summarySha256 ||
+        finalizerSummary?.schema !== "media-server.v390-ui-suite-finalizer.v1" ||
+        finalizerSummary?.result !== "PASS" || finalizerSummary?.runId !== runBinding?.runId ||
+        canonicalParentStableJson(finalizerSummary?.sourceBinding) !== canonicalParentStableJson(source) ||
+        !Array.isArray(finalizerSummary?.visualMatrixProbes) || finalizerSummary.visualMatrixProbes.length === 0 ||
+        finalizerSummary?.actualBrowserExecution !== true || finalizerSummary?.automaticRetryCount !== 0) {
+      eligibilityOnlyReasons.push("canonical-parent-suite-finalizer-mismatch");
+    } else if (finalizerSummary?.secretArtifactIntegrity?.status !== "PASS" ||
+        finalizerSummary?.secretArtifactIntegrity?.verificationStage !==
+          "suite-finalizer-secret-artifact-integrity" ||
+        !Number.isSafeInteger(finalizerSummary?.secretArtifactIntegrity?.scannedFiles) ||
+        finalizerSummary.secretArtifactIntegrity.scannedFiles < 1 ||
+        !Number.isSafeInteger(finalizerSummary?.secretArtifactIntegrity?.scannedBytes) ||
+        finalizerSummary.secretArtifactIntegrity.scannedBytes < 1) {
+      eligibilityOnlyReasons.push("canonical-parent-suite-finalizer-mismatch");
+    }
+  } catch {
+    eligibilityOnlyReasons.push("canonical-parent-suite-finalizer-unreadable");
+  }
+  const censusComplete = reasons.length === 0;
+  const eligible = censusComplete && eligibilityOnlyReasons.length === 0 && counts.pass === 424 && counts.fail === 0 &&
+    summary?.result === "PASS" && childSummaries.length === 424 &&
+    cases.every(item => item?.actualBrowserExecution === true && item?.cleanupAttestation?.pass === true);
+  return Object.freeze({
+    censusComplete,
+    eligible,
+    uiFulltestPass: false,
+    coverage: countsValid ? Object.freeze({ ...counts }) : null,
+    childSummaries: Object.freeze(childSummaries),
+    reasons: Object.freeze([...reasons, ...eligibilityOnlyReasons]),
+  });
+}
+
+export function qualifyCanonicalParentPolicyRows({ validation, canonicalCaseIds, policyRows } = {}) {
+  const reasons = [...(validation?.reasons || [])];
+  if (validation?.censusComplete !== true) reasons.push("canonical-parent-census-incomplete");
+  if (validation?.eligible !== true) reasons.push("canonical-parent-not-eligible");
+  if (!Array.isArray(policyRows) || policyRows.length !== 424) reasons.push("policy-row-count-not-424");
+  const rowIds = Array.isArray(policyRows) ? policyRows.map(item => item?.testId) : [];
+  if (JSON.stringify(rowIds) !== JSON.stringify(canonicalCaseIds)) reasons.push("policy-row-order-not-canonical");
+  if (new Set(rowIds).size !== 424) reasons.push("policy-row-id-set-not-unique-424");
+  if (Array.isArray(policyRows) && policyRows.some(item => item?.qualified !== true)) {
+    reasons.push("policy-row-not-qualified");
+  }
+  const qualified = reasons.length === 0;
+  return Object.freeze({
+    policyEligible: validation?.eligible === true,
+    policyQualified: qualified,
+    qualifiedCaseCount: qualified ? 424 : 0,
+    uiFulltestPass: qualified,
+    reasons: Object.freeze([...new Set(reasons)]),
+  });
+}
+
+export function validateCanonicalFinalIntegrityBindings({
+  acceptanceSummary,
+  parentSummary,
+  parentValidation,
+  policyEvaluation,
+  policyRawSummary,
+  independentPolicyEvaluation,
+  expectedCurrentSource,
+  canonicalCaseIds,
+  parentSummaryPath,
+  policySummaryPath,
+} = {}) {
+  const reasons = [];
+  const requireValue = (condition, reason) => { if (!condition) reasons.push(reason); };
+  const parentFailed = Number(parentSummary?.counts?.fail) > 0;
+  requireValue(acceptanceSummary?.schema === "media-server.v390-test-acceptance-bundle.v1",
+    "final-acceptance-schema-mismatch");
+  requireValue(parentSummary?.schema === "media-server.v390-ui-canonical-parent.v1",
+    "final-parent-schema-mismatch");
+  requireValue(parentValidation?.censusComplete === true &&
+    (parentFailed ? parentValidation?.eligible === false : parentValidation?.eligible === true),
+  "final-parent-eligibility-state-mismatch");
+  requireValue(path.resolve(String(acceptanceSummary?.uiAutomation?.summaryPath || "")) ===
+    path.resolve(String(parentSummaryPath || "")), "final-parent-summary-path-mismatch");
+  requireValue(acceptanceSummary?.sourceProvenance?.commitSha ===
+    parentSummary?.sourceBinding?.verificationCommitSha, "final-source-commit-mismatch");
+  requireValue(acceptanceSummary?.sourceProvenance?.branch ===
+    parentSummary?.sourceBinding?.verificationBranch, "final-source-branch-mismatch");
+  requireValue(acceptanceSummary?.sourceProvenanceEnd?.commitSha ===
+    acceptanceSummary?.sourceProvenance?.commitSha &&
+    acceptanceSummary?.sourceProvenanceEnd?.branch === acceptanceSummary?.sourceProvenance?.branch &&
+    acceptanceSummary?.sourceProvenanceEnd?.sourceWorktreeClean === true &&
+    Array.isArray(acceptanceSummary?.sourceProvenanceEnd?.unapprovedDirtyPaths) &&
+    acceptanceSummary.sourceProvenanceEnd.unapprovedDirtyPaths.length === 0,
+  "final-source-end-drift");
+  requireValue(expectedCurrentSource?.commitSha === acceptanceSummary?.sourceProvenanceEnd?.commitSha &&
+    expectedCurrentSource?.branch === acceptanceSummary?.sourceProvenanceEnd?.branch &&
+    expectedCurrentSource?.sourceWorktreeClean === true &&
+    Array.isArray(expectedCurrentSource?.unapprovedDirtyPaths) &&
+    expectedCurrentSource.unapprovedDirtyPaths.length === 0,
+  "final-current-source-drift");
+  requireValue(acceptanceSummary?.cleanup?.status === "PASS" &&
+    Array.isArray(acceptanceSummary?.cleanup?.checks) &&
+    acceptanceSummary.cleanup.checks.every(item => item?.status === "PASS"),
+  "final-cleanup-not-pass");
+  requireValue(acceptanceSummary?.uiEnvironment?.cleanup?.status === "PASS",
+    "final-runtime-cleanup-not-pass");
+  requireValue(parentSummary?.runtimeOwnership?.parentOwned === true &&
+    parentSummary?.runtimeOwnership?.childrenBootstrapRuntime === false &&
+    parentSummary?.runtimeOwnership?.initial?.runtimeRootSha256 ===
+      parentSummary?.runtimeOwnership?.final?.runtimeRootSha256,
+  "final-runtime-ownership-drift");
+  if (!parentFailed) {
+    requireValue(policyEvaluation?.schema === "media-server.ui-fulltest-evidence-policy-evaluation.v4",
+      "final-policy-schema-mismatch");
+    requireValue(policyEvaluation?.policyValidationResult === "PASS" &&
+      policyEvaluation?.qualification?.evidenceEligibility === "eligible" &&
+      policyEvaluation?.qualification?.uiFulltestPass === true &&
+      policyEvaluation?.uiFulltestPass === true,
+    "final-policy-not-qualified");
+    requireValue(canonicalParentStableJson(independentPolicyEvaluation) ===
+      canonicalParentStableJson(policyEvaluation?.qualification),
+    "final-policy-independent-evaluation-mismatch");
+    requireValue(policyRawSummary?.schema === "media-server.ui-automation-evidence.v4",
+      "final-policy-raw-schema-mismatch");
+    requireValue(policyRawSummary?.sourceBinding?.sourceFingerprintOnly === true &&
+      policyRawSummary?.sourceBinding?.gitCommit === parentSummary?.sourceBinding?.verificationCommitSha &&
+      policyRawSummary?.sourceBinding?.nativeExactManifestSha256 === parentSummary?.sourceBinding?.manifestSha256 &&
+      policyRawSummary?.sourceBinding?.buildSha256 === parentSummary?.sourceBinding?.buildSha256 &&
+      policyRawSummary?.sourceBinding?.runnerSha256 ===
+        parentSummary?.sourceBinding?.childImplementationBinding?.runnerSha256,
+    "final-policy-raw-source-binding-mismatch");
+    requireValue(policyRawSummary?.canonicalParentBinding?.schema === parentSummary?.schema &&
+      policyRawSummary?.canonicalParentBinding?.runId === parentSummary?.runBinding?.runId &&
+      canonicalParentStableJson(policyRawSummary?.canonicalParentBinding?.sourceBinding) ===
+        canonicalParentStableJson(parentSummary?.sourceBinding) &&
+      canonicalParentStableJson(policyRawSummary?.canonicalParentBinding?.counts) ===
+        canonicalParentStableJson(parentSummary?.counts),
+    "final-policy-raw-parent-binding-mismatch");
+    const qualifiedIds = policyEvaluation?.qualification?.qualifiedCaseIds;
+    requireValue(Array.isArray(qualifiedIds) && qualifiedIds.length === 424 &&
+      new Set(qualifiedIds).size === 424 &&
+      JSON.stringify(qualifiedIds) === JSON.stringify(canonicalCaseIds),
+    "final-policy-qualified-rows-not-canonical-424");
+    requireValue(typeof policySummaryPath === "string" && path.isAbsolute(policySummaryPath) &&
+      fs.existsSync(policySummaryPath) && fs.statSync(policySummaryPath).isFile(),
+    "final-policy-summary-missing");
+    if (typeof policySummaryPath === "string" && fs.existsSync(policySummaryPath)) {
+      requireValue(policyEvaluation?.sourceSummarySha256 === sha256FileLocal(policySummaryPath),
+        "final-policy-summary-digest-mismatch");
+      requireValue(path.resolve(String(policyEvaluation?.sourceSummary || "")) === path.resolve(policySummaryPath),
+        "final-policy-summary-path-mismatch");
+    }
+  } else {
+    requireValue(policyEvaluation === null && policyRawSummary === null &&
+      independentPolicyEvaluation === null,
+    "final-failure-policy-must-remain-unqualified");
+  }
+  if (parentFailed) {
+    requireValue(parentValidation?.censusComplete === true && parentValidation?.eligible === false,
+      "final-failure-census-state-mismatch");
+    const expectedFailure = parentSummary?.failureCensus?.[0];
+    const failureBinding = acceptanceSummary?.firstFailure?.canonicalFailureBinding;
+    requireValue(acceptanceSummary?.firstFailure?.testcaseId === expectedFailure?.caseId,
+      "final-first-failure-case-mismatch");
+    requireValue(failureBinding?.schema === "media-server.v390-canonical-first-failure-binding.v1" &&
+      failureBinding?.parentRunId === parentSummary?.runBinding?.runId,
+    "final-first-failure-run-binding-mismatch");
+    requireValue(canonicalParentStableJson(failureBinding?.failure) ===
+      canonicalParentStableJson(expectedFailure),
+    "final-first-failure-row-mismatch");
+    requireValue(failureBinding?.failureSha256 ===
+      crypto.createHash("sha256").update(canonicalParentStableJson(expectedFailure)).digest("hex"),
+    "final-first-failure-digest-mismatch");
+  } else {
+    requireValue(parentSummary?.firstFailure === null && acceptanceSummary?.firstFailure === null,
+      "final-success-first-failure-not-null");
+  }
+  return Object.freeze({ pass: reasons.length === 0, reasons: Object.freeze(reasons) });
+}
+
+function sha256FileLocal(filePath) {
+  return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+}
+
+function canonicalPathHasSymlinkAncestor(boundary, candidate) {
+  const root = path.resolve(boundary);
+  const resolved = path.resolve(candidate);
+  const relative = path.relative(root, resolved);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) return true;
+  let current = root;
+  try {
+    if (fs.lstatSync(root).isSymbolicLink()) return true;
+    for (const part of relative.split(path.sep)) {
+      current = path.join(current, part);
+      if (fs.lstatSync(current).isSymbolicLink()) return true;
+    }
+    const realRoot = fs.realpathSync(root);
+    const realCandidate = fs.realpathSync(resolved);
+    const realRelative = path.relative(realRoot, realCandidate);
+    return !realRelative || realRelative.startsWith("..") || path.isAbsolute(realRelative);
+  } catch {
+    return true;
+  }
+}
+
+export function selectCanonicalParentCases({
+  manifestCases,
+  canonicalCases,
+  selectedIds = null,
+  requireFullCanonical = false,
+} = {}) {
+  assert(Array.isArray(manifestCases) && Array.isArray(canonicalCases),
+    "canonical parent manifests are invalid");
+  const manifestIds = manifestCases.map(item => String(item?.caseId || ""));
+  const canonicalIds = canonicalCases.map(item => String(item?.testId || item?.caseId || ""));
+  assert(manifestIds.every(Boolean) && new Set(manifestIds).size === manifestIds.length,
+    "canonical parent manifest case IDs are missing or duplicated");
+  assert(canonicalIds.every(Boolean) && new Set(canonicalIds).size === canonicalIds.length,
+    "canonical parent canonical case IDs are missing or duplicated");
+  assert(manifestIds.length === canonicalIds.length &&
+    manifestIds.every((caseId, index) => caseId === canonicalIds[index]),
+  "canonical parent manifest order does not match canonical order");
+  const requestedIds = selectedIds === null ? canonicalIds : selectedIds.map(String);
+  assert(Array.isArray(requestedIds) && requestedIds.length > 0 &&
+    new Set(requestedIds).size === requestedIds.length,
+  "canonical parent requested case IDs are empty or duplicated");
+  const requested = new Set(requestedIds);
+  const selected = manifestCases.filter(item => requested.has(item.caseId));
+  assert(selected.length === requestedIds.length &&
+    selected.every((item, index) => item.caseId === requestedIds[index]),
+  "canonical parent requested cases are unknown or out of manifest order");
+  if (requireFullCanonical) {
+    assert(selected.length === 424 && selected.length === canonicalIds.length,
+      `canonical parent full selection must contain exactly 424 cases: ${selected.length}`);
+  }
+  return Object.freeze([...selected]);
+}
+
+export async function runCanonicalParentOrchestration({
+  selectedCases,
+  caseOutputRoot,
+  expectedSourceBinding,
+  spawnChild,
+  inspectRuntime,
+  requireFullCanonical = false,
+  expectedCanonicalCount = 424,
+  clock = () => Date.now(),
+} = {}) {
+  assert(Array.isArray(selectedCases) && selectedCases.length > 0,
+    "canonical parent selected cases are invalid");
+  const selectedIds = selectedCases.map(item => String(item?.caseId || ""));
+  assert(selectedIds.every(Boolean) && new Set(selectedIds).size === selectedIds.length,
+    "canonical parent selected case IDs are missing or duplicated");
+  if (requireFullCanonical) {
+    assert(selectedCases.length === expectedCanonicalCount && expectedCanonicalCount === 424,
+      `canonical parent full selection must be 424: ${selectedCases.length}`);
+  }
+  assert(typeof spawnChild === "function" && typeof inspectRuntime === "function",
+    "canonical parent child/runtime owners are missing");
+  assert(expectedSourceBinding && typeof expectedSourceBinding === "object",
+    "canonical parent expected source binding is missing");
+  const outputRoot = path.resolve(String(caseOutputRoot || ""));
+  assert(outputRoot && path.isAbsolute(outputRoot),
+    "canonical parent case output root is invalid");
+  const startedAtMs = canonicalParentNow(clock, "start");
+  const batchToken = crypto.randomUUID();
+  const cases = [];
+  const failureCensus = [];
+  const spawnTokens = new Set();
+  const summaryPaths = new Set();
+  const outputDirs = new Set();
+  let infraFatal = null;
+  let initialRuntimeOwnership = null;
+  let finalRuntimeOwnership = null;
+  let nextCaseIndex = 0;
+  let realOutputRoot = "";
+
+  const setInfra = ({ code, phase, caseId = "", detailCode = "" }) => {
+    assert(canonicalParentInfraFatalCodes.includes(code),
+      `canonical parent rejected non-allowlisted infra code: ${code}`);
+    if (!infraFatal) {
+      infraFatal = Object.freeze({
+        code,
+        phase: String(phase || ""),
+        caseId: String(caseId || ""),
+        detailCode: String(detailCode || code),
+      });
+    }
+  };
+  const inspect = async ({ phase, caseIndex = -1, caseId = "" }) => {
+    try {
+      const result = await inspectRuntime({ phase, caseIndex, caseId });
+      if (result?.status !== "PASS") {
+        const fallback = phase === "before-batch"
+          ? "SERVER_BOOTSTRAP_FAILED"
+          : "PORT_RUNTIME_CONTAMINATION";
+        setInfra({ code: String(result?.code || fallback), phase, caseId });
+        return false;
+      }
+      if (phase === "before-batch") initialRuntimeOwnership = canonicalParentRuntimeProjection(result.ownership);
+      finalRuntimeOwnership = canonicalParentRuntimeProjection(result.ownership);
+      return true;
+    } catch {
+      setInfra({
+        code: phase === "before-batch" ? "SERVER_BOOTSTRAP_FAILED" : "PORT_RUNTIME_CONTAMINATION",
+        phase,
+        caseId,
+      });
+      return false;
+    }
+  };
+
+  try {
+    fs.mkdirSync(outputRoot, { recursive: true, mode: 0o700 });
+    const rootStat = fs.lstatSync(outputRoot);
+    assert(rootStat.isDirectory() && !rootStat.isSymbolicLink(),
+      "canonical parent case output root is not a real directory");
+    realOutputRoot = fs.realpathSync(outputRoot);
+  } catch {
+    setInfra({ code: "SUMMARY_WRITE_FAILED", phase: "child-output-root" });
+  }
+
+  if (!infraFatal && await inspect({ phase: "before-batch" })) {
+    for (let index = 0; index < selectedCases.length; index += 1) {
+      nextCaseIndex = index;
+      const item = selectedCases[index];
+      if (!await inspect({ phase: "before-case", caseIndex: index, caseId: item.caseId })) break;
+      const outputDir = path.join(
+        outputRoot,
+        `${String(index + 1).padStart(3, "0")}-${item.caseId}`,
+      );
+      const summaryPath = path.join(outputDir, "summary.json");
+      const spawnToken = `${batchToken}:${String(index + 1).padStart(3, "0")}:${item.caseId}`;
+      try {
+        assertCanonicalParentOwnedPath(outputRoot, outputDir, "child output");
+        assertCanonicalParentOwnedPath(outputDir, summaryPath, "child summary");
+        assert(!spawnTokens.has(spawnToken), "canonical parent spawn token was reused");
+        assert(!summaryPaths.has(summaryPath), "canonical parent child summary path was reused");
+        assert(!outputDirs.has(outputDir), "canonical parent child output directory was reused");
+        fs.mkdirSync(outputDir, { mode: 0o700 });
+        assertCanonicalParentChildOutputDirectory({
+          outputDir,
+          realOutputRoot,
+        });
+      } catch {
+        setInfra({
+          code: "SUMMARY_WRITE_FAILED",
+          phase: "child-output-preflight",
+          caseId: item.caseId,
+        });
+        break;
+      }
+      spawnTokens.add(spawnToken);
+      summaryPaths.add(summaryPath);
+      outputDirs.add(outputDir);
+      try {
+        const child = await spawnChild({ item, index, spawnToken, runId: batchToken, outputDir, summaryPath });
+        assertCanonicalParentChildOutputDirectory({ outputDir, realOutputRoot });
+        assert(child?.spawnToken === spawnToken,
+          "canonical parent child spawn token mismatch or reuse");
+        assert(path.resolve(String(child?.summaryPath || "")) === summaryPath,
+          "canonical parent child summary path mismatch or reuse");
+        assert(path.resolve(String(child?.outputDir || "")) === outputDir,
+          "canonical parent child output directory mismatch or reuse");
+        const validationErrors = validateCanonicalParentChildSummary({
+          summary: child.summary,
+          item,
+          expectedSourceBinding,
+          exitCode: child.exitCode,
+          signal: child.signal,
+          spawnError: child.spawnError,
+          summaryPath,
+          outputDir,
+        });
+        if (validationErrors.length > 0) {
+          setInfra({
+            code: "SUMMARY_WRITE_FAILED",
+            phase: "child-summary-validation",
+            caseId: item.caseId,
+            detailCode: validationErrors[0],
+          });
+          break;
+        }
+        const result = canonicalParentCaseProjection(child.summary, child.exitCode, summaryPath, batchToken);
+        cases.push(result);
+        if (result.status === "FAIL") {
+          failureCensus.push(canonicalParentFailureProjection({
+            summary: child.summary,
+            childExitCode: child.exitCode,
+            summaryPath,
+          }));
+        }
+        nextCaseIndex = index + 1;
+      } catch {
+        setInfra({ code: "SUMMARY_WRITE_FAILED", phase: "child-process", caseId: item.caseId });
+        break;
+      }
+      if (!await inspect({ phase: "after-case", caseIndex: index, caseId: item.caseId })) break;
+    }
+  }
+
+  if (infraFatal) {
+    for (let index = nextCaseIndex; index < selectedCases.length; index += 1) {
+      const item = selectedCases[index];
+      cases.push(Object.freeze({
+        caseId: item.caseId,
+        featureId: String(item.featureId || ""),
+        status: "not-run",
+        infraCode: infraFatal.code,
+        reason: `not run after ${infraFatal.code}`,
+      }));
+    }
+  }
+  const attempted = cases.filter(item => item.status === "PASS" || item.status === "FAIL").length;
+  const pass = cases.filter(item => item.status === "PASS").length;
+  const fail = cases.filter(item => item.status === "FAIL").length;
+  const notRun = cases.filter(item => item.status === "not-run").length;
+  assert(cases.length === selectedCases.length,
+    "canonical parent case disposition count mismatch");
+  assert(attempted === pass + fail,
+    "canonical parent attempted/pass/fail invariant failed");
+  assert(infraFatal || (attempted === selectedCases.length && notRun === 0),
+    "canonical parent normal batch did not attempt every selected case");
+  const finishedAtMs = Math.max(startedAtMs, canonicalParentNow(clock, "finish"));
+  return Object.freeze({
+    schema: "media-server.v390-ui-canonical-parent.v1",
+    result: infraFatal || fail > 0 ? "FAIL" : "PASS",
+    executionStatus: infraFatal
+      ? "canonical-parent-infra-fatal"
+      : "canonical-parent-complete-failure-census",
+    releaseEvidenceEligible: false,
+    policyV4Qualification: "not-eligible-task-6-parent-contract",
+    uiFulltestPass: false,
+    actualBrowserExecution: cases.some(item => item.actualBrowserExecution === true),
+    selection: Object.freeze({
+      selectedIds: Object.freeze([...selectedIds]),
+      selected: selectedCases.length,
+      exactOrderPreserved: true,
+      automaticRetryCount: 0,
+      spawnTokenCount: spawnTokens.size,
+    }),
+    counts: Object.freeze({
+      selected: selectedCases.length,
+      attempted,
+      pass,
+      fail,
+      notRun,
+      unsupported: 0,
+      runnerAbort: infraFatal ? 1 : 0,
+    }),
+    sourceBinding: structuredClone(expectedSourceBinding),
+    runBinding: Object.freeze({
+      schema: "media-server.v390-ui-canonical-parent-run.v1",
+      runId: batchToken,
+      caseOutputRoot: outputRoot,
+      childSummarySchema: nativeExactCaseChildSchema,
+    }),
+    runtimeOwnership: Object.freeze({
+      parentOwned: true,
+      childrenBootstrapRuntime: false,
+      initial: initialRuntimeOwnership,
+      final: finalRuntimeOwnership,
+    }),
+    infraFatal,
+    cases: Object.freeze(cases),
+    failureCensus: Object.freeze(failureCensus),
+    firstFailure: failureCensus[0] || null,
+    timing: Object.freeze({
+      startedAtMs,
+      finishedAtMs,
+      durationMs: finishedAtMs - startedAtMs,
+      startedAt: new Date(startedAtMs).toISOString(),
+      finishedAt: new Date(finishedAtMs).toISOString(),
+    }),
+  });
+}
+
+export function validateCanonicalParentChildSummary({
+  summary,
+  item,
+  expectedSourceBinding,
+  exitCode,
+  signal = "",
+  spawnError = false,
+  summaryPath,
+  outputDir,
+} = {}) {
+  const errors = [];
+  if (summary?.schema !== nativeExactCaseChildSchema) errors.push("child-schema-mismatch");
+  if (!item?.caseId || summary?.selection?.caseId !== item.caseId ||
+      summary?.case?.caseId !== item.caseId ||
+      canonicalParentStableJson(summary?.selection?.selectedIds) !==
+        canonicalParentStableJson([item?.caseId]) || summary?.selection?.selected !== 1) {
+    errors.push("child-case-selection-mismatch");
+  }
+  const status = summary?.case?.status;
+  if (!(["PASS", "FAIL"].includes(status)) || summary?.result !== status) {
+    errors.push("child-status-mismatch");
+  }
+  const expectedCounts = status === "PASS"
+    ? { selected: 1, attempted: 1, pass: 1, fail: 0, notRun: 0, unsupported: 0, runnerAbort: 0 }
+    : { selected: 1, attempted: 1, pass: 0, fail: 1, notRun: 0, unsupported: 0, runnerAbort: 0 };
+  if (canonicalParentStableJson(summary?.counts) !== canonicalParentStableJson(expectedCounts)) {
+    errors.push("child-counts-mismatch");
+  }
+  if ((status === "PASS" && exitCode !== 0) || (status === "FAIL" && exitCode !== 1)) {
+    errors.push("child-exit-summary-mismatch");
+  }
+  if (spawnError === true || String(signal || "")) errors.push("child-process-termination-mismatch");
+  if (canonicalParentStableJson(summary?.sourceBinding) !==
+      canonicalParentStableJson(expectedSourceBinding)) {
+    errors.push("child-source-binding-mismatch");
+  }
+  const source = summary?.sourceBinding || {};
+  const implementationFiles = source.implementationFiles || {};
+  if (!/^[0-9a-f]{40}$/.test(String(source.baselineSourceCommitSha || "")) ||
+      !/^[0-9a-f]{40}$/.test(String(source.verificationCommitSha || "")) ||
+      typeof source.verificationBranch !== "string" || !source.verificationBranch ||
+      source.runnerSchema !== "media-server.v390-ui-canonical-parent.v1" ||
+      !/^[0-9a-f]{64}$/.test(String(source.manifestSha256 || "")) ||
+      !/^[0-9a-f]{64}$/.test(String(source.buildSha256 || "")) ||
+      !/^[0-9a-f]{64}$/.test(String(source.implementationSha256 || "")) ||
+      canonicalParentStableJson(Object.keys(implementationFiles)) !==
+        canonicalParentStableJson(["runner", "library", "adapter", "recorder", "evaluator"]) ||
+      !Object.values(implementationFiles).every(value =>
+        typeof value?.path === "string" && value.path &&
+        /^[0-9a-f]{64}$/.test(String(value?.sha256 || ""))) ||
+      source.implementationSha256 !==
+        crypto.createHash("sha256").update(canonicalParentStableJson(implementationFiles)).digest("hex")) {
+    errors.push("child-source-binding-shape-mismatch");
+  }
+  if (String(summary?.case?.featureId || "") !== String(item?.featureId || "")) {
+    errors.push("child-feature-mismatch");
+  }
+  const cleanup = summary?.case?.cleanupAttestation;
+  if (cleanup?.schema !== "media-server.v390-ui-case-cleanup-attestation.v1" ||
+      typeof cleanup?.pass !== "boolean" ||
+      typeof cleanup?.primaryFailurePresent !== "boolean" ||
+      typeof cleanup?.primaryFailurePreserved !== "boolean" ||
+      typeof cleanup?.caseRuntimeRestoreAttempted !== "boolean" ||
+      typeof cleanup?.caseRuntimeRestored !== "boolean" ||
+      typeof cleanup?.browserCloseAttempted !== "boolean" ||
+      typeof cleanup?.browserContextClosed !== "boolean" ||
+      !Number.isSafeInteger(cleanup?.cleanupEntryCount) || cleanup.cleanupEntryCount < 1 ||
+      (cleanup.pass ? cleanup.failureCode !== "" : !String(cleanup.failureCode || ""))) {
+    errors.push("child-cleanup-attestation-missing");
+  }
+  if (status === "PASS" && cleanup?.pass !== true) {
+    errors.push("child-pass-cleanup-mismatch");
+  }
+  const childFailureCensus = summary?.case?.failureCensus;
+  const failureCensusEntryValid = item => item && typeof item === "object" &&
+    typeof item.failureClass === "string" && item.failureClass &&
+    typeof item.phase === "string" && item.phase &&
+    typeof item.code === "string" && item.code &&
+    typeof item.requestIdentity === "string" &&
+    typeof item.responseIdentity === "string";
+  if (!Array.isArray(childFailureCensus) ||
+      (status === "PASS" && childFailureCensus.length !== 0) ||
+      (status === "FAIL" && !(childFailureCensus.length > 0)) ||
+      (Array.isArray(childFailureCensus) &&
+        !childFailureCensus.every(failureCensusEntryValid))) {
+    errors.push("child-failure-census-mismatch");
+  }
+  if (!Number.isSafeInteger(summary?.timing?.startedAtMs) ||
+      !Number.isSafeInteger(summary?.timing?.finishedAtMs) ||
+      summary?.timing?.finishedAtMs < summary?.timing?.startedAtMs ||
+      summary?.timing?.durationMs !== summary?.timing?.finishedAtMs - summary?.timing?.startedAtMs) {
+    errors.push("child-timing-mismatch");
+  }
+  if (summary?.releaseEvidenceEligible !== false || summary?.uiFulltestPass !== false ||
+      summary?.policyV4Qualification !== "not-eligible-single-case-child") {
+    errors.push("child-evidence-authority-mismatch");
+  }
+  const serialized = canonicalParentStableJson(summary);
+  if (/\b(?:password|authorization|cookie)\b/i.test(serialized) ||
+      serialized.includes("correlationId") || serialized.includes("raw-request-object") ||
+      serialized.includes("raw-response-object")) {
+    errors.push("child-summary-sensitive-material");
+  }
+  try {
+    const root = path.resolve(String(outputDir || ""));
+    const resolvedSummary = path.resolve(String(summaryPath || ""));
+    assertCanonicalParentOwnedPath(root, resolvedSummary, "validated child summary");
+    const rootStat = fs.lstatSync(root);
+    if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) {
+      errors.push("child-output-not-real-directory");
+    }
+    if (path.basename(summaryPath) !== "summary.json") errors.push("child-summary-filename-mismatch");
+    const stat = fs.lstatSync(resolvedSummary);
+    if (!stat.isFile() || stat.isSymbolicLink()) errors.push("child-summary-not-regular-file");
+    if ((stat.mode & 0o777) !== 0o600) errors.push("child-summary-mode-mismatch");
+    const diskSummary = JSON.parse(fs.readFileSync(resolvedSummary, "utf8"));
+    if (canonicalParentStableJson(diskSummary) !== canonicalParentStableJson(summary)) {
+      errors.push("child-summary-disk-content-mismatch");
+    }
+    const realOutput = fs.realpathSync(root);
+    const realSummary = fs.realpathSync(resolvedSummary);
+    assertCanonicalParentOwnedPath(realOutput, realSummary, "validated child real summary");
+  } catch {
+    errors.push("child-summary-path-ownership-mismatch");
+  }
+  return Object.freeze(errors);
+}
+
+export function writeCanonicalParentSummaryAtomic(filePath, value) {
+  const target = path.resolve(String(filePath || ""));
+  assert(path.basename(target) === "summary.json",
+    "canonical parent aggregate summary filename is invalid");
+  assert(!fs.existsSync(target), "canonical parent aggregate summary already exists");
+  fs.mkdirSync(path.dirname(target), { recursive: true, mode: 0o700 });
+  const temporary = `${target}.tmp-${process.pid}-${crypto.randomUUID()}`;
+  let descriptor = null;
+  try {
+    descriptor = fs.openSync(temporary, "wx", 0o600);
+    const serialized = `${JSON.stringify(value, null, 2)}\n`;
+    fs.writeFileSync(descriptor, serialized, "utf8");
+    fs.fsyncSync(descriptor);
+    fs.closeSync(descriptor);
+    descriptor = null;
+    if (fs.existsSync(target)) throw new Error("canonical parent aggregate summary already exists");
+    fs.renameSync(temporary, target);
+  } catch (error) {
+    if (descriptor !== null) {
+      try { fs.closeSync(descriptor); } catch {}
+    }
+    try { fs.unlinkSync(temporary); } catch {}
+    throw error;
+  }
+}
+
+function canonicalParentCaseProjection(summary, childExitCode, summaryPath, runId) {
+  return Object.freeze({
+    caseId: summary.case.caseId,
+    featureId: String(summary.case.featureId || ""),
+    status: summary.case.status,
+    actualBrowserExecution: summary.actualBrowserExecution === true,
+    runId,
+    childExitCode,
+    summaryPath,
+    summarySha256: sha256FileLocal(summaryPath),
+    policyInputRef: summary.policyInputRef ? structuredClone(summary.policyInputRef) : null,
+    cleanupAttestation: structuredClone(summary.case.cleanupAttestation),
+  });
+}
+
+function canonicalParentFailureProjection({ summary, childExitCode, summaryPath }) {
+  const failures = (summary.case.failureCensus || []).map(item => Object.freeze({
+    failureClass: String(item?.failureClass || "case-failure"),
+    phase: String(item?.phase || "case-execution"),
+    code: String(item?.code || "CASE_EXECUTION_FAILED"),
+    requestIdentity: String(item?.requestIdentity || ""),
+    responseIdentity: String(item?.responseIdentity || ""),
+  }));
+  return Object.freeze({
+    caseId: summary.case.caseId,
+    failureClass: String(summary.case.failureClass || failures[0]?.failureClass || "case-failure"),
+    failurePhase: String(summary.case.failurePhase || failures[0]?.phase || "case-execution"),
+    failureCode: String(summary.case.failureCode || failures[0]?.code || "CASE_EXECUTION_FAILED"),
+    failures: Object.freeze(failures),
+    lifecycleCensus: summary.case.requestLifecycleEvaluation?.census
+      ? structuredClone(summary.case.requestLifecycleEvaluation.census)
+      : null,
+    childExitCode,
+    summaryPath,
+    cleanupAttestation: structuredClone(summary.case.cleanupAttestation),
+  });
+}
+
+function canonicalParentRuntimeProjection(value = {}) {
+  const runtimeRoot = String(value?.runtimeRoot || "");
+  return Object.freeze({
+    pid: Number(value?.pid || 0),
+    httpPort: Number(value?.httpPort || 0),
+    rtspPort: Number(value?.rtspPort || 0),
+    runtimeRoot,
+    runtimeRootSha256: String(value?.runtimeRootSha256 || ""),
+  });
+}
+
+function canonicalParentNow(clock, phase) {
+  const value = Number(clock());
+  assert(Number.isSafeInteger(value) && value >= 0,
+    `canonical parent ${phase} timestamp is invalid`);
+  return value;
+}
+
+function assertCanonicalParentOwnedPath(owner, candidate, label) {
+  const root = path.resolve(owner);
+  const resolved = path.resolve(candidate);
+  const relative = path.relative(root, resolved);
+  assert(relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative),
+    `canonical parent ${label} path escapes its owner`);
+}
+
+function assertCanonicalParentChildOutputDirectory({ outputDir, realOutputRoot }) {
+  const stat = fs.lstatSync(outputDir);
+  assert(stat.isDirectory() && !stat.isSymbolicLink(),
+    "canonical parent child output is not a real directory");
+  const realOutput = fs.realpathSync(outputDir);
+  assertCanonicalParentOwnedPath(realOutputRoot, realOutput, "child real output");
+}
+
+function canonicalParentStableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalParentStableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort()
+      .map(key => `${JSON.stringify(key)}:${canonicalParentStableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+export function createNativeExactCaseChildSummary({
+  item,
+  status,
+  executionStatus,
+  sourceBinding,
+  failureClass = "",
+  failurePhase = "",
+  failureCode = "",
+  failureMessage = "",
+  failureCensus = [],
+  requestLifecycleEvaluation = null,
+  cleanupAttestation,
+  actualBrowserExecution = false,
+  policyInputRef = null,
+  startedAtMs,
+  finishedAtMs,
+} = {}) {
+  assert(item && typeof item.caseId === "string" && item.caseId,
+    "case child item is invalid");
+  assert(status === "PASS" || status === "FAIL", "case child status is invalid");
+  assert(typeof executionStatus === "string" && executionStatus,
+    "case child execution status is invalid");
+  assert(sourceBinding && typeof sourceBinding === "object",
+    "case child source binding is invalid");
+  assert(Array.isArray(failureCensus), "case child failure census is invalid");
+  assert(cleanupAttestation && typeof cleanupAttestation === "object" &&
+    typeof cleanupAttestation.pass === "boolean",
+  "case child cleanup attestation is invalid");
+  assert(Number.isSafeInteger(startedAtMs) && Number.isSafeInteger(finishedAtMs) &&
+    startedAtMs >= 0 && finishedAtMs >= startedAtMs,
+  "case child timing is invalid");
+  const pass = status === "PASS" ? 1 : 0;
+  const fail = status === "FAIL" ? 1 : 0;
+  assert((status === "PASS" && failureCensus.length === 0) ||
+    (status === "FAIL" && failureCensus.length > 0),
+  "case child failure census/status mismatch");
+  return {
+    schema: nativeExactCaseChildSchema,
+    result: status,
+    executionStatus,
+    releaseEvidenceEligible: false,
+    policyV4Qualification: "not-eligible-single-case-child",
+    uiFulltestPass: false,
+    actualBrowserExecution: actualBrowserExecution === true,
+    sourceBinding: structuredClone(sourceBinding),
+    policyInputRef: policyInputRef === null ? null : structuredClone(policyInputRef),
+    selection: {
+      caseId: item.caseId,
+      selectedIds: [item.caseId],
+      selected: 1,
+    },
+    counts: {
+      selected: 1,
+      attempted: 1,
+      pass,
+      fail,
+      notRun: 0,
+      unsupported: 0,
+      runnerAbort: 0,
+    },
+    case: {
+      caseId: item.caseId,
+      featureId: String(item.featureId || ""),
+      status,
+      failureClass: status === "FAIL" ? String(failureClass || "case-failure") : "",
+      failurePhase: status === "FAIL" ? String(failurePhase || "case-execution") : "",
+      failureCode: status === "FAIL" ? String(failureCode || "CASE_EXECUTION_FAILED") : "",
+      failureMessage: status === "FAIL" ? String(failureMessage || "case execution failed") : "",
+      failureCensus: structuredClone(failureCensus),
+      requestLifecycleEvaluation: requestLifecycleEvaluation === null
+        ? null
+        : structuredClone(requestLifecycleEvaluation),
+      cleanupAttestation: structuredClone(cleanupAttestation),
+    },
+    timing: {
+      startedAtMs,
+      finishedAtMs,
+      durationMs: finishedAtMs - startedAtMs,
+      startedAt: new Date(startedAtMs).toISOString(),
+      finishedAt: new Date(finishedAtMs).toISOString(),
+    },
+  };
+}
 export const review4WorkflowClasses = Object.freeze([
   "actionable",
   "form-submit",

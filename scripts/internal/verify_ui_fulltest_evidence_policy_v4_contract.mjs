@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import zlib from "node:zlib";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -373,6 +374,32 @@ try {
     const result = evaluate(candidate, tempRoot);
     assert(result.uiFulltestPass === false, "partial coverage became suite PASS");
     assert(result.reasons.includes("coverage-unsupported-must-be-zero"), "unsupported gap missing");
+  });
+
+  check("verifier rejects missing exact coverage fields without zero or case-length defaults", () => {
+    const candidate = fullCandidate();
+    candidate.contractFixture = false;
+    candidate.fixture = false;
+    for (const field of ["targetCount", "pass", "fail", "notRun", "unsupported",
+      "unapprovedExclusions", "manualIntervention"]) delete candidate.coverage[field];
+    const summaryPath = path.join(tempRoot, "missing-verifier-counts.json");
+    const outputDir = path.join(tempRoot, "missing-verifier-counts-output");
+    writeJson(summaryPath, candidate);
+    const run = spawnSync(path.join(rootDir, "server.sh"), [
+      "verify-ui-fulltest-evidence-policy-v4",
+      "--summary", summaryPath,
+      "--output-dir", outputDir,
+      "--require-eligible",
+    ], { cwd: rootDir, encoding: "utf8" });
+    assert(run.status !== 0, "missing verifier coverage fields became eligible");
+    const result = JSON.parse(fs.readFileSync(path.join(outputDir, "evaluation.json"), "utf8"));
+    for (const field of ["targetCount", "pass", "fail", "notRun", "unsupported",
+      "unapprovedExclusions", "manualIntervention"]) {
+      assert(result.qualification.reasons.includes(`verifier-coverage-${field}-must-be-safe-integer`),
+        `missing verifier field was defaulted: ${field}`);
+    }
+    assert(result.suiteClosure.requestedExactCases === null && result.suiteClosure.fail === null,
+      "missing verifier counts were projected as numeric closure");
   });
 
   check("pre-existing state without a fresh raw readback is rejected", () => {

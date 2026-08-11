@@ -1,0 +1,366 @@
+{
+  "schema": "media-server.v390-ui-request-lifecycle-actual-like-cases.v1",
+  "sourceCommitSha": "327afe0d4b3282400f1925252c59a53b87827224",
+  "canonicalMetadata": {
+    "UI-001": {
+      "canonicalRoute": "/",
+      "screenRoute": "/login",
+      "accountRole": "anonymous",
+      "navigationInvocation": "UI-001:initial-document-navigation"
+    },
+    "UI-002": {
+      "canonicalRoute": "/setup",
+      "screenRoute": "/setup",
+      "accountRole": "anonymous",
+      "navigationInvocation": "UI-002:form-submit-document-navigation",
+      "actionInvocation": "UI-002:submit-form",
+      "correlationId": "UI-002:submit-form:completion"
+    },
+    "SRC-008": {
+      "canonicalRoute": "/ops/sources",
+      "screenRoute": "/ops/sources",
+      "accountRole": "operator",
+      "actionKind": "execute-endpoint-action",
+      "navigationInvocation": null,
+      "actionInvocation": "SRC-008:execute-endpoint-action",
+      "correlationId": "SRC-008:execute-endpoint-action:completion",
+      "method": "POST",
+      "path": "/ops/api/sources",
+      "allowedStatuses": [201]
+    }
+  },
+  "positiveCaseIds": [
+    "UI-001-bootstrap-redirect",
+    "UI-002-action-redirect",
+    "representative-api-fetch",
+    "same-route-rejection"
+  ],
+  "negativeCaseIds": [
+    "callback-capture-error",
+    "missing-resource-type",
+    "wrong-redirect-parent",
+    "duplicate-response",
+    "stale-invocation",
+    "cross-action-leak"
+  ],
+  "cases": [
+    {
+      "caseId": "UI-001-bootstrap-redirect",
+      "polarity": "positive",
+      "correlationDigest": "ecd3d0bcffeb1d2931a77485944a2a21328735567768b87c150ca32e2fb71e14",
+      "requests": [
+        {"identity":"ui001-root","method":"GET","path":"/","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":null,"navigationInvocation":{"invocationId":"UI-001:initial-document-navigation","phase":"initial-document-navigation","startedSequence":0,"endedSequence":5,"startedAtMs":1000,"endedAtMs":1050,"current":true},"actionInvocation":null,"throwOn":null},
+        {"identity":"ui001-login","method":"GET","path":"/login","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":"ui001-root","navigationInvocation":{"invocationId":"UI-001:initial-document-navigation","phase":"initial-document-navigation","startedSequence":0,"endedSequence":5,"startedAtMs":1000,"endedAtMs":1050,"current":true},"actionInvocation":null,"throwOn":null},
+        {"identity":"ui001-background-fetch","method":"GET","path":"/ops/api/runtime","resourceType":"fetch","isNavigationRequest":false,"requestKind":"application-fetch","redirectedFrom":null,"navigationInvocation":null,"actionInvocation":null,"throwOn":null}
+      ],
+      "responses": [
+        {"requestIdentity":"ui001-root","status":302},
+        {"requestIdentity":"ui001-login","status":200},
+        {"requestIdentity":"ui001-background-fetch","status":200}
+      ],
+      "navigationInvocations": [
+        {"invocationId":"UI-001:initial-document-navigation","phase":"initial-document-navigation","startedSequence":0,"endedSequence":5,"startedAtMs":1000,"endedAtMs":1050,"current":true,"requestIdentities":["ui001-root","ui001-login"]}
+      ],
+      "actionInvocations": [],
+      "events": [
+        {"type":"request","requestIdentity":"ui001-root","sequence":1,"timestampMs":1010,"phase":"bootstrap-settling"},
+        {"type":"response","responseIndex":0,"sequence":2,"timestampMs":1020,"phase":"bootstrap-settling"},
+        {"type":"request","requestIdentity":"ui001-login","sequence":3,"timestampMs":1030,"phase":"bootstrap-settling"},
+        {"type":"response","responseIndex":1,"sequence":4,"timestampMs":1040,"phase":"bootstrap-settling"},
+        {"type":"request","requestIdentity":"ui001-background-fetch","sequence":5,"timestampMs":1050,"phase":"background-refresh"},
+        {"type":"response","responseIndex":2,"sequence":6,"timestampMs":1060,"phase":"background-refresh"}
+      ],
+      "expectedCaptureErrorCodes": [],
+      "expected": {
+        "status":"PASS",
+        "classifications":[
+          {"requestIdentity":"ui001-root","responseIndex":0,"requestKind":"document-navigation","classification":"bootstrap","owner":"page","phase":"bootstrap-document"},
+          {"requestIdentity":"ui001-login","responseIndex":1,"requestKind":"document-navigation","classification":"bootstrap","owner":"page","phase":"bootstrap-document"},
+          {"requestIdentity":"ui001-background-fetch","responseIndex":2,"requestKind":"application-fetch","classification":"background","owner":"page","phase":"background-refresh"}
+        ],
+        "failures":[],
+        "census":{"requestCount":3,"responseCount":3,"classified":3,"unclassified":0,"multiplyClassified":0,"captureErrors":0,"duplicateResponses":0,"failureCount":0}
+      }
+    },
+    {
+      "caseId": "UI-002-action-redirect",
+      "polarity": "positive",
+      "correlationDigest": "3cd0d25cc9cfeef90dfa4ebccf8dc48698141e86caeacd0e92b917a4b84f3556",
+      "requests": [
+        {"identity":"ui002-setup-post","method":"POST","path":"/setup","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":null,"navigationInvocation":{"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":5,"startedAtMs":2000,"endedAtMs":2050,"current":true},"actionInvocation":{"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":5,"startedAtMs":2000,"endedAtMs":2050,"current":true},"throwOn":null},
+        {"identity":"ui002-ops-home","method":"GET","path":"/ops/home","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":"ui002-setup-post","navigationInvocation":{"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":5,"startedAtMs":2000,"endedAtMs":2050,"current":true},"actionInvocation":{"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":5,"startedAtMs":2000,"endedAtMs":2050,"current":true},"throwOn":null}
+      ],
+      "responses": [
+        {"requestIdentity":"ui002-setup-post","status":302},
+        {"requestIdentity":"ui002-ops-home","status":200}
+      ],
+      "navigationInvocations": [
+        {"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":5,"startedAtMs":2000,"endedAtMs":2050,"current":true,"requestIdentities":["ui002-setup-post","ui002-ops-home"]}
+      ],
+      "actionInvocations": [
+        {"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":5,"startedAtMs":2000,"endedAtMs":2050,"current":true,"requestIdentities":["ui002-setup-post"]}
+      ],
+      "events": [
+        {"type":"request","requestIdentity":"ui002-setup-post","sequence":1,"timestampMs":2010,"phase":"primary-action"},
+        {"type":"response","responseIndex":0,"sequence":2,"timestampMs":2020,"phase":"primary-action"},
+        {"type":"request","requestIdentity":"ui002-ops-home","sequence":3,"timestampMs":2030,"phase":"form-submit-document-navigation"},
+        {"type":"response","responseIndex":1,"sequence":4,"timestampMs":2040,"phase":"form-submit-document-navigation"}
+      ],
+      "expectedCaptureErrorCodes": [],
+      "expected": {
+        "status":"PASS",
+        "classifications":[
+          {"requestIdentity":"ui002-setup-post","responseIndex":0,"requestKind":"document-navigation","classification":"action","owner":"action","phase":"primary-action"},
+          {"requestIdentity":"ui002-ops-home","responseIndex":1,"requestKind":"document-navigation","classification":"redirect","owner":"page","phase":"document-redirect-chain"}
+        ],
+        "failures":[],
+        "census":{"requestCount":2,"responseCount":2,"classified":2,"unclassified":0,"multiplyClassified":0,"captureErrors":0,"duplicateResponses":0,"failureCount":0}
+      }
+    },
+    {
+      "caseId": "representative-api-fetch",
+      "polarity": "positive",
+      "correlationDigest": "e42ae756b245149da1a623d9d523a2fed51648b1f51b8b960d652dafa0afd298",
+      "requests": [
+        {"identity":"source-create-fetch","method":"POST","path":"/ops/api/sources","resourceType":"fetch","isNavigationRequest":false,"requestKind":"application-fetch","redirectedFrom":null,"navigationInvocation":null,"actionInvocation":{"invocationId":"SRC-008:execute-endpoint-action","phase":"primary-action","startedSequence":0,"endedSequence":3,"startedAtMs":3000,"endedAtMs":3030,"current":true},"throwOn":null}
+      ],
+      "responses": [{"requestIdentity":"source-create-fetch","status":201}],
+      "navigationInvocations": [],
+      "actionInvocations": [
+        {"invocationId":"SRC-008:execute-endpoint-action","phase":"primary-action","startedSequence":0,"endedSequence":3,"startedAtMs":3000,"endedAtMs":3030,"current":true,"requestIdentities":["source-create-fetch"]}
+      ],
+      "events": [
+        {"type":"request","requestIdentity":"source-create-fetch","sequence":1,"timestampMs":3010,"phase":"primary-action"},
+        {"type":"response","responseIndex":0,"sequence":2,"timestampMs":3020,"phase":"primary-action"}
+      ],
+      "expectedCaptureErrorCodes": [],
+      "expected": {
+        "status":"PASS",
+        "classifications":[
+          {"requestIdentity":"source-create-fetch","responseIndex":0,"requestKind":"application-fetch","classification":"action","owner":"action","phase":"primary-action"}
+        ],
+        "failures":[],
+        "census":{"requestCount":1,"responseCount":1,"classified":1,"unclassified":0,"multiplyClassified":0,"captureErrors":0,"duplicateResponses":0,"failureCount":0}
+      }
+    },
+    {
+      "caseId": "same-route-rejection",
+      "polarity": "positive",
+      "correlationDigest": "35b4ed6281c60e9f9637a3c41212c9ccf0d52c1e47d3bf400e38e8a66e567f8c",
+      "requests": [
+        {"identity":"login-rejection","method":"POST","path":"/login","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":null,"navigationInvocation":{"invocationId":"AUTH-001:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":3,"startedAtMs":4000,"endedAtMs":4030,"current":true},"actionInvocation":{"invocationId":"AUTH-001:submit-login","phase":"primary-action","startedSequence":0,"endedSequence":3,"startedAtMs":4000,"endedAtMs":4030,"current":true},"throwOn":null}
+      ],
+      "responses": [{"requestIdentity":"login-rejection","status":401}],
+      "navigationInvocations": [
+        {"invocationId":"AUTH-001:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":3,"startedAtMs":4000,"endedAtMs":4030,"current":true,"requestIdentities":["login-rejection"]}
+      ],
+      "actionInvocations": [
+        {"invocationId":"AUTH-001:submit-login","phase":"primary-action","startedSequence":0,"endedSequence":3,"startedAtMs":4000,"endedAtMs":4030,"current":true,"requestIdentities":["login-rejection"]}
+      ],
+      "events": [
+        {"type":"request","requestIdentity":"login-rejection","sequence":1,"timestampMs":4010,"phase":"primary-action"},
+        {"type":"response","responseIndex":0,"sequence":2,"timestampMs":4020,"phase":"primary-action"}
+      ],
+      "expectedCaptureErrorCodes": [],
+      "expected": {
+        "status":"PASS",
+        "classifications":[
+          {"requestIdentity":"login-rejection","responseIndex":0,"requestKind":"document-navigation","classification":"action","owner":"action","phase":"same-route-rejection"}
+        ],
+        "failures":[],
+        "census":{"requestCount":1,"responseCount":1,"classified":1,"unclassified":0,"multiplyClassified":0,"captureErrors":0,"duplicateResponses":0,"failureCount":0}
+      }
+    },
+    {
+      "caseId": "callback-capture-error",
+      "polarity": "negative",
+      "correlationDigest": "8c804ef4ffb5102e008c71fead833a3080199a844a13ad9caa59f0bcdd7dae06",
+      "requests": [
+        {"identity":"capture-error-request","method":"GET","path":"/","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":null,"navigationInvocation":{"invocationId":"UI-001:initial-document-navigation","phase":"initial-document-navigation","startedSequence":0,"endedSequence":2,"startedAtMs":5000,"endedAtMs":5020,"current":true},"actionInvocation":null,"throwOn":"resourceType"}
+      ],
+      "responses": [],
+      "navigationInvocations": [
+        {"invocationId":"UI-001:initial-document-navigation","phase":"initial-document-navigation","startedSequence":0,"endedSequence":2,"startedAtMs":5000,"endedAtMs":5020,"current":true,"requestIdentities":["capture-error-request"]}
+      ],
+      "actionInvocations": [],
+      "events": [
+        {"type":"request","requestIdentity":"capture-error-request","sequence":1,"timestampMs":5010,"phase":"bootstrap-settling"}
+      ],
+      "expectedCaptureErrorCodes": ["REQUEST_CAPTURE_FAILED"],
+      "expected": {
+        "status":"FAIL",
+        "classifications":[],
+        "failures":[
+          {"code":"CAPTURE_ERROR","requestIdentity":"capture-error-request","responseIndex":null}
+        ],
+        "census":{"requestCount":0,"responseCount":0,"classified":0,"unclassified":0,"multiplyClassified":0,"captureErrors":1,"duplicateResponses":0,"failureCount":1}
+      }
+    },
+    {
+      "caseId": "missing-resource-type",
+      "polarity": "negative",
+      "correlationDigest": "b4455b6776f3d3a2f38135f4d868b1af5b34a81e2da32bf0207a442d4ce074b5",
+      "requests": [
+        {"identity":"missing-type","method":"GET","path":"/","resourceType":null,"isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":null,"navigationInvocation":{"invocationId":"UI-001:initial-document-navigation","phase":"initial-document-navigation","startedSequence":0,"endedSequence":2,"startedAtMs":6000,"endedAtMs":6020,"current":true},"actionInvocation":null,"throwOn":null}
+      ],
+      "responses": [],
+      "navigationInvocations": [
+        {"invocationId":"UI-001:initial-document-navigation","phase":"initial-document-navigation","startedSequence":0,"endedSequence":2,"startedAtMs":6000,"endedAtMs":6020,"current":true,"requestIdentities":["missing-type"]}
+      ],
+      "actionInvocations": [],
+      "events": [
+        {"type":"request","requestIdentity":"missing-type","sequence":1,"timestampMs":6010,"phase":"bootstrap-settling"}
+      ],
+      "expectedCaptureErrorCodes": [],
+      "expected": {
+        "status":"FAIL",
+        "classifications":[],
+        "failures":[
+          {"code":"RESOURCE_TYPE_MISSING","requestIdentity":"missing-type","responseIndex":null}
+        ],
+        "census":{"requestCount":1,"responseCount":0,"classified":0,"unclassified":1,"multiplyClassified":0,"captureErrors":0,"duplicateResponses":0,"failureCount":1}
+      }
+    },
+    {
+      "caseId": "wrong-redirect-parent",
+      "polarity": "negative",
+      "correlationDigest": "a869b024ef6ff00ce219b8f3949cf4c92fbc6b34a9839464fedffa71f06f06c8",
+      "requests": [
+        {"identity":"wrong-parent-fetch","method":"POST","path":"/setup","resourceType":"fetch","isNavigationRequest":false,"requestKind":"application-fetch","redirectedFrom":null,"navigationInvocation":null,"actionInvocation":{"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":4,"startedAtMs":7000,"endedAtMs":7040,"current":true},"throwOn":null},
+        {"identity":"wrong-parent-document","method":"GET","path":"/ops/home","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":"wrong-parent-fetch","navigationInvocation":{"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":4,"startedAtMs":7000,"endedAtMs":7040,"current":true},"actionInvocation":{"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":4,"startedAtMs":7000,"endedAtMs":7040,"current":true},"throwOn":null},
+        {"identity":"independent-missing-type","method":"GET","path":"/ops/api/runtime","resourceType":null,"isNavigationRequest":false,"requestKind":"application-fetch","redirectedFrom":null,"navigationInvocation":null,"actionInvocation":null,"throwOn":null}
+      ],
+      "responses": [],
+      "navigationInvocations": [
+        {"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":4,"startedAtMs":7000,"endedAtMs":7040,"current":true,"requestIdentities":["wrong-parent-document"]}
+      ],
+      "actionInvocations": [
+        {"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":4,"startedAtMs":7000,"endedAtMs":7040,"current":true,"requestIdentities":["wrong-parent-fetch"]}
+      ],
+      "events": [
+        {"type":"request","requestIdentity":"wrong-parent-fetch","sequence":1,"timestampMs":7010,"phase":"primary-action"},
+        {"type":"request","requestIdentity":"wrong-parent-document","sequence":2,"timestampMs":7020,"phase":"form-submit-document-navigation"},
+        {"type":"request","requestIdentity":"independent-missing-type","sequence":3,"timestampMs":7030,"phase":"background-refresh"}
+      ],
+      "expectedCaptureErrorCodes": [],
+      "expected": {
+        "status":"FAIL",
+        "classifications":[
+          {"requestIdentity":"wrong-parent-fetch","responseIndex":null,"requestKind":"application-fetch","classification":"action","owner":"action","phase":"primary-action"}
+        ],
+        "failures":[
+          {"code":"REDIRECT_PARENT_WRONG","requestIdentity":"wrong-parent-document","responseIndex":null},
+          {"code":"RESOURCE_TYPE_MISSING","requestIdentity":"independent-missing-type","responseIndex":null}
+        ],
+        "census":{"requestCount":3,"responseCount":0,"classified":1,"unclassified":2,"multiplyClassified":0,"captureErrors":0,"duplicateResponses":0,"failureCount":2}
+      }
+    },
+    {
+      "caseId": "duplicate-response",
+      "polarity": "negative",
+      "correlationDigest": "cdb9860e6c03977693b15d5be5f2f7ef846266e5e6534134a7ce0682ddac43f6",
+      "requests": [
+        {"identity":"duplicate-response-fetch","method":"POST","path":"/ops/api/sources","resourceType":"fetch","isNavigationRequest":false,"requestKind":"application-fetch","redirectedFrom":null,"navigationInvocation":null,"actionInvocation":{"invocationId":"SRC-001:create-source","phase":"primary-action","startedSequence":0,"endedSequence":4,"startedAtMs":8000,"endedAtMs":8040,"current":true},"throwOn":null}
+      ],
+      "responses": [
+        {"requestIdentity":"duplicate-response-fetch","status":201},
+        {"requestIdentity":"duplicate-response-fetch","status":201}
+      ],
+      "navigationInvocations": [],
+      "actionInvocations": [
+        {"invocationId":"SRC-001:create-source","phase":"primary-action","startedSequence":0,"endedSequence":4,"startedAtMs":8000,"endedAtMs":8040,"current":true,"requestIdentities":["duplicate-response-fetch"]}
+      ],
+      "events": [
+        {"type":"request","requestIdentity":"duplicate-response-fetch","sequence":1,"timestampMs":8010,"phase":"primary-action"},
+        {"type":"response","responseIndex":0,"sequence":2,"timestampMs":8020,"phase":"primary-action"},
+        {"type":"response","responseIndex":1,"sequence":3,"timestampMs":8030,"phase":"primary-action"}
+      ],
+      "expectedCaptureErrorCodes": [],
+      "expected": {
+        "status":"FAIL",
+        "classifications":[
+          {"requestIdentity":"duplicate-response-fetch","responseIndex":0,"requestKind":"application-fetch","classification":"action","owner":"action","phase":"primary-action"}
+        ],
+        "failures":[
+          {"code":"RESPONSE_DUPLICATE","requestIdentity":"duplicate-response-fetch","responseIndex":1}
+        ],
+        "census":{"requestCount":1,"responseCount":2,"classified":1,"unclassified":0,"multiplyClassified":0,"captureErrors":0,"duplicateResponses":1,"failureCount":1}
+      }
+    },
+    {
+      "caseId": "stale-invocation",
+      "polarity": "negative",
+      "correlationDigest": "140216efb949b4b6dcd67567ac2b4d6514b2c7f331f0c886d25726f09e77e251",
+      "requests": [
+        {"identity":"stale-document","method":"POST","path":"/setup","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":null,"navigationInvocation":{"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":4,"startedAtMs":9000,"endedAtMs":9040,"current":true},"actionInvocation":{"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":2,"startedAtMs":9000,"endedAtMs":9020,"current":true},"throwOn":null}
+      ],
+      "responses": [],
+      "navigationInvocations": [
+        {"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":4,"startedAtMs":9000,"endedAtMs":9040,"current":true,"requestIdentities":["stale-document"]}
+      ],
+      "actionInvocations": [
+        {"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":2,"startedAtMs":9000,"endedAtMs":9020,"current":true,"requestIdentities":["stale-document"]}
+      ],
+      "events": [
+        {"type":"request","requestIdentity":"stale-document","sequence":3,"timestampMs":9030,"phase":"post-action-observation"}
+      ],
+      "expectedCaptureErrorCodes": [],
+      "expected": {
+        "status":"FAIL",
+        "classifications":[],
+        "failures":[
+          {"code":"INVOCATION_STALE","requestIdentity":"stale-document","responseIndex":null}
+        ],
+        "census":{"requestCount":1,"responseCount":0,"classified":0,"unclassified":1,"multiplyClassified":0,"captureErrors":0,"duplicateResponses":0,"failureCount":1}
+      }
+    },
+    {
+      "caseId": "cross-action-leak",
+      "polarity": "negative",
+      "correlationDigest": "94301a80bd5c338c5dc914c779d0807b2e7527ea1daf9183c5843fa21c1f5b49",
+      "requests": [
+        {"identity":"current-action-parent","method":"POST","path":"/setup","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":null,"navigationInvocation":{"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":true},"actionInvocation":{"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":true},"throwOn":null},
+        {"identity":"current-action-document","method":"GET","path":"/ops/home","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":"current-action-parent","navigationInvocation":{"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":true},"actionInvocation":{"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":true},"throwOn":null},
+        {"identity":"cross-action-parent","method":"POST","path":"/setup","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":null,"navigationInvocation":{"invocationId":"UI-003:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":false},"actionInvocation":{"invocationId":"UI-003:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":false},"throwOn":null},
+        {"identity":"cross-action-document","method":"GET","path":"/ops/home","resourceType":"document","isNavigationRequest":true,"requestKind":"document-navigation","redirectedFrom":"cross-action-parent","navigationInvocation":{"invocationId":"UI-003:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":false},"actionInvocation":{"invocationId":"UI-003:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":false},"throwOn":null}
+      ],
+      "responses": [
+        {"requestIdentity":"current-action-parent","status":302},
+        {"requestIdentity":"current-action-document","status":200},
+        {"requestIdentity":"cross-action-parent","status":302},
+        {"requestIdentity":"cross-action-document","status":403}
+      ],
+      "navigationInvocations": [
+        {"invocationId":"UI-002:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":true,"requestIdentities":["current-action-parent","current-action-document"]},
+        {"invocationId":"UI-003:form-submit-document-navigation","phase":"form-submit-document-navigation","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":false,"requestIdentities":["cross-action-parent","cross-action-document"]}
+      ],
+      "actionInvocations": [
+        {"invocationId":"UI-002:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":true,"requestIdentities":["current-action-parent"]},
+        {"invocationId":"UI-003:submit-form","phase":"primary-action","startedSequence":0,"endedSequence":9,"startedAtMs":10000,"endedAtMs":10090,"current":false,"requestIdentities":["cross-action-parent"]}
+      ],
+      "events": [
+        {"type":"request","requestIdentity":"current-action-parent","sequence":1,"timestampMs":10010,"phase":"primary-action"},
+        {"type":"response","responseIndex":0,"sequence":2,"timestampMs":10020,"phase":"primary-action"},
+        {"type":"request","requestIdentity":"current-action-document","sequence":3,"timestampMs":10030,"phase":"form-submit-document-navigation"},
+        {"type":"response","responseIndex":1,"sequence":4,"timestampMs":10040,"phase":"form-submit-document-navigation"},
+        {"type":"request","requestIdentity":"cross-action-parent","sequence":5,"timestampMs":10050,"phase":"primary-action"},
+        {"type":"response","responseIndex":2,"sequence":6,"timestampMs":10060,"phase":"primary-action"},
+        {"type":"request","requestIdentity":"cross-action-document","sequence":7,"timestampMs":10070,"phase":"form-submit-document-navigation"},
+        {"type":"response","responseIndex":3,"sequence":8,"timestampMs":10080,"phase":"form-submit-document-navigation"}
+      ],
+      "expectedCaptureErrorCodes": [],
+      "expected": {
+        "status":"FAIL",
+        "classifications":[
+          {"requestIdentity":"current-action-parent","responseIndex":0,"requestKind":"document-navigation","classification":"action","owner":"action","phase":"primary-action"},
+          {"requestIdentity":"current-action-document","responseIndex":1,"requestKind":"document-navigation","classification":"redirect","owner":"page","phase":"document-redirect-chain"}
+        ],
+        "failures":[
+          {"code":"CROSS_ACTION_LEAK","requestIdentity":"cross-action-parent","responseIndex":2},
+          {"code":"CROSS_ACTION_LEAK","requestIdentity":"cross-action-document","responseIndex":3}
+        ],
+        "census":{"requestCount":4,"responseCount":4,"classified":2,"unclassified":2,"multiplyClassified":0,"captureErrors":0,"duplicateResponses":0,"failureCount":2}
+      }
+    }
+  ]
+}

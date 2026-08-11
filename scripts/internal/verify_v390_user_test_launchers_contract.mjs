@@ -264,6 +264,103 @@ exit 1
     "fallback failure must report the user-facing release command");
 });
 
+check("UI launcher prints exact canonical fields and fails closed on a false gate", () => {
+  const fakeRoot = fixtureRoot("ui-canonical-gate-failure");
+  const fakeServer = path.join(fakeRoot, "server.sh");
+  fs.writeFileSync(fakeServer, `#!/usr/bin/env bash
+set -euo pipefail
+command="\${1:-}"
+shift || true
+if [[ "$command" == "verify-v390-ui-native-exact-cases-contract" ]]; then exit 0; fi
+output_dir=""
+while [[ "$#" -gt 0 ]]; do
+  if [[ "$1" == "--output-dir" ]]; then output_dir="$2"; shift 2; continue; fi
+  shift
+done
+mkdir -p "$output_dir/ui-parent"
+cat >"$output_dir/ui-parent/summary.json" <<'JSON'
+{"schema":"media-server.v390-ui-canonical-parent.v1","counts":{"selected":424,"attempted":424,"pass":424,"fail":0,"notRun":0,"unsupported":0,"runnerAbort":0},"failureCensus":[]}
+JSON
+cat >"$output_dir/summary.json" <<JSON
+{"result":"PASS","uiAutomation":{"summaryPath":"$output_dir/ui-parent/summary.json"},"uiFulltestQualification":{"policyEligible":true,"policyQualified":false,"uiFulltestPass":false},"cleanup":{"status":"PASS"},"stages":[{"id":"final-integrity","status":"not-run"}]}
+JSON
+exit 0
+`);
+  fs.chmodSync(fakeServer, 0o755);
+  const result = spawnSync("bash", ["-c",
+    'ROOT_DIR="$1"; source "$2"; media_server_run_user_test ui',
+    "bash", fakeRoot, path.join(rootDir, "scripts/internal/user_test_launcher_common.sh")], {
+    cwd: rootDir,
+    env: { ...contractEnv(), ROOT_DIR: fakeRoot },
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  assert(result.status !== 0, "launcher returned success while Policy/final-integrity gates were false");
+  for (const field of [
+    "exactUiSelected=424", "exactUiAttempted=424", "exactUiPass=424", "exactUiFail=0",
+    "exactUiNotRun=0", "exactUiUnsupported=0", "exactUiRunnerAbort=0",
+    "exactUiFailureCensusCount=0", "policyEligible=true", "policyQualified=false",
+    "uiFulltestPass=false", "finalIntegrity=not-run", "cleanup=PASS",
+  ]) assert(result.stdout.includes(`[test] ${field}`), `launcher exact field missing: ${field}`);
+});
+
+check("UI launcher fails closed and prints explicit blanks when canonical summary path is missing", () => {
+  const fakeRoot = fixtureRoot("ui-missing-summary-path");
+  const fakeServer = path.join(fakeRoot, "server.sh");
+  fs.writeFileSync(fakeServer, `#!/usr/bin/env bash
+set -euo pipefail
+if [[ "\${1:-}" == "verify-v390-ui-native-exact-cases-contract" ]]; then exit 0; fi
+output_dir=""
+while [[ "$#" -gt 0 ]]; do
+  if [[ "$1" == "--output-dir" ]]; then output_dir="$2"; shift 2; continue; fi
+  shift
+done
+mkdir -p "$output_dir"
+cat >"$output_dir/summary.json" <<'JSON'
+{"result":"PASS","suite":"ui","uiAutomation":{},"uiFulltestQualification":{"policyEligible":true,"policyQualified":true,"uiFulltestPass":true},"uiFinalIntegrity":{"status":"PASS"},"cleanup":{"status":"PASS"},"stages":[]}
+JSON
+exit 0
+`);
+  fs.chmodSync(fakeServer, 0o755);
+  const result = spawnSync("bash", ["-c",
+    'ROOT_DIR="$1"; source "$2"; media_server_run_user_test ui',
+    "bash", fakeRoot, path.join(rootDir, "scripts/internal/user_test_launcher_common.sh")], {
+    cwd: rootDir, env: { ...contractEnv(), ROOT_DIR: fakeRoot }, encoding: "utf8",
+  });
+  assert(result.status !== 0, "missing canonical UI summary path returned success");
+  for (const field of ["exactUiSelected=", "exactUiAttempted=", "exactUiPass=",
+    "exactUiFailureCensusCount=", "exactUiFailureCensusPath=", "policyEligible=",
+    "policyQualified=", "uiFulltestPass=", "finalIntegrity=", "finalIntegrityPath="]) {
+    assert(result.stdout.includes(`[test] ${field}`), `missing path did not print ${field}`);
+  }
+});
+
+check("UI launcher prints every canonical gate blank when the top acceptance summary is absent", () => {
+  const fakeRoot = fixtureRoot("ui-missing-top-summary");
+  const fakeServer = path.join(fakeRoot, "server.sh");
+  fs.writeFileSync(fakeServer, `#!/usr/bin/env bash
+set -euo pipefail
+exit 0
+`);
+  fs.chmodSync(fakeServer, 0o755);
+  const result = spawnSync("bash", ["-c",
+    'ROOT_DIR="$1"; source "$2"; media_server_run_user_test ui',
+    "bash", fakeRoot, path.join(rootDir, "scripts/internal/user_test_launcher_common.sh")], {
+    cwd: rootDir, env: { ...contractEnv(), ROOT_DIR: fakeRoot }, encoding: "utf8",
+  });
+  assert(result.status !== 0, "missing top acceptance summary with lower exit 0 returned success");
+  for (const field of ["result=", "summary=", "report=", "failureStage=",
+    "testcaseId=", "exitCode=", "logPath=", "laterNotRun=",
+    "exactUiSelected=", "exactUiAttempted=", "exactUiPass=",
+    "exactUiFail=", "exactUiNotRun=", "exactUiUnsupported=", "exactUiRunnerAbort=",
+    "exactUiFailureCensusCount=", "exactUiFailureCensusPath=", "policyEligible=",
+    "policyQualified=", "uiFulltestPass=", "finalIntegrity=", "finalIntegrityPath=",
+    "cleanup="]) {
+    assert(result.stdout.includes(`[test] ${field}`),
+      `missing top summary did not print ${field}`);
+  }
+});
+
 check("UI launcher builds current source before exact 424 environment and Policy v4 stages", () => {
   const outputDir = fixtureRoot("ui-pass");
   const result = runLower([
@@ -272,7 +369,7 @@ check("UI launcher builds current source before exact 424 environment and Policy
   assert(result.status === 0, result.stderr || result.stdout);
   const summary = readJson(path.join(outputDir, "summary.json"));
   assert(summary.suite === "ui", "UI suite identity mismatch");
-  for (const id of ["preflight", "build", "ui-environment-bootstrap", "ui-exact-424", "ui-server-cleanup", "ui-fulltest-qualification", "cleanup", "report"]) {
+  for (const id of ["preflight", "build", "ui-environment-bootstrap", "ui-exact-424", "ui-server-cleanup", "ui-fulltest-qualification", "cleanup", "ui-final-integrity", "report"]) {
     assert(summary.stages.find(item => item.id === id)?.status === "PASS", `${id} must execute in UI suite`);
   }
   for (const id of ["feature-gates", "server-longrun-30", "longrun-120-decision", "server-longrun-120", "final-integrity"]) {

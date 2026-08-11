@@ -16,7 +16,8 @@ export function evaluateV390FullSuiteEligibility({
     : [];
 
   requireValue(executionPassed === true, "acceptance-execution-not-pass", reasons);
-  requireValue(executionMode === "actual", "acceptance-execution-not-actual", reasons);
+  requireValue(["actual", "actual-ui-only"].includes(executionMode),
+    "acceptance-execution-not-actual", reasons);
   requireValue(policyEvaluation?.schema === "media-server.ui-fulltest-evidence-policy-evaluation.v4",
     "policy-evaluation-schema-mismatch", reasons);
   requireValue(policyEvaluation?.policyValidationResult === "PASS", "policy-validation-not-pass", reasons);
@@ -46,13 +47,15 @@ export function evaluateV390FullSuiteEligibility({
       /^[a-f0-9]{64}$/.test(policyEvaluation.sourceSummarySha256),
     "policy-source-summary-hash-missing", reasons);
 
+  const eligible = reasons.length === 0;
   return {
-    status: reasons.length === 0 ? "eligible" : "ineligible",
-    finalEvidenceEligible: reasons.length === 0,
+    status: eligible ? "eligible" : "ineligible",
+    finalEvidenceEligible: eligible,
     exactCaseCount: V390_EXACT_UI_CASE_COUNT,
     qualifiedCaseCount: Number(qualification.qualifiedCaseCount || 0),
     unsupported: Number(closure.unsupported ?? -1),
-    uiFulltestPass: policyEvaluation?.uiFulltestPass === true,
+    uiFulltestPass: eligible && policyEvaluation?.uiFulltestPass === true &&
+      qualification.uiFulltestPass === true,
     policyValidationResult: policyEvaluation?.policyValidationResult || "missing",
     sourceSummary: policyEvaluation?.sourceSummary || "",
     sourceSummarySha256: policyEvaluation?.sourceSummarySha256 || "",

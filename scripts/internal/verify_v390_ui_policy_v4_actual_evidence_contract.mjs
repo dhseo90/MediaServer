@@ -84,8 +84,9 @@ assert.ok(!clientScriptSource.includes("document.body.dataset.client"),
   "client shell retains an unguarded body dataset access");
 for (const requiredVerifierBoundary of [
   "censusQualificationReasons(evaluation.reasons)",
-  "summary.coverage?.pass ?? summary.pass ?? 0",
-  "summary.coverage?.notRun ?? summary.notRun ?? 0",
+  "verifier-coverage-${field}-must-be-safe-integer",
+  "exactCoverage.pass",
+  "exactCoverage.notRun",
   'path.join(outputDir, "reason-census.json")',
 ]) {
   assert.ok(verifierSource.includes(requiredVerifierBoundary),

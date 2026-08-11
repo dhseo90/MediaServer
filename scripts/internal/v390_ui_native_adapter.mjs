@@ -15,10 +15,11 @@ import {
 import { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
 import { evaluateRegisteredBrowserCallback } from "./v390_ui_browser_callback_boundary.mjs";
 import { mapRuntimeObservedFromBrowserCallback } from "./v390_ui_requested_observed_schema.mjs";
+import { createRequestEventRecorder } from "./v390_ui_request_event_recorder.mjs";
+import { evaluateRequestLifecycle } from "./v390_ui_request_lifecycle_evaluator.mjs";
 import { createRequestActionOwnershipRegistry } from "./v390_ui_request_action_ownership.mjs";
 import {
   assertZeroActionCorrelationLeaks,
-  classifyRequestLifecycleOwnership,
   createActionRequestEnvelopeLedger,
   createObjectBoundActionResponseBarrier,
   normalizeActionRequestEnvelope,
@@ -768,6 +769,412 @@ export function buildDiagnosticMarkerResponseStageEvidence(probe = {}) {
   };
 }
 
+export function selectNativeLifecycleCaptureInvocations(request, {
+  navigation = null,
+  action = null,
+} = {}) {
+  try {
+    const resourceType = request.resourceType();
+    const isNavigationRequest = request.isNavigationRequest();
+    const documentNavigation = isNavigationRequest === true && resourceType === "document";
+    const actionInitiatingCandidate = documentNavigation ||
+      (isNavigationRequest === false && (resourceType === "fetch" || resourceType === "xhr"));
+    return Object.freeze({
+      navigation: documentNavigation ? navigation : null,
+      actionClaim: actionInitiatingCandidate ? action : null,
+    });
+  } catch {
+    return Object.freeze({ navigation: null, actionClaim: null });
+  }
+}
+
+export function captureLegacyFormResponseProjection({
+  response,
+  entry,
+  pathname = "",
+  onRuntimeSecret = null,
+  observedRuntimeSecrets = new Set(),
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  const normalizedPathname = String(pathname || "");
+  const read = Promise.resolve()
+    .then(() => response.json())
+    .then(payload => {
+      if (normalizedPathname === "/ops/api/invites") {
+        const issuedToken = typeof payload?.invite?.token === "string"
+          ? payload.invite.token
+          : "";
+        if (issuedToken) {
+          observedRuntimeSecrets.add(issuedToken);
+          if (typeof onRuntimeSecret !== "function") {
+            safeResponseReadFailures.push(
+              "invite response runtime secret sink is unavailable",
+            );
+            entry.safeResponseBody = safeFormResponseProjection(normalizedPathname, null);
+            return;
+          }
+          onRuntimeSecret({ kind: "issued-invite-token", value: issuedToken });
+        }
+      }
+      entry.safeResponseBody = safeFormResponseProjection(normalizedPathname, payload);
+    })
+    .catch(() => {
+      safeResponseReadFailures.push(
+        `form response projection failed for POST ${normalizedPathname}: response parsing or runtime secret registration failed`,
+      );
+      entry.safeResponseBody = safeFormResponseProjection(normalizedPathname, null);
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+export function createNativeRequestLifecycleLedger({
+  caseId = "noncanonical-page",
+  correlationDigest: defaultCorrelationDigest = "",
+  evaluator = evaluateRequestLifecycle,
+  clock = Date.now,
+} = {}) {
+  if (typeof caseId !== "string" || !caseId ||
+      typeof defaultCorrelationDigest !== "string" ||
+      typeof evaluator !== "function" || typeof clock !== "function") {
+    throw new TypeError("native request lifecycle ledger options are invalid");
+  }
+  const requestLifecycleRecorder = createRequestEventRecorder({
+    caseId,
+    correlationDigest: defaultCorrelationDigest,
+  });
+  const states = new Set();
+  const events = { navigation: [], action: [] };
+  const rows = { navigation: [], action: [] };
+  const invocationIds = { navigation: new Set(), action: new Set() };
+  const capturedEnvelopeByRequest = new WeakMap();
+  const pendingActionMembershipByRequest = new WeakMap();
+  let sealed = false;
+  let memoizedEvaluation = null;
+  let invocationEventSequence = 0;
+  let lastInvocationEventTimestamp = null;
+
+  const readInvocationClock = () => {
+    const observed = clock();
+    if (!Number.isSafeInteger(observed) || observed < 0) {
+      throw new Error("request lifecycle invocation clock is invalid");
+    }
+    return observed;
+  };
+  const nextInvocationEventTimestamp = () => {
+    const observed = readInvocationClock();
+    const timestamp = lastInvocationEventTimestamp === null
+      ? observed
+      : Math.max(observed, lastInvocationEventTimestamp + 1);
+    if (!Number.isSafeInteger(timestamp)) {
+      throw new Error("request lifecycle invocation timestamp is invalid");
+    }
+    lastInvocationEventTimestamp = timestamp;
+    return timestamp;
+  };
+  const currentCaptureTimestamp = () => {
+    const timestamp = Math.max(readInvocationClock(), lastInvocationEventTimestamp ?? 0);
+    lastInvocationEventTimestamp = timestamp;
+    return timestamp;
+  };
+
+  const maxCapture = () => {
+    const snapshot = requestLifecycleRecorder.snapshot();
+    const envelopes = [snapshot.requests, snapshot.responses, snapshot.requestFinished,
+      snapshot.requestFailed, snapshot.captureErrors].flat();
+    return envelopes.reduce((maximum, item) => Math.max(maximum,
+      Number.isSafeInteger(item?.sequence) ? item.sequence : 0), 0);
+  };
+  const beginInvocation = (kind, { invocationId = "", phase = "" } = {}) => {
+    assertLedgerOpen();
+    if (!Object.hasOwn(rows, kind) || typeof invocationId !== "string" || !invocationId ||
+        typeof phase !== "string" || !phase || invocationIds[kind].has(invocationId)) {
+      throw new Error("request lifecycle invocation begin is invalid");
+    }
+    const startedSequence = maxCapture() + 1;
+    const startedAtMs = nextInvocationEventTimestamp();
+    const begin = Object.freeze({
+      sequence: ++invocationEventSequence,
+      timestamp: startedAtMs,
+      kind,
+      event: "begin",
+      invocationId,
+      phase,
+      startedSequence,
+      startedAtMs,
+    });
+    const state = {
+      kind, invocationId, phase, startedSequence, startedAtMs,
+      projection: Object.freeze({ invocationId, phase, startedSequence,
+        endedSequence: null, startedAtMs, endedAtMs: null, current: true }),
+      requests: [],
+      ended: false,
+    };
+    invocationIds[kind].add(invocationId);
+    events[kind].push(begin);
+    states.add(state);
+    return state;
+  };
+  const endInvocation = state => {
+    assertLedgerOpen();
+    if (!states.has(state) || state.ended === true) {
+      throw new Error("request lifecycle invocation end is invalid");
+    }
+    const endedSequence = Math.max(state.startedSequence, maxCapture());
+    const endedAtMs = nextInvocationEventTimestamp();
+    const end = Object.freeze({
+      sequence: ++invocationEventSequence,
+      timestamp: endedAtMs,
+      kind: state.kind,
+      event: "end",
+      invocationId: state.invocationId,
+      phase: state.phase,
+      endedSequence,
+      endedAtMs,
+    });
+    const row = Object.freeze({
+      invocationId: state.invocationId,
+      phase: state.phase,
+      startedSequence: state.startedSequence,
+      endedSequence,
+      startedAtMs: state.startedAtMs,
+      endedAtMs,
+      current: true,
+      requests: Object.freeze([...state.requests]),
+    });
+    state.ended = true;
+    events[state.kind].push(end);
+    rows[state.kind].push(row);
+    return row;
+  };
+  const captureContext = ({ navigation = null, action = null,
+    correlationDigest: requestCorrelationDigest = undefined } = {}) => {
+    assertLedgerOpen();
+    for (const state of [navigation, action]) {
+      if (state !== null && (!states.has(state) || state.ended === true)) {
+        throw new Error("request lifecycle capture references a stale invocation");
+      }
+    }
+    return Object.freeze({
+      navigationInvocation: navigation?.projection || null,
+      actionInvocation: action?.projection || null,
+      timestampMs: currentCaptureTimestamp(),
+      ...(requestCorrelationDigest === undefined
+        ? {}
+        : { correlationDigest: requestCorrelationDigest }),
+    });
+  };
+  const addExactMembership = (state, request) => {
+    if (!states.has(state) || state.ended === true || state.requests.includes(request)) {
+      throw new Error("request lifecycle invocation membership is invalid");
+    }
+    state.requests.push(request);
+  };
+  const registerCapturedRequest = (envelope, {
+    navigation = null,
+    actionClaim = null,
+  } = {}) => {
+    if (envelope === null) return null;
+    if (!envelope || typeof envelope !== "object" || !envelope.requestObject) {
+      throw new Error("captured request envelope is invalid");
+    }
+    const request = envelope.requestObject;
+    if (capturedEnvelopeByRequest.has(request)) {
+      throw new Error("captured request object is already registered");
+    }
+    if (navigation !== null) addExactMembership(navigation, request);
+    if (actionClaim !== null && (!states.has(actionClaim) || actionClaim.ended === true ||
+        envelope.actionInvocation?.invocationId !== actionClaim.invocationId)) {
+      throw new Error("captured request action claim is invalid");
+    }
+    capturedEnvelopeByRequest.set(request, envelope);
+    const pendingAction = pendingActionMembershipByRequest.get(request) || null;
+    if (pendingAction !== null) {
+      if (actionClaim !== pendingAction) {
+        throw new Error("pending exact action membership does not match capture claim");
+      }
+      addExactMembership(pendingAction, request);
+      pendingActionMembershipByRequest.delete(request);
+    }
+    return envelope;
+  };
+  const bindExactActionRequestMembership = (request, action) => {
+    assertLedgerOpen();
+    if ((typeof request !== "object" || request === null) && typeof request !== "function") {
+      throw new Error("exact action membership requires a Request object");
+    }
+    if (!states.has(action) || action.ended === true || action.kind !== "action") {
+      throw new Error("exact action membership requires an open action invocation");
+    }
+    const envelope = capturedEnvelopeByRequest.get(request) || null;
+    if (envelope !== null) {
+      if (envelope.actionInvocation?.invocationId !== action.invocationId) {
+        throw new Error("exact action membership does not match capture claim");
+      }
+      addExactMembership(action, request);
+      return envelope;
+    }
+    const pending = pendingActionMembershipByRequest.get(request) || null;
+    if (pending !== null && pending !== action) {
+      throw new Error("Request object is pending for a different action invocation");
+    }
+    pendingActionMembershipByRequest.set(request, action);
+    return null;
+  };
+  const bindCapturedRequest = (envelope, { navigation = null, action = null,
+    navigationMembership = true, actionMembership = true } = {}) => {
+    const registered = registerCapturedRequest(envelope, {
+      navigation: navigationMembership === true ? navigation : null,
+      actionClaim: action,
+    });
+    if (registered !== null && action !== null && actionMembership === true) {
+      bindExactActionRequestMembership(registered.requestObject, action);
+    }
+    return registered;
+  };
+  const sealRequestLifecycleLedger = () => {
+    if (sealed) return invocationRows();
+    if ([...states].some(state => state.ended !== true)) {
+      throw new Error("request lifecycle ledger cannot seal with an open invocation");
+    }
+    sealed = true;
+    Object.freeze(events.navigation);
+    Object.freeze(events.action);
+    Object.freeze(rows.navigation);
+    Object.freeze(rows.action);
+    return invocationRows();
+  };
+  const invocationRows = () => Object.freeze({
+    navigationInvocations: Object.freeze([...rows.navigation]),
+    actionInvocations: Object.freeze([...rows.action]),
+  });
+  const invocationEvents = () => Object.freeze({
+    navigationEvents: Object.freeze([...events.navigation]),
+    actionEvents: Object.freeze([...events.action]),
+  });
+  const evaluateRequestLifecycleLedger = () => {
+    if (!sealed) throw new Error("request lifecycle ledger must be sealed before evaluation");
+    if (memoizedEvaluation === null) {
+      const ledgers = invocationRows();
+      memoizedEvaluation = evaluator({
+        caseId,
+        recorderSnapshot: requestLifecycleRecorder.snapshot(),
+        navigationInvocations: ledgers.navigationInvocations,
+        actionInvocations: ledgers.actionInvocations,
+      });
+      if (!memoizedEvaluation || typeof memoizedEvaluation !== "object") {
+        throw new Error("request lifecycle evaluator returned an invalid result");
+      }
+      Object.freeze(memoizedEvaluation);
+    }
+    return memoizedEvaluation;
+  };
+  const safeRequestLifecycleProjection = () => {
+    const result = evaluateRequestLifecycleLedger();
+    const snapshot = requestLifecycleRecorder.snapshot();
+    const requestIdentity = new Map([
+      ...snapshot.requests.map(item => [item.requestObject, item.objectIdentity]),
+      ...snapshot.captureErrors.filter(item => item.requestObject)
+        .map(item => [item.requestObject, item.requestObjectIdentity]),
+    ]);
+    const responseIdentity = new Map([
+      ...snapshot.responses.map(item => [item.responseObject, item.responseObjectIdentity]),
+      ...snapshot.captureErrors.filter(item => item.responseObject)
+        .map(item => [item.responseObject, item.responseObjectIdentity]),
+    ]);
+    return freezeJsonProjection({
+      status: String(result.status || "FAIL"),
+      census: { ...result.census },
+      requests: snapshot.requests.map(item => ({
+        requestIdentity: item.objectIdentity,
+        redirectedFromIdentity: item.redirectedFromObjectIdentity,
+        correlationDigest: item.correlationDigest,
+      })),
+      classifications: result.classifications.map(item => ({
+        requestIdentity: requestIdentity.get(item.request) || "",
+        responseIdentity: responseIdentity.get(item.response) || "",
+        requestKind: String(item.requestKind || ""),
+        classification: String(item.classification || ""),
+        owner: String(item.owner || ""),
+        phase: String(item.phase || ""),
+      })),
+      failures: result.failures.map(item => ({
+        code: String(item.code || "INPUT_INVALID"),
+        requestIdentity: requestIdentity.get(item.request) || "",
+        responseIdentity: responseIdentity.get(item.response) || "",
+      })),
+    });
+  };
+  const api = {
+    requestLifecycleRecorder,
+    beginInvocation,
+    endInvocation,
+    captureContext,
+    bindCapturedRequest,
+    registerCapturedRequest,
+    bindExactActionRequestMembership,
+    sealRequestLifecycleLedger,
+    evaluateRequestLifecycleLedger,
+    safeRequestLifecycleProjection,
+    invocationRows,
+    invocationEvents,
+  };
+  return Object.freeze(api);
+
+  function assertLedgerOpen() {
+    if (sealed) throw new Error("request lifecycle ledger is sealed");
+  }
+}
+
+function freezeJsonProjection(value) {
+  if (Array.isArray(value)) return Object.freeze(value.map(freezeJsonProjection));
+  if (value && typeof value === "object") {
+    const projection = {};
+    for (const [key, item] of Object.entries(value)) {
+      projection[key] = freezeJsonProjection(item);
+    }
+    return Object.freeze(projection);
+  }
+  return value;
+}
+
+const legacyRequestEvidenceTuples = Object.freeze({
+  "bootstrap-document": Object.freeze(["page", "page", "bootstrap", "initial-page-load"]),
+  "bootstrap-fetch": Object.freeze(["page", "page", "bootstrap", "bootstrap"]),
+  "background-fetch": Object.freeze(["page", "page", "background-refresh", "background-refresh"]),
+  "page-subresource": Object.freeze(["page", "page", "page-subresource", "page-subresource"]),
+  sse: Object.freeze(["page", "page", "sse", "sse"]),
+  websocket: Object.freeze(["page", "page", "websocket", "websocket"]),
+  "primary-action": Object.freeze(["action", "explicit-action-registration", "primary-action", "primary-action"]),
+  "same-route-form-rejection": Object.freeze(["action", "explicit-action-registration", "primary-action", "primary-action"]),
+  "document-redirect-chain": Object.freeze(["page", "document-navigation-ledger", "document-navigation-chain", "document-navigation-chain"]),
+  "independent-readback": Object.freeze(["page", "page", "independent-readback", "independent-readback"]),
+});
+
+export function legacyRequestEvidenceTuple(lifecycleClass, {
+  actionInvocationId = "",
+  navigationInvocationId = "",
+} = {}) {
+  const requestedClass = String(lifecycleClass || "");
+  const selectedClass = Object.hasOwn(legacyRequestEvidenceTuples, requestedClass)
+    ? requestedClass
+    : "page-subresource";
+  const values = legacyRequestEvidenceTuples[selectedClass];
+  return Object.freeze({
+    lifecycleClass: selectedClass,
+    ledgerOwner: values[0],
+    sourceOwner: values[1],
+    ownerPhase: values[2],
+    requestOwnershipKind: values[3],
+    initiatorActionId: "",
+    actionInvocationId: String(actionInvocationId || ""),
+    navigationInvocationId: String(navigationInvocationId || ""),
+    correlationId: "",
+  });
+}
+
 async function openNativePlaywrightPage(playwright, {
   httpBase,
   pagePath,
@@ -787,6 +1194,11 @@ async function openNativePlaywrightPage(playwright, {
   const requestIdentityRegistry = createCaseOwnedRequestIdentityRegistry({
     caseId,
   });
+  const requestLifecycleLedger = createNativeRequestLifecycleLedger({
+    caseId: String(caseId || "noncanonical-page"),
+    correlationDigest: correlationDigest(navigationCorrelationId),
+  });
+  const { requestLifecycleRecorder } = requestLifecycleLedger;
   const pendingRequests = new Map();
   const responseRequestBindings = new WeakMap();
   const routeInjectedCorrelations = new WeakMap();
@@ -805,6 +1217,8 @@ async function openNativePlaywrightPage(playwright, {
   let activeCorrelationId = String(navigationCorrelationId || "");
   let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId);
   let activeRequestOwnership = null;
+  let activeActionLifecycleInvocation = null;
+  const actionLifecycleInvocationByContext = new WeakMap();
   let activeRequestRenderCycleId = "";
   let activeActionRequestLedgers = [];
   let activeActionScopeNetworkStart = 0;
@@ -823,10 +1237,57 @@ async function openNativePlaywrightPage(playwright, {
   let initialRouteSettlingAttestation = null;
   let actionLedgerStart = null;
   let closePromise = null;
+  let browserClosed = false;
   const requestKindFor = request => request.isNavigationRequest() &&
       request.resourceType() === "document"
     ? "document-navigation"
     : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
+  const legacyRequestEvidenceForCallback = ({
+    requestKind,
+    resourceType,
+    redirected,
+    navigationOperation,
+    actionContext,
+  }) => {
+    const actionInvocationId = String(actionContext?.actionId ||
+      navigationOperation?.actionId || "");
+    const navigationInvocationId = String(navigationOperation?.invocationId || "");
+    if (actionContext) {
+      const lifecycleClass = actionContext.phase === "independent-readback"
+        ? "independent-readback"
+        : "primary-action";
+      return legacyRequestEvidenceTuple(lifecycleClass, {
+        actionInvocationId,
+        navigationInvocationId,
+      });
+    }
+    if (redirected && navigationOperation?.kind === "form-submit-document-navigation") {
+      return legacyRequestEvidenceTuple("document-redirect-chain", {
+        actionInvocationId,
+        navigationInvocationId,
+      });
+    }
+    const bootstrap = !initialRouteSettlingAttestation;
+    const lifecycleClass = requestKind === "document-navigation" && resourceType === "document"
+      ? "bootstrap-document"
+      : bootstrap && requestKind === "application-fetch"
+        ? "bootstrap-fetch"
+        : requestKind === "application-fetch"
+          ? "background-fetch"
+          : resourceType === "eventsource"
+            ? "sse"
+            : resourceType === "websocket"
+              ? "websocket"
+              : "page-subresource";
+    const selectedClass = resourceType === "eventsource"
+      ? "sse"
+      : resourceType === "websocket"
+        ? "websocket"
+        : lifecycleClass;
+    return legacyRequestEvidenceTuple(selectedClass, {
+      navigationInvocationId,
+    });
+  };
   const createEnvelopeWrapper = (context, requestEnvelope, {
     requestKind = "application-fetch",
     registrationKind = "manifest-envelope",
@@ -924,16 +1385,27 @@ async function openNativePlaywrightPage(playwright, {
     try {
       const explicitCorrelationHeaderPresent = headerEntries.some(entry =>
         String(entry?.name || "").toLowerCase() === correlationHeaderName);
+      const requestEventPending = pendingRequests.get(request) || null;
+      const requestEventOwnership = requestEventPending?.actionRequestLedgerWrapper
+        ? {
+            context: requestEventPending.requestActionContext,
+            ledgerWrapper: requestEventPending.actionRequestLedgerWrapper,
+            registrationKind: "request-event-before-route",
+          }
+        : null;
       actionRequestOwnership = activeExplicitCorrelationRegistration?.active === true &&
           Boolean(activeExplicitCorrelationRegistration.correlationId) &&
           !explicitCorrelationHeaderPresent
         ? null
-        : selectActionRequestOwnership(request, {
+        : requestEventOwnership || selectActionRequestOwnership(request, {
             registration: explicitCorrelationHeaderPresent
               ? activeExplicitCorrelationRegistration
               : null,
           });
       const claimedContext = actionRequestOwnership?.context || null;
+      const claimedActionLifecycleInvocation = claimedContext
+        ? actionLifecycleInvocationByContext.get(claimedContext) || null
+        : null;
       decision = resolveRequestCorrelationPrecedence({
         headerEntries,
         outerCorrelationId: claimedContext ? activeCorrelationId : "",
@@ -946,6 +1418,10 @@ async function openNativePlaywrightPage(playwright, {
         currentCaseId: caseId,
         currentActionId: String(claimedContext?.actionId || ""),
       });
+      if (actionRequestOwnership && claimedActionLifecycleInvocation) {
+        requestLifecycleLedger.bindExactActionRequestMembership(request,
+          claimedActionLifecycleInvocation);
+      }
     } catch (error) {
       correlationRouteFailures.push({
         sequence: ++lifecycleSequence,
@@ -1011,6 +1487,41 @@ async function openNativePlaywrightPage(playwright, {
   };
   requestListenerStartSequence = ++lifecycleSequence;
   page.on("request", request => {
+    const captureInvocations = selectNativeLifecycleCaptureInvocations(request, {
+      navigation: activeNavigationOperation?.requestLifecycleInvocation || null,
+      action: activeActionLifecycleInvocation,
+    });
+    const navigationLifecycleInvocation = captureInvocations.navigation;
+    const actionLifecycleInvocation = captureInvocations.actionClaim;
+    const requestCorrelationDigest = String(
+      routeInjectedCorrelations.get(request)?.correlationRouteDigest ||
+      correlationDigest(activeRequestOwnership?.correlationId || activeCorrelationId),
+    );
+    let lifecycleCaptureContext;
+    try {
+      lifecycleCaptureContext = requestLifecycleLedger.captureContext({
+        navigation: navigationLifecycleInvocation,
+        action: actionLifecycleInvocation,
+        ...(requestCorrelationDigest
+          ? { correlationDigest: requestCorrelationDigest }
+          : {}),
+      });
+    } catch {
+      lifecycleCaptureContext = Object.freeze({ navigationInvocation: undefined });
+    }
+    const requestEnvelope = requestLifecycleRecorder.recordRequest(
+      request,
+      lifecycleCaptureContext,
+    );
+    try {
+      requestLifecycleLedger.registerCapturedRequest(requestEnvelope, {
+        navigation: navigationLifecycleInvocation,
+        actionClaim: actionLifecycleInvocation,
+      });
+    } catch {
+      // Recorder capture가 authoritative이므로 operational membership 오류는 callback 밖으로 전파하지 않는다.
+    }
+    try {
     const routeInjectedCorrelation = routeInjectedCorrelations.get(request);
     const correlationId = String(routeInjectedCorrelation?.correlationId ||
       request.headers()["x-media-server-correlation-id"] || "");
@@ -1022,20 +1533,12 @@ async function openNativePlaywrightPage(playwright, {
     const actionContext = actionRequestOwnership?.context || null;
     const requestKind = requestKindFor(request);
     const redirectedFrom = request.redirectedFrom();
-    const redirectedFromLifecycle = redirectedFrom
-      ? responseRequestBindings.get(redirectedFrom) || null
-      : null;
-    const lifecycleOwnership = classifyRequestLifecycleOwnership({
-      initialSettlingComplete: Boolean(initialRouteSettlingAttestation),
-      resourceType: request.resourceType(),
+    const lifecycleOwnership = legacyRequestEvidenceForCallback({
       requestKind,
-      redirectedFromRequest: redirectedFrom,
-      redirectedFromLifecycle,
-      navigationInvocation: activeNavigationOperation,
-      actionInvocation: actionContext,
-      phase: String(actionContext?.phase || activeNavigationOperation?.kind ||
-        activeRequestOwnership?.phase ||
-        (initialRouteSettlingAttestation ? "post-action-observation" : "bootstrap-settling")),
+      resourceType: request.resourceType(),
+      redirected: Boolean(redirectedFrom),
+      navigationOperation: activeNavigationOperation,
+      actionContext,
     });
     const ledgerOwner = lifecycleOwnership.ledgerOwner;
     const ownerPhase = lifecycleOwnership.ownerPhase;
@@ -1177,8 +1680,13 @@ async function openNativePlaywrightPage(playwright, {
       documentNavigationLedger.push(ledgerEntry);
       documentNavigationByRequestId.set(requestId, ledgerEntry);
     }
+    } catch {
+      // Legacy network/evidence projection은 best-effort이며 lifecycle authority가 아니다.
+    }
   });
   page.on("response", response => {
+    requestLifecycleRecorder.recordResponse(response);
+    try {
     const { request, initiatingRequest } =
       bindPlaywrightResponseToInitiatingRequest(
         response,
@@ -1311,42 +1819,48 @@ async function openNativePlaywrightPage(playwright, {
       "/ops/api/invites",
       "/client/api/access-requests",
     ].includes(urlPath(response.url()))) {
-      const read = response.json()
-        .then(payload => {
-          if (urlPath(response.url()) === "/ops/api/invites") {
-            const issuedToken = typeof payload?.invite?.token === "string" ? payload.invite.token : "";
-            if (issuedToken) {
-              observedRuntimeSecrets.add(issuedToken);
-              if (typeof onRuntimeSecret !== "function") {
-                throw new Error("invite response runtime secret sink is unavailable");
-              }
-              onRuntimeSecret({ kind: "issued-invite-token", value: issuedToken });
-            }
-          }
-          entry.safeResponseBody = safeFormResponseProjection(urlPath(response.url()), payload);
-        })
-        .catch(() => {
-          safeResponseReadFailures.push(
-            `form response projection failed for POST ${urlPath(response.url())}: response parsing or runtime secret registration failed`,
-          );
-          entry.safeResponseBody = safeFormResponseProjection(urlPath(response.url()), null);
-        })
-        .finally(() => pendingSafeResponseReads.delete(read));
-      pendingSafeResponseReads.add(read);
+      captureLegacyFormResponseProjection({
+        response,
+        entry,
+        pathname: urlPath(response.url()),
+        onRuntimeSecret,
+        observedRuntimeSecrets,
+        pendingSafeResponseReads,
+        safeResponseReadFailures,
+      });
+    }
+    } catch {
+      // Recorder가 exact response identity를 캡처했으므로 legacy safe projection은 throw하지 않는다.
     }
   });
   const completeOwnedRequest = request => {
-    const pending = pendingRequests.get(request);
-    if (pending?.requestActionContext) {
-      requestActionOwnershipRegistry.completeRequest(
-        pending.requestActionContext,
-        pending.requestId,
-      );
+    try {
+      const pending = pendingRequests.get(request);
+      if (pending?.requestActionContext) {
+        requestActionOwnershipRegistry.completeRequest(
+          pending.requestActionContext,
+          pending.requestId,
+        );
+      }
+      pendingRequests.delete(request);
+    } catch {
+      // Compatibility cleanup 실패 시에도 terminal recorder callback을 authoritative로 유지한다.
     }
-    pendingRequests.delete(request);
   };
-  page.on("requestfinished", completeOwnedRequest);
-  page.on("requestfailed", completeOwnedRequest);
+  page.on("requestfinished", request => {
+    requestLifecycleRecorder.recordRequestFinished(request);
+    completeOwnedRequest(request);
+  });
+  page.on("requestfailed", request => {
+    let failure = null;
+    try {
+      failure = request.failure();
+    } catch {
+      failure = { errorText: "unreadable request failure" };
+    }
+    requestLifecycleRecorder.recordRequestFailed(request, failure);
+    completeOwnedRequest(request);
+  });
   requestListenersInstalled = true;
   const navigationRequestedPath = urlTarget(new URL(pagePath, `${httpBase}/`).toString());
   const navigationOrigin = urlOrigin(new URL(pagePath, `${httpBase}/`).toString());
@@ -1451,6 +1965,10 @@ async function openNativePlaywrightPage(playwright, {
     if (sourceOwner.candidateCount !== 1 || sourceOwner.visible !== true) {
       throw new Error(`navigation source-before document owner is not visible: ${operation.invocationId}`);
     }
+    operation.requestLifecycleInvocation = requestLifecycleLedger.beginInvocation(
+      "navigation",
+      { invocationId: operation.invocationId, phase: operation.kind },
+    );
     activeNavigationOperation = operation;
     try {
       const response = await page.goto(new URL(nextPagePath, `${httpBase}/`).toString(), {
@@ -1461,6 +1979,7 @@ async function openNativePlaywrightPage(playwright, {
       return { status: response?.status() || 0, url: page.url(), invocationId: operation.invocationId };
     } finally {
       activeNavigationOperation = null;
+      requestLifecycleLedger.endInvocation(operation.requestLifecycleInvocation);
     }
   };
   const navigationResponse = await performNavigation(pagePath, {
@@ -1548,6 +2067,24 @@ async function openNativePlaywrightPage(playwright, {
       selectExactNavigationOwnerLifecycle(navigationOwnerLifecycles, invocationId),
     navigationOwnerLifecycles: () =>
       structuredClone(navigationOwnerLifecycles),
+    sealRequestLifecycleLedger: () => {
+      if (!browserClosed) {
+        throw new Error("request lifecycle ledger cannot seal before browser close");
+      }
+      return requestLifecycleLedger.sealRequestLifecycleLedger();
+    },
+    evaluateRequestLifecycleLedger: () => {
+      if (!browserClosed) {
+        throw new Error("request lifecycle ledger cannot evaluate before browser close");
+      }
+      return requestLifecycleLedger.evaluateRequestLifecycleLedger();
+    },
+    safeRequestLifecycleProjection: () => {
+      if (!browserClosed) {
+        throw new Error("request lifecycle evidence cannot project before browser close");
+      }
+      return requestLifecycleLedger.safeRequestLifecycleProjection();
+    },
     attestInitialRouteSettling: async ({
       controlSelector = null,
       controlApplicability = "required",
@@ -1774,6 +2311,11 @@ async function openNativePlaywrightPage(playwright, {
         ownershipKind,
         renderCycleId,
       });
+      activeActionLifecycleInvocation = requestLifecycleLedger.beginInvocation("action", {
+        invocationId: String(context.actionId || ""),
+        phase: String(context.phase || "primary-action"),
+      });
+      actionLifecycleInvocationByContext.set(context, activeActionLifecycleInvocation);
       activeRequestOwnership = context;
       activeRequestRenderCycleId = String(renderCycleId || "");
       activeActionRequestLedgers = [];
@@ -1824,6 +2366,10 @@ async function openNativePlaywrightPage(playwright, {
           wrapper.closed = true;
         }
         requestActionOwnershipRegistry.cleanup({ failure: error });
+        if (activeActionLifecycleInvocation) {
+          requestLifecycleLedger.endInvocation(activeActionLifecycleInvocation);
+          activeActionLifecycleInvocation = null;
+        }
         activeRequestOwnership = null;
         activeRequestRenderCycleId = "";
         activeActionRequestLedgers = [];
@@ -1848,6 +2394,10 @@ async function openNativePlaywrightPage(playwright, {
         actionCorrelationLeakCount:
           correlationLeakEvidence.actionCorrelationLeakCount,
       });
+      if (activeActionLifecycleInvocation) {
+        requestLifecycleLedger.endInvocation(activeActionLifecycleInvocation);
+        activeActionLifecycleInvocation = null;
+      }
       activeRequestOwnership = null;
       activeRequestRenderCycleId = "";
       activeActionRequestLedgers = [];
@@ -1868,6 +2418,10 @@ async function openNativePlaywrightPage(playwright, {
       for (const wrapper of activeActionRequestLedgers) {
         wrapper.abort(failure || new Error("request action ownership cleanup"));
         wrapper.closed = true;
+      }
+      if (activeActionLifecycleInvocation) {
+        requestLifecycleLedger.endInvocation(activeActionLifecycleInvocation);
+        activeActionLifecycleInvocation = null;
       }
       activeRequestOwnership = null;
       activeRequestRenderCycleId = "";
@@ -2357,6 +2911,10 @@ async function openNativePlaywrightPage(playwright, {
           documentEnvelopeWrapper.responseBarrier.evidence().settlement !== "pending") {
         throw new Error("document form action envelope was not pristine before submit");
       }
+      operation.requestLifecycleInvocation = requestLifecycleLedger.beginInvocation(
+        "navigation",
+        { invocationId: operation.invocationId, phase: operation.kind },
+      );
       activeNavigationOperation = operation;
       try {
         await page.locator(selector).click();
@@ -2369,6 +2927,7 @@ async function openNativePlaywrightPage(playwright, {
         };
       } finally {
         activeNavigationOperation = null;
+        requestLifecycleLedger.endInvocation(operation.requestLifecycleInvocation);
       }
     },
     fill: async (selector, value) => {
@@ -2987,6 +3546,12 @@ async function openNativePlaywrightPage(playwright, {
           }
           try {
             await browser.close();
+          } catch (error) {
+            closeFailure ||= error;
+          }
+          browserClosed = true;
+          try {
+            requestLifecycleLedger.sealRequestLifecycleLedger();
           } catch (error) {
             closeFailure ||= error;
           }

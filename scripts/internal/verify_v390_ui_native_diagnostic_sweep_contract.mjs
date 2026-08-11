@@ -1349,6 +1349,10 @@ check("plan-only diagnostic output preserves count invariants without browser ex
   assert(run.status === 0, `diagnostic plan-only failed: ${run.stderr || run.stdout}`);
   const summary = JSON.parse(fs.readFileSync(path.join(outputDir, "summary.json"), "utf8"));
   assert(summary.schema === "media-server.v390-ui-diagnostic-sweep.v1", "diagnostic plan-only schema mismatch");
+  assert(summary.schema !== "media-server.v390-ui-canonical-parent.v1" &&
+    !Object.hasOwn(summary, "infraFatal") &&
+    !Object.hasOwn(summary, "failureCensus"),
+  "canonical parent orchestration captured the diagnostic-only lifecycle");
   assert(summary.diagnosticOnly === true && summary.releaseEvidenceEligible === false &&
     summary.policyV4Qualification === "not-eligible" && summary.uiFulltestPass === false,
   "diagnostic plan-only release boundary mismatch");

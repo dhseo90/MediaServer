@@ -18,12 +18,18 @@ import {
   sha256Text,
 } from "./evidence_integrity_lib.mjs";
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
+import { evaluateEvidence } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import {
   nativeExactPreExecutionFailureStatus,
+  validateCanonicalFinalIntegrityBindings,
+  validateCanonicalParentAcceptanceSummary,
   validateNativeExactCaptureSummary,
   validateNativeExactCleanupContract,
 } from "./v390_ui_native_exact_cases_lib.mjs";
-import { assertPolicyV4ArtifactRoot } from "./v390_ui_policy_v4_evidence_producer.mjs";
+import {
+  assertPolicyV4ArtifactRoot,
+  producePolicyV4EvidenceFromCanonicalParent,
+} from "./v390_ui_policy_v4_evidence_producer.mjs";
 import {
   classifyLongrun120ChangedAreas,
   evaluateLongrun120Decision,
@@ -53,6 +59,7 @@ const stageIds = [
   "longrun-120-decision",
   "server-longrun-120",
   "cleanup",
+  "ui-final-integrity",
   "report",
   "final-integrity",
 ];
@@ -121,6 +128,7 @@ assertKnownOptions(rawArgs, [
   "fixture-fail-feature-command",
   "fixture-cleanup-fail",
   "fixture-120-trigger",
+  "contract-retained-secret-final-artifact",
   "h",
   "help",
 ]);
@@ -146,7 +154,13 @@ let failedCommand = "";
 let cleanupFailed = false;
 let longrun30Summary = null;
 let uiAutomationSummary = null;
+let uiCanonicalParentValidation = null;
+let uiPolicyRawSummary = null;
+let uiPolicyRawSummaryPath = "";
 let policyEvaluation = null;
+let uiFinalIntegrityEvidence = null;
+let uiPostProducerSecretScanner = null;
+let uiRetainedArtifactSecretIntegrity = null;
 let longrun120Summary = null;
 let longrun120Decision = null;
 let uiEnvironmentHandle = null;
@@ -181,8 +195,10 @@ if (options.dryRun) {
 }
 
 async function runActualBundle() {
+  let finalSummary = null;
+  try {
   for (const stageId of stageIds) {
-    const ordinary = !["ui-server-cleanup", "cleanup", "report"].includes(stageId);
+    const ordinary = !["ui-server-cleanup", "cleanup", "ui-final-integrity", "report", "final-integrity"].includes(stageId);
     const skipForPreviousFailure = ordinary && failedStage !== "";
     const skipForSuite = !stageSelectedForSuite(stageId);
     const skipConditional120 = stageId === "server-longrun-120" && longrun120Decision?.executionDecision !== "run";
@@ -209,8 +225,11 @@ async function runActualBundle() {
       recordFailure(stageId, `execute ${stageId}`, message, ["ui-server-cleanup", "cleanup"].includes(stageId));
     }
   }
-  normalizeTextArtifacts(outputDir);
-  const summary = writeAcceptanceArtifacts();
+    normalizeTextArtifacts(outputDir);
+  } finally {
+    finalSummary = await finalizeRetainedArtifactSecretScanner();
+  }
+  const summary = finalSummary || writeAcceptanceArtifacts();
   printSummary(summary);
   return summary;
 }
@@ -219,7 +238,7 @@ function assertFirstFailureClosure(stageLedger, firstFailedStage) {
   if (!firstFailedStage) return;
   const failedIndex = stageIds.indexOf(firstFailedStage);
   const laterOrdinaryStageIds = stageIds.slice(failedIndex + 1)
-    .filter((id) => !["ui-server-cleanup", "cleanup", "report"].includes(id));
+    .filter((id) => !["ui-server-cleanup", "cleanup", "ui-final-integrity", "report", "final-integrity"].includes(id));
   const laterStagesNotRun = laterOrdinaryStageIds.every((id) =>
     stageLedger.some((stage) => stage.id === id && stage.status === "not-run" &&
       stage.reason === `not run after ${firstFailedStage} failure`));
@@ -326,6 +345,7 @@ async function runRealStage(stageId) {
       chromePath: options.uiChromePath,
       buildPath: options.uiBuildPath,
     });
+    uiPostProducerSecretScanner = uiEnvironmentHandle.createRetainedArtifactSecretScanner();
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
     uiEnvironmentSummary.uiBuildBinding = uiBuildBinding;
     const endedAt = Date.now();
@@ -349,7 +369,6 @@ async function runRealStage(stageId) {
     }));
     return;
   }
-
   if (stageId === "ui-exact-424") {
     assert(uiEnvironmentHandle?.runtime, "self-contained UI environment was not acquired");
     assertCurrentUiBuildBinding();
@@ -370,22 +389,39 @@ async function runRealStage(stageId) {
     const errors = [];
     try {
       if (fs.existsSync(childSummaryPath)) uiAutomationSummary = readJson(childSummaryPath);
-      if (!failedStage) errors.push(...validateExactUiSummary(uiAutomationSummary, childDir));
+      errors.push(...validateCanonicalParentAfterChildExit(uiAutomationSummary, childDir));
       const acceptanceSecretArtifactIntegrity = uiEnvironmentHandle.assertSecretsAbsentFromArtifacts(childDir);
       if (acceptanceSecretArtifactIntegrity.status !== "PASS" ||
           acceptanceSecretArtifactIntegrity.verificationSource !== "exact-and-runtime-artifact-byte-scan-before-secret-release" ||
           Number(acceptanceSecretArtifactIntegrity.scannedFiles) < 1 || Number(acceptanceSecretArtifactIntegrity.scannedBytes) < 1) {
         errors.push("exact/runtime secret artifact scan evidence mismatch");
       }
-      if (uiAutomationSummary) {
-        uiAutomationSummary.acceptanceSecretArtifactIntegrity = acceptanceSecretArtifactIntegrity;
-        writeJson(childSummaryPath, uiAutomationSummary);
-        uiEnvironmentHandle.assertSecretsAbsentFromArtifacts(childDir);
+      if (uiAutomationSummary) uiEnvironmentHandle.assertSecretsAbsentFromArtifacts(childDir);
+      if (errors.length === 0 && uiCanonicalParentValidation?.censusComplete === true) {
+        if (uiCanonicalParentValidation.eligible === true) {
+          const finalizer = readJson(uiAutomationSummary.suiteFinalizer.summaryPath);
+          const produced = producePolicyV4EvidenceFromCanonicalParent({
+          canonicalParentSummary: uiAutomationSummary,
+          canonicalParentValidation: uiCanonicalParentValidation,
+          rootDir,
+          outputDir: childDir,
+          manifest: readJson(path.join(rootDir, "test/fixtures/v390_ui_native_exact_cases.json")),
+          canonical: readJson(path.join(rootDir, "test/fixtures/ui_fulltest_case_manifest_policy_v4.json")),
+          selectedAdapter: finalizer.selectedAdapter,
+          buildPath: options.uiBuildPath,
+          runnerPath: path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"),
+          serverLogPath: uiEnvironmentHandle.runtime.serverLogPath,
+          visualMatrixProbes: finalizer.visualMatrixProbes,
+          summaryFilePath: path.join(childDir, "policy-v4-summary.json"),
+          canonicalParentSummaryPath: childSummaryPath,
+          });
+          uiPolicyRawSummary = produced.summary;
+          uiPolicyRawSummaryPath = produced.summaryPath;
+          assertPostProducerSecretsAbsent(childDir);
+        }
       }
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
-    } finally {
-      uiEnvironmentHandle.releaseSecrets();
     }
     if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
     return;
@@ -395,18 +431,9 @@ async function runRealStage(stageId) {
     const cleanup = uiEnvironmentCleanup || await stopSelfContainedUiEnvironment(uiEnvironmentHandle);
     uiEnvironmentCleanup = cleanup;
     const cleanupErrors = validateUiEnvironmentCleanupEvidence(cleanup);
-    if (uiAutomationSummary) {
-      if (isStructuredUiPreExecutionFailure(uiAutomationSummary)) {
-        uiAutomationSummary.acceptanceOwnedEnvironmentCleanup = cleanup;
-      } else {
-        uiAutomationSummary.cleanup = cleanup;
-      }
-      uiAutomationSummary.summaryPath = path.join(runDir, "ui-exact-424", "summary.json");
-      uiAutomationSummary.reportPath = "";
-      uiAutomationSummary.artifactIntegrity = {
-        placeholderVideoFiles: scanArtifactTree(path.join(runDir, "ui-exact-424")).placeholderVideoFiles.length,
-      };
-      writeJson(path.join(runDir, "ui-exact-424", "summary.json"), uiAutomationSummary);
+    if (uiPolicyRawSummary && uiPolicyRawSummaryPath) {
+      uiPolicyRawSummary.cleanup = cleanup;
+      writeJson(uiPolicyRawSummaryPath, uiPolicyRawSummary);
     }
     if (cleanup.status !== "PASS" || cleanupErrors.length > 0) {
       recordFailure(stageId, "stop exact UI throwaway server", `UI throwaway server/port cleanup failed: ${cleanupErrors.join("; ")}`, true);
@@ -416,7 +443,8 @@ async function runRealStage(stageId) {
   }
 
   if (stageId === "ui-fulltest-qualification") {
-    const evidenceSummaryPath = path.join(runDir, "ui-exact-424", "summary.json");
+    const evidenceSummaryPath = uiPolicyRawSummaryPath ||
+      path.join(runDir, "ui-exact-424", "summary.json");
     const qualificationDir = path.join(runDir, "ui-fulltest-qualification");
     const evaluationPath = path.join(qualificationDir, "evaluation.json");
     await runSingleCommandStage(stageId, command("./server.sh", [
@@ -477,6 +505,11 @@ async function runRealStage(stageId) {
     return;
   }
 
+  if (stageId === "ui-final-integrity") {
+    runUiFinalIntegrityStage();
+    return;
+  }
+
   if (stageId === "final-integrity") {
     const now = new Date().toISOString();
     const logPath = path.join(runDir, `${stageId}.log`);
@@ -510,8 +543,8 @@ async function runRealStage(stageId) {
         durationMs: result.durationMs,
         tail: result.tail,
       });
-      failedStage = stageId;
-      failedCommand = stage.command;
+      failedStage ||= stageId;
+      failedCommand ||= stage.command;
     }
     return;
   }
@@ -525,7 +558,10 @@ async function runRealStage(stageId) {
 
 async function runFixtureStage(stageId) {
   if (options.fixtureFailStage === stageId) {
-    recordFailure(stageId, `fixture fail ${stageId}`, `fixture failure at ${stageId}`);
+    recordFailure(stageId, `fixture fail ${stageId}`,
+      options.contractRetainedSecretFinalArtifact === "first-failure"
+        ? "round3-acceptance-final-secret-canary"
+        : `fixture failure at ${stageId}`);
     return;
   }
   if (stageId === "build") {
@@ -543,11 +579,40 @@ async function runFixtureStage(stageId) {
       runId,
       fixtureMode: true,
       buildPath: uiBuildBinding.buildPath,
+      contractFixtureSecretValues: options.contractRetainedSecretFinalArtifact
+        ? ["round3-acceptance-final-secret-canary"] : [],
     });
+    if (options.contractRetainedSecretFinalArtifact) {
+      uiPostProducerSecretScanner = uiEnvironmentHandle.createRetainedArtifactSecretScanner();
+    }
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
     uiEnvironmentSummary.uiBuildBinding = uiBuildBinding;
     stages.push(passStage(stageId, "fixture self-contained UI environment wiring", uiEnvironmentSummary));
     return;
+  }
+  if (stageId === "ui-exact-424" &&
+      options.contractRetainedSecretFinalArtifact === "post-producer") {
+    const childDir = path.join(runDir, "ui-exact-424");
+    fs.mkdirSync(childDir, { recursive: true });
+    assert(uiPostProducerSecretScanner,
+      "retained scanner must be owned before the Policy producer/post-producer scan");
+    uiPolicyRawSummaryPath = path.join(childDir, "policy-v4-summary.json");
+    uiPolicyRawSummary = {
+      schema: "media-server.ui-automation-evidence.v4",
+      contractDiagnostic: "round3-acceptance-final-secret-canary",
+    };
+    writeJson(uiPolicyRawSummaryPath, uiPolicyRawSummary);
+    assertPostProducerSecretsAbsent(childDir);
+    throw new Error("contract post-producer retained-secret scan unexpectedly passed");
+  }
+  if (stageId === "ui-exact-424" &&
+      options.contractRetainedSecretFinalArtifact === "child-artifact") {
+    const childDir = path.join(runDir, "ui-exact-424");
+    fs.mkdirSync(childDir, { recursive: true });
+    fs.writeFileSync(path.join(childDir, "retained-secret-child.txt"),
+      "round3-acceptance-final-secret-canary\n", { mode: 0o600 });
+    uiEnvironmentHandle.assertSecretsAbsentFromArtifacts(childDir);
+    throw new Error("contract child retained-secret scan unexpectedly passed");
   }
   if (stageId === "feature-gates") {
     const startedAt = new Date().toISOString();
@@ -600,6 +665,50 @@ async function runFixtureStage(stageId) {
   if (stageId === "cleanup" && options.fixtureCleanupFail) {
     cleanupFailed = true;
     recordFailure(stageId, "fixture cleanup", "fixture cleanup failure", true);
+    return;
+  }
+  if (stageId === "ui-final-integrity") {
+    const evidencePath = path.join(runDir, "ui-final-integrity.json");
+    uiFinalIntegrityEvidence = writeUiFinalIntegrityEvidenceAtomic(evidencePath, {
+      schema: "media-server.v390-ui-final-integrity.v1",
+      contractFixture: true,
+      status: "PASS",
+      finalEvidenceEligible: false,
+      runId,
+      reasons: ["contract-fixture-is-not-execution-evidence"],
+      ...(options.contractRetainedSecretFinalArtifact === "ui-final-integrity"
+        ? { contractDiagnostic: "round3-acceptance-final-secret-canary" } : {}),
+    });
+    stages.push(passStage(stageId, "contract fixture UI final-integrity boundary", {
+      summaryPath: evidencePath,
+    }));
+    stages[stages.length - 1].summaryPath = evidencePath;
+    return;
+  }
+  if (stageId === "final-integrity" && failedStage) {
+    stages.push(makeStage({
+      id: stageId,
+      status: "FAIL",
+      command: "fixture final-integrity validates complete canonical evidence",
+      exitCode: 1,
+      startedAt: new Date().toISOString(),
+      endedAt: new Date().toISOString(),
+      durationMs: 0,
+      logPath: writeStageLog(stageId, ["incomplete canonical evidence"]),
+      summaryPath,
+      tail: ["incomplete canonical evidence"],
+      checks: [],
+    }));
+    return;
+  }
+  if (stageId === "ui-fulltest-qualification" &&
+      options.contractRetainedSecretFinalArtifact === "evaluation") {
+    policyEvaluation = { contractDiagnostic: "round3-acceptance-final-secret-canary" };
+  }
+  if (stageId === "report" && options.contractRetainedSecretFinalArtifact === "report") {
+    stages.push(passStage(stageId, "write acceptance summary/report", { fixture: true }));
+    writeAcceptanceArtifacts();
+    fs.appendFileSync(reportPath, "round3-acceptance-final-secret-canary\n", "utf8");
     return;
   }
   if (stageId === "longrun-120-decision") {
@@ -831,6 +940,8 @@ function buildActualSummary() {
     },
     knownUiClosureBlockers,
     policyV4Evaluation: policyEvaluation,
+    uiFinalIntegrity: uiFinalIntegrityEvidence,
+    uiRetainedArtifactSecretIntegrity,
     uiFulltestQualification: fullSuiteEligibility,
     automatedAcceptanceStatus: fullSuiteEligibility.status === "eligible"
       ? "eligible"
@@ -972,6 +1083,21 @@ function buildLongrun120Scope() {
 }
 
 function validateExactUiSummary(payload, childDir) {
+  if (payload?.schema === "media-server.v390-ui-canonical-parent.v1") {
+    const validation = validateCanonicalParentAcceptanceSummary({
+      summary: payload,
+      canonicalCaseIds: canonicalUiCaseIds,
+      artifactRoot: childDir,
+      summaryPath: path.join(childDir, "summary.json"),
+      expectedVerificationCommitSha: sourceProvenance.commitSha,
+      expectedVerificationBranch: sourceProvenance.branch,
+      expectedManifestSha256: sha256Text(canonicalStableJson(readJson(
+        path.join(rootDir, "test/fixtures/v390_ui_native_exact_cases.json")))),
+      expectedBuildSha256: uiBuildBinding?.buildSha256 || "",
+    });
+    uiCanonicalParentValidation = validation;
+    return [...validation.reasons];
+  }
   const errors = validateNativeExactCaptureSummary(payload, 424);
   if (payload?.caseRuntimeSecretArtifactIntegrity?.status !== "PASS" ||
       payload?.caseRuntimeSecretArtifactIntegrity?.verificationSource !== "case-runtime-exact-and-throwaway-byte-scan-before-secret-release" ||
@@ -982,6 +1108,23 @@ function validateExactUiSummary(payload, childDir) {
   if (scanArtifactTree(childDir).duplicateScreenshotFiles !== 0) errors.push("UI duplicate screenshot file remains");
   if (!fs.existsSync(path.join(childDir, "summary.json"))) errors.push("exact UI summary missing");
   return errors;
+}
+
+function validateCanonicalParentAfterChildExit(payload, childDir) {
+  const errors = validateExactUiSummary(payload, childDir);
+  if (payload?.schema !== "media-server.v390-ui-canonical-parent.v1") return errors;
+  const childStage = stages.find(item => item.id === "ui-exact-424");
+  const canonicalParentValidation = uiCanonicalParentValidation;
+  if (!canonicalParentValidation || canonicalParentValidation.censusComplete !== true) return errors;
+  if (childStage?.exitCode === 0 && canonicalParentValidation.eligible !== true) return errors;
+  return [];
+}
+
+function assertPostProducerSecretsAbsent(childDir) {
+  const scan = uiEnvironmentHandle.assertSecretsAbsentFromArtifacts(childDir);
+  assert(scan.status === "PASS" && scan.scannedFiles > 0 && scan.scannedBytes > 0,
+    "post-producer retained-secret artifact scan failed");
+  return { ...scan, verificationStage: "post-producer-retained-secret-tree-scan" };
 }
 
 function validateUiEnvironmentCleanupEvidence(cleanup) {
@@ -1221,6 +1364,9 @@ function buildFirstFailure() {
   const childCaseFailure = failedStage === "ui-exact-424"
     ? (uiAutomationSummary?.cases || []).find(item => item.status === "FAIL") || null
     : null;
+  const canonicalFailure = failedStage === "ui-exact-424" &&
+    uiAutomationSummary?.schema === "media-server.v390-ui-canonical-parent.v1"
+    ? uiAutomationSummary.firstFailure : null;
   return {
     stage: failedStage,
     testcaseId: childCaseFailure?.testId || childCaseFailure?.caseId || failedCheck?.id || failedStage,
@@ -1231,6 +1377,14 @@ function buildFirstFailure() {
     logPath: failedCheck?.logPath || stage?.logPath || "",
     stderrTail: failedCheck?.tail || stage?.tail || [],
     reproductionCommand: reproductionCommandForSuite(options.suite),
+    ...(canonicalFailure ? {
+      canonicalFailureBinding: {
+        schema: "media-server.v390-canonical-first-failure-binding.v1",
+        parentRunId: String(uiAutomationSummary?.runBinding?.runId || ""),
+        failure: structuredClone(canonicalFailure),
+        failureSha256: sha256Text(canonicalStableJson(canonicalFailure)),
+      },
+    } : {}),
   };
 }
 
@@ -1401,6 +1555,7 @@ function parseArgs(args) {
     fixtureFailFeatureCommand: "",
     fixtureCleanupFail: false,
     fixture120Trigger: false,
+    contractRetainedSecretFinalArtifact: "",
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -1418,6 +1573,10 @@ function parseArgs(args) {
     else if (arg === "--fixture-fail-feature-command") { parsed.fixtureFailFeatureCommand = args[index + 1] || ""; index += 1; }
     else if (arg === "--fixture-cleanup-fail") parsed.fixtureCleanupFail = true;
     else if (arg === "--fixture-120-trigger") parsed.fixture120Trigger = true;
+    else if (arg === "--contract-retained-secret-final-artifact") {
+      parsed.contractRetainedSecretFinalArtifact = args[index + 1] || "";
+      index += 1;
+    }
   }
   assert(parsed.dryRun || parsed.outputDir !== "", "--output-dir is required for actual mode");
   assert(["release", "ui"].includes(parsed.suite), "--suite must be release or ui");
@@ -1427,11 +1586,22 @@ function parseArgs(args) {
   assert(!(parsed.fixturePass && (parsed.fixtureFailStage || parsed.fixtureFailFeatureCommand)), "--fixture-pass and failure fixtures are mutually exclusive");
   if (parsed.fixtureFailStage) assert(stageIds.includes(parsed.fixtureFailStage) && !["ui-server-cleanup", "cleanup", "report"].includes(parsed.fixtureFailStage), "unknown or invalid --fixture-fail-stage");
   if (parsed.fixtureFailFeatureCommand) assert(buildFeatureCommands().some(spec => spec.id === parsed.fixtureFailFeatureCommand), "unknown fixture feature command");
+  assert(!parsed.contractRetainedSecretFinalArtifact ||
+    ["ui-final-integrity", "evaluation", "report", "first-failure", "post-producer", "child-artifact"].includes(
+      parsed.contractRetainedSecretFinalArtifact),
+  "unknown retained-secret final artifact fixture");
+  assert(!parsed.contractRetainedSecretFinalArtifact || fixtureModeFromParsed(parsed),
+    "retained-secret final artifact fixture requires fixture mode");
   return parsed;
 }
 
+function fixtureModeFromParsed(parsed) {
+  return parsed.fixturePass || parsed.fixtureFailStage !== "" ||
+    parsed.fixtureFailFeatureCommand !== "" || parsed.fixtureCleanupFail;
+}
+
 function stageSelectedForSuite(stageId) {
-  if (options.suite === "release") return true;
+  if (options.suite === "release") return stageId !== "ui-final-integrity";
   return [
     "preflight",
     "build",
@@ -1440,6 +1610,7 @@ function stageSelectedForSuite(stageId) {
     "ui-server-cleanup",
     "ui-fulltest-qualification",
     "cleanup",
+    "ui-final-integrity",
     "report",
   ].includes(stageId);
 }
@@ -1497,26 +1668,37 @@ function stageStatus(id) { return stages.find(item => item.id === id)?.status ||
 function stageWasAttempted(id) { return ["PASS", "FAIL"].includes(stageStatus(id)); }
 
 function childEvidence(id, payload) {
+  const canonicalParent = id === "ui-exact-424" &&
+    payload?.schema === "media-server.v390-ui-canonical-parent.v1";
   const evidence = {
     status: stageStatus(id),
-    summaryPath: payload?.summaryPath || "",
+    summaryPath: payload?.summaryPath || (canonicalParent
+      ? path.join(runDir, "ui-exact-424", "summary.json") : ""),
     reportPath: payload?.reportPath || "",
     result: payload?.result || "",
   };
-  if (id === "ui-exact-424" && payload?.coverage) {
-    const target = Number(payload.coverage.targetCount);
-    const pass = Number(payload.coverage.pass);
-    const fail = Number(payload.coverage.fail);
-    const attempted = Number(payload.coverage.attempted);
-    const notRun = Number(payload.coverage.notRun);
-    const unsupported = Number(payload.coverage.unsupported);
-    assert([target, pass, fail, attempted, notRun, unsupported].every(Number.isInteger),
+  const exactCounts = payload?.schema === "media-server.v390-ui-canonical-parent.v1"
+    ? payload.counts
+    : payload?.coverage;
+  if (id === "ui-exact-424" && exactCounts) {
+    const target = payload?.schema === "media-server.v390-ui-canonical-parent.v1"
+      ? exactCounts.selected : exactCounts.targetCount;
+    const pass = exactCounts.pass;
+    const fail = exactCounts.fail;
+    const attempted = exactCounts.attempted;
+    const notRun = exactCounts.notRun;
+    const unsupported = exactCounts.unsupported;
+    const runnerAbort = payload?.schema === "media-server.v390-ui-canonical-parent.v1"
+      ? exactCounts.runnerAbort : 0;
+    assert([target, pass, fail, attempted, notRun, unsupported, runnerAbort].every(Number.isSafeInteger),
       "exact UI coverage contains a non-integer count");
     assert(attempted === pass + fail,
       `exact UI attempted mismatch: ${attempted} != ${pass}+${fail}`);
     assert(attempted + notRun + unsupported === target,
       `exact UI coverage total mismatch: ${attempted}+${notRun}+${unsupported} != ${target}`);
-    evidence.coverage = { target, attempted, pass, fail, notRun, unsupported };
+    evidence.coverage = { target, selected: target, attempted, pass, fail, notRun, unsupported, runnerAbort };
+    evidence.failureCensusCount = Array.isArray(payload.failureCensus) ? payload.failureCensus.length : null;
+    evidence.failureCensusPath = payload.summaryPath || path.join(runDir, "ui-exact-424", "summary.json");
   }
   return evidence;
 }
@@ -1541,12 +1723,379 @@ function writeAcceptanceArtifacts() {
   return summary;
 }
 
+function runUiFinalIntegrityStage() {
+  const evidencePath = path.join(runDir, "ui-final-integrity.json");
+  const parentSummaryPath = path.resolve(String(uiAutomationSummary?.summaryPath ||
+    path.join(runDir, "ui-exact-424", "summary.json")));
+  const policySummaryCandidate = String(
+    policyEvaluation?.sourceSummary || uiPolicyRawSummaryPath || "");
+  const policySummaryPath = policySummaryCandidate
+    ? path.resolve(rootDir, policySummaryCandidate) : "";
+  const acceptanceSummary = buildActualSummary();
+  const freshParent = freshUiCanonicalParentValidation(parentSummaryPath);
+  const policyRawSummary = fs.existsSync(policySummaryPath)
+    ? readJson(policySummaryPath) : null;
+  const currentUiIntegritySource = collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir);
+  const independentPolicyEvaluation = policyRawSummary ? evaluateEvidence(
+    readJson(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json")),
+    policyRawSummary,
+    { rootDir, verifyArtifacts: true, currentSource: {
+      version: readText("VERSION").trim(),
+      gitCommit: currentUiIntegritySource.commitSha,
+      gitBranch: currentUiIntegritySource.branch,
+      worktreePatchSha256: sha256Text(execFileSync("git", ["diff", "--binary", "HEAD"],
+        { cwd: rootDir, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })),
+    } },
+  ) : null;
+  const binding = validateCanonicalFinalIntegrityBindings({
+    acceptanceSummary,
+    parentSummary: freshParent.parentSummary,
+    parentValidation: freshParent.validation,
+    policyEvaluation,
+    policyRawSummary,
+    independentPolicyEvaluation,
+    expectedCurrentSource: currentUiIntegritySource,
+    canonicalCaseIds: canonicalUiCaseIds,
+    parentSummaryPath,
+    policySummaryPath,
+  });
+  const reasons = [...binding.reasons];
+  reasons.push(...validateUiEnvironmentCleanupEvidence(uiEnvironmentCleanup));
+  const rootCleanup = cleanupEvidence();
+  if (rootCleanup.status !== "PASS") reasons.push("ui-final-root-cleanup-not-pass");
+  if (uiEnvironmentCleanup?.runtimeEvidence !== true) {
+    reasons.push("ui-final-runtime-cleanup-not-measured");
+  }
+  let status = reasons.length === 0 ? "PASS" : "FAIL";
+  uiFinalIntegrityEvidence = writeUiFinalIntegrityEvidenceAtomic(evidencePath, {
+    schema: "media-server.v390-ui-final-integrity.v1",
+    contractFixture: false,
+    status,
+    finalEvidenceEligible: status === "PASS" && freshParent.validation?.eligible === true &&
+      policyEvaluation?.qualification?.uiFulltestPass === true,
+    runId,
+    canonicalParentRunId: freshParent.parentSummary?.runBinding?.runId || "",
+    sourceBinding: freshParent.parentSummary?.sourceBinding || null,
+    parent: artifactReference(parentSummaryPath),
+    policyRaw: artifactReference(policySummaryPath),
+    policyEvaluation: artifactReference(String(
+      stages.find(item => item.id === "ui-fulltest-qualification")?.summaryPath || "")),
+    childSummaryCensusCount: freshParent.validation?.childSummaries?.length ?? null,
+    exactCounts: freshParent.validation?.coverage || null,
+    cleanup: { root: rootCleanup.status, runtime: uiEnvironmentCleanup?.status || "" },
+    reasons: [...new Set(reasons)],
+  });
+  const stage = makeStage({
+    id: "ui-final-integrity",
+    status,
+    command: "validate canonical UI parent/424 children/Policy/current run/source/cleanup",
+    exitCode: status === "PASS" ? 0 : 1,
+    startedAt: new Date().toISOString(),
+    endedAt: new Date().toISOString(),
+    durationMs: 0,
+    logPath: writeStageLog("ui-final-integrity", uiFinalIntegrityEvidence.reasons.length > 0
+      ? uiFinalIntegrityEvidence.reasons : ["PASS"]),
+    summaryPath: evidencePath,
+    tail: uiFinalIntegrityEvidence.reasons,
+    checks: [],
+  });
+  stages.push(stage);
+  if (status !== "PASS") {
+    failedStage ||= "ui-final-integrity";
+    failedCommand ||= stage.command;
+  }
+}
+
+function freshUiCanonicalParentValidation(parentSummaryPath) {
+  const parentSummary = fs.existsSync(parentSummaryPath) ? readJson(parentSummaryPath) : null;
+  const validation = validateCanonicalParentAcceptanceSummary({
+    summary: parentSummary,
+    canonicalCaseIds: canonicalUiCaseIds,
+    artifactRoot: path.dirname(parentSummaryPath),
+    summaryPath: parentSummaryPath,
+    expectedVerificationCommitSha: sourceProvenance.commitSha,
+    expectedVerificationBranch: sourceProvenance.branch,
+    expectedManifestSha256: sha256Text(canonicalStableJson(readJson(
+      path.join(rootDir, "test/fixtures/v390_ui_native_exact_cases.json")))),
+    expectedBuildSha256: uiBuildBinding?.buildSha256 || "",
+  });
+  return { parentSummary, validation };
+}
+
+async function finalizeRetainedArtifactSecretScanner() {
+  if (!uiPostProducerSecretScanner) return null;
+  const scanner = uiPostProducerSecretScanner;
+  let scan;
+  try {
+    const intermediateSerializedScan = scanner.assertSecretsAbsentFromSerializedValue(
+      JSON.stringify({ parent: uiAutomationSummary, raw: uiPolicyRawSummary,
+        evaluation: policyEvaluation, integrity: uiFinalIntegrityEvidence }));
+    const treeScan = scanner.assertSecretsAbsentFromArtifacts(outputDir);
+    scan = {
+      status: "PASS",
+      verificationStage: "post-producer-policy-evaluation-final-acceptance-tree-and-serialized-scan",
+      serializedBytes: intermediateSerializedScan.scannedBytes,
+      scannedFiles: treeScan.scannedFiles,
+      scannedBytes: treeScan.scannedBytes,
+    };
+    uiRetainedArtifactSecretIntegrity = scan;
+    const summary = buildActualSummary();
+    if (summary.result === "FAIL") writeCurrentFirstFailure(summary);
+    const postFailureTreeScan = scanner.assertSecretsAbsentFromArtifacts(outputDir);
+    scan.scannedFiles += postFailureTreeScan.scannedFiles;
+    scan.scannedBytes += postFailureTreeScan.scannedBytes;
+    const reportText = renderReport(summary);
+    summary.finalEvidence = buildCanonicalFinalEvidenceManifest(reportText, summary);
+    const summaryText = `${JSON.stringify(summary, null, 2)}\n`;
+    const finalSerializedScan = scanner.assertSecretsAbsentFromSerializedValue(
+      JSON.stringify({ summary: summaryText, report: reportText }));
+    assert(finalSerializedScan.scannedBytes >= summaryText.length,
+      "final acceptance serialized scan did not cover the summary/report payload");
+    writeAcceptanceArtifactsAtomic(summary, reportText);
+    return summary;
+  } catch {
+    scan = {
+      status: "FAIL",
+      verificationStage: "post-producer-policy-evaluation-final-acceptance-tree-and-serialized-scan",
+    };
+    uiRetainedArtifactSecretIntegrity = scan;
+    const terminalStage = stages.find(item => item.id === "final-integrity");
+    if (!failedStage && terminalStage) {
+      terminalStage.status = "FAIL";
+      terminalStage.exitCode = 1;
+      terminalStage.command = "final retained-secret serialized/tree scan";
+      terminalStage.tail = ["ui-final-retained-secret-artifact-scan-failed"];
+      terminalStage.logPath = writeStageLog("final-integrity", terminalStage.tail);
+    }
+    failedStage ||= "final-integrity";
+    failedCommand ||= "final retained-secret serialized/tree scan";
+    scanner.removeArtifactsContainingRetainedSecrets(outputDir);
+    const safeSummary = buildSecretScanFailureSummary();
+    const safeReport = renderReport(safeSummary);
+    const safeFirstFailure = buildSafeFirstFailureArtifact(safeSummary);
+    const safeFirstFailureReport = renderSafeFirstFailure(safeFirstFailure);
+    scanner.assertSecretsAbsentFromArtifacts(outputDir);
+    scanner.assertSecretsAbsentFromSerializedValue(JSON.stringify({
+      summary: safeSummary,
+      report: safeReport,
+      firstFailure: safeFirstFailure,
+      firstFailureReport: safeFirstFailureReport,
+    }));
+    writeSafeFailureArtifactsAtomic(safeSummary, safeReport, safeFirstFailure,
+      safeFirstFailureReport);
+    return safeSummary;
+  } finally {
+    scanner.release();
+    uiPostProducerSecretScanner = null;
+  }
+}
+
+function createContractRetainedArtifactSecretScanner(secret) {
+  let retained = String(secret);
+  let released = false;
+  return {
+    assertSecretsAbsentFromArtifacts(rootPath) {
+      assert(!released && retained, "contract retained scanner was released");
+      const files = listFiles(rootPath).filter(filePath => fs.statSync(filePath).isFile());
+      for (const filePath of files) {
+        assert(!fs.readFileSync(filePath).includes(retained),
+          "contract retained secret appears in artifact tree");
+      }
+      return { status: "PASS", scannedFiles: files.length,
+        scannedBytes: files.reduce((sum, filePath) => sum + fs.statSync(filePath).size, 0) };
+    },
+    assertSecretsAbsentFromSerializedValue(value) {
+      assert(!released && typeof value === "string",
+        "contract retained serialized scanner requires an active string");
+      assert(!value.includes(retained),
+        "contract retained secret appears in serialized evidence");
+      return { status: "PASS", scannedBytes: Buffer.byteLength(value) };
+    },
+    removeArtifactsContainingRetainedSecrets(rootPath) {
+      assert(!released && retained, "contract retained scanner was released");
+      const removedArtifacts = [];
+      for (const filePath of listFiles(rootPath)) {
+        if (!fs.statSync(filePath).isFile()) continue;
+        if (fs.readFileSync(filePath).includes(retained)) {
+          fs.unlinkSync(filePath);
+          removedArtifacts.push(filePath);
+        }
+      }
+      return { status: "PASS", removedArtifacts };
+    },
+    release() {
+      assert(!released, "contract retained scanner released more than once");
+      retained = "";
+      released = true;
+    },
+  };
+}
+
+function buildSecretScanFailureSummary() {
+  const primaryStage = /^[a-z0-9-]+$/i.test(failedStage) ? failedStage : "final-integrity";
+  const reproductionCommand = reproductionCommandForSuite(options.suite);
+  const firstFailure = {
+    stage: primaryStage,
+    testcaseId: primaryStage,
+    command: primaryStage === "final-integrity"
+      ? "final retained-secret serialized/tree scan" : `execute ${primaryStage}`,
+    context: "retained-secret artifact scan failed; unsafe diagnostic details discarded",
+    error: "retained-secret artifact scan failed; unsafe diagnostic details discarded",
+    exitCode: 1,
+    logPath: "",
+    stderrTail: [],
+    reproductionCommand,
+  };
+  return {
+    schema: "media-server.v390-test-acceptance-bundle.v1",
+    runId,
+    command: reproductionCommand,
+    executionMode,
+    suite: options.suite,
+    dryRun: false,
+    fixtureMode,
+    result: "FAIL",
+    stopOnFirstFail: true,
+    failedStage: primaryStage,
+    failedCommand: firstFailure.command,
+    outputDir,
+    runDir,
+    summaryPath,
+    reportPath,
+    stageOrder: [...stageIds],
+    stages: stages.map(stage => ({
+      id: /^[a-z0-9-]+$/i.test(stage.id) ? stage.id : "unknown",
+      status: ["PASS", "FAIL", "not-run"].includes(stage.status) ? stage.status : "FAIL",
+      command: "diagnostic details discarded after retained-secret scan failure",
+      exitCode: Number.isInteger(stage.exitCode) ? stage.exitCode : null,
+      logPath: "",
+      summaryPath: "",
+      tail: [],
+      checks: [],
+    })),
+    executedCommands: [],
+    firstFailure,
+    priorFirstFailure: null,
+    actualBrowserExecution: false,
+    uiAutomation: { status: "FAIL", summaryPath: "", reportPath: "", result: "FAIL" },
+    policyV4Evaluation: null,
+    uiFinalIntegrity: {
+      schema: "media-server.v390-ui-final-integrity.v1",
+      status: "FAIL",
+      finalEvidenceEligible: false,
+      reasons: ["ui-final-retained-secret-artifact-scan-failed"],
+    },
+    uiRetainedArtifactSecretIntegrity: scanFailureAttestation(),
+    uiFulltestQualification: {
+      status: "ineligible",
+      policyEligible: false,
+      policyQualified: false,
+      uiFulltestPass: false,
+      finalEvidenceEligible: false,
+      reasons: ["ui-final-retained-secret-artifact-scan-failed"],
+    },
+    automatedAcceptanceStatus: "failed",
+    finalEvidenceEligible: false,
+    cleanup: { status: "FAIL", verificationSource: "unsafe diagnostic artifacts removed" },
+    finalEvidence: null,
+    evidenceBoundary: "unsafe diagnostic payloads are discarded after retained-secret scan failure",
+  };
+}
+
+function scanFailureAttestation() {
+  return {
+    status: "FAIL",
+    verificationStage: "post-producer-policy-evaluation-final-acceptance-tree-and-serialized-scan",
+  };
+}
+
+function buildSafeFirstFailureArtifact(summary) {
+  return {
+    schema: "media-server.v390-acceptance-first-failure.v1",
+    invocationId: runId,
+    runId,
+    acceptanceCommand: reproductionCommandForSuite(options.suite),
+    failedStage: summary.failedStage,
+    failedCommand: summary.failedCommand,
+    firstFailure: summary.firstFailure,
+    diagnosticArtifacts: [],
+    priorFirstFailure: null,
+  };
+}
+
+function writeAcceptanceArtifactsAtomic(summary, reportText) {
+  writeFileAtomic(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
+  writeFileAtomic(reportPath, reportText);
+}
+
+function writeSafeFailureArtifactsAtomic(summary, reportText, firstFailure, firstFailureReport) {
+  writeFileAtomic(path.join(outputDir, "first-failure.json"), `${JSON.stringify(firstFailure, null, 2)}\n`);
+  writeFileAtomic(path.join(outputDir, "first-failure.md"), firstFailureReport);
+  writeAcceptanceArtifactsAtomic(summary, reportText);
+}
+
+function renderSafeFirstFailure(payload) {
+  return `# v3.9.0 Acceptance First Failure\n\nfailedStage: ${payload.failedStage}\n` +
+    `reproductionCommand: ${payload.acceptanceCommand}\n` +
+    "context: retained-secret artifact scan failed; unsafe diagnostic details discarded\n";
+}
+
+function writeFileAtomic(filePath, contents) {
+  const temporaryPath = `${filePath}.tmp-${process.pid}-${path.basename(filePath)}`;
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(temporaryPath, contents, { mode: 0o600 });
+  fs.chmodSync(temporaryPath, 0o600);
+  fs.renameSync(temporaryPath, filePath);
+}
+
+function writeUiFinalIntegrityEvidenceAtomic(filePath, payload) {
+  const temporaryPath = `${filePath}.tmp-${process.pid}`;
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(temporaryPath, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
+  fs.chmodSync(temporaryPath, 0o600);
+  fs.renameSync(temporaryPath, filePath);
+  const stat = fs.lstatSync(filePath);
+  assert(stat.isFile() && !stat.isSymbolicLink() && (stat.mode & 0o777) === 0o600,
+    "UI final-integrity evidence must be an atomic 0600 regular file");
+  return { ...payload, path: filePath, bytes: stat.size, sha256: sha256File(filePath) };
+}
+
+function artifactReference(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return null;
+  if (!fs.statSync(filePath).isFile()) return null;
+  const resolved = path.resolve(filePath);
+  assert(isInside(outputDir, resolved), `UI final-integrity artifact escapes output: ${resolved}`);
+  assert(!pathHasSymlinkAncestor(outputDir, resolved),
+    `UI final-integrity artifact has a symlink ancestor: ${resolved}`);
+  return { path: resolved, bytes: fs.statSync(resolved).size, sha256: sha256File(resolved) };
+}
+
+function pathHasSymlinkAncestor(boundary, candidate) {
+  const root = path.resolve(boundary);
+  const resolved = path.resolve(candidate);
+  const relative = path.relative(root, resolved);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) return true;
+  let current = root;
+  try {
+    if (fs.lstatSync(root).isSymbolicLink()) return true;
+    for (const part of relative.split(path.sep)) {
+      current = path.join(current, part);
+      if (fs.lstatSync(current).isSymbolicLink()) return true;
+    }
+    const realRelative = path.relative(fs.realpathSync(root), fs.realpathSync(resolved));
+    return !realRelative || realRelative.startsWith("..") || path.isAbsolute(realRelative);
+  } catch {
+    return true;
+  }
+}
+
 function buildCanonicalFinalEvidenceManifest(reportText, summary) {
   const candidates = [
     ["server-longrun-30-summary", summary.longrun30?.summaryPath],
     ["server-longrun-30-report", summary.longrun30?.reportPath],
     ["ui-exact-424-summary", summary.uiAutomation?.summaryPath],
     ["policy-v4-evaluation", stages.find(item => item.id === "ui-fulltest-qualification")?.summaryPath],
+    ["ui-final-integrity", uiFinalIntegrityEvidence?.path],
     ["server-longrun-120-summary", summary.longrun120?.summaryPath],
     ["server-longrun-120-report", longrun120Summary?.reportPath],
   ];
@@ -1656,3 +2205,10 @@ function printSummary(summary) {
 function escapeCell(value) { return String(value ?? "").replace(/\|/g, "\\|").replace(/\s+/g, " ").trim(); }
 
 function assert(condition, message) { if (!condition) throw new Error(message); }
+
+function canonicalStableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalStableJson).join(",")}]`;
+  if (value && typeof value === "object") return `{${Object.keys(value).sort()
+    .map(key => `${JSON.stringify(key)}:${canonicalStableJson(value[key])}`).join(",")}}`;
+  return JSON.stringify(value);
+}

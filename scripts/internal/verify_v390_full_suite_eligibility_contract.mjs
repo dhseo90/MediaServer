@@ -37,27 +37,43 @@ check("actual exact Policy v4 closure is algorithmically eligible", () => {
   assert(result.finalEvidenceEligible === true, "eligible closure did not become final evidence eligible");
 });
 
+check("standalone actual UI-only exact Policy closure is eligible", () => {
+  const result = evaluateV390FullSuiteEligibility({
+    executionPassed: true,
+    executionMode: "actual-ui-only",
+    policyEvaluation: makeEvaluation(),
+    canonicalCaseIds,
+  });
+  assert(result.status === "eligible" && result.finalEvidenceEligible === true,
+    `actual-ui-only exact closure was rejected: ${result.reasons.join(", ")}`);
+});
+
 check("targeted 8-case evidence is ineligible", () => {
   const evaluation = makeEvaluation();
   evaluation.qualification.qualifiedCaseCount = 8;
   evaluation.qualification.qualifiedCaseIds = evaluation.qualification.qualifiedCaseIds.slice(0, 8);
   evaluation.suiteClosure.requestedExactCases = 8;
   evaluation.suiteClosure.pass = 8;
-  evaluation.uiFulltestPass = false;
-  evaluation.qualification.uiFulltestPass = false;
-  assert(evaluateV390FullSuiteEligibility({ executionPassed: true, executionMode: "actual", policyEvaluation: evaluation, canonicalCaseIds }).status === "ineligible",
-    "8-case evidence became eligible");
+  const result = evaluateV390FullSuiteEligibility({ executionPassed: true, executionMode: "actual", policyEvaluation: evaluation, canonicalCaseIds });
+  assert(result.status === "ineligible" && result.uiFulltestPass === false,
+    "8-case evidence retained a UI fulltest PASS");
 });
 
 check("plan-only or fixture execution is ineligible", () => {
   for (const mode of ["actual-fixture", "dry-run", "plan-only"]) {
     const result = evaluateV390FullSuiteEligibility({ executionPassed: true, executionMode: mode, policyEvaluation: makeEvaluation(), canonicalCaseIds });
-    assert(result.reasons.includes("acceptance-execution-not-actual"), `${mode} became actual evidence`);
+    assert(result.reasons.includes("acceptance-execution-not-actual") && result.uiFulltestPass === false,
+      `${mode} retained a UI fulltest PASS`);
   }
+  const failedExecution = evaluateV390FullSuiteEligibility({ executionPassed: false,
+    executionMode: "actual", policyEvaluation: makeEvaluation(), canonicalCaseIds });
+  assert(failedExecution.status === "ineligible" && failedExecution.uiFulltestPass === false,
+    "failed acceptance execution retained a UI fulltest PASS");
   const evaluation = makeEvaluation();
   evaluation.suiteClosure.actualBrowserExecution = false;
-  assert(evaluateV390FullSuiteEligibility({ executionPassed: true, executionMode: "actual", policyEvaluation: evaluation, canonicalCaseIds }).status === "ineligible",
-    "non-browser suite became eligible");
+  const nonBrowser = evaluateV390FullSuiteEligibility({ executionPassed: true, executionMode: "actual", policyEvaluation: evaluation, canonicalCaseIds });
+  assert(nonBrowser.status === "ineligible" && nonBrowser.uiFulltestPass === false,
+    "non-browser suite retained a UI fulltest PASS");
 });
 
 check("unsupported, fail, not-run, exclusion, and manual intervention are ineligible", () => {
@@ -65,7 +81,8 @@ check("unsupported, fail, not-run, exclusion, and manual intervention are inelig
     const evaluation = makeEvaluation();
     evaluation.suiteClosure[field] = 1;
     const result = evaluateV390FullSuiteEligibility({ executionPassed: true, executionMode: "actual", policyEvaluation: evaluation, canonicalCaseIds });
-    assert(result.reasons.includes(`full-suite-${field}-not-zero`), `${field} gap became eligible`);
+    assert(result.reasons.includes(`full-suite-${field}-not-zero`) && result.uiFulltestPass === false,
+      `${field} gap retained a UI fulltest PASS`);
   }
 });
 
@@ -84,6 +101,8 @@ check("duplicate qualified IDs and missing source hash are rejected", () => {
   const result = evaluateV390FullSuiteEligibility({ executionPassed: true, executionMode: "actual", policyEvaluation: evaluation, canonicalCaseIds });
   assert(result.reasons.includes("qualified-case-id-list-has-duplicates"), "duplicate ID list passed");
   assert(result.reasons.includes("policy-source-summary-hash-missing"), "missing source hash passed");
+  assert(result.uiFulltestPass === false,
+    "duplicate IDs/missing hash retained a UI fulltest PASS self-claim");
 });
 
 check("acceptance and final integrity consume the shared evaluator", () => {

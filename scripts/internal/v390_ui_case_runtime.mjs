@@ -6,7 +6,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { assertSecretValuesAbsentFromTree } from "./v390_acceptance_ui_environment.mjs";
+import {
+  assertSecretValuesAbsentFromTree,
+  removeSecretBearingArtifacts,
+} from "./v390_acceptance_ui_environment.mjs";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 import {
   eventExactRuntimeBindingRequirements,
@@ -2520,11 +2523,7 @@ export function createV390UiCaseRuntime({
   }
 
   function assertSecretsAbsentFromArtifacts(outputRoot) {
-    const secretValues = [
-      ...Object.values(roleSecrets.roles || {}),
-      ...Object.values(roleSecrets.refs || {}),
-      ...runtimeSecrets.values(),
-    ].filter(Boolean);
+    const secretValues = retainedSecretValues();
     assert(secretValues.length > 0, "case runtime secret artifact scan has no retained secret values");
     const roots = [...new Set([outputRoot, descriptor?.temporaryRoot]
       .filter(Boolean)
@@ -2537,6 +2536,46 @@ export function createV390UiCaseRuntime({
       scannedBytes: scans.reduce((sum, item) => sum + item.scannedBytes, 0),
       roots: roots.length,
     };
+  }
+
+  function assertRetainedSecretsAbsentFromSerializedValue(serializedValue) {
+    assert(typeof serializedValue === "string",
+      "serialized summary secret scan requires a string value");
+    const secretValues = retainedSecretValues();
+    assert(secretValues.length > 0,
+      "serialized summary secret scan has no retained secret values");
+    assert(!secretValues.some(secret => serializedValue.includes(secret)),
+      "serialized value contains a retained runtime secret");
+    return {
+      status: "PASS",
+      verificationSource: "case-runtime-retained-secret-exact-value-scan-before-secret-release",
+      scannedBytes: Buffer.byteLength(serializedValue),
+      retainedSecretCount: secretValues.length,
+    };
+  }
+
+  function removeTaintedArtifacts(outputRoot) {
+    const secretValues = retainedSecretValues();
+    assert(secretValues.length > 0,
+      "case runtime tainted artifact removal has no retained secret values");
+    const roots = [...new Set([outputRoot, descriptor?.temporaryRoot]
+      .filter(Boolean)
+      .map(value => path.resolve(value)))];
+    const removals = roots.map(root => removeSecretBearingArtifacts(root, secretValues));
+    return {
+      status: "PASS",
+      removedArtifactCount: removals.reduce(
+        (sum, item) => sum + item.removedArtifacts.length, 0),
+      roots: roots.length,
+    };
+  }
+
+  function retainedSecretValues() {
+    return [...new Set([
+      ...Object.values(roleSecrets.roles || {}),
+      ...Object.values(roleSecrets.refs || {}),
+      ...runtimeSecrets.values(),
+    ].filter(Boolean))];
   }
 
   function releaseSecrets() {
@@ -2945,6 +2984,8 @@ export function createV390UiCaseRuntime({
     verifyFormSubmitReadback,
     verifyCleanupReadback,
     assertSecretsAbsentFromArtifacts,
+    assertRetainedSecretsAbsentFromSerializedValue,
+    removeTaintedArtifacts,
     releaseSecrets,
   };
 

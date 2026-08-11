@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import * as nativeAdapterModule from "./v390_ui_native_adapter.mjs";
 import {
   bindDocumentFormSubmission,
   bindBrowserConsoleResponseMessages,
@@ -73,6 +74,611 @@ const docs = [
   readText("docs/release-evidence-index.md"),
 ].join("\n");
 const checks = [];
+
+check("native callbacks use the capture-only recorder as lifecycle authority", () => {
+  const requestCallback = callbackSource("request", "response");
+  const responseCallback = callbackSource("response", "requestfinished");
+  const finishedCallback = callbackSource("requestfinished", "requestfailed");
+  const failedCallback = callbackSource("requestfailed", null);
+  assert(countToken(requestCallback, "requestLifecycleRecorder.recordRequest(") === 1,
+    "request callback must record the exact Request once");
+  assert(countToken(responseCallback, "requestLifecycleRecorder.recordResponse(") === 1,
+    "response callback must record response.request() identity once");
+  assert(countToken(finishedCallback,
+    "requestLifecycleRecorder.recordRequestFinished(") === 1,
+  "requestfinished callback must record the terminal Request once");
+  assert(countToken(failedCallback, "requestLifecycleRecorder.recordRequestFailed(") === 1,
+    "requestfailed callback must record the failed terminal Request once");
+  for (const [name, source] of [["request", requestCallback], ["response", responseCallback],
+    ["requestfinished", finishedCallback], ["requestfailed", failedCallback]]) {
+    assert(!source.includes("classifyRequestLifecycleOwnership(") &&
+      !source.includes("assert(") && !source.includes("throw new Error("),
+    `${name} callback still owns lifecycle classification/assertion`);
+  }
+  const capturePreamble = requestCallback.slice(0,
+    requestCallback.indexOf("requestLifecycleRecorder.recordRequest("));
+  assert(!capturePreamble.includes("routeRequestOwnerships") &&
+    capturePreamble.includes("activeActionLifecycleInvocation"),
+  "capture-time action claim still depends on route callback ordering");
+  const routeCallback = adapterSource.slice(adapterSource.indexOf('context.route("**/*"'),
+    adapterSource.indexOf("context.addInitScript"));
+  assert(routeCallback.includes("actionLifecycleInvocationByContext.get(claimedContext)") &&
+    routeCallback.includes("bindExactActionRequestMembership(request") &&
+    !routeCallback.includes("bindExactActionRequestMembership(request,\n          activeActionLifecycleInvocation"),
+    "route callback does not exact-bind the same Request object after ownership confirmation");
+});
+
+check("request-first and route-first exact action binding fail closed without global fallback", () => {
+  const createLedger = nativeAdapterModule.createNativeRequestLifecycleLedger;
+  const exercise = ({ caseId, routeFirst }) => {
+    const ledger = createLedger({ caseId });
+    assert(typeof ledger.registerCapturedRequest === "function" &&
+      typeof ledger.bindExactActionRequestMembership === "function",
+    "explicit captured/exact action binding API is missing");
+    const action = ledger.beginInvocation("action", {
+      invocationId: `${caseId}:action`, phase: "primary-action",
+    });
+    const request = fakeLifecycleRequest("http://runtime.invalid/ops/api/sources", {
+      method: "POST",
+    });
+    if (routeFirst) ledger.bindExactActionRequestMembership(request, action);
+    const envelope = ledger.requestLifecycleRecorder.recordRequest(request,
+      ledger.captureContext({ action, correlationDigest: `${caseId}-digest` }));
+    ledger.registerCapturedRequest(envelope, { actionClaim: action });
+    if (!routeFirst) ledger.bindExactActionRequestMembership(request, action);
+    ledger.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(request, 201));
+    ledger.endInvocation(action);
+    ledger.sealRequestLifecycleLedger();
+    const result = ledger.evaluateRequestLifecycleLedger();
+    assert(result.status === "PASS" && result.classifications.length === 1,
+      `${caseId} exact action binding failed for ${routeFirst ? "route-first" : "request-first"}`);
+    return { ledger, result, request };
+  };
+  exercise({ caseId: "ORDER-REQUEST-FIRST", routeFirst: false });
+  exercise({ caseId: "ORDER-ROUTE-FIRST", routeFirst: true });
+
+  const background = createLedger({ caseId: "ORDER-BACKGROUND" });
+  const backgroundAction = background.beginInvocation("action", {
+    invocationId: "ORDER-BACKGROUND:action", phase: "primary-action",
+  });
+  const backgroundRequest = fakeLifecycleRequest("http://runtime.invalid/ops/api/runtime");
+  const backgroundEnvelope = background.requestLifecycleRecorder.recordRequest(backgroundRequest,
+    background.captureContext({ action: backgroundAction }));
+  background.registerCapturedRequest(backgroundEnvelope, { actionClaim: backgroundAction });
+  background.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(backgroundRequest));
+  background.endInvocation(backgroundAction);
+  background.sealRequestLifecycleLedger();
+  const backgroundResult = background.evaluateRequestLifecycleLedger();
+  assert(backgroundResult.status === "FAIL" &&
+    backgroundResult.failures.some(item => item.code === "INVOCATION_MEMBERSHIP_MISSING"),
+  "concurrent background request was false-PASSed through active action fallback");
+
+  const samePath = createLedger({ caseId: "ORDER-SAME-PATH" });
+  const samePathRequests = [];
+  for (const suffix of ["one", "two"]) {
+    const action = samePath.beginInvocation("action", {
+      invocationId: `ORDER-SAME-PATH:${suffix}`, phase: "primary-action",
+    });
+    const request = fakeLifecycleRequest("http://runtime.invalid/ops/api/sources", {
+      method: "POST",
+    });
+    samePathRequests.push(request);
+    const envelope = samePath.requestLifecycleRecorder.recordRequest(request,
+      samePath.captureContext({ action }));
+    samePath.registerCapturedRequest(envelope, { actionClaim: action });
+    samePath.bindExactActionRequestMembership(request, action);
+    samePath.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(request, 201));
+    samePath.endInvocation(action);
+  }
+  samePath.sealRequestLifecycleLedger();
+  const samePathResult = samePath.evaluateRequestLifecycleLedger();
+  assert(samePathRequests[0] !== samePathRequests[1] &&
+    samePathResult.status === "PASS" && samePathResult.classifications.length === 2,
+  "same-path distinct actions were joined without exact Request identity");
+});
+
+check("legacy request evidence preserves every exact tuple without evaluator authority", () => {
+  const tuple = nativeAdapterModule.legacyRequestEvidenceTuple;
+  assert(typeof tuple === "function", "legacyRequestEvidenceTuple is missing");
+  const expected = {
+    "bootstrap-document": ["page", "page", "bootstrap", "initial-page-load"],
+    "bootstrap-fetch": ["page", "page", "bootstrap", "bootstrap"],
+    "background-fetch": ["page", "page", "background-refresh", "background-refresh"],
+    "page-subresource": ["page", "page", "page-subresource", "page-subresource"],
+    sse: ["page", "page", "sse", "sse"],
+    websocket: ["page", "page", "websocket", "websocket"],
+    "primary-action": ["action", "explicit-action-registration", "primary-action", "primary-action"],
+    "same-route-form-rejection": ["action", "explicit-action-registration", "primary-action", "primary-action"],
+    "document-redirect-chain": ["page", "document-navigation-ledger", "document-navigation-chain", "document-navigation-chain"],
+    "independent-readback": ["page", "page", "independent-readback", "independent-readback"],
+  };
+  for (const [lifecycleClass, values] of Object.entries(expected)) {
+    const observed = tuple(lifecycleClass, {
+      actionInvocationId: "legacy-action", navigationInvocationId: "legacy-navigation",
+    });
+    assert([observed.ledgerOwner, observed.sourceOwner, observed.ownerPhase,
+      observed.requestOwnershipKind].join("|") === values.join("|") &&
+      observed.lifecycleClass === lifecycleClass && Object.isFrozen(observed),
+    `legacy tuple drift: ${lifecycleClass}`);
+  }
+  const helperSource = adapterSource.slice(
+    adapterSource.indexOf("export function legacyRequestEvidenceTuple"),
+    adapterSource.indexOf("async function openNativePlaywrightPage"),
+  );
+  assert(!helperSource.includes("throw ") && !helperSource.includes("assert(") &&
+    !helperSource.includes("evaluateRequestLifecycle") &&
+    !helperSource.includes("requestLifecycleRecorder") &&
+    !helperSource.includes("invocationRows"),
+  "legacy tuple helper crossed into recorder/evaluator authority");
+});
+
+check("invocation begin/end events use one independent case-local total order", () => {
+  const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "EVENT-ORDER",
+  });
+  const navigation = ledger.beginInvocation("navigation", {
+    invocationId: "EVENT-ORDER:navigation", phase: "explicit-navigation",
+  });
+  const action = ledger.beginInvocation("action", {
+    invocationId: "EVENT-ORDER:action", phase: "primary-action",
+  });
+  ledger.endInvocation(navigation);
+  ledger.endInvocation(action);
+  const noRequestNavigation = ledger.beginInvocation("navigation", {
+    invocationId: "EVENT-ORDER:no-request-navigation", phase: "explicit-navigation",
+  });
+  ledger.endInvocation(noRequestNavigation);
+  const noRequestAction = ledger.beginInvocation("action", {
+    invocationId: "EVENT-ORDER:no-request-action", phase: "primary-action",
+  });
+  ledger.endInvocation(noRequestAction);
+  ledger.sealRequestLifecycleLedger();
+  const events = ledger.invocationEvents();
+  const ordered = [...events.navigationEvents, ...events.actionEvents]
+    .sort((left, right) => left.sequence - right.sequence);
+  assert(ordered.length === 8 &&
+    ordered.map(item => item.sequence).join(",") === "1,2,3,4,5,6,7,8" &&
+    ordered.map(item => `${item.kind}:${item.event}`).join(",") ===
+      "navigation:begin,action:begin,navigation:end,action:end,navigation:begin,navigation:end,action:begin,action:end" &&
+    ordered.every(item => Number.isSafeInteger(item.timestamp) &&
+      Object.isFrozen(item) && typeof item.invocationId === "string" && item.phase),
+  "cross-kind invocation event order/shape/freeze drift");
+});
+
+check("constant clocks still produce strictly monotonic cross-kind invocation timestamps", () => {
+  const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "EVENT-CONSTANT-CLOCK",
+    clock: () => 7000,
+  });
+  const navigation = ledger.beginInvocation("navigation", {
+    invocationId: "EVENT-CONSTANT-CLOCK:navigation", phase: "explicit-navigation",
+  });
+  const action = ledger.beginInvocation("action", {
+    invocationId: "EVENT-CONSTANT-CLOCK:action", phase: "primary-action",
+  });
+  ledger.endInvocation(navigation);
+  ledger.endInvocation(action);
+  const nextNavigation = ledger.beginInvocation("navigation", {
+    invocationId: "EVENT-CONSTANT-CLOCK:next-navigation", phase: "explicit-navigation",
+  });
+  ledger.endInvocation(nextNavigation);
+  ledger.sealRequestLifecycleLedger();
+  const events = ledger.invocationEvents();
+  const ordered = [...events.navigationEvents, ...events.actionEvents]
+    .sort((left, right) => left.sequence - right.sequence);
+  assert(ordered.map(item => item.sequence).join(",") === "1,2,3,4,5,6" &&
+    ordered.map(item => item.timestamp).join(",") === "7000,7001,7002,7003,7004,7005" &&
+    ordered.every((item, index) => index === 0 ||
+      item.timestamp > ordered[index - 1].timestamp) &&
+    ordered.every(item => Number.isSafeInteger(item.timestamp) && Object.isFrozen(item) &&
+      (item.event === "begin"
+        ? item.timestamp === item.startedAtMs
+        : item.timestamp === item.endedAtMs)),
+  "constant clock did not preserve strict timestamp order/shape/consistency");
+  const rows = ledger.invocationRows();
+  assert([...rows.navigationInvocations, ...rows.actionInvocations].every(row =>
+    Number.isSafeInteger(row.startedAtMs) && Number.isSafeInteger(row.endedAtMs) &&
+    row.startedAtMs < row.endedAtMs && Object.isFrozen(row)),
+  "invocation rows drifted from strictly monotonic event timestamps");
+});
+
+check("request capture timestamps advance the invocation watermark before end", () => {
+  const clockReadings = [7000, 9000, 7000];
+  const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "EVENT-CAPTURE-WATERMARK",
+    clock: () => clockReadings.shift(),
+  });
+  const navigation = ledger.beginInvocation("navigation", {
+    invocationId: "EVENT-CAPTURE-WATERMARK:navigation",
+    phase: "initial-document-navigation",
+  });
+  const request = fakeLifecycleRequest("http://runtime.invalid/ops/home", {
+    resourceType: "document", navigation: true,
+  });
+  const envelope = ledger.requestLifecycleRecorder.recordRequest(request,
+    ledger.captureContext({ navigation }));
+  ledger.registerCapturedRequest(envelope, { navigation });
+  ledger.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(request, 200));
+  ledger.endInvocation(navigation);
+  ledger.sealRequestLifecycleLedger();
+  const result = ledger.evaluateRequestLifecycleLedger();
+  const row = ledger.invocationRows().navigationInvocations[0];
+  const events = ledger.invocationEvents().navigationEvents;
+  assert(result.status === "PASS" && result.failures.length === 0 &&
+    envelope.timestamp === 9000 && row.startedAtMs === 7000 && row.endedAtMs === 9001 &&
+    row.startedAtMs <= envelope.timestamp && envelope.timestamp <= row.endedAtMs &&
+    events.map(item => item.timestamp).join(",") === "7000,9001" &&
+    events[0].timestamp < events[1].timestamp &&
+    row.requests.length === 1 && row.requests[0] === request,
+  `capture watermark did not prevent stale invocation: ${result.failures
+    .map(item => item.code).join(",")}`);
+
+  const invalid = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "EVENT-CLOCK-INVALID", clock: () => 1.5,
+  });
+  let invalidFailed = false;
+  try {
+    invalid.beginInvocation("navigation", {
+      invocationId: "EVENT-CLOCK-INVALID:navigation", phase: "explicit-navigation",
+    });
+  } catch (error) {
+    invalidFailed = String(error.message).includes("clock is invalid");
+  }
+  const overflow = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "EVENT-CLOCK-OVERFLOW", clock: () => Number.MAX_SAFE_INTEGER,
+  });
+  const overflowNavigation = overflow.beginInvocation("navigation", {
+    invocationId: "EVENT-CLOCK-OVERFLOW:navigation", phase: "explicit-navigation",
+  });
+  overflow.captureContext({ navigation: overflowNavigation });
+  let overflowFailed = false;
+  try {
+    overflow.endInvocation(overflowNavigation);
+  } catch (error) {
+    overflowFailed = String(error.message).includes("timestamp is invalid");
+  }
+  assert(invalidFailed && overflowFailed,
+    "invalid or overflowing invocation clocks did not fail closed");
+});
+
+check("navigation and action capture projections exclude load subresources by exact request kind", () => {
+  const select = nativeAdapterModule.selectNativeLifecycleCaptureInvocations;
+  assert(typeof select === "function", "native lifecycle capture selector is missing");
+  const capture = (ledger, request, status, { navigation = null, action = null,
+    exactAction = false } = {}) => {
+    const selected = select(request, { navigation, action });
+    const envelope = ledger.requestLifecycleRecorder.recordRequest(request,
+      ledger.captureContext({
+        navigation: selected.navigation,
+        action: selected.actionClaim,
+      }));
+    ledger.registerCapturedRequest(envelope, {
+      navigation: selected.navigation,
+      actionClaim: selected.actionClaim,
+    });
+    if (exactAction) ledger.bindExactActionRequestMembership(request, action);
+    ledger.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(request, status));
+    return envelope;
+  };
+
+  const initial = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "NAV-SUBRESOURCE-INITIAL",
+  });
+  const initialNavigation = initial.beginInvocation("navigation", {
+    invocationId: "NAV-SUBRESOURCE-INITIAL:navigation",
+    phase: "initial-document-navigation",
+  });
+  capture(initial, fakeLifecycleRequest("http://runtime.invalid/ops/home", {
+    resourceType: "document", navigation: true,
+  }), 200, { navigation: initialNavigation });
+  capture(initial, fakeLifecycleRequest("http://runtime.invalid/ops/api/runtime", {
+    resourceType: "fetch",
+  }), 200, { navigation: initialNavigation });
+  capture(initial, fakeLifecycleRequest("http://runtime.invalid/assets/app.css", {
+    resourceType: "stylesheet",
+  }), 200, { navigation: initialNavigation });
+  initial.endInvocation(initialNavigation);
+  initial.sealRequestLifecycleLedger();
+  const initialResult = initial.evaluateRequestLifecycleLedger();
+  assert(initialResult.status === "PASS" &&
+    initialResult.classifications.map(item => item.classification).join(",") ===
+      "bootstrap,background,background" &&
+    initial.invocationRows().navigationInvocations[0].requests.length === 1,
+  "initial navigation load subresources contaminated navigation membership");
+
+  const form = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "NAV-SUBRESOURCE-FORM",
+  });
+  const formAction = form.beginInvocation("action", {
+    invocationId: "NAV-SUBRESOURCE-FORM:action", phase: "primary-action",
+  });
+  const formNavigation = form.beginInvocation("navigation", {
+    invocationId: "NAV-SUBRESOURCE-FORM:navigation",
+    phase: "form-submit-document-navigation",
+  });
+  const initiating = fakeLifecycleRequest("http://runtime.invalid/setup", {
+    method: "POST", resourceType: "document", navigation: true,
+  });
+  const redirect = fakeLifecycleRequest("http://runtime.invalid/ops/home", {
+    resourceType: "document", navigation: true, redirectedFrom: initiating,
+  });
+  capture(form, initiating, 302, {
+    navigation: formNavigation, action: formAction, exactAction: true,
+  });
+  capture(form, redirect, 200, { navigation: formNavigation, action: formAction });
+  capture(form, fakeLifecycleRequest("http://runtime.invalid/assets/app.css", {
+    resourceType: "stylesheet",
+  }), 200, { navigation: formNavigation, action: formAction });
+  capture(form, fakeLifecycleRequest("http://runtime.invalid/assets/app.js", {
+    resourceType: "script",
+  }), 200, { navigation: formNavigation, action: formAction });
+  form.endInvocation(formNavigation);
+  form.endInvocation(formAction);
+  form.sealRequestLifecycleLedger();
+  const formResult = form.evaluateRequestLifecycleLedger();
+  assert(formResult.status === "PASS" &&
+    formResult.classifications.map(item => item.classification).join(",") ===
+      "action,redirect,background,background" &&
+    form.invocationRows().navigationInvocations[0].requests.length === 2 &&
+    form.invocationRows().actionInvocations[0].requests.length === 1,
+  "form navigation subresources contaminated navigation/action membership");
+
+  const unexpected = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "ACTION-UNEXPECTED-FETCH",
+  });
+  const unexpectedAction = unexpected.beginInvocation("action", {
+    invocationId: "ACTION-UNEXPECTED-FETCH:action", phase: "primary-action",
+  });
+  capture(unexpected, fakeLifecycleRequest("http://runtime.invalid/ops/api/runtime", {
+    resourceType: "xhr",
+  }), 200, { action: unexpectedAction });
+  unexpected.endInvocation(unexpectedAction);
+  unexpected.sealRequestLifecycleLedger();
+  assert(unexpected.evaluateRequestLifecycleLedger().failures.some(item =>
+    item.code === "INVOCATION_MEMBERSHIP_MISSING"),
+  "unexpected fetch/xhr action claim false-PASSed without exact route membership");
+
+  const propertyFailure = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "CAPTURE-PROPERTY-FAILURE",
+  });
+  const hostile = fakeLifecycleRequest("http://runtime.invalid/fail");
+  hostile.resourceType = () => { throw new Error("resource type unavailable"); };
+  const selected = select(hostile, { navigation: {}, action: {} });
+  const captured = propertyFailure.requestLifecycleRecorder.recordRequest(hostile,
+    propertyFailure.captureContext({
+      navigation: selected.navigation,
+      action: selected.actionClaim,
+    }));
+  assert(captured === null && selected.navigation === null && selected.actionClaim === null &&
+    propertyFailure.requestLifecycleRecorder.snapshot().captureErrors.length === 1,
+  "property read failure escaped or displaced recorder capture-error authority");
+});
+
+check("missing invite runtime-secret sink keeps failure evidence and a safe fallback shape", async () => {
+  const capture = nativeAdapterModule.captureLegacyFormResponseProjection;
+  assert(typeof capture === "function", "legacy form response projection helper is missing");
+  const rawToken = "round2-issued-token-must-not-leak";
+  const entry = {};
+  const pending = new Set();
+  const failures = [];
+  const observedSecrets = new Set();
+  const read = capture({
+    response: {
+      json: async () => ({
+        status: "issued",
+        invite: {
+          inviteId: "invite-round2",
+          token: rawToken,
+          setupUrl: `/invite/setup?token=${encodeURIComponent(rawToken)}`,
+        },
+      }),
+    },
+    entry,
+    pathname: "/ops/api/invites",
+    pendingSafeResponseReads: pending,
+    safeResponseReadFailures: failures,
+    observedRuntimeSecrets: observedSecrets,
+  });
+  assert(read && pending.has(read), "invite safe response read was not tracked");
+  await read;
+  const serializedEvidence = JSON.stringify({ entry, failures });
+  assert(pending.size === 0 && observedSecrets.has(rawToken) &&
+    failures.join("|") === "invite response runtime secret sink is unavailable" &&
+    JSON.stringify(entry.safeResponseBody) === JSON.stringify({
+      pathname: "/ops/api/invites",
+      status: "",
+      username: "",
+      requestId: "",
+      inviteId: "",
+      tokenPresent: false,
+      setupUrlTokenBound: false,
+      persistentSecretFieldsPresent: false,
+    }) && !serializedEvidence.includes(rawToken),
+  "missing invite secret sink lost fallback evidence or exposed the raw token");
+});
+
+check("adapter lifecycle ledger is exact-object, sealed, memoized, and JSON-safe", () => {
+  const createLedger = nativeAdapterModule.createNativeRequestLifecycleLedger;
+  assert(typeof createLedger === "function",
+    "createNativeRequestLifecycleLedger integration helper is missing");
+  let evaluatorCalls = 0;
+  const ledger = createLedger({
+    caseId: "ADAPTER-CONTRACT",
+    correlationDigest: "digest-default",
+    evaluator: input => {
+      evaluatorCalls += 1;
+      return Object.freeze({
+        status: input.recorderSnapshot.captureErrors.length === 0 ? "PASS" : "FAIL",
+        classifications: Object.freeze(input.recorderSnapshot.requests.map(envelope =>
+          Object.freeze({ request: envelope.requestObject, response: null,
+            requestKind: envelope.requestKind, classification: "action",
+            owner: "action", phase: "primary-action" }))),
+        failures: Object.freeze(input.recorderSnapshot.captureErrors.map(() =>
+          Object.freeze({ code: "CAPTURE_ERROR", request: null, response: null }))),
+        census: Object.freeze({ requestCount: input.recorderSnapshot.requests.length,
+          responseCount: input.recorderSnapshot.responses.length,
+          classified: input.recorderSnapshot.requests.length,
+          unclassified: 0, multiplyClassified: 0,
+          captureErrors: input.recorderSnapshot.captureErrors.length,
+          duplicateResponses: 0,
+          failureCount: input.recorderSnapshot.captureErrors.length }),
+      });
+    },
+  });
+  const first = fakeLifecycleRequest("http://runtime.invalid/ops/home");
+  const second = fakeLifecycleRequest("http://runtime.invalid/ops/home");
+  const action = ledger.beginInvocation("action", {
+    invocationId: "ADAPTER-CONTRACT:action", phase: "primary-action",
+  });
+  const firstEnvelope = ledger.requestLifecycleRecorder.recordRequest(first,
+    ledger.captureContext({ action, correlationDigest: "digest-one" }));
+  const secondEnvelope = ledger.requestLifecycleRecorder.recordRequest(second,
+    ledger.captureContext({ action, correlationDigest: "digest-two" }));
+  ledger.bindCapturedRequest(firstEnvelope, { action });
+  ledger.bindCapturedRequest(secondEnvelope, { action });
+  ledger.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(first));
+  ledger.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(second));
+  ledger.endInvocation(action);
+
+  assert(first !== second && firstEnvelope.requestObject !== secondEnvelope.requestObject,
+    "same-route requests lost exact object separation");
+  assert(firstEnvelope.correlationDigest === "digest-one" &&
+    secondEnvelope.correlationDigest === "digest-two",
+  "per-request digest projection drift");
+  let earlyError = null;
+  try { ledger.evaluateRequestLifecycleLedger(); } catch (error) { earlyError = error; }
+  assert(earlyError instanceof Error && /seal/i.test(earlyError.message),
+    "incomplete lifecycle ledger evaluation did not fail closed");
+  ledger.sealRequestLifecycleLedger();
+  const firstResult = ledger.evaluateRequestLifecycleLedger();
+  const secondResult = ledger.evaluateRequestLifecycleLedger();
+  assert(firstResult === secondResult && Object.isFrozen(firstResult) && evaluatorCalls === 1,
+    "sealed lifecycle evaluation is not frozen/memoized exactly once");
+  const rows = ledger.invocationRows();
+  const events = ledger.invocationEvents();
+  assert(rows.actionInvocations.length === 1 &&
+    Object.isFrozen(rows.actionInvocations[0]) &&
+    Object.isFrozen(rows.actionInvocations[0].requests) &&
+    rows.actionInvocations[0].requests[0] === first &&
+    rows.actionInvocations[0].requests[1] === second,
+  "final action ledger lost immutable exact Request membership");
+  assert(events.actionEvents.length === 2 &&
+    events.actionEvents.map(item => item.event).join(",") === "begin,end" &&
+    Object.isFrozen(events.actionEvents) &&
+    events.actionEvents.every(Object.isFrozen),
+  "immutable invocation begin/end event ledger drift");
+  const safe = ledger.safeRequestLifecycleProjection();
+  const serialized = JSON.stringify(safe);
+  assert(typeof serialized === "string" &&
+    !serialized.includes("digest-default") &&
+    !serialized.includes("correlationId") &&
+    !Object.values(safe).includes(first) && !Object.values(safe).includes(second),
+  "safe lifecycle projection exposed raw objects/correlation material");
+
+  const failing = createLedger({ caseId: "ADAPTER-CAPTURE-ERROR" });
+  const hostile = fakeLifecycleRequest("http://runtime.invalid/fail");
+  hostile.resourceType = () => { throw new Error("property failure"); };
+  const captured = failing.requestLifecycleRecorder.recordRequest(hostile,
+    failing.captureContext({}));
+  assert(captured === null, "callback property failure unexpectedly produced an envelope");
+  failing.sealRequestLifecycleLedger();
+  assert(failing.evaluateRequestLifecycleLedger().status === "FAIL",
+    "callback property failure was not deferred to evaluator FAIL");
+  const failingSafe = failing.safeRequestLifecycleProjection();
+  assert(failingSafe.failures[0]?.requestIdentity &&
+    !JSON.stringify(failingSafe).includes("property failure"),
+  "capture failure safe projection lost opaque identity or exposed raw detail");
+});
+
+check("adapter integration carries the four actual-like lifecycle graphs end to end", () => {
+  const createLedger = nativeAdapterModule.createNativeRequestLifecycleLedger;
+  const run = ({ caseId, setup }) => {
+    const ledger = createLedger({ caseId, correlationDigest: `${caseId}-digest` });
+    setup(ledger);
+    ledger.sealRequestLifecycleLedger();
+    const result = ledger.evaluateRequestLifecycleLedger();
+    assert(result.status === "PASS" && result.failures.length === 0,
+      `${caseId} adapter lifecycle failed: ${result.failures.map(item => item.code).join(",")}`);
+    return result;
+  };
+  const capture = (ledger, request, responseStatus, { navigation = null,
+    action = null, actionMembership = true } = {}) => {
+    const envelope = ledger.requestLifecycleRecorder.recordRequest(request,
+      ledger.captureContext({ navigation, action }));
+    ledger.bindCapturedRequest(envelope, { navigation, action, actionMembership });
+    ledger.requestLifecycleRecorder.recordResponse(
+      fakeLifecycleResponse(request, responseStatus));
+  };
+  const bootstrap = run({ caseId: "UI-001-bootstrap-redirect", setup: ledger => {
+    const navigation = ledger.beginInvocation("navigation", {
+      invocationId: "UI-001:initial-document-navigation",
+      phase: "initial-document-navigation",
+    });
+    const root = fakeLifecycleRequest("http://runtime.invalid/", {
+      resourceType: "document", navigation: true,
+    });
+    const login = fakeLifecycleRequest("http://runtime.invalid/login", {
+      resourceType: "document", navigation: true, redirectedFrom: root,
+    });
+    capture(ledger, root, 302, { navigation });
+    capture(ledger, login, 200, { navigation });
+    ledger.endInvocation(navigation);
+    capture(ledger, fakeLifecycleRequest("http://runtime.invalid/ops/api/runtime"), 200);
+  } });
+  assert(bootstrap.classifications.length === 3,
+    "UI-001 bootstrap/background classification census drift");
+
+  const redirect = run({ caseId: "UI-002-action-redirect", setup: ledger => {
+    const action = ledger.beginInvocation("action", {
+      invocationId: "UI-002:submit-form", phase: "primary-action",
+    });
+    const navigation = ledger.beginInvocation("navigation", {
+      invocationId: "UI-002:form-submit-document-navigation",
+      phase: "form-submit-document-navigation",
+    });
+    const post = fakeLifecycleRequest("http://runtime.invalid/setup", {
+      method: "POST", resourceType: "document", navigation: true,
+    });
+    const home = fakeLifecycleRequest("http://runtime.invalid/ops/home", {
+      resourceType: "document", navigation: true, redirectedFrom: post,
+    });
+    capture(ledger, post, 302, { navigation, action });
+    capture(ledger, home, 200, { navigation, action, actionMembership: false });
+    ledger.endInvocation(navigation);
+    ledger.endInvocation(action);
+  } });
+  assert(redirect.classifications.map(item => item.classification).join(",") ===
+    "action,redirect", "UI-002 action/redirect classification drift");
+
+  const api = run({ caseId: "representative-api-fetch", setup: ledger => {
+    const action = ledger.beginInvocation("action", {
+      invocationId: "SRC-008:execute-endpoint-action", phase: "primary-action",
+    });
+    capture(ledger, fakeLifecycleRequest("http://runtime.invalid/ops/api/sources", {
+      method: "POST",
+    }), 201, { action });
+    ledger.endInvocation(action);
+  } });
+  assert(api.classifications[0]?.classification === "action",
+    "representative API action classification drift");
+
+  const rejection = run({ caseId: "same-route-rejection", setup: ledger => {
+    const action = ledger.beginInvocation("action", {
+      invocationId: "AUTH-001:submit-login", phase: "primary-action",
+    });
+    const navigation = ledger.beginInvocation("navigation", {
+      invocationId: "AUTH-001:form-submit-document-navigation",
+      phase: "form-submit-document-navigation",
+    });
+    capture(ledger, fakeLifecycleRequest("http://runtime.invalid/login", {
+      method: "POST", resourceType: "document", navigation: true,
+    }), 401, { navigation, action });
+    ledger.endInvocation(navigation);
+    ledger.endInvocation(action);
+  } });
+  assert(rejection.classifications[0]?.phase === "same-route-rejection",
+    "same-route rejection lifecycle phase drift");
+});
 
 check("bundled Playwright module resolves with provenance", () => {
   const resolved = resolvePlaywrightModule();
@@ -1672,6 +2278,39 @@ function readText(relativePath) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function callbackSource(eventName, nextEventName) {
+  const start = adapterSource.indexOf(`page.on("${eventName}"`);
+  assert(start >= 0, `${eventName} callback source is missing`);
+  if (nextEventName === null) return adapterSource.slice(start,
+    adapterSource.indexOf("requestListenersInstalled = true", start));
+  const end = adapterSource.indexOf(`page.on("${nextEventName}"`, start);
+  assert(end > start, `${eventName} callback source boundary is missing`);
+  return adapterSource.slice(start, end);
+}
+
+function countToken(source, token) {
+  return source.split(token).length - 1;
+}
+
+function fakeLifecycleRequest(url, {
+  method = "GET",
+  resourceType = "fetch",
+  navigation = false,
+  redirectedFrom = null,
+} = {}) {
+  return {
+    method: () => method,
+    url: () => url,
+    resourceType: () => resourceType,
+    isNavigationRequest: () => navigation,
+    redirectedFrom: () => redirectedFrom,
+  };
+}
+
+function fakeLifecycleResponse(request, status = 200) {
+  return { request: () => request, status: () => status };
 }
 
 function assertSelectorOwnerEvidence(evidence, {

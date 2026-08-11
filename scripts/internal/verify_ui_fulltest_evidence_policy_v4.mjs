@@ -47,6 +47,8 @@ const policyErrors = [...validatePolicy(policy), ...validatePolicyDocuments()];
 const currentSource = {
   version: readText("VERSION").trim(),
   gitCommit: execFileSync("git", ["rev-parse", "HEAD"], { cwd: rootDir, encoding: "utf8" }).trim(),
+  gitBranch: execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"],
+    { cwd: rootDir, encoding: "utf8" }).trim(),
   worktreePatchSha256: sha256Text(execFileSync("git", ["diff", "--binary", "HEAD"], { cwd: rootDir, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })),
 };
 const evaluation = evaluateEvidence(policy, summary, { rootDir, verifyArtifacts: true, currentSource });
@@ -78,6 +80,19 @@ const currentNotRunSource = summary.schema === "media-server.v390-ui-current-evi
   summary.sourceKind === "current-not-run-state" && summary.status === "not-run";
 const actualBrowserEvidence = summary.schema === "media-server.ui-automation-evidence.v4" &&
   summary.contractFixture !== true && summary.fixture === false;
+const exactCoverage = {};
+if (actualBrowserEvidence) {
+  for (const field of ["targetCount", "pass", "fail", "notRun", "unsupported",
+    "unapprovedExclusions", "manualIntervention"]) {
+    const value = summary.coverage?.[field];
+    if (!Number.isSafeInteger(value) || value < 0) {
+      evaluation.reasons.push(`verifier-coverage-${field}-must-be-safe-integer`);
+      exactCoverage[field] = null;
+    } else {
+      exactCoverage[field] = value;
+    }
+  }
+}
 if (currentNotRunSource) {
   evaluation.reasons = evaluation.reasons.filter(reason =>
     !reason.startsWith("legacy-or-unsupported-schema:media-server.v390-ui-current-evidence-state."));
@@ -100,6 +115,12 @@ if (!currentCoverageContractValid) {
 if (!currentWorkflowReady) {
   evaluation.reasons.push("review4-exact-workflow-readiness-incomplete");
   evaluation.reasons = [...new Set(evaluation.reasons)].sort();
+  evaluation.uiFulltestPass = false;
+  evaluation.evidenceEligibility = "ineligible";
+}
+
+evaluation.reasons = [...new Set(evaluation.reasons)].sort();
+if (evaluation.reasons.length > 0) {
   evaluation.uiFulltestPass = false;
   evaluation.evidenceEligibility = "ineligible";
 }
@@ -132,24 +153,24 @@ const result = {
     negativeRouteExecutable: currentCounts.negativeRouteExecutable ?? null,
     unsupported: currentCounts.unsupported ?? null,
     executedPass: actualBrowserEvidence
-      ? Number(summary.coverage?.pass ?? summary.pass ?? 0)
-      : (coveragePolicy.defaultExecutionState?.pass ?? null),
+      ? exactCoverage.pass
+      : coveragePolicy.defaultExecutionState?.pass,
     notRun: actualBrowserEvidence
-      ? Number(summary.coverage?.notRun ?? summary.notRun ?? 0)
-      : (coveragePolicy.defaultExecutionState?.notRun ?? null),
+      ? exactCoverage.notRun
+      : coveragePolicy.defaultExecutionState?.notRun,
   },
   qualification: evaluation,
   reasonCensus,
   suiteClosure: {
     actualBrowserExecution: summary.schema === "media-server.ui-automation-evidence.v4" &&
       summary.contractFixture !== true && summary.fixture === false,
-    requestedExactCases: Number(summary.coverage?.targetCount ?? summary.cases?.length ?? summary.automatedCaseCount ?? 0),
-    pass: Number(evaluation.qualifiedCaseCount || 0),
-    fail: Number(summary.coverage?.fail ?? 0),
-    notRun: Number(summary.coverage?.notRun ?? summary.notRun ?? 0),
-    unsupported: Number(summary.coverage?.unsupported ?? summary.unsupported ?? 0),
-    unapprovedExclusions: Number(summary.coverage?.unapprovedExclusions ?? 0),
-    manualIntervention: Number(summary.coverage?.manualIntervention ?? (summary.manualIntervention === true ? 1 : 0)),
+    requestedExactCases: actualBrowserEvidence ? exactCoverage.targetCount : null,
+    pass: Number.isSafeInteger(evaluation.qualifiedCaseCount) ? evaluation.qualifiedCaseCount : null,
+    fail: actualBrowserEvidence ? exactCoverage.fail : null,
+    notRun: actualBrowserEvidence ? exactCoverage.notRun : null,
+    unsupported: actualBrowserEvidence ? exactCoverage.unsupported : null,
+    unapprovedExclusions: actualBrowserEvidence ? exactCoverage.unapprovedExclusions : null,
+    manualIntervention: actualBrowserEvidence ? exactCoverage.manualIntervention : null,
   },
   uiFulltestPass: evaluation.uiFulltestPass === true,
   boundary: "policy-verifier-pass-is-not-ui-fulltest-pass",

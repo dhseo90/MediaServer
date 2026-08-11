@@ -3138,6 +3138,21 @@ check("case runtime keeps generated secrets ephemeral and rejects state path esc
       "current-password secretRef must bind the actual role credential");
     assert(!fs.readFileSync(descriptorPath, "utf8").includes(generated),
       "generated runtime secret leaked into the safe descriptor");
+    const serializedSecretScan = runtime.assertRetainedSecretsAbsentFromSerializedValue(
+      JSON.stringify({ schema: "safe-summary", status: "PASS" }),
+    );
+    assert(serializedSecretScan.status === "PASS" && serializedSecretScan.retainedSecretCount >= 2,
+      "serialized summary retained-secret scan did not attest the live secret set");
+    let serializedSecretRejected = false;
+    try {
+      runtime.assertRetainedSecretsAbsentFromSerializedValue(
+        JSON.stringify({ failureMessage: `credential=${generated}` }),
+      );
+    } catch (error) {
+      serializedSecretRejected = String(error?.message || error).includes("retained runtime secret");
+    }
+    assert(serializedSecretRejected,
+      "serialized summary retained-secret scan accepted an exact registered secret value");
     assert(runtimeSource.includes("acceptance-owned-state-file-byte-readback") &&
       runtimeSource.includes("cleanup/readback left authoritative state changed") &&
       runtimeSource.includes("assert(!unexpectedStateChange"),
@@ -3551,7 +3566,7 @@ check("stale implementation binding writes a fail-closed 0/424 pre-execution sum
     `unexpected pre-execution failure: ${summary.failure.error}`);
 });
 
-check("actual runner bootstrap failure writes a fail-closed 0/424 summary", () => {
+check("canonical parent bootstrap failure writes a fail-closed 0/424 summary", () => {
   const workspace = fs.mkdtempSync(path.join(rootDir, ".tmp-v390-native-bootstrap-contract-"));
   try {
     const outputDir = path.join(workspace, "output");
@@ -3567,9 +3582,28 @@ check("actual runner bootstrap failure writes a fail-closed 0/424 summary", () =
     const summaryPath = path.join(outputDir, "summary.json");
     assert(fs.existsSync(summaryPath), `bootstrap failure summary missing: ${run.stderr || run.stdout}`);
     const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
-    assert(validateNativeExactPreExecutionFailureSummary(summary).length === 0,
-      `bootstrap failure summary invalid: ${validateNativeExactPreExecutionFailureSummary(summary).join(", ")}`);
-    assert(summary.failure.phase === "runtime-bootstrap", "bootstrap failure phase mismatch");
+    assert(summary.schema === "media-server.v390-ui-canonical-parent.v1" &&
+      summary.result === "FAIL" && summary.executionStatus === "canonical-parent-infra-fatal",
+    "canonical parent bootstrap failure schema/status mismatch");
+    assert(summary.infraFatal?.code === "SERVER_BOOTSTRAP_FAILED" &&
+      summary.infraFatal?.phase === "before-batch",
+    "canonical parent bootstrap failure code/phase mismatch");
+    assert(JSON.stringify(summary.counts) === JSON.stringify({
+      selected: 424,
+      attempted: 0,
+      pass: 0,
+      fail: 0,
+      notRun: 424,
+      unsupported: 0,
+      runnerAbort: 1,
+    }), "canonical parent bootstrap failure counts mismatch");
+    assert(summary.cases?.length === 424 && summary.cases.every(item =>
+      item.status === "not-run" && item.infraCode === "SERVER_BOOTSTRAP_FAILED"),
+    "canonical parent bootstrap failure did not preserve the full not-run ledger");
+    assert(summary.releaseEvidenceEligible === false && summary.uiFulltestPass === false &&
+      summary.runtimeOwnership?.parentOwned === true &&
+      summary.runtimeOwnership?.childrenBootstrapRuntime === false,
+    "canonical parent bootstrap failure exceeded orchestration evidence authority");
   } finally {
     fs.rmSync(workspace, { recursive: true, force: true });
   }

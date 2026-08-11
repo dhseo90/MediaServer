@@ -37,14 +37,21 @@ export async function startSelfContainedUiEnvironment({
   buildPath = "build-gst-onnx/media_server",
   timeoutMs = 30000,
   maxPortAttempts = 8,
+  contractFixtureSecretValues = [],
 } = {}) {
   discardInheritedAcceptanceSecrets(process.env);
   assert(rootDir && path.isAbsolute(rootDir), "self-contained UI rootDir must be absolute");
   assert(runId, "self-contained UI runId is required");
   assert(Number.isInteger(maxPortAttempts) && maxPortAttempts >= 1 && maxPortAttempts <= 32,
     "self-contained UI maxPortAttempts must be 1..32");
+  assert(Array.isArray(contractFixtureSecretValues) &&
+    contractFixtureSecretValues.every(value => typeof value === "string" && value.length > 0),
+  "contract fixture secret values must be non-empty strings");
+  assert(fixtureMode || contractFixtureSecretValues.length === 0,
+    "contract fixture secret values require fixture mode");
 
   const state = createState({ rootDir, runId, fixtureMode, buildPath, timeoutMs, maxPortAttempts });
+  state.secretValues = [...new Set(contractFixtureSecretValues)];
   try {
     prepareTemporaryState(state);
     if (fixtureMode) return await startFixtureEnvironment(state);
@@ -646,6 +653,33 @@ function buildHandle(state, attestation) {
         roots: ["exact-output", "throwaway-runtime"],
       };
     },
+    createRetainedArtifactSecretScanner() {
+      const retained = [...new Set(state.secretValues.filter(Boolean))];
+      assert(retained.length > 0, "retained acceptance secret scanner has no values");
+      let released = false;
+      return {
+        assertSecretsAbsentFromArtifacts(rootPath) {
+          assert(!released, "retained acceptance secret scanner was released");
+          return assertSecretValuesAbsentFromTree(rootPath, retained);
+        },
+        assertSecretsAbsentFromSerializedValue(value) {
+          assert(!released && typeof value === "string",
+            "retained acceptance serialized scan requires an active string value");
+          assert(!retained.some(secret => value.includes(secret)),
+            "retained acceptance secret appears in serialized evidence");
+          return { status: "PASS", scannedBytes: Buffer.byteLength(value) };
+        },
+        removeArtifactsContainingRetainedSecrets(rootPath) {
+          assert(!released, "retained acceptance secret scanner was released");
+          return removeSecretBearingArtifacts(rootPath, retained);
+        },
+        release() {
+          assert(!released, "retained acceptance secret scanner released more than once");
+          retained.fill("");
+          released = true;
+        },
+      };
+    },
     async cleanup() {
       const cleanup = await cleanupState(state, { requireRuntimeMeasurement: !state.fixtureMode && state.runtimeAcquired });
       this.releaseSecrets();
@@ -798,7 +832,26 @@ export function assertSecretValuesAbsentFromTree(rootPath, secretValues) {
     "secret artifact scan requires retained in-memory secret values");
   let scannedFiles = 0;
   let scannedBytes = 0;
-  const needles = [...new Set(secretValues.flatMap(secret => {
+  const needles = retainedSecretNeedles(secretValues);
+  const overlapBytes = Math.max(0, ...needles.map(needle => needle.length - 1));
+  for (const filePath of listFiles(rootPath)) {
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) continue;
+    scannedFiles += 1;
+    scannedBytes += stat.size;
+    assert(!fileContainsAnyNeedle(filePath, needles, overlapBytes),
+      `generated auth secret persisted to disk: ${filePath}`);
+  }
+  return {
+    status: "PASS",
+    verificationSource: "exact-artifact-byte-scan-before-secret-release",
+    scannedFiles,
+    scannedBytes,
+  };
+}
+
+function retainedSecretNeedles(secretValues) {
+  return [...new Set(secretValues.flatMap(secret => {
     const value = String(secret || "");
     if (!value) return [];
     const jsonEscaped = JSON.stringify(value).slice(1, -1);
@@ -812,35 +865,39 @@ export function assertSecretValuesAbsentFromTree(rootPath, secretValues) {
       Buffer.from(value).toString("base64url"),
     ];
   }))].map(value => Buffer.from(value)).filter(needle => needle.length > 0);
+}
+
+function fileContainsAnyNeedle(filePath, needles, overlapBytes) {
+  const fd = fs.openSync(filePath, "r");
+  try {
+    const chunk = Buffer.allocUnsafe(1024 * 1024);
+    let carry = Buffer.alloc(0);
+    let bytesRead = 0;
+    do {
+      bytesRead = fs.readSync(fd, chunk, 0, chunk.length, null);
+      const content = Buffer.concat([carry, chunk.subarray(0, bytesRead)]);
+      if (needles.some(needle => content.includes(needle))) return true;
+      carry = overlapBytes > 0 ? content.subarray(Math.max(0, content.length - overlapBytes)) : Buffer.alloc(0);
+    } while (bytesRead > 0);
+  } finally {
+    fs.closeSync(fd);
+  }
+  return false;
+}
+
+export function removeSecretBearingArtifacts(rootPath, secretValues) {
+  const needles = retainedSecretNeedles(secretValues);
   const overlapBytes = Math.max(0, ...needles.map(needle => needle.length - 1));
+  const removed = [];
   for (const filePath of listFiles(rootPath)) {
     const stat = fs.statSync(filePath);
     if (!stat.isFile()) continue;
-    scannedFiles += 1;
-    scannedBytes += stat.size;
-    const fd = fs.openSync(filePath, "r");
-    try {
-      const chunk = Buffer.allocUnsafe(1024 * 1024);
-      let carry = Buffer.alloc(0);
-      let bytesRead = 0;
-      do {
-        bytesRead = fs.readSync(fd, chunk, 0, chunk.length, null);
-        const content = Buffer.concat([carry, chunk.subarray(0, bytesRead)]);
-        for (const needle of needles) {
-          assert(!content.includes(needle), `generated auth secret persisted to disk: ${filePath}`);
-        }
-        carry = overlapBytes > 0 ? content.subarray(Math.max(0, content.length - overlapBytes)) : Buffer.alloc(0);
-      } while (bytesRead > 0);
-    } finally {
-      fs.closeSync(fd);
+    if (fileContainsAnyNeedle(filePath, needles, overlapBytes)) {
+      fs.unlinkSync(filePath);
+      removed.push(filePath);
     }
   }
-  return {
-    status: "PASS",
-    verificationSource: "exact-artifact-byte-scan-before-secret-release",
-    scannedFiles,
-    scannedBytes,
-  };
+  return { status: "PASS", removedArtifacts: removed };
 }
 
 function noEnvironmentCleanup() {
