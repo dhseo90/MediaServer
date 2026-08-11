@@ -59,6 +59,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [public-repo-final-review.md](public-repo-final-review.md) | 공개 저장소 점검 기준 |
 | [superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md) | v3.0/v3.1 event evidence search roadmap design |
 | [superpowers/specs/2026-07-07-v390-preparation-design.md](superpowers/specs/2026-07-07-v390-preparation-design.md) | v3.9 준비 방향과 feature completion first 설계 |
+| [superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md](superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md) | v3.9 UI request lifecycle 실행기 재기준화 설계와 actual 검증 경계 |
 | [ops-backup-recovery.md](ops-backup-recovery.md) | 운영 설정 백업과 복구 |
 | [sample-fixture-provenance.md](sample-fixture-provenance.md) | sample fixture 공개 판단 |
 | [runtime-model-bundle-rc-rehearsal.md](runtime-model-bundle-rc-rehearsal.md) | runtime/model bundle RC rehearsal 경계 |

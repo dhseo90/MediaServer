@@ -44,9 +44,24 @@ const exactRuntimeSource = read("scripts/internal/v390_ui_exact_oracle_runtime.m
 const serverSource = read("server.sh");
 const userLauncherSource = read("test_ui.sh");
 const manifest = JSON.parse(read("test/fixtures/v390_ui_native_exact_cases.json"));
+const recordedEvt004 = JSON.parse(read(
+  "test/fixtures/v390_ui_diagnostic_evt004_recorded_contract.json"));
 const checks = [];
 const temporaryDirs = [];
 process.on("exit", () => temporaryDirs.forEach(directory => fs.rmSync(directory, { recursive: true, force: true })));
+
+check("recorded EVT-004 projections are tracked and bound to the original artifact digests", () => {
+  assert(recordedEvt004.schema ===
+      "media-server.v390-ui-diagnostic-evt004-recorded-contract.v1" &&
+    recordedEvt004.sourceArtifacts?.preservedCaseLocalFailureSha256 ===
+      "85b922e7c95dab0a9f095e719661d288084c13ebc3100563130de394a6e8de81" &&
+    recordedEvt004.sourceArtifacts?.latestBrowserFailureSha256 ===
+      "afb8876d75d2775d48b516448d211fc41492151e65ca53403d635f12b96d70ef",
+  "tracked EVT-004 projection lost its original recorded artifact binding");
+  assert(sha256(stableJson(recordedEvt004)) ===
+      "b0a2f61e078d742afb4b2f9072f0274eb7d2775aea66ad7658b83f04e1212123",
+    "tracked EVT-004 projection digest drifted");
+});
 
 check("release runner remains fail-first outside the internal diagnostic child mode", () => {
   assert(runnerSource.includes("let stopped = false;") &&
@@ -61,10 +76,7 @@ check("release runner remains fail-first outside the internal diagnostic child m
 });
 
 check("recorded EVT-004 child FAIL remains valid case evidence instead of missing ingestion", () => {
-  const summaryPath = path.join(rootDir,
-    ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
-    "v390-ui-diagnostic-20260808004425-80046/cases/EVT-004/summary.json");
-  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  const summary = structuredClone(recordedEvt004.preservedCaseLocalFailure);
   const lifecycleErrors = validateEvt004LifecycleEvidence(summary.case);
   assert(!lifecycleErrors.includes("EVT-004-request-correlation-missing"),
     "a downstream correlation stage missing after the preserved primary failure invalidated the child summary");
@@ -103,10 +115,40 @@ check("recorded EVT-004 child FAIL remains valid case evidence instead of missin
 });
 
 check("latest EVT-004 browser FAIL preserves primary, marker phase, raw validation, and cleanup independently", () => {
-  const summaryPath = path.join(rootDir,
-    ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
-    "v390-ui-diagnostic-20260808021130-96376/cases/EVT-004/summary.json");
-  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  const summary = structuredClone(recordedEvt004.latestBrowserFailure);
+  assert(summary.sourceBinding?.gitCommit ===
+      "c6a1eb5697f139d749dc0392dbc31b07469eec12" &&
+    summary.sourceBinding?.selectionMode === "diagnostic-failure-closure-sweep" &&
+    summary.sourceBinding?.parentSelectionCount === 7 &&
+    summary.sourceBinding?.parentSelectionIdsSha256 ===
+      "78fca0081ee343224b3ea64da7eb8b521e355aa3a550a465ee90163e3edd7be0" &&
+    summary.sourceBinding?.selectionContractDigest ===
+      "ecb8cd71ee433fe89cf477d5c5d3a3dc1e86ca02a2d555ce40854b1db8fb3685" &&
+    summary.case?.observed?.screenRoute === "/ops/events" &&
+    summary.case?.markerEvidenceLifecycle?.phase === "not-reached",
+  "latest recorded EVT-004 source, route, or stored marker projection drifted");
+  const structured = summary.case?.eventDomSemanticEvidence;
+  assert(structured?.error?.code === "EVT_DOM_SEMANTIC_COMPOSITE_FAILED" &&
+    JSON.stringify(structured.error.causeCodes) === JSON.stringify([
+      "RESPONSE_BASELINE_MISSING",
+      "EXPECTED_FIXTURE_DIGEST_MISSING",
+    ]) &&
+    structured.responseBaselineMatched?.mismatchPaths?.[0] === "log tail" &&
+    structured.fixtureObserved?.candidateCount === 6 &&
+    structured.fixtureObserved?.candidateDigest ===
+      "cda4bd8deff8a494f84eae3a53075c4ec1eb522d8411e3e5241bda9dc4c647a0" &&
+    stableJson(summary.case.primaryFailureEvidence?.structuredEvidence
+      ?.eventDomSemanticEvidence) === stableJson(structured),
+  "latest recorded EVT-004 structured failure code, cause, or projection drifted");
+  assert(summary.rawCaptureValidation?.status === "FAIL" &&
+    summary.rawCaptureValidation?.releaseEvidenceEligible === false &&
+    stableJson(summary.rawCaptureValidation.errors) === stableJson([
+      "diagnostic-child-EVT-004-marker-evidence-required-after-prerequisites",
+    ]) &&
+    summary.case?.cleanupAttestation?.primaryFailurePreserved === true &&
+    summary.case.cleanupAttestation.caseRuntimeRestored === true &&
+    summary.case.cleanupAttestation.browserContextClosed === true,
+  "latest recorded EVT-004 raw validation or cleanup projection drifted");
   const phase = deriveMarkerEvidenceLifecycle(summary.case);
   assert(phase.phase === "partial" && phase.stageEvidencePresent === true &&
     phase.primaryFailurePresent === true && phase.evaluatorInvocationCount === 0,

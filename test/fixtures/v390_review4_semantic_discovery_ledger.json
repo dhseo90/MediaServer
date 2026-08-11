@@ -3,7 +3,7 @@
   "sourceRelease": "v3.9.0",
   "evidenceBoundary": "static-semantic-audit-only-not-runtime-ui-or-longrun-pass",
   "summary": {
-    "documents": 187,
+    "documents": 189,
     "sourceMarkers": 38,
     "currentProductContracts": 82,
     "historicalOrSuperseded": 74,
@@ -152,7 +152,7 @@
     },
     {
       "path": "docs/README.md",
-      "contentSha256": "527f4e84c94ba3f0faed96b19f24aa0fbcb5165bdcac35e5acf899f6ed930fa3",
+      "contentSha256": "d7f62ab6c81c2db86a4a6357a016079c70218bdef91beedb182fc9f0269b1912",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2531,6 +2531,26 @@
       "semanticDigest": "23068d1ad504a654254bc03f4a44a7d3495102983ddecaec441942ffdda54663"
     },
     {
+      "path": "docs/superpowers/plans/2026-08-11-v390-verification-runner-rebase.md",
+      "contentSha256": "6d21a23ae38759cda1a07ef9076d97b92e677ebc68207e3747fe834853712928",
+      "semanticRole": "current-v390-verification-rebase-execution-plan",
+      "lifecycle": "current-plan",
+      "alignment": "aligned",
+      "decision": "retain-active-plan",
+      "semanticStatement": "v3.9.0 Verification Runner Rebase Implementation Plan — v3.9.0 verification runner 구현, 독립 actual, immutable RC closure가 끝날 때까지 active source-of-truth로 유지한다",
+      "actualOwner": {
+        "path": "docs/superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md",
+        "anchor": "v3.9.0 Verification Runner Rebase Design"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-11-v390-verification-runner-rebase.md",
+          "anchor": "v3.9.0 Verification Runner Rebase Implementation Plan"
+        }
+      ],
+      "semanticDigest": "9072635a297228dbc4049ddb46e7513d2af2d1bc017b93ed1c9ec6462fdc22a5"
+    },
+    {
       "path": "docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md",
       "contentSha256": "1ffe189dcf840bae4bff8ea6deecd9855b151d298b81c60bcfb604648a5696bc",
       "semanticRole": "historical-or-superseded-plan",
@@ -2569,6 +2589,26 @@
         }
       ],
       "semanticDigest": "582654dfd64d355fdcab8e6e68de625f307ba4102d7eeb6d3b5ba5686e19fefe"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md",
+      "contentSha256": "90d765c3aadc24c3818d2270bdf25adb0cba35fc449d5bb2c27466f3d8de7a3a",
+      "semanticRole": "current-v390-verification-rebase-design",
+      "lifecycle": "current-plan",
+      "alignment": "aligned",
+      "decision": "retain-active-plan",
+      "semanticStatement": "v3.9.0 Verification Runner Rebase Design — v3.9.0 verification runner 구현, 독립 actual, immutable RC closure가 끝날 때까지 active source-of-truth로 유지한다",
+      "actualOwner": {
+        "path": "docs/superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md",
+        "anchor": "v3.9.0 Verification Runner Rebase Design"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-11-v390-verification-runner-rebase.md",
+          "anchor": "v3.9.0 Verification Runner Rebase Implementation Plan"
+        }
+      ],
+      "semanticDigest": "0f77db8e2eaaea96f61329f5d89326b29626a50e8cbed6c6bc1832f0f05e221a"
     },
     {
       "path": "docs/ui-empty-loading-error-copy-matrix.md",

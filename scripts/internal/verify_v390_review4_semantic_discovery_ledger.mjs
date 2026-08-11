@@ -24,7 +24,7 @@ Usage:
   ./server.sh verify-v390-review4-semantic-discovery-ledger [--write-ledger]
 
 Checks:
-  - AGENTS.md와 분리된 tracked Markdown 187개 각각의 semantic role/lifecycle/actual owner/evidence를 검증
+  - AGENTS.md와 분리된 tracked Markdown 189개 각각의 semantic role/lifecycle/actual owner/evidence를 검증
   - 38개 source marker 각각의 occurrence identity와 exact disposition을 검증
   - checksum이나 문서 자기참조를 current 제품 의미의 완료 근거로 사용하지 않음
   - stale current claim, generic 분류, owner/evidence 누락을 negative fixture로 거부
@@ -42,9 +42,9 @@ const stored = readJson(fixturePath);
 const negativeCases = readJson(negativeFixturePath);
 const checks = [];
 
-check("all 187 tracked Markdown documents have exact semantic records", () => {
+check("all 189 tracked Markdown documents have exact semantic records", () => {
   const expectedPaths = trackedMarkdownPaths();
-  assert(expectedPaths.length === 187, `expected 187 Markdown files, got ${expectedPaths.length}`);
+  assert(expectedPaths.length === 189, `expected 189 Markdown files, got ${expectedPaths.length}`);
   assert(stored.documents.length === expectedPaths.length, "semantic document ledger count drift");
   assertStableEqual(stored.documents.map(item => item.path), expectedPaths, "semantic document path set drift");
   assert(new Set(stored.documents.map(item => item.path)).size === stored.documents.length, "duplicate document record");
@@ -92,6 +92,19 @@ check("REVIEW3 completion language is historical rather than current proof", () 
   ];
   for (const file of review3Plans) {
     assert(/historical|과거|superseded/i.test(readText(file).slice(0, 900)), `${file} lacks a historical lifecycle marker`);
+  }
+});
+
+check("verification rebase plan and design remain active until actual and RC closure", () => {
+  for (const file of [
+    "docs/superpowers/plans/2026-08-11-v390-verification-runner-rebase.md",
+    "docs/superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md",
+  ]) {
+    const record = stored.documents.find(item => item.path === file);
+    assert(record?.lifecycle === "current-plan" &&
+      record?.alignment === "aligned" &&
+      record?.decision === "retain-active-plan",
+    `${file} was classified as historical before actual and RC closure`);
   }
 });
 
@@ -277,6 +290,21 @@ function releaseArtifactSemantic(file) {
 }
 
 function planSemantic(file) {
+  const verificationRebasePlan =
+    "docs/superpowers/plans/2026-08-11-v390-verification-runner-rebase.md";
+  const verificationRebaseDesign =
+    "docs/superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md";
+  if (file === verificationRebasePlan || file === verificationRebaseDesign) {
+    return semantic(file === verificationRebasePlan
+      ? "current-v390-verification-rebase-execution-plan"
+      : "current-v390-verification-rebase-design",
+    "current-plan", "aligned", "retain-active-plan",
+    "v3.9.0 verification runner 구현, 독립 actual, immutable RC closure가 끝날 때까지 active source-of-truth로 유지한다",
+    owner(verificationRebaseDesign,
+      firstHeading(readText(verificationRebaseDesign)) || path.basename(verificationRebaseDesign)),
+    [owner(verificationRebasePlan,
+      firstHeading(readText(verificationRebasePlan)) || path.basename(verificationRebasePlan))]);
+  }
   const currentReview4 = file.endsWith("2026-07-12-v390-review4-50-62.md");
   const currentHandoff = file.endsWith("2026-07-08-v390-structure-stabilization-handoff.md");
   if (currentReview4 || currentHandoff) {
