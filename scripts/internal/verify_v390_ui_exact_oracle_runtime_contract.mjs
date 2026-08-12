@@ -65,11 +65,15 @@ const runtimeBrowserSource = `${runtimeSource}\n${browserCallbackSource}`;
 const dynamicRegExpAudit = auditInternalDynamicRegExpBoundaries();
 
 await check("event review renderer owns and awaits one dedicated product fetch", async () => {
+  const executeStart = runtimeSource.indexOf("async function executeTrustedInteraction(");
+  const executeEnd = runtimeSource.indexOf("\nasync function completeDeclaredObservationInteraction(", executeStart);
   const begin = runtimeSource.indexOf("async function beginEventReviewRenderProjection(");
   const start = runtimeSource.indexOf("async function materializeEventReviewRenderProjection(");
   const end = runtimeSource.indexOf("\nexport function correlatedMutationRequestResponseEnvelope", start);
-  assert(begin >= 0 && begin < start && end > start,
+  assert(executeStart >= 0 && executeEnd > executeStart &&
+    begin >= 0 && begin < start && end > start,
     "event review renderer pre-interaction ownership function is missing");
+  const execute = runtimeSource.slice(executeStart, executeEnd);
   const preInteraction = runtimeSource.slice(begin, start);
   const source = runtimeSource.slice(start, end);
   assert(preInteraction.includes("beginRequestActionOwnership") &&
@@ -79,9 +83,13 @@ await check("event review renderer owns and awaits one dedicated product fetch",
   "event review renderer does not own one awaited product request lifecycle");
   assert(preInteraction.includes("event-review-render") &&
     source.includes("ownership.requestActionContext") &&
-    runtimeSource.indexOf("eventReviewRenderOwnership?.requestActionContext || activeActionContext") <
+    execute.includes("event-review-render-deferred") &&
+    execute.indexOf("event-review-render-deferred") < execute.indexOf("browser.click(selector)") &&
+    runtimeSource.includes("const ownsEventReviewRender = Boolean(eventReviewRenderOwnership)") &&
+    !preInteraction.includes('"selectedEventId"') &&
+    runtimeSource.indexOf("eventReviewRenderOwnership,") <
       runtimeSource.indexOf("materializeEventReviewRenderProjection({"),
-    "event review renderer ownership identity is not explicit");
+    "event review renderer ownership or pre-interaction ordering is not explicit");
 });
 
 await check("fixture-derived literals use one serializable non-RegExp matcher", async () => {

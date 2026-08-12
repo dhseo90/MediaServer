@@ -213,18 +213,7 @@ export async function executeCatalogRuntimeOracle({
       String(request.method || "GET").toUpperCase() === "GET" &&
       resolveRuntimeRequestPath(request.path, runtimeBindings) ===
         "/ops/api/events/status?limit=5&includeArchives=1");
-  const ownsEventReviewRender = item.caseId.startsWith("EVT-") &&
-    spec.requests.some(request => {
-      const target = new URL(
-        resolveRuntimeRequestPath(request.path, runtimeBindings),
-        "http://runtime.invalid",
-      );
-      return String(request.method || "GET").toUpperCase() === "GET" &&
-        target.pathname === "/ops/api/events/reviews" && target.search.length > 1;
-    });
-  assert(!ownsEventReviewRender || !requestActionContext,
-    `${item.caseId} event review renderer requires a dedicated request ownership scope`);
-  const eventReviewRenderOwnership = ownsEventReviewRender
+  const eventReviewRenderOwnership = item.caseId.startsWith("EVT-")
     ? await beginEventReviewRenderProjection({
         browser,
         item,
@@ -237,6 +226,9 @@ export async function executeCatalogRuntimeOracle({
         correlationId,
       })
     : null;
+  const ownsEventReviewRender = Boolean(eventReviewRenderOwnership);
+  assert(!ownsEventReviewRender || !requestActionContext,
+    `${item.caseId} event review renderer requires a dedicated request ownership scope`);
   let activeActionContext = requestActionContext;
   let ownsActionContext = false;
   if (!activeActionContext && !requestScopedCorrelationOnly &&
@@ -313,6 +305,7 @@ export async function executeCatalogRuntimeOracle({
           correlationId,
           runtimeBindings,
           eventReviewRenderOwnership?.requestActionContext || activeActionContext,
+          eventReviewRenderOwnership,
           ownershipPhase,
         );
     interaction = await completeDeclaredObservationInteraction({
@@ -852,12 +845,25 @@ async function executeTrustedInteraction(
   correlationId,
   runtimeBindings,
   requestActionContext,
+  eventReviewRenderOwnership,
   ownershipPhase,
 ) {
   if (/^(CLIENT|MEDIA|SAFE)-/.test(item.caseId)) {
     return executeClientSafeInteraction(browser, item, spec, correlationId, runtimeBindings);
   }
   const selector = refreshControls[spec.route] || "";
+  if (eventReviewRenderOwnership) {
+    assert(eventReviewRenderOwnership.schema ===
+      "media-server.v390-ui-event-review-render-ownership.v1" &&
+      eventReviewRenderOwnership.requestActionContext === requestActionContext &&
+      eventReviewRenderOwnership.closed === false,
+    `${item.caseId} event review deferred interaction ownership mismatch`);
+    return {
+      kind: "event-review-render-deferred",
+      selector,
+      actionId: eventReviewRenderOwnership.renderActionId,
+    };
+  }
   if (!selector || ["form-submit", "persisted-mutation", "actionable", "negative-route"].includes(item.workflow.workflowClass)) {
     return { kind: "existing-primary-action-or-navigation", selector: item.workflow.primaryControl?.selector || null };
   }

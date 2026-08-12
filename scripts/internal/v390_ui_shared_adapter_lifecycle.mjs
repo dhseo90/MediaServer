@@ -384,7 +384,15 @@ export function resolvePostActionVisualTarget(plan, {
     "post-action visual target plan schema mismatch");
   const sourceSelector = String(plan.preAction?.selector || "");
   assert(sourceSelector, `${plan.caseId} post-action visual source selector missing`);
-  const sourceOwnerSelector = String(executionOwnerSelector || sourceSelector);
+  const sourceOwnerSelector = String(
+    requestNavigationLifecycleBinding?.sourceOwnerSelector ||
+    executionOwnerSelector ||
+    sourceSelector,
+  );
+  const sourceAfterSelector = requestNavigationLifecycleBinding?.sourceOwnerSelector &&
+    requestNavigationLifecycleBinding.sourceOwnerSelector !== sourceSelector
+    ? sourceSelector
+    : sourceOwnerSelector;
   assert(sourceOwnerSelector,
     `${plan.caseId} post-action visual execution owner selector missing`);
   assert(visualContext?.schema === "media-server.v390-ui-post-action-visual-context.v1",
@@ -515,7 +523,7 @@ export function resolvePostActionVisualTarget(plan, {
     label: "source-before owner",
   });
   validateOwnerObservation(plan.caseId, sourceObservation, {
-    selector: sourceOwnerSelector,
+    selector: sourceAfterSelector,
     navigationEpoch,
     requireVisible: false,
     label: "source-after owner",

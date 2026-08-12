@@ -439,6 +439,16 @@ const rule017NavigationBinding = bindRequestNavigationLifecycle(
 );
 assert.equal(rule017NavigationBinding.caseId, "RULE-017");
 assert.equal(rule017NavigationBinding.sourceOwnerSelector, "body");
+const rule017VisualTarget = resolvePostActionVisualTarget(plan("RULE-017"), {
+  visualContext: context("/ops/rules", 1),
+  sourceBeforeObservation: observation("body", 1, true, true),
+  sourceObservation: observation("#opsEventRuleIdInput", 1, true, false),
+  requestNavigationLifecycleBinding: rule017NavigationBinding,
+  executionOwnerSelector: "#opsEventRuleIdInput",
+});
+assert.equal(rule017VisualTarget.selector, "body");
+assert.equal(rule017VisualTarget.bindingKind, "post-action-visible-document-owner");
+assert.equal(rule017VisualTarget.sourceHidden, true);
 
 assert.equal(matchesMaterializedRequestTemplate(
   "/ops/api/events/reviews?selectedEventId={fixtureId}",
