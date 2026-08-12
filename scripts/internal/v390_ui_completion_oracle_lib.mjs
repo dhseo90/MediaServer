@@ -348,6 +348,8 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
   const orderedDocumentNavigations = Array.isArray(navigation.orderedDocumentNavigations)
     ? navigation.orderedDocumentNavigations
     : [];
+  const invocationDocumentNavigations = orderedDocumentNavigations.filter(entry =>
+    entry?.invocationId === expected.invocationId);
   const exactLedgerBindings = orderedDocumentNavigations.filter(entry =>
     entry?.responseBound === true &&
     entry?.invocationId === expected.invocationId &&
@@ -397,7 +399,7 @@ export function buildNavigationTrustEvidence({ navigation = {}, expected = {} } 
             Number(entry.responseStatus) === Number(observed.responseStatus)) &&
           observed.responseBound === true;
       })
-    : totalDocumentNavigationCount === 1;
+    : invocationDocumentNavigations.length === 1;
   const lastNavigationSequence = orderedDocumentNavigations.reduce(
     (maximum, entry) => Math.max(maximum, Number(entry?.responseSequence || entry?.sequence || 0)),
     0,

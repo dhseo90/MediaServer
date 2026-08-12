@@ -66,12 +66,14 @@ import {
 } from "./v390_ui_exact_event_oracles.mjs";
 import {
   aggregateDiagnosticChildOutcome,
+  buildFailureLifecycleEvidence,
   buildCaseCleanupAttestation,
   copyEventReviewSeedWriteEvidence,
   eventReviewSeedDiagnosticCaseIds,
   serializeDiagnosticPrimaryFailureEvidence,
   serializeFailureLifecycleEvidence,
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
+import * as diagnosticLifecycle from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import {
   deduplicateScreenshotArtifacts,
   pruneUnreferencedArtifactFiles,
@@ -894,6 +896,180 @@ check("all 424 completion modes separate document navigation from application re
     .filter(action => action.semanticCompletion?.request)
     .every(action => !["navigate", "navigate-action-route", "navigate-negative"].includes(action.kind))),
   "application request binding leaked into a document navigation action");
+});
+
+check("all 424 failure lifecycles retain the initial manifest navigation binding", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  assert(rebuilt.cases.length === 424, "failure lifecycle route audit requires exact 424 cases");
+  for (const item of rebuilt.cases) {
+    const initialExpected = item.actions[0]?.semanticCompletion?.navigationBinding;
+    const expected = item.actions.find(action =>
+      action.semanticCompletion?.phase === "primary-action")
+      ?.semanticCompletion?.navigationBinding || initialExpected;
+    const expectedRequestedPath = item.caseId === "UI-001" ? "/" : item.screenRoute;
+    const expectedObservedPath = item.caseId === "UI-001" ? "/login" : item.screenRoute;
+    assert(initialExpected?.schema === "media-server.v390-ui-navigation-trust-binding.v1" &&
+      initialExpected.requestedPath === expectedRequestedPath &&
+      initialExpected.expectedCanonicalRoute === expectedRequestedPath &&
+      initialExpected.expectedObservedPath === expectedObservedPath,
+    `${item.caseId} initial manifest navigation binding drift`);
+
+    const lifecycle = expected.caseLifecycleNavigationSequence || [{
+      method: "GET",
+      path: expected.requestedPath,
+      resourceType: "document",
+      sameOrigin: true,
+      correlationRequired: false,
+      redirected: false,
+      responseStatus: 200,
+    }];
+    const orderedDocumentNavigations = lifecycle.map((entry, index) => ({
+      sequence: index * 2 + 2,
+      responseSequence: index * 2 + 3,
+      invocationId: expected.invocationId,
+      navigationKind: "initial-document-navigation",
+      method: entry.method,
+      path: entry.path,
+      resourceType: entry.resourceType,
+      sameOrigin: entry.sameOrigin,
+      correlationPresent: false,
+      redirected: entry.redirected === true,
+      responseStatus: entry.responseStatus,
+      responseBound: true,
+    }));
+    if (item.caseId === "AUTH-007") {
+      orderedDocumentNavigations.push({
+        sequence: 4,
+        responseSequence: 5,
+        invocationId: "AUTH-007:form-submit-document-navigation",
+        navigationKind: "form-submit-document-navigation",
+        method: "POST",
+        path: "/login",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationPresent: false,
+        redirected: false,
+        responseStatus: 403,
+        responseBound: true,
+      });
+    }
+    const navigation = {
+      invocationId: expected.invocationId,
+      requestKind: "document-navigation",
+      method: "GET",
+      requestedPath: expected.requestedPath,
+      observedPath: expected.expectedObservedPath,
+      resourceType: "document",
+      sameOrigin: true,
+      correlationObserved: false,
+      requestAttemptCount: 1,
+      requestCandidateCount: 1,
+      responseCandidateCount: 1,
+      requestResponseBound: true,
+      redirectCount: expected.exactRedirectCount,
+      retryCount: 0,
+      reloadCount: 0,
+      unownedNavigationCount: 0,
+      additionalFetchCount: 0,
+      requestReissued: false,
+      totalDocumentNavigationCount: orderedDocumentNavigations.length,
+      orderedDocumentNavigations,
+      listenerStartSequence: 1,
+      listenerEndSequence: orderedDocumentNavigations.at(-1).responseSequence + 1,
+      listenerActive: false,
+      listenerInstalledBeforeFirstNavigation: true,
+      navigationAfterListenerEndCount: 0,
+    };
+    const runtimeState = new Map([["__caseRuntimeRestored", true]]);
+    const evidence = buildFailureLifecycleEvidence({
+      item,
+      trace: { navigation, cleanup: [] },
+      runtimeState,
+      primaryFailure: new Error("actual-derived contract failure"),
+      cleanupFailure: null,
+      browserCloseFailure: null,
+      browserCloseAttempted: true,
+      browserContextCreated: true,
+      capturedCorrelationWindow: null,
+    });
+    assert(evidence.navigationLifecycleEvidence.pass === true &&
+      evidence.navigationLifecycleEvidence.requestedPath === expected.requestedPath &&
+      evidence.navigationLifecycleEvidence.expectedObservedPath === expected.expectedObservedPath,
+    `${item.caseId} failure lifecycle navigation drift: ` +
+      `${evidence.navigationLifecycleEvidence.failureCode || "wrong-route"}`);
+  }
+});
+
+check("independent readback passes one coordinator ownership context and always ends it", () => {
+  const functionStart = runnerSource.indexOf("async function executeIndependentReadback(");
+  const functionEnd = runnerSource.indexOf("\nfunction exactFixtureId", functionStart);
+  assert(functionStart >= 0 && functionEnd > functionStart,
+    "independent readback production function is unavailable");
+  const source = runnerSource.slice(functionStart, functionEnd);
+  assert(source.includes("actionId: pending.actionEvidence.actionId") &&
+    source.includes("correlationId: pending.actionEvidence.correlationId") &&
+    !source.includes("`${pending.actionEvidence.correlationId}:independent-readback`"),
+  "independent readback coordinator is not bound to the authoritative primary request identity");
+  assert(source.includes("requestActionContext: readbackCoordinatorContext"),
+    "independent readback did not pass its coordinator context to the lower runtime oracle");
+  assert(source.includes("try {") && source.includes("finally {") &&
+    source.includes("endRequestActionOwnershipPreservingPrimary(") &&
+    source.indexOf("finally {") < source.lastIndexOf("endRequestActionOwnershipPreservingPrimary("),
+  "independent readback ownership is not closed by a primary-preserving finally boundary");
+  assert(!source.includes("await browser.endRequestActionOwnership(readbackCoordinatorContext);"),
+    "independent readback retains an unguarded coordinator end call");
+});
+
+check("bounded ownership cleanup precedes physical close without changing close truth", () => {
+  assert(typeof diagnosticLifecycle.cleanupActiveRequestOwnershipBeforeClose === "function",
+    "bounded pre-close request ownership cleanup helper is missing");
+  let activeOwner = { phase: "independent-readback", actionId: "SRC-008:execute-endpoint-action" };
+  let cleanupCalls = 0;
+  const primaryFailure = new Error("actual-derived primary failure");
+  const evidence = diagnosticLifecycle.cleanupActiveRequestOwnershipBeforeClose({
+    browser: {
+      requestActionOwnershipEvidence: () => ({ activeOwner }),
+      cleanupRequestActionOwnership: failure => {
+        cleanupCalls += 1;
+        assert(failure === primaryFailure, "bounded cleanup replaced the primary failure identity");
+        activeOwner = null;
+        return { status: "PASS", clearedActiveOwner: true, clearedRequestCount: 0 };
+      },
+    },
+    primaryFailure,
+  });
+  assert(cleanupCalls === 1 && evidence.cleanupPerformed === true &&
+    evidence.activeOwnerBefore === true && evidence.activeOwnerAfter === false &&
+    evidence.primaryFailurePreserved === true,
+  "bounded ownership cleanup did not close exactly one active scope");
+
+  const physicallyClosed = buildCaseCleanupAttestation({
+    primaryFailure,
+    cleanupFailure: null,
+    browserCloseFailure: null,
+    browserCloseAttempted: true,
+    browserContextCreated: true,
+    caseRuntimeRestored: true,
+  });
+  const physicalCloseFailed = buildCaseCleanupAttestation({
+    primaryFailure,
+    cleanupFailure: null,
+    browserCloseFailure: new Error("context.close failed"),
+    browserCloseAttempted: true,
+    browserContextCreated: true,
+    caseRuntimeRestored: true,
+  });
+  assert(physicallyClosed.pass === true && physicallyClosed.browserContextClosed === true &&
+    physicalCloseFailed.pass === false && physicalCloseFailed.browserContextClosed === false &&
+    physicalCloseFailed.failureCode === "BROWSER_CLOSE_FAILED",
+  "physical close truth was conflated with the preserved primary/lifecycle result");
+  const functionStart = runnerSource.indexOf("async function executeCase(");
+  const functionEnd = runnerSource.indexOf("\nfunction createFailedCaseResult", functionStart);
+  const source = runnerSource.slice(functionStart, functionEnd);
+  assert(source.includes("cleanupActiveRequestOwnershipBeforeClose({") &&
+    source.indexOf("cleanupActiveRequestOwnershipBeforeClose({") <
+      source.lastIndexOf("closeBrowserForFailureLifecycle({ browser, trace })"),
+  "failed-case bounded ownership cleanup does not precede physical browser close");
 });
 
 check("EVT-004 reuses one document navigation and correlates only the authoritative API fetch", () => {

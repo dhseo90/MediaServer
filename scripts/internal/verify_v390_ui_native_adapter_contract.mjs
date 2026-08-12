@@ -1327,9 +1327,10 @@ check("adapter exposes native wait click fill type select screenshot", () => {
     !adapterSource.includes("context.setExtraHTTPHeaders"),
   "adapter does not keep correlation injection request/document scoped");
   assert(exactRunnerSource.includes("finalNavigation = await browser.close()") &&
+    exactRunnerSource.includes("browser.sealRequestLifecycleLedger()") &&
     !exactRunnerSource.includes("browser.finalizeNavigationLedger()") &&
     exactRunnerSource.includes("final navigation lifecycle failed"),
-  "exact runner does not validate the authoritative ledger returned after browser close");
+  "exact runner does not separate physical browser close from request lifecycle sealing");
   const closeBlockStart = adapterSource.indexOf("close: async () => {");
   const contextClose = adapterSource.indexOf("await context.close()", closeBlockStart);
   const browserClose = adapterSource.indexOf("await browser.close()", closeBlockStart);
@@ -1339,6 +1340,11 @@ check("adapter exposes native wait click fill type select screenshot", () => {
     browserClose > contextClose &&
     finalLedger > browserClose,
   "adapter finalizes the navigation ledger before the browser lifecycle is closed");
+  const closeBlockEnd = adapterSource.indexOf("\n    },\n  };", closeBlockStart);
+  assert(closeBlockEnd > closeBlockStart &&
+    !adapterSource.slice(closeBlockStart, closeBlockEnd)
+      .includes("sealRequestLifecycleLedger"),
+  "adapter physical close still conflates request lifecycle ledger finalization");
   assert(adapterSource.includes("let closePromise = null") &&
     adapterSource.includes("if (!closePromise)") &&
     adapterSource.includes("return closePromise"),

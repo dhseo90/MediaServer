@@ -377,6 +377,35 @@ export async function closeBrowserForFailureLifecycle({ browser, trace }) {
   }
 }
 
+export function cleanupActiveRequestOwnershipBeforeClose({
+  browser,
+  primaryFailure = null,
+} = {}) {
+  if (!browser || typeof browser.requestActionOwnershipEvidence !== "function" ||
+      typeof browser.cleanupRequestActionOwnership !== "function") {
+    throw new Error("request ownership cleanup adapter is unavailable");
+  }
+  const before = browser.requestActionOwnershipEvidence();
+  const activeOwnerBefore = Boolean(before?.activeOwner);
+  let cleanup = null;
+  if (activeOwnerBefore) {
+    cleanup = browser.cleanupRequestActionOwnership(primaryFailure);
+  }
+  const after = browser.requestActionOwnershipEvidence();
+  if (after?.activeOwner) {
+    throw new Error("request ownership remained active after bounded pre-close cleanup");
+  }
+  return Object.freeze({
+    schema: "media-server.v390-ui-pre-close-request-ownership-cleanup.v1",
+    cleanupPerformed: activeOwnerBefore,
+    activeOwnerBefore,
+    activeOwnerAfter: Boolean(after?.activeOwner),
+    primaryFailurePreserved: primaryFailure instanceof Error,
+    cleanupStatus: String(cleanup?.status || (activeOwnerBefore ? "" : "not-required")),
+    clearedRequestCount: Number(cleanup?.clearedRequestCount || 0),
+  });
+}
+
 export function captureBoundedCorrelationWindow({
   entries = [],
   window = null,
@@ -426,8 +455,13 @@ export function buildFailureLifecycleEvidence({
   browserContextCreated,
   capturedCorrelationWindow,
 }) {
-  const lifecycleNavigationBinding = item.actions.find(action =>
-    action.semanticCompletion?.phase === "primary-action")?.semanticCompletion?.navigationBinding || null;
+  const initialNavigationBinding =
+    item.actions[0]?.semanticCompletion?.navigationBinding || null;
+  const primaryNavigationBinding = item.actions.find(action =>
+    action.semanticCompletion?.phase === "primary-action")
+    ?.semanticCompletion?.navigationBinding || null;
+  const lifecycleNavigationBinding =
+    primaryNavigationBinding || initialNavigationBinding;
   const navigationLifecycleEvidence = buildNavigationTrustEvidence({
     navigation: trace.navigation || {},
     expected: lifecycleNavigationBinding || {},

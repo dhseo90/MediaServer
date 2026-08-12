@@ -3550,11 +3550,6 @@ async function openNativePlaywrightPage(playwright, {
             closeFailure ||= error;
           }
           browserClosed = true;
-          try {
-            requestLifecycleLedger.sealRequestLifecycleLedger();
-          } catch (error) {
-            closeFailure ||= error;
-          }
           const finalNavigation = finalizeNavigationLedger();
           if (closeFailure) {
             closeFailure.navigationLifecycleEvidence = structuredClone(finalNavigation);

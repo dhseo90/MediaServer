@@ -55,6 +55,7 @@ import {
   buildFallbackFailureLifecycleEvidence,
   buildFailureLifecycleEvidence,
   captureBoundedCorrelationWindow,
+  cleanupActiveRequestOwnershipBeforeClose,
   closeBrowserForFailureLifecycle,
   copyEventReviewSeedWriteEvidence,
   diagnosticChildBrowserExecutionBindingValid,
@@ -2211,6 +2212,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   let requestLifecycleFailure = null;
   let requestLifecycleEvaluation = null;
   let requestLifecycleEvaluationAttempted = false;
+  let requestLifecycleSealAttempted = false;
   let browserCloseAttempted = false;
   let failureLifecycleEvidence = null;
   let executionPhase = "prepare-case";
@@ -2819,6 +2821,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       browserCloseFailure = error;
       throw error;
     }
+    requestLifecycleSealAttempted = true;
+    browser.sealRequestLifecycleLedger();
     trace.navigation = structuredClone(finalNavigation);
     executionPhase = "request-lifecycle-evaluation";
     evaluateRequestLifecycleAfterClose();
@@ -2982,6 +2986,15 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       closeBrowser: async () => {
         if (!browser) return null;
         browserCloseAttempted = true;
+        try {
+          trace.requestActionOwnershipCleanupEvidence =
+            cleanupActiveRequestOwnershipBeforeClose({
+              browser,
+              primaryFailure,
+            });
+        } catch (error) {
+          cleanupFailure ||= error;
+        }
         return closeBrowserForFailureLifecycle({ browser, trace });
       },
       finalizeEvidence: ({
@@ -3008,6 +3021,14 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     cleanupFailure ||= finalized.cleanupFailure;
     browserCloseFailure ||= finalized.browserCloseFailure;
     lifecycleFinalizationFailure ||= finalized.lifecycleFinalizationFailure;
+    if (browser && !browserCloseFailure && !requestLifecycleSealAttempted) {
+      requestLifecycleSealAttempted = true;
+      try {
+        browser.sealRequestLifecycleLedger();
+      } catch (error) {
+        lifecycleFinalizationFailure ||= error;
+      }
+    }
     if (browser && !requestLifecycleEvaluationAttempted) {
       try {
         evaluateRequestLifecycleAfterClose();
@@ -5112,10 +5133,12 @@ async function executeIndependentReadback(
   `${item.caseId} independent readback expected behavior/identity mismatch`);
   const readbackCoordinatorContext = await browser.beginRequestActionOwnership({
     phase: "independent-readback",
-    actionId: action.semanticCompletion.actionId,
-    correlationId: `${pending.actionEvidence.correlationId}:independent-readback`,
+    actionId: pending.actionEvidence.actionId,
+    correlationId: pending.actionEvidence.correlationId,
     ownershipKind: "independent-readback",
   });
+  let readbackPrimaryFailure = null;
+  try {
 
   const postconditionSnapshots = {};
   for (const condition of pending.action.semanticCompletion.localTransition?.postconditions || []) {
@@ -5175,6 +5198,7 @@ async function executeIndependentReadback(
           : null,
         primaryNetworkEntries: pending.networkResponses,
         ownershipPhase: "independent-readback",
+        requestActionContext: readbackCoordinatorContext,
       })
     : null;
   if (item.caseId === "EVT-004") {
@@ -5273,12 +5297,6 @@ async function executeIndependentReadback(
     }
     throw error;
   }
-  await browser.endRequestActionOwnership(readbackCoordinatorContext);
-  browser.attestRequestActionOwnershipPhase({
-    phase: "independent-readback",
-    actionId: action.semanticCompletion.actionId,
-    ownershipMode: "independent-readback-scopes-ended-and-attested",
-  });
   runtimeState.delete("__pendingPrimaryCompletion");
   runtimeState.set("__completedPrimaryReadback", {
     actionId: completionOracle.actionId,
@@ -5325,6 +5343,23 @@ async function executeIndependentReadback(
             : null),
     }),
   };
+  } catch (error) {
+    readbackPrimaryFailure = error;
+    throw error;
+  } finally {
+    await endRequestActionOwnershipPreservingPrimary(
+      browser,
+      readbackCoordinatorContext,
+      readbackPrimaryFailure,
+    );
+    if (!readbackPrimaryFailure) {
+      browser.attestRequestActionOwnershipPhase({
+        phase: "independent-readback",
+        actionId: pending.actionEvidence.actionId,
+        ownershipMode: "independent-readback-scopes-ended-and-attested",
+      });
+    }
+  }
 }
 
 function exactFixtureId(item) {
