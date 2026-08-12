@@ -506,6 +506,18 @@ const ui109NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("UI-109
 assert.equal(ui109NavigationPlan.classification, "same-document-no-navigation");
 assert.equal(ui109NavigationPlan.steps.length, 0);
 assert.equal(ui109NavigationPlan.declaredHopCount, 0);
+const ui109HiddenNavigationBinding = bindRequestNavigationLifecycle(
+  ui109NavigationPlan,
+  requestNavigationScope(ui109NavigationPlan, 1),
+  {
+    sourceBeforeObservation: observation(ui109NavigationPlan.sourceSelector, 1, true, true),
+    sourceObservation: observation(ui109NavigationPlan.sourceSelector, 1, true, false),
+    visualContext: context("/ops/sources", 1),
+    executionOwnerSelector: ui109NavigationPlan.sourceSelector,
+  },
+);
+assert.equal(ui109HiddenNavigationBinding.sourceOwnerSelector,
+  ui109NavigationPlan.sourceSelector);
 
 for (const mutation of [
   scope => { scope.ownerLifecycles.shift(); },

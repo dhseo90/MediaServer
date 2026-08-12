@@ -211,7 +211,10 @@ export function bindRequestNavigationLifecycle(plan, scope, {
   const sourceSelector = String(executionOwnerSelector || plan.sourceSelector || "");
   const hiddenSourceControl = sourceObservation?.selector === sourceSelector &&
     sourceObservation.exists === true && sourceObservation.visible === false;
-  const sourceOwnerSelector = hiddenSourceControl ? "body" : sourceSelector;
+  const sourceOwnerSelector = hiddenSourceControl &&
+    sourceBeforeObservation.selector === "body"
+    ? "body"
+    : sourceSelector;
   assert(sourceBeforeObservation.selector === sourceOwnerSelector,
     `${plan.caseId} request source-before selector mismatch`);
   assert(visualContext?.schema === "media-server.v390-ui-post-action-visual-context.v1" &&
