@@ -997,6 +997,31 @@ check("all 424 failure lifecycles retain the initial manifest navigation binding
       evidence.navigationLifecycleEvidence.expectedObservedPath === expected.expectedObservedPath,
     `${item.caseId} failure lifecycle navigation drift: ` +
       `${evidence.navigationLifecycleEvidence.failureCode || "wrong-route"}`);
+    if (item.caseId === "EVT-004") {
+      const initialOnlyNavigation = {
+        ...navigation,
+        totalDocumentNavigationCount: 1,
+        orderedDocumentNavigations: orderedDocumentNavigations.slice(0, 1),
+      };
+      const finalized = buildFailureLifecycleEvidence({
+        item,
+        trace: {
+          navigation: initialOnlyNavigation,
+          navigationLifecycleEvidence: evidence.navigationLifecycleEvidence,
+          cleanup: [],
+        },
+        runtimeState,
+        primaryFailure: null,
+        cleanupFailure: null,
+        browserCloseFailure: null,
+        browserCloseAttempted: true,
+        browserContextCreated: true,
+        capturedCorrelationWindow: null,
+      });
+      assert(finalized.navigationLifecycleEvidence.pass === true &&
+        finalized.navigationLifecycleEvidence.expectedLifecycleNavigationCount === 2,
+      "EVT-004 success finalizer replaced complete navigation evidence with its initial snapshot");
+    }
   }
 });
 

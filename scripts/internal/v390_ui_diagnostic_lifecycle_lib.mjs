@@ -462,10 +462,13 @@ export function buildFailureLifecycleEvidence({
     ?.semanticCompletion?.navigationBinding || null;
   const lifecycleNavigationBinding =
     primaryNavigationBinding || initialNavigationBinding;
-  const navigationLifecycleEvidence = buildNavigationTrustEvidence({
-    navigation: trace.navigation || {},
-    expected: lifecycleNavigationBinding || {},
-  });
+  const navigationLifecycleEvidence = trace.navigationLifecycleEvidence?.schema ===
+      "media-server.v390-ui-navigation-trust-evidence.v1"
+    ? structuredClone(trace.navigationLifecycleEvidence)
+    : buildNavigationTrustEvidence({
+        navigation: trace.navigation || {},
+        expected: lifecycleNavigationBinding || {},
+      });
   const correlationWindow = capturedCorrelationWindow;
   let requestCorrelationScopeEvidence = correlationWindow
     ? buildExclusiveRequestScopedCorrelationEvidence({
