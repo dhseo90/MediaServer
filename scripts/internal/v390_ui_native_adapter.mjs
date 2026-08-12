@@ -2989,13 +2989,20 @@ async function openNativePlaywrightPage(playwright, {
       }
       throw new Error(`network quiet timeout for correlation ${correlationId || "(any)"}`);
     },
-    waitForPendingRequestSnapshot: async ({ settleDelayMs = 25 } = {}) => {
-      if (settleDelayMs > 0) await page.waitForTimeout(settleDelayMs);
-      const capturedRequestIds = new Set([...pendingRequests.values()]
-        .map(request => String(request.requestId || ""))
-        .filter(Boolean));
+    waitForPendingRequestSnapshot: async ({ settleDelayMs = 250 } = {}) => {
       const deadline = Date.now() + timeoutMs;
+      const capturedRequestIds = new Set();
+      let stableEntryCount = networkEntries.length;
+      let quietStartedAt = Date.now();
       while (Date.now() < deadline) {
+        for (const request of pendingRequests.values()) {
+          const requestId = String(request.requestId || "");
+          if (requestId) capturedRequestIds.add(requestId);
+        }
+        if (networkEntries.length !== stableEntryCount) {
+          stableEntryCount = networkEntries.length;
+          quietStartedAt = Date.now();
+        }
         const pendingRequestIds = new Set([...pendingRequests.values()]
           .map(request => String(request.requestId || ""))
           .filter(Boolean));
@@ -3005,22 +3012,22 @@ async function openNativePlaywrightPage(playwright, {
           .filter(Boolean));
         const unresolvedRequestIds = [...capturedRequestIds].filter(requestId =>
           pendingRequestIds.has(requestId) && !terminalRequestIds.has(requestId));
-        if (unresolvedRequestIds.length === 0 && pendingSafeResponseReads.size === 0) {
+        if (unresolvedRequestIds.length === 0 && pendingRequests.size === 0 &&
+            pendingSafeResponseReads.size === 0 &&
+            Date.now() - quietStartedAt >= settleDelayMs) {
           if (safeResponseReadFailures.length > 0) {
             throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
           }
           return {
             capturedRequestCount: capturedRequestIds.size,
             pendingRequestCount: 0,
+            quietMs: Date.now() - quietStartedAt,
           };
         }
         await page.waitForTimeout(10);
       }
       throw new Error(
-        `pending request snapshot timeout: ${[...capturedRequestIds].filter(requestId =>
-          [...pendingRequests.values()].some(request => request.requestId === requestId) &&
-          !networkEntries.some(entry => entry.phase === "response" &&
-            entry.requestId === requestId)).length}`,
+        `pending request snapshot timeout: ${pendingRequests.size}`,
       );
     },
     click: async (selector) => {
