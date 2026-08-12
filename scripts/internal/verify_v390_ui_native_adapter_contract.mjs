@@ -97,9 +97,10 @@ check("native callbacks use the capture-only recorder as lifecycle authority", (
   }
   const capturePreamble = requestCallback.slice(0,
     requestCallback.indexOf("requestLifecycleRecorder.recordRequest("));
-  assert(!capturePreamble.includes("routeRequestOwnerships") &&
-    capturePreamble.includes("activeActionLifecycleInvocation"),
-  "capture-time action claim still depends on route callback ordering");
+  assert(capturePreamble.includes("resolveNativeLifecycleActionCapture({") &&
+    capturePreamble.includes("directActionRequestOwnership: actionRequestOwnership") &&
+    !capturePreamble.includes("action: activeActionLifecycleInvocation"),
+  "capture-time action claim is not exact-owner/redirect-bound");
   const routeCallback = adapterSource.slice(adapterSource.indexOf('context.route("**/*"'),
     adapterSource.indexOf("context.addInitScript"));
   assert(routeCallback.includes("actionLifecycleInvocationByContext.get(claimedContext)") &&
@@ -452,6 +453,49 @@ check("navigation and action capture projections exclude load subresources by ex
   assert(captured === null && selected.navigation === null && selected.actionClaim === null &&
     propertyFailure.requestLifecycleRecorder.snapshot().captureErrors.length === 1,
   "property read failure escaped or displaced recorder capture-error authority");
+});
+
+check("active action scopes claim only exact request owners and their document redirects", () => {
+  const resolve = nativeAdapterModule.resolveNativeLifecycleActionCapture;
+  assert(typeof resolve === "function",
+    "native lifecycle exact action capture resolver is missing");
+  const directContext = {};
+  const unrelatedContext = {};
+  const directInvocation = { invocationId: "ACTION:primary:scope-1" };
+  const unrelatedInvocation = { invocationId: "ACTION:readback:scope-2" };
+  const invocations = new WeakMap([
+    [directContext, directInvocation],
+    [unrelatedContext, unrelatedInvocation],
+  ]);
+  const directOwnership = { context: directContext };
+
+  assert(resolve({
+    directActionRequestOwnership: directOwnership,
+    actionLifecycleInvocationByContext: invocations,
+  }) === directInvocation,
+  "exact action request lost its lifecycle invocation");
+  assert(resolve({
+    actionLifecycleInvocationByContext: invocations,
+  }) === null,
+  "background request inherited the active coordinator action scope");
+  assert(resolve({
+    redirectParentActionRequestOwnership: directOwnership,
+    actionLifecycleInvocationByContext: invocations,
+  }) === directInvocation,
+  "document redirect did not inherit its exact parent action invocation");
+
+  let crossActionFailed = false;
+  try {
+    resolve({
+      directActionRequestOwnership: directOwnership,
+      redirectParentActionRequestOwnership: { context: unrelatedContext },
+      actionLifecycleInvocationByContext: invocations,
+    });
+  } catch (error) {
+    crossActionFailed = String(error.message).includes("different action contexts");
+  }
+  assert(crossActionFailed,
+    "redirect crossing two action contexts did not fail closed");
 });
 
 check("missing invite runtime-secret sink keeps failure evidence and a safe fallback shape", async () => {

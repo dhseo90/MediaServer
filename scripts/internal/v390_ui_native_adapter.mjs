@@ -788,6 +788,29 @@ export function selectNativeLifecycleCaptureInvocations(request, {
   }
 }
 
+export function resolveNativeLifecycleActionCapture({
+  directActionRequestOwnership = null,
+  redirectParentActionRequestOwnership = null,
+  actionLifecycleInvocationByContext = null,
+} = {}) {
+  const directContext = directActionRequestOwnership?.context || null;
+  const redirectParentContext = redirectParentActionRequestOwnership?.context || null;
+  if (directContext && redirectParentContext && directContext !== redirectParentContext) {
+    throw new Error("request redirect crosses different action contexts");
+  }
+  const context = directContext || redirectParentContext;
+  if (!context) return null;
+  if (!actionLifecycleInvocationByContext ||
+      typeof actionLifecycleInvocationByContext.get !== "function") {
+    throw new Error("action lifecycle invocation registry is unavailable");
+  }
+  const invocation = actionLifecycleInvocationByContext.get(context) || null;
+  if (!invocation) {
+    throw new Error("exact action request lifecycle invocation is missing");
+  }
+  return invocation;
+}
+
 export function captureLegacyFormResponseProjection({
   response,
   entry,
@@ -1500,18 +1523,53 @@ async function openNativePlaywrightPage(playwright, {
   };
   requestListenerStartSequence = ++lifecycleSequence;
   page.on("request", request => {
+    let redirectedFrom = null;
+    let actionRequestOwnership = null;
+    let redirectParentActionRequestOwnership = null;
+    let exactActionLifecycleInvocation = null;
+    let actionLifecycleCaptureResolutionFailed = false;
+    try {
+      redirectedFrom = request.redirectedFrom();
+      actionRequestOwnership = routeRequestOwnerships.get(request) ||
+        selectActionRequestOwnership(request);
+      if (redirectedFrom) {
+        const parentPending = pendingRequests.get(redirectedFrom) || null;
+        redirectParentActionRequestOwnership = routeRequestOwnerships.get(redirectedFrom) ||
+          (parentPending?.actionRequestLedgerWrapper
+            ? {
+                context: parentPending.requestActionContext,
+                ledgerWrapper: parentPending.actionRequestLedgerWrapper,
+                registrationKind: "redirect-parent-request",
+              }
+            : null);
+      }
+      exactActionLifecycleInvocation = resolveNativeLifecycleActionCapture({
+        directActionRequestOwnership: actionRequestOwnership,
+        redirectParentActionRequestOwnership,
+        actionLifecycleInvocationByContext,
+      });
+    } catch {
+      actionRequestOwnership = null;
+      redirectParentActionRequestOwnership = null;
+      exactActionLifecycleInvocation = null;
+      actionLifecycleCaptureResolutionFailed = true;
+    }
     const captureInvocations = selectNativeLifecycleCaptureInvocations(request, {
       navigation: activeNavigationOperation?.requestLifecycleInvocation || null,
-      action: activeActionLifecycleInvocation,
+      action: exactActionLifecycleInvocation,
     });
     const navigationLifecycleInvocation = captureInvocations.navigation;
     const actionLifecycleInvocation = captureInvocations.actionClaim;
     const requestCorrelationDigest = String(
       routeInjectedCorrelations.get(request)?.correlationRouteDigest ||
-      correlationDigest(activeRequestOwnership?.correlationId || activeCorrelationId),
+      correlationDigest(actionRequestOwnership?.context?.correlationId ||
+        redirectParentActionRequestOwnership?.context?.correlationId ||
+        (navigationLifecycleInvocation ? activeCorrelationId : "")),
     );
     let lifecycleCaptureContext;
-    try {
+    if (actionLifecycleCaptureResolutionFailed) {
+      lifecycleCaptureContext = Object.freeze({ navigationInvocation: undefined });
+    } else try {
       lifecycleCaptureContext = requestLifecycleLedger.captureContext({
         navigation: navigationLifecycleInvocation,
         action: actionLifecycleInvocation,
@@ -1541,11 +1599,8 @@ async function openNativePlaywrightPage(playwright, {
     const identity = requestIdentity(request);
     const requestId = identity.requestId;
     const requestStartedAtMs = Date.now();
-    const actionRequestOwnership = routeRequestOwnerships.get(request) ||
-      selectActionRequestOwnership(request);
     const actionContext = actionRequestOwnership?.context || null;
     const requestKind = requestKindFor(request);
-    const redirectedFrom = request.redirectedFrom();
     const lifecycleOwnership = legacyRequestEvidenceForCallback({
       requestKind,
       resourceType: request.resourceType(),
