@@ -1437,8 +1437,9 @@ export function selectCatalogRuntimeMutationResponse({
     String(entry.method || "").toUpperCase() === expectedMethod &&
     runtimeRequestTarget(entry.url) === expectedTarget &&
     String(entry.correlationId || "") === expectedCorrelationId &&
-    String(entry.initiatorActionId || "") === expectedActionId &&
-    entry.ledgerOwner === "action" && entry.exactActionRequestOwned === true);
+    String(entry.correlationRouteActionId || "") === expectedActionId &&
+    ["injected-outer", "preserved-explicit-inner"].includes(
+      String(entry.correlationRouteState || "")));
   assert(requestEntries.length === expectedCount,
     `${caseId} runtime mutation request owner cardinality mismatch: ` +
     `${requestEntries.length}/${expectedCount}`);
@@ -1450,8 +1451,9 @@ export function selectCatalogRuntimeMutationResponse({
     String(entry.method || "").toUpperCase() === expectedMethod &&
     runtimeRequestTarget(entry.url) === expectedTarget &&
     String(entry.correlationId || "") === expectedCorrelationId &&
-    String(entry.initiatorActionId || "") === expectedActionId &&
-    entry.ledgerOwner === "action" && entry.exactActionRequestOwned === true &&
+    String(entry.correlationRouteActionId || "") === expectedActionId &&
+    ["injected-outer", "preserved-explicit-inner"].includes(
+      String(entry.correlationRouteState || "")) &&
     entry.responseRequestObjectObserved === true &&
     allowedStatuses.includes(Number(entry.status)));
   assert(responseEntries.length === expectedCount,

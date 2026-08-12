@@ -3913,8 +3913,10 @@ await check("catalog runtime mutation binds the declared action request object i
     caseRequestSequence: 9,
     correlationId,
     initiatorActionId: actionId,
-    ledgerOwner: "action",
-    exactActionRequestOwned: true,
+    correlationRouteActionId: actionId,
+    correlationRouteState: "injected-outer",
+    ledgerOwner: "page",
+    exactActionRequestOwned: false,
     requestBody: { offer: "owned" },
   };
   const ownedResponse = {
@@ -3963,8 +3965,8 @@ await check("catalog runtime mutation binds the declared action request object i
     expectedResponseCount: 1,
   }), "runtime mutation request owner cardinality mismatch");
   await expectReject(async () => selectCatalogRuntimeMutationResponse({
-    entries: [{ ...ownedRequest, initiatorActionId: "CLIENT-019:wrong-action" },
-      { ...ownedResponse, initiatorActionId: "CLIENT-019:wrong-action" }],
+    entries: [{ ...ownedRequest, correlationRouteActionId: "CLIENT-019:wrong-action" },
+      { ...ownedResponse, correlationRouteActionId: "CLIENT-019:wrong-action" }],
     caseId,
     actionId,
     correlationId,
@@ -4839,6 +4841,8 @@ function clientSequenceBrowser() {
       url: `http://runtime.invalid${path}`,
       correlationId: activeRequestActionContext?.correlationId || "",
       initiatorActionId: activeRequestActionContext?.actionId || "",
+      correlationRouteActionId: activeRequestActionContext?.actionId || "",
+      correlationRouteState: "injected-outer",
       ledgerOwner: "action",
       exactActionRequestOwned: true,
     };
