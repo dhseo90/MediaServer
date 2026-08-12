@@ -2866,7 +2866,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       );
       const navigationLifecycleEvidence = buildNavigationTrustEvidence({
         navigation: caseLifecycleNavigation
-          ? finalNavigation
+          ? browser.caseNavigation
           : primaryVisualObservation?.navigation || finalNavigation,
         expected: lifecycleNavigationBinding,
       });
@@ -5339,7 +5339,9 @@ async function executeIndependentReadback(
     action: pending.actionEvidence,
     before: pending.before,
     after: pending.after,
-    navigation: browser.navigation,
+    navigation: Array.isArray(
+      pending.actionEvidence.expectedNavigationBinding?.caseLifecycleNavigationSequence,
+    ) ? browser.caseNavigation : browser.navigation,
     networkResponses: pending.networkResponses,
     semanticReadback,
     runtimeMutationReadback,

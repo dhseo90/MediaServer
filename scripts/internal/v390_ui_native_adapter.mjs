@@ -2132,6 +2132,9 @@ async function openNativePlaywrightPage(playwright, {
         ? structuredClone(initialRouteSettlingAttestation.navigation)
         : buildNavigationEvidence();
     },
+    get caseNavigation() {
+      return buildNavigationEvidence({ ledger: documentNavigationLedger });
+    },
     finalizeNavigationLedger,
     navigationOwnerLifecycle: invocationId =>
       selectExactNavigationOwnerLifecycle(navigationOwnerLifecycles, invocationId),
