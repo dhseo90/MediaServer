@@ -224,7 +224,26 @@ export async function executeCatalogRuntimeOracle({
     });
     ownsActionContext = true;
   }
+  let runtimeMutationOwnershipPlan = [];
   try {
+    runtimeMutationOwnershipPlan = buildCatalogRuntimeMutationOwnershipPlan({
+      item,
+      spec,
+      actionId,
+      correlationId,
+      primaryAction,
+    });
+    if (runtimeMutationOwnershipPlan.length > 0) {
+      assert(activeActionContext && typeof browser.registerRequestActionEnvelope === "function" &&
+        typeof browser.waitForRequestActionResponses === "function",
+      `${item.caseId} catalog runtime mutation ownership adapter is unavailable`);
+      for (const envelope of runtimeMutationOwnershipPlan) {
+        browser.registerRequestActionEnvelope(activeActionContext, envelope, {
+          requestKind: "application-fetch",
+          registrationKind: "catalog-runtime-interaction-envelope",
+        });
+      }
+    }
     const declaredVisibleControlValue = await applyDeclaredVisibleControlValue(browser, item, spec);
     const nativePrimaryControl = await observeNativePrimaryControl(browser, item);
     if (primaryAction && clientSafeCase) {
@@ -281,6 +300,9 @@ export async function executeCatalogRuntimeOracle({
       requestActionContext: activeActionContext,
       ownershipPhase,
     });
+    if (runtimeMutationOwnershipPlan.length > 0) {
+      await browser.waitForRequestActionResponses(activeActionContext);
+    }
     if (declaredVisibleControlValue) {
       interaction = { ...interaction, declaredVisibleControlValue };
     }
@@ -335,6 +357,7 @@ export async function executeCatalogRuntimeOracle({
         interaction,
         activeActionContext,
         ownershipPhase,
+        runtimeMutationOwnershipPlan,
       );
       responses.push(observation.evidence);
       if (observation.evidence.requestCorrelationEvidence) {
@@ -1304,6 +1327,152 @@ export function correlatedMutationRequestResponseEnvelope({ requestEntry, respon
   });
 }
 
+export function buildCatalogRuntimeMutationOwnershipPlan({
+  item,
+  spec,
+  actionId,
+  correlationId,
+  primaryAction = null,
+} = {}) {
+  const caseId = String(item?.caseId || "");
+  if (primaryAction || !caseId) return Object.freeze([]);
+  const actionKind = String(spec?.action?.kind || "");
+  if (!["start-live-tile", "control-sequence", "start-two-live-tiles"].includes(actionKind)) {
+    return Object.freeze([]);
+  }
+  const envelopes = (spec?.requests || [])
+    .filter(request => !["GET", "HEAD"].includes(String(request?.method || "GET").toUpperCase()))
+    .map(request => {
+      const method = String(request.method || "").toUpperCase();
+      const target = catalogRuntimeMutationEnvelopeTarget(request);
+      const expectedCount = actionKind === "control-sequence" && method === "POST" ? 2 : 1;
+      return Object.freeze({
+        method,
+        urlPath: target.urlPath,
+        runtimePathParameters: target.runtimePathParameters,
+        allowedStatuses: [...new Set((request.allowedStatuses || request.statuses || []).map(Number))],
+        expectedRequestCount: expectedCount,
+        expectedResponseCount: expectedCount,
+        correlationId: String(correlationId || ""),
+        correlationSource: "request-header",
+        initiatorActionId: String(actionId || ""),
+        requestOwnershipKind: "independent-readback",
+      });
+    });
+  assert(envelopes.every(envelope => envelope.method && envelope.urlPath &&
+    envelope.allowedStatuses.length > 0 && envelope.correlationId && envelope.initiatorActionId),
+  `${caseId} catalog runtime mutation ownership plan is incomplete`);
+  return Object.freeze(envelopes);
+}
+
+function catalogRuntimeMutationEnvelopeTarget(request) {
+  const materialized = new URL(String(request?.path || ""), "http://runtime.invalid");
+  const templateValue = String(request?.pathTemplate || "");
+  const fixtureRefs = Array.isArray(request?.fixtureRefs)
+    ? request.fixtureRefs.map(String)
+    : [];
+  if (!templateValue || !fixtureRefs.includes("active-session")) {
+    return {
+      urlPath: `${materialized.pathname}${materialized.search}`,
+      runtimePathParameters: [],
+    };
+  }
+  const template = new URL(templateValue, "http://runtime.invalid");
+  const templateSegments = template.pathname.split("/");
+  const materializedSegments = materialized.pathname.split("/");
+  assert(templateSegments.length === materializedSegments.length,
+    "catalog runtime mutation template/materialized path segment drift");
+  let fixtureIndex = 0;
+  const runtimePathParameters = [];
+  const targetSegments = templateSegments.map((segment, index) => {
+    if (decodeURIComponent(segment) !== "{fixtureId}") return materializedSegments[index];
+    const fixtureRef = fixtureRefs[fixtureIndex++];
+    if (fixtureRef === "active-session") {
+      runtimePathParameters.push("sessionId");
+      return "{sessionId}";
+    }
+    return materializedSegments[index];
+  });
+  assert(fixtureIndex === fixtureRefs.length,
+    "catalog runtime mutation fixture path binding drift");
+  return {
+    urlPath: `${targetSegments.join("/")}${materialized.search}`,
+    runtimePathParameters,
+  };
+}
+
+function matchesRuntimeMutationEnvelopeTarget(envelope, actualTarget) {
+  const expected = new URL(String(envelope?.urlPath || ""), "http://runtime.invalid");
+  const actual = new URL(String(actualTarget || ""), "http://runtime.invalid");
+  if (expected.search !== actual.search) return false;
+  const runtimeParameters = new Set(envelope?.runtimePathParameters || []);
+  const expectedSegments = expected.pathname.split("/").map(segment => decodeURIComponent(segment));
+  const actualSegments = actual.pathname.split("/").map(segment => decodeURIComponent(segment));
+  if (expectedSegments.length !== actualSegments.length) return false;
+  return expectedSegments.every((segment, index) => {
+    const parameter = segment.startsWith("{") && segment.endsWith("}")
+      ? segment.slice(1, -1)
+      : "";
+    if (parameter && runtimeParameters.has(parameter)) return Boolean(actualSegments[index]);
+    return segment === actualSegments[index];
+  });
+}
+
+export function selectCatalogRuntimeMutationResponse({
+  entries = [],
+  caseId,
+  actionId,
+  correlationId,
+  method,
+  urlPath,
+  allowedStatuses = [],
+  expectedResponseCount = 1,
+} = {}) {
+  const expectedMethod = String(method || "").toUpperCase();
+  const expectedTarget = runtimeRequestTarget(urlPath);
+  const expectedActionId = String(actionId || "");
+  const expectedCorrelationId = String(correlationId || "");
+  const expectedCount = Number(expectedResponseCount);
+  const requestEntries = entries.filter(entry => entry?.phase === "request-start" &&
+    String(entry.method || "").toUpperCase() === expectedMethod &&
+    runtimeRequestTarget(entry.url) === expectedTarget &&
+    String(entry.correlationId || "") === expectedCorrelationId &&
+    String(entry.initiatorActionId || "") === expectedActionId &&
+    entry.ledgerOwner === "action" && entry.exactActionRequestOwned === true);
+  assert(requestEntries.length === expectedCount,
+    `${caseId} runtime mutation request owner cardinality mismatch: ` +
+    `${requestEntries.length}/${expectedCount}`);
+  const requestIds = new Set(requestEntries.map(entry => String(entry.requestId || "")));
+  assert(requestIds.size === expectedCount && !requestIds.has(""),
+    `${caseId} runtime mutation request identity cardinality mismatch`);
+  const responseEntries = entries.filter(entry => entry?.phase === "response" &&
+    requestIds.has(String(entry.requestId || "")) &&
+    String(entry.method || "").toUpperCase() === expectedMethod &&
+    runtimeRequestTarget(entry.url) === expectedTarget &&
+    String(entry.correlationId || "") === expectedCorrelationId &&
+    String(entry.initiatorActionId || "") === expectedActionId &&
+    entry.ledgerOwner === "action" && entry.exactActionRequestOwned === true &&
+    entry.responseRequestObjectObserved === true &&
+    allowedStatuses.includes(Number(entry.status)));
+  assert(responseEntries.length === expectedCount,
+    `${caseId} runtime mutation response owner cardinality mismatch: ` +
+    `${responseEntries.length}/${expectedCount}`);
+  assert(new Set(responseEntries.map(entry => String(entry.requestId || ""))).size === expectedCount,
+    `${caseId} runtime mutation response identity cardinality mismatch`);
+  const orderedRequests = [...requestEntries].sort((left, right) =>
+    Number(left.caseRequestSequence || 0) - Number(right.caseRequestSequence || 0));
+  const orderedResponses = orderedRequests.map(request => responseEntries.find(response =>
+    response.requestId === request.requestId));
+  assert(orderedResponses.every(Boolean),
+    `${caseId} runtime mutation response request-object binding mismatch`);
+  return Object.freeze({
+    requestEntries: Object.freeze(orderedRequests),
+    responseEntries: Object.freeze(orderedResponses),
+    requestEntry: orderedRequests.at(-1),
+    responseEntry: orderedResponses.at(-1),
+  });
+}
+
 export function validateClientRuntimeFixtureBindings(spec, bindings = {}) {
   const fixtures = new Set((spec?.setup?.fixtures || []).map(value => String(value)));
   const declaredUiCreatedSession = fixtures.has("active-live-session") ||
@@ -1643,6 +1812,7 @@ async function observeRequest(
   interaction = null,
   requestActionContext = null,
   ownershipPhase = "independent-readback",
+  runtimeMutationOwnershipPlan = [],
 ) {
   const method = String(request.method || "GET").toUpperCase();
   const urlPath = resolveRuntimeRequestPath(request.path, bindings, eventRuntimeContext);
@@ -1770,18 +1940,36 @@ async function observeRequest(
         });
       }
     } else {
-      const match = [
+      const mutationEntries = [
         ...primaryNetworkEntries,
         ...browser.networkEntries().slice(networkStart),
-      ].find(entry => {
-        if (entry.phase !== "response" || entry.method !== method) return false;
-        try { return new URL(entry.url).pathname === new URL(urlPath, "http://runtime.invalid").pathname; } catch (_) { return false; }
-      });
-      assert(match, `${item.caseId} exact mutation response missing: ${method} ${urlPath}`);
-      const requestMatch = [
-        ...primaryNetworkEntries,
-        ...browser.networkEntries().slice(networkStart),
-      ].find(entry => entry.phase === "request-start" && entry.requestId === match.requestId);
+      ];
+      const ownedPlan = runtimeMutationOwnershipPlan.find(envelope =>
+        envelope.method === method && matchesRuntimeMutationEnvelopeTarget(envelope, urlPath));
+      let match;
+      let requestMatch;
+      if (ownedPlan) {
+        const binding = selectCatalogRuntimeMutationResponse({
+          entries: mutationEntries,
+          caseId: item.caseId,
+          actionId: ownedPlan.initiatorActionId,
+          correlationId: ownedPlan.correlationId,
+          method,
+          urlPath,
+          allowedStatuses,
+          expectedResponseCount: ownedPlan.expectedResponseCount,
+        });
+        match = binding.responseEntry;
+        requestMatch = binding.requestEntry;
+      } else {
+        match = mutationEntries.find(entry => {
+          if (entry.phase !== "response" || entry.method !== method) return false;
+          try { return new URL(entry.url).pathname === new URL(urlPath, "http://runtime.invalid").pathname; } catch (_) { return false; }
+        });
+        assert(match, `${item.caseId} exact mutation response missing: ${method} ${urlPath}`);
+        requestMatch = mutationEntries.find(entry =>
+          entry.phase === "request-start" && entry.requestId === match.requestId);
+      }
       if (endpointOwnedProjectionCases.has(item.caseId)) {
         assert(match.safeResponseProjectionSource === "playwright-response-json" &&
           typeof match.safeResponseProjectionKind === "string" && match.safeResponseProjectionKind,

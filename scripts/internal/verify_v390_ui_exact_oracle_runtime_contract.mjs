@@ -14,6 +14,7 @@ import {
   buildExactDomAttributeBindingEvidence,
   buildEventMarkerFlowEvidence,
   buildEvt004MarkerStageEvidence,
+  buildCatalogRuntimeMutationOwnershipPlan,
   buildMarkerEvaluatorLifecycleFailureEvidence,
   buildOwnedRefreshStabilityEvidence,
   buildRequestSemanticAssertionEvidence,
@@ -26,6 +27,7 @@ import {
   evaluateEventMarkerFlowEvidence,
   evaluateRuntimeStatusPseudoFieldAssertion,
   responsePseudoFieldValues,
+  selectCatalogRuntimeMutationResponse,
   selectEventDomResponseBaselines,
   validateEventDomSemanticCompositeEvidence,
   validateRuntimeAttributeOwners,
@@ -3862,6 +3864,117 @@ await check("endpoint-owned mutation requires the actual method/path/status/corr
     "did not pass through the native Playwright response projection");
 });
 
+await check("catalog runtime mutation binds the declared action request object instead of a path peer", async () => {
+  const caseId = "CLIENT-019";
+  const actionId = "CLIENT-019:assert-product-state";
+  const correlationId = "CLIENT-019:assert-product-state:completion";
+  const path = "/client/api/views/9001/webrtc/session";
+  const plan = buildCatalogRuntimeMutationOwnershipPlan({
+    item: { caseId },
+    spec: {
+      action: { kind: "start-live-tile" },
+      requests: [{ method: "POST", path, allowedStatuses: [200] }],
+    },
+    actionId,
+    correlationId,
+    primaryAction: null,
+  });
+  assert(plan.length === 1 && plan[0].method === "POST" &&
+    plan[0].urlPath === path && plan[0].expectedRequestCount === 1 &&
+    plan[0].expectedResponseCount === 1 &&
+    plan[0].initiatorActionId === actionId &&
+    plan[0].correlationId === correlationId,
+  "CLIENT-019 runtime mutation ownership plan is incomplete");
+
+  const backgroundRequest = {
+    phase: "request-start",
+    requestId: "background-request",
+    caseRequestIdentity: "CLIENT-019:request-8",
+    caseRequestSequence: 8,
+    method: "POST",
+    url: `http://runtime.invalid${path}`,
+    correlationId: "",
+    initiatorActionId: "",
+    ledgerOwner: "page",
+    exactActionRequestOwned: false,
+    requestBody: { offer: "background" },
+  };
+  const backgroundResponse = {
+    ...backgroundRequest,
+    phase: "response",
+    status: 200,
+    responseRequestObjectObserved: true,
+    safeResponseBody: { sessionId: "background-session", offerReceived: true },
+  };
+  const ownedRequest = {
+    ...backgroundRequest,
+    requestId: "owned-request",
+    caseRequestIdentity: "CLIENT-019:request-9",
+    caseRequestSequence: 9,
+    correlationId,
+    initiatorActionId: actionId,
+    ledgerOwner: "action",
+    exactActionRequestOwned: true,
+    requestBody: { offer: "owned" },
+  };
+  const ownedResponse = {
+    ...ownedRequest,
+    phase: "response",
+    status: 200,
+    responseRequestObjectObserved: true,
+    safeResponseBody: { sessionId: "owned-session", offerReceived: true },
+  };
+  const binding = selectCatalogRuntimeMutationResponse({
+    entries: [backgroundRequest, backgroundResponse, ownedRequest, ownedResponse],
+    caseId,
+    actionId,
+    correlationId,
+    method: "POST",
+    urlPath: path,
+    allowedStatuses: [200],
+    expectedResponseCount: 1,
+  });
+  assert(binding.requestEntries.length === 1 && binding.responseEntries.length === 1 &&
+    binding.requestEntry.requestId === "owned-request" &&
+    binding.responseEntry.requestId === "owned-request" &&
+    binding.responseEntry.safeResponseBody.sessionId === "owned-session",
+  "CLIENT-019 runtime mutation selected a path-identical background response");
+
+  await expectReject(async () => selectCatalogRuntimeMutationResponse({
+    entries: [ownedRequest, ownedResponse, { ...ownedRequest, requestId: "duplicate-request",
+      caseRequestIdentity: "CLIENT-019:request-10", caseRequestSequence: 10 }],
+    caseId,
+    actionId,
+    correlationId,
+    method: "POST",
+    urlPath: path,
+    allowedStatuses: [200],
+    expectedResponseCount: 1,
+  }), "runtime mutation request owner cardinality mismatch");
+  await expectReject(async () => selectCatalogRuntimeMutationResponse({
+    entries: [{ ...ownedRequest, correlationId: "wrong" },
+      { ...ownedResponse, correlationId: "wrong" }],
+    caseId,
+    actionId,
+    correlationId,
+    method: "POST",
+    urlPath: path,
+    allowedStatuses: [200],
+    expectedResponseCount: 1,
+  }), "runtime mutation request owner cardinality mismatch");
+  await expectReject(async () => selectCatalogRuntimeMutationResponse({
+    entries: [{ ...ownedRequest, initiatorActionId: "CLIENT-019:wrong-action" },
+      { ...ownedResponse, initiatorActionId: "CLIENT-019:wrong-action" }],
+    caseId,
+    actionId,
+    correlationId,
+    method: "POST",
+    urlPath: path,
+    allowedStatuses: [200],
+    expectedResponseCount: 1,
+  }), "runtime mutation request owner cardinality mismatch");
+});
+
 await check("DOM redaction labels are distinct from exposed credential values", async () => {
   const selector = '[data-testid="ops-vlm-page"]';
   const execute = ({ text, formControls = [] }) => executeCatalogRuntimeOracle({
@@ -4712,14 +4825,35 @@ function clientSequenceBrowser() {
   let clickCount = 0;
   let state = { ariaLabel: "타일 1 재생", paused: true };
   let activeRequestActionContext = null;
-  const response = (method, path, body) => entries.push({
-    phase: "response",
-    method,
-    url: `http://runtime.invalid${path}`,
-    status: 200,
-    correlationId: "CLIENT-020:contract",
-    safeResponseBody: body,
-  });
+  const envelopes = [];
+  let requestSequence = 0;
+  const response = (method, path, body) => {
+    requestSequence += 1;
+    const identity = `CLIENT-020:request-${requestSequence}`;
+    const requestId = `client-sequence-request-${requestSequence}`;
+    const common = {
+      requestId,
+      caseRequestIdentity: identity,
+      caseRequestSequence: requestSequence,
+      method,
+      url: `http://runtime.invalid${path}`,
+      correlationId: activeRequestActionContext?.correlationId || "",
+      initiatorActionId: activeRequestActionContext?.actionId || "",
+      ledgerOwner: "action",
+      exactActionRequestOwned: true,
+    };
+    entries.push({
+      ...common,
+      phase: "request-start",
+      requestBody: method === "POST" ? { offer: "contract" } : null,
+    }, {
+      ...common,
+      phase: "response",
+      status: 200,
+      responseRequestObjectObserved: true,
+      safeResponseBody: body,
+    });
+  };
   return {
     networkEntries: () => entries,
     setCorrelationId: async () => {},
@@ -4729,6 +4863,17 @@ function clientSequenceBrowser() {
       }
       activeRequestActionContext = Object.freeze({ ...scope });
       return activeRequestActionContext;
+    },
+    registerRequestActionEnvelope: (context, envelope) => {
+      assert(context === activeRequestActionContext,
+        "CLIENT-020 contract registered an envelope outside its action context");
+      envelopes.push(structuredClone(envelope));
+      return envelope;
+    },
+    waitForRequestActionResponses: async context => {
+      assert(context === activeRequestActionContext && envelopes.length === 2,
+        "CLIENT-020 contract mutation response barriers are incomplete");
+      return envelopes;
     },
     endRequestActionOwnership: async context => {
       if (context !== activeRequestActionContext) {
