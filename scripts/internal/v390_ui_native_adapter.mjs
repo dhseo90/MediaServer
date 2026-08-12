@@ -2991,35 +2991,43 @@ async function openNativePlaywrightPage(playwright, {
     },
     waitForPendingRequestSnapshot: async ({
       minimumObservationMs = 250,
-      pendingQuietMs = 25,
+      unresolvedQuietMs = 25,
     } = {}) => {
       const startedAt = Date.now();
       const deadline = startedAt + timeoutMs;
       const capturedRequestIds = new Set();
-      let pendingQuietStartedAt = null;
+      let unresolvedQuietStartedAt = null;
       while (Date.now() < deadline) {
         for (const request of pendingRequests.values()) {
           const requestId = String(request.requestId || "");
           if (requestId) capturedRequestIds.add(requestId);
         }
-        const noPendingWork = pendingRequests.size === 0 &&
-          pendingSafeResponseReads.size === 0;
-        if (noPendingWork) {
-          pendingQuietStartedAt ??= Date.now();
+        const pendingRequestIds = new Set([...pendingRequests.values()]
+          .map(request => String(request.requestId || ""))
+          .filter(Boolean));
+        const terminalRequestIds = new Set(networkEntries
+          .filter(entry => entry.phase === "response")
+          .map(entry => String(entry.requestId || ""))
+          .filter(Boolean));
+        const unresolvedRequestIds = [...capturedRequestIds].filter(requestId =>
+          pendingRequestIds.has(requestId) && !terminalRequestIds.has(requestId));
+        const observationComplete = Date.now() - startedAt >= minimumObservationMs;
+        if (observationComplete && unresolvedRequestIds.length === 0 &&
+            pendingSafeResponseReads.size === 0) {
+          unresolvedQuietStartedAt ??= Date.now();
         } else {
-          pendingQuietStartedAt = null;
+          unresolvedQuietStartedAt = null;
         }
-        if (pendingQuietStartedAt !== null &&
-            Date.now() - startedAt >= minimumObservationMs &&
-            Date.now() - pendingQuietStartedAt >= pendingQuietMs) {
+        if (unresolvedQuietStartedAt !== null &&
+            Date.now() - unresolvedQuietStartedAt >= unresolvedQuietMs) {
           if (safeResponseReadFailures.length > 0) {
             throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
           }
           return {
             capturedRequestCount: capturedRequestIds.size,
-            pendingRequestCount: 0,
+            unresolvedRequestCount: 0,
             observedMs: Date.now() - startedAt,
-            pendingQuietMs: Date.now() - pendingQuietStartedAt,
+            unresolvedQuietMs: Date.now() - unresolvedQuietStartedAt,
           };
         }
         await page.waitForTimeout(10);

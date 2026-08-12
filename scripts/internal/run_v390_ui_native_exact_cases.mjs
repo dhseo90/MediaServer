@@ -2861,7 +2861,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     await executeWorkflowCleanup(browser, item, runtimeState, caseRuntime, caseContext, trace);
     await browser.waitForPendingRequestSnapshot({
       minimumObservationMs: 250,
-      pendingQuietMs: 25,
+      unresolvedQuietMs: 25,
     });
     browserCloseAttempted = true;
     let finalNavigation;

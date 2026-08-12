@@ -156,11 +156,13 @@ check("successful case settles the cleanup request snapshot before physical brow
   const close = source.indexOf("finalNavigation = await browser.close()", cleanup);
   assert(cleanup >= 0 && settle > cleanup && close > settle &&
     source.slice(settle, close).includes("minimumObservationMs: 250") &&
-    source.slice(settle, close).includes("pendingQuietMs: 25") &&
-    adapterSource.includes("let pendingQuietStartedAt = null") &&
+    source.slice(settle, close).includes("unresolvedQuietMs: 25") &&
+    adapterSource.includes("let unresolvedQuietStartedAt = null") &&
     adapterSource.includes("Date.now() - startedAt >= minimumObservationMs") &&
-    adapterSource.includes("Date.now() - pendingQuietStartedAt >= pendingQuietMs") &&
-    adapterSource.includes("pendingRequests.size === 0") &&
+    adapterSource.includes("Date.now() - unresolvedQuietStartedAt >= unresolvedQuietMs") &&
+    adapterSource.includes("const terminalRequestIds = new Set(networkEntries") &&
+    adapterSource.includes("const unresolvedRequestIds = [...capturedRequestIds]") &&
+    adapterSource.includes("unresolvedRequestIds.length === 0") &&
     adapterSource.includes("pending request snapshot timeout"),
   "successful case closes before cleanup-owned request bursts settle");
 });
