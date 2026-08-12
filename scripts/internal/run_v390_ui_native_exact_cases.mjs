@@ -2741,6 +2741,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         {
           executionOwnerSelector: primaryVisualObservation.action?.executionOwnerSelector ||
             sourceBeforeObservation?.selector || "",
+          runtimePrimaryRequest: primaryVisualObservation.action?.declaredRequest || null,
         },
       );
       trace.actionOwnedRequestLedgerEvidence = actionOwnedRequestLedger;
@@ -4440,6 +4441,9 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     beforePostconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
   }
   const networkStart = browser.networkEntries().length;
+  const composedClientPlan = action.kind === "activate-control"
+    ? await prepareComposedClientActionRequestPlan(browser, item, action)
+    : null;
   const actionRequestEnvelopes = action.kind === "execute-persisted-action" &&
       Array.isArray(persistedLifecycle?.requestBinding?.expectedRequests) &&
       persistedLifecycle.requestBinding.expectedRequests.length > 1
@@ -4450,7 +4454,7 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
         urlPath: String(expected.pathTemplate || "")
           .replaceAll("{fixtureId}", encodeURIComponent(persistedLifecycle.fixtureId)),
       }))
-    : null;
+    : (composedClientPlan?.initialRequestEnvelopes || null);
   const requestActionContext = await browser.beginRequestActionOwnership({
     phase: "primary-action",
     actionId: action.semanticCompletion.actionId,
@@ -4498,6 +4502,8 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
         action,
         caseContext,
         networkStart,
+        requestActionContext,
+        composedClientPlan,
       );
       if (composedClientLive) {
         executedKind = composedClientLive.kind;
@@ -4659,14 +4665,11 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   };
 }
 
-async function executeComposedClientLiveAction(browser, item, action, caseContext, networkStart) {
+async function prepareComposedClientActionRequestPlan(browser, item, action) {
   const composition = clientLiveCompositionFromTransition(
     action.semanticCompletion?.localTransition,
   );
   if (!composition) return null;
-  const staleSessionId = String(caseContext?.catalogBindings?.sessionId || "");
-  assert(!staleSessionId,
-    `${item.caseId} composed client interaction forbids a backend-precreated active session`);
   const tile = await browser.evaluate(`(() => {
     const roots = Array.from(document.querySelectorAll('[data-tile]'));
     const root = roots.find(node => String(node.dataset.viewId || '')) || null;
@@ -4679,6 +4682,47 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
   })()`);
   assert(tile?.index !== undefined && tile.viewId && tile.playbackDisabled === false,
     `${item.caseId} composed client interaction has no assigned actionable tile`);
+  const initialRequestEnvelopes = action.semanticCompletion.localTransition.requiredRequests
+    .filter(request => String(request.method || "").toUpperCase() !== "DELETE")
+    .map(request => {
+      const urlPath = String(request.urlPath || "")
+        .replaceAll("{assignedViewId}", encodeURIComponent(tile.viewId));
+      const runtimePathParameters = [...urlPath.matchAll(/\{([^}/]+)\}/g)]
+        .map(match => String(match[1]));
+      return {
+        ...structuredClone(request),
+        urlPath,
+        runtimePathParameters,
+        correlationId: action.semanticCompletion.correlationId,
+        correlationSource: "request-header",
+        initiatorActionId: action.semanticCompletion.actionId,
+        requestOwnershipKind: "primary-action",
+      };
+    });
+  assert(initialRequestEnvelopes.length === 2,
+    `${item.caseId} composed client initial request envelope cardinality mismatch`);
+  return { composition, tile, initialRequestEnvelopes };
+}
+
+async function executeComposedClientLiveAction(
+  browser,
+  item,
+  action,
+  caseContext,
+  networkStart,
+  requestActionContext,
+  preparedPlan,
+) {
+  const composition = clientLiveCompositionFromTransition(
+    action.semanticCompletion?.localTransition,
+  );
+  if (!composition) return null;
+  assert(preparedPlan?.composition?.kind === composition.kind && preparedPlan?.tile?.viewId,
+    `${item.caseId} composed client request plan is missing`);
+  const staleSessionId = String(caseContext?.catalogBindings?.sessionId || "");
+  assert(!staleSessionId,
+    `${item.caseId} composed client interaction forbids a backend-precreated active session`);
+  const tile = preparedPlan.tile;
   const tileSelector = `[data-tile=${JSON.stringify(tile.index)}]`;
   const playbackSelector = `${tileSelector} [data-action="toggle-playback"]`;
   let modeSelector = null;
@@ -4701,6 +4745,7 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
     }
   }
   await browser.click(playbackSelector);
+  await browser.waitForRequestActionResponses(requestActionContext);
   await browser.waitForNetworkQuiet({
     correlationId: action.semanticCompletion.correlationId,
     minimumObservationMs: 750,
@@ -4746,7 +4791,22 @@ async function executeComposedClientLiveAction(browser, item, action, caseContex
     if (allStopBefore.exists && !allStopBefore.visible) {
       await browser.click("details.workspace-actions > summary");
     }
+    const deleteRequest = action.semanticCompletion.localTransition.requiredRequests
+      .find(request => String(request.method || "").toUpperCase() === "DELETE");
+    assert(deleteRequest, `${item.caseId} composed all-stop request envelope is missing`);
+    browser.registerRequestActionEnvelope(requestActionContext, {
+      ...structuredClone(deleteRequest),
+      urlPath: String(deleteRequest.urlPath || "")
+        .replaceAll("{assignedViewId}", encodeURIComponent(tile.viewId))
+        .replaceAll("{sessionId}", encodeURIComponent(sessionId)),
+      runtimePathParameters: [],
+      correlationId: action.semanticCompletion.correlationId,
+      correlationSource: "request-header",
+      initiatorActionId: action.semanticCompletion.actionId,
+      requestOwnershipKind: "primary-action",
+    });
     await browser.click("#liveAllStop");
+    await browser.waitForRequestActionResponses(requestActionContext);
     await browser.waitForNetworkQuiet({
       correlationId: action.semanticCompletion.correlationId,
       minimumObservationMs: 500,

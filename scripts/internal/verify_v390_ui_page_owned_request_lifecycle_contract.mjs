@@ -309,6 +309,96 @@ check("latest actual trace passes the common ledger binding", () => {
     evidence.actionCorrelationLeakCount === 0, "latest actual ledger did not turn GREEN");
 });
 
+check("runtime-materialized primary path binds without changing action identity", () => {
+  const item = manifest.cases.find(candidate => candidate.caseId === "CLIENT-023");
+  const plan = buildInitialRouteSettlingPlan(item);
+  const owner = {
+    selector: item.workflow.primaryControl.selector,
+    candidateCount: 1,
+    exists: true,
+    visible: true,
+    navigationEpoch: 1,
+  };
+  const actionInvocation = Object.freeze({
+    phase: "primary-action",
+    actionId: plan.primaryRequest.actionId,
+  });
+  const binding = classifyRequestLifecycleOwnership({
+    requestKind: "application-fetch",
+    resourceType: "fetch",
+    initialSettlingComplete: true,
+    actionInvocation,
+    phase: "primary-action",
+  });
+  const requestObject = {};
+  const actualPath = "/client/api/views/9001/events";
+  const request = {
+    ...entry(binding, "request-start", requestObject, 17, {
+      actionId: plan.primaryRequest.actionId,
+    }),
+    method: "GET",
+    url: `http://127.0.0.1${actualPath}`,
+    correlationId: plan.primaryRequest.correlationId,
+    requestKind: "application-fetch",
+    resourceType: "fetch",
+    sameOrigin: true,
+    exactActionRequestOwned: true,
+  };
+  const response = {
+    ...request,
+    phase: "response",
+    status: 200,
+    responseRequestObjectObserved: true,
+    responseRequestObject: requestObject,
+    requestIdentitySource: "playwright-response-request",
+  };
+  const evidence = bindActionOwnedRequestLedger(plan, {
+    schema: "media-server.v390-ui-action-ledger-start.v1",
+    caseId: plan.caseId,
+    actionId: plan.primaryRequest.actionId,
+    correlationId: plan.primaryRequest.correlationId,
+    sourceRoute: plan.actionSource.route,
+    navigationEpoch: 1,
+    caseRequestSequenceFloor: 3,
+    sourceBeforeOwner: owner,
+    sourceControl: owner,
+  }, [request, response], {
+    executionOwnerSelector: owner.selector,
+    runtimePrimaryRequest: {
+      initiatorActionId: plan.primaryRequest.actionId,
+      correlationId: plan.primaryRequest.correlationId,
+      method: "GET",
+      urlPathTemplate: "/client/api/views/{id}/events",
+      urlPath: actualPath,
+      allowedStatuses: [200],
+    },
+  });
+  assert(evidence.primaryRequestPath === actualPath &&
+    evidence.runtimeMaterialized === true && evidence.requestCount === 1,
+  "runtime primary request path did not bind exact ledger evidence");
+  reject(() => bindActionOwnedRequestLedger(plan, {
+    schema: "media-server.v390-ui-action-ledger-start.v1",
+    caseId: plan.caseId,
+    actionId: plan.primaryRequest.actionId,
+    correlationId: plan.primaryRequest.correlationId,
+    sourceRoute: plan.actionSource.route,
+    navigationEpoch: 1,
+    caseRequestSequenceFloor: 3,
+    sourceBeforeOwner: owner,
+    sourceControl: owner,
+  }, [request, response], {
+    executionOwnerSelector: owner.selector,
+    runtimePrimaryRequest: {
+      initiatorActionId: plan.primaryRequest.actionId,
+      correlationId: plan.primaryRequest.correlationId,
+      method: "GET",
+      urlPathTemplate: "/client/api/views/{id}/events",
+      urlPath: "/client/api/users/9001/events",
+      allowedStatuses: [200],
+    },
+  }), /outside the declared template/i);
+});
+
 check("implementation has no case or path allowlist", () => {
   const source = fs.readFileSync(path.join(rootDir,
     "scripts/internal/v390_ui_action_request_ledger.mjs"), "utf8");

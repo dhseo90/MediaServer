@@ -280,6 +280,7 @@ export function bindInitialRouteSettling(plan, attestation, observedRole) {
 
 export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
   executionOwnerSelector = "",
+  runtimePrimaryRequest = null,
 } = {}) {
   assert(plan?.schema === "media-server.v390-ui-initial-route-settling-plan.v1" &&
     plan.primaryRequest,
@@ -308,6 +309,7 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
       Number(sourceControl.navigationEpoch) === Number(ledgerStart.navigationEpoch),
     `${plan.caseId} action source control mismatch`);
   }
+  const primaryRequest = bindRuntimePrimaryRequest(plan, runtimePrimaryRequest);
   const values = Array.isArray(entries) ? entries : [];
   assert(values.every(entry => ["action", "page"].includes(entry?.ledgerOwner)),
     `${plan.caseId} request ledger owner classification is missing`);
@@ -325,35 +327,35 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
     assertCanonicalRequestLifecycleTuple(entry, {
       lifecycleClass: entry.lifecycleClass || "primary-action",
     });
-    assert(entry.initiatorActionId === plan.primaryRequest.actionId &&
+    assert(entry.initiatorActionId === primaryRequest.actionId &&
       entry.requestOwnershipKind === "primary-action" &&
       entry.sourceOwner === "explicit-action-registration" &&
       entry.ownerPhase === "primary-action" &&
       (documentNavigation
         ? entry.correlationId === ""
-        : entry.correlationId === plan.primaryRequest.correlationId),
+        : entry.correlationId === primaryRequest.correlationId),
     `${plan.caseId} action request ownership/correlation mismatch`);
   }
   const pageCorrelationLeaks = pageValues.filter(entry =>
-    entry.initiatorActionId === plan.primaryRequest.actionId ||
-    entry.correlationId === plan.primaryRequest.correlationId);
+    entry.initiatorActionId === primaryRequest.actionId ||
+    entry.correlationId === primaryRequest.correlationId);
   assert(pageCorrelationLeaks.length === 0,
     `${plan.caseId} page-owned action correlation leak count mismatch: ${pageCorrelationLeaks.length}`);
   for (const entry of pageValues) {
     const lifecycleClass = entry.lifecycleClass || pageLifecycleClassFromTuple(entry);
     assertCanonicalRequestLifecycleTuple(entry, { lifecycleClass });
-    assert(entry.initiatorActionId !== plan.primaryRequest.actionId &&
-      entry.correlationId !== plan.primaryRequest.correlationId,
+    assert(entry.initiatorActionId !== primaryRequest.actionId &&
+      entry.correlationId !== primaryRequest.correlationId,
     `${plan.caseId} page-owned request source/phase mismatch`);
   }
   const primaryStarts = starts.filter(entry =>
-    String(entry.method || "").toUpperCase() === plan.primaryRequest.method &&
-    requestTarget(entry.url) === plan.primaryRequest.path);
+    String(entry.method || "").toUpperCase() === primaryRequest.method &&
+    requestTarget(entry.url) === primaryRequest.path);
   const primaryResponses = responses.filter(entry =>
-    String(entry.method || "").toUpperCase() === plan.primaryRequest.method &&
-    requestTarget(entry.url) === plan.primaryRequest.path);
-  assert(primaryStarts.length === plan.primaryRequest.expectedRequestCount &&
-    primaryResponses.length === plan.primaryRequest.expectedResponseCount,
+    String(entry.method || "").toUpperCase() === primaryRequest.method &&
+    requestTarget(entry.url) === primaryRequest.path);
+  assert(primaryStarts.length === primaryRequest.expectedRequestCount &&
+    primaryResponses.length === primaryRequest.expectedResponseCount,
     `${plan.caseId} primary request/response cardinality mismatch`);
   for (const requestEntry of primaryStarts) {
     const boundResponses = primaryResponses.filter(responseEntry =>
@@ -363,7 +365,7 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
     assert(boundResponses.length === 1 &&
       boundResponses[0].responseRequestObjectObserved === true &&
       boundResponses[0].requestIdentitySource === "playwright-response-request" &&
-      plan.primaryRequest.allowedStatuses.includes(Number(boundResponses[0].status)),
+      primaryRequest.allowedStatuses.includes(Number(boundResponses[0].status)),
     `${plan.caseId} primary request/response object binding mismatch`);
   }
   const request = primaryStarts[0];
@@ -381,8 +383,10 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
   return {
     schema: "media-server.v390-ui-action-owned-request-ledger-binding.v1",
     caseId: plan.caseId,
-    actionId: plan.primaryRequest.actionId,
-    correlationId: plan.primaryRequest.correlationId,
+    actionId: primaryRequest.actionId,
+    correlationId: primaryRequest.correlationId,
+    primaryRequestPath: primaryRequest.path,
+    runtimeMaterialized: runtimePrimaryRequest !== null,
     primaryRequestId: request.requestId,
     primaryRequestSequence: request.caseRequestSequence,
     primaryResponseStatus: Number(response.status),
@@ -411,6 +415,37 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
     })),
     pass: true,
   };
+}
+
+function bindRuntimePrimaryRequest(plan, runtimePrimaryRequest) {
+  const declared = plan.primaryRequest;
+  if (!runtimePrimaryRequest) return declared;
+  const runtime = {
+    actionId: String(runtimePrimaryRequest.initiatorActionId || ""),
+    correlationId: String(runtimePrimaryRequest.correlationId || ""),
+    method: String(runtimePrimaryRequest.method || "").toUpperCase(),
+    path: requestTarget(runtimePrimaryRequest.urlPath || ""),
+    allowedStatuses: (runtimePrimaryRequest.allowedStatuses || []).map(Number),
+  };
+  assert(runtime.actionId === declared.actionId &&
+    runtime.correlationId === declared.correlationId &&
+    runtime.method === declared.method &&
+    JSON.stringify(runtime.allowedStatuses) === JSON.stringify(declared.allowedStatuses),
+  `${plan.caseId} runtime primary request identity/status drift`);
+  const template = String(runtimePrimaryRequest.urlPathTemplate || declared.path);
+  assert(matchesMaterializedRequestTemplate(template, runtime.path),
+    `${plan.caseId} runtime primary request path is outside the declared template`);
+  return { ...declared, path: runtime.path };
+}
+
+function matchesMaterializedRequestTemplate(template, actual) {
+  const [expectedPath, expectedQuery = ""] = String(template || "").split("?", 2);
+  const [actualPath, actualQuery = ""] = requestTarget(actual).split("?", 2);
+  if (expectedQuery !== actualQuery) return false;
+  const expectedParts = expectedPath.split("/");
+  const actualParts = actualPath.split("/");
+  return expectedParts.length === actualParts.length && expectedParts.every((part, index) =>
+    /^\{[^}/]+\}$/.test(part) ? Boolean(actualParts[index]) : part === actualParts[index]);
 }
 
 function pageLifecycleClassFromTuple(entry) {

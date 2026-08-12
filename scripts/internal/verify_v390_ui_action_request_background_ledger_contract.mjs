@@ -152,6 +152,44 @@ check("same-endpoint background and all malformed ledgers fail closed", () => {
   }], { actionId: "SYNTHETIC:action", correlationId: "SYNTHETIC:correlation" }), /leak/i);
 });
 
+check("runtime session path parameters remain exact action-owned envelopes", () => {
+  const envelope = normalizeActionRequestEnvelope({
+    method: "POST",
+    urlPath: "/client/api/views/9001/webrtc/session/{sessionId}/answer",
+    runtimePathParameters: ["sessionId"],
+    allowedStatuses: [200],
+    correlationSource: "request-header",
+  }, {
+    caseId: "CLIENT-SYNTHETIC",
+    phase: "primary-action",
+    actionId: "CLIENT-SYNTHETIC:activate-control",
+    correlationId: "CLIENT-SYNTHETIC:completion",
+  });
+  const ledger = createActionRequestEnvelopeLedger(envelope);
+  const request = {};
+  const actualPath = "/client/api/views/9001/webrtc/session/session-42/answer";
+  ledger.claim(request, { method: "POST", target: actualPath,
+    requestKind: "application-fetch" });
+  ledger.bindRequestIdentity(request, { requestId: "request-42",
+    caseRequestIdentity: "CLIENT-SYNTHETIC:request-42", caseRequestSequence: 42 });
+  ledger.bindResponse(request, { method: "POST", target: actualPath, status: 200,
+    requestId: "request-42", caseRequestIdentity: "CLIENT-SYNTHETIC:request-42",
+    caseRequestSequence: 42, responseRequestObjectObserved: true });
+  const evidence = ledger.close();
+  assert(evidence.requestCount === 1 && evidence.responseCount === 1 &&
+    evidence.observedTargets[0] === actualPath,
+  "runtime session envelope did not bind its initiating object");
+  reject(() => normalizeActionRequestEnvelope({
+    method: "POST", urlPath: "/session/{sessionId}/answer", allowedStatuses: [200],
+  }, { caseId: "CLIENT-SYNTHETIC", phase: "primary-action",
+    actionId: "CLIENT-SYNTHETIC:action", correlationId: "CLIENT-SYNTHETIC:completion" }),
+  /explicitly declared/i);
+  const wrong = createActionRequestEnvelopeLedger(envelope);
+  reject(() => wrong.claim({}, { method: "POST",
+    target: "/client/api/views/9001/webrtc/session/session-42/ice",
+    requestKind: "application-fetch" }), /envelope mismatch/i);
+});
+
 check("exact registered independent readback is not an action correlation leak", () => {
   const actionId = "AUTH-013:assert-product-boundary";
   const correlationId = `${actionId}:completion`;

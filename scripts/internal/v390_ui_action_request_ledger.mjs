@@ -79,7 +79,15 @@ export function normalizeActionRequestEnvelope(request = {}, {
   registrationKind = "manifest-envelope",
 } = {}) {
   const method = String(request.method || "").toUpperCase();
-  const target = normalizeRequestTarget(request.urlPath || request.path || "");
+  const rawTarget = String(request.urlPath || request.path || "");
+  const runtimePathParameters = [...new Set((request.runtimePathParameters || [])
+    .map(value => String(value || "").trim()).filter(Boolean))].sort();
+  const targetParameterNames = [...rawTarget.matchAll(/\{([^}/]+)\}/g)]
+    .map(match => String(match[1])).sort();
+  let target = normalizeRequestTarget(rawTarget);
+  for (const name of targetParameterNames) {
+    target = target.replaceAll(encodeURIComponent(`{${name}}`), `{${name}}`);
+  }
   const ownedActionId = String(request.initiatorActionId || actionId || "");
   const ownedCorrelationId = String(request.correlationId ?? correlationId ?? "");
   const expectedRequestCount = Number(request.expectedRequestCount ?? request.cardinality ?? 1);
@@ -90,6 +98,8 @@ export function normalizeActionRequestEnvelope(request = {}, {
   assert(String(phase || ""), "action request envelope phase is missing");
   assert(ownedActionId, "action request envelope action ID is missing");
   assert(method && target, "action request envelope method/target is missing");
+  assert(JSON.stringify(targetParameterNames) === JSON.stringify(runtimePathParameters),
+    "action request envelope runtime path parameters are not explicitly declared");
   assert(Number.isInteger(expectedRequestCount) && expectedRequestCount > 0 &&
     Number.isInteger(expectedResponseCount) && expectedResponseCount > 0,
   "action request envelope cardinality is invalid");
@@ -112,6 +122,7 @@ export function normalizeActionRequestEnvelope(request = {}, {
     ownershipKind: String(request.requestOwnershipKind || phase),
     method,
     target,
+    runtimePathParameters: Object.freeze(runtimePathParameters),
     requestKind,
     expectedRequestCount,
     expectedResponseCount,
@@ -135,7 +146,7 @@ export function createActionRequestEnvelopeLedger(envelope) {
     envelope,
     matches({ method = "", target = "", requestKind = "" } = {}) {
       return String(method).toUpperCase() === envelope.method &&
-        normalizeRequestTarget(target) === envelope.target &&
+        matchesActionRequestTarget(envelope, target) &&
         String(requestKind || "") === envelope.requestKind;
     },
     claim(requestHandle, request = {}) {
@@ -152,7 +163,7 @@ export function createActionRequestEnvelopeLedger(envelope) {
         caseRequestIdentity: String(request.caseRequestIdentity || ""),
         caseRequestSequence: Number(request.caseRequestSequence || 0),
         method: envelope.method,
-        target: envelope.target,
+        target: normalizeRequestTarget(request.target),
         requestKind: envelope.requestKind,
         registrationKind: String(request.registrationKind || envelope.registrationKind),
       };
@@ -185,7 +196,8 @@ export function createActionRequestEnvelopeLedger(envelope) {
       assert(!responses.some(item => item.ordinal === claim.ordinal),
         "duplicate action response for initiating request object");
       assert(String(response.method || "").toUpperCase() === envelope.method &&
-        normalizeRequestTarget(response.target || response.url || "") === envelope.target,
+        normalizeRequestTarget(response.target || response.url || "") === claim.target &&
+        matchesActionRequestTarget(envelope, response.target || response.url || ""),
       "action response method/path mismatch");
       assert(envelope.allowedStatuses.includes(Number(response.status)),
         `action response status mismatch: ${Number(response.status || 0)}`);
@@ -222,6 +234,7 @@ export function createActionRequestEnvelopeLedger(envelope) {
         correlationId: envelope.correlationId,
         method: envelope.method,
         target: envelope.target,
+        observedTargets: Object.freeze(claims.map(item => item.target)),
         requestKind: envelope.requestKind,
         expectedRequestCount: envelope.expectedRequestCount,
         requestCount: claims.length,
@@ -231,6 +244,27 @@ export function createActionRequestEnvelopeLedger(envelope) {
         pass: true,
       });
     },
+  });
+}
+
+export function matchesActionRequestTarget(envelope, target) {
+  let expected = normalizeRequestTarget(envelope?.target || "");
+  const actual = normalizeRequestTarget(target || "");
+  const runtimeNames = new Set(envelope?.runtimePathParameters || []);
+  for (const name of runtimeNames) {
+    expected = expected.replaceAll(encodeURIComponent(`{${name}}`), `{${name}}`);
+  }
+  if (runtimeNames.size === 0) return actual === expected;
+  const [expectedPath, expectedQuery = ""] = expected.split("?", 2);
+  const [actualPath, actualQuery = ""] = actual.split("?", 2);
+  if (expectedQuery !== actualQuery) return false;
+  const expectedParts = expectedPath.split("/");
+  const actualParts = actualPath.split("/");
+  if (expectedParts.length !== actualParts.length) return false;
+  return expectedParts.every((part, index) => {
+    const match = part.match(/^\{([^}/]+)\}$/);
+    if (!match) return part === actualParts[index];
+    return runtimeNames.has(match[1]) && Boolean(actualParts[index]);
   });
 }
 

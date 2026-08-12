@@ -2415,6 +2415,41 @@ async function openNativePlaywrightPage(playwright, {
       }
       return activeRequestOwnership;
     },
+    registerRequestActionEnvelope: (actionContext, requestEnvelope, {
+      requestKind = "application-fetch",
+      registrationKind = "runtime-materialized-envelope",
+    } = {}) => {
+      requestActionOwnershipRegistry.validate(actionContext, {
+        caseId,
+        actionId: String(actionContext?.actionId || ""),
+        phase: String(actionContext?.phase || ""),
+      });
+      if (actionContext !== activeRequestOwnership) {
+        throw new Error("request action envelope context is not active");
+      }
+      return createEnvelopeWrapper(actionContext, requestEnvelope, {
+        requestKind,
+        registrationKind,
+      }).ledger.envelope;
+    },
+    waitForRequestActionResponses: async actionContext => {
+      requestActionOwnershipRegistry.validate(actionContext, {
+        caseId,
+        actionId: String(actionContext?.actionId || ""),
+        phase: String(actionContext?.phase || ""),
+      });
+      if (actionContext !== activeRequestOwnership) {
+        throw new Error("request action response context is not active");
+      }
+      if (activeActionRequestLedgers.length === 0) {
+        throw new Error("request action response envelope is missing");
+      }
+      const barriers = [];
+      for (const wrapper of activeActionRequestLedgers) {
+        barriers.push(await wrapper.waitForExpectedResponse(timeoutMs));
+      }
+      return barriers;
+    },
     validateRequestActionOwnership: (context, expected = {}) =>
       requestActionOwnershipRegistry.validate(context, {
         caseId,
