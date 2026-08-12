@@ -302,7 +302,7 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
       sourceControl.exists === true && sourceControl.visible === true,
     `${plan.caseId} action non-applicable control mismatch`);
   } else {
-    assert(sourceControl?.selector === plan.actionSource.selector &&
+    assert(sourceControl?.selector === sourceOwnerSelector &&
       sourceControl.candidateCount === 1 && sourceControl.exists === true &&
       sourceControl.visible === plan.actionSource.expectedVisible &&
       Number(sourceControl.navigationEpoch) === Number(ledgerStart.navigationEpoch),
