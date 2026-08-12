@@ -909,8 +909,6 @@ async function executeTrustedInteraction(
       opsTimelineRenderCycle,
     };
   }
-  assert(requestActionContext,
-    `${item.caseId} refresh interaction request-action context is missing`);
   await browser.click(selector);
   await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
   const after = await browser.snapshot(selector);

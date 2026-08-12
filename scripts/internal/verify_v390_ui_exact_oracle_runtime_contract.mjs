@@ -108,6 +108,17 @@ await check("event review renderer owns and awaits one dedicated product fetch",
     "event review renderer ownership or pre-interaction ordering is not explicit");
 });
 
+await check("page-owned refresh does not require an unused action context", async () => {
+  const executeStart = runtimeSource.indexOf("async function executeTrustedInteraction(");
+  const executeEnd = runtimeSource.indexOf(
+    "\nasync function completeDeclaredObservationInteraction(",
+    executeStart,
+  );
+  const execute = runtimeSource.slice(executeStart, executeEnd);
+  assert(!execute.includes("refresh interaction request-action context is missing"),
+    "page-owned refresh still requires an unused action context");
+});
+
 await check("fixture-derived literals use one serializable non-RegExp matcher", async () => {
   assert(typeof exactRuntime.matchesDeclaredLiteral === "function",
     "shared declared literal matcher is missing");

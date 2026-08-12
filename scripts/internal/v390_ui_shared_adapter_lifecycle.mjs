@@ -389,7 +389,8 @@ export function resolvePostActionVisualTarget(plan, {
     executionOwnerSelector ||
     sourceSelector,
   );
-  const sourceAfterSelector = requestNavigationLifecycleBinding?.sourceOwnerSelector &&
+  const sourceAfterSelector = sourceBeforeObservation?.selector === "body" &&
+    requestNavigationLifecycleBinding?.sourceOwnerSelector &&
     requestNavigationLifecycleBinding.sourceOwnerSelector !== sourceSelector
     ? sourceSelector
     : sourceOwnerSelector;

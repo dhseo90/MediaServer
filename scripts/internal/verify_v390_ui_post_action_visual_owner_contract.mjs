@@ -519,6 +519,27 @@ const ui109HiddenNavigationBinding = bindRequestNavigationLifecycle(
 assert.equal(ui109HiddenNavigationBinding.sourceOwnerSelector,
   ui109NavigationPlan.sourceSelector);
 
+const qualifiedMutationOwner = `${ui109NavigationPlan.sourceSelector}[data-fixture-id="ui-109"]`;
+const qualifiedMutationBinding = bindRequestNavigationLifecycle(
+  ui109NavigationPlan,
+  requestNavigationScope(ui109NavigationPlan, 1),
+  {
+    sourceBeforeObservation: observation(qualifiedMutationOwner, 1, true, true),
+    sourceObservation: observation(qualifiedMutationOwner, 1, false, false),
+    visualContext: context("/ops/sources", 1),
+    executionOwnerSelector: qualifiedMutationOwner,
+  },
+);
+const qualifiedMutationVisualTarget = resolvePostActionVisualTarget(plan("UI-109"), {
+  visualContext: context("/ops/sources", 1),
+  sourceBeforeObservation: observation(qualifiedMutationOwner, 1, true, true),
+  sourceObservation: observation(qualifiedMutationOwner, 1, false, false),
+  requestNavigationLifecycleBinding: qualifiedMutationBinding,
+  executionOwnerSelector: qualifiedMutationOwner,
+});
+assert.equal(qualifiedMutationVisualTarget.selector, "body");
+assert.equal(qualifiedMutationVisualTarget.sourceDetached, true);
+
 for (const mutation of [
   scope => { scope.ownerLifecycles.shift(); },
   scope => { scope.ownerLifecycles.push(structuredClone(scope.ownerLifecycles[0])); },
