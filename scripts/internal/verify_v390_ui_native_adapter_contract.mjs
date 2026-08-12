@@ -680,6 +680,62 @@ check("adapter integration carries the four actual-like lifecycle graphs end to 
     "same-route rejection lifecycle phase drift");
 });
 
+check("request lifecycle invocation identity separates phases for one semantic action", () => {
+  const identity = nativeAdapterModule.buildNativeRequestLifecycleInvocationId;
+  assert(typeof identity === "function",
+    "request lifecycle invocation identity builder is missing");
+  const primary = identity({
+    actionId: "UI-001:assert-product-state",
+    phase: "primary-action",
+    scopeSequence: 1,
+  });
+  const readback = identity({
+    actionId: "UI-001:assert-product-state",
+    phase: "independent-readback",
+    scopeSequence: 2,
+  });
+  assert(primary === "UI-001:assert-product-state:primary-action:scope-1" &&
+    readback === "UI-001:assert-product-state:independent-readback:scope-2" &&
+    primary !== readback,
+  "primary and independent readback lifecycle invocations were not separated");
+
+  const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({
+    caseId: "UI-001-SCOPED-ACTION",
+  });
+  const primaryInvocation = ledger.beginInvocation("action", {
+    invocationId: primary,
+    phase: "primary-action",
+  });
+  ledger.endInvocation(primaryInvocation);
+  const readbackInvocation = ledger.beginInvocation("action", {
+    invocationId: readback,
+    phase: "independent-readback",
+  });
+  ledger.endInvocation(readbackInvocation);
+  ledger.sealRequestLifecycleLedger();
+  const result = ledger.evaluateRequestLifecycleLedger();
+  assert(result.status === "PASS" && result.failures.length === 0 &&
+    ledger.invocationRows().actionInvocations.length === 2,
+  "sequential lifecycle scopes for one semantic action did not close independently");
+
+  for (const invalid of [
+    { actionId: "", phase: "primary-action", scopeSequence: 1 },
+    { actionId: "UI-001:assert-product-state", phase: "", scopeSequence: 1 },
+    { actionId: "UI-001:assert-product-state", phase: "primary-action", scopeSequence: 0 },
+  ]) {
+    let rejected = false;
+    try {
+      identity(invalid);
+    } catch (error) {
+      rejected = String(error.message).includes("identity input is invalid");
+    }
+    assert(rejected, "invalid request lifecycle invocation identity input did not fail closed");
+  }
+  assert(adapterSource.includes(
+    "buildNativeRequestLifecycleInvocationId(context)"),
+  "adapter request ownership did not use the scoped lifecycle invocation identity");
+});
+
 check("bundled Playwright module resolves with provenance", () => {
   const resolved = resolvePlaywrightModule();
   assert(Boolean(resolved.playwright?.chromium), "chromium browser type missing");

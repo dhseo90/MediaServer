@@ -1128,6 +1128,19 @@ export function createNativeRequestLifecycleLedger({
   }
 }
 
+export function buildNativeRequestLifecycleInvocationId({
+  actionId = "",
+  phase = "",
+  scopeSequence = 0,
+} = {}) {
+  if (typeof actionId !== "string" || !actionId ||
+      typeof phase !== "string" || !phase ||
+      !Number.isSafeInteger(scopeSequence) || scopeSequence <= 0) {
+    throw new Error("request lifecycle invocation identity input is invalid");
+  }
+  return `${actionId}:${phase}:scope-${scopeSequence}`;
+}
+
 function freezeJsonProjection(value) {
   if (Array.isArray(value)) return Object.freeze(value.map(freezeJsonProjection));
   if (value && typeof value === "object") {
@@ -2312,7 +2325,7 @@ async function openNativePlaywrightPage(playwright, {
         renderCycleId,
       });
       activeActionLifecycleInvocation = requestLifecycleLedger.beginInvocation("action", {
-        invocationId: String(context.actionId || ""),
+        invocationId: buildNativeRequestLifecycleInvocationId(context),
         phase: String(context.phase || "primary-action"),
       });
       actionLifecycleInvocationByContext.set(context, activeActionLifecycleInvocation);

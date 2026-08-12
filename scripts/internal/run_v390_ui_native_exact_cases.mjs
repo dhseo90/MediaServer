@@ -528,7 +528,7 @@ process.on("exit", () => {
 
 if (options.caseChild) {
   const exitCode = await runActualCaseChild(caseChildSelection.item);
-  process.exit(exitCode);
+  exitFinalizedCaseChild(exitCode);
 }
 
 if (suiteFinalizerChild) {
@@ -1376,6 +1376,10 @@ async function runActualCaseChild(item) {
       caseRuntimeHandle: caseRuntime,
     });
   }
+}
+
+function exitFinalizedCaseChild(exitCode) {
+  process.reallyExit(exitCode);
 }
 
 async function executeContractRequestLifecycleFixture(caseId, mode) {

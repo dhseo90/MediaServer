@@ -38,6 +38,21 @@ const ordinaryModes = Object.freeze([
 const checks = [];
 const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "v390-case-child-contract-"));
 
+check("completed actual case child bypasses the Node worker shutdown deadlock", () => {
+  const source = fs.readFileSync(runnerPath, "utf8");
+  const dispatchStart = source.indexOf("if (options.caseChild) {", source.indexOf("process.on(\"exit\""));
+  const dispatchEnd = source.indexOf("if (suiteFinalizerChild)", dispatchStart);
+  const dispatch = source.slice(dispatchStart, dispatchEnd);
+  const helperStart = source.indexOf("function exitFinalizedCaseChild(");
+  const helperEnd = source.indexOf("\n}", helperStart) + 2;
+  const helper = source.slice(helperStart, helperEnd);
+  assert(dispatch.includes("exitFinalizedCaseChild(exitCode)") &&
+    !dispatch.includes("process.exit(exitCode)"),
+  "completed actual case child still enters the blocking process.exit shutdown path");
+  assert(helper.includes("process.reallyExit(exitCode)"),
+    "completed actual case child does not use the immediate post-finalization exit primitive");
+});
+
 check("suite finalizer scans success and failure artifacts before secret release", () => {
   const source = fs.readFileSync(runnerPath, "utf8");
   const start = source.indexOf("async function runCanonicalSuiteFinalizerChild()");
