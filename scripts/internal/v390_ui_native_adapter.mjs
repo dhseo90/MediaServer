@@ -2371,8 +2371,16 @@ async function openNativePlaywrightPage(playwright, {
       ownershipKind = "",
       renderCycleId = "",
       actionRequestEnvelope = null,
+      actionRequestEnvelopes = null,
       actionRequestKind = "application-fetch",
     } = {}) => {
+      if (actionRequestEnvelope && actionRequestEnvelopes !== null) {
+        throw new Error("request action ownership envelope modes are mutually exclusive");
+      }
+      if (actionRequestEnvelopes !== null &&
+          (!Array.isArray(actionRequestEnvelopes) || actionRequestEnvelopes.length === 0)) {
+        throw new Error("request action ownership envelope sequence is empty or invalid");
+      }
       const context = requestActionOwnershipRegistry.begin({
         caseId,
         phase,
@@ -2392,10 +2400,14 @@ async function openNativePlaywrightPage(playwright, {
       activeActionScopeNetworkStart = networkEntries.length;
       activeCorrelationId = String(correlationId || "");
       activeCorrelationInjectionEnabled = Boolean(activeCorrelationId);
-      if (actionRequestEnvelope) {
-        createEnvelopeWrapper(context, actionRequestEnvelope, {
+      const requestEnvelopes = actionRequestEnvelopes ||
+        (actionRequestEnvelope ? [actionRequestEnvelope] : []);
+      for (const envelope of requestEnvelopes) {
+        createEnvelopeWrapper(context, envelope, {
           requestKind: actionRequestKind,
-          registrationKind: "manifest-envelope",
+          registrationKind: requestEnvelopes.length > 1
+            ? "manifest-envelope-sequence"
+            : "manifest-envelope",
         });
       }
       return activeRequestOwnership;

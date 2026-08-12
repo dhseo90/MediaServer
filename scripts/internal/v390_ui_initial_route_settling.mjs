@@ -68,6 +68,10 @@ export function buildInitialRouteSettlingPlan(item) {
     : "required";
   const expectedControlVisible = controlApplicability === "required" &&
     primaryAction.kind !== "assert-hidden-control";
+  const declaredRequestCount = Array.isArray(primaryAction.uiLifecycle?.requestBinding?.expectedRequests)
+    ? primaryAction.uiLifecycle.requestBinding.expectedRequests.length
+    : Number(primaryAction.semanticCompletion?.request?.expectedRequestCount ??
+      primaryAction.semanticCompletion?.request?.cardinality ?? 1);
   return {
     schema: "media-server.v390-ui-initial-route-settling-plan.v1",
     caseId: item.caseId,
@@ -110,13 +114,8 @@ export function buildInitialRouteSettlingPlan(item) {
             String(primaryAction.uiLifecycle?.adapter || ""))
             ? "document-navigation"
             : "application-fetch",
-          expectedRequestCount: Number(
-            primaryAction.semanticCompletion.request?.expectedRequestCount ??
-            primaryAction.semanticCompletion.request?.cardinality ?? 1),
-          expectedResponseCount: Number(
-            primaryAction.semanticCompletion.request?.expectedResponseCount ??
-            primaryAction.semanticCompletion.request?.expectedRequestCount ??
-            primaryAction.semanticCompletion.request?.cardinality ?? 1),
+          expectedRequestCount: declaredRequestCount,
+          expectedResponseCount: declaredRequestCount,
           allowedStatuses: [...(primaryAction.semanticCompletion.request?.allowedStatuses || [])]
             .map(Number),
         }
@@ -272,7 +271,9 @@ export function bindInitialRouteSettling(plan, attestation, observedRole) {
   };
 }
 
-export function bindActionOwnedRequestLedger(plan, ledgerStart, entries) {
+export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
+  executionOwnerSelector = "",
+} = {}) {
   assert(plan?.schema === "media-server.v390-ui-initial-route-settling-plan.v1" &&
     plan.primaryRequest,
   "action-owned request ledger requires a request-completion plan");
@@ -283,8 +284,10 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries) {
   `${plan.caseId} action ledger start identity mismatch`);
   assert(routePath(ledgerStart.sourceRoute) === plan.actionSource.route,
     `${plan.caseId} action ledger source route mismatch`);
+  const sourceOwnerSelector = String(executionOwnerSelector ||
+    plan.actionSource.sourceOwnerSelector || "");
   assertOwner(plan.caseId, ledgerStart.sourceBeforeOwner,
-    plan.actionSource.sourceOwnerSelector, Number(ledgerStart.navigationEpoch), true,
+    sourceOwnerSelector, Number(ledgerStart.navigationEpoch), true,
     "action ledger source-before owner");
   const sourceControl = ledgerStart.sourceControl;
   if (plan.actionSource.applicability === "not-applicable") {

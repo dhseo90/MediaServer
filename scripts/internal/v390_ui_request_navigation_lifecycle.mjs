@@ -361,8 +361,15 @@ export function bindRequestNavigationLifecycle(plan, scope, {
     `${plan.caseId} request navigation final owner mismatch`);
   if (sourceObservation) {
     const observedEpoch = Number(sourceObservation.navigationEpoch);
+    const primaryDestinationEpoch = Number(lifecycles.find((_, index) =>
+      plan.steps[index]?.ownershipPhase === "primary-action")?.destinationOwner?.navigationEpoch);
+    const allowedSourceAfterEpochs = new Set([
+      Number(sourceBeforeObservation.navigationEpoch),
+      finalEpoch,
+      ...(Number.isInteger(primaryDestinationEpoch) ? [primaryDestinationEpoch] : []),
+    ]);
     assert(sourceObservation.selector === plan.sourceSelector &&
-      (observedEpoch === Number(sourceBeforeObservation.navigationEpoch) || observedEpoch === finalEpoch),
+      allowedSourceAfterEpochs.has(observedEpoch),
     `${plan.caseId} request source-after owner lifecycle mismatch`);
   }
   const epochRelation = plan.readbackHopCount > 0

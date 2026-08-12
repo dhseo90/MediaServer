@@ -2738,6 +2738,10 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         initialRoutePlan,
         actionLedgerStart,
         primaryVisualObservation.networkEntries,
+        {
+          executionOwnerSelector: primaryVisualObservation.action?.executionOwnerSelector ||
+            sourceBeforeObservation?.selector || "",
+        },
       );
       trace.actionOwnedRequestLedgerEvidence = actionOwnedRequestLedger;
       const lifecycleCheckpoint = runtimeState.get("__primaryNavigationLifecycleStart");
@@ -2855,8 +2859,13 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     const lifecycleNavigationBinding = item.actions.find(action =>
       action.semanticCompletion?.phase === "primary-action")?.semanticCompletion?.navigationBinding || null;
     if (lifecycleNavigationBinding) {
+      const caseLifecycleNavigation = Array.isArray(
+        lifecycleNavigationBinding.caseLifecycleNavigationSequence,
+      );
       const navigationLifecycleEvidence = buildNavigationTrustEvidence({
-        navigation: primaryVisualObservation?.navigation || finalNavigation,
+        navigation: caseLifecycleNavigation
+          ? finalNavigation
+          : primaryVisualObservation?.navigation || finalNavigation,
         expected: lifecycleNavigationBinding,
       });
       if (!navigationLifecycleEvidence.pass) {
@@ -4429,12 +4438,26 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     beforePostconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
   }
   const networkStart = browser.networkEntries().length;
+  const actionRequestEnvelopes = action.kind === "execute-persisted-action" &&
+      Array.isArray(persistedLifecycle?.requestBinding?.expectedRequests) &&
+      persistedLifecycle.requestBinding.expectedRequests.length > 1
+    ? persistedLifecycle.requestBinding.expectedRequests.map(expected => ({
+        ...action.semanticCompletion.request,
+        method: String(expected.method || "").toUpperCase(),
+        urlPathTemplate: String(expected.pathTemplate || ""),
+        urlPath: String(expected.pathTemplate || "")
+          .replaceAll("{fixtureId}", encodeURIComponent(persistedLifecycle.fixtureId)),
+      }))
+    : null;
   const requestActionContext = await browser.beginRequestActionOwnership({
     phase: "primary-action",
     actionId: action.semanticCompletion.actionId,
     correlationId: action.semanticCompletion.correlationId,
     ownershipKind: "primary-action",
-    actionRequestEnvelope: action.semanticCompletion.request || null,
+    actionRequestEnvelope: actionRequestEnvelopes
+      ? null
+      : action.semanticCompletion.request || null,
+    actionRequestEnvelopes,
     actionRequestKind: documentFormSubmitContracts.has(item.caseId)
       ? "document-navigation"
       : "application-fetch",
