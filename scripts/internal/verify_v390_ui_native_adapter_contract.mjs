@@ -1012,7 +1012,7 @@ check("shared adapter impact census covers all canonical 424 cases and the fixed
       JSON.stringify({ request: 391, local: 28, navigation: 5 }) &&
     impact.postActionVisualCensus.hiddenSourceBranchCaseCount === 227 &&
     impact.postActionVisualCensus.detachedSourceBranchCaseCount === 227 &&
-    impact.postActionVisualCensus.routeChangeCaseCount === 13 &&
+    impact.postActionVisualCensus.routeChangeCaseCount === 14 &&
     impact.postActionVisualCensus.localTransitionCaseCount === 28 &&
     impact.postActionVisualCensus.navigationCaseCount === 5,
   "canonical 424 post-action visual lifecycle census drifted");
@@ -1027,6 +1027,23 @@ check("shared adapter impact census covers all canonical 424 cases and the fixed
   }
   assert(JSON.stringify(storedImpact) === JSON.stringify(impact),
     "stored shared adapter impact artifact drifted from canonical source analysis");
+});
+
+check("navigation completion binds post-action visuals to the declared final document", () => {
+  const nativeManifest = JSON.parse(readText("test/fixtures/v390_ui_native_exact_cases.json"));
+  const item = nativeManifest.cases.find(candidate => candidate.caseId === "EVT-004");
+  const plan = buildPostActionLifecyclePlan(item);
+  const sequence = item.actions.find(action =>
+    action.actionId === item.oracle.primaryActionId)
+    ?.semanticCompletion?.navigationBinding?.caseLifecycleNavigationSequence;
+  assert(Array.isArray(sequence) && sequence.length === 2 &&
+    sequence[0].path === "/ops/events" && sequence[1].path === "/ops/dashboard",
+  "EVT-004 declared navigation sequence drifted");
+  assert(plan.postNavigation.route === "/ops/dashboard" &&
+    plan.postNavigation.routeChanged === true &&
+    plan.postNavigation.transitionKind === "navigation-completion" &&
+    plan.postNavigation.navigationEpochRelation === "advanced",
+  "navigation completion reused the stale initial document as its visual owner");
 });
 
 check("all redirecting document cases bind destination controls and forbid stale source rewait", () => {

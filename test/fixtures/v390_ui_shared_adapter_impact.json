@@ -82,6 +82,7 @@
     "AUTH-006",
     "AUTH-034",
     "RULE-104",
+    "EVT-004",
     "SAFE-016",
     "SAFE-017"
   ],
@@ -101,7 +102,7 @@
     },
     "hiddenSourceBranchCaseCount": 227,
     "detachedSourceBranchCaseCount": 227,
-    "routeChangeCaseCount": 13,
+    "routeChangeCaseCount": 14,
     "localTransitionCaseCount": 28,
     "navigationCaseCount": 5
   },
@@ -16998,8 +16999,8 @@
       ],
       "routeTransition": {
         "sourceRoute": "/ops/events",
-        "destinationRoute": "/ops/events",
-        "routeChanged": false,
+        "destinationRoute": "/ops/dashboard",
+        "routeChanged": true,
         "sourceSelector": "body",
         "destinationSelector": "body",
         "sourceSelectorRewaitAllowed": false
@@ -17008,13 +17009,13 @@
         "primaryActionId": "EVT-004:assert-product-state",
         "completionMode": "navigation",
         "transitionKind": "navigation-completion",
-        "ownerPolicy": "visible-document-owner",
+        "ownerPolicy": "declared-visible-destination",
         "navigationEpochRelation": "advanced",
         "exactOneOwnerRequired": true,
         "invisibleSourceRewaitAllowed": false,
         "staleSourceScrollAllowed": false,
         "ownerBranches": [
-          "navigation-visible-document"
+          "route-change-visible-destination"
         ]
       }
     },
@@ -24125,5 +24126,5 @@
       }
     }
   ],
-  "digest": "b86a12a930d2fc0d9880df44c7cc8f1c5f20556a0a16a5c9953f32b1762903a3"
+  "digest": "24480b2b0798c89fc109d4014fcd43b3803a1a58f0b57247fadd0da20d231286"
 }

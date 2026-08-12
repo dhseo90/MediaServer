@@ -91,8 +91,15 @@ export function buildPostActionLifecyclePlan(item, formResponseIdentity = null) 
   const documentContract = documentFormSubmitContracts.get(item.caseId) || null;
   const redirectPath = routePath(documentContract?.redirectPath || "");
   const localDestination = localTransitionDestination(primaryAction.semanticCompletion?.localTransition);
+  const declaredNavigationSequence = primaryAction.semanticCompletion?.navigationBinding
+    ?.caseLifecycleNavigationSequence;
+  const declaredNavigationDestination = Array.isArray(declaredNavigationSequence) &&
+      declaredNavigationSequence.length > 0
+    ? routePath(declaredNavigationSequence.at(-1)?.path || "")
+    : "";
   const navigationDestination = completionMode === "navigation"
-    ? routePath(primaryAction.semanticCompletion?.navigationBinding?.expectedObservedPath || item.screenRoute)
+    ? declaredNavigationDestination ||
+      routePath(primaryAction.semanticCompletion?.navigationBinding?.expectedObservedPath || item.screenRoute)
     : "";
   const destinationRoute = redirectPath || localDestination.route || navigationDestination || sourceRoute;
   const routeChanged = destinationRoute !== sourceRoute;
