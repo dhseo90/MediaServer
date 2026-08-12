@@ -29,6 +29,10 @@ import {
   selectEventDomResponseBaselines,
 } from "./v390_ui_exact_oracle_runtime.mjs";
 import { evaluateResponseDerivedDomFieldProjection } from "./v390_ui_exact_event_oracle_evaluator.mjs";
+import {
+  loadDiagnosticReplayCase,
+  loadDiagnosticReplayRun,
+} from "./v390_ui_diagnostic_replay_projection_loader.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -220,16 +224,14 @@ assert(priorPass === 192 && repaired === 99 && priorPass + repaired === 291,
   "impact replay aggregate mismatch");
 console.log(`impact trace replay: PASS 291/291 prior=${priorPass}/192 repaired=${repaired}/99`);
 
-const latestRunRelative = ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
-  "v390-ui-diagnostic-20260808004425-80046";
+const latestRun = loadDiagnosticReplayRun("impact-99");
 const closure = readJson("test/fixtures/v390_ui_diagnostic_failure_closure_20260808.json");
-const latestSummary = readJson(`${latestRunRelative}/summary.json`);
+const latestSummary = latestRun.parent;
 const { digest: closureDigest, ...closurePayload } = closure;
 assert(closure.schema === "media-server.v390-ui-diagnostic-failure-closure.v1" &&
   sha256(stableJson(closurePayload)) === closureDigest,
 "latest failure closure immutable digest mismatch");
-assert(sha256(fs.readFileSync(path.join(rootDir, latestRunRelative, "summary.json"))) ===
-  closure.sourceBinding.parentSummarySha256,
+assert(latestSummary.summarySha256 === closure.sourceBinding.parentSummarySha256,
 "latest parent summary byte binding mismatch");
 assert(latestSummary.counts.target === 99 && latestSummary.counts.attempted === 98 &&
   latestSummary.counts.pass === 92 && latestSummary.counts.fail === 6 &&
@@ -245,10 +247,11 @@ assert(latestPassIds.length === 92 && new Set(latestPassIds).size === 92 &&
 
 for (const caseId of latestPassIds) {
   const item = byId.get(caseId);
-  const trace = readJson(`${latestRunRelative}/cases/${caseId}/traces/${caseId}.trace.json`);
+  const trace = loadDiagnosticReplayCase("impact-99", caseId).trace;
+  assert(trace, `${caseId} tracked primary-observation projection missing`);
   const plan = buildPostActionLifecyclePlan(item);
   if (plan.postNavigation.routeChanged) continue;
-  const primaryObservation = [...(trace.rawPrimaryObservations || [])].reverse()
+  const primaryObservation = [...(trace.primaryObservations || [])].reverse()
     .find(observation => observation?.action?.controlSelector === plan.preAction.selector) || null;
   const sourceBeforeObservation = replayObservation(primaryObservation?.before, 1);
   const sourceObservation = replayObservation(primaryObservation?.after, 1);
@@ -270,16 +273,14 @@ const timeoutClosureIds = closure.selectedIds.filter(caseId => caseId !== "EVT-0
 assert(timeoutClosureIds.length === 6, "latest timeout closure identity count mismatch");
 for (const caseId of timeoutClosureIds) {
   const binding = closure.failures.find(row => row.caseId === caseId);
-  const summaryPath = path.join(rootDir, latestRunRelative, "cases", caseId, "summary.json");
-  const tracePath = path.join(rootDir, latestRunRelative, "cases", caseId,
-    "traces", `${caseId}.trace.json`);
-  assert(sha256(fs.readFileSync(summaryPath)) === binding.summarySha256 &&
-    sha256(fs.readFileSync(tracePath)) === binding.traceSha256,
+  const record = loadDiagnosticReplayCase("impact-99", caseId);
+  assert(record.summarySha256 === binding.summarySha256 &&
+    record.traceSha256 === binding.traceSha256,
   `${caseId} latest timeout evidence byte binding mismatch`);
-  const childSummary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
-  const trace = JSON.parse(fs.readFileSync(tracePath, "utf8"));
+  const { summary: childSummary, trace } = record;
+  assert(childSummary && trace, `${caseId} tracked timeout projection missing`);
   const plan = buildPostActionLifecyclePlan(byId.get(caseId));
-  const primaryObservation = [...trace.rawPrimaryObservations].reverse()
+  const primaryObservation = [...trace.primaryObservations].reverse()
     .find(observation => observation?.action?.controlSelector === plan.preAction.selector);
   const sourceBeforeObservation = replayObservation(primaryObservation?.before, 1);
   const destinationEpoch = plan.postNavigation.routeChanged ? 2 : 1;
@@ -315,13 +316,12 @@ for (const caseId of timeoutClosureIds) {
 }
 
 const evtBinding = closure.failures.find(row => row.caseId === "EVT-004");
-const evtSummaryPath = path.join(rootDir, latestRunRelative, "cases", "EVT-004", "summary.json");
-const evtTracePath = path.join(rootDir, latestRunRelative, "cases", "EVT-004",
-  "traces", "EVT-004.trace.json");
-assert(sha256(fs.readFileSync(evtSummaryPath)) === evtBinding.summarySha256 &&
-  sha256(fs.readFileSync(evtTracePath)) === evtBinding.traceSha256,
+const evtRecord = loadDiagnosticReplayCase("impact-99", "EVT-004");
+assert(evtRecord.summarySha256 === evtBinding.summarySha256 &&
+  evtRecord.traceSha256 === evtBinding.traceSha256,
 "EVT-004 latest evidence byte binding mismatch");
-const recordedEvtSummary = JSON.parse(fs.readFileSync(evtSummaryPath, "utf8"));
+const recordedEvtSummary = evtRecord.summary;
+assert(recordedEvtSummary, "EVT-004 tracked summary projection missing");
 assert(validateEvt004LifecycleEvidence(recordedEvtSummary.case).length === 0,
   "EVT-004 preserved FAIL lifecycle remains invalid");
 const recordedEvtOutcome = aggregateDiagnosticChildOutcome({
@@ -362,9 +362,8 @@ assert(evtIsolation.pass === true &&
 "EVT-004 already-drained marker isolation replay remained failed");
 console.log("latest closure trace replay: PASS 99/99 prior=92/92 repaired=7/7");
 
-const finalRunRelative = ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
-  "v390-ui-diagnostic-20260808021130-96376";
-const finalParent = readJson(`${finalRunRelative}/summary.json`);
+const finalRun = loadDiagnosticReplayRun("impact-final-7");
+const finalParent = finalRun.parent;
 const finalPassIds = finalParent.cases
   .filter(item => item.status === "PASS").map(item => item.caseId);
 assert(finalParent.counts.target === 7 && finalParent.counts.pass === 6 &&
@@ -375,9 +374,10 @@ assert(finalParent.counts.target === 7 && finalParent.counts.pass === 6 &&
 assert(new Set([...latestPassIds, ...finalPassIds]).size === 98,
   "recorded 98 PASS identity set regressed or overlapped");
 
-const finalEvtSummary = readJson(`${finalRunRelative}/cases/EVT-004/summary.json`);
-const finalEvtTrace = readJson(
-  `${finalRunRelative}/cases/EVT-004/traces/EVT-004.trace.json`);
+const finalEvtRecord = loadDiagnosticReplayCase("impact-final-7", "EVT-004");
+const finalEvtSummary = finalEvtRecord.summary;
+const finalEvtTrace = finalEvtRecord.trace;
+assert(finalEvtSummary && finalEvtTrace, "final EVT-004 tracked projection missing");
 const finalEvtComposite = finalEvtSummary.case?.eventDomSemanticEvidence;
 assert(finalEvtSummary.actualBrowserExecution === true &&
   finalEvtSummary.case?.failureClass === "dom-semantic-assertion-failed" &&
@@ -405,12 +405,13 @@ assert(classifyDiagnosticCaseDisposition({
 }) === "continue-case-local-failure",
 "final EVT-004 valid browser FAIL was reclassified as not-run");
 
-const projectionRunRelative = ".media_server.test/v3.9.0/ui-diagnostic-sweep/" +
-  "v390-ui-diagnostic-20260808034107-12912";
-const projectionParent = readJson(`${projectionRunRelative}/summary.json`);
-const projectionEvtSummary = readJson(`${projectionRunRelative}/cases/EVT-004/summary.json`);
-const projectionEvtTrace = readJson(
-  `${projectionRunRelative}/cases/EVT-004/traces/EVT-004.trace.json`);
+const projectionRun = loadDiagnosticReplayRun("impact-projection-1");
+const projectionParent = projectionRun.parent;
+const projectionEvtRecord = loadDiagnosticReplayCase("impact-projection-1", "EVT-004");
+const projectionEvtSummary = projectionEvtRecord.summary;
+const projectionEvtTrace = projectionEvtRecord.trace;
+assert(projectionEvtSummary && projectionEvtTrace,
+  "projection EVT-004 tracked projection missing");
 const recordedProjectionMarker = projectionEvtSummary.case?.markerEvidence;
 assert(projectionParent.counts.target === 1 &&
   projectionParent.counts.attempted === 1 &&

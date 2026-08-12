@@ -3,7 +3,6 @@
 // 파일 용도: 500cdfee actual batch의 잔여 23건을 고정 trace와 공통 owner/runtime 계약으로 replay한다.
 
 import assert from "node:assert/strict";
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,12 +18,14 @@ import {
 import {
   mediaReadinessEvaluateExpression,
 } from "./v390_ui_exact_oracle_runtime.mjs";
+import {
+  loadDiagnosticReplayCase,
+  loadDiagnosticReplayRun,
+} from "./v390_ui_diagnostic_replay_projection_loader.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const latestRunId = "v390-ui-diagnostic-20260806103037-53682";
-const latestRoot = path.join(root, ".media_server.test/v3.9.0/ui-diagnostic-sweep", latestRunId);
-const priorRunId = "v390-ui-diagnostic-20260806080136-31158";
-const priorRoot = path.join(root, ".media_server.test/v3.9.0/ui-diagnostic-sweep", priorRunId);
+const latestRun = loadDiagnosticReplayRun("remaining-54");
+const priorRun = loadDiagnosticReplayRun("base-125");
 
 const latestCases = Object.freeze([
   ["EVT-041", "8c2064274dcc716aa6e04216910acfbec2ff609a6fe5ccfc990c224e0d85deb1", "69fb8041f62861266e4e67633d6f46c45e62422052f8789c61da3741c951bec5", "memorySearch.hits[fixture-identity][mismatch]"],
@@ -55,39 +56,32 @@ const priorOnlyCases = Object.freeze([
   ["SAFE-038", "db8c8926e590ea250c37bf44eb3136971535357a0eba660d0af6f5c6dec5a86f", "f60d0af17c16b47b02808dd77e6dbd651422865c10456492e7948d34d0b2db2e"],
 ]);
 
-function sha256(value) {
-  return crypto.createHash("sha256").update(value).digest("hex");
-}
-
-function readCase(runRoot, [caseId, summarySha, traceSha]) {
-  const caseRoot = path.join(runRoot, "cases", caseId);
-  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-  const summary = JSON.parse(summaryBytes);
-  const tracePath = summary.case?.diagnosticArtifacts?.trace?.path;
-  assert.equal(sha256(summaryBytes), summarySha, `${caseId} summary digest drift`);
-  assert(tracePath, `${caseId} trace attestation missing`);
-  const traceBytes = fs.readFileSync(path.join(caseRoot, tracePath));
-  assert.equal(sha256(traceBytes), traceSha, `${caseId} trace digest drift`);
+function readCase(runAlias, [caseId, summarySha, traceSha]) {
+  const record = loadDiagnosticReplayCase(runAlias, caseId);
+  const summary = record.summary;
+  assert.equal(record.summarySha256, summarySha, `${caseId} summary digest drift`);
+  assert.equal(record.traceSha256, traceSha, `${caseId} trace digest drift`);
+  assert(summary && record.trace, `${caseId} tracked replay projection missing`);
   assert.equal(summary.case?.status, "FAIL", `${caseId} actual RED status drift`);
-  assert.equal(JSON.parse(traceBytes).caseId, caseId, `${caseId} trace identity drift`);
+  assert.equal(record.trace.caseId, caseId, `${caseId} trace identity drift`);
   return summary;
 }
 
-assert.equal(sha256(fs.readFileSync(path.join(latestRoot, "summary.json"))),
+assert.equal(latestRun.parent.summarySha256,
   "c9083eb18a6546472ef444916d3b4f24bf8982e402438f533c6e684eae2bde47");
-const latestSummary = JSON.parse(fs.readFileSync(path.join(latestRoot, "summary.json")));
+const latestSummary = latestRun.parent;
 assert.deepEqual(latestSummary.counts, { target: 125, attempted: 54, pass: 37, fail: 17, notRun: 71 });
-assert.equal(latestSummary.sourceBinding?.gitCommit, "500cdfee5f12895bd6a1d8ef4438dae28ba5f17d");
+assert.equal(latestRun.sourceCommit, "500cdfee5f12895bd6a1d8ef4438dae28ba5f17d");
 for (const entry of latestCases) {
-  const summary = readCase(latestRoot, entry);
+  const summary = readCase("remaining-54", entry);
   assert(String(summary.case?.failureDetail || "").includes(entry[3]) ||
     summary.case?.eventDomSemanticEvidence?.causeCodes?.includes(entry[3]),
   `${entry[0]} latest failure signature drift`);
 }
 for (const entry of priorOnlyCases) {
-  assert(!fs.existsSync(path.join(latestRoot, "cases", entry[0])),
+  assert(!latestRun.cases[entry[0]]?.summary,
     `${entry[0]} must remain attested as latest not-run after lifecycle abort`);
-  readCase(priorRoot, entry);
+  readCase("base-125", entry);
 }
 
 const renderer = fs.readFileSync(path.join(root, "src/ingress/product_ui_page_scripts.cpp"), "utf8");

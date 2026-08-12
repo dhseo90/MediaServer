@@ -25,18 +25,17 @@ import {
   evaluateEventDomActionReadback,
   selectEventDomResponseBodies,
 } from "./v390_ui_exact_oracle_runtime.mjs";
+import {
+  loadDiagnosticReplayCase,
+  loadDiagnosticReplayRun,
+} from "./v390_ui_diagnostic_replay_projection_loader.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const runRoot = path.join(root,
-  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809031330-49276");
-const closureRunRoot = path.join(root,
-  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809040016-62650");
-const latestRunRoot = path.join(root,
-  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809054053-83497");
-const remaining4RunRoot = path.join(root,
-  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-remaining4-629fddf0");
-const final7RunRoot = path.join(root,
-  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-final7-9e43fd27");
+const sourceRun = loadDiagnosticReplayRun("remaining-133");
+const closureRun = loadDiagnosticReplayRun("remaining-closure-7");
+const latestRun = loadDiagnosticReplayRun("remaining-latest-7");
+const remaining4Run = loadDiagnosticReplayRun("remaining-four-7");
+const final7Run = loadDiagnosticReplayRun("remaining-final-7");
 const censusPath = path.join(root,
   "test/fixtures/v390_ui_remaining_actual_failure_census_20260809.json");
 const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
@@ -53,10 +52,9 @@ assert.deepEqual(census.counts, {
 });
 assert.deepEqual(census.assignmentCoverage,
   { failureCount: 7, assignedCount: 7, missingIds: [], duplicateIds: [] });
-const parentSummaryBytes = fs.readFileSync(path.join(runRoot, "summary.json"));
-assert.equal(sha256(parentSummaryBytes),
+assert.equal(sourceRun.parent.summarySha256,
   census.source.summarySha256, "actual parent summary digest drift");
-const parentSummary = JSON.parse(parentSummaryBytes);
+const parentSummary = sourceRun.parent;
 
 const signatures = new Map([
   ["EVT-007", "RENDERER_PROJECTION_VALUE_MISMATCH"],
@@ -68,15 +66,13 @@ const signatures = new Map([
   ["EVT-026", "API_DOM_FIXTURE_IDENTITY_MISMATCH"],
 ]);
 for (const failure of census.failures) {
-  const caseRoot = path.join(runRoot, "cases", failure.caseId);
-  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-  const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${failure.caseId}.trace.json`));
-  assert.equal(sha256(summaryBytes), failure.summarySha256,
+  const record = loadDiagnosticReplayCase("remaining-133", failure.caseId);
+  assert.equal(record.summarySha256, failure.summarySha256,
     `${failure.caseId} actual summary digest drift`);
-  assert.equal(sha256(traceBytes), failure.traceSha256,
+  assert.equal(record.traceSha256, failure.traceSha256,
     `${failure.caseId} actual trace digest drift`);
-  const summary = JSON.parse(summaryBytes);
-  const trace = JSON.parse(traceBytes);
+  const { summary, trace } = record;
+  assert(summary && trace, `${failure.caseId} tracked replay projection missing`);
   const actualCase = summary.case;
   assert.equal(trace.caseId, failure.caseId, `${failure.caseId} trace identity drift`);
   assert.equal(actualCase.status, "FAIL", `${failure.caseId} actual RED status drift`);
@@ -122,22 +118,19 @@ const closureActual = Object.freeze({
     }),
   }),
 });
-const closureParentBytes = fs.readFileSync(path.join(closureRunRoot, "summary.json"));
-assert.equal(sha256(closureParentBytes), closureActual.parentSha256,
+assert.equal(closureRun.parent.summarySha256, closureActual.parentSha256,
   "closure actual parent summary digest drift");
-const closureParent = JSON.parse(closureParentBytes);
+const closureParent = closureRun.parent;
 assert.deepEqual(closureParent.counts,
   { target: 7, attempted: 6, pass: 2, fail: 4, notRun: 1, unsupported: 0 });
 for (const [caseId, expected] of Object.entries(closureActual.cases)) {
-  const caseRoot = path.join(closureRunRoot, "cases", caseId);
-  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-  const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
-  assert.equal(sha256(summaryBytes), expected.summarySha256,
+  const record = loadDiagnosticReplayCase("remaining-closure-7", caseId);
+  assert.equal(record.summarySha256, expected.summarySha256,
     `${caseId} closure actual summary digest drift`);
-  assert.equal(sha256(traceBytes), expected.traceSha256,
+  assert.equal(record.traceSha256, expected.traceSha256,
     `${caseId} closure actual trace digest drift`);
-  const summary = JSON.parse(summaryBytes);
-  const trace = JSON.parse(traceBytes);
+  const { summary, trace } = record;
+  assert(summary && trace, `${caseId} closure tracked projection missing`);
   assert.equal(trace.caseId, caseId, `${caseId} closure trace identity drift`);
   assert.equal(summary.case?.status, "FAIL", `${caseId} closure RED status drift`);
   assert(String(summary.case?.failureDetail || "").includes(expected.failure) ||
@@ -170,35 +163,32 @@ const latestActual = Object.freeze({
     }),
   }),
 });
-const latestParentBytes = fs.readFileSync(path.join(latestRunRoot, "summary.json"));
-assert.equal(sha256(latestParentBytes), latestActual.parentSha256,
+assert.equal(latestRun.parent.summarySha256, latestActual.parentSha256,
   "latest actual parent summary digest drift");
-const latestParent = JSON.parse(latestParentBytes);
+const latestParent = latestRun.parent;
 assert.deepEqual(latestParent.counts,
   { target: 7, attempted: 6, pass: 3, fail: 3, notRun: 1, unsupported: 0 });
 for (const [caseId, expected] of Object.entries(latestActual.cases)) {
-  const caseRoot = path.join(latestRunRoot, "cases", caseId);
-  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-  const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
-  assert.equal(sha256(summaryBytes), expected.summarySha256,
+  const record = loadDiagnosticReplayCase("remaining-latest-7", caseId);
+  assert.equal(record.summarySha256, expected.summarySha256,
     `${caseId} latest actual summary digest drift`);
-  assert.equal(sha256(traceBytes), expected.traceSha256,
+  assert.equal(record.traceSha256, expected.traceSha256,
     `${caseId} latest actual trace digest drift`);
-  const summary = JSON.parse(summaryBytes);
+  const summary = record.summary;
+  assert(summary && record.trace, `${caseId} latest tracked projection missing`);
   assert.equal(summary.case?.status, expected.status, `${caseId} latest RED status drift`);
   assert(String(summary.case?.failureDetail || "").includes(expected.failure) ||
     JSON.stringify(summary.case?.eventDomSemanticEvidence || {}).includes(expected.failure),
   `${caseId} latest failure signature drift`);
 }
 
-const remaining4ParentBytes = fs.readFileSync(path.join(remaining4RunRoot, "summary.json"));
-assert.equal(sha256(remaining4ParentBytes),
+assert.equal(remaining4Run.parent.summarySha256,
   "06c70fcc94293a8a533abd9bdd6b1986ac92f9ed1520c2e0e570ca0cc042e038",
   "remaining4 actual parent summary digest drift");
-const remaining4Parent = JSON.parse(remaining4ParentBytes);
+const remaining4Parent = remaining4Run.parent;
 assert.deepEqual(remaining4Parent.counts,
   { target: 7, attempted: 7, pass: 6, fail: 1, notRun: 0, unsupported: 0 });
-assert.equal(remaining4Parent.sourceBinding?.gitCommit,
+assert.equal(remaining4Run.sourceCommit,
   "629fddf0957f24c8d25c4e90e6ea1b73650a5299");
 assert.deepEqual(remaining4Parent.selection?.selectedIds,
   ["EVT-007", "EVT-017", "EVT-019", "EVT-020", "EVT-022", "EVT-023", "EVT-026"]);
@@ -206,18 +196,17 @@ for (const caseId of ["EVT-007", "EVT-017", "EVT-019", "EVT-020", "EVT-023", "EV
   assert.equal(remaining4Parent.cases.find(item => item.caseId === caseId)?.status, "PASS",
     `${caseId} remaining4 control status drift`);
 }
-const remaining4Evt022Root = path.join(remaining4RunRoot, "cases", "EVT-022");
-const remaining4Evt022SummaryBytes = fs.readFileSync(path.join(remaining4Evt022Root, "summary.json"));
-const remaining4Evt022TraceBytes = fs.readFileSync(
-  path.join(remaining4Evt022Root, "traces", "EVT-022.trace.json"));
-assert.equal(sha256(remaining4Evt022SummaryBytes),
+const remaining4Evt022 = loadDiagnosticReplayCase("remaining-four-7", "EVT-022");
+assert.equal(remaining4Evt022.summarySha256,
   "46606193312930dc64c2b8dd1de730355d7e6f58d8bacf060fece53411957bb0",
   "EVT-022 remaining4 actual summary digest drift");
-assert.equal(sha256(remaining4Evt022TraceBytes),
+assert.equal(remaining4Evt022.traceSha256,
   "6ba2afe900fc8dce6e48fee473765a3c3a70aa83a4088b08036f0b5393cd1a49",
   "EVT-022 remaining4 actual trace digest drift");
-const remaining4Evt022Summary = JSON.parse(remaining4Evt022SummaryBytes);
-const remaining4Evt022Trace = JSON.parse(remaining4Evt022TraceBytes);
+const remaining4Evt022Summary = remaining4Evt022.summary;
+const remaining4Evt022Trace = remaining4Evt022.trace;
+assert(remaining4Evt022Summary && remaining4Evt022Trace,
+  "EVT-022 remaining4 tracked projection missing");
 const remaining4Evt022Evidence = remaining4Evt022Summary.case?.eventDomSemanticEvidence;
 assert.equal(remaining4Evt022Trace.caseId, "EVT-022");
 assert.equal(remaining4Evt022Summary.case?.status, "FAIL");
@@ -229,14 +218,13 @@ assert.equal(remaining4Evt022Evidence?.responseBaselineMatched?.candidateCount, 
 assert.equal(remaining4Evt022Evidence?.observationPresent?.exists, true);
 assert.equal(remaining4Evt022Evidence?.observationPresent?.visible, true);
 
-const final7ParentBytes = fs.readFileSync(path.join(final7RunRoot, "summary.json"));
-assert.equal(sha256(final7ParentBytes),
+assert.equal(final7Run.parent.summarySha256,
   "d04f4015f2ca657a22def026b417fcb824568965e148877175108d63285edb9b",
   "final7 actual parent summary digest drift");
-const final7Parent = JSON.parse(final7ParentBytes);
+const final7Parent = final7Run.parent;
 assert.deepEqual(final7Parent.counts,
   { target: 7, attempted: 7, pass: 6, fail: 1, notRun: 0, unsupported: 0 });
-assert.equal(final7Parent.sourceBinding?.gitCommit,
+assert.equal(final7Run.sourceCommit,
   "9e43fd274b5ebde91f116ce5477b558bcc577ab6");
 assert.deepEqual(final7Parent.selection?.selectedIds,
   ["EVT-007", "EVT-017", "EVT-019", "EVT-020", "EVT-022", "EVT-023", "EVT-026"]);
@@ -244,18 +232,17 @@ for (const caseId of ["EVT-007", "EVT-017", "EVT-019", "EVT-020", "EVT-023", "EV
   assert.equal(final7Parent.cases.find(item => item.caseId === caseId)?.status, "PASS",
     `${caseId} final7 control status drift`);
 }
-const final7Evt022Root = path.join(final7RunRoot, "cases", "EVT-022");
-const final7Evt022SummaryBytes = fs.readFileSync(path.join(final7Evt022Root, "summary.json"));
-const final7Evt022TraceBytes = fs.readFileSync(
-  path.join(final7Evt022Root, "traces", "EVT-022.trace.json"));
-assert.equal(sha256(final7Evt022SummaryBytes),
+const final7Evt022 = loadDiagnosticReplayCase("remaining-final-7", "EVT-022");
+assert.equal(final7Evt022.summarySha256,
   "00b7e090028258dd61036721802399a38ad166928486d15dfec824e51887215d",
   "EVT-022 final7 actual summary digest drift");
-assert.equal(sha256(final7Evt022TraceBytes),
+assert.equal(final7Evt022.traceSha256,
   "c0d7a1a875e60bdf821ddceb7c72e511a15762ad4470557c0a9cd748a7ad4ad1",
   "EVT-022 final7 actual trace digest drift");
-const final7Evt022Summary = JSON.parse(final7Evt022SummaryBytes);
-const final7Evt022Trace = JSON.parse(final7Evt022TraceBytes);
+const final7Evt022Summary = final7Evt022.summary;
+const final7Evt022Trace = final7Evt022.trace;
+assert(final7Evt022Summary && final7Evt022Trace,
+  "EVT-022 final7 tracked projection missing");
 const final7Evt022Evidence = final7Evt022Summary.case?.eventDomSemanticEvidence;
 assert.equal(final7Evt022Trace.caseId, "EVT-022");
 assert.equal(final7Evt022Summary.case?.status, "FAIL");

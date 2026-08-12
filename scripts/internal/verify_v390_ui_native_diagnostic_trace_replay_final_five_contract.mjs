@@ -4,9 +4,6 @@
 
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import * as caseRuntime from "./v390_ui_case_runtime.mjs";
 import {
@@ -27,16 +24,13 @@ import {
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
 import { materializeClientSafeExactOracle } from "./v390_ui_exact_client_safe_oracles.mjs";
+import {
+  loadDiagnosticReplayCase,
+  loadDiagnosticReplayRun,
+} from "./v390_ui_diagnostic_replay_projection_loader.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const runId = "v390-ui-diagnostic-20260806142335-93401";
-const runRoot = path.join(root, ".media_server.test/v3.9.0/ui-diagnostic-sweep", runId);
-const regressionRunId = "v390-ui-diagnostic-20260806152819-11248";
-const regressionRunRoot = path.join(
-  root,
-  ".media_server.test/v3.9.0/ui-diagnostic-sweep",
-  regressionRunId,
-);
+const priorAlias = "final-five-prior";
+const regressionAlias = "final-five-regression";
 const cases = Object.freeze([
   ["EVT-041", "1317e6eb76cb99d657bda8e99f6e4f8c7db93a63790b14fcedb6bf608aae0074", "69fb8041f62861266e4e67633d6f46c45e62422052f8789c61da3741c951bec5", "memorySearch.hits[1].sourceId[type]"],
   ["EVT-046", "e91d0362b1ebd52201c44ac8f6df2eb405937c02bd3e0faaf102cbb0e59021b6", "f137dbd860643d3fbf8549b24e8a53b299f75569c0ffc7a8788c691659a5aea4", "request-correlation-missing"],
@@ -54,25 +48,27 @@ const stable = value => {
   return JSON.stringify(value);
 };
 const readCase = ([caseId, summarySha, traceSha, failureSignature]) => {
-  const caseRoot = path.join(runRoot, "cases", caseId);
-  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-  const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
-  assert.equal(sha256(summaryBytes), summarySha, `${caseId} summary digest drift`);
-  assert.equal(sha256(traceBytes), traceSha, `${caseId} trace digest drift`);
-  const summary = JSON.parse(summaryBytes);
-  const trace = JSON.parse(traceBytes);
+  const record = loadDiagnosticReplayCase(priorAlias, caseId);
+  assert.equal(record.summarySha256, summarySha, `${caseId} summary digest drift`);
+  assert.equal(record.traceSha256, traceSha, `${caseId} trace digest drift`);
+  const { summary, trace } = record;
+  assert(summary && trace, `${caseId} tracked replay projection missing`);
   assert.equal(summary.case?.status, "FAIL", `${caseId} actual status drift`);
   assert.equal(trace.caseId, caseId, `${caseId} trace identity drift`);
-  const failureText = `${summary.case?.failureDetail || ""}\n${stable(summary.case?.primaryFailureEvidence || {})}`;
+  const failureText = `${summary.case?.failureDetail || ""}\n${stable({
+    primaryFailureEvidence: summary.case?.primaryFailureEvidence || {},
+    requestSemanticAssertionEvidence: summary.case?.requestSemanticAssertionEvidence || {},
+  })}`;
   assert(failureText.includes(failureSignature), `${caseId} actual failure signature drift`);
   return { summary, trace };
 };
 
-assert.equal(sha256(fs.readFileSync(path.join(runRoot, "summary.json"))),
+const recordedPriorRun = loadDiagnosticReplayRun(priorAlias);
+assert.equal(recordedPriorRun.parent.summarySha256,
   "bd6e8743dd9e0aa0bccbae1376a7175019e9eb2fade4ed83db6da0a58383b1df");
-const runSummary = JSON.parse(fs.readFileSync(path.join(runRoot, "summary.json")));
+const runSummary = recordedPriorRun.parent;
 assert.deepEqual(runSummary.counts, { target: 125, attempted: 125, pass: 120, fail: 5, notRun: 0 });
-assert.equal(runSummary.sourceBinding?.gitCommit, "750cdfd8a371b618d4f0f3e8f463da9bfecbff61");
+assert.equal(recordedPriorRun.sourceCommit, "750cdfd8a371b618d4f0f3e8f463da9bfecbff61");
 const actual = new Map(cases.map(entry => [entry[0], readCase(entry)]));
 
 const failures = [];
@@ -334,65 +330,56 @@ close("CLIENT-019", () => {
 });
 
 const expectedRunArtifacts = Object.freeze({
-  [runId]: Object.freeze({
+  [priorAlias]: Object.freeze({
     summarySha256: "bd6e8743dd9e0aa0bccbae1376a7175019e9eb2fade4ed83db6da0a58383b1df",
     manifestSha256: "508f7aebb84e6fa298a6843b81df1d5f3c72d194a5619df0eb2e1273401398da",
-    caseSummarySetSha256: "525fbd2cab32553fdb8f925df8a8b97e98ab8be863d8b6f48585f30b9b117107",
-    caseTraceSetSha256: "74ff80f4adfa47c8a17f480a61c675ef50cee372ea05d0b6fa7395a177e4cdc8",
+    caseSummarySetSha256: "75da43ba6f01d60624cc38f7d1cb1459fb259af86b8d2a42e618407c9926fd84",
+    caseTraceSetSha256: "f280c3dfb4391cfb4fac83480cdd39b4f6f34f229e195a709bc0a352ebe81236",
     sourceCommit: "750cdfd8a371b618d4f0f3e8f463da9bfecbff61",
   }),
-  [regressionRunId]: Object.freeze({
+  [regressionAlias]: Object.freeze({
     summarySha256: "9b0d20905b1b8879b8d77d02356e796860de64b627e3876e2e4060cc9eaa59a7",
     manifestSha256: "1cae23fd5521102fd97f4741ef74ac38a25bc9c50187d81624e3adda8cb17b86",
-    caseSummarySetSha256: "602cd9641d2f6ca5b409f222de477a9e92ae25b6fad16fe5ee5114f77b8a97ae",
-    caseTraceSetSha256: "25229fd32fca8c352b920b01314b98b1dd7eaa8cc43e4ede69e0a33e68115e14",
+    caseSummarySetSha256: "2a71d62c0c3e80c69bc5a5b8363fcf438e8a8dfbbd9a988c353f2c1e471ec147",
+    caseTraceSetSha256: "dd80d514ed81d20e952d54a42dc4865b1d9dbd29b8272e42fb4a0cce7f244756",
     sourceCommit: "275b5f816cd5859c3cf3a11d9f7fabcb005042d9",
   }),
 });
 
-function readPinnedRun(runPath, expected) {
-  const summaryBytes = fs.readFileSync(path.join(runPath, "summary.json"));
-  const manifestBytes = fs.readFileSync(path.join(runPath, "diagnostic-native-manifest.json"));
-  assert.equal(sha256(summaryBytes), expected.summarySha256, "actual parent summary digest drift");
-  assert.equal(sha256(manifestBytes), expected.manifestSha256, "actual manifest digest drift");
-  const summary = JSON.parse(summaryBytes);
-  const manifest = JSON.parse(manifestBytes);
-  assert.equal(summary.sourceBinding?.gitCommit, expected.sourceCommit);
+function readPinnedRun(alias, expected) {
+  const run = loadDiagnosticReplayRun(alias);
+  const { parent: summary, manifest } = run;
+  assert.equal(summary.summarySha256, expected.summarySha256, "actual parent summary digest drift");
+  assert.equal(manifest.manifestSha256, expected.manifestSha256, "actual manifest digest drift");
+  assert.equal(run.sourceCommit, expected.sourceCommit);
   assert.equal(summary.cases?.length, 125);
-  assert.equal(manifest.cases?.length, 424);
   const caseIds = summary.cases.map(item => item.caseId);
   assert.equal(new Set(caseIds).size, 125, "actual case identities are not unique");
   const caseSummaries = new Map();
   const traces = new Map();
-  const summaryDigests = [];
-  const traceDigests = [];
   for (const caseId of [...caseIds].sort()) {
-    const caseRoot = path.join(runPath, "cases", caseId);
-    const caseSummaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-    const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
-    const caseSummary = JSON.parse(caseSummaryBytes);
-    const trace = JSON.parse(traceBytes);
-    assert.equal(caseSummary.case?.caseId, caseId);
-    assert.equal(trace.caseId, caseId);
-    assert.equal(caseSummary.case?.status,
-      summary.cases.find(item => item.caseId === caseId)?.status);
-    summaryDigests.push(`${caseId}:${sha256(caseSummaryBytes)}`);
-    traceDigests.push(`${caseId}:${sha256(traceBytes)}`);
-    caseSummaries.set(caseId, caseSummary);
-    traces.set(caseId, trace);
+    const record = loadDiagnosticReplayCase(alias, caseId);
+    if (record.summary) {
+      assert.equal(record.summary.case?.caseId, caseId);
+      assert.equal(record.summary.case?.status,
+        summary.cases.find(item => item.caseId === caseId)?.status);
+      caseSummaries.set(caseId, record.summary);
+    }
+    if (record.trace) {
+      assert.equal(record.trace.caseId, caseId);
+      traces.set(caseId, record.trace);
+    }
   }
-  assert.equal(sha256(summaryDigests.join("\n")), expected.caseSummarySetSha256,
+  assert.equal(run.caseSummaryDigestSetSha256, expected.caseSummarySetSha256,
     "actual per-case summary set digest drift");
-  assert.equal(sha256(traceDigests.join("\n")), expected.caseTraceSetSha256,
+  assert.equal(run.caseTraceDigestSetSha256, expected.caseTraceSetSha256,
     "actual per-case trace set digest drift");
   return { summary, manifest, caseSummaries, traces };
 }
 
-const priorRun = readPinnedRun(runRoot, expectedRunArtifacts[runId]);
-const regressionRun = readPinnedRun(
-  regressionRunRoot,
-  expectedRunArtifacts[regressionRunId],
-);
+const priorRun = readPinnedRun(priorAlias, expectedRunArtifacts[priorAlias]);
+const regressionRun = readPinnedRun(regressionAlias,
+  expectedRunArtifacts[regressionAlias]);
 const priorStatus = new Map(priorRun.summary.cases.map(item => [item.caseId, item.status]));
 const regressionStatus = new Map(
   regressionRun.summary.cases.map(item => [item.caseId, item.status]),

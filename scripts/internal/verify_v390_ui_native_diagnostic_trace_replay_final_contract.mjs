@@ -26,10 +26,13 @@ import {
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
 import { traceSafeWorkflowInputs } from "./v390_ui_native_exact_cases_lib.mjs";
+import {
+  loadDiagnosticReplayCase,
+  loadDiagnosticReplayRun,
+} from "./v390_ui_diagnostic_replay_projection_loader.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const runId = "v390-ui-diagnostic-20260806130704-74153";
-const runRoot = path.join(root, ".media_server.test/v3.9.0/ui-diagnostic-sweep", runId);
+const recordedRun = loadDiagnosticReplayRun("final-125");
 const cases = Object.freeze([
   ["EVT-041", "32283c89d43eb755eff5cff8edb861cb6c1b7dba96848b3f3b966b074ec1dfbf", "69fb8041f62861266e4e67633d6f46c45e62422052f8789c61da3741c951bec5", "memorySearch.hits[0].sourceId[identity]"],
   ["EVT-046", "d580f44f551d070d014cede88206cb94741a2cd23e0266dfd28279e5492a3495", "2fe93db5cb6bf4ba4bd848f4f692db8991420addf1ba54a94ded7560ccd256d9", "RESPONSE_FIELD_OWNER_AMBIGUOUS"],
@@ -45,15 +48,11 @@ const cases = Object.freeze([
 
 const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
 const readCase = ([caseId, summarySha, traceSha, failureSignature]) => {
-  const caseRoot = path.join(runRoot, "cases", caseId);
-  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-  const summary = JSON.parse(summaryBytes);
-  const tracePath = summary.case?.diagnosticArtifacts?.trace?.path;
-  assert.equal(sha256(summaryBytes), summarySha, `${caseId} summary digest drift`);
-  assert(tracePath, `${caseId} trace attestation missing`);
-  const traceBytes = fs.readFileSync(path.join(caseRoot, tracePath));
-  assert.equal(sha256(traceBytes), traceSha, `${caseId} trace digest drift`);
-  const trace = JSON.parse(traceBytes);
+  const record = loadDiagnosticReplayCase("final-125", caseId);
+  const { summary, trace } = record;
+  assert.equal(record.summarySha256, summarySha, `${caseId} summary digest drift`);
+  assert.equal(record.traceSha256, traceSha, `${caseId} trace digest drift`);
+  assert(summary && trace, `${caseId} tracked replay projection missing`);
   assert.equal(trace.caseId, caseId, `${caseId} trace identity drift`);
   assert.equal(summary.case?.status, "FAIL", `${caseId} actual RED status drift`);
   const failureText = `${summary.case?.failureDetail || ""}\n${JSON.stringify(summary.case?.eventDomSemanticEvidence || {})}`;
@@ -61,13 +60,13 @@ const readCase = ([caseId, summarySha, traceSha, failureSignature]) => {
   return { summary, trace };
 };
 
-assert.equal(sha256(fs.readFileSync(path.join(runRoot, "summary.json"))),
+assert.equal(recordedRun.parent.summarySha256,
   "ec1dde87b5c5e9179485d52b7a09d0133a69cd46ccbacab179300d151287486f");
-const runSummary = JSON.parse(fs.readFileSync(path.join(runRoot, "summary.json")));
+const runSummary = recordedRun.parent;
 assert.deepEqual(runSummary.counts, { target: 125, attempted: 125, pass: 115, fail: 10, notRun: 0 });
-assert.equal(runSummary.sourceBinding?.gitCommit, "7f2eb53286c0421fa5b9bf80ae9dda7657a59ac1");
+assert.equal(recordedRun.sourceCommit, "7f2eb53286c0421fa5b9bf80ae9dda7657a59ac1");
 const actual = new Map(cases.map(entry => [entry[0], readCase(entry)]));
-const manifest = JSON.parse(fs.readFileSync(path.join(runRoot, "diagnostic-native-manifest.json")));
+const manifest = recordedRun.manifest;
 const source = name => fs.readFileSync(path.join(root, name), "utf8");
 const evaluatorSource = source("scripts/internal/v390_ui_exact_event_oracle_evaluator.mjs");
 const runtimeSource = source("scripts/internal/v390_ui_exact_oracle_runtime.mjs");
@@ -84,13 +83,9 @@ const eventRecordImpactArtifactPath = path.join(
   "test/fixtures/v390_ui_event_record_owner_impact_20260809.json",
 );
 const eventRecordImpactArtifact = JSON.parse(fs.readFileSync(eventRecordImpactArtifactPath));
-const optionalTemplateRunRoot = path.join(
-  root,
-  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260808184853-81792",
-);
-const optionalTemplateSummaryBytes = fs.readFileSync(path.join(optionalTemplateRunRoot, "summary.json"));
-const optionalTemplateSummary = JSON.parse(optionalTemplateSummaryBytes);
-assert.equal(sha256(optionalTemplateSummaryBytes),
+const optionalTemplateRun = loadDiagnosticReplayRun("optional-template-6");
+const optionalTemplateSummary = optionalTemplateRun.parent;
+assert.equal(optionalTemplateSummary.summarySha256,
   "66e75230648b2b635a1f75737e812a113d2d0e83679ed4bd9d20812a9d30ebc5",
   "optional/template actual parent summary digest drift");
 assert.deepEqual(optionalTemplateSummary.counts,
@@ -100,13 +95,11 @@ assert.deepEqual(optionalTemplateSummary.cases
 ["EVT-023", "EVT-026", "EVT-048", "EVT-049"],
 "EventRecord four-case actual PASS set drift");
 const readOptionalTemplateFailure = (caseId, summarySha, traceSha, signature) => {
-  const caseRoot = path.join(optionalTemplateRunRoot, "cases", caseId);
-  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-  const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
-  assert.equal(sha256(summaryBytes), summarySha, `${caseId} optional/template summary digest drift`);
-  assert.equal(sha256(traceBytes), traceSha, `${caseId} optional/template trace digest drift`);
-  const summary = JSON.parse(summaryBytes);
-  const trace = JSON.parse(traceBytes);
+  const record = loadDiagnosticReplayCase("optional-template-6", caseId);
+  assert.equal(record.summarySha256, summarySha, `${caseId} optional/template summary digest drift`);
+  assert.equal(record.traceSha256, traceSha, `${caseId} optional/template trace digest drift`);
+  const { summary, trace } = record;
+  assert(summary && trace, `${caseId} optional/template tracked projection missing`);
   assert.equal(summary.case?.status, "FAIL", `${caseId} optional/template actual RED status drift`);
   assert.equal(trace.caseId, caseId, `${caseId} optional/template trace identity drift`);
   assert(`${summary.case?.failureDetail || ""}\n${JSON.stringify(summary.case?.eventDomSemanticEvidence || {})}`
@@ -128,31 +121,23 @@ const optionalTemplateActual = new Map([
   )],
 ]);
 
-const latestOptionalTemplateRunRoot = path.join(
-  root,
-  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809015110-13427",
-);
-const latestOptionalTemplateSummaryBytes = fs.readFileSync(
-  path.join(latestOptionalTemplateRunRoot, "summary.json"),
-);
-const latestOptionalTemplateSummary = JSON.parse(latestOptionalTemplateSummaryBytes);
-assert.equal(sha256(latestOptionalTemplateSummaryBytes),
+const latestOptionalTemplateRun = loadDiagnosticReplayRun("optional-template-latest-2");
+const latestOptionalTemplateSummary = latestOptionalTemplateRun.parent;
+assert.equal(latestOptionalTemplateSummary.summarySha256,
   "bccb2d753f94ab7f0cb53cd53b50b3392fc2c9569d307ff40624f156b7e289bf",
   "latest optional/template actual parent summary digest drift");
 assert.deepEqual(latestOptionalTemplateSummary.counts,
   { target: 2, attempted: 2, pass: 0, fail: 2, notRun: 0, unsupported: 0 });
-assert.equal(latestOptionalTemplateSummary.sourceBinding?.gitCommit,
+assert.equal(latestOptionalTemplateRun.sourceCommit,
   "8c7c5421b89695ed825b277ec746d0444a9088b2");
 const readLatestOptionalTemplateFailure = (caseId, summarySha, traceSha, signature) => {
-  const caseRoot = path.join(latestOptionalTemplateRunRoot, "cases", caseId);
-  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-  const traceBytes = fs.readFileSync(path.join(caseRoot, "traces", `${caseId}.trace.json`));
-  assert.equal(sha256(summaryBytes), summarySha,
+  const record = loadDiagnosticReplayCase("optional-template-latest-2", caseId);
+  assert.equal(record.summarySha256, summarySha,
     `${caseId} latest optional/template summary digest drift`);
-  assert.equal(sha256(traceBytes), traceSha,
+  assert.equal(record.traceSha256, traceSha,
     `${caseId} latest optional/template trace digest drift`);
-  const summary = JSON.parse(summaryBytes);
-  const trace = JSON.parse(traceBytes);
+  const { summary, trace } = record;
+  assert(summary && trace, `${caseId} latest optional/template tracked projection missing`);
   assert.equal(summary.case?.status, "FAIL", `${caseId} latest actual RED status drift`);
   assert.equal(trace.caseId, caseId, `${caseId} latest actual trace identity drift`);
   assert(`${summary.case?.failureDetail || ""}\n${JSON.stringify(summary.case?.eventDomSemanticEvidence || {})}`

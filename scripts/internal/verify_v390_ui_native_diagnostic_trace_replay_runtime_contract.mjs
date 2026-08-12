@@ -2,20 +2,19 @@
 
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import * as exactRuntime from "./v390_ui_exact_oracle_runtime.mjs";
 import * as completionRuntime from "./v390_ui_completion_oracle_lib.mjs";
 import * as caseRuntime from "./v390_ui_case_runtime.mjs";
 import { clientSafeExactOracleFor } from "./v390_ui_exact_client_safe_oracles.mjs";
 import { eventExactOracleFor } from "./v390_ui_exact_event_oracles.mjs";
+import {
+  loadDiagnosticReplayCase,
+  loadDiagnosticReplayRun,
+} from "./v390_ui_diagnostic_replay_projection_loader.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const runRoot = path.join(root,
-  ".media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260806080136-31158");
-const manifest = JSON.parse(fs.readFileSync(path.join(runRoot, "diagnostic-native-manifest.json"), "utf8"));
+const recordedRun = loadDiagnosticReplayRun("base-125");
+const manifest = recordedRun.manifest;
 const targetIds = [
   "EVT-041", "EVT-048", "EVT-070", "SAFE-038",
   "CLIENT-002", "CLIENT-005", "CLIENT-019", "CLIENT-021",
@@ -89,26 +88,20 @@ function assertRequestFailureOwner(summary, { method, path, operator }) {
 }
 
 const evidence = new Map(targetIds.map(caseId => {
-  const caseRoot = path.join(runRoot, "cases", caseId);
-  const summaryBytes = fs.readFileSync(path.join(caseRoot, "summary.json"));
-  const summary = JSON.parse(summaryBytes);
-  assert.equal(sha256(summaryBytes), expectedArtifactSha256[caseId][0]);
-  const traceMeta = summary.case?.diagnosticArtifacts?.trace;
-  assert.equal(summary.sourceBinding?.gitCommit, "831e7b4867c53a4657f4fa0860d673a0ac41af54");
-  assert.equal(summary.sourceBinding?.runId, "v390-ui-diagnostic-20260806080136-31158");
+  const record = loadDiagnosticReplayCase("base-125", caseId);
+  const { summary, trace } = record;
+  assert(summary && trace, `${caseId} tracked replay projection missing`);
+  assert.equal(record.summarySha256, expectedArtifactSha256[caseId][0]);
+  assert.equal(record.traceSha256, expectedArtifactSha256[caseId][1]);
+  assert.equal(recordedRun.sourceCommit, "831e7b4867c53a4657f4fa0860d673a0ac41af54");
   assert.equal(summary.case?.caseId, caseId);
   assert.equal(summary.case?.status, "FAIL");
   assert.match(summary.case?.failureDetail || "", new RegExp(expectedFailures[caseId].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  assert(traceMeta?.path && /^[a-f0-9]{64}$/.test(traceMeta.sha256));
-  const traceBytes = fs.readFileSync(path.join(caseRoot, traceMeta.path));
-  assert.equal(traceBytes.length, traceMeta.bytes);
-  assert.equal(sha256(traceBytes), traceMeta.sha256);
-  assert.equal(traceMeta.sha256, expectedArtifactSha256[caseId][1]);
-  const trace = JSON.parse(traceBytes);
+  assert.equal(summary.case?.diagnosticArtifacts?.trace?.sha256, record.traceSha256);
   assert.equal(trace.caseId, caseId);
   const manifestCase = manifest.cases.find(item => item.caseId === caseId);
   assert(manifestCase, `${caseId} actual diagnostic manifest case missing`);
-  return [caseId, { summary, trace, manifestCase, summarySha256: sha256(summaryBytes) }];
+  return [caseId, { summary, trace, manifestCase, summarySha256: record.summarySha256 }];
 }));
 
 const results = [];
@@ -124,7 +117,7 @@ async function check(caseId, fn) {
 for (const caseId of ["CLIENT-019", "MEDIA-016", "MEDIA-017"]) {
   await check(caseId, async ({ summary, trace, manifestCase }) => {
     assert.equal(trace.actions.length, 0, `${caseId} failed before action evidence was appended`);
-    assert.equal(trace.rawPrimaryObservations.length, 0);
+    assert.equal(trace.rawPrimaryObservationCount, 0);
     const spec = clientSafeExactOracleFor(caseId);
     assert.equal(spec.route, trace.requested.route);
     assert.equal(spec.role, trace.requested.accountRole);
@@ -149,7 +142,8 @@ for (const caseId of ["CLIENT-019", "MEDIA-016", "MEDIA-017"]) {
       selector: spec.action.target,
       minimumPlaying,
     });
-    assert.equal(actualEvaluateCall.expression, exactRuntime.mediaReadinessEvaluateExpression());
+    assert.equal(String(actualEvaluateCall.expression),
+      String(exactRuntime.mediaReadinessEvaluateExpression()));
     assert.equal(result.playingCount, minimumPlaying);
   });
 }
@@ -201,7 +195,7 @@ for (const caseId of ["CLIENT-002", "CLIENT-005"]) {
 await check("CLIENT-021", ({ summary, trace }) => {
   const action = trace.actions.find(value => value.kind === "activate-control");
   assert(action?.composedClientLive?.sessionId && action?.expectedLocalTransition);
-  assert.equal(trace.rawPrimaryObservations.length, 0,
+  assert.equal(trace.rawPrimaryObservationCount, 0,
     "failed trace unexpectedly retained a primary request/response envelope");
   assert.equal(trace.completionEvents.length, 1);
   assert.equal(trace.completionEvents[0].completionPhase, "initial-navigation");
@@ -284,7 +278,7 @@ await check("EVT-048", ({ summary, trace, manifestCase }) => {
   const fixtureId = reviewedFixtureId({ trace, manifestCase });
   assert.equal(fixtureId, "evt-048-review4-fixture");
   assert.equal(trace.actions.length, 0);
-  assert.equal(trace.rawPrimaryObservations.length, 0,
+  assert.equal(trace.rawPrimaryObservationCount, 0,
     "EVT-048 trace unexpectedly retained raw source-health response material");
   const spec = eventExactOracleFor("EVT-048");
   const request = spec.requests.find(value => value.path === "/ops/api/source-health");
@@ -323,6 +317,7 @@ await check("EVT-048", ({ summary, trace, manifestCase }) => {
     sources: [source],
     views: [view],
     sourceHealth: [health],
+    expectedSourceId: defaults.sourceId,
   });
   assert.deepEqual(binding, {
     sourceId: defaults.sourceId,
@@ -335,27 +330,31 @@ await check("EVT-048", ({ summary, trace, manifestCase }) => {
     sources: [source, { ...source }],
     views: [view],
     sourceHealth: [health],
+    expectedSourceId: defaults.sourceId,
   }), /owner cardinality mismatch/);
   assert.throws(() => caseRuntime.authoritativeSourceHealthFixtureBinding({
     sources: [source],
     views: [view, { ...view, viewId: `${view.viewId}-duplicate` }],
     sourceHealth: [health],
+    expectedSourceId: defaults.sourceId,
   }), /owner cardinality mismatch/);
   assert.throws(() => caseRuntime.authoritativeSourceHealthFixtureBinding({
     sources: [source],
     views: [view],
     sourceHealth: [health, { ...health }],
+    expectedSourceId: defaults.sourceId,
   }), /owner cardinality mismatch/);
   assert.throws(() => caseRuntime.authoritativeSourceHealthFixtureBinding({
     sources: [source],
     views: [{ ...view, sourceId: `${defaults.sourceId}-wrong` }],
     sourceHealth: [health],
+    expectedSourceId: defaults.sourceId,
   }), /owner cardinality mismatch/);
 });
 
 await check("EVT-070", ({ summary, trace, manifestCase }) => {
   const fixtureId = reviewedFixtureId({ trace, manifestCase });
-  assert.equal(trace.rawPrimaryObservations.length, 0);
+  assert.equal(trace.rawPrimaryObservationCount, 0);
   const spec = eventExactOracleFor("EVT-070");
   const assertion = spec.requests[0].assertions.find(value => value.operator === "equals-request");
   const failure = assertRequestFailureOwner(summary, {
@@ -377,7 +376,7 @@ await check("EVT-070", ({ summary, trace, manifestCase }) => {
 
 await check("SAFE-038", ({ summary, trace, manifestCase }) => {
   const fixtureId = reviewedFixtureId({ trace, manifestCase });
-  assert.equal(trace.rawPrimaryObservations.length, 0,
+  assert.equal(trace.rawPrimaryObservationCount, 0,
     "SAFE-038 trace unexpectedly retained raw candidate response material");
   const failure = assertRequestFailureOwner(summary, {
     method: "GET",

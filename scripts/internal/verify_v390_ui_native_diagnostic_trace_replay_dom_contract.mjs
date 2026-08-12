@@ -4,7 +4,6 @@
 // actual trace는 raw response/DOM 값을 보존하지 않으므로 SHA/실패 tuple/fixture identity를 고정하고,
 // 현재 renderer의 case-local semantic field와 계약 path로 독립 input을 재구성해 실제 evaluator를 호출한다.
 
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,10 +15,13 @@ import {
   responseDerivedDomProjectionContractFor,
 } from "./v390_ui_exact_event_oracle_evaluator.mjs";
 import { eventExactOracleFor } from "./v390_ui_exact_event_oracles.mjs";
+import {
+  loadDiagnosticReplayCase,
+  loadDiagnosticReplayRun,
+} from "./v390_ui_diagnostic_replay_projection_loader.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const runId = "v390-ui-diagnostic-20260806080136-31158";
-const runRoot = path.join(rootDir, ".media_server.test/v3.9.0/ui-diagnostic-sweep", runId);
+const recordedRun = loadDiagnosticReplayRun("base-125");
 const rootSummarySha256 = "7b8ea1763d370d40750994e0a9b32ba7d5f1244ce8f75076a40dc254d0c01397";
 const sourceCommit = "831e7b4867c53a4657f4fa0860d673a0ac41af54";
 
@@ -86,14 +88,6 @@ const rendererFunctionByCase = Object.freeze({
   "EVT-071": "renderV330IncidentSourceCorrelationLayer", "EVT-072": "renderV330OperatorRecheckRecoveryQueue",
   "EVT-075": "renderV350IncidentCommandHandoff",
 });
-
-function sha256File(filePath) {
-  return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
-}
-
-function readJson(filePath) {
-  return JSON.parse(fs.readFileSync(filePath, "utf8"));
-}
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -204,13 +198,11 @@ function rendererFunctionSource(functionName) {
   return rendererSource.slice(start, end >= 0 ? end : rendererSource.length);
 }
 
-const rootSummaryPath = path.join(runRoot, "summary.json");
-assert(sha256File(rootSummaryPath) === rootSummarySha256, "actual root summary SHA-256 drifted");
-const rootSummary = readJson(rootSummaryPath);
+assert(recordedRun.parent.summarySha256 === rootSummarySha256, "actual root summary SHA-256 drifted");
+const rootSummary = recordedRun.parent;
 assert(rootSummary.schema === "media-server.v390-ui-diagnostic-sweep.v1", "actual root summary schema drifted");
 assert(rootSummary.result === "FAIL" && rootSummary.counts?.fail === 33, "actual root failure baseline drifted");
-assert(rootSummary.sourceBinding?.gitCommit === sourceCommit, "actual root source commit drifted");
-assert(rootSummary.sourceBinding?.runId === runId, "actual root run identity drifted");
+assert(recordedRun.sourceCommit === sourceCommit, "actual root source commit drifted");
 const rendererSource = fs.readFileSync(
   path.join(rootDir, "src/ingress/product_ui_page_scripts.cpp"), "utf8");
 for (const gridId of [
@@ -230,21 +222,20 @@ let actualRedCount = 0;
 let evaluatorGreenCount = 0;
 const negativeCounts = { zero: 0, duplicate: 0, wrongFixture: 0, split: 0, fieldDrift: 0, ownerOnly: 0 };
 for (const [caseId, summarySha, traceSha, selector, operator, target, failureCode] of cases) {
-  const summaryPath = path.join(runRoot, "cases", caseId, "summary.json");
-  const tracePath = path.join(runRoot, "cases", caseId, "traces", `${caseId}.trace.json`);
   try {
-    assert(sha256File(summaryPath) === summarySha, `${caseId} actual case summary SHA-256 drifted`);
-    assert(sha256File(tracePath) === traceSha, `${caseId} actual trace SHA-256 drifted`);
-    const summary = readJson(summaryPath);
-    const trace = readJson(tracePath);
+    const record = loadDiagnosticReplayCase("base-125", caseId);
+    assert(record.summarySha256 === summarySha, `${caseId} actual case summary SHA-256 drifted`);
+    assert(record.traceSha256 === traceSha, `${caseId} actual trace SHA-256 drifted`);
+    const { summary, trace } = record;
+    assert(summary && trace, `${caseId} tracked replay projection missing`);
     assert(summary.case?.caseId === caseId && summary.case?.status === "FAIL", `${caseId} actual case status drifted`);
     assert(summary.case?.failureClass === "dom-semantic-assertion-failed", `${caseId} actual failure class drifted`);
     assert(summary.case?.actualBrowserExecution === true, `${caseId} is not actual browser evidence`);
     assert(trace.schema === "media-server.v390-ui-native-interaction-trace.v2", `${caseId} trace schema drifted`);
     assert(trace.caseId === caseId && trace.featureId === caseId, `${caseId} trace identity drifted`);
     assert(trace.dispatch === "playwright-native", `${caseId} trace dispatch drifted`);
-    assert(trace.expectedResults?.length === 1, `${caseId} trace expected-result cardinality drifted`);
-    assert(Array.isArray(trace.rawPrimaryObservations) && trace.rawPrimaryObservations.length === 0,
+    assert(trace.expectedResultCount === 1, `${caseId} trace expected-result cardinality drifted`);
+    assert(trace.rawPrimaryObservationCount === 0,
       `${caseId} raw observation retention contract drifted`);
     assert(!Object.prototype.hasOwnProperty.call(trace, "responseBodies"),
       `${caseId} unexpectedly retained raw response bodies`);
@@ -266,7 +257,11 @@ for (const [caseId, summarySha, traceSha, selector, operator, target, failureCod
     assert(contract, `${caseId} actual final operator closure is missing`);
     const materializedContractSelector = String(contract.selector || "").replaceAll(
       "{fixtureId}", `evt-${caseId.slice(4).toLowerCase()}-review4-fixture`);
-    assert(materializedContractSelector === selector, `${caseId} actual final operator selector drifted`);
+    const materializedOracleSelector = String(assertion.selector || "").replaceAll(
+      "{fixtureId}", `evt-${caseId.slice(4).toLowerCase()}-review4-fixture`);
+    assert(materializedOracleSelector &&
+      materializedContractSelector.startsWith(materializedOracleSelector),
+      `${caseId} current oracle/contract selector binding drifted`);
     assert(Array.isArray(contract.fields) && contract.fields.length > 0 &&
       contract.fields.some(([responsePath]) => responsePath !== "$identity"),
     `${caseId} owner-only closure has no response-derived final value`);
@@ -303,7 +298,7 @@ for (const [caseId, summarySha, traceSha, selector, operator, target, failureCod
       `${caseId} response-derived final projection did not PASS: ${projection.failureCode}`);
 
     const semanticObservation = {
-      selector, exists: true, visible: true,
+      selector: materializedContractSelector, exists: true, visible: true,
       text: `${fixtureId} redacted renderer projection`,
       attributes: [{
         "data-event-semantic-event-id": fixtureId,

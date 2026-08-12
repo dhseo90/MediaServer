@@ -19,6 +19,12 @@ for (const source of legacyReplaySources) {
 }
 const gates = Object.freeze([
   {
+    label: "checkout-local-input",
+    script: "verify_v390_ui_diagnostic_replay_checkout_local_contract.mjs",
+    expected: /diagnostic replay checkout-local contract PASS: 5\/5/,
+    count: 0,
+  },
+  {
     label: "impact-291",
     script: "verify_v390_ui_native_diagnostic_trace_replay_impact_contract.mjs",
     expected: /latest closure trace replay: PASS 99\/99 prior=92\/92 repaired=7\/7/,
