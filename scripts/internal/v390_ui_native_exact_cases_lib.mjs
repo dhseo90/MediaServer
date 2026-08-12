@@ -529,7 +529,12 @@ export async function runCanonicalParentOrchestration({
         const fallback = phase === "before-batch"
           ? "SERVER_BOOTSTRAP_FAILED"
           : "PORT_RUNTIME_CONTAMINATION";
-        setInfra({ code: String(result?.code || fallback), phase, caseId });
+        setInfra({
+          code: String(result?.code || fallback),
+          phase,
+          caseId,
+          detailCode: String(result?.detailCode || result?.code || fallback),
+        });
         return false;
       }
       if (phase === "before-batch") initialRuntimeOwnership = canonicalParentRuntimeProjection(result.ownership);

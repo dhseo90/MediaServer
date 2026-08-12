@@ -1011,40 +1011,55 @@ function createCanonicalParentRuntimeInspector() {
     const failureCode = phase === "before-batch"
       ? "SERVER_BOOTSTRAP_FAILED"
       : "PORT_RUNTIME_CONTAMINATION";
+    let detailCode = "RUNTIME_DESCRIPTOR_REQUIRED";
     try {
       assert(options.runtimeDescriptor, "canonical parent runtime descriptor is required");
+      detailCode = "RUNTIME_DESCRIPTOR_READ_FAILED";
       const descriptorPath = resolveRootOrAbsolute(options.runtimeDescriptor);
       const descriptor = JSON.parse(fs.readFileSync(descriptorPath, "utf8"));
+      detailCode = "RUNTIME_DESCRIPTOR_SCHEMA_MISMATCH";
       assert(descriptor.schema === "media-server.v390-ui-runtime-descriptor.v1",
         "canonical parent runtime descriptor schema mismatch");
+      detailCode = "RUNTIME_OWNERSHIP_MISMATCH";
       assert(descriptor.ownership === "self-contained-pid-port-artifact-ownership",
         "canonical parent runtime ownership mismatch");
+      detailCode = "RUNTIME_HTTP_BASE_MISMATCH";
       assert(descriptor.httpBase === options.httpBase,
         "canonical parent runtime HTTP base mismatch");
       const pid = Number(descriptor.serverPid || 0);
       const httpPort = Number(descriptor.httpPort || 0);
       const rtspPort = Number(descriptor.rtspPort || 0);
       const runtimeRoot = path.resolve(String(descriptor.temporaryRoot || ""));
+      detailCode = "RUNTIME_PID_NOT_ALIVE";
       assert(Number.isSafeInteger(pid) && pid > 1 && canonicalParentProcessAlive(pid),
         "canonical parent owned server PID is not alive");
+      detailCode = "RUNTIME_PORTS_INVALID";
       assert([httpPort, rtspPort].every(port => Number.isInteger(port) && port > 0 && port <= 65535),
         "canonical parent owned ports are invalid");
+      detailCode = "RUNTIME_ROOT_MISSING";
       assert(fs.statSync(runtimeRoot).isDirectory(),
         "canonical parent runtime root is missing");
+      detailCode = "RUNTIME_DESCRIPTOR_PATH_ESCAPE";
       assertCanonicalRuntimeOwnedPath(runtimeRoot, descriptorPath, "runtime descriptor");
+      detailCode = "ROLE_STATE_MAP_PATH_ESCAPE";
       assertCanonicalRuntimeOwnedPath(runtimeRoot, resolveRootOrAbsolute(options.roleStateMap), "role state map");
+      detailCode = "SERVER_LOG_PATH_ESCAPE";
       assertCanonicalRuntimeOwnedPath(runtimeRoot, resolveRootOrAbsolute(options.serverLog), "server log");
+      detailCode = "ROLE_STATE_MAP_PATH_MISMATCH";
       assert(path.resolve(String(descriptor.roleStateMapPath || "")) ===
         resolveRootOrAbsolute(options.roleStateMap),
       "canonical parent role state path mismatch");
+      detailCode = "SERVER_LOG_PATH_MISMATCH";
       assert(path.resolve(String(descriptor.serverLogPath || "")) ===
         resolveRootOrAbsolute(options.serverLog),
       "canonical parent server log path mismatch");
+      detailCode = "RUNTIME_LISTENER_OWNERSHIP_MISMATCH";
       const httpOwners = canonicalParentListenerPids(httpPort);
       const rtspOwners = canonicalParentListenerPids(rtspPort);
       assert(httpOwners.length === 1 && httpOwners[0] === pid &&
         rtspOwners.length === 1 && rtspOwners[0] === pid,
       "canonical parent owned port listener contamination detected");
+      detailCode = "RUNTIME_DESCRIPTOR_DIGEST_FAILED";
       const current = {
         pid,
         httpPort,
@@ -1054,13 +1069,14 @@ function createCanonicalParentRuntimeInspector() {
         descriptorSha256: sha256File(descriptorPath),
       };
       if (!expected) expected = current;
+      detailCode = "RUNTIME_OWNERSHIP_CHANGED";
       assert(expected.pid === current.pid && expected.httpPort === current.httpPort &&
         expected.rtspPort === current.rtspPort && expected.runtimeRoot === current.runtimeRoot &&
         expected.descriptorSha256 === current.descriptorSha256,
       "canonical parent runtime ownership changed during batch");
       return { status: "PASS", ownership: current };
     } catch {
-      return { status: "FAIL", code: failureCode, ownership: expected };
+      return { status: "FAIL", code: failureCode, detailCode, ownership: expected };
     }
   };
 }

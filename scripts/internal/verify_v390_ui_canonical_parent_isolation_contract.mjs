@@ -179,6 +179,20 @@ try {
     });
   }
 
+  await check("runtime inspector failure preserves its safe detail code", async () => {
+    const result = await runFixture({
+      ids: canonicalIds.slice(0, 2),
+      outcomes: ["PASS", "PASS"],
+      infra: {
+        code: "SERVER_BOOTSTRAP_FAILED",
+        position: 0,
+        detailCode: "RUNTIME_DESCRIPTOR_MISSING",
+      },
+    });
+    assert(result.summary.infraFatal?.detailCode === "RUNTIME_DESCRIPTOR_MISSING",
+      "runtime inspector detail code was discarded");
+  });
+
   await check("infra at the last case leaves no later spawn", async () => {
     const ids = canonicalIds.slice(0, 4);
     const result = await runFixture({
@@ -467,11 +481,21 @@ async function runFixture({ ids, outcomes, infra = null, contamination = "", ful
     inspectRuntime: async ({ phase, caseIndex }) => {
       runtimeChecks += 1;
       if (infra?.code === "SERVER_BOOTSTRAP_FAILED" && phase === "before-batch") {
-        return { status: "FAIL", code: infra.code, ownership: runtimeOwnership() };
+        return {
+          status: "FAIL",
+          code: infra.code,
+          detailCode: infra.detailCode || infra.code,
+          ownership: runtimeOwnership(),
+        };
       }
       if (infra?.code === "PORT_RUNTIME_CONTAMINATION" &&
           phase === "before-case" && caseIndex === infra.position) {
-        return { status: "FAIL", code: infra.code, ownership: runtimeOwnership() };
+        return {
+          status: "FAIL",
+          code: infra.code,
+          detailCode: infra.detailCode || infra.code,
+          ownership: runtimeOwnership(),
+        };
       }
       return { status: "PASS", ownership: runtimeOwnership() };
     },
