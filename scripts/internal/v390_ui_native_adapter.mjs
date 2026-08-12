@@ -2941,25 +2941,36 @@ async function openNativePlaywrightPage(playwright, {
     },
     waitForPendingRequestSnapshot: async ({ settleDelayMs = 25 } = {}) => {
       if (settleDelayMs > 0) await page.waitForTimeout(settleDelayMs);
-      const capturedRequests = new Set(pendingRequests.keys());
+      const capturedRequestIds = new Set([...pendingRequests.values()]
+        .map(request => String(request.requestId || ""))
+        .filter(Boolean));
       const deadline = Date.now() + timeoutMs;
       while (Date.now() < deadline) {
-        const capturedPending = [...capturedRequests].some(request =>
-          pendingRequests.has(request));
-        if (!capturedPending && pendingSafeResponseReads.size === 0) {
+        const pendingRequestIds = new Set([...pendingRequests.values()]
+          .map(request => String(request.requestId || ""))
+          .filter(Boolean));
+        const terminalRequestIds = new Set(networkEntries
+          .filter(entry => entry.phase === "response")
+          .map(entry => String(entry.requestId || ""))
+          .filter(Boolean));
+        const unresolvedRequestIds = [...capturedRequestIds].filter(requestId =>
+          pendingRequestIds.has(requestId) && !terminalRequestIds.has(requestId));
+        if (unresolvedRequestIds.length === 0 && pendingSafeResponseReads.size === 0) {
           if (safeResponseReadFailures.length > 0) {
             throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
           }
           return {
-            capturedRequestCount: capturedRequests.size,
+            capturedRequestCount: capturedRequestIds.size,
             pendingRequestCount: 0,
           };
         }
         await page.waitForTimeout(10);
       }
       throw new Error(
-        `pending request snapshot timeout: ${[...capturedRequests].filter(request =>
-          pendingRequests.has(request)).length}`,
+        `pending request snapshot timeout: ${[...capturedRequestIds].filter(requestId =>
+          [...pendingRequests.values()].some(request => request.requestId === requestId) &&
+          !networkEntries.some(entry => entry.phase === "response" &&
+            entry.requestId === requestId)).length}`,
       );
     },
     click: async (selector) => {
