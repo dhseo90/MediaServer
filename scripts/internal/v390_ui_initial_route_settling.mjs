@@ -114,8 +114,15 @@ export function buildInitialRouteSettlingPlan(item) {
             String(primaryAction.uiLifecycle?.adapter || ""))
             ? "document-navigation"
             : "application-fetch",
-          expectedRequestCount: declaredRequestCount,
-          expectedResponseCount: declaredRequestCount,
+          expectedRequestCount: Number(
+            primaryAction.semanticCompletion.request?.expectedRequestCount ??
+            primaryAction.semanticCompletion.request?.cardinality ?? 1),
+          expectedResponseCount: Number(
+            primaryAction.semanticCompletion.request?.expectedResponseCount ??
+            primaryAction.semanticCompletion.request?.expectedRequestCount ??
+            primaryAction.semanticCompletion.request?.cardinality ?? 1),
+          expectedActionRequestCount: declaredRequestCount,
+          expectedActionResponseCount: declaredRequestCount,
           allowedStatuses: [...(primaryAction.semanticCompletion.request?.allowedStatuses || [])]
             .map(Number),
         }
@@ -308,8 +315,8 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
   const pageValues = values.filter(entry => entry.ledgerOwner === "page");
   const starts = actionValues.filter(entry => entry?.phase === "request-start");
   const responses = actionValues.filter(entry => entry?.phase === "response");
-  assert(starts.length === plan.primaryRequest.expectedRequestCount &&
-    responses.length === plan.primaryRequest.expectedResponseCount,
+  assert(starts.length === plan.primaryRequest.expectedActionRequestCount &&
+    responses.length === plan.primaryRequest.expectedActionResponseCount,
     `${plan.caseId} action request/response ledger cardinality mismatch`);
   for (const entry of actionValues) {
     assert(Number(entry.caseRequestSequence) > Number(ledgerStart.caseRequestSequenceFloor),
