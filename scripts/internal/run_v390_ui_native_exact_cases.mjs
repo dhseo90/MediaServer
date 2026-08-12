@@ -27,6 +27,7 @@ import {
   composedClientRuntimeBoundary,
   domSnapshotDigest,
   evaluateCompletionOracle,
+  materializeComposedClientPostconditions,
 } from "./v390_ui_completion_oracle_lib.mjs";
 import {
   createNativeExactCaseChildSummary,
@@ -4436,14 +4437,16 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   }
 
   runtimeState.set(action.selector, { kind: action.kind, snapshot: before });
-  const beforePostconditionSnapshots = {};
-  for (const condition of action.semanticCompletion.localTransition?.postconditions || []) {
-    beforePostconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
-  }
-  const networkStart = browser.networkEntries().length;
   const composedClientPlan = action.kind === "activate-control"
     ? await prepareComposedClientActionRequestPlan(browser, item, action)
     : null;
+  const postconditions = composedClientPlan?.postconditions ||
+    action.semanticCompletion.localTransition?.postconditions || [];
+  const beforePostconditionSnapshots = {};
+  for (const condition of postconditions) {
+    beforePostconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
+  }
+  const networkStart = browser.networkEntries().length;
   const actionRequestEnvelopes = action.kind === "execute-persisted-action" &&
       Array.isArray(persistedLifecycle?.requestBinding?.expectedRequests) &&
       persistedLifecycle.requestBinding.expectedRequests.length > 1
@@ -4701,7 +4704,11 @@ async function prepareComposedClientActionRequestPlan(browser, item, action) {
     });
   assert(initialRequestEnvelopes.length === 2,
     `${item.caseId} composed client initial request envelope cardinality mismatch`);
-  return { composition, tile, initialRequestEnvelopes };
+  const postconditions = materializeComposedClientPostconditions(
+    action.semanticCompletion.localTransition.postconditions,
+    tile.index,
+  );
+  return { composition, tile, initialRequestEnvelopes, postconditions };
 }
 
 async function executeComposedClientLiveAction(
@@ -4846,11 +4853,20 @@ function materializeComposedClientCompletion(actionEvidence, composedClientLive)
   });
   assert(runtimeBoundary,
     `${actionEvidence.actionId} composed request binding remained unresolved`);
+  const postconditions = materializeComposedClientPostconditions(
+    actionEvidence.expectedLocalTransition.postconditions,
+    composedClientLive.tileIndex,
+  );
   return {
     ...actionEvidence,
     expectedLocalTransition: {
       ...actionEvidence.expectedLocalTransition,
       requiredRequests: runtimeBoundary.requiredRequests.map(request => structuredClone(request)),
+      postconditions,
+    },
+    expectedReadbackExpectation: {
+      ...actionEvidence.expectedReadbackExpectation,
+      postconditions,
     },
   };
 }
@@ -5258,7 +5274,7 @@ async function executeIndependentReadback(
   try {
 
   const postconditionSnapshots = {};
-  for (const condition of pending.action.semanticCompletion.localTransition?.postconditions || []) {
+  for (const condition of pending.actionEvidence.expectedLocalTransition?.postconditions || []) {
     postconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
   }
   const selector = pending.actionEvidence.executedControlSelector ||
@@ -5673,7 +5689,8 @@ function semanticCompletionAction(action, item) {
 }
 
 function semanticReadbackEvidence(action, actionEvidence, before, after, explicitObserved = null) {
-  const expected = structuredClone(action.semanticCompletion.readbackExpectation);
+  const expected = structuredClone(actionEvidence.expectedReadbackExpectation ||
+    action.semanticCompletion.readbackExpectation);
   if (action.semanticCompletion.phase === "primary-action") {
     const runtimeFormReadback = explicitObserved?.schema ===
       "media-server.v390-ui-runtime-form-submit-readback.v1";

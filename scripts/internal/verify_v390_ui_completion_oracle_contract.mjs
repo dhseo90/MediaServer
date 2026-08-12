@@ -12,6 +12,7 @@ import {
   buildEndpointActionSemanticReadback,
   buildNavigationTrustEvidence,
   buildRequestCorrelationEvidence,
+  materializeComposedClientPostconditions,
   domSnapshotDigest,
   evaluateCompletionOracle,
 } from "./v390_ui_completion_oracle_lib.mjs";
@@ -2561,6 +2562,35 @@ check("REVIEW4-65 event/client composed workflows bind exact product controls an
   "CLIENT composed runner bypasses or omits the actual product DOM/network boundary");
   assert(exactRunnerSource.split("catalogBindings: caseContext?.catalogBindings || null").length - 1 === 1,
     "current case catalog bindings must be passed once to the independent exact runtime readback");
+});
+
+check("composed client readback scopes every postcondition to one runtime tile", () => {
+  const conditions = materializeComposedClientPostconditions([
+    {
+      selector: '[data-action="toggle-playback"]',
+      property: "ariaLabel",
+      operator: "includes",
+      value: "정지",
+    },
+    {
+      selector: '[data-role="tile-playback-icon"]',
+      property: "text",
+      operator: "equals",
+      value: "■",
+    },
+  ], "3");
+  assert(conditions.length === 2 &&
+    conditions[0].selector === '[data-tile="3"] [data-action="toggle-playback"]' &&
+    conditions[1].selector === '[data-tile="3"] [data-role="tile-playback-icon"]',
+  "composed client postconditions are not runtime tile-owned");
+  assert(materializeComposedClientPostconditions(conditions, "3")
+    .every((condition, index) => condition.selector === conditions[index].selector),
+  "runtime tile postcondition materialization is not idempotent");
+  expectThrow(() => materializeComposedClientPostconditions(conditions, "4"),
+    "composed-client-postcondition-tile-owner-mismatch");
+  expectThrow(() => materializeComposedClientPostconditions([
+    { selector: "#unowned", property: "text", operator: "equals", value: "x" },
+  ], "3"), "composed-client-postcondition-selector-unowned");
 });
 
 check("REVIEW4-58 form readback snapshots the exact submit control and never relabels the form", () => {

@@ -45,6 +45,28 @@ export function clientLiveCompositionFromTransition(transition = {}) {
   });
 }
 
+export function materializeComposedClientPostconditions(postconditions = [], tileIndex = "") {
+  const normalizedTileIndex = String(tileIndex);
+  if (!normalizedTileIndex) throw new Error("composed-client-postcondition-tile-owner-missing");
+  const tilePrefix = `[data-tile=${JSON.stringify(normalizedTileIndex)}]`;
+  return postconditions.map(condition => {
+    const selector = String(condition?.selector || "");
+    if (selector.startsWith("[data-tile=")) {
+      if (!selector.startsWith(`${tilePrefix} `)) {
+        throw new Error("composed-client-postcondition-tile-owner-mismatch");
+      }
+      return structuredClone(condition);
+    }
+    if (!selector.startsWith("[data-action=") && !selector.startsWith("[data-role=")) {
+      throw new Error("composed-client-postcondition-selector-unowned");
+    }
+    return {
+      ...structuredClone(condition),
+      selector: `${tilePrefix} ${selector}`,
+    };
+  });
+}
+
 export function composedClientRuntimeBoundary({ transition = {}, composed = {} } = {}) {
   const composition = clientLiveCompositionFromTransition(transition);
   if (!composition) return null;
