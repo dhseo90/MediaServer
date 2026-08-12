@@ -146,17 +146,18 @@ check("browser role roundtrip follows application redirects to terminal response
   "runtime logout leaves a failed manual redirect terminal");
 });
 
-check("successful case settles cleanup requests before physical browser close", () => {
+check("successful case settles the cleanup request snapshot before physical browser close", () => {
   const functionStart = exactRunnerSource.indexOf("async function executeCase(");
   const functionEnd = exactRunnerSource.indexOf(
     "\nfunction createFailedCaseResult", functionStart);
   const source = exactRunnerSource.slice(functionStart, functionEnd);
   const cleanup = source.indexOf("await executeWorkflowCleanup(");
-  const settle = source.indexOf("await browser.waitForNetworkQuiet({", cleanup);
+  const settle = source.indexOf("await browser.waitForPendingRequestSnapshot({", cleanup);
   const close = source.indexOf("finalNavigation = await browser.close()", cleanup);
   assert(cleanup >= 0 && settle > cleanup && close > settle &&
-    source.slice(settle, close).includes("minimumObservationMs: 100") &&
-    source.slice(settle, close).includes("quietMs: 100"),
+    source.slice(settle, close).includes("settleDelayMs: 25") &&
+    adapterSource.includes("const capturedRequests = new Set(pendingRequests.keys())") &&
+    adapterSource.includes("pending request snapshot timeout"),
   "successful case closes before cleanup-owned requests settle");
 });
 

@@ -2939,6 +2939,29 @@ async function openNativePlaywrightPage(playwright, {
       }
       throw new Error(`network quiet timeout for correlation ${correlationId || "(any)"}`);
     },
+    waitForPendingRequestSnapshot: async ({ settleDelayMs = 25 } = {}) => {
+      if (settleDelayMs > 0) await page.waitForTimeout(settleDelayMs);
+      const capturedRequests = new Set(pendingRequests.keys());
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        const capturedPending = [...capturedRequests].some(request =>
+          pendingRequests.has(request));
+        if (!capturedPending && pendingSafeResponseReads.size === 0) {
+          if (safeResponseReadFailures.length > 0) {
+            throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
+          }
+          return {
+            capturedRequestCount: capturedRequests.size,
+            pendingRequestCount: 0,
+          };
+        }
+        await page.waitForTimeout(10);
+      }
+      throw new Error(
+        `pending request snapshot timeout: ${[...capturedRequests].filter(request =>
+          pendingRequests.has(request)).length}`,
+      );
+    },
     click: async (selector) => {
       await revealClosedDetailsForSelector(page, selector, {
         state: "visible",

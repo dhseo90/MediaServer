@@ -2837,10 +2837,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     };
     await browser.screenshot(screenshotPath);
     await executeWorkflowCleanup(browser, item, runtimeState, caseRuntime, caseContext, trace);
-    await browser.waitForNetworkQuiet({
-      minimumObservationMs: 100,
-      quietMs: 100,
-    });
+    await browser.waitForPendingRequestSnapshot({ settleDelayMs: 25 });
     browserCloseAttempted = true;
     let finalNavigation;
     try {
