@@ -109,6 +109,17 @@ check("native callbacks use the capture-only recorder as lifecycle authority", (
     "route callback does not exact-bind the same Request object after ownership confirmation");
 });
 
+check("theme init script persists preference without touching an unparsed document", () => {
+  const start = adapterSource.indexOf("await context.addInitScript(theme => {");
+  const end = adapterSource.indexOf("}, colorScheme);", start);
+  assert(start >= 0 && end > start, "theme init script source boundary is missing");
+  const source = adapterSource.slice(start, end);
+  assert(source.includes('localStorage.setItem("mediaServerTheme", theme)') &&
+    !source.includes("document.documentElement") &&
+    !source.includes("document.body"),
+  "theme init script touches DOM before the document is parsed");
+});
+
 check("request-first and route-first exact action binding fail closed without global fallback", () => {
   const createLedger = nativeAdapterModule.createNativeRequestLifecycleLedger;
   const exercise = ({ caseId, routeFirst }) => {

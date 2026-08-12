@@ -1483,7 +1483,6 @@ async function openNativePlaywrightPage(playwright, {
   });
   await context.addInitScript(theme => {
     localStorage.setItem("mediaServerTheme", theme);
-    document.documentElement.dataset.theme = theme;
   }, colorScheme);
   const page = await context.newPage();
   page.setDefaultTimeout(timeoutMs);
