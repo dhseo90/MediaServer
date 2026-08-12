@@ -1319,6 +1319,7 @@ export function materializeEventReviewProductRenderPath(declaredPath) {
   for (const name of supported) {
     if (fields.includes(name)) product.set(name, url.searchParams.get(name));
   }
+  if (fields.includes("q")) product.set("v300Q", url.searchParams.get("q"));
   return `${url.pathname}?${product.toString()}`;
 }
 
