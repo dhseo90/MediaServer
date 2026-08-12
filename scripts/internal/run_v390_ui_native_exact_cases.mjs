@@ -5632,6 +5632,14 @@ function semanticReadbackEvidence(action, actionEvidence, before, after, explici
       ...(explicitObserved?.rejectedActionReadback ? {
         rejectedActionReadback: structuredClone(explicitObserved.rejectedActionReadback),
       } : {}),
+      ...(explicitObserved?.exactRuntimeOracle ? {
+        actual: {
+          exactRuntimeOracle: structuredClone(explicitObserved.exactRuntimeOracle),
+        },
+      } : {}),
+      ...(explicitObserved?.exactRuntimeReadback ? {
+        exactRuntimeReadback: structuredClone(explicitObserved.exactRuntimeReadback),
+      } : {}),
       ...(explicitObserved === null || explicitObserved?.snapshots
         ? {}
         : { actual: structuredClone(explicitObserved) }),
