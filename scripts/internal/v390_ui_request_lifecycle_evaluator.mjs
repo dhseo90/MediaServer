@@ -328,13 +328,44 @@ function validateRedirect(state, byRequestObject, actionRows, failures,
     state.invalid = true;
     return;
   }
-  if (parent.envelope.resourceType !== "document" ||
-      parent.envelope.requestKind !== "document-navigation" ||
-      state.envelope.resourceType !== "document" ||
-      state.envelope.requestKind !== "document-navigation") {
+  const parentIsDocument = parent.envelope.resourceType === "document" &&
+    parent.envelope.requestKind === "document-navigation";
+  const childIsDocument = state.envelope.resourceType === "document" &&
+    state.envelope.requestKind === "document-navigation";
+  if (parentIsDocument !== childIsDocument) {
     failures.push(failure("REDIRECT_PARENT_WRONG", state.request,
       rawResponse(responseByRequest.get(state.request))));
     state.invalid = true;
+    return;
+  }
+  if (!childIsDocument) {
+    if (parent.envelope.requestKind !== state.envelope.requestKind ||
+        parent.envelope.navigationInvocation !== null ||
+        state.envelope.navigationInvocation !== null) {
+      failures.push(failure("REDIRECT_PARENT_WRONG", state.request,
+        rawResponse(responseByRequest.get(state.request))));
+      state.invalid = true;
+      return;
+    }
+    const parentAction = parent.envelope.actionInvocation;
+    const childAction = state.envelope.actionInvocation;
+    if ((parentAction === null) !== (childAction === null) ||
+        (parentAction !== null &&
+          parentAction.invocationId !== childAction.invocationId)) {
+      failures.push(failure("REDIRECT_CHAIN_MISMATCH", state.request,
+        rawResponse(responseByRequest.get(state.request))));
+      state.invalid = true;
+      return;
+    }
+    if (childAction !== null) {
+      const actionRow = actionRows.find(row =>
+        row?.invocationId === childAction.invocationId);
+      if (!actionRow?.requests?.includes(parent.request)) {
+        failures.push(failure("REDIRECT_PARENT_WRONG", state.request,
+          rawResponse(responseByRequest.get(state.request))));
+        state.invalid = true;
+      }
+    }
     return;
   }
   const parentNavigation = parent.envelope.navigationInvocation;

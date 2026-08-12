@@ -1329,6 +1329,19 @@ function assertEvaluatorBoundaryBehavior(evaluate) {
       `${name} failure census is incomplete`);
     verify(result);
   };
+  const runPassBoundary = (name, input, expectedClassifications) => {
+    let result = null;
+    assert.doesNotThrow(() => {
+      result = evaluate(input);
+    }, `${name} evaluator threw on valid lifecycle data`);
+    assert.equal(result.status, "PASS", `${name} did not pass`);
+    assert.deepStrictEqual(
+      result.classifications.map(item => item.classification),
+      expectedClassifications,
+      `${name} classification order drift`,
+    );
+    assert.deepStrictEqual(result.failures, [], `${name} retained failures`);
+  };
   const input = (recorderSnapshot, navigationInvocations = [], actionInvocations = []) => ({
     caseId: "evaluator-boundary",
     recorderSnapshot,
@@ -1395,6 +1408,30 @@ function assertEvaluatorBoundaryBehavior(evaluate) {
     requests: [requestEnvelope(failedRequest)],
     requestFailed: [terminalEnvelope(failedRequest)],
   })), ["REQUEST_FAILED"]);
+
+  const fetchRedirectParent = fakeRequest({
+    method: "POST", path: "/login", resourceType: "fetch",
+    isNavigationRequest: false, redirectedFromRequest: null, throwOn: null,
+  });
+  const fetchRedirectChild = fakeRequest({
+    method: "GET", path: "/ops/home", resourceType: "fetch",
+    isNavigationRequest: false, redirectedFromRequest: fetchRedirectParent, throwOn: null,
+  });
+  runPassBoundary("page-owned application fetch redirect", input(snapshot({
+    requests: [
+      requestEnvelope(fetchRedirectParent),
+      requestEnvelope(fetchRedirectChild, {
+        requestId: "boundary:fetch-redirect-child",
+        sequence: 2,
+        timestamp: 20,
+        redirectedFromObject: fetchRedirectParent,
+      }),
+    ],
+    responses: [
+      responseEnvelope(fetchRedirectParent, 302),
+      responseEnvelope(fetchRedirectChild),
+    ],
+  })), ["background", "background"]);
 
   const unknownParent = fakeRequest({
     method: "POST", path: "/unknown-parent", resourceType: "document",

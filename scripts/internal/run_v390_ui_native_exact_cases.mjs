@@ -2837,6 +2837,10 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     };
     await browser.screenshot(screenshotPath);
     await executeWorkflowCleanup(browser, item, runtimeState, caseRuntime, caseContext, trace);
+    await browser.waitForNetworkQuiet({
+      minimumObservationMs: 100,
+      quietMs: 100,
+    });
     browserCloseAttempted = true;
     let finalNavigation;
     try {
@@ -4476,7 +4480,14 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
       if (composedClientLive) {
         executedKind = composedClientLive.kind;
       } else {
-        await browser.click(action.selector);
+        if (action.semanticCompletion.localTransition?.type === "follow-link") {
+          await browser.clickDocumentNavigation(action.selector, {
+            invocationId: `${item.caseId}:${action.actionId}:document-navigation`,
+            kind: "local-link-document-navigation",
+          });
+        } else {
+          await browser.click(action.selector);
+        }
         executedKind = "click";
       }
     } else if (action.kind === "submit-form") {

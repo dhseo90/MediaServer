@@ -2946,6 +2946,41 @@ async function openNativePlaywrightPage(playwright, {
       });
       await page.locator(selector).first().click();
     },
+    clickDocumentNavigation: async (selector, {
+      invocationId = "",
+      kind = "local-link-document-navigation",
+    } = {}) => {
+      if (requestListenerEndSequence !== null) {
+        throw new Error(`document link activation attempted after listener end: ${selector}`);
+      }
+      const operation = {
+        invocationId: String(invocationId ||
+          `native-document-link-${++navigationOperationSequence}`),
+        kind: String(kind || "local-link-document-navigation"),
+        allowCorrelation: false,
+        documentLedgerStart: documentNavigationLedger.length,
+      };
+      const sourceOwner = {
+        ...(await captureNavigationOwner(selector)),
+        route: page.url(),
+      };
+      if (sourceOwner.candidateCount !== 1 || sourceOwner.visible !== true) {
+        throw new Error(`document link source-before owner is not visible: ${operation.invocationId}`);
+      }
+      operation.requestLifecycleInvocation = requestLifecycleLedger.beginInvocation(
+        "navigation",
+        { invocationId: operation.invocationId, phase: operation.kind },
+      );
+      activeNavigationOperation = operation;
+      try {
+        await page.locator(selector).first().click();
+        await page.waitForLoadState("load", { timeout: timeoutMs });
+        await captureNavigationOwnerLifecycle(operation, sourceOwner, selector);
+      } finally {
+        activeNavigationOperation = null;
+        requestLifecycleLedger.endInvocation(operation.requestLifecycleInvocation);
+      }
+    },
     submitDocumentForm: async (selector, {
       invocationId = "",
     } = {}) => {

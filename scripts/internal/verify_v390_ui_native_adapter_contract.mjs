@@ -120,6 +120,46 @@ check("theme init script persists preference without touching an unparsed docume
   "theme init script touches DOM before the document is parsed");
 });
 
+check("local link actions bind one owned document navigation", () => {
+  for (const snippet of [
+    "clickDocumentNavigation: async (selector, {",
+    "local-link-document-navigation",
+    "captureNavigationOwnerLifecycle(operation, sourceOwner, selector)",
+    "requestLifecycleLedger.beginInvocation(",
+  ]) {
+    assert(adapterSource.includes(snippet),
+      `adapter local link navigation ownership missing ${snippet}`);
+  }
+  assert(exactRunnerSource.includes('localTransition?.type === "follow-link"') &&
+    exactRunnerSource.includes("browser.clickDocumentNavigation(action.selector"),
+  "exact runner does not route local follow-link actions through document ownership");
+});
+
+check("browser role roundtrip follows application redirects to terminal response", () => {
+  const start = browserCallbackSource.indexOf('"runtime.login": definition(');
+  const end = browserCallbackSource.indexOf('"oracle.viewport-owner": definition(', start);
+  const source = browserCallbackSource.slice(start, end);
+  const logoutStart = source.indexOf('"runtime.logout": definition(');
+  const logoutSource = source.slice(logoutStart);
+  assert(logoutStart >= 0 && logoutSource.includes('redirect: "follow"') &&
+    !logoutSource.includes('redirect: "manual"'),
+  "runtime logout leaves a failed manual redirect terminal");
+});
+
+check("successful case settles cleanup requests before physical browser close", () => {
+  const functionStart = exactRunnerSource.indexOf("async function executeCase(");
+  const functionEnd = exactRunnerSource.indexOf(
+    "\nfunction createFailedCaseResult", functionStart);
+  const source = exactRunnerSource.slice(functionStart, functionEnd);
+  const cleanup = source.indexOf("await executeWorkflowCleanup(");
+  const settle = source.indexOf("await browser.waitForNetworkQuiet({", cleanup);
+  const close = source.indexOf("finalNavigation = await browser.close()", cleanup);
+  assert(cleanup >= 0 && settle > cleanup && close > settle &&
+    source.slice(settle, close).includes("minimumObservationMs: 100") &&
+    source.slice(settle, close).includes("quietMs: 100"),
+  "successful case closes before cleanup-owned requests settle");
+});
+
 check("request-first and route-first exact action binding fail closed without global fallback", () => {
   const createLedger = nativeAdapterModule.createNativeRequestLifecycleLedger;
   const exercise = ({ caseId, routeFirst }) => {

@@ -522,7 +522,7 @@ const callbackImplementations = Object.freeze({
         throw new Error("runtime.logout browser argument schema mismatch");
       }
       const response = await fetch("/logout", {
-        method: "POST", credentials: "same-origin", redirect: "manual",
+        method: "POST", credentials: "same-origin", redirect: "follow",
       });
       return {
         schema: "media-server.v390-ui-browser-callback-result.v1",

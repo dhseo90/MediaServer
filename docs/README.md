@@ -57,6 +57,8 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [release-test-records.md](release-test-records.md) | 릴리즈 테스트 항목과 버전별 pass/fail 기록 |
 | [versioning-policy.md](versioning-policy.md) | 소스 버전, 공개 릴리즈, semver 기준 |
 | [public-repo-final-review.md](public-repo-final-review.md) | 공개 저장소 점검 기준 |
+| [v390-current-state-and-verification-debt-audit-2026-08-12.md](v390-current-state-and-verification-debt-audit-2026-08-12.md) | v3.9.0 누적 변경과 검증 부채 정량 감사 |
+| [v390-full-status-failure-and-handoff-2026-08-12.md](v390-full-status-failure-and-handoff-2026-08-12.md) | v3.9.0 현재 실패 상태, 판정 기준, 후속 인계 |
 | [superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md) | v3.0/v3.1 event evidence search roadmap design |
 | [superpowers/specs/2026-07-07-v390-preparation-design.md](superpowers/specs/2026-07-07-v390-preparation-design.md) | v3.9 준비 방향과 feature completion first 설계 |
 | [superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md](superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md) | v3.9 UI request lifecycle 실행기 재기준화 설계와 actual 검증 경계 |
