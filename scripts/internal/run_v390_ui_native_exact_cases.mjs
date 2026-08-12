@@ -2859,7 +2859,10 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     };
     await browser.screenshot(screenshotPath);
     await executeWorkflowCleanup(browser, item, runtimeState, caseRuntime, caseContext, trace);
-    await browser.waitForPendingRequestSnapshot({ settleDelayMs: 250 });
+    await browser.waitForPendingRequestSnapshot({
+      minimumObservationMs: 250,
+      pendingQuietMs: 25,
+    });
     browserCloseAttempted = true;
     let finalNavigation;
     try {

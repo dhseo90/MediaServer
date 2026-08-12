@@ -2989,39 +2989,37 @@ async function openNativePlaywrightPage(playwright, {
       }
       throw new Error(`network quiet timeout for correlation ${correlationId || "(any)"}`);
     },
-    waitForPendingRequestSnapshot: async ({ settleDelayMs = 250 } = {}) => {
-      const deadline = Date.now() + timeoutMs;
+    waitForPendingRequestSnapshot: async ({
+      minimumObservationMs = 250,
+      pendingQuietMs = 25,
+    } = {}) => {
+      const startedAt = Date.now();
+      const deadline = startedAt + timeoutMs;
       const capturedRequestIds = new Set();
-      let stableEntryCount = networkEntries.length;
-      let quietStartedAt = Date.now();
+      let pendingQuietStartedAt = null;
       while (Date.now() < deadline) {
         for (const request of pendingRequests.values()) {
           const requestId = String(request.requestId || "");
           if (requestId) capturedRequestIds.add(requestId);
         }
-        if (networkEntries.length !== stableEntryCount) {
-          stableEntryCount = networkEntries.length;
-          quietStartedAt = Date.now();
+        const noPendingWork = pendingRequests.size === 0 &&
+          pendingSafeResponseReads.size === 0;
+        if (noPendingWork) {
+          pendingQuietStartedAt ??= Date.now();
+        } else {
+          pendingQuietStartedAt = null;
         }
-        const pendingRequestIds = new Set([...pendingRequests.values()]
-          .map(request => String(request.requestId || ""))
-          .filter(Boolean));
-        const terminalRequestIds = new Set(networkEntries
-          .filter(entry => entry.phase === "response")
-          .map(entry => String(entry.requestId || ""))
-          .filter(Boolean));
-        const unresolvedRequestIds = [...capturedRequestIds].filter(requestId =>
-          pendingRequestIds.has(requestId) && !terminalRequestIds.has(requestId));
-        if (unresolvedRequestIds.length === 0 && pendingRequests.size === 0 &&
-            pendingSafeResponseReads.size === 0 &&
-            Date.now() - quietStartedAt >= settleDelayMs) {
+        if (pendingQuietStartedAt !== null &&
+            Date.now() - startedAt >= minimumObservationMs &&
+            Date.now() - pendingQuietStartedAt >= pendingQuietMs) {
           if (safeResponseReadFailures.length > 0) {
             throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
           }
           return {
             capturedRequestCount: capturedRequestIds.size,
             pendingRequestCount: 0,
-            quietMs: Date.now() - quietStartedAt,
+            observedMs: Date.now() - startedAt,
+            pendingQuietMs: Date.now() - pendingQuietStartedAt,
           };
         }
         await page.waitForTimeout(10);
