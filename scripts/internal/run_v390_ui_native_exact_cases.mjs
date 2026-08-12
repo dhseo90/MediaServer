@@ -1012,6 +1012,13 @@ function createCanonicalParentRuntimeInspector() {
       ? "SERVER_BOOTSTRAP_FAILED"
       : "PORT_RUNTIME_CONTAMINATION";
     let detailCode = "RUNTIME_DESCRIPTOR_REQUIRED";
+    let listenerObservation = {
+      expectedPid: 0,
+      httpPort: 0,
+      rtspPort: 0,
+      httpOwners: [],
+      rtspOwners: [],
+    };
     try {
       assert(options.runtimeDescriptor, "canonical parent runtime descriptor is required");
       detailCode = "RUNTIME_DESCRIPTOR_READ_FAILED";
@@ -1055,6 +1062,7 @@ function createCanonicalParentRuntimeInspector() {
       "canonical parent server log path mismatch");
       const httpOwners = canonicalParentListenerPids(httpPort);
       const rtspOwners = canonicalParentListenerPids(rtspPort);
+      listenerObservation = { expectedPid: pid, httpPort, rtspPort, httpOwners, rtspOwners };
       detailCode = httpOwners.length === 0
         ? "HTTP_LISTENER_MISSING"
         : (httpOwners.length > 1 ? "HTTP_LISTENER_DUPLICATE" : "HTTP_LISTENER_PID_MISMATCH");
@@ -1082,6 +1090,13 @@ function createCanonicalParentRuntimeInspector() {
       "canonical parent runtime ownership changed during batch");
       return { status: "PASS", ownership: current };
     } catch {
+      if (detailCode.includes("LISTENER")) {
+        console.error(`[v390-runtime-inspector] ${JSON.stringify({
+          phase,
+          detailCode,
+          ...listenerObservation,
+        })}`);
+      }
       return { status: "FAIL", code: failureCode, detailCode, ownership: expected };
     }
   };
