@@ -91,6 +91,11 @@ check("native callbacks use the capture-only recorder as lifecycle authority", (
     "requestfailed callback must record the failed terminal Request once");
   for (const [name, source] of [["request", requestCallback], ["response", responseCallback],
     ["requestfinished", finishedCallback], ["requestfailed", failedCallback]]) {
+    assert(source.includes("if (requestCaptureSealed) return;"),
+      `${name} callback is not excluded after the logical capture boundary`);
+  }
+  for (const [name, source] of [["request", requestCallback], ["response", responseCallback],
+    ["requestfinished", finishedCallback], ["requestfailed", failedCallback]]) {
     assert(!source.includes("classifyRequestLifecycleOwnership(") &&
       !source.includes("assert(") && !source.includes("throw new Error("),
     `${name} callback still owns lifecycle classification/assertion`);
@@ -163,6 +168,9 @@ check("successful case settles the cleanup request snapshot before physical brow
     adapterSource.includes("const terminalRequestIds = new Set(networkEntries") &&
     adapterSource.includes("const unresolvedRequestIds = [...capturedRequestIds]") &&
     adapterSource.includes("unresolvedRequestIds.length === 0") &&
+    adapterSource.includes("sealRequestCaptureBoundary();") &&
+    adapterSource.indexOf("sealRequestCaptureBoundary();") <
+      adapterSource.indexOf("close: async () =>") &&
     adapterSource.includes("pending request snapshot timeout"),
   "successful case closes before cleanup-owned request bursts settle");
 });

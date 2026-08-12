@@ -1247,6 +1247,7 @@ async function openNativePlaywrightPage(playwright, {
   let requestListenersInstalled = false;
   let requestListenerStartSequence = 0;
   let requestListenerEndSequence = null;
+  let requestCaptureSealed = false;
   let lifecycleSequence = 0;
   let navigationOperationSequence = 0;
   let activeNavigationOperation = null;
@@ -1522,6 +1523,7 @@ async function openNativePlaywrightPage(playwright, {
   };
   requestListenerStartSequence = ++lifecycleSequence;
   page.on("request", request => {
+    if (requestCaptureSealed) return;
     let redirectedFrom = null;
     let actionRequestOwnership = null;
     let redirectParentActionRequestOwnership = null;
@@ -1754,6 +1756,7 @@ async function openNativePlaywrightPage(playwright, {
     }
   });
   page.on("response", response => {
+    if (requestCaptureSealed) return;
     requestLifecycleRecorder.recordResponse(response);
     try {
     const { request, initiatingRequest } =
@@ -1918,10 +1921,12 @@ async function openNativePlaywrightPage(playwright, {
     }
   };
   page.on("requestfinished", request => {
+    if (requestCaptureSealed) return;
     requestLifecycleRecorder.recordRequestFinished(request);
     completeOwnedRequest(request);
   });
   page.on("requestfailed", request => {
+    if (requestCaptureSealed) return;
     let failure = null;
     try {
       failure = request.failure();
@@ -2125,6 +2130,14 @@ async function openNativePlaywrightPage(playwright, {
     return initialRouteSettlingAttestation?.navigation
       ? structuredClone(initialRouteSettlingAttestation.navigation)
       : buildNavigationEvidence();
+  };
+  const sealRequestCaptureBoundary = () => {
+    if (requestCaptureSealed) return;
+    requestCaptureSealed = true;
+    if (requestListenerEndSequence === null) {
+      requestListenerEndSequence = ++lifecycleSequence;
+    }
+    requestListenersInstalled = false;
   };
   return {
     get navigation() {
@@ -3023,6 +3036,7 @@ async function openNativePlaywrightPage(playwright, {
           if (safeResponseReadFailures.length > 0) {
             throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
           }
+          sealRequestCaptureBoundary();
           return {
             capturedRequestCount: capturedRequestIds.size,
             unresolvedRequestCount: 0,
