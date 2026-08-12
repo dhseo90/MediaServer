@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   canonicalParentInfraFatalCodes,
+  parseCanonicalParentListenerPidOutput,
   runCanonicalParentOrchestration,
   selectCanonicalParentCases,
   writeCanonicalParentSummaryAtomic,
@@ -43,6 +44,12 @@ let temporaryRoot = "";
 
 try {
   temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "v390-canonical-parent-contract-"));
+  await check("listener PID parser rejects blank and zero pseudo-owners", async () => {
+    assert(JSON.stringify(parseCanonicalParentListenerPidOutput("71215\n")) === "[71215]",
+      "trailing newline became a listener owner");
+    assert(JSON.stringify(parseCanonicalParentListenerPidOutput("\n0\n71215\n71215\n")) === "[71215]",
+      "blank, zero, or duplicate listener owners were retained");
+  });
 
   await check("infra fatal allowset is exact", async () => {
     assert(JSON.stringify([...canonicalParentInfraFatalCodes]) === JSON.stringify([

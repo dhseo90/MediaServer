@@ -33,6 +33,16 @@ export const canonicalParentInfraFatalCodes = Object.freeze([
 export const nativeExactPreExecutionFailureStatus = "pre-execution-failed";
 export const nativeExactExecutionFailureStatus = "execution-failed";
 
+export function parseCanonicalParentListenerPidOutput(output) {
+  return [...new Set(String(output || "")
+    .split(/\r?\n/)
+    .map(value => value.trim())
+    .filter(Boolean)
+    .map(Number)
+    .filter(value => Number.isSafeInteger(value) && value > 0))]
+    .sort((left, right) => left - right);
+}
+
 export function validateCanonicalParentAcceptanceSummary({
   summary,
   canonicalCaseIds,
