@@ -214,7 +214,7 @@ assert.deepEqual(impact.postActionVisualCensus.lifecycleClassCounts, {
 });
 assert.equal(impact.postActionVisualCensus.hiddenSourceBranchCaseCount, 227);
 assert.equal(impact.postActionVisualCensus.detachedSourceBranchCaseCount, 227);
-assert.equal(impact.postActionVisualCensus.routeChangeCaseCount, 13);
+assert.equal(impact.postActionVisualCensus.routeChangeCaseCount, 14);
 assert.equal(impact.postActionVisualCensus.localTransitionCaseCount, 28);
 assert.equal(impact.postActionVisualCensus.navigationCaseCount, 5);
 const lifecycleRows = manifest.cases.map(item => ({
@@ -228,10 +228,10 @@ assert.deepEqual(lifecycleRows.filter(item =>
 assert.equal(lifecycleRows.filter(item => item.documentForm).length, 11);
 assert.equal(lifecycleRows.filter(item => item.documentForm &&
   item.plan.postNavigation.transitionKind === "document-form-redirect").length, 9);
-assert.equal(lifecycleRows.filter(item => item.plan.postNavigation.routeChanged).length, 13);
+assert.equal(lifecycleRows.filter(item => item.plan.postNavigation.routeChanged).length, 14);
 assert.equal(lifecycleRows.filter(item =>
   item.plan.action.primaryCompletion.mode === "navigation" &&
-  item.plan.postNavigation.routeChanged === false).length, 3);
+  item.plan.postNavigation.routeChanged === false).length, 2);
 assert.equal(lifecycleRows.filter(item =>
   item.plan.action.primaryCompletion.mode === "request").length, 391);
 assert.equal(lifecycleRows.filter(item =>
@@ -601,20 +601,35 @@ assert.equal(navigation.completionMode, "navigation");
 assert.equal(navigation.bindingKind, "post-action-visible-destination-owner");
 
 const evt004 = plan("EVT-004");
-assert.equal(evt004.postNavigation.routeChanged, false);
+assert.equal(evt004.postNavigation.route, "/ops/dashboard");
+assert.equal(evt004.postNavigation.routeChanged, true);
 assert.equal(evt004.postNavigation.navigationEpochRelation, "advanced");
+const evt004InitialNavigation = navigationLifecycle(evt004, {
+  kind: "initial-document-navigation",
+  sourceRoute: "about:blank",
+  sourceEpoch: 0,
+  destinationEpoch: 1,
+  destinationRoute: "/ops/events",
+});
+const evt004PreOwner = bindNavigationPreActionVisualOwner(
+  evt004,
+  evt004InitialNavigation,
+);
+assert.equal(evt004PreOwner.destinationRoute, "/ops/events");
 const sameRouteNavigation = resolvePostActionVisualTarget(evt004, {
   visualContext: context(evt004.postNavigation.route, 9),
   sourceBeforeObservation: observation(evt004.preAction.selector, 8, true, true),
   sourceObservation: observation(evt004.preAction.selector, 9, true, true),
+  destinationObservation: observation("body", 9, true, true),
 });
-assert.equal(sameRouteNavigation.bindingKind, "post-action-visible-document-owner");
+assert.equal(sameRouteNavigation.bindingKind, "post-action-visible-destination-owner");
 assert.equal(sameRouteNavigation.epochRelation, "advanced");
 assert.throws(() => resolvePostActionVisualTarget(evt004, {
   visualContext: context(evt004.postNavigation.route, 9),
   sourceBeforeObservation: observation(evt004.preAction.selector, 9, true, true),
   sourceObservation: observation(evt004.preAction.selector, 9, true, true),
-}), /navigation completion epoch did not advance/);
+  destinationObservation: observation("body", 9, true, true),
+}), /navigation epoch did not advance/);
 
 const ui001 = plan("UI-001");
 const ui001Lifecycle = navigationLifecycle(ui001, {
@@ -774,6 +789,7 @@ function navigationLifecycle(lifecyclePlan, {
   sourceSelector = "body",
   sourceEpoch,
   destinationEpoch,
+  destinationRoute = lifecyclePlan.postNavigation.route,
 } = {}) {
   return {
     schema: "media-server.v390-ui-navigation-owner-lifecycle.v1",
@@ -784,7 +800,7 @@ function navigationLifecycle(lifecyclePlan, {
       ? lifecyclePlan.preAction.selector
       : lifecyclePlan.action.primaryCompletion.navigationBinding?.requestedPath,
     sourceRoute,
-    destinationRoute: lifecyclePlan.postNavigation.route,
+    destinationRoute,
     sourceOwner: observation(sourceSelector, sourceEpoch, true, true),
     destinationOwner: observation("body", destinationEpoch, true, true),
   };

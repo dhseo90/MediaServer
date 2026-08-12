@@ -234,7 +234,11 @@ export function bindNavigationPreActionVisualOwner(plan, lifecycle) {
     requireVisible: true,
     label: "navigation destination document owner",
   });
-  assert(routePath(lifecycle.destinationRoute) === plan.postNavigation.route,
+  const preActionDestinationRoute = documentRedirect
+    ? plan.postNavigation.route
+    : routePath(plan.action.primaryCompletion.navigationBinding?.expectedObservedPath || "");
+  assert(preActionDestinationRoute &&
+    routePath(lifecycle.destinationRoute) === preActionDestinationRoute,
     `${plan.caseId} navigation destination route mismatch`);
   assert(destinationEpoch > Number(lifecycle.sourceOwner.navigationEpoch),
     `${plan.caseId} navigation owner epoch did not advance`);
