@@ -1053,12 +1053,18 @@ function createCanonicalParentRuntimeInspector() {
       assert(path.resolve(String(descriptor.serverLogPath || "")) ===
         resolveRootOrAbsolute(options.serverLog),
       "canonical parent server log path mismatch");
-      detailCode = "RUNTIME_LISTENER_OWNERSHIP_MISMATCH";
       const httpOwners = canonicalParentListenerPids(httpPort);
       const rtspOwners = canonicalParentListenerPids(rtspPort);
-      assert(httpOwners.length === 1 && httpOwners[0] === pid &&
-        rtspOwners.length === 1 && rtspOwners[0] === pid,
-      "canonical parent owned port listener contamination detected");
+      detailCode = httpOwners.length === 0
+        ? "HTTP_LISTENER_MISSING"
+        : (httpOwners.length > 1 ? "HTTP_LISTENER_DUPLICATE" : "HTTP_LISTENER_PID_MISMATCH");
+      assert(httpOwners.length === 1 && httpOwners[0] === pid,
+        "canonical parent HTTP listener ownership mismatch");
+      detailCode = rtspOwners.length === 0
+        ? "RTSP_LISTENER_MISSING"
+        : (rtspOwners.length > 1 ? "RTSP_LISTENER_DUPLICATE" : "RTSP_LISTENER_PID_MISMATCH");
+      assert(rtspOwners.length === 1 && rtspOwners[0] === pid,
+        "canonical parent RTSP listener ownership mismatch");
       detailCode = "RUNTIME_DESCRIPTOR_DIGEST_FAILED";
       const current = {
         pid,
