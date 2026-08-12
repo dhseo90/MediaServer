@@ -209,7 +209,10 @@ export function bindRequestNavigationLifecycle(plan, scope, {
   assert(sourceBeforeObservation?.exists === true && sourceBeforeObservation.visible === true,
     `${plan.caseId} request source-before owner missing or hidden`);
   const sourceSelector = String(executionOwnerSelector || plan.sourceSelector || "");
-  assert(sourceBeforeObservation.selector === sourceSelector,
+  const hiddenSourceControl = sourceObservation?.selector === sourceSelector &&
+    sourceObservation.exists === true && sourceObservation.visible === false;
+  const sourceOwnerSelector = hiddenSourceControl ? "body" : sourceSelector;
+  assert(sourceBeforeObservation.selector === sourceOwnerSelector,
     `${plan.caseId} request source-before selector mismatch`);
   assert(visualContext?.schema === "media-server.v390-ui-post-action-visual-context.v1" &&
     routePath(visualContext.route) === plan.finalRoute,
@@ -236,7 +239,8 @@ export function bindRequestNavigationLifecycle(plan, scope, {
         Number(sourceObservation.navigationEpoch) === sourceEpoch,
       `${plan.caseId} request source-after owner epoch mismatch`);
     }
-    return binding(plan, 0, sourceEpoch, finalEpoch, "same-document");
+    return binding(plan, 0, sourceEpoch, finalEpoch, "same-document",
+      sourceOwnerSelector);
   }
 
   let previousDestinationEpoch = null;
@@ -378,7 +382,7 @@ export function bindRequestNavigationLifecycle(plan, scope, {
     ? "advanced-readback"
     : "advanced-action";
   return binding(plan, plan.declaredHopCount, sourceBeforeEpoch,
-    finalEpoch, epochRelation);
+    finalEpoch, epochRelation, sourceOwnerSelector);
 }
 
 function navigationStep(caseId, owner, sourceRoute, destinationRoute, kind) {
@@ -403,7 +407,8 @@ function navigationStep(caseId, owner, sourceRoute, destinationRoute, kind) {
   };
 }
 
-function binding(plan, navigationCount, sourceEpoch, finalEpoch, epochRelation) {
+function binding(plan, navigationCount, sourceEpoch, finalEpoch, epochRelation,
+  sourceOwnerSelector) {
   const epochDelta = finalEpoch - sourceEpoch;
   return {
     schema: "media-server.v390-ui-request-navigation-lifecycle-binding.v1",
@@ -414,6 +419,7 @@ function binding(plan, navigationCount, sourceEpoch, finalEpoch, epochRelation) 
     ownedDocumentCommitCount: navigationCount,
     primaryHopCount: plan.primaryHopCount,
     readbackHopCount: plan.readbackHopCount,
+    sourceOwnerSelector,
     sourceEpoch,
     finalEpoch,
     epochDelta,

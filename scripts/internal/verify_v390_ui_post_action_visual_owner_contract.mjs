@@ -426,6 +426,19 @@ const rule017ActionBinding = bindActionOwnedRequestLedger(
 assert.equal(rule017Start.sourceBeforeOwner.selector, "body");
 assert.equal(rule017Start.sourceControl.selector, "#opsEventRuleIdInput");
 assert.equal(rule017ActionBinding.caseId, "RULE-017");
+const rule017NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("RULE-017"));
+const rule017NavigationBinding = bindRequestNavigationLifecycle(
+  rule017NavigationPlan,
+  requestNavigationScope(rule017NavigationPlan, 1),
+  {
+    sourceBeforeObservation: observation("body", 1, true, true),
+    sourceObservation: observation("#opsEventRuleIdInput", 1, true, false),
+    visualContext: context("/ops/rules", 1),
+    executionOwnerSelector: "#opsEventRuleIdInput",
+  },
+);
+assert.equal(rule017NavigationBinding.caseId, "RULE-017");
+assert.equal(rule017NavigationBinding.sourceOwnerSelector, "body");
 
 assert.equal(matchesMaterializedRequestTemplate(
   "/ops/api/events/reviews?selectedEventId={fixtureId}",

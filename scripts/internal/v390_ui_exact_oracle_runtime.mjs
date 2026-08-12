@@ -224,6 +224,19 @@ export async function executeCatalogRuntimeOracle({
     });
   assert(!ownsEventReviewRender || !requestActionContext,
     `${item.caseId} event review renderer requires a dedicated request ownership scope`);
+  const eventReviewRenderOwnership = ownsEventReviewRender
+    ? await beginEventReviewRenderProjection({
+        browser,
+        item,
+        spec,
+        bindings: {
+          ...runtimeBindings,
+          ...(eventRuntimeContext?.templateValues || {}),
+        },
+        actionId,
+        correlationId,
+      })
+    : null;
   let activeActionContext = requestActionContext;
   let ownsActionContext = false;
   if (!activeActionContext && !requestScopedCorrelationOnly &&
@@ -237,6 +250,7 @@ export async function executeCatalogRuntimeOracle({
     ownsActionContext = true;
   }
   let runtimeMutationOwnershipPlan = [];
+  let runtimePrimaryFailure = null;
   try {
     runtimeMutationOwnershipPlan = buildCatalogRuntimeMutationOwnershipPlan({
       item,
@@ -298,7 +312,7 @@ export async function executeCatalogRuntimeOracle({
           actionId,
           correlationId,
           runtimeBindings,
-          activeActionContext,
+          eventReviewRenderOwnership?.requestActionContext || activeActionContext,
           ownershipPhase,
         );
     interaction = await completeDeclaredObservationInteraction({
@@ -347,10 +361,7 @@ export async function executeCatalogRuntimeOracle({
           spec,
           actionId,
           correlationId,
-          bindings: {
-            ...runtimeBindings,
-            ...(eventRuntimeContext?.templateValues || {}),
-          },
+          ownership: eventReviewRenderOwnership,
         })
       : null;
     const responses = [];
@@ -460,11 +471,20 @@ export async function executeCatalogRuntimeOracle({
       observedRoute: await browser.evaluate("location.pathname"),
     };
   } catch (error) {
+    runtimePrimaryFailure = error;
     if (latestRequestCorrelationEvidence && !error.requestCorrelationEvidence) {
       error.requestCorrelationEvidence = latestRequestCorrelationEvidence;
     }
     throw error;
   } finally {
+    if (eventReviewRenderOwnership && !eventReviewRenderOwnership.closed) {
+      await endRuntimeRequestActionOwnershipPreservingPrimary(
+        browser,
+        eventReviewRenderOwnership.requestActionContext,
+        runtimePrimaryFailure,
+      );
+      eventReviewRenderOwnership.closed = true;
+    }
     if (ownsActionContext) {
       await browser.endRequestActionOwnership(activeActionContext);
     }
@@ -1270,7 +1290,7 @@ export function buildEventReviewRenderRequestBindingEvidence({
   };
 }
 
-async function materializeEventReviewRenderProjection({
+async function beginEventReviewRenderProjection({
   browser,
   item,
   spec,
@@ -1322,38 +1342,62 @@ async function materializeEventReviewRenderProjection({
     requestKind: "application-fetch",
     registrationKind: "event-review-render-request",
   });
-  const renderNetworkStart = browser.networkEntries().length;
+  return {
+    schema: "media-server.v390-ui-event-review-render-ownership.v1",
+    requestActionContext,
+    request: requests[0],
+    expectedFixtureId,
+    ownerKind,
+    renderActionId,
+    renderCorrelationId,
+    renderNetworkStart: browser.networkEntries().length,
+    closed: false,
+  };
+}
+
+async function materializeEventReviewRenderProjection({
+  browser,
+  item,
+  ownership,
+}) {
+  if (!ownership) return null;
+  assert(ownership.schema ===
+    "media-server.v390-ui-event-review-render-ownership.v1" &&
+    ownership.closed === false,
+  `${item.caseId} event review render ownership is missing or closed`);
   let observation = null;
   let primaryFailure = null;
   try {
     observation = await browser.evaluate(eventReviewRenderProjectionEvaluateExpression(), {
-      fields: requests[0].fields,
-      expectedFixtureId,
-      ownerKind,
+      fields: ownership.request.fields,
+      expectedFixtureId: ownership.expectedFixtureId,
+      ownerKind: ownership.ownerKind,
     });
-    await browser.waitForRequestActionResponses(requestActionContext);
+    await browser.waitForRequestActionResponses(ownership.requestActionContext);
   } catch (error) {
     primaryFailure = error;
     throw error;
   } finally {
     await endRuntimeRequestActionOwnershipPreservingPrimary(
       browser,
-      requestActionContext,
+      ownership.requestActionContext,
       primaryFailure,
     );
+    ownership.closed = true;
   }
   assert(observation?.renderBound === true && observation.fixtureOwnerCount === 1,
     `${item.caseId} event review render owner binding mismatch`);
-  assert(JSON.stringify(observation.applied) === JSON.stringify(Object.keys(requests[0].fields).sort()),
+  assert(JSON.stringify(observation.applied) ===
+    JSON.stringify(Object.keys(ownership.request.fields).sort()),
     `${item.caseId} event review render fields drift`);
   const evidence = buildEventReviewRenderRequestBindingEvidence({
-    entries: browser.networkEntries().slice(renderNetworkStart),
+    entries: browser.networkEntries().slice(ownership.renderNetworkStart),
     caseId: item.caseId,
-    actionId: renderActionId,
-    correlationId: renderCorrelationId,
-    fields: requests[0].fields,
+    actionId: ownership.renderActionId,
+    correlationId: ownership.renderCorrelationId,
+    fields: ownership.request.fields,
     observation,
-    ownerKind,
+    ownerKind: ownership.ownerKind,
   });
   assert(evidence.pass,
     `${item.caseId} event review product fetch binding mismatch: ${evidence.failureCode}`);

@@ -65,16 +65,22 @@ const runtimeBrowserSource = `${runtimeSource}\n${browserCallbackSource}`;
 const dynamicRegExpAudit = auditInternalDynamicRegExpBoundaries();
 
 await check("event review renderer owns and awaits one dedicated product fetch", async () => {
+  const begin = runtimeSource.indexOf("async function beginEventReviewRenderProjection(");
   const start = runtimeSource.indexOf("async function materializeEventReviewRenderProjection(");
   const end = runtimeSource.indexOf("\nexport function correlatedMutationRequestResponseEnvelope", start);
-  assert(start >= 0 && end > start, "event review renderer projection function is missing");
+  assert(begin >= 0 && begin < start && end > start,
+    "event review renderer pre-interaction ownership function is missing");
+  const preInteraction = runtimeSource.slice(begin, start);
   const source = runtimeSource.slice(start, end);
-  assert(source.includes("beginRequestActionOwnership") &&
-    source.includes("registerRequestActionEnvelope") &&
+  assert(preInteraction.includes("beginRequestActionOwnership") &&
+    preInteraction.includes("registerRequestActionEnvelope") &&
     source.includes("waitForRequestActionResponses") &&
     source.includes("endRequestActionOwnership"),
   "event review renderer does not own one awaited product request lifecycle");
-  assert(source.includes("event-review-render") && source.includes("requestActionContext"),
+  assert(preInteraction.includes("event-review-render") &&
+    source.includes("ownership.requestActionContext") &&
+    runtimeSource.indexOf("eventReviewRenderOwnership?.requestActionContext || activeActionContext") <
+      runtimeSource.indexOf("materializeEventReviewRenderProjection({"),
     "event review renderer ownership identity is not explicit");
 });
 
