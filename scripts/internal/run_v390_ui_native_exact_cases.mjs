@@ -2759,6 +2759,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           sourceBeforeObservation,
           sourceObservation,
           visualContext,
+          executionOwnerSelector: primaryVisualObservation?.action?.executionOwnerSelector ||
+            sourceBeforeObservation?.selector || "",
         },
       );
       trace.requestNavigationLifecycleEvidence = {

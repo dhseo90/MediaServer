@@ -194,6 +194,7 @@ export function bindRequestNavigationLifecycle(plan, scope, {
   sourceBeforeObservation = null,
   sourceObservation = null,
   visualContext = null,
+  executionOwnerSelector = "",
 } = {}) {
   assert(plan?.schema === "media-server.v390-ui-request-navigation-lifecycle-plan.v1",
     "request navigation lifecycle plan schema mismatch");
@@ -207,7 +208,8 @@ export function bindRequestNavigationLifecycle(plan, scope, {
     `${plan.caseId} request navigation lifecycle cardinality mismatch: ${lifecycles.length}/${plan.steps.length}`);
   assert(sourceBeforeObservation?.exists === true && sourceBeforeObservation.visible === true,
     `${plan.caseId} request source-before owner missing or hidden`);
-  assert(sourceBeforeObservation.selector === plan.sourceSelector,
+  const sourceSelector = String(executionOwnerSelector || plan.sourceSelector || "");
+  assert(sourceBeforeObservation.selector === sourceSelector,
     `${plan.caseId} request source-before selector mismatch`);
   assert(visualContext?.schema === "media-server.v390-ui-post-action-visual-context.v1" &&
     routePath(visualContext.route) === plan.finalRoute,
@@ -230,7 +232,7 @@ export function bindRequestNavigationLifecycle(plan, scope, {
     assert(Number.isInteger(sourceEpoch) && sourceEpoch === finalEpoch,
       `${plan.caseId} unexpected request navigation epoch advance`);
     if (sourceObservation) {
-      assert(sourceObservation.selector === plan.sourceSelector &&
+      assert(sourceObservation.selector === sourceSelector &&
         Number(sourceObservation.navigationEpoch) === sourceEpoch,
       `${plan.caseId} request source-after owner epoch mismatch`);
     }
@@ -368,7 +370,7 @@ export function bindRequestNavigationLifecycle(plan, scope, {
       finalEpoch,
       ...(Number.isInteger(primaryDestinationEpoch) ? [primaryDestinationEpoch] : []),
     ]);
-    assert(sourceObservation.selector === plan.sourceSelector &&
+    assert(sourceObservation.selector === sourceSelector &&
       allowedSourceAfterEpochs.has(observedEpoch),
     `${plan.caseId} request source-after owner lifecycle mismatch`);
   }
