@@ -1296,6 +1296,32 @@ export function buildEventReviewRenderRequestBindingEvidence({
   };
 }
 
+export function materializeEventReviewProductRenderPath(declaredPath) {
+  let url;
+  try {
+    url = new URL(String(declaredPath || ""), "http://runtime.invalid");
+  } catch {
+    return null;
+  }
+  if (url.pathname !== "/ops/api/events/reviews" ||
+      url.searchParams.has("limit") || url.searchParams.has("offset")) {
+    return null;
+  }
+  const supported = ["q", "ruleId", "sourceId", "incidentStatus", "startTimeMs", "endTimeMs"];
+  const fields = supported.filter(name => {
+    const values = url.searchParams.getAll(name);
+    return values.length === 1 && values[0].length > 0;
+  });
+  if (fields.length === 0 || [...url.searchParams.keys()].some(name => !supported.includes(name))) {
+    return null;
+  }
+  const product = new URLSearchParams({ limit: "25", offset: "0" });
+  for (const name of supported) {
+    if (fields.includes(name)) product.set(name, url.searchParams.get(name));
+  }
+  return `${url.pathname}?${product.toString()}`;
+}
+
 async function beginEventReviewRenderProjection({
   browser,
   item,
@@ -1306,13 +1332,15 @@ async function beginEventReviewRenderProjection({
 }) {
   const supported = ["q", "ruleId", "sourceId", "incidentStatus", "startTimeMs", "endTimeMs"];
   const requests = (spec.requests || []).map(request => {
-    const path = resolveRuntimeRequestPath(request.path, bindings);
+    const declaredPath = resolveRuntimeRequestPath(request.path, bindings);
+    const path = materializeEventReviewProductRenderPath(declaredPath);
+    if (!path) return null;
     const url = new URL(path, "http://runtime.invalid");
     const fields = Object.fromEntries(supported
       .map(name => [name, url.searchParams.get(name)])
       .filter(([, value]) => value !== null && String(value).length > 0));
-    return { request, path, url, fields };
-  }).filter(candidate => candidate.request?.method === "GET" &&
+    return { request, declaredPath, path, url, fields };
+  }).filter(candidate => candidate && candidate.request?.method === "GET" &&
     candidate.url.pathname === "/ops/api/events/reviews" &&
     Object.keys(candidate.fields).length > 0);
   if (requests.length === 0) return null;

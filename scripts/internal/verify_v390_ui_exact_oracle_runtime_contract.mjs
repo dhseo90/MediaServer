@@ -11,6 +11,7 @@ import {
   buildExclusiveRequestScopedCorrelationEvidence,
   buildEventDomSemanticCompositeEvidence,
   buildEventReviewRenderRequestBindingEvidence,
+  materializeEventReviewProductRenderPath,
   buildExactDomAttributeBindingEvidence,
   buildEventMarkerFlowEvidence,
   buildEvt004MarkerStageEvidence,
@@ -63,6 +64,21 @@ const browserCallbackSource = fs.readFileSync(
 );
 const runtimeBrowserSource = `${runtimeSource}\n${browserCallbackSource}`;
 const dynamicRegExpAudit = auditInternalDynamicRegExpBoundaries();
+
+await check("event review renderer materializes the exact product query envelope", async () => {
+  assert(materializeEventReviewProductRenderPath(
+    "/ops/api/events/reviews?q=fixture&ruleId=1&sourceId=9001&incidentStatus=new",
+  ) === "/ops/api/events/reviews?limit=25&offset=0&q=fixture&ruleId=1&sourceId=9001&incidentStatus=new",
+  "event review product query did not preserve the canonical paging prefix");
+  assert(materializeEventReviewProductRenderPath(
+    "/ops/api/events/reviews?selectedEventId=fixture",
+  ) === null,
+  "authoritative selected-event readback was misclassified as a renderer filter request");
+  assert(materializeEventReviewProductRenderPath(
+    "/ops/api/events/reviews?limit=99&q=fixture",
+  ) === null,
+  "declared paging override was accepted as a product renderer request");
+});
 
 await check("event review renderer owns and awaits one dedicated product fetch", async () => {
   const executeStart = runtimeSource.indexOf("async function executeTrustedInteraction(");
