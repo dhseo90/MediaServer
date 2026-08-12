@@ -1632,6 +1632,7 @@ async function openNativePlaywrightPage(playwright, {
       requestObject: request,
       requestActionContext: actionContext,
       actionRequestLedgerWrapper: actionRequestOwnership?.ledgerWrapper || null,
+      exactActionRequestOwned: Boolean(actionRequestOwnership),
       ledgerOwner,
       sourceOwner: lifecycleOwnership.sourceOwner,
       ownerPhase,
@@ -1685,6 +1686,7 @@ async function openNativePlaywrightPage(playwright, {
       sourceOwner: lifecycleOwnership.sourceOwner,
       ownerPhase,
       actionRegistrationKind: String(actionRequestOwnership?.registrationKind || ""),
+      exactActionRequestOwned: Boolean(actionRequestOwnership),
       initiatorActionId: lifecycleActionId,
       renderCycleId: actionContext
         ? activeRequestRenderCycleId
@@ -1790,6 +1792,7 @@ async function openNativePlaywrightPage(playwright, {
       sourceOwner: String(initiatingRequest?.sourceOwner || "page"),
       ownerPhase: String(initiatingRequest?.ownerPhase ||
         (initialRouteSettlingAttestation ? "background-refresh" : "bootstrap")),
+      exactActionRequestOwned: initiatingRequest?.exactActionRequestOwned === true,
       initiatorActionId: String(initiatingRequest?.initiatorActionId || ""),
       renderCycleId: String(initiatingRequest?.renderCycleId || ""),
       requestOwnershipKind: String(initiatingRequest?.requestOwnershipKind || ""),

@@ -590,7 +590,17 @@ export function assertZeroActionCorrelationLeaks(entries, {
   correlationId = "",
 } = {}) {
   const values = Array.isArray(entries) ? entries : [];
+  const registeredIndependentReadbacks = values.filter(entry =>
+    entry?.ledgerOwner === "page" &&
+    entry.exactActionRequestOwned === true &&
+    String(entry.ownerPhase || "") === "independent-readback" &&
+    String(entry.requestOwnershipKind || "") === "independent-readback" &&
+    String(entry.initiatorActionId || "") === String(actionId || "") &&
+    Boolean(correlationId) &&
+    String(entry.correlationId || "") === String(correlationId));
+  const registeredIndependentReadbackSet = new Set(registeredIndependentReadbacks);
   const leaks = values.filter(entry => entry?.ledgerOwner === "page" &&
+    !registeredIndependentReadbackSet.has(entry) &&
     (String(entry.initiatorActionId || "") === String(actionId || "") ||
       (correlationId && String(entry.correlationId || "") === String(correlationId))));
   assert(leaks.length === 0,
@@ -600,6 +610,7 @@ export function assertZeroActionCorrelationLeaks(entries, {
     actionId: String(actionId || ""),
     correlationId: String(correlationId || ""),
     pageOwnedEntryCount: values.filter(entry => entry?.ledgerOwner === "page").length,
+    registeredIndependentReadbackEntryCount: registeredIndependentReadbacks.length,
     actionCorrelationLeakCount: 0,
     pass: true,
   });

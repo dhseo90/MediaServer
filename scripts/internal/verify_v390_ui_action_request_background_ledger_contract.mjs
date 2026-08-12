@@ -152,6 +152,40 @@ check("same-endpoint background and all malformed ledgers fail closed", () => {
   }], { actionId: "SYNTHETIC:action", correlationId: "SYNTHETIC:correlation" }), /leak/i);
 });
 
+check("exact registered independent readback is not an action correlation leak", () => {
+  const actionId = "AUTH-013:assert-product-boundary";
+  const correlationId = `${actionId}:completion`;
+  const exactReadback = ["request-start", "response"].map(phase => ({
+    phase,
+    ledgerOwner: "page",
+    ownerPhase: "independent-readback",
+    requestOwnershipKind: "independent-readback",
+    exactActionRequestOwned: true,
+    initiatorActionId: actionId,
+    correlationId,
+  }));
+  const evidence = assertZeroActionCorrelationLeaks(exactReadback, {
+    actionId,
+    correlationId,
+  });
+  assert(evidence.pageOwnedEntryCount === 2 &&
+    evidence.registeredIndependentReadbackEntryCount === 2 &&
+    evidence.actionCorrelationLeakCount === 0,
+  "registered independent readback was counted as a page correlation leak");
+
+  for (const drift of [
+    { exactActionRequestOwned: false },
+    { requestOwnershipKind: "background-refresh" },
+    { ownerPhase: "background-refresh" },
+    { correlationId: `${correlationId}:wrong` },
+  ]) {
+    reject(() => assertZeroActionCorrelationLeaks([{ ...exactReadback[0], ...drift }], {
+      actionId,
+      correlationId,
+    }), /leak/i);
+  }
+});
+
 check("adapter/runner bind declared envelope and emit separate ledgers", () => {
   const adapter = fs.readFileSync(path.join(rootDir,
     "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
