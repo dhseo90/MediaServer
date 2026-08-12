@@ -213,9 +213,21 @@ export async function executeCatalogRuntimeOracle({
       String(request.method || "GET").toUpperCase() === "GET" &&
       resolveRuntimeRequestPath(request.path, runtimeBindings) ===
         "/ops/api/events/status?limit=5&includeArchives=1");
+  const ownsEventReviewRender = item.caseId.startsWith("EVT-") &&
+    spec.requests.some(request => {
+      const target = new URL(
+        resolveRuntimeRequestPath(request.path, runtimeBindings),
+        "http://runtime.invalid",
+      );
+      return String(request.method || "GET").toUpperCase() === "GET" &&
+        target.pathname === "/ops/api/events/reviews" && target.search.length > 1;
+    });
+  assert(!ownsEventReviewRender || !requestActionContext,
+    `${item.caseId} event review renderer requires a dedicated request ownership scope`);
   let activeActionContext = requestActionContext;
   let ownsActionContext = false;
-  if (!activeActionContext && !requestScopedCorrelationOnly && !ownsOpsTimelineRender) {
+  if (!activeActionContext && !requestScopedCorrelationOnly &&
+      !ownsOpsTimelineRender && !ownsEventReviewRender) {
     activeActionContext = await browser.beginRequestActionOwnership({
       phase: ownershipPhase,
       actionId,
@@ -1287,12 +1299,49 @@ async function materializeEventReviewRenderProjection({
     : ((spec.dom || []).some(assertion =>
       String(assertion.selector || "").includes("vlm-summary-candidate"))
       ? "candidate" : "resolution-detail");
-  const renderNetworkStart = browser.networkEntries().length;
-  const observation = await browser.evaluate(eventReviewRenderProjectionEvaluateExpression(), {
-    fields: requests[0].fields,
-    expectedFixtureId,
-    ownerKind,
+  const renderActionId = `${actionId}:event-review-render`;
+  const renderCorrelationId = `${correlationId}:event-review-render`;
+  const requestActionContext = await browser.beginRequestActionOwnership({
+    phase: "independent-readback",
+    actionId: renderActionId,
+    correlationId: renderCorrelationId,
+    ownershipKind: "independent-readback",
   });
+  browser.registerRequestActionEnvelope(requestActionContext, {
+    method: "GET",
+    urlPath: requests[0].path,
+    allowedStatuses: requests[0].request.allowedStatuses ||
+      requests[0].request.statuses || [200],
+    expectedRequestCount: 1,
+    expectedResponseCount: 1,
+    correlationId: renderCorrelationId,
+    correlationSource: "request-header",
+    initiatorActionId: renderActionId,
+    requestOwnershipKind: "independent-readback",
+  }, {
+    requestKind: "application-fetch",
+    registrationKind: "event-review-render-request",
+  });
+  const renderNetworkStart = browser.networkEntries().length;
+  let observation = null;
+  let primaryFailure = null;
+  try {
+    observation = await browser.evaluate(eventReviewRenderProjectionEvaluateExpression(), {
+      fields: requests[0].fields,
+      expectedFixtureId,
+      ownerKind,
+    });
+    await browser.waitForRequestActionResponses(requestActionContext);
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
+  } finally {
+    await endRuntimeRequestActionOwnershipPreservingPrimary(
+      browser,
+      requestActionContext,
+      primaryFailure,
+    );
+  }
   assert(observation?.renderBound === true && observation.fixtureOwnerCount === 1,
     `${item.caseId} event review render owner binding mismatch`);
   assert(JSON.stringify(observation.applied) === JSON.stringify(Object.keys(requests[0].fields).sort()),
@@ -1300,8 +1349,8 @@ async function materializeEventReviewRenderProjection({
   const evidence = buildEventReviewRenderRequestBindingEvidence({
     entries: browser.networkEntries().slice(renderNetworkStart),
     caseId: item.caseId,
-    actionId,
-    correlationId,
+    actionId: renderActionId,
+    correlationId: renderCorrelationId,
     fields: requests[0].fields,
     observation,
     ownerKind,
@@ -1309,6 +1358,23 @@ async function materializeEventReviewRenderProjection({
   assert(evidence.pass,
     `${item.caseId} event review product fetch binding mismatch: ${evidence.failureCode}`);
   return evidence;
+}
+
+async function endRuntimeRequestActionOwnershipPreservingPrimary(
+  browser,
+  requestActionContext,
+  primaryFailure,
+) {
+  try {
+    await browser.endRequestActionOwnership(requestActionContext);
+  } catch (cleanupError) {
+    if (!primaryFailure) throw cleanupError;
+    primaryFailure.requestOwnershipCleanupFailure = {
+      phase: "independent-readback",
+      code: "REQUEST_OWNERSHIP_CLEANUP_FAILED",
+      message: String(cleanupError?.message || cleanupError),
+    };
+  }
 }
 
 export function correlatedMutationRequestResponseEnvelope({ requestEntry, responseEntry } = {}) {

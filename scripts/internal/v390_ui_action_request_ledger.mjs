@@ -94,6 +94,7 @@ export function normalizeActionRequestEnvelope(request = {}, {
   const expectedResponseCount = Number(request.expectedResponseCount ?? expectedRequestCount);
   const allowedStatuses = [...new Set((request.allowedStatuses || request.statuses || [])
     .map(Number))];
+  const targetMatchMode = String(request.targetMatchMode || "exact");
   assert(String(caseId || ""), "action request envelope case ID is missing");
   assert(String(phase || ""), "action request envelope phase is missing");
   assert(ownedActionId, "action request envelope action ID is missing");
@@ -110,6 +111,8 @@ export function normalizeActionRequestEnvelope(request = {}, {
   "action request envelope allowed status is invalid");
   assert(["application-fetch", "document-navigation"].includes(requestKind),
     `action request envelope kind is invalid: ${requestKind}`);
+  assert(["exact", "pathname"].includes(targetMatchMode),
+    `action request envelope target match mode is invalid: ${targetMatchMode}`);
   const correlationRequired = requestKind !== "document-navigation" &&
     String(request.correlationSource || "request-header") === "request-header";
   if (correlationRequired) assert(ownedCorrelationId,
@@ -122,6 +125,7 @@ export function normalizeActionRequestEnvelope(request = {}, {
     ownershipKind: String(request.requestOwnershipKind || phase),
     method,
     target,
+    targetMatchMode,
     runtimePathParameters: Object.freeze(runtimePathParameters),
     requestKind,
     expectedRequestCount,
@@ -234,6 +238,7 @@ export function createActionRequestEnvelopeLedger(envelope) {
         correlationId: envelope.correlationId,
         method: envelope.method,
         target: envelope.target,
+        targetMatchMode: envelope.targetMatchMode,
         observedTargets: Object.freeze(claims.map(item => item.target)),
         requestKind: envelope.requestKind,
         expectedRequestCount: envelope.expectedRequestCount,
@@ -254,10 +259,10 @@ export function matchesActionRequestTarget(envelope, target) {
   for (const name of runtimeNames) {
     expected = expected.replaceAll(encodeURIComponent(`{${name}}`), `{${name}}`);
   }
-  if (runtimeNames.size === 0) return actual === expected;
   const [expectedPath, expectedQuery = ""] = expected.split("?", 2);
   const [actualPath, actualQuery = ""] = actual.split("?", 2);
-  if (expectedQuery !== actualQuery) return false;
+  if (String(envelope?.targetMatchMode || "exact") === "exact" &&
+      expectedQuery !== actualQuery) return false;
   const expectedParts = expectedPath.split("/");
   const actualParts = actualPath.split("/");
   if (expectedParts.length !== actualParts.length) return false;

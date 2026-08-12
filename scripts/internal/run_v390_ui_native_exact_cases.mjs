@@ -48,6 +48,7 @@ import {
 } from "./v390_ui_policy_v4_evidence_producer.mjs";
 import { expandVisualMatrixPlan, validateVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
 import {
+  deduplicateScreenshotArtifactAgainstTree,
   deduplicateScreenshotArtifacts,
   pruneUnreferencedArtifactFiles,
   sha256File,
@@ -1879,6 +1880,19 @@ function finalizeCaseChildAttempt({
         phase: "case-cleanup",
         code: "SECRET_ARTIFACT_INTEGRITY_FAILED",
         message: "secret artifact integrity failed",
+      }));
+    }
+  }
+
+  if (options.caseChild && result?.screenshotPath) {
+    try {
+      deduplicateScreenshotArtifactAgainstTree(result, path.dirname(outputDir));
+    } catch {
+      additionalFailures.push(structuredCaseChildFailure({
+        failureClass: "case-artifact-deduplication-failure",
+        phase: "case-artifact-finalization",
+        code: "CASE_ARTIFACT_DEDUPLICATION_FAILED",
+        message: "case screenshot canonicalization failed",
       }));
     }
   }
@@ -4447,6 +4461,19 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     beforePostconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
   }
   const networkStart = browser.networkEntries().length;
+  const localActionRequestEnvelopes = !composedClientPlan &&
+      action.kind === "activate-control" &&
+      Array.isArray(action.semanticCompletion.localTransition?.requiredRequests) &&
+      action.semanticCompletion.localTransition.requiredRequests.length > 0
+    ? action.semanticCompletion.localTransition.requiredRequests.map(request => ({
+        ...structuredClone(request),
+        targetMatchMode: "pathname",
+        correlationId: action.semanticCompletion.correlationId,
+        correlationSource: "request-header",
+        initiatorActionId: action.semanticCompletion.actionId,
+        requestOwnershipKind: "primary-action",
+      }))
+    : null;
   const actionRequestEnvelopes = action.kind === "execute-persisted-action" &&
       Array.isArray(persistedLifecycle?.requestBinding?.expectedRequests) &&
       persistedLifecycle.requestBinding.expectedRequests.length > 1
@@ -4457,7 +4484,7 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
         urlPath: String(expected.pathTemplate || "")
           .replaceAll("{fixtureId}", encodeURIComponent(persistedLifecycle.fixtureId)),
       }))
-    : (composedClientPlan?.initialRequestEnvelopes || null);
+    : (composedClientPlan?.initialRequestEnvelopes || localActionRequestEnvelopes || null);
   const requestActionContext = await browser.beginRequestActionOwnership({
     phase: "primary-action",
     actionId: action.semanticCompletion.actionId,
@@ -4572,6 +4599,9 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
       executedKind = "persisted-control";
     } else {
       throw new Error(`${item.caseId} unsupported case-native action: ${action.kind}`);
+    }
+    if (localActionRequestEnvelopes) {
+      await browser.waitForRequestActionResponses(requestActionContext);
     }
     await browser.waitForNetworkQuiet({
       correlationId: action.semanticCompletion.correlationId,
@@ -5270,6 +5300,16 @@ async function executeIndependentReadback(
     correlationId: pending.actionEvidence.correlationId,
     ownershipKind: "independent-readback",
   });
+  let readbackCoordinatorClosed = false;
+  const closeReadbackCoordinator = async failure => {
+    if (readbackCoordinatorClosed) return;
+    readbackCoordinatorClosed = true;
+    await endRequestActionOwnershipPreservingPrimary(
+      browser,
+      readbackCoordinatorContext,
+      failure,
+    );
+  };
   let readbackPrimaryFailure = null;
   try {
 
@@ -5314,8 +5354,10 @@ async function executeIndependentReadback(
       urlPath: "/ops/api/diagnostics/log-tail?limit=50",
     });
   }
-  const catalogRuntimeReadback = !isExistingSpecializedExactOracle(item)
-    ? await executeCatalogRuntimeOracleAtSourceRoute({
+  let catalogRuntimeReadback = null;
+  if (!isExistingSpecializedExactOracle(item)) {
+    await closeReadbackCoordinator(null);
+    catalogRuntimeReadback = await executeCatalogRuntimeOracleAtSourceRoute({
         browser,
         item,
         fixtureId: caseContext?.fixtureId || exactFixtureId(item),
@@ -5331,9 +5373,9 @@ async function executeIndependentReadback(
           : null,
         primaryNetworkEntries: pending.networkResponses,
         ownershipPhase: "independent-readback",
-        requestActionContext: readbackCoordinatorContext,
-      })
-    : null;
+        requestActionContext: null,
+      });
+  }
   if (item.caseId === "EVT-004") {
     const correlationWindow = runtimeState.get("__requestCorrelationWindow");
     runtimeState.set("__requestCorrelationWindow", {
@@ -5373,7 +5415,11 @@ async function executeIndependentReadback(
     const domScopeReadback = await evaluateRegisteredBrowserCallback(
       browser,
       "runner.scoped-viewer-dom",
-      rejectedActionReadback,
+      {
+        assignedViewId: rejectedActionReadback.assignedViewId,
+        blockedViewId: rejectedActionReadback.blockedViewId,
+        disallowedRuleId: rejectedActionReadback.disallowedRuleId,
+      },
     );
     assert(domScopeReadback.assignedSourceNodeCount === 1 &&
       domScopeReadback.blockedSourceNodeCount === 0 &&
@@ -5482,11 +5528,7 @@ async function executeIndependentReadback(
     readbackPrimaryFailure = error;
     throw error;
   } finally {
-    await endRequestActionOwnershipPreservingPrimary(
-      browser,
-      readbackCoordinatorContext,
-      readbackPrimaryFailure,
-    );
+    await closeReadbackCoordinator(readbackPrimaryFailure);
     if (!readbackPrimaryFailure) {
       browser.attestRequestActionOwnershipPhase({
         phase: "independent-readback",

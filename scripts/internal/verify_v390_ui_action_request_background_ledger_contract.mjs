@@ -190,6 +190,43 @@ check("runtime session path parameters remain exact action-owned envelopes", () 
     requestKind: "application-fetch" }), /envelope mismatch/i);
 });
 
+check("declared pathname ownership binds one query-bearing local action request", () => {
+  const envelope = normalizeActionRequestEnvelope({
+    method: "GET",
+    urlPath: "/ops/api/vlm/install-connection/dry-run",
+    targetMatchMode: "pathname",
+    allowedStatuses: [200],
+  }, {
+    caseId: "UI-026",
+    phase: "primary-action",
+    actionId: "UI-026:activate-control",
+    correlationId: "UI-026:activate-control:completion",
+  });
+  const ledger = createActionRequestEnvelopeLedger(envelope);
+  const request = {};
+  const actual = "/ops/api/vlm/install-connection/dry-run?candidateId=local-qwen3-vl-4b";
+  ledger.claim(request, { method: "GET", target: actual,
+    requestKind: "application-fetch" });
+  ledger.bindRequestIdentity(request, { requestId: "request-26",
+    caseRequestIdentity: "UI-026:request-26", caseRequestSequence: 26 });
+  ledger.bindResponse(request, { method: "GET", target: actual, status: 200,
+    requestId: "request-26", caseRequestIdentity: "UI-026:request-26",
+    caseRequestSequence: 26, responseRequestObjectObserved: true });
+  const evidence = ledger.close();
+  assert(envelope.targetMatchMode === "pathname" && evidence.requestCount === 1 &&
+    evidence.observedTargets[0] === actual,
+  "pathname-owned local request did not retain its exact observed target");
+  reject(() => normalizeActionRequestEnvelope({
+    method: "GET", urlPath: "/ops/api/vlm/install-connection/dry-run",
+    targetMatchMode: "prefix", allowedStatuses: [200],
+  }, { caseId: "UI-026", phase: "primary-action",
+    actionId: "UI-026:activate-control", correlationId: "UI-026:completion" }),
+  /target match mode/i);
+  const wrong = createActionRequestEnvelopeLedger(envelope);
+  reject(() => wrong.claim({}, { method: "GET", target: "/ops/api/vlm/install-connection",
+    requestKind: "application-fetch" }), /envelope mismatch/i);
+});
+
 check("exact registered independent readback is not an action correlation leak", () => {
   const actionId = "AUTH-013:assert-product-boundary";
   const correlationId = `${actionId}:completion`;

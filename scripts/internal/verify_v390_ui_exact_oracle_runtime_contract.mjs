@@ -64,6 +64,20 @@ const browserCallbackSource = fs.readFileSync(
 const runtimeBrowserSource = `${runtimeSource}\n${browserCallbackSource}`;
 const dynamicRegExpAudit = auditInternalDynamicRegExpBoundaries();
 
+await check("event review renderer owns and awaits one dedicated product fetch", async () => {
+  const start = runtimeSource.indexOf("async function materializeEventReviewRenderProjection(");
+  const end = runtimeSource.indexOf("\nexport function correlatedMutationRequestResponseEnvelope", start);
+  assert(start >= 0 && end > start, "event review renderer projection function is missing");
+  const source = runtimeSource.slice(start, end);
+  assert(source.includes("beginRequestActionOwnership") &&
+    source.includes("registerRequestActionEnvelope") &&
+    source.includes("waitForRequestActionResponses") &&
+    source.includes("endRequestActionOwnership"),
+  "event review renderer does not own one awaited product request lifecycle");
+  assert(source.includes("event-review-render") && source.includes("requestActionContext"),
+    "event review renderer ownership identity is not explicit");
+});
+
 await check("fixture-derived literals use one serializable non-RegExp matcher", async () => {
   assert(typeof exactRuntime.matchesDeclaredLiteral === "function",
     "shared declared literal matcher is missing");

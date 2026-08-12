@@ -2578,10 +2578,17 @@ check("composed client readback scopes every postcondition to one runtime tile",
       operator: "equals",
       value: "■",
     },
+    {
+      selector: '[data-mode-action="va-overlay"]',
+      property: "ariaPressed",
+      operator: "equals",
+      value: "true",
+    },
   ], "3");
-  assert(conditions.length === 2 &&
+  assert(conditions.length === 3 &&
     conditions[0].selector === '[data-tile="3"] [data-action="toggle-playback"]' &&
-    conditions[1].selector === '[data-tile="3"] [data-role="tile-playback-icon"]',
+    conditions[1].selector === '[data-tile="3"] [data-role="tile-playback-icon"]' &&
+    conditions[2].selector === '[data-tile="3"] [data-mode-action="va-overlay"]',
   "composed client postconditions are not runtime tile-owned");
   assert(materializeComposedClientPostconditions(conditions, "3")
     .every((condition, index) => condition.selector === conditions[index].selector),

@@ -113,6 +113,37 @@ export function deduplicateScreenshotArtifacts(items) {
   };
 }
 
+export function deduplicateScreenshotArtifactAgainstTree(item, root) {
+  const screenshotPath = path.resolve(String(item?.screenshotPath || ""));
+  const artifactRoot = path.resolve(String(root || ""));
+  if (!item || !screenshotPath || !isWithin(artifactRoot, screenshotPath) ||
+      !fs.existsSync(screenshotPath)) {
+    throw new Error("case screenshot deduplication input is invalid");
+  }
+  const sha256 = sha256File(screenshotPath);
+  const canonicalPath = listFiles(artifactRoot)
+    .filter(candidate => candidate.toLowerCase().endsWith(".png") &&
+      path.resolve(candidate) !== screenshotPath)
+    .sort()
+    .find(candidate => sha256File(candidate) === sha256) || "";
+  const duplicateOfCaseId = canonicalPath
+    ? path.basename(path.dirname(path.dirname(canonicalPath))).replace(/^\d+-/, "")
+    : "";
+  if (canonicalPath) {
+    fs.rmSync(screenshotPath, { force: true });
+    item.screenshotPath = canonicalPath;
+  }
+  const evidence = {
+    status: "captured",
+    sha256,
+    canonicalPath: canonicalPath || screenshotPath,
+    deduplicated: Boolean(canonicalPath),
+    duplicateOfCaseId,
+  };
+  item.screenshotEvidence = evidence;
+  return evidence;
+}
+
 export function pruneUnreferencedArtifactFiles({ roots, referencedPaths }) {
   const resolvedRoots = [...new Set((roots || []).map(value => path.resolve(value)))];
   const referenced = new Set((referencedPaths || []).filter(Boolean).map(value => path.resolve(value)));

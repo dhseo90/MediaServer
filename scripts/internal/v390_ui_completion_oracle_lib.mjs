@@ -57,7 +57,9 @@ export function materializeComposedClientPostconditions(postconditions = [], til
       }
       return structuredClone(condition);
     }
-    if (!selector.startsWith("[data-action=") && !selector.startsWith("[data-role=")) {
+    if (!selector.startsWith("[data-action=") &&
+        !selector.startsWith("[data-role=") &&
+        !selector.startsWith("[data-mode-action=")) {
       throw new Error("composed-client-postcondition-selector-unowned");
     }
     return {

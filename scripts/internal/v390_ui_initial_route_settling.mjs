@@ -292,8 +292,12 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
   `${plan.caseId} action ledger start identity mismatch`);
   assert(routePath(ledgerStart.sourceRoute) === plan.actionSource.route,
     `${plan.caseId} action ledger source route mismatch`);
-  const sourceOwnerSelector = String(executionOwnerSelector ||
-    plan.actionSource.sourceOwnerSelector || "");
+  const sourceControlSelector = String(executionOwnerSelector ||
+    plan.actionSource.selector || "");
+  const sourceOwnerSelector = plan.actionSource.expectedVisible
+    ? String(executionOwnerSelector || plan.actionSource.sourceOwnerSelector || "")
+    : String(ledgerStart.sourceBeforeOwner?.selector ||
+      plan.actionSource.sourceOwnerSelector || "body");
   assertOwner(plan.caseId, ledgerStart.sourceBeforeOwner,
     sourceOwnerSelector, Number(ledgerStart.navigationEpoch), true,
     "action ledger source-before owner");
@@ -303,7 +307,7 @@ export function bindActionOwnedRequestLedger(plan, ledgerStart, entries, {
       sourceControl.exists === true && sourceControl.visible === true,
     `${plan.caseId} action non-applicable control mismatch`);
   } else {
-    assert(sourceControl?.selector === sourceOwnerSelector &&
+    assert(sourceControl?.selector === sourceControlSelector &&
       sourceControl.candidateCount === 1 && sourceControl.exists === true &&
       sourceControl.visible === plan.actionSource.expectedVisible &&
       Number(sourceControl.navigationEpoch) === Number(ledgerStart.navigationEpoch),
@@ -438,14 +442,23 @@ function bindRuntimePrimaryRequest(plan, runtimePrimaryRequest) {
   return { ...declared, path: runtime.path };
 }
 
-function matchesMaterializedRequestTemplate(template, actual) {
+export function matchesMaterializedRequestTemplate(template, actual) {
   const [expectedPath, expectedQuery = ""] = String(template || "").split("?", 2);
   const [actualPath, actualQuery = ""] = requestTarget(actual).split("?", 2);
-  if (expectedQuery !== actualQuery) return false;
   const expectedParts = expectedPath.split("/");
   const actualParts = actualPath.split("/");
-  return expectedParts.length === actualParts.length && expectedParts.every((part, index) =>
-    /^\{[^}/]+\}$/.test(part) ? Boolean(actualParts[index]) : part === actualParts[index]);
+  if (expectedParts.length !== actualParts.length || !expectedParts.every((part, index) =>
+    /^\{[^}/]+\}$/.test(part) ? Boolean(actualParts[index]) : part === actualParts[index])) {
+    return false;
+  }
+  const expectedParameters = [...new URLSearchParams(expectedQuery).entries()];
+  const actualParameters = [...new URLSearchParams(actualQuery).entries()];
+  if (expectedParameters.length !== actualParameters.length) return false;
+  return expectedParameters.every(([name, value], index) => {
+    const [actualName, actualValue] = actualParameters[index] || [];
+    if (name !== actualName) return false;
+    return /^\{[^}]+\}$/.test(value) ? Boolean(actualValue) : value === actualValue;
+  });
 }
 
 function pageLifecycleClassFromTuple(entry) {

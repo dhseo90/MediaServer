@@ -25,6 +25,7 @@ import {
   bindInitialRouteSettling,
   buildInitialRouteSettlingCensus,
   buildInitialRouteSettlingPlan,
+  matchesMaterializedRequestTemplate,
 } from "./v390_ui_initial_route_settling.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -413,6 +414,31 @@ assert.throws(() => bindActionOwnedRequestLedger(
   }),
   actionRequestEntries(ui109InitialPlan, 11, false),
 ), /source-before owner mismatch/);
+
+const rule017InitialPlan = buildInitialRouteSettlingPlan(byId.get("RULE-017"));
+const rule017Start = actionLedgerStart(rule017InitialPlan, 1, 10);
+const rule017ActionBinding = bindActionOwnedRequestLedger(
+  rule017InitialPlan,
+  rule017Start,
+  actionRequestEntries(rule017InitialPlan, 11, false),
+  { executionOwnerSelector: "#opsEventRuleIdInput" },
+);
+assert.equal(rule017Start.sourceBeforeOwner.selector, "body");
+assert.equal(rule017Start.sourceControl.selector, "#opsEventRuleIdInput");
+assert.equal(rule017ActionBinding.caseId, "RULE-017");
+
+assert.equal(matchesMaterializedRequestTemplate(
+  "/ops/api/events/reviews?selectedEventId={fixtureId}",
+  "/ops/api/events/reviews?selectedEventId=evt-075-review4-fixture",
+), true);
+assert.equal(matchesMaterializedRequestTemplate(
+  "/ops/api/events/reviews?selectedEventId={fixtureId}",
+  "/ops/api/events/reviews?selectedEventId=evt-075-review4-fixture&extra=1",
+), false);
+assert.equal(matchesMaterializedRequestTemplate(
+  "/ops/api/events/reviews?selectedEventId={fixtureId}",
+  "/ops/api/events/reviews?selectedEventId=",
+), false);
 
 const ui008NavigationPlan = buildRequestNavigationLifecyclePlan(byId.get("UI-008"));
 assert.equal(ui008NavigationPlan.classification, "readback-route-roundtrip");

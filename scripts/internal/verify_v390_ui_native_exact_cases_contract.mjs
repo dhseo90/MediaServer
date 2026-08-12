@@ -75,6 +75,7 @@ import {
 } from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import * as diagnosticLifecycle from "./v390_ui_diagnostic_lifecycle_lib.mjs";
 import {
+  deduplicateScreenshotArtifactAgainstTree,
   deduplicateScreenshotArtifacts,
   pruneUnreferencedArtifactFiles,
   scanArtifactTree,
@@ -1035,14 +1036,27 @@ check("independent readback passes one coordinator ownership context and always 
     source.includes("correlationId: pending.actionEvidence.correlationId") &&
     !source.includes("`${pending.actionEvidence.correlationId}:independent-readback`"),
   "independent readback coordinator is not bound to the authoritative primary request identity");
-  assert(source.includes("requestActionContext: readbackCoordinatorContext"),
-    "independent readback did not pass its coordinator context to the lower runtime oracle");
+  assert(source.includes("requestActionContext: null") &&
+    source.includes("readbackCoordinatorClosed = true"),
+  "independent readback did not release its coordinator before specialized runtime scopes");
+  const finalBoundary = source.slice(source.lastIndexOf("finally {"));
   assert(source.includes("try {") && source.includes("finally {") &&
     source.includes("endRequestActionOwnershipPreservingPrimary(") &&
-    source.indexOf("finally {") < source.lastIndexOf("endRequestActionOwnershipPreservingPrimary("),
+    finalBoundary.includes("closeReadbackCoordinator(readbackPrimaryFailure)"),
   "independent readback ownership is not closed by a primary-preserving finally boundary");
-  assert(!source.includes("await browser.endRequestActionOwnership(readbackCoordinatorContext);"),
-    "independent readback retains an unguarded coordinator end call");
+  assert(!source.includes("requestActionContext: readbackCoordinatorContext"),
+    "independent readback still nests specialized runtime scopes under its coordinator");
+});
+
+check("RULE-097 callback receives only its declared explicit argument projection", () => {
+  const functionStart = runnerSource.indexOf("async function executeIndependentReadback(");
+  const functionEnd = runnerSource.indexOf("\nfunction exactFixtureId", functionStart);
+  const source = runnerSource.slice(functionStart, functionEnd);
+  assert(source.includes("assignedViewId: rejectedActionReadback.assignedViewId") &&
+    source.includes("blockedViewId: rejectedActionReadback.blockedViewId") &&
+    source.includes("disallowedRuleId: rejectedActionReadback.disallowedRuleId") &&
+    !source.includes('"runner.scoped-viewer-dom",\n      rejectedActionReadback'),
+  "RULE-097 callback still receives undeclared readback fields");
 });
 
 check("bounded ownership cleanup precedes physical close without changing close truth", () => {
@@ -4034,6 +4048,27 @@ check("failed case partial artifacts are referenced, deduplicated, and orphan-fr
     assert(items[1].screenshotPath === canonicalPath && items[1].screenshotEvidence?.deduplicated === true,
       "failed case duplicate screenshot did not bind to the canonical artifact");
     assert(scan.duplicateScreenshotFiles === 0, "failed case left duplicate screenshot bytes");
+  } finally {
+    fs.rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
+check("canonical case children bind duplicate screenshots to one prior artifact", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_child_screenshot_"));
+  try {
+    const first = path.join(workspace, "cases", "001-UI-001", "screenshots", "UI-001.png");
+    const second = path.join(workspace, "cases", "002-UI-002", "screenshots", "UI-002.png");
+    fs.mkdirSync(path.dirname(first), { recursive: true });
+    fs.mkdirSync(path.dirname(second), { recursive: true });
+    fs.writeFileSync(first, png1x1());
+    fs.writeFileSync(second, png1x1());
+    const result = { caseId: "UI-002", screenshotPath: second };
+    const evidence = deduplicateScreenshotArtifactAgainstTree(result,
+      path.join(workspace, "cases"));
+    assert(result.screenshotPath === first && !fs.existsSync(second) &&
+      evidence.deduplicated === true && evidence.duplicateOfCaseId === "UI-001" &&
+      scanArtifactTree(workspace).duplicateScreenshotFiles === 0,
+    "canonical child screenshot did not bind to its prior byte-identical artifact");
   } finally {
     fs.rmSync(workspace, { recursive: true, force: true });
   }
