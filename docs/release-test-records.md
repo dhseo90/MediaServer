@@ -40,6 +40,12 @@ feature gate의 `verify-code-comments`가 `verify_v390_test_acceptance_bundle.mj
 해당 주석은 동작 변경 없이 한국어 불변성 설명으로 보정했고 focused gate가 files `793`, missing header `0`,
 English-only `0`으로 PASS했습니다. 새 source commit에서 전체 launcher를 처음부터 다시 실행합니다.
 
+두 번째 full release 시도는 source `17da5f2c088944ff3e62a00abe47ece58c519c29`에서 code-comment gate를
+통과한 뒤 `verify-v390-stabilization-release-readiness`가 backlog의 과거 상태 문자열을 하드코딩해 FAIL했습니다.
+현재 문서의 Step 20 상태는 `UI PASS/full release pending`이므로 실제 판정과 문서가 일치하며, 30분·UI·120분은
+다시 fail-stop으로 미실행입니다. verifier는 Step 20 행을 정확히 하나 파싱하고 명시된 release lifecycle 상태만
+허용하도록 보정한 뒤 전체 launcher를 새 source에서 재실행합니다.
+
 ## 테스트 항목 상세 기록
 
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |

@@ -82,9 +82,21 @@ const normalizedRecords = normalizeWhitespace(files.releaseRecords);
 const checks = [];
 
 check("roadmap and stream verification expose v3.9 Step 20 stabilization readiness", () => {
+  const step20Rows = files.backlog.split(/\r?\n/).filter(line =>
+    line.startsWith("| 20 | v3.9.0 (20) stabilization and release readiness |"),
+  );
+  assert(step20Rows.length === 1, `backlog v3.9 Step 20 row cardinality mismatch: ${step20Rows.length}`);
+  const step20Cells = step20Rows[0].split("|").slice(1, -1).map(value => value.trim());
+  assert(step20Cells[2] === "P0", `backlog v3.9 Step 20 priority drift: ${step20Cells[2] || "missing"}`);
+  assert(new Set([
+    "보강 완료/current test pending",
+    "UI PASS/full release pending",
+    "full release PASS",
+  ]).has(step20Cells[3]), `backlog v3.9 Step 20 status invalid: ${step20Cells[3] || "missing"}`);
+  for (const snippet of ["release close-out", currentFinalCommand, "동일 source binding"]) {
+    assertIncludes(step20Cells[4], snippet, "backlog v3.9 Step 20 current release lifecycle");
+  }
   for (const snippet of [
-    "| 20 | v3.9.0 (20) stabilization and release readiness | P0 | 보강 완료/current test pending |",
-    "AGENTS 네 테스트 영역 판정과 release close-out evidence를 실제 실행/미실행으로 분리",
     command,
     "## v3.9.0 Structure & Release 개발 기록",
     "Step 20 `stabilization and release readiness`",
