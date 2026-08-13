@@ -173,7 +173,7 @@ std::string ProductDesignTokensCss() {
       --color-danger: #f87171;
       --color-danger-hover: #fb7185;
       --color-danger-weak-bg: rgba(248, 113, 113, 0.14);
-      --color-info: #60a5fa;
+      --color-info: #63a8ff;
       --color-neutral: #cbd5e1;
       --color-on-primary: #06231f;
       --color-on-danger: #260606;
@@ -1168,6 +1168,12 @@ std::string ProductUiCss() {
     button.primary {
       background: var(--color-primary);
       border-color: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+    .button-primary:hover,
+    button.primary:hover {
+      background: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
       color: var(--color-on-primary);
     }
     button:disabled,
@@ -2196,7 +2202,7 @@ std::string ProductUiCss() {
       display: grid;
       place-items: center;
       padding: var(--space-4);
-      color: var(--color-text-muted);
+      color: var(--color-text);
       font-size: 13px;
       text-align: center;
       pointer-events: none;

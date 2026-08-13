@@ -1,6 +1,9 @@
 // 파일 용도: Policy v4 qualification reason 전수를 정확히 하나의 공통 원인 cluster에 배정한다.
 
 const clusterReasons = Object.freeze({
+  "canonical-source-binding": Object.freeze(new Set([
+    "canonical-parent-binding-source-digest-mismatch",
+  ])),
   "action-selector-identity": Object.freeze(new Set([
     "raw-primary-action-count-mismatch",
     "raw-primary-action-kind-mismatch",

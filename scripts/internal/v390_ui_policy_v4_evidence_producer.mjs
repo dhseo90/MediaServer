@@ -8,7 +8,10 @@ import { execFileSync } from "node:child_process";
 import { assertRequestedObservedEnvelope } from "./v390_ui_requested_observed_schema.mjs";
 import { serializeFailureLifecycleEvidence } from "./v390_ui_failure_lifecycle_evidence.mjs";
 import { qualifyBrowserConsoleMessages } from "./v390_ui_console_evidence.mjs";
-import { qualifyCanonicalParentPolicyRows } from "./v390_ui_native_exact_cases_lib.mjs";
+import {
+  canonicalNativeExactManifestSha256,
+  qualifyCanonicalParentPolicyRows,
+} from "./v390_ui_native_exact_cases_lib.mjs";
 
 const evidenceSchema = "media-server.ui-automation-evidence.v4";
 const evidenceRefSchema = "media-server.ui-evidence-ref.v1";
@@ -242,6 +245,9 @@ export function producePolicyV4Evidence({
       caseManifestSha256: sha256File(path.join(resolvedRoot, "test/fixtures/ui_fulltest_case_manifest_policy_v4.json")),
       nativeExactManifestPath: "test/fixtures/v390_ui_native_exact_cases.json",
       nativeExactManifestSha256: sha256File(path.join(resolvedRoot, "test/fixtures/v390_ui_native_exact_cases.json")),
+      nativeExactManifestStableSha256: canonicalNativeExactManifestSha256(
+        readJson(path.join(resolvedRoot, "test/fixtures/v390_ui_native_exact_cases.json")),
+      ),
       runnerPath: relativeInside(resolvedRoot, resolvedRunner),
       runnerSha256: sha256File(resolvedRunner),
       artifactRoot: artifactRoot.artifactRoot,

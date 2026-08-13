@@ -4382,14 +4382,14 @@
           "file": "src/ingress/product_ui_css.cpp",
           "symbol": "ProductUiCss",
           "anchor": "@media (max-width: 760px) {",
-          "line": 4929,
+          "line": 4935,
           "contextSha256": "891082666df54cbea6c2e449b4cb354cef46227f4944a59b245e19ff1b4e3194"
         },
         "state": {
           "file": "src/ingress/product_ui_css.cpp",
           "symbol": "ProductUiCss",
           "anchor": "body.ops-shell .ops-workspace-diagnostic-grid,",
-          "line": 4931,
+          "line": 4937,
           "contextSha256": "63d5cbbe3175b1c14fa9fe625d885e1292aa06ba16b7466c5d313d17a129752a"
         },
         "readback": {
@@ -4422,22 +4422,22 @@
           "kind": "function-containment",
           "witness": "ProductUiCss composes ProductDesignTokensCss",
           "source": "src/ingress/product_ui_css.cpp:212",
-          "target": "src/ingress/product_ui_css.cpp:4929"
+          "target": "src/ingress/product_ui_css.cpp:4935"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "responsive rule includes ops-workspace-diagnostic-grid",
-          "source": "src/ingress/product_ui_css.cpp:4929",
-          "target": "src/ingress/product_ui_css.cpp:4931"
+          "source": "src/ingress/product_ui_css.cpp:4935",
+          "target": "src/ingress/product_ui_css.cpp:4937"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "ops-workspace-diagnostic-grid 1180px desktop exact CSS assertion",
-          "source": "src/ingress/product_ui_css.cpp:4931",
+          "source": "src/ingress/product_ui_css.cpp:4937",
           "target": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:60"
         },
         {
@@ -4491,44 +4491,44 @@
           "sha256": "cdcc7a8da281f7b9df58491e9ab65a16b290b58676800a63125bec69aea2b42e"
         }
       },
-      "sourceFlowDigest": "7501dff0273f5d45c3822ac0a64bce0ea261d05981948d11c7a37e72add652e7",
+      "sourceFlowDigest": "fff7e455c8e54fca93540a8a6249ba6294000c8a25c2c19f2fb0f9e66deb84ef",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "7d7ce05fd2f06866b6a13c4987e5f7620a4208e39aec7a9f0e5f342af98ee7bb",
-            "enclosingBodySha256": "4cf5f83d16ba690f2bbab07af70dc61c803b71cb19eb41fad1049d9fe88912ce",
+            "trackedBlobSha256": "047c999baabbf5966524472ff5347b7441386cc3801e480e87529cc39b9903d7",
+            "enclosingBodySha256": "609fe76cf3255eea270538c6fcf6b1f8406b12ff560a7b3960d6829c02ceff9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5670,
+            "enclosingBodyEndLine": 5676,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "7d7ce05fd2f06866b6a13c4987e5f7620a4208e39aec7a9f0e5f342af98ee7bb",
-            "enclosingBodySha256": "4cf5f83d16ba690f2bbab07af70dc61c803b71cb19eb41fad1049d9fe88912ce",
+            "trackedBlobSha256": "047c999baabbf5966524472ff5347b7441386cc3801e480e87529cc39b9903d7",
+            "enclosingBodySha256": "609fe76cf3255eea270538c6fcf6b1f8406b12ff560a7b3960d6829c02ceff9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5670,
+            "enclosingBodyEndLine": 5676,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "7d7ce05fd2f06866b6a13c4987e5f7620a4208e39aec7a9f0e5f342af98ee7bb",
-            "enclosingBodySha256": "4cf5f83d16ba690f2bbab07af70dc61c803b71cb19eb41fad1049d9fe88912ce",
+            "trackedBlobSha256": "047c999baabbf5966524472ff5347b7441386cc3801e480e87529cc39b9903d7",
+            "enclosingBodySha256": "609fe76cf3255eea270538c6fcf6b1f8406b12ff560a7b3960d6829c02ceff9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5670,
+            "enclosingBodyEndLine": 5676,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "7d7ce05fd2f06866b6a13c4987e5f7620a4208e39aec7a9f0e5f342af98ee7bb",
-            "enclosingBodySha256": "4cf5f83d16ba690f2bbab07af70dc61c803b71cb19eb41fad1049d9fe88912ce",
+            "trackedBlobSha256": "047c999baabbf5966524472ff5347b7441386cc3801e480e87529cc39b9903d7",
+            "enclosingBodySha256": "609fe76cf3255eea270538c6fcf6b1f8406b12ff560a7b3960d6829c02ceff9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5670,
+            "enclosingBodyEndLine": 5676,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
@@ -4602,14 +4602,14 @@
           "file": "src/ingress/product_ui_css.cpp",
           "symbol": "ProductUiCss",
           "anchor": "body.auth-shell .auth-responsive-control {",
-          "line": 5010,
+          "line": 5016,
           "contextSha256": "bbbe602ab5bf9c02f565819634d90d963b462c4bd7940fcd79206aef6ba36c5d"
         },
         "state": {
           "file": "src/ingress/product_ui_css.cpp",
           "symbol": "ProductUiCss",
           "anchor": "grid-template-columns: 34px minmax(0, 1fr);",
-          "line": 5015,
+          "line": 5021,
           "contextSha256": "5128e918b026c5167c45b90426be4b7db766769a440c6eb1300c214f666ed01f"
         },
         "readback": {
@@ -4642,22 +4642,22 @@
           "kind": "function-containment",
           "witness": "ProductUiCss composes ProductDesignTokensCss",
           "source": "src/ingress/product_ui_css.cpp:212",
-          "target": "src/ingress/product_ui_css.cpp:5010"
+          "target": "src/ingress/product_ui_css.cpp:5016"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "branch-containment",
           "witness": "mobile control selector emits grid-template-columns state",
-          "source": "src/ingress/product_ui_css.cpp:5010",
-          "target": "src/ingress/product_ui_css.cpp:5015"
+          "source": "src/ingress/product_ui_css.cpp:5016",
+          "target": "src/ingress/product_ui_css.cpp:5021"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "grid-template-columns exact CSS assertion",
-          "source": "src/ingress/product_ui_css.cpp:5015",
+          "source": "src/ingress/product_ui_css.cpp:5021",
           "target": "scripts/internal/verify_v220_ops_workspace_redesign.mjs:61"
         },
         {
@@ -4711,44 +4711,44 @@
           "sha256": "96e3a3bee7167983528bbd73514cd166bf8cb64bee78564a195ece8160c08349"
         }
       },
-      "sourceFlowDigest": "f40b4906438af8f38c836fe8b692e8635e3fc19dbc910fdf0da74bb34497afe2",
+      "sourceFlowDigest": "d1d48a2c3722e088d5ddf80273370b9d22a76da90dd66b997dd108ec14727013",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "7d7ce05fd2f06866b6a13c4987e5f7620a4208e39aec7a9f0e5f342af98ee7bb",
-            "enclosingBodySha256": "4cf5f83d16ba690f2bbab07af70dc61c803b71cb19eb41fad1049d9fe88912ce",
+            "trackedBlobSha256": "047c999baabbf5966524472ff5347b7441386cc3801e480e87529cc39b9903d7",
+            "enclosingBodySha256": "609fe76cf3255eea270538c6fcf6b1f8406b12ff560a7b3960d6829c02ceff9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5670,
+            "enclosingBodyEndLine": 5676,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "7d7ce05fd2f06866b6a13c4987e5f7620a4208e39aec7a9f0e5f342af98ee7bb",
-            "enclosingBodySha256": "4cf5f83d16ba690f2bbab07af70dc61c803b71cb19eb41fad1049d9fe88912ce",
+            "trackedBlobSha256": "047c999baabbf5966524472ff5347b7441386cc3801e480e87529cc39b9903d7",
+            "enclosingBodySha256": "609fe76cf3255eea270538c6fcf6b1f8406b12ff560a7b3960d6829c02ceff9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5670,
+            "enclosingBodyEndLine": 5676,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "7d7ce05fd2f06866b6a13c4987e5f7620a4208e39aec7a9f0e5f342af98ee7bb",
-            "enclosingBodySha256": "4cf5f83d16ba690f2bbab07af70dc61c803b71cb19eb41fad1049d9fe88912ce",
+            "trackedBlobSha256": "047c999baabbf5966524472ff5347b7441386cc3801e480e87529cc39b9903d7",
+            "enclosingBodySha256": "609fe76cf3255eea270538c6fcf6b1f8406b12ff560a7b3960d6829c02ceff9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5670,
+            "enclosingBodyEndLine": 5676,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "src/ingress/product_ui_css.cpp",
             "symbol": "ProductUiCss",
-            "trackedBlobSha256": "7d7ce05fd2f06866b6a13c4987e5f7620a4208e39aec7a9f0e5f342af98ee7bb",
-            "enclosingBodySha256": "4cf5f83d16ba690f2bbab07af70dc61c803b71cb19eb41fad1049d9fe88912ce",
+            "trackedBlobSha256": "047c999baabbf5966524472ff5347b7441386cc3801e480e87529cc39b9903d7",
+            "enclosingBodySha256": "609fe76cf3255eea270538c6fcf6b1f8406b12ff560a7b3960d6829c02ceff9b",
             "enclosingBodyStartLine": 210,
-            "enclosingBodyEndLine": 5670,
+            "enclosingBodyEndLine": 5676,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
@@ -196158,28 +196158,28 @@
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "export function evaluateEvidence(policy, summary, options = {}) {",
-          "line": 88,
+          "line": 92,
           "contextSha256": "56349bafa3648e5313a2f1d0a65273134250d53a11ca48a12ee14096b475bf8b"
         },
         "dispatch": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "if (summary?.schema !== \"media-server.ui-automation-evidence.v4\") {",
-          "line": 96,
+          "line": 100,
           "contextSha256": "86805b96191ecb8fa57caeb362c1f394ebb7a5cb5c381a10f1d2abf97374d56b"
         },
         "action": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const caseReasons = validateCase(policy, item, summary, rootDir, {",
-          "line": 123,
+          "line": 127,
           "contextSha256": "3965cf508a1beaaccd87390f22d66df4342c49e7b6b70d45f3f5e39e1d248b1b"
         },
         "state": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const uiFulltestPass = policyErrors.length === 0 && suiteCandidate && allCasesEligible && reasons.length === 0;",
-          "line": 208,
+          "line": 212,
           "contextSha256": "077152c50a8951c46ec0ffc110d782e6dca0ff0317e19f881f8e29ddc7083952"
         },
         "readback": {
@@ -196203,31 +196203,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-202 owner-dispatch",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:88",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:96"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:92",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:100"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-202 dispatch-action",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:96",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:123"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:100",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:127"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-202 action-state",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:123",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:208"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:127",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:212"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-202 state-readback",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:208",
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:212",
           "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:128"
         },
         {
@@ -196297,50 +196297,50 @@
           "sha256": "f8e6a3b2a46a1a5917cc912afe7ee42f3434503f92752c93a2a8341ca23ba925"
         }
       },
-      "sourceFlowDigest": "ae9c5a8007ffe7c82846075d513461fe431d81b0045fe761ebfc168d15cba133",
+      "sourceFlowDigest": "e0bac19970dc5c1b8c4d2de3525fa837c2bd1c719f134c218618f8b65ee173e2",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "5d422a9360dbfb620f9599750bb89433ef75097c29681ec14998728762edfd55",
+            "trackedBlobSha256": "d66424c5cde70f4395940dce2e79d3b99409633235575db1d47f8d2355230531",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
-            "enclosingBodyStartLine": 88,
-            "enclosingBodyEndLine": 210,
+            "enclosingBodyStartLine": 92,
+            "enclosingBodyEndLine": 214,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "5d422a9360dbfb620f9599750bb89433ef75097c29681ec14998728762edfd55",
+            "trackedBlobSha256": "d66424c5cde70f4395940dce2e79d3b99409633235575db1d47f8d2355230531",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
-            "enclosingBodyStartLine": 88,
-            "enclosingBodyEndLine": 210,
+            "enclosingBodyStartLine": 92,
+            "enclosingBodyEndLine": 214,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "5d422a9360dbfb620f9599750bb89433ef75097c29681ec14998728762edfd55",
+            "trackedBlobSha256": "d66424c5cde70f4395940dce2e79d3b99409633235575db1d47f8d2355230531",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
-            "enclosingBodyStartLine": 88,
-            "enclosingBodyEndLine": 210,
+            "enclosingBodyStartLine": 92,
+            "enclosingBodyEndLine": 214,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "5d422a9360dbfb620f9599750bb89433ef75097c29681ec14998728762edfd55",
+            "trackedBlobSha256": "d66424c5cde70f4395940dce2e79d3b99409633235575db1d47f8d2355230531",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
-            "enclosingBodyStartLine": 88,
-            "enclosingBodyEndLine": 210,
+            "enclosingBodyStartLine": 92,
+            "enclosingBodyEndLine": 214,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:requested observed aliases missing fields and copied control claims are rejected",
-            "trackedBlobSha256": "f3f526df0d6262f45abb66625b3406158b1930f51241cbba09bc206407cc0635",
+            "trackedBlobSha256": "70d63bb24c11a6f344d00b028f96de96b2685073d8e29bb1d230b9375b943ca1",
             "enclosingBodySha256": "ad6ce4d9144b106f83d3faeea30e4634e180d0fd320f4c6e92deec81132c11dc",
             "enclosingBodyStartLine": 119,
             "enclosingBodyEndLine": 129,
@@ -196355,7 +196355,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f3f526df0d6262f45abb66625b3406158b1930f51241cbba09bc206407cc0635",
+        "verifierFileSha256": "70d63bb24c11a6f344d00b028f96de96b2685073d8e29bb1d230b9375b943ca1",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -231524,28 +231524,28 @@
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "export function evaluateEvidence(policy, summary, options = {}) {",
-          "line": 88,
+          "line": 92,
           "contextSha256": "56349bafa3648e5313a2f1d0a65273134250d53a11ca48a12ee14096b475bf8b"
         },
         "dispatch": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "if (summary?.schema !== \"media-server.ui-automation-evidence.v4\") {",
-          "line": 96,
+          "line": 100,
           "contextSha256": "86805b96191ecb8fa57caeb362c1f394ebb7a5cb5c381a10f1d2abf97374d56b"
         },
         "action": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const caseReasons = validateCase(policy, item, summary, rootDir, {",
-          "line": 123,
+          "line": 127,
           "contextSha256": "3965cf508a1beaaccd87390f22d66df4342c49e7b6b70d45f3f5e39e1d248b1b"
         },
         "state": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const uiFulltestPass = policyErrors.length === 0 && suiteCandidate && allCasesEligible && reasons.length === 0;",
-          "line": 208,
+          "line": 212,
           "contextSha256": "077152c50a8951c46ec0ffc110d782e6dca0ff0317e19f881f8e29ddc7083952"
         },
         "readback": {
@@ -231569,31 +231569,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-169 owner-dispatch",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:88",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:96"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:92",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:100"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "OPS-169 dispatch-action",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:96",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:123"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:100",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:127"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "OPS-169 action-state",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:123",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:208"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:127",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:212"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-169 state-readback",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:208",
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:212",
           "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:92"
         },
         {
@@ -231651,50 +231651,50 @@
           "sha256": "f264fc72bb125ca03576d7091059fac0288a873b42a63c564f19ec8348609158"
         }
       },
-      "sourceFlowDigest": "e8a2222d2998fc8360ac3d83a4b28fb9db92d401f8a6a2df62a870c5feb72cec",
+      "sourceFlowDigest": "2a9343a75ebc0838ff99624683cf11b9bc6551a3d770ace0d6240baa5bd0b4ee",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "5d422a9360dbfb620f9599750bb89433ef75097c29681ec14998728762edfd55",
+            "trackedBlobSha256": "d66424c5cde70f4395940dce2e79d3b99409633235575db1d47f8d2355230531",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
-            "enclosingBodyStartLine": 88,
-            "enclosingBodyEndLine": 210,
+            "enclosingBodyStartLine": 92,
+            "enclosingBodyEndLine": 214,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "5d422a9360dbfb620f9599750bb89433ef75097c29681ec14998728762edfd55",
+            "trackedBlobSha256": "d66424c5cde70f4395940dce2e79d3b99409633235575db1d47f8d2355230531",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
-            "enclosingBodyStartLine": 88,
-            "enclosingBodyEndLine": 210,
+            "enclosingBodyStartLine": 92,
+            "enclosingBodyEndLine": 214,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "5d422a9360dbfb620f9599750bb89433ef75097c29681ec14998728762edfd55",
+            "trackedBlobSha256": "d66424c5cde70f4395940dce2e79d3b99409633235575db1d47f8d2355230531",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
-            "enclosingBodyStartLine": 88,
-            "enclosingBodyEndLine": 210,
+            "enclosingBodyStartLine": 92,
+            "enclosingBodyEndLine": 214,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "5d422a9360dbfb620f9599750bb89433ef75097c29681ec14998728762edfd55",
+            "trackedBlobSha256": "d66424c5cde70f4395940dce2e79d3b99409633235575db1d47f8d2355230531",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
-            "enclosingBodyStartLine": 88,
-            "enclosingBodyEndLine": 210,
+            "enclosingBodyStartLine": 92,
+            "enclosingBodyEndLine": 214,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:contract-only exact 424 closure satisfies suite algorithm",
-            "trackedBlobSha256": "f3f526df0d6262f45abb66625b3406158b1930f51241cbba09bc206407cc0635",
+            "trackedBlobSha256": "70d63bb24c11a6f344d00b028f96de96b2685073d8e29bb1d230b9375b943ca1",
             "enclosingBodySha256": "efa13ba70d3d1b6499e00fc72b76befdb14fc74a27ab691298bb861bf72aab35",
             "enclosingBodyStartLine": 87,
             "enclosingBodyEndLine": 93,
@@ -231709,7 +231709,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "f3f526df0d6262f45abb66625b3406158b1930f51241cbba09bc206407cc0635",
+        "verifierFileSha256": "70d63bb24c11a6f344d00b028f96de96b2685073d8e29bb1d230b9375b943ca1",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -235283,5 +235283,5 @@
       }
     }
   ],
-  "candidateDigest": "afaa80d14e2f415486204bad83ee115d13e64dbca9f0fd0a5ce496bf00e817c9"
+  "candidateDigest": "321157059476693c306263d33a8a69cd72959f48be4b350d494055a72269453e"
 }

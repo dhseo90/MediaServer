@@ -58,6 +58,11 @@ if (fs.existsSync(authoritativeSummary) && fs.existsSync(authoritativeEvaluation
 
 assert.throws(() => censusQualificationReasons(["CASE-001:unknown-policy-v4-reason"]),
   /unassigned Policy v4 qualification reason/);
+const sourceBindingCensus = censusQualificationReasons([
+  "canonical-parent-binding-source-digest-mismatch",
+]);
+assert.equal(sourceBindingCensus.clusterCounts["canonical-source-binding"], 1,
+  "canonical source binding mismatch is not assigned to its exact reason cluster");
 
 const runnerSource = fs.readFileSync(path.join(rootDir,
   "scripts/internal/run_v390_ui_native_exact_cases.mjs"), "utf8");

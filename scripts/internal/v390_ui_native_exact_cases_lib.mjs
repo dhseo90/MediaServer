@@ -33,6 +33,20 @@ export const canonicalParentInfraFatalCodes = Object.freeze([
 export const nativeExactPreExecutionFailureStatus = "pre-execution-failed";
 export const nativeExactExecutionFailureStatus = "execution-failed";
 
+export function canonicalParentRunnerSha256(sourceBinding) {
+  const runner = sourceBinding?.implementationFiles?.runner;
+  if (runner?.path !== "scripts/internal/run_v390_ui_native_exact_cases.mjs" ||
+      !/^[0-9a-f]{64}$/.test(String(runner?.sha256 || ""))) {
+    return "";
+  }
+  return runner.sha256;
+}
+
+export function canonicalNativeExactManifestSha256(manifest) {
+  if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) return "";
+  return crypto.createHash("sha256").update(canonicalParentStableJson(manifest)).digest("hex");
+}
+
 export function parseCanonicalParentListenerPidOutput(output) {
   return [...new Set(String(output || "")
     .split(/\r?\n/)
@@ -369,10 +383,11 @@ export function validateCanonicalFinalIntegrityBindings({
       "final-policy-raw-schema-mismatch");
     requireValue(policyRawSummary?.sourceBinding?.sourceFingerprintOnly === true &&
       policyRawSummary?.sourceBinding?.gitCommit === parentSummary?.sourceBinding?.verificationCommitSha &&
-      policyRawSummary?.sourceBinding?.nativeExactManifestSha256 === parentSummary?.sourceBinding?.manifestSha256 &&
+      policyRawSummary?.sourceBinding?.nativeExactManifestStableSha256 ===
+        parentSummary?.sourceBinding?.manifestSha256 &&
       policyRawSummary?.sourceBinding?.buildSha256 === parentSummary?.sourceBinding?.buildSha256 &&
       policyRawSummary?.sourceBinding?.runnerSha256 ===
-        parentSummary?.sourceBinding?.childImplementationBinding?.runnerSha256,
+        canonicalParentRunnerSha256(parentSummary?.sourceBinding),
     "final-policy-raw-source-binding-mismatch");
     requireValue(policyRawSummary?.canonicalParentBinding?.schema === parentSummary?.schema &&
       policyRawSummary?.canonicalParentBinding?.runId === parentSummary?.runBinding?.runId &&

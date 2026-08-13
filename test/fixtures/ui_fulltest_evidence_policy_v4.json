@@ -115,6 +115,7 @@
       "caseManifestSha256",
       "nativeExactManifestPath",
       "nativeExactManifestSha256",
+      "nativeExactManifestStableSha256",
       "runnerPath",
       "runnerSha256",
       "artifactRoot"

@@ -47,7 +47,12 @@ check("canonical final integrity binds parent, Policy rows, cleanup, and first f
     verificationBranch: "v3.9.0-verification-rebase",
     manifestSha256: "3".repeat(64),
     buildSha256: "4".repeat(64),
-    childImplementationBinding: { runnerSha256: "5".repeat(64) },
+    implementationFiles: {
+      runner: {
+        path: "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+        sha256: "5".repeat(64),
+      },
+    },
   };
   const parent = {
     schema: "media-server.v390-ui-canonical-parent.v1",
@@ -82,9 +87,10 @@ check("canonical final integrity binds parent, Policy rows, cleanup, and first f
     schema: "media-server.ui-automation-evidence.v4",
     sourceBinding: {
       gitCommit: source.verificationCommitSha,
-      nativeExactManifestSha256: source.manifestSha256,
+      nativeExactManifestSha256: "6".repeat(64),
+      nativeExactManifestStableSha256: source.manifestSha256,
       buildSha256: source.buildSha256,
-      runnerSha256: source.childImplementationBinding.runnerSha256,
+      runnerSha256: source.implementationFiles.runner.sha256,
       sourceFingerprintOnly: true,
     },
     canonicalParentBinding: {
@@ -112,6 +118,9 @@ check("canonical final integrity binds parent, Policy rows, cleanup, and first f
     ["policy-digest", value => { value.policyEvaluation.sourceSummarySha256 = "0".repeat(64); }],
     ["policy-parent-run", value => { value.policyRawSummary.canonicalParentBinding.runId = "stale-run"; }],
     ["policy-runner", value => { value.policyRawSummary.sourceBinding.runnerSha256 = "0".repeat(64); }],
+    ["policy-manifest-stable", value => {
+      value.policyRawSummary.sourceBinding.nativeExactManifestStableSha256 = "0".repeat(64);
+    }],
     ["policy-self-claim", value => { value.independentPolicyEvaluation.qualifiedCaseCount = 423; }],
     ["source-end-drift", value => { value.acceptanceSummary.sourceProvenanceEnd.commitSha = "0".repeat(40); }],
   ]) {

@@ -22,6 +22,7 @@ const plan = readJson("test/fixtures/v390_ui_visual_matrix_plan.json");
 const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
 const native = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const productCss = fs.readFileSync(path.join(rootDir, "src/ingress/product_ui_css.cpp"), "utf8");
+const clientCss = fs.readFileSync(path.join(rootDir, "src/ingress/product_ui_client_css.cpp"), "utf8");
 const adapterSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
 const runnerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"), "utf8");
 const checks = [];
@@ -51,6 +52,33 @@ check("light danger and disabled action tokens keep small-text contrast above 4.
     productCss.includes("background: var(--color-input-disabled-bg);") &&
     productCss.includes("color: var(--color-text-muted);"),
   "disabled action contrast is still produced by opacity blending");
+});
+
+check("primary hover, preview placeholder, and dark info tokens remain contrast-qualified", () => {
+  assert(productCss.includes("--color-info: #63a8ff;"),
+    "dark info token does not keep margin above the 4.5 contrast boundary");
+  assert(productCss.includes(".button-primary:hover") &&
+    productCss.includes("button.primary:hover") &&
+    productCss.includes("background: var(--color-primary-hover);"),
+  "primary hover can still combine on-primary text with a generic weak background");
+  const previewRule = productCss.slice(
+    productCss.indexOf(".ops-rule-preview-stage span"),
+    productCss.indexOf(".ops-geometry-overlay"),
+  );
+  assert(previewRule.includes("color: var(--color-text);"),
+    "preview placeholder still uses muted text on the dimmed media stage");
+});
+
+check("mobile live event feed does not clip fixture-owned digest cards", () => {
+  const mobileStart = clientCss.indexOf("@media (max-width: 780px)");
+  const mobileEnd = clientCss.indexOf("@media", mobileStart + 1);
+  const mobileCss = clientCss.slice(mobileStart, mobileEnd < 0 ? undefined : mobileEnd);
+  const feedStart = mobileCss.indexOf("body.client-shell .live-dock-event-feed");
+  const feedEnd = mobileCss.indexOf("}", feedStart);
+  const feedRule = mobileCss.slice(feedStart, feedEnd);
+  assert(feedStart >= 0 && feedRule.includes("max-height: none;") &&
+    feedRule.includes("overflow: visible;"),
+  "mobile live event feed can still make a digest taller than its scroll owner impossible to observe");
 });
 
 check("malformed explicit regex는 browser 실행 전 digest-bound context로 거부된다", () => {

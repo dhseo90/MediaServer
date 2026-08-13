@@ -107,6 +107,14 @@ check("producer emits captured raw envelope without qualification claims", () =>
   assert(summary.result === "CAPTURED" && summary.uiFulltestPass === false, "raw suite boundary missing");
   assert(summary.sourceBinding.sourceFingerprintOnly === true && summary.sourceBinding.currentSourceVerified === undefined,
     "producer source verification self-claim remains");
+  const nativeManifestPath = path.join(rootDir, "test/fixtures/v390_ui_native_exact_cases.json");
+  const expectedFileSha256 = createHash("sha256").update(fs.readFileSync(nativeManifestPath)).digest("hex");
+  const expectedStableSha256 = createHash("sha256")
+    .update(canonicalStableJson(readJson(nativeManifestPath))).digest("hex");
+  assert(summary.sourceBinding.nativeExactManifestSha256 === expectedFileSha256,
+    "producer native manifest file digest drifted");
+  assert(summary.sourceBinding.nativeExactManifestStableSha256 === expectedStableSha256,
+    "producer canonical native manifest digest is missing or incorrect");
   assert(value.rawOutcome === "completed", "raw outcome missing");
   for (const forbidden of ["status", "evidenceStatus", "interaction", "completionOracle", "visibleAssertions", "manualIntervention"]) {
     assert(!Object.hasOwn(value, forbidden), `producer emitted qualification field: ${forbidden}`);
@@ -146,9 +154,14 @@ check("core Policy evaluator rejects a hash-valid synthetic canonical parent wit
   const runId = "round2-synthetic-parent";
   const sourceBinding = {
     verificationCommitSha: candidate.sourceBinding.gitCommit,
-    manifestSha256: candidate.sourceBinding.nativeExactManifestSha256,
+    manifestSha256: candidate.sourceBinding.nativeExactManifestStableSha256,
     buildSha256: candidate.sourceBinding.buildSha256,
-    childImplementationBinding: { runnerSha256: candidate.sourceBinding.runnerSha256 },
+    implementationFiles: {
+      runner: {
+        path: "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+        sha256: candidate.sourceBinding.runnerSha256,
+      },
+    },
   };
   const counts = { selected: 424, attempted: 424, pass: 424, fail: 0,
     notRun: 0, unsupported: 0, runnerAbort: 0 };
@@ -183,6 +196,8 @@ check("core Policy evaluator rejects a hash-valid synthetic canonical parent wit
   });
   assert(evaluation.reasons.includes("canonical-parent-binding-strict-validation-failed"),
     "hash-valid synthetic parent bypassed core strict child/ref validation");
+  assert(!evaluation.reasons.includes("canonical-parent-binding-source-digest-mismatch"),
+    "current canonical parent implementationFiles runner digest was rejected");
   assert(evaluation.reasons.includes("canonical-parent-binding-expected-branch-missing"),
     "core Policy silently trusted the parent-claimed verification branch");
   candidate.canonicalParentBinding.sourceBinding.verificationBranch = "forged-self-consistent-branch";
@@ -200,6 +215,35 @@ check("core Policy evaluator rejects a hash-valid synthetic canonical parent wit
   });
   assert(wrongBranch.reasons.includes("canonical-parent-binding-verification-branch-mismatch"),
     "self-consistent forged parent branch bypassed the independent expected branch");
+});
+
+check("core Policy binds parent manifest to canonical digest while retaining file integrity", () => {
+  const policy = readJson(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  const candidate = structuredClone(produced.summary);
+  const fileDigest = candidate.sourceBinding.nativeExactManifestSha256;
+  const stableDigest = candidate.sourceBinding.nativeExactManifestStableSha256;
+  assert(/^[a-f0-9]{64}$/.test(fileDigest) && /^[a-f0-9]{64}$/.test(stableDigest),
+    "native manifest dual digest was not produced");
+  const evaluation = evaluateEvidence(policy, candidate, {
+    rootDir,
+    verifyArtifacts: false,
+    contractMode: true,
+    verifyCurrentSource: false,
+    now: new Date(),
+  });
+  assert(!evaluation.reasons.includes("source-binding-nativeExactManifestStableSha256-missing") &&
+    !evaluation.reasons.includes("source-binding-nativeExactManifestStableSha256-drift"),
+  "canonical native manifest digest was rejected");
+  candidate.sourceBinding.nativeExactManifestStableSha256 = "0".repeat(64);
+  const drifted = evaluateEvidence(policy, candidate, {
+    rootDir,
+    verifyArtifacts: false,
+    contractMode: true,
+    verifyCurrentSource: false,
+    now: new Date(),
+  });
+  assert(drifted.reasons.includes("source-binding-nativeExactManifestStableSha256-drift"),
+    "canonical native manifest digest drift was accepted");
 });
 
 check("canonical failed-case envelope preserves typed EVT-004 lifecycle failures", () => {
@@ -815,6 +859,15 @@ function readJson(filePath) {
 function writeJson(filePath, value) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+function canonicalStableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalStableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort()
+      .map(key => `${JSON.stringify(key)}:${canonicalStableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function isInside(root, candidate) {

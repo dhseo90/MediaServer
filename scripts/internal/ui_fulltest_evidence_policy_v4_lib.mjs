@@ -15,7 +15,11 @@ import {
 } from "./v390_ui_visual_evidence.mjs";
 import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
 import { qualifyBrowserConsoleMessages } from "./v390_ui_console_evidence.mjs";
-import { validateCanonicalParentAcceptanceSummary } from "./v390_ui_native_exact_cases_lib.mjs";
+import {
+  canonicalNativeExactManifestSha256,
+  canonicalParentRunnerSha256,
+  validateCanonicalParentAcceptanceSummary,
+} from "./v390_ui_native_exact_cases_lib.mjs";
 
 const sha256Pattern = /^[a-f0-9]{64}$/;
 export const canonicalImplementationProjectionSchema =
@@ -52,7 +56,7 @@ export function validatePolicy(policy) {
   for (const obligation of ["visual-quality", "responsive-320-390-760-1180", "light-dark-theme", "role-scope-guards", "client-viewer-redaction", "video-overlay-crop", "accessibility-focus-contrast"]) {
     expectIncludes(policy?.suiteClosure?.requiredCrossCuttingObligations, obligation, `cross-cutting obligation ${obligation}`, errors);
   }
-  for (const field of ["version", "gitCommit", "worktreePatchSha256", "buildPath", "buildSha256", "policyPath", "policySha256", "caseManifestPath", "caseManifestSha256", "nativeExactManifestPath", "nativeExactManifestSha256", "runnerPath", "runnerSha256", "artifactRoot"]) {
+  for (const field of ["version", "gitCommit", "worktreePatchSha256", "buildPath", "buildSha256", "policyPath", "policySha256", "caseManifestPath", "caseManifestSha256", "nativeExactManifestPath", "nativeExactManifestSha256", "nativeExactManifestStableSha256", "runnerPath", "runnerSha256", "artifactRoot"]) {
     expectIncludes(policy?.sourceBinding?.requiredFields, field, `source binding field ${field}`, errors);
   }
   expect(policy?.sourceBinding?.canonicalCaseManifestPath === "test/fixtures/ui_fulltest_case_manifest_policy_v4.json", "canonical case manifest path mismatch", errors);
@@ -233,9 +237,9 @@ function validateCanonicalParentPolicyBinding(summary, rootDir, reasons, canonic
     reasons.push("canonical-parent-binding-verification-branch-mismatch");
   }
   if (source?.verificationCommitSha !== summary.sourceBinding?.gitCommit ||
-      source?.manifestSha256 !== summary.sourceBinding?.nativeExactManifestSha256 ||
+      source?.manifestSha256 !== summary.sourceBinding?.nativeExactManifestStableSha256 ||
       source?.buildSha256 !== summary.sourceBinding?.buildSha256 ||
-      source?.childImplementationBinding?.runnerSha256 !== summary.sourceBinding?.runnerSha256) {
+      canonicalParentRunnerSha256(source) !== summary.sourceBinding?.runnerSha256) {
     reasons.push("canonical-parent-binding-source-digest-mismatch");
   }
   if (counts && (counts.selected !== summary.coverage?.targetCount ||
@@ -266,7 +270,7 @@ function validateCanonicalParentPolicyBinding(summary, rootDir, reasons, canonic
         summaryPath: parentPath,
         expectedVerificationCommitSha: summary.sourceBinding?.gitCommit,
         expectedVerificationBranch,
-        expectedManifestSha256: summary.sourceBinding?.nativeExactManifestSha256,
+        expectedManifestSha256: summary.sourceBinding?.nativeExactManifestStableSha256,
         expectedBuildSha256: summary.sourceBinding?.buildSha256,
       });
       if (strictValidation.censusComplete !== true || strictValidation.eligible !== true) {
@@ -425,7 +429,7 @@ function validateSourceBinding(policy, summary, rootDir, reasons, { verifyCurren
   for (const field of policy.sourceBinding.requiredFields) {
     if (!binding[field]) reasons.push(`source-binding-${field}-missing`);
   }
-  for (const field of ["worktreePatchSha256", "buildSha256", "policySha256", "caseManifestSha256", "nativeExactManifestSha256", "runnerSha256"]) {
+  for (const field of ["worktreePatchSha256", "buildSha256", "policySha256", "caseManifestSha256", "nativeExactManifestSha256", "nativeExactManifestStableSha256", "runnerSha256"]) {
     if (binding[field] && !sha256Pattern.test(binding[field])) reasons.push(`source-binding-${field}-invalid-sha256`);
   }
   if (binding.currentSourceVerified === true) reasons.push("producer-current-source-self-claim-forbidden");
@@ -433,6 +437,17 @@ function validateSourceBinding(policy, summary, rootDir, reasons, { verifyCurren
     const resolved = resolveContained(rootDir, binding[pathField]);
     if (!resolved || !fs.existsSync(resolved)) reasons.push(`source-binding-${pathField}-missing-file`);
     else if (sha256File(resolved) !== binding[hashField]) reasons.push(`source-binding-${hashField}-drift`);
+  }
+  const nativeManifestPath = resolveContained(rootDir, binding.nativeExactManifestPath);
+  if (nativeManifestPath && fs.existsSync(nativeManifestPath)) {
+    try {
+      if (canonicalNativeExactManifestSha256(readJsonFile(nativeManifestPath)) !==
+          binding.nativeExactManifestStableSha256) {
+        reasons.push("source-binding-nativeExactManifestStableSha256-drift");
+      }
+    } catch {
+      reasons.push("source-binding-nativeExactManifestStableSha256-drift");
+    }
   }
   if (!verifyCurrentSource) return;
   if (currentSource) {

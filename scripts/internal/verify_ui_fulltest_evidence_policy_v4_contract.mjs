@@ -764,6 +764,9 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
       caseManifestSha256: sha256File(manifestPath),
       nativeExactManifestPath: policyValue.sourceBinding.nativeExactManifestPath,
       nativeExactManifestSha256: sha256File(nativeManifestPath),
+      nativeExactManifestStableSha256: sha256Text(canonicalStableJson(
+        JSON.parse(fs.readFileSync(nativeManifestPath, "utf8")),
+      )),
       runnerPath: "scripts/internal/runner.mjs",
       runnerSha256: sha256File(runnerPath),
       artifactRoot: "artifacts",
@@ -1318,6 +1321,15 @@ function evidenceRef(metadata, policyValue) {
 function writeJson(filePath, payload) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+}
+
+function canonicalStableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalStableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort()
+      .map(key => `${JSON.stringify(key)}:${canonicalStableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function createPng(width, height, seed = "contract") {
