@@ -2171,7 +2171,7 @@ function normalizeTextArtifacts(targetDir) {
   if (!fs.existsSync(targetDir)) return;
   for (const entry of fs.readdirSync(targetDir, { withFileTypes: true })) {
     const entryPath = path.join(targetDir, entry.name);
-    // Nested run evidence is immutable once its digest has been attested.
+    // 중첩 실행 증적은 digest 검증이 끝난 뒤 변경하지 않는다.
     if (entry.isDirectory()) continue;
     if (/\.(log|md|txt)$/i.test(entry.name)) {
       const content = fs.readFileSync(entryPath, "utf8");

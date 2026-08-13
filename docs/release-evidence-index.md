@@ -40,7 +40,7 @@
 | Verification Static | PASS | `v3.9.0-verification-rebase` commit `47582fea7e7fad2c5ef06caf86d9ef6901fd5939` | 선수 gate |
 | Canonical UI Actual | PASS | exact `424/424`, Policy v4 qualified `424/424`, UI final-integrity 및 cleanup PASS | UI 풀테스트 |
 | UI transient summary | 보존 중 | `.media_server.test/v3.9.0/ui-acceptance-current/summary.json` | full release 이전 현재 evidence; 최종 저장소 evidence가 아님 |
-| 30분/120분/전체 release | 미실행 | `./test_release.sh` 예정 | 미실행 상태이며 완료 evidence로 사용 불가 |
+| 30분/120분/전체 release | 첫 시도 feature gate FAIL | source `7ebcfb60`의 build PASS 뒤 code-comment policy 1건 FAIL; 30분/UI/120분 미실행 | 보정 commit에서 전체 재실행 전이며 완료 evidence로 사용 불가 |
 | Release notes | 초안 | [v3.9.0 release notes draft](./release-artifacts/v3.9.0/release-notes-draft.md) | publish 전 검토용 |
 
 과거 `test-acceptance-current-final` 실패 artifact는 역사 evidence로 유지합니다. 최신 full release 실행이 PASS하면

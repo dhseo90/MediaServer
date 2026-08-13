@@ -26,13 +26,19 @@
 | UI 풀테스트 | PASS | `./test_ui.sh` exit `0`, exact `424/424 PASS`, fail/not-run/unsupported/runnerAbort `0`, Policy v4 eligible 및 qualified `424/424`, UI final-integrity와 cleanup PASS | UI 영역 충족 |
 | 30분 | 현재 release SHA에서 미실행 | UI-only acceptance에는 포함되지 않음 | release blocker |
 | 120분 | 현재 release SHA에서 미실행 | v3.9.0에는 RTSP/WebRTC/session/runtime/cleanup 직접 변경이 있어 AGENTS 7.6.2 조건에 해당 | release blocker |
-| 전체 release acceptance | 미실행 | `./test_release.sh`를 아직 실행하지 않음 | release-ready 아님 |
+| 전체 release acceptance | 첫 시도 feature gate FAIL | source `7ebcfb60`에서 build PASS 후 code-comment policy 1건 FAIL; 30분·UI·120분 미실행 | 보정 source의 전체 재실행 전이며 release-ready 아님 |
 
 UI run은 `2026-08-13T10:32:51`에 시작됐고 source commit은 `47582fea7e7fad2c5ef06caf86d9ef6901fd5939`, build SHA-256은
 `2e4e67d159579fc138988766509eb59dc84c44cc3a73c33fb265c2e625e4b25f`, canonical manifest SHA-256은
 `38be06145be2d1b542ec1ba1386bc59aa7368d5142769332d1833537ae2a323c`입니다. 현재 최소 evidence는
 `.media_server.test/v3.9.0/ui-acceptance-current/{summary.json,report.md}`에 있으며, 전체 릴리즈 실행에서
 `docs/release-artifacts/v3.9.0/test-acceptance-current-final/`로 이관되기 전까지 transient evidence입니다.
+
+첫 full release 시도는 source `7ebcfb60b9e76a6cf23104e2024708604f56a18a`에서 build를 PASS한 뒤
+feature gate의 `verify-code-comments`가 `verify_v390_test_acceptance_bundle.mjs`의 영어 전용 설명 주석 한 줄을
+검출해 FAIL했습니다. 30분·UI·120분은 fail-stop으로 미실행이며, 이 결과는 최종 release evidence가 아닙니다.
+해당 주석은 동작 변경 없이 한국어 불변성 설명으로 보정했고 focused gate가 files `793`, missing header `0`,
+English-only `0`으로 PASS했습니다. 새 source commit에서 전체 launcher를 처음부터 다시 실행합니다.
 
 ## 테스트 항목 상세 기록
 
