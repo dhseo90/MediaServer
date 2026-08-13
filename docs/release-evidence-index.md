@@ -33,6 +33,19 @@
   `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
+## v3.9.0 현재 evidence (2026-08-13)
+
+| Evidence | 상태 | 결속/위치 | 사용 범위 |
+| --- | --- | --- | --- |
+| Verification Static | PASS | `v3.9.0-verification-rebase` commit `47582fea7e7fad2c5ef06caf86d9ef6901fd5939` | 선수 gate |
+| Canonical UI Actual | PASS | exact `424/424`, Policy v4 qualified `424/424`, UI final-integrity 및 cleanup PASS | UI 풀테스트 |
+| UI transient summary | 보존 중 | `.media_server.test/v3.9.0/ui-acceptance-current/summary.json` | full release 이전 현재 evidence; 최종 저장소 evidence가 아님 |
+| 30분/120분/전체 release | 미실행 | `./test_release.sh` 예정 | 미실행 상태이며 완료 evidence로 사용 불가 |
+| Release notes | 초안 | [v3.9.0 release notes draft](./release-artifacts/v3.9.0/release-notes-draft.md) | publish 전 검토용 |
+
+과거 `test-acceptance-current-final` 실패 artifact는 역사 evidence로 유지합니다. 최신 full release 실행이 PASS하면
+동일 canonical artifact root를 새 source binding으로 원자 갱신하고 이 행을 최종 결과로 교체합니다.
+
 ## Evidence Matrix
 
 | 영역 | Evidence | 대표 명령/출처 | 테스트 판정 / 실행 상태 기록 |
@@ -46,7 +59,7 @@
 | Release close-out runbook | branch close, PR merge, main sync, tag, GitHub Release, Latest 확인, release branch 삭제, next branch sync, `media-server.release-closeout-one-shot-gate.v1` fail-stop rehearsal | `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run` | dry-run은 planned/manual-not-run, 실제 publish 결과는 release publication evidence row로 분리 |
 | Feature scope decision gate | 새 기능 후보를 v1.8 안정화 gate 안에서 구현으로 승격하지 않는 절차 | `./server.sh verify-feature-scope-gate` | `PASS` 또는 `FAIL` |
 | PR checks | Preflight, licensing/artifact guardrails, required checks | GitHub Actions UI/API | 실행 확인 시 `PASS` 또는 `FAIL`; 열지 않은 Actions는 별도 `미확인` |
-| Release notes | source-only scope, non-goals, verification, not-run/unverified | [release-policy.md](./release-policy.md), current draft [release-notes-draft.md](./release-artifacts/v3.3.0/release-notes-draft.md) | 검토 행은 `PASS` 또는 `FAIL`; 실행하지 않은 gate는 별도 `미실행` |
+| Release notes | source-only scope, non-goals, verification, not-run/unverified | [release-policy.md](./release-policy.md), current draft [release-notes-draft.md](./release-artifacts/v3.9.0/release-notes-draft.md) | 검토 행은 `PASS` 또는 `FAIL`; 실행하지 않은 gate는 별도 `미실행` |
 | VLM close-out readiness | `media-server.vlm-close-out-readiness.v1` report, script/UI/30분/120분/provider/publish gate 분리, V200-S18 boundary | [vlm-close-out-readiness.md](./vlm-close-out-readiness.md), `./server.sh verify-vlm-closeout-readiness` | report/verifier는 `PASS` 또는 `FAIL`; UI/30분/120분 미실행은 별도 실행 상태 |
 | Script smoke/stability | build/static/auth/API/media verifier, short smoke, skip reason | `./server.sh build`, 범위별 `verify-*` 명령 | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 실행하지 않은 명령은 별도 `미실행` |
 | 30분 soak | 사용자 명시 요청 시 30분 안정성 테스트 | `./server.sh verify-predev --soak-minutes 30` | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 요청이 없으면 별도 `미실행` |

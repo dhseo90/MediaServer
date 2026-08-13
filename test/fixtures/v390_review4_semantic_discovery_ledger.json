@@ -3,9 +3,9 @@
   "sourceRelease": "v3.9.0",
   "evidenceBoundary": "static-semantic-audit-only-not-runtime-ui-or-longrun-pass",
   "summary": {
-    "documents": 189,
+    "documents": 191,
     "sourceMarkers": 38,
-    "currentProductContracts": 82,
+    "currentProductContracts": 84,
     "historicalOrSuperseded": 74,
     "conditionalOrTemplate": 27
   },
@@ -152,7 +152,7 @@
     },
     {
       "path": "docs/README.md",
-      "contentSha256": "d7f62ab6c81c2db86a4a6357a016079c70218bdef91beedb182fc9f0269b1912",
+      "contentSha256": "74ad5bb5801ee10ee8a491980163fc86336901db5420b8be8ae5a7add1bd711a",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -292,7 +292,7 @@
     },
     {
       "path": "docs/development-backlog.md",
-      "contentSha256": "08abdf6299808036a30d93961f32c41a59056cd2605bf81635759b69512a77a0",
+      "contentSha256": "3a82b5d7f41e885a03c90025ca60916a31010f69f7c5a9bd72b3fe0ef8c887ef",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1812,7 +1812,7 @@
     },
     {
       "path": "docs/release-evidence-index.md",
-      "contentSha256": "69c64fb3a643480b0fb09ae54db29329a341671d5ec895dad3c9d80bb125c1b0",
+      "contentSha256": "21f59ecc3ebea6aba5d9ba4f78309f68fa0b2d4bd009cf75b59de419df7a787a",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1852,7 +1852,7 @@
     },
     {
       "path": "docs/release-test-records.md",
-      "contentSha256": "4f1ce83aba1db5e4e9e136b369c30e641f940273ab0506c898a01796d35cbb40",
+      "contentSha256": "77c9246ebd39dea521e1507782f6dedd2804abf3bf57164815ba6ee4cf738596",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -3071,6 +3071,26 @@
       "semanticDigest": "427f52e317bbb5f0d2748c82a3437da617547086121b96acdae21e343e5957fe"
     },
     {
+      "path": "docs/v390-current-state-and-verification-debt-audit-2026-08-12.md",
+      "contentSha256": "21633f764db08df9dab33fdb1b3fa52f53e968f2006aca2a1a0d4863cbd51436",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.9.0 현재 상태 및 검증 부채 감사 — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "4039abe21e33a2c4d65a34b359cf2b911d28c65bbe9fca0ea78254de67c0d317"
+    },
+    {
       "path": "docs/v390-feature-completion-inventory.md",
       "contentSha256": "6600067fee69e6ed801499df639af9877d9f231e5625817198d8862cd74ef5f4",
       "semanticRole": "current-product-or-repository-contract",
@@ -3089,6 +3109,26 @@
         }
       ],
       "semanticDigest": "26698e47a621a4a09ad17fef98137cf6bfc2eab319890855aac771320fa41749"
+    },
+    {
+      "path": "docs/v390-full-status-failure-and-handoff-2026-08-12.md",
+      "contentSha256": "717a52261a8b7c7ea7af7b8b277ec4467fed00e83aa17ac577af4a5789efc9a6",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.9.0 전체 현황, 실패 원인 및 인계 문서 — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "4f0d543525a6849151f44f4f8433db12ada5810ec1d6aab41350c7262066a2c1"
     },
     {
       "path": "docs/v390-ui-automation-coverage-matrix.md",

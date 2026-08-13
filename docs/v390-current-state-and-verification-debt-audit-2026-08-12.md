@@ -1,5 +1,10 @@
 # v3.9.0 현재 상태 및 검증 부채 감사
 
+> **역사 기록 / 현재 판정으로 대체됨 (2026-08-13):** 이 감사의 수치와 결론은 `dc996dd4` 시점에 한정됩니다.
+> 최신 verification commit `47582fea`의 actual UI는 exact `424/424`, Policy v4 `424/424`, UI final-integrity와 cleanup까지 PASS했습니다.
+> 검증 부채에 대한 역사 분석은 유지하지만 현재 릴리즈 상태는 [release-test-records.md](release-test-records.md)를 따릅니다.
+> 30분·120분·전체 `./test_release.sh`는 아직 미실행이므로 v3.9.0 전체 release-ready는 아직 증명되지 않았습니다.
+
 작성일: 2026-08-12
 대상 저장소: `/Users/dhseo/Workspace/mediaServer`
 대상 작업: `019f4905-f132-7202-bb94-685ff85d92da`
