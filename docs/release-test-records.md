@@ -3418,6 +3418,17 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 실행 중 정정 | 첫 focused 실행에서 과거 RED fixture가 mutable top-level current alias를 가리켜 SHA가 최신 actual로 바뀐 충돌을 발견해 immutable run-ID artifact만 historical hash 대상으로 제한했습니다. 다음 focused 실행에서 별도 initial phase가 없는 canonical negative-route UI-018을 발견해 `negative-route + 단일 initial-document-navigation binding` 공통 규칙으로 포함했습니다. 424 전수 대입에서 initial settled route와 action source route가 다른 9건을 발견해 attestation 시점을 최초 문서 직후로 분리했습니다 | 세 정정 모두 계약 완화 없이 공통 lifecycle 모델을 보강했습니다. 이후 focused 및 전체 gate가 PASS했습니다 |
 | 미실행 | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, actual acceptance/release, `./test_release.sh` | 사용자 금지. Clean pushed commit에서 별도 tester가 `./test_ui.sh`를 정확히 1회 실행해야 actual GREEN 여부가 결정됩니다 |
 
+## v3.9.0 canonical 424 / Policy v4 release checkpoint (2026-08-14)
+
+| 항목 | 결과 | 릴리즈 판정 |
+| --- | --- | --- |
+| `./test_release.sh` actual at `a31844fe` | 30분 longrun `118 PASS / 0 FAIL / 2 skip`; canonical browser exact `424/424 PASS`, unsupported/not-run `0/0` | UI case census는 완료됐으나 release 전체 PASS 아님 |
+| Policy v4 | source current binding missing, worktree patch digest drift, MEDIA-017 unapproved 404 console 1건으로 FAIL | Policy eligible=false, 120분·final UI integrity not-run |
+| Root cause | 실행 중 갱신되는 acceptance-owned tracked artifact를 source diff에 포함; transient bootstrap summary; commandless ledger; MEDIA-017 second view의 불필요한 dashboard poll | 제품 API/schema/renderer 결함이나 UI case 실패가 아닌 acceptance evidence/runtime fixture 공통 경계 |
+| TDD/static closure | acceptance `36/36`, producer `19/19`, Policy v4 `29/29`, independence `12/12`, native `60/60`, launcher `21/21`, eligibility `8/8`, final integrity `15/15` | Actual 재실행 전에는 release PASS로 승격하지 않음 |
+| Semantic closure | candidate `8db5188a...f7bb6`, `983 carry-forward + 3 independent`, audit `51/51`, approval `986/986` | UI-018/SAFE-212/OPS-179 trust binding만 갱신; feature/pass/status 변경 없음 |
+| 잔여 actual | clean checkpoint의 `./test_release.sh`; Policy v4, 조건부 120분 decision/run, final integrity | 전 단계 PASS와 cleanup/source binding 확인 후에만 release-ready |
+
 ## v3.9.0 bootstrap/action redirect lifecycle classifier correction (2026-08-10)
 
 | 제목 | 수행내용 | 결과(pass/fail) |

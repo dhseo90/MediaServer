@@ -292,7 +292,7 @@
     },
     {
       "path": "docs/development-backlog.md",
-      "contentSha256": "3a82b5d7f41e885a03c90025ca60916a31010f69f7c5a9bd72b3fe0ef8c887ef",
+      "contentSha256": "639ce51aaecc6c5bcc82f526b4fd637f0a001cff45a208d78b62ce38dc6995d4",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1832,7 +1832,7 @@
     },
     {
       "path": "docs/release-evidence-index.md",
-      "contentSha256": "565b085a61457a99681fc15603fd730800a33ae130b1cdab769d44c3a4c67b90",
+      "contentSha256": "ca7f7042d8424f21b17f46e337375a46984bf83d1d550e4ccb78abb1deafcbc5",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1872,7 +1872,7 @@
     },
     {
       "path": "docs/release-test-records.md",
-      "contentSha256": "bf76de76cb20804c63a884d708e76c15587c4100c49556aa1fb4cb37e94678e6",
+      "contentSha256": "6a22ae8a92412d901ab62ac2d26543549f9f099a0512954862196bc964a1d7f2",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",

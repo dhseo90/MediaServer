@@ -57,6 +57,7 @@ export function producePolicyV4EvidenceFromCanonicalParent({
   visualMatrixProbes,
   summaryFilePath,
   canonicalParentSummaryPath,
+  sourceBinding,
 } = {}) {
   assert(canonicalParentSummary?.schema === "media-server.v390-ui-canonical-parent.v1",
     "canonical parent schema is required for Policy production");
@@ -89,6 +90,7 @@ export function producePolicyV4EvidenceFromCanonicalParent({
     visualMatrixProbes,
     contractFixture: false,
     summaryFilePath,
+    sourceBinding,
     canonicalParentBinding: {
       schema: canonicalParentSummary.schema,
       runId: canonicalParentSummary.runBinding.runId,
@@ -116,10 +118,12 @@ export function producePolicyV4Evidence({
   contractFixture = false,
   summaryFilePath = "",
   canonicalParentBinding = null,
+  sourceBinding = null,
 }) {
   const artifactRoot = assertPolicyV4ArtifactRoot({ rootDir, outputDir });
   const resolvedRoot = artifactRoot.rootDir;
   const resolvedOutput = artifactRoot.outputDir;
+  const explicitSourceBinding = normalizeSourceBinding(sourceBinding, resolvedRoot, resolvedOutput);
   assert(Array.isArray(results), "actual result list is required");
   assert(Array.isArray(manifest?.cases), "exact native manifest cases are required");
   assert(Array.isArray(canonical?.cases), "canonical case manifest cases are required");
@@ -235,8 +239,12 @@ export function producePolicyV4Evidence({
     selectedAdapter,
     sourceBinding: {
       version: fs.readFileSync(path.join(resolvedRoot, "VERSION"), "utf8").trim(),
-      gitCommit: git(resolvedRoot, ["rev-parse", "HEAD"]),
-      worktreePatchSha256: sha256Text(git(resolvedRoot, ["diff", "--binary", "HEAD"])),
+      gitCommit: explicitSourceBinding?.gitCommit || git(resolvedRoot, ["rev-parse", "HEAD"]),
+      worktreePatchSha256: explicitSourceBinding?.worktreePatchSha256 ||
+        sha256Text(git(resolvedRoot, ["diff", "--binary", "HEAD"])),
+      ...(explicitSourceBinding?.allowedArtifactRoot
+        ? { allowedArtifactRoot: explicitSourceBinding.allowedArtifactRoot }
+        : {}),
       buildPath: relativeInside(resolvedRoot, resolvedBuild),
       buildSha256: sha256File(resolvedBuild),
       policyPath: "test/fixtures/ui_fulltest_evidence_policy_v4.json",
@@ -508,6 +516,26 @@ function evidenceRef(metadata) {
   return { schema: evidenceRefSchema, ...structuredClone(metadata) };
 }
 
+function normalizeSourceBinding(binding, rootDir, outputDir) {
+  if (binding === null || binding === undefined) return null;
+  assert(binding && typeof binding === "object", "Policy source binding must be an object");
+  assert(/^[a-f0-9]{40}$/.test(String(binding.gitCommit || "")),
+    "Policy source binding commit is invalid");
+  assert(/^[a-f0-9]{64}$/.test(String(binding.worktreePatchSha256 || "")),
+    "Policy source binding patch digest is invalid");
+  const allowedArtifactRoot = String(binding.allowedArtifactRoot || "");
+  assert(allowedArtifactRoot && !path.isAbsolute(allowedArtifactRoot),
+    "Policy source binding allowed artifact root must be repository-relative");
+  const resolvedAllowedRoot = path.resolve(rootDir, allowedArtifactRoot);
+  assert(isWithin(rootDir, resolvedAllowedRoot) && isWithin(resolvedAllowedRoot, outputDir),
+    "Policy source binding allowed artifact root does not contain the evidence output");
+  return {
+    gitCommit: String(binding.gitCommit),
+    worktreePatchSha256: String(binding.worktreePatchSha256),
+    allowedArtifactRoot: path.relative(rootDir, resolvedAllowedRoot).split(path.sep).join("/"),
+  };
+}
+
 function requireContainedFile(root, candidate, label) {
   const resolvedRoot = path.resolve(root);
   const resolved = path.resolve(candidate);
@@ -528,6 +556,11 @@ function relativeInside(root, candidate) {
 function isInside(root, candidate) {
   const relative = path.relative(path.resolve(root), path.resolve(candidate));
   return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+function isWithin(root, candidate) {
+  const relative = path.relative(path.resolve(root), path.resolve(candidate));
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
 function git(root, args) {

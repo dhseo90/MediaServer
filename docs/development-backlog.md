@@ -7454,6 +7454,35 @@ Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_releas
 사용자 지시에 따라 미실행이며 정적 PASS를 actual 또는 release 성공으로 승격하지 않습니다.
 별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.
 
+## V390-REVIEW4-65 canonical 424 Policy v4 release closure
+
+개발 상태는 `canonical actual 424/424 PASS / Policy v4 보정 static closure 완료 /
+release actual 재실행 대기`입니다. Source `a31844fe`의 `./test_release.sh`에서 30분
+longrun은 `118 PASS / 0 FAIL / 2 skip`, canonical UI는 실제 browser로
+`424 attempted / 424 PASS / 0 FAIL / 0 not-run / 0 unsupported`를 기록했습니다.
+이 결과는 UI case closure 증적이지만 Policy v4가
+`actual-evidence-current-source-binding-missing`,
+`source-binding-worktreePatchSha256-drift`, `unapproved-console-message-present`로
+실패했으므로 release-ready 증적은 아닙니다.
+
+공통 원인은 acceptance-owned tracked artifact가 실행 중 갱신되는 동안 raw Git diff를
+재계산한 source binding, 정리 뒤 사라지는 bootstrap descriptor를 가리키는 summary,
+command 없는 attestation ledger, 그리고 MEDIA-017 test view의 불필요한 dashboard poll입니다.
+보정은 acceptance artifact root만 source patch 계산에서 제외하고 독립 Policy verifier가
+같은 경계를 재계산하도록 했습니다. Bootstrap attestation은 run directory에 내구 저장하고,
+temporary root는 authoritative runtime descriptor에서 읽으며, command ledger는 실제 command만
+포함합니다. MEDIA-017의 두 번째 test-owned view는 live/events 검증은 유지하면서 dashboard
+poll 대상에서는 제외합니다. Repository root 전체 제외, 임의 source drift 은폐, console allowlist,
+case PASS 우회는 허용하지 않습니다.
+
+Focused 계약은 acceptance `36/36`, Policy producer `19/19`, Policy independent qualifier
+`12/12`, Policy v4 `29/29`, native exact `60/60`, launcher `21/21`, eligibility `8/8`,
+final integrity `15/15` PASS입니다. Semantic closure는 candidate
+`8db5188a2960c8c8e6574cc5bb1aa0f28622999d6fbfff9b8a10ad10ffbf7bb6`,
+`983 carry-forward + UI-018/SAFE-212/OPS-179 independent review`, approval `986/986`입니다.
+다음 release actual은 clean checkpoint에서 `./test_release.sh` 한 번이며, Policy v4,
+조건부 120분 판단·실행, final integrity가 모두 PASS하기 전 완료로 표시하지 않습니다.
+
 ## V390-REVIEW4-65 bootstrap/action redirect lifecycle classifier correction
 
 개발 상태는 `개발 완료 / static·replay 검증 완료 / actual 재실행 대기`입니다. 시작 commit

@@ -433,6 +433,13 @@ function validateSourceBinding(policy, summary, rootDir, reasons, { verifyCurren
     if (binding[field] && !sha256Pattern.test(binding[field])) reasons.push(`source-binding-${field}-invalid-sha256`);
   }
   if (binding.currentSourceVerified === true) reasons.push("producer-current-source-self-claim-forbidden");
+  if (binding.allowedArtifactRoot !== undefined) {
+    const allowedRoot = resolveContained(rootDir, binding.allowedArtifactRoot);
+    const artifactRoot = resolveContained(rootDir, binding.artifactRoot);
+    if (!allowedRoot || !artifactRoot || !isInside(allowedRoot, artifactRoot)) {
+      reasons.push("source-binding-allowedArtifactRoot-invalid");
+    }
+  }
   for (const [pathField, hashField] of [["policyPath", "policySha256"], ["caseManifestPath", "caseManifestSha256"], ["nativeExactManifestPath", "nativeExactManifestSha256"], ["runnerPath", "runnerSha256"], ["buildPath", "buildSha256"]]) {
     const resolved = resolveContained(rootDir, binding[pathField]);
     if (!resolved || !fs.existsSync(resolved)) reasons.push(`source-binding-${pathField}-missing-file`);

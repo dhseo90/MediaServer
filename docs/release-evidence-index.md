@@ -1568,3 +1568,14 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Static/replay checkpoint | Lifecycle `9`, ledger `5`, form `5`, callback `10`, adapter `48`, runtime `63`, native `55`, completion `36`, diagnostic `33`, replay `548/548`, Policy/acceptance/integrity/semantic/feature/inventory/build PASS | Contract/fixture/replay 결과이며 actual UI 또는 release PASS가 아님 |
 | Generation boundary | Inventory SHA drift에 따른 implementation manifest refresh `1`회·기존 independently approved source-flow projection `1`회, 문서 drift에 따른 semantic discovery ledger writer `2`회; 최종 semantic `986/986`, native `424=423+1` PASS | Independent reviewer `0`, approval/migration-aware producer `0`, native generator `0`, actual Policy producer `0` |
 | Release boundary | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh` 미실행 | Clean pushed commit에서 별도 tester가 `./test_ui.sh`를 실행해야 actual 상태가 결정됨 |
+
+## v3.9.0 canonical 424 Policy v4 closure evidence
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| Canonical actual | Source `a31844fe`; release-owned exact run `424 attempted / 424 PASS / 0 FAIL / 0 not-run / 0 unsupported`, actual browser true | 첫 full 424 PASS. Policy v4 실패 때문에 release evidence eligible=false |
+| 30분 longrun | 같은 release run `118 PASS / 0 FAIL / 2 skip`, cleanup/ports PASS | 120분 조건 판단과 실행을 대체하지 않음 |
+| Policy failure evidence | `/private/tmp/v390-release-policy-failure-a31844-20260813/`의 acceptance/exact/policy summary, evaluation, MEDIA-017 console projection | source-binding 2건과 unapproved console 1건의 실패 증적. 최종 release artifact가 아님 |
+| Static closure | Acceptance `36/36`, Policy producer `19/19`, Policy v4 `29/29`, independence `12/12`, native `60/60`, launcher `21/21`, eligibility `8/8`, final integrity `15/15` | acceptance-owned artifact root만 source patch에서 제외하며 repository 전체 또는 source 변경 은폐를 거부 |
+| Semantic closure | Candidate `8db5188a...f7bb6`, audit/approval `986/986`; UI-018, SAFE-212, OPS-179 독립 검토 | feature/pass/status 변경 0; producer가 audit/approval/implementation/native 4개 fixture를 원자 갱신 |
+| Release boundary | Clean checkpoint의 `./test_release.sh` 재실행 전 | Policy v4, 조건부 120분, final integrity, cleanup이 모두 실제 PASS하기 전 release-ready 아님 |

@@ -16,7 +16,10 @@ import {
   secretStrippedProcessEnv,
 } from "./v390_acceptance_ui_environment.mjs";
 import { createV390UiCaseRuntime } from "./v390_ui_case_runtime.mjs";
-import { collectSourceProvenanceWithAllowedArtifacts } from "./evidence_integrity_lib.mjs";
+import {
+  collectSourceProvenanceWithAllowedArtifacts,
+  scanArtifactTree,
+} from "./evidence_integrity_lib.mjs";
 import * as nativeExactCasesLib from "./v390_ui_native_exact_cases_lib.mjs";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -66,6 +69,7 @@ const files = {
   uiOneShot: readText("scripts/internal/verify_ui_fulltest_one_shot.mjs"),
   caseRuntime: readText("scripts/internal/v390_ui_case_runtime.mjs"),
   exactRunner: readText("scripts/internal/run_v390_ui_native_exact_cases.mjs"),
+  policyVerifier: readText("scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs"),
   serverSh: readText("server.sh"),
   buildServer: readText("scripts/internal/build_server.sh"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
@@ -303,6 +307,18 @@ check("current final actual preflight keeps 120 conditional and requires a clean
     "canonical retry still rejects its preserved first-failure output as source dirtiness");
 });
 
+check("Policy source binding excludes only the acceptance-owned artifact root", () => {
+  for (const snippet of [
+    "worktreePatchSha256: sourceProvenance.sourcePatchSha256",
+    "allowedArtifactRoot: path.relative(rootDir, outputDir)",
+  ]) assertIncludes(files.bundle, snippet, "acceptance Policy source binding");
+  for (const snippet of [
+    "collectSourceProvenanceWithAllowedArtifacts",
+    "summary.sourceBinding?.allowedArtifactRoot",
+    "sourcePatchSha256",
+  ]) assertIncludes(files.policyVerifier, snippet, "independent Policy source verification");
+});
+
 check("canonical artifact dirtiness is allowed without masking source dirtiness", () => {
   const repository = fixtureDir("canonical-allowed-artifact-boundary");
   fs.mkdirSync(repository, { recursive: true });
@@ -313,21 +329,38 @@ check("canonical artifact dirtiness is allowed without masking source dirtiness"
       GIT_COMMITTER_NAME: "contract", GIT_COMMITTER_EMAIL: "contract@example.invalid" },
   });
   git("init", "-q");
-  fs.writeFileSync(path.join(repository, "source.txt"), "clean\n", "utf8");
-  git("add", "source.txt");
-  git("commit", "-q", "-m", "fixture");
   const canonical = path.join(repository, "docs/release-artifacts/v3.9.0/test-acceptance-current-final");
   fs.mkdirSync(canonical, { recursive: true });
+  fs.writeFileSync(path.join(repository, "source.txt"), "clean\n", "utf8");
+  fs.writeFileSync(path.join(canonical, "summary.json"), "{\"result\":\"prior\"}\n", "utf8");
+  git("add", "source.txt", path.relative(repository, canonical));
+  git("commit", "-q", "-m", "fixture");
   fs.writeFileSync(path.join(canonical, "summary.json"), "{}\n", "utf8");
   const allowed = collectSourceProvenanceWithAllowedArtifacts(repository, canonical);
   assert(allowed.worktreeClean === false && allowed.sourceWorktreeClean === true,
     "canonical artifact dirtiness damaged source-clean classification");
   assert(allowed.unapprovedDirtyPaths.length === 0 && allowed.allowedArtifactPaths.length === 1,
     "canonical artifact path ledger mismatch");
+  assert(allowed.sourcePatchSha256 === createHash("sha256").update("").digest("hex"),
+    "canonical artifact bytes changed the source-only patch digest");
   fs.writeFileSync(path.join(repository, "source.txt"), "dirty\n", "utf8");
   const rejected = collectSourceProvenanceWithAllowedArtifacts(repository, canonical);
   assert(rejected.sourceWorktreeClean === false && rejected.unapprovedDirtyPaths.includes("source.txt"),
     "source dirtiness was hidden by the canonical allowed-artifact root");
+  assert(rejected.sourcePatchSha256 !== allowed.sourcePatchSha256,
+    "source-only patch digest did not change for a tracked source edit");
+});
+
+check("artifact scan distinguishes verifier prose from a real video placeholder", () => {
+  const root = fixtureDir("placeholder-prose-boundary");
+  fs.mkdirSync(root, { recursive: true });
+  fs.writeFileSync(path.join(root, "final-integrity.log"),
+    "[pass] canonical artifacts contain no duplicate screenshots or video placeholders\n", "utf8");
+  assert(scanArtifactTree(root).placeholderVideoFiles.length === 0,
+    "final-integrity success prose was misclassified as a video placeholder");
+  fs.writeFileSync(path.join(root, "placeholder.video.txt"), "fixture video placeholder\n", "utf8");
+  assert(scanArtifactTree(root).placeholderVideoFiles.length === 1,
+    "real placeholder.video.txt artifact was not rejected");
 });
 
 check("canonical source removes legacy 8-case and external summary injection", () => {
@@ -730,6 +763,15 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
     "runtime descriptor auth usersFile missing");
   assert(summary.uiEnvironment?.runtimeDescriptor?.auth?.defaultViewId === "9001",
     "runtime descriptor auth defaultViewId mismatch");
+  assert(summary.uiTemporaryRoot === summary.uiEnvironment?.runtimeDescriptor?.temporaryRoot &&
+    Boolean(summary.uiTemporaryRoot),
+  "acceptance temporary-root binding did not use the authoritative runtime descriptor");
+  const bootstrapStage = summary.stages.find(item => item.id === "ui-environment-bootstrap");
+  assert(bootstrapStage?.summaryPath && fs.existsSync(bootstrapStage.summaryPath) &&
+    path.resolve(bootstrapStage.summaryPath).startsWith(`${path.resolve(summary.runDir)}${path.sep}`),
+  "bootstrap stage evidence was not preserved inside the acceptance run directory");
+  assert(summary.executedCommands.every(item => item.stage && item.id && item.status && item.command),
+    "acceptance executed-command ledger contains a commandless attestation row");
   assert(summary.uiEnvironment?.dependency?.status === "dependency-bootstrap-attestation",
     "browser dependency bootstrap attestation missing");
   assert(summary.uiEnvironment?.secretHandling === "all-role-secrets-generated-memory-only",

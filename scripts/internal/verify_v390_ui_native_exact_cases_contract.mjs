@@ -2334,6 +2334,7 @@ check("remaining client-safe batch clusters bind dynamic identities and owned li
     'if (item.caseId === "MEDIA-017")',
     "materializeTwoViewPlaybackFixture(item, context)",
     "scopeRuntimeViewerToViews([defaultViewId, viewId])",
+    "showDashboard: false",
     "context.catalogBindings.viewIds || []",
     "fresh viewer authoritative view scopes differ from the case fixture binding",
   ]) {

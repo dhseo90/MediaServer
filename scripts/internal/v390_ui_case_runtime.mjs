@@ -3483,7 +3483,7 @@ export function createV390UiCaseRuntime({
         sourceId,
         displayName: `REVIEW4 ${item.caseId} view B`,
         enabled: true,
-        showDashboard: true,
+        showDashboard: false,
         showEvents: true,
         showMetadataSummary: true,
         allowedOverlayModes: ["raw", "va-overlay", "va-rule"],

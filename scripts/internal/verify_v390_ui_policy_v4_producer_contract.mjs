@@ -22,6 +22,7 @@ import {
 import { buildDiagnosticMarkerFileStageEvidence } from "./v390_ui_case_runtime.mjs";
 import { buildDiagnosticMarkerResponseStageEvidence } from "./v390_ui_native_adapter.mjs";
 import { qualifyBrowserConsoleMessages } from "./v390_ui_console_evidence.mjs";
+import { collectSourceProvenanceWithAllowedArtifacts } from "./evidence_integrity_lib.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const tempParent = path.join(rootDir, ".tmp-v390-policy-producer-contract");
@@ -121,6 +122,32 @@ check("producer emits captured raw envelope without qualification claims", () =>
   }
   assert(value.rawEvidence.actionId === completion.actionId && value.rawEvidence.correlationId === completion.correlationId,
     "raw primary reference binding missing");
+});
+
+check("producer preserves the acceptance-owned source-only patch binding", () => {
+  const provenance = collectSourceProvenanceWithAllowedArtifacts(rootDir, tempParent);
+  const reboundSummary = produce(makeResult(), manifest, canonical, {
+    gitCommit: provenance.commitSha,
+    worktreePatchSha256: provenance.sourcePatchSha256,
+    allowedArtifactRoot: path.relative(rootDir, tempParent),
+  }).summary;
+  const rebound = reboundSummary.sourceBinding;
+  assert(rebound.gitCommit === provenance.commitSha &&
+    rebound.worktreePatchSha256 === provenance.sourcePatchSha256 &&
+    rebound.allowedArtifactRoot === path.relative(rootDir, tempParent),
+  "producer recomputed source binding from in-flight acceptance artifacts");
+  const escaped = structuredClone(reboundSummary);
+  escaped.sourceBinding.allowedArtifactRoot = ".";
+  const policy = readJson(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  const evaluation = evaluateEvidence(policy, escaped, {
+    rootDir,
+    verifyArtifacts: false,
+    contractMode: true,
+    verifyCurrentSource: false,
+    now: new Date(),
+  });
+  assert(evaluation.reasons.includes("source-binding-allowedArtifactRoot-invalid"),
+    "repository-root artifact exclusion could hide source changes from Policy verification");
 });
 
 check("core Policy evaluator rejects actual full-suite evidence without canonical parent binding", () => {
@@ -703,7 +730,7 @@ console.log("- actualExact424BrowserExecution: not-run-by-this-contract");
 cleanup();
 process.exit(failed.length === 0 ? 0 : 1);
 
-function produce(result, manifestValue = manifest, canonicalValue = canonical) {
+function produce(result, manifestValue = manifest, canonicalValue = canonical, sourceBinding = null) {
   return producePolicyV4Evidence({
     rootDir,
     outputDir,
@@ -722,6 +749,7 @@ function produce(result, manifestValue = manifest, canonicalValue = canonical) {
     runnerPath: path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"),
     serverLogPath,
     contractFixture: true,
+    sourceBinding,
   });
 }
 

@@ -348,6 +348,8 @@ async function runRealStage(stageId) {
     uiPostProducerSecretScanner = uiEnvironmentHandle.createRetainedArtifactSecretScanner();
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
     uiEnvironmentSummary.uiBuildBinding = uiBuildBinding;
+    const bootstrapSummaryPath = path.join(runDir, "ui-environment-bootstrap.json");
+    writeJson(bootstrapSummaryPath, uiEnvironmentSummary);
     const endedAt = Date.now();
     stages.push(makeStage({
       id: stageId,
@@ -358,7 +360,7 @@ async function runRealStage(stageId) {
       endedAt: new Date(endedAt).toISOString(),
       durationMs: endedAt - startedAt,
       logPath: writeStageLog(stageId, [JSON.stringify(uiEnvironmentSummary)]),
-      summaryPath: uiEnvironmentHandle.runtimeDescriptorPath,
+      summaryPath: bootstrapSummaryPath,
       tail: [],
       checks: [
         { id: "dependency-bootstrap-attestation", status: uiEnvironmentSummary.dependency?.browserLaunchVerified === true ? "PASS" : "FAIL" },
@@ -414,6 +416,11 @@ async function runRealStage(stageId) {
           visualMatrixProbes: finalizer.visualMatrixProbes,
           summaryFilePath: path.join(childDir, "policy-v4-summary.json"),
           canonicalParentSummaryPath: childSummaryPath,
+          sourceBinding: {
+            gitCommit: sourceProvenance.commitSha,
+            worktreePatchSha256: sourceProvenance.sourcePatchSha256,
+            allowedArtifactRoot: path.relative(rootDir, outputDir),
+          },
           });
           uiPolicyRawSummary = produced.summary;
           uiPolicyRawSummaryPath = produced.summaryPath;
@@ -587,7 +594,11 @@ async function runFixtureStage(stageId) {
     }
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
     uiEnvironmentSummary.uiBuildBinding = uiBuildBinding;
-    stages.push(passStage(stageId, "fixture self-contained UI environment wiring", uiEnvironmentSummary));
+    const bootstrapSummaryPath = path.join(runDir, "ui-environment-bootstrap.json");
+    writeJson(bootstrapSummaryPath, uiEnvironmentSummary);
+    const stage = passStage(stageId, "fixture self-contained UI environment wiring", uiEnvironmentSummary);
+    stage.summaryPath = bootstrapSummaryPath;
+    stages.push(stage);
     return;
   }
   if (stageId === "ui-exact-424" &&
@@ -907,7 +918,7 @@ function buildActualSummary() {
     priorFirstFailure,
     localReadiness: stageStatus("feature-gates"),
     longrun30: childEvidence("server-longrun-30", longrun30Summary),
-    uiTemporaryRoot: uiEnvironmentSummary?.temporaryRoot || "",
+    uiTemporaryRoot: uiEnvironmentSummary?.runtimeDescriptor?.temporaryRoot || "",
     uiEnvironment: uiEnvironmentSummary ? {
       ...uiEnvironmentSummary,
       cleanup: uiEnvironmentCleanup,
@@ -1354,7 +1365,7 @@ function buildExecutedCommandLedger() {
   for (const stage of stages) {
     if (stage.command) ledger.push({ stage: stage.id, id: stage.id, status: stage.status, command: stage.command, exitCode: stage.exitCode, logPath: stage.logPath || "" });
     for (const check of stage.checks || []) {
-      ledger.push({ stage: stage.id, id: check.id, status: check.status, command: check.command, exitCode: check.exitCode, logPath: check.logPath || "" });
+      if (check.command) ledger.push({ stage: stage.id, id: check.id, status: check.status, command: check.command, exitCode: check.exitCode, logPath: check.logPath || "" });
     }
   }
   return ledger;
@@ -1748,8 +1759,7 @@ function runUiFinalIntegrityStage() {
       version: readRootText("VERSION").trim(),
       gitCommit: currentUiIntegritySource.commitSha,
       gitBranch: currentUiIntegritySource.branch,
-      worktreePatchSha256: sha256Text(execFileSync("git", ["diff", "--binary", "HEAD"],
-        { cwd: rootDir, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })),
+      worktreePatchSha256: currentUiIntegritySource.sourcePatchSha256,
     } },
   ) : null;
   const binding = validateCanonicalFinalIntegrityBindings({

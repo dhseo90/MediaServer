@@ -26,6 +26,12 @@ export function collectSourceProvenanceWithAllowedArtifacts(rootDir, allowedArti
   const allowedRoot = path.resolve(allowedArtifactRoot);
   const allowedArtifactPaths = dirtyPaths.filter(candidate => isWithin(allowedRoot, candidate));
   const unapprovedDirtyPaths = dirtyPaths.filter(candidate => !isWithin(allowedRoot, candidate));
+  const root = path.resolve(rootDir);
+  const allowedRelative = path.relative(root, allowedRoot).split(path.sep).join("/");
+  const sourcePatch = allowedRelative && !allowedRelative.startsWith("../") &&
+    allowedRelative !== ".." && !path.isAbsolute(allowedRelative)
+    ? git(rootDir, ["diff", "--binary", "HEAD", "--", ".", `:(exclude)${allowedRelative}`])
+    : git(rootDir, ["diff", "--binary", "HEAD"]);
   return {
     commitSha,
     branch,
@@ -36,6 +42,7 @@ export function collectSourceProvenanceWithAllowedArtifacts(rootDir, allowedArti
     unapprovedDirtyPaths: unapprovedDirtyPaths.map(candidate => path.relative(rootDir, candidate) || "."),
     allowedArtifactRoot: allowedRoot,
     worktreeStatusSha256: sha256Text(status),
+    sourcePatchSha256: sha256Text(sourcePatch),
     capturedAt: new Date().toISOString(),
   };
 }
@@ -202,7 +209,7 @@ function isPlaceholderVideoFile(filePath) {
   if (!/\.(txt|log|json|md)$/i.test(filePath)) return false;
   const stat = fs.statSync(filePath);
   if (stat.size > 1024 * 1024) return false;
-  return /(?:fixture\s+)?video\s+placeholder/i.test(fs.readFileSync(filePath, "utf8"));
+  return /(?:fixture\s+)?video\s+placeholder\b/i.test(fs.readFileSync(filePath, "utf8"));
 }
 
 function git(rootDir, args) {

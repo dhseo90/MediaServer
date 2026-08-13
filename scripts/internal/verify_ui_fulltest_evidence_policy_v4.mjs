@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { collectSourceProvenanceWithAllowedArtifacts } from "./evidence_integrity_lib.mjs";
 import { evaluateEvidence, sha256File, sha256Text, validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { censusQualificationReasons } from "./v390_ui_policy_v4_reason_census.mjs";
 
@@ -44,12 +45,19 @@ const policy = readJson(policyPath);
 const summary = readJson(summaryPath);
 const coveragePolicy = readJson(coveragePolicyPath);
 const policyErrors = [...validatePolicy(policy), ...validatePolicyDocuments()];
+const allowedArtifactRoot = summary.sourceBinding?.allowedArtifactRoot
+  ? resolveRoot(summary.sourceBinding.allowedArtifactRoot)
+  : null;
+const allowedSourceProvenance = allowedArtifactRoot
+  ? collectSourceProvenanceWithAllowedArtifacts(rootDir, allowedArtifactRoot)
+  : null;
 const currentSource = {
   version: readText("VERSION").trim(),
   gitCommit: execFileSync("git", ["rev-parse", "HEAD"], { cwd: rootDir, encoding: "utf8" }).trim(),
   gitBranch: execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"],
     { cwd: rootDir, encoding: "utf8" }).trim(),
-  worktreePatchSha256: sha256Text(execFileSync("git", ["diff", "--binary", "HEAD"], { cwd: rootDir, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })),
+  worktreePatchSha256: allowedSourceProvenance?.sourcePatchSha256 ||
+    sha256Text(execFileSync("git", ["diff", "--binary", "HEAD"], { cwd: rootDir, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })),
 };
 const evaluation = evaluateEvidence(policy, summary, { rootDir, verifyArtifacts: true, currentSource });
 const currentCounts = coveragePolicy.expectedReadiness || {};
