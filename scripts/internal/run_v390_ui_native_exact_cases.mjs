@@ -743,7 +743,7 @@ async function runCanonicalSuiteFinalizerProcess(runId) {
   ];
   if (options.playwrightModulePath) args.push("--playwright-module-path", resolveRootOrAbsolute(options.playwrightModulePath));
   if (options.chromePath) args.push("--chrome-path", resolveRootOrAbsolute(options.chromePath));
-  const child = await runCanonicalChildProcess(process.execPath, args);
+  const child = await runCanonicalChildProcess(process.execPath, canonicalChildProcessArgs(args));
   try {
     const value = JSON.parse(fs.readFileSync(finalizerSummaryPath, "utf8"));
     const stat = fs.lstatSync(finalizerSummaryPath);
@@ -935,7 +935,7 @@ async function runCanonicalCaseChild({
       "--contract-case-child-build-binding",
     );
   }
-  const childProcess = await runCanonicalChildProcess(process.execPath, args);
+  const childProcess = await runCanonicalChildProcess(process.execPath, canonicalChildProcessArgs(args));
   let childSummary = null;
   try {
     childSummary = JSON.parse(fs.readFileSync(childSummaryPath, "utf8"));
@@ -953,6 +953,11 @@ async function runCanonicalCaseChild({
     outputDir: childOutputDir,
     summaryPath: childSummaryPath,
   };
+}
+
+function canonicalChildProcessArgs(args) {
+  assert(Array.isArray(args), "canonical child process argv is invalid");
+  return ["--no-maglev", ...args];
 }
 
 function runCanonicalChildProcess(file, args) {

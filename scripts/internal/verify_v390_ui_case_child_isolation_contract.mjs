@@ -53,6 +53,18 @@ check("completed actual case child bypasses the Node worker shutdown deadlock", 
     "completed actual case child does not use the immediate post-finalization exit primitive");
 });
 
+check("canonical browser children disable concurrent Maglev shutdown work", () => {
+  const source = fs.readFileSync(runnerPath, "utf8");
+  assert(source.includes('function canonicalChildProcessArgs(args)') &&
+    source.includes('return ["--no-maglev", ...args];'),
+  "canonical child argv does not disable the Node Maglev compiler");
+  const callsites = source.match(
+    /runCanonicalChildProcess\(process\.execPath, canonicalChildProcessArgs\(args\)\)/g,
+  ) || [];
+  assert(callsites.length === 2,
+    `case and suite-finalizer child argv bindings are incomplete: ${callsites.length}`);
+});
+
 check("suite finalizer scans success and failure artifacts before secret release", () => {
   const source = fs.readFileSync(runnerPath, "utf8");
   const start = source.indexOf("async function runCanonicalSuiteFinalizerChild()");
