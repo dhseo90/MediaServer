@@ -7454,6 +7454,26 @@ Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_releas
 사용자 지시에 따라 미실행이며 정적 PASS를 actual 또는 release 성공으로 승격하지 않습니다.
 별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.
 
+## V390-REVIEW4-65 release actual Policy/final-integrity closure (2026-08-14)
+
+Commit `efb44bd1b20517297a22dd17956fb514f26ebbf0`의 `./test_release.sh` actual은 full build와
+feature gates, 30분 longrun(`118 PASS / 0 FAIL / 2 skip`), canonical browser exact
+`424/424 PASS`를 완료했습니다. Policy v4는 qualified case `424/424`를 계산했지만 `MEDIA-017` 한 건의
+unapproved console 경계 때문에 FAIL했고, 120분과 final release completion은 실행되지 않았습니다.
+`MEDIA-017` trace에서 dashboard 권한이 없는 두 번째 test-owned view에
+`GET /client/api/views/39017002/dashboard`가 반복되어 403 6건과 teardown 중 404 1건을 만들었습니다.
+제품 `refreshSelectedTileDetail()`이 `showDashboard=false`를 확인하지 않고 3초 polling한 것이 직접
+원인이며, Policy allowlist로 승인하지 않고 권한 없는 view는 local tile 상태만 렌더링하고 dashboard
+request를 만들지 않도록 보정했습니다.
+
+같은 run의 final-integrity `acceptance UI temporary root binding mismatch`는 runtime 또는 cleanup 실패가
+아닙니다. `summary.uiTemporaryRoot`와 `summary.uiEnvironment.runtimeDescriptor.temporaryRoot`는 실제로
+동일하고 cleanup measurement도 `existedBefore=true`, `existsAfter=false`, `bytesAfter=0`입니다. Verifier가
+존재하지 않는 legacy `summary.uiEnvironment.temporaryRoot`를 읽던 오류를 authoritative nested runtime
+descriptor 결속으로 교정했습니다. Client-live 권한 계약과 final-integrity 계약은 RED 후 GREEN이며 full
+build도 PASS했습니다. 이 보정 commit의 `./test_release.sh` actual은 아직 실행하지 않았으므로 Policy v4,
+조건부 120분, final-integrity, release-ready는 여전히 미완료입니다.
+
 ## V390-REVIEW4-65 canonical 424 Policy v4 release closure
 
 개발 상태는 `canonical actual 424/424 PASS / Policy v4 보정 static closure 완료 /

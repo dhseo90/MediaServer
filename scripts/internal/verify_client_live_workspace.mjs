@@ -9,8 +9,14 @@ import {
   openBrowserPage,
 } from "./ui_visual_smoke_lib.mjs";
 
-const script = fs.readFileSync("src/ingress/product_ui_page_scripts.cpp", "utf8");
-const css = fs.readFileSync("src/ingress/product_ui_css.cpp", "utf8");
+const script = [
+  "src/ingress/product_ui_page_scripts.cpp",
+  "src/ingress/product_ui_client_scripts.cpp",
+].map(filePath => fs.readFileSync(filePath, "utf8")).join("\n");
+const css = [
+  "src/ingress/product_ui_css.cpp",
+  "src/ingress/product_ui_client_css.cpp",
+].map(filePath => fs.readFileSync(filePath, "utf8")).join("\n");
 const uiSmoke = fs.readFileSync("scripts/internal/verify_ops_client_ui_smoke.mjs", "utf8");
 const args = parseArgs(process.argv.slice(2));
 const liveSourceTreeBlock = script.slice(
@@ -119,6 +125,14 @@ check(
     uiSmoke.includes('data-workspace-model="source-tree,drag-drop-grid,multi-source"') &&
     uiSmoke.includes("root.addEventListener('drop'") &&
     uiSmoke.includes("dataTransfer.setData"),
+);
+check(
+  "client live selected detail respects dashboard permission before network access",
+  script.includes("if (view.showDashboard === false)") &&
+    script.includes('data-dashboard-access="denied"') &&
+    script.indexOf("if (view.showDashboard === false)", script.indexOf("async function refreshSelectedTileDetail()")) <
+      script.indexOf("requestJson(`/client/api/views/${encodeURIComponent(view.viewId)}/dashboard`)",
+        script.indexOf("async function refreshSelectedTileDetail()")),
 );
 
 if (failures.length > 0) {

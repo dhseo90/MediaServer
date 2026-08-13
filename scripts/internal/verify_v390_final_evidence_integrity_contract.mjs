@@ -224,6 +224,19 @@ check("actual final integrity consumes canonical parent and independently bound 
   "actual integrity does not independently re-evaluate raw Policy evidence");
 });
 
+check("actual final integrity binds the authoritative UI runtime descriptor root", () => {
+  const source = readText("scripts/internal/verify_v390_final_evidence_integrity.mjs");
+  assert(source.includes("summary.uiEnvironment?.runtimeDescriptor?.temporaryRoot"),
+    "actual integrity does not read the authoritative nested UI temporary root");
+  assert(!source.includes("summary.uiEnvironment?.temporaryRoot"),
+    "actual integrity still reads the nonexistent legacy UI temporary root");
+  assert(source.includes("temporaryRootMeasurement?.contained === true") &&
+    source.includes("temporaryRootMeasurement?.existedBefore === true") &&
+    source.includes("temporaryRootMeasurement?.existsAfter === false") &&
+    source.includes("temporaryRootMeasurement?.bytesAfter === 0"),
+  "actual integrity weakened temporary-root cleanup measurement");
+});
+
 check("server dispatch, script inventory, and evidence docs expose final integrity commands", () => {
   const combined = [
     readText("server.sh"),

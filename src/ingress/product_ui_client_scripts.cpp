@@ -2623,6 +2623,27 @@ void AppendClientShellScript(std::ostringstream& out) {
         if (container) container.innerHTML = emptyState('선택된 라이브 타일이 없습니다', '채널 권한이 생기면 타일을 선택해 상태를 확인할 수 있습니다.');
         return;
       }
+      if (view.showDashboard === false) {
+        container.innerHTML = `
+          <div class="toolbar" data-dashboard-access="denied">
+            <div>
+              <h2>${escapeHtml(view.displayName || view.viewId)}</h2>
+              <p>타일 ${tile.index + 1} · ${escapeHtml(overlayLabel(tile.overlayMode || defaultOverlayModeForView(view)))}</p>
+            </div>
+            <div class="meta">
+              ${statusChip(tile.status)}
+              <span class="chip${tileStatusClass(tile.stale ? 'stale' : 'fresh')}" data-selected-stale>${tile.stale ? '지연' : '정상'}</span>
+            </div>
+          </div>
+          <div class="summary">
+            <div class="metric"><span>연결</span><strong>${escapeHtml(clientDynamicText(liveTileConnectionLabel(tile)))}</strong></div>
+            <div class="metric"><span>트랙</span><strong>${escapeHtml(display(tile.trackCount))}</strong></div>
+            <div class="metric"><span>이벤트</span><strong>${escapeHtml(display(tile.eventCount))}</strong></div>
+          </div>
+        `;
+        updateTileDom(tile);
+        return;
+      }
       try {
         const payload = await requestJson(`/client/api/views/${encodeURIComponent(view.viewId)}/dashboard`);
         const health = payload.health || {};

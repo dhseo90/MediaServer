@@ -21,15 +21,18 @@ tag, and GitHub Release steps are complete.
 
 | Area | Result | Binding |
 | --- | --- | --- |
-| Static and clean-checkout verification | PASS | verification commit `47582fea7e7fad2c5ef06caf86d9ef6901fd5939` |
-| Canonical UI actual | `424/424 PASS` | `./test_ui.sh`, actual browser execution |
-| Policy v4 | eligible, qualified `424/424` | same UI run and source binding |
-| UI cleanup/final integrity | PASS | PID, ports, runtime root, current run, manifest, and build binding |
+| Static and clean-checkout verification | PASS | clean source `efb44bd1b20517297a22dd17956fb514f26ebbf0` and the current permission/final-integrity correction checkpoint |
+| 30-minute longrun | PASS | source `efb44bd1...`, `118 PASS / 0 FAIL / 2 skip`, 22 soak iterations |
+| Canonical UI actual | `424/424 PASS` | source `efb44bd1...`, actual browser execution |
+| Policy v4 | FAIL | qualified `424/424`, but `MEDIA-017` emitted unapproved 403/404 console responses |
+| Cleanup/final integrity | cleanup PASS, final integrity FAIL | runtime cleanup was measured; the verifier read a legacy temporary-root field |
 
 ## Release Gates Still Pending
 
-- Promote the verified commit to `v3.9.0` and run `./test_release.sh` from the clean release branch.
-- Complete the required 30-minute run and the triggered 120-minute run on the same release source.
+- Commit the `MEDIA-017` permission guard and authoritative temporary-root verifier correction, then
+  run `./test_release.sh` from the clean `v3.9.0` branch.
+- Reconfirm the required 30-minute run and complete the launcher's conditional 120-minute decision
+  and execution on the same release source.
 - Preserve the final acceptance evidence under `docs/release-artifacts/v3.9.0/`.
 - Complete PR checks, main merge, signed tag verification, GitHub Release publication, and published
   metadata verification.

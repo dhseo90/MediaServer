@@ -22,11 +22,11 @@
 
 | 영역 | 현재 결과 | 직접 evidence | 릴리즈 판정 |
 | --- | --- | --- | --- |
-| 안정화 Static | PASS | verification commit `47582fea7e7fad2c5ef06caf86d9ef6901fd5939`의 원 checkout 및 branch-bearing clean checkout 전체 gate PASS | release 선수 조건 충족 |
-| UI 풀테스트 | PASS | `./test_ui.sh` exit `0`, exact `424/424 PASS`, fail/not-run/unsupported/runnerAbort `0`, Policy v4 eligible 및 qualified `424/424`, UI final-integrity와 cleanup PASS | UI 영역 충족 |
-| 30분 | 현재 release SHA에서 미실행 | UI-only acceptance에는 포함되지 않음 | release blocker |
-| 120분 | 현재 release SHA에서 미실행 | v3.9.0에는 RTSP/WebRTC/session/runtime/cleanup 직접 변경이 있어 AGENTS 7.6.2 조건에 해당 | release blocker |
-| 전체 release acceptance | 세 번째 feature gate FAIL, 구조 closure Static PASS | source `2ac5329b`까지 세 번의 fail-stop 이력 보존; current graph/source bundle/semantic ledger 재결속 후 관련 gate PASS | 새 clean source의 전체 재실행 전이며 release-ready 아님 |
+| 안정화 Static | PASS | source `efb44bd1b20517297a22dd17956fb514f26ebbf0` 및 현재 permission/final-integrity correction의 focused/full static PASS | branch-bearing clean checkout 최종 재검증 전 |
+| UI 풀테스트 | FAIL | exact browser `424/424 PASS`, Policy v4 qualified `424/424`이나 MEDIA-017 unapproved console로 eligible=false | case 전수 PASS를 Policy v4 UI 풀테스트 PASS로 승격하지 않음 |
+| 30분 | PASS | source `efb44bd1...`, `118 PASS / 0 FAIL / 2 skip`, soak 22회와 cleanup PASS | 새 correction source에서 재실행 필요 |
+| 120분 | 미실행 | Policy v4 fail-stop으로 decision/execution에 도달하지 못함; v3.9.0 release policy의 기존 직접 runtime/media 변경 판정 유지 | release blocker |
+| 전체 release acceptance | FAIL | source `efb44bd1...`의 Policy v4 MEDIA-017 console과 final-integrity temporary-root verifier 오류 | correction checkpoint의 clean `./test_release.sh` 재실행 전 release-ready 아님 |
 
 UI run은 `2026-08-13T10:32:51`에 시작됐고 source commit은 `47582fea7e7fad2c5ef06caf86d9ef6901fd5939`, build SHA-256은
 `2e4e67d159579fc138988766509eb59dc84c44cc3a73c33fb265c2e625e4b25f`, canonical manifest SHA-256은
@@ -3417,6 +3417,25 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Semantic/feature/inventory/docs | Semantic closure 31/31, source audit 51/51, approvals 986/986, approval negative 11/11, implementation 986/986·negative 15/15, inventory coverage 7/7, project inventory 17/17, feature completion 14/14, script inventory 11/11, docs links failures 0, docs UI assets 10/10, entry baseline 14/14·contract 4/4, code comments 777/777, release metadata 18/18, release evidence index 8/8 PASS | Semantic/native source drift가 없어 independent reviewer, migration-aware producer, native/semantic generator, Policy actual producer는 모두 0회입니다 |
 | 실행 중 정정 | 첫 focused 실행에서 과거 RED fixture가 mutable top-level current alias를 가리켜 SHA가 최신 actual로 바뀐 충돌을 발견해 immutable run-ID artifact만 historical hash 대상으로 제한했습니다. 다음 focused 실행에서 별도 initial phase가 없는 canonical negative-route UI-018을 발견해 `negative-route + 단일 initial-document-navigation binding` 공통 규칙으로 포함했습니다. 424 전수 대입에서 initial settled route와 action source route가 다른 9건을 발견해 attestation 시점을 최초 문서 직후로 분리했습니다 | 세 정정 모두 계약 완화 없이 공통 lifecycle 모델을 보강했습니다. 이후 focused 및 전체 gate가 PASS했습니다 |
 | 미실행 | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, actual acceptance/release, `./test_release.sh` | 사용자 금지. Clean pushed commit에서 별도 tester가 `./test_ui.sh`를 정확히 1회 실행해야 actual GREEN 여부가 결정됩니다 |
+
+## v3.9.0 release actual Policy/final-integrity residual closure (2026-08-14)
+
+| 항목 | 결과 | 판정 |
+| --- | --- | --- |
+| Source | `efb44bd1b20517297a22dd17956fb514f26ebbf0`, local/origin `0/0` | clean checkpoint actual |
+| Build/feature/30분 | Full build·feature gates PASS, 30분 `118 PASS / 0 FAIL / 2 skip` | PASS |
+| Canonical UI | actual browser `424 attempted / 424 PASS / 0 FAIL / 0 not-run / 0 unsupported` | PASS |
+| Policy v4 | qualified `424/424`, `MEDIA-017`의 unapproved dashboard 403 6건과 teardown 404 1건 | FAIL |
+| 120분/final | Policy 실패로 120분·release completion not-run. Final-integrity는 UI temporary-root legacy field 비교도 FAIL | release-ready 아님 |
+| MEDIA-017 원인 | `showDashboard=false`인 두 번째 view도 client-live selected-detail timer가 dashboard API를 반복 호출 | 제품 권한 경계 보정, Policy 예외 승인 없음 |
+| Temporary-root 원인 | 실제 top-level/root descriptor 값과 cleanup measurement는 일치하지만 verifier가 없는 `uiEnvironment.temporaryRoot`를 비교 | `runtimeDescriptor.temporaryRoot` exact 결속으로 보정 |
+| 보정 검증 | Client-live workspace와 final-integrity contract RED→GREEN, full build PASS | 새 clean commit actual 전 static closure만 해당 |
+
+Actual evidence의 bounded historical package는
+`docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/runs/v390-test-acceptance-20260813154309-10950`입니다.
+전체 4,651-file/311MB 실패 run은 다음 clean release actual과 중복 커밋하지 않고, summary·Policy·MEDIA-017·cleanup
+25개 파일(9.4MB)만 source/hash 결속해 보존합니다.
+이 실행의 424/424는 보존하지만 Policy/final 미완료이므로 release PASS로 승격하지 않습니다.
 
 ## v3.9.0 canonical 424 / Policy v4 release checkpoint (2026-08-14)
 

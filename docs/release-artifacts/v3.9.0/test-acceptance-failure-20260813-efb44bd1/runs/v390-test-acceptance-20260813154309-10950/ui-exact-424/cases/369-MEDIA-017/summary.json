@@ -1,0 +1,553 @@
+{
+  "schema": "media-server.v390-ui-case-child.v1",
+  "result": "PASS",
+  "executionStatus": "case-child-browser-evidence",
+  "releaseEvidenceEligible": false,
+  "policyV4Qualification": "not-eligible-single-case-child",
+  "uiFulltestPass": false,
+  "actualBrowserExecution": true,
+  "sourceBinding": {
+    "baselineSourceCommitSha": "327afe0d4b3282400f1925252c59a53b87827224",
+    "verificationCommitSha": "efb44bd1b20517297a22dd17956fb514f26ebbf0",
+    "verificationBranch": "v3.9.0",
+    "runnerSchema": "media-server.v390-ui-canonical-parent.v1",
+    "manifestSha256": "0aa6ea50a58809eaf4fd0c14302e68d2bdb68ef18ea0cf8d509b751c6c2f0117",
+    "implementationFiles": {
+      "runner": {
+        "path": "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+        "sha256": "db4f572078f52f313472caef642aa614822f99ec7db8ac9718737fac3b46829e"
+      },
+      "library": {
+        "path": "scripts/internal/v390_ui_native_exact_cases_lib.mjs",
+        "sha256": "0a1ba760799fce4089cece0b03edf5e8be9c4ef46e45f8e85640b55a442bd8ce"
+      },
+      "adapter": {
+        "path": "scripts/internal/v390_ui_native_adapter.mjs",
+        "sha256": "07a49830bc1ba670b122a0ec12486dcdedeedb949e39027dab750fd279f37012"
+      },
+      "recorder": {
+        "path": "scripts/internal/v390_ui_request_event_recorder.mjs",
+        "sha256": "c8fba8290f1c9b3e856c8ac05d2911254500d243966ea96ce61cccc68f90a2e9"
+      },
+      "evaluator": {
+        "path": "scripts/internal/v390_ui_request_lifecycle_evaluator.mjs",
+        "sha256": "f3ad6af79b7c24f7064d06d3342df5ee195caba2b61aba5a3f06e254d622613b"
+      }
+    },
+    "implementationSha256": "f5baa812dd6fce5041135a4474cf67a2f212113ae27e11e67336e5f3d371a7a8",
+    "buildSha256": "2e4e67d159579fc138988766509eb59dc84c44cc3a73c33fb265c2e625e4b25f"
+  },
+  "policyInputRef": {
+    "schema": "media-server.v390-ui-case-policy-input-ref.v1",
+    "caseId": "MEDIA-017",
+    "runId": "1f81950a-a497-4682-bcd8-216cd5fb9a26",
+    "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/cases/369-MEDIA-017/policy-input.json",
+    "bytes": 46334,
+    "sha256": "a55e56d193dfe7fcf6607029c5e2a50b1aff3c6b6c845f5a78defdc503f49c71"
+  },
+  "selection": {
+    "caseId": "MEDIA-017",
+    "selectedIds": [
+      "MEDIA-017"
+    ],
+    "selected": 1
+  },
+  "counts": {
+    "selected": 1,
+    "attempted": 1,
+    "pass": 1,
+    "fail": 0,
+    "notRun": 0,
+    "unsupported": 0,
+    "runnerAbort": 0
+  },
+  "case": {
+    "caseId": "MEDIA-017",
+    "featureId": "MEDIA-017",
+    "status": "PASS",
+    "failureClass": "",
+    "failurePhase": "",
+    "failureCode": "",
+    "failureMessage": "",
+    "failureCensus": [],
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 34,
+        "responseCount": 34,
+        "classified": 34,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "requests": [
+        {
+          "requestIdentity": "MEDIA-017:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-13",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-15",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "a27c008b7975ccf912604171c89bb9d553bdcd8dc5478867d128e90f45a981ba"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-17",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-18",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-19",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-23",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "a27c008b7975ccf912604171c89bb9d553bdcd8dc5478867d128e90f45a981ba"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-25",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-26",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-27",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "a27c008b7975ccf912604171c89bb9d553bdcd8dc5478867d128e90f45a981ba"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-28",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-31",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-32",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-34",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-38",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-39",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-40",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-44",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-46",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-48",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-51",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-53",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-55",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-57",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-59",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-61",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-63",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-65",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-67",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "MEDIA-017:object-1",
+          "responseIdentity": "MEDIA-017:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-3",
+          "responseIdentity": "MEDIA-017:object-5",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-4",
+          "responseIdentity": "MEDIA-017:object-6",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-7",
+          "responseIdentity": "MEDIA-017:object-9",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-8",
+          "responseIdentity": "MEDIA-017:object-10",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-11",
+          "responseIdentity": "MEDIA-017:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-13",
+          "responseIdentity": "MEDIA-017:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-15",
+          "responseIdentity": "MEDIA-017:object-16",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-17",
+          "responseIdentity": "MEDIA-017:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-18",
+          "responseIdentity": "MEDIA-017:object-21",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-19",
+          "responseIdentity": "MEDIA-017:object-20",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-23",
+          "responseIdentity": "MEDIA-017:object-24",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-25",
+          "responseIdentity": "MEDIA-017:object-29",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-26",
+          "responseIdentity": "MEDIA-017:object-30",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-27",
+          "responseIdentity": "MEDIA-017:object-37",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-28",
+          "responseIdentity": "MEDIA-017:object-33",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-31",
+          "responseIdentity": "MEDIA-017:object-36",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-32",
+          "responseIdentity": "MEDIA-017:object-41",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-34",
+          "responseIdentity": "MEDIA-017:object-35",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-38",
+          "responseIdentity": "MEDIA-017:object-43",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-39",
+          "responseIdentity": "MEDIA-017:object-47",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-40",
+          "responseIdentity": "MEDIA-017:object-42",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-44",
+          "responseIdentity": "MEDIA-017:object-45",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-46",
+          "responseIdentity": "MEDIA-017:object-49",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-48",
+          "responseIdentity": "MEDIA-017:object-50",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-51",
+          "responseIdentity": "MEDIA-017:object-52",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-53",
+          "responseIdentity": "MEDIA-017:object-54",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-55",
+          "responseIdentity": "MEDIA-017:object-56",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-57",
+          "responseIdentity": "MEDIA-017:object-58",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-59",
+          "responseIdentity": "MEDIA-017:object-60",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-61",
+          "responseIdentity": "MEDIA-017:object-62",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-63",
+          "responseIdentity": "MEDIA-017:object-64",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-65",
+          "responseIdentity": "MEDIA-017:object-66",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "MEDIA-017:object-67",
+          "responseIdentity": "MEDIA-017:object-68",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    },
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 3,
+      "failureCode": ""
+    }
+  },
+  "timing": {
+    "startedAtMs": 1786640286101,
+    "finishedAtMs": 1786640290046,
+    "durationMs": 3945,
+    "startedAt": "2026-08-13T16:58:06.101Z",
+    "finishedAt": "2026-08-13T16:58:10.046Z"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "media-server.v390-ui-policy-v4-reason-census.v1",
+  "assignmentStatus": "exact-one-cluster",
+  "reasonCount": 1,
+  "reasonCounts": {
+    "unapproved-console-message-present": 1
+  },
+  "clusterCounts": {
+    "console-security": 1
+  },
+  "assignments": [
+    {
+      "rawReason": "unapproved-console-message-present",
+      "caseId": null,
+      "reason": "unapproved-console-message-present",
+      "cluster": "console-security"
+    }
+  ],
+  "unassignedReasons": [],
+  "multiplyAssignedReasons": []
+}

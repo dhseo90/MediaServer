@@ -33,14 +33,14 @@
   `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
-## v3.9.0 현재 evidence (2026-08-13)
+## v3.9.0 현재 evidence (2026-08-14)
 
 | Evidence | 상태 | 결속/위치 | 사용 범위 |
 | --- | --- | --- | --- |
-| Verification Static | PASS | `v3.9.0-verification-rebase` commit `47582fea7e7fad2c5ef06caf86d9ef6901fd5939` | 선수 gate |
-| Canonical UI Actual | PASS | exact `424/424`, Policy v4 qualified `424/424`, UI final-integrity 및 cleanup PASS | UI 풀테스트 |
+| Verification Static | PASS | `v3.9.0` source `efb44bd1b20517297a22dd17956fb514f26ebbf0` 및 현재 permission/final-integrity correction의 focused/full static | 선수 gate; 새 clean checkpoint 검증 전 |
+| Canonical UI Actual | FAIL | source `efb44bd1...` exact `424/424`, Policy v4 qualified `424/424`이나 MEDIA-017 unapproved console 1건, final-integrity temporary-root binding FAIL | UI case 실행은 전수 PASS이나 Policy v4 때문에 UI 풀테스트 PASS 아님 |
 | UI transient summary | 보존 중 | `.media_server.test/v3.9.0/ui-acceptance-current/summary.json` | full release 이전 현재 evidence; 최종 저장소 evidence가 아님 |
-| 30분/120분/전체 release | 세 번의 feature gate FAIL, 구조 closure Static PASS | `7ebcfb60`: code-comment policy, `17da5f2c`: stale Step 20 status, `2ac5329b`: stale current source graph; current graph/source bundle/semantic `986/986` 재결속 PASS | 새 clean source의 전체 재실행 전이며 완료 evidence로 사용 불가 |
+| 30분/120분/전체 release | 30분 PASS, 120분 not-run, 전체 FAIL | bounded failure package `test-acceptance-failure-20260813-efb44bd1`; Policy v4 실패 뒤 120분 decision/execution not-run | 새 clean source의 전체 재실행 전이며 완료 evidence로 사용 불가 |
 | Release notes | 초안 | [v3.9.0 release notes draft](./release-artifacts/v3.9.0/release-notes-draft.md) | publish 전 검토용 |
 
 과거 `test-acceptance-current-final` 실패 artifact는 역사 evidence로 유지합니다. 최신 full release 실행이 PASS하면
@@ -1579,3 +1579,14 @@ GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fall
 | Static closure | Acceptance `36/36`, Policy producer `19/19`, Policy v4 `29/29`, independence `12/12`, native `60/60`, launcher `21/21`, eligibility `8/8`, final integrity `15/15` | acceptance-owned artifact root만 source patch에서 제외하며 repository 전체 또는 source 변경 은폐를 거부 |
 | Semantic closure | Candidate `8db5188a...f7bb6`, audit/approval `986/986`; UI-018, SAFE-212, OPS-179 독립 검토 | feature/pass/status 변경 0; producer가 audit/approval/implementation/native 4개 fixture를 원자 갱신 |
 | Release boundary | Clean checkpoint의 `./test_release.sh` 재실행 전 | Policy v4, 조건부 120분, final integrity, cleanup이 모두 실제 PASS하기 전 release-ready 아님 |
+
+## v3.9.0 REVIEW4-65 release actual residual evidence (2026-08-14)
+
+| Evidence | Binding | 상태/한계 |
+| --- | --- | --- |
+| Release summary | `docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/summary.json`, source `efb44bd1b20517297a22dd17956fb514f26ebbf0` | 30분 PASS, canonical browser exact 424/424 PASS, Policy/final FAIL. 4,651-file/311MB full run 대신 재현에 필요한 25-file bounded historical package를 보존 |
+| Exact parent | `docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/summary.json` | selected/attempted/PASS 424/424/424, fail/not-run/unsupported 0/0/0 |
+| Policy source | 같은 run의 `ui-exact-424/policy-v4-summary.json`과 `ui-fulltest-qualification/evaluation.json` | qualified 424/424지만 MEDIA-017 unapproved console로 ineligible |
+| MEDIA-017 | `ui-exact-424/cases/369-MEDIA-017/policy-input.json`, trace/browser-console refs | dashboard 권한 없는 view의 periodic dashboard GET 403 6건과 teardown 404 1건; allowlist가 아닌 제품 guard로 보정 |
+| UI temp root | top summary `uiTemporaryRoot`, `uiEnvironment.runtimeDescriptor.temporaryRoot`, cleanup measurement | 값·cleanup은 일치; final verifier의 legacy field read를 nested authoritative field로 보정 |
+| Release 경계 | 새 clean commit의 `./test_release.sh` 미실행 | Policy v4, 조건부 120분, final-integrity actual PASS 전 release-ready 아님 |

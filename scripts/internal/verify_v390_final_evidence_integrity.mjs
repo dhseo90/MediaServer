@@ -353,7 +353,8 @@ check("top-level cleanup is measured", () => {
   assert(Array.isArray(summary.cleanup?.checks) && summary.cleanup.checks.length >= 4, "top-level cleanup checks missing");
   assert(summary.cleanup.checks.every(item => item.status === "PASS"), "top-level cleanup contains failed check");
   if (summary.executionMode === "actual") {
-    assert(summary.uiTemporaryRoot && summary.uiTemporaryRoot === summary.uiEnvironment?.temporaryRoot,
+    const authoritativeUiTemporaryRoot = summary.uiEnvironment?.runtimeDescriptor?.temporaryRoot;
+    assert(summary.uiTemporaryRoot && summary.uiTemporaryRoot === authoritativeUiTemporaryRoot,
       "acceptance UI temporary root binding mismatch");
     const uiArtifacts = summary.uiEnvironment?.cleanup?.measurement?.artifacts || [];
     const temporaryRootMeasurement = uiArtifacts.find(item => item.path === summary.uiTemporaryRoot);
