@@ -134,6 +134,17 @@ check("UI final integrity rereads parent bytes and outer-finalizes retained secr
   "retained scanner is not owned immediately after bootstrap and before the exact child");
 });
 
+check("UI final integrity reads source files through a defined root-owned helper", () => {
+  const finalIntegrity = sourceBlock(files.bundle, "function runUiFinalIntegrityStage()",
+    "function freshUiCanonicalParentValidation(");
+  assert(finalIntegrity.includes('readRootText("VERSION")') &&
+    !finalIntegrity.includes('readText("VERSION")'),
+  "UI final integrity still calls an undefined source reader");
+  assert(files.bundle.includes("function readRootText(relativePath)") &&
+    files.bundle.includes("path.join(rootDir, relativePath)"),
+  "acceptance bundle has no defined root-owned source reader");
+});
+
 check("canonical parent acceptance is exact-424, census-complete, and fail-closed", () => {
   const canonicalIds = readJson(path.join(rootDir,
     "test/fixtures/ui_fulltest_case_manifest_policy_v4.json")).cases.map(item => item.testId);

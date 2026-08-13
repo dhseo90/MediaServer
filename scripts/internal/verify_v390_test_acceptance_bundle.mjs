@@ -1740,7 +1740,7 @@ function runUiFinalIntegrityStage() {
     readJson(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json")),
     policyRawSummary,
     { rootDir, verifyArtifacts: true, currentSource: {
-      version: readText("VERSION").trim(),
+      version: readRootText("VERSION").trim(),
       gitCommit: currentUiIntegritySource.commitSha,
       gitBranch: currentUiIntegritySource.branch,
       worktreePatchSha256: sha256Text(execFileSync("git", ["diff", "--binary", "HEAD"],
@@ -2181,6 +2181,10 @@ function normalizeTextArtifacts(targetDir) {
 }
 
 function readJson(filePath) { return JSON.parse(fs.readFileSync(filePath, "utf8")); }
+
+function readRootText(relativePath) {
+  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
 
 function tailLines(text) { return text.split(/\r?\n/).filter(Boolean).slice(-12); }
 

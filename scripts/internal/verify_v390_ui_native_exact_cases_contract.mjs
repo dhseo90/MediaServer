@@ -3844,6 +3844,28 @@ check("pre-execution failure cannot become UI PASS, Policy v4 eligible, or clean
     acceptanceEnvironmentCleanup: measuredEnvironmentCleanup,
   }).length === 0, "valid pre-execution lifecycle must accept measured acceptance cleanup");
 
+  const canonicalParent = {
+    schema: "media-server.v390-ui-canonical-parent.v1",
+    runtimeOwnership: {
+      parentOwned: true,
+      childrenBootstrapRuntime: false,
+    },
+  };
+  assert(validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: canonicalParent,
+    acceptanceEnvironmentCleanup: measuredEnvironmentCleanup,
+  }).length === 0,
+  "canonical parent lifecycle must accept its measured acceptance-owned cleanup");
+  const unmeasuredCanonicalCleanup = validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: canonicalParent,
+    acceptanceEnvironmentCleanup: { ...measuredEnvironmentCleanup, runtimeEvidence: false },
+  });
+  assert(unmeasuredCanonicalCleanup.some(error =>
+    error.includes("acceptance-owned UI environment cleanup is not measured PASS")),
+  "canonical parent lifecycle accepted unmeasured acceptance cleanup");
+
   const missingSummaryErrors = validateNativeExactCleanupContract({
     stageAttempted: true,
     summary: null,

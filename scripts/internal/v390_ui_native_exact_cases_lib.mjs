@@ -1351,6 +1351,20 @@ export function validateNativeExactCleanupContract({
       return errors;
     }
   }
+  if (summary?.schema === "media-server.v390-ui-canonical-parent.v1" &&
+      summary?.runtimeOwnership?.parentOwned === true &&
+      summary?.runtimeOwnership?.childrenBootstrapRuntime === false) {
+    if (acceptanceEnvironmentCleanup?.status !== "PASS" ||
+        acceptanceEnvironmentCleanup?.serversStopped !== true ||
+        acceptanceEnvironmentCleanup?.portsClean !== true ||
+        acceptanceEnvironmentCleanup?.temporaryArtifactsRemoved !== true ||
+        acceptanceEnvironmentCleanup?.runtimeEvidence !== true ||
+        acceptanceEnvironmentCleanup?.verificationSource !==
+          "pid-port-artifact-before-after-observation") {
+      errors.push("acceptance-owned UI environment cleanup is not measured PASS");
+    }
+    return errors;
+  }
   if (summary.cleanup?.serversStopped !== true ||
       summary.cleanup?.portsClean !== true ||
       summary.cleanup?.temporaryArtifactsRemoved !== true) {
