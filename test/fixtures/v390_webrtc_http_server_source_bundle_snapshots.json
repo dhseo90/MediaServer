@@ -98,7 +98,7 @@
   "current": {
     "sourceBaselineCommit": "72c74f4f71bcb3e212082139077aaf8ed3d478fd",
     "generatedFrom": "working-tree-six-file-source",
-    "bundleSha256": "933692c5494823bc958793be53fc87735b025a5d3eb33c210a4207b88c842453",
+    "bundleSha256": "6932dc6530fda0db18f3299b2ac064945ad970a259174d61f7a66c0bed106fbb",
     "logicalOffsets": [
       751943,
       757016,
@@ -107,8 +107,8 @@
     ],
     "metrics": {
       "fileCount": 6,
-      "totalBytes": 2261525,
-      "totalLines": 47076,
+      "totalBytes": 2267630,
+      "totalLines": 47174,
       "largestFileLines": 10150,
       "files": [
         {
@@ -135,9 +135,9 @@
         {
           "id": "ops-incidents",
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
-          "sha256": "1bb7fdec0063274b3d32c402e59bf70cd7da4c73aa6c89aff1056a010ae350e1",
-          "bytes": 379024,
-          "lines": 7987
+          "sha256": "95ba30bc99f81f920d289b7006ac92eeeb8f03dfd563fa4c6118fa475b1f2c6b",
+          "bytes": 384602,
+          "lines": 8076
         },
         {
           "id": "transport-runtime",
@@ -149,19 +149,19 @@
         {
           "id": "private-detail",
           "file": "src/ingress/webrtc_http_server_detail.h",
-          "sha256": "61ff6bd5198d807847a002d4f201642e3e4e062363c275367f1e2aa3edb9b317",
-          "bytes": 353035,
-          "lines": 8007
+          "sha256": "9b2a4a3f3a4fbfa617cd47bc8219e6aace632d576284cabd47e1ebcb27cd7dab",
+          "bytes": 353562,
+          "lines": 8016
         }
       ]
     },
     "graphBinding": {
       "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
-      "sha256": "9dcb0169d84c330371b60dde08781c29cf48b501131beab0493bbfd8a78299ea"
+      "sha256": "b75e9b1e698e733f0c1b72737848eb473cd6129b222f352aaf6ae9e755914ef2"
     },
     "physicalSplitBinding": {
       "definitionCount": 1198,
-      "definitionSha256": "d1fe50179075949dff9056a0cd12561ecb66af4d1921739ec04e2dd8713382b2"
+      "definitionSha256": "787a64b4c4cda607028451265c8622ca01565356c28c92e60a11a1f58642e999"
     }
   },
   "commentOnlyTransition": {

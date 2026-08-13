@@ -198565,15 +198565,15 @@
           "sha256": "5eb75c1b9872e030c901c97afa12203df569ca4d1a0a9650ffc78b2121fb5880"
         }
       },
-      "sourceFlowDigest": "9f618e3386da81f3e2177fd24bc203844e07298ed6253ca87e2c586cd9be5fdd",
+      "sourceFlowDigest": "dcfcda78e941b84caa7c332ab3b43a6ef93ad107a227e7e4d7f50f5f10e8edf6",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -198581,8 +198581,8 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -198590,8 +198590,8 @@
           "action": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -198599,8 +198599,8 @@
           "state": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -198608,8 +198608,8 @@
           "readback": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -198623,7 +198623,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
+        "verifierFileSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
         "dispatch": {
           "command": "verify-v390-structure-stabilization-handoff",
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
@@ -198789,14 +198789,14 @@
           "sha256": "1c49e8ba6cadcb15b24932e3fac0cdea09064b7d32e960a3a36ac4c60a20f1b6"
         }
       },
-      "sourceFlowDigest": "0eec613aa7d759a8d85facbdc773479efea4b53a7e529f31d8071d036e414c0b",
+      "sourceFlowDigest": "a8f6f7bf9c6690ae143940e170825b75130749c1e354bcf799d2e5f3165ac03d",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "owner:SAFE-212",
-            "trackedBlobSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+            "trackedBlobSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 237,
             "enclosingBodyEndLine": 246,
@@ -198805,7 +198805,7 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "dispatch:SAFE-212",
-            "trackedBlobSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+            "trackedBlobSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 237,
             "enclosingBodyEndLine": 246,
@@ -198814,7 +198814,7 @@
           "action": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "action:SAFE-212",
-            "trackedBlobSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+            "trackedBlobSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 237,
             "enclosingBodyEndLine": 246,
@@ -198823,7 +198823,7 @@
           "state": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "state:laterStagesNotRun",
-            "trackedBlobSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+            "trackedBlobSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 237,
             "enclosingBodyEndLine": 246,
@@ -198832,7 +198832,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "readback:SAFE-212",
-            "trackedBlobSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+            "trackedBlobSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 237,
             "enclosingBodyEndLine": 246,
@@ -198847,7 +198847,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+        "verifierFileSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
         "dispatch": {
           "command": "verify-v390-test-acceptance-bundle",
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
@@ -199513,14 +199513,14 @@
           "sha256": "dbf4dd37b59fdf6d5048311570d7053c79a2a53de4cf5787920135a3d909d09f"
         }
       },
-      "sourceFlowDigest": "f34e3825937ca9962469be45097a3909c0b69dc66fc7ef14855346ce4d685de8",
+      "sourceFlowDigest": "7145e30bd68d3afbd31f67bc804785ae64bfbde92505e6a514850dae67cb8a85",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "owner:SAFE-215",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
             "enclosingBodySha256": "59e3496ad4efa344e1f1c8832b9624ef70e69bc2a506dcf631ac4c691534c0e2",
             "enclosingBodyStartLine": 68,
             "enclosingBodyEndLine": 120,
@@ -199529,7 +199529,7 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "dispatch:SAFE-215",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
             "enclosingBodySha256": "59e3496ad4efa344e1f1c8832b9624ef70e69bc2a506dcf631ac4c691534c0e2",
             "enclosingBodyStartLine": 68,
             "enclosingBodyEndLine": 120,
@@ -199538,7 +199538,7 @@
           "action": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "action:SAFE-215",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
             "enclosingBodySha256": "59e3496ad4efa344e1f1c8832b9624ef70e69bc2a506dcf631ac4c691534c0e2",
             "enclosingBodyStartLine": 68,
             "enclosingBodyEndLine": 120,
@@ -199547,7 +199547,7 @@
           "state": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "state:changeAllowed",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
             "enclosingBodySha256": "59e3496ad4efa344e1f1c8832b9624ef70e69bc2a506dcf631ac4c691534c0e2",
             "enclosingBodyStartLine": 68,
             "enclosingBodyEndLine": 120,
@@ -199556,7 +199556,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "readback:SAFE-215",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
             "enclosingBodySha256": "59e3496ad4efa344e1f1c8832b9624ef70e69bc2a506dcf631ac4c691534c0e2",
             "enclosingBodyStartLine": 68,
             "enclosingBodyEndLine": 120,
@@ -199571,7 +199571,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+        "verifierFileSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
         "dispatch": {
           "command": "verify-v390-structure-stabilization-readiness",
           "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
@@ -233844,15 +233844,15 @@
           "sha256": "b7bab3ffc0ee3cb77d1be9e083479a5716c629255a13223f20461b859f322197"
         }
       },
-      "sourceFlowDigest": "b845a3eca08fb8b5650973f9d10ac52a573ab6e5e470b126e080db16733766fe",
+      "sourceFlowDigest": "4a4e5bd7ee183cadad8bf0a5726b51ffccc16dd5386c721e8ab3a13dcb9445b9",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -233860,8 +233860,8 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -233869,8 +233869,8 @@
           "action": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -233878,8 +233878,8 @@
           "state": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -233887,8 +233887,8 @@
           "readback": {
             "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
             "symbol": "verifyTypedHandoffState",
-            "trackedBlobSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
-            "enclosingBodySha256": "52bef901c7c188e2cae7e16d011e170ced20cd832d0e20a27d34859fa90b7d0f",
+            "trackedBlobSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
+            "enclosingBodySha256": "3dd6aa3976fc2910319339dcaa0645cdad0c305c092bc1cbabac74703586a3b2",
             "enclosingBodyStartLine": 89,
             "enclosingBodyEndLine": 133,
             "enclosingBodyScope": "declared-symbol"
@@ -233902,7 +233902,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "10ba816ddaf58cbc0e739660e35b5a1667f0af5e5f1342fec25e453500b985f2",
+        "verifierFileSha256": "4052bccf45be3f74b0e4bc5873b2b7176a94dd26d123bcdef314527b5e62cad2",
         "dispatch": {
           "command": "verify-v390-structure-stabilization-handoff",
           "file": "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
@@ -234072,7 +234072,7 @@
           "owner": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runActualBundle",
-            "trackedBlobSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+            "trackedBlobSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
             "enclosingBodySha256": "8c0dbda930e036b59abc640f45d380395d318148ad6fa92d9a5c3c39d1d53c39",
             "enclosingBodyStartLine": 197,
             "enclosingBodyEndLine": 235,
@@ -234081,7 +234081,7 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runActualBundle",
-            "trackedBlobSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+            "trackedBlobSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
             "enclosingBodySha256": "8c0dbda930e036b59abc640f45d380395d318148ad6fa92d9a5c3c39d1d53c39",
             "enclosingBodyStartLine": 197,
             "enclosingBodyEndLine": 235,
@@ -234090,7 +234090,7 @@
           "action": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runRealStage",
-            "trackedBlobSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+            "trackedBlobSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
             "enclosingBodySha256": "401daf79dc0022d2c7ee9e098b702cc78cad66ddcbbc142ed8b3931980b283b6",
             "enclosingBodyStartLine": 248,
             "enclosingBodyEndLine": 557,
@@ -234099,7 +234099,7 @@
           "state": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runRealStage",
-            "trackedBlobSha256": "44d5ba9bff447ceeb84919476ac0660be0a8313ac7032d6b7cff82b8efdaf6eb",
+            "trackedBlobSha256": "52762bf6fc84627faa622ef5314d03c7ae4c62854c72520ff439b6e01de842f0",
             "enclosingBodySha256": "401daf79dc0022d2c7ee9e098b702cc78cad66ddcbbc142ed8b3931980b283b6",
             "enclosingBodyStartLine": 248,
             "enclosingBodyEndLine": 557,
@@ -234748,14 +234748,14 @@
           "sha256": "de043c3d594117d9257dcbf410ec0f65684d02c2fb0244206a14cea39aa0e6d9"
         }
       },
-      "sourceFlowDigest": "c676d25abfaabb130d27194454ac068907cda8c5530adda0efd51ccb0fb6bfe9",
+      "sourceFlowDigest": "0fd08c2acb06111a12c42e91edbf9c54aa934c68610fbdccd93bd86d8a3f85f9",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "collectActualGraph",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
             "enclosingBodySha256": "c00a572fa9fa18a0e9e807940d3aa9c57ad82cbb9ef76a5cd6aeae9789f72249",
             "enclosingBodyStartLine": 349,
             "enclosingBodyEndLine": 648,
@@ -234764,7 +234764,7 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "collectActualGraph",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
             "enclosingBodySha256": "c00a572fa9fa18a0e9e807940d3aa9c57ad82cbb9ef76a5cd6aeae9789f72249",
             "enclosingBodyStartLine": 349,
             "enclosingBodyEndLine": 648,
@@ -234773,7 +234773,7 @@
           "action": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "collectActualGraph",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
             "enclosingBodySha256": "c00a572fa9fa18a0e9e807940d3aa9c57ad82cbb9ef76a5cd6aeae9789f72249",
             "enclosingBodyStartLine": 349,
             "enclosingBodyEndLine": 648,
@@ -234782,7 +234782,7 @@
           "state": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "collectActualGraph",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
             "enclosingBodySha256": "c00a572fa9fa18a0e9e807940d3aa9c57ad82cbb9ef76a5cd6aeae9789f72249",
             "enclosingBodyStartLine": 349,
             "enclosingBodyEndLine": 648,
@@ -234791,8 +234791,8 @@
           "readback": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "check:current-review4-completed-graph-negative-boundary",
-            "trackedBlobSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
-            "enclosingBodySha256": "1794f0829ae991c5534037eef82eab82293c015c41aae8cab072c6dfdabebdc3",
+            "trackedBlobSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
+            "enclosingBodySha256": "61ce6ed377c7bdd177c65c9bd3452f261e13b5d8fe0583970c923dad9e639086",
             "enclosingBodyStartLine": 141,
             "enclosingBodyEndLine": 177,
             "enclosingBodyScope": "semantic-enclosing-function"
@@ -234806,7 +234806,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "17cee0751f9e83232766d980db208a13cc926d36999191081d0e30155979fc2a",
+        "verifierFileSha256": "a954dd28a43b1b47ec1644c692ce95a7286ae7267ef406222378ffe65457e712",
         "dispatch": {
           "command": "verify-v390-structure-stabilization-readiness",
           "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
@@ -235283,5 +235283,5 @@
       }
     }
   ],
-  "candidateDigest": "a01d6657df0a6d8886cc3f3173ab50f62aa4fbffa5b0e8a1661b0d8a396d8025"
+  "candidateDigest": "5cc5c8019ea719f0f3f6550321a59e72a2f2f3ace17d517d7c858e4f06099c01"
 }

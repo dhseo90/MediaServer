@@ -119,7 +119,7 @@ function verifyTypedHandoffState() {
     execution.currentGraph.metrics?.cppSources === currentGraph.expectedCppFiles &&
     execution.currentGraph.metrics?.moduleOwners === currentGraph.moduleClassifiers?.length &&
     execution.currentGraph.metrics?.cmakeTargets === currentGraph.cmake?.targets?.length &&
-    execution.currentGraph.metrics?.largestMixedOwnerFileLines === 10176 &&
+    execution.currentGraph.metrics?.largestMixedOwnerFileLines === 10346 &&
     execution.completionGraph?.sha256 ===
       "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a" &&
     execution.review4Completion?.completionGraphSha256 === execution.completionGraph.sha256 &&

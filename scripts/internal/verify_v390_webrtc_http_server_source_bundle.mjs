@@ -47,7 +47,7 @@ const currentGraphPath = "test/fixtures/v390_structure_stabilization_current_gra
 const completionSourceCommit = "b9a45740e60f087cff6ff6d8358994855db8651f";
 const currentSourceBaselineCommit = "72c74f4f71bcb3e212082139077aaf8ed3d478fd";
 const completionGraphSha256 = "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
-const currentGraphSha256 = "9dcb0169d84c330371b60dde08781c29cf48b501131beab0493bbfd8a78299ea";
+const currentGraphSha256 = "b75e9b1e698e733f0c1b72737848eb473cd6129b222f352aaf6ae9e755914ef2";
 const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
@@ -73,6 +73,20 @@ const currentOwnerRebindings = new Map([
       {
         owner: "src/ingress/webrtc_http_server_runtime.cpp",
         tokens: ["incident-action-update", "previous.present ? OpsEventReviewStateJson(previous)"],
+      },
+    ],
+  }],
+  ["scripts/internal/verify_ops_operator_incident_timeline.mjs", {
+    removedBundleReads: 1,
+    helperImports: 0,
+    owners: [
+      {
+        owner: "src/ingress/product_ui_server_pages.cpp",
+        tokens: ['data-testid="ops-incident-timeline-panel"', 'id="dashIncidentTimeline"'],
+      },
+      {
+        owner: "src/ingress/product_ui_page_scripts.cpp",
+        tokens: ["const dashboardIncidentTimelineItems =", "const renderDashboardIncidentTimeline ="],
       },
     ],
   }],
@@ -306,7 +320,8 @@ check("all 170 readers use the canonical source helper or an exact registered ow
     const migratedKinds = migratedPatterns.map(pattern => [...current.matchAll(pattern)].length);
     const rebinding = currentOwnerRebindings.get(item.file);
     const removed = rebinding?.removedBundleReads || 0;
-    assert(imports === 1 && calls === item.expressions - removed &&
+    const expectedHelperImports = rebinding?.helperImports ?? 1;
+    assert(imports === expectedHelperImports && calls === item.expressions - removed &&
       resolverCalls === (rebinding?.resolverCalls || 0) &&
       (removed > 0 || JSON.stringify(migratedKinds) === JSON.stringify(item.expressionKinds)) &&
       migratedKinds.reduce((sum, count) => sum + count, 0) === calls && legacyExpressionCount(current) === 0,
@@ -319,7 +334,7 @@ check("all 170 readers use the canonical source helper or an exact registered ow
           `consumer current owner rebinding drift: ${item.file}:${binding.owner}`);
       }
     }
-    migrated.push(item.file);
+    if (expectedHelperImports > 0) migrated.push(item.file);
   }
   for (const [file, binding] of additionalResolverConsumers) {
     const current = read(file);

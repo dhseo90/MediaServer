@@ -3,10 +3,10 @@
   "sourceRelease": "v3.9.0",
   "evidenceBoundary": "static-semantic-audit-only-not-runtime-ui-or-longrun-pass",
   "summary": {
-    "documents": 191,
+    "documents": 193,
     "sourceMarkers": 38,
     "currentProductContracts": 84,
-    "historicalOrSuperseded": 74,
+    "historicalOrSuperseded": 76,
     "conditionalOrTemplate": 27
   },
   "documents": [
@@ -1411,6 +1411,26 @@
       "semanticDigest": "b3e43778eca040ad6283ef8f352c1ee65109aa3f2bc8a0353d74618187184f29"
     },
     {
+      "path": "docs/release-artifacts/v3.9.0/release-notes-draft.md",
+      "contentSha256": "6f7828e1103a60f4b01114fcf13148e013a789888ab9a8770ebfe9a0ae6b1549",
+      "semanticRole": "historical-release-note-draft",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-release-note-draft",
+      "semanticStatement": "Media Server v3.9.0 Release Notes (Draft) — 당시 release note 초안이며 test evidence가 아니다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "release notes"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "1297f04a16198a436b5dfaf67a08d8ef9d6ebe77002dc3c3a58463d1e04288f1"
+    },
+    {
       "path": "docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.md",
       "contentSha256": "515bba135ed5b2db4080ac1e04e21b84e1c72ff57bcb2181f43613be625d996a",
       "semanticRole": "historical-predev-aggregate",
@@ -1812,7 +1832,7 @@
     },
     {
       "path": "docs/release-evidence-index.md",
-      "contentSha256": "21f59ecc3ebea6aba5d9ba4f78309f68fa0b2d4bd009cf75b59de419df7a787a",
+      "contentSha256": "565b085a61457a99681fc15603fd730800a33ae130b1cdab769d44c3a4c67b90",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1852,7 +1872,7 @@
     },
     {
       "path": "docs/release-test-records.md",
-      "contentSha256": "77c9246ebd39dea521e1507782f6dedd2804abf3bf57164815ba6ee4cf738596",
+      "contentSha256": "bf76de76cb20804c63a884d708e76c15587c4100c49556aa1fb4cb37e94678e6",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2549,6 +2569,26 @@
         }
       ],
       "semanticDigest": "9072635a297228dbc4049ddb46e7513d2af2d1bc017b93ed1c9ec6462fdc22a5"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-13-v390-release-closeout.md",
+      "contentSha256": "f35712e4d9c5e00c626ba30820964b43cdfcb31c145ad9608ef9ca6eea67279e",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Release Closeout Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-13-v390-release-closeout.md",
+          "anchor": "v3.9.0 Release Closeout Implementation Plan"
+        }
+      ],
+      "semanticDigest": "6d3f24a7cb0923bd4fd146f93248ca8a0544daa88b15a3051a62330b8ee8da96"
     },
     {
       "path": "docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md",

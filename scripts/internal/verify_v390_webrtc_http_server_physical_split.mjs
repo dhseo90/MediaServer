@@ -33,7 +33,7 @@ const expectedSuccessorDefinitionSha256 =
 const expectedGraphSha256 =
   "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
 const expectedCurrentGraphSha256 =
-  "9dcb0169d84c330371b60dde08781c29cf48b501131beab0493bbfd8a78299ea";
+  "b75e9b1e698e733f0c1b72737848eb473cd6129b222f352aaf6ae9e755914ef2";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const completionGraphPath = "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json";
 const currentGraphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";

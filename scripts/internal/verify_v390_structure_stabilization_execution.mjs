@@ -274,8 +274,8 @@ check("Slice 32 completion and current graph separation is fail-closed", () => {
   const currentDebt = new Map(currentGraph.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
   assert(currentGraph.completionGraphBinding?.path === ledger.completionGraph.path &&
     currentGraph.completionGraphBinding?.sha256 === ledger.completionGraph.sha256 &&
-    currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10176 &&
-    ledger.currentGraph.metrics?.largestMixedOwnerFileLines === 10176 &&
+    currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10346 &&
+    ledger.currentGraph.metrics?.largestMixedOwnerFileLines === 10346 &&
     ledger.currentGraph.sha256 !== ledger.completionGraph.sha256,
   "current graph is not independently bound to the current source");
 
@@ -321,7 +321,7 @@ check("Slice 32 completion and current graph separation is fail-closed", () => {
 
   const historicalMetricRewrite = structuredClone(ledger);
   historicalMetricRewrite.currentContinuation.orderedSlices[31]
-    .after.largestMixedOwnerFileLines = 10176;
+    .after.largestMixedOwnerFileLines = 10346;
   assert(validateCompletionGraphBinding(historicalMetricRewrite, completionGraph)
     .some(error => error.includes("historical")), "historical Slice 32 metric rewrite was accepted");
 
@@ -452,6 +452,7 @@ check("UI Slice owns the exact action deferral workspace outside mixed server/pa
   const serverPagesPath = "src/ingress/product_ui_server_pages.cpp";
   const serverPages = fs.existsSync(path.join(rootDir, serverPagesPath)) ? readText(serverPagesPath) : "";
   const css = readText("src/ingress/product_ui_css.cpp");
+  const baselineCss = readGitText(slice.rollbackCommit, "src/ingress/product_ui_css.cpp");
   const cmake = readText("CMakeLists.txt");
   assert(header.includes("std::string OpsActionExecutionDeferralWorkspaceHtml();") &&
     header.includes("void AppendOpsActionExecutionDeferralWorkspaceScript(std::ostringstream& out);"),
@@ -462,8 +463,19 @@ check("UI Slice owns the exact action deferral workspace outside mixed server/pa
     "action deferral workspace HTML byte drift");
   assert(sha256Text(script) === slice.baselineDigests.workspaceScriptSha256,
     "action deferral workspace script byte drift");
-  assert(sha256Text(css) === slice.baselineDigests.sharedCssFileSha256,
-    "shared action-control CSS ownership/content drift");
+  assert(sha256Text(baselineCss) === slice.baselineDigests.sharedCssFileSha256,
+    "historical shared CSS baseline binding drift");
+  const baselineActionControlRules = cssRulesContaining(baselineCss, ".ops-action-control");
+  const currentActionControlRules = cssRulesContaining(css, ".ops-action-control");
+  assert(baselineActionControlRules.length > 0 &&
+    preservesHistoricalCssRules(baselineActionControlRules, currentActionControlRules),
+  "shared action-control CSS ownership/content drift");
+  const missingHistoricalRule = [...currentActionControlRules];
+  missingHistoricalRule.splice(missingHistoricalRule.indexOf(baselineActionControlRules[0]), 1);
+  assert(!preservesHistoricalCssRules(
+    baselineActionControlRules,
+    missingHistoricalRule,
+  ), "shared action-control CSS removal must fail closed");
   for (const snippet of [
     'data-testid="ops-action-execution-deferral-decision"',
     "dashActionExecutionDeferralBadges",
@@ -514,6 +526,8 @@ check("VLM parser Slice owns provenance validation and generic strict JSON outsi
   const strictInclude = strictJsonPromoted ? "domain/strict_json.h" : "core/strict_json.h";
   const strictHeader = readText(strictHeaderPath);
   const strictSource = readText(strictSourcePath);
+  const strictHeaderBehavior = withoutFilePurposeComment(strictHeader);
+  const strictSourceBehavior = withoutFilePurposeComment(strictSource);
   const validatorHeader = readText("include/ingress/vlm_incident_rule_provenance.h");
   const validatorSource = readText("src/ingress/vlm_incident_rule_provenance.cpp");
   const server = readWebRtcHttpServerBundle(readText);
@@ -524,9 +538,9 @@ check("VLM parser Slice owns provenance validation and generic strict JSON outsi
       !fs.existsSync(path.join(rootDir, "include/core/strict_json.h")) &&
       !fs.existsSync(path.join(rootDir, "src/core/strict_json.cpp"))),
   "strict JSON remains transport-owned");
-  assert(sha256Text(strictHeader) === slice.baselineDigests.strictJsonHeaderSha256,
+  assert(sha256Text(strictHeaderBehavior) === slice.baselineDigests.strictJsonHeaderSha256,
     "strict JSON header behavior/API drift");
-  assert(sha256Text(strictSource.replace(`#include "${strictInclude}"`, '#include "ingress/strict_json.h"')) ===
+  assert(sha256Text(strictSourceBehavior.replace(`#include "${strictInclude}"`, '#include "ingress/strict_json.h"')) ===
     slice.baselineDigests.strictJsonSourceSha256,
   "strict JSON parser implementation drift");
   assert(validatorHeader.includes("bool ValidateVlmIncidentRuleProvenanceContract(") &&
@@ -3290,6 +3304,9 @@ function check(name, fn) {
 function assert(condition, message) { if (!condition) throw new Error(message); }
 function readText(file) { return fs.readFileSync(path.join(rootDir, file), "utf8"); }
 function readJson(file) { return JSON.parse(readText(file)); }
+function readGitText(commit, file) {
+  return execFileSync("git", ["show", `${commit}:${file}`], { cwd: rootDir, encoding: "utf8" });
+}
 function rawLiteralPayload(textValue, startMarker, endMarker) {
   const start = textValue.indexOf(startMarker);
   assert(start >= 0, `missing raw literal start: ${startMarker}`);
@@ -3297,6 +3314,34 @@ function rawLiteralPayload(textValue, startMarker, endMarker) {
   const end = textValue.indexOf(endMarker, payloadStart);
   assert(end >= 0, `missing raw literal end: ${endMarker}`);
   return textValue.slice(payloadStart, end);
+}
+function productUiCssPayload(source) {
+  const ownerStart = source.indexOf("std::string ProductUiCss()");
+  assert(ownerStart >= 0, "ProductUiCss owner missing");
+  const payloads = [...source.slice(ownerStart).matchAll(/R"CSS\(([\s\S]*?)\)CSS"/g)]
+    .map(match => match[1]);
+  assert(payloads.length === 2, "ProductUiCss raw literal cardinality drift");
+  return payloads.join("");
+}
+function cssRulesContaining(source, selectorToken) {
+  return [...productUiCssPayload(source).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .map(match => `${match[1].trim()} {${match[2]}}`)
+    .filter(rule => rule.slice(0, rule.indexOf("{")).includes(selectorToken));
+}
+function preservesHistoricalCssRules(baselineRules, currentRules) {
+  const counts = new Map();
+  for (const rule of currentRules) counts.set(rule, (counts.get(rule) || 0) + 1);
+  for (const rule of baselineRules) {
+    const count = counts.get(rule) || 0;
+    if (count === 0) return false;
+    counts.set(rule, count - 1);
+  }
+  return true;
+}
+function withoutFilePurposeComment(source) {
+  const comments = source.match(/^\/\/ 파일 용도:[^\r\n]*$/gm) || [];
+  assert(comments.length === 1, "strict JSON file-purpose comment cardinality drift");
+  return source.replace(/^\/\/ 파일 용도:[^\r\n]*$/m, "");
 }
 function sha256File(file) { return crypto.createHash("sha256").update(fs.readFileSync(path.join(rootDir, file))).digest("hex"); }
 function sha256Text(value) { return crypto.createHash("sha256").update(value).digest("hex"); }

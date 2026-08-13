@@ -160,12 +160,12 @@ check("current REVIEW4-64 source and CMake graph match the completed execution l
     execution.currentGraph.metrics?.moduleOwners === 10 &&
     execution.currentGraph.metrics?.cmakeTargets === 2 &&
     execution.currentGraph.metrics?.largestSccOwners === 0 &&
-    execution.currentGraph.metrics?.largestMixedOwnerFileLines === 10176 &&
+    execution.currentGraph.metrics?.largestMixedOwnerFileLines === 10346 &&
     execution.currentGraph.metrics?.internalTargetSeparation === true,
   "completed REVIEW4-64 " +
     "graph metrics mismatch");
   const currentDebt = new Map(currentGraph.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
-  assert(currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10176,
+  assert(currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10346,
     "current source graph product UI line count drift");
   assert(execution.completionGraph?.sha256 ===
       "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a" &&

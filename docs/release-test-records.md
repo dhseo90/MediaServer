@@ -26,7 +26,7 @@
 | UI 풀테스트 | PASS | `./test_ui.sh` exit `0`, exact `424/424 PASS`, fail/not-run/unsupported/runnerAbort `0`, Policy v4 eligible 및 qualified `424/424`, UI final-integrity와 cleanup PASS | UI 영역 충족 |
 | 30분 | 현재 release SHA에서 미실행 | UI-only acceptance에는 포함되지 않음 | release blocker |
 | 120분 | 현재 release SHA에서 미실행 | v3.9.0에는 RTSP/WebRTC/session/runtime/cleanup 직접 변경이 있어 AGENTS 7.6.2 조건에 해당 | release blocker |
-| 전체 release acceptance | 첫 시도 feature gate FAIL | source `7ebcfb60`에서 build PASS 후 code-comment policy 1건 FAIL; 30분·UI·120분 미실행 | 보정 source의 전체 재실행 전이며 release-ready 아님 |
+| 전체 release acceptance | 세 번째 feature gate FAIL, 구조 closure Static PASS | source `2ac5329b`까지 세 번의 fail-stop 이력 보존; current graph/source bundle/semantic ledger 재결속 후 관련 gate PASS | 새 clean source의 전체 재실행 전이며 release-ready 아님 |
 
 UI run은 `2026-08-13T10:32:51`에 시작됐고 source commit은 `47582fea7e7fad2c5ef06caf86d9ef6901fd5939`, build SHA-256은
 `2e4e67d159579fc138988766509eb59dc84c44cc3a73c33fb265c2e625e4b25f`, canonical manifest SHA-256은
@@ -45,6 +45,21 @@ English-only `0`으로 PASS했습니다. 새 source commit에서 전체 launcher
 현재 문서의 Step 20 상태는 `UI PASS/full release pending`이므로 실제 판정과 문서가 일치하며, 30분·UI·120분은
 다시 fail-stop으로 미실행입니다. verifier는 Step 20 행을 정확히 하나 파싱하고 명시된 release lifecycle 상태만
 허용하도록 보정한 뒤 전체 launcher를 새 source에서 재실행합니다.
+
+세 번째 full release 시도는 source `2ac5329b0c381e51a37a8066373fd8a861b8d58b`에서 앞선 두 gate를 통과한 뒤
+`verify-v390-structure-stabilization-handoff`가 stale current source graph를 거부해 FAIL했습니다. 마지막 current graph
+생성 이후 승인된 source 변경으로 incidents/detail/product UI mixed-owner line-count가 각각 `7,987→8,076`,
+`8,007→8,016`, `10,176→10,346`으로 바뀌었지만 production/C++ `215/103`, edge `16`, violation/SCC `0/0`,
+target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writer를 각각 1회 실행해 current artifact만
+갱신하며 immutable Slice 32 completion graph는 변경하지 않습니다. 30분·UI·120분은 미실행입니다.
+
+세 번째 실패의 구조 closure에서는 current graph, handoff, readiness, WebRTC source bundle, physical split을 모두
+현재 source에 재결속했습니다. action deferral의 공유 CSS 검증은 전체 CSS 파일 hash가 아니라 Slice 시점의
+`.ops-action-control` 규칙 보존으로 좁혀 이후 승인된 공용 UI 변경을 오탐하지 않으며, strict JSON은 정책상
+필수인 `파일 용도` 주석 한 줄만 정규화한 뒤 기존 API/구현 digest를 계속 검증합니다. REVIEW4 semantic migration은
+`981` strict carry-forward와 `SAFE-211`, `SAFE-212`, `SAFE-215`, `OPS-178`, `OPS-182` 독립 검토 `5`건으로
+닫혔고 feature/pass/status 변경은 없습니다. 이 Static closure는 30분·UI·120분 또는 전체 release PASS가 아니며,
+새 clean commit에서 `./test_release.sh`를 처음부터 실행해야 합니다.
 
 ## 테스트 항목 상세 기록
 
