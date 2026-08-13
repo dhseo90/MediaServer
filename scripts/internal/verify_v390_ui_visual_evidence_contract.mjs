@@ -191,14 +191,33 @@ check("client/live visual probe owns session and answer requests with an explici
   const end = runnerSource.indexOf("async function cleanupLiveVisualProbe", start);
   const source = runnerSource.slice(start, end);
   assert(start >= 0 && end > start, "live visual probe implementation is missing");
-  assert(source.includes("browser.beginRequestActionOwnership({") &&
-    source.includes('phase: "visual-matrix-live-session"') &&
+  assert(source.includes("browser.attestInitialRouteSettling({") &&
+    source.includes("browser.beginActionNavigationLedger({") &&
+    source.includes("browser.beginRequestActionOwnership({") &&
+    source.includes('phase: "primary-action"') &&
     source.includes("actionRequestEnvelopes:") &&
     source.includes("browser.waitForRequestActionResponses(") &&
-    source.includes("browser.endRequestActionOwnership("),
-  "live visual session requests are not enclosed by explicit request ownership");
+    source.includes("browser.endRequestActionOwnership(") &&
+    source.includes('phase: "independent-readback"') &&
+    source.includes('ownershipMode: "not-applicable-live-visual-readback"'),
+  "live visual session requests do not follow the canonical ownership lifecycle");
+  assert(!source.includes('phase: "visual-matrix-live-session"'),
+    "live visual probe still uses an unregistered ownership phase");
   assert(!source.includes("browser.setCorrelationId(correlationId)"),
     "live visual probe still relies on unowned global correlation injection");
+});
+
+check("client/live visual measurement closes the post-action ownership phase", () => {
+  const start = runnerSource.indexOf("async function executeVisualMatrix");
+  const end = runnerSource.indexOf("async function prepareLiveVisualProbe", start);
+  const source = runnerSource.slice(start, end);
+  assert(start >= 0 && end > start, "visual matrix implementation is missing");
+  assert(source.includes("caseId: id") &&
+    source.includes('navigationInvocationId: `${id}:navigation`'),
+  "visual matrix browser bootstrap is not bound to a case-owned navigation invocation");
+  assert(source.includes('phase: "post-action-observation"') &&
+    source.includes('ownershipMode: "live-visual-measurement-complete"'),
+  "live visual measurement does not attest post-action completion");
 });
 
 check("legacy 8-probe width/theme-only matrix는 80-probe current matrix를 대체하지 못한다", () => {

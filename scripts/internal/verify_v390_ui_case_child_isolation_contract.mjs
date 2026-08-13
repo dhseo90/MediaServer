@@ -82,6 +82,9 @@ check("production suite-finalizer child writes one safe attested FAIL summary", 
   assertSuiteFinalizerSummary(child.summary, "FAIL");
   assert(child.summary.failure?.code === "SUITE_FINALIZER_FAILED",
     "suite-finalizer FAIL did not preserve its safe failure code");
+  assert(child.summary.failure?.detail === "contract suite finalizer matrix failure" &&
+    /^[a-f0-9]{64}$/.test(child.summary.failure?.detailSha256 || ""),
+  "suite-finalizer FAIL did not preserve its redacted diagnostic detail and digest");
   assert(child.summary.visualMatrixProbes.length === 0,
     "suite-finalizer FAIL invented visual matrix probes");
 });

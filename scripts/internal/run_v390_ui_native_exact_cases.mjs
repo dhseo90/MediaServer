@@ -783,7 +783,8 @@ async function runCanonicalSuiteFinalizerChild() {
       actualBrowserExecution: true,
       automaticRetryCount: 0,
     };
-  } catch {
+  } catch (error) {
+    const failureDetail = safeCaseChildFailureMessage(error);
     summary = {
       schema: "media-server.v390-ui-suite-finalizer.v1",
       result: "FAIL",
@@ -794,7 +795,8 @@ async function runCanonicalSuiteFinalizerChild() {
       actualBrowserExecution: true,
       automaticRetryCount: 0,
       failure: { failureClass: "suite-finalizer-execution-failed",
-        phase: "suite-finalizer", code: "SUITE_FINALIZER_FAILED" },
+        phase: "suite-finalizer", code: "SUITE_FINALIZER_FAILED",
+        detail: failureDetail, detailSha256: sha256Text(failureDetail) },
     };
   }
   let treeScan = null;
@@ -3515,7 +3517,9 @@ async function executeVisualMatrix(adapter) {
         height: variant.height,
         storageStatePath,
         colorScheme: variant.theme,
+        caseId: id,
         navigationCorrelationId: "",
+        navigationInvocationId: `${id}:navigation`,
       });
       const screenshotPath = path.join(visualMatrixDir, `${id}.png`);
       try {
@@ -3523,7 +3527,13 @@ async function executeVisualMatrix(adapter) {
         await browser.waitForSelector(variant.targetSelector);
         const liveCorrelationId = variant.liveVideoRequired ? `${id}:live-session` : "";
         if (variant.liveVideoRequired) {
-          await prepareLiveVisualProbe(browser, visualMatrixPlan.liveVideoProbe, liveCorrelationId, id);
+          await prepareLiveVisualProbe(
+            browser,
+            visualMatrixPlan.liveVideoProbe,
+            liveCorrelationId,
+            id,
+            variant.screenRoute,
+          );
         }
         const caseBinding = {
           canonicalCaseId: variant.canonicalCaseId,
@@ -3539,6 +3549,13 @@ async function executeVisualMatrix(adapter) {
           liveVideoSpec: variant.liveVideoRequired ? visualMatrixPlan.liveVideoProbe : null,
           liveCorrelationId,
         });
+        if (variant.liveVideoRequired) {
+          browser.attestRequestActionOwnershipPhase({
+            phase: "post-action-observation",
+            actionId: `${id}:live-session`,
+            ownershipMode: "live-visual-measurement-complete",
+          });
+        }
         await browser.screenshot(screenshotPath);
         probes.push({
           id,
@@ -3564,16 +3581,26 @@ async function executeVisualMatrix(adapter) {
   return probes;
 }
 
-async function prepareLiveVisualProbe(browser, spec, correlationId, id) {
+async function prepareLiveVisualProbe(browser, spec, correlationId, id, screenRoute) {
   await browser.waitForSelector(spec.tileSelector);
+  await browser.attestInitialRouteSettling({
+    controlSelector: spec.tileSelector,
+    controlApplicability: "required",
+    expectedControlVisible: true,
+  });
+  const actionId = `${id}:live-session`;
+  await browser.beginActionNavigationLedger({
+    actionId,
+    correlationId,
+    sourceRoute: screenRoute,
+    sourceSelector: spec.tileSelector,
+    expectedSourceVisible: true,
+  });
   const rawSelector = spec.modeActionSelector.replace('data-mode-action="va-overlay"', 'data-mode-action="raw"');
   const raw = await browser.snapshot(rawSelector);
   assert(raw.exists && raw.visible, `${id} raw mode precondition missing`);
-  await browser.click(rawSelector);
-  await browser.waitForNetworkQuiet({ correlationId: "", minimumObservationMs: 500, quietMs: 200 });
-  const actionId = `${id}:live-session`;
   let actionContext = await browser.beginRequestActionOwnership({
-    phase: "visual-matrix-live-session",
+    phase: "primary-action",
     actionId,
     correlationId,
     ownershipKind: "visual-matrix-live-session",
@@ -3601,6 +3628,8 @@ async function prepareLiveVisualProbe(browser, spec, correlationId, id) {
     ],
   });
   try {
+    await browser.click(rawSelector);
+    await browser.waitForNetworkQuiet({ correlationId: "", minimumObservationMs: 500, quietMs: 200 });
     await browser.click(spec.modeActionSelector);
     await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 750, quietMs: 250 });
     const hasVaSession = browser.networkEntries().some(entry => entry.phase === "request-start" &&
@@ -3616,6 +3645,16 @@ async function prepareLiveVisualProbe(browser, spec, correlationId, id) {
     await browser.waitForRequestActionResponses(actionContext);
     await browser.endRequestActionOwnership(actionContext);
     actionContext = null;
+    browser.attestRequestActionOwnershipPhase({
+      phase: "primary-action",
+      actionId,
+      ownershipMode: "live-visual-session-scope-ended-and-attested",
+    });
+    browser.attestRequestActionOwnershipPhase({
+      phase: "independent-readback",
+      actionId,
+      ownershipMode: "not-applicable-live-visual-readback",
+    });
   } catch (error) {
     if (actionContext) browser.cleanupRequestActionOwnership(error);
     throw error;
