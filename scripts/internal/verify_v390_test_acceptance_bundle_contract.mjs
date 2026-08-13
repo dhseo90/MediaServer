@@ -978,6 +978,15 @@ check("rerun preserves the earliest first failure after canonical output replace
   const failed = runBundle(["--output-dir", outputDir, "--fixture-fail-stage", "feature-gates"]);
   assert(failed.status !== 0, "first fixture run must fail");
 
+  const legacyFailurePath = path.join(outputDir, "first-failure.json");
+  const legacyFailure = readJson(legacyFailurePath);
+  delete legacyFailure.runId;
+  delete legacyFailure.invocationId;
+  legacyFailure.firstFailure.testcaseId = "";
+  legacyFailure.childFailure = null;
+  legacyFailure.cleanup.child = null;
+  fs.writeFileSync(legacyFailurePath, `${JSON.stringify(legacyFailure, null, 2)}\n`, "utf8");
+
   const passed = runBundle(["--output-dir", outputDir, "--fixture-pass"]);
   assert(passed.status === 0, `retry fixture must pass: ${passed.stderr}`);
   const summary = readJson(path.join(outputDir, "summary.json"));
@@ -994,7 +1003,12 @@ check("rerun preserves the earliest first failure after canonical output replace
   assert(preserved.schema === "media-server.v390-acceptance-first-failure.v1", "preserved failure schema mismatch");
   assert(preserved.failedStage === "feature-gates", "preserved failure stage mismatch");
   assert(preserved.firstFailure?.context?.includes("fixture failure at feature-gates"), "preserved failure context missing");
-  assert(readTextFile(firstFailureReportPath).includes("fixture fail feature-gates"), "preserved failure report command missing");
+  const preservedReport = readTextFile(firstFailureReportPath);
+  assert(preservedReport.includes("fixture fail feature-gates"), "preserved failure report command missing");
+  assert(!preservedReport.split(/\r?\n/).some(line => /[ \t]+$/.test(line)),
+    "preserved legacy failure report contains trailing whitespace");
+  assert(preservedReport.includes("runId: not-recorded") && preservedReport.includes("testcaseId: not-recorded"),
+    "preserved legacy failure report does not render missing metadata explicitly");
   fs.rmSync(outputDir, { recursive: true, force: true });
 });
 

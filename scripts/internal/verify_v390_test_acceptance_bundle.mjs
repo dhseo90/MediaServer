@@ -1307,25 +1307,29 @@ function readPriorFirstFailure() {
 function writePriorFirstFailure(payload) {
   const jsonPath = path.join(outputDir, "first-failure.json");
   const markdownPath = path.join(outputDir, "first-failure.md");
+  const metadataValue = value => {
+    const rendered = String(value ?? "").trimEnd();
+    return rendered || "not-recorded";
+  };
   fs.mkdirSync(outputDir, { recursive: true });
   writeJson(jsonPath, payload);
   const lines = [
     "# v3.9.0 Acceptance First Failure",
     "",
-    `schema: ${payload.schema}`,
-    `recordedAt: ${payload.recordedAt}`,
-    `runId: ${payload.runId || payload.invocationId || ""}`,
-    `sourceCommitSha: ${payload.sourceProvenance?.commitSha || ""}`,
-    `failedStage: ${payload.failedStage || ""}`,
-    `testcaseId: ${payload.firstFailure?.testcaseId || ""}`,
-    `error: ${payload.firstFailure?.error || payload.firstFailure?.context || ""}`,
-    `logPath: ${payload.firstFailure?.logPath || ""}`,
-    `failedCommand: ${payload.failedCommand || ""}`,
-    `reproductionCommand: ${payload.firstFailure?.reproductionCommand || ""}`,
-    `context: ${payload.firstFailure?.context || ""}`,
-    `childFailurePhase: ${payload.childFailure?.phase || ""}`,
-    `childFailureCase: ${payload.childFailure?.case || ""}`,
-    `childCleanupStatus: ${payload.cleanup?.child?.status || ""}`,
+    `schema: ${metadataValue(payload.schema)}`,
+    `recordedAt: ${metadataValue(payload.recordedAt)}`,
+    `runId: ${metadataValue(payload.runId || payload.invocationId)}`,
+    `sourceCommitSha: ${metadataValue(payload.sourceProvenance?.commitSha)}`,
+    `failedStage: ${metadataValue(payload.failedStage)}`,
+    `testcaseId: ${metadataValue(payload.firstFailure?.testcaseId)}`,
+    `error: ${metadataValue(payload.firstFailure?.error || payload.firstFailure?.context)}`,
+    `logPath: ${metadataValue(payload.firstFailure?.logPath)}`,
+    `failedCommand: ${metadataValue(payload.failedCommand)}`,
+    `reproductionCommand: ${metadataValue(payload.firstFailure?.reproductionCommand)}`,
+    `context: ${metadataValue(payload.firstFailure?.context)}`,
+    `childFailurePhase: ${metadataValue(payload.childFailure?.phase)}`,
+    `childFailureCase: ${metadataValue(payload.childFailure?.case)}`,
+    `childCleanupStatus: ${metadataValue(payload.cleanup?.child?.status)}`,
     "",
     "## Diagnostic artifact snapshots",
     "",
@@ -1341,7 +1345,8 @@ function writePriorFirstFailure(payload) {
       "",
     ]),
   ];
-  fs.writeFileSync(markdownPath, `${lines.join("\n").replace(/\n+$/, "")}\n`, "utf8");
+  const markdown = lines.join("\n").replace(/[ \t]+$/gm, "").replace(/\n+$/, "");
+  fs.writeFileSync(markdownPath, `${markdown}\n`, "utf8");
 }
 
 function buildExecutedCommandLedger() {
