@@ -22,6 +22,8 @@ const forms = readJson("test/fixtures/v390_document_form_response_binding_census
 const red = readJson("test/fixtures/v390_page_owned_request_lifecycle_red_20260810.json");
 const runnerStartRed = readJson(
   "test/fixtures/v390_bootstrap_action_redirect_lifecycle_red_20260810.json");
+const runnerSource = fs.readFileSync(
+  path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"), "utf8");
 const checks = [];
 const check = (name, fn) => { fn(); checks.push(name); };
 const reject = (fn, pattern) => {
@@ -397,6 +399,17 @@ check("runtime-materialized primary path binds without changing action identity"
       allowedStatuses: [200],
     },
   }), /outside the declared template/i);
+});
+
+check("runtime response evidence preserves the primary action request template", () => {
+  assert(runnerSource.includes(
+    "urlPathTemplate: completion.request?.urlPathTemplate ||",
+  ) && runnerSource.includes(
+    "completion.request?.urlPath || runtimeRequest.urlPath",
+  ) && !runnerSource.includes(
+    "urlPathTemplate: exactRuntimeOracleFor(item.caseId)?.requests?.[0]?.path || runtimeRequest.urlPath",
+  ),
+  "runtime response evidence replaced the primary action request template with an unrelated oracle request");
 });
 
 check("implementation has no case or path allowlist", () => {

@@ -5263,7 +5263,8 @@ async function semanticAssertionResult(
         correlationId: completion.correlationId,
         method: String(runtimeRequest.method || "").toUpperCase(),
         urlPath: runtimeRequest.urlPath,
-        urlPathTemplate: exactRuntimeOracleFor(item.caseId)?.requests?.[0]?.path || runtimeRequest.urlPath,
+        urlPathTemplate: completion.request?.urlPathTemplate ||
+          completion.request?.urlPath || runtimeRequest.urlPath,
         allowedStatuses: [...new Set([
           Number(runtimeRequest.status),
           ...(completion.request?.allowedStatuses || []),
