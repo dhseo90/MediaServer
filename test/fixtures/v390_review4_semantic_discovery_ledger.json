@@ -3,10 +3,10 @@
   "sourceRelease": "v3.9.0",
   "evidenceBoundary": "static-semantic-audit-only-not-runtime-ui-or-longrun-pass",
   "summary": {
-    "documents": 193,
+    "documents": 199,
     "sourceMarkers": 38,
     "currentProductContracts": 84,
-    "historicalOrSuperseded": 76,
+    "historicalOrSuperseded": 82,
     "conditionalOrTemplate": 27
   },
   "documents": [
@@ -1549,6 +1549,126 @@
         }
       ],
       "semanticDigest": "d0599a336e4dcd8bff55e5c8e91103b5871c65736d5e244386014fdcc0ce962c"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/README.md",
+      "contentSha256": "1725ca663eeeaf9f25df530b707ffcd68a959569d46592356c46183c6c631b56",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 release acceptance failure evidence — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "cc99feb5e654429349a0e7a0b7a9fdf789b086e96f972e7dc0e70bb7e303ab45"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/first-failure.md",
+      "contentSha256": "f4160275b06af62662a195216cbb4f2fb625cabdeac20fa8d12d18817acd4edb",
+      "semanticRole": "historical-first-failure-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-failure-record",
+      "semanticStatement": "v3.9.0 Acceptance First Failure — 당시 acceptance의 최초 실패 기록이다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "first-failure"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "da3763f7e7f54093f53f2c05c75c86903fb1788ac8a311b66944ed05c074e6d5"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/report.md",
+      "contentSha256": "b0241569f33b07255a667e307eabab9cf375b6fd980c6fce36fb0e565e1e1970",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Test Acceptance Bundle — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "e158b28a6b03fc135789dd93df30792059de23a5e027b08482dcdc42453b7c7e"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
+      "contentSha256": "378251c763666095a96c578cc612ec178589d9abac6c7c4603bdcbb04a625239",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "aebb505feaee33c92147b060987fd7c89660ef4357c7b92d45183051169c463d"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.md",
+      "contentSha256": "20fc0521b7c74541be9952b69030e282c76991d31245c11a33b10a20bf2c749c",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "a43b9f7f4c346bf10a483ca16035b981c5205d58b0eb52af893e9cea96e59ee0"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/runs/v390-test-acceptance-20260813154309-10950/ui-fulltest-qualification/report.md",
+      "contentSha256": "1d293c57f384da34a1df3b5539e8f7041bff74cbf6b3f24d6e792c8d6ee27213",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "Policy v4 UI Fulltest Evidence Evaluation — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "021d4968474a59889bc5a80b8676ea4eb316631e652439cbaf7ffd339f5bc535"
     },
     {
       "path": "docs/release-artifacts/v3.9.0/test-acceptance-final/first-failure.md",
