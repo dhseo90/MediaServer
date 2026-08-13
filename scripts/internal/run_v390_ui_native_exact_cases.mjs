@@ -3566,21 +3566,59 @@ async function executeVisualMatrix(adapter) {
 
 async function prepareLiveVisualProbe(browser, spec, correlationId, id) {
   await browser.waitForSelector(spec.tileSelector);
-  await browser.setCorrelationId(correlationId);
   const rawSelector = spec.modeActionSelector.replace('data-mode-action="va-overlay"', 'data-mode-action="raw"');
   const raw = await browser.snapshot(rawSelector);
   assert(raw.exists && raw.visible, `${id} raw mode precondition missing`);
   await browser.click(rawSelector);
-  await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
-  await browser.click(spec.modeActionSelector);
-  await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 750, quietMs: 250 });
-  const hasVaSession = browser.networkEntries().some(entry => entry.phase === "request-start" &&
-    entry.correlationId === correlationId && entry.method === "POST" && entry.requestBody?.overlayMode === "va-overlay");
-  if (!hasVaSession) {
-    const playbackSelector = spec.controlSelectors.find(selector => selector.includes('data-action="toggle-playback"'));
-    assert(playbackSelector, `${id} playback action selector missing`);
-    await browser.click(playbackSelector);
+  await browser.waitForNetworkQuiet({ correlationId: "", minimumObservationMs: 500, quietMs: 200 });
+  const actionId = `${id}:live-session`;
+  let actionContext = await browser.beginRequestActionOwnership({
+    phase: "visual-matrix-live-session",
+    actionId,
+    correlationId,
+    ownershipKind: "visual-matrix-live-session",
+    actionRequestEnvelopes: [
+      {
+        method: spec.session.method,
+        urlPath: "/client/api/views/{viewId}/webrtc/session",
+        runtimePathParameters: ["viewId"],
+        allowedStatuses: spec.session.allowedStatuses,
+        correlationId,
+        correlationSource: "request-header",
+        initiatorActionId: actionId,
+        requestOwnershipKind: "visual-matrix-live-session",
+      },
+      {
+        method: spec.session.answerMethod,
+        urlPath: "/client/api/views/{viewId}/webrtc/session/{sessionId}/answer",
+        runtimePathParameters: ["viewId", "sessionId"],
+        allowedStatuses: spec.session.answerAllowedStatuses,
+        correlationId,
+        correlationSource: "request-header",
+        initiatorActionId: actionId,
+        requestOwnershipKind: "visual-matrix-live-session",
+      },
+    ],
+  });
+  try {
+    await browser.click(spec.modeActionSelector);
     await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 750, quietMs: 250 });
+    const hasVaSession = browser.networkEntries().some(entry => entry.phase === "request-start" &&
+      entry.correlationId === correlationId && entry.method === "POST" &&
+      entry.requestBody?.overlayMode === "va-overlay");
+    if (!hasVaSession) {
+      const playbackSelector = spec.controlSelectors.find(selector =>
+        selector.includes('data-action="toggle-playback"'));
+      assert(playbackSelector, `${id} playback action selector missing`);
+      await browser.click(playbackSelector);
+      await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 750, quietMs: 250 });
+    }
+    await browser.waitForRequestActionResponses(actionContext);
+    await browser.endRequestActionOwnership(actionContext);
+    actionContext = null;
+  } catch (error) {
+    if (actionContext) browser.cleanupRequestActionOwnership(error);
+    throw error;
   }
   await browser.waitForSelector(spec.modeSelector);
   await browser.waitForLiveVideoReady({ videoSelector: spec.videoSelector, modeSelector: spec.modeSelector });
@@ -5271,7 +5309,8 @@ async function semanticAssertionResult(
         ])],
         initiatorActionId: completion.actionId,
         requestOwnershipKind: "primary-action",
-        runtimeBindingSource: "exact-runtime-oracle",
+        runtimeBindingSource: completion.request?.runtimeBindingSource ||
+          "native-completion-contract",
       },
     } : {}),
     observed: exactObserved,

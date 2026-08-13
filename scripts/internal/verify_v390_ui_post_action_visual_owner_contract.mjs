@@ -825,6 +825,14 @@ assert.ok(adapterSource.includes('block: "center"'),
   "visual target scrolling does not center viewport-sized controls before measurement");
 assert.ok(!adapterSource.includes("targetLocator.scrollIntoViewIfNeeded"),
   "visual target measurement still accepts partially visible controls");
+const visualGeometryStart = adapterSource.indexOf("const geometry = await targetLocator.evaluate");
+const visualGeometryEnd = adapterSource.indexOf("const focusableCount =", visualGeometryStart);
+const visualGeometrySource = adapterSource.slice(visualGeometryStart, visualGeometryEnd);
+assert.ok(visualGeometrySource.indexOf("document.fonts.ready") >= 0 &&
+  visualGeometrySource.indexOf("document.fonts.ready") <
+    visualGeometrySource.indexOf("target.scrollIntoView({") &&
+  visualGeometrySource.includes('block: "center"'),
+"visual target is not re-centered after fonts and layout become stable");
 assert.ok(adapterSource.includes("sourceSelectorRewaited" ) === false,
   "adapter must consume the resolved owner, not recreate source lifecycle policy");
 assert.ok(adapterSource.includes("bootstrapLedgerClosed: true") &&

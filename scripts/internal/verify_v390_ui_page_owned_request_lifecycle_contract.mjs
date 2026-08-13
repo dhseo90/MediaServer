@@ -406,10 +406,14 @@ check("runtime response evidence preserves the primary action request template",
     "urlPathTemplate: completion.request?.urlPathTemplate ||",
   ) && runnerSource.includes(
     "completion.request?.urlPath || runtimeRequest.urlPath",
+  ) && /runtimeBindingSource:\s*completion\.request\?\.runtimeBindingSource\s*\|\|\s*\n?\s*"native-completion-contract"/.test(
+    runnerSource,
   ) && !runnerSource.includes(
     "urlPathTemplate: exactRuntimeOracleFor(item.caseId)?.requests?.[0]?.path || runtimeRequest.urlPath",
+  ) && !runnerSource.includes(
+    'runtimeBindingSource: "exact-runtime-oracle"',
   ),
-  "runtime response evidence replaced the primary action request template with an unrelated oracle request");
+  "runtime response evidence replaced the primary action request owner with an unrelated oracle request");
 });
 
 check("implementation has no case or path allowlist", () => {

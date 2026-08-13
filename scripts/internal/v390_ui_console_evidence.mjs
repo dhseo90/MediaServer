@@ -41,7 +41,7 @@ export function qualifyBrowserConsoleMessages({ messages, trace, nativeCase }) {
   const qualifiedMessages = (messages || []).map(message => {
     const value = structuredClone(message);
     if (!severeLevels.has(String(value.level || ""))) return value;
-    const reason = validateConsoleMessage(value, traceResponses, nativeCase);
+    const reason = validateConsoleMessage(value, traceResponses, nativeCase, trace);
     if (reason) {
       unapprovedConsoleMessages += 1;
       value.approval = { schema: consoleApprovalSchema, status: "UNAPPROVED", reason };
@@ -50,7 +50,7 @@ export function qualifyBrowserConsoleMessages({ messages, trace, nativeCase }) {
     value.approval = {
       schema: consoleApprovalSchema,
       status: "APPROVED",
-      contractKind: sourceContractKind(value.responseBinding, nativeCase),
+      contractKind: sourceContractKind(value.responseBinding, nativeCase, trace),
       responseIdentity: responseIdentity(value.responseBinding),
     };
     return value;
@@ -89,7 +89,7 @@ export function buildBrowserConsoleCensus(messages, caseId = "") {
   };
 }
 
-function validateConsoleMessage(message, traceResponses, nativeCase) {
+function validateConsoleMessage(message, traceResponses, nativeCase, trace) {
   if (message.secretBearing === true) return "console-secret-bearing-message";
   if (message.kind !== "console") return "console-message-not-resource-console";
   if (resourceConsoleStatus(message) === null) return "console-message-pattern-unapproved";
@@ -109,13 +109,14 @@ function validateConsoleMessage(message, traceResponses, nativeCase) {
   const exact = traceResponses.filter(response => responseMatchesBinding(response, binding));
   if (exact.length !== 1) return "console-response-trace-identity-mismatch";
   if (message.caseId !== nativeCase?.caseId) return "console-message-case-binding-mismatch";
-  return sourceContractKind(binding, nativeCase) ? "" : "console-response-source-contract-unapproved";
+  return sourceContractKind(binding, nativeCase, trace) ? "" : "console-response-source-contract-unapproved";
 }
 
-function sourceContractKind(binding, nativeCase) {
+function sourceContractKind(binding, nativeCase, trace) {
   const method = String(binding?.method || "");
   const path = String(binding?.path || urlTarget(binding?.url || ""));
   const status = Number(binding?.status || 0);
+  const trustedRoles = trustedConsoleRoles(trace, nativeCase);
   const completionRequest = nativeCase?.workflow?.expectedResults?.[0]?.completion?.request;
   if (completionRequest && method === completionRequest.method && path === completionRequest.urlPath &&
       completionRequest.allowedStatuses?.includes(status) &&
@@ -123,12 +124,13 @@ function sourceContractKind(binding, nativeCase) {
       binding.requestOwnershipKind === "primary-action") {
     return "primary-completion-response";
   }
-  if (nativeCase?.accountRole === "anonymous" && method === "GET" && path === "/auth/whoami" && status === 401 &&
+  if (trustedRoles.has("anonymous") && method === "GET" && path === "/auth/whoami" && status === 401 &&
       ["bootstrap", "background-refresh"].includes(binding.requestOwnershipKind) &&
       !binding.initiatorActionId) {
     return "anonymous-whoami-unauthorized";
   }
-  if (nativeCase?.accountRole === "operator" && method === "GET" && path === "/ops/api/users" && status === 403 &&
+  if (["viewer", "operator"].some(role => trustedRoles.has(role)) &&
+      method === "GET" && path === "/ops/api/users" && status === 403 &&
       ["bootstrap", "background-refresh"].includes(binding.requestOwnershipKind) &&
       !binding.initiatorActionId) {
     return "operator-users-page-load-forbidden";
@@ -150,6 +152,32 @@ function sourceContractKind(binding, nativeCase) {
     return "exact-runtime-independent-readback-response";
   }
   return "";
+}
+
+function trustedConsoleRoles(trace, nativeCase) {
+  const roles = new Set();
+  if (["anonymous", "viewer", "operator", "admin"].includes(nativeCase?.accountRole)) {
+    roles.add(nativeCase.accountRole);
+  }
+  const completion = nativeCase?.workflow?.expectedResults?.[0]?.completion;
+  const target = trace?.postActionVisualTargetEvidence;
+  const role = trace?.postActionVisualRoleEvidence;
+  if (target?.schema === "media-server.v390-ui-post-action-visual-target.v1" &&
+      target.caseId === nativeCase?.caseId && target.actionId === completion?.actionId &&
+      target.ownerCandidateCount === 1 && target.observedRoute &&
+      [
+        "post-action-visible-source-owner",
+        "post-action-visible-document-owner",
+        "post-action-visible-destination-owner",
+        "post-readback-visible-document-owner",
+      ].includes(target.bindingKind) &&
+      role?.schema === "media-server.v390-ui-post-action-visual-role.v1" &&
+      role.caseId === nativeCase?.caseId && role.actionId === completion?.actionId &&
+      role.route === target.observedRoute && role.source === "browser-auth-whoami" &&
+      ["anonymous", "viewer", "operator", "admin"].includes(role.accountRole)) {
+    roles.add(role.accountRole);
+  }
+  return roles;
 }
 
 function consoleMessageClass(message) {

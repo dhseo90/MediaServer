@@ -144,10 +144,14 @@ function qualifyRequest(value, expected, nativeCase, reasons) {
   }
   if (runtimeBound) {
     qualifyRuntimeRequestDeclaration(value, declared, nativeCase, reasons);
-  } else if (upper(declared.method) !== upper(expected.request.method) ||
-      declared.urlPath !== expected.request.urlPath ||
-      !same(declared.allowedStatuses, expected.request.allowedStatuses)) {
-    reasons.push("raw-primary-declared-request-static-mismatch");
+  } else {
+    const expectedTemplate = expected.request.urlPathTemplate || expected.request.urlPath;
+    if (upper(declared.method) !== upper(expected.request.method) ||
+        declared.urlPathTemplate !== expectedTemplate ||
+        !runtimeTemplateMatches(expectedTemplate, declared.urlPath) ||
+        !same(declared.allowedStatuses, expected.request.allowedStatuses)) {
+      reasons.push("raw-primary-declared-request-static-mismatch");
+    }
   }
   const entries = Array.isArray(value.networkEntries) ? value.networkEntries : [];
   if (value.requestBinding?.schema === "media-server.v390-ui-document-form-submit-binding.v1") {

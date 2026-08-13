@@ -3473,6 +3473,13 @@ async function openNativePlaywrightPage(playwright, {
       }) => {
         if (document.fonts?.ready) await document.fonts.ready;
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const stableDocumentTarget = ["body", "html", ":root"].includes(
+          String(browserTargetSelector || "").trim(),
+        );
+        if (!stableDocumentTarget && !liveSpec?.tileSelector) {
+          target.scrollIntoView({ block: "center", inline: "nearest" });
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        }
         const rectValue = element => {
           const rect = element?.getBoundingClientRect?.();
           if (!rect) return null;
@@ -3486,11 +3493,17 @@ async function openNativePlaywrightPage(playwright, {
           return Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) > 0);
         };
         const effectiveBackground = element => {
+          const parseCssColorAlpha = value => {
+            const rgb = value.match(/^rgba?\(\s*[0-9.]+[, ]+[0-9.]+[, ]+[0-9.]+(?:\s*[,/]\s*([0-9.]+))?\s*\)$/i);
+            if (rgb) return value.startsWith("rgb(") ? 1 : Number(rgb[1] || 0);
+            const srgb = value.match(/^color\(\s*srgb\s+[0-9.]+\s+[0-9.]+\s+[0-9.]+(?:\s*\/\s*([0-9.]+))?\s*\)$/i);
+            if (srgb) return srgb[1] === undefined ? 1 : Number(srgb[1]);
+            return 0;
+          };
           let current = element;
           while (current) {
             const value = getComputedStyle(current).backgroundColor;
-            const match = value.match(/^rgba?\(\s*[0-9.]+[, ]+[0-9.]+[, ]+[0-9.]+(?:\s*[,/]\s*([0-9.]+))?\s*\)$/i);
-            const alpha = value.startsWith("rgb(") ? 1 : Number(match?.[1] || 0);
+            const alpha = parseCssColorAlpha(value);
             if (alpha >= 0.99) return value;
             current = current.parentElement;
           }

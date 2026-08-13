@@ -22,6 +22,8 @@ const plan = readJson("test/fixtures/v390_ui_visual_matrix_plan.json");
 const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
 const native = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const productCss = fs.readFileSync(path.join(rootDir, "src/ingress/product_ui_css.cpp"), "utf8");
+const adapterSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
+const runnerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"), "utf8");
 const checks = [];
 cleanup();
 fs.mkdirSync(tempRoot, { recursive: true });
@@ -117,6 +119,25 @@ check("빈 단색 PNG, clipping, 저대비, focus 누락은 계산된 FAIL이다
     "screen-reader-only 1px text was treated as visible contrast evidence");
 });
 
+check("CSS Color 4 srgb 측정값은 contrast 계산과 browser background ownership에서 보존된다", () => {
+  const variant = expandVisualMatrixPlan(plan).find(item =>
+    item.screenId === "ops-home" && item.width === 390 && item.theme === "light");
+  const srgb = makeProbe(variant, 208, value => {
+    value.textSamples = [{
+      foreground: "color(srgb 1 1 1)",
+      background: "color(srgb 0 0.2 0.1)",
+      fontSizePx: 14,
+      fontWeight: "400",
+    }];
+  });
+  assert(!srgb.payload.failures.includes("contrast-samples-missing") &&
+    !srgb.payload.failures.includes("contrast-threshold-failed"),
+  `opaque srgb contrast was not evaluated: ${srgb.payload.failures.join(",")}`);
+  assert(adapterSource.includes("parseCssColorAlpha") &&
+    adapterSource.includes("const srgb = value.match(/^color"),
+  "browser measurement does not retain opaque color(srgb) background ownership");
+});
+
 check("viewport보다 큰 visible workspace는 교차를 요구하고 작은 control clipping은 거부한다", () => {
   const variant = expandVisualMatrixPlan(plan).find(item =>
     item.screenId === "client-live" && item.width === 390 && item.theme === "light");
@@ -163,6 +184,21 @@ check("client/live는 동일 tile의 VA session·live frame·contain·control �
     value.liveVideo.session.answerPath = "/client/api/views/view-a/webrtc/session/session-b/answer";
   });
   assert(wrongAnswerSession.payload.failures.includes("va-overlay-session-id-mismatch"), "different answer session passed");
+});
+
+check("client/live visual probe owns session and answer requests with an explicit bounded action scope", () => {
+  const start = runnerSource.indexOf("async function prepareLiveVisualProbe");
+  const end = runnerSource.indexOf("async function cleanupLiveVisualProbe", start);
+  const source = runnerSource.slice(start, end);
+  assert(start >= 0 && end > start, "live visual probe implementation is missing");
+  assert(source.includes("browser.beginRequestActionOwnership({") &&
+    source.includes('phase: "visual-matrix-live-session"') &&
+    source.includes("actionRequestEnvelopes:") &&
+    source.includes("browser.waitForRequestActionResponses(") &&
+    source.includes("browser.endRequestActionOwnership("),
+  "live visual session requests are not enclosed by explicit request ownership");
+  assert(!source.includes("browser.setCorrelationId(correlationId)"),
+    "live visual probe still relies on unowned global correlation injection");
 });
 
 check("legacy 8-probe width/theme-only matrix는 80-probe current matrix를 대체하지 못한다", () => {

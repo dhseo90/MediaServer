@@ -465,6 +465,75 @@ check("console approvals use exact page-owned lifecycle contracts for bootstrap,
   }
 });
 
+check("console approvals bind expected 401 and 403 responses to validated post-action roles", () => {
+  const scenarios = [
+    { caseId: "UI-004", role: "anonymous", path: "/auth/whoami", status: 401,
+      contractKind: "anonymous-whoami-unauthorized" },
+    { caseId: "UI-003", role: "viewer", path: "/ops/api/users", status: 403,
+      contractKind: "operator-users-page-load-forbidden" },
+  ];
+  for (const [index, scenario] of scenarios.entries()) {
+    const nativeCase = manifestSource.cases.find(value => value.caseId === scenario.caseId);
+    const completion = nativeCase.workflow.expectedResults[0].completion;
+    const response = {
+      phase: "response",
+      requestId: `post-role-console-${index}`,
+      caseRequestIdentity: `${scenario.caseId}:request-${index + 1}`,
+      caseRequestSequence: index + 41,
+      responseRequestObjectObserved: true,
+      requestIdentitySource: "playwright-response-request",
+      requestKind: "application-fetch",
+      requestOwnershipKind: "background-refresh",
+      initiatorActionId: "",
+      sameOrigin: true,
+      method: "GET",
+      status: scenario.status,
+      url: `http://localhost${scenario.path}`,
+      path: scenario.path,
+    };
+    const trace = {
+      pageOwnedRequestLedger: [response],
+      postActionVisualTargetEvidence: {
+        schema: "media-server.v390-ui-post-action-visual-target.v1",
+        caseId: scenario.caseId,
+        actionId: completion.actionId,
+        observedRoute: scenario.role === "anonymous" ? "/login" : "/client/live",
+        ownerCandidateCount: 1,
+        bindingKind: "post-action-visible-destination-owner",
+      },
+      postActionVisualRoleEvidence: {
+        schema: "media-server.v390-ui-post-action-visual-role.v1",
+        caseId: scenario.caseId,
+        actionId: completion.actionId,
+        route: scenario.role === "anonymous" ? "/login" : "/client/live",
+        accountRole: scenario.role,
+        source: "browser-auth-whoami",
+      },
+    };
+    const message = {
+      kind: "console",
+      level: "error",
+      text: `Failed to load resource: the server responded with a status of ${scenario.status} (Expected)`,
+      location: { url: response.url },
+      responseBindingCandidateCount: 1,
+      responseBinding: { schema: "media-server.v390-ui-console-response-binding.v1", ...response },
+      caseId: scenario.caseId,
+      actionId: "",
+      phase: "unowned",
+      secretBearing: false,
+    };
+    const approved = qualifyBrowserConsoleMessages({ messages: [message], trace, nativeCase });
+    assert(approved.unapprovedConsoleMessages === 0 &&
+      approved.messages[0].approval?.contractKind === scenario.contractKind,
+    `${scenario.caseId} validated post-action role response was not approved`);
+
+    delete trace.postActionVisualRoleEvidence;
+    const rejected = qualifyBrowserConsoleMessages({ messages: [message], trace, nativeCase });
+    assert(rejected.unapprovedConsoleMessages === 1,
+      `${scenario.caseId} response passed without post-action role evidence`);
+  }
+});
+
 check("producer cannot repair a wrong raw request with runner PASS", () => {
   const trace = makeRawTrace(item);
   trace.rawPrimaryObservations[0].networkEntries[1].method = "DELETE";

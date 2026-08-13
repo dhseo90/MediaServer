@@ -130,6 +130,25 @@ if (qualifier) {
     }
   });
 
+  check("runtime-materialized primary requests retain the declared completion template", () => {
+    const materializedCase = native.cases.find(item => item.caseId === "CLIENT-023");
+    const materializedCanonical = canonical.cases.find(item => item.testId === materializedCase.caseId);
+    const value = makeRawCase(materializedCase);
+    const observation = value.trace.rawPrimaryObservations[0];
+    const materializedPath = "/client/api/views/9001/events";
+    observation.action.declaredRequest.urlPath = materializedPath;
+    for (const entry of observation.networkEntries) entry.url = `http://localhost${materializedPath}`;
+    const result = qualifier.qualifyRawCase({
+      trace: value.trace,
+      requested: value.requested,
+      observed: value.observed,
+      canonicalCase: materializedCanonical,
+      nativeCase: materializedCase,
+    });
+    assert(!result.reasons.includes("raw-primary-declared-request-static-mismatch"),
+      `runtime materialized template rejected: ${result.reasons.join("; ")}`);
+  });
+
   check("REVIEW4-58 fresh readback identity selector and observation are independently recomputed", () => {
     const mutations = [
       ["missing", value => { value.trace.rawPrimaryObservations[0].semanticReadback = null; }],

@@ -597,11 +597,18 @@ function paeth(left, up, upLeft) {
 }
 
 function parseColor(value) {
-  const match = String(value || "").match(/^rgba?\(\s*([0-9.]+)[, ]+([0-9.]+)[, ]+([0-9.]+)(?:\s*[,/]\s*([0-9.]+))?\s*\)$/i);
-  if (!match) return null;
-  const alpha = match[4] === undefined ? 1 : Number(match[4]);
+  const text = String(value || "").trim();
+  const rgb = text.match(/^rgba?\(\s*([0-9.]+)[, ]+([0-9.]+)[, ]+([0-9.]+)(?:\s*[,/]\s*([0-9.]+))?\s*\)$/i);
+  if (rgb) {
+    const alpha = rgb[4] === undefined ? 1 : Number(rgb[4]);
+    if (alpha < 0.99) return null;
+    return [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
+  }
+  const srgb = text.match(/^color\(\s*srgb\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)(?:\s*\/\s*([0-9.]+))?\s*\)$/i);
+  if (!srgb) return null;
+  const alpha = srgb[4] === undefined ? 1 : Number(srgb[4]);
   if (alpha < 0.99) return null;
-  return [Number(match[1]), Number(match[2]), Number(match[3])];
+  return [Number(srgb[1]) * 255, Number(srgb[2]) * 255, Number(srgb[3]) * 255];
 }
 
 function contrastRatio(foreground, background) {
