@@ -21,18 +21,19 @@ tag, and GitHub Release steps are complete.
 
 | Area | Result | Binding |
 | --- | --- | --- |
-| Static and clean-checkout verification | PASS | clean source `efb44bd1b20517297a22dd17956fb514f26ebbf0` and the current permission/final-integrity correction checkpoint |
-| 30-minute longrun | PASS | source `efb44bd1...`, `118 PASS / 0 FAIL / 2 skip`, 22 soak iterations |
-| Canonical UI actual | `424/424 PASS` | source `efb44bd1...`, actual browser execution |
-| Policy v4 | FAIL | qualified `424/424`, but `MEDIA-017` emitted unapproved 403/404 console responses |
-| Cleanup/final integrity | cleanup PASS, final integrity FAIL | runtime cleanup was measured; the verifier read a legacy temporary-root field |
+| Static and clean-checkout verification | PASS | source `08ad8b3ee70391be84cdf21de07215ec7ce0f070`; final-integrity correction pending a clean checkpoint |
+| 30-minute longrun | PASS | source `08ad8b3e...`, `118 PASS / 0 FAIL / 2 skip`, 22 soak iterations |
+| Canonical UI actual | `424/424 PASS` | source `08ad8b3e...`, actual browser execution |
+| Policy v4 | PASS | eligible and qualified `424/424`; no unapproved console response |
+| 120-minute longrun | PASS | `443 PASS / 0 FAIL / 2 skip`, 87 soak iterations |
+| Cleanup/final integrity | cleanup PASS, final integrity FAIL | independent Policy re-evaluation included canonical evidence output in the source patch digest |
 
 ## Release Gates Still Pending
 
-- Commit the `MEDIA-017` permission guard and authoritative temporary-root verifier correction, then
-  run `./test_release.sh` from the clean `v3.9.0` branch.
-- Reconfirm the required 30-minute run and complete the launcher's conditional 120-minute decision
-  and execution on the same release source.
+- Commit the allowed-artifact-aware final-integrity source digest correction, then run
+  `./test_release.sh` once from the clean `v3.9.0` branch.
+- Require 30-minute, exact UI `424/424`, Policy v4 `424/424`, conditional 120-minute,
+  cleanup, and final-integrity PASS on that same source commit.
 - Preserve the final acceptance evidence under `docs/release-artifacts/v3.9.0/`.
 - Complete PR checks, main merge, signed tag verification, GitHub Release publication, and published
   metadata verification.

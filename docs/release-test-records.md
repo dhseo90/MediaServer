@@ -3418,6 +3418,22 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | 실행 중 정정 | 첫 focused 실행에서 과거 RED fixture가 mutable top-level current alias를 가리켜 SHA가 최신 actual로 바뀐 충돌을 발견해 immutable run-ID artifact만 historical hash 대상으로 제한했습니다. 다음 focused 실행에서 별도 initial phase가 없는 canonical negative-route UI-018을 발견해 `negative-route + 단일 initial-document-navigation binding` 공통 규칙으로 포함했습니다. 424 전수 대입에서 initial settled route와 action source route가 다른 9건을 발견해 attestation 시점을 최초 문서 직후로 분리했습니다 | 세 정정 모두 계약 완화 없이 공통 lifecycle 모델을 보강했습니다. 이후 focused 및 전체 gate가 PASS했습니다 |
 | 미실행 | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, actual acceptance/release, `./test_release.sh` | 사용자 금지. Clean pushed commit에서 별도 tester가 `./test_ui.sh`를 정확히 1회 실행해야 actual GREEN 여부가 결정됩니다 |
 
+## v3.9.0 full release final-integrity source-boundary residual (2026-08-14)
+
+| 항목 | 실제 결과 | 판정 |
+| --- | --- | --- |
+| Source | `08ad8b3ee70391be84cdf21de07215ec7ce0f070`, `v3.9.0`, 실행 전 local/origin `0/0`·clean | clean release source |
+| Build/feature/30분 | Full build·feature gates PASS; 30분 `118 PASS / 0 FAIL / 2 skip`, 22 soak iterations | PASS |
+| Canonical UI | actual browser `424 attempted / 424 PASS / 0 FAIL / 0 not-run / 0 unsupported` | PASS |
+| Policy v4 | policy validation PASS, eligible, qualified `424/424`, reason 0 | PASS |
+| 120분 | `443 PASS / 0 FAIL / 2 skip`, 87 soak iterations; main/queue runtime idle·ports clean | PASS |
+| Cleanup | UI server, longrun runtimes, ports, runtime roots, retained secret scan | PASS |
+| Final integrity | `11 PASS / 1 FAIL`; `final-policy-independent-evaluation-mismatch` | 전체 release FAIL |
+| Root cause | Policy qualification은 acceptance-owned canonical artifact root를 source patch에서 제외했지만 final-integrity 독립 재계산은 `git diff --binary HEAD` 전체를 다시 해시 | 같은 run을 서로 다른 source 경계로 비교 |
+| TDD 보정 | allowed-artifact-aware `currentProvenance.sourcePatchSha256` 재사용; contract RED `15/1` → GREEN `16/0`, acceptance `36/36`, semantic/approval `986/986`, feature evidence `986/986`·negative `15/15` | 새 clean checkpoint actual 전 static closure |
+| Evidence | `docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-08ad8b3e/` | 13-file/6.5MB bounded historical package; 전체 309MB run은 커밋 제외 |
+| 잔여 | 새 clean checkpoint의 `./test_release.sh`, 최종 문서/evidence commit, 임시 branch 정리, PR/main merge | 미완료, release-ready 아님 |
+
 ## v3.9.0 release actual Policy/final-integrity residual closure (2026-08-14)
 
 | 항목 | 결과 | 판정 |

@@ -105,8 +105,7 @@ check("canonical parent, child census, Policy source, and cleanup form one run",
         version: fs.readFileSync(path.join(repositoryRoot, "VERSION"), "utf8").trim(),
         gitCommit: currentProvenance.commitSha,
         gitBranch: currentProvenance.branch,
-        worktreePatchSha256: sha256Text(execFileSync("git", ["diff", "--binary", "HEAD"],
-          { cwd: repositoryRoot, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })),
+        worktreePatchSha256: currentProvenance.sourcePatchSha256,
       } },
     );
   }

@@ -222,6 +222,10 @@ check("actual final integrity consumes canonical parent and independently bound 
   assert(source.includes("evaluateEvidence(") &&
     bindingSource.includes("final-policy-independent-evaluation-mismatch"),
   "actual integrity does not independently re-evaluate raw Policy evidence");
+  assert(source.includes("worktreePatchSha256: currentProvenance.sourcePatchSha256"),
+    "actual integrity does not reuse the allowed-artifact-aware source patch digest");
+  assert(!source.includes('execFileSync("git", ["diff", "--binary", "HEAD"]'),
+    "actual integrity recomputes the Policy source digest from canonical evidence output changes");
 });
 
 check("actual final integrity binds the authoritative UI runtime descriptor root", () => {

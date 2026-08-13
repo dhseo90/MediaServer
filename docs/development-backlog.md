@@ -17,6 +17,19 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - 최신 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 
+### 2026-08-14 release close-out status
+
+- Source `08ad8b3ee70391be84cdf21de07215ec7ce0f070`의 실제 release run에서 full build,
+  feature gates, 30분 longrun, canonical UI `424/424`, Policy v4 eligible `424/424`,
+  120분 longrun `443 PASS / 0 FAIL / 2 skip`, cleanup이 PASS했습니다.
+- 전체 release는 마지막 final-integrity의 `final-policy-independent-evaluation-mismatch` 1건으로
+  FAIL입니다. 제품/브라우저 case 실패가 아니라 canonical artifact root를 source diff에 다시
+  포함한 verifier 경계 불일치입니다.
+- 잔여 P0는 allowed-artifact-aware source patch digest 보정 checkpoint와 같은 clean source의
+  `./test_release.sh` 1회 PASS입니다. 그 뒤 최종 evidence 문서화, 임시 v3.9 브랜치 제거,
+  `v3.9.0 -> main` PR 검증과 merge를 수행합니다.
+- 현재 상태는 release-ready가 아니며 tag/GitHub Release/published metadata 완료로 기록하지 않습니다.
+
 ## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
 상태: Step 1~29 기능·결정·readiness local gate는 한 차례 닫혔으나, 2026-07-11 실제 구현

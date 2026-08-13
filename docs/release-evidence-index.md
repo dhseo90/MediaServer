@@ -37,10 +37,10 @@
 
 | Evidence | 상태 | 결속/위치 | 사용 범위 |
 | --- | --- | --- | --- |
-| Verification Static | PASS | `v3.9.0` source `efb44bd1b20517297a22dd17956fb514f26ebbf0` 및 현재 permission/final-integrity correction의 focused/full static | 선수 gate; 새 clean checkpoint 검증 전 |
-| Canonical UI Actual | FAIL | source `efb44bd1...` exact `424/424`, Policy v4 qualified `424/424`이나 MEDIA-017 unapproved console 1건, final-integrity temporary-root binding FAIL | UI case 실행은 전수 PASS이나 Policy v4 때문에 UI 풀테스트 PASS 아님 |
+| Verification Static | PASS | `v3.9.0` source `08ad8b3ee70391be84cdf21de07215ec7ce0f070` 및 allowed-artifact-aware final-integrity correction의 focused/full static | 선수 gate; 새 clean checkpoint 검증 전 |
+| Canonical UI Actual | PASS | source `08ad8b3e...` exact `424/424`, Policy v4 eligible·qualified `424/424`, actual browser execution | 동일 run의 최종 integrity FAIL 때문에 전체 release PASS로 승격하지 않음 |
 | UI transient summary | 보존 중 | `.media_server.test/v3.9.0/ui-acceptance-current/summary.json` | full release 이전 현재 evidence; 최종 저장소 evidence가 아님 |
-| 30분/120분/전체 release | 30분 PASS, 120분 not-run, 전체 FAIL | bounded failure package `test-acceptance-failure-20260813-efb44bd1`; Policy v4 실패 뒤 120분 decision/execution not-run | 새 clean source의 전체 재실행 전이며 완료 evidence로 사용 불가 |
+| 30분/120분/전체 release | 30분 PASS, 120분 PASS, cleanup PASS, 전체 FAIL | bounded package `test-acceptance-failure-20260813-08ad8b3e`; final-integrity source digest mismatch 1건 | 새 clean source의 전체 재실행 전이며 완료 evidence로 사용 불가 |
 | Release notes | 초안 | [v3.9.0 release notes draft](./release-artifacts/v3.9.0/release-notes-draft.md) | publish 전 검토용 |
 
 과거 `test-acceptance-current-final` 실패 artifact는 역사 evidence로 유지합니다. 최신 full release 실행이 PASS하면
