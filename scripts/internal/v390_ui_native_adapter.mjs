@@ -3450,14 +3450,10 @@ async function openNativePlaywrightPage(playwright, {
       }
       const documentTarget = ["body", "html", ":root"].includes(targetSelector.trim());
       if (!documentTarget && !liveVideoSpec?.tileSelector) {
-        if (ownerBinding) {
-          await targetLocator.evaluate(element => element.scrollIntoView({
-            block: "nearest",
-            inline: "nearest",
-          }));
-        } else {
-          await targetLocator.scrollIntoViewIfNeeded({ timeout: timeoutMs });
-        }
+        await targetLocator.evaluate(element => element.scrollIntoView({
+          block: "center",
+          inline: "nearest",
+        }));
       }
       if (liveVideoSpec?.tileSelector) {
         const liveTileLocator = page.locator(String(liveVideoSpec.tileSelector)).first();

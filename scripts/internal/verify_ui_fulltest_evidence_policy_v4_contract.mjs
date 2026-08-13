@@ -20,6 +20,7 @@ import {
 } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { expandVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
 import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
+import { materializeComposedClientPostconditions } from "./v390_ui_completion_oracle_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -407,6 +408,27 @@ try {
     rewriteTrace(candidate, trace => { trace.rawPrimaryObservations[0].semanticReadback = null; });
     const result = evaluate(candidate, tempRoot);
     assert(result.reasons.some(reason => reason.endsWith(":raw-primary-readback-missing")), "missing raw readback passed");
+  });
+
+  check("post-readback document visual ownership remains independently qualified", () => {
+    const candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    rewriteTrace(candidate, trace => {
+      trace.postActionVisualTargetEvidence.bindingKind = "post-readback-visible-document-owner";
+      trace.postActionVisualTargetEvidence.sourceDetached = true;
+      trace.postActionVisualTargetEvidence.epochRelation = "advanced-action";
+    });
+    const result = evaluate(candidate, tempRoot);
+    assert(!result.reasons.some(reason => reason.endsWith(":independent-visual-lifecycle-binding-missing")),
+      "post-readback document visual ownership was rejected");
+    assert(result.evidenceEligibility === "eligible", result.reasons.join("; "));
+
+    const invalid = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    rewriteTrace(invalid, trace => {
+      trace.postActionVisualTargetEvidence.bindingKind = "unregistered-document-owner";
+    });
+    const invalidResult = evaluate(invalid, tempRoot);
+    assert(invalidResult.reasons.some(reason => reason.endsWith(":independent-visual-lifecycle-binding-missing")),
+      "unregistered visual ownership became independently qualified");
   });
 
   check("request qualification filters by exact contract before requiring one request object pair", () => {
@@ -916,7 +938,11 @@ function makeRawTrace(nativeCase) {
   const requestId = `${nativeCase.caseId}:contract-request`;
   const before = rawSnapshot(selector, expected, false);
   const after = rawSnapshot(selector, expected, true);
-  const readbackObservation = observationForExpectation(expected.readbackExpectation, before, after);
+  const readbackExpectation = materializeContractReadbackExpectation(
+    expected.readbackExpectation,
+    nativeCase,
+  );
+  const readbackObservation = observationForExpectation(readbackExpectation, before, after);
   const networkEntries = expected.request ? [
     {
       phase: "request-start",
@@ -1033,6 +1059,19 @@ function makeRawTrace(nativeCase) {
         observation: readbackObservation,
       },
     }],
+  };
+}
+
+function materializeContractReadbackExpectation(expectation, nativeCase) {
+  const selectors = expectation?.postconditions?.map(condition => String(condition?.selector || "")) || [];
+  if (nativeCase?.screenRoute !== "/client/live" || !selectors.some(selector =>
+    selector.startsWith("[data-action=") || selector.startsWith("[data-role=") ||
+    selector.startsWith("[data-mode-action="))) {
+    return expectation;
+  }
+  return {
+    ...clone(expectation),
+    postconditions: materializeComposedClientPostconditions(expectation.postconditions, "0"),
   };
 }
 
@@ -1251,6 +1290,25 @@ function rewriteTrace(candidate, mutate) {
   writeJson(tracePath, trace);
   item.artifacts.trace = artifactMeta(tracePath, "application/json", artifactRoot, item.testId, item.rawEvidence.correlationId);
   item.rawEvidence.traceRef = evidenceRef(item.artifacts.trace, policy);
+
+  const redactionPath = path.join(artifactRoot, item.artifacts.redactionScan.path);
+  const redaction = JSON.parse(fs.readFileSync(redactionPath, "utf8"));
+  const scannedTrace = redaction.scannedArtifacts.find(artifact => artifact.path === item.artifacts.trace.path);
+  assert(scannedTrace, "case redaction trace attestation missing");
+  scannedTrace.sha256 = item.artifacts.trace.sha256;
+  writeJson(redactionPath, redaction);
+  item.artifacts.redactionScan = artifactMeta(
+    redactionPath, "application/json", artifactRoot, item.testId, item.rawEvidence.correlationId);
+  item.security.evidenceRef = evidenceRef(item.artifacts.redactionScan, policy);
+
+  const suiteRedactionPath = path.join(artifactRoot, candidate.security.evidenceRef.path);
+  const suiteRedaction = JSON.parse(fs.readFileSync(suiteRedactionPath, "utf8"));
+  const caseAttestation = suiteRedaction.caseAttestations.find(attestation => attestation.caseId === item.testId);
+  assert(caseAttestation, "suite redaction case attestation missing");
+  caseAttestation.sha256 = item.security.evidenceRef.sha256;
+  writeJson(suiteRedactionPath, suiteRedaction);
+  candidate.security.evidenceRef = evidenceRef(artifactMeta(
+    suiteRedactionPath, "application/json", artifactRoot, "__suite__", candidate.security.correlationId), policy);
 }
 
 function evidenceRef(metadata, policyValue) {

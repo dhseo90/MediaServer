@@ -42,6 +42,15 @@ check("light info chip token keeps WCAG small-text contrast above 4.5", () => {
     "light info chip background token drifted");
 });
 
+check("light danger and disabled action tokens keep small-text contrast above 4.5", () => {
+  assert(productCss.includes("--color-danger: #b91c1c;"),
+    "light danger foreground is below the qualified contrast token");
+  assert(productCss.includes("opacity: 1;") &&
+    productCss.includes("background: var(--color-input-disabled-bg);") &&
+    productCss.includes("color: var(--color-text-muted);"),
+  "disabled action contrast is still produced by opacity blending");
+});
+
 check("malformed explicit regex는 browser 실행 전 digest-bound context로 거부된다", () => {
   const malformed = structuredClone(plan);
   malformed.liveVideoProbe.session.pathPattern = "[fixture-secret";
@@ -95,6 +104,32 @@ check("빈 단색 PNG, clipping, 저대비, focus 누락은 계산된 FAIL이다
   assert(contrast.payload.failures.includes("contrast-threshold-failed"), "low contrast passed");
   const focus = makeProbe(variant, 204, value => { value.focusSamples = []; });
   assert(focus.payload.failures.includes("focus-visible-missing"), "missing focus passed");
+  const visuallyHidden = makeProbe(variant, 207, value => {
+    value.textSamples = [{
+      foreground: "rgb(120, 120, 120)",
+      background: "rgb(130, 130, 130)",
+      fontSizePx: 14,
+      fontWeight: "400",
+      rect: { left: 0, top: 0, right: 1, bottom: 1, width: 1, height: 1 },
+    }, value.textSamples[0]];
+  });
+  assert(!visuallyHidden.payload.failures.includes("contrast-threshold-failed"),
+    "screen-reader-only 1px text was treated as visible contrast evidence");
+});
+
+check("viewport보다 큰 visible workspace는 교차를 요구하고 작은 control clipping은 거부한다", () => {
+  const variant = expandVisualMatrixPlan(plan).find(item =>
+    item.screenId === "client-live" && item.width === 390 && item.theme === "light");
+  const workspace = makeProbe(variant, 205, value => {
+    value.target.rect = { left: 8, top: 0, right: 382, bottom: 1600, width: 374, height: 1600 };
+  });
+  assert(!workspace.payload.failures.includes("target-clipped"),
+    "visible oversized workspace was required to fit wholly inside the viewport");
+  const clippedControl = makeProbe(variant, 206, value => {
+    value.target.rect = { left: 8, top: 820, right: 382, bottom: 900, width: 374, height: 80 };
+  });
+  assert(clippedControl.payload.failures.includes("target-clipped"),
+    "small clipped target control passed viewport containment");
 });
 
 check("client/live는 동일 tile의 VA session·live frame·contain·control 증거를 모든 8개 조합에서 요구한다", () => {

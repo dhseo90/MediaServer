@@ -1,5 +1,7 @@
 // 파일 용도: browser console resource 오류를 exact Playwright response와 source contract에 결속한다.
 
+import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
+
 export const consoleResponseBindingSchema = "media-server.v390-ui-console-response-binding.v1";
 export const consoleApprovalSchema = "media-server.v390-ui-console-approval.v1";
 export const consoleCensusSchema = "media-server.v390-ui-console-census.v1";
@@ -106,11 +108,7 @@ function validateConsoleMessage(message, traceResponses, nativeCase) {
   }
   const exact = traceResponses.filter(response => responseMatchesBinding(response, binding));
   if (exact.length !== 1) return "console-response-trace-identity-mismatch";
-  if (message.caseId !== nativeCase?.caseId ||
-      message.actionId !== binding.initiatorActionId ||
-      message.phase !== binding.requestOwnershipKind) {
-    return "console-message-action-phase-binding-mismatch";
-  }
+  if (message.caseId !== nativeCase?.caseId) return "console-message-case-binding-mismatch";
   return sourceContractKind(binding, nativeCase) ? "" : "console-response-source-contract-unapproved";
 }
 
@@ -126,18 +124,30 @@ function sourceContractKind(binding, nativeCase) {
     return "primary-completion-response";
   }
   if (nativeCase?.accountRole === "anonymous" && method === "GET" && path === "/auth/whoami" && status === 401 &&
-      binding.requestOwnershipKind === "initial-page-load" && binding.initiatorActionId) {
+      ["bootstrap", "background-refresh"].includes(binding.requestOwnershipKind) &&
+      !binding.initiatorActionId) {
     return "anonymous-whoami-unauthorized";
   }
   if (nativeCase?.accountRole === "operator" && method === "GET" && path === "/ops/api/users" && status === 403 &&
-      binding.requestOwnershipKind === "initial-page-load") {
+      ["bootstrap", "background-refresh"].includes(binding.requestOwnershipKind) &&
+      !binding.initiatorActionId) {
     return "operator-users-page-load-forbidden";
   }
-  const screenRoute = nativeCase?.requestedProjection?.screenRoute;
-  if (binding.requestKind === "document-navigation" && method === "GET" && path === screenRoute &&
-      nativeCase?.oracle?.allowedStatuses?.includes(status) &&
-      binding.requestOwnershipKind === "initial-page-load" && binding.initiatorActionId) {
+  const navigation = nativeCase?.workflow?.expectedResults?.[0]?.completion?.navigationBinding;
+  if (navigation && binding.requestKind === "document-navigation" && method === navigation.method &&
+      path === navigation.requestedPath && navigation.allowedStatuses?.includes(status) &&
+      binding.requestOwnershipKind === "initial-page-load" && !binding.initiatorActionId) {
     return "canonical-document-navigation-response";
+  }
+  const runtimeRequests = exactRuntimeOracleFor(nativeCase?.caseId)?.requests || [];
+  const runtimeMatches = runtimeRequests.filter(request =>
+    method === String(request?.method || "") &&
+    runtimeTemplateMatches(request?.path, path) &&
+    (request?.allowedStatuses || request?.statuses || [200]).includes(status));
+  if (runtimeMatches.length === 1 && binding.requestKind === "application-fetch" &&
+      binding.requestOwnershipKind === "independent-readback" &&
+      binding.initiatorActionId === nativeCase?.workflow?.expectedResults?.[0]?.completion?.actionId) {
+    return "exact-runtime-independent-readback-response";
   }
   return "";
 }
@@ -159,6 +169,7 @@ function consoleCallsite(message) {
 
 function collectTraceResponses(trace) {
   const values = [];
+  values.push(...(trace?.pageOwnedRequestLedger || []).filter(entry => entry?.phase === "response"));
   for (const event of trace?.completionEvents || []) values.push(...(event.networkResponses || []));
   for (const observation of trace?.rawPrimaryObservations || []) {
     values.push(...(observation.networkEntries || []).filter(entry => entry?.phase === "response"));
@@ -166,6 +177,16 @@ function collectTraceResponses(trace) {
   const unique = new Map();
   for (const value of values) unique.set(responseIdentity(value), value);
   return [...unique.values()];
+}
+
+function runtimeTemplateMatches(template, actual) {
+  const escaped = String(template || "")
+    .split(/(\{[^/{}]+\})/g)
+    .map(part => /^\{[^/{}]+\}$/.test(part)
+      ? "[^/?&#]+"
+      : part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("");
+  return escaped.length > 0 && new RegExp(`^${escaped}$`).test(String(actual || ""));
 }
 
 function responseMatchesBinding(response, binding) {

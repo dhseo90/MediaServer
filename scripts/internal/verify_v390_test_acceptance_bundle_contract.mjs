@@ -791,6 +791,14 @@ check("actual-mode fixture stops on first failure and still runs cleanup/report"
   fs.rmSync(outputDir, { recursive: true, force: true });
 });
 
+check("acceptance report normalization cannot rewrite nested attested evidence", () => {
+  const block = sourceBlock(files.bundle, "function normalizeTextArtifacts(targetDir)", "function readJson(filePath)");
+  assert(block.includes("if (entry.isDirectory()) continue"),
+    "nested acceptance evidence is not protected from text normalization");
+  assert(!block.includes("normalizeTextArtifacts(entryPath)"),
+    "acceptance text normalization still recurses into attested evidence");
+});
+
 for (const target of ["ui-final-integrity", "evaluation", "report", "first-failure", "post-producer", "child-artifact"]) {
   check(`final acceptance drops retained secret from ${target}`, () => {
     const outputDir = fixtureDir(`retained-secret-${target}`);

@@ -5081,6 +5081,7 @@ async function semanticAssertionResult(
   let requestCorrelationEvidence = null;
   // 권위 있는 catalog 관찰은 이후의 독립 readback 단계가 소유합니다.
   // primary 범위에서 분리해 같은 action helper가 중첩되지 않게 합니다.
+  let runtimeRequest = null;
   if (completion.request) {
     const requestActionContext = await browser.beginRequestActionOwnership({
       phase: "primary-action",
@@ -5215,6 +5216,14 @@ async function semanticAssertionResult(
         }
         assert(completion.request.allowedStatuses.includes(response.status),
           `${item.caseId} action request status mismatch: ${response.status}`);
+        runtimeRequest = {
+          method: completion.request.method,
+          urlPath: (() => {
+            const parsed = new URL(response.url);
+            return `${parsed.pathname}${parsed.search}`;
+          })(),
+          status: response.status,
+        };
       }
       await browser.waitForNetworkQuiet({
         correlationId: completion.correlationId,
@@ -5247,7 +5256,6 @@ async function semanticAssertionResult(
     ownershipMode: "primary-scope-ended-and-attested",
   });
   const snapshot = await browser.snapshot(snapshotSelector);
-  const runtimeRequest = null;
   const actionEvidence = {
     ...semanticCompletionAction(action, item),
     ...(runtimeRequest ? {

@@ -821,6 +821,10 @@ assert.ok(adapterSource.includes("post-action visual owner is not visible"));
 assert.ok(adapterSource.includes("navigationOwnerLifecycle:"),
   "adapter must expose exact pre/post document navigation owner lifecycle evidence");
 assert.ok(adapterSource.includes("element.scrollIntoView({"));
+assert.ok(adapterSource.includes('block: "center"'),
+  "visual target scrolling does not center viewport-sized controls before measurement");
+assert.ok(!adapterSource.includes("targetLocator.scrollIntoViewIfNeeded"),
+  "visual target measurement still accepts partially visible controls");
 assert.ok(adapterSource.includes("sourceSelectorRewaited" ) === false,
   "adapter must consume the resolved owner, not recreate source lifecycle policy");
 assert.ok(adapterSource.includes("bootstrapLedgerClosed: true") &&

@@ -2,7 +2,10 @@
 
 import crypto from "node:crypto";
 
-import { evaluateSemanticExpectation } from "./v390_ui_completion_oracle_lib.mjs";
+import {
+  evaluateSemanticExpectation,
+  materializeComposedClientPostconditions,
+} from "./v390_ui_completion_oracle_lib.mjs";
 import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 
 const traceSchema = "media-server.v390-ui-native-interaction-trace.v2";
@@ -72,7 +75,7 @@ export function qualifyRawCase({ trace, requested, observed, canonicalCase, nati
   }
 
   const request = qualifyRequest(value, expected, nativeCase, reasons);
-  qualifyReadback(value, expected, reasons);
+  qualifyReadback(value, expected, nativeCase, reasons);
   qualifyLocalTransition(value, expected, reasons);
   if (nativeCase?.disposition === "negative-route") qualifyNegativeNavigation(value, expected, reasons);
 
@@ -299,7 +302,7 @@ function qualifyDocumentFormRequest(binding, entries, expected, reasons) {
   };
 }
 
-function qualifyReadback(value, expected, reasons) {
+function qualifyReadback(value, expected, nativeCase, reasons) {
   const readback = value.semanticReadback;
   if (!readback || readback.schema !== "media-server.v390-ui-semantic-readback.v2") {
     reasons.push("raw-primary-readback-missing");
@@ -319,13 +322,44 @@ function qualifyReadback(value, expected, reasons) {
   if (readback.observationSource === "browser-dom" && readback.selector !== expected.controlSelector) {
     reasons.push("raw-primary-readback-selector-mismatch");
   }
-  if (!evaluateSemanticExpectation(expected.readbackExpectation, readback.observation)) {
+  const expectation = materializeReadbackExpectation(
+    expected.readbackExpectation,
+    nativeCase,
+    reasons,
+  );
+  if (!evaluateSemanticExpectation(expectation, readback.observation)) {
     reasons.push("raw-primary-readback-observation-mismatch");
   }
   if (readback.observationSha256 !== undefined &&
       readback.observationSha256 !== digest(readback.observation)) {
     reasons.push("raw-primary-readback-observation-digest-mismatch");
   }
+}
+
+function materializeReadbackExpectation(expectation, nativeCase, reasons) {
+  if (!Array.isArray(expectation?.postconditions) || expectation.postconditions.length === 0) {
+    return expectation;
+  }
+  const requiresTileOwner = expectation.postconditions.some(condition => {
+    const selector = String(condition?.selector || "");
+    return selector.startsWith("[data-action=") ||
+      selector.startsWith("[data-role=") ||
+      selector.startsWith("[data-mode-action=");
+  });
+  if (!requiresTileOwner) return expectation;
+  const spec = exactRuntimeOracleFor(nativeCase?.caseId);
+  const selectors = [spec?.visibleControl?.selector, ...(spec?.dom || []).map(item => item?.selector)]
+    .filter(Boolean);
+  const tileIndexes = [...new Set(selectors.flatMap(selector =>
+    [...String(selector).matchAll(/\[data-tile=["']([^"']+)["']\]/g)].map(match => match[1])))];
+  if (tileIndexes.length !== 1) {
+    reasons.push("raw-primary-readback-tile-owner-missing");
+    return expectation;
+  }
+  return {
+    ...structuredClone(expectation),
+    postconditions: materializeComposedClientPostconditions(expectation.postconditions, tileIndexes[0]),
+  };
 }
 
 function qualifyLocalTransition(value, expected, reasons) {

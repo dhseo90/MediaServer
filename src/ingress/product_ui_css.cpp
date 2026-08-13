@@ -28,7 +28,7 @@ std::string ProductDesignTokensCss() {
       --color-primary-weak-text: #0f766e;
       --color-success: #15803d;
       --color-warning: #b45309;
-      --color-danger: #dc2626;
+      --color-danger: #b91c1c;
       --color-danger-hover: #b91c1c;
       --color-danger-weak-bg: #fff1f1;
       --color-info: #1d4ed8;
@@ -1176,10 +1176,13 @@ std::string ProductUiCss() {
     button[aria-disabled="true"],
     .button-primary[aria-disabled="true"],
     .button-secondary[aria-disabled="true"] {
-      opacity: 0.58;
+      opacity: 1;
       cursor: not-allowed;
       box-shadow: none;
-      filter: saturate(0.72);
+      filter: none;
+      background: var(--color-input-disabled-bg);
+      color: var(--color-text-muted);
+      border-color: var(--color-input-border);
     }
     button[aria-disabled="true"],
     .button-primary[aria-disabled="true"],
@@ -5641,6 +5644,13 @@ std::string ProductUiCss() {
       ) {
         min-width: 0;
         max-width: 100%;
+      }
+      body.ops-shell [data-testid="ops-events-page"] {
+        width: 100%;
+        overflow-x: clip;
+      }
+      body.ops-shell [data-testid="ops-events-page"] .table-wrap {
+        overflow-x: auto;
       }
       body.ops-shell [data-testid="ops-events-page"] :where(
         input,

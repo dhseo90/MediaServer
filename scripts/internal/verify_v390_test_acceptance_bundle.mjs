@@ -2171,8 +2171,9 @@ function normalizeTextArtifacts(targetDir) {
   if (!fs.existsSync(targetDir)) return;
   for (const entry of fs.readdirSync(targetDir, { withFileTypes: true })) {
     const entryPath = path.join(targetDir, entry.name);
-    if (entry.isDirectory()) normalizeTextArtifacts(entryPath);
-    else if (/\.(log|md|txt)$/i.test(entry.name)) {
+    // Nested run evidence is immutable once its digest has been attested.
+    if (entry.isDirectory()) continue;
+    if (/\.(log|md|txt)$/i.test(entry.name)) {
       const content = fs.readFileSync(entryPath, "utf8");
       fs.writeFileSync(entryPath, `${content.replace(/[ \t]+$/gm, "").replace(/\n+$/, "")}\n`, "utf8");
     }

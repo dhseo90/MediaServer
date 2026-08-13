@@ -201,13 +201,17 @@ export function evaluateVisualArtifact({
   const targetRect = measurement.target?.rect;
   const horizontalOverflowPx = Math.max(0, Number(documentGeometry.scrollWidth || 0) - Number(documentGeometry.clientWidth || 0));
   const verticalOverflowPx = Math.max(0, Number(documentGeometry.scrollHeight || 0) - Number(documentGeometry.clientHeight || 0));
+  const targetExceedsViewport = Boolean(targetRect &&
+    (Number(targetRect.width) > Number(viewport.width || 0) + 1 ||
+      Number(targetRect.height) > Number(viewport.height || 0) + 1));
   const targetClipped = !measurement.target?.visible || (measurement.target?.documentTarget === true
     ? !rectIntersectsViewport(targetRect, viewport)
-    : !rectInsideViewport(targetRect, viewport));
+    : (targetExceedsViewport ? !rectIntersectsViewport(targetRect, viewport) : !rectInsideViewport(targetRect, viewport)));
   if (horizontalOverflowPx > 1) failures.push("horizontal-overflow");
   if (targetClipped) failures.push("target-clipped");
 
-  const contrastSamples = (measurement.textSamples || []).map(item => ({
+  const contrastSamples = (measurement.textSamples || []).filter(item =>
+    !item?.rect || (Number(item.rect.width || 0) > 1 && Number(item.rect.height || 0) > 1)).map(item => ({
     ratio: contrastRatio(parseColor(item.foreground), parseColor(item.background)),
     fontSizePx: Number(item.fontSizePx || 0),
     fontWeight: String(item.fontWeight || ""),

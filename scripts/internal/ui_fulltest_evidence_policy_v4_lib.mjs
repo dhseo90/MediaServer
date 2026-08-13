@@ -867,6 +867,7 @@ function resolveIndependentVisualBinding(trace, nativeCase, measurement, reasons
         "post-action-visible-source-owner",
         "post-action-visible-document-owner",
         "post-action-visible-destination-owner",
+        "post-readback-visible-document-owner",
       ].includes(target.bindingKind)) {
     screenRoute = target.observedRoute;
     targetSelector = target.selector;

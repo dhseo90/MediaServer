@@ -1017,7 +1017,10 @@ export function evaluateSemanticExpectation(expected, observation) {
       validatesPersistedMutationReadback(readback);
   }
   if (expected.navigationStatus !== undefined) {
-    return Number(observation.navigation?.status) === Number(expected.navigationStatus);
+    const observedStatus = observation.navigation?.status ??
+      observation.actual?.navigation?.status ??
+      observation.actual?.navigationStatus;
+    return Number(observedStatus) === Number(expected.navigationStatus);
   }
   const actual = after || observation.actual || observation;
   return Object.entries(expected).every(([key, value]) =>

@@ -21,6 +21,7 @@ import {
 } from "./v390_ui_exact_oracle_runtime.mjs";
 import { buildDiagnosticMarkerFileStageEvidence } from "./v390_ui_case_runtime.mjs";
 import { buildDiagnosticMarkerResponseStageEvidence } from "./v390_ui_native_adapter.mjs";
+import { qualifyBrowserConsoleMessages } from "./v390_ui_console_evidence.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const tempParent = path.join(rootDir, ".tmp-v390-policy-producer-contract");
@@ -348,13 +349,13 @@ check("producer approves only an exact trace-bound source contract console respo
     requestIdentitySource: "playwright-response-request",
     requestKind: "application-fetch",
     sameOrigin: true,
-    requestOwnershipKind: "initial-page-load",
-    initiatorActionId: `${item.caseId}:initial-document-navigation:page-load`,
+    requestOwnershipKind: "bootstrap",
+    initiatorActionId: "",
     method: "GET",
     status: 401,
     url: "http://localhost/auth/whoami",
   };
-  trace.completionEvents = [{ networkResponses: [response] }];
+  trace.pageOwnedRequestLedger = [response];
   writeJson(tracePath, trace);
   writeJson(consolePath, {
     schema: "media-server.v390-ui-native-browser-console.v1",
@@ -371,8 +372,8 @@ check("producer approves only an exact trace-bound source contract console respo
       },
       responseBindingCandidateCount: 1,
       caseId: item.caseId,
-      actionId: response.initiatorActionId,
-      phase: response.requestOwnershipKind,
+      actionId: "",
+      phase: "unowned",
       secretBearing: false,
     }],
   });
@@ -384,13 +385,84 @@ check("producer approves only an exact trace-bound source contract console respo
     "source contract approval attestation missing");
 
   const wrongTrace = structuredClone(trace);
-  wrongTrace.completionEvents[0].networkResponses[0].url = "http://localhost/unrelated";
+  wrongTrace.pageOwnedRequestLedger[0].url = "http://localhost/unrelated";
   writeJson(tracePath, wrongTrace);
   const rejected = produce(makeResult()).summary.cases[0];
   assert(rejected.security.unapprovedConsoleMessages === 1,
     "wrong trace response identity was approved");
   writeJson(tracePath, makeRawTrace(item));
   writeJson(consolePath, { schema: "media-server.v390-ui-native-browser-console.v1", caseId: item.caseId, entries: [] });
+});
+
+check("console approvals use exact page-owned lifecycle contracts for bootstrap, negative navigation, and readback", () => {
+  const scenarios = [
+    {
+      caseId: "AUTH-007",
+      response: { requestKind: "application-fetch", requestOwnershipKind: "bootstrap",
+        initiatorActionId: "", method: "GET", status: 401, path: "/auth/whoami" },
+      contractKind: "anonymous-whoami-unauthorized",
+    },
+    {
+      caseId: "SAFE-016",
+      response: { requestKind: "document-navigation", requestOwnershipKind: "initial-page-load",
+        initiatorActionId: "", method: "GET", status: 404, path: "/__v390-undefined-route__" },
+      contractKind: "canonical-document-navigation-response",
+    },
+    {
+      caseId: "CLIENT-011",
+      response: { requestKind: "application-fetch", requestOwnershipKind: "independent-readback",
+        initiatorActionId: "CLIENT-011:assert-product-state", method: "GET", status: 404,
+        path: "/client/api/views/99002" },
+      contractKind: "exact-runtime-independent-readback-response",
+    },
+  ];
+  for (const [index, scenario] of scenarios.entries()) {
+    const nativeCase = manifestSource.cases.find(value => value.caseId === scenario.caseId);
+    const response = {
+      phase: "response",
+      requestId: `console-lifecycle-${index}`,
+      caseRequestIdentity: `${scenario.caseId}:request-${index + 1}`,
+      caseRequestSequence: index + 1,
+      responseRequestObjectObserved: true,
+      requestIdentitySource: "playwright-response-request",
+      sameOrigin: true,
+      url: `http://localhost${scenario.response.path}`,
+      ...scenario.response,
+    };
+    const message = {
+      kind: "console",
+      level: "error",
+      text: `Failed to load resource: the server responded with a status of ${response.status} (Expected)`,
+      location: { url: response.url },
+      responseBindingCandidateCount: 1,
+      responseBinding: {
+        schema: "media-server.v390-ui-console-response-binding.v1",
+        ...response,
+      },
+      caseId: scenario.caseId,
+      actionId: "asynchronous-console-context",
+      phase: "unowned",
+      secretBearing: false,
+    };
+    const result = qualifyBrowserConsoleMessages({
+      messages: [message],
+      trace: { pageOwnedRequestLedger: [response] },
+      nativeCase,
+    });
+    assert(result.unapprovedConsoleMessages === 0 &&
+      result.messages[0].approval?.contractKind === scenario.contractKind,
+    `${scenario.caseId} page-owned console lifecycle was not approved exactly`);
+
+    const wrong = structuredClone(message);
+    wrong.responseBinding.status = 500;
+    const rejected = qualifyBrowserConsoleMessages({
+      messages: [wrong],
+      trace: { pageOwnedRequestLedger: [response] },
+      nativeCase,
+    });
+    assert(rejected.unapprovedConsoleMessages === 1,
+      `${scenario.caseId} wrong console response status was approved`);
+  }
 });
 
 check("producer cannot repair a wrong raw request with runner PASS", () => {
