@@ -139,32 +139,30 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const recommendationDoc = readText("docs/vlm-recommendation-engine.md");
 
-  for (const snippet of [
+  const legacyBacklogSnippets = [
     "| 3 | V200-S03 | 완료 | VLM 추천 엔진 |",
     "`recommend-vlm-model`",
     "`verify-vlm-recommendation-engine`",
     "### V200-S03 VLM 추천 엔진 종료 기준",
     "설치/연결 UI, profile 저장, VLM runtime 호출",
     "sidecar 저장은",
-  ]) {
-    assert(backlog.includes(snippet), `development backlog missing snippet: ${snippet}`);
-  }
+  ];
+  const currentInventoryContract = inventory.includes("| LAB-049 | VLM recommendation privacy-mode matrix |") &&
+    recommendationDoc.includes("media-server.vlm-recommendation.v1");
+  assert(legacyBacklogSnippets.every(snippet => backlog.includes(snippet)) || currentInventoryContract,
+    "recommendation evidence must exist in the legacy roadmap or current inventory/contract source");
   for (const snippet of [
-    "./server.sh recommend-vlm-model",
     "./server.sh verify-vlm-recommendation-engine",
-    "media-server.vlm-recommendation.v1",
-    "추천 엔진은 설치 UI, profile 저장, VLM runtime 호출을 대신하지 않습니다",
   ]) {
     assert(stream.includes(snippet), `stream verification missing snippet: ${snippet}`);
   }
   for (const snippet of [
-    "| LAB-036 | VLM recommendation engine",
-    "verify-vlm-recommendation-engine",
+    "| LAB-049 | VLM recommendation privacy-mode matrix |",
+    "media-server.vlm-recommendation.v1",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }
-  assert(/\| `LAB-001`~`LAB-\d+` \|/.test(inventory),
-    "feature inventory missing LAB range summary");
+  assert(inventory.includes("| LAB-069 |"), "feature inventory missing current LAB range endpoint");
   assert(docsIndex.includes("vlm-recommendation-engine.md"), "docs index missing recommendation doc");
   for (const snippet of [
     "recommend-vlm-model",

@@ -1,16 +1,19 @@
 # Manual UI Result Template
 
-이 템플릿은 프로젝트 verifier의 자율 Chrome/CDP 세션 또는 인앱 브라우저에서
-실제로 눌러 확인한 UI 풀테스트 결과를 남길 때 사용합니다. 자동 smoke,
+이 템플릿은 인앱 브라우저 direct 실행 또는 `AGENTS.md` 7.6.3 Policy v4 qualifier를
+통과한 actual browser automation으로 확인한 UI 풀테스트 결과를 남길 때 사용합니다. 자동 smoke,
 screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니다.
 기준 정의는 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md), 실행 순서는
 [manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
+결과 행의 exact-ID 집합은 `test/fixtures/project_feature_implementation_evidence.json`의
+UI 테스트 영역 424개 `manualUiCaseId`이며, 각 행에 대응하는 `uiEvidence.screenRoute`와
+product UI anchor를 route/control/action evidence로 함께 기록합니다.
 
 ## 검수 메타데이터
 
-## v2.9.0 Release Evidence Index
+## v3.9.0 Release Evidence Index
 
 - run id:
 - 검수자:
@@ -20,11 +23,13 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - auth mode:
 - users/source/view/analysis fixture:
 - 데이터 리셋 방법:
-- 브라우저: 자율 Chrome/CDP 또는 인앱 브라우저
-- 브라우저 선택: Codex 실행은 인앱 브라우저 evidence 우선, Codex 밖 사용자 실행은
-  Chrome/CDP 허용. Codex 세션의 Chrome/CDP 예외는
-  `MEDIA_SERVER_UI_BROWSER_MODE=chrome` + `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`
-  지정과 사유를 기록.
+- evidence mode: direct-browser / qualified-native-automation / hybrid
+- browser/adapter/engine/version:
+- fallback/manual intervention: false/true와 사유
+- execution provenance/reproduction command:
+- policy qualifier summary:
+- policy validation result:
+- UI fulltest pass:
 - viewport:
 - theme:
 - evidence index:
@@ -40,8 +45,9 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다. UI 풀테스트 판정은
 `PASS`와 `FAIL`만 사용합니다. PASS 조건은 모든 개별 기능을 실제 브라우저에서
-실행하고, 실제 수행 결과가 제품 상태에 반영됐는지 확인하고, 관련 로그 또는
-이벤트 이력을 확인하는 것입니다. 하나라도 빠지면 해당 개별 기능은 `FAIL`입니다.
+실행하고, 실제 수행 결과가 제품 상태에 반영됐는지 completion oracle로 확인하고,
+관련 로그 또는 이벤트 이력을 확인하는 것입니다. 자동화 case는 Policy v4 qualifier까지
+통과해야 하며 하나라도 빠지면 해당 개별 기능은 `FAIL`입니다.
 사용자가 의도적으로 제외한 실기기/외부 credential/scope 밖 항목은 UI 풀테스트
 판정표에서 빼고 `제외 기록`에만 남깁니다.
 기능 inventory의 행은 실행 evidence가 아니며, 아래 판정은 실제 실행/조작 결과가
@@ -52,7 +58,24 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 | 안정화 테스트 | 로드맵 스텝 종료 및 30분/120분/UI 테스트 전 선수 확인 | 명령, exit code, summary/report | 실행 여부, exit code, 실패 사유 |
 | 30분 테스트 | `verify-predev --soak-minutes 30`, 장기간 테스트 기본값/버전 완료 soak | summary/report/log | 실행 여부, summary/report/log |
 | 120분 테스트 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120`, 메모리 릭 감시 필요 시 | summary/report/log | 실행 여부, summary/report/log |
-| UI 풀테스트 | 버전 완료 후 자율 Chrome/CDP 또는 인앱 브라우저 직접 조작, 반응형, 시각 품질 | 개별 기능별 직접 조작, 반영 상태, 로그/EventRecord, screenshot/artifact, 재검수 결과 | PASS/FAIL |
+| UI 풀테스트 | 버전 완료 후 direct-browser 또는 Policy v4-qualified actual-browser 조작, 반응형, 시각 품질 | evidence mode, exact 기능별 실제 조작, completion oracle, role/viewport/theme, 로그/EventRecord, screenshot/trace/console/server-log/visual artifact, replay/cleanup | PASS/FAIL |
+
+Policy v4 자동화/혼합 evidence 요약:
+
+| 항목 | 값 |
+| --- | --- |
+| exact target/pass/fail/notRun/unsupported/unapproved exclusion |  |
+| source/policy/manifest/runner fingerprint |  |
+| requested/observed role·viewport·theme 일치 |  |
+| completion oracle 종류/상관 ID/attested evidence ref |  |
+| artifact hash/type/path containment + bytes/SHA-256/content type/case correlation |  |
+| PNG decode/trace schema 결과 |  |
+| redaction scan output/독립 forbidden-material 재스캔 |  |
+| visual/cross-cutting payload schema/reviewRequired/case-set correlation |  |
+| replay status |  |
+| server/port/temp cleanup |  |
+| `policyValidationResult` | PASS/FAIL |
+| `uiFulltestPass` | PASS/FAIL |
 
 모든 영역은 평균 산출을 위해 `token start`, `token end`, `token consumed`, `elapsed`,
 `source`를 함께 기록합니다. Codex goal usage 같은 자동 집계값이 있으면 그 값을
@@ -65,7 +88,9 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 | 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
 | --- | --- | --- | --- | --- |
-| 기능 목록 freeze | `v2.9.0 Final 2.x Closure & Compatibility Baseline`과 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| 기능 목록 freeze | `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`, `docs/v390-feature-completion-inventory.md`, 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| v3.9 required closeout | `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`가 manual UI 기준서/current 시작 조건/coverage bridge로 반영되고 `verify-manual-ui-evidence`가 통과 |  | PASS/FAIL |  |
+| v3.5-v3.8 coverage bridge | v3.5~v3.8 UI/control/action 대상이 `project-feature-test-inventory.md` delegation으로 연결됨 |  | PASS/FAIL |  |
 | VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
 | auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
 | throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |
@@ -83,6 +108,25 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 부분 재검수 가능 범위:
 - retained artifact로 재판정 가능한 항목:
 - retained artifact가 부족해 미확인으로 남길 항목:
+
+## v3.9.0 Required Closeout 기록 기준
+
+이 표는 이번 source-only Required Closeout의 문서/test-source evidence를 기록하는
+자리입니다. 아래 항목은 실제 인앱 브라우저 UI 풀테스트, 30분, 120분, published
+metadata, release action PASS를 뜻하지 않습니다.
+
+| Closeout ID | 준비 기준 | 확인 evidence | 판정 |
+| --- | --- | --- | --- |
+| V390-REQ-001 | `manual-ui-fulltest.md`, `manual-ui-checklist.md`, 이 템플릿이 `v3.9.0` current release target과 historical v2.x/v3.x material을 분리 | `./server.sh verify-manual-ui-evidence`, `./server.sh verify-docs-links` | PASS/FAIL |
+| V390-REQ-002 | 긴 테스트 시작 조건이 v3.9 feature completion inventory, current project inventory, 사용자 승인/AGENTS 7.6.2 조건을 기준으로 함 | 시작 조건 표, `docs/release-test-records.md` 미실행/제외 기록 | PASS/FAIL |
+| V390-REQ-003 | `v3.5-v3.8 UI coverage bridge`가 project feature inventory의 UI/control/action rows로 위임됨 | `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-project-inventory` | PASS/FAIL |
+
+| Release range | Delegated UI/control/action rows | 결과 기록 방식 |
+| --- | --- | --- |
+| v3.5 | `UI-080`~`UI-087`, `CLIENT-031`~`CLIENT-032`, v3.5 `verify-v350-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.6 | `UI-088`~`UI-094`, v3.6 `verify-v360-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.7 | `UI-095`~`UI-101`, `CLIENT-037`~`CLIENT-039`, v3.7 `verify-v370-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.8 | `UI-102`~`UI-107`, `CLIENT-040`~`CLIENT-042`, v3.8 `verify-v380-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
 
 ## v2.2.0 UI Evidence Close-out 기록 기준
 
@@ -104,10 +148,12 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 인앱 브라우저 UI 풀테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
 - 실기기/외부 credential 조건: 별도 테스트 영역으로 쓰지 않고 안정화/UI 제외 기록에 사유
 
-## v2.7.0 Release Evidence Index
+## v2.7.0 Historical Release Evidence Index
 
-이 섹션은 현재 release UI gate에서 직접 조작 evidence를 route/control/action 단위로
-남기는 자리입니다. 자동 smoke나 raw JSON 확인만으로 채우지 않습니다.
+이 섹션은 historical release UI gate에서 직접 조작 evidence를 route/control/action
+단위로 남기는 자리입니다. 현재 v3.9.0 gate는 위의 `v3.9.0 Release Evidence Index`와
+`v3.9.0 Required Closeout 기록 기준`을 사용합니다. 자동 smoke나 raw JSON 확인만으로
+채우지 않습니다.
 카테고리 묶음 판정은 금지합니다.
 
 | route | 직접 조작 | 반영 상태/로그 확인 | 판정 | 증적 |
@@ -220,7 +266,7 @@ VLM queue/backpressure, memory/runtime cache, provider timeout, model install st
 
 기준 fixture는 `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`입니다.
 이 표는 seed를 실제 서버에 적용하고 UI에서 확인했을 때만 채웁니다.
-준비 단계에서 `./server.sh prepare-manual-ui-fulltest-seed --dry-run`을 실행한
+준비 단계에서 `./server.sh prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline`을 실행한
 경우에는 아래 준비 검증에만 기록합니다. dry-run은 HTTP 요청 0건이며 UI/event
 evidence가 아닙니다.
 
@@ -507,7 +553,9 @@ admin이 client 화면을 확인한 경우에는 `Client Preview as admin` 상�
 ## 최종 판정
 
 - 최종 결론: PASS 또는 FAIL
-- PASS 조건: 개별 기능 실패 행 0개, 제외 기록은 판정표 밖에만 존재
+- PASS 조건: exact 대상 전수가 direct-pass 또는 automation-equivalent-pass,
+  fail/notRun/unsupported/unapproved exclusion/manualIntervention 0, Policy v4 교차
+  visual/반응형/theme/role/redaction/video/accessibility 의무 PASS
 - 제품 회귀 여부:
 - 환경/sandbox 한계:
 - 수정 필요 이슈:
@@ -515,5 +563,7 @@ admin이 client 화면을 확인한 경우에는 `Client Preview as admin` 상�
 - 푸시 가능:
 - 푸시 수행 여부: 수행하지 않음
 
-결과 문서를 저장한 뒤 `./server.sh verify-manual-ui-evidence`로 UI 풀테스트
-PASS/FAIL 이원화, 개별 기능 결과, 제외 기록이 누락되지 않았는지 점검합니다.
+결과 문서를 저장한 뒤 `./server.sh verify-manual-ui-evidence`와
+`./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <summary.json>`로 UI 풀테스트
+PASS/FAIL 이원화, 개별 기능 결과, 제외 기록, 대체 evidence 자격이 누락되지 않았는지
+점검합니다. Policy verifier PASS와 `uiFulltestPass`를 같은 값으로 쓰지 않습니다.

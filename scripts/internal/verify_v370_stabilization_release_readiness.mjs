@@ -103,7 +103,7 @@ check("feature inventory maps v3.7 Step 18 to SAFE-179 and OPS-146", () => {
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.7 Step 18");
   }
-  assertIncludes(files.coverageVerifier, commandName, "feature coverage verifier");
+  assertIncludes(files.coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.projectInventoryVerifier, '"SAFE-179"', "project inventory verifier SAFE-179");
   assertIncludes(files.projectInventoryVerifier, '"OPS-146"', "project inventory verifier OPS-146");
 });
@@ -190,6 +190,31 @@ check("Step 18 gate keeps release actions and long UI/soak evidence separate", (
       assertIncludes(text, snippet, `${name} Step 18 boundary`);
     }
   }
+});
+
+check("SAFE-179 canonical readiness non-substitution boundary", () => {
+  const releaseActionExecuted = !files.releaseRecords.includes("v370 Step 18 PR/main/tag/GitHub Release") || !files.releaseRecords.includes("미실행");
+  const uiFulltestExecuted = !files.releaseRecords.includes("v370 Step 18 UI 풀테스트") || !files.releaseRecords.includes("미실행");
+  const longrunExecuted = !files.releaseRecords.includes("v370 Step 18 30분/120분 longrun") || !files.releaseRecords.includes("미실행");
+  const fieldSmokeExecuted = !files.releaseRecords.includes("v370 Step 18 field smoke") || !files.releaseRecords.includes("미실행");
+  const safe179BoundaryObserved = companionCommands.includes(command) && files.releaseRecords.includes("v370 Step 18 stabilization/release readiness final");
+  assert(safe179BoundaryObserved && releaseActionExecuted === false && uiFulltestExecuted === false && longrunExecuted === false && fieldSmokeExecuted === false,
+    "SAFE-179 releaseActionExecuted UI longrun field smoke must remain independently not-run");
+});
+
+check("OPS-146 canonical local readiness gate", () => {
+  const localCommandsWired = companionCommands.every((item) =>
+    files.releasePolicy.includes(item) && files.releaseEvidenceIndex.includes(item) && files.releaseRecords.includes(item));
+  const notRunBoundariesPresent = [
+    "v370 Step 18 UI 풀테스트",
+    "v370 Step 18 30분/120분 longrun",
+    "v370 Step 18 PR/main/tag/GitHub Release",
+    "v370 Step 18 field smoke",
+  ].every((item) => files.releaseRecords.includes(item));
+  const ops146GateObserved = localCommandsWired && notRunBoundariesPresent &&
+    files.serverSh.includes("verify-v370-stabilization-release-readiness)");
+  assert(ops146GateObserved && localCommandsWired && notRunBoundariesPresent,
+    "OPS-146 local command wiring and explicit UI/long-run/release-action/field-smoke boundaries missing");
 });
 
 const results = runChecks();

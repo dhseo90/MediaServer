@@ -11,6 +11,43 @@ TOLERANCE_MS="${MEDIA_SERVER_VA_REPLAY_TOLERANCE_MS:-250}"
 
 mkdir -p "${OUT_DIR}"
 
+assert_replay_event_output() {
+  local output="$1"
+  local expected="$2"
+  local case_name="$3"
+  python3 - "${output}" "${expected}" "${case_name}" <<'PY'
+import json
+import pathlib
+import sys
+
+actual = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+expected = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
+case_name = sys.argv[3]
+actual_types = [str(item.get("type", "")) for item in actual.get("events", [])]
+expected_types = [str(item.get("type", "")) for item in expected.get("events", [])]
+missing = [event_type for event_type in expected_types if event_type not in actual_types]
+if missing:
+    raise SystemExit(f"re-read replay event type mismatch: missing={missing}, actual={actual_types}")
+def assertReplayOccurrence(condition, message):
+    if not condition:
+        raise SystemExit(message)
+
+if case_name == "intrusion-dwell":
+    assertReplayOccurrence("intrusion-dwell" in actual_types, f"intrusion-dwell replay artifact occurrence missing: actual={actual_types}")
+if case_name == "re-entry":
+    assertReplayOccurrence("re-entry" in actual_types, f"re-entry replay artifact occurrence missing: actual={actual_types}")
+if case_name == "wrong-direction":
+    assertReplayOccurrence("wrong-direction" in actual_types, f"wrong-direction replay artifact occurrence missing: actual={actual_types}")
+if case_name == "intrusion-after-line-crossing":
+    assertReplayOccurrence("intrusion-after-line-crossing" in actual_types, f"intrusion-after-line-crossing replay artifact occurrence missing: actual={actual_types}")
+if case_name == "loitering":
+    assertReplayOccurrence("loitering" in actual_types, f"loitering replay artifact occurrence missing: actual={actual_types}")
+if case_name == "zone-occupancy":
+    assertReplayOccurrence("zone-occupancy" in actual_types, f"zone-occupancy replay artifact occurrence missing: actual={actual_types}")
+print(f"[pass] replay event artifact readback types={actual_types}")
+PY
+}
+
 cases=(
   "intrusion|intrusion_metadata.json|intrusion_expected.json||"
   "line-crossing|line_crossing_metadata.json|line_crossing_expected.json||"
@@ -73,6 +110,7 @@ for case in "${cases[@]}"; do
   else
     "${SCRIPT_DIR}/replay_va_metadata.sh" "${args[@]}"
   fi
+  assert_replay_event_output "${output}" "${FIXTURE_DIR}/${expected}" "${name}"
   echo "[pass] VA metadata replay baseline: ${name}"
 done
 

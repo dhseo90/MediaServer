@@ -7,7 +7,7 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "core/runtime_debug_counters.h"
+#include "core/analysis_runtime_port.h"
 
 namespace analysis {
 namespace {
@@ -315,7 +315,7 @@ VaRuntimeMetadataFrame BuildVaRuntimeMetadataFrame(
     const std::vector<AnalysisEvent>& events,
     const VaRuntimeMetadataBuildOptions& options,
     const std::string& tracking_issue_report_json) {
-    core::runtime_debug::RecordMetadataJsonBuild();
+    core::RecordAnalysisMetadataJsonBuild();
     VaRuntimeMetadataFrame frame;
     frame.schema = options.schema.empty() ? kVaRuntimeMetadataSchema : options.schema;
     frame.stream_id = result.source_key;
@@ -458,7 +458,7 @@ std::string SerializeVaRuntimeMetadataFrameJson(const VaRuntimeMetadataFrame& fr
     }
     out << "}";
     std::string serialized = out.str();
-    core::runtime_debug::RecordMetadataJsonBytes(serialized.size());
+    core::RecordAnalysisMetadataJsonBytes(serialized.size());
     return serialized;
 }
 
@@ -489,7 +489,7 @@ std::string SerializeVaRuntimeMetadataFrameForWebRtcJson(const VaRuntimeMetadata
     }
     out << "]}";
     std::string serialized = out.str();
-    core::runtime_debug::RecordMetadataJsonBytes(serialized.size());
+    core::RecordAnalysisMetadataJsonBytes(serialized.size());
     return serialized;
 }
 

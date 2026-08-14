@@ -1,0 +1,1289 @@
+{
+  "schema": "media-server.v390-ui-automation.v1",
+  "runId": "v390-ui-automation-20260710104235-96917",
+  "command": "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation",
+  "browserMode": "playwright",
+  "toolSelection": [
+    {
+      "tool": "playwright",
+      "priority": 1,
+      "selected": true,
+      "role": "primary-dom-automation"
+    },
+    {
+      "tool": "selenium",
+      "priority": 2,
+      "selected": false,
+      "role": "webdriver-fallback"
+    },
+    {
+      "tool": "sikulix",
+      "priority": 3,
+      "selected": false,
+      "role": "visual-fallback",
+      "visualOnly": true
+    }
+  ],
+  "adapterPlan": [
+    {
+      "tool": "playwright",
+      "priority": 1,
+      "selected": true,
+      "role": "primary-dom-automation"
+    },
+    {
+      "tool": "selenium",
+      "priority": 2,
+      "selected": false,
+      "role": "webdriver-fallback"
+    },
+    {
+      "tool": "sikulix",
+      "priority": 3,
+      "selected": false,
+      "role": "visual-fallback",
+      "visualOnly": true
+    }
+  ],
+  "selectedAdapter": {
+    "tool": "playwright",
+    "engine": "playwright-native",
+    "fallbackUsed": false,
+    "fallbackReason": "",
+    "visualOnly": false,
+    "dependencyStatus": "bundled-module-available",
+    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+    "moduleVersion": "1.61.1",
+    "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "capabilities": [
+      "wait",
+      "click",
+      "fill",
+      "type",
+      "select",
+      "screenshot",
+      "evaluate"
+    ]
+  },
+  "adapterAttempts": [
+    {
+      "tool": "playwright",
+      "engine": "playwright-native",
+      "status": "missing-package-json",
+      "reason": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
+      "modulePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright"
+    },
+    {
+      "tool": "playwright",
+      "engine": "playwright-native",
+      "status": "missing-package-json",
+      "reason": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright",
+      "modulePath": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright"
+    },
+    {
+      "tool": "playwright",
+      "engine": "playwright-native",
+      "status": "selected",
+      "reason": "Playwright 1.61.1",
+      "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright"
+    }
+  ],
+  "nativeAdapterRequired": true,
+  "result": "PASS",
+  "automationResult": "PASS",
+  "evidenceBoundary": "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence",
+  "manualIntervention": false,
+  "failedInteractionCount": 0,
+  "requiredCaseIds": [
+    "UI-108",
+    "UI-109",
+    "UI-110",
+    "UI-111",
+    "UI-112",
+    "UI-113",
+    "UI-114",
+    "UI-115"
+  ],
+  "caseManifestSchema": "media-server.v390-ui-automation-cases.v3",
+  "assertionModel": "visible-dom-user-action-v1",
+  "caseCount": 8,
+  "pass": 8,
+  "fail": 0,
+  "notRun": 0,
+  "failedCaseId": "",
+  "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation",
+  "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json",
+  "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/report.md",
+  "screenshotsDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/screenshots",
+  "tracesDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces",
+  "logsDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs",
+  "cleanup": {
+    "coreServerStopped": true,
+    "authServerStopped": true,
+    "portsClean": true,
+    "temporaryArtifactsRemoved": true,
+    "removedTemporaryArtifacts": [
+      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/core-registry"
+    ]
+  },
+  "cases": [
+    {
+      "caseId": "UI-108",
+      "featureId": "UI-108",
+      "route": "/ops/sources",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-onvif-provider-status",
+      "setupInteractions": [
+        {
+          "kind": "click",
+          "selector": "#add-channel"
+        },
+        {
+          "kind": "select",
+          "selector": "#channel-form select[name=\"kind\"]",
+          "value": "onvif"
+        }
+      ],
+      "interaction": {
+        "kind": "click",
+        "selector": "#refresh"
+      },
+      "targetSelector": "[data-testid=\"onvif-credential-gate\"]",
+      "stateSelectors": [
+        "#onvifCredentialGateStatus"
+      ],
+      "expectedResult": "provider status card shows primarySelection=none and credentialMaterialExposed=false",
+      "visibleAssertions": [
+        {
+          "selector": "#onvifCredentialGateStatus",
+          "textIncludes": [
+            "providerReadiness",
+            "primarySelection=none",
+            "credentialMaterialExposed=false"
+          ]
+        }
+      ],
+      "assertionModel": "visible-dom-user-action-v1",
+      "actualResult": "control action executed and expected UI state captured",
+      "status": "PASS",
+      "interactionEvidence": {
+        "kind": "click",
+        "selector": "#refresh",
+        "executed": true,
+        "dispatch": "playwright-native",
+        "setup": [
+          {
+            "kind": "click",
+            "selector": "#add-channel",
+            "executed": true,
+            "dispatch": "playwright-native"
+          },
+          {
+            "kind": "select",
+            "selector": "#channel-form select[name=\"kind\"]",
+            "value": "onvif",
+            "executed": true,
+            "dispatch": "playwright-native"
+          }
+        ]
+      },
+      "stateEvidence": {
+        "target": {
+          "selector": "[data-testid=\"onvif-credential-gate\"]",
+          "exists": true,
+          "visible": true
+        },
+        "before": [
+          {
+            "selector": "#onvifCredentialGateStatus",
+            "exists": true,
+            "visible": true,
+            "text": "providerReadiness: sanitizedCredentialProviderStatusSummary / primarySelection=none / fallback=in-memory-fixture / persistent store deferred / referenceValueExposed=false / credentialMaterialExposed=false"
+          }
+        ],
+        "after": [
+          {
+            "selector": "#onvifCredentialGateStatus",
+            "exists": true,
+            "visible": true,
+            "text": "providerReadiness: sanitizedCredentialProviderStatusSummary / primarySelection=none / fallback=in-memory-fixture / persistent store deferred / referenceValueExposed=false / credentialMaterialExposed=false"
+          }
+        ],
+        "assertions": [
+          {
+            "selector": "#onvifCredentialGateStatus",
+            "exists": true,
+            "visible": true,
+            "text": "providerReadiness: sanitizedCredentialProviderStatusSummary / primarySelection=none / fallback=in-memory-fixture / persistent store deferred / referenceValueExposed=false / credentialMaterialExposed=false",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "providerReadiness",
+              "primarySelection=none",
+              "credentialMaterialExposed=false"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          }
+        ]
+      },
+      "failureEvidence": null,
+      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/screenshots/ui-108.png",
+      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-108.trace.json",
+      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-108.video.txt",
+      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/ui-108.browser-console.json",
+      "browserConsole": [],
+      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/core-ui.server.log",
+      "cleanupPortState": "clean",
+      "manualIntervention": false,
+      "adapterEvidence": {
+        "tool": "playwright",
+        "engine": "playwright-native",
+        "fallbackUsed": false,
+        "fallbackReason": "",
+        "dependencyStatus": "bundled-module-available",
+        "visualOnly": false,
+        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "moduleVersion": "1.61.1",
+        "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "capabilities": [
+          "wait",
+          "click",
+          "fill",
+          "type",
+          "select",
+          "screenshot",
+          "evaluate"
+        ]
+      }
+    },
+    {
+      "caseId": "UI-109",
+      "featureId": "UI-109",
+      "route": "/ops/sources",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-live-import-persist-decision",
+      "setupInteractions": [
+        {
+          "kind": "click",
+          "selector": "#add-channel"
+        },
+        {
+          "kind": "select",
+          "selector": "#channel-form select[name=\"kind\"]",
+          "value": "onvif"
+        }
+      ],
+      "interaction": {
+        "kind": "click",
+        "selector": "#refresh"
+      },
+      "targetSelector": "#onvifPersistDecisionStatus",
+      "stateSelectors": [
+        "#onvifPersistDecisionStatus"
+      ],
+      "expectedResult": "persist decision card shows manual paired save rollback and oneShotPersist=false",
+      "visibleAssertions": [
+        {
+          "selector": "#onvifPersistDecisionStatus",
+          "textIncludes": [
+            "persistDecision",
+            "manual-form-save-handoff",
+            "oneShotPersist=false",
+            "pairedSave=/ops/api/onvif/channels/{channelId}",
+            "rollback=server restores every registry file replaced before a paired save failure"
+          ]
+        }
+      ],
+      "assertionModel": "visible-dom-user-action-v1",
+      "actualResult": "control action executed and expected UI state captured",
+      "status": "PASS",
+      "interactionEvidence": {
+        "kind": "click",
+        "selector": "#refresh",
+        "executed": true,
+        "dispatch": "playwright-native",
+        "setup": [
+          {
+            "kind": "click",
+            "selector": "#add-channel",
+            "executed": true,
+            "dispatch": "playwright-native"
+          },
+          {
+            "kind": "select",
+            "selector": "#channel-form select[name=\"kind\"]",
+            "value": "onvif",
+            "executed": true,
+            "dispatch": "playwright-native"
+          }
+        ]
+      },
+      "stateEvidence": {
+        "target": {
+          "selector": "#onvifPersistDecisionStatus",
+          "exists": true,
+          "visible": true
+        },
+        "before": [
+          {
+            "selector": "#onvifPersistDecisionStatus",
+            "exists": true,
+            "visible": true,
+            "text": "persistDecision: manual-form-save-handoff / importDraftNotSaved=true / oneShotPersist=false / sourceWriteRequired=true / pairedSave=/ops/api/onvif/channels/{channelId} / rollback=server restores every registry file replaced before a paired save failure; rollback failure is reported as manual-recovery-required"
+          }
+        ],
+        "after": [
+          {
+            "selector": "#onvifPersistDecisionStatus",
+            "exists": true,
+            "visible": true,
+            "text": "persistDecision: manual-form-save-handoff / importDraftNotSaved=true / oneShotPersist=false / sourceWriteRequired=true / pairedSave=/ops/api/onvif/channels/{channelId} / rollback=server restores every registry file replaced before a paired save failure; rollback failure is reported as manual-recovery-required"
+          }
+        ],
+        "assertions": [
+          {
+            "selector": "#onvifPersistDecisionStatus",
+            "exists": true,
+            "visible": true,
+            "text": "persistDecision: manual-form-save-handoff / importDraftNotSaved=true / oneShotPersist=false / sourceWriteRequired=true / pairedSave=/ops/api/onvif/channels/{channelId} / rollback=server restores every registry file replaced before a paired save failure; rollback failure is reported as manual-recovery-required",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "persistDecision",
+              "manual-form-save-handoff",
+              "oneShotPersist=false",
+              "pairedSave=/ops/api/onvif/channels/{channelId}",
+              "rollback=server restores every registry file replaced before a paired save failure"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          }
+        ]
+      },
+      "failureEvidence": null,
+      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/screenshots/ui-109.png",
+      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-109.trace.json",
+      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-109.video.txt",
+      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/ui-109.browser-console.json",
+      "browserConsole": [],
+      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/core-ui.server.log",
+      "cleanupPortState": "clean",
+      "manualIntervention": false,
+      "adapterEvidence": {
+        "tool": "playwright",
+        "engine": "playwright-native",
+        "fallbackUsed": false,
+        "fallbackReason": "",
+        "dependencyStatus": "bundled-module-available",
+        "visualOnly": false,
+        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "moduleVersion": "1.61.1",
+        "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "capabilities": [
+          "wait",
+          "click",
+          "fill",
+          "type",
+          "select",
+          "screenshot",
+          "evaluate"
+        ]
+      }
+    },
+    {
+      "caseId": "UI-110",
+      "featureId": "UI-110",
+      "route": "/ops/rules",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-vlm-rule-draft-bridge",
+      "setupInteractions": [],
+      "interaction": {
+        "kind": "click",
+        "selector": "#opsVlmRuleDraftRefresh"
+      },
+      "targetSelector": "[data-testid=\"ops-vlm-rule-draft-workflow\"]",
+      "stateSelectors": [
+        "#opsVlmRuleDraftBridgeStatus",
+        "#opsVlmRuleDraftSummary"
+      ],
+      "expectedResult": "rule suggestion bridge shows manualSaveRequired=true and autoApply=false",
+      "visibleAssertions": [
+        {
+          "selector": "#opsVlmRuleDraftBridgeStatus",
+          "textIncludes": [
+            "ops-review-to-rule-draft-bridge",
+            "manualSaveRequired=true",
+            "autoApply=false"
+          ]
+        },
+        {
+          "selector": "#opsVlmRuleDraftSummary",
+          "textNotEmpty": true
+        }
+      ],
+      "assertionModel": "visible-dom-user-action-v1",
+      "actualResult": "control action executed and expected UI state captured",
+      "status": "PASS",
+      "interactionEvidence": {
+        "kind": "click",
+        "selector": "#opsVlmRuleDraftRefresh",
+        "executed": true,
+        "dispatch": "playwright-native",
+        "setup": []
+      },
+      "stateEvidence": {
+        "target": {
+          "selector": "[data-testid=\"ops-vlm-rule-draft-workflow\"]",
+          "exists": true,
+          "visible": true
+        },
+        "before": [
+          {
+            "selector": "#opsVlmRuleDraftBridgeStatus",
+            "exists": true,
+            "visible": true,
+            "text": "review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manualSaveRequired=true / autoApply=false / ruleRegistryWrite=false / draftRoute=/ops/rules"
+          },
+          {
+            "selector": "#opsVlmRuleDraftSummary",
+            "exists": true,
+            "visible": true,
+            "text": "수동 저장 후보 0/0개 · 자동 적용 제외 0개 · 저장 전 registry write 없음"
+          }
+        ],
+        "after": [
+          {
+            "selector": "#opsVlmRuleDraftBridgeStatus",
+            "exists": true,
+            "visible": true,
+            "text": "review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manualSaveRequired=true / autoApply=false / ruleRegistryWrite=false / draftRoute=/ops/rules"
+          },
+          {
+            "selector": "#opsVlmRuleDraftSummary",
+            "exists": true,
+            "visible": true,
+            "text": "수동 저장 후보 0/0개 · 자동 적용 제외 0개 · 저장 전 registry write 없음"
+          }
+        ],
+        "assertions": [
+          {
+            "selector": "#opsVlmRuleDraftBridgeStatus",
+            "exists": true,
+            "visible": true,
+            "text": "review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manualSaveRequired=true / autoApply=false / ruleRegistryWrite=false / draftRoute=/ops/rules",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "ops-review-to-rule-draft-bridge",
+              "manualSaveRequired=true",
+              "autoApply=false"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          },
+          {
+            "selector": "#opsVlmRuleDraftSummary",
+            "exists": true,
+            "visible": true,
+            "text": "수동 저장 후보 0/0개 · 자동 적용 제외 0개 · 저장 전 registry write 없음",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          }
+        ]
+      },
+      "failureEvidence": null,
+      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/screenshots/ui-110.png",
+      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-110.trace.json",
+      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-110.video.txt",
+      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/ui-110.browser-console.json",
+      "browserConsole": [],
+      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/core-ui.server.log",
+      "cleanupPortState": "clean",
+      "manualIntervention": false,
+      "adapterEvidence": {
+        "tool": "playwright",
+        "engine": "playwright-native",
+        "fallbackUsed": false,
+        "fallbackReason": "",
+        "dependencyStatus": "bundled-module-available",
+        "visualOnly": false,
+        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "moduleVersion": "1.61.1",
+        "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "capabilities": [
+          "wait",
+          "click",
+          "fill",
+          "type",
+          "select",
+          "screenshot",
+          "evaluate"
+        ]
+      }
+    },
+    {
+      "caseId": "UI-111",
+      "featureId": "UI-111",
+      "route": "/ops/vlm",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-vlm-evaluation-promotion-guard",
+      "setupInteractions": [],
+      "interaction": {
+        "kind": "click",
+        "selector": "#opsVlmRefresh"
+      },
+      "targetSelector": "#opsVlmEvaluationPromotionGuardStatus",
+      "stateSelectors": [
+        "#opsVlmEvaluationPromotionGuardStatus",
+        "#opsVlmEvaluationSelectionSummary"
+      ],
+      "expectedResult": "promotion guard shows server-verified candidate save",
+      "visibleAssertions": [
+        {
+          "selector": "#opsVlmEvaluationPromotionGuardStatus",
+          "textIncludes": [
+            "operator-select-candidate-then-server-verify-save"
+          ]
+        },
+        {
+          "selector": "#opsVlmEvaluationSelectionSummary",
+          "textNotEmpty": true
+        }
+      ],
+      "assertionModel": "visible-dom-user-action-v1",
+      "actualResult": "control action executed and expected UI state captured",
+      "status": "PASS",
+      "interactionEvidence": {
+        "kind": "click",
+        "selector": "#opsVlmRefresh",
+        "executed": true,
+        "dispatch": "playwright-native",
+        "setup": []
+      },
+      "stateEvidence": {
+        "target": {
+          "selector": "#opsVlmEvaluationPromotionGuardStatus",
+          "exists": true,
+          "visible": true
+        },
+        "before": [
+          {
+            "selector": "#opsVlmEvaluationPromotionGuardStatus",
+            "exists": true,
+            "visible": true,
+            "text": "promotion guard: server-verified-evaluation-promotion / flow=operator-select-candidate-then-server-verify-save / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false"
+          },
+          {
+            "selector": "#opsVlmEvaluationSelectionSummary",
+            "exists": true,
+            "visible": true,
+            "text": "추천 평가 후보 eval-qwen8b-event-review-default; 아직 profile draft에는 반영하지 않았습니다."
+          }
+        ],
+        "after": [
+          {
+            "selector": "#opsVlmEvaluationPromotionGuardStatus",
+            "exists": true,
+            "visible": true,
+            "text": "promotion guard: server-verified-evaluation-promotion / flow=operator-select-candidate-then-server-verify-save / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false"
+          },
+          {
+            "selector": "#opsVlmEvaluationSelectionSummary",
+            "exists": true,
+            "visible": true,
+            "text": "추천 평가 후보 eval-qwen8b-event-review-default; 아직 profile draft에는 반영하지 않았습니다."
+          }
+        ],
+        "assertions": [
+          {
+            "selector": "#opsVlmEvaluationPromotionGuardStatus",
+            "exists": true,
+            "visible": true,
+            "text": "promotion guard: server-verified-evaluation-promotion / flow=operator-select-candidate-then-server-verify-save / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "operator-select-candidate-then-server-verify-save"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          },
+          {
+            "selector": "#opsVlmEvaluationSelectionSummary",
+            "exists": true,
+            "visible": true,
+            "text": "추천 평가 후보 eval-qwen8b-event-review-default; 아직 profile draft에는 반영하지 않았습니다.",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          }
+        ]
+      },
+      "failureEvidence": null,
+      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/screenshots/ui-111.png",
+      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-111.trace.json",
+      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-111.video.txt",
+      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/ui-111.browser-console.json",
+      "browserConsole": [],
+      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/core-ui.server.log",
+      "cleanupPortState": "clean",
+      "manualIntervention": false,
+      "adapterEvidence": {
+        "tool": "playwright",
+        "engine": "playwright-native",
+        "fallbackUsed": false,
+        "fallbackReason": "",
+        "dependencyStatus": "bundled-module-available",
+        "visualOnly": false,
+        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "moduleVersion": "1.61.1",
+        "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "capabilities": [
+          "wait",
+          "click",
+          "fill",
+          "type",
+          "select",
+          "screenshot",
+          "evaluate"
+        ]
+      }
+    },
+    {
+      "caseId": "UI-112",
+      "featureId": "UI-112",
+      "route": "/ops/sources",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-staging-restore-validation-handoff",
+      "setupInteractions": [],
+      "interaction": {
+        "kind": "click",
+        "selector": "#refresh"
+      },
+      "targetSelector": "[data-source-staging-restore-validation-handoff]",
+      "stateSelectors": [
+        "#sourceStagingRestoreValidationStatus",
+        "#source-staging-restore-checklist-list",
+        "#source-staging-restore-result-artifact-list"
+      ],
+      "expectedResult": "staging restore checklist and result artifact keep production restore disabled",
+      "visibleAssertions": [
+        {
+          "selector": "#sourceStagingRestoreValidationStatus",
+          "textIncludes": [
+            "staging-restore-validation-checklist-result-handoff",
+            "resultArtifactPersistedByRoute=false",
+            "productionRestorePerformed=false",
+            "automaticRecoveryPerformed=false"
+          ]
+        },
+        {
+          "selector": "#source-staging-restore-checklist-list",
+          "textNotEmpty": true
+        },
+        {
+          "selector": "#source-staging-restore-result-artifact-list",
+          "textIncludes": [
+            "resultArtifactPersistedByRoute: false",
+            "productionRestorePerformed: false",
+            "automaticRecoveryPerformed: false"
+          ]
+        }
+      ],
+      "assertionModel": "visible-dom-user-action-v1",
+      "actualResult": "control action executed and expected UI state captured",
+      "status": "PASS",
+      "interactionEvidence": {
+        "kind": "click",
+        "selector": "#refresh",
+        "executed": true,
+        "dispatch": "playwright-native",
+        "setup": []
+      },
+      "stateEvidence": {
+        "target": {
+          "selector": "[data-source-staging-restore-validation-handoff]",
+          "exists": true,
+          "visible": true
+        },
+        "before": [
+          {
+            "selector": "#sourceStagingRestoreValidationStatus",
+            "exists": true,
+            "visible": true,
+            "text": "staging-restore-validation-checklist-result-handoff / checklist 4 / resultArtifactPersistedByRoute=false / productionRestorePerformed=false / automaticRecoveryPerformed=false"
+          },
+          {
+            "selector": "#source-staging-restore-checklist-list",
+            "exists": true,
+            "visible": true,
+            "text": "SourceRegistry staging restore validation operator-required · source registry snapshot sourceId / source kind / canonical source key / owner/site/group context / JSON parse result PublishedView staging restore validation operator-required · PublishedView registry viewId / sourceId link / enabled state / dashboard/events flags / maxTiles / viewer scope Source health staging validation operator-required · fresh source health snapshot live count / stale count / offline count / reconnect count / warning drift Viewer scope validation operator-required · scoped client API /client/api/views / client route scope / viewer/integrator traffic reconnect approval"
+          },
+          {
+            "selector": "#source-staging-restore-result-artifact-list",
+            "exists": true,
+            "visible": true,
+            "text": "media-server.ops.v390-staging-restore-validation-result.v1 operator-supplied-after-staging-run · change-ticket-or-release-evidence-only sourceRegistryValidation / publishedViewValidation / sourceHealthSnapshotValidation / viewerScopeValidation / operator / generatedAt / failureOrSkipReason resultArtifactPersistedByRoute: false productionRestorePerformed: false automaticRecoveryPerformed: false"
+          }
+        ],
+        "after": [
+          {
+            "selector": "#sourceStagingRestoreValidationStatus",
+            "exists": true,
+            "visible": true,
+            "text": "staging-restore-validation-checklist-result-handoff / checklist 4 / resultArtifactPersistedByRoute=false / productionRestorePerformed=false / automaticRecoveryPerformed=false"
+          },
+          {
+            "selector": "#source-staging-restore-checklist-list",
+            "exists": true,
+            "visible": true,
+            "text": "SourceRegistry staging restore validation operator-required · source registry snapshot sourceId / source kind / canonical source key / owner/site/group context / JSON parse result PublishedView staging restore validation operator-required · PublishedView registry viewId / sourceId link / enabled state / dashboard/events flags / maxTiles / viewer scope Source health staging validation operator-required · fresh source health snapshot live count / stale count / offline count / reconnect count / warning drift Viewer scope validation operator-required · scoped client API /client/api/views / client route scope / viewer/integrator traffic reconnect approval"
+          },
+          {
+            "selector": "#source-staging-restore-result-artifact-list",
+            "exists": true,
+            "visible": true,
+            "text": "media-server.ops.v390-staging-restore-validation-result.v1 operator-supplied-after-staging-run · change-ticket-or-release-evidence-only sourceRegistryValidation / publishedViewValidation / sourceHealthSnapshotValidation / viewerScopeValidation / operator / generatedAt / failureOrSkipReason resultArtifactPersistedByRoute: false productionRestorePerformed: false automaticRecoveryPerformed: false"
+          }
+        ],
+        "assertions": [
+          {
+            "selector": "#sourceStagingRestoreValidationStatus",
+            "exists": true,
+            "visible": true,
+            "text": "staging-restore-validation-checklist-result-handoff / checklist 4 / resultArtifactPersistedByRoute=false / productionRestorePerformed=false / automaticRecoveryPerformed=false",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "staging-restore-validation-checklist-result-handoff",
+              "resultArtifactPersistedByRoute=false",
+              "productionRestorePerformed=false",
+              "automaticRecoveryPerformed=false"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          },
+          {
+            "selector": "#source-staging-restore-checklist-list",
+            "exists": true,
+            "visible": true,
+            "text": "SourceRegistry staging restore validation operator-required · source registry snapshot sourceId / source kind / canonical source key / owner/site/group context / JSON parse result PublishedView staging restore validation operator-required · PublishedView registry viewId / sourceId link / enabled state / dashboard/events flags / maxTiles / viewer scope Source health staging validation operator-required · fresh source health snapshot live count / stale count / offline count / reconnect count / warning drift Viewer scope validation operator-required · scoped client API /client/api/views / client route scope / viewer/integrator traffic reconnect approval",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          },
+          {
+            "selector": "#source-staging-restore-result-artifact-list",
+            "exists": true,
+            "visible": true,
+            "text": "media-server.ops.v390-staging-restore-validation-result.v1 operator-supplied-after-staging-run · change-ticket-or-release-evidence-only sourceRegistryValidation / publishedViewValidation / sourceHealthSnapshotValidation / viewerScopeValidation / operator / generatedAt / failureOrSkipReason resultArtifactPersistedByRoute: false productionRestorePerformed: false automaticRecoveryPerformed: false",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "resultArtifactPersistedByRoute: false",
+              "productionRestorePerformed: false",
+              "automaticRecoveryPerformed: false"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          }
+        ]
+      },
+      "failureEvidence": null,
+      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/screenshots/ui-112.png",
+      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-112.trace.json",
+      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-112.video.txt",
+      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/ui-112.browser-console.json",
+      "browserConsole": [],
+      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/core-ui.server.log",
+      "cleanupPortState": "clean",
+      "manualIntervention": false,
+      "adapterEvidence": {
+        "tool": "playwright",
+        "engine": "playwright-native",
+        "fallbackUsed": false,
+        "fallbackReason": "",
+        "dependencyStatus": "bundled-module-available",
+        "visualOnly": false,
+        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "moduleVersion": "1.61.1",
+        "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "capabilities": [
+          "wait",
+          "click",
+          "fill",
+          "type",
+          "select",
+          "screenshot",
+          "evaluate"
+        ]
+      }
+    },
+    {
+      "caseId": "UI-113",
+      "featureId": "UI-113",
+      "route": "/ops/dashboard",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-action-execution-deferral",
+      "setupInteractions": [],
+      "interaction": {
+        "kind": "click",
+        "selector": "#opsDashboardRefresh"
+      },
+      "targetSelector": "[data-testid=\"ops-action-execution-deferral-decision\"]",
+      "stateSelectors": [
+        "#dashActionExecutionDeferralText",
+        "#dashActionExecutionDeferralBoundary"
+      ],
+      "expectedResult": "action execution decision shows all action writes deferred",
+      "visibleAssertions": [
+        {
+          "selector": "#dashActionExecutionDeferralText",
+          "textIncludes": [
+            "all-action-writes-deferred",
+            "approvalGatedExecutionEnabled=false"
+          ]
+        },
+        {
+          "selector": "#dashActionExecutionDeferralBoundary",
+          "textIncludes": [
+            "actionExecutionPerformed=false",
+            "externalDeliveryPerformed=false"
+          ]
+        }
+      ],
+      "assertionModel": "visible-dom-user-action-v1",
+      "actualResult": "control action executed and expected UI state captured",
+      "status": "PASS",
+      "interactionEvidence": {
+        "kind": "click",
+        "selector": "#opsDashboardRefresh",
+        "executed": true,
+        "dispatch": "playwright-native",
+        "setup": []
+      },
+      "stateEvidence": {
+        "target": {
+          "selector": "[data-testid=\"ops-action-execution-deferral-decision\"]",
+          "exists": true,
+          "visible": true
+        },
+        "before": [
+          {
+            "selector": "#dashActionExecutionDeferralText",
+            "exists": true,
+            "visible": true,
+            "text": "decision all-action-writes-deferred · approvalGatedExecutionEnabled=false"
+          },
+          {
+            "selector": "#dashActionExecutionDeferralBoundary",
+            "exists": true,
+            "visible": true,
+            "text": "decision=/ops/api/actions/execution-deferral-decision · sourceRecheck=/ops/api/actions/source-recheck-pilot · notice=/ops/api/actions/client-notice-draft-queue · rule=/ops/api/actions/rule-draft-package · approvalGatedExecutionEnabled=false · actionExecutionPerformed=false · sourceRecheckExecuted=false · clientNoticeSent=false · ruleApplyPerformed=false · externalDeliveryPerformed=false · rtspOrWebrtcMediaPathChanged=false"
+          }
+        ],
+        "after": [
+          {
+            "selector": "#dashActionExecutionDeferralText",
+            "exists": true,
+            "visible": true,
+            "text": "decision all-action-writes-deferred · approvalGatedExecutionEnabled=false"
+          },
+          {
+            "selector": "#dashActionExecutionDeferralBoundary",
+            "exists": true,
+            "visible": true,
+            "text": "decision=/ops/api/actions/execution-deferral-decision · sourceRecheck=/ops/api/actions/source-recheck-pilot · notice=/ops/api/actions/client-notice-draft-queue · rule=/ops/api/actions/rule-draft-package · approvalGatedExecutionEnabled=false · actionExecutionPerformed=false · sourceRecheckExecuted=false · clientNoticeSent=false · ruleApplyPerformed=false · externalDeliveryPerformed=false · rtspOrWebrtcMediaPathChanged=false"
+          }
+        ],
+        "assertions": [
+          {
+            "selector": "#dashActionExecutionDeferralText",
+            "exists": true,
+            "visible": true,
+            "text": "decision all-action-writes-deferred · approvalGatedExecutionEnabled=false",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "all-action-writes-deferred",
+              "approvalGatedExecutionEnabled=false"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          },
+          {
+            "selector": "#dashActionExecutionDeferralBoundary",
+            "exists": true,
+            "visible": true,
+            "text": "decision=/ops/api/actions/execution-deferral-decision · sourceRecheck=/ops/api/actions/source-recheck-pilot · notice=/ops/api/actions/client-notice-draft-queue · rule=/ops/api/actions/rule-draft-package · approvalGatedExecutionEnabled=false · actionExecutionPerformed=false · sourceRecheckExecuted=false · clientNoticeSent=false · ruleApplyPerformed=false · externalDeliveryPerformed=false · rtspOrWebrtcMediaPathChanged=false",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "actionExecutionPerformed=false",
+              "externalDeliveryPerformed=false"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          }
+        ]
+      },
+      "failureEvidence": null,
+      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/screenshots/ui-113.png",
+      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-113.trace.json",
+      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-113.video.txt",
+      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/ui-113.browser-console.json",
+      "browserConsole": [],
+      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/core-ui.server.log",
+      "cleanupPortState": "clean",
+      "manualIntervention": false,
+      "adapterEvidence": {
+        "tool": "playwright",
+        "engine": "playwright-native",
+        "fallbackUsed": false,
+        "fallbackReason": "",
+        "dependencyStatus": "bundled-module-available",
+        "visualOnly": false,
+        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "moduleVersion": "1.61.1",
+        "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "capabilities": [
+          "wait",
+          "click",
+          "fill",
+          "type",
+          "select",
+          "screenshot",
+          "evaluate"
+        ]
+      }
+    },
+    {
+      "caseId": "UI-114",
+      "featureId": "UI-114",
+      "route": "/ops/dashboard",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-field-evidence-bridge",
+      "setupInteractions": [],
+      "interaction": {
+        "kind": "click",
+        "selector": "#opsDashboardRefresh"
+      },
+      "targetSelector": "[data-testid=\"ops-field-evidence-bridge-decision\"]",
+      "stateSelectors": [
+        "#dashFieldEvidenceBridgeText",
+        "#dashFieldEvidenceBridgeBoundary"
+      ],
+      "expectedResult": "field evidence bridge shows approval-only minimal evidence",
+      "visibleAssertions": [
+        {
+          "selector": "#dashFieldEvidenceBridgeText",
+          "textIncludes": [
+            "approval-only-minimal-field-evidence-bridge",
+            "fieldPassClaimed=false"
+          ]
+        },
+        {
+          "selector": "#dashFieldEvidenceBridgeBoundary",
+          "textIncludes": [
+            "fieldSmokeExecuted=false",
+            "vlmProviderCalled=false"
+          ]
+        }
+      ],
+      "assertionModel": "visible-dom-user-action-v1",
+      "actualResult": "control action executed and expected UI state captured",
+      "status": "PASS",
+      "interactionEvidence": {
+        "kind": "click",
+        "selector": "#opsDashboardRefresh",
+        "executed": true,
+        "dispatch": "playwright-native",
+        "setup": []
+      },
+      "stateEvidence": {
+        "target": {
+          "selector": "[data-testid=\"ops-field-evidence-bridge-decision\"]",
+          "exists": true,
+          "visible": true
+        },
+        "before": [
+          {
+            "selector": "#dashFieldEvidenceBridgeText",
+            "exists": true,
+            "visible": true,
+            "text": "decision approval-only-minimal-field-evidence-bridge · fieldPassClaimed=false · releasePassClaimed=false"
+          },
+          {
+            "selector": "#dashFieldEvidenceBridgeBoundary",
+            "exists": true,
+            "visible": true,
+            "text": "decision=/ops/api/field-evidence/bridge-decision · connector=/ops/api/actions/field-connector-evidence-package · intake=/ops/api/live-operations/field-evidence-intake · attachment=/ops/api/site-operations/field-evidence-attachment · fieldSmokeExecuted=false · endpointProbePerformed=false · credentialProbePerformed=false · cloudProviderCalled=false · vlmProviderCalled=false · fieldPassClaimed=false · releasePassClaimed=false · rtspOrWebrtcMediaPathChanged=false"
+          }
+        ],
+        "after": [
+          {
+            "selector": "#dashFieldEvidenceBridgeText",
+            "exists": true,
+            "visible": true,
+            "text": "decision approval-only-minimal-field-evidence-bridge · fieldPassClaimed=false · releasePassClaimed=false"
+          },
+          {
+            "selector": "#dashFieldEvidenceBridgeBoundary",
+            "exists": true,
+            "visible": true,
+            "text": "decision=/ops/api/field-evidence/bridge-decision · connector=/ops/api/actions/field-connector-evidence-package · intake=/ops/api/live-operations/field-evidence-intake · attachment=/ops/api/site-operations/field-evidence-attachment · fieldSmokeExecuted=false · endpointProbePerformed=false · credentialProbePerformed=false · cloudProviderCalled=false · vlmProviderCalled=false · fieldPassClaimed=false · releasePassClaimed=false · rtspOrWebrtcMediaPathChanged=false"
+          }
+        ],
+        "assertions": [
+          {
+            "selector": "#dashFieldEvidenceBridgeText",
+            "exists": true,
+            "visible": true,
+            "text": "decision approval-only-minimal-field-evidence-bridge · fieldPassClaimed=false · releasePassClaimed=false",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "approval-only-minimal-field-evidence-bridge",
+              "fieldPassClaimed=false"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          },
+          {
+            "selector": "#dashFieldEvidenceBridgeBoundary",
+            "exists": true,
+            "visible": true,
+            "text": "decision=/ops/api/field-evidence/bridge-decision · connector=/ops/api/actions/field-connector-evidence-package · intake=/ops/api/live-operations/field-evidence-intake · attachment=/ops/api/site-operations/field-evidence-attachment · fieldSmokeExecuted=false · endpointProbePerformed=false · credentialProbePerformed=false · cloudProviderCalled=false · vlmProviderCalled=false · fieldPassClaimed=false · releasePassClaimed=false · rtspOrWebrtcMediaPathChanged=false",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "fieldSmokeExecuted=false",
+              "vlmProviderCalled=false"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          }
+        ]
+      },
+      "failureEvidence": null,
+      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/screenshots/ui-114.png",
+      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-114.trace.json",
+      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-114.video.txt",
+      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/ui-114.browser-console.json",
+      "browserConsole": [],
+      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/core-ui.server.log",
+      "cleanupPortState": "clean",
+      "manualIntervention": false,
+      "adapterEvidence": {
+        "tool": "playwright",
+        "engine": "playwright-native",
+        "fallbackUsed": false,
+        "fallbackReason": "",
+        "dependencyStatus": "bundled-module-available",
+        "visualOnly": false,
+        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "moduleVersion": "1.61.1",
+        "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "capabilities": [
+          "wait",
+          "click",
+          "fill",
+          "type",
+          "select",
+          "screenshot",
+          "evaluate"
+        ]
+      }
+    },
+    {
+      "caseId": "UI-115",
+      "featureId": "UI-115",
+      "route": "/ops/dashboard",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-reid-assist-decision",
+      "setupInteractions": [],
+      "interaction": {
+        "kind": "click",
+        "selector": "#opsDashboardRefresh"
+      },
+      "targetSelector": "[data-testid=\"ops-reid-assist-decision\"]",
+      "stateSelectors": [
+        "#dashReidAssistDecisionText",
+        "#dashReidAssistDecisionBoundary"
+      ],
+      "expectedResult": "Re-ID assist decision shows server-owned file/SHA/provenance/runtime preflight without execution claim",
+      "visibleAssertions": [
+        {
+          "selector": "#dashReidAssistDecisionText",
+          "textIncludes": [
+            "explicit-opt-in-provenance-gated-assist",
+            "reason=",
+            "fallback=no-op-visible"
+          ]
+        },
+        {
+          "selector": "#dashReidAssistDecisionBoundary",
+          "textIncludes": [
+            "OpenSSL=",
+            "ONNX=",
+            "sessionLoadValidated=false"
+          ]
+        }
+      ],
+      "assertionModel": "visible-dom-user-action-v1",
+      "actualResult": "control action executed and expected UI state captured",
+      "status": "PASS",
+      "interactionEvidence": {
+        "kind": "click",
+        "selector": "#opsDashboardRefresh",
+        "executed": true,
+        "dispatch": "playwright-native",
+        "setup": []
+      },
+      "stateEvidence": {
+        "target": {
+          "selector": "[data-testid=\"ops-reid-assist-decision\"]",
+          "exists": true,
+          "visible": true
+        },
+        "before": [
+          {
+            "selector": "#dashReidAssistDecisionText",
+            "exists": true,
+            "visible": true,
+            "text": "decision explicit-opt-in-provenance-gated-assist · modelBackedPreflightReady=false · reason=appearance-disabled · fallback=no-op-visible"
+          },
+          {
+            "selector": "#dashReidAssistDecisionBoundary",
+            "exists": true,
+            "visible": true,
+            "text": "decision=/ops/api/analysis/reid-assist-decision · authority=analysis::InspectAppearanceModelReadiness · appearance=false · extractor=not-selected · file=missing/not-regular · shaFormat=invalid · shaReadable=false · shaMatch=false · provenance=missing · OpenSSL=available · ONNX=available · sessionLoadValidated=false · rawModelMaterialExposed=false · rtspOrWebrtcMediaPathChanged=false"
+          }
+        ],
+        "after": [
+          {
+            "selector": "#dashReidAssistDecisionText",
+            "exists": true,
+            "visible": true,
+            "text": "decision explicit-opt-in-provenance-gated-assist · modelBackedPreflightReady=false · reason=appearance-disabled · fallback=no-op-visible"
+          },
+          {
+            "selector": "#dashReidAssistDecisionBoundary",
+            "exists": true,
+            "visible": true,
+            "text": "decision=/ops/api/analysis/reid-assist-decision · authority=analysis::InspectAppearanceModelReadiness · appearance=false · extractor=not-selected · file=missing/not-regular · shaFormat=invalid · shaReadable=false · shaMatch=false · provenance=missing · OpenSSL=available · ONNX=available · sessionLoadValidated=false · rawModelMaterialExposed=false · rtspOrWebrtcMediaPathChanged=false"
+          }
+        ],
+        "assertions": [
+          {
+            "selector": "#dashReidAssistDecisionText",
+            "exists": true,
+            "visible": true,
+            "text": "decision explicit-opt-in-provenance-gated-assist · modelBackedPreflightReady=false · reason=appearance-disabled · fallback=no-op-visible",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "explicit-opt-in-provenance-gated-assist",
+              "reason=",
+              "fallback=no-op-visible"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          },
+          {
+            "selector": "#dashReidAssistDecisionBoundary",
+            "exists": true,
+            "visible": true,
+            "text": "decision=/ops/api/analysis/reid-assist-decision · authority=analysis::InspectAppearanceModelReadiness · appearance=false · extractor=not-selected · file=missing/not-regular · shaFormat=invalid · shaReadable=false · shaMatch=false · provenance=missing · OpenSSL=available · ONNX=available · sessionLoadValidated=false · rawModelMaterialExposed=false · rtspOrWebrtcMediaPathChanged=false",
+            "textNotEmpty": true,
+            "expectedTextIncludes": [
+              "OpenSSL=",
+              "ONNX=",
+              "sessionLoadValidated=false"
+            ],
+            "missingText": [],
+            "pass": true,
+            "sourceBoundary": "exact-selector-visible-innerText-only"
+          }
+        ]
+      },
+      "failureEvidence": null,
+      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/screenshots/ui-115.png",
+      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-115.trace.json",
+      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/traces/ui-115.video.txt",
+      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/ui-115.browser-console.json",
+      "browserConsole": [],
+      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/logs/core-ui.server.log",
+      "cleanupPortState": "clean",
+      "manualIntervention": false,
+      "adapterEvidence": {
+        "tool": "playwright",
+        "engine": "playwright-native",
+        "fallbackUsed": false,
+        "fallbackReason": "",
+        "dependencyStatus": "bundled-module-available",
+        "visualOnly": false,
+        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "moduleVersion": "1.61.1",
+        "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "capabilities": [
+          "wait",
+          "click",
+          "fill",
+          "type",
+          "select",
+          "screenshot",
+          "evaluate"
+        ]
+      }
+    }
+  ]
+}

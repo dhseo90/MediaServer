@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.2.0 Step 2 Resolution State Contract 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +33,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-resolution-state-contract";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
@@ -44,6 +46,15 @@ const files = {
 const checks = [];
 
 check("ops review state persists resolution state fields separately", () => {
+  const start = files.server.indexOf("std::string OpsResolutionStateJson(");
+  const end = files.server.indexOf("bool OpsEventReviewNoteContainsSensitiveMaterial(", start);
+  assert(start >= 0 && end > start, "EVT-063 resolution state block missing");
+  const evt063ResolutionStateBlock = files.server.slice(start, end);
+  assertIncludes(evt063ResolutionStateBlock, "resolutionTransition", "EVT-063 block-scoped canonical resolution state");
+  assert(!evt063ResolutionStateBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt063ResolutionStateBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-063 resolution state must remain hidden from client/viewer");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-063 canonical review route");
   for (const snippet of [
     "resolution_status",
     "resolution_reason",
@@ -156,9 +167,6 @@ check("feature inventory and release records map v3.2 Step 2", () => {
     "EVT-063 | V320 Step 2 resolution state contract",
     "SAFE-103 | V320 Step 2 resolution boundary",
     "OPS-070 | V320 Step 2 Resolution State Contract 게이트",
-    "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 2");
   }
@@ -177,11 +185,23 @@ check("feature inventory and release records map v3.2 Step 2", () => {
 check("server entrypoint and inventory verifiers include v3.2 Step 2 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_resolution_state_contract.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["EVT-063", "SAFE-103", "OPS-070"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_resolution_state_contract.mjs", "script inventory");
+});
+
+check("SAFE-103 canonical resolution persistence boundary", () => {
+  const reviewStateBlock = extractCppFunctionBlock(files.server, "std::string OpsEventReviewStateJson(");
+  const upsertBlock = extractCppFunctionBlock(files.server, "bool UpsertOpsEventReviewState(");
+  const safe103BoundaryObserved = reviewStateBlock.includes("OpsResolutionStateJson(resolution_state)") &&
+    upsertBlock.includes("OpsEventReviewStoragePath(config)") &&
+    upsertBlock.includes("OpsEventReviewStateJson(next)");
+  const schemaMutationPerformed = /DispatchEventRecords|EventStorage::|DataChannel|Sse|WebSocket|Rtsp/.test(upsertBlock);
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(upsertBlock);
+  assert(safe103BoundaryObserved && schemaMutationPerformed === false && viewerClientExposureAdded === false,
+    "SAFE-103 OpsResolutionStateJson(resolution_state) must persist only in Ops review state without EventRecord/WebRTC/SSE/RTSP or client/viewer mutation");
 });
 
 const results = runChecks();

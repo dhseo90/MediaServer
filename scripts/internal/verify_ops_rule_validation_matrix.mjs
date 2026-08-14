@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Ops rule 저장 전/서버 validation 시나리오를 fixture matrix로 고정한다.
 
 import fs from "node:fs";
@@ -188,7 +189,7 @@ check("UI validation covers every matrix fixture", () => {
 });
 
 check("UI exposes S05 rule/scenario review loop before save", () => {
-  const html = readText("src/ingress/webrtc_http_server.cpp");
+  const html = readWebRtcHttpServerBundle(readText);
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   const css = readText("src/ingress/product_ui_css.cpp");
   for (const snippet of [
@@ -221,7 +222,7 @@ check("UI exposes S05 rule/scenario review loop before save", () => {
 
 check("server validation covers server-owned fixtures", () => {
   const server = [
-    readText("src/ingress/webrtc_http_server.cpp"),
+    readWebRtcHttpServerBundle(readText),
     readText("src/ingress/source_view_registry.cpp"),
   ].join("\n");
   for (const fixture of ruleValidationMatrixFixtures.filter(item => item.owner.includes("server"))) {

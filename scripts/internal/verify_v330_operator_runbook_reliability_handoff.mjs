@@ -90,6 +90,8 @@ check("live source health owns the operator runbook and reliability handoff chec
 });
 
 check("docs index, UI guide, config reference, and backup guide link the runbook handoff", () => {
+  const runbookHandoffObserved = files.docsIndex.includes("live-source-health.md#operator-runbook-and-reliability-handoff");
+  assert(runbookHandoffObserved, "OPS-087 canonical runbook handoff link missing");
   for (const snippet of [
     "source reliability operator runbook",
     "live-source-health.md#operator-runbook-and-reliability-handoff",
@@ -134,11 +136,11 @@ check("stream verification, feature inventory, and release records map v3.3 Step
     `v3.3.0 (8) Operator Runbook and Reliability Handoff | \`SAFE-120\`, \`OPS-087\` | \`${command}\`, \`verify-docs-links\``,
     "SAFE-120 | V330 Step 8 operator runbook reliability handoff boundary",
     "OPS-087 | V330 Step 8 Operator Runbook and Reliability Handoff 게이트",
-    "`SAFE-001`~`SAFE-123`",
-    "`OPS-035`~`OPS-090`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 8");
   }
+  assert(rangeCovers(files.featureInventory, "SAFE", 123), "feature inventory SAFE range below 123");
+  assert(rangeCovers(files.featureInventory, "OPS", 90), "feature inventory OPS range below 090");
   for (const snippet of [
     "V330 Operator Runbook and Reliability Handoff",
     `\`./server.sh ${command}\``,
@@ -157,8 +159,8 @@ check("server entrypoint and inventory verifiers include v3.3 Step 8 command", (
   for (const id of ["SAFE-120", "OPS-087"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
+  assert(rangeCovers(files.projectInventoryVerifier, "SAFE", 123), "project inventory SAFE range below 123");
+  assert(rangeCovers(files.projectInventoryVerifier, "OPS", 90), "project inventory OPS range below 090");
   assertIncludes(files.scriptInventory, "verify_v330_operator_runbook_reliability_handoff.mjs", "script inventory");
 });
 
@@ -174,6 +176,35 @@ check("runbook does not overclaim release, longrun, UI fulltest, search metrics,
   ]) {
     assertIncludes(runbookBlock, snippet, "runbook no-overclaim boundary");
   }
+});
+
+check("SAFE-120 canonical operator runbook boundary", () => {
+  const runbookBlock = extractBlock(files.liveSourceHealth, "## Operator Runbook and Reliability Handoff", "## Verification Plan");
+  const runbookCommandDocumented = files.serverSh.includes("verify-v330-operator-runbook-reliability-handoff)");
+  const handoffDocumented = files.liveSourceHealth.includes("Operator Runbook") && files.backupRecovery.includes("source") && files.featureInventory.includes("SAFE-120");
+  const productMutationClaimed = !runbookBlock.includes("이 runbook은 Ops Backup and Recovery Source Handoff 완료가 아닙니다.") ||
+    !runbookBlock.includes("이 runbook은 real ONVIF/WHEP/TURN/cloud field smoke PASS가 아닙니다.");
+  const sourceRegistryWriteClaimed = !runbookBlock.includes("자동 recovery, 자동 registry mutation, PublishedView write, EventRecord/Event POST schema 변경은 이 runbook 범위가 아닙니다.");
+  const safe120BoundaryObserved = runbookCommandDocumented && handoffDocumented && productMutationClaimed === false && sourceRegistryWriteClaimed === false;
+  assert(safe120BoundaryObserved && (runbookCommandDocumented && handoffDocumented && productMutationClaimed === false && sourceRegistryWriteClaimed === false) && productMutationClaimed === false && sourceRegistryWriteClaimed === false,
+    "SAFE-120 runbook handoff must remain documentation-only without product API/UI schema, SourceRegistry/PublishedView write, automatic recovery, or real backup/restore claims");
+});
+
+check("OPS-087 canonical runbook handoff gate", () => {
+  const runbookBlock = extractBlock(files.liveSourceHealth, "## Operator Runbook and Reliability Handoff", "## Verification Plan");
+  const runbookSourcesBound = files.liveSourceHealth.includes("Operator Runbook") &&
+    files.docsIndex.includes("live-source-health.md") && files.uiGuide.includes("live-source-health.md") &&
+    files.configReference.includes("live-source-health.md") && files.backupRecovery.includes("source");
+  const excludedExecutionsRemainExplicit = [
+    "UI 풀테스트",
+    "30분/120분",
+    "GitHub Release publish",
+    "real ONVIF/WHEP/TURN/cloud field smoke",
+  ].every((item) => runbookBlock.includes(item));
+  const ops087GateObserved = runbookSourcesBound && excludedExecutionsRemainExplicit &&
+    files.serverSh.includes("verify-v330-operator-runbook-reliability-handoff)");
+  assert(ops087GateObserved && runbookSourcesBound && excludedExecutionsRemainExplicit,
+    "OPS-087 runbook source/link/dispatch and explicit UI/long-run/publish/field-smoke exclusion boundary missing");
 });
 
 const results = runChecks();
@@ -220,6 +251,12 @@ function assert(condition, message) {
 
 function assertIncludes(text, snippet, label) {
   assert(text.includes(snippet), `${label} missing snippet: ${snippet}`);
+}
+
+function rangeCovers(text, prefix, minimum) {
+  const pattern = new RegExp(`\`${prefix}-[0-9]{3}\`~\`${prefix}-([0-9]{3})\``, "g");
+  const matches = [...text.matchAll(pattern)];
+  return matches.some((match) => Number.parseInt(match[1], 10) >= minimum);
 }
 
 function extractBlock(text, start, end) {

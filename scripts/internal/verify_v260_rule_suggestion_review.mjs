@@ -1,12 +1,16 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S02 rule suggestion 후보의 incident-to-rule manual review/draft 연결 경계를 검증한다.
+import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
 
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
+const ruleSuggestionReviewBlock = extractCppFunctionBlock(server, "std::string OpsIncidentRuleSuggestionReviewJson(");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -34,11 +38,14 @@ check("roadmap and docs record V260-S02 incident-to-rule boundary", () => {
 });
 
 check("Ops events review item exposes rule suggestion review wrapper only", () => {
+  assertIncludes(ruleSuggestionReviewBlock, "media-server.ops.incident-rule-suggestion-review.v1", "/ops/api/events/reviews incident rule suggestion review API");
+  assert(ruleSuggestionReviewBlock.includes("matchingRuleSuggestionPresent"),
+    "LAB-070 matchingRuleSuggestionPresent block readback mismatch");
+  assert(exactBooleanFlagValue(ruleSuggestionReviewBlock, "eventPostPayloadChanged") === false, "rule suggestion review must not change Event POST");
   for (const snippet of [
     "OpsIncidentRuleSuggestionReviewJson",
     "media-server.ops.incident-rule-suggestion-review.v1",
-    "QueryVlmObservations",
-    "DefaultVlmObservationStorePath",
+    "QueryVlmObservationStore",
     "ExtractJsonValueField(observation_json, \"ruleSuggestion\")",
     "\\\"incidentRuleSuggestionReview\\\":",
     "\\\"sourceCandidateSchema\\\":\\\"media-server.vlm-rule-suggestion-candidates.v1\\\"",
@@ -68,6 +75,10 @@ check("/ops/events UI renders incident-to-rule review and links to draft workflo
     "/ops/api/vlm/rule-suggestion-drafts",
   ]) {
     assertIncludes(script, snippet, "Ops events incident-to-rule UI script");
+    assertIncludes(extractNamedFunctionBlock(script, "renderIncidentRuleSuggestionReview"), "ops-incident-rule-suggestion-review", "UI-046 report block-scoped canonical product state");
+    assertIncludes(script, "/ops/events", "UI-046 canonical route obligation");
+    assertIncludes(server, "media-server.ops.incident-rule-suggestion-review.v1", "UI-046 canonical schema obligation");
+    assertIncludes(script, "VLM", "UI-046 canonical field obligation");
   }
   for (const snippet of [
     ".ops-incident-rule-suggestion-review",

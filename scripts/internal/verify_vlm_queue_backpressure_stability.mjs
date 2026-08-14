@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -54,6 +55,7 @@ const report = {
 const checks = [];
 
 check("fixture covers V210-S04 queue/backpressure matrix", () => {
+  assert(report.schema === "media-server.vlm-queue-backpressure-stability-report.v1", "report schema mismatch");
   assert(fixture.schema === "media-server.vlm-queue-backpressure-fixtures.v1", "fixture schema mismatch");
   assert(fixture.targetStep === "V210-S04", "fixture targetStep mismatch");
   assert(Array.isArray(fixture.cases) && fixture.cases.length >= 6, "fixture needs at least 6 S04 cases");
@@ -88,6 +90,34 @@ check("queue outcomes stay VLM-only and non-blocking", () => {
   const timeout = cases.find(item => item.id === "queue-timeout-drop-vlm-only");
   assert(timeout?.outcome === "timeout-no-media-path-failure", "timeout must stay media-path independent");
   assert(timeout?.queueAction === "drop-vlm-task", "timeout must drop VLM task only");
+});
+
+check("compiled product queue exposes the timeout action and independent non-blocking state", () => {
+  const smokeOutput = execFileSync(path.join(rootDir, "server.sh"), ["verify-analysis-state"], {
+    cwd: rootDir,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const marker = "[review4-safe-032-036] ";
+  const line = smokeOutput.split(/\r?\n/).find(value => value.startsWith(marker));
+  assert(line, "compiled analysis-state smoke did not emit the queue observation");
+  const queueObserved = JSON.parse(line.slice(marker.length));
+  const queueInvariants = queueObserved.contractInvariants || {};
+  assert(queueObserved.queueAction === "drop-vlm-task" && queueObserved.failureReason === "queue-timeout",
+    "compiled product queue timeout must drop only the VLM task");
+  assert(queueObserved.failureReason === "queue-timeout" && queueInvariants.mediaPathBlocked === false &&
+    queueInvariants.eventRecordBlocked === false && queueInvariants.metadataFanoutBlocked === false &&
+    queueInvariants.eventPostDispatchBlocked === false,
+  "compiled product queue timeout must remain non-blocking for media/EventRecord/metadata/Event POST");
+  const crossZoneMarker = "[safe-056-cross-zone] ";
+  const crossZoneLine = smokeOutput.split(/\r?\n/).find(value => value.startsWith(crossZoneMarker));
+  assert(crossZoneLine, "compiled analysis-state smoke did not emit the cross-zone observation");
+  const crossZoneObserved = JSON.parse(crossZoneLine.slice(crossZoneMarker.length));
+  assert(crossZoneObserved.configuredZonesObserved === true && crossZoneObserved.configuredZoneMode === "configured-zones" &&
+    crossZoneObserved.eventType === "re-entry" && crossZoneObserved.WebRTCSchemaChanged === false &&
+    crossZoneObserved.schemaChanged === false && crossZoneObserved.mediaPathChanged === false &&
+    crossZoneObserved.viewerClientExposureAdded === false,
+  "compiled configured-zones scenario must preserve event/schema/media/client boundary");
 });
 
 check("metadata fanout and Event POST dispatch remain independent", () => {
@@ -126,10 +156,10 @@ check("docs, inventory, server command, and script inventory are wired", () => {
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   for (const snippet of [
     "V210-S04",
     "media-server.vlm-queue-backpressure-fixtures.v1",
-    "media-server.vlm-queue-backpressure-stability-report.v1",
     "verify-vlm-queue-backpressure-stability",
     "metadata fanout",
     "Event POST dispatch",
@@ -141,7 +171,12 @@ check("docs, inventory, server command, and script inventory are wired", () => {
   assert(serverSh.includes("verify-vlm-queue-backpressure-stability"), "server.sh missing S04 command");
   assert(serverSh.includes("verify_vlm_queue_backpressure_stability.mjs"), "server.sh missing S04 script dispatch");
   assert(scriptInventory.includes("verify_vlm_queue_backpressure_stability.mjs"), "script inventory missing S04 verifier");
-  assert(coverage.includes("verify-vlm-queue-backpressure-stability"), "feature coverage map missing S04 verifier");
+  for (const id of ["LAB-058", "SAFE-036"]) {
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-vlm-queue-backpressure-stability",
+      `${id} manifest verifier command drift`);
+  }
+  assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
+    "feature coverage must validate manifest-backed verifier evidence");
 });
 
 check("S04 verifier scope does not claim UI, provider, or longrun PASS", () => {
@@ -177,6 +212,8 @@ for (const item of checks) {
     console.log(`[fail] ${item.name}: ${message}`);
   }
 }
+
+assertVlmQueueBackpressureArtifact(report);
 
 console.log("");
 console.log("== VLM queue/backpressure stability summary ==");
@@ -290,6 +327,17 @@ function renderMarkdown(payload) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function assertVlmQueueBackpressureArtifact(value) {
+  const artifactPath = path.join(process.env.TMPDIR || "/tmp", `media-server-vlm-queue-backpressure-${process.pid}.json`);
+  fs.writeFileSync(artifactPath, `${JSON.stringify(value)}\n`, "utf8");
+  try {
+    const observedReport = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+    assert(fixture.schema === "media-server.vlm-queue-backpressure-fixtures.v1" && observedReport.schema === "media-server.vlm-queue-backpressure-stability-report.v1" && observedReport.cases.every(result => result.nonblocking === true), "VLM queue/backpressure artifact nonblocking readback mismatch");
+  } finally {
+    fs.rmSync(artifactPath, { force: true });
+  }
 }
 
 function readJson(relativePath) {

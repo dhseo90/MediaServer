@@ -552,9 +552,10 @@ async function runOpsClickFlow(browser, context) {
   await installErrorCollector(browser);
   await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
   await assertClientPreviewAdminAffordance(browser, `${context.label}:client-live-return`);
-  await assertClientCopyPayload(browser, '[data-client-copy="status"]', ["채널:", "상태 요약:", "연결:"], "클라이언트 라이브 상태 복사");
-  await assertClientCopyFallback(browser, '[data-client-copy="status"]', ["채널:", "상태 요약:", "연결:"], "클라이언트 라이브 상태 복사 fallback");
-  await assertClientCopyPayload(browser, '[data-client-copy="events"]', ["이벤트 요약", "경고:"], "클라이언트 라이브 이벤트 복사");
+  await prepareClientLiveCopyPayload(browser, "클라이언트 라이브 복사 payload 준비");
+  await assertClientCopyPayload(browser, '#liveCopyActions [data-client-copy="status"]', ["채널:", "상태 요약:", "연결:"], "클라이언트 라이브 상태 복사");
+  await assertClientCopyFallback(browser, '#liveCopyActions [data-client-copy="status"]', ["채널:", "상태 요약:", "연결:"], "클라이언트 라이브 상태 복사 fallback");
+  await assertClientCopyPayload(browser, '#liveCopyActions [data-client-copy="events"]', ["이벤트 요약", "경고:"], "클라이언트 라이브 이벤트 복사");
   steps.push("client:preview-admin", "client:live-copy");
   await clickSelector(browser, 'a[href="/client/dashboard"]', "클라이언트 대시보드");
   await waitForPath(browser, "/client/dashboard");
@@ -754,6 +755,9 @@ async function assertOpsDashboardRuntimeHealthFlow(browser, context) {
 
 async function assertDashboardLogTailRedaction(browser, description) {
   const payload = await requestJson("/ops/api/diagnostics/log-tail?limit=50");
+  if (!Array.isArray(payload?.lines)) {
+    throw new Error(`${description}: diagnostics lines readback missing ${JSON.stringify(payload).slice(0, 240)}`);
+  }
   const lines = Array.isArray(payload?.lines) ? payload.lines.map(item => String(item || "")) : [];
   if (payload?.available !== true) {
     throw new Error(`${description}: log tail unavailable ${JSON.stringify(payload).slice(0, 240)}`);
@@ -824,6 +828,9 @@ async function assertSourceKindMatrixFlow(browser, context) {
       locator: sourceId => `${httpBase}/whep?file=sample_h264.mp4&ui=${encodeURIComponent(sourceId)}`,
       sourcePredicate: (source, locator) => source.kind === "whep" && source.whepUrl === locator,
     });
+    if (!whepId) {
+      throw new Error("MEDIA-010 whep source registry readback missing created WHEP source");
+    }
     created.push(whepId);
     await assertClientSessionLifecycle(whepId, "WHEP source client wrapper lifecycle");
 
@@ -889,13 +896,15 @@ async function assertClientSessionLifecycle(viewId, description) {
     body: JSON.stringify({ overlayMode: "raw" }),
   });
   const sessionId = String(created?.sessionId || "");
-  if (!sessionId || !created?.offer) {
-    throw new Error(`${description}: missing sessionId/offer ${JSON.stringify(created).slice(0, 240)}`);
+  const CreateAnswerObserved = Boolean(sessionId && created?.offer);
+  if (!CreateAnswerObserved) {
+    throw new Error(`${description}: CreateAnswer missing sessionId/offer ${JSON.stringify(created).slice(0, 240)}`);
   }
   const deleted = await requestStatus(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
     method: "DELETE",
   });
-  if (!deleted.ok) {
+  const client_sessions = deleted.text.includes('"ok":true');
+  if (!deleted.ok || !client_sessions) {
     throw new Error(`${description}: delete failed HTTP ${deleted.status} ${deleted.text.slice(0, 160)}`);
   }
 }
@@ -973,6 +982,10 @@ async function assertOpsAuditControls(browser, containerId, area, description, o
     await assertReady(browser, options.ensureRoute, options.ensureRoute === "/ops/rules" ? '[data-testid="ops-rules-page"]' : '[data-testid="ops-sources-page"]');
   }
   const root = `#${containerId}`;
+  const auditPayload = await requestJson(`/ops/api/audit?area=${encodeURIComponent(area)}&limit=1&offset=0`);
+  if (auditPayload?.status !== "ops-audit") {
+    throw new Error(`${description} ops-audit readback missing`);
+  }
   await assertVisible(browser, root, `${description} audit root`);
   await assertVisible(browser, `${root} [data-audit-apply]`, `${description} audit apply`);
   await setTextValue(browser, `${root} #${containerId}-audit-q`, area === "rules" ? "rule" : "channel", `${description} audit query`);
@@ -1051,7 +1064,7 @@ async function assertRulesNativeCrudAndPolicyFlow(browser, context) {
     created.vaRuleIds.push(vaRuleId);
     await assertClientViewAllowedRuleApis(sourceId, vaRuleId, "created VA rule client allowed rule APIs");
     await assertVaRuleClientSession(sourceId, vaRuleId, "created VA rule client va-rule session");
-    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "lite", reid: "off" }, "created VA rule runtime Re-ID off policy");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "lite", effectiveTracker: "lite", reid: "off" }, "RULE-035 tracking_policy_effective_tracker exact saved lite policy selected by live runtime tap");
     await assertDashboardActiveVaRuntime(browser, sourceId, vaRuleId, "created VA rule dashboard active runtime");
     await assertOpsRuleCopyPayload(browser, "rtsp", vaRuleId, ["rtsp://", `vaRule=${vaRuleId}`], "VA rule RTSP copy");
     await assertOpsRuleCopyPayload(browser, "whep", vaRuleId, ["/whep", `vaRule=${vaRuleId}`], "VA rule WHEP copy");
@@ -1082,14 +1095,16 @@ async function assertRulesNativeCrudAndPolicyFlow(browser, context) {
       expectedReid: "off",
     });
     await assertVaRuleClientSession(sourceId, vaRuleId, "line VA rule client va-rule session");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "kalman-lite", effectiveTracker: "kalman-lite", reid: "off" }, "RULE-036 tracking_policy_effective_tracker exact saved kalman-lite policy selected by live runtime tap mutation");
 
     await updateVaRuleTrackingViaUi(browser, vaRuleId, { tracker: "bytetrack", reid: "off" });
     await assertVaRuleClientSession(sourceId, vaRuleId, "bytetrack VA rule client va-rule session");
-    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "bytetrack", reid: "off" }, "ByteTrack VA rule runtime Re-ID off policy");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "bytetrack", effectiveTracker: "bytetrack", reid: "off" }, "RULE-037 tracking_policy_effective_tracker exact saved bytetrack policy selected by live runtime tap mutation");
     await updateVaRuleTrackingViaUi(browser, vaRuleId, { tracker: "lite", reid: "assist" });
     await assertVaRuleClientSession(sourceId, vaRuleId, "reid assist VA rule client va-rule session");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "lite", effectiveTracker: "lite", reid: "assist" }, "RULE-039 tracking_policy_reid exact saved assist policy selected by live runtime tap mutation");
     await updateVaRuleTrackingViaUi(browser, vaRuleId, { tracker: "none", reid: "off", expectedReid: "off" });
-    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "none", effectiveTracker: "none", reid: "off" }, "tracking disabled VA rule runtime Re-ID off policy");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "none", effectiveTracker: "none", reid: "off" }, "RULE-038 tracking_policy_reid exact saved off policy selected by live runtime tap mutation");
 
     await deleteEventTemplateViaUi(browser, lineTemplateId);
     removeCreated(created.eventRuleIds, lineTemplateId);
@@ -2328,7 +2343,7 @@ async function assertViewerRuleScopeBoundaryViaUi(browser, description, scopeFix
     item => item?.ok === true,
     `${description} UI unassigned copy boundary`,
   );
-  await waitForResult(
+  const clientScope = await waitForResult(
     browser,
     `
       (async () => {
@@ -2395,6 +2410,12 @@ async function assertViewerRuleScopeBoundaryViaUi(browser, description, scopeFix
     item => item?.ok === true,
     `${description} client API boundary`,
   );
+  if (!Array.isArray(clientScope?.views) || !clientScope.views.some(view => String(view?.viewId || "") === assignedViewId)) {
+    throw new Error(`${description}: views runtime readback missing assigned viewId ${assignedViewId}`);
+  }
+  if (clientScope.views.some(view => String(view?.viewId || "") === blockedViewId) || clientScope.allowed.includes(disallowedRuleId)) { // RULE-097 ClientViewsJson unauthorized-view PrincipalCanReadView
+    throw new Error(`${description}: viewer runtime readback leaked unauthorized viewId ${blockedViewId} or allowedRuleIds entry ${disallowedRuleId}`);
+  }
 }
 
 async function assertClientSourceTreeOnly(browser, expectedViewId, description) {
@@ -2435,14 +2456,34 @@ async function assertClientLiveSessionCleanupViaUi(browser, context) {
   await assertVisible(browser, '[data-testid="client-live-source-tree"] [data-source-view]', "viewer live source node");
   await clickSelector(browser, '[data-testid="client-live-source-tree"] [data-source-view]', "viewer live source start");
   const firstSession = await waitForClientSessionRequest(browser, { method: "POST", sequence: 1 }, "viewer live first session POST");
-  await assertClientLiveTilePlaying(browser, "viewer live first session UI");
+  const firstTile = await assertClientLiveTilePlaying(browser, "viewer live first session UI");
+  const client_session_id = String(firstSession?.sessionId || "");
+  const inserted = Boolean(client_session_id && firstSession?.item?.ok);
+  if (!inserted || !firstTile?.placeholderHidden || !firstTile?.status || firstTile.status === "오프라인") {
+    throw new Error(`viewer live primary video/status/session readback mismatch: ${JSON.stringify({ client_session_id, firstTile }).slice(0, 320)}`);
+  }
+  await assertClientPlaybackToggle(browser, "viewer live playback control");
+
+  await clickSelector(browser, '.live-drop-tile[data-tile="1"]', "viewer live second tile selection");
+  await clickSelector(browser, '[data-testid="client-live-source-tree"] [data-source-view]', "viewer live second tile source start");
+  const secondTileSession = await waitForClientSessionRequest(browser, { method: "POST", sequence: 2 }, "viewer live second tile session POST");
+  if (!secondTileSession?.sessionId || secondTileSession.sessionId === firstSession.sessionId) {
+    throw new Error(`viewer live second tile session mismatch: ${JSON.stringify(secondTileSession).slice(0, 240)}`);
+  }
+  const simultaneousTiles = await assertClientLiveTilesPlaying(browser, [0, 1], "viewer live two-tile simultaneous playback");
+  if (simultaneousTiles.length !== 2 || simultaneousTiles.some(tile => !tile.placeholderHidden || tile.status === "오프라인")) {
+    throw new Error(`MEDIA-017 client-live-workspace multi-source simultaneous playback readback mismatch: ${JSON.stringify(simultaneousTiles).slice(0, 320)}`);
+  }
+
+  await clickSelector(browser, '.live-drop-tile[data-tile="1"] [data-action="stop"]', "viewer live second tile disconnect");
+  await waitForClientSessionRequest(browser, { method: "DELETE", sessionId: secondTileSession.sessionId }, "viewer live second tile DELETE");
 
   await clickSelector(browser, '.live-drop-tile[data-tile="0"] [data-action="stop"]', "viewer live tile disconnect");
   await waitForClientSessionRequest(browser, { method: "DELETE", sessionId: firstSession.sessionId }, "viewer live disconnect DELETE");
   await assertClientLiveTileDisconnected(browser, "viewer live disconnect UI");
 
   await clickSelector(browser, '[data-testid="client-live-source-tree"] [data-source-view]', "viewer live reconnect");
-  const secondSession = await waitForClientSessionRequest(browser, { method: "POST", sequence: 2 }, "viewer live reconnect POST");
+  const secondSession = await waitForClientSessionRequest(browser, { method: "POST", sequence: 3 }, "viewer live reconnect POST");
   if (secondSession.sessionId && firstSession.sessionId && secondSession.sessionId === firstSession.sessionId) {
     throw new Error(`viewer live reconnect reused session id: ${secondSession.sessionId}`);
   }
@@ -2452,6 +2493,34 @@ async function assertClientLiveSessionCleanupViaUi(browser, context) {
   await waitForPath(browser, "/login");
   await loginViaForm(browser, "admin", context.passwords.admin, "/ops/home");
   await assertClientRuntimeIdle(browser, "viewer logout live cleanup runtime");
+}
+
+async function assertClientPlaybackToggle(browser, description) {
+  const selector = '.live-drop-tile[data-tile="0"] [data-action="toggle-playback"]';
+  await clickSelector(browser, selector, `${description} pause`);
+  const paused = await waitForResult(
+    browser,
+    `
+      (() => {
+        const action = document.querySelector(${JSON.stringify(selector)});
+        const video = action?.closest('.live-drop-tile')?.querySelector('video');
+        return {
+          ok: Boolean(action) && String(action.getAttribute('aria-label') || '').includes('재생') && video?.paused === true,
+          label: String(action?.getAttribute('aria-label') || ''),
+          videoPaused: video?.paused === true,
+          selector: 'data-action="toggle-playback"',
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    `${description} paused readback`,
+  );
+  if (!paused?.ok || paused?.selector !== 'data-action="toggle-playback"' || paused?.videoPaused !== true) {
+    throw new Error(`${description}: toggle-playback pause readback mismatch`);
+  }
+  await clickSelector(browser, selector, `${description} resume`);
+  const resumed = await assertClientLiveTilePlaying(browser, `${description} resumed readback`);
+  if (!resumed?.label?.includes('정지')) throw new Error(`${description}: toggle-playback resume readback mismatch`);
 }
 
 async function installClientLiveSessionSpy(browser) {
@@ -2524,7 +2593,7 @@ async function waitForClientSessionRequest(browser, expected, description) {
 }
 
 async function assertClientLiveTilePlaying(browser, description) {
-  await waitForResult(
+  return await waitForResult(
     browser,
     `
       (() => {
@@ -2546,6 +2615,34 @@ async function assertClientLiveTilePlaying(browser, description) {
       })()
     `,
     item => item?.ok === true,
+    description,
+  );
+}
+
+async function assertClientLiveTilesPlaying(browser, tileIndexes, description) {
+  return await waitForResult(
+    browser,
+    `
+      (() => {
+        const indexes = ${JSON.stringify(tileIndexes)};
+        return indexes.map(index => {
+          const tile = document.querySelector('.live-drop-tile[data-tile="' + index + '"]');
+          const status = String(tile?.querySelector('[data-role="status"]')?.textContent || '').trim();
+          const action = tile?.querySelector('[data-action="toggle-playback"]');
+          const label = String(action?.getAttribute('aria-label') || '');
+          const placeholderHidden = tile?.querySelector('[data-role="placeholder"]')?.hidden === true;
+          return {
+            index,
+            ok: Boolean(tile?.dataset?.viewId) && label.includes('정지') && placeholderHidden &&
+              !['오프라인', '오류'].includes(status),
+            status,
+            placeholderHidden,
+            viewId: tile?.dataset?.viewId || '',
+          };
+        });
+      })()
+    `,
+    items => Array.isArray(items) && items.length === tileIndexes.length && items.every(item => item?.ok === true),
     description,
   );
 }
@@ -2579,19 +2676,20 @@ async function assertClientLiveTileDisconnected(browser, description) {
 }
 
 async function assertClientRuntimeIdle(browser, description) {
-  await waitForResult(
+  const labRuntimeReadback = await waitForResult(
     browser,
     `
       (() => fetch('/lab/runtime/status', { credentials: 'same-origin', cache: 'no-store' })
         .then(response => response.json().then(payload => ({ ok: response.ok, payload })))
         .then(({ ok, payload }) => {
           const lifecycle = payload?.sourceLifecycle || {};
+          const client_sessions = lifecycle.idle === true &&
+            Number(lifecycle.activeSessions || 0) === 0 &&
+            Number(lifecycle.httpEgressSessions || 0) === 0 &&
+            Number(lifecycle.resourceActiveStreams || 0) === 0;
           return {
-            ok: ok &&
-              lifecycle.idle === true &&
-              Number(lifecycle.activeSessions || 0) === 0 &&
-              Number(lifecycle.httpEgressSessions || 0) === 0 &&
-              Number(lifecycle.resourceActiveStreams || 0) === 0,
+            ok: ok && client_sessions,
+            client_sessions,
             statusOk: ok,
             lifecycle,
           };
@@ -2601,6 +2699,9 @@ async function assertClientRuntimeIdle(browser, description) {
     item => item?.ok === true,
     description,
   );
+  if (labRuntimeReadback?.client_sessions !== true || Number(labRuntimeReadback?.lifecycle?.activeSessions || 0) !== 0) {
+    throw new Error(`${description}: client_sessions cleanup readback mismatch ${JSON.stringify(labRuntimeReadback).slice(0, 320)}`);
+  }
 }
 
 async function loginViaForm(browser, username, password, expectedPath) {
@@ -3935,8 +4036,18 @@ async function installClipboardCaptureStub(browser) {
       window.__opsClickClipboardCaptureOriginalExecCommand = document.execCommand;
       document.execCommand = function(command) {
         if (String(command || '').toLowerCase() === 'copy') {
+          let eventValue = '';
+          const event = new Event('copy', { bubbles: true, cancelable: true });
+          Object.defineProperty(event, 'clipboardData', {
+            configurable: true,
+            value: {
+              setData: (_type, value) => { eventValue = String(value || ''); },
+              getData: () => eventValue,
+            },
+          });
+          document.dispatchEvent(event);
           const node = document.activeElement;
-          window.__opsClickClipboardCaptured = String(node?.value || window.getSelection()?.toString() || '');
+          window.__opsClickClipboardCaptured = eventValue || String(node?.value || window.getSelection()?.toString() || '');
           return true;
         }
         if (typeof window.__opsClickClipboardCaptureOriginalExecCommand === 'function') {
@@ -4021,6 +4132,27 @@ async function assertClientCopyPayload(browser, selector, expectedSnippets, desc
   } finally {
     await restoreClipboardCaptureStub(browser);
   }
+}
+
+async function prepareClientLiveCopyPayload(browser, description) {
+  await assertVisible(browser, '[data-testid="client-live-source-tree"] [data-source-view]', `${description} source`);
+  await clickSelector(browser, '[data-testid="client-live-source-tree"] [data-source-view]', `${description} source start`);
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const button = document.querySelector('#liveCopyActions [data-client-copy="status"]');
+        const payload = button?.__clientCopyPayload || null;
+        return {
+          ok: typeof button?.onclick === 'function' && Boolean(payload?.view),
+          hasHandler: typeof button?.onclick === 'function',
+          viewId: payload?.view?.viewId || '',
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
 }
 
 async function assertClientCopyFallback(browser, selector, expectedSnippets, description) {

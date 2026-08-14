@@ -2,6 +2,7 @@
 // 파일 용도: 현재 release 수동 UI 풀테스트 문서가 PASS/FAIL 이원화와 개별 기능 증거를 강제하는지 검증한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -39,6 +40,7 @@ const template = readText("docs/manual-ui-result-template.md");
 const fulltest = readText("docs/manual-ui-fulltest.md");
 const backlog = readText("docs/development-backlog.md");
 const inventory = readText("docs/project-feature-test-inventory.md");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
 const seedFixture = JSON.parse(readText(seedFixturePath));
 const currentVersion = readText("VERSION").trim();
@@ -49,8 +51,14 @@ const checks = [];
 check("manual UI docs are current release baseline", () => {
   assertIncludes(checklist, [
     `현재 release 목표는 \`${currentTag}\``,
-    "현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.",
+    "현재 제품 UI actual-browser evidence 없이 완료 판정에 포함하지 않습니다.",
+    "qualified-native-automation",
+    "Policy v4 qualifier",
     `${currentTag} release UI gate`,
+    "V390-REQ-001",
+    "V390-REQ-002",
+    "V390-REQ-003",
+    "v3.5-v3.8 UI coverage bridge",
     "`/setup`",
     "`/login`",
     "`/ops/rules`",
@@ -60,7 +68,13 @@ check("manual UI docs are current release baseline", () => {
   ], "docs/manual-ui-checklist.md");
   assertIncludes(fulltest, [
     "현재 제품 UI 기준",
-    "지원 가능한 모든 기능을 실제 UI 조작으로 확인",
+    `${currentTag} Feature Completion`,
+    "V390-REQ-001",
+    "V390-REQ-002",
+    "V390-REQ-003",
+    "v3.5-v3.8 UI coverage bridge",
+    "지원 가능한 모든 exact 기능 case를 실제 브라우저 조작으로",
+    "Policy v4",
     "테스트 영역 역할 분리",
     "UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다.",
     "열지 않은 화면",
@@ -70,10 +84,80 @@ check("manual UI docs are current release baseline", () => {
   ], "docs/manual-ui-fulltest.md");
 });
 
+check("manual UI docs pin v3.9 required closeout and coverage bridge", () => {
+  assertIncludes(checklist, [
+    "v3.9.0 Required Closeout / v3.5-v3.8 coverage bridge",
+    "Manual UI 기준서 v3.9 current화",
+    "장시간/UI 테스트 시작 조건 v3.9화",
+    "v3.5-v3.8 UI coverage bridge",
+    "UI-080",
+    "UI-107",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(fulltest, [
+    "v3.9.0 Required Closeout coverage bridge",
+    "V390-REQ-001",
+    "V390-REQ-002",
+    "V390-REQ-003",
+    "UI-080",
+    "UI-107",
+    "이 bridge를 만족해도 인앱 브라우저 UI 풀테스트",
+  ], "docs/manual-ui-fulltest.md");
+  assertIncludes(template, [
+    "## v3.9.0 Required Closeout 기록 기준",
+    "V390-REQ-001",
+    "V390-REQ-002",
+    "V390-REQ-003",
+    "v3.5-v3.8 UI coverage bridge",
+    "UI-080",
+    "UI-107",
+  ], "docs/manual-ui-result-template.md");
+  assertNotIncludes(checklist, [
+    "현재 release 목표는 `v2.9.0`",
+  ], "docs/manual-ui-checklist.md");
+  assertNotIncludes(fulltest, [
+    "최신 공개 release 기준은 `v2.8.0 Operator-Supervised Action Readiness`",
+  ], "docs/manual-ui-fulltest.md");
+});
+
+check("v3.5-v3.8 bridge binds all 36 exact IDs to route/control/action semantic evidence", () => {
+  const expectedIds = v350ToV380BridgeIds();
+  const result = validateBridgeItems(expectedIds, implementationManifest.items || []);
+  assert(result.errors.length === 0, result.errors.join("; "));
+  assert(expectedIds.length === 36, `bridge ID count drift: ${expectedIds.length}`);
+  assertIncludes(fulltest, [
+    "`UI-080`~`UI-087`, `CLIENT-031`~`CLIENT-032`",
+    "`UI-088`~`UI-094`",
+    "`UI-095`~`UI-101`, `CLIENT-037`~`CLIENT-039`",
+    "`UI-102`~`UI-107`, `CLIENT-040`~`CLIENT-042`",
+  ], "docs/manual-ui-fulltest.md exact bridge ranges");
+
+  const omitted = (implementationManifest.items || []).filter(item => item.id !== "UI-094");
+  const negative = validateBridgeItems(expectedIds, omitted);
+  assert(negative.errors.some(error => error.includes("UI-094")),
+    "middle-ID omission negative must reject UI-094 removal");
+});
+
+check("inventory longrun mapping counts are derived from the current 986-row manifest", () => {
+  assert(implementationManifest.expectedFeatureRows === 986 && implementationManifest.items?.length === 986,
+    "implementation manifest must contain the current 986 rows");
+  const soak30 = implementationManifest.items.filter(item => item.longrunEvidence?.soak30).length;
+  const soak120 = implementationManifest.items.filter(item => item.longrunEvidence?.soak120).length;
+  assert(inventory.includes(`| 30분 soak 대상 | ${soak30} |`),
+    `inventory 30-minute summary must equal derived ${soak30}`);
+  assert(inventory.includes(`| 120분 대상 | ${soak120} |`),
+    `inventory 120-minute summary must equal derived ${soak120}`);
+  assert(inventory.includes(`| 30분 mapping | ${soak30}/${soak30} |`),
+    `completed coverage 30-minute mapping must equal derived ${soak30}/${soak30}`);
+  assert(inventory.includes(`| 120분 mapping | ${soak120}/${soak120} |`),
+    `completed coverage 120-minute mapping must equal derived ${soak120}/${soak120}`);
+});
+
 check("manual result template covers required screens", () => {
   assertIncludes(template, [
     "# Manual UI Result Template",
-    "브라우저: 자율 Chrome/CDP 또는 인앱 브라우저",
+    "evidence mode: direct-browser / qualified-native-automation / hybrid",
+    "policy validation result:",
+    "UI fulltest pass:",
     "`/setup`",
     "`/login`",
     "`/password/change`",
@@ -141,7 +225,7 @@ check("manual result template splits event record keys", () => {
   ], "docs/manual-ui-result-template.md");
 });
 
-check("manual result template separates automation from direct browser evidence", () => {
+check("manual result template separates qualified UI execution from support smoke", () => {
   assertIncludes(template, [
     "## 테스트 영역별 판정",
     "스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다.",
@@ -155,7 +239,10 @@ check("manual result template separates automation from direct browser evidence"
     "verify-ops-click-e2e",
     "## 확인됨",
     "실제로 열고 클릭한 화면만 적습니다.",
-    "자율 Chrome/CDP 세션 또는 인앱 브라우저",
+    "Policy v4 qualifier",
+    "completion oracle",
+    "policyValidationResult",
+    "uiFulltestPass",
     "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
     "raw JSON/API-only로만 확인한 항목",
     "## 제외 기록",
@@ -206,7 +293,7 @@ check("manual UI docs require native-dialog-free autonomous UI flow", () => {
     "첫 클릭에는 write POST가",
   ], "docs/manual-ui-fulltest.md");
   assertIncludes(template, [
-    "자율 Chrome/CDP 또는 인앱 브라우저 직접 조작",
+    "direct-browser 또는 Policy v4-qualified actual-browser 조작",
     "verify-product-ui-no-native-dialogs",
     "verify-ops-click-e2e",
   ], "docs/manual-ui-result-template.md");
@@ -630,6 +717,58 @@ function expectedTrackerPairs(seed) {
     }
   }
   return [...pairs.values()].sort((left, right) => `${left.tracker}/${left.reid}`.localeCompare(`${right.tracker}/${right.reid}`));
+}
+
+function v350ToV380BridgeIds() {
+  const range = (prefix, start, end) => Array.from(
+    { length: end - start + 1 },
+    (_unused, offset) => `${prefix}-${String(start + offset).padStart(3, "0")}`,
+  );
+  return [
+    ...range("UI", 80, 107),
+    ...range("CLIENT", 31, 32),
+    ...range("CLIENT", 37, 42),
+  ];
+}
+
+function validateBridgeItems(expectedIds, items) {
+  const byId = new Map(items.map(item => [item.id, item]));
+  const errors = [];
+  const signatures = [];
+  for (const id of expectedIds) {
+    const item = byId.get(id);
+    if (!item) {
+      errors.push(`bridge missing exact ID ${id}`);
+      continue;
+    }
+    const semantic = item.semanticEvidence || {};
+    if (!semantic.handler?.file || !semantic.handler?.symbol || !semantic.handler?.anchor) {
+      errors.push(`${id} bridge handler locator missing`);
+    }
+    if (!semantic.actionHandler?.file || !semantic.actionHandler?.symbol || !semantic.actionHandler?.anchor) {
+      errors.push(`${id} bridge action locator missing`);
+    }
+    if (!semantic.stateOracle?.locator?.file || !semantic.stateOracle?.expectedBehaviorSha256) {
+      errors.push(`${id} bridge state oracle missing`);
+    }
+    if (!semantic.route?.applicability) errors.push(`${id} bridge route applicability missing`);
+    if (!semantic.controlSelector?.applicability) errors.push(`${id} bridge control applicability missing`);
+    if (item.testAreas?.includes("UI") &&
+        semantic.controlSelector?.applicability !== "product-control" &&
+        !semantic.controlSelector?.reason) {
+      errors.push(`${id} UI bridge exact control or N/A reason missing`);
+    }
+    signatures.push({
+      id,
+      route: semantic.route,
+      control: semantic.controlSelector,
+      action: semantic.actionHandler,
+      stateBehaviorSha256: semantic.stateOracle?.expectedBehaviorSha256,
+      reviewDigest: item.review?.semanticDigest || null,
+    });
+  }
+  const digest = crypto.createHash("sha256").update(JSON.stringify(signatures)).digest("hex");
+  return { errors, digest, count: signatures.length };
 }
 
 function eventTemplateLabel(item) {

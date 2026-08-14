@@ -1355,9 +1355,9 @@ OnvifSoapResponse SendOnvifSoapHttp(const OnvifSoapRequest& request) {
     return *parsed;
 }
 
-RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
+ApplicationServiceResult BuildOnvifLiveImportDraft(const std::string& body) {
     if (!LooksLikeJsonObject(body)) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"request body must be a JSON object\"}"};
+        return ApplicationServiceResult{400, "Bad Request", "{\"error\":\"request body must be a JSON object\"}"};
     }
 
     auto decision = ExtractObjectField(body, "importDecision");
@@ -1367,14 +1367,14 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
         profile_array_field = "mediaProfiles";
     }
     if (!decision.has_value()) {
-        return RegistryResult{
+        return ApplicationServiceResult{
             400,
             "Bad Request",
             "{\"error\":\"importDecision or draftDecision object is required\"}"};
     }
     const std::string selected_token = Trim(ParseStringField(*decision, "selectedProfileToken").value_or(""));
     if (selected_token.empty()) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selectedProfileToken is required\"}"};
+        return ApplicationServiceResult{400, "Bad Request", "{\"error\":\"selectedProfileToken is required\"}"};
     }
 
     std::optional<std::string> selected_profile;
@@ -1385,7 +1385,7 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
         }
     }
     if (!selected_profile.has_value()) {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile not found\"}"};
+        return ApplicationServiceResult{400, "Bad Request", "{\"error\":\"selected profile not found\"}"};
     }
 
     const std::string media_api = Trim(ParseStringField(*selected_profile, "mediaApi").value_or(""));
@@ -1393,19 +1393,19 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
     const std::string transport = Trim(ParseStringField(*selected_profile, "transport").value_or(""));
     const std::string stream_uri = Trim(ParseStringField(*selected_profile, "streamUri").value_or(""));
     if (media_api != "Media" && media_api != "Media2") {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile mediaApi must be Media or Media2\"}"};
+        return ApplicationServiceResult{400, "Bad Request", "{\"error\":\"selected profile mediaApi must be Media or Media2\"}"};
     }
     if (encoding != "H264" && encoding != "H265") {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"selected profile encoding must be H264 or H265\"}"};
+        return ApplicationServiceResult{400, "Bad Request", "{\"error\":\"selected profile encoding must be H264 or H265\"}"};
     }
     if (transport != "RTSP" || !IsRtspOrRtspsUri(stream_uri)) {
-        return RegistryResult{
+        return ApplicationServiceResult{
             400,
             "Bad Request",
             "{\"error\":\"selected profile must provide an RTSP/RTSPS streamUri\"}"};
     }
     if (UriContainsAuthorityCredential(stream_uri)) {
-        return RegistryResult{
+        return ApplicationServiceResult{
             400,
             "Bad Request",
             "{\"error\":\"selected profile streamUri must not include credentials\"}"};
@@ -1414,7 +1414,7 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
     const auto source_raw = ExtractObjectField(*decision, "expectedSourceDraft");
     const auto view_raw = ExtractObjectField(*decision, "expectedPublishedViewDraft");
     if (!source_raw.has_value() || !view_raw.has_value()) {
-        return RegistryResult{
+        return ApplicationServiceResult{
             400,
             "Bad Request",
             "{\"error\":\"expectedSourceDraft and expectedPublishedViewDraft are required\"}"};
@@ -1422,7 +1422,7 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
 
     const std::string source_id = Trim(ParseStringField(*source_raw, "sourceId").value_or(""));
     if (!IsNumericRegistryDraftId(source_id)) {
-        return RegistryResult{
+        return ApplicationServiceResult{
             400,
             "Bad Request",
             "{\"error\":\"expectedSourceDraft.sourceId must be numeric for current /ops/sources contract\"}"};
@@ -1430,23 +1430,23 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
     const std::string view_id = Trim(ParseStringField(*view_raw, "viewId").value_or(source_id));
     const std::string view_source_id = Trim(ParseStringField(*view_raw, "sourceId").value_or(""));
     if (view_id != source_id || view_source_id != source_id) {
-        return RegistryResult{
+        return ApplicationServiceResult{
             400,
             "Bad Request",
             "{\"error\":\"expectedPublishedViewDraft must use the same numeric sourceId/viewId\"}"};
     }
     if (Trim(ParseStringField(*source_raw, "kind").value_or("")) != "rtsp") {
-        return RegistryResult{400, "Bad Request", "{\"error\":\"expectedSourceDraft.kind must be rtsp\"}"};
+        return ApplicationServiceResult{400, "Bad Request", "{\"error\":\"expectedSourceDraft.kind must be rtsp\"}"};
     }
     if (Trim(ParseStringField(*source_raw, "rtspUrl").value_or("")) != stream_uri) {
-        return RegistryResult{
+        return ApplicationServiceResult{
             400,
             "Bad Request",
             "{\"error\":\"expectedSourceDraft.rtspUrl must match selected profile streamUri\"}"};
     }
     const std::vector<std::string> tags = StringArrayFieldValues(*source_raw, "tags");
     if (!StringArrayContains(tags, "onvif") || !StringArrayContains(tags, "live")) {
-        return RegistryResult{
+        return ApplicationServiceResult{
             400,
             "Bad Request",
             "{\"error\":\"expectedSourceDraft.tags must include onvif and live\"}"};
@@ -1458,7 +1458,7 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
     const bool auth_required = ParseBoolField(auth, "required").value_or(false);
     const bool plaintext_secret_included = ParseBoolField(auth, "plaintextSecretIncluded").value_or(false);
     if (plaintext_secret_included) {
-        return RegistryResult{
+        return ApplicationServiceResult{
             400,
             "Bad Request",
             "{\"error\":\"plaintext credentials are not allowed in ONVIF import drafts\"}"};
@@ -1522,7 +1522,7 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
         << "\"enabled\":" << (ParseBoolField(*view_raw, "enabled").value_or(true) ? "true" : "false")
         << "}"
         << "}";
-    return RegistryResult{200, "OK", out.str()};
+    return ApplicationServiceResult{200, "OK", out.str()};
 }
 
 }  // namespace ingress

@@ -15,8 +15,7 @@
 #include <thread>
 #include <unordered_map>
 
-#include "app_config.h"
-#include "core/command_runner.h"
+#include "core/analysis_runtime_port.h"
 
 namespace analysis {
 
@@ -157,7 +156,7 @@ public:
     }
 
     void Enqueue(EventPostRequest request) {
-        const auto& config = app::GetAppConfig();
+        const auto& config = core::GetAnalysisRuntimeConfig();
         if (!config.analysis_event_post_enabled || request.url.empty()) {
             return;
         }
@@ -184,7 +183,7 @@ public:
     }
 
     EventPostDispatcherSnapshot Snapshot() const {
-        const auto& config = app::GetAppConfig();
+        const auto& config = core::GetAnalysisRuntimeConfig();
         std::lock_guard lock(mu_);
         EventPostDispatcherSnapshot snapshot;
         snapshot.enabled = config.analysis_event_post_enabled;
@@ -232,11 +231,11 @@ private:
                 queue_.pop_front();
             }
 
-            const auto& config = app::GetAppConfig();
+            const auto& config = core::GetAnalysisRuntimeConfig();
             const int timeout_ms = std::max(1, config.analysis_event_post_timeout_ms);
             const int curl_timeout_s = std::max(1, (timeout_ms + 999) / 1000);
             const int connect_timeout_s = std::max(1, std::min(curl_timeout_s, 3));
-            const core::CommandResult result = core::RunCommandCapture(
+            const core::CommandResult result = core::RunAnalysisCommandCapture(
                 {"curl",
                  "-fsS",
                  "--max-time",
@@ -294,7 +293,7 @@ void DispatchEventPosts(const AnalysisResult& result, const std::vector<Analysis
         return;
     }
 
-    const auto& config = app::GetAppConfig();
+    const auto& config = core::GetAnalysisRuntimeConfig();
     if (!config.analysis_event_post_enabled) {
         return;
     }

@@ -1,0 +1,110 @@
+{
+  "schema": "media-server.v390-structure-execution-scope-decision.v2",
+  "decisionId": "V390-REVIEW4-51",
+  "supersedesDecisionId": "V390-REVIEW3-49",
+  "recordedOn": "2026-07-12",
+  "sourceRelease": "v3.9.0",
+  "decision": "execute-actual-refactor-in-v3.9.0-after-review4-50-63",
+  "status": "approved-scheduled",
+  "implementationStatus": "not-executed",
+  "approval": {
+    "source": "latest-user-instruction",
+    "scope": "V390-REVIEW4-64 actual structure stabilization and refactor in v3.9.0",
+    "approved": true,
+    "approvedOn": "2026-07-12",
+    "requiredOrder": ["V390-REVIEW4-50..63", "V390-REVIEW4-64", "V390-REVIEW4-65"],
+    "v400TransferAllowed": false
+  },
+  "executionBase": {
+    "commit": "027678bab9ef75f809c1aeac2061d785c5f6f8b2",
+    "branch": "v3.9.0",
+    "newBranchRequired": false,
+    "branchCreationPerformed": false,
+    "baseContainsReview4Through": 50
+  },
+  "actualGraph": {
+    "path": "test/fixtures/v390_actual_module_dependency_graph.json",
+    "schema": "media-server.v390-actual-module-dependency-graph.v1",
+    "sha256": "acfe2cfa0a3e8ea167bbc07dbe490fbb4e3056e9fb87acec6451ac743123cf68",
+    "productionFiles": 148,
+    "declaredCppSources": 74,
+    "defaultActiveCppSources": 73,
+    "moduleOwners": 9,
+    "cmakeTargets": 1,
+    "targetViolationDirections": 25,
+    "largestSccOwners": 8,
+    "webrtcHttpServerLines": 42994,
+    "productUiPageScriptsLines": 10217
+  },
+  "riskRecord": {
+    "acceptedDespiteReleaseLineThresholds": true,
+    "reason": "user explicitly approved v3.9 execution after REVIEW4-50..63 with behavior preservation",
+    "baselineThresholds": {
+      "maxTargetViolationDirections": 0,
+      "maxSccOwners": 1,
+      "maxMixedOwnerFileLines": 15000,
+      "requireSeparatedInternalTargets": true
+    },
+    "actualFactors": [
+      {"id":"target-violation-debt","actual":25,"threshold":0,"result":"approved-with-hard-gates"},
+      {"id":"strongly-connected-owner-debt","actual":8,"threshold":1,"result":"approved-with-hard-gates"},
+      {"id":"largest-mixed-owner-file","actual":42994,"threshold":15000,"result":"approved-with-hard-gates"},
+      {"id":"internal-target-separation","actual":false,"required":true,"result":"approved-with-hard-gates"}
+    ]
+  },
+  "v390Execution": {
+    "release": "v3.9.0",
+    "branch": "v3.9.0",
+    "mode": "approved-actual-refactor-after-review4-50-63",
+    "orderedSlices": [
+      "baseline-and-ownership-map",
+      "pure-json-builder-extraction",
+      "route-handler-group-extraction",
+      "product-ui-workspace-split",
+      "source-read-model-boundary",
+      "docs-template-and-vlm-index"
+    ],
+    "entryConditions": [
+      "V390-REVIEW4-50 through V390-REVIEW4-63 are completed, verified, documented, and committed",
+      "the current v3.9.0 worktree is clean and contains every 50..63 commit",
+      "baseline build, actual graph, preserved contracts, and git diff --check pass",
+      "each slice declares its exact allowed file set and rollback commit"
+    ],
+    "allowed": [
+      "behavior-preserving production source extraction within the active slice",
+      "behavior-preserving ownership move within the active slice",
+      "CMake internal target separation with unchanged final media_server behavior",
+      "legacy dependency edge removal without contract or behavior changes",
+      "route/API/UI handler relocation with byte/schema/status/DOM behavior preserved"
+    ],
+    "forbidden": [
+      "public API route, status, error, or payload behavior change",
+      "EventRecord or event POST payload change",
+      "WebRTC DataChannel, SSE, or WS metadata schema change",
+      "RTSP or WebRTC media path behavior change",
+      "Auth, Role, or Scope behavior change",
+      "SourceRegistry, PublishedView, Rule, or Profile payload contract change",
+      "product route, control, DOM ID, data-testid, or user workflow behavior change",
+      "starting V390-REVIEW4-64 before V390-REVIEW4-50..63 completion",
+      "starting V390-REVIEW4-65 before V390-REVIEW4-64 completion"
+    ]
+  },
+  "preservedContractIds": [
+    "event-post-payload",
+    "webrtc-datachannel-metadata",
+    "sse-ws-metadata",
+    "rtsp-webrtc-media-path",
+    "auth-role-scope",
+    "source-registry-published-view",
+    "rule-profile-payload",
+    "http-route-status-error",
+    "product-ui-dom-test-id"
+  ],
+  "finalAcceptance": {
+    "id": "V390-REVIEW4-65",
+    "approved": true,
+    "runAfterRefactor": true,
+    "categories": ["stabilization", "30-minute", "exact-424-policy-v4-ui", "conditional-120-minute", "cleanup", "final-integrity"]
+  },
+  "boundary": "decision completion authorizes but does not prove REVIEW4-64 refactor execution or REVIEW4-65 acceptance PASS"
+}

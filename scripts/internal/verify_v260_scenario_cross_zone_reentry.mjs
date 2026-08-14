@@ -1,8 +1,10 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S05 ScenarioEngine cross-zone re-entry 후보와 schema 불변 경계를 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const failures = [];
 
@@ -13,7 +15,8 @@ const stateSmoke = readText("scripts/internal/analysis_state_smoke.cpp");
 const replayShell = readText("scripts/internal/verify_va_replay_baselines.sh");
 const replayRules = readText("test/fixtures/va_replay/re_entry_cross_zone_rules.json");
 const replayExpected = readText("test/fixtures/va_replay/re_entry_cross_zone_expected.json");
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
+const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const backlog = readText("docs/development-backlog.md");
@@ -38,6 +41,9 @@ check("roadmap records V260-S05 scenario extension boundary", () => {
 });
 
 check("ReEntryScenario separates source and destination zones for configured-zones", () => {
+  const scenarioEvaluateBlock = extractCppFunctionBlock(scenario, "ScenarioUpdate ReEntryScenario::Evaluate(");
+  assert(scenarioEvaluateBlock.includes("update.confirmed = true;  // configured-zone re-entry confirmation"),
+    "LAB-073 cross-zone update.confirmed product block readback mismatch");
   for (const snippet of [
     "std::string re_entry_mode{\"same-zone\"}",
     "std::vector<std::string> re_entry_zone_ids",
@@ -98,7 +104,7 @@ check("/ops/rules UI labels configured-zones as A-to-B review candidate", () => 
     "지정 영역 A→B 후보",
     "id=\"opsEventRuleReEntryModeSelect\"",
   ]) {
-    assertIncludes(server, snippet, "ops rules re-entry mode select");
+    assertIncludes(serverPages, snippet, "ops rules re-entry mode select");
   }
   for (const snippet of [
     "A→B 후보",
@@ -106,6 +112,9 @@ check("/ops/rules UI labels configured-zones as A-to-B review candidate", () => 
     "A→B 지정 영역",
   ]) {
     assertIncludes(pageScripts, snippet, "ops rules S05 UI copy");
+    assertIncludes(pageScripts, "reEntryZoneIds", "UI-049 canonical product state");
+    assertIncludes(pageScripts, "/ops/rules", "UI-049 canonical route obligation");
+    assertIncludes(pageScripts, "configured-zones", "UI-049 canonical field obligation");
   }
 });
 
@@ -148,6 +157,7 @@ check("S05 keeps event type, external schema, media path, and client exposure si
     assert(!header.includes(forbidden) &&
       !scenario.includes(forbidden) &&
       !ruleEngine.includes(forbidden) &&
+      !serverPages.includes(forbidden) &&
       !server.includes(forbidden) &&
       !pageScripts.includes(forbidden) &&
       !inventory.includes(forbidden) &&

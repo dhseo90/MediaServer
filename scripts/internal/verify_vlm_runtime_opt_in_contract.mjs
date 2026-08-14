@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S01 VLM runtime opt-in contract fixture, 서버 validation, 문서 wiring을 검증한다.
 
 import fs from "node:fs";
@@ -29,7 +30,7 @@ Checks:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
 const eventStorage = readText("src/analysis/event_storage.cpp");
@@ -138,6 +139,7 @@ check("docs, inventory, server command, and auth smoke are wired", () => {
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   const authWorkflow = readText("scripts/internal/verify_auth_workflow.sh");
   const profileVerifier = readText("scripts/internal/verify_vlm_profile_storage.mjs");
   for (const snippet of [
@@ -158,7 +160,10 @@ check("docs, inventory, server command, and auth smoke are wired", () => {
   assert(serverSh.includes("verify-vlm-runtime-opt-in-contract"), "server.sh missing runtime contract verifier command");
   assert(serverSh.includes("verify_vlm_runtime_opt_in_contract.mjs"), "server.sh missing runtime contract verifier dispatch");
   assert(scriptInventory.includes("verify_vlm_runtime_opt_in_contract.mjs"), "script inventory missing runtime contract verifier");
-  assert(coverage.includes("verify-vlm-runtime-opt-in-contract"), "feature inventory coverage missing runtime contract verifier");
+  assert(coverage.includes("validateImplementationManifest"), "feature inventory coverage must validate implementation manifest");
+  const safe025 = (implementationManifest.items || []).find(item => item.id === "SAFE-025");
+  assert(safe025?.verifierEvidence?.command === "verify-vlm-runtime-opt-in-contract",
+    "SAFE-025 implementation manifest missing runtime contract verifier command");
   assert(authWorkflow.includes("media-server.vlm-runtime-opt-in-contract.v1"), "auth workflow missing runtime contract profile payload");
   assert(profileVerifier.includes("media-server.vlm-runtime-opt-in-contract.v1"), "profile storage verifier missing runtime contract check");
 });

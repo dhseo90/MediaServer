@@ -44,5 +44,12 @@
     ".js",
     ".mjs"
   ],
-  "allowedEnglishOnlyComments": []
+  "allowedEnglishOnlyComments": [
+    {
+      "pattern": "^WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN [0-9]+ (constant|prototype|type|function)$"
+    },
+    {
+      "pattern": "^OPS_RENDERER_BYTE_BASELINE_(BEGIN|END)$"
+    }
+  ]
 }

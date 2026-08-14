@@ -1,0 +1,66 @@
+{
+  "schema": "media-server.v290-final-contract-freeze-evidence.v1",
+  "historical": {
+    "release": "v2.9.0",
+    "sourceCommit": "a9d321c285251a32f017146eead5b197915a6fc8",
+    "sourcePath": "docs/live-event-metadata-contracts.md",
+    "sha256": "c71ac2c4f59a0192c66cd73bab86dd5c3249f9ce2cdc5789a67a2f157458ccd6",
+    "ownershipLine": "이 문서는 현재 main 기준의 live event delivery contract를 정리합니다.",
+    "sourceArtifacts": [
+      {
+        "path": "include/ingress/source_view_registry.h",
+        "sha256": "df025688df521b7b82125bb8fbfe472cde144280fc98121d7e8b482ba9451937"
+      },
+      {
+        "path": "src/ingress/source_view_registry.cpp",
+        "sha256": "082b039451014d33db7891eaec13e87917c8cf15343ed9a27083e2c17659c9ec"
+      }
+    ]
+  },
+  "current": {
+    "release": "v3.9.0",
+    "sourcePath": "docs/live-event-metadata-contracts.md",
+    "ownershipLine": "이 문서는 현재 source tree 기준의 live event delivery contract를 정리합니다.",
+    "historicalDrift": {
+      "type": "documentation-ownership-wording-only",
+      "from": "이 문서는 현재 main 기준의 live event delivery contract를 정리합니다.",
+      "to": "이 문서는 현재 source tree 기준의 live event delivery contract를 정리합니다.",
+      "runtimeContractChanged": false
+    },
+    "sourceRegistry": {
+      "evolution": "post-v2.9 additive source kinds, ops summaries, and durable ONVIF transaction support",
+      "clientProjectionFunction": "ClientPublishedViewJson",
+      "forbiddenClientProjectionMembers": [
+        "source.file",
+        "source.rtsp_url",
+        "source.whep_url",
+        "source.http_url",
+        "source.canonical_source_key"
+      ],
+      "eventPostPayloadChanged": false,
+      "webrtcDataChannelSchemaChanged": false,
+      "sseMetadataSchemaChanged": false,
+      "wsMetadataSchemaChanged": false,
+      "rtspOrWebrtcMediaPathChanged": false
+    }
+  },
+  "frozenContract": {
+    "identifiers": [
+      "media-server.va.event.v1",
+      "media-server.webrtc.va-metadata.v1",
+      "media-server.va.runtime-metadata.v1",
+      "media-server.va.metadata-control.v1"
+    ],
+    "webrtcDataChannelLabel": "va-metadata",
+    "transportBoundaries": [
+      "Event POST",
+      "WebRTC",
+      "SSE",
+      "RTSP",
+      "Auth/Role/Scope",
+      "Rule/Profile"
+    ],
+    "schemaMutationAllowedWithoutReview": false,
+    "metadataFailureMayBlockMediaPath": false
+  }
+}

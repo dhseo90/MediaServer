@@ -17,9 +17,20 @@ invalid JSON, latency 초과, hallucination fixture 실패 때문에 제외합�
 이 패널은 `/ops/api/vlm/evaluation-results`의
 `media-server.ops.vlm-evaluation-result-workflow.v1` payload를 읽어 latency, JSON
 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 표시합니다.
-`profile draft 반영` 버튼은 선택한 평가 후보의 model, prompt profile, evaluation
-status를 기존 VLM profile 저장 폼에 채웁니다. 저장은 운영자가 별도로 눌러야 하며,
-선택만으로 profile 저장, activation, runtime call, provider call은 발생하지 않습니다.
+`profile draft 반영` 버튼은 선택한 평가 후보의 server-owned `candidateId`, catalog
+revision, candidate provenance digest와 일치하는 model/option/prompt profile을 기존 VLM
+profile 저장 폼에 채웁니다. Evaluation 상태는 read-only입니다. 클라이언트는 `passed`,
+score, dimensions, case 결과, provenance를 선언하지 않습니다. 저장은 운영자가 별도로
+눌러야 하며, 서버는 저장 직전에 candidate/revision/digest와 option/model/prompt binding을
+다시 확인하고 canonical evaluation/provenance를 생성합니다. 선택만으로 profile 저장,
+activation, runtime call, provider call은 발생하지 않습니다.
+
+V390-ADD1-03부터 평가 API와 profile 저장 validator는
+`src/ingress/vlm_evaluation_promotion.cpp`의 동일한 immutable catalog를 사용합니다.
+catalog revision은 `v390-add1-03-2026-07-10`이며 workflow fixture, harness fixture,
+evaluator, model catalog SHA-256과 candidate digest가 server-generated provenance에
+포함됩니다. unknown/stale/mismatched candidate와 client-declared result field는 저장하지
+않습니다.
 
 ## 선택 결과
 
@@ -36,6 +47,7 @@ status를 기존 VLM profile 저장 폼에 채웁니다. 저장은 운영자가 
 ./server.sh verify-vlm-evaluation-harness
 ./server.sh verify-vlm-recommendation-engine
 ./server.sh verify-vlm-profile-storage
+./server.sh verify-v390-vlm-promotion-trust-boundary
 git diff --check
 ```
 

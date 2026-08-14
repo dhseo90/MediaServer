@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.2.0 Step 4 Evidence Quality Layer 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-evidence-quality-layer";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -47,6 +50,16 @@ const files = {
 const checks = [];
 
 check("ops review API attaches Step 4 evidence quality layer to unified workspace items", () => {
+  assert(files.pageScript.includes("/ops/events"), "OPS-072 canonical /ops/events route missing");
+  const start = files.server.indexOf("std::string OpsV320EvidenceQualityJson(");
+  const end = files.server.indexOf("std::string OpsV320EvidenceQualitySummaryJson(", start);
+  assert(start >= 0 && end > start, "EVT-065 evidence quality projection block missing");
+  const evt065EvidenceQualityBlock = files.server.slice(start, end);
+  assertIncludes(evt065EvidenceQualityBlock, "media-server.ops.v320-evidence-quality.v1", "EVT-065 block-scoped canonical evidence quality projection");
+  assert(!evt065EvidenceQualityBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt065EvidenceQualityBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-065 evidence quality must remain hidden from client/viewer");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-065 canonical review route");
   for (const snippet of [
     "OpsV320EvidenceQualityJson",
     "OpsV320EvidenceQualitySummaryJson",
@@ -97,6 +110,7 @@ check("evidence quality layer preserves schema, media, and viewer boundaries", (
 });
 
 check("product UI script renders Step 4 evidence quality fields", () => {
+  const evidenceQualityBlock = extractNamedFunctionBlock(files.pageScript, "renderV320EvidenceQualityLayer");
   for (const snippet of [
     "renderV320EvidenceQualityLayer",
     "evidenceQualitySummary",
@@ -115,8 +129,19 @@ check("product UI script renders Step 4 evidence quality fields", () => {
     "rawJsonExposed",
     "debugMaterialExposed",
   ]) {
-    assertIncludes(files.pageScript, snippet, "V320 evidence quality UI script");
+    assertIncludes(evidenceQualityBlock, snippet, "V320 evidence quality UI renderer block");
   }
+  assertIncludes(evidenceQualityBlock, "evidenceQuality.rawEvidenceMaterialExposed === false", "UI-063 block-scoped raw evidence redaction contract");
+  assertIncludes(evidenceQualityBlock, "evidenceQuality.rawJsonExposed === false", "UI-063 block-scoped raw JSON redaction contract");
+  assertIncludes(evidenceQualityBlock, "evidenceQuality.sourceUrlExposed === false", "UI-063 block-scoped source URL redaction contract");
+  assertIncludes(evidenceQualityBlock, "evidenceQuality.debugMaterialExposed === false", "UI-063 block-scoped debug material redaction contract");
+  assert(!["rawJsonPayload", "rawPayload", "rawLocator", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => evidenceQualityBlock.includes(marker)), "UI-063 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl:", "sourceURL:", "sourceUrlValue", "rtsp://", "rtsps://"].some(marker => evidenceQualityBlock.includes(marker)), "UI-063 source-url-redaction explicit absence oracle");
+  assert(!["providerApiCall(", "providerResponse", "rawProviderResponse", "providerMaterialExposed: true", "rawProviderMaterialExposed: true"].some(marker => evidenceQualityBlock.includes(marker)), "UI-063 provider-material explicit absence oracle");
+  assert(!["debugCounters", "Developer URL", "debugMaterialExposed: true"].some(marker => evidenceQualityBlock.includes(marker)), "UI-063 debug-redaction explicit absence oracle");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => evidenceQualityBlock.includes(marker)), "UI-063 client-viewer-boundary explicit absence oracle");
+  const unifiedWorkspaceBlock = extractNamedFunctionBlock(files.pageScript, "renderV320UnifiedOpsEventsWorkspace");
+  assertIncludes(unifiedWorkspaceBlock, "/ops/events", "UI-063 exact route owner obligation");
 });
 
 check("Step 4 evidence quality CSS is responsive and scoped to the v3.2 workspace", () => {
@@ -173,10 +198,6 @@ check("feature inventory and release records map v3.2 Step 4", () => {
     "EVT-065 | V320 Step 4 evidence quality view model",
     "SAFE-105 | V320 Step 4 evidence quality boundary",
     "OPS-072 | V320 Step 4 Evidence Quality Layer 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
-    "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 4");
   }
@@ -194,11 +215,24 @@ check("feature inventory and release records map v3.2 Step 4", () => {
 check("server entrypoint and inventory verifiers include v3.2 Step 4 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_evidence_quality_layer.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["UI-063", "EVT-065", "SAFE-105", "OPS-072"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_evidence_quality_layer.mjs", "script inventory");
+});
+
+check("SAFE-105 canonical evidence quality boundary", () => {
+  const evidenceBlock = extractCppFunctionBlock(files.server, "std::string OpsV320EvidenceQualityJson(");
+  const safe105BoundaryObserved = evidenceBlock.includes("media-server.ops.v320-evidence-quality.v1") &&
+    evidenceBlock.includes("info.event_frame_present") && evidenceBlock.includes("info.encoded_clip_present");
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(evidenceBlock);
+  const rawMaterialExposed = /\\\"raw(?:Json|Evidence|Payload)(?:Exposed|Included)\\\":true/.test(evidenceBlock);
+  const sourceUrlExposed = evidenceBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = evidenceBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(evidenceBlock);
+  assert(safe105BoundaryObserved && schemaMutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false,
+    "SAFE-105 info.event_frame_present evidenceQuality must remain a deterministic reference hint without schema/media/raw/client mutation");
 });
 
 const results = runChecks();

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: /ops/dashboard 문제 원인 패널과 운영 원인 해석 hook을 정적 검증한다.
 
 import fs from "node:fs";
@@ -11,7 +12,7 @@ const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
 check("ops dashboard exposes root cause panel", () => {
-  const html = readText("src/ingress/webrtc_http_server.cpp");
+  const html = readWebRtcHttpServerBundle(readText);
   const required = [
     'data-testid="ops-root-cause-panel"',
     'data-testid="ops-incident-timeline-panel"',
@@ -186,7 +187,7 @@ check("server entrypoint includes root cause verifier", () => {
   const server = readText("server.sh");
   assert(server.includes("verify-ops-root-cause-panel"), "server.sh is missing verify-ops-root-cause-panel");
   assert(server.includes("verify_ops_root_cause_panel.mjs"), "server.sh is missing verifier script reference");
-  const httpServer = readText("src/ingress/webrtc_http_server.cpp");
+  const httpServer = readWebRtcHttpServerBundle(readText);
   assert(httpServer.includes("/ops/api/diagnostics/log-tail"), "server is missing diagnostics log-tail API");
   assert(httpServer.includes("OpsDiagnosticLogTailJson"), "server is missing diagnostics log-tail JSON builder");
   assert(httpServer.includes("SourceReconnectStatsSnapshot"), "source health API is missing reconnect stats snapshot");

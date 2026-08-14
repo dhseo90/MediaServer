@@ -72,6 +72,10 @@ check("product UI native dialog APIs are forbidden", () => {
 check("beforeunload handlers remain non-blocking cleanup only", () => {
   const findings = scanActualSources().filter(item => item.category === "blocking-beforeunload");
   assert(findings.length === 0, formatFindings(findings));
+  const clientScript = readText("src/ingress/product_ui_client_scripts.cpp");
+  const beforeUnloadBlock = extractBeforeUnloadBlock(clientScript);
+  assert(beforeUnloadBlock.includes("method: 'DELETE'") && beforeUnloadBlock.includes("keepalive: true"), "beforeunload cleanup block must use non-blocking DELETE keepalive");
+  assert(!/returnValue|preventDefault\s*\(|alert\s*\(|confirm\s*\(|prompt\s*\(/.test(beforeUnloadBlock), "beforeunload cleanup block must not request a blocking dialog");
 });
 
 check("product modal usage is allowlisted and non-mutating", () => {
@@ -303,6 +307,16 @@ function check(name, fn) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function extractBeforeUnloadBlock(source) {
+  const marker = "window.addEventListener('beforeunload', () => {";
+  const start = source.indexOf(marker);
+  assert(start >= 0, "beforeunload cleanup block missing");
+  const endMarker = "\n      });";
+  const end = source.indexOf(endMarker, start);
+  assert(end > start, "beforeunload cleanup block end missing");
+  return source.slice(start, end + endMarker.length);
 }
 
 function assertIncludes(text, snippets, label) {

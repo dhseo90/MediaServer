@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { extractCppFunctionBlock, exactBooleanFlagValue } from "./source_block_assertion_utils.mjs";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -33,6 +34,11 @@ const checks = [];
 check("EventRecord storage builds VLM evidence refs without top-level schema expansion", () => {
   const header = readText("include/analysis/event_storage.h");
   const storage = readText("src/analysis/event_storage.cpp");
+  const evidenceRefsBlock = extractCppFunctionBlock(storage, "std::string BuildVlmEvidenceRefsJson(");
+  assert(storage.includes("rawMediaEmbedded"), "rawMediaEmbedded reference-only boundary missing");
+  assert(evidenceRefsBlock.includes('\\"available\\"') && exactBooleanFlagValue(evidenceRefsBlock, "rawMediaEmbedded") === false, "available evidence state must exclude raw media");
+  assert(exactBooleanFlagValue(evidenceRefsBlock, "sourceUrlExposed") === false, "sourceUrlExposed must remain false");
+  assert(exactBooleanFlagValue(evidenceRefsBlock, "credentialMaterialExposed") === false, "credentialMaterialExposed must remain false");
   for (const snippet of [
     "bbox_available",
     "bbox_crop_path",

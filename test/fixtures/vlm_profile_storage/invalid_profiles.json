@@ -48,7 +48,9 @@
           "language": "ko-en"
         },
         "evaluation": {
-          "status": "not-run"
+          "candidateId": "",
+          "expectedCatalogRevision": "",
+          "expectedProvenanceDigest": ""
         },
         "activation": {
           "enabled": true,
@@ -111,7 +113,9 @@
           "language": "ko-en"
         },
         "evaluation": {
-          "status": "not-run"
+          "candidateId": "",
+          "expectedCatalogRevision": "",
+          "expectedProvenanceDigest": ""
         },
         "activation": {
           "enabled": false,

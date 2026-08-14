@@ -12,7 +12,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
-const rcPredevCommand = "./server.sh verify-predev --soak-minutes 120";
+const rcServerLongrunCommand = "./server.sh verify-v390-server-longrun --duration-minutes 120";
 const rcRuntimeCommand = "./server.sh verify-va-runtime-console-longrun --duration-minutes 120";
 
 check("stream verification guide defines the RC-only release gate", () => {
@@ -21,7 +21,7 @@ check("stream verification guide defines the RC-only release gate", () => {
     "### RC 전용 Release Gate",
     "상시 실행하지 않습니다",
     "release candidate",
-    rcPredevCommand,
+    rcServerLongrunCommand,
     rcRuntimeCommand,
     "--include-sidechannel",
     "--include-dashboard",
@@ -92,6 +92,7 @@ check("GitHub Actions workflow uploads RC gate artifacts", () => {
     "name: RC Release Gate",
     "workflow_dispatch",
     "run_predev_120",
+    "verify-v390-server-longrun",
     "run_va_runtime_120",
     "runner_label",
     "require_va_assets",
@@ -176,7 +177,7 @@ check("release checklist generator writes Markdown output", () => {
   assert(markdown.includes("# RC Release Checklist"), "release checklist missing title");
   assert(markdown.includes("overall: PASS"), "release checklist missing PASS status");
   assert(markdown.includes("reportHistory:"), "release checklist missing report history link");
-  assert(markdown.includes("Predev 120m soak"), "release checklist missing predev row");
+  assert(markdown.includes("Server 120m release-grade longrun"), "release checklist missing server longrun row");
   assert(markdown.includes("VA runtime console 120m longrun"), "release checklist missing runtime row");
   assert(markdown.includes("ciArtifact: media-server-rc-gate"), "release checklist missing CI artifact");
   assert(markdown.includes("artifactRetentionDays: 45"), "release checklist missing artifact retention");
@@ -239,7 +240,7 @@ check("release checklist generator writes HTML output", () => {
   assert(html.includes("RC Release Checklist"), "release checklist HTML missing title");
   assert(historyJson.includes("media-server.rc-soak-history.v1"), "history index JSON missing schema");
   assert(historyMarkdown.includes("# RC Soak Report History"), "history index Markdown missing title");
-  assert(historyMarkdown.includes("Predev 120m soak: PASS"), "history index missing predev status");
+  assert(historyMarkdown.includes("Server 120m release-grade longrun: PASS"), "history index missing server longrun status");
   assert(historyMarkdown.includes("VA runtime console 120m longrun: PASS"), "history index missing runtime status");
   assert(historyHtml.includes("RC Soak Report History"), "history index HTML missing title");
 });
@@ -291,7 +292,8 @@ check("external RC artifact archive writes index", () => {
 check("backlog keeps 120 minute soak as release-candidate or high-risk gate", () => {
   const backlog = readText("docs/development-backlog.md");
   const requiredSnippets = [
-    "`./server.sh verify-predev --soak-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.",
+    "`./server.sh verify-v390-server-longrun --duration-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.",
+    "historical `verify-predev --soak-minutes 120` evidence remains preserved.",
     "./server.sh verify-va-runtime-console-longrun --duration-minutes 120",
   ];
   for (const snippet of requiredSnippets) {

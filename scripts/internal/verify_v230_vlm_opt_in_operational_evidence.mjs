@@ -72,6 +72,18 @@ check("local runtime smoke records loopback-only intake without provider/model p
   assert(report.scope.sidecarWritten === false, "local runtime smoke must not write sidecar");
   assert(report.scope.eventOrMetadataSchemaChanged === false, "local runtime smoke must not change event/metadata schema");
   assert(report.scope.mediaPathChanged === false, "local runtime smoke must not change media path");
+  const registryWritePerformed = report.scope.sidecarWritten === true ||
+    report.cases.some(item => item.sideEffects?.some(effect => /write|stored/i.test(String(effect))));
+  const credentialStored = report.cases.some(item => item.credentialHeaderSeen === true ||
+    item.sideEffects?.some(effect => /credential/i.test(String(effect))));
+  const mutationChanged = report.scope.eventOrMetadataSchemaChanged === true || report.scope.mediaPathChanged === true;
+  const rawRuntimeMaterialStored = JSON.stringify(report).includes('"rawPromptStored":true') ||
+    JSON.stringify(report).includes('"rawProviderResponseStored":true') ||
+    JSON.stringify(report).includes('"rawLocatorStored":true');
+  assert(credentialStored === false && registryWritePerformed === false,
+    "local runtime credential and registryWritePerformed must remain false");
+  assert(mutationChanged === false, "local runtime schema/media mutationChanged must remain false");
+  assert(rawRuntimeMaterialStored === false, "local runtime raw material must remain absent");
   assert(report.summary.connectedCases === 3, "local runtime smoke expected three connected fixture cases");
   assert(report.summary.missingRuntimeCases === 1, "local runtime smoke expected one missing-runtime fixture");
   assert(report.summary.timeoutCases === 1, "local runtime smoke expected one timeout fixture");
@@ -101,6 +113,18 @@ check("cloud provider gate records default not-run as not release eligible", () 
   assert(report.redaction.credentialMaterialStored === false, "cloud gate report must not store credential material");
   assert(report.redaction.rawPromptStored === false, "cloud gate report must not store raw prompt");
   assert(report.redaction.rawProviderResponseStored === false, "cloud gate report must not store raw provider response");
+  const credentialMaterialStored = report.redaction.credentialMaterialStored;
+  const registryWritePerformed = credentialMaterialStored === true;
+  const rawProviderMaterialStored = report.redaction.rawPromptStored === true ||
+    report.redaction.rawProviderResponseStored === true;
+  const sourceUrlStored = report.redaction.sourceUrlStored === true;
+  const providerCall = report.fieldSmoke.providerApiCalled;
+  assert(credentialMaterialStored === false && registryWritePerformed === false,
+    "cloud credential registryWritePerformed must remain false");
+  assert(rawProviderMaterialStored === false, "cloud raw provider material must remain absent");
+  assert(sourceUrlStored === false, "cloud sourceUrl material must remain absent");
+  assert(providerCall === false && report.fieldSmoke.releasePassEligible === false,
+    "cloud providerCall must remain false and not release eligible without explicit approved field execution");
   payload.runtimeEvidence.cloudProviderGate = {
     status: "pass",
     command: "./server.sh verify-vlm-cloud-provider-field-smoke-gate",
@@ -152,11 +176,11 @@ check("VLM public docs expose the current opt-in/default-off boundary", () => {
 check("current public roadmap keeps VLM evidence within source/local boundaries", () => {
   const backlog = readText("docs/development-backlog.md");
   for (const snippet of [
-    "현재 source roadmap: v2.5.0 Semantic Incident Memory",
-    "GitHub Release와 tag는 취소되어 현재 공개 릴리즈가 아닙니다",
-    "VLM default-off guard",
-    "provider call evidence 아님",
-    "UI 풀테스트 직접 조작은 별도",
+    "현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`",
+    "source-only preparation branch",
+    "Binary, runtime, model bundle",
+    "VLM profile promotion guard",
+    "field evidence bridge",
     "30분 테스트",
     "120분 테스트",
     "verify-release-metadata --published",

@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.0.0 S08 Ops Events UI 구현, 문서, inventory, verifier 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -32,7 +35,8 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v300-ops-events-ui";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
+  serverPage: readText("src/ingress/product_ui_server_pages.cpp"),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -40,6 +44,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
@@ -61,7 +66,7 @@ check("ops events page exposes V300 event evidence search UI shell", () => {
     "feature reasons",
     "retention status",
   ]) {
-    assertIncludes(files.server, snippet, "V300 ops events UI shell");
+    assertIncludes(files.serverPage, snippet, "V300 ops events UI shell");
   }
 });
 
@@ -104,6 +109,12 @@ check("product UI script wires V300 filters and renders detail cards", () => {
     "retentionCleanupExecuted",
   ]) {
     assertIncludes(files.pageScript, snippet, "V300 UI script");
+    assertIncludes(extractNamedFunctionBlock(files.pageScript, "renderV300EventEvidenceSearchUi"), "eventEvidenceSearch", "UI-059 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV300EventEvidenceSearchUi").includes(marker)), "UI-059 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV300EventEvidenceSearchUi").includes(marker)), "UI-059 source-url-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV300EventEvidenceSearchUi").includes(marker)), "UI-059 debug-redaction explicit absence oracle");
+    assert(!["/client/api/","viewerClientExposureAdded: true","clientExposureAdded: true"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV300EventEvidenceSearchUi").includes(marker)), "UI-059 client-viewer-boundary explicit absence oracle");
+    assertIncludes(files.pageScript, "/ops/events", "UI-059 canonical route obligation");
   }
 });
 
@@ -176,8 +187,23 @@ check("feature inventory and release records map V300-S08 to UI-059, SAFE-090, a
 check("server entrypoint and inventory verifiers include V300-S08 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v300_ops_events_ui.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage verifier");
+  for (const id of ["UI-059", "SAFE-090", "OPS-058"]) {
+    assert(files.implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === command,
+      `implementation manifest ${id} missing ${command}`);
+  }
   assertIncludes(files.scriptInventory, "verify_v300_ops_events_ui.mjs", "script inventory");
+});
+
+check("SAFE-090 canonical Ops events UI boundary", () => {
+  const opsEventsViewBlock = extractCppFunctionBlock(files.server, "std::string OpsV300EventEvidenceSearchUiJson(");
+  const schemaMutationPerformed = opsEventsViewBlock.includes("\\\"eventPostPayloadChanged\\\":true");
+  const safe090BoundaryObserved = opsEventsViewBlock.includes("media-server.ops.v300-event-evidence-search-ui.v1") &&
+    opsEventsViewBlock.includes("\\\"vectorSearchPerformed\\\":false") &&
+    files.server.includes("\\\"eventEvidenceSearch\\\":") &&
+    files.server.includes("OpsV300EventEvidenceSearchUiJson(event_result.records_json, reviews, query)");
+  assert(safe090BoundaryObserved && schemaMutationPerformed === false,
+    "verify-v300-ops-events-ui /ops/events redacted view must not mutate WebRTC/SSE/RTSP schema");
 });
 
 const results = runChecks();

@@ -1,0 +1,399 @@
+#!/usr/bin/env node
+// 파일 용도: UI/AUTH/SRC/RULE immutable exact runtime oracle catalog의 제품 source 결속과 false-PASS 거부를 검증한다.
+
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+import {
+  buildCoreExactOracleCatalog,
+  coreExactOracleCaseIds,
+  coreExactOracleFor,
+  validateCoreExactOracleCatalog,
+} from "./v390_ui_exact_core_oracles.mjs";
+
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const checks = [];
+const productSource = readTree("src/ingress", file => /\.(?:cpp|h)$/.test(file));
+const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
+
+check("catalog covers every canonical UI/AUTH/SRC/RULE case in exact order", () => {
+  const result = validateCoreExactOracleCatalog();
+  assert(result.caseCount === 288, `core exact oracle case count mismatch: ${result.caseCount}`);
+  assert(JSON.stringify(result.prefixCounts) === JSON.stringify({ UI: 114, AUTH: 30, SRC: 40, RULE: 104 }),
+    `core exact oracle prefix counts mismatch: ${JSON.stringify(result.prefixCounts)}`);
+  assert(result.specializedCount === 13 && result.genericGet200ExistsOnlyCount === 0,
+    "specialized/generic closure mismatch");
+  assert(result.coreBindingSha256 === "ba1b213deb7df36c0615333cf3edbe535a0ac5147d63b079f0b482142f729e9d",
+    "independent canonical/source semantic binding digest drift");
+});
+
+check("catalog and every returned oracle are deeply immutable", () => {
+  assert(Object.isFrozen(coreExactOracleCaseIds), "core exact oracle ID list is mutable");
+  for (const caseId of coreExactOracleCaseIds) {
+    const oracle = coreExactOracleFor(caseId);
+    assert(Object.isFrozen(oracle) && Object.isFrozen(oracle.api) &&
+      Object.isFrozen(oracle.api.bodyAssertions) && Object.isFrozen(oracle.domAssertions) &&
+      Object.isFrozen(oracle.network) && Object.isFrozen(oracle.beforeAfterState) && Object.isFrozen(oracle.cleanup),
+    `${caseId} oracle is not deeply immutable`);
+  }
+  assert(coreExactOracleFor("NOT-A-CASE") === null, "unknown core oracle must return null");
+});
+
+check("approval-envelope-only drift leaves every runtime oracle projection unchanged", () => {
+  const changed = structuredClone(implementation);
+  for (const item of changed.items) {
+    const semantic = item.semanticEvidence;
+    semantic.review4Proof.candidateDigest = "a".repeat(64);
+    semantic.review4Proof.approvalDigest = "b".repeat(64);
+    semantic.review4Proof.approval.reviewedOn = "2099-12-31";
+    semantic.review4Proof.approval.priorApprovalDigest = "c".repeat(64);
+    item.review.reviewedOn = "2099-12-31";
+    item.review.approvalDigest = "d".repeat(64);
+    semantic.verifierAssertion.assertedSemanticDigest = "e".repeat(64);
+  }
+  assert(JSON.stringify(buildCoreExactOracleCatalog(changed)) ===
+    JSON.stringify(buildCoreExactOracleCatalog(implementation)),
+  "approval envelope drift changed the core runtime catalog");
+});
+
+check("row-local semantic inputs invalidate exactly their affected runtime oracle", () => {
+  const cases = [
+    ["sourceFlowDigest", item => { item.semanticEvidence.review4Proof.sourceFlowDigest = "a".repeat(64); }],
+    ["expectedBehavior", item => { item.semanticEvidence.stateOracle.expectedBehaviorSha256 = "b".repeat(64); }],
+    ["verifierAssertion", item => { item.semanticEvidence.verifierAssertion.assertionAnchor += " row-local-drift"; }],
+    ["stateLocator", item => { item.semanticEvidence.stateOracle.locator.contextSha256 = "c".repeat(64); }],
+  ];
+  const baseline = buildCoreExactOracleCatalog(implementation);
+  for (const [label, mutate] of cases) {
+    const changed = structuredClone(implementation);
+    mutate(changed.items.find(item => item.id === "UI-018"));
+    const changedIds = changedOracleIds(baseline, buildCoreExactOracleCatalog(changed));
+    assert(JSON.stringify(changedIds) === JSON.stringify(["UI-018"]),
+      `${label} drift did not stay row-local: ${changedIds.join(",")}`);
+  }
+});
+
+check("runtime semantic binding contains only functional row-local inputs", () => {
+  for (const caseId of coreExactOracleCaseIds) {
+    const oracle = coreExactOracleFor(caseId);
+    assert(JSON.stringify(Object.keys(oracle.runtimeSemanticBinding)) === JSON.stringify([
+      "schema", "caseId", "sourceFlowDigest", "expectedBehaviorSha256", "featureContractSha256",
+      "verifier", "authoritativeStateLocatorContextSha256",
+    ]), `${caseId} runtime semantic binding fields drift`);
+    assert(JSON.stringify(Object.keys(oracle.runtimeSemanticBinding.verifier)) ===
+      JSON.stringify(["file", "symbol", "assertionAnchor", "command"]),
+    `${caseId} runtime verifier binding fields drift`);
+    assert(!JSON.stringify(oracle.runtimeSemanticBinding).includes("approvalDigest") &&
+      !JSON.stringify(oracle.runtimeSemanticBinding).includes("candidateDigest") &&
+      !JSON.stringify(oracle.runtimeSemanticBinding).includes("reviewedOn"),
+    `${caseId} approval provenance leaked into runtime binding`);
+  }
+});
+
+check("runner-facing route/role/control/request/DOM/network/state/cleanup shape is exact", () => {
+  for (const caseId of coreExactOracleCaseIds) {
+    const oracle = coreExactOracleFor(caseId);
+    assert(oracle.route && oracle.role && oracle.visibleControl?.selector && oracle.visibleControl?.action,
+      `${caseId} route/role/visibleControl action missing`);
+    assert(oracle.requests.length === 1 && oracle.requests[0].forbiddenJsonKeys.length >= 4,
+      `${caseId} runner request assertions missing`);
+    assertExecutableRequest(caseId, oracle.requests[0]);
+    assert(oracle.requests[0].body === null || oracle.requests[0].body.fixtureId === "{fixtureId}",
+      `${caseId} dynamic fixture must use {fixtureId}`);
+    assert(oracle.dom.length >= 1 && oracle.dom.every(item => Array.isArray(item.requiredAttributes) &&
+      item.requiredAttributes.length > 0 && item.requiredAttributes.every(attribute =>
+        attribute.name && attribute.operator && attribute.value !== undefined)),
+      `${caseId} runner DOM assertion missing`);
+    assert(oracle.stateSnapshots.length === 2 && oracle.cleanup.strategy && oracle.cleanup.targets.length > 0,
+      `${caseId} state snapshot/cleanup target missing`);
+    assert(oracle.expectedBehavior.text && oracle.expectedBehavior.sha256.length === 64,
+      `${caseId} expectedBehavior missing`);
+  }
+});
+
+check("owner/action anchors and visible controls resolve in product source", () => {
+  for (const caseId of coreExactOracleCaseIds) {
+    const oracle = coreExactOracleFor(caseId);
+    const ownerPath = path.join(rootDir, oracle.owner.file);
+    const actionPath = path.join(rootDir, oracle.owner.actionFile);
+    assert(fs.existsSync(ownerPath) && fs.existsSync(actionPath), `${caseId} product owner/action file missing`);
+    assert(fs.readFileSync(ownerPath, "utf8").includes(oracle.owner.anchor), `${caseId} product owner anchor missing`);
+    const token = selectorSourceToken(oracle.visibleControl.selector);
+    if (token) assert(productSource.includes(token), `${caseId} visible control token is not in product source: ${token}`);
+  }
+});
+
+check("runtime response paths/tokens resolve to product JSON or HTML output anchors", () => {
+  for (const caseId of coreExactOracleCaseIds) {
+    const request = coreExactOracleFor(caseId).requests[0];
+    for (const jsonPath of request.requiredJsonPaths || []) {
+      const keys = jsonPath.replace(/^\$\./, "").split(".").filter(key => key !== "*");
+      assert(keys.every(key => productSource.includes(key)),
+        `${caseId} JSON response path is not product-owned: ${jsonPath}`);
+    }
+    for (const tokenGroup of request.requiredBodyTokens || []) {
+      const alternatives = tokenGroup.split("|").map(value => value.trim()).filter(Boolean);
+      assert(alternatives.some(token => productSource.toLowerCase().includes(token.toLowerCase())),
+        `${caseId} HTML/negative response token is not product-owned: ${tokenGroup}`);
+    }
+  }
+});
+
+check("every exact API path is owned by ingress source and has semantic body assertions", () => {
+  for (const caseId of coreExactOracleCaseIds) {
+    const oracle = coreExactOracleFor(caseId);
+    const ownedPrefix = oracle.api.request.path.split("/{")[0].replace(/\{[^}]+\}/g, "");
+    assert(ownedPrefix === "/" || productSource.includes(ownedPrefix),
+      `${caseId} exact API/route owner missing in ingress source: ${ownedPrefix}`);
+    assert(oracle.api.bodyAssertions.length >= 2 &&
+      oracle.api.bodyAssertions[0].verifier.startsWith("scripts/internal/") &&
+      oracle.api.bodyAssertions[1].tokens.length > 0,
+    `${caseId} verifier-backed body assertions missing`);
+    assert(!oracle.api.forbiddenFields.some(value => !String(value).trim()), `${caseId} empty forbidden field token`);
+  }
+});
+
+check("negative boundaries use the same structured-material rule for response and DOM", () => {
+  const oracle = coreExactOracleFor("UI-033");
+  const responseTokens = oracle.requests[0].forbiddenJsonKeys;
+  const domTextTokens = oracle.dom[0].forbiddenTextTokens;
+  const domMaterialTokens = oracle.dom[0].forbiddenMaterialTokens;
+  assert(!responseTokens.includes("client") && !responseTokens.includes("viewer") &&
+    responseTokens.includes("viewerClientExposure"),
+  "UI-033 response boundary must distinguish narrative labels from structured exposure material");
+  assert(!domTextTokens.includes("client") && !domTextTokens.includes("viewer") &&
+    !domMaterialTokens.includes("client") && !domMaterialTokens.includes("viewer") &&
+    domMaterialTokens.includes("viewerClientExposure"),
+  "UI-033 DOM boundary must distinguish narrative labels from structured exposure material");
+  const noWrite = coreExactOracleFor("UI-036").dom[0];
+  assert(!noWrite.forbiddenTextTokens.includes("write") && !noWrite.forbiddenTextTokens.includes("provider") &&
+    !noWrite.forbiddenMaterialTokens.includes("write") && !noWrite.forbiddenMaterialTokens.includes("provider") &&
+    noWrite.forbiddenMaterialTokens.includes("WritePerformed") &&
+    noWrite.forbiddenMaterialTokens.includes("registryWrite") &&
+    noWrite.forbiddenMaterialTokens.includes("providerCall"),
+  "UI-036 no-write/provider boundary must use structured DOM material");
+  const noWriteResponse = coreExactOracleFor("UI-036").requests[0].forbiddenJsonKeys;
+  assert(!noWriteResponse.includes("write") && !noWriteResponse.includes("provider") &&
+    noWriteResponse.includes("WritePerformed") && noWriteResponse.includes("registryWrite") &&
+    noWriteResponse.includes("providerCall"),
+  "UI-036 response boundary must use structured no-write/provider material");
+
+  const rawResponse = coreExactOracleFor("UI-068").requests[0].forbiddenJsonKeys;
+  assert(!rawResponse.includes("raw") && !rawResponse.includes("source URL") &&
+    !rawResponse.includes("debug") && rawResponse.includes("rawEvidence") &&
+    rawResponse.includes("rawJson") && rawResponse.includes("rawLocator") &&
+    rawResponse.includes("rawProviderResponse") && rawResponse.includes("rawEvidenceIncluded") &&
+    rawResponse.includes("sourceUrl") && rawResponse.includes("credentialMaterial"),
+  "UI-068 response redaction must preserve structured material and exclude narrative tokens");
+
+  const narrativeTokens = new Set([
+    "client", "viewer", "debug", "자동 적용", "changed", "mutation", "변경",
+    "delivery", "send", "발송", "write", "provider", "raw", "source url",
+  ]);
+  for (const caseId of coreExactOracleCaseIds) {
+    const oracle = coreExactOracleFor(caseId);
+    for (const dom of oracle.dom) {
+      assert(dom.forbiddenTextTokens.length === 0, `${caseId} raw narrative DOM ban must remain empty`);
+      assert(!dom.forbiddenMaterialTokens.some(token => narrativeTokens.has(String(token).toLowerCase())),
+        `${caseId} narrative token leaked into structured DOM material`);
+    }
+    assert(!oracle.requests[0].forbiddenJsonKeys.some(token => narrativeTokens.has(String(token).toLowerCase())),
+      `${caseId} narrative token leaked into response material`);
+  }
+  assert(coreExactOracleFor("UI-068").requests[0].forbiddenJsonKeys.includes("literalPassword") &&
+    coreExactOracleFor("UI-068").requests[0].forbiddenJsonKeys.includes("plaintextCredential") &&
+    coreExactOracleFor("UI-068").requests[0].forbiddenJsonKeys.includes("unredactedTokenHash"),
+  "baseline secret response boundary changed");
+});
+
+check("state mutations bind exact request bodies, changed state, and authoritative cleanup", () => {
+  const mutations = coreExactOracleCaseIds.map(coreExactOracleFor).filter(oracle =>
+    oracle.beforeAfterState.comparison === "case-fixture-created-or-updated");
+  assert(mutations.length === 36, `core mutation oracle count mismatch: ${mutations.length}`);
+  for (const oracle of mutations) {
+    assert(oracle.api.request.body?.fixtureId === oracle.action.fixtureId &&
+      oracle.api.request.body.requiredFields.length > 0 &&
+      oracle.beforeAfterState.comparison === "case-fixture-created-or-updated" &&
+      ["delete-created-fixture", "restore-authoritative-snapshot"].includes(oracle.cleanup.mode) &&
+      oracle.cleanup.finalExpectation === "equal-before-or-absent",
+    `${oracle.caseId} mutation body/state/cleanup contract incomplete`);
+  }
+});
+
+check("read, preview POST, and negative cases forbid writes and require independent before/after readback", () => {
+  const reads = coreExactOracleCaseIds.map(coreExactOracleFor).filter(oracle =>
+    oracle.beforeAfterState.comparison === "authoritative-state-equal-before");
+  assert(reads.length === 252, `core read oracle count mismatch: ${reads.length}`);
+  for (const oracle of reads) {
+    assert(oracle.network.forbiddenRequests.some(request => request.methods.includes("PUT") && request.methods.includes("DELETE")) &&
+      oracle.beforeAfterState.comparison === "authoritative-state-equal-before" &&
+      oracle.cleanup.mode === "no-op-with-state-proof" && oracle.cleanup.finalExpectation === "equal-before",
+    `${oracle.caseId} read/no-write state contract incomplete`);
+  }
+  const preview = coreExactOracleFor("SRC-031");
+  assert(preview.requests[0].method === "POST" && preview.requests[0].allowedStatuses[0] === 200 &&
+    preview.requests[0].requiredJsonPaths.includes("$.credentialGate") &&
+    preview.forbiddenNetwork.every(item => item.method !== "POST"),
+  "SRC-031 POST preview/no-write runtime contract drift");
+});
+
+check("corrected AUTH disable and client-view bindings match executable product routes", () => {
+  const authDisable = coreExactOracleFor("AUTH-020").requests[0];
+  assert(authDisable.method === "POST" && authDisable.path === "/ops/api/users/{fixtureId}/disable" &&
+    JSON.stringify(authDisable.allowedStatuses) === "[200]" &&
+    JSON.stringify(authDisable.requiredJsonPaths) === JSON.stringify(["$.status", "$.user"]),
+  "AUTH-020 must execute the product disable action, not a nonexistent DELETE route");
+  const clientEvents = coreExactOracleFor("SRC-038").requests[0];
+  assert(clientEvents.path === "/client/api/views/{viewId}/events" &&
+    clientEvents.requiredJsonPaths.includes("$.events"),
+  "SRC-038 must bind the assigned runtime view rather than a synthetic fixture id");
+});
+
+check("RULE-092~104 and RULE-111 delegate to existing specialized exact oracles", () => {
+  const expected = [
+    "RULE-092", "RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098",
+    "RULE-100", "RULE-101", "RULE-102", "RULE-103", "RULE-104", "RULE-111",
+  ];
+  const actual = coreExactOracleCaseIds.filter(caseId => coreExactOracleFor(caseId).classification === "existing-specialized");
+  assert(JSON.stringify(actual) === JSON.stringify(expected), "existing-specialized case set drift");
+  for (const caseId of expected) {
+    const oracle = coreExactOracleFor(caseId);
+    assert(oracle.specializedOracleId === `existing:${caseId}`, `${caseId} specialized oracle reference missing`);
+  }
+});
+
+check("validator rejects missing, duplicate, route/role drift, and weak source ownership", () => {
+  expectInvalid("missing", catalog => catalog.pop(), "core oracle count mismatch");
+  expectInvalid("duplicate", catalog => { catalog[1] = structuredClone(catalog[0]); }, "case IDs must be unique");
+  expectInvalid("route", catalog => { catalog[0].route = "/wrong"; }, "route/role drift");
+  expectInvalid("role", catalog => { catalog[0].accountRole = "admin"; }, "route/role drift");
+  expectInvalid("owner digest", catalog => { catalog[0].owner.contextSha256 = "weak"; }, "owner contextSha256 missing");
+});
+
+check("validator rejects generic GET200, exists-only DOM, uncorrelated network, and state self-comparison", () => {
+  expectInvalid("generic body", catalog => {
+    catalog[0].api.bodyAssertions = [{ kind: "exists" }, { kind: "visible" }];
+  }, "API body assertions are generic or incomplete");
+  expectInvalid("exists-only DOM", catalog => {
+    catalog[0].domAssertions = [{ kind: "visible-control", selector: "body", expected: true }];
+  }, "DOM oracle is exists-only");
+  expectInvalid("HTML status/exists only", catalog => {
+    catalog[0].requests[0].requiredBodyTokens = [];
+  }, "runner request/body oracle missing");
+  const jsonIndex = coreExactOracleCaseIds.indexOf("UI-036");
+  expectInvalid("synthetic verifier path", catalog => {
+    catalog[jsonIndex].requests[0].requiredJsonPaths[0] = "$<verifier:fake>";
+  }, "synthetic JSONPath token forbidden");
+  expectInvalid("JSON status only", catalog => {
+    catalog[jsonIndex].requests[0].requiredJsonPaths = [];
+  }, "runner request/body oracle missing");
+  const redirectIndex = coreExactOracleCaseIds.indexOf("UI-005");
+  expectInvalid("redirect accepted as JSON", catalog => {
+    catalog[redirectIndex].requests[0].responseSchema = "json";
+    catalog[redirectIndex].requests[0].requiredJsonPaths = [];
+  }, "runner request/body oracle missing");
+  expectInvalid("uncorrelated", catalog => { catalog[0].network.correlationId = "generic"; }, "exact network correlation missing");
+  expectInvalid("non-executable forbidden wildcard", catalog => {
+    catalog[0].forbiddenNetwork[0].path = "/ops/api/{any}";
+  }, "forbidden network shape missing");
+  expectInvalid("state self compare", catalog => {
+    catalog[0].beforeAfterState.afterIdentity = catalog[0].beforeAfterState.beforeIdentity;
+  }, "before/after state oracle is self-comparison");
+});
+
+check("validator rejects absent API payload, forbidden fields, cleanup, and specialized link", () => {
+  const mutationIndex = coreExactOracleCaseIds.findIndex(caseId => coreExactOracleFor(caseId).api.request.method !== "GET");
+  expectInvalid("payload", catalog => { catalog[mutationIndex].action.semanticPayload.requiredFields = []; }, "API payload/semantic fields missing");
+  expectInvalid("forbidden", catalog => { catalog[0].api.forbiddenFields = []; }, "forbidden field contract missing");
+  expectInvalid("cleanup", catalog => { catalog[0].cleanup.verification = ""; }, "cleanup readback missing");
+  const specializedIndex = coreExactOracleCaseIds.indexOf("RULE-092");
+  expectInvalid("specialized", catalog => { catalog[specializedIndex].classification = "core-exact"; }, "specialized classification drift");
+});
+
+const failures = checks.filter(item => item.status === "FAIL");
+for (const item of checks) console.log(`[${item.status.toLowerCase()}] ${item.name}${item.error ? `: ${item.error}` : ""}`);
+console.log("\n== v3.9.0 UI exact core oracle contract summary ==");
+console.log(`- cases: ${coreExactOracleCaseIds.length}`);
+console.log(`- pass: ${checks.length - failures.length}`);
+console.log(`- fail: ${failures.length}`);
+console.log("- actualBrowserExecution: not-run-by-this-contract");
+if (failures.length > 0) process.exit(1);
+
+function expectInvalid(label, mutate, expectedMessage) {
+  const candidate = coreExactOracleCaseIds.map(caseId => structuredClone(coreExactOracleFor(caseId)));
+  mutate(candidate);
+  let message = "";
+  try { validateCoreExactOracleCatalog(candidate); } catch (error) { message = String(error?.message || error); }
+  assert(message.includes(expectedMessage), `${label} mutation accepted or wrong error: ${message}`);
+}
+
+function selectorSourceToken(selector) {
+  const value = String(selector || "");
+  if (!value || value === "body") return "";
+  const testId = value.match(/data-testid=["']([^"']+)/)?.[1];
+  if (testId) return `data-testid="${testId}"`;
+  const id = value.match(/#([A-Za-z0-9_-]+)/)?.[1];
+  if (id) return `id="${id}"`;
+  const data = value.match(/\[(data-[A-Za-z0-9_-]+)/)?.[1];
+  if (data) return data;
+  const className = value.match(/\.([A-Za-z0-9_-]+)/)?.[1];
+  return className || "";
+}
+
+function assertExecutableRequest(caseId, request) {
+  const serialized = JSON.stringify(request);
+  assert(!serialized.includes("$<") && !serialized.includes("<verifier:") &&
+    !/expectedBehaviorSha256:[a-f0-9]{64}/.test(serialized),
+  `${caseId} synthetic verifier/digest response token present`);
+  if (request.responseSchema === "json") {
+    assert(Array.isArray(request.requiredJsonPaths) && request.requiredJsonPaths.length >= 2 &&
+      request.requiredJsonPaths.every(value => /^\$\.[A-Za-z_][A-Za-z0-9_]*(?:\.(?:[A-Za-z_][A-Za-z0-9_]*|\*))*$/.test(value)) &&
+      Array.isArray(request.requiredBodyTokens) && request.requiredBodyTokens.length === 0,
+    `${caseId} JSON response contract is not executable`);
+    return;
+  }
+  assert(request.requiredJsonPaths === undefined,
+    `${caseId} non-JSON response must omit requiredJsonPaths for runtime fallback`);
+  if (["html", "negative-route"].includes(request.responseSchema)) {
+    assert(Array.isArray(request.requiredBodyTokens) && request.requiredBodyTokens.length > 0,
+      `${caseId} HTML/negative response token missing`);
+    return;
+  }
+  assert(request.responseSchema === "redirect" && request.allowedStatuses.length === 1 &&
+    request.allowedStatuses[0] === 302 && request.requiredBodyTokens.length === 0,
+  `${caseId} redirect response contract invalid`);
+}
+
+function readTree(relativeDir, include) {
+  const root = path.join(rootDir, relativeDir);
+  const chunks = [];
+  const visit = dir => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const target = path.join(dir, entry.name);
+      if (entry.isDirectory()) visit(target);
+      else if (include(target)) chunks.push(fs.readFileSync(target, "utf8"));
+    }
+  };
+  visit(root);
+  return chunks.join("\n");
+}
+
+function readJson(relativePath) {
+  return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));
+}
+
+function changedOracleIds(before, after) {
+  return before.filter((item, index) => JSON.stringify(item) !== JSON.stringify(after[index]))
+    .map(item => item.caseId);
+}
+
+function check(name, fn) {
+  try { fn(); checks.push({ name, status: "PASS" }); }
+  catch (error) { checks.push({ name, status: "FAIL", error: String(error?.message || error) }); }
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}

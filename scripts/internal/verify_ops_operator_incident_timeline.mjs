@@ -5,15 +5,23 @@ import fs from "node:fs";
 import process from "node:process";
 
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const pageSource = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const serverSh = readText("server.sh");
+const dashboardPage = extractCppFunctionBlock(pageSource, "void AppendOpsDashboardPage(");
+const timelineItems = extractNamedFunctionBlock(script, "dashboardIncidentTimelineItems");
+const timelineSourceKey = extractNamedFunctionBlock(script, "dashboardIncidentSourceKey");
+const timelineSearchText = extractNamedFunctionBlock(script, "dashboardIncidentSearchText");
+const timelineMatchesFilter = extractNamedFunctionBlock(script, "dashboardIncidentMatchesFilter");
+const timelineProjection = extractNamedFunctionBlock(script, "dashboardIncidentProjectCandidates");
+const timelineRenderer = extractNamedFunctionBlock(script, "renderDashboardIncidentTimeline");
 
 check("ops dashboard exposes operator incident source filters", () => {
   for (const snippet of [
@@ -24,7 +32,7 @@ check("ops dashboard exposes operator incident source filters", () => {
     '<option value="rule-warning">Rule Warning</option>',
     '<option value="runtime-status">Runtime Status</option>',
   ]) {
-    assertIncludes(server, snippet, "incident timeline shell");
+    assertIncludes(dashboardPage, snippet, "incident timeline shell");
   }
 });
 
@@ -49,8 +57,102 @@ check("incident timeline renders supported incident source types", () => {
   ]) {
     assertIncludes(script, snippet, "operator incident timeline script");
   }
-  assert(!script.includes("/ops/api/incidents"), "must not introduce a new incident API");
-  assert(!server.includes("media-server.ops.incident"), "must not introduce a new incident schema");
+  const timelineProductBoundary = `${dashboardPage}\n${timelineItems}\n${timelineRenderer}`;
+  assert(!timelineProductBoundary.includes("/ops/api/incidents"),
+    "must not introduce a new incident API in the dashboard timeline owner");
+  assert(!timelineProductBoundary.includes("media-server.ops.incident"),
+    "must not introduce a new incident schema in the dashboard timeline owner");
+});
+
+check("bounded incident timeline retains authoritative EventRecord rows", () => {
+  for (const snippet of [
+    "'root-cause': 600",
+    "'event-record': 500",
+    "'source-health': 400",
+    "'rule-warning': 300",
+    "'runtime-status': 200",
+    "'log-tail': 100",
+    "const reserved = [...rootTimeline, ...eventTimeline]",
+    "const orderedItems = [...reserved, ...remaining]",
+    "dashboardIncidentProjectCandidates",
+  ]) assertIncludes(script, snippet, "deterministic incident source band");
+  assert(!timelineItems.includes("Number.MAX_SAFE_INTEGER"),
+    "incident source ranks must not depend on MAX_SAFE_INTEGER arithmetic");
+  assert(!timelineItems.includes("sort: dashboardIncidentSortValue(item)"),
+    "EventRecord timestamp must not be compared with source rank classes");
+
+  const rank = Object.freeze({ root: 600, event: 500, source: 400, rule: 300, runtime: 200, log: 100 });
+  const bounded = ({ root = 0, event = 0, source = 0, rule = 0, runtime = 0, log = 0 }, permutation = []) => {
+    const make = (kind, count) => Array.from({ length: count }, (_, index) => ({ kind, index, rank: rank[kind] }));
+    const groups = {
+      root: make("root", Math.min(root, 3)),
+      event: make("event", Math.min(event, 4)),
+      source: make("source", Math.min(source, 3)),
+      rule: make("rule", Math.min(rule, 3)),
+      runtime: make("runtime", Math.min(runtime, 1)),
+      log: make("log", Math.min(log, 3)),
+    };
+    const reserved = [...groups.root, ...groups.event];
+    const order = permutation.length ? permutation : ["source", "rule", "runtime", "log"];
+    const remaining = order.flatMap(kind => groups[kind])
+      .sort((left, right) => (right.rank - left.rank) || (left.index - right.index));
+    return [...reserved, ...remaining].slice(0, 8);
+  };
+  const permutations = [
+    ["source", "rule", "runtime", "log"],
+    ["log", "runtime", "rule", "source"],
+    ["rule", "source", "log", "runtime"],
+  ];
+  for (let root = 0; root <= 3; root += 1) {
+    for (let event = 1; event <= 4; event += 1) {
+      for (const permutation of permutations) {
+        const items = bounded({ root, event, source: 3, rule: 3, runtime: 1, log: 3 }, permutation);
+        assert(items.length <= 8, "incident timeline exceeded the global bound");
+        assert(items.filter(item => item.kind === "event").length === event,
+          `EventRecord band was truncated: root=${root} event=${event}`);
+        assert(items.filter(item => item.kind === "event").every((item, index) => item.index === index),
+          "EventRecord source-relative order drifted");
+      }
+    }
+  }
+});
+
+check("active incident filters are applied before the global bound", () => {
+  const project = Function(
+    `"use strict";\n${timelineSourceKey}\n${timelineSearchText}\n${timelineMatchesFilter}\n${timelineProjection}\nreturn dashboardIncidentProjectCandidates;`,
+  )();
+  const ordered = [
+    ...Array.from({ length: 8 }, (_, index) => ({ source: "Higher band", title: `higher ${index}` })),
+    { source: "Log tail", title: "owned marker candidate" },
+  ];
+  const unfiltered = project(ordered, {}, 8);
+  assert(unfiltered.inputItems.length === 9 &&
+    unfiltered.filteredItems.length === 9 &&
+    unfiltered.boundedItems.length === 8 &&
+    unfiltered.boundedItems.every(item => item.source !== "Log tail"),
+  "default ordering/bound contract drifted");
+  const sourceFiltered = project(ordered, { source: "log-tail", query: "" }, 8);
+  assert(sourceFiltered.inputItems.length === 9 &&
+    sourceFiltered.filteredItems.length === 1 &&
+    sourceFiltered.boundedItems.length === 1 &&
+    sourceFiltered.boundedItems[0].source === "Log tail",
+  "source filter was applied after the global bound");
+  const queryFiltered = project(ordered, { source: "", query: "owned marker" }, 8);
+  assert(queryFiltered.filteredItems.length === 1 &&
+    queryFiltered.boundedItems.length === 1,
+  "query filter was applied after the global bound");
+});
+
+check("incident timeline emits bounded lifecycle evidence without payload material", () => {
+  for (const snippet of [
+    "incidentRenderPhase",
+    "incidentInputCounts",
+    "incidentFilteredCounts",
+    "incidentBoundedCounts",
+    "eventRecordInputCount",
+    "eventRecordBoundedCount",
+    "eventRecordDomCount",
+  ]) assertIncludes(timelineRenderer, snippet, "incident lifecycle evidence");
 });
 
 check("incident workflow is styled for responsive ops review", () => {

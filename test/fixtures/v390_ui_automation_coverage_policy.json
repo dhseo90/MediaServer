@@ -1,0 +1,54 @@
+{
+  "schema": "media-server.v390-ui-automation-coverage-policy.v4",
+  "inventorySource": "docs/project-feature-test-inventory.md",
+  "implementationEvidenceSource": "test/fixtures/project_feature_implementation_evidence.json",
+  "automationCaseManifestSource": "test/fixtures/v390_ui_native_exact_cases.json",
+  "canonicalCaseManifestSource": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
+  "actualAutomationSummarySource": "test/fixtures/v390_ui_current_evidence_state.json",
+  "historicalManifestSource": "docs/release-artifacts/v3.9.0/historical-invalid-ui-evidence.json",
+  "expectedReadiness": {
+    "inventoryFeatures": 986,
+    "exactUiTestIds": 424,
+    "nativeExecutablePositive": 423,
+    "negativeRouteExecutable": 1,
+    "unsupported": 0
+  },
+  "defaultExecutionState": {
+    "pass": 0,
+    "fail": 0,
+    "notRun": 424,
+    "unsupported": 0
+  },
+  "classifications": {
+    "nativeExecutable": {
+      "disposition": "native-executable",
+      "reasonCode": "source-ready-current-not-run"
+    },
+    "negativeRoute": {
+      "caseIds": ["UI-018"],
+      "disposition": "negative-route",
+      "reasonCode": "source-ready-current-not-run"
+    }
+  },
+  "requiredActualArtifacts": [
+    "screenshot",
+    "trace",
+    "console",
+    "serverLog",
+    "visualMeasurement",
+    "visualDiff"
+  ],
+  "boundaries": {
+    "exactProductWorkflowDesignComplete": true,
+    "canonicalRequestedObservedSchemaComplete": true,
+    "primaryActionCompletionOracleComplete": true,
+    "visualMatrixComplete": true,
+    "policyQualifierIndependenceComplete": true,
+    "exactNativeWorkflowReadinessComplete": true,
+    "actualAutomationExecutionComplete": false,
+    "manualUiFulltestEvidence": false,
+    "executionEvidenceStatus": "current-not-run",
+    "readinessIsNotExecutionPass": true,
+    "historicalConsumerPolicy": "deny-current-evidence"
+  }
+}

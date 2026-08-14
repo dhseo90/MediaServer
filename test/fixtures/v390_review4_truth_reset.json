@@ -1,0 +1,28 @@
+{
+  "schema": "media-server.v390-review4-truth-reset.v2",
+  "sourceRelease": "v3.9.0",
+  "auditBaseCommit": "f5dc8ed4086cc8fe46d2fad8155bdfa8956b6095",
+  "classificationBoundary": "source-implementation-only-not-runtime-pass",
+  "classifications": {
+    "implementedSource": [1, 2, 3, 4, 7, 8, 13, 15, 19, 20, 27, 28, 29, 30, 31, 32, 33, 35],
+    "partialSource": [5, 6, 9, 10, 11, 12, 21, 22, 23, 24, 25, 26, 34],
+    "incompleteSource": [14, 16, 17, 18]
+  },
+  "expectedCounts": {
+    "implementedSource": 18,
+    "partialSource": 13,
+    "incompleteSource": 4,
+    "total": 35
+  },
+  "review4_50SnapshotMetrics": {
+    "discoverySourceFiles": 606,
+    "httpServerLines": 42897,
+    "productUiScriptLines": 10217
+  },
+  "coverageBoundary": {
+    "exactNativeWorkflowReadinessComplete": true,
+    "policyQualifierIndependenceComplete": true,
+    "actualAutomationExecutionComplete": false,
+    "manualUiFulltestEvidence": false
+  }
+}

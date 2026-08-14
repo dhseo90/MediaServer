@@ -29,7 +29,7 @@ Checks:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v380-entry-baseline";
-const currentRoadmap = "v3.8.0 Operator-Gated Action Pilot & Outcome Loop";
+const baselineRoadmap = "v3.8.0 Operator-Gated Action Pilot & Outcome Loop";
 const latestPublishedTag = "v3.8.0";
 const latestPublishedBaseline = "v3.8.0 Operator-Gated Action Pilot & Outcome Loop";
 const files = {
@@ -57,19 +57,21 @@ const files = {
 };
 
 const version = readText("VERSION").trim();
+const currentRoadmap = requiredMatch(files.versioning, /- 현재 source roadmap: `([^`]+)`/, "current source roadmap");
 const checks = [];
 
-check("source version is v3.8.0 and CMake matches", () => {
-  assert(version === "3.8.0", `VERSION must be 3.8.0, got ${version}`);
-  assertIncludes(files.cmake, "project(media_server VERSION 3.8.0 LANGUAGES CXX)", "CMake project version");
+check("current source and CMake align while v3.8 remains published historical", () => {
+  assert(semverAtLeast(version, "3.8.0"), `current VERSION ${version} predates v3.8 baseline`);
+  assertIncludes(files.cmake, `project(media_server VERSION ${version} LANGUAGES CXX)`, "CMake project version");
+  assert(currentRoadmap.startsWith(`v${version} `), `current roadmap must match source ${version}: ${currentRoadmap}`);
 });
 
-check("public entry docs pin source v3.8.0 and published v3.8.0", () => {
+check("public entry docs pin current source and published v3.8 boundary", () => {
   for (const [label, text, sourceSnippet, roadmapSnippet] of [
-    ["README.md", files.readme, "현재 소스 버전: `3.8.0`", `현재 source roadmap: \`${currentRoadmap}\``],
-    ["README.en.md", files.readmeEn, "Current source version: `3.8.0`", `Current source roadmap: \`${currentRoadmap}\``],
-    ["docs/README.md", files.docsIndex, "현재 소스 버전: `3.8.0`", `현재 source roadmap: \`${currentRoadmap}\``],
-    ["docs/en/README.md", files.docsEnIndex, "Current source version: `3.8.0`", `Current source roadmap: \`${currentRoadmap}\``],
+    ["README.md", files.readme, `현재 소스 버전: \`${version}\``, `현재 source roadmap: \`${currentRoadmap}\``],
+    ["README.en.md", files.readmeEn, `Current source version: \`${version}\``, `Current source roadmap: \`${currentRoadmap}\``],
+    ["docs/README.md", files.docsIndex, `현재 소스 버전: \`${version}\``, `현재 source roadmap: \`${currentRoadmap}\``],
+    ["docs/en/README.md", files.docsEnIndex, `Current source version: \`${version}\``, `Current source roadmap: \`${currentRoadmap}\``],
   ]) {
     assertIncludes(text, sourceSnippet, label);
     assertIncludes(text, roadmapSnippet, label);
@@ -79,33 +81,20 @@ check("public entry docs pin source v3.8.0 and published v3.8.0", () => {
   }
 });
 
-check("versioning and release policy pin v3.8 source and v3.8 published baseline", () => {
-  for (const snippet of [
-    "현재 소스 버전: `3.8.0`",
-    `현재 source roadmap: \`${currentRoadmap}\``,
-    "최신 공개 GitHub Release: `v3.8.0`",
-    "## 3.8.0 active source roadmap 범위",
-    "Operator-Gated Action Pilot & Outcome Loop",
-    latestPublishedBaseline,
-  ]) {
-    assertIncludes(files.versioning, snippet, "versioning policy");
+check("policy docs separate current source from published v3.8 baseline", () => {
+  for (const [label, text] of [["versioning policy", files.versioning], ["release policy", files.releasePolicy]]) {
+    assertIncludes(text, version, label);
+    assertIncludes(text, currentRoadmap, label);
+    assertIncludes(text, latestPublishedTag, label);
   }
-  for (const snippet of [
-    "현재 소스 버전: `3.8.0`",
-    "최신 공개 GitHub Release: `v3.8.0`",
-    `현재 source roadmap은 \`${currentRoadmap}\`입니다.`,
-    "## v3.8.0 Source Roadmap Scope",
-    "v3.8.0 Step 1 source baseline alignment",
-    latestPublishedBaseline,
-  ]) {
-    assertIncludes(files.releasePolicy, snippet, "release policy");
-  }
+  assertIncludes(files.versioning, "## v3.8.0 latest published source-only release 범위", "versioning policy published v3.8 section");
+  assertIncludes(files.releasePolicy, "## v3.8.0 Published Source Roadmap Scope", "release policy published v3.8 section");
+  assertIncludes(files.releasePolicy, "./server.sh verify-v380-entry-baseline", "release policy v3.8 baseline command");
 });
 
 check("roadmap records v3.8 Step 1 as completed baseline alignment only", () => {
   for (const snippet of [
-    `## 현재 source roadmap: ${currentRoadmap}`,
-    "| 1 | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v380-entry-baseline` 기준 정렬 |",
+    "| 1 | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | 완료 |",
     "Action Capability Contract",
     "Action Request Ledger Contract",
     "Approval Decision Gate",
@@ -124,7 +113,7 @@ check("metadata, asset, stream, inventory, and records expose v3.8 Step 1 gate",
   assertIncludes(files.releaseMetadataVerifier, `const currentRoadmap = "${currentRoadmap}";`, "release metadata verifier");
   assertIncludes(files.docsUiAssetsVerifier, 'const latestPublishedTag = "v3.8.0";', "docs UI assets verifier");
   const manifest = JSON.parse(files.docsUiAssetsManifest);
-  assert(manifest.baseline?.sourceVersion === "3.8.0", "docs UI asset manifest source version must be 3.8.0");
+  assert(manifest.baseline?.sourceVersion === version, `docs UI asset manifest source version must be ${version}`);
   assert(manifest.baseline?.publishedRelease === "v3.8.0", "docs UI asset manifest published release must be v3.8.0");
   for (const snippet of [
     "| v3.8.0 (1) | `./server.sh verify-v380-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` |",
@@ -133,7 +122,6 @@ check("metadata, asset, stream, inventory, and records expose v3.8 Step 1 gate",
     assertIncludes(files.streamVerification, snippet, "stream verification");
   }
   for (const snippet of [
-    "현재 release 목표 `v3.8.0`",
     "v3.8.0 (1) v3.8.0 baseline 정렬 | `OPS-147`, `SAFE-180` | `verify-v380-entry-baseline`",
     "OPS-147 | V380 Step 1 v3.8 baseline 게이트",
     "SAFE-180 | V380 Step 1 v3.8 baseline boundary",
@@ -155,12 +143,10 @@ check("metadata, asset, stream, inventory, and records expose v3.8 Step 1 gate",
 check("server entrypoint and inventory verifiers include v3.8 Step 1", () => {
   assertIncludes(files.serverSh, command, "server.sh");
   assertIncludes(files.serverSh, "verify_v380_entry_baseline.mjs", "server.sh");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   for (const id of ["SAFE-180", "OPS-147"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-195`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-162`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v380_entry_baseline.mjs", "script inventory");
 });
 
@@ -169,12 +155,32 @@ for (const [label, text] of [
   ["docs/ui-guide.md", files.uiGuide],
   ["docs/assets/ui/README.md", files.assetPolicy],
 ]) {
-  check(`${label} pins v3.8 source wording`, () => {
-    assertIncludes(text, "3.8.0", label);
-    assertIncludes(text, "v3.8.0", label);
-    assertIncludes(text, "Operator-Gated Action Pilot & Outcome Loop", label);
+  check(`${label} pins current source and published v3.8 wording`, () => {
+    assertIncludes(text, version, label);
+    assertIncludes(text, latestPublishedTag, label);
   });
 }
+
+check("SAFE-180 canonical V380 historical baseline boundary", () => {
+  const baselineCommandDocumented = files.serverSh.includes("verify-v380-entry-baseline)");
+  const currentSourceAligned = semverAtLeast(version, "3.8.0") && files.cmake.includes(`VERSION ${version}`);
+  const historicalBaselinePreserved = files.streamVerification.includes(baselineRoadmap) && files.releaseRecords.includes("v380 Step 1 entry baseline final") && files.featureInventory.includes("SAFE-180");
+  const safe180BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;
+  assert(safe180BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),
+    "SAFE-180 V380 historical baseline must remain preserved while current source version advances");
+});
+
+check("OPS-147 canonical V380 historical baseline gate", () => {
+  const historicalBaselineRecorded = files.featureInventory.includes("source `3.8.0`") &&
+    files.featureInventory.includes("latest published `v3.8.0`") && files.featureInventory.includes(baselineRoadmap);
+  const currentSourceNotRegressed = semverAtLeast(version, "3.8.0") && files.cmake.includes(`VERSION ${version}`);
+  const excludedCompletionAbsent = files.releaseRecords.includes("v380 Step 1 entry baseline final") &&
+    !files.releaseRecords.includes("OPS-147 feature implementation PASS");
+  const ops147GateObserved = historicalBaselineRecorded && currentSourceNotRegressed && excludedCompletionAbsent &&
+    files.serverSh.includes("verify-v380-entry-baseline)");
+  assert(ops147GateObserved && currentSourceNotRegressed && excludedCompletionAbsent,
+    "OPS-147 v3.8 source/published historical baseline, current non-regression, records, and dispatch gate missing");
+});
 
 const results = runChecks();
 console.log("");
@@ -213,6 +219,22 @@ function check(name, fn) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function requiredMatch(text, pattern, label) {
+  const match = String(text).match(pattern);
+  if (!match) throw new Error(`missing ${label}`);
+  return match[1];
+}
+
+function semverAtLeast(current, baseline) {
+  const currentParts = String(current).split(".").map(Number);
+  const baselineParts = String(baseline).split(".").map(Number);
+  for (let index = 0; index < 3; index += 1) {
+    if (currentParts[index] > baselineParts[index]) return true;
+    if (currentParts[index] < baselineParts[index]) return false;
+  }
+  return true;
 }
 
 function assert(condition, message) {

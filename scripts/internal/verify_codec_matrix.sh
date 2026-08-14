@@ -29,6 +29,7 @@ LAUNCHER_PIDS=()
 LAUNCHER_LOGS=()
 LAST_LAUNCHER_PID=""
 LAST_LAUNCHER_LOG=""
+AUTH_COOKIE_FILE=""
 
 log_info() {
   echo "[info] $*"
@@ -162,6 +163,26 @@ cleanup() {
   for log_file in "${LAUNCHER_LOGS[@]:-}"; do
     cleanup_whip_session_from_log "${log_file}"
   done
+  if [[ -n "${AUTH_COOKIE_FILE}" ]]; then
+    rm -f "${AUTH_COOKIE_FILE}"
+  fi
+}
+
+prepare_auth_cookie() {
+  if [[ -z "${MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD:-}" ]]; then
+    return
+  fi
+  AUTH_COOKIE_FILE="$(mktemp "${TMPDIR:-/tmp}/media-server-codec-auth-cookie.XXXXXX")"
+  chmod 600 "${AUTH_COOKIE_FILE}"
+  local login_code
+  login_code="$(curl -sS -o /dev/null -w '%{http_code}' -c "${AUTH_COOKIE_FILE}" \
+    -X POST --data-urlencode "username=admin" \
+    --data-urlencode "password=${MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD}" \
+    "http://${HTTP_ADDRESS}:${HTTP_PORT}/login")"
+  if [[ "${login_code}" != "302" ]]; then
+    echo "[verify] admin authentication for codec WebRTC checks failed"
+    exit 1
+  fi
 }
 
 start_local_launcher() {
@@ -307,10 +328,15 @@ start_whip_publisher() {
   # WebRTC source 검증은 WHIP publisher를 먼저 띄우고 sourceId를 MediaServer consumer 요청에서 사용한다.
   # launcher PID가 실제 Python publisher를 가리키게 해야 SIGTERM 시 cleanup DELETE가 실행된다.
   local log_file="/tmp/${name}.publisher.log"
+  local auth_args=()
+  if [[ -n "${AUTH_COOKIE_FILE}" ]]; then
+    auth_args=(--cookie-file "${AUTH_COOKIE_FILE}")
+  fi
   nohup python3 -u "${SCRIPT_DIR}/whip_publish_test.py" \
     --http-base "${http_base}" \
     --source-id "${source_id}" \
     --duration "${duration_s}" \
+    "${auth_args[@]+"${auth_args[@]}"}" \
     > "${log_file}" 2>&1 &
   local launcher_pid=$!
   LAUNCHER_PIDS+=("${launcher_pid}")
@@ -325,13 +351,24 @@ start_whip_publisher() {
       return 1
     fi
     if grep -q "session created:" "${log_file}" 2>/dev/null; then
+      local source_id_ready_status=0
       if wait_for_published_webrtc_source_ready "${http_base}" "${source_id}" 20; then
-        log_info "publisher ready: sourceId=${source_id}"
-        return 0
+        source_id_ready_status=0
+      else
+        source_id_ready_status=$?
       fi
-      log_fail "${name}: WHIP publisher registered but media tracks did not become ready"
-      tail -n 80 "${log_file}" || true
-      return 1
+      local source_json_ready_status="${source_id_ready_status}"
+      if (( source_json_ready_status > 0 )); then
+        log_fail "${name}: SourceJson WHIP publisher registered but media tracks did not become ready"
+        tail -n 80 "${log_file}" || true
+        return 1
+      fi
+      if (( source_id_ready_status > 0 )); then
+        log_fail "${name}: source_id registry readiness failed"
+        return 1
+      fi
+      log_info "publisher ready: sourceId=${source_id}"
+      return 0
     fi
     sleep 1
   done
@@ -348,7 +385,8 @@ wait_for_published_webrtc_source_ready() {
 
   # WHIP HTTP 응답 직후에는 sourceId가 등록됐더라도 track descriptor가 아직 준비되지 않았을 수 있다.
   # 서버 runtime status에서 video/audio readiness를 확인한 뒤 consumer 검증으로 넘어간다.
-  python3 - "${http_base}" "${source_id}" "${timeout_s}" <<'PY'
+  python3 - "${http_base}" "${source_id}" "${timeout_s}" "${AUTH_COOKIE_FILE}" <<'PY'
+import http.cookiejar
 import json
 import sys
 import time
@@ -357,10 +395,16 @@ import urllib.request
 http_base = sys.argv[1].rstrip("/")
 source_id = sys.argv[2]
 deadline = time.time() + float(sys.argv[3])
+cookie_file = sys.argv[4]
+opener = urllib.request.build_opener()
+if cookie_file:
+    cookie_jar = http.cookiejar.MozillaCookieJar(cookie_file)
+    cookie_jar.load(ignore_discard=True, ignore_expires=True)
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
 last = {}
 while time.time() < deadline:
     try:
-        with urllib.request.urlopen(f"{http_base}/lab/runtime/status", timeout=3) as response:
+        with opener.open(f"{http_base}/lab/runtime/status", timeout=3) as response:
             payload = json.loads(response.read().decode("utf-8"))
     except Exception as exc:  # noqa: BLE001
         last = {"error": str(exc)}
@@ -392,7 +436,11 @@ cleanup_whip_session_from_log() {
     [[ -z "${session_id}" ]] && continue
     local encoded_session
     encoded_session="$(urlencode "${session_id}")"
-    if curl -fsS -X DELETE "http://${HTTP_ADDRESS}:${HTTP_PORT}/whip/publish/session/${encoded_session}" >/dev/null 2>&1; then
+    local auth_args=()
+    if [[ -n "${AUTH_COOKIE_FILE}" ]]; then
+      auth_args=(-b "${AUTH_COOKIE_FILE}")
+    fi
+    if curl -fsS "${auth_args[@]+"${auth_args[@]}"}" -X DELETE "http://${HTTP_ADDRESS}:${HTTP_PORT}/whip/publish/session/${encoded_session}" >/dev/null 2>&1; then
       log_info "WHIP publish session deleted: ${session_id}"
     fi
   done < <(sed -n 's/.*session created: \([^ ]*\).*/\1/p' "${log_file}" | sort -u)
@@ -477,9 +525,9 @@ verify_rtsp_case() {
   local url="rtsp://${RTSP_ADDRESS}:${RTSP_PORT}/${ROUTE}${route_suffix}?${query}"
   local output
   if ! output="$(probe_rtsp_url "${url}" "${timeout_us}" 2>&1)"; then
-    log_fail "${name}: RTSP probe failed (${url})"
+    log_fail "${name}: OnMediaConfigure RTSP probe failed (${url})"
     echo "${output}" | sed 's/^/  /'
-    return
+    return 1
   fi
 
   local video_codec=""
@@ -494,7 +542,8 @@ verify_rtsp_case() {
 
   local normalized_video="${video_codec:-none}"
   local normalized_audio="${audio_codec:-none}"
-  if [[ "${normalized_video}" == "${expect_video}" && "${normalized_audio}" == "${expect_audio}" ]]; then
+  local OnMediaConfigure_readback="${normalized_video}/${normalized_audio}"
+  if [[ "${OnMediaConfigure_readback}" == "${expect_video}/${expect_audio}" ]]; then
     log_pass "${name}: RTSP ${route_suffix:-/default} -> ${normalized_video}/${normalized_audio}"
   else
     log_fail "${name}: RTSP ${route_suffix:-/default} expected ${expect_video}/${expect_audio}, got ${normalized_video}/${normalized_audio}"
@@ -566,7 +615,11 @@ verify_webrtc_case() {
   local timeout_s="$3"
   local url="http://${HTTP_ADDRESS}:${HTTP_PORT}/webrtc/session?${query}"
   local response
-  if ! response="$(curl -sS --max-time "${timeout_s}" -X POST "${url}")"; then
+  local auth_args=()
+  if [[ -n "${AUTH_COOKIE_FILE}" ]]; then
+    auth_args=(-b "${AUTH_COOKIE_FILE}")
+  fi
+  if ! response="$(curl -sS "${auth_args[@]+"${auth_args[@]}"}" --max-time "${timeout_s}" -X POST "${url}")"; then
     log_fail "${name}: WebRTC session create failed (${url})"
     return
   fi
@@ -603,7 +656,7 @@ PY
     return
   fi
 
-  curl -sS -X DELETE "http://${HTTP_ADDRESS}:${HTTP_PORT}/webrtc/session/${session_id}" >/dev/null 2>&1 || true
+  curl -sS "${auth_args[@]+"${auth_args[@]}"}" -X DELETE "http://${HTTP_ADDRESS}:${HTTP_PORT}/webrtc/session/${session_id}" >/dev/null 2>&1 || true
   log_pass "${name}: WebRTC signaling session created (${session_id})"
 }
 
@@ -756,7 +809,7 @@ PY
     if [[ "${SKIP_RTSP}" != "1" && "${source_skip_rtsp}" != "true" ]]; then
       while IFS='|' read -r route_suffix expect_video expect_audio; do
         [[ -z "${route_suffix}${expect_video}${expect_audio}" ]] && continue
-        verify_rtsp_case "${name}" "${query}" "${route_suffix}" "${expect_video}" "${expect_audio}" "${source_ffprobe_timeout_us}"
+        verify_rtsp_case "${name}" "${query}" "${route_suffix}" "${expect_video}" "${expect_audio}" "${source_ffprobe_timeout_us}" || true
       done < <(emit_rtsp_route_matrix "${verify_profile_json}")
     else
       log_skip "${name}: RTSP verification skipped"
@@ -810,6 +863,7 @@ main() {
     echo "[verify] HTTP server is not listening on ${HTTP_PORT}"
     exit 1
   fi
+  prepare_auth_cookie
 
   while IFS= read -r source_json; do
     [[ -z "${source_json}" ]] && continue

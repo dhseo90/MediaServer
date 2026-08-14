@@ -8,6 +8,11 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${MEDIA_SERVER_VERIFY_V250_INCIDENT_TEXT_BUILD_DIR:-/tmp/media_server_v250_incident_text_projection-$$}"
 CXX_BIN="${CXX:-c++}"
 
+fail() {
+  echo "[fail] $1" >&2
+  exit 1
+}
+
 mkdir -p "${BUILD_DIR}"
 
 echo "[verify] build v2.5.0 incident text projection smoke: ${BUILD_DIR}"
@@ -16,4 +21,11 @@ echo "[verify] build v2.5.0 incident text projection smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/incident_memory.cpp" \
   -o "${BUILD_DIR}/incident_text_projection_smoke"
 
-"${BUILD_DIR}/incident_text_projection_smoke"
+smoke_output="$("${BUILD_DIR}/incident_text_projection_smoke")"
+assert_IncidentProjectionDocumentJson() {
+  if ( [[ "${smoke_output}" != *"IncidentProjectionDocumentJson"* ]] ); then
+    fail "incident text projection runtime readback missing canonical serializer"
+  fi
+}
+assert_IncidentProjectionDocumentJson
+printf '%s\n' "${smoke_output}"

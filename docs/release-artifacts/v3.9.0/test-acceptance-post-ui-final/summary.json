@@ -1,0 +1,880 @@
+{
+  "schema": "media-server.v390-test-acceptance-bundle.v1",
+  "runId": "v390-test-acceptance-20260710100233-58896",
+  "command": "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final",
+  "executionMode": "actual",
+  "dryRun": false,
+  "fixtureMode": false,
+  "result": "PASS",
+  "stopOnFirstFail": true,
+  "failedStage": "",
+  "failedCommand": "",
+  "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final",
+  "runDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896",
+  "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/summary.json",
+  "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/report.md",
+  "finalAcceptanceCommandSet": [
+    {
+      "id": "actual-bundle",
+      "command": "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final",
+      "status": "actual-execution"
+    },
+    {
+      "id": "build",
+      "command": "./server.sh build",
+      "status": "executed-by-actual-bundle"
+    },
+    {
+      "id": "feature-gates",
+      "command": "26 current feature commands",
+      "status": "executed-by-actual-bundle"
+    },
+    {
+      "id": "server-longrun-30",
+      "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <run>/server-longrun-30",
+      "status": "executed-by-actual-bundle"
+    },
+    {
+      "id": "ui-automation",
+      "command": "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir <run>/ui-automation",
+      "status": "executed-by-actual-bundle"
+    },
+    {
+      "id": "server-longrun-120",
+      "command": "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <run>/server-longrun-120",
+      "status": "conditional-not-run"
+    }
+  ],
+  "stageOrder": [
+    "preflight",
+    "build",
+    "feature-gates",
+    "server-longrun-30",
+    "ui-automation",
+    "ui-replay",
+    "longrun-120-decision",
+    "server-longrun-120",
+    "cleanup",
+    "report"
+  ],
+  "stages": [
+    {
+      "id": "preflight",
+      "status": "PASS",
+      "command": "validate actual bundle inputs",
+      "exitCode": 0,
+      "startedAt": "2026-07-10T10:02:33.596Z",
+      "endedAt": "2026-07-10T10:02:33.596Z",
+      "durationMs": 0,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/preflight.log",
+      "summaryPath": "",
+      "tail": [],
+      "checks": [],
+      "details": {
+        "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final",
+        "runDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896",
+        "featureCommandCount": 26,
+        "uiBrowserMode": "playwright",
+        "run120": false
+      }
+    },
+    {
+      "id": "build",
+      "status": "PASS",
+      "command": "./server.sh build",
+      "exitCode": 0,
+      "startedAt": "2026-07-10T10:02:33.596Z",
+      "endedAt": "2026-07-10T10:02:34.059Z",
+      "durationMs": 463,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/build.log",
+      "summaryPath": "",
+      "tail": [
+        "[env] loaded override: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env",
+        "[1/2] configure: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx (ai=1, youtube=0)",
+        "-- Configuring done (0.1s)",
+        "-- Generating done (0.0s)",
+        "-- Build files have been written to: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx",
+        "[2/2] build",
+        "[100%] Built target media_server",
+        "[done] build=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server"
+      ],
+      "checks": []
+    },
+    {
+      "id": "feature-gates",
+      "status": "PASS",
+      "command": "26 current feature commands",
+      "exitCode": 0,
+      "startedAt": "2026-07-10T10:02:34.059Z",
+      "endedAt": "2026-07-10T10:03:08.238Z",
+      "durationMs": 34174,
+      "logPath": "",
+      "summaryPath": "",
+      "tail": [],
+      "checks": [
+        {
+          "id": "v390-stabilization-release-readiness",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-stabilization-release-readiness",
+          "exitCode": 0,
+          "durationMs": 42,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-01-v390-stabilization-release-readiness.log",
+          "tail": [
+            "[pass] Step 20 gate keeps release actions and long UI/soak evidence separate",
+            "== v3.9.0 stabilization/release readiness summary ==",
+            "- schema: media-server.v390-stabilization-release-readiness.v1",
+            "- step: v3.9.0 (20)",
+            "- scope: local stabilization gate wiring, release evidence records, AGENTS test category judgment, not-run boundaries",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30m120m: not-run-by-this-command",
+            "- publishedMetadata: not-run-by-this-command",
+            "- releaseActions: not-run-by-this-command",
+            "- fieldSmoke: not-run-by-this-command",
+            "- pass: 7",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-entry-baseline",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-entry-baseline",
+          "exitCode": 0,
+          "durationMs": 36,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-02-v390-entry-baseline.log",
+          "tail": [
+            "- command: verify-v390-entry-baseline",
+            "- currentVersion: 3.9.0",
+            "- currentRoadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation",
+            "- latestPublishedTag: v3.8.0",
+            "- latestPublishedBaseline: v3.8.0 Operator-Gated Action Pilot & Outcome Loop",
+            "- featureImplementation: not-run-by-this-command",
+            "- discoveryCompletion: not-run-by-this-command",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30Or120: not-run-by-this-command",
+            "- publishedMetadata: not-run-by-this-command",
+            "- pass: 11",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-feature-completion-inventory",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-feature-completion-inventory",
+          "exitCode": 0,
+          "durationMs": 33,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-03-v390-feature-completion-inventory.log",
+          "tail": [
+            "- inventory: docs/v390-feature-completion-inventory.md",
+            "- dispositionValues: 5",
+            "- discoverySourceGroups: 8",
+            "- actualFeatureDiscoveryCompletion: not-run-by-this-command",
+            "- featureDevelopment: not-run-by-this-command",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30: not-run-by-this-command",
+            "- longrun120: not-run-by-this-command",
+            "- publishedMetadata: not-run-by-this-command",
+            "- boundary: wrapper/preflight/dry-run/field-smoke/external-credential/no-device are not separate test areas",
+            "- pass: 13",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-user-review-gate",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-user-review-gate",
+          "exitCode": 0,
+          "durationMs": 32,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-04-v390-user-review-gate.log",
+          "tail": [
+            "- reviewReadyStatus: ready-for-user-review",
+            "- approvalStatusAtReviewGate: pending-user-approval",
+            "- featureDevelopmentAtReviewGate: blocked-before-user-approval",
+            "- currentActiveCandidateDevelopment: none",
+            "- closedCandidateDevelopment: V390-CAND-001..V390-CAND-010",
+            "- userApproval: not-run-by-this-command",
+            "- featureImplementation: not-run-by-this-command",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30Or120: not-run-by-this-command",
+            "- publishedMetadata: not-run-by-this-command",
+            "- pass: 6",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "manual-ui-evidence",
+          "status": "PASS",
+          "command": "./server.sh verify-manual-ui-evidence",
+          "exitCode": 0,
+          "durationMs": 53,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-05-manual-ui-evidence.log",
+          "tail": [
+            "[pass] manual UI docs keep new document requirements",
+            "[pass] manual UI docs keep merge requirements",
+            "[pass] manual checklist references UI fulltest document",
+            "[pass] manual checklist links evidence verifier",
+            "[pass] manual template links evidence verifier",
+            "[pass] manual UI docs link v2.2.0 UI Evidence Close-out",
+            "[pass] roadmap links evidence verifier",
+            "[pass] current release UI checklist requires direct UI evidence index",
+            "== Manual UI evidence verification summary ==",
+            "- result: not provided; template/checklist only",
+            "- pass: 24",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-evidence-test-gate-prep",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-evidence-test-gate-prep",
+          "exitCode": 0,
+          "durationMs": 49,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-06-v390-evidence-test-gate-prep.log",
+          "tail": [
+            "- schema: media-server.v390-evidence-test-gate-prep.v1",
+            "- command: verify-v390-evidence-test-gate-prep",
+            "- uiWrapperSchema: wrapper-only",
+            "- featureCoverageStatus: covered/missing",
+            "- longrunRunnerCriteria: stop-on-first-fail",
+            "- uiAutomationAdapterCriteria: free-tool-first",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30: not-run-by-this-command",
+            "- longrun120: not-run-by-this-command",
+            "- publishedMetadata: not-run-by-this-command",
+            "- pass: 9",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-onvif-credential-provider-status",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-onvif-credential-provider-status",
+          "exitCode": 0,
+          "durationMs": 35,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-07-v390-onvif-credential-provider-status.log",
+          "tail": [
+            "[pass] v3.9 feature completion inventory separates original review candidates from current active candidates",
+            "[pass] server entrypoint and inventory verifiers include v3.9 Step 11 command",
+            "== v3.9.0 ONVIF credential/provider status summary ==",
+            "- schema: media-server.ops.v390-onvif-credential-provider-status.v1",
+            "- step: v3.9.0 (11)",
+            "- route: /ops/api/onvif/credential-provider-status",
+            "- decision: primary provider none; fallback in-memory-fixture; persistent/external secret store deferred",
+            "- writes: no credential lookup, source/view write, client/viewer exposure, schema, or media mutation",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30Or120: not-run-by-this-command",
+            "- pass: 8",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-onvif-live-import-persist-decision",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-onvif-live-import-persist-decision",
+          "exitCode": 0,
+          "durationMs": 39,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-08-v390-onvif-live-import-persist-decision.log",
+          "tail": [
+            "[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 12",
+            "[pass] server entrypoint and inventory verifiers include v3.9 Step 12 command",
+            "== v3.9.0 ONVIF live import persist decision ==",
+            "- schema: media-server.ops.v390-onvif-live-import-persist-decision.v1",
+            "- step: v3.9.0 (12)",
+            "- route: /ops/api/onvif/live-import-persist-decision",
+            "- decision: manual paired save handoff; import-draft remains notSaved:true; no one-shot import persist",
+            "- writes: paired source/view save uses compensating rollback; decision route remains read-only",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30Or120: not-run-by-this-command",
+            "- pass: 6",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-vlm-rule-suggestion-draft-bridge",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-vlm-rule-suggestion-draft-bridge",
+          "exitCode": 0,
+          "durationMs": 39,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-09-v390-vlm-rule-suggestion-draft-bridge.log",
+          "tail": [
+            "[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 13",
+            "[pass] server entrypoint and inventory verifiers include v3.9 Step 13 command",
+            "== v3.9.0 VLM rule suggestion draft bridge ==",
+            "- schema: media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1",
+            "- step: v3.9.0 (13)",
+            "- route: /ops/api/vlm/rule-suggestion-draft-bridge",
+            "- decision: ops review-to-rule draft bridge; existing draft workflow remains manual-save-only",
+            "- writes: no rule/profile registry write by bridge, no auto apply, no provider/runtime call",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30Or120: not-run-by-this-command",
+            "- pass: 6",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-vlm-evaluation-promotion-guard",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-vlm-evaluation-promotion-guard",
+          "exitCode": 0,
+          "durationMs": 40,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-10-v390-vlm-evaluation-promotion-guard.log",
+          "tail": [
+            "- step: v3.9.0 (14)",
+            "- route: /ops/api/vlm/evaluation-promotion-guard",
+            "- profileWritePerformedByGuard: false",
+            "- activationPerformedByGuard: false",
+            "- runtimeVlmCallPerformed: false",
+            "- cloudProviderApiCalled: false",
+            "- sidecarWritePerformed: false",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30: not-run-by-this-command",
+            "- longrun120: not-run-by-this-command",
+            "- pass: 7",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-vlm-promotion-trust-boundary",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-vlm-promotion-trust-boundary",
+          "exitCode": 0,
+          "durationMs": 7181,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-11-v390-vlm-promotion-trust-boundary.log",
+          "tail": [
+            "[pass] failed-candidate-draft-rejected",
+            "[pass] review-active-rejected",
+            "[pass] rejected-update-preserves-original",
+            "[pass] tampered-reload-profile-quarantined",
+            "== v3.9.0 VLM promotion trust boundary ==",
+            "- schema: media-server.v390-vlm-promotion-trust-boundary-fixtures.v1",
+            "- catalog revision: v390-add1-03-2026-07-10",
+            "- HTTP cases: 14",
+            "- reload quarantine cases: 1",
+            "- client declared passed accepted: false",
+            "- server canonical provenance stored: true",
+            "- failures: 0"
+          ]
+        },
+        {
+          "id": "v390-backup-recovery-handoff-validation",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-backup-recovery-handoff-validation",
+          "exitCode": 0,
+          "durationMs": 72,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-12-v390-backup-recovery-handoff-validation.log",
+          "tail": [
+            "- schema: media-server.ops.v390-staging-restore-validation-handoff.v1",
+            "- step: v3.9.0 (15)",
+            "- route: /ops/api/source-registry/staging-restore-validation-handoff",
+            "- selectedMode: staging-restore-validation-checklist-result-handoff",
+            "- productionRestorePerformed: false",
+            "- automaticRecoveryPerformed: false",
+            "- resultArtifactPersistedByRoute: false",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30: not-run-by-this-command",
+            "- longrun120: not-run-by-this-command",
+            "- pass: 6",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-action-execution-deferral-decision",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-action-execution-deferral-decision",
+          "exitCode": 0,
+          "durationMs": 43,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-13-v390-action-execution-deferral-decision.log",
+          "tail": [
+            "- step: v3.9.0 (16)",
+            "- route: /ops/api/actions/execution-deferral-decision",
+            "- selectedMode: defer-all-action-writes",
+            "- actionExecutionPerformed: false",
+            "- sourceRecheckExecuted: false",
+            "- clientNoticeSent: false",
+            "- ruleApplyPerformed: false",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30: not-run-by-this-command",
+            "- longrun120: not-run-by-this-command",
+            "- pass: 7",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-conditional-field-ai-decisions",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-conditional-field-ai-decisions",
+          "exitCode": 0,
+          "durationMs": 50,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-14-v390-conditional-field-ai-decisions.log",
+          "tail": [
+            "- fieldSelectedMode: approval-only-minimal-field-evidence-bridge",
+            "- reidSchema: media-server.ops.v390-reid-assist-decision.v1",
+            "- reidRoute: /ops/api/analysis/reid-assist-decision",
+            "- reidSelectedMode: explicit-opt-in-provenance-gated-assist",
+            "- fieldSmokeExecuted: false",
+            "- providerCallPerformed: false",
+            "- modelBackedExecutionPerformed: false",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30: not-run-by-this-command",
+            "- longrun120: not-run-by-this-command",
+            "- pass: 8",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "v390-reid-readiness-consistency",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-reid-readiness-consistency",
+          "exitCode": 0,
+          "durationMs": 16960,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-15-v390-reid-readiness-consistency.log",
+          "tail": [
+            "[pass] checksum-missing: model-checksum-missing",
+            "[pass] checksum-invalid: model-checksum-invalid",
+            "[pass] provenance-whitespace: model-provenance-missing",
+            "[pass] checksum-mismatch: model-checksum-mismatch",
+            "[pass] complete-preflight: ready",
+            "== v3.9.0 Re-ID readiness consistency ==",
+            "- C++ capability matrices: 2",
+            "- actual HTTP cases: 10",
+            "- server-owned shared readiness: true",
+            "- preflight/session execution separated: true",
+            "- raw model material exposed: false",
+            "- failures: 0"
+          ]
+        },
+        {
+          "id": "v390-onvif-source-view-atomicity",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-onvif-source-view-atomicity",
+          "exitCode": 0,
+          "durationMs": 4402,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-16-v390-onvif-source-view-atomicity.log",
+          "tail": [
+            "[pass] second-write-failure-source-rollback",
+            "[pass] retry-after-fault",
+            "[pass] concurrent-pair-no-mix",
+            "[pass] restart-pair-consistency",
+            "[pass] temporary-registry-files-cleaned",
+            "== v3.9.0 ONVIF source/view atomicity ==",
+            "- schema: media-server.v390-onvif-source-view-atomicity-fixtures.v1",
+            "- cases: 8",
+            "- storageMode: paired-write-with-compensating-rollback",
+            "- partialSaveAfterInjectedFailure: false",
+            "- restartConsistency: true",
+            "- failures: 0"
+          ]
+        },
+        {
+          "id": "v390-structure-stabilization-handoff",
+          "status": "PASS",
+          "command": "./server.sh verify-v390-structure-stabilization-handoff",
+          "exitCode": 0,
+          "durationMs": 72,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-17-v390-structure-stabilization-handoff.log",
+          "tail": [
+            "[pass] server dispatch and script inventory expose Step 19 command",
+            "== v3.9.0 structure stabilization handoff summary ==",
+            "- schema: media-server.v390-structure-stabilization-handoff.v1",
+            "- command: verify-v390-structure-stabilization-handoff",
+            "- plan: docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+            "- structureImplementation: not-run-by-this-command",
+            "- uiFulltest: not-run-by-this-command",
+            "- longrun30m120m: not-run-by-this-command",
+            "- publishedMetadata: not-run-by-this-command",
+            "- releaseActions: not-run-by-this-command",
+            "- pass: 6",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "release-metadata",
+          "status": "PASS",
+          "command": "./server.sh verify-release-metadata",
+          "exitCode": 0,
+          "durationMs": 56,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-18-release-metadata.log",
+          "tail": [
+            "[pass] docs index points to backlog as current release source of truth",
+            "[pass] public entry docs keep release evidence source-of-truth deduped",
+            "[pass] public review pins current release wording",
+            "[pass] UI guide pins current release wording",
+            "[pass] UI asset policy pins current source and published baseline wording",
+            "== Release metadata consistency summary ==",
+            "- current version: 3.9.0",
+            "- current tag: v3.9.0",
+            "- latest published tag: v3.8.0",
+            "- published metadata: external-not-checked",
+            "- pass: 17",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "docs-links",
+          "status": "PASS",
+          "command": "./server.sh verify-docs-links",
+          "exitCode": 0,
+          "durationMs": 73,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-19-docs-links.log",
+          "tail": [
+            "== Docs link verification summary ==",
+            "- markdown files: 150",
+            "- local links: 788",
+            "- local images: 22",
+            "- local anchors: 99",
+            "- indexed docs: 77",
+            "- index coverage exclusions: 64",
+            "- failures: 0"
+          ]
+        },
+        {
+          "id": "docs-ui-assets",
+          "status": "PASS",
+          "command": "./server.sh verify-docs-ui-assets",
+          "exitCode": 0,
+          "durationMs": 45,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-20-docs-ui-assets.log",
+          "tail": [
+            "[pass] English README uses English UI screenshots",
+            "[pass] UI guide keeps product screenshots in the shared asset set",
+            "[pass] docs UI asset policy documents capture rules",
+            "[pass] managed UI asset manifest stays complete",
+            "[pass] capture script owns every documented UI asset",
+            "[pass] docs capture covers current screenshots",
+            "[pass] representative screenshot docs do not point at stale visual baselines",
+            "[pass] docs UI asset directory contains managed PNG files",
+            "[pass] VA documentation images keep full video frame bounds",
+            "== Docs UI asset verification summary ==",
+            "- pass: 10",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "feature-implementation-evidence",
+          "status": "PASS",
+          "command": "./server.sh verify-feature-implementation-evidence",
+          "exitCode": 0,
+          "durationMs": 1530,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-21-feature-implementation-evidence.log",
+          "tail": [
+            "[pass] negative fixture inventory-hash-drift",
+            "== Feature implementation evidence summary ==",
+            "- expectedFeatureRows: 974",
+            "- inventoryRows: 974",
+            "- manifestRows: 974",
+            "- sourceEvidenceRows: 974",
+            "- uiEvidenceRows: 440",
+            "- verifierEvidenceRows: 974",
+            "- manualUiCaseRows: 424",
+            "- validationErrors: 0",
+            "- negativeFixtures: 11/11",
+            "- executionEvidenceStatus: not-execution-evidence"
+          ]
+        },
+        {
+          "id": "project-inventory",
+          "status": "PASS",
+          "command": "./server.sh verify-project-inventory",
+          "exitCode": 0,
+          "durationMs": 202,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-22-project-inventory.log",
+          "tail": [
+            "[pass] manual UI seed tracker Re-ID pair bytetrack/off",
+            "[pass] manual UI seed tracker Re-ID pair lite/assist",
+            "[pass] manual UI seed tracker Re-ID pair kalman-lite/assist",
+            "[pass] manual UI seed tracker Re-ID pair bytetrack/assist",
+            "[pass] manual UI seed invalid policy tracker none Re-ID assist",
+            "[pass] manual UI seed final state minimum vaRules",
+            "[pass] manual UI VA seed matrix covers required current release cases",
+            "== Project feature/test inventory summary ==",
+            "- featureRows: 974",
+            "- seedFixture: test/fixtures/manual_ui_fulltest_va_seed_matrix.json",
+            "- pass: 14",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "feature-inventory-coverage",
+          "status": "PASS",
+          "command": "./server.sh verify-feature-inventory-coverage",
+          "exitCode": 0,
+          "durationMs": 326,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-23-feature-inventory-coverage.log",
+          "tail": [
+            "[pass] inventory row count is stable",
+            "[pass] inventory uses only the four approved test areas",
+            "[pass] coverage docs and server command are wired",
+            "[pass] exact implementation evidence manifest is valid",
+            "[pass] all feature IDs have exact coverage targets",
+            "[pass] negative missing-ID fixture fails",
+            "== Feature inventory coverage summary ==",
+            "- featureRows: 974",
+            "- covered: 974",
+            "- missing: 0",
+            "- pass: 6",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "release-evidence-index",
+          "status": "PASS",
+          "command": "./server.sh verify-release-evidence-index",
+          "exitCode": 0,
+          "durationMs": 32,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-24-release-evidence-index.log",
+          "tail": [
+            "[pass] release evidence index owns required evidence categories",
+            "[pass] release test records own detailed item and result tables",
+            "[pass] token usage ledger final evidence excludes temporary paths",
+            "[pass] skipped wording stays distinct from pass",
+            "[pass] unverified wording stays distinct from pass",
+            "[pass] test evidence records include token usage fields",
+            "[pass] public docs do not expose evidence ledger as a front-door document",
+            "[pass] server entrypoint exposes release evidence index verifier",
+            "== Release evidence index verification summary ==",
+            "- pass: 8",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "script-inventory",
+          "status": "PASS",
+          "command": "./server.sh verify-script-inventory",
+          "exitCode": 0,
+          "durationMs": 2710,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-25-script-inventory.log",
+          "tail": [
+            "[pass] tracked scripts are classified and referenced",
+            "[pass] project inventory delegates script file inventory to this verifier",
+            "[pass] project inventory maps verifier families without duplicating dispatch details",
+            "[pass] CMake does not define a separate untracked CTest registry",
+            "[pass] test entry scripts are reachable from test_all",
+            "[pass] auth verifier has no hardcoded test password defaults",
+            "[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default",
+            "[pass] critical verifier pass output avoids grouped feature-result wording",
+            "[pass] user-facing JS option parsers reject unknown options",
+            "== Script inventory verification summary ==",
+            "- pass: 11",
+            "- fail: 0"
+          ]
+        },
+        {
+          "id": "git-diff-check",
+          "status": "PASS",
+          "command": "git diff --check",
+          "exitCode": 0,
+          "durationMs": 22,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/feature-gates-26-git-diff-check.log",
+          "tail": []
+        }
+      ]
+    },
+    {
+      "id": "server-longrun-30",
+      "status": "PASS",
+      "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30",
+      "exitCode": 0,
+      "startedAt": "2026-07-10T10:03:08.238Z",
+      "endedAt": "2026-07-10T10:42:35.635Z",
+      "durationMs": 2367397,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30.log",
+      "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/summary.json",
+      "tail": [
+        "[progress] (7/9) runtime-idle test; remaining=2",
+        "[progress] (8/9) cleanup test; remaining=1",
+        "[progress] (9/9) report test; remaining=0",
+        "== v3.9.0 server longrun runner summary ==",
+        "- schema: media-server.v390-server-longrun.v1",
+        "- result: PASS",
+        "- durationMinutes: 30",
+        "- stopOnFirstFail: true",
+        "- failedPhase: ",
+        "- longrunEvidenceStatus: real-duration-evidence",
+        "- summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/summary.json",
+        "- reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.md"
+      ],
+      "checks": []
+    },
+    {
+      "id": "ui-automation",
+      "status": "PASS",
+      "command": "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation",
+      "exitCode": 0,
+      "startedAt": "2026-07-10T10:42:35.636Z",
+      "endedAt": "2026-07-10T10:42:50.513Z",
+      "durationMs": 14877,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation.log",
+      "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json",
+      "tail": [
+        "[progress] (8/8) UI-115 /ops/dashboard inspect-reid-assist-decision test; remaining=0",
+        "== v3.9.0 UI automation runner summary ==",
+        "- schema: media-server.v390-ui-automation.v1",
+        "- result: PASS",
+        "- browserMode: playwright",
+        "- caseCount: 8",
+        "- pass: 8",
+        "- fail: 0",
+        "- notRun: 0",
+        "- failedCaseId: ",
+        "- summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json",
+        "- reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/report.md"
+      ],
+      "checks": []
+    },
+    {
+      "id": "ui-replay",
+      "status": "PASS",
+      "command": "./server.sh verify-v390-ui-automation-report --summary /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json",
+      "exitCode": 0,
+      "startedAt": "2026-07-10T10:42:50.513Z",
+      "endedAt": "2026-07-10T10:42:50.556Z",
+      "durationMs": 43,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-replay.log",
+      "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json",
+      "tail": [
+        "[pass] cases keep route/control/action granularity",
+        "[progress] (5/7) failure report includes investigation evidence fields test; remaining=2",
+        "[pass] failure report includes investigation evidence fields",
+        "[progress] (6/7) failure stops later cases as not-run test; remaining=1",
+        "[pass] failure stops later cases as not-run",
+        "[progress] (7/7) cleanup and report artifacts are recorded test; remaining=0",
+        "[pass] cleanup and report artifacts are recorded",
+        "== v3.9.0 UI automation report summary ==",
+        "- schema: media-server.v390-ui-automation.v1",
+        "- summary: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json",
+        "- pass: 7",
+        "- fail: 0"
+      ],
+      "checks": []
+    },
+    {
+      "id": "longrun-120-decision",
+      "status": "PASS",
+      "command": "evaluate AGENTS 7.6.2 120-minute condition",
+      "exitCode": 0,
+      "startedAt": "2026-07-10T10:42:50.556Z",
+      "endedAt": "2026-07-10T10:42:50.556Z",
+      "durationMs": 0,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/longrun-120-decision.log",
+      "summaryPath": "",
+      "tail": [],
+      "checks": [],
+      "details": {
+        "decision": "not-required",
+        "directEvidence": "test-tooling-only change; no media/session/runtime drift signal",
+        "passSubstitution": false
+      }
+    },
+    {
+      "id": "server-longrun-120",
+      "status": "not-run",
+      "command": "",
+      "exitCode": null,
+      "startedAt": "",
+      "endedAt": "",
+      "durationMs": 0,
+      "logPath": "",
+      "summaryPath": "",
+      "tail": [],
+      "checks": [],
+      "reason": "120-minute condition not selected; --run-120 not provided"
+    },
+    {
+      "id": "cleanup",
+      "status": "PASS",
+      "command": "validate child cleanup and preserved evidence",
+      "exitCode": 0,
+      "startedAt": "2026-07-10T10:42:50.557Z",
+      "endedAt": "2026-07-10T10:42:50.557Z",
+      "durationMs": 0,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/cleanup.log",
+      "summaryPath": "",
+      "tail": [],
+      "checks": [],
+      "details": {
+        "status": "PASS",
+        "childCleanupVerified": true,
+        "temporaryArtifactsRemoved": true,
+        "preservedArtifacts": [
+          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/summary.json",
+          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/report.md",
+          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/summary.json",
+          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.md",
+          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json",
+          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/report.md"
+        ],
+        "preservationReason": "minimum reproducible summary/report/log/screenshot evidence inside requested output directory"
+      }
+    },
+    {
+      "id": "report",
+      "status": "PASS",
+      "command": "write acceptance summary/report",
+      "exitCode": 0,
+      "startedAt": "2026-07-10T10:42:50.557Z",
+      "endedAt": "2026-07-10T10:42:50.557Z",
+      "durationMs": 0,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/report.log",
+      "summaryPath": "",
+      "tail": [],
+      "checks": [],
+      "details": {
+        "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/summary.json",
+        "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/report.md"
+      }
+    }
+  ],
+  "localReadiness": "PASS",
+  "longrun30": {
+    "status": "PASS",
+    "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/summary.json",
+    "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.md",
+    "result": "PASS"
+  },
+  "uiAutomation": {
+    "status": "PASS",
+    "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json",
+    "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/report.md",
+    "result": "PASS"
+  },
+  "longrun120": {
+    "decision": "not-required",
+    "status": "not-run",
+    "summaryPath": "",
+    "passSubstitution": false
+  },
+  "knownUiClosureBlockers": [],
+  "automatedAcceptanceStatus": "eligible",
+  "manualUiFulltest": {
+    "status": "not-run-by-this-command",
+    "passClaimed": false
+  },
+  "cleanup": {
+    "status": "PASS",
+    "childCleanupVerified": true,
+    "temporaryArtifactsRemoved": true,
+    "preservedArtifacts": [
+      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/summary.json",
+      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/report.md",
+      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/summary.json",
+      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.md",
+      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json",
+      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/report.md"
+    ],
+    "preservationReason": "minimum reproducible summary/report/log/screenshot evidence inside requested output directory"
+  },
+  "publishedMetadata": {
+    "status": "not-run-by-this-command"
+  },
+  "releaseAction": {
+    "status": "not-run-by-this-command",
+    "actions": [
+      "push",
+      "PR",
+      "main merge",
+      "signed tag",
+      "GitHub Release",
+      "next branch"
+    ]
+  },
+  "evidenceBoundary": "actual automated acceptance is not Codex in-app manual UI fulltest, published metadata, or release-action evidence"
+}

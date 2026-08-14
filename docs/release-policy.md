@@ -6,11 +6,16 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.8.0`
+- 현재 소스 버전: `3.9.0`
 - 최신 공개 GitHub Release: `v3.8.0`
 - `v3.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`입니다.
+- 현재 source roadmap은 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
+- 현재 latest published release는 `v3.8.0`입니다.
+- 현재 공개 release tag 기준은 `v3.8.0`입니다.
+- 현재 source tag 기준은 `v3.9.0`입니다.
+- `v3.9.0` GitHub Release publish 완료는 tag, GitHub Release,
+  `verify-release-metadata --published` evidence가 있을 때만 완료로 기록합니다.
 
 ## 기본 공개 범위
 
@@ -55,9 +60,10 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.8.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.8.0`, current roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`,
-latest published `v3.8.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
+v3.9.0 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.9.0`, current roadmap
+`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`,
+latest published `v3.8.0` 기준으로 분리하는 local gate입니다. 최신 published baseline은
 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
@@ -65,10 +71,10 @@ latest published `v3.8.0` 기준으로 정렬하는 local gate입니다. 최신 
 
 Companion local gate:
 
-전용 companion command는 `./server.sh verify-v380-entry-baseline`입니다.
+전용 companion command는 `./server.sh verify-v390-entry-baseline`입니다.
 
 ```bash
-./server.sh verify-v380-entry-baseline
+./server.sh verify-v390-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
@@ -82,6 +88,25 @@ git diff --check
 이미지 검수와 `verify-docs-ui-assets` 재실행 결과를 별도 release test record에
 남깁니다.
 
+## Policy v4 UI evidence release gate
+
+UI 풀테스트는 안정화/30분/120분과 분리된 기존 UI 테스트 영역을 유지합니다.
+`AGENTS.md` 7.6.3에 따라 direct-browser, qualified-native-automation, hybrid evidence를
+허용하되 도구 이름이 아니라 exact case별 실제 조작과 evidence 품질로 판정합니다.
+
+Release UI PASS에는 현재 exact UI test ID 전수의 direct 또는 automation-equivalent
+PASS, fail/not-run/unsupported/unapproved exclusion/manual intervention 0, source binding,
+completion oracle, role/viewport/theme, artifact integrity/redaction, visual/replay/cleanup,
+교차 반응형·시각·role·client redaction·video/overlay·accessibility closure가 필요합니다.
+Completion/visual/cross-cutting/redaction evidence는 artifact root 안 실파일의
+bytes/SHA-256/content type/case·correlation ID에 attested되어야 합니다. PNG signature만,
+임의 JSON trace, 문자열 evidenceRef, summary의 redaction PASS/0 자기선언은 release evidence가
+아닙니다. Evaluator의 image decode, trace/payload schema, 독립 forbidden-material scan을
+통과해야 합니다.
+`./server.sh verify-ui-fulltest-evidence-policy-v4`의 policy validation PASS는 이 실행
+PASS를 대신하지 않으며 출력의 `uiFulltestPass=true`를 별도로 확인해야 합니다.
+Policy v4 전 historical evidence는 당시 결과로 보존하고 소급 승격하지 않습니다.
+
 ## 릴리즈 테스트 기록
 
 테스트 항목 상세와 버전별 테스트 결과는
@@ -94,6 +119,37 @@ git diff --check
 이관한 뒤 cleanup 대상에 넣습니다. 보존해야 하는 증거물은 임시 경로 밖
 `docs/release-artifacts/<version>/<run-id>/` 같은 저장소 보존 위치로 이동하고,
 redaction/크기/보존 사유를 기록합니다.
+
+## v3.9.0 Longrun Runner 역할
+
+v3.9.0 release-grade longrun runner는 `./server.sh verify-v390-server-longrun`입니다.
+
+- `verify-predev` remains legacy/compatibility cumulative predev runner.
+- `verify-v390-server-longrun` is the release-grade first-fail runner.
+- `verify-v390-server-longrun --duration-minutes 30`은 v3.9.0 30분 release-grade evidence를
+  생성할 때 사용합니다.
+- `verify-v390-server-longrun --duration-minutes 120`은 사용자 승인 또는 high-risk 조건으로
+  120분이 필요한 경우 사용합니다.
+- historical `verify-predev --soak-minutes 30` evidence remains preserved.
+- historical `verify-predev --soak-minutes 120` evidence remains preserved.
+
+이 역할 분리는 과거 evidence를 다시 해석하지 않습니다. 이전 release의
+`verify-predev --soak-minutes 30/120` PASS 행은 historical/compatibility evidence로
+남기고, v3.9.0 이후 release-grade first-fail 장시간 evidence는
+`verify-v390-server-longrun` summary/report로 분리합니다.
+`media-server.runtime-media-longrun-trigger-matrix.v1`의 v3.9.0 release-grade 30분/120분
+server longrun row도 `verify-v390-server-longrun --duration-minutes 30/120`을 표준
+trigger로 가리킵니다. 기존 `verify-predev --soak-minutes 30/120` command는 runner
+내부 delegated predev summary 또는 historical compatibility evidence 문맥에서만 사용합니다.
+
+RC gate artifact 보존은 별도 정책입니다.
+
+- `rc-release-checklist`는 RC gate summary/report를 작성하는 명령입니다.
+- `media-server-rc-gate` GitHub Actions artifact는 CI 보존 evidence입니다.
+- `rc-artifact-archive` 외부 archive는 CI artifact 밖 장기 보존 경로입니다.
+- 임시 `/tmp` 경로는 staging/local-only evidence이며 release-grade 보존 완료가 아닙니다.
+- release-grade 보존 완료는 `media-server-rc-gate` artifact 또는 외부 archive manifest와
+  checksum이 확인된 뒤에만 기록합니다.
 
 ## Published Release 확인
 
@@ -109,6 +165,36 @@ published metadata 확인에는 GitHub Releases list/view/latest, GitHub API
 gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 섞지 않습니다.
 
 ## GitHub Releases 운영
+
+### v3.9.0 Release Close-out Runbook
+
+아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
+순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
+v3.9.0은 현재 source branch이며 publish 완료 evidence가 아직 없습니다.
+
+Dry-run checklist:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+- `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
+- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
+- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
+
+Real close-out checklist:
+
+- Branch close
+- PR merge
+- Main fast-forward/sync
+- public-readiness, bundle policy, Actions status check
+- Tag 전략에 맞춘 signed annotated tag 생성
+- GitHub Release 생성/갱신
+- Latest 확인
+- published metadata 재검증
+- release branch 삭제는 사용자 별도 승인 후 진행
+- Next branch sync
+
+Do not list an item as pass unless it was actually executed. tag, GitHub Release,
+published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
+있을 때만 완료로 기록합니다.
 
 ### v3.8.0 Release Close-out Runbook
 
@@ -251,7 +337,26 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v3.8.0 Source Roadmap Scope
+## v3.9.0 Source Roadmap Scope
+
+현재 `3.9.0` source tree는 아래 roadmap을 source 기능과 local verifier 기준으로
+준비 중입니다. 이 범위는 latest published baseline이 아니며, publish 완료는 tag,
+GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+- Source Baseline Alignment
+- Feature Completion Inventory
+- User Review Gate
+- Feature completion development items after user approval
+- Structure stabilization preparation
+- Test model preparation
+
+현재 local gate는 `verify-v390-entry-baseline`, `verify-v390-feature-completion-inventory`,
+`verify-release-metadata`, `verify-project-inventory`, `verify-feature-inventory-coverage`,
+`verify-script-inventory` 연결을 확인합니다. 이 PASS는 실제 feature discovery 완료,
+기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분,
+published metadata, PR/main/tag/GitHub Release evidence가 아닙니다.
+
+## v3.8.0 Published Source Roadmap Scope
 
 현재 `3.8.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리했고, source-only latest published baseline으로 닫았습니다. UI 풀테스트, 30분,
@@ -278,6 +383,65 @@ release evidence로 기록합니다.
 `v3.8.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
 현재 공개 release tag 기준은 `v3.8.0`입니다. 현재 source tag 기준은 `v3.8.0`입니다.
+
+## v3.9.0 stabilization and release readiness
+
+v3.9.0 Step 20 local readiness gate는
+`media-server.v390-stabilization-release-readiness.v1` 기준으로 v3.9.0 Feature
+Completion, Structure Stabilization, and Test Model Preparation의 Step 1~19 local
+gates, AGENTS 테스트 카테고리 판정, release policy, release evidence index, release
+test records, docs links/assets, feature/script inventory, close-out dry-run command를
+같은 범위로 묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을
+승인하거나 실행하지 않습니다. `verify-release-metadata --published` 미실행 상태는
+local readiness PASS로 완료 처리하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v390-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v390-entry-baseline
+./server.sh verify-v390-feature-completion-inventory
+./server.sh verify-v390-user-review-gate
+./server.sh verify-manual-ui-evidence
+./server.sh verify-v390-evidence-test-gate-prep
+./server.sh verify-v390-onvif-credential-provider-status
+./server.sh verify-v390-onvif-live-import-persist-decision
+./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
+./server.sh verify-v390-vlm-incident-rule-provenance
+./server.sh verify-v390-vlm-evaluation-promotion-guard
+./server.sh verify-v390-backup-recovery-handoff-validation
+./server.sh verify-v390-action-execution-deferral-decision
+./server.sh verify-v390-deferred-product-owner-signoff
+./server.sh verify-v390-conditional-field-ai-decisions
+./server.sh verify-v390-structure-stabilization-handoff
+./server.sh verify-v390-structure-stabilization-readiness
+./server.sh verify-v390-external-field-smoke-no-device-closure
+./server.sh verify-v390-analysis-registry-durable-write
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.9.0 Step 20 local readiness gate는 Policy v4-qualified UI fulltest 실행, 30분/120분 longrun,
+published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
+않습니다.
+
+현재 v3.9.0 final close-out 테스트 순서는 `stabilization -> current feature gate -> 30분 ->
+exact 424 Policy v4 UI -> AGENTS 7.6.2 120분 판정/조건부 실행 -> cleanup/final integrity`입니다.
+120분 필요성은 `--run-120` 존재 여부가 아니라 current base..HEAD의 media/source-worker/shared-stream/
+runtime-fanout/cleanup-port 변경, 직접 매핑, release gate, upstream drift로 계산합니다. Trigger가 있으면
+실행 승인을 받은 경우에만 `--run-120`을 추가하고, trigger 없이 flag만 주면 거부합니다. 현재 사용자의 canonical
+command는 `./test_release.sh`입니다. `./server.sh verify-v390-test-acceptance-bundle`은 launcher가 내부적으로 호출하는 구현 세부사항이며, acceptance가 throwaway server·account/role·storage-state·Playwright/browser·PID/port/artifact cleanup을 자체 소유합니다. 과거 release record의 개별 내부 명령은 historical 실행 기록으로 보존합니다.
+actual preflight는 clean worktree와 exact UI/cleanup 소유권 입력을 요구합니다.
+실제 실행 전에는 PASS evidence로 기록하지 않습니다.
 
 ## v3.8.0 stabilization and release readiness
 
@@ -776,9 +940,9 @@ Not-run/excluded boundary:
 
 ## Tag 전략
 
-- 현재 공개 release tag 기준은 `v3.2.0`입니다.
-- 현재 source tag 기준은 `v3.2.0`입니다.
-- `v3.2.0` release tag는 signed annotated tag로 생성했습니다.
+- 현재 공개 release tag 기준은 `v3.8.0`입니다.
+- 현재 source tag 기준은 `v3.9.0`입니다.
+- `v3.8.0` release tag는 signed annotated tag로 생성했습니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만
@@ -828,24 +992,24 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v3.8.0 Release Note Template
+## v3.9.0 Release Note Template
 
-아래 템플릿은 v3.8.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.9.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v3.8.0
+# Media Server v3.9.0
 
 ## Scope
 
 - Source-only live media server release
-- Operator-Gated Action Pilot & Outcome Loop source scope
-- Latest published baseline before this release: v3.7.0
+- Feature Completion, Structure Stabilization, and Test Model Preparation source scope
+- Latest published baseline before this release: v3.8.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- v3.8.0 baseline alignment: <fill after docs/release metadata gates>
+- v3.9.0 baseline alignment: <fill after docs/release metadata gates>
 - Local docs/release metadata: <fill after `verify-release-metadata`,
   `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
 - Build: <fill after `./server.sh build`>
@@ -853,6 +1017,7 @@ Annotation JSON을 확보한 경우:
 - PR / GitHub Actions status check: <fill after PR checks>
 - Licensing and Artifact Guardrails: <fill after required check>
 - UI fulltest: <fill only after approved direct UI fulltest evidence>
+- Longrun / soak: <record the 30-minute result and conditional 120-minute result separately>
 - 30-minute soak: <fill only after approved 30-minute run>
 - 120-minute predev: <fill only after approved 120-minute run>
 - 120-minute runtime console: <fill only after approved 120-minute runtime

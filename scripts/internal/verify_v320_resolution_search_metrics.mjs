@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.2.0 Step 10 Resolution Search & Metrics 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -31,14 +34,14 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-resolution-search-metrics";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
-  featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationEvidence: readJson("test/fixtures/project_feature_implementation_evidence.json"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -47,6 +50,16 @@ const files = {
 const checks = [];
 
 check("ops review API attaches Step 10 resolution search metrics to unified workspace", () => {
+  const start = files.server.indexOf("std::string OpsV320ResolutionSearchMetricsJson(");
+  const end = files.server.indexOf("std::string OpsV320ResolutionSearchMetricsSummaryJson(", start);
+  assert(start >= 0 && end > start, "EVT-070 resolution search metrics projection block missing");
+  const evt070SearchMetricsBlock = files.server.slice(start, end);
+  assertIncludes(evt070SearchMetricsBlock, "media-server.ops.v320-resolution-search-metrics.v1", "EVT-070 block-scoped canonical search metrics projection");
+  assert(!evt070SearchMetricsBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt070SearchMetricsBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-070 search metrics must remain hidden from client/viewer");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/events", "OPS-078 canonical page route");
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-070 canonical review route");
   for (const snippet of [
     "OpsV320ResolutionSearchMetricsInfoFor",
     "OpsV320ResolutionSearchMetricsJson",
@@ -90,6 +103,7 @@ check("resolution search metrics preserves schema, media, storage, and client bo
 });
 
 check("product UI script renders Step 10 filters, saved views, metrics, and boundaries", () => {
+  const searchMetricsBlock = extractNamedFunctionBlock(files.pageScript, "renderV320ResolutionSearchMetrics");
   for (const snippet of [
     "renderV320ResolutionSearchMetrics",
     "resolutionSearchMetricsSummary",
@@ -106,8 +120,21 @@ check("product UI script renders Step 10 filters, saved views, metrics, and boun
     "savedViewsPersisted",
     "savedViewWritePerformed",
   ]) {
-    assertIncludes(files.pageScript, snippet, "V320 resolution search metrics UI script");
+    assertIncludes(searchMetricsBlock, snippet, "V320 resolution search metrics UI renderer block");
   }
+  assertIncludes(searchMetricsBlock, "media-server.ops.v320-resolution-search-metrics.v1", "UI-069 block-scoped canonical product state");
+  assertIncludes(searchMetricsBlock, "resolutionSearchMetricsSummary.rawJsonExposed === false", "UI-069 block-scoped raw JSON redaction contract");
+  assertIncludes(searchMetricsBlock, "resolutionSearchMetricsSummary.sourceUrlExposed === false", "UI-069 block-scoped source URL redaction contract");
+  assertIncludes(searchMetricsBlock, "resolutionSearchMetricsSummary.debugMaterialExposed === false", "UI-069 block-scoped debug material redaction contract");
+  assertIncludes(searchMetricsBlock, "resolutionSearchMetricsSummary.viewerClientExposureAdded === false", "UI-069 block-scoped client viewer boundary contract");
+  assert(!["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => searchMetricsBlock.includes(marker)), "UI-069 no-write explicit absence oracle");
+  assert(!["rawJsonPayload", "rawPayload", "rawLocator", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => searchMetricsBlock.includes(marker)), "UI-069 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl:", "sourceURL:", "sourceUrlValue", "rtsp://", "rtsps://"].some(marker => searchMetricsBlock.includes(marker)), "UI-069 source-url-redaction explicit absence oracle");
+  assert(!["providerApiCall(", "providerResponse", "rawProviderResponse", "providerMaterialExposed: true", "rawProviderMaterialExposed: true"].some(marker => searchMetricsBlock.includes(marker)), "UI-069 provider-material explicit absence oracle");
+  assert(!["debugCounters", "Developer URL", "debugMaterialExposed: true"].some(marker => searchMetricsBlock.includes(marker)), "UI-069 debug-redaction explicit absence oracle");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => searchMetricsBlock.includes(marker)), "UI-069 client-viewer-boundary explicit absence oracle");
+  const unifiedWorkspaceBlock = extractNamedFunctionBlock(files.pageScript, "renderV320UnifiedOpsEventsWorkspace");
+  assertIncludes(unifiedWorkspaceBlock, "/ops/events", "UI-069 exact route owner obligation");
 });
 
 check("Step 10 resolution search metrics CSS is responsive and scoped", () => {
@@ -172,10 +199,6 @@ check("feature inventory and release records map v3.2 Step 10", () => {
     "EVT-070 | V320 Step 10 resolution search metrics view model",
     "SAFE-111 | V320 Step 10 resolution search metrics boundary",
     "OPS-078 | V320 Step 10 Resolution Search & Metrics 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
-    "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 10");
   }
@@ -194,11 +217,30 @@ check("feature inventory and release records map v3.2 Step 10", () => {
 check("server entrypoint and inventory verifiers include v3.2 Step 10 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_resolution_search_metrics.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertExactVerifierMapping(
+    files.implementationEvidence,
+    "UI-069",
+    command,
+    "scripts/internal/verify_v320_resolution_search_metrics.mjs",
+  );
   for (const id of ["UI-069", "EVT-070", "SAFE-111", "OPS-078"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_resolution_search_metrics.mjs", "script inventory");
+});
+
+check("SAFE-111 canonical resolution search metrics boundary", () => {
+  const metricsBlock = extractCppFunctionBlock(files.server, "std::string OpsV320ResolutionSearchMetricsJson(");
+  const safe111BoundaryObserved = metricsBlock.includes("media-server.ops.v320-resolution-search-metrics.v1") &&
+    metricsBlock.includes("info.resolution_status") && metricsBlock.includes("info.filter_tokens") && metricsBlock.includes("info.saved_view_matches");
+  const savedViewWritePerformed = /\b(?:SaveView|Write|Persist|AppendFile)[A-Za-z0-9_:]*\s*\(/.test(metricsBlock);
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(metricsBlock);
+  const rawMaterialExposed = /\\\"raw(?:Json|Evidence|Payload)(?:Exposed|Included)\\\":true/.test(metricsBlock);
+  const sourceUrlExposed = metricsBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = metricsBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(metricsBlock);
+  assert(safe111BoundaryObserved && savedViewWritePerformed === false && schemaMutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false,
+    "SAFE-111 info.saved_view_matches resolutionSearchMetrics must remain read-only without saved-view/schema/raw/client mutation");
 });
 
 const results = runChecks();
@@ -250,4 +292,18 @@ function assertIncludes(text, needle, label) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function readJson(relativePath) {
+  return JSON.parse(readText(relativePath));
+}
+
+function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile) {
+  const item = manifest.items?.find(entry => entry.id === featureId);
+  assert(item?.verifierEvidence?.command === expectedCommand,
+    `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
+  assert(item?.verifierEvidence?.file === expectedFile,
+    `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
+  assert(item?.verifierEvidence?.anchor === featureId,
+    `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
 }

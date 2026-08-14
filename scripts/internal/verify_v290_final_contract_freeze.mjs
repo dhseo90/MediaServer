@@ -23,7 +23,8 @@ Checks:
   - live contract 문서가 v2.9.0 2.x final freeze matrix를 포함
   - Event POST/WebRTC/SSE/WS/media/Auth/Rule payload contract 식별자와 no-mutation 경계가 고정
   - server.sh command, stream verification, feature inventory, backlog, release test records가 같은 gate를 가리킴
-  - integrator freeze-baseline이 contract 문서 hash drift를 감지
+  - v2.9 historical document hash와 current v3.9 semantic contract를 분리 검증
+  - integrator freeze-baseline이 historical evidence와 schema/sample hash drift를 감지
   - local static gate PASS를 runtime smoke/UI/30분/120분/published evidence로 확대하지 않는 문구 유지
 `);
 }
@@ -41,6 +42,7 @@ const configReference = readText("docs/config-reference.md");
 const server = readText("server.sh");
 const authSource = readText("src/ingress/http_auth.cpp");
 const freezeBaseline = readJson("test/fixtures/integrator_contract_artifact/freeze-baseline.json");
+const freezeEvidence = readJson("test/fixtures/v290_final_contract_freeze_evidence.json");
 
 check("live contract document owns the v2.9.0 final freeze matrix", () => {
   for (const snippet of [
@@ -163,14 +165,73 @@ check("release records include S01 test item, first failure, and not-run boundar
   }
 });
 
-check("integrator freeze baseline pins the updated live contract document hash", () => {
+check("integrator freeze baseline preserves the v2.9 historical document evidence", () => {
   assert(freezeBaseline.schema === "media-server.v200-contract-schema-freeze.v1", "freeze baseline schema mismatch");
   assert(freezeBaseline.requiresSchemaReviewForDrift === true, "freeze baseline must require schema review for drift");
   const entry = freezeBaseline.entries?.find((item) => item.path === "docs/live-event-metadata-contracts.md");
   assert(entry, "freeze baseline missing docs/live-event-metadata-contracts.md");
   assert(entry.group === "live-event-metadata", "live contract document must stay in live-event-metadata group");
-  const actualHash = sha256File("docs/live-event-metadata-contracts.md");
-  assert(entry.sha256 === actualHash, `live contract hash drift ${actualHash} != ${entry.sha256}`);
+  assert(entry.verificationMode === "historical-release-evidence", "live contract baseline must be historical evidence");
+  assert(entry.frozenRelease === "v2.9.0", "historical frozen release mismatch");
+  assert(entry.sourceCommit === "a9d321c285251a32f017146eead5b197915a6fc8", "historical source commit mismatch");
+  assert(entry.evidencePath === "test/fixtures/v290_final_contract_freeze_evidence.json",
+    "historical evidence path mismatch");
+  assert(freezeEvidence.schema === "media-server.v290-final-contract-freeze-evidence.v1",
+    "historical evidence schema mismatch");
+  assert(freezeEvidence.historical?.release === entry.frozenRelease, "historical evidence release mismatch");
+  assert(freezeEvidence.historical?.sourcePath === entry.path, "historical evidence source path mismatch");
+  assert(freezeEvidence.historical?.sourceCommit === entry.sourceCommit, "historical evidence commit mismatch");
+  assert(freezeEvidence.historical?.sha256 === entry.sha256, "historical evidence document hash mismatch");
+  const evidenceEntry = freezeBaseline.entries?.find((item) => item.path === entry.evidencePath);
+  assert(evidenceEntry, "freeze baseline missing historical evidence file");
+  assert(evidenceEntry.sha256 === sha256File(entry.evidencePath), "historical evidence file hash drift");
+});
+
+check("current v3.9 contract keeps frozen transport semantics without historical hash aliasing", () => {
+  assert(freezeEvidence.current?.release === "v3.9.0", "current contract release mismatch");
+  assert(freezeEvidence.current?.sourcePath === "docs/live-event-metadata-contracts.md",
+    "current contract source path mismatch");
+  assert(liveContract.includes(freezeEvidence.current.ownershipLine), "current ownership line mismatch");
+  const historicalDrift = freezeEvidence.current.historicalDrift;
+  assert(historicalDrift?.type === "documentation-ownership-wording-only",
+    "historical drift type must stay documentation-only");
+  assert(historicalDrift?.from === freezeEvidence.historical.ownershipLine,
+    "historical drift source line mismatch");
+  assert(historicalDrift?.to === freezeEvidence.current.ownershipLine,
+    "historical drift target line mismatch");
+  assert(historicalDrift?.runtimeContractChanged === false,
+    "historical drift must not claim a runtime contract change");
+  assert(!liveContract.includes(freezeEvidence.historical.ownershipLine),
+    "current contract must not masquerade as the historical main snapshot");
+
+  const identifiers = freezeEvidence.frozenContract?.identifiers || [];
+  for (const identifier of [
+    "media-server.va.event.v1",
+    "media-server.webrtc.va-metadata.v1",
+    "media-server.va.runtime-metadata.v1",
+    "media-server.va.metadata-control.v1",
+  ]) {
+    assert(identifiers.includes(identifier), `historical evidence missing frozen identifier: ${identifier}`);
+    assert(liveContract.includes(identifier), `current contract missing frozen identifier: ${identifier}`);
+  }
+  assert(freezeEvidence.frozenContract?.webrtcDataChannelLabel === "va-metadata",
+    "WebRTC DataChannel label drift");
+  const frozenContract = freezeEvidence.frozenContract || {};
+  const schemaMutationAllowedWithoutReview = frozenContract.schemaMutationAllowedWithoutReview;
+  const schemaMutationBoundaryRequiresReview = schemaMutationAllowedWithoutReview === false;
+  const finalContractFreezeBoundaryObserved = schemaMutationAllowedWithoutReview === false && schemaMutationBoundaryRequiresReview;
+  assert(finalContractFreezeBoundaryObserved,
+    "schema mutation boundary must require review");
+  assert(freezeEvidence.frozenContract?.metadataFailureMayBlockMediaPath === false,
+    "metadata failure must not block the media path");
+  for (const field of ["WebRTC", "SSE", "RTSP", "Auth/Role/Scope", "Rule/Profile"]) {
+    assert(freezeEvidence.frozenContract?.transportBoundaries?.includes(field),
+      `historical evidence missing transport boundary: ${field}`);
+    assert(liveContract.includes(field), `current contract missing transport boundary: ${field}`);
+  }
+});
+
+check("canonical schema and sample payload hashes remain pinned", () => {
   for (const samplePath of [
     "test/fixtures/integrator_contract_artifact/schemas/event-post.schema.json",
     "test/fixtures/integrator_contract_artifact/schemas/webrtc-va-metadata.schema.json",
@@ -183,6 +244,7 @@ check("integrator freeze baseline pins the updated live contract document hash",
   ]) {
     const sampleEntry = freezeBaseline.entries?.find((item) => item.path === samplePath);
     assert(sampleEntry, `freeze baseline missing sample/schema target: ${samplePath}`);
+    assert(sampleEntry.sha256 === sha256File(samplePath), `schema/sample hash drift: ${samplePath}`);
   }
 });
 
@@ -203,6 +265,8 @@ console.log("");
 console.log("== v2.9.0 final contract freeze summary ==");
 console.log("- schema: media-server.v290-final-contract-freeze.v1");
 console.log("- scope: Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload static freeze");
+console.log("- historicalEvidence: v2.9.0 document hash pinned separately from current source-tree wording");
+console.log("- currentContract: v3.9.0 semantic identifiers and no-mutation boundaries verified");
 console.log("- runtimeSmoke: not-run-by-this-command");
 console.log("- uiFulltest: not-run-by-this-command");
 console.log("- longrun30Or120: not-run-by-this-command");

@@ -70,7 +70,7 @@ std::string JsonEscape(const std::string& value) {
 }  // namespace
 
 ZoneOccupancyScenarioOptions BuildZoneOccupancyScenarioOptionsFromConfig(
-    const app::AppConfig& config) {
+    const core::AnalysisRuntimeConfig& config) {
     ZoneOccupancyScenarioOptions options;
     options.enabled = config.analysis_zone_occupancy_enabled;
     options.occupancy_threshold = config.analysis_zone_occupancy_threshold;

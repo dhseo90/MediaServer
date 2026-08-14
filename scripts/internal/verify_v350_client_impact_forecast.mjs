@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 8 Client Impact Forecast 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -32,7 +35,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v350-client-impact-forecast";
 const schema = "media-server.client.v350-impact-forecast.v1";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -47,8 +50,11 @@ const files = {
 };
 
 const checks = [];
+const impactForecastProjectionBlock = extractCppFunctionBlock(files.server, "std::string ClientImpactForecastJson(");
+const impactForecastRendererBlock = extractNamedFunctionBlock(files.clientScript, "renderClientImpactForecast");
 
 check("client API emits the v3.5 viewer-safe impact forecast schema", () => {
+  assert(impactForecastProjectionBlock.includes("AppendClientImpactForecastJson") && impactForecastProjectionBlock.includes("ClientImpactForecastJson"), "CLIENT-031 exact ClientImpactForecastJson projection missing for /client/api/views/{id}/events");
   for (const snippet of [
     "struct ClientImpactForecast",
     "ClientImpactForecastFor",
@@ -107,6 +113,9 @@ check("client API emits the v3.5 viewer-safe impact forecast schema", () => {
 });
 
 check("client renderer shows forecast without raw/source/debug/operator material", () => {
+  const credentialMaterialExposed = ["passwordHash", "tokenHash", "credentialMaterial", "credentialRef"].some(marker => impactForecastRendererBlock.includes(marker));
+  assert(credentialMaterialExposed === false, "CLIENT-031 credential material must remain redacted");
+  assert(impactForecastProjectionBlock.includes("ClientImpactForecastJson") && impactForecastRendererBlock.includes("clientImpactForecast") && impactForecastRendererBlock.includes("client-impact-forecast"), "CLIENT-031 exact ClientImpactForecastJson renderer readback missing for /client/api/views/{id}/events");
   for (const snippet of [
     "renderClientImpactForecast",
     "clientImpactForecast",
@@ -124,7 +133,13 @@ check("client renderer shows forecast without raw/source/debug/operator material
     "summaryText",
     "timelineHint",
   ]) {
-    assertIncludes(files.clientScript, snippet, "client impact forecast renderer");
+    assertIncludes(impactForecastRendererBlock, snippet, "client impact forecast renderer");
+    assertIncludes(extractNamedFunctionBlock(files.clientScript, "renderClientImpactForecast"), "client-impact-forecast", "UI-083 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientImpactForecast").includes(marker)), "UI-083 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientImpactForecast").includes(marker)), "UI-083 source-url-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientImpactForecast").includes(marker)), "UI-083 debug-redaction explicit absence oracle");
+    assertIncludes(files.server, "/client/live", "UI-083 canonical route obligation");
+    assertIncludes(files.clientScript, "media-server.client.v350-impact-forecast.v1", "UI-083 canonical schema obligation");
   }
   for (const forbidden of [
     "sourceUrl",
@@ -141,7 +156,7 @@ check("client renderer shows forecast without raw/source/debug/operator material
     "actionRoute",
     "actionControls",
   ]) {
-    assert(!files.clientScript.includes(`clientImpactForecast.${forbidden}`), `client impact forecast renderer must not read ${forbidden}`);
+    assert(!impactForecastRendererBlock.includes(`clientImpactForecast.${forbidden}`), `client impact forecast renderer must not read ${forbidden}`);
   }
 });
 
@@ -214,11 +229,26 @@ check("feature inventory and release records map v3.5 Step 8", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 8 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_client_impact_forecast.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-083", "CLIENT-031", "SAFE-142", "OPS-109"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v350_client_impact_forecast.mjs", "script inventory");
+});
+
+check("SAFE-142 canonical client impact forecast boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "void AppendClientImpactForecastJson(");
+  const safe142BoundaryObserved = block.includes("media-server.client.v350-impact-forecast.v1") && block.includes("forecast.source_impact");
+  const rawMaterialExposed = /\\\"(?:sourceUrl|rawLocator|rawJson|debugMaterial|credentialMaterial|operatorMaterial|commandPlanDetails|actionControls)Included\\\":true/.test(block);
+  const mutationPerformed = /\b(?:Write|Persist|Execute|UpdateSource|CreateVaRule|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(block);
+  assert(safe142BoundaryObserved && rawMaterialExposed === false && mutationPerformed === false,
+    "SAFE-142 forecast.source_impact viewer-safe PublishedView digest must hide command details action controls raw credential operator material");
 });
 
 const results = runChecks();

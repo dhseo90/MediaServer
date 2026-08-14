@@ -1,0 +1,113 @@
+{
+  "schema": "media-server.v390-ui-remaining-actual-failure-census.v1",
+  "createdAt": "2026-08-09T03:40:00+09:00",
+  "immutable": true,
+  "artifactDigestSha256": "5fe9468996698f3096b8991da53f0bdd92edc144a50bc2054a35990e1e110b45",
+  "source": {
+    "runRoot": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809031330-49276",
+    "summaryPath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809031330-49276/summary.json",
+    "summarySha256": "c4636a8ac2a19dd6f16798bd5892f8fe7f8f2c5de6257f662b5b73f131e2f45d",
+    "diagnosticNativeManifestSha256": "bd59fe13da2082a409bcdde942696e90d4927720fb4e07e094b456171eb8c6ac",
+    "diagnosticSelectionSha256": "4bb3fdca129d6ab0b805641ace16753dd32210c01428b767ef9487d98e8c1c76",
+    "gitCommit": "4c06197093f2e0ff5c292c23602c0d5b68defba5",
+    "manifestSha256": "6d35e6e5570a079315ca658a386d765cb28d299bfa8bb7a26904bbf866d5f2d5",
+    "binarySha256": "93482b03f2e60df0b4a3f46178e90c83713948cffe9b594bdd3a3aa98b7c4e26",
+    "selectionIdsSha256": "c822ac8233cca0c3b72d647deea714861cf5e39695e4738498eb06d1e40fc45d",
+    "automaticRetryCount": 0
+  },
+  "counts": {
+    "selected": 133,
+    "attempted": 133,
+    "pass": 126,
+    "fail": 7,
+    "notRun": 0,
+    "unsupported": 0,
+    "clusterCount": 4
+  },
+  "failureIds": [
+    "EVT-007",
+    "EVT-017",
+    "EVT-019",
+    "EVT-020",
+    "EVT-022",
+    "EVT-023",
+    "EVT-026"
+  ],
+  "assignmentCoverage": {
+    "failureCount": 7,
+    "assignedCount": 7,
+    "missingIds": [],
+    "duplicateIds": []
+  },
+  "clusters": [
+    {
+      "clusterId": "typed-renderer-field-projection-gap",
+      "caseIds": ["EVT-007", "EVT-017"],
+      "count": 2,
+      "failureClass": "dom-semantic-assertion-failed",
+      "errorCodes": ["RENDERER_PROJECTION_VALUE_MISMATCH"],
+      "callsite": "observeDom/evaluateDeclaredResponseDomProjection",
+      "lifecyclePhase": "browser-case-execution",
+      "operators": ["row-fields-equal-response"],
+      "responsePaths": ["records.records", "integrations"],
+      "ownerCardinality": "one response row to one renderer row",
+      "routeApiDomIdentity": "route-owned row identity",
+      "rendererOwners": ["renderEventRows", "renderAlertDeliveryRows"],
+      "rootCause": "The browser projection lacked an authoritative typed semantic field boundary for empty values and alert-delivery rows."
+    },
+    {
+      "clusterId": "review-row-response-owner-contract-missing",
+      "caseIds": ["EVT-019", "EVT-020"],
+      "count": 2,
+      "failureClass": "dom-semantic-assertion-failed",
+      "errorCodes": ["RESPONSE_FIELD_OWNER_AMBIGUOUS"],
+      "callsite": "collectResponseFieldCandidates/evaluateDeclaredResponseDomProjection",
+      "lifecyclePhase": "browser-case-execution",
+      "operators": ["fields-equal-response", "field-value-equals-response"],
+      "responsePaths": ["records[].event", "records[].review"],
+      "ownerCardinality": "generic recursive candidates 84/43 and 5/1 instead of one fixture-owned records row",
+      "routeApiDomIdentity": "event.eventId/review.eventId to data-event-review-row",
+      "rendererOwners": ["renderEventReviewRows"],
+      "rootCause": "Review assertions had no declared records collection and control-value projection, so recursive response scanning crossed owner boundaries."
+    },
+    {
+      "clusterId": "audit-response-baseline-declaration-missing",
+      "caseIds": ["EVT-022"],
+      "count": 1,
+      "failureClass": "dom-semantic-assertion-failed",
+      "errorCodes": ["RESPONSE_BASELINE_MISSING"],
+      "callsite": "selectEventDomResponseBaselines/buildEventDomSemanticCompositeEvidence",
+      "lifecyclePhase": "browser-case-execution",
+      "operators": ["contains-fixture-audit"],
+      "responsePaths": ["entries[].eventId", "entries[].action"],
+      "ownerCardinality": "zero declared baseline candidates for one fixture audit entry",
+      "routeApiDomIdentity": "audit eventId to fixture audit row",
+      "rendererOwners": ["renderEventReviewAuditList"],
+      "rootCause": "The audit DOM assertion omitted its row-local response binding even though the API and fixture observation were present."
+    },
+    {
+      "clusterId": "route-local-renderer-identity-boundary-split",
+      "caseIds": ["EVT-023", "EVT-026"],
+      "count": 2,
+      "failureClass": "dom-semantic-assertion-failed",
+      "errorCodes": ["API_DOM_FIXTURE_IDENTITY_MISMATCH"],
+      "callsite": "buildEventDomSemanticCompositeEvidence",
+      "lifecyclePhase": "browser-case-execution",
+      "operators": ["contains-fixture-event-summary", "safe-fields-equal-response"],
+      "responsePaths": ["records.records[].eventId"],
+      "ownerCardinality": "one API owner and one route-local renderer owner, but zero generic semantic identity nodes",
+      "routeApiDomIdentity": "records.records.eventId to data-incident-event-id",
+      "rendererOwners": ["renderDashboardIncidentTimeline"],
+      "rootCause": "The passing route-local incident timeline identity proof was not admitted by the generic fixture identity boundary."
+    }
+  ],
+  "failures": [
+    {"caseId":"EVT-007","clusterId":"typed-renderer-field-projection-gap","summarySha256":"b7a140a187b47c363e201ce638f4748b5c65176afa7ff0790093638f92ecd043","traceSha256":"4828ae0a8b4091e59d51585faea0ad5ec1738e6a25366c8c2ce763d739f2a8d8"},
+    {"caseId":"EVT-017","clusterId":"typed-renderer-field-projection-gap","summarySha256":"8ccdcdb06accd6375d52b7ef0e6e608f7d9d299b9ad6ff5ed56624722584e746","traceSha256":"14b2c1c17454b73c2029565053a221f5f6b3a52c7da3a6220e8e5a83b24babee"},
+    {"caseId":"EVT-019","clusterId":"review-row-response-owner-contract-missing","summarySha256":"717816d098516391abd923da9ef53d3b3cac1a6d82d1a54ce1b8f4a0a84ed4cd","traceSha256":"9f30ca064fdc3dc7a4fb65c738fa171068892aa5efe72e38bc70bf91b244aa03"},
+    {"caseId":"EVT-020","clusterId":"review-row-response-owner-contract-missing","summarySha256":"9c2d7d13ead306f8b2408500771662bef45c3f3e7234a704a3b2c61f5ab06c16","traceSha256":"d619ef1f8faa091e4090c4e7f37f8617f5f47981e7f89d83869e53f2633d1075"},
+    {"caseId":"EVT-022","clusterId":"audit-response-baseline-declaration-missing","summarySha256":"39d5db4bd9c095c837e5b6ee44e2f3b8158ce194d89dfcc8136d5e5620e946cb","traceSha256":"742f301d4a9ccfd2d78f6e19a495a8b25898363129600251c59618b0c854313d"},
+    {"caseId":"EVT-023","clusterId":"route-local-renderer-identity-boundary-split","summarySha256":"68420f745b170780b631e931748302dc61194ab9f65fc5aed33197a22835a8e7","traceSha256":"0563001483726bc68d8f87fc5e0ba1df8d06550a759894bd2e15d1f8bd4820e2"},
+    {"caseId":"EVT-026","clusterId":"route-local-renderer-identity-boundary-split","summarySha256":"d591b24a2b3258c671cb7d3a4b5485d46bd06291a95e90949253e640cf629d0d","traceSha256":"2eebfb4fc4564f422572f1d98a6527d6fddcba525679eb7d8fc522155c686efc"}
+  ]
+}

@@ -48,19 +48,18 @@ const report = {
 const decisionPath = "test/fixtures/vlm_model_catalog/selection_decision.json";
 const decision = readJson(decisionPath);
 
-check("V200-S01 roadmap row is closed with explicit selected models", () => {
-  const backlog = readText("docs/development-backlog.md");
+check("current selection source is closed with explicit selected models", () => {
+  const selection = readText("docs/vlm-model-selection.md");
   for (const snippet of [
-    "| 1 | V200-S01 | 완료 | VLM 후보군/선택 기준 |",
-    "`Qwen/Qwen3-VL-8B-Instruct`를 1차 local standard로 선택",
-    "`Qwen/Qwen3-VL-4B-Instruct`를 local low-spec fallback",
+    "`Qwen/Qwen3-VL-8B-Instruct`",
+    "`Qwen/Qwen3-VL-4B-Instruct`",
     "`Qwen/Qwen3-VL-30B-A3B-Instruct`",
-    "`gemini-2.5-flash`는 cloud opt-in fallback",
-    "Gemma 계열은 custom terms/license review 때문에 기본값이 아닙니다",
-    "`verify-vlm-selection-decision`",
-    "### V200-S01 VLM 후보군/선택 기준 종료 기준",
+    "`gemini-2.5-flash`",
+    "Gemma 계열",
+    "`G0-no-bundle`",
+    "`G0-cloud-opt-in`",
   ]) {
-    assert(backlog.includes(snippet), `backlog missing V200-S01 decision snippet: ${snippet}`);
+    assert(selection.includes(snippet), `selection source missing decision: ${snippet}`);
   }
   return { step: "V200-S01", status: "complete", decision: "explicit-model-baseline" };
 });
@@ -113,6 +112,15 @@ check("selection document contains direct answer, gates, tiers, hardware classes
 
 check("decision fixture schema and scope are explicit", () => {
   assert(decision.schema === "media-server.vlm-selection-decision.v1", "decision schema mismatch");
+  const selectionProjection = projectSelectionDecision(decision);
+  assert(selectionProjection.primaryModel === "Qwen/Qwen3-VL-8B-Instruct" &&
+    selectionProjection.localFallbackModel === "Qwen/Qwen3-VL-4B-Instruct" &&
+    selectionProjection.cloudFallbackModel === "gemini-2.5-flash",
+  "VLM selection projection must preserve primary/local fallback/cloud opt-in decisions");
+  assert(selectionProjection.bundleExcluded === true,
+    "selection projection must exclude model artifacts from default bundles");
+  assert(selectionProjection.credentialIncluded === false,
+    "VLM selection projection credential material must remain excluded");
   assert(decision.targetStep === "V200-S01", "target step mismatch");
   assert(decision.status === "selected", "decision status must be selected");
   assert(decision.projectLicense === "Apache-2.0", "project license must be Apache-2.0");
@@ -355,6 +363,24 @@ if (failCount > 0) {
 
 function check(name, run) {
   checks.push({ name, run });
+}
+
+function projectSelectionDecision(decision) {
+  const candidates = [decision.primary, ...(decision.fallbacks || []), ...(decision.highCandidates || [])]
+    .filter(Boolean);
+  const byTier = tier => candidates.find(item => item.tier === tier) || {};
+  const primary = byTier("T1-primary-local-standard");
+  const localFallback = byTier("T2-local-low-spec-fallback");
+  const cloudFallback = byTier("T3-cloud-opt-in-fallback");
+  const noBundleGate = (decision.hardGates || []).find(item => item.id === "G0-no-bundle") || {};
+  return {
+    decisionSchema: decision.schema,
+    primaryModel: primary.model || "",
+    localFallbackModel: localFallback.model || "",
+    cloudFallbackModel: cloudFallback.model || "",
+    bundleExcluded: candidates.length > 0 && candidates.every(item => item.bundleAllowed === false),
+    credentialIncluded: !(noBundleGate.required === true && /credentials/i.test(String(noBundleGate.description || ""))),
+  };
 }
 
 function parseArgs(argv) {

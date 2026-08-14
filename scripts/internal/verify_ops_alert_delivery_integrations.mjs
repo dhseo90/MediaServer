@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Alert Delivery Integrations의 payload 분리, retry, audit masking 계약을 검증한다.
 
 import fs from "node:fs";
@@ -8,12 +9,13 @@ import process from "node:process";
 
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
-const args = parseArgs(process.argv.slice(2));
 const failures = [];
+const args = parseArgs(process.argv.slice(2));
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const routeOwner = readText("src/ingress/ops_event_route_owner.cpp");
 const serverContract = server + routeOwner;
+const markup = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -115,7 +117,7 @@ for (const [label, snippet] of [
   ["ops events UI styles alert delivery table", ".alert-delivery-table"],
 ]) {
   check(label, () => {
-    assertIncludes(server + script + css, snippet, "alert delivery UI");
+    assertIncludes(server + markup + script + css, snippet, "alert delivery UI");
   });
 }
 
@@ -319,7 +321,8 @@ async function runRoundtripSmoke() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ deliveryId: runId, eventId: `${runId}-event` }),
     });
-    assert(Array.isArray(fixture.attempts) && fixture.attempts.length === 1, "fixture attempt missing");
+    assert(Array.isArray(fixture.attempts) && fixture.attempts.length === 1, "/ops/events fixture attempt missing");
+    assert(fixture.attempts[0]?.status === "delivered" && fixture.attempts[0]?.transport === "fixture", "/ops/events expected delivered · fixture attempt");
     assert(fixture.eventPostPayloadChanged === false, "fixture changed Event POST payload contract");
     assert(JSON.stringify(fixture).includes("secret-token") === false, "fixture response leaked endpoint token");
     const dryRun = await requestJson("/ops/api/alerts/deliveries/dry-run", {
@@ -329,13 +332,13 @@ async function runRoundtripSmoke() {
     });
     assert(dryRun.status === "ops-alert-delivery-dry-run", "dry-run status mismatch");
     assert(dryRun.dryRun === true, "dry-run flag missing");
-    assert(dryRun.externalDeliveryPerformed === false, "dry-run performed external delivery");
+    assert(dryRun.externalDeliveryPerformed === false && Array.isArray(dryRun.payloadPreviews) && Array.isArray(dryRun.attempts), "alert dry-run payload preview and attempt log must remain local; webhook/email/slack external delivery must remain absent");
     assert(dryRun.eventPostPayloadChanged === false, "dry-run changed Event POST payload contract");
     assert(Array.isArray(dryRun.payloadPreviews) && dryRun.payloadPreviews.length === 1, "dry-run payload preview missing");
     assert(Array.isArray(dryRun.attempts) && dryRun.attempts.some(item => item.deliveryId === runId && item.dryRun === true), "dry-run attempt missing");
     assert(JSON.stringify(dryRun).includes("secret-token") === false, "dry-run response leaked endpoint token");
     const listed = await requestJson("/ops/api/alerts/deliveries");
-    assert(Array.isArray(listed.integrations), "list integrations missing");
+    assert(Array.isArray(listed.integrations), "/ops/events list integrations missing");
     assert(listed.integrations.some(item => item.id === runId && item.endpointRedacted === true), "listed delivery missing/redaction missing");
     assert(Array.isArray(listed.attempts) && listed.attempts.some(item => item.deliveryId === runId), "listed attempt missing");
     assert(listed.attempts.some(item => item.deliveryId === runId && item.dryRun === true), "listed dry-run attempt missing");

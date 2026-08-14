@@ -188,6 +188,31 @@ check("Step 11 gate keeps release actions and long UI/soak evidence separate", (
   }
 });
 
+check("SAFE-123 canonical V330 readiness boundary", () => {
+  const readinessCommandDocumented = files.serverSh.includes("verify-v330-stabilization-release-readiness)");
+  const localEvidenceRecorded = normalizedRecords.includes("SAFE-123") && normalizedRecords.includes("Step 11");
+  const notRunBoundaryMissing = !normalizedRecords.includes("not-run") || !files.releasePolicy.includes("UI 풀테스트") || !files.releasePolicy.includes("120분");
+  const safe123BoundaryObserved = readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false;
+  assert(safe123BoundaryObserved && (readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false) && notRunBoundaryMissing === false,
+    "SAFE-123 V330 readiness must preserve UI fulltest/30m/120m/published metadata/field smoke/release action not-run boundaries");
+});
+
+check("OPS-090 canonical V330 readiness gate", () => {
+  const localCommandsWired = companionCommands.every((item) =>
+    files.releasePolicy.includes(item) && files.releaseEvidenceIndex.includes(item) && files.releaseRecords.includes(item));
+  const notRunBoundariesPresent = [
+    "UI 풀테스트 직접 조작",
+    "30분/120분",
+    "published metadata",
+    "PR/main/tag/GitHub Release",
+    "field smoke",
+  ].every((item) => files.releaseRecords.includes(item));
+  const ops090GateObserved = localCommandsWired && notRunBoundariesPresent &&
+    files.serverSh.includes("verify-v330-stabilization-release-readiness)");
+  assert(ops090GateObserved && localCommandsWired && notRunBoundariesPresent,
+    "OPS-090 local command wiring and explicit UI/long-run/published/release-action/field-smoke boundaries missing");
+});
+
 const results = runChecks();
 console.log("");
 console.log("== v3.3.0 stabilization/release readiness summary ==");

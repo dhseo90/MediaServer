@@ -1519,7 +1519,8 @@ std::string ClientShellCss() {
         overflow: auto;
       }
       body.client-shell .live-dock-event-feed {
-        max-height: 220px;
+        max-height: none;
+        overflow: visible;
       }
       body.client-shell .live-workspace-main {
         min-height: auto;

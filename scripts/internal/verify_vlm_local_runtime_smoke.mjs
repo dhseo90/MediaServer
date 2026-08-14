@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S02 local VLM runtime connection smoke를 loopback fixture로 검증한다.
 
 import fs from "node:fs";
@@ -107,7 +108,7 @@ check("loopback local runtime requests, timeout, missing-runtime, and invalid-ou
     assert(result.queueCleanup === "cleanup-ok", `${result.id}: queue cleanup failed`);
     assert(result.serverCleanup === "cleanup-ok", `${result.id}: server cleanup failed`);
     assert(result.sideEffects.length === 0, `${result.id}: side effects found ${result.sideEffects.join(", ")}`);
-    assert(result.credentialHeaderSeen === false, `${result.id}: credential header must not be sent`);
+    assert(result.credentialHeaderSeen === false && result.sideEffects.length === 0, `${result.id}: credential must remain local and sidecar/registry write must remain absent`);
   }
 
   assert(report.summary.connectedCases === 3, "expected 3 connected local endpoint cases");
@@ -119,7 +120,7 @@ check("loopback local runtime requests, timeout, missing-runtime, and invalid-ou
 check("local runtime smoke stays out of external event, metadata, and media paths", async () => {
   const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
   const eventStorage = readText("src/analysis/event_storage.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const [label, text] of [
     ["event_post_dispatcher.cpp", eventPost],
     ["event_storage.cpp", eventStorage],
@@ -145,6 +146,7 @@ check("docs, feature inventory, server command, and script inventory are wired",
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   for (const snippet of [
     "V210-S02",
     "Local VLM runtime connection smoke",
@@ -164,7 +166,10 @@ check("docs, feature inventory, server command, and script inventory are wired",
   assert(serverSh.includes("verify-vlm-local-runtime-smoke"), "server.sh missing local runtime smoke command");
   assert(serverSh.includes("verify_vlm_local_runtime_smoke.mjs"), "server.sh missing local runtime smoke script dispatch");
   assert(scriptInventory.includes("verify_vlm_local_runtime_smoke.mjs"), "script inventory missing local runtime smoke verifier");
-  assert(coverage.includes("verify-vlm-local-runtime-smoke"), "feature inventory coverage missing local runtime smoke verifier");
+  assert(manifest.items.find(item => item.id === "SAFE-034")?.verifierEvidence?.command === "verify-vlm-local-runtime-smoke",
+    "SAFE-034 manifest verifier command drift");
+  assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
+    "feature coverage must validate manifest-backed verifier evidence");
 });
 
 let failCount = 0;
@@ -193,6 +198,8 @@ console.log(`- invalid-output cases: ${report.summary.invalidOutputCases}`);
 console.log(`- cleanup ok: ${report.summary.cleanupOk}`);
 console.log(`- pass: ${report.checks.filter(item => item.status === "pass").length}`);
 console.log(`- fail: ${failCount}`);
+
+assertVlmLocalRuntimeSmokeArtifact(report);
 
 if (args.report) writeText(path.resolve(rootDir, args.report), renderMarkdown(report));
 if (args.jsonReport) writeText(path.resolve(rootDir, args.jsonReport), `${JSON.stringify(report, null, 2)}\n`);
@@ -534,6 +541,17 @@ function requireValue(argv, index, option) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function assertVlmLocalRuntimeSmokeArtifact(value) {
+  const artifactPath = path.join(process.env.TMPDIR || "/tmp", `media-server-vlm-local-runtime-smoke-${process.pid}.json`);
+  fs.writeFileSync(artifactPath, `${JSON.stringify(value)}\n`, "utf8");
+  try {
+    const observedReport = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+    assert(observedReport.schema === "media-server.vlm-local-runtime-smoke-report.v1" && observedReport.cases.every(result => result.queueCleanup === "cleanup-ok"), "VLM local runtime artifact queueCleanup readback mismatch");
+  } finally {
+    fs.rmSync(artifactPath, { force: true });
+  }
 }
 
 function assert(condition, message) {

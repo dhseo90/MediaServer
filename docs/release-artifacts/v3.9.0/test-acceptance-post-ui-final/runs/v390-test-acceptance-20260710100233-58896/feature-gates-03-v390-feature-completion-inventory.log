@@ -1,0 +1,29 @@
+[pass] inventory title is exact
+[pass] source-of-truth relationship phrases are present
+[pass] disposition vocabulary has exactly five approved values
+[pass] AGENTS four test areas and no extra test-area wording are present
+[pass] discovery table header and seed row are present
+[pass] discovery source groups have exactly the eight approved groups
+[pass] review gate phrases require user approval of the development list
+[pass] development backlog blocks feature development before discovery approval
+[pass] stream verification records v3.9 feature inventory command boundary
+[pass] project inventory maps v3.9 feature completion IDs
+[pass] release records and evidence index track feature inventory review gate
+[pass] server.sh help and dispatch include the feature completion inventory verifier
+[pass] script inventory tracks this verifier as a strict user-facing JS script
+
+== v3.9.0 feature completion inventory summary ==
+- schema: media-server.v390-feature-completion-inventory.v1
+- command: verify-v390-feature-completion-inventory
+- inventory: docs/v390-feature-completion-inventory.md
+- dispositionValues: 5
+- discoverySourceGroups: 8
+- actualFeatureDiscoveryCompletion: not-run-by-this-command
+- featureDevelopment: not-run-by-this-command
+- uiFulltest: not-run-by-this-command
+- longrun30: not-run-by-this-command
+- longrun120: not-run-by-this-command
+- publishedMetadata: not-run-by-this-command
+- boundary: wrapper/preflight/dry-run/field-smoke/external-credential/no-device are not separate test areas
+- pass: 13
+- fail: 0

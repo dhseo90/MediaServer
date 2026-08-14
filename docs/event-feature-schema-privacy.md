@@ -1,7 +1,7 @@
 # Event Feature Schema And Privacy Policy
 
 독자: v3.0 Event Evidence Search MVP를 구현/검증하는 개발자와 테스트 에이전트.
-Lifecycle: v3.0.0 `V300-S03 Feature Schema and Privacy Policy` active release target 동안 유지합니다.
+Lifecycle: v3.0.0 `V300-S03 Feature Schema and Privacy Policy`에서 시작한 historical-origin/current-contract 문서이며, 현재 source tree가 이 schema/privacy 계약을 사용하는 동안 유지합니다.
 Source-of-truth: AGENTS.md는 개발/테스트/보고 권한의 최상위 규칙이고, 이 문서는 V300-S03 FeatureSet schema와 privacy guard만 정의합니다.
 
 ## Scope

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 13 VLM-assisted Simulation Explanation 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -7,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -32,7 +34,8 @@ const command = "verify-v360-vlm-assisted-simulation-explanation";
 const schema = "media-server.ops.v360-vlm-assisted-simulation-explanation.v1";
 const route = "/ops/api/live-operations/simulation/vlm-assisted-explanation";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
+  uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -40,6 +43,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -68,10 +72,16 @@ check("Ops server builds default-off VLM-assisted simulation explanation models"
   ]) {
     assertIncludes(files.server, snippet, "v360 VLM-assisted simulation explanation server model");
   }
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV360VlmAssistedSimulationExplanationJson(");
+  assertIncludes(producerBlock, "media-server.ops.v360-vlm-assisted-simulation-explanation.v1", "v360 VLM-assisted simulation explanation schema");
 });
 
 check("VLM-assisted simulation explanation derives blockers, impact diff, and review hints without calling VLM", () => {
-  const block = extractBlock(files.server, "struct OpsV360VlmAssistedSimulationExplanationItem", "std::string OpsAuditSearchIndexJson");
+  const block = [
+    extractCppFunctionBlock(files.server, "BuildV360VlmAssistedSimulationExplanationItems("),
+    extractCppFunctionBlock(files.server, "AppendV360VlmAssistedSimulationExplanationItemJson("),
+    extractCppFunctionBlock(files.server, "std::string OpsV360VlmAssistedSimulationExplanationJson("),
+  ].join("\n");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV360CommandPlanDryRunResults",
@@ -91,7 +101,7 @@ check("VLM-assisted simulation explanation derives blockers, impact diff, and re
 });
 
 check("VLM-assisted simulation explanation boundary flags keep default-off/no-call/no-write/no-raw-material invariants", () => {
-  const block = extractBlock(files.server, "std::string OpsV360VlmAssistedSimulationExplanationJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360VlmAssistedSimulationExplanationJson(");
   for (const snippet of [
     "defaultOff",
     "defaultEnabled",
@@ -148,6 +158,9 @@ check("VLM-assisted simulation explanation boundary flags keep default-off/no-ca
     const nearby = block.slice(index, index + 128);
     assert(nearby.includes("false"), `boundary flag must be false: ${flag}`);
   }
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
+  assert(exactBooleanFlagValue(block, "viewerClientExposureAdded") === false, "viewerClientExposureAdded must remain false");
+  assert(exactBooleanFlagValue(block, "vlmProviderCallPerformed") === false, "vlmProviderCallPerformed must remain false");
 });
 
 check("Ops API exposes the VLM-assisted simulation explanation route as guarded no-store JSON", () => {
@@ -162,7 +175,7 @@ check("Ops API exposes the VLM-assisted simulation explanation route as guarded 
 });
 
 check("/ops simulation workspace declares and renders VLM-assisted Simulation Explanation", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "dashSimulationWorkspaceVlmAssistedExplanationList",
     "ops-simulation-vlm-assisted-explanation-list",
@@ -172,7 +185,17 @@ check("/ops simulation workspace declares and renders VLM-assisted Simulation Ex
   ]) {
     assertIncludes(serverBlock, snippet, "v360 VLM-assisted simulation explanation dashboard shell");
   }
-  const scriptBlock = extractBlock(files.uiScript, "const renderV360OpsSimulationWorkspace", "const renderDashboardRootCause");
+  const scriptBlock = extractNamedFunctionBlock(files.uiScript, "renderV360OpsSimulationWorkspace");
+  assertIncludes(scriptBlock, "data-v360-vlm-assisted-simulation-explanation", "v360 VLM simulation explanation product UI state");
+  const credentialExposed = ["passwordHash", "tokenHash", "Authorization:", "credentialValue", "providerCredential"].some(marker => scriptBlock.includes(marker));
+  assert(credentialExposed === false, "UI-094 VLM simulation explanation must not expose credentials");
+  const rawMaterialExposed = ["rawEvidenceIncluded: true", "rawLocatorIncluded === true", "rawDiagnosticJsonIncluded === true", "rtsp://", "rtsps://"].some(marker => scriptBlock.includes(marker));
+  assert(rawMaterialExposed === false, "UI-094 raw-material-redaction explicit absence oracle");
+  assertIncludes(files.uiScript, "/ops/dashboard", "UI-094 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v360-vlm-assisted-simulation-explanation.v1", "UI-094 canonical schema obligation");
+  assertIncludes(files.uiScript, "VLM", "UI-094 canonical field obligation");
+  const refreshBlock = extractNamedFunctionBlock(files.uiScript, "refreshV360OpsSimulationWorkspace");
+  assertIncludes(refreshBlock, "requestJson(vlmAssistedSimulationExplanationRoute)", "v360 VLM-assisted simulation explanation request dispatch");
   for (const snippet of [
     "vlmAssistedSimulationExplanation",
     "vlmAssistedSimulationExplanationRoute",
@@ -183,7 +206,6 @@ check("/ops simulation workspace declares and renders VLM-assisted Simulation Ex
     "operatorReviewHint",
     "defaultEnabled",
     "dashSimulationWorkspaceVlmAssistedExplanationList",
-    "requestJson(vlmAssistedSimulationExplanationRoute)",
   ]) {
     assertIncludes(scriptBlock, snippet, "v360 VLM-assisted simulation explanation renderer");
   }
@@ -249,11 +271,37 @@ check("docs, inventory, and dispatch map v3.6 Step 13", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_vlm_assisted_simulation_explanation.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["UI-094", "SRC-053", "EVT-079", "LAB-100", "SAFE-160", "OPS-127"]) {
+    const expectedCommand = id === "SRC-053" ? "verify-ops-source-registry-api" : command;
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
+  }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of ["UI-094", "SRC-053", "EVT-079", "LAB-100", "SAFE-160", "OPS-127"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v360_vlm_assisted_simulation_explanation.mjs", "script inventory");
+});
+
+check("SAFE-160 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360VlmAssistedSimulationExplanationJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/simulation/vlm-assisted-explanation");
+  const safe160BoundaryObserved = block.includes("BuildV360VlmAssistedSimulationExplanationItems");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe160BoundaryObserved && block.includes("media-server.ops.v360-vlm-assisted-simulation-explanation.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-160 BuildV360VlmAssistedSimulationExplanationItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

@@ -1,0 +1,46 @@
+{
+  "schema": "media-server.v390-policy-v4-canonical-red-evidence.v1",
+  "version": "3.9.0",
+  "sourceKind": "audit-only-historical-red-fixture",
+  "releaseEvidenceEligible": false,
+  "sourceCommitSha": "4d562231d71795119128dfb8849437b0b8c51e93",
+  "sourceSummarySha256": "38b7db7dd877e5b7f2dbcaafa7252289531cbe3f652bc894e31a6112d369aed9",
+  "sourceEvaluationSha256": "22c9f53e85f8644495d8b262c1dc5843c5d7e439242f96d370ea96502e891ec2",
+  "redQualification": {
+    "evidenceEligibility": "ineligible",
+    "qualifiedCaseCount": 11,
+    "qualifiedCaseIds": [
+      "UI-001",
+      "UI-008",
+      "UI-023",
+      "UI-026",
+      "UI-028",
+      "EVT-018",
+      "CLIENT-002",
+      "CLIENT-005",
+      "CLIENT-009",
+      "CLIENT-018",
+      "CLIENT-021"
+    ],
+    "exactCaseCount": 424,
+    "uiFulltestPass": false,
+    "reasonCount": 459
+  },
+  "reasonCounts": {
+    "independent-case-visual-not-pass": 413,
+    "raw-primary-request-pair-missing": 40,
+    "raw-primary-readback-observation-mismatch": 2,
+    "cross-cutting-visual-quality-independent-matrix-not-pass": 1,
+    "cross-cutting-visual-quality-independent-visual-failed": 1,
+    "derived-case-fail-must-be-zero": 1,
+    "unapproved-console-message-present": 1
+  },
+  "clusterCounts": {
+    "console-security": 1,
+    "cross-cutting-and-case-visual": 415,
+    "readback-identity": 2,
+    "request-response-identity": 40,
+    "suite-derived-closure": 1
+  },
+  "boundary": "This fixture freezes the canonical RED diagnosis only. It cannot be used as current or release evidence."
+}

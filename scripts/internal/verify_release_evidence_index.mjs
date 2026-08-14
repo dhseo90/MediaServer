@@ -68,6 +68,8 @@ check("release evidence index owns required evidence categories", () => {
 
 check("release test records own detailed item and result tables", () => {
   const records = readText("docs/release-test-records.md");
+  const v280EvidenceHeading = records.includes("### v2.8.0") ? "### v2.8.0" : "";
+  const v280EvidenceSection = records.split(v280EvidenceHeading)[1]?.split("\n### v2.9.0")[0] || "";
   for (const snippet of [
     "# Release Test Records",
     "| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |",
@@ -78,12 +80,14 @@ check("release test records own detailed item and result tables", () => {
     "### v2.5.0",
     "### v2.6.0",
     "### v2.7.0",
-    "### v2.8.0",
+    v280EvidenceHeading,
     "v280 UI wrapper rerun",
     "임시 산출물 정리 기록",
   ]) {
     assert(records.includes(snippet), `release test records missing snippet: ${snippet}`);
   }
+  assert(v280EvidenceSection.length > 0 && v280EvidenceSection.includes(v280EvidenceHeading) === false,
+    "release test records missing bounded v2.8.0 evidence section");
 });
 
 check("token usage ledger final evidence excludes temporary paths", () => {

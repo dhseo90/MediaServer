@@ -1,0 +1,60 @@
+{
+  "schema": "media-server.v390-ui-initial-route-settling-red.v1",
+  "sourceCommitSha": "fe7c4611dde964c006685db9f794f128c483023a",
+  "actualBrowserExecution": true,
+  "releaseEvidenceEligible": false,
+  "coverage": {
+    "target": 424,
+    "attempted": 9,
+    "pass": 8,
+    "fail": 1,
+    "notRun": 415,
+    "unsupported": 0
+  },
+  "firstFailure": {
+    "caseId": "UI-010",
+    "error": "UI-010 request source-before owner missing or hidden",
+    "failureLifecycleRequestedPath": "/",
+    "failureLifecycleExpectedObservedPath": "/",
+    "failureLifecycleObservedPath": "/ops/dashboard",
+    "initialDocumentRequestedPath": "/ops/dashboard",
+    "observedSettledRoute": "/ops/dashboard",
+    "role": "operator",
+    "initialDocumentEpoch": 1,
+    "initialDocumentRequestCount": 1,
+    "initialDocumentResponseCount": 1,
+    "primaryRequestMethod": "GET",
+    "primaryRequestPath": "/ops/dashboard",
+    "primaryAdditionalFetchCountMisclassified": 1,
+    "primaryRequestReissuedMisclassified": true,
+    "failureCode": "NAVIGATION_KIND_INVALID"
+  },
+  "capturedBeforeFailure": [
+    "UI-001",
+    "UI-002",
+    "UI-003",
+    "UI-004",
+    "UI-005",
+    "UI-007",
+    "UI-008",
+    "UI-009"
+  ],
+  "artifacts": {
+    "acceptanceSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/summary.json",
+      "sha256": "3af1872d88285a0feba0b55682170ffc0078a697d0b9cc9bb3d9ac7a3f7b43b1"
+    },
+    "firstFailure": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/first-failure.json",
+      "sha256": "6d0f56c7c788960acfafa05a7b8e5f49d1bd430fb806d4960877fbe219bea436"
+    },
+    "exactSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809151248-28851/ui-exact-424/summary.json",
+      "sha256": "bae86d6968a3fe3546b1b1f627e153ce93fada3d7420fa894465e1046346461c"
+    },
+    "ui010Trace": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809151248-28851/ui-exact-424/traces/UI-010.trace.json",
+      "sha256": "7d4d72480c824e23c4b93829253540756624a549e6491ce1ac9144d40a7de9f3"
+    }
+  }
+}

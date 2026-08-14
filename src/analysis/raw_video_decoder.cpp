@@ -15,6 +15,7 @@
 #include <limits>
 #include <mutex>
 #include <optional>
+#include <thread>
 
 namespace analysis {
 

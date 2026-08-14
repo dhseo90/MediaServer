@@ -1,0 +1,99 @@
+{
+  "schema": "media-server.v390-external-field-smoke-no-device-closure.v1",
+  "release": "v3.9.0",
+  "developmentItem": 18,
+  "closureDate": "2026-07-11",
+  "approvalSource": "/goal v3.9.0 (17) Development 18",
+  "executionPolicy": "not-run-missing-required-external-environment",
+  "recordKind": "conditional-execution-record",
+  "executionStatus": "conditional-not-run",
+  "evidenceStatus": "condition-record-not-field-pass",
+  "externalNetworkAttempted": false,
+  "endpointProbeAttempted": false,
+  "credentialAccessAttempted": false,
+  "deviceContactAttempted": false,
+  "providerCallAttempted": false,
+  "artifactCreated": false,
+  "fieldPassClaimed": false,
+  "releasePassClaimed": false,
+  "targets": [
+    {
+      "id": "external-turn-whep",
+      "status": "conditional-not-run",
+      "reason": "missing-device-credential-endpoint-and-execution-approval",
+      "requiredConditions": [
+        "approved WHEP endpoint",
+        "approved TURN service coordinates",
+        "redacted TURN credential",
+        "reachable external network",
+        "explicit field execution approval"
+      ],
+      "missingConditions": [
+        "approved WHEP endpoint",
+        "approved TURN service coordinates",
+        "redacted TURN credential",
+        "reachable external network",
+        "explicit field execution approval"
+      ],
+      "reopenConditions": [
+        "Release Owner supplies an approved test endpoint and TURN service",
+        "Security Owner supplies redacted short-lived credentials",
+        "user explicitly approves the field command, artifact policy, and cleanup"
+      ],
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false
+    },
+    {
+      "id": "onvif-real-device",
+      "status": "conditional-not-run",
+      "reason": "missing-device-credential-endpoint-and-execution-approval",
+      "requiredConditions": [
+        "physical ONVIF device",
+        "approved device network address",
+        "redacted device credential",
+        "reachable isolated test network",
+        "explicit field execution approval"
+      ],
+      "missingConditions": [
+        "physical ONVIF device",
+        "approved device network address",
+        "redacted device credential",
+        "reachable isolated test network",
+        "explicit field execution approval"
+      ],
+      "reopenConditions": [
+        "Release Owner identifies a physical ONVIF device and test window",
+        "Security Owner supplies redacted short-lived device credentials",
+        "user explicitly approves device contact, sanitized artifacts, and cleanup"
+      ],
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false
+    },
+    {
+      "id": "external-vlm-provider",
+      "status": "conditional-not-run",
+      "reason": "missing-device-credential-endpoint-and-execution-approval",
+      "requiredConditions": [
+        "approved external provider endpoint",
+        "redacted provider credential",
+        "privacy transfer and retention approval",
+        "approved budget timeout and retry policy",
+        "explicit field execution approval"
+      ],
+      "missingConditions": [
+        "approved external provider endpoint",
+        "redacted provider credential",
+        "privacy transfer and retention approval",
+        "approved budget timeout and retry policy",
+        "explicit field execution approval"
+      ],
+      "reopenConditions": [
+        "Privacy and Security Owner approve transfer retention and redaction",
+        "Release Owner supplies provider environment and cost controls",
+        "user explicitly approves provider call, sanitized artifacts, and cleanup"
+      ],
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false
+    }
+  ]
+}

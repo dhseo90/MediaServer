@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.8.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.8.0)
-![Source Version](https://img.shields.io/badge/source-3.8.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.9.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,9 +15,9 @@ and runtime/model bundle distribution are outside the default public release.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published GitHub Release: [v3.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.8.0)
-- Current source version: `3.8.0`
-- v3.8.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+- Current source version: `3.9.0`
+- v3.9.0 preparation status: source-only preparation branch. Binary, runtime, and model bundles are not included.
+- Current source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 
 ## At a Glance
 
@@ -34,17 +34,12 @@ and runtime/model bundle distribution are outside the default public release.
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
 
-## v3.8 Source Roadmap
+## v3.9 Source Roadmap
 
 - Latest published release: `v3.8.0` Operator-Gated Action Pilot & Outcome Loop, source-only.
-- Current source: `3.8.0` Operator-Gated Action Pilot & Outcome Loop.
-- v3.8 roadmap: builds on the v3.7 site/source group/runbook approval baseline
-  by creating low-risk operations action requests, approval decisions,
-  readiness/preflight checks, limited execution candidates, and outcome
-  reconciliation as one operator-gated loop.
-- Latest published baseline: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
-  is the published source baseline, while v3.7.0 Site-Aware Operations and Safe
-  Runbook Control Plane is the previous published baseline.
+- Current source: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
+- The v3.9 roadmap audits exposed, promised, and partially implemented functionality from v1.0.0 through v3.8.0. After REVIEW4-50 through REVIEW4-63 close, behavior-preserving structure stabilization and refactoring run on the same v3.9.0 branch as REVIEW4-64, followed by independent acceptance in REVIEW4-65.
+- Latest published baseline: v3.8.0 Operator-Gated Action Pilot & Outcome Loop. v3.9.0 is a preparation branch with no publish evidence yet.
 - Invariants: Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC
   media paths are unchanged unless explicitly requested.
 - AI/model boundary: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B
@@ -64,7 +59,7 @@ Related docs:
 | --- | --- |
 | OS | macOS or Linux |
 | Build | C++17, CMake 3.16+ |
-| Media runtime | GStreamer 1.0, gst-rtsp-server, WebRTC-related GStreamer plugins |
+| Media runtime | GStreamer 1.28+, gst-rtsp-server, WebRTC-related GStreamer plugins |
 | Optional AI | ONNX Runtime, YOLO ONNX model, label file |
 | Helper tools | Node.js, Python 3, FFmpeg/ffprobe, curl |
 | Defaults | RTSP route `dhseo`, file root `video/` |
@@ -82,7 +77,7 @@ Related docs:
 Open:
 
 ```text
-http://127.0.0.1:8081/
+http://127.0.0.1:8080/
 ```
 
 Stop:
@@ -135,7 +130,7 @@ records live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Latest published release notes: [v3.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.8.0)
-- Current source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop` in
+- Current source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview

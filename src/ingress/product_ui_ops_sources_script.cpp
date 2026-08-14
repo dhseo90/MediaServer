@@ -20,6 +20,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const sourceBackupHandoffStatus = document.querySelector('#source-backup-handoff-status');
     const sourceBackupHandoffInputList = document.querySelector('#source-backup-handoff-input-list');
     const sourceRecoveryValidationPlanList = document.querySelector('#source-recovery-validation-plan-list');
+    const sourceStagingRestoreValidationStatus = document.querySelector('#sourceStagingRestoreValidationStatus');
+    const sourceStagingRestoreChecklistList = document.querySelector('#source-staging-restore-checklist-list');
+    const sourceStagingRestoreResultArtifactList = document.querySelector('#source-staging-restore-result-artifact-list');
     const sourceContinuityDrillStatus = document.querySelector('#source-continuity-drill-status');
     const sourceContinuityDrillPackageList = document.querySelector('#source-continuity-drill-package-list');
     const sourceContinuityDrillValidationList = document.querySelector('#source-continuity-drill-validation-list');
@@ -50,6 +53,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const onvifProbeDraftClearButton = document.querySelector('#onvifProbeDraftClear');
     const onvifProbeDraftStatus = document.querySelector('#onvifProbeDraftStatus');
     const onvifCredentialGateStatus = document.querySelector('#onvifCredentialGateStatus');
+    const onvifPersistDecisionStatus = document.querySelector('#onvifPersistDecisionStatus');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
@@ -107,6 +111,69 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         false,
         { collapseEmpty: false }
       );
+    }
+    function renderOnvifCredentialProviderStatus(payload = null) {
+      const readiness = payload?.providerReadiness || {};
+      const decision = payload?.decision || {};
+      const redaction = payload?.redactionSummary || {};
+      const primarySelection = String(decision.primarySelection || readiness.primaryProvider || 'none');
+      const fallbackSelection = String(decision.fallbackSelection || readiness.fallbackProvider || 'in-memory-fixture');
+      const status = String(payload?.status || 'sanitizedCredentialProviderStatusSummary');
+      const referenceValueExposed = redaction.referenceValueExposed === true || redaction.credentialReferenceValueIncluded === true;
+      const credentialMaterialExposed = redaction.credentialMaterialExposed === true;
+      setFeedback(
+        onvifCredentialGateStatus,
+        `providerReadiness: ${status} / primarySelection=${primarySelection} / fallback=${fallbackSelection} / persistent store deferred / referenceValueExposed=${referenceValueExposed ? 'true' : 'false'} / credentialMaterialExposed=${credentialMaterialExposed ? 'true' : 'false'}`,
+        referenceValueExposed || credentialMaterialExposed,
+        { collapseEmpty: false }
+      );
+    }
+    async function loadOnvifCredentialProviderStatus() {
+      try {
+        const payload = await requestJson('/ops/api/onvif/credential-provider-status');
+        renderOnvifCredentialProviderStatus(payload);
+      } catch (error) {
+        setFeedback(
+          onvifCredentialGateStatus,
+          `providerReadiness 불러오기 실패: ${error.message}`,
+          true,
+          { collapseEmpty: false }
+        );
+      }
+    }
+    function renderOnvifLiveImportPersistDecision(payload = null) {
+      const defaultOnvifPersistDecisionLabel =
+        'manual-form-save-handoff / importDraftNotSaved=true / oneShotPersist=false / sourceWriteRequired=true';
+      const decision = payload?.decision || {};
+      const boundaries = payload?.boundaries || {};
+      const scopeAndAudit = payload?.scopeAndAudit || {};
+      const selectedMode = String(decision.selectedMode || defaultOnvifPersistDecisionLabel.split(' / ')[0]);
+      const oneShotPersist = decision.oneShotPersistEnabled === true || boundaries.oneShotPersistEnabled === true;
+      const importDraftNotSaved = decision.importDraftNotSavedPreserved !== false &&
+        boundaries.importDraftEndpointNotSaved !== false;
+      const sourceWriteRequired = scopeAndAudit.sourceWriteRequiredForManualSave !== false &&
+        boundaries.sourceWriteRequiredForManualSave !== false;
+      const pairedSaveRoute = String(decision.manualPairedSaveRoute || '/ops/api/onvif/channels/{channelId}');
+      const rollbackModel = String(scopeAndAudit.rollbackModel || payload?.rollbackModel?.writeFailureRollback || 'server restores replaced source/view files on paired save failure');
+      setFeedback(
+        onvifPersistDecisionStatus,
+        `persistDecision: ${selectedMode} / importDraftNotSaved=${importDraftNotSaved ? 'true' : 'false'} / oneShotPersist=${oneShotPersist ? 'true' : 'false'} / sourceWriteRequired=${sourceWriteRequired ? 'true' : 'false'} / pairedSave=${pairedSaveRoute} / rollback=${rollbackModel}`,
+        oneShotPersist || !importDraftNotSaved,
+        { collapseEmpty: false }
+      );
+    }
+    async function loadOnvifLiveImportPersistDecision() {
+      try {
+        const payload = await requestJson('/ops/api/onvif/live-import-persist-decision');
+        renderOnvifLiveImportPersistDecision(payload);
+      } catch (error) {
+        setFeedback(
+          onvifPersistDecisionStatus,
+          `persistDecision 불러오기 실패: ${error.message}`,
+          true,
+          { collapseEmpty: false }
+        );
+      }
     }
     const opsPrincipalScopes = () => Array.isArray(opsPrincipal?.scopes) ? opsPrincipal.scopes.map(item => String(item || '')) : [];
     const opsPrincipalHasScope = scope => opsPrincipal?.role === 'admin' || opsPrincipalScopes().includes('*') || opsPrincipalScopes().includes(scope);
@@ -555,6 +622,36 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         <span>recoveryValidationPlanPersisted: ${escapeHtml(boundaries.recoveryValidationPlanPersisted === true ? 'true' : 'false')}</span>
       </div>`;
     }
+    function renderStagingRestoreValidationHandoff(payload = {}) {
+      const checklist = Array.isArray(payload.stagingRestoreValidationChecklist) ? payload.stagingRestoreValidationChecklist : [];
+      const artifact = payload.resultArtifactContract || {};
+      const boundaries = payload.boundaries || {};
+      if (sourceStagingRestoreValidationStatus) {
+        sourceStagingRestoreValidationStatus.textContent =
+          `${payload.selectedMode || 'staging-restore-validation-checklist-result-handoff'} / checklist ${checklist.length} / resultArtifactPersistedByRoute=${boundaries.resultArtifactPersistedByRoute === true ? 'true' : 'false'} / productionRestorePerformed=${boundaries.productionRestorePerformed === true ? 'true' : 'false'} / automaticRecoveryPerformed=${boundaries.automaticRecoveryPerformed === true ? 'true' : 'false'}`;
+      }
+      if (sourceStagingRestoreChecklistList) {
+        sourceStagingRestoreChecklistList.innerHTML = checklist.map(item => (
+          `<article class="source-backup-handoff-card" data-source-staging-restore-checklist="${escapeHtml(item.key || 'check')}">
+            <strong>${escapeHtml(item.label || item.key || 'staging restore check')}</strong>
+            <span>${escapeHtml(item.status || 'operator-required')} · ${escapeHtml(item.source || 'handoff source')}</span>
+            <small>${escapeHtml((item.requiredEvidence || []).join(' / ') || 'evidence required')}</small>
+          </article>`
+        )).join('') || '<span class="empty">staging restore checklist 없음</span>';
+      }
+      if (sourceStagingRestoreResultArtifactList) {
+        const fields = Array.isArray(artifact.requiredFields) ? artifact.requiredFields : [];
+        sourceStagingRestoreResultArtifactList.innerHTML = `<article class="source-backup-handoff-card" data-source-staging-restore-result-artifact="${escapeHtml(artifact.schema || 'result-artifact')}">
+          <strong>${escapeHtml(artifact.schema || 'media-server.ops.v390-staging-restore-validation-result.v1')}</strong>
+          <span>${escapeHtml(artifact.artifactStatus || 'operator-supplied-after-staging-run')} · ${escapeHtml(artifact.storageScope || 'change-ticket-only')}</span>
+          <small>${escapeHtml(fields.join(' / ') || 'required fields')}</small>
+        </article><div class="source-backup-handoff-boundary" data-source-staging-restore-result-artifact="boundary">
+          <span>resultArtifactPersistedByRoute: ${escapeHtml(boundaries.resultArtifactPersistedByRoute === true ? 'true' : 'false')}</span>
+          <span>productionRestorePerformed: ${escapeHtml(boundaries.productionRestorePerformed === true ? 'true' : 'false')}</span>
+          <span>automaticRecoveryPerformed: ${escapeHtml(boundaries.automaticRecoveryPerformed === true ? 'true' : 'false')}</span>
+        </div>`;
+      }
+    }
     function renderOpsContinuityDrillWorkspace(contractPayload = {}, packagePayload = {}, driftPayload = {}) {
       const packageSummary = packagePayload.recoveryCandidatePackageSummary || {};
       const candidates = Array.isArray(packagePayload.recoveryCandidates) ? packagePayload.recoveryCandidates : [];
@@ -960,6 +1057,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       channelForm.elements.group.value = source.group || source.ownerGroup || '';
       channelForm.elements.floor.value = source.floor || '';
       channelForm.elements.zone.value = source.zone || '';
+      channelForm.elements.allowedRuleIds.value = Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds.join(', ') : '';
+      channelForm.elements.clientGroups.value = Array.isArray(view.clientGroups) ? view.clientGroups.join(', ') : '';
       currentChannelEnabled = isClone ? false : (source.enabled !== false && view.enabled !== false);
       if (isClone && channelForm.elements.displayName.value) {
         channelForm.elements.displayName.value = `${channelForm.elements.displayName.value} 복제`;
@@ -1170,19 +1269,38 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         displayName: data.displayName,
         sourceId: channelId,
         defaultRuleId: '',
-        allowedRuleIds: [],
+        allowedRuleIds: String(data.allowedRuleIds || '').split(/[\s,]+/).map(item => item.trim()).filter(Boolean),
         allowedOverlayModes: ['raw', 'va-overlay', 'va-rule'],
         showDashboard: true,
         showEvents: true,
         showMetadataSummary: true,
-        clientGroups: [],
+        clientGroups: String(data.clientGroups || '').split(/[\s,]+/).map(item => item.trim()).filter(Boolean),
         maxTiles: 1,
         enabled: currentChannelEnabled
       };
       return { channelId, sourcePayload, viewPayload };
     }
+    async function saveChannelSourceViewPair(channelId, sourcePayload, viewPayload) {
+      if (hasSourceTag(sourcePayload, 'onvif')) {
+        return requestJson(`/ops/api/onvif/channels/${encodeURIComponent(channelId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: sourcePayload, publishedView: viewPayload })
+        });
+      }
+      await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sourcePayload)
+      });
+      return requestJson(`/ops/api/views/${encodeURIComponent(channelId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(viewPayload)
+      });
+    }
     async function loadAll() {
-      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, approvalGatedRecoveryChecklist, drillEvidenceExportCleanupManifest, fieldBridgeConditionGates, principal] = await Promise.all([
+      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, stagingRestoreValidationHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, approvalGatedRecoveryChecklist, drillEvidenceExportCleanupManifest, fieldBridgeConditionGates, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views'),
@@ -1190,6 +1308,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         requestJson('/ops/api/source-registry/reliability-timeline'),
         requestJson('/ops/api/source-registry/reliability-search-metrics'),
         requestJson('/ops/api/source-registry/backup-recovery-handoff'),
+        requestJson('/ops/api/source-registry/staging-restore-validation-handoff'),
         requestJson('/ops/api/source-registry/continuity-drill/contract'),
         requestJson('/ops/api/source-registry/recovery-candidate-package'),
         requestJson('/ops/api/source-registry/source-health-replay-drift-diff'),
@@ -1206,6 +1325,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       renderReliabilityTimelineHealthHistory(reliabilityTimeline);
       renderSourceReliabilitySearchMetrics(reliabilitySearchMetrics);
       renderBackupRecoverySourceHandoff(backupRecoveryHandoff);
+      renderStagingRestoreValidationHandoff(stagingRestoreValidationHandoff);
       renderOpsContinuityDrillWorkspace(continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff);
       renderApprovalGatedRecoveryChecklistAudit(approvalGatedRecoveryChecklist);
       renderDrillEvidenceExportCleanupManifest(drillEvidenceExportCleanupManifest);
@@ -1236,16 +1356,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const beforeSource = findSource(channelId);
       const beforeView = findChannelView(channelId);
       try {
-        await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sourcePayload)
-        });
-        await requestJson(`/ops/api/views/${encodeURIComponent(channelId)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(viewPayload)
-        });
+        await saveChannelSourceViewPair(channelId, sourcePayload, viewPayload);
         await loadAll();
         await recordOpsAudit({
           area: 'channels',
@@ -1271,17 +1382,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const view = findChannelView(id) || { viewId: id, sourceId: source.sourceId };
       const enabled = !(source.enabled !== false && view.enabled !== false);
       const before = { source, view };
+      const nextSource = sourcePayloadFromRecord(source, enabled);
+      const nextView = viewPayloadFromRecord(view, source, enabled);
       try {
-        await requestJson(`/ops/api/sources/${encodeURIComponent(source.sourceId)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sourcePayloadFromRecord(source, enabled))
-        });
-        await requestJson(`/ops/api/views/${encodeURIComponent(view.viewId || id)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(viewPayloadFromRecord(view, source, enabled))
-        });
+        await saveChannelSourceViewPair(id, nextSource, nextView);
         await loadAll();
         await recordOpsAudit({
           area: 'channels',
@@ -1289,8 +1393,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           target: `channel:${id}`,
           before,
           after: {
-            source: sourcePayloadFromRecord(source, enabled),
-            view: viewPayloadFromRecord(view, source, enabled)
+            source: nextSource,
+            view: nextView
           }
         });
         renderOpsAuditTrail('channel-audit-list', 'channels');
@@ -1337,10 +1441,16 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       renderOnvifCredentialGate();
       setOnvifProbeDraftStatus('');
     });
-    document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
+    document.querySelector('#refresh').addEventListener('click', () => {
+      loadOnvifCredentialProviderStatus();
+      loadOnvifLiveImportPersistDecision();
+      loadAll().catch(error => setStatus(error.message, true));
+    });
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
     renderOnvifCredentialGate();
+    loadOnvifCredentialProviderStatus();
+    loadOnvifLiveImportPersistDecision();
     loadAll().catch(error => setStatus(error.message, true));
   </script>
 )OPSSOURCES";

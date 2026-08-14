@@ -7,6 +7,10 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {
+  loadImplementationManifest,
+  validateImplementationManifest,
+} from "./feature_implementation_manifest_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -24,12 +28,12 @@ Options:
   -h, --help            Show help.
 
 Checks:
-  - every docs/project-feature-test-inventory.md feature ID has a coverage target
-  - stability rows map to a verifier family
-  - UI rows map to the manual UI fulltest standard/checklist
-  - 30/120-minute rows map to explicit approval-only longrun conditions
+  - every feature ID has one exact implementation evidence manifest item
+  - tracked source/UI/verifier anchors and dispatch commands exist
+  - UI rows map to exact manual case IDs and product screen routes
+  - 30/120-minute rows use the v3.9 canonical approval-only longrun runner
   - rows outside stability/30-minute/120-minute/UI are rejected
-  - a missing-ID negative fixture produces FAIL rows
+  - missing-ID and missing-anchor negative fixtures fail
 `);
 }
 
@@ -38,281 +42,48 @@ assertKnownOptions(rawArgs, ["report", "json-report", "h", "help"]);
 const args = parseArgs(rawArgs);
 const inventory = readText("docs/project-feature-test-inventory.md");
 const rows = parseFeatureRows(inventory);
+const implementationManifest = loadImplementationManifest(rootDir);
+const implementationValidation = validateImplementationManifest({
+  rootDir,
+  inventoryText: inventory,
+  rows,
+  manifest: implementationManifest,
+});
+const canonicalSourceSemanticClosureVerifiers = [
+  "verify-v310-stabilization-release-readiness",
+  "verify-v320-entry-baseline",
+  "verify-v320-resolution-state-contract",
+  "verify-v320-unified-ops-events-workspace",
+  "verify-v320-evidence-quality-layer",
+  "verify-v320-source-reliability-context",
+  "verify-v320-ai-review-quality-context",
+  "verify-v320-operator-resolution-flow",
+  "verify-v320-action-readiness-checklist",
+  "verify-v320-client-safe-resolution-digest",
+  "verify-v320-resolution-search-metrics",
+  "verify-v320-stabilization-release-readiness",
+  "verify-v330-entry-baseline",
+  "verify-v330-source-registry-snapshot-identity",
+  "verify-v330-source-onboarding-quality-summary",
+  "verify-v330-reliability-timeline-health-history",
+  "verify-v330-incident-source-correlation-layer",
+  "verify-v330-operator-recheck-recovery-queue",
+  "verify-v330-client-safe-source-status-digest",
+  "verify-v330-operator-runbook-reliability-handoff",
+  "verify-v330-source-reliability-search-metrics",
+  "verify-v330-ops-backup-recovery-source-handoff",
+  "verify-v330-stabilization-release-readiness",
+  "verify-v340-entry-baseline",
+  "verify-v340-continuity-drill-contract",
+  "verify-v340-recovery-candidate-package",
+  "verify-v340-source-health-replay-drift-diff",
+  "verify-v350-live-operations-graph-contract",
+  "verify-v350-operations-command-plan-contract",
+  "verify-v350-staged-change-plan-impact-preview",
+  "verify-v360-simulation-input-contract",
+  "verify-v360-command-plan-dry-run-simulator",
+];
 const checks = [];
-
-const stabilityVerifierByPrefix = {
-  UI: ["verify-auth-bootstrap", "verify-auth-routes", "verify-ops-client-ui", "verify-ops-route-boundaries", "verify-vlm-install-connection-ui", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-vlm-runtime-status-ui", "verify-vlm-evaluation-result-workflow", "verify-vlm-review-action-workflow", "verify-vlm-rule-suggestion-draft-workflow", "verify-vlm-ops-event-review-ui", "verify-vlm-privacy-transfer-guard", "verify-ops-event-action-incident-workflow", "verify-ops-alert-delivery-integrations", "verify-v250-ops-events-semantic-search-ui", "verify-v250-incident-timeline-graph", "verify-v250-explainable-incident-brief", "verify-v250-similar-incident-lookup", "verify-v250-redacted-incident-evidence-bundle", "verify-v250-owner-release-readiness", "verify-v260-incident-memory-productization", "verify-v260-rule-suggestion-review", "verify-v260-onvif-credential-gate", "verify-v260-runtime-dashboard-trends", "verify-v260-scenario-cross-zone-reentry", "verify-v260-owner-release-readiness", "verify-v270-incident-triage-board", "verify-v270-incident-decision-scorecard", "verify-v270-operational-action-pack", "verify-v270-rule-what-if-preview", "verify-v270-operator-outcome-memory", "verify-v280-incident-action-readiness-queue", "verify-v280-approval-gated-rule-draft", "verify-v280-evidence-intake-field-readiness", "verify-v280-runtime-evidence-window", "verify-v280-owner-release-readiness", "verify-v300-ops-events-ui", "verify-v310-replay-timeline-ui", "verify-v310-operator-feature-correction", "verify-v320-unified-ops-events-workspace", "verify-v320-evidence-quality-layer", "verify-v320-source-reliability-context", "verify-v320-source-reliability-runtime-sample", "verify-v320-ai-review-quality-context", "verify-v320-operator-resolution-flow", "verify-v320-action-readiness-checklist", "verify-v320-client-safe-resolution-digest", "verify-v320-resolution-search-metrics", "verify-v330-incident-source-correlation-layer", "verify-v330-operator-recheck-recovery-queue", "verify-v330-client-safe-source-status-digest", "verify-v330-source-reliability-search-metrics", "verify-v330-ops-backup-recovery-source-handoff", "verify-v340-ops-continuity-drill-workspace-ui", "verify-v340-approval-gated-recovery-checklist-audit", "verify-v340-client-safe-maintenance-digest", "verify-v340-drill-evidence-export-cleanup-manifest", "verify-v340-field-bridge-condition-gates", "verify-v350-ops-command-workspace-ui", "verify-v350-drill-run-ledger-plan-comparison", "verify-v350-client-impact-forecast", "verify-v350-client-safe-operations-notice", "verify-v350-operations-export-bundle-handoff-map", "verify-v350-field-evidence-intake", "verify-v350-vlm-assisted-ops-explanation"],
-  AUTH: ["verify-auth-regression-matrix", "verify-auth-bootstrap", "verify-auth-users", "verify-auth-routes", "verify-auth-ui-smoke", "verify-auth-scope-picker"],
-  SRC: ["verify-v230-conditional-field-evidence", "verify-ops-source-lifecycle", "verify-ops-source-health-bulk", "verify-ops-client-ui", "verify-onvif-no-device-suite", "verify-v260-onvif-credential-gate", "verify-v280-evidence-intake-field-readiness", "verify-v330-source-registry-snapshot-identity", "verify-v330-source-onboarding-quality-summary", "verify-v330-reliability-timeline-health-history", "verify-v330-incident-source-correlation-layer", "verify-v330-operator-recheck-recovery-queue", "verify-v330-client-safe-source-status-digest", "verify-v330-source-reliability-search-metrics", "verify-v330-ops-backup-recovery-source-handoff", "verify-v340-recovery-candidate-package", "verify-v340-source-health-replay-drift-diff", "verify-v340-field-bridge-condition-gates", "verify-v350-field-evidence-intake", "verify-v350-vlm-assisted-ops-explanation"],
-  RULE: ["verify-rule-ui", "verify-ops-rules-roundtrip", "verify-ops-rule-validation-matrix", "verify-va-event-coverage-report", "verify-va-replay", "verify-analysis-state", "verify-v260-scenario-cross-zone-reentry", "verify-v280-approval-gated-rule-draft"],
-  EVT: ["verify-va-event-coverage-report", "verify-va-events", "verify-analysis-state", "verify-ops-event-review-inbox", "verify-ops-event-records-scope", "verify-ops-alert-delivery-integrations", "verify-ops-event-action-incident-workflow", "verify-va-runtime-console", "verify-vlm-event-evidence-extraction", "verify-vlm-observation-sidecar", "verify-vlm-event-explanation-hints", "verify-vlm-review-action-workflow", "verify-vlm-ops-event-review-ui", "verify-vlm-summary-search-candidates", "verify-vlm-rule-suggestion-candidates", "verify-vlm-rule-suggestion-draft-workflow", "verify-v250-incident-text-projection", "verify-v250-incident-memory-index", "verify-v250-ops-events-semantic-search-ui", "verify-v250-incident-timeline-graph", "verify-v250-explainable-incident-brief", "verify-v250-similar-incident-lookup", "verify-v250-redacted-incident-evidence-bundle", "verify-v260-incident-memory-productization", "verify-v260-rule-suggestion-review", "verify-v260-runtime-dashboard-trends", "verify-v260-scenario-cross-zone-reentry", "verify-v270-incident-triage-board", "verify-v270-incident-decision-scorecard", "verify-v270-operational-action-pack", "verify-v270-rule-what-if-preview", "verify-v270-operator-outcome-memory", "verify-v280-incident-action-readiness-queue", "verify-v280-approval-gated-rule-draft", "verify-v280-evidence-intake-field-readiness", "verify-v280-runtime-evidence-window", "verify-v310-operator-feature-correction", "verify-v310-retention-export-hardening", "verify-v320-resolution-state-contract", "verify-v320-unified-ops-events-workspace", "verify-v320-evidence-quality-layer", "verify-v320-source-reliability-context", "verify-v320-source-reliability-runtime-sample", "verify-v320-ai-review-quality-context", "verify-v320-operator-resolution-flow", "verify-v320-action-readiness-checklist", "verify-v320-resolution-search-metrics", "verify-v330-incident-source-correlation-layer", "verify-v330-operator-recheck-recovery-queue", "verify-v340-recovery-candidate-package", "verify-v350-vlm-assisted-ops-explanation"],
-  CLIENT: ["verify-client-live-workspace", "verify-client-dashboard-polish", "verify-client-source-dock-events", "verify-ops-client-ui", "verify-v250-client-safe-incident-digest", "verify-v280-client-safe-followup-digest", "verify-v310-client-safe-event-digest", "verify-v310-scoped-integrator-search-api", "verify-v320-client-safe-resolution-digest", "verify-v330-client-safe-source-status-digest", "verify-v340-client-safe-maintenance-digest", "verify-v350-client-impact-forecast", "verify-v350-client-safe-operations-notice"],
-  MEDIA: ["verify-v230-conditional-field-evidence", "verify-codecs", "verify-webrtc-ice", "verify-external-turn-whep-field-gate", "verify-webrtc-va-metadata", "verify-v340-field-bridge-condition-gates", "verify-v350-field-evidence-intake"],
-  LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-boundary", "verify-vlm-selection-decision", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-v230-vlm-opt-in-operational-evidence", "verify-vlm-local-runtime-smoke", "verify-vlm-cloud-provider-field-smoke-gate", "verify-vlm-queue-backpressure-stability", "verify-runtime-model-bundle-rc-rehearsal", "verify-vlm-evaluation-harness", "verify-vlm-evaluation-result-workflow", "verify-vlm-review-action-workflow", "verify-vlm-observation-sidecar", "verify-vlm-event-explanation-hints", "verify-vlm-privacy-transfer-guard", "verify-vlm-summary-search-candidates", "verify-vlm-rule-suggestion-candidates", "verify-vlm-rule-suggestion-draft-workflow", "verify-v250-incident-text-projection", "verify-v250-incident-memory-index", "verify-v250-incident-timeline-graph", "verify-v250-explainable-incident-brief", "verify-v250-similar-incident-lookup", "verify-v250-redacted-incident-evidence-bundle", "verify-v260-incident-memory-productization", "verify-v260-rule-suggestion-review", "verify-v260-onvif-credential-gate", "verify-v260-runtime-dashboard-trends", "verify-v260-scenario-cross-zone-reentry", "verify-v270-incident-triage-board", "verify-v270-incident-decision-scorecard", "verify-v270-operational-action-pack", "verify-v270-rule-what-if-preview", "verify-v270-operator-outcome-memory", "verify-v280-incident-action-readiness-queue", "verify-v280-approval-gated-rule-draft", "verify-v280-evidence-intake-field-readiness", "verify-v280-runtime-evidence-window", "verify-v300-feature-schema-privacy", "verify-v300-vlm-feature-queue", "verify-v300-feature-only-retention", "verify-v300-search-dsl-query-convert", "verify-v300-feature-search-index", "verify-v300-retention-pin-cleanup", "verify-v310-optional-vector-search", "verify-v340-staging-restore-validation-harness", "verify-v340-field-bridge-condition-gates", "verify-v350-field-evidence-intake", "verify-v350-vlm-assisted-ops-explanation"],
-  SAFE: ["verify-v230-conditional-field-evidence", "verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata", "verify-analysis-state", "verify-external-turn-whep-field-gate", "verify-runtime-model-bundle-rc-rehearsal", "verify-vlm-boundary", "verify-vlm-install-connection-scope-gate", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-v230-vlm-opt-in-operational-evidence", "verify-vlm-local-runtime-smoke", "verify-vlm-cloud-provider-field-smoke-gate", "verify-vlm-queue-backpressure-stability", "verify-vlm-review-action-workflow", "verify-vlm-observation-sidecar", "verify-vlm-privacy-transfer-guard", "verify-vlm-summary-search-candidates", "verify-vlm-rule-suggestion-candidates", "verify-vlm-rule-suggestion-draft-workflow", "verify-ops-event-action-incident-workflow", "verify-ops-alert-delivery-integrations", "verify-v250-incident-text-projection", "verify-v250-incident-memory-index", "verify-v250-ops-events-semantic-search-ui", "verify-v250-incident-timeline-graph", "verify-v250-explainable-incident-brief", "verify-v250-similar-incident-lookup", "verify-v250-client-safe-incident-digest", "verify-v250-redacted-incident-evidence-bundle", "verify-v250-owner-release-readiness", "verify-v260-incident-memory-productization", "verify-v260-rule-suggestion-review", "verify-v260-onvif-credential-gate", "verify-v260-runtime-dashboard-trends", "verify-v260-scenario-cross-zone-reentry", "verify-v260-owner-release-readiness", "verify-v270-incident-triage-board", "verify-v270-incident-decision-scorecard", "verify-v270-operational-action-pack", "verify-v270-rule-what-if-preview", "verify-v270-operator-outcome-memory", "verify-v270-owner-release-readiness", "verify-release-metadata", "verify-v280-incident-action-readiness-queue", "verify-v280-approval-gated-rule-draft", "verify-v280-evidence-intake-field-readiness", "verify-v280-runtime-evidence-window", "verify-v280-client-safe-followup-digest", "verify-v280-owner-release-readiness", "verify-v290-final-contract-freeze", "verify-v290-v28-regression-bundle", "verify-v290-2x-compatibility-baseline", "verify-v290-release-test-records-enforcement", "verify-v290-ui-fulltest-criteria-freeze", "verify-v290-release-evidence-hygiene", "verify-v290-public-docs-assets-refresh", "verify-v290-final-stabilization-run", "verify-v290-owner-release-readiness", "verify-v300-entry-baseline", "verify-v300-event-evidence-contract", "verify-v300-feature-schema-privacy", "verify-v300-vlm-feature-queue", "verify-v300-feature-only-retention", "verify-v300-search-dsl-query-convert", "verify-v300-feature-search-index", "verify-v300-ops-events-ui", "verify-v300-retention-pin-cleanup", "verify-v300-stabilization-release-readiness", "verify-v310-entry-baseline", "verify-v310-event-clip-contract", "verify-v310-replay-timeline-ui", "verify-v310-client-safe-event-digest", "verify-v310-scoped-integrator-search-api", "verify-v310-operator-feature-correction", "verify-v310-optional-vector-search", "verify-v310-retention-export-hardening", "verify-v310-stabilization-release-readiness", "verify-v320-entry-baseline", "verify-v320-resolution-state-contract", "verify-v320-unified-ops-events-workspace", "verify-v320-evidence-quality-layer", "verify-v320-source-reliability-context", "verify-v320-source-reliability-runtime-sample", "verify-v320-ai-review-quality-context", "verify-v320-operator-resolution-flow", "verify-v320-action-readiness-checklist", "verify-v320-client-safe-resolution-digest", "verify-v320-resolution-search-metrics", "verify-v320-stabilization-release-readiness", "verify-v330-entry-baseline", "verify-v330-source-registry-snapshot-identity", "verify-v330-source-onboarding-quality-summary", "verify-v330-reliability-timeline-health-history", "verify-v330-incident-source-correlation-layer", "verify-v330-operator-recheck-recovery-queue", "verify-v330-client-safe-source-status-digest", "verify-v330-operator-runbook-reliability-handoff", "verify-v330-source-reliability-search-metrics", "verify-v330-ops-backup-recovery-source-handoff", "verify-v330-stabilization-release-readiness", "verify-v340-entry-baseline", "verify-v340-continuity-drill-contract", "verify-v340-recovery-candidate-package", "verify-v340-staging-restore-validation-harness", "verify-v340-source-health-replay-drift-diff", "verify-v340-ops-continuity-drill-workspace-ui", "verify-v340-approval-gated-recovery-checklist-audit", "verify-v340-client-safe-maintenance-digest", "verify-v340-drill-evidence-export-cleanup-manifest", "verify-v340-field-bridge-condition-gates", "verify-v340-stabilization-release-readiness", "verify-v350-entry-baseline", "verify-v350-live-operations-graph-contract", "verify-v350-operations-command-plan-contract", "verify-v350-incident-to-command-handoff", "verify-v350-staged-change-plan-impact-preview", "verify-v350-ops-command-workspace-ui", "verify-v350-drill-run-ledger-plan-comparison", "verify-v350-client-impact-forecast", "verify-v350-client-safe-operations-notice", "verify-v350-operations-export-bundle-handoff-map", "verify-v350-field-evidence-intake", "verify-v350-vlm-assisted-ops-explanation", "verify-v350-stabilization-release-readiness"],
-  OPS: ["verify-release-metadata", "verify-docs-links", "verify-docs-ui-assets", "verify-v230-ops-backup-recovery-lifecycle", "verify-ops-backup-recovery-guide", "verify-ops-backup-restore-dry-run", "verify-ops-evidence-retention-cleanup", "verify-v250-owner-release-readiness", "verify-v260-owner-release-readiness", "verify-v270-owner-release-readiness", "verify-v280-owner-release-readiness", "verify-v290-final-contract-freeze", "verify-v290-v28-regression-bundle", "verify-v290-2x-compatibility-baseline", "verify-v290-release-test-records-enforcement", "verify-v290-ui-fulltest-criteria-freeze", "verify-v290-release-evidence-hygiene", "verify-v290-public-docs-assets-refresh", "verify-v290-final-stabilization-run", "verify-v290-owner-release-readiness", "verify-v300-entry-baseline", "verify-v300-event-evidence-contract", "verify-v300-feature-schema-privacy", "verify-v300-vlm-feature-queue", "verify-v300-feature-only-retention", "verify-v300-search-dsl-query-convert", "verify-v300-feature-search-index", "verify-v300-ops-events-ui", "verify-v300-retention-pin-cleanup", "verify-v300-stabilization-release-readiness", "verify-v310-entry-baseline", "verify-v310-event-clip-contract", "verify-v310-replay-timeline-ui", "verify-v310-scoped-integrator-search-api", "verify-v310-operator-feature-correction", "verify-v310-optional-vector-search", "verify-v310-retention-export-hardening", "verify-v310-stabilization-release-readiness", "verify-v320-entry-baseline", "verify-v320-resolution-state-contract", "verify-v320-unified-ops-events-workspace", "verify-v320-evidence-quality-layer", "verify-v320-source-reliability-context", "verify-v320-source-reliability-runtime-sample", "verify-v320-ai-review-quality-context", "verify-v320-operator-resolution-flow", "verify-v320-action-readiness-checklist", "verify-v320-client-safe-resolution-digest", "verify-v320-resolution-search-metrics", "verify-v320-stabilization-release-readiness", "verify-v330-entry-baseline", "verify-v330-source-registry-snapshot-identity", "verify-v330-source-onboarding-quality-summary", "verify-v330-reliability-timeline-health-history", "verify-v330-incident-source-correlation-layer", "verify-v330-operator-recheck-recovery-queue", "verify-v330-client-safe-source-status-digest", "verify-v330-operator-runbook-reliability-handoff", "verify-v330-source-reliability-search-metrics", "verify-v330-ops-backup-recovery-source-handoff", "verify-v330-stabilization-release-readiness", "verify-v340-entry-baseline", "verify-v340-continuity-drill-contract", "verify-v340-recovery-candidate-package", "verify-v340-staging-restore-validation-harness", "verify-v340-source-health-replay-drift-diff", "verify-v340-ops-continuity-drill-workspace-ui", "verify-v340-approval-gated-recovery-checklist-audit", "verify-v340-client-safe-maintenance-digest", "verify-v340-drill-evidence-export-cleanup-manifest", "verify-v340-field-bridge-condition-gates", "verify-v340-stabilization-release-readiness", "verify-v350-entry-baseline", "verify-v350-live-operations-graph-contract", "verify-v350-operations-command-plan-contract", "verify-v350-incident-to-command-handoff", "verify-v350-staged-change-plan-impact-preview", "verify-v350-ops-command-workspace-ui", "verify-v350-drill-run-ledger-plan-comparison", "verify-v350-client-impact-forecast", "verify-v350-client-safe-operations-notice", "verify-v350-operations-export-bundle-handoff-map", "verify-v350-field-evidence-intake", "verify-v350-vlm-assisted-ops-explanation", "verify-v350-stabilization-release-readiness"],
-};
-
-const v360VerifierCoverage = {
-  UI: [
-    "verify-v360-ops-simulation-workspace-ui",
-    "verify-v360-simulation-run-ledger-comparison",
-    "verify-v360-client-notice-preview",
-    "verify-v360-rule-va-what-if-replay-pack",
-    "verify-v360-simulation-export-bundle",
-    "verify-v360-field-evidence-simulation-adapter",
-    "verify-v360-vlm-assisted-simulation-explanation",
-  ],
-  SRC: [
-    "verify-v360-simulation-input-contract",
-    "verify-v360-command-plan-dry-run-simulator",
-    "verify-v360-source-rule-impact-diff",
-    "verify-v360-field-evidence-simulation-adapter",
-    "verify-v360-vlm-assisted-simulation-explanation",
-  ],
-  RULE: [
-    "verify-v360-command-plan-dry-run-simulator",
-    "verify-v360-source-rule-impact-diff",
-    "verify-v360-rule-va-what-if-replay-pack",
-  ],
-  EVT: [
-    "verify-v360-simulation-input-contract",
-    "verify-v360-rule-va-what-if-replay-pack",
-    "verify-v360-vlm-assisted-simulation-explanation",
-  ],
-  CLIENT: [
-    "verify-v360-source-rule-impact-diff",
-    "verify-v360-client-notice-preview",
-  ],
-  MEDIA: [
-    "verify-v360-field-evidence-simulation-adapter",
-  ],
-  LAB: [
-    "verify-v360-operations-simulation-run-contract",
-    "verify-v360-simulation-run-ledger-comparison",
-    "verify-v360-rule-va-what-if-replay-pack",
-    "verify-v360-simulation-export-bundle",
-    "verify-v360-field-evidence-simulation-adapter",
-    "verify-v360-vlm-assisted-simulation-explanation",
-  ],
-  SAFE: [
-    "verify-v360-entry-baseline",
-    "verify-v360-simulation-input-contract",
-    "verify-v360-operations-simulation-run-contract",
-    "verify-v360-command-plan-dry-run-simulator",
-    "verify-v360-source-rule-impact-diff",
-    "verify-v360-safe-apply-readiness-gate",
-    "verify-v360-ops-simulation-workspace-ui",
-    "verify-v360-simulation-run-ledger-comparison",
-    "verify-v360-client-notice-preview",
-    "verify-v360-rule-va-what-if-replay-pack",
-    "verify-v360-simulation-export-bundle",
-    "verify-v360-field-evidence-simulation-adapter",
-    "verify-v360-vlm-assisted-simulation-explanation",
-    "verify-v360-stabilization-release-readiness",
-  ],
-  OPS: [
-    "verify-v360-entry-baseline",
-    "verify-v360-simulation-input-contract",
-    "verify-v360-operations-simulation-run-contract",
-    "verify-v360-command-plan-dry-run-simulator",
-    "verify-v360-source-rule-impact-diff",
-    "verify-v360-safe-apply-readiness-gate",
-    "verify-v360-ops-simulation-workspace-ui",
-    "verify-v360-simulation-run-ledger-comparison",
-    "verify-v360-client-notice-preview",
-    "verify-v360-rule-va-what-if-replay-pack",
-    "verify-v360-simulation-export-bundle",
-    "verify-v360-field-evidence-simulation-adapter",
-    "verify-v360-vlm-assisted-simulation-explanation",
-    "verify-v360-stabilization-release-readiness",
-  ],
-};
-
-for (const [prefix, verifiers] of Object.entries(v360VerifierCoverage)) {
-  stabilityVerifierByPrefix[prefix].push(...verifiers);
-}
-
-const v370VerifierCoverage = {
-  UI: [
-    "verify-v370-site-operations-workspace-ui",
-    "verify-v370-client-notice-by-site-view-group",
-    "verify-v370-rule-va-what-if-by-site",
-    "verify-v370-field-evidence-attachment",
-    "verify-v370-limited-safe-execution-pilot",
-    "verify-v370-outcome-reconciliation",
-    "verify-v370-export-handoff-bundle",
-    "verify-v370-stabilization-release-readiness",
-  ],
-  RULE: [
-    "verify-v370-rule-va-what-if-by-site",
-  ],
-  SRC: [
-    "verify-v370-site-source-group-contract",
-    "verify-v370-site-aware-source-registry-projection",
-    "verify-v370-site-health-rollup",
-    "verify-v370-site-impact-graph",
-    "verify-v370-site-simulation-input-pack",
-    "verify-v370-cross-site-safe-apply-readiness",
-    "verify-v370-field-evidence-attachment",
-    "verify-v370-limited-safe-execution-pilot",
-    "verify-v370-outcome-reconciliation",
-  ],
-  MEDIA: [
-    "verify-v370-field-evidence-attachment",
-  ],
-  EVT: [
-    "verify-v370-site-impact-graph",
-    "verify-v370-site-simulation-input-pack",
-    "verify-v370-rule-va-what-if-by-site",
-    "verify-v370-outcome-reconciliation",
-  ],
-  LAB: [
-    "verify-v370-site-simulation-input-pack",
-    "verify-v370-cross-site-safe-apply-readiness",
-    "verify-v370-runbook-template-contract",
-    "verify-v370-runbook-instance-ledger",
-    "verify-v370-approval-ticket-workflow",
-    "verify-v370-rule-va-what-if-by-site",
-    "verify-v370-field-evidence-attachment",
-    "verify-v370-limited-safe-execution-pilot",
-    "verify-v370-outcome-reconciliation",
-    "verify-v370-export-handoff-bundle",
-  ],
-  CLIENT: [
-    "verify-v370-site-impact-graph",
-    "verify-v370-cross-site-safe-apply-readiness",
-    "verify-v370-client-notice-by-site-view-group",
-    "verify-v370-limited-safe-execution-pilot",
-    "verify-v370-outcome-reconciliation",
-  ],
-  SAFE: [
-    "verify-v370-entry-baseline",
-    "verify-v370-site-source-group-contract",
-    "verify-v370-site-aware-source-registry-projection",
-    "verify-v370-site-health-rollup",
-    "verify-v370-site-impact-graph",
-    "verify-v370-site-simulation-input-pack",
-    "verify-v370-cross-site-safe-apply-readiness",
-    "verify-v370-runbook-template-contract",
-    "verify-v370-runbook-instance-ledger",
-    "verify-v370-approval-ticket-workflow",
-    "verify-v370-site-operations-workspace-ui",
-    "verify-v370-client-notice-by-site-view-group",
-    "verify-v370-rule-va-what-if-by-site",
-    "verify-v370-field-evidence-attachment",
-    "verify-v370-limited-safe-execution-pilot",
-    "verify-v370-outcome-reconciliation",
-    "verify-v370-export-handoff-bundle",
-    "verify-v370-stabilization-release-readiness",
-  ],
-  OPS: [
-    "verify-v370-entry-baseline",
-    "verify-v370-site-source-group-contract",
-    "verify-v370-site-aware-source-registry-projection",
-    "verify-v370-site-health-rollup",
-    "verify-v370-site-impact-graph",
-    "verify-v370-site-simulation-input-pack",
-    "verify-v370-cross-site-safe-apply-readiness",
-    "verify-v370-runbook-template-contract",
-    "verify-v370-runbook-instance-ledger",
-    "verify-v370-approval-ticket-workflow",
-    "verify-v370-site-operations-workspace-ui",
-    "verify-v370-client-notice-by-site-view-group",
-    "verify-v370-rule-va-what-if-by-site",
-    "verify-v370-field-evidence-attachment",
-    "verify-v370-limited-safe-execution-pilot",
-    "verify-v370-outcome-reconciliation",
-    "verify-v370-export-handoff-bundle",
-    "verify-v370-stabilization-release-readiness",
-  ],
-};
-
-for (const [prefix, verifiers] of Object.entries(v370VerifierCoverage)) {
-  stabilityVerifierByPrefix[prefix].push(...verifiers);
-}
-
-const v380VerifierCoverage = {
-  UI: [
-    "verify-v380-ops-action-control-workspace-ui",
-    "verify-v380-client-safe-action-notice-preview",
-    "verify-v380-outcome-observer-reconciliation",
-    "verify-v380-action-receipt-bundle",
-    "verify-v380-field-connector-evidence-package",
-    "verify-v380-default-off-action-explanation",
-  ],
-  SRC: [
-    "verify-v380-field-connector-evidence-package",
-    "verify-v380-default-off-action-explanation",
-  ],
-  MEDIA: [
-    "verify-v380-field-connector-evidence-package",
-  ],
-  EVT: [
-    "verify-v380-outcome-observer-reconciliation",
-    "verify-v380-action-receipt-bundle",
-    "verify-v380-default-off-action-explanation",
-  ],
-  CLIENT: [
-    "verify-v380-client-safe-action-notice-preview",
-    "verify-v380-outcome-observer-reconciliation",
-    "verify-v380-action-receipt-bundle",
-  ],
-  LAB: [
-    "verify-v380-ops-action-route-boundary",
-    "verify-v380-action-capability-contract",
-    "verify-v380-action-request-ledger-contract",
-    "verify-v380-approval-decision-gate",
-    "verify-v380-action-readiness-preflight",
-    "verify-v380-source-recheck-action-pilot",
-    "verify-v380-client-notice-draft-queue",
-    "verify-v380-rule-draft-action-package",
-    "verify-v380-outcome-observer-reconciliation",
-    "verify-v380-action-receipt-bundle",
-    "verify-v380-field-connector-evidence-package",
-    "verify-v380-default-off-action-explanation",
-  ],
-  SAFE: [
-    "verify-v380-entry-baseline",
-    "verify-v380-ops-action-route-boundary",
-    "verify-v380-action-capability-contract",
-    "verify-v380-action-request-ledger-contract",
-    "verify-v380-approval-decision-gate",
-    "verify-v380-action-readiness-preflight",
-    "verify-v380-source-recheck-action-pilot",
-    "verify-v380-client-notice-draft-queue",
-    "verify-v380-rule-draft-action-package",
-    "verify-v380-ops-action-control-workspace-ui",
-    "verify-v380-client-safe-action-notice-preview",
-    "verify-v380-outcome-observer-reconciliation",
-    "verify-v380-action-receipt-bundle",
-    "verify-v380-field-connector-evidence-package",
-    "verify-v380-default-off-action-explanation",
-    "verify-v380-stabilization-release-readiness",
-  ],
-  OPS: [
-    "verify-v380-entry-baseline",
-    "verify-v380-ops-action-route-boundary",
-    "verify-v380-action-capability-contract",
-    "verify-v380-action-request-ledger-contract",
-    "verify-v380-approval-decision-gate",
-    "verify-v380-action-readiness-preflight",
-    "verify-v380-source-recheck-action-pilot",
-    "verify-v380-client-notice-draft-queue",
-    "verify-v380-rule-draft-action-package",
-    "verify-v380-ops-action-control-workspace-ui",
-    "verify-v380-client-safe-action-notice-preview",
-    "verify-v380-outcome-observer-reconciliation",
-    "verify-v380-action-receipt-bundle",
-    "verify-v380-field-connector-evidence-package",
-    "verify-v380-default-off-action-explanation",
-    "verify-v380-stabilization-release-readiness",
-  ],
-};
-
-for (const [prefix, verifiers] of Object.entries(v380VerifierCoverage)) {
-  stabilityVerifierByPrefix[prefix].push(...verifiers);
-}
 
 check("inventory row count is stable", () => {
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");
@@ -340,32 +111,63 @@ check("coverage docs and server command are wired", () => {
     readText("docs/development-backlog.md"),
   ].join("\n");
   const server = readText("server.sh");
-  for (const snippet of [
+for (const snippet of [
     "verify-feature-inventory-coverage",
+    "verify-feature-implementation-evidence",
+    "verify-ui-blocking-dialog-policy",
     "media-server.feature-inventory-coverage.v1",
+    "media-server.feature-implementation-evidence.v2",
     "missing coverage target",
+    "coverageStatus: covered/missing",
+    "executionEvidenceStatus: not-execution-evidence",
     "누락 ID는 release gate에서 FAIL",
   ]) {
     assert(docs.includes(snippet), `docs missing coverage snippet: ${snippet}`);
   }
   assert(server.includes("verify-feature-inventory-coverage"), "server.sh missing coverage command");
   assert(server.includes("verify_feature_inventory_coverage.mjs"), "server.sh missing coverage script dispatch");
+  assert(server.includes("verify-feature-implementation-evidence"), "server.sh missing implementation evidence command");
+  assert(server.includes("verify-ui-blocking-dialog-policy"), "server.sh missing blocking dialog policy command");
+  for (const command of canonicalSourceSemanticClosureVerifiers) {
+    assert(server.includes(command), `server.sh missing canonical source semantic verifier: ${command}`);
+  }
 });
 
-check("all feature IDs have coverage targets", () => {
-  const report = buildCoverageReport(rows, stabilityVerifierByPrefix);
+check("exact implementation evidence manifest is valid", () => {
+  assert(implementationValidation.ok, implementationValidation.errors.slice(0, 5).join("; "));
+  assert(implementationValidation.summary.manifestRows === rows.length, "manifest row count mismatch");
+  assert(implementationValidation.summary.sourceEvidenceRows === rows.length, "source evidence coverage mismatch");
+  assert(implementationValidation.summary.verifierEvidenceRows === rows.length, "verifier evidence coverage mismatch");
+});
+
+check("all feature IDs have exact coverage targets", () => {
+  const report = buildCoverageReport(rows, implementationManifest);
   assert(report.summary.missing === 0, `missing coverage targets: ${report.summary.missing}`);
 });
 
 check("negative missing-ID fixture fails", () => {
-  const brokenMap = { ...stabilityVerifierByPrefix, UI: [] };
-  const brokenRow = { ...rows.find(row => row.id === "UI-001"), area: "안정화" };
-  const report = buildCoverageReport([brokenRow], brokenMap);
-  assert(report.summary.missing === 1, `negative fixture should have one missing row, got ${report.summary.missing}`);
-  assert(report.items[0].status === "FAIL", "negative fixture row must be FAIL");
+  const broken = structuredClone(implementationManifest);
+  broken.items = broken.items.filter(item => item.id !== "UI-019");
+  const result = validateImplementationManifest({
+    rootDir,
+    inventoryText: inventory,
+    rows,
+    manifest: broken,
+  });
+  assert(!result.ok, "missing-ID fixture must fail");
+  assert(result.errors.some(error => error.includes("manifest missing feature ID UI-019")),
+    "missing-ID fixture must identify UI-019");
 });
 
-const report = buildCoverageReport(rows, stabilityVerifierByPrefix);
+check("SAFE-200 canonical coverage wording truthfulness boundary", () => {
+  const coverageReport = buildCoverageReport(rows, implementationManifest);
+  const safe200BoundaryObserved = coverageReport.items.every((item) => ["covered", "missing"].includes(item.coverageStatus));
+  const executionPassClaimed = coverageReport.items.some((item) => item.executionEvidenceStatus !== "not-execution-evidence");
+  assert(safe200BoundaryObserved && executionPassClaimed === false,
+    "SAFE-200 coverageStatus covered missing must retain executionEvidenceStatus not-execution-evidence");
+});
+
+const report = buildCoverageReport(rows, implementationManifest);
 if (args.report) writeText(args.report, renderMarkdown(report));
 if (args.jsonReport) writeText(args.jsonReport, `${JSON.stringify(report, null, 2)}\n`);
 
@@ -403,15 +205,17 @@ function parseArgs(argsList) {
   return parsed;
 }
 
-function buildCoverageReport(featureRows, verifierMap) {
+function buildCoverageReport(featureRows, manifest) {
+  const manifestById = new Map((manifest.items || []).map(item => [item.id, item]));
   const items = featureRows.map(row => {
-    const targets = coverageTargets(row, verifierMap);
+    const targets = coverageTargets(row, manifestById.get(row.id));
     return {
       id: row.id,
       feature: row.feature,
       area: row.area,
       targets,
-      status: targets.length > 0 ? "PASS" : "FAIL",
+      coverageStatus: targets.length > 0 ? "covered" : "missing",
+      executionEvidenceStatus: "not-execution-evidence",
       reason: targets.length > 0 ? "" : "missing coverage target",
     };
   });
@@ -420,30 +224,55 @@ function buildCoverageReport(featureRows, verifierMap) {
     generatedAt: new Date().toISOString(),
     summary: {
       total: items.length,
-      covered: items.filter(item => item.status === "PASS").length,
-      missing: items.filter(item => item.status === "FAIL").length,
+      covered: items.filter(item => item.coverageStatus === "covered").length,
+      missing: items.filter(item => item.coverageStatus === "missing").length,
     },
     items,
   };
 }
 
-function coverageTargets(row, verifierMap) {
+function coverageTargets(row, item) {
+  if (!item) return [];
+  const semantic = item.semanticEvidence;
+  if (item.status !== "semantic-reviewed" || item.review?.decision !== "approved" ||
+      !semantic?.handler || !semantic?.actionHandler || !semantic?.stateOracle?.locator ||
+      !semantic?.verifierAssertion ||
+      (hasArea(row.area, "UI") && (!item.uiEvidence || !item.manualUiCaseId))) {
+    return [];
+  }
   const targets = [];
-  const prefix = row.id.split("-", 1)[0];
+  targets.push({
+    kind: "implementation",
+    file: semantic.handler.file,
+    anchor: semantic.handler.anchor,
+    symbol: semantic.handler.symbol,
+    semanticDigest: item.review.semanticDigest,
+  });
   if (hasArea(row.area, "안정화")) {
-    for (const verifier of verifierMap[prefix] || []) {
-      targets.push({ kind: "stability", command: `./server.sh ${verifier}` });
-    }
+    targets.push({
+      kind: "stability",
+      command: `./server.sh ${semantic.verifierAssertion.command}`,
+      file: semantic.verifierAssertion.file,
+      anchor: semantic.verifierAssertion.assertionAnchor,
+      assertedSemanticDigest: semantic.verifierAssertion.assertedSemanticDigest,
+    });
   }
   if (hasArea(row.area, "UI")) {
-    targets.push({ kind: "manual-ui-fulltest", document: "docs/manual-ui-fulltest.md + docs/manual-ui-checklist.md" });
+    targets.push({
+      kind: "manual-ui-fulltest",
+      screenRoute: semantic.controlSelector?.screenRoute || semantic.route?.value || item.uiEvidence.screenRoute,
+      file: semantic.actionHandler.file,
+      anchor: semantic.controlSelector?.value || semantic.actionHandler.anchor,
+      actionSymbol: semantic.actionHandler.symbol,
+      stateSymbol: semantic.stateOracle.locator.symbol,
+      manualUiCaseId: item.manualUiCaseId,
+    });
   }
   if (hasArea(row.area, "30분")) {
-    targets.push({ kind: "30-minute", command: "./server.sh verify-predev --soak-minutes 30", approval: "required" });
+    targets.push({ kind: "30-minute", command: item.longrunEvidence.soak30, approval: "required" });
   }
   if (hasArea(row.area, "120분")) {
-    targets.push({ kind: "120-minute", command: "./server.sh verify-predev --soak-minutes 120", approval: "required" });
-    targets.push({ kind: "120-minute", command: "./server.sh verify-va-runtime-console-longrun --duration-minutes 120", approval: "conditional" });
+    targets.push({ kind: "120-minute", command: item.longrunEvidence.soak120, approval: "required" });
   }
   return targets;
 }
@@ -494,12 +323,16 @@ function renderMarkdown(report) {
     `- covered: ${report.summary.covered}`,
     `- missing: ${report.summary.missing}`,
     "",
-    "| feature ID | feature | area | status | targets | reason |",
+    "| feature ID | feature | area | coverage status / execution evidence | targets | reason |",
     "| --- | --- | --- | --- | --- | --- |",
   ];
   for (const item of report.items) {
-    const targets = item.targets.map(target => `${target.kind}:${target.command}`).join("<br>");
-    lines.push(`| ${item.id} | ${escapeCell(item.feature)} | ${escapeCell(item.area)} | ${item.status} | ${escapeCell(targets)} | ${escapeCell(item.reason)} |`);
+    const targets = item.targets.map(target => {
+      const value = target.command || target.screenRoute || target.file || target.manualUiCaseId || "";
+      const anchor = target.anchor ? `#${target.anchor}` : "";
+      return `${target.kind}:${value}${anchor}`;
+    }).join("<br>");
+    lines.push(`| ${item.id} | ${escapeCell(item.feature)} | ${escapeCell(item.area)} | ${item.coverageStatus} / ${item.executionEvidenceStatus} | ${escapeCell(targets)} | ${escapeCell(item.reason)} |`);
   }
   return `${lines.join("\n")}\n`;
 }

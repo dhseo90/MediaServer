@@ -1,0 +1,26 @@
+{
+  "schema": "media-server.v390-ui-automation-trace.v1",
+  "caseId": "UI-115",
+  "route": "/ops",
+  "controlAction": "inspect-reid-assist-decision",
+  "browserMode": "playwright",
+  "adapter": {
+    "tool": "playwright",
+    "engine": "chrome-cdp-fallback",
+    "fallbackUsed": true,
+    "fallbackReason": "playwright package unavailable",
+    "visualOnly": false,
+    "dependencyStatus": "chrome-cdp-fallback"
+  },
+  "expectedMarkers": [
+    "explicit-opt-in-provenance-gated-assist"
+  ],
+  "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-playwright-final/logs/ui-115.browser-console.json",
+  "result": {
+    "ok": true,
+    "missing": [],
+    "markerCount": 1,
+    "title": "운영 콘솔",
+    "textSnippet": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 5 채널 0 VA 룰 4 사용자 등록 채널 5 VA 룰 0 이벤트 룰 0 사용자 4 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음"
+  }
+}

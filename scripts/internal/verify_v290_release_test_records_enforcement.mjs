@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.9.0 S04 release test records enforcement 문서/게이트 경계를 검증한다.
 
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -33,9 +34,11 @@ const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const featureInventory = readText("docs/project-feature-test-inventory.md");
 const releaseRecords = readText("docs/release-test-records.md");
+const releaseRecordsShaBefore = sha256Text(releaseRecords);
 const normalizedReleaseRecords = normalizeWhitespace(releaseRecords);
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
 check("roadmap and stream verification expose V290-S04 records enforcement", () => {
@@ -113,7 +116,13 @@ check("feature inventory maps V290-S04 to OPS-045 and SAFE-075", () => {
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S04 snippet: ${snippet}`);
   }
-  assert(coverageVerifier.includes("verify-v290-release-test-records-enforcement"), "feature coverage missing V290-S04 verifier");
+  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"),
+    "feature coverage missing canonical implementation manifest validation");
+  for (const id of ["SAFE-075", "OPS-045"]) {
+    const mapping = implementationManifest.items?.find((item) => item.id === id);
+    assert(mapping?.verifierEvidence?.command === "verify-v290-release-test-records-enforcement",
+      `implementation manifest ${id} missing V290-S04 verifier mapping`);
+  }
   assert(projectInventoryVerifierRangeCovers("SAFE", 75), "project inventory verifier missing SAFE-075 coverage");
   assert(projectInventoryVerifierRangeCovers("OPS", 45), "project inventory verifier missing OPS-045 coverage");
 });
@@ -132,6 +141,17 @@ check("release result tables keep pass/fail cells separate from not-run wording"
   for (const snippet of forbiddenCells) {
     assert(!releaseRecords.includes(snippet), `release records must not use forbidden result cell: ${snippet}`);
   }
+});
+
+check("canonical records gate rejects tmp evidence without writing the records source", () => {
+  const releaseRecordsShaAfter = sha256Text(readText("docs/release-test-records.md"));
+  const tmpFinalEvidenceRejected = releaseRecords.includes("| `/tmp` 경로를 최종 evidence로 링크 |") &&
+    releaseRecords.includes("| 결과 요약만 남기기 |") &&
+    releaseRecords.includes("미실행/제외 표");
+  const releaseRecordsHashStable = releaseRecordsShaBefore === releaseRecordsShaAfter;
+  const releaseRecordsWritePerformed = !releaseRecordsHashStable;
+  assert(releaseRecordsWritePerformed === false && tmpFinalEvidenceRejected,
+    "verify-v290-release-test-records-enforcement must reject /tmp/summary-only evidence with no write");
 });
 
 let pass = 0;
@@ -175,6 +195,10 @@ function assert(condition, message) {
 
 function normalizeWhitespace(text) {
   return text.replace(/\s+/g, " ");
+}
+
+function sha256Text(text) {
+  return crypto.createHash("sha256").update(text).digest("hex");
 }
 
 function assertSummaryCountAtLeast(label, minimum) {

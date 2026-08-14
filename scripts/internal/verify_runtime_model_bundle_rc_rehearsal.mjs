@@ -1,9 +1,11 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.1.0 S11 runtime/model bundle RC rehearsal의 차단 기준과 증적 연결을 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -64,8 +66,21 @@ const report = {
   cases: [],
   checks: [],
 };
+const productServer = readWebRtcHttpServerBundle(readText);
+assert(productServer.includes("source-only PASS boundary"), "source-only PASS boundary must remain the default release asset policy");
 
 const checks = [];
+
+check("tracked repository and release inputs contain no model/runtime/credential bundle assets", () => {
+  const trackedFiles = execFileSync("git", ["ls-files", "-z"], { cwd: rootDir })
+    .toString("utf8").split("\0").filter(Boolean);
+  const trackedForbiddenAssets = trackedFiles.filter(file =>
+    /(?:^|\/)(?:[^/]+\.)?(?:gguf|ggml|safetensors|ckpt|onnx|engine|plan|pt|pth|tflite)$/i.test(file) ||
+    /(?:^|\/)(?:runtime-package|model-weights?|download-token|provider-credential)(?:\/|\.|$)/i.test(file));
+  const modelArtifactDownloaded = trackedForbiddenAssets.length > 0;
+  assert(modelArtifactDownloaded === false && trackedForbiddenAssets.length === 0,
+    `tracked model/runtime/download-token/credential assets must remain absent: ${trackedForbiddenAssets.join(", ")}`);
+});
 
 check("fixture covers required V210-S11 runtime/model bundle RC matrix", () => {
   assert(fixture.schema === "media-server.runtime-model-bundle-rc-rehearsal-fixtures.v1", "fixture schema mismatch");
@@ -97,7 +112,7 @@ check("fixture decisions keep source-only default and block runtime/model releas
   for (const item of cases) {
     assert(item.status === "pass", `${item.id}: fixture expectation mismatch`);
     assert(item.actualBundleCreated === false, `${item.id}: rehearsal must not create a real bundle`);
-    assert(item.releaseAssetUploaded === false, `${item.id}: rehearsal must not upload release assets`);
+    assert(item.releaseAssetUploaded === false, `${item.id}: modelArtifactDownloaded/source-only release asset upload must remain absent`);
     if (item.includesRuntime || item.includesModel || item.gplRiskRuntime || item.releaseAssetUploadRequested) {
       assert(item.allowedForDefaultRelease === false, `${item.id}: risky candidate must not be default release`);
     }
@@ -180,6 +195,7 @@ check("docs, feature inventory, server command, and script inventory are wired",
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   for (const snippet of [
     "V210-S11",
     "Runtime/model bundle RC rehearsal",
@@ -202,7 +218,12 @@ check("docs, feature inventory, server command, and script inventory are wired",
     assert(serverSh.includes(snippet), `server.sh missing runtime/model bundle RC snippet: ${snippet}`);
   }
   assert(scriptInventory.includes("verify_runtime_model_bundle_rc_rehearsal.mjs"), "script inventory missing runtime/model bundle RC verifier");
-  assert(coverage.includes("verify-runtime-model-bundle-rc-rehearsal"), "feature inventory coverage missing runtime/model bundle RC verifier");
+  for (const id of ["LAB-062", "SAFE-040"]) {
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-runtime-model-bundle-rc-rehearsal",
+      `${id} manifest verifier command drift`);
+  }
+  assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
+    "feature coverage must validate manifest-backed verifier evidence");
 });
 
 let failCount = 0;
@@ -219,6 +240,8 @@ for (const item of checks) {
     console.log(`[fail] ${item.name}: ${message}`);
   }
 }
+
+assertRuntimeModelBundleArtifact(report);
 
 console.log("");
 console.log("== Runtime/model bundle RC rehearsal summary ==");
@@ -339,6 +362,17 @@ function parseArgs(argsList) {
 
 function check(name, fn) {
   checks.push({ name, fn });
+}
+
+function assertRuntimeModelBundleArtifact(value) {
+  const artifactPath = path.join(process.env.TMPDIR || "/tmp", `media-server-runtime-model-bundle-${process.pid}.json`);
+  fs.writeFileSync(artifactPath, `${JSON.stringify(value)}\n`, "utf8");
+  try {
+    const observedReport = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+    assert(observedReport.schema === "media-server.runtime-model-bundle-rc-rehearsal-report.v1" && observedReport.cases.every(result => result.actualBundleCreated === false), "runtime/model bundle artifact actualBundleCreated readback mismatch");
+  } finally {
+    fs.rmSync(artifactPath, { force: true });
+  }
 }
 
 function readJson(relativePath) {

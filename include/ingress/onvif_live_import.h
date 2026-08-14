@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "ingress/onvif_credential_provider.h"
-#include "ingress/source_view_registry.h"
+#include "ingress/application_service_result.h"
 
 namespace ingress {
 
@@ -64,7 +64,7 @@ struct OnvifProbeResult {
 
 using OnvifSoapTransport = std::function<OnvifSoapResponse(const OnvifSoapRequest&)>;
 
-RegistryResult BuildOnvifLiveImportDraft(const std::string& body);
+ApplicationServiceResult BuildOnvifLiveImportDraft(const std::string& body);
 std::vector<OnvifServiceSummary> ParseOnvifServicesSoap(const std::string& soap);
 std::vector<OnvifMediaProfileSummary> ParseOnvifMediaProfilesSoap(const std::string& soap,
                                                                   const std::string& media_api);

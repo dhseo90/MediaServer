@@ -5,7 +5,7 @@
 
 #include "analysis/event_storage.h"
 #include "analysis/tracked_object_metadata.h"
-#include "app_config.h"
+#include "core/analysis_runtime_port.h"
 
 #include <algorithm>
 #include <limits>
@@ -98,7 +98,7 @@ void MergeReusableContext(AnalysisContext* target, const AnalysisContext& incomi
 
 // profile의 tracking class 정책을 ObjectTracker 생성 옵션으로 변환한다.
 ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
-    const auto& config = app::GetAppConfig();
+    const auto& config = core::GetAnalysisRuntimeConfig();
     ObjectTrackerOptions options;
     if (profile.tracking_policy_effective_tracker == "kalman-lite") {
         options.tracker_kind = ObjectTrackerKind::KalmanLite;
@@ -129,7 +129,7 @@ ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
 }
 
 TrackStateManagerOptions BuildTrackStateManagerOptionsForProfile(const AnalysisProfile& profile) {
-    auto options = BuildTrackStateManagerOptionsFromConfig(app::GetAppConfig());
+    auto options = BuildTrackStateManagerOptionsFromConfig(core::GetAnalysisRuntimeConfig());
     if (!profile.enable_tracking || profile.tracking_policy_effective_tracker == "none" ||
         profile.tracking_policy_reid != "assist") {
         options.appearance_update_policy.enabled = false;
@@ -229,7 +229,7 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
     tap->detector = CreateDetector(tap->profile);
     tap->track_state_manager = TrackStateManager(
         BuildTrackStateManagerOptionsForProfile(tap->profile),
-        CreateAppearanceExtractorFromConfig(app::GetAppConfig()));
+        CreateAppearanceExtractorFromConfig(core::GetAnalysisRuntimeConfig()));
     if (tap->profile.enable_tracking) {
         tap->tracker = std::make_unique<ObjectTracker>(BuildTrackerOptions(tap->profile));
     }

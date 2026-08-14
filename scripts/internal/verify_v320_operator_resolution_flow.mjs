@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.2.0 Step 7 Operator Resolution Flow 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-operator-resolution-flow";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -47,6 +50,12 @@ const files = {
 const checks = [];
 
 check("ops review API attaches Step 7 operator resolution flow to unified workspace items", () => {
+  const start = files.server.indexOf("OpsV320OperatorResolutionFlowInfo OpsV320OperatorResolutionFlowInfoFor(");
+  const end = files.server.indexOf("struct OpsV320ActionReadinessChecklistInfo", start);
+  assert(start >= 0 && end > start, "EVT-068 operator resolution flow block missing");
+  const evt068ResolutionFlowBlock = files.server.slice(start, end);
+assertIncludes(evt068ResolutionFlowBlock, "close_action_available", "OPS-075 /ops/events block-scoped canonical resolution flow");
+  assert(!evt068ResolutionFlowBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt068ResolutionFlowBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-068 client viewer exposure absent boundary");
   for (const snippet of [
     "OpsV320OperatorResolutionFlowInfoFor",
     "OpsV320OperatorResolutionFlowJson",
@@ -99,6 +108,7 @@ check("operator resolution write path accepts assign, note, close, and reopen wi
 });
 
 check("product UI script renders Step 7 operator assignment, note, close/reopen, and audit fields", () => {
+  const resolutionFlowBlock = extractNamedFunctionBlock(files.pageScript, "renderV320OperatorResolutionFlow");
   for (const snippet of [
     "renderV320OperatorResolutionFlow",
     "operatorResolutionFlowSummary",
@@ -115,8 +125,20 @@ check("product UI script renders Step 7 operator assignment, note, close/reopen,
     "reopenActionAvailable",
     "auditTrailRequired",
   ]) {
-    assertIncludes(files.pageScript, snippet, "V320 operator resolution flow UI script");
+    assertIncludes(resolutionFlowBlock, snippet, "V320 operator resolution flow UI renderer block");
   }
+  assertIncludes(resolutionFlowBlock, "media-server.ops.v320-operator-resolution-flow.v1", "UI-066 block-scoped canonical product state");
+  assertIncludes(resolutionFlowBlock, "operatorResolutionFlow.rawJsonExposed === false", "UI-066 block-scoped raw JSON redaction contract");
+  assertIncludes(resolutionFlowBlock, "operatorResolutionFlow.sourceUrlExposed === false", "UI-066 block-scoped source URL redaction contract");
+  assertIncludes(resolutionFlowBlock, "operatorResolutionFlow.debugMaterialExposed === false", "UI-066 block-scoped debug material redaction contract");
+  assertIncludes(resolutionFlowBlock, "operatorResolutionFlow.viewerClientExposureAdded === false", "UI-066 block-scoped client viewer boundary contract");
+  assert(!["rawJsonPayload", "rawPayload", "rawLocator", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => resolutionFlowBlock.includes(marker)), "UI-066 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl:", "sourceURL:", "sourceUrlValue", "rtsp://", "rtsps://"].some(marker => resolutionFlowBlock.includes(marker)), "UI-066 source-url-redaction explicit absence oracle");
+  assert(!["providerApiCall(", "providerResponse", "rawProviderResponse", "providerMaterialExposed: true", "rawProviderMaterialExposed: true"].some(marker => resolutionFlowBlock.includes(marker)), "UI-066 provider-material explicit absence oracle");
+  assert(!["debugCounters", "Developer URL", "debugMaterialExposed: true"].some(marker => resolutionFlowBlock.includes(marker)), "UI-066 debug-redaction explicit absence oracle");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => resolutionFlowBlock.includes(marker)), "UI-066 client-viewer-boundary explicit absence oracle");
+  const unifiedWorkspaceBlock = extractNamedFunctionBlock(files.pageScript, "renderV320UnifiedOpsEventsWorkspace");
+  assertIncludes(unifiedWorkspaceBlock, "/ops/events", "UI-066 exact route owner obligation");
 });
 
 check("Step 7 operator resolution CSS is responsive and scoped to the v3.2 workspace", () => {
@@ -177,10 +199,6 @@ check("feature inventory and release records map v3.2 Step 7", () => {
     "EVT-068 | V320 Step 7 operator resolution flow view model",
     "SAFE-108 | V320 Step 7 operator resolution boundary",
     "OPS-075 | V320 Step 7 Operator Resolution Flow 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
-    "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 7");
   }
@@ -199,11 +217,27 @@ check("feature inventory and release records map v3.2 Step 7", () => {
 check("server entrypoint and inventory verifiers include v3.2 Step 7 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_operator_resolution_flow.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["UI-066", "EVT-068", "SAFE-108", "OPS-075"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_operator_resolution_flow.mjs", "script inventory");
+});
+
+check("SAFE-108 canonical operator resolution write boundary", () => {
+  const flowBlock = extractCppFunctionBlock(files.server, "std::string OpsV320OperatorResolutionFlowJson(");
+  const upsertBlock = extractCppFunctionBlock(files.server, "bool UpsertOpsEventReviewState(");
+  const safe108BoundaryObserved = flowBlock.includes("operatorResolutionFlowWritePath") &&
+    upsertBlock.includes("NormalizeOpsResolutionTransition") &&
+    upsertBlock.includes("OpsEventReviewStoragePath(config)") && upsertBlock.includes("OpsEventReviewStateJson(next)");
+  const automaticActionPerformed = /\b(?:CreateVaRule|UpdateVaRule|SendAlert|Deliver|Recover)[A-Za-z0-9_:]*\s*\(/.test(upsertBlock);
+  const schemaMutationPerformed = /DispatchEventRecords|DataChannel|Sse|WebSocket|Rtsp/.test(upsertBlock);
+  const rawMaterialExposed = /\\\"raw(?:Json|Evidence|Payload)(?:Exposed|Included)\\\":true/.test(upsertBlock);
+  const sourceUrlExposed = upsertBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = upsertBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(upsertBlock);
+  assert(safe108BoundaryObserved && automaticActionPerformed === false && schemaMutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false,
+    "SAFE-108 operatorResolutionFlowWritePath must write only Ops review JSONL/audit without automatic action, schema, raw, or client mutation");
 });
 
 const results = runChecks();

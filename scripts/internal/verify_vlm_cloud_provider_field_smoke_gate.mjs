@@ -99,6 +99,7 @@ const report = {
 };
 
 const checks = [];
+assert(report.redaction.credentialMaterialStored === false, "credentialMaterialStored must remain absent/false");
 
 check("fixture covers required V210-S03 cloud field smoke gate matrix", async () => {
   assert(fixture.schema === "media-server.vlm-cloud-provider-field-smoke-gate-fixtures.v1", "fixture schema mismatch");
@@ -163,6 +164,7 @@ check("docs, feature inventory, server command, script inventory, and privacy gu
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   for (const snippet of [
     "V210-S03",
     "Cloud provider field smoke gate",
@@ -185,7 +187,10 @@ check("docs, feature inventory, server command, script inventory, and privacy gu
     assert(serverSh.includes(snippet), `server.sh missing cloud field gate snippet: ${snippet}`);
   }
   assert(scriptInventory.includes("verify_vlm_cloud_provider_field_smoke_gate.mjs"), "script inventory missing cloud field gate verifier");
-  assert(coverage.includes("verify-vlm-cloud-provider-field-smoke-gate"), "feature inventory coverage missing cloud field gate verifier");
+  assert(manifest.items.find(item => item.id === "SAFE-035")?.verifierEvidence?.command === "verify-vlm-cloud-provider-field-smoke-gate",
+    "SAFE-035 manifest verifier command drift");
+  assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
+    "feature coverage must validate manifest-backed verifier evidence");
 });
 
 let failCount = 0;
@@ -205,6 +210,8 @@ for (const item of checks) {
 
 const requestedFieldRun = args.allowFieldCall && envApproval;
 const fieldRunFailed = requestedFieldRun && report.fieldSmoke.status !== "pass";
+
+assertVlmCloudProviderFieldSmokeArtifact(report);
 
 console.log("");
 console.log("== VLM cloud provider field smoke gate summary ==");
@@ -509,6 +516,17 @@ function sanitizeError(error) {
   const message = error instanceof Error ? error.message : String(error);
   if (credential) return message.replaceAll(credential, "[redacted]");
   return message;
+}
+
+function assertVlmCloudProviderFieldSmokeArtifact(value) {
+  const artifactPath = path.join(process.env.TMPDIR || "/tmp", `media-server-vlm-cloud-provider-field-smoke-${process.pid}.json`);
+  fs.writeFileSync(artifactPath, `${JSON.stringify(value)}\n`, "utf8");
+  try {
+    const observedReport = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+    assert(observedReport.schema === "media-server.vlm-cloud-provider-field-smoke-gate-report.v1" && observedReport.fieldSmoke.releasePassEligible === (observedReport.fieldSmoke.status === "pass" && observedReport.fieldSmoke.providerApiCalled === true), "VLM cloud provider artifact releasePassEligible readback mismatch");
+  } finally {
+    fs.rmSync(artifactPath, { force: true });
+  }
 }
 
 function assert(condition, message) {

@@ -136,7 +136,7 @@ const pageChecks = [
     name: "ops-dashboard",
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
-    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-runtime-operations-console"', 'data-testid="ops-runtime-trend-card"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRuntimeTrendSparkline"', 'id="dashRuntimeTrendBaseline"', 'id="dashRootCauseList"', 'id="dashIncidentTimelineSearch"', 'id="dashIncidentTimelineSource"', 'id="dashIncidentTimeline"', 'option value="rule-warning"', 'option value="runtime-status"', 'dashboardRuleWarningItems', 'dashboardRuntimeStatusIncidentItems', 'runtimeTrendSparklineHtml', 'data-incident-workflow', 'id="dashRuntimeOpsBadges"', 'id="dashRuntimeOpsList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', 'dashCommandWorkspaceExportBundleMap', 'data-v350-export-bundle-handoff-map', 'media-server.ops.v350-export-bundle-handoff-map.v1', '/ops/api/live-operations/export-bundle-handoff-map', 'Operations Export Bundle', 'Handoff Map', 'dashCommandWorkspaceFieldEvidenceIntake', 'data-v350-field-evidence-intake', 'media-server.ops.v350-field-evidence-intake.v1', '/ops/api/live-operations/field-evidence-intake', 'Field Evidence Intake', 'redacted field evidence', 'execution conditions', 'dashCommandWorkspaceVlmAssistedExplanation', 'data-v350-vlm-assisted-explanation', 'media-server.ops.v350-vlm-assisted-explanation.v1', '/ops/api/live-operations/vlm-assisted-explanation', 'VLM-assisted Ops Explanation', 'default-off VLM', 'operator review hint', '/ops/api/runtime/status', '/ops/api/source-health', '/ops/api/rules/catalog', '라이브 소스 상태', '런타임 추세', '최근 인시던트 흐름', '런타임 운영 판독', '라이브 VA 이벤트 품질'],
+    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-runtime-operations-console"', 'data-testid="ops-runtime-trend-card"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRuntimeTrendSparkline"', 'id="dashRuntimeTrendBaseline"', 'id="dashRootCauseList"', 'id="dashIncidentTimelineSearch"', 'id="dashIncidentTimelineSource"', 'id="dashIncidentTimeline"', 'option value="rule-warning"', 'option value="runtime-status"', 'dashboardRuleWarningItems', 'dashboardRuntimeStatusIncidentItems', 'runtimeTrendSparklineHtml', 'data-incident-workflow', 'id="dashRuntimeOpsBadges"', 'id="dashRuntimeOpsList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', 'dashCommandWorkspaceExportBundleMap', 'data-v350-export-bundle-handoff-map', 'media-server.ops.v350-export-bundle-handoff-map.v1', '/ops/api/live-operations/export-bundle-handoff-map', 'Operations Export Bundle', 'Handoff Map', 'dashCommandWorkspaceFieldEvidenceIntake', 'data-v350-field-evidence-intake', 'media-server.ops.v350-field-evidence-intake.v1', '/ops/api/live-operations/field-evidence-intake', 'Field Evidence Intake', 'redacted field evidence', 'execution conditions', 'dashCommandWorkspaceVlmAssistedExplanation', 'data-v350-vlm-assisted-explanation', 'media-server.ops.v350-vlm-assisted-explanation.v1', '/ops/api/live-operations/vlm-assisted-explanation', 'VLM-assisted Ops Explanation', 'default-off VLM', 'operator review hint', 'data-testid="ops-action-execution-deferral-decision"', 'media-server.ops.v390-action-execution-deferral-decision.v1', 'dashActionExecutionDeferralBadges', 'dashActionExecutionDeferralList', '/ops/api/actions/execution-deferral-decision', 'Action Execution Deferral', 'data-testid="ops-field-evidence-bridge-decision"', 'media-server.ops.v390-field-evidence-bridge-decision.v1', 'dashFieldEvidenceBridgeBadges', 'dashFieldEvidenceBridgeList', '/ops/api/field-evidence/bridge-decision', 'Field Evidence Bridge', 'data-testid="ops-reid-assist-decision"', 'media-server.ops.v390-reid-assist-decision.v1', 'dashReidAssistDecisionBadges', 'dashReidAssistDecisionList', '/ops/api/analysis/reid-assist-decision', 'Re-ID Assist Decision', '/ops/api/runtime/status', '/ops/api/source-health', '/ops/api/rules/catalog', '라이브 소스 상태', '런타임 추세', '최근 인시던트 흐름', '런타임 운영 판독', '라이브 VA 이벤트 품질'],
     mustNot: ['/lab/runtime/status'],
   },
   {
@@ -227,7 +227,7 @@ const pageChecks = [
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'id="channel-id-display"', 'data-generated-id="channel"', 'name="channelId" type="hidden"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'data-testid="onvif-credential-gate"', 'data-credential-store="deferred-product-store"', 'data-redaction="credential-reference-only"', 'id="onvifCredentialGateStatus"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', 'data-testid="ops-continuity-drill-workspace"', 'data-channel-task="ops-continuity-drill-workspace"', 'source-continuity-drill-status', 'source-continuity-drill-package-list', 'source-continuity-drill-validation-list', 'source-continuity-drill-drift-list', 'media-server.ops.v340-continuity-drill-workspace-ui.v1', 'renderOpsContinuityDrillWorkspace', "/ops/api/source-registry/continuity-drill/contract", "/ops/api/source-registry/recovery-candidate-package", "/ops/api/source-registry/source-health-replay-drift-diff", 'data-testid="ops-approval-gated-recovery-checklist"', 'source-recovery-checklist-status', 'source-recovery-checklist-list', 'media-server.ops.v340-approval-gated-recovery-checklist.v1', 'renderApprovalGatedRecoveryChecklistAudit', "/ops/api/source-registry/approval-gated-recovery-checklist", 'automaticRecoveryPerformed', 'data-testid="ops-drill-evidence-export-cleanup-manifest"', 'source-drill-evidence-manifest-status', 'source-drill-evidence-artifact-list', 'source-drill-evidence-cleanup-list', 'source-drill-evidence-scan-list', 'media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1', 'renderDrillEvidenceExportCleanupManifest', "/ops/api/source-registry/drill-evidence-export-cleanup-manifest", 'cleanupExecutionPerformed', 'data-testid="ops-field-bridge-condition-gates"', 'source-field-bridge-gate-status', 'source-field-bridge-gate-list', 'source-field-bridge-boundary-list', 'media-server.ops.v340-field-bridge-condition-gates.v1', 'renderFieldBridgeConditionGates', "/ops/api/source-registry/field-bridge-condition-gates", 'sourceOnlyPassAccepted', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "primaryStoreProvider: none", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'id="channel-id-display"', 'data-generated-id="channel"', 'name="channelId" type="hidden"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'data-testid="onvif-credential-gate"', 'data-credential-store="deferred-product-store"', 'data-redaction="credential-reference-only"', 'id="onvifCredentialGateStatus"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', 'data-testid="ops-continuity-drill-workspace"', 'data-channel-task="ops-continuity-drill-workspace"', 'source-continuity-drill-status', 'source-continuity-drill-package-list', 'source-continuity-drill-validation-list', 'source-continuity-drill-drift-list', 'media-server.ops.v340-continuity-drill-workspace-ui.v1', 'renderOpsContinuityDrillWorkspace', "/ops/api/source-registry/continuity-drill/contract", "/ops/api/source-registry/recovery-candidate-package", "/ops/api/source-registry/source-health-replay-drift-diff", 'data-testid="ops-approval-gated-recovery-checklist"', 'source-recovery-checklist-status', 'source-recovery-checklist-list', 'media-server.ops.v340-approval-gated-recovery-checklist.v1', 'renderApprovalGatedRecoveryChecklistAudit', "/ops/api/source-registry/approval-gated-recovery-checklist", 'automaticRecoveryPerformed', 'data-testid="ops-drill-evidence-export-cleanup-manifest"', 'source-drill-evidence-manifest-status', 'source-drill-evidence-artifact-list', 'source-drill-evidence-cleanup-list', 'source-drill-evidence-scan-list', 'media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1', 'renderDrillEvidenceExportCleanupManifest', "/ops/api/source-registry/drill-evidence-export-cleanup-manifest", 'cleanupExecutionPerformed', 'data-testid="ops-field-bridge-condition-gates"', 'source-field-bridge-gate-status', 'source-field-bridge-gate-list', 'source-field-bridge-boundary-list', 'media-server.ops.v340-field-bridge-condition-gates.v1', 'renderFieldBridgeConditionGates', "/ops/api/source-registry/field-bridge-condition-gates", 'sourceOnlyPassAccepted', 'sourceStagingRestoreValidationStatus', 'source-staging-restore-checklist-list', 'source-staging-restore-result-artifact-list', 'media-server.ops.v390-staging-restore-validation-handoff.v1', 'renderStagingRestoreValidationHandoff', "/ops/api/source-registry/staging-restore-validation-handoff", 'resultArtifactPersistedByRoute', 'productionRestorePerformed', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "primaryStoreProvider: none", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
     mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"', 'name="channelId" type="number"', 'inputmode="numeric" placeholder="1" required'],
   },
   {
@@ -240,7 +240,7 @@ const pageChecks = [
     name: "ops-vlm",
     path: "/ops/vlm",
     visualSelector: '[data-testid="ops-vlm-page"]',
-    must: ['data-testid="ops-vlm-page"', 'data-testid="ops-vlm-controls"', 'data-testid="ops-vlm-runtime-status-panel"', 'data-testid="ops-vlm-evaluation-result-workflow"', 'data-testid="ops-vlm-options-panel"', 'data-testid="ops-vlm-privacy-transfer-guard-panel"', 'data-testid="ops-vlm-profile-panel"', 'data-testid="ops-vlm-boundary-panel"', 'id="opsVlmProviderStatus"', 'id="opsVlmRuntimeConnectionStatus"', 'id="opsVlmLastEvaluationStatus"', 'id="opsVlmFailureReason"', 'id="opsVlmDefaultOffStatus"', 'id="opsVlmEvaluationRows"', 'id="opsVlmEvaluationSelectionSummary"', 'id="opsVlmExternalTransferWarningAck"', 'id="opsVlmProviderLoggingReviewed"', 'id="opsVlmPrivacyGuardList"', 'id="opsVlmSaveProfile"', '/ops/api/runtime/status', '/ops/api/vlm/install-connection/dry-run', '/ops/api/vlm/evaluation-results', '/ops/api/vlm/profiles', 'media-server.vlm-privacy-transfer-guard.v1', 'credential, prompt, raw response, source URL, raw frame bytes'],
+    must: ['data-testid="ops-vlm-page"', 'data-testid="ops-vlm-controls"', 'data-testid="ops-vlm-runtime-status-panel"', 'data-testid="ops-vlm-evaluation-result-workflow"', 'data-testid="ops-vlm-options-panel"', 'data-testid="ops-vlm-privacy-transfer-guard-panel"', 'data-testid="ops-vlm-profile-panel"', 'data-testid="ops-vlm-boundary-panel"', 'id="opsVlmProviderStatus"', 'id="opsVlmRuntimeConnectionStatus"', 'id="opsVlmLastEvaluationStatus"', 'id="opsVlmFailureReason"', 'id="opsVlmDefaultOffStatus"', 'id="opsVlmEvaluationRows"', 'id="opsVlmEvaluationSelectionSummary"', 'id="opsVlmEvaluationPromotionGuardStatus"', 'id="opsVlmExternalTransferWarningAck"', 'id="opsVlmProviderLoggingReviewed"', 'id="opsVlmPrivacyGuardList"', 'id="opsVlmSaveProfile"', '/ops/api/runtime/status', '/ops/api/vlm/install-connection/dry-run', '/ops/api/vlm/evaluation-results', '/ops/api/vlm/evaluation-promotion-guard', '/ops/api/vlm/profiles', 'media-server.vlm-privacy-transfer-guard.v1', 'credential, prompt, raw response, source URL, raw frame bytes'],
     mustNot: ['cloudProviderApiCalled":true', 'viewerClientExposureAdded":true', 'runtimeVlmCallPerformed":true'],
   },
   {
@@ -278,6 +278,16 @@ for (const check of pageChecks) {
     const shellMust = check.shellMust || opsShellMust;
     assertContains(check.name, html, [...productShellMust, ...shellMust, ...(check.must || [])]);
     assertOmits(check.name, html, check.mustNot || []);
+    if (check.path === "/client/events" && !html.includes("incidentDigest")) {
+      throw new Error("client events HTTP readback missing incidentDigest");
+    }
+    const clientPrimaryNavHtml = html.match(/<nav[^>]*client-image-nav-tabs[^>]*>[\s\S]*?<\/nav>/)?.[0] || "";
+    if (check.path === "/client/live" && (!clientPrimaryNavHtml.includes('aria-label="클라이언트 메뉴"') || clientPrimaryNavHtml.includes('href="/lab/'))) {
+      throw new Error("client live HTTP readback violated aria-label=\"클라이언트 메뉴\" Lab navigation boundary");
+    }
+    if (check.path === "/client/live" && (!html.includes('data-testid="client-live-workspace"') || clientPrimaryNavHtml.includes('href="/ops/'))) {
+      throw new Error("client live HTTP readback violated client-live-workspace Ops navigation boundary");
+    }
     if (check.path === "/ops" || check.path.startsWith("/ops/")) {
       assertOpsPrimaryNavContract(check.name, html);
     }
@@ -290,6 +300,20 @@ for (const check of pageChecks) {
     console.log(`[fail] ${check.name}: ${message}`);
   }
 }
+
+async function assertActionExecutionDeferralDecisionReadback() {
+  const actionExecutionDeferralDecision = await assertOpsApiContract(
+    "action-execution-deferral-decision",
+    "/ops/api/actions/execution-deferral-decision",
+  );
+  if (actionExecutionDeferralDecision?.ok !== true ||
+      actionExecutionDeferralDecision?.schema !== "media-server.ops.v390-action-execution-deferral-decision.v1" ||
+      actionExecutionDeferralDecision?.boundaries?.actionExecutionPerformed !== false) {
+    throw new Error(`action execution deferral HTTP readback mismatch: ${JSON.stringify(actionExecutionDeferralDecision).slice(0, 240)}`);
+  }
+}
+
+await assertActionExecutionDeferralDecisionReadback();
 
 try {
   await assertOpsApiContract("ops-api-runtime-status", "/ops/api/runtime/status");
@@ -1054,6 +1078,13 @@ async function runClientLiveTileKeyboardSmoke() {
       checkIndex += 1;
       try {
         const result = await browser.evaluate(clientLiveTileKeyboardExpression(clientLiveA11ySnapshot), 10000);
+        if (result?.['viewer-safe-no-locator-debug'] !== true) throw new Error(`${label}: CLIENT-014 raw/debug redaction readback failed`);
+        if (result?.['source-url-hidden'] !== true) throw new Error(`${label}: CLIENT-015 source URL/debugCounters redaction readback failed`);
+        if (result?.['viewer-safe-events'] !== true) throw new Error(`${label}: CLIENT-016 BBox diagnostics redaction readback failed`);
+        if (result?.['client-live-action-reduction'] !== true) throw new Error(`${label}: CLIENT-017 editor boundary readback failed`);
+        if (result?.playsinline !== true) throw new Error(`${label}: CLIENT-019 video viewport readback failed`);
+        if (result?.['data-mode-action="va-overlay"'] !== true) throw new Error(`${label}: CLIENT-021 VA overlay state readback failed`);
+        if (result?.['a11y-status'] !== true) throw new Error(`${label}: CLIENT-022 caption/status readback failed`);
         if (!result?.ok) {
           const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
           throw new Error(`${label}: ${details}`);
@@ -1294,7 +1325,33 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
       if (tiles.length < 2) issue('expected at least two live tiles, got ' + tiles.length);
       const first = tiles[0];
       const second = tiles[1];
+      const renderedBodyText = String(document.body?.textContent || '');
+      const observations = {
+        'viewer-safe-no-locator-debug': Boolean(document.querySelector('[data-client-redaction-review="viewer-safe-no-locator-debug"]')) && !renderedBodyText.includes('raw JSON') && !renderedBodyText.includes('debugCounters'),
+        'source-url-hidden': Boolean(document.querySelector('[data-viewer-redaction="source-url-hidden"]')) && !renderedBodyText.includes('sourceUrl') && !renderedBodyText.includes('debugCounters'),
+        'viewer-safe-events': Boolean(document.querySelector('[data-redaction="viewer-safe-events"]')) && !renderedBodyText.includes('BBox diagnostics') && !renderedBodyText.includes('bboxDiagnostics'),
+        'client-live-action-reduction': Boolean(document.querySelector('[data-testid="client-live-action-reduction"]')) && !document.querySelector('#opsVaRuleForm, #opsEventRuleForm, #opsProfileForm'),
+        playsinline: false,
+        'data-mode-action="va-overlay"': false,
+        'a11y-status': false,
+      };
       if (first) {
+        if (!document.querySelector('[data-client-redaction-review="viewer-safe-no-locator-debug"]') ||
+            document.body.textContent.includes('raw JSON') || document.body.textContent.includes('debugCounters')) {
+          issue('CLIENT-014 viewer-safe-no-locator-debug rendered boundary failed');
+        }
+        if (!document.querySelector('[data-viewer-redaction="source-url-hidden"]') ||
+            document.body.textContent.includes('sourceUrl') || document.body.textContent.includes('debugCounters')) {
+          issue('CLIENT-015 source-url-hidden/debugCounters rendered boundary failed');
+        }
+        if (!document.querySelector('[data-redaction="viewer-safe-events"]') ||
+            document.body.textContent.includes('BBox diagnostics') || document.body.textContent.includes('bboxDiagnostics')) {
+          issue('CLIENT-016 viewer-safe-events/BBox diagnostics rendered boundary failed');
+        }
+        if (!document.querySelector('[data-testid="client-live-action-reduction"]') ||
+            document.querySelector('#opsVaRuleForm, #opsEventRuleForm, #opsProfileForm')) {
+          issue('CLIENT-017 client-live-action-reduction editor boundary failed');
+        }
         if (first.getAttribute('tabindex') !== '0') issue('first tile is not tabbable');
         if (first.getAttribute('role') !== 'group') issue('first tile role is not group');
         const expectedTileName = language === 'english' ? 'Tile 1' : '타일 1';
@@ -1323,7 +1380,8 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         if (rawModeButton && vaModeButton) {
           vaModeButton.click();
           await wait(180);
-          if (vaModeButton.getAttribute('aria-pressed') !== 'true') issue('VA overlay mode did not become active after click');
+          if (!first.querySelector('[data-mode-action="va-overlay"][aria-pressed="true"]')) issue('VA overlay mode did not become active after click');
+          observations['data-mode-action="va-overlay"'] = Boolean(first.querySelector('[data-mode-action="va-overlay"][aria-pressed="true"]'));
           rawModeButton.click();
           await wait(180);
           if (rawModeButton.getAttribute('aria-pressed') !== 'true') issue('raw mode did not become active after click');
@@ -1339,8 +1397,9 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           if (describedNode.getAttribute('aria-atomic') !== 'true') issue('first tile status aria-atomic missing');
           if (!describedNode.classList.contains('sr-only')) issue('first tile status is not visually hidden');
           for (const expected of requiredStatusParts) {
-            if (!statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
+            if (describedNode.dataset.role !== 'a11y-status' || !statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
           }
+          observations['a11y-status'] = describedNode.dataset.role === 'a11y-status' && requiredStatusParts.every(expected => statusText.includes(expected));
           if (viewSelect && expectedOfflineStatus && statusText !== expectedOfflineStatus) {
             issue('first tile a11y status mismatch: ' + statusText);
           }
@@ -1357,6 +1416,12 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
         }
         const tileRect = first.getBoundingClientRect();
+        const videoViewport = first.querySelector('video[playsinline][muted][autoplay]');
+        const videoRect = videoViewport?.getBoundingClientRect();
+        if (!videoViewport || !videoViewport.hasAttribute('playsinline') || !videoRect || videoRect.width <= 0 || videoRect.height <= 0) {
+          issue('first tile playsinline video viewport is not rendered');
+        }
+        observations.playsinline = Boolean(videoViewport?.hasAttribute('playsinline') && videoRect && videoRect.width > 0 && videoRect.height > 0);
         const tileRatio = tileRect.width / Math.max(1, tileRect.height);
         if (tileRatio < 1.72 || tileRatio > 1.84) {
           issue('first tile video frame is not 16:9: ' + tileRect.width.toFixed(1) + 'x' + tileRect.height.toFixed(1));
@@ -1398,6 +1463,7 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         selectedTile: selected?.dataset?.tile || '',
         activeTile: document.activeElement?.dataset?.tile || '',
         overflowX,
+        ...observations,
       };
     })()
   `;

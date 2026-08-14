@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.4.0 Step 9 drill evidence export/cleanup manifest 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -33,7 +36,7 @@ const command = "verify-v340-drill-evidence-export-cleanup-manifest";
 const schema = "media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1";
 const route = "/ops/api/source-registry/drill-evidence-export-cleanup-manifest";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -103,6 +106,13 @@ check("Ops API records the redacted drill evidence export and cleanup manifest",
 });
 
 check("Ops sources UI renders the drill manifest without exposing raw material", () => {
+  assertIncludes(extractNamedFunctionBlock(files.opsSourcesScript, "renderDrillEvidenceExportCleanupManifest"), "cleanupExecutionPerformed", "UI-078 block-scoped canonical product state");
+  assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderDrillEvidenceExportCleanupManifest").includes(marker)), "UI-078 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderDrillEvidenceExportCleanupManifest").includes(marker)), "UI-078 source-url-redaction explicit absence oracle");
+  assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderDrillEvidenceExportCleanupManifest").includes(marker)), "UI-078 credential-redaction explicit absence oracle");
+  assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderDrillEvidenceExportCleanupManifest").includes(marker)), "UI-078 debug-redaction explicit absence oracle");
+  assertIncludes(files.opsSourcesScript, "/ops/sources", "UI-078 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1", "UI-078 canonical schema obligation");
   for (const snippet of [
     "sourceDrillEvidenceManifestStatus",
     "sourceDrillEvidenceArtifactList",
@@ -197,9 +207,9 @@ check("feature inventory, manual UI, and release records map v3.4 Step 9", () =>
     "UI-078 | V340 Step 9 Drill Evidence Export and Cleanup Manifest UI",
     "SAFE-132 | V340 Step 9 drill evidence export cleanup boundary",
     "OPS-099 | V340 Step 9 Drill Evidence Export and Cleanup Manifest 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-079`",
-    "`SAFE-001`~`SAFE-134`",
-    "`OPS-035`~`OPS-101`",
+    "`UI-001`~`UI-115`",
+    "`SAFE-001`~`SAFE-216`",
+    "`OPS-035`~`OPS-184`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 9");
   }
@@ -225,14 +235,34 @@ check("feature inventory, manual UI, and release records map v3.4 Step 9", () =>
 check("server entrypoint and inventory verifiers include v3.4 Step 9 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v340_drill_evidence_export_cleanup_manifest.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-078", "SAFE-132", "OPS-099"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-079`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-134`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-101`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-115`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-216`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-184`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v340_drill_evidence_export_cleanup_manifest.mjs", "script inventory");
+});
+
+check("SAFE-132 canonical drill evidence cleanup manifest boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV340DrillEvidenceExportCleanupManifestJson(");
+  const routeObserved = files.server.includes("/ops/api/source-registry/drill-evidence-export-cleanup-manifest");
+  const safe132BoundaryObserved = block.includes("BuildV340DrillEvidenceArtifactManifest") && block.includes("BuildV340DrillCleanupManifest");
+  const exportOrCleanupExecuted = /\b(?:Export|Remove|Delete|Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\\"(?:sourceUrl|rawLocator|rawJson|debugMaterial|credentialMaterial|rawAuditBody)Included\\\":true/.test(block);
+  const mutationPerformed = exportOrCleanupExecuted;
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true");
+  assert(routeObserved && safe132BoundaryObserved && exportOrCleanupExecuted === false && mutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false,
+    "SAFE-132 BuildV340DrillEvidenceArtifactManifest redacted manifest must not execute export cleanup writes or expose raw audit material");
 });
 
 const results = runChecks();

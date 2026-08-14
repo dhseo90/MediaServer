@@ -1,0 +1,36 @@
+{
+  "schema": "media-server.v390-ui-event-record-optional-template-closure.v1",
+  "sourceBinding": {
+    "gitCommit": "9b64deb76740bc236f3a7524db044146fdfeced8",
+    "runId": "v390-ui-diagnostic-20260808184853-81792",
+    "parentSummarySha256": "66e75230648b2b635a1f75737e812a113d2d0e83679ed4bd9d20812a9d30ebc5",
+    "evt007TraceSha256": "aedce87e229e2354ef4df35ec40a7e0938f79dfa032c16d930775742b7b41ce3",
+    "evt020TraceSha256": "57e9d8b8ae6582a8034c5c66aa75c560e7610ebb943a38396ece4a489428eef8",
+    "manifestSha256": "6d35e6e5570a079315ca658a386d765cb28d299bfa8bb7a26904bbf866d5f2d5"
+  },
+  "selectedIds": [
+    "EVT-007",
+    "EVT-020"
+  ],
+  "closureContract": {
+    "optionalEmpty": {
+      "caseId": "EVT-007",
+      "collectionPath": "records.records",
+      "field": "ruleId",
+      "policy": "optional-empty"
+    },
+    "typedTemplate": {
+      "caseId": "EVT-020",
+      "template": "{fixtureId}",
+      "lookupPhase": "response-baseline-before-dom-evaluation"
+    }
+  },
+  "audit": {
+    "canonicalCaseCount": 424,
+    "optionalEmptyUseCount": 1,
+    "implicitOptionalUseCount": 0,
+    "responseBaselineTemplateUseCount": 80,
+    "unresolvedTemplateCount": 0
+  },
+  "digest": "161281b60d3f92d3657b26bf2e131f91c894b076dcfeb3b585eff726a7f880e8"
+}

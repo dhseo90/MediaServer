@@ -3,10 +3,12 @@
 // 동작 요약: detector, tracker, overlay, manager 사이의 데이터 계약이다.
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <sstream>
-
-#include "stdafx.h"
+#include <string>
+#include <vector>
 
 namespace analysis {
 
@@ -55,6 +57,31 @@ struct Detection {
     std::string event_type;
     std::string event_highlight_color{"#ffcc00"};
     int event_highlight_duration_ms{1200};
+};
+
+struct AnalysisEvent {
+    std::string event_id;
+    std::string rule_id;
+    std::string event_type;
+    std::uint64_t track_id{0};
+    int class_id{-1};
+    std::string label;
+    float score{0.0F};
+    RectF box;
+    std::string highlight_color{"#ff0000"};
+    int highlight_duration_ms{1200};
+    bool highlight_enabled{true};
+    bool post_enabled{false};
+    std::string post_url;
+    std::string status;
+    std::int64_t start_time_ms{0};
+    std::int64_t update_time_ms{0};
+    std::int64_t end_time_ms{0};
+    std::string zone_id;
+    std::string line_id;
+    std::string scenario_name;
+    std::string scenario_phase;
+    std::string metadata_json;
 };
 
 struct CloseObjectAssociationDiagnostic {

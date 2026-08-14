@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.4.0 Step 7 approval-gated recovery checklist/audit 구현과 문서 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -32,7 +35,7 @@ const command = "verify-v340-approval-gated-recovery-checklist-audit";
 const schema = "media-server.ops.v340-approval-gated-recovery-checklist.v1";
 const route = "/ops/api/source-registry/approval-gated-recovery-checklist";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -105,6 +108,16 @@ check("/ops/sources renders operator note, status, dry-run result, and audit rou
     "automaticRecoveryPerformed",
   ]) {
     assertIncludes(files.opsSourcesScript, snippet, "v340 approval-gated recovery checklist renderer");
+    assertIncludes(extractNamedFunctionBlock(files.opsSourcesScript, "renderApprovalGatedRecoveryChecklistAudit"), "automaticRecoveryPerformed", "UI-076 block-scoped canonical product state");
+    const sourceRegistryWritePerformed = ["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderApprovalGatedRecoveryChecklistAudit").includes(marker));
+    assert(sourceRegistryWritePerformed === false, "UI-076 recovery checklist must not write the source registry");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderApprovalGatedRecoveryChecklistAudit").includes(marker)), "UI-076 no-write explicit absence oracle");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderApprovalGatedRecoveryChecklistAudit").includes(marker)), "UI-076 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderApprovalGatedRecoveryChecklistAudit").includes(marker)), "UI-076 source-url-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderApprovalGatedRecoveryChecklistAudit").includes(marker)), "UI-076 credential-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderApprovalGatedRecoveryChecklistAudit").includes(marker)), "UI-076 debug-redaction explicit absence oracle");
+    assertIncludes(files.opsSourcesScript, "/ops/sources", "UI-076 canonical route obligation");
+    assertIncludes(files.server, "media-server.ops.v340-approval-gated-recovery-checklist.v1", "UI-076 canonical schema obligation");
   }
 });
 
@@ -184,9 +197,9 @@ check("feature inventory, manual UI, and release records map v3.4 Step 7", () =>
     "UI-076 | V340 Step 7 Approval-Gated Recovery Checklist and Audit UI",
     "SAFE-130 | V340 Step 7 approval-gated recovery no-auto boundary",
     "OPS-097 | V340 Step 7 Approval-Gated Recovery Checklist and Audit 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-079`",
-    "`SAFE-001`~`SAFE-134`",
-    "`OPS-035`~`OPS-101`",
+    "`UI-001`~`UI-115`",
+    "`SAFE-001`~`SAFE-216`",
+    "`OPS-035`~`OPS-184`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 7");
   }
@@ -212,14 +225,35 @@ check("feature inventory, manual UI, and release records map v3.4 Step 7", () =>
 check("server entrypoint and inventory verifiers include v3.4 Step 7 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v340_approval_gated_recovery_checklist_audit.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-076", "SAFE-130", "OPS-097"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-079`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-134`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-101`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-115`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-216`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-184`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v340_approval_gated_recovery_checklist_audit.mjs", "script inventory");
+});
+
+check("SAFE-130 canonical approval-gated no-auto boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "void AppendV340ApprovalGatedRecoveryChecklistItemJson(");
+  const routeObserved = files.server.includes("/ops/api/source-registry/approval-gated-recovery-checklist");
+  const safe130BoundaryObserved = block.includes("operatorNote") && block.includes("readinessStatus") && block.includes("dryRunResult");
+  const automaticRecoveryPerformed = /\b(?:Recover|Restore|Execute)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const writePerformed = /\b(?:Write|Persist|UpdateSource|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\\"(?:sourceUrl|rawLocator|rawJson|debugMaterial|credentialMaterial)Exposed\\\":true/.test(block);
+  const mutationPerformed = writePerformed;
+  const sourceUrlExposed = block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialExposed\\\":true");
+  assert(routeObserved && safe130BoundaryObserved && automaticRecoveryPerformed === false && writePerformed === false && mutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false,
+    "SAFE-130 operatorNote readinessStatus dryRunResult approval checklist must not auto recover write or expose raw material");
 });
 
 const results = runChecks();

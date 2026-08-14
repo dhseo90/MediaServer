@@ -1,10 +1,12 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S06 VLM evaluation result workflow의 Ops UI/API/profile draft 경계를 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock, exactBooleanFlagValue } from "./source_block_assertion_utils.mjs";
 
 const rawArgs = process.argv.slice(2);
 
@@ -26,13 +28,16 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 const fixture = readJson("test/fixtures/vlm_evaluation_result_workflow/cases.json");
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
+const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
+const serverModel = `${server}\n${promotion}\n${readText("src/ingress/product_ui_server_pages.cpp")}`;
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const profileVerifier = readText("scripts/internal/verify_vlm_profile_storage.mjs");
 const recommendationVerifier = readText("scripts/internal/verify_vlm_recommendation_engine.mjs");
 const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
 const serverSh = readText("server.sh");
+const evaluationWorkflowBlock = extractCppFunctionBlock(promotion, "std::string VlmEvaluationResultWorkflowJson(");
 
 check("fixture defines primary, fallback, excluded candidates and non-side-effect invariants", () => {
   assert(fixture.schema === "media-server.vlm-evaluation-result-workflow-fixtures.v1", "fixture schema mismatch");
@@ -53,6 +58,7 @@ check("fixture defines primary, fallback, excluded candidates and non-side-effec
 });
 
 check("Ops evaluation result API and page markup are wired", () => {
+  assert(evaluationWorkflowBlock.includes("sourceReportSchema") && exactBooleanFlagValue(evaluationWorkflowBlock, "runtimeCallAllowed") === false, "LAB-059 canonical VLM evaluation sourceReportSchema must preserve runtimeCallAllowed false");
   for (const snippet of [
     "OpsVlmEvaluationResultWorkflowJson",
     "/ops/api/vlm/evaluation-results",
@@ -62,7 +68,7 @@ check("Ops evaluation result API and page markup are wired", () => {
     "eval-qwen4b-false-positive-review",
     "eval-qwen4b-operator-question-review",
   ]) {
-    assertIncludes(server, snippet, "server");
+    assertIncludes(serverModel, snippet, "server");
   }
   for (const snippet of [
     'data-testid="ops-vlm-evaluation-result-workflow"',
@@ -71,11 +77,11 @@ check("Ops evaluation result API and page markup are wired", () => {
     'id="opsVlmEvaluationSelectionSummary"',
     "latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 품질",
   ]) {
-    assertIncludes(server, snippet, "Ops VLM page markup");
+    assertIncludes(serverModel, snippet, "Ops VLM page markup");
   }
 });
 
-check("Ops VLM script copies evaluation candidates into profile drafts without auto activation", () => {
+check("Ops VLM script sends candidate references without client-owned result fields", () => {
   for (const snippet of [
     "opsVlmEvaluationPayload",
     "opsVlmSelectedEvaluationCandidateId",
@@ -84,11 +90,9 @@ check("Ops VLM script copies evaluation candidates into profile drafts without a
     "applyOpsVlmEvaluationCandidate",
     "data-vlm-evaluation-candidate-id",
     "profile draft 반영",
-    "v210-s06-evaluation-result-workflow",
-    "workflowSchema",
     "candidateId",
-    "caseIds",
-    "score",
+    "expectedCatalogRevision",
+    "expectedProvenanceDigest",
   ]) {
     assertIncludes(pageScript, snippet, "Ops VLM script");
   }
@@ -96,10 +100,13 @@ check("Ops VLM script copies evaluation candidates into profile drafts without a
     "candidate selection must not force enabled=true");
   assert(pageScript.includes("activation.value = candidate.selection?.activationDefault || 'pending-evaluation'"),
     "candidate selection must use activation default");
+  assert(!/evaluation:\s*\{\s*status:/s.test(pageScript), "profile draft payload must not declare evaluation.status");
+  assert(promotion.includes("profileDraftMayCopyEvaluationStatus") && promotion.includes(":false"), "server policy must forbid client status copy");
+  assert(promotion.includes("serverDerivesEvaluationAndProvenance") && promotion.includes(":true"), "server policy must own result/provenance");
 });
 
 check("existing VLM profile and recommendation gates remain connected", () => {
-  assertIncludes(profileVerifier, "evaluation.status", "profile storage verifier");
+  assertIncludes(profileVerifier, "ValidateVlmEvaluationPromotion", "profile storage verifier");
   assertIncludes(recommendationVerifier, "Qwen/Qwen3-VL-8B-Instruct", "recommendation verifier");
   for (const snippet of [
     'data-testid="ops-vlm-evaluation-result-workflow"',

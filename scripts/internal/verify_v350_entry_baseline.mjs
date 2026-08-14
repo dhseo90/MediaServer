@@ -30,10 +30,10 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v350-entry-baseline";
 const version = readText("VERSION").trim();
-const currentTag = "v3.5.0";
-const latestPublishedTag = "v3.5.0";
-const currentRoadmap = "v3.5.0 Live Operations Control Plane";
-const latestPublishedBaseline = "v3.5.0 Live Operations Control Plane";
+const currentTag = `v${version}`;
+const baselineVersion = "3.5.0";
+const baselineTag = "v3.5.0";
+const baselineRoadmap = "v3.5.0 Live Operations Control Plane";
 const files = {
   cmake: readText("CMakeLists.txt"),
   readme: readText("README.md"),
@@ -54,23 +54,28 @@ const files = {
   docsUiAssetsManifest: readText("config/docs_ui_assets.json"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   serverSh: readText("server.sh"),
 };
+const currentRoadmap = requiredMatch(files.versioning, /- 현재 source roadmap: `([^`]+)`/, "current source roadmap");
+const latestPublishedTag = requiredMatch(files.releaseMetadataVerifier, /const latestPublishedTag = "(v[0-9]+\.[0-9]+\.[0-9]+)";/, "latest published tag");
+const latestPublishedBaseline = requiredMatch(files.releaseMetadataVerifier, /const latestPublishedBaseline = "([^"]+)";/, "latest published baseline");
 
 const checks = [];
 
-check("source version is v3.5.0 and CMake matches", () => {
-  assert(version === "3.5.0", `VERSION must be 3.5.0, got ${version}`);
-  assertIncludes(files.cmake, "project(media_server VERSION 3.5.0 LANGUAGES CXX)", "CMake project version");
+check("current source and CMake align while v3.5 remains historical", () => {
+  assert(semverAtLeast(version, baselineVersion), `current VERSION ${version} predates historical baseline ${baselineVersion}`);
+  assertIncludes(files.cmake, `project(media_server VERSION ${version} LANGUAGES CXX)`, "CMake project version");
+  assert(currentRoadmap.startsWith(`v${version} `), `current roadmap must match source ${version}: ${currentRoadmap}`);
 });
 
-check("public entry docs pin source v3.5.0 and published v3.5.0", () => {
+check("public entry docs pin current source and current published boundary", () => {
   for (const [label, text, sourceSnippet, roadmapSnippet] of [
-    ["README.md", files.readme, "현재 소스 버전: `3.5.0`", `현재 source roadmap: \`${currentRoadmap}\``],
-    ["README.en.md", files.readmeEn, "Current source version: `3.5.0`", `Current source roadmap: \`${currentRoadmap}\``],
-    ["docs/README.md", files.docsIndex, "현재 소스 버전: `3.5.0`", `현재 source roadmap: \`${currentRoadmap}\``],
-    ["docs/en/README.md", files.docsEnIndex, "Current source version: `3.5.0`", `Current source roadmap: \`${currentRoadmap}\``],
+    ["README.md", files.readme, `현재 소스 버전: \`${version}\``, `현재 source roadmap: \`${currentRoadmap}\``],
+    ["README.en.md", files.readmeEn, `Current source version: \`${version}\``, `Current source roadmap: \`${currentRoadmap}\``],
+    ["docs/README.md", files.docsIndex, `현재 소스 버전: \`${version}\``, `현재 source roadmap: \`${currentRoadmap}\``],
+    ["docs/en/README.md", files.docsEnIndex, `Current source version: \`${version}\``, `Current source roadmap: \`${currentRoadmap}\``],
   ]) {
     assertIncludes(text, sourceSnippet, label);
     assertIncludes(text, roadmapSnippet, label);
@@ -79,36 +84,21 @@ check("public entry docs pin source v3.5.0 and published v3.5.0", () => {
   }
 });
 
-check("versioning and release policy pin v3.5 source and v3.5 published baseline", () => {
-  for (const snippet of [
-    "현재 소스 버전: `3.5.0`",
-    `현재 source roadmap: \`${currentRoadmap}\``,
-    `최신 공개 GitHub Release: \`${latestPublishedBaseline}\``,
-    "`v3.5.0` 공개 상태: source-only GitHub Release",
-    "현재 소스 트리의 `3.5.0` roadmap은 v3.5.0 Live Operations Control Plane",
-    "published tag `v3.5.0`와 현재 source tag `v3.5.0`",
-    "## 3.5.0 active source roadmap 범위",
-    "## v3.5.0 latest published source-only release 범위",
-  ]) {
-    assertIncludes(files.versioning, snippet, "versioning policy");
+check("policy docs preserve v3.5 historical baseline and current source split", () => {
+  for (const [label, text] of [["versioning policy", files.versioning], ["release policy", files.releasePolicy]]) {
+    assertIncludes(text, version, label);
+    assertIncludes(text, currentRoadmap, label);
+    assertIncludes(text, latestPublishedTag, label);
   }
-  for (const snippet of [
-    "현재 소스 버전: `3.5.0`",
-    "최신 공개 GitHub Release: `v3.5.0`",
-    `현재 source roadmap은 \`${currentRoadmap}\`입니다.`,
-    "현재 latest published release는 `v3.5.0`입니다.",
-    "현재 공개 release tag 기준은 `v3.5.0`입니다.",
-    "현재 source tag 기준은 `v3.5.0`입니다.",
-    "## v3.5.0 Source Roadmap Scope",
-    "v3.5.0 Step 1 source baseline alignment",
-  ]) {
-    assertIncludes(files.releasePolicy, snippet, "release policy");
-  }
+  assertIncludes(files.versioning, "## v3.5.0 historical published source-only release 범위", "versioning policy historical v3.5 section");
+  assertIncludes(files.releasePolicy, baselineRoadmap, "release policy historical v3.5 roadmap");
+  assertIncludes(files.releasePolicy, "## v3.5.0 stabilization and release readiness", "release policy historical v3.5 section");
+  assertIncludes(files.releasePolicy, "./server.sh verify-v350-entry-baseline", "release policy v3.5 baseline command");
 });
 
 check("roadmap records v3.5 Step 1 as completed baseline alignment only", () => {
   for (const snippet of [
-    `## 현재 source roadmap: ${currentRoadmap}`,
+    "## v3.5.0 published baseline 상세: Live Operations Control Plane",
     "| 1 | v3.5.0 (1) v3.5.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v350-entry-baseline` 기준 정렬 |",
     "Live Operations Control Plane",
     "Operations Command Core",
@@ -123,21 +113,20 @@ check("roadmap records v3.5 Step 1 as completed baseline alignment only", () => 
 });
 
 check("metadata, asset, stream, inventory, and records expose v3.5 Step 1 gate", () => {
-  assertIncludes(files.releaseMetadataVerifier, 'const latestPublishedTag = "v3.5.0";', "release metadata verifier");
+  assertIncludes(files.releaseMetadataVerifier, `const latestPublishedTag = "${latestPublishedTag}";`, "release metadata verifier");
   assertIncludes(files.releaseMetadataVerifier, `const currentRoadmap = "${currentRoadmap}";`, "release metadata verifier");
   assertIncludes(files.releaseMetadataVerifier, `const latestPublishedBaseline = "${latestPublishedBaseline}";`, "release metadata verifier");
-  assertIncludes(files.docsUiAssetsVerifier, 'const latestPublishedTag = "v3.5.0";', "docs UI assets verifier");
+  assertIncludes(files.docsUiAssetsVerifier, `const latestPublishedTag = "${latestPublishedTag}";`, "docs UI assets verifier");
   const manifest = JSON.parse(files.docsUiAssetsManifest);
-  assert(manifest.baseline?.sourceVersion === "3.5.0", "docs UI asset manifest source version must be 3.5.0");
-  assert(manifest.baseline?.publishedRelease === "v3.5.0", "docs UI asset manifest published release must be v3.5.0");
+  assert(manifest.baseline?.sourceVersion === version, `docs UI asset manifest source version must be ${version}`);
+  assert(manifest.baseline?.publishedRelease === latestPublishedTag, `docs UI asset manifest published release must be ${latestPublishedTag}`);
   for (const snippet of [
     "| v3.5.0 (1) | `./server.sh verify-v350-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` |",
-    `source \`3.5.0\`, latest published \`${latestPublishedTag}\`, current roadmap \`${currentRoadmap}\` 정렬`,
+    `source \`3.5.0\`, latest published \`v3.5.0\`, current roadmap \`${baselineRoadmap}\` 정렬`,
   ]) {
     assertIncludes(files.streamVerification, snippet, "stream verification");
   }
   for (const snippet of [
-    "현재 release 목표 `v3.5.0`",
     "v3.5.0 (1) v3.5.0 baseline 정렬 | `OPS-102`, `SAFE-135` | `verify-v350-entry-baseline`",
     "OPS-102 | V350 Step 1 v3.5 baseline 게이트",
     "SAFE-135 | V350 Step 1 v3.5 baseline boundary",
@@ -159,12 +148,12 @@ check("metadata, asset, stream, inventory, and records expose v3.5 Step 1 gate",
 check("server entrypoint and inventory verifiers include v3.5 Step 1", () => {
   assertIncludes(files.serverSh, command, "server.sh");
   assertIncludes(files.serverSh, "verify_v350_entry_baseline.mjs", "server.sh");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   for (const id of ["SAFE-135", "OPS-102"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
+    assert(files.implementationManifest.items.find((item) => item.id === id)?.verifierEvidence?.command === command,
+      `${id} implementation manifest verifier command drift`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-147`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-114`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v350_entry_baseline.mjs", "script inventory");
 });
 
@@ -173,12 +162,32 @@ for (const [label, text] of [
   ["docs/ui-guide.md", files.uiGuide],
   ["docs/assets/ui/README.md", files.assetPolicy],
 ]) {
-  check(`${label} pins v3.5 source wording`, () => {
-    assertIncludes(text, "3.5.0", label);
-    assertIncludes(text, "v3.5.0", label);
-    assertIncludes(text, "Live Operations Control Plane", label);
+  check(`${label} pins current source wording`, () => {
+    assertIncludes(text, version, label);
+    assertIncludes(text, latestPublishedTag, label);
   });
 }
+
+check("SAFE-135 canonical V350 historical baseline boundary", () => {
+  const baselineCommandDocumented = files.serverSh.includes("verify-v350-entry-baseline)");
+  const currentSourceAligned = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);
+  const historicalBaselinePreserved = files.streamVerification.includes("v3.5.0 Live Operations Control Plane") && files.releaseRecords.includes("v350 Step 1 entry baseline final") && files.featureInventory.includes("SAFE-135");
+  const safe135BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;
+  assert(safe135BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),
+    "SAFE-135 V350 historical baseline must preserve source 3.5.0 roadmap inventory records while accepting current source version");
+});
+
+check("OPS-102 canonical V350 historical baseline gate", () => {
+  const historicalSourceRecorded = files.featureInventory.includes("source `3.5.0`") &&
+    files.featureInventory.includes("latest published `v3.4.0`") && files.featureInventory.includes(baselineRoadmap);
+  const currentSourceNotRegressed = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`);
+  const excludedCompletionAbsent = files.releaseRecords.includes("v350 Step 1 entry baseline final") &&
+    !files.releaseRecords.includes("OPS-102 feature implementation PASS");
+  const ops102GateObserved = historicalSourceRecorded && currentSourceNotRegressed && excludedCompletionAbsent &&
+    files.serverSh.includes("verify-v350-entry-baseline)");
+  assert(ops102GateObserved,
+    "OPS-102 v3.5 source/v3.4 published historical baseline, current non-regression, records, and dispatch gate missing");
+});
 
 const results = runChecks();
 console.log("");
@@ -188,6 +197,7 @@ console.log(`- currentVersion: ${version}`);
 console.log(`- currentTag: ${currentTag}`);
 console.log(`- latestPublishedTag: ${latestPublishedTag}`);
 console.log(`- currentRoadmap: ${currentRoadmap}`);
+console.log(`- historicalBaseline: ${baselineTag} ${baselineRoadmap}`);
 console.log("- featureImplementation: not-run-by-this-command");
 console.log("- uiFulltest: not-run-by-this-command");
 console.log("- longrun30Or120: not-run-by-this-command");
@@ -218,6 +228,22 @@ function check(name, fn) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function requiredMatch(text, pattern, label) {
+  const match = String(text).match(pattern);
+  if (!match) throw new Error(`missing ${label}`);
+  return match[1];
+}
+
+function semverAtLeast(current, baseline) {
+  const currentParts = String(current).split(".").map(Number);
+  const baselineParts = String(baseline).split(".").map(Number);
+  for (let index = 0; index < 3; index += 1) {
+    if (currentParts[index] > baselineParts[index]) return true;
+    if (currentParts[index] < baselineParts[index]) return false;
+  }
+  return true;
 }
 
 function assert(condition, message) {

@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.8.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.8.0)
-![Source Version](https://img.shields.io/badge/source-3.8.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.9.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,9 +15,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 GitHub Release: [v3.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.8.0)
-- 현재 소스 버전: `3.8.0`
-- v3.8.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+- 현재 소스 버전: `3.9.0`
+- v3.9.0 준비 상태: source-only 준비 브랜치. Binary, runtime, model bundle은 포함하지 않음
+- 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 
 ## 한눈에 보기
 
@@ -32,15 +32,14 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - **제외 범위**: VMS/NVR, 장기 녹화, broad archive playback/search, VLM default-on,
   model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
 
-## v3.8 Source Roadmap
+## v3.9 Source Roadmap
 
 - 최신 공개 릴리즈: `v3.8.0` Operator-Gated Action Pilot & Outcome Loop, source-only.
-- 현재 소스: `3.8.0` Operator-Gated Action Pilot & Outcome Loop.
-- v3.8 로드맵: v3.7 site/source group/runbook approval baseline 위에서 낮은 위험의
-  운영 action request를 생성하고, 승인하고, readiness/preflight와 제한 실행 후보,
-  outcome reconciliation을 하나의 operator-gated loop로 연결합니다.
-- 최신 공개 기준: v3.8.0 Operator-Gated Action Pilot & Outcome Loop는 published baseline이며,
-  v3.7.0 Site-Aware Operations and Safe Runbook Control Plane은 직전 published baseline입니다.
+- 현재 소스: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
+- v3.9 로드맵: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 전수 확인하고,
+  REVIEW4-50~63을 닫은 뒤 같은 v3.9.0 브랜치에서 동작 보존 구조 안정화와 리팩토링을
+  수행합니다. 실제 리팩토링은 REVIEW4-64, 독립 acceptance는 REVIEW4-65입니다.
+- 최신 공개 기준: v3.8.0 Operator-Gated Action Pilot & Outcome Loop는 published baseline이며, v3.9.0은 아직 publish evidence가 없는 준비 브랜치입니다.
 - 불변 조건: Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path는
   요청 없이 변경하지 않습니다.
 - AI/model 경계: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B 평가 후보,
@@ -59,7 +58,7 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 | --- | --- |
 | OS | macOS 또는 Linux |
 | 언어/빌드 | C++17, CMake 3.16+ |
-| 미디어 런타임 | GStreamer 1.0, gst-rtsp-server, WebRTC 관련 GStreamer plugin |
+| 미디어 런타임 | GStreamer 1.28+, gst-rtsp-server, WebRTC 관련 GStreamer plugin |
 | 선택 AI | ONNX Runtime, YOLO ONNX model, label file |
 | 보조 도구 | Node.js, Python 3, ffmpeg/ffprobe, curl |
 | 기본 route/file root | RTSP route `dhseo`, file root `video/` |
@@ -95,7 +94,7 @@ users file 또는 `admin.passwordHash`가 없으면 첫 접속 시 `/setup`으�
 브라우저 접속:
 
 ```text
-http://127.0.0.1:8081/
+http://127.0.0.1:8080/
 ```
 
 다른 포트로 실행한 경우에는 `./server.sh status`의 HTTP 주소를 사용합니다.
@@ -123,7 +122,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v3.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.8.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+  `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 
 ## 대표 UI 미리보기
 
@@ -226,7 +225,7 @@ release 전 로컬 기준선:
 ./server.sh verify-predev --quick
 ```
 
-UI/Auth/VA/장기 soak 검증의 전체 명령과 실행 조건은
+UI/Auth/VA/장기 soak/부하 검증의 전체 명령과 실행 조건은
 [docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.
 실장비 endpoint, 외부 credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
 

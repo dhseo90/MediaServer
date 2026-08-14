@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.2.0 Step 5 Source Reliability Context 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-source-reliability-context";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -47,6 +50,7 @@ const files = {
 const checks = [];
 
 check("ops review API attaches Step 5 source reliability context to unified workspace items", () => {
+  assert(files.pageScript.includes("/ops/events"), "OPS-073 canonical /ops/events route missing");
   for (const snippet of [
     "OpsV320SourceReliabilityContextJson",
     "OpsV320SourceReliabilitySummaryJson",
@@ -62,6 +66,8 @@ check("ops review API attaches Step 5 source reliability context to unified work
   ]) {
     assertIncludes(files.server, snippet, "V320 source reliability server view model");
   }
+  const sourceReliabilitySummaryObserved = files.server.includes("sourceReliabilitySummary") && files.pageScript.includes("/ops/events");
+  assert(sourceReliabilitySummaryObserved, "OPS-073 source reliability summary and /ops/events route must remain bound");
 });
 
 check("source reliability context preserves schema, media, and viewer boundaries", () => {
@@ -105,6 +111,14 @@ check("product UI script renders Step 5 source reliability fields", () => {
     "debugMaterialExposed",
   ]) {
     assertIncludes(files.pageScript, snippet, "V320 source reliability UI script");
+    assertIncludes(extractNamedFunctionBlock(files.pageScript, "renderV320SourceReliabilityContext"), "sourceReliability", "UI-064 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320SourceReliabilityContext").includes(marker)), "UI-064 no-write explicit absence oracle");
+    assert(!["rawJsonExposed: true","rawLocatorExposed: true","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320SourceReliabilityContext").includes(marker)), "UI-064 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrlExposed: true","sourceURLExposed: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320SourceReliabilityContext").includes(marker)), "UI-064 source-url-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320SourceReliabilityContext").includes(marker)), "UI-064 debug-redaction explicit absence oracle");
+    assert(!["/client/api/","viewerClientExposureAdded: true","clientExposureAdded: true"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320SourceReliabilityContext").includes(marker)), "UI-064 client-viewer-boundary explicit absence oracle");
+    assertIncludes(files.pageScript, "/ops/events", "UI-064 canonical route obligation");
+    assertIncludes(files.pageScript, "media-server.ops.v320-source-reliability-context.v1", "UI-064 canonical schema obligation");
   }
 });
 
@@ -165,10 +179,10 @@ check("feature inventory and release records map v3.2 Step 5", () => {
     "EVT-066 | V320 Step 5 source reliability view model",
     "SAFE-106 | V320 Step 5 source reliability boundary",
     "OPS-073 | V320 Step 5 Source Reliability Context 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
-    "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
+    "`UI-001`~`UI-115`",
+    "`EVT-001`~`EVT-087`",
+    "`SAFE-001`~`SAFE-216`",
+    "`OPS-035`~`OPS-184`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 5");
   }
@@ -191,12 +205,26 @@ check("server entrypoint and inventory verifiers include v3.2 Step 5 command", (
   assertIncludes(files.serverSh, "verify-v320-source-reliability-runtime-sample", "server.sh runtime sample command");
   assertIncludes(files.serverSh, "verify_v320_source_reliability_runtime_sample.mjs", "server.sh runtime sample dispatch");
   assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
-  assertIncludes(files.featureCoverageVerifier, "verify-v320-source-reliability-runtime-sample", "feature coverage runtime sample verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   for (const id of ["UI-064", "EVT-066", "SAFE-106", "OPS-073"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_source_reliability_context.mjs", "script inventory");
   assertIncludes(files.scriptInventory, "verify_v320_source_reliability_runtime_sample.mjs", "script inventory runtime sample");
+});
+
+check("SAFE-106 canonical source reliability boundary", () => {
+  const reliabilityBlock = extractCppFunctionBlock(files.server, "std::string OpsV320SourceReliabilityContextJson(");
+  const safe106BoundaryObserved = reliabilityBlock.includes("media-server.ops.v320-source-reliability-context.v1") &&
+    reliabilityBlock.includes("info.source_id") && reliabilityBlock.includes("info.source_health_status") && reliabilityBlock.includes("info.reconnect_count");
+  const sourceRegistryWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource|Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(reliabilityBlock);
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(reliabilityBlock);
+  const rawMaterialExposed = /\\\"raw(?:Json|Locator|Payload)(?:Exposed|Included)\\\":true/.test(reliabilityBlock);
+  const sourceUrlExposed = reliabilityBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = reliabilityBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(reliabilityBlock);
+  assert(safe106BoundaryObserved && sourceRegistryWritePerformed === false && schemaMutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false,
+    "SAFE-106 info.reconnect_count sourceReliability must remain a read-only health hint without source registry/schema/raw/client mutation");
 });
 
 const results = runChecks();

@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -43,6 +44,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
@@ -75,6 +77,11 @@ check("fixture covers V300-S04 feature queue outcome matrix", () => {
 });
 
 check("analysis module exposes bounded background and lazy queue contract", () => {
+  const completeTaskBlock = extractCppFunctionBlock(files.source, "VlmFeatureQueueOutcome CompleteTask(");
+  const makeOutcomeBlock = extractCppFunctionBlock(files.source, "VlmFeatureQueueOutcome MakeOutcome(");
+  const opsEventsUiAdded = completeTaskBlock.includes("/ops/events");
+  const providerCallPerformed = makeOutcomeBlock.includes("providerCallPerformed");
+  assert(completeTaskBlock.includes("feature_set_stored") && opsEventsUiAdded === false && providerCallPerformed === false, "LAB-084 queue feature_set_stored must not add /ops/events UI or provider calls");
   for (const snippet of [
     "struct VlmFeatureQueueTask",
     "struct VlmFeatureQueueOutcome",
@@ -181,11 +188,23 @@ check("feature inventory and release records map V300-S04 to LAB-084, SAFE-086, 
 check("server entrypoint and inventory verifiers include V300-S04 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S04 command");
   assert(files.server.includes("verify_v300_vlm_feature_queue.mjs"), "server.sh missing V300-S04 script dispatch");
-  assert(files.featureCoverageVerifier.includes(command), "feature coverage verifier missing V300-S04 command");
+  for (const id of ["LAB-002", "LAB-006", "LAB-017", "LAB-018", "LAB-019", "LAB-025", "LAB-084", "SAFE-086", "OPS-054"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  }
+  assert(files.featureCoverageVerifier.includes("validateImplementationManifest") && files.featureCoverageVerifier.includes("verifierEvidenceRows"), "feature coverage must validate manifest-backed verifier evidence");
   assert(files.projectInventoryVerifier.includes("LAB-084") &&
     files.projectInventoryVerifier.includes("SAFE-086") &&
     files.projectInventoryVerifier.includes("OPS-054"), "project inventory verifier missing V300-S04 IDs");
   assert(files.scriptInventory.includes("verify_v300_vlm_feature_queue.mjs"), "script inventory missing V300-S04 verifier");
+});
+
+check("SAFE-086 canonical VLM queue isolation boundary", () => {
+  const invalidOutputDiscarded = files.source.includes("discard-invalid-output");
+  const rawMaterialStored = files.source.includes("raw_prompt_stored = true") || files.source.includes("raw_provider_response_stored = true");
+  const vlmQueueIsolationInputsObserved = invalidOutputDiscarded && rawMaterialStored === false;
+  const safe086BoundaryObserved = vlmQueueIsolationInputsObserved && files.source.includes("webrtc_data_channel_schema_changed = false");
+  assert(safe086BoundaryObserved && rawMaterialStored === false,
+    "verify-v300-vlm-feature-queue discard-invalid-output raw material must remain absent from WebRTC/SSE state");
 });
 
 const results = runChecks();

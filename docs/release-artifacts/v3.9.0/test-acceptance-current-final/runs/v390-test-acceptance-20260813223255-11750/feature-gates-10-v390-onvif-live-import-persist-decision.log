@@ -1,0 +1,17 @@
+[pass] Ops server exposes the v3.9 ONVIF live import persist decision
+[pass] ONVIF live import decision preserves source/view write boundaries
+[pass] Ops API exposes the decision as guarded no-store JSON
+[pass] Ops sources UI renders the manual persist handoff decision
+[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 12
+[pass] server entrypoint and inventory verifiers include v3.9 Step 12 command
+
+== v3.9.0 ONVIF live import persist decision ==
+- schema: media-server.ops.v390-onvif-live-import-persist-decision.v1
+- step: v3.9.0 (12)
+- route: /ops/api/onvif/live-import-persist-decision
+- decision: manual paired save handoff; import-draft remains notSaved:true; no one-shot import persist
+- writes: paired source/view save uses compensating rollback; decision route remains read-only
+- uiFulltest: not-run-by-this-command
+- longrun30Or120: not-run-by-this-command
+- pass: 6
+- fail: 0

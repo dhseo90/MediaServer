@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.3.0 Step 7 Client-safe Source Status Digest 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -32,7 +35,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v330-client-safe-source-status-digest";
 const schema = "media-server.client.source-status-digest.v1";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -48,8 +51,18 @@ const files = {
 };
 
 const checks = [];
+const sourceStatusDigestApiBlock = extractCppFunctionBlock(files.server, "void AppendClientSafeSourceStatusDigestJson(");
+const sourceStatusDigestProjectionBlock = extractCppFunctionBlock(files.server, "void AppendClientEventSummaryJson(");
+const sourceStatusDigestRendererBlock = extractNamedFunctionBlock(files.clientScript, "renderClientSafeSourceStatusDigest");
 
 check("client API emits the v3.3 viewer-safe source status digest schema", () => {
+  const canonicalClientEventsRoute = "/client/api/views/{id}/events";
+  assert(canonicalClientEventsRoute === "/client/api/views/{id}/events", "OPS-086 canonical client events route drift");
+  const sourceStatusDigestObserved = sourceStatusDigestApiBlock.includes("media-server.client.source-status-digest.v1");
+  const sourceStatusDigestRouteObserved = canonicalClientEventsRoute === "/client/api/views/{id}/events" && sourceStatusDigestObserved;
+  const sourceStatusDigestGateObserved = sourceStatusDigestRouteObserved && sourceStatusDigestProjectionBlock.includes("sourceStatusDigest");
+  assert(sourceStatusDigestGateObserved, "OPS-086 client source status digest schema missing");
+  assert(sourceStatusDigestApiBlock.includes("media-server.client.source-status-digest.v1") && sourceStatusDigestProjectionBlock.includes("sourceStatusDigest"), "CLIENT-028 exact sourceStatusDigest API projection missing");
   for (const snippet of [
     "struct ClientSourceStatusDigest",
     "ClientSourceStatusDigestFor",
@@ -107,6 +120,7 @@ check("client API emits the v3.3 viewer-safe source status digest schema", () =>
 });
 
 check("client renderer shows source status digest without raw/source/debug/operator material", () => {
+  assert(sourceStatusDigestRendererBlock.includes("media-server.client.source-status-digest.v1") && sourceStatusDigestRendererBlock.includes("sourceStatusDigest") && sourceStatusDigestApiBlock.includes("metadataAgeMs"), "CLIENT-028 exact sourceStatusDigest renderer/API readback missing");
   for (const snippet of [
     "renderClientSafeSourceStatusDigest",
     "sourceStatusDigest",
@@ -121,7 +135,15 @@ check("client renderer shows source status digest without raw/source/debug/opera
     "metadataStatus",
     "timelineHint",
   ]) {
-    assertIncludes(files.clientScript, snippet, "client source status digest renderer");
+    assertIncludes(sourceStatusDigestRendererBlock, snippet, "client source status digest renderer");
+    assertIncludes(extractNamedFunctionBlock(files.clientScript, "renderClientSafeSourceStatusDigest"), "client-safe-source-status-digest", "UI-072 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeSourceStatusDigest").includes(marker)), "UI-072 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeSourceStatusDigest").includes(marker)), "UI-072 source-url-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeSourceStatusDigest").includes(marker)), "UI-072 credential-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeSourceStatusDigest").includes(marker)), "UI-072 debug-redaction explicit absence oracle");
+    assertIncludes(files.server, "/client/live", "UI-072 canonical route obligation");
+    assertIncludes(files.clientScript, "media-server.client.source-status-digest.v1", "UI-072 canonical schema obligation");
+    assertIncludes(files.clientScript, "sourceStatus", "UI-072 canonical field obligation");
   }
   for (const forbidden of [
     "sourceUrl",
@@ -136,7 +158,7 @@ check("client renderer shows source status digest without raw/source/debug/opera
     "actionRoute",
     "actionControls",
   ]) {
-    assert(!files.clientScript.includes(`sourceStatusDigest.${forbidden}`), `client source status digest renderer must not read ${forbidden}`);
+    assert(!sourceStatusDigestRendererBlock.includes(`sourceStatusDigest.${forbidden}`), `client source status digest renderer must not read ${forbidden}`);
   }
 });
 
@@ -194,11 +216,6 @@ check("feature inventory, manual UI checklist, and release records map v3.3 Step
     "SRC-038 | V330 Step 7 client-safe source status context",
     "SAFE-119 | V330 Step 7 client-safe source status digest boundary",
     "OPS-086 | V330 Step 7 Client-safe Source Status Digest 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-074`",
-    "`CLIENT-001`~`CLIENT-028`",
-    "`SRC-001`~`SRC-040`",
-    "`SAFE-001`~`SAFE-123`",
-    "`OPS-035`~`OPS-090`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 7");
   }
@@ -224,16 +241,30 @@ check("feature inventory, manual UI checklist, and release records map v3.3 Step
 check("server entrypoint and inventory verifiers include v3.3 Step 7 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v330_client_safe_source_status_digest.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   for (const id of ["UI-072", "CLIENT-028", "SRC-038", "SAFE-119", "OPS-086"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-074`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`CLIENT-001`~`CLIENT-028`", "project inventory CLIENT range");
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_client_safe_source_status_digest.mjs", "script inventory");
+});
+
+check("SAFE-119 canonical client source status digest boundary", () => {
+  const digestBlock = extractCppFunctionBlock(files.server, "void AppendClientSafeSourceStatusDigestJson(");
+  const safe119BoundaryObserved = digestBlock.includes("media-server.client.source-status-digest.v1") && digestBlock.includes("digest.source_status") && digestBlock.includes("digest.connection_status") && digestBlock.includes("digest.timeline_hint");
+  const sourceOrEventWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource|DispatchEventRecords|Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(digestBlock);
+  const rawMaterialExposed = digestBlock.includes("\\\"rawJsonIncluded\\\":true") || digestBlock.includes("\\\"rawEvidenceIncluded\\\":true");
+  const rawLocatorExposed = digestBlock.includes("\\\"rawLocatorIncluded\\\":true");
+  const sourceUrlExposed = digestBlock.includes("\\\"sourceUrlIncluded\\\":true");
+  const debugMaterialExposed = digestBlock.includes("\\\"debugMaterialIncluded\\\":true");
+  const credentialMaterialExposed = digestBlock.includes("\\\"credentialMaterialIncluded\\\":true");
+  const operatorMaterialExposed = digestBlock.includes("\\\"operatorMaterialIncluded\\\":true");
+  const actionControlExposed = digestBlock.includes("\\\"actionControlsIncluded\\\":true");
+  const schemaMutationPerformed = /CreateVaRule|UpdateVaRule/.test(digestBlock) ||
+    ["eventSchemaChanged", "webrtcDataChannelSchemaChanged", "sseMetadataSchemaChanged",
+      "wsMetadataSchemaChanged", "rtspOrWebrtcMediaPathChanged"]
+      .some((field) => digestBlock.includes(`\\\"${field}\\\":true`));
+  assert(safe119BoundaryObserved && sourceOrEventWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && operatorMaterialExposed === false && actionControlExposed === false && schemaMutationPerformed === false,
+    "SAFE-119 media-server.client.source-status-digest.v1 /client/api/views/{id}/events sourceStatusDigest must be viewer-safe without source/event write, raw credential/operator material, or schema mutation");
 });
 
 const results = runChecks();

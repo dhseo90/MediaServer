@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 5 Source/Rule Impact Diff 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -7,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -69,7 +71,16 @@ check("impact diff derives from staged plans and command dry-run context", () =>
 });
 
 check("impact diff preserves read-only no-apply boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV360SourceRuleImpactDiffJson", "struct OpsV360SafeApplyReadinessItem");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360SourceRuleImpactDiffJson(");
+  const clientNoticeSendCallPresent = /sendClientNotice|clientNoticeDelivery|deliveryQueue/.test(block);
+  const rawMaterialExposed = /raw(?:Evidence|Json|Locator).*true/.test(block);
+  const sourceUrlExposed = /sourceUrl|sourceURL|rtsp:\/\//.test(block);
+  const debugMaterialExposed = /debugCounters|debugMaterial.*true/.test(block);
+  assert(clientNoticeSendCallPresent === false, "CLIENT-033 client notice send must remain absent");
+  assert(rawMaterialExposed === false, "CLIENT-033 raw material must remain redacted");
+  assert(sourceUrlExposed === false, "CLIENT-033 source URL must remain redacted");
+  assert(debugMaterialExposed === false, "CLIENT-033 debug material must remain redacted");
+  assert(block.includes("clientImpactDiff") && exactBooleanFlagValue(block, "clientImpactChangedPersisted") === false, "CLIENT-033 exact clientImpactDiff readback missing");
   for (const snippet of [
     "opsOnly", "readOnly", "diffOnly", "sourceHealthChangedPersisted",
     "eventRiskChangedPersisted", "clientImpactChangedPersisted",
@@ -87,6 +98,9 @@ check("impact diff preserves read-only no-apply boundaries", () => {
     "eventPostPayloadChanged", "webrtcDataChannelSchemaChanged", "sseMetadataSchemaChanged",
     "wsMetadataSchemaChanged", "rtspOrWebrtcMediaPathChanged",
   ]) assertFlagFalse(block, flag);
+  const ruleRegistryWritePerformed = block.includes('\\"ruleRegistryWritePerformed\\":true');
+  const ruleFollowUpApplied = block.includes('\\"ruleFollowUpApplied\\":true');
+  assert(ruleRegistryWritePerformed === false && ruleFollowUpApplied === false, "RULE-108 OpsV360SourceRuleImpactDiffJson read-only registryWrite/apply absence");
 });
 
 check("Ops API exposes the impact diff route as guarded no-store JSON", () => {
@@ -107,14 +121,37 @@ check("docs, inventory, and dispatch map v3.6 Step 5", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_source_rule_impact_diff.mjs", "server.sh dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.scriptInventory, "verify_v360_source_rule_impact_diff.mjs", "script inventory");
+});
+
+check("SAFE-152 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360SourceRuleImpactDiffJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/simulation/impact-diff");
+  const safe152BoundaryObserved = block.includes("BuildV360SourceRuleImpactDiffs");
+  const safe152CommandBoundaryObserved = safe152BoundaryObserved && command === "verify-v360-source-rule-impact-diff";
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = clientNoticeSent;
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe152CommandBoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && sendPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-152 BuildV360SourceRuleImpactDiffs must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 finish("== v3.6.0 source/rule impact diff summary ==", { schema, step: "v3.6.0 (5)", route });
 
 function assertStepDocs(step, title, ...ids) { for (const snippet of [`| ${step} | v3.6.0 (${step}) ${title} | P0 | 완료 |`, `## v3.6.0 Step ${step} 개발 기록`, route, `\`./server.sh ${command}\``]) assertIncludes(files.backlog, snippet, `backlog v3.6 Step ${step}`); assertIncludes(files.streamVerification, `| v3.6.0 (${step}) | \`./server.sh ${command}\` | ${title}.`, `stream verification v3.6 Step ${step}`); assertIncludes(files.featureInventory, `v3.6.0 (${step}) ${title}`, `feature inventory v3.6 Step ${step}`); for (const id of ids) assertIncludes(files.featureInventory, `\`${id}\``, `feature inventory ${id}`); assertIncludes(files.releaseRecords, `V360 ${title}`, `release records v3.6 Step ${step}`); assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, `release records v3.6 Step ${step}`); }
-function loadFiles() { return { server: readText("src/ingress/webrtc_http_server.cpp"), backlog: readText("docs/development-backlog.md"), streamVerification: readText("docs/stream-verification.md"), featureInventory: readText("docs/project-feature-test-inventory.md"), featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"), projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"), scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"), releaseRecords: readText("docs/release-test-records.md"), serverSh: readText("server.sh") }; }
+function loadFiles() { return { server: readWebRtcHttpServerBundle(readText), backlog: readText("docs/development-backlog.md"), streamVerification: readText("docs/stream-verification.md"), featureInventory: readText("docs/project-feature-test-inventory.md"), featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"), projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"), scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"), releaseRecords: readText("docs/release-test-records.md"), serverSh: readText("server.sh") }; }
 function extractRouteBlock(text, routeNeedle) { const start = text.indexOf(`request.path == "${routeNeedle}"`); assert(start >= 0, `missing route: ${routeNeedle}`); const next = text.indexOf("\n                        if (request.path == ", start + 1); return text.slice(start, next >= 0 ? next : start + 2200); }
 function extractBlock(text, startNeedle, endNeedle) { const start = text.indexOf(startNeedle); assert(start >= 0, `missing block start: ${startNeedle}`); const end = text.indexOf(endNeedle, start + startNeedle.length); assert(end >= 0, `missing block end after ${startNeedle}: ${endNeedle}`); return text.slice(start, end); }
 function assertFlagFalse(text, flag) { const index = text.indexOf(flag); assert(index >= 0, `missing boundary flag: ${flag}`); assert(text.slice(index, index + 128).includes("false"), `boundary flag must be false: ${flag}`); }

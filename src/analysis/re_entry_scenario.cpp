@@ -35,7 +35,7 @@ bool IsActiveScenarioPhase(ScenarioPhase phase) {
 
 }  // namespace
 
-ReEntryScenarioOptions BuildReEntryScenarioOptionsFromConfig(const app::AppConfig& config) {
+ReEntryScenarioOptions BuildReEntryScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     ReEntryScenarioOptions options;
     options.enabled = config.analysis_re_entry_enabled;
     options.re_entry_window_ms = config.analysis_re_entry_window_ms;
@@ -117,7 +117,7 @@ ScenarioUpdate ReEntryScenario::Evaluate(const SceneContext& scene_context,
     update.phase = ScenarioPhase::Confirmed;
     update.zone_id = zone_id;
     update.active = true;
-    update.confirmed = true;
+    update.confirmed = true;  // configured-zone re-entry confirmation
     if (recent_exit->triggered_at_ns <= 0) {
         recent_exit->triggered_at_ns = scene_context.timestamp_ns;
         update.event = BuildEvent(track_context, zone_id);

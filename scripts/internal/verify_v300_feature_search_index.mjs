@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -43,6 +44,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
@@ -76,6 +78,9 @@ check("fixture covers V300-S07 feature/search index matrix", () => {
 });
 
 check("analysis module exposes local index projection, report, and stale guard", () => {
+  const rebuildBlock = extractCppFunctionBlock(files.source, "EventSearchIndexReport EventFeatureSearchIndex::Rebuild(");
+  const opsEventsUiAdded = rebuildBlock.includes("/ops/events");
+  assert(rebuildBlock.includes("indexed_entries") && opsEventsUiAdded === false, "LAB-087 feature search indexed_entries must not add /ops/events UI");
   for (const snippet of [
     "struct EventSearchIndexEventRecord",
     "struct EventSearchIndexFeatureSet",
@@ -174,11 +179,23 @@ check("feature inventory and release records map V300-S07 to LAB-087, SAFE-089, 
 check("server entrypoint and inventory verifiers include V300-S07 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S07 command");
   assert(files.server.includes("verify_v300_feature_search_index.mjs"), "server.sh missing V300-S07 script dispatch");
-  assert(files.featureCoverageVerifier.includes(command), "feature coverage verifier missing V300-S07 command");
+  for (const id of ["LAB-087", "SAFE-089", "OPS-057"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  }
+  assert(files.featureCoverageVerifier.includes("validateImplementationManifest") && files.featureCoverageVerifier.includes("verifierEvidenceRows"), "feature coverage must validate manifest-backed verifier evidence");
   assert(files.projectInventoryVerifier.includes("LAB-087") &&
     files.projectInventoryVerifier.includes("SAFE-089") &&
     files.projectInventoryVerifier.includes("OPS-057"), "project inventory verifier missing V300-S07 IDs");
   assert(files.scriptInventory.includes("verify_v300_feature_search_index.mjs"), "script inventory missing V300-S07 verifier");
+});
+
+check("SAFE-089 canonical feature search index boundary", () => {
+  const providerCallPerformed = files.source.includes("runtime_provider_call_performed = true");
+  const schemaMutationPerformed = files.source.includes("event_post_payload_changed = true") || files.source.includes("rtsp_webrtc_media_path_changed = true");
+  const privacyRejected = files.source.includes("privacy_rejected_records");
+  const safe089BoundaryObserved = privacyRejected && providerCallPerformed === false;
+  assert(safe089BoundaryObserved && providerCallPerformed === false && schemaMutationPerformed === false,
+    "verify-v300-feature-search-index privacy_rejected_records provider/WebRTC/SSE/RTSP mutation must remain absent");
 });
 
 const results = runChecks();

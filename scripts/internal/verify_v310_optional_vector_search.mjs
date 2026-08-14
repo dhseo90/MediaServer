@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -41,6 +42,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
@@ -72,6 +74,9 @@ check("fixture covers V310-S07 optional vector matrix", () => {
 });
 
 check("analysis module exposes optional vector index API and report", () => {
+  const optionalVectorBlock = extractCppFunctionBlock(files.source, "EventOptionalVectorIndexReport EventFeatureSearchIndex::RebuildOptionalVectorIndex(");
+  const viewerClientExposureAdded = optionalVectorBlock.includes("viewerClientExposureAdded");
+  assert(optionalVectorBlock.includes("optional-vector-index-disabled-default-off") && viewerClientExposureAdded === false, "LAB-089 optional vector default-off must not add client/viewer exposure");
   for (const snippet of [
     "struct EventOptionalVectorEmbedding",
     "struct EventOptionalVectorIndexOptions",
@@ -151,9 +156,6 @@ check("feature inventory and release records map V310-S07", () => {
     "LAB-089 | V310-S07 optional vector search fixture",
     "SAFE-100 | V310-S07 optional vector search boundary",
     "OPS-067 | V310-S07 Optional Vector Search 게이트",
-    "`LAB-001`~`LAB-089`",
-    "`SAFE-001`~`SAFE-101`",
-    "`OPS-035`~`OPS-068`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S07");
   }
@@ -171,11 +173,24 @@ check("feature inventory and release records map V310-S07", () => {
 check("server entrypoint and inventory verifiers include V310-S07 command", () => {
   assertIncludes(files.server, command, "server.sh command");
   assertIncludes(files.server, "verify_v310_optional_vector_search.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["LAB-089", "SAFE-100", "OPS-067"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.projectInventoryVerifier, "LAB-089", "project inventory verifier LAB-089");
   assertIncludes(files.projectInventoryVerifier, "SAFE-100", "project inventory verifier SAFE-100");
   assertIncludes(files.projectInventoryVerifier, "OPS-067", "project inventory verifier OPS-067");
   assertIncludes(files.scriptInventory, "verify_v310_optional_vector_search.mjs", "script inventory");
+});
+
+check("SAFE-100 canonical optional vector boundary", () => {
+  const providerCallPerformed = files.source.includes("provider_embedding_call_performed = true") || files.source.includes("runtime_provider_call_performed = true");
+  const optionalIndexDefaultOff = files.source.includes("optional-vector-index-disabled-default-off");
+  const optionalVectorInputsObserved = providerCallPerformed === false && optionalIndexDefaultOff;
+  const safe100BoundaryObserved = optionalVectorInputsObserved && files.server.includes("verify-v310-optional-vector-search");
+  assert(safe100BoundaryObserved && providerCallPerformed === false,
+    "verify-v310-optional-vector-search optional-vector-index-disabled-default-off provider call and WebRTC/SSE/RTSP exposure must remain absent");
 });
 
 const results = runChecks();

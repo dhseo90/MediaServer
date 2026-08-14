@@ -1,0 +1,47 @@
+{
+  "schema": "media-server.v390-historical-invalid-ui-evidence.v2",
+  "sourceKind": "audit-only-historical",
+  "consumerPolicy": "deny-current-evidence",
+  "version": "3.9.0",
+  "currentEvidenceStatus": "not-run",
+  "eligibleForCurrentCoverage": false,
+  "roots": [
+    {
+      "path": "docs/release-artifacts/v3.9.0/ui-automation-playwright-final",
+      "status": "historical-invalid",
+      "reasons": ["placeholder-video", "stale-source-binding", "partial-suite"]
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/ui-automation-case-completeness-final",
+      "status": "historical-invalid",
+      "reasons": ["placeholder-video", "stale-source-binding", "partial-suite"]
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/ui-automation-native-final",
+      "status": "historical-invalid",
+      "reasons": ["placeholder-video", "stale-source-binding", "partial-suite"]
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final",
+      "status": "historical-invalid",
+      "reasons": ["placeholder-video", "missing-source-provenance", "duplicate-screenshot-content", "partial-suite"]
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final",
+      "status": "historical-invalid",
+      "reasons": ["nested-placeholder-video", "stale-source-binding", "partial-suite"]
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-final",
+      "status": "historical-invalid",
+      "reasons": ["legacy-8-case-eligible-false-pass", "stale-source-binding", "partial-suite"]
+    }
+  ],
+  "cleanup": {
+    "trackedPlaceholderVideoFilesRemoved": 39,
+    "trackedPlaceholderBytesRemoved": 1443,
+    "historicalSummariesPreserved": true,
+    "historicalSummariesRewritten": false
+  },
+  "boundary": "audit-only historical roots are immutable review evidence and cannot be current coverage, Policy v4, acceptance, or final-integrity inputs"
+}

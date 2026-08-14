@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Re-ID/advanced tracking 실험 범위의 default-off, privacy, benchmark gate를 정적 검증한다.
 // 동작 요약: Re-ID hook이 외부 metadata/schema에 embedding/crop/model path를 노출하지 않고 close-object benchmark 경계가 유지되는지 점검한다.
 
@@ -47,38 +48,38 @@ const report = {
 };
 
 check("Re-ID appearance hook default is disabled", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceEnabled = false'), "Re-ID appearance hook must stay default disabled");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceEnabled = false'), "Re-ID appearance hook must stay default disabled");
   return { appearanceDefault: "disabled" };
 });
 
 check("Re-ID default appearance extractor is noop", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceExtractor = "noop"'), "default appearance extractor must stay noop");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceExtractor = "noop"'), "default appearance extractor must stay noop");
   return { extractorDefault: "noop" };
 });
 
 check("Re-ID default model path is empty", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelPath = ""'), "default Re-ID model path must stay empty");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceModelPath = ""'), "default Re-ID model path must stay empty");
   return { modelPathDefault: "empty" };
 });
 
 check("Re-ID default model checksum is empty", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelSha256 = ""'), "default Re-ID model checksum must stay empty");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceModelSha256 = ""'), "default Re-ID model checksum must stay empty");
   return { modelChecksumDefault: "empty" };
 });
 
 check("Re-ID default model provenance is empty", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelProvenance = ""'), "default Re-ID model provenance must stay empty");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceModelProvenance = ""'), "default Re-ID model provenance must stay empty");
   return { modelProvenanceDefault: "empty" };
 });
 
 check("close object guard default is off", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisTrackingCloseObjectGuardMode = "off"'), "close-object guard must stay default off");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisTrackingCloseObjectGuardMode = "off"'), "close-object guard must stay default off");
   return { closeObjectGuardDefault: "off" };
 });
 
@@ -103,21 +104,37 @@ check("appearance execution stays bounded outside media hot path", () => {
   }
   assert(extractor.includes("std::try_to_lock"), "ONNX Re-ID extractor must avoid blocking on concurrent inference");
   assert(extractor.includes("falling back to NoOp"), "ONNX Re-ID extractor must keep NoOp fallback paths");
+  assert(/bool NoOpAppearanceExtractor::Enabled\(\) const \{\s*return false;\s*\}/.test(extractor),
+    "NoOp fallback must report Enabled=false");
+  assert(manager.includes("!appearance_extractor_->Enabled() || appearance_worker_.joinable()"),
+    "NoOp fallback must be rejected before appearance worker start");
+  assert(manager.includes("appearance_extractor_ == nullptr || !appearance_extractor_->Enabled()"),
+    "NoOp fallback must be rejected before crop/update and queue paths");
   for (const snippet of [
     "model_sha256",
     "model_provenance",
+    "InspectAppearanceModelReadiness",
+    "model_file_regular",
+    "checksum_format_valid",
+    "openssl_runtime_available",
+    "checksum_readable",
+    "checksum_matches",
+    "onnxruntime_available",
+    "model_backed_preflight_ready",
     "ComputeFileSha256",
-    "ONNX Re-ID model checksum is missing",
-    "ONNX Re-ID model checksum mismatch",
-    "ONNX Re-ID model provenance is missing",
+    "model-checksum-missing",
+    "model-checksum-mismatch",
+    "model-provenance-missing",
+    "openssl-runtime-unavailable",
+    "onnxruntime-unavailable",
   ]) {
     assert(extractor.includes(snippet), `ONNX Re-ID extractor missing model opt-in gate snippet: ${snippet}`);
   }
   return {
     worker: "async bounded",
     concurrency: "try_to_lock",
-    fallback: "noop",
-    modelGate: "path+sha256+provenance",
+    fallback: "noop-disabled-zero-worker-queue-crop",
+    modelGate: "regular-file+sha256+provenance+openssl+onnxruntime",
   };
 });
 
@@ -144,11 +161,10 @@ check("external metadata serializers do not expose appearance identity material"
     "modelSha256",
     "modelChecksum",
     "modelProvenance",
-    "provenance",
   ];
   const hits = [];
   for (const file of files) {
-    const text = stripAuditSensitiveKey(readText(file));
+    const text = stripNonAppearanceOpsBridgeJson(stripAuditSensitiveKey(readText(file)));
     for (const field of forbiddenJsonFields) {
       if (text.includes(`"${field}"`) || text.includes(`\\"${field}\\"`)) {
         hits.push(`${file}: ${field}`);
@@ -165,12 +181,14 @@ check("external metadata serializers do not expose appearance identity material"
 });
 
 check("appearance diagnostics expose aggregate status only", () => {
-  const server = stripAuditSensitiveKey(readText("src/ingress/webrtc_http_server.cpp"));
+  const server = stripNonAppearanceOpsBridgeJson(
+    stripAuditSensitiveKey(readWebRtcHttpServerBundle(readText)),
+  );
   assert(hasJsonFieldLiteral(server, "appearanceProfiles"), "runtime status should keep aggregate appearance profile count");
   assert(hasJsonFieldLiteral(server, "appearanceExtractor"), "runtime status should keep aggregate extractor stats");
   assert(!hasJsonFieldLiteral(server, "modelPath") && !hasJsonFieldLiteral(server, "model_path"), "runtime status must not expose Re-ID model path");
   assert(!hasJsonFieldLiteral(server, "modelSha256") && !hasJsonFieldLiteral(server, "modelChecksum"), "runtime status must not expose Re-ID model checksum");
-  assert(!hasJsonFieldLiteral(server, "modelProvenance") && !hasJsonFieldLiteral(server, "provenance"), "runtime status must not expose Re-ID model provenance");
+  assert(!hasJsonFieldLiteral(server, "modelProvenance"), "runtime status must not expose Re-ID model provenance");
   assert(!hasJsonFieldLiteral(server, "embedding") && !hasJsonFieldLiteral(server, "appearanceProfile"), "runtime status must not expose appearance vectors/profiles");
   return {
     allowed: ["appearanceProfiles", "appearanceExtractor"],
@@ -179,8 +197,9 @@ check("appearance diagnostics expose aggregate status only", () => {
 });
 
 check("model checksum provenance opt-in gate is wired", () => {
-  const stdafx = readText("include/stdafx.h");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
   const appConfigHeader = readText("include/app_config.h");
+  const analysisConfigData = readText("include/core/analysis_runtime_config_data.h");
   const appConfig = readText("src/app_config.cpp");
   const configReference = readText("docs/config-reference.md");
   const smoke = readText("scripts/internal/analysis_state_smoke.cpp");
@@ -188,13 +207,14 @@ check("model checksum provenance opt-in gate is wired", () => {
     'kDefaultAnalysisAppearanceModelSha256 = ""',
     'kDefaultAnalysisAppearanceModelProvenance = ""',
   ]) {
-    assert(stdafx.includes(snippet), `default config missing Re-ID model gate snippet: ${snippet}`);
+    assert(analysisDefaults.includes(snippet), `analysis default contract missing Re-ID model gate snippet: ${snippet}`);
   }
   for (const snippet of [
     "analysis_appearance_model_sha256",
     "analysis_appearance_model_provenance",
   ]) {
-    assert(appConfigHeader.includes(snippet), `AppConfig missing Re-ID model gate field: ${snippet}`);
+    assert(appConfigHeader.includes("struct AppConfig : core::AnalysisRuntimeConfigData") &&
+      analysisConfigData.includes(snippet), `AppConfig analysis config base missing Re-ID model gate field: ${snippet}`);
     assert(appConfig.includes(snippet), `app_config reader missing Re-ID model gate field: ${snippet}`);
   }
   for (const snippet of [
@@ -203,6 +223,13 @@ check("model checksum provenance opt-in gate is wired", () => {
   ]) {
     assert(appConfig.includes(snippet), `app_config reader missing env var: ${snippet}`);
     assert(configReference.includes(snippet), `config reference missing env var: ${snippet}`);
+  }
+  for (const snippet of [
+    "InspectAppearanceModelReadiness",
+    "modelBackedPreflightReady",
+    "modelSessionLoadValidated=false",
+  ]) {
+    assert(configReference.includes(snippet), `config reference missing readiness contract: ${snippet}`);
   }
   for (const snippet of [
     "Re-ID model path without checksum/provenance gate must fall back",
@@ -543,6 +570,13 @@ function hasJsonFieldLiteral(text, field) {
 
 function stripAuditSensitiveKey(text) {
   return text.replace(/bool AuditSensitiveKey\([\s\S]*?\n}\n\n/g, "");
+}
+
+function stripNonAppearanceOpsBridgeJson(text) {
+  return text.replace(
+    /std::string OpsV390VlmRuleSuggestionDraftBridgeJson\(\) \{[\s\S]*?\n}\n\n(?=std::string OpsVlmRuleSuggestionDraftWorkflowJson)/g,
+    "",
+  );
 }
 
 function parseArgs(argv) {

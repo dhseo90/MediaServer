@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 12 VLM-assisted Ops Explanation 구현, UI, 문서, inventory 연결을 검증한다.
+import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -34,7 +37,7 @@ const route = "/ops/api/live-operations/vlm-assisted-explanation";
 const commandPlanRoute = "/ops/api/live-operations/command-plan";
 const graphRoute = "/ops/api/live-operations/graph";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -44,6 +47,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
@@ -70,6 +74,8 @@ check("Ops server builds default-off VLM-assisted explanation models", () => {
   ]) {
     assertIncludes(files.server, snippet, "v350 VLM-assisted explanation server model");
   }
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV350VlmAssistedOpsExplanationJson(");
+  assertIncludes(producerBlock, "media-server.ops.v350-vlm-assisted-explanation.v1", "v350 VLM-assisted explanation schema");
 });
 
 check("VLM-assisted explanation derives blocker, incident/source relation, and review hints without calling VLM", () => {
@@ -94,7 +100,8 @@ check("VLM-assisted explanation derives blocker, incident/source relation, and r
 });
 
 check("VLM-assisted explanation boundary flags keep default-off/no-call/no-write/no-raw-material invariants", () => {
-  const block = extractBlock(files.server, "std::string OpsV350VlmAssistedOpsExplanationJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350VlmAssistedOpsExplanationJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/vlm-assisted-explanation");
   for (const snippet of [
     "defaultOff",
     "defaultEnabled",
@@ -150,6 +157,9 @@ check("VLM-assisted explanation boundary flags keep default-off/no-call/no-write
     const nearby = block.slice(index, index + 128);
     assert(nearby.includes("false"), `boundary flag must be false: ${flag}`);
   }
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
+  assert(exactBooleanFlagValue(block, "viewerClientExposureAdded") === false, "viewerClientExposureAdded must remain false");
+  assert(exactBooleanFlagValue(block, "vlmProviderCallPerformed") === false, "vlmProviderCallPerformed must remain false");
   for (const forbidden of [
     "CallVlmProvider(",
     "RunVlm",
@@ -190,6 +200,12 @@ check("/ops command workspace declares VLM-assisted explanation surfaces", () =>
     "operator review hint",
   ]) {
     assertIncludes(block, snippet, "v350 VLM-assisted explanation dashboard shell");
+    assertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace"), "data-v350-vlm-assisted-explanation", "UI-087 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-087 raw-material-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-087 credential-redaction explicit absence oracle");
+    assertIncludes(files.uiScript, "/ops/dashboard", "UI-087 canonical route obligation");
+    assertIncludes(files.uiScript, "media-server.ops.v350-vlm-assisted-explanation.v1", "UI-087 canonical schema obligation");
+    assertIncludes(files.uiScript, "VLM", "UI-087 canonical field obligation");
   }
 });
 
@@ -310,11 +326,27 @@ check("feature inventory and release records map v3.5 Step 12", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 12 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_vlm_assisted_ops_explanation.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
   for (const id of ["UI-087", "SRC-048", "EVT-076", "LAB-094", "SAFE-146", "OPS-113"]) {
-    assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
   }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.scriptInventory, "verify_v350_vlm_assisted_ops_explanation.mjs", "script inventory");
+});
+
+check("SAFE-146 canonical VLM explanation default-off boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350VlmAssistedOpsExplanationJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/vlm-assisted-explanation");
+  const safe146BoundaryObserved = block.includes("BuildV350VlmAssistedOpsExplanationItems") && block.includes("defaultEnabled");
+  const defaultEnabled = exactBooleanFlagValue(block, "defaultEnabled");
+  const vlmProviderCallPerformed = exactBooleanFlagValue(block, "vlmProviderCallPerformed");
+  const vlmRuntimeCallPerformed = exactBooleanFlagValue(block, "vlmRuntimeCallPerformed");
+  const rawMaterialIncluded = /\\\"(?:rawVlmPrompt|rawProviderResponse|credentialMaterial)Included\\\":true/.test(block);
+  const mutationPerformed = /\b(?:Write|Persist|Execute|UpdateSource|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const writePerformed = /\b(?:Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true");
+  assert(routeObserved && safe146BoundaryObserved && defaultEnabled === false && vlmProviderCallPerformed === false && vlmRuntimeCallPerformed === false && rawMaterialIncluded === false && credentialMaterialExposed === false && writePerformed === false && mutationPerformed === false,
+    "SAFE-146 BuildV350VlmAssistedOpsExplanationItems defaultEnabled vlmProviderCallPerformed vlmRuntimeCallPerformed raw prompt response credential commandPlanExecuted must remain false");
 });
 
 const results = runChecks();

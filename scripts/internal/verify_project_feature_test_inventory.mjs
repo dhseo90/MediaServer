@@ -7,6 +7,10 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {
+  loadImplementationManifest,
+  validateImplementationManifest,
+} from "./feature_implementation_manifest_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -22,6 +26,7 @@ Checks:
   - docs/project-feature-test-inventory.md is indexed
   - inventory pins the current release and states it is not execution evidence
   - all feature IDs use the current UI/test-area matrix shape
+  - the independent 986-row implementation/UI/verifier evidence manifest matches exactly
   - coverage, verifier, VA seed, 30-minute, 120-minute, and four-area boundaries exist
   - manual UI docs reference the feature inventory
   - the manual UI VA seed matrix fixture covers API-ready numeric IDs, basic events, scenarios, presets, tracker/Re-ID policies, and invalid policy cases
@@ -32,6 +37,14 @@ Checks:
 assertKnownOptions(rawArgs, ["help"]);
 
 const inventory = readText("docs/project-feature-test-inventory.md");
+const featureRows = parseFeatureRows(inventory);
+const implementationManifest = loadImplementationManifest(rootDir);
+const implementationValidation = validateImplementationManifest({
+  rootDir,
+  inventoryText: inventory,
+  rows: featureRows,
+  manifest: implementationManifest,
+});
 const docsIndex = readText("docs/README.md");
 const fulltest = readText("docs/manual-ui-fulltest.md");
 const checklist = readText("docs/manual-ui-checklist.md");
@@ -44,6 +57,7 @@ const seedFixtureText = readText(seedFixturePath);
 const seedFixture = JSON.parse(seedFixtureText);
 const currentVersion = readText("VERSION").trim();
 const currentTag = `v${currentVersion}`;
+const latestPublishedTag = "v3.8.0";
 
 const checks = [];
 
@@ -77,14 +91,33 @@ check("required sections exist", () => {
     "## G. Media And Streaming",
     "## H. Lab, Development API, Metadata",
     "## I. Safety, Boundary, Invariant Contract",
-    "## Coverage Review To Do",
+    "## J. Ops Evidence And Release Readiness",
+    "## Completed Exact-ID Coverage Review",
   ]) {
     requireText(inventory, heading, `inventory missing section: ${heading}`);
   }
 });
 
+check("historical V280 source-of-truth keeps the 2.x runway boundary explicit", () => {
+  const v280SourceTruth = "source `2.8.0`, latest published `v2.7.0`";
+  const v280Runway = "`2.8.0`/`2.9.0`/`3.0.0` 경계 문서화 기준";
+  const v280SourceTruthObserved = inventory.includes("V280-S00/S01") &&
+    inventory.includes(v280SourceTruth) && inventory.includes(v280Runway);
+  assert(v280SourceTruthObserved,
+    "V280-S00/S01 source 2.8.0, v2.7.0 published, 2.9.0/3.0.0 runway boundary missing");
+});
+
+check("historical V290 source-of-truth keeps source, published, and roadmap distinct", () => {
+  const v290SourceTruth = "source `2.9.0`, latest published `v2.8.0`";
+  const v290Roadmap = "v2.9.0 Final 2.x Closure & Compatibility Baseline";
+  const v290SourceTruthObserved = inventory.includes("V290-S00") &&
+    inventory.includes(v290SourceTruth) && inventory.includes(v290Roadmap);
+  assert(v290SourceTruthObserved,
+    "V290-S00 source 2.9.0, v2.8.0 published, current roadmap boundary missing");
+});
+
 check("summary counts match current feature IDs", () => {
-  const rows = parseFeatureRows(inventory);
+  const rows = featureRows;
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");
   assert(rows.length === declaredTotal, `expected ${declaredTotal} feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
@@ -118,6 +151,16 @@ check("summary counts match current feature IDs", () => {
     requireText(inventory, `| ${label} | ${count} |`, `summary count mismatch for ${label}: ${count}`);
     console.log(`[pass] inventory summary count ${label} ${count}`);
   }
+});
+
+check("implementation evidence manifest matches all feature rows", () => {
+  assert(implementationValidation.ok, implementationValidation.errors.slice(0, 5).join("; "));
+  assert(implementationValidation.summary.manifestRows === featureRows.length,
+    "implementation manifest row count mismatch");
+  assert(implementationValidation.summary.sourceEvidenceRows === featureRows.length,
+    "implementation source evidence row count mismatch");
+  assert(implementationValidation.summary.verifierEvidenceRows === featureRows.length,
+    "implementation verifier evidence row count mismatch");
 });
 
 check("feature rows have required matrix columns", () => {
@@ -751,21 +794,73 @@ check("current feature expansion rows exist", () => {
     "OPS-161",
     "SAFE-195",
     "OPS-162",
+    "OPS-163",
+    "SAFE-196",
+    "OPS-164",
+    "SAFE-197",
+    "OPS-165",
+    "SAFE-198",
+    "OPS-166",
+    "SAFE-199",
+    "OPS-167",
+    "SAFE-200",
+    "OPS-168",
+    "SAFE-201",
+    "OPS-169",
+    "SAFE-202",
+    "UI-108",
+    "SRC-065",
+    "SAFE-203",
+    "OPS-170",
+    "UI-109",
+    "SRC-066",
+    "SAFE-204",
+    "OPS-171",
+    "UI-110",
+    "RULE-111",
+    "SAFE-205",
+    "OPS-172",
+    "UI-111",
+    "LAB-123",
+    "SAFE-206",
+    "OPS-173",
+    "UI-112",
+    "SRC-067",
+    "SAFE-207",
+    "OPS-174",
+    "UI-113",
+    "EVT-087",
+    "SAFE-208",
+    "OPS-175",
+    "UI-114",
+    "SRC-068",
+    "MEDIA-027",
+    "LAB-124",
+    "SAFE-209",
+    "OPS-176",
+    "UI-115",
+    "LAB-125",
+    "SAFE-210",
+    "OPS-177",
+    "SAFE-211",
+    "OPS-178",
+    "SAFE-212",
+    "OPS-179",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
     assert(ids.has(id), `missing current expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-107`",
-    "`SRC-001`~`SRC-064`",
+    "`UI-001`~`UI-115`",
+    "`SRC-001`~`SRC-068`",
     "`CLIENT-001`~`CLIENT-042`",
-    "`EVT-001`~`EVT-086`",
-    "`RULE-001`~`RULE-110`",
-    "`MEDIA-001`~`MEDIA-026`",
-    "`LAB-001`~`LAB-122`",
-    "`SAFE-001`~`SAFE-195`",
-    "`OPS-035`~`OPS-162`",
+    "`EVT-001`~`EVT-087`",
+    "`RULE-001`~`RULE-112`",
+    "`MEDIA-001`~`MEDIA-027`",
+    "`LAB-001`~`LAB-126`",
+    "`SAFE-001`~`SAFE-216`",
+    "`OPS-035`~`OPS-184`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",
@@ -1084,14 +1179,28 @@ check("manual UI docs reference inventory", () => {
 check("manual checklist references seed fixture", () => {
   requireText(checklist, seedFixturePath, "manual checklist missing VA seed fixture path");
   requireText(checklist, "prepare-manual-ui-fulltest-seed --dry-run", "manual checklist missing seed dry-run command");
+  requireText(checklist, "--published-seed-baseline", "manual checklist missing published seed baseline selection");
   requireText(checklist, "--emit-registry-dir <dir>", "manual checklist missing seed registry dir command");
 });
 
 check("manual result template references seed fixture", () => {
   requireText(template, seedFixturePath, "manual result template missing VA seed fixture path");
   requireText(template, "prepare-manual-ui-fulltest-seed --dry-run", "manual result template missing seed dry-run command");
+  requireText(template, "--published-seed-baseline", "manual result template missing published seed baseline selection");
   requireText(template, "seed registry dir", "manual result template missing seed registry dir field");
   requireText(template, "## VA Seed / 최종 룰 상태", "manual result template missing VA seed result section");
+});
+
+check("VA seed inventory commands select the latest published baseline explicitly", () => {
+  requireText(inventory,
+    "prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline",
+    "inventory seed dry-run missing published baseline selection");
+  requireText(inventory,
+    "prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline --emit-registry-dir <dir>",
+    "inventory seed registry command missing published baseline selection");
+  requireText(inventory,
+    "--apply --published-seed-baseline --confirm-throwaway-data --http-base <url>",
+    "inventory seed apply boundary missing published baseline selection");
 });
 
 check("AGENTS requires individual future feature test rows", () => {
@@ -1109,7 +1218,9 @@ check("AGENTS requires individual future feature test rows", () => {
 
 check("manual UI VA seed matrix covers required current release cases", () => {
   assert(seedFixture.schema === "media-server.manual-ui-fulltest-va-seed-matrix.v1", "unexpected seed fixture schema");
-  assert(seedFixture.releaseTarget === currentTag, `seed fixture must pin ${currentTag}`);
+  assert(seedFixture.releaseTarget === latestPublishedTag, `seed fixture must preserve latest published manual UI seed baseline ${latestPublishedTag}`);
+  requireText(inventory, "VA seed 데이터", "inventory missing VA seed boundary row");
+  requireText(inventory, "준비 기준일 뿐 실행 증거 아님", "inventory must not promote VA seed fixture to execution evidence");
   assert(seedFixture.usageBoundary?.notEvidenceUntilAppliedAndVerified === true, "seed fixture must not be evidence by itself");
   assert(seedFixture.usageBoundary?.keepFinalRulesForEventLogReview === true, "seed fixture must preserve final rules for event review");
   assert(seedFixture.usageBoundary?.separateCrudFromScenarioEventReview === true, "seed fixture must separate CRUD from event review");

@@ -1,0 +1,16 @@
+{
+  "schema": "media-server.v390-ui-request-lifecycle-rebase-red.v1",
+  "sourceCommitSha": "327afe0d4b3282400f1925252c59a53b87827224",
+  "caseId": "UI-001",
+  "error": "action redirect chain parent resourceType mismatch",
+  "failureOwner": "playwright-request-callback",
+  "coverage": {
+    "target": 424,
+    "attempted": 0,
+    "pass": 0,
+    "fail": 0,
+    "notRun": 424,
+    "unsupported": 0
+  },
+  "releaseEvidenceEligible": false
+}

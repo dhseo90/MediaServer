@@ -9,31 +9,6 @@
 
 namespace analysis {
 
-struct AnalysisEvent {
-    std::string event_id;
-    std::string rule_id;
-    std::string event_type;
-    std::uint64_t track_id{0};
-    int class_id{-1};
-    std::string label;
-    float score{0.0F};
-    RectF box;
-    std::string highlight_color{"#ff0000"};
-    int highlight_duration_ms{1200};
-    bool highlight_enabled{true};
-    bool post_enabled{false};
-    std::string post_url;
-    std::string status;
-    std::int64_t start_time_ms{0};
-    std::int64_t update_time_ms{0};
-    std::int64_t end_time_ms{0};
-    std::string zone_id;
-    std::string line_id;
-    std::string scenario_name;
-    std::string scenario_phase;
-    std::string metadata_json;
-};
-
 struct EventRuleEvaluation {
     AnalysisResult annotated_result;
     std::vector<AnalysisEvent> events;

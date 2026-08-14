@@ -1,0 +1,34 @@
+{
+  "schema": "media-server.v390-ui-navigation-pre-post-owner-red.v1",
+  "sourceCommitSha": "c88a55390ef7dd39cd307541b868d16d1147e9a3",
+  "actualBrowserExecution": true,
+  "releaseEvidenceEligible": false,
+  "coverage": {
+    "target": 424,
+    "attempted": 1,
+    "pass": 0,
+    "fail": 1,
+    "notRun": 423,
+    "unsupported": 0
+  },
+  "firstFailure": {
+    "caseId": "UI-001",
+    "completionMode": "navigation",
+    "error": "navigation source-before observation missing"
+  },
+  "artifacts": {
+    "acceptanceSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809124033-89067/summary.json",
+      "sha256": "b84022f231d64bebc5eb7d5b6ca1e1a93c79addb107a4d0ed987f63d291a4f52"
+    },
+    "firstFailure": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809124033-89067/first-failure.json",
+      "sha256": "f5fae610bff969e863f8589681946d4b5e97cd871a2aa1f8123489d70c0f67e5"
+    },
+    "exactSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809124033-89067/ui-exact-424/summary.json",
+      "sha256": "a9841fdbcaf8d70d276a94f245cdd2b08887eb8f38aa500bc64b0a7e52ba56ac"
+    }
+  },
+  "boundary": "The incomplete actual run is SHA-bound RED only; MEDIA-016 and all not-run cases cannot produce release evidence."
+}

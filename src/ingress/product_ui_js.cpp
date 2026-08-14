@@ -1353,12 +1353,19 @@ std::string ProductSharedUiScript() {
         window.dispatchEvent(new CustomEvent('mediaServer.audit', { detail: persisted }));
         return persisted;
       }
+      let opsAuditDetailRequestSequence = 0;
       function ensureOpsAuditDetailModal() {
         let dialog = byId('opsAuditDetailDialog');
         if (dialog) return dialog;
         dialog = document.createElement('dialog');
         dialog.id = 'opsAuditDetailDialog';
         dialog.className = 'audit-detail-modal';
+        dialog.setAttribute('data-audit-detail-state', 'idle');
+        dialog.setAttribute('data-audit-detail-owner-target', '');
+        dialog.setAttribute('data-audit-detail-owner-action', '');
+        dialog.setAttribute('data-audit-detail-response-path', '');
+        dialog.setAttribute('data-audit-detail-request-id', '');
+        dialog.setAttribute('data-audit-detail-render-cycle', '');
         dialog.innerHTML = `
           <form method="dialog">
             <div class="audit-detail-head">
@@ -1376,14 +1383,83 @@ std::string ProductSharedUiScript() {
         document.body.appendChild(dialog);
         return dialog;
       }
-      function openOpsAuditDetail(entry) {
+      const auditDetailValueKind = value => {
+        if (value === null) return 'null';
+        if (Array.isArray(value)) return 'array';
+        return typeof value;
+      };
+      function normalizeOpsAuditDetail(payload, owner) {
+        if (!payload || !Array.isArray(payload.entries)) throw new Error('audit detail response entries missing');
+        const matches = payload.entries.filter(candidate => candidate && typeof candidate === 'object' &&
+          String(candidate.target || '') === owner.target &&
+          String(candidate.action || '') === owner.action);
+        if (matches.length !== 1) throw new Error(`audit detail owner cardinality mismatch: ${matches.length}`);
+        const selected = matches[0];
+        if (!Object.prototype.hasOwnProperty.call(selected, 'before') ||
+            !Object.prototype.hasOwnProperty.call(selected, 'after')) {
+          throw new Error('audit detail before/after missing');
+        }
+        const normalized = sanitizeOpsAuditEntry(selected);
+        if (auditDetailValueKind(normalized.before) !== auditDetailValueKind(selected.before) ||
+            auditDetailValueKind(normalized.after) !== auditDetailValueKind(selected.after)) {
+          throw new Error('audit detail before/after type drift');
+        }
+        return normalized;
+      }
+      async function fetchOpsAuditDetail(entry) {
+        const owner = {
+          target: String(entry?.target || ''),
+          action: String(entry?.action || '')
+        };
+        if (!owner.target || !owner.action) throw new Error('audit detail owner missing');
+        const params = new URLSearchParams();
+        params.set('format', 'diff-json');
+        if (owner.target.startsWith('event:') && owner.target.length > 'event:'.length) {
+          params.set('eventId', owner.target.slice('event:'.length));
+        } else {
+          params.set('target', owner.target);
+        }
+        const responsePath = `/ops/api/audit?${params.toString()}`;
+        const payload = await requestJson(responsePath);
+        return { owner, responsePath, entry: normalizeOpsAuditDetail(payload, owner) };
+      }
+      async function openOpsAuditDetail(entry) {
         const dialog = ensureOpsAuditDetailModal();
-        byId('opsAuditDetailTitle').textContent = `${display(entry.area)} ${display(entry.action)} · ${display(entry.target)}`;
-        byId('opsAuditDetailMeta').textContent = `${display(entry.actor)} · ${auditEntryTimeLabel(entry)} · ${display(entry.summary)}`;
-        byId('opsAuditDetailBefore').textContent = JSON.stringify(entry.before ?? null, null, 2);
-        byId('opsAuditDetailAfter').textContent = JSON.stringify(entry.after ?? null, null, 2);
-        if (typeof dialog.showModal === 'function') dialog.showModal();
-        else dialog.setAttribute('open', 'open');
+        const requestId = `audit-detail-${++opsAuditDetailRequestSequence}`;
+        if (dialog.open && typeof dialog.close === 'function') dialog.close();
+        dialog.setAttribute('data-audit-detail-state', 'loading');
+        dialog.setAttribute('data-audit-detail-owner-target', '');
+        dialog.setAttribute('data-audit-detail-owner-action', '');
+        dialog.setAttribute('data-audit-detail-response-path', '');
+        dialog.setAttribute('data-audit-detail-request-id', requestId);
+        dialog.setAttribute('data-audit-detail-render-cycle', '');
+        byId('opsAuditDetailBefore').textContent = '';
+        byId('opsAuditDetailAfter').textContent = '';
+        try {
+          const detail = await fetchOpsAuditDetail(entry);
+          if (dialog.getAttribute('data-audit-detail-request-id') !== requestId) return;
+          const selected = detail.entry;
+          byId('opsAuditDetailTitle').textContent = `${display(selected.area)} ${display(selected.action)} · ${display(selected.target)}`;
+          byId('opsAuditDetailMeta').textContent = `${display(selected.actor)} · ${auditEntryTimeLabel(selected)} · ${display(selected.summary)}`;
+          byId('opsAuditDetailBefore').textContent = JSON.stringify(selected.before, null, 2);
+          byId('opsAuditDetailAfter').textContent = JSON.stringify(selected.after, null, 2);
+          dialog.setAttribute('data-audit-detail-owner-target', detail.owner.target);
+          dialog.setAttribute('data-audit-detail-owner-action', detail.owner.action);
+          dialog.setAttribute('data-audit-detail-response-path', detail.responsePath);
+          dialog.setAttribute('data-audit-detail-render-cycle', requestId);
+          dialog.setAttribute('data-audit-detail-state', 'rendered');
+          if (typeof dialog.showModal === 'function') dialog.showModal();
+          else dialog.setAttribute('open', 'open');
+        } catch (error) {
+          if (dialog.getAttribute('data-audit-detail-request-id') !== requestId) return;
+          dialog.setAttribute('data-audit-detail-state', 'error');
+          dialog.setAttribute('data-audit-detail-owner-target', '');
+          dialog.setAttribute('data-audit-detail-owner-action', '');
+          dialog.setAttribute('data-audit-detail-response-path', '');
+          dialog.setAttribute('data-audit-detail-render-cycle', '');
+          if (dialog.open && typeof dialog.close === 'function') dialog.close();
+          showToast(error?.message || '감사 상세를 불러오지 못했습니다.', 'error');
+        }
       }
       function auditStateFor(containerId, area = '') {
         if (!opsAuditViewStates.has(containerId)) {
@@ -1425,7 +1501,9 @@ std::string ProductSharedUiScript() {
           events: '이벤트'
         })[String(value || '')] || display(value);
         list.innerHTML = `${sourceLabel ? `<div class="audit-source-label">${escapeHtml(sourceLabel)}${Number.isFinite(page.total) ? ` · ${escapeHtml(display(page.offset + 1))}-${escapeHtml(display(page.offset + entries.length))} / ${escapeHtml(display(page.total))}` : ''}</div>` : ''}` + entries.map((entry, index) => `
-          <article class="audit-entry">
+          <article class="audit-entry" data-event-semantic-event-id="${escapeHtml(entry.target || '')}">
+            <span data-event-semantic-field="target" data-event-semantic-value="${escapeHtml(entry.target || '')}" hidden></span>
+            <span data-event-semantic-field="action" data-event-semantic-value="${escapeHtml(entry.action || '')}" hidden></span>
             <div class="audit-entry-head">
               <strong>${escapeHtml(areaLabel(entry.area))} ${escapeHtml(actionLabel(entry.action))}</strong>
               <span>${escapeHtml(auditEntryTimeLabel(entry))}</span>
@@ -1451,7 +1529,7 @@ std::string ProductSharedUiScript() {
         list.querySelectorAll('[data-audit-detail]').forEach(button => {
           button.addEventListener('click', () => {
             const entry = entries[Number(button.dataset.auditDetail || 0)];
-            if (entry) openOpsAuditDetail(entry);
+            if (entry) void openOpsAuditDetail(entry);
           });
         });
         };

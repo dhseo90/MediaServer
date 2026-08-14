@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include "analysis/overlay_renderer.h"
-#include "core/runtime_debug_counters.h"
+#include "core/analysis_runtime_port.h"
 
 namespace ingress {
 
@@ -136,7 +136,7 @@ GstPadProbeReturn OnOverlayBuffer(GstPad* pad, GstPadProbeInfo* info, gpointer u
 
 void DestroyProbeState(gpointer data) {
     if (data != nullptr) {
-        core::runtime_debug::RecordOverlayProbeRemoved();
+        core::RecordAnalysisOverlayProbeRemoved();
     }
     delete static_cast<ProbeState*>(data);
 }
@@ -173,7 +173,7 @@ bool AttachAnalysisOverlayProbe(GstElement* root, AnalysisOverlayConfig config, 
     const gulong probe_id =
         gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, OnOverlayBuffer, state, DestroyProbeState);
     if (probe_id != 0) {
-        core::runtime_debug::RecordOverlayProbeAttached();
+        core::RecordAnalysisOverlayProbeAttached();
     }
     gst_object_unref(pad);
     gst_object_unref(overlay);
@@ -183,5 +183,21 @@ bool AttachAnalysisOverlayProbe(GstElement* root, AnalysisOverlayConfig config, 
     return true;
 }
 #endif
+
+core::MediaPipelineAttachment MakeAnalysisOverlayAttachment(AnalysisOverlayConfig config) {
+    return [config = std::move(config)](void* pipeline, std::string* error_message) mutable {
+#if MEDIA_SERVER_USE_GSTREAMER
+        auto attempt_config = config;
+        return AttachAnalysisOverlayProbe(
+            static_cast<GstElement*>(pipeline), std::move(attempt_config), error_message);
+#else
+        (void)pipeline;
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+#endif
+    };
+}
 
 }  // namespace ingress

@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.4.0 Step 6 Ops Continuity Drill Workspace UI 구현, 문서, inventory 연결을 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v340-ops-continuity-drill-workspace-ui";
 const schema = "media-server.ops.v340-continuity-drill-workspace-ui.v1";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -87,6 +90,16 @@ check("/ops/sources renders drill package, validation status, blocked/ready, and
     "automaticRecoveryPerformed",
   ]) {
     assertIncludes(files.opsSourcesScript, snippet, "v340 continuity drill workspace renderer");
+    assertIncludes(extractNamedFunctionBlock(files.opsSourcesScript, "renderOpsContinuityDrillWorkspace"), "automaticRecoveryPerformed", "UI-075 block-scoped canonical product state");
+    const sourceRegistryWritePerformed = ["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderOpsContinuityDrillWorkspace").includes(marker));
+    assert(sourceRegistryWritePerformed === false, "UI-075 continuity drill workspace must remain read-only");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderOpsContinuityDrillWorkspace").includes(marker)), "UI-075 no-write explicit absence oracle");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderOpsContinuityDrillWorkspace").includes(marker)), "UI-075 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderOpsContinuityDrillWorkspace").includes(marker)), "UI-075 source-url-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderOpsContinuityDrillWorkspace").includes(marker)), "UI-075 credential-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderOpsContinuityDrillWorkspace").includes(marker)), "UI-075 debug-redaction explicit absence oracle");
+    assertIncludes(files.opsSourcesScript, "/ops/sources", "UI-075 canonical route obligation");
+    assertIncludes(files.server, "media-server.ops.v340-continuity-drill-workspace-ui.v1", "UI-075 canonical schema obligation");
   }
 });
 
@@ -164,9 +177,9 @@ check("feature inventory, manual UI, and release records map v3.4 Step 6", () =>
     "UI-075 | V340 Step 6 Ops Continuity Drill Workspace UI",
     "SAFE-129 | V340 Step 6 Ops continuity drill UI boundary",
     "OPS-096 | V340 Step 6 Ops Continuity Drill Workspace UI 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-079`",
-    "`SAFE-001`~`SAFE-134`",
-    "`OPS-035`~`OPS-101`",
+    "`UI-001`~`UI-115`",
+    "`SAFE-001`~`SAFE-216`",
+    "`OPS-035`~`OPS-184`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 6");
   }
@@ -192,14 +205,28 @@ check("feature inventory, manual UI, and release records map v3.4 Step 6", () =>
 check("server entrypoint and inventory verifiers include v3.4 Step 6 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v340_ops_continuity_drill_workspace_ui.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage verifier canonical manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier command coverage summary");
   for (const id of ["UI-075", "SAFE-129", "OPS-096"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-079`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-134`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-101`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-115`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-216`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-184`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v340_ops_continuity_drill_workspace_ui.mjs", "script inventory");
+});
+
+check("SAFE-129 canonical continuity drill UI boundary", () => {
+  const block = extractNamedFunctionBlock(files.opsSourcesScript, "renderOpsContinuityDrillWorkspace");
+  const safe129BoundaryObserved = block.includes("candidates.slice(0, 8)") && block.includes("contractInputs.map(input");
+  const mutationPerformed = /\b(?:fetch|requestJson|Write|Recover)[A-Za-z0-9_$:]*\s*\(/.test(block);
+  const rawMaterialExposed = /sourceUrl|rawLocator|rawJson|debugMaterial|credentialMaterial/.test(block);
+  const writePerformed = mutationPerformed;
+  const sourceUrlExposed = /sourceUrl/.test(block);
+  const credentialMaterialExposed = /credentialMaterial/.test(block);
+  const debugMaterialExposed = /debugMaterial/.test(block);
+  assert(safe129BoundaryObserved && mutationPerformed === false && writePerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false,
+    "SAFE-129 candidates.slice(0, 8) /ops/sources drill workspace must remain read-only without raw credential or automatic recovery");
 });
 
 const results = runChecks();

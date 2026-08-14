@@ -49,6 +49,8 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/wrong_direction_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/zone_occupancy_scenario.cpp" \
   "${ROOT_DIR}/src/app_config.cpp" \
+  "${ROOT_DIR}/src/core/analysis_runtime_port.cpp" \
+  "${ROOT_DIR}/src/core/command_runner.cpp" \
   "${GST_LIBS[@]}" \
   -o "${BUILD_DIR}/analysis_state_smoke"
 
@@ -61,4 +63,19 @@ fi
 echo "[pass] appearance hook dependency scan omits TensorRT references"
 echo "[pass] appearance hook dependency scan omits OpenVINO references"
 
-"${BUILD_DIR}/analysis_state_smoke"
+analysis_state_output="$("${BUILD_DIR}/analysis_state_smoke")"
+printf '%s\n' "${analysis_state_output}"
+case "${analysis_state_output}" in
+  *"[pass] SAFE-083 continuousRecording/archiveApi encoded clip preserves schema and client boundaries"*)
+    echo "[pass] SAFE-083 compiled encoded clip readback" ;;
+  *)
+    echo "[fail] SAFE-083 compiled encoded clip readback missing"
+    exit 1 ;;
+esac
+case "${analysis_state_output}" in
+  *"[pass] SAFE-084 eventFrame evidence manifest preserves required fields and raw-material boundary"*)
+    echo "[pass] SAFE-084 compiled evidence manifest readback" ;;
+  *)
+    echo "[fail] SAFE-084 compiled evidence manifest readback missing"
+    exit 1 ;;
+esac

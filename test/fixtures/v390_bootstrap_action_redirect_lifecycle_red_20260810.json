@@ -1,0 +1,37 @@
+{
+  "schema": "media-server.v390-bootstrap-action-redirect-lifecycle-red.v1",
+  "recordedAt": "2026-08-10T00:00:00.000Z",
+  "sourceBranch": "v3.9.0",
+  "sourceCommitSha": "6c5c2f613567faf82edd574de7ec3b312aff65df",
+  "sourceWorktreeClean": true,
+  "actualBrowserExecution": true,
+  "releaseEvidenceEligible": false,
+  "coverage": {
+    "target": 424,
+    "attempted": 0,
+    "pass": 0,
+    "fail": 0,
+    "notRun": 424,
+    "unsupported": 0
+  },
+  "runnerStartFailure": {
+    "stage": "initial-document-navigation",
+    "canonicalFirstCaseId": "UI-001",
+    "source": "scripts/internal/v390_ui_action_request_ledger.mjs:367",
+    "error": "bootstrap/redirect lifecycle mixing is forbidden",
+    "request": {
+      "method": "GET",
+      "requestedPath": "/",
+      "responseStatus": 302,
+      "location": "/login",
+      "redirectDestinationMethod": "GET",
+      "redirectDestinationPath": "/login",
+      "resourceType": "document",
+      "requestKind": "document-navigation",
+      "initialSettlingComplete": false,
+      "actionInvocationPresent": false,
+      "navigationKind": "initial-document-navigation"
+    }
+  },
+  "boundary": "Controller-provided latest actual runner-start RED. It is historical failure evidence only, not current UI PASS or release evidence, and it does not authorize another browser run."
+}

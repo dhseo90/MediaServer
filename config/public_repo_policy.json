@@ -7,7 +7,7 @@
     "^\\.media_server",
     "^scripts/\\.media_server\\.env$",
     "^.*\\.(gguf|ggml|safetensors|ckpt)$",
-    "^video/imports/(?!va_tracking_event_1280x720_30fps_h264\\.mp4$).+",
+    "^video/imports/(?!va_tracking_event_(?:long_)?1280x720_30fps_h264\\.mp4$).+",
     "^.*\\.DS_Store$"
   ],
   "allowedTrackedAssetPatterns": [
@@ -15,9 +15,12 @@
     "^video/va_four_scene_sample\\.mp4$",
     "^video/va_sports_sample\\.mp4$",
     "^video/imports/va_tracking_event_1280x720_30fps_h264\\.mp4$",
+    "^video/imports/va_tracking_event_long_1280x720_30fps_h264\\.mp4$",
     "^docs/assets/.+\\.(png|jpg|jpeg)$",
     "^docs/release-artifacts/v[0-9]+\\.[0-9]+\\.[0-9]+/ui-fulltest-[0-9]{8}/in-app-screenshots/.+\\.png$",
     "^docs/release-artifacts/v[0-9]+\\.[0-9]+\\.[0-9]+/ui-fulltest-[0-9]{8}/in-app-final-screenshots/.+\\.png$",
+    "^docs/release-artifacts/v3\\.9\\.0/(?:test-acceptance-final|test-acceptance-post-ui-final|ui-automation-case-completeness-final|ui-automation-native-final|ui-automation-playwright-final|ui-automation-visible-dom-final|ui-native-adapter-final)/.+\\.png$",
+    "^docs/release-artifacts/v3\\.9\\.0/test-acceptance-failure-20260813-efb44bd1/.+\\.png$",
     "^test/fixtures/.+\\.(json|csv)$"
   ],
   "requiredDocs": [
@@ -63,6 +66,6 @@
     "Tracked video files are generated smoke fixtures, not production evidence or customer media.",
     "YOLO/VLM model binaries and optional layout models stay ignored under models/ and are fetched or prepared locally.",
     "Large imported media, local auth stores, logs, raw operational evidence media, third_party runtimes, and package-manager binaries are not public repo content.",
-    "Release UI full-test screenshots are tracked only under the sanitized docs/release-artifacts in-app screenshot evidence path."
+    "Release UI screenshots are tracked only under sanitized in-app evidence paths or the exact v3.9.0 audit-only historical roots retained by evidence contracts."
   ]
 }

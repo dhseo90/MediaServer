@@ -1,0 +1,4299 @@
+#!/usr/bin/env node
+// 파일 용도: V390-REVIEW2-24 exact 424 native 실행 manifest의 positive/negative 계약을 검증한다.
+
+import fs from "node:fs";
+import crypto from "node:crypto";
+import { execFileSync, spawnSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+import {
+  buildNativeExactManifest,
+  createNativeExactExecutionFailureSummary,
+  createNativeExactPreExecutionFailureSummary,
+  normalizeProductScreenRoute,
+  review4WorkflowClassExpectedCounts,
+  ruleRelationshipFixtureIdentity,
+  validateNativeExactCaptureSummary,
+  validateNativeExactCleanupContract,
+  validateNativeExactManifest,
+  validateNativeExactPreExecutionFailureSummary,
+} from "./v390_ui_native_exact_cases_lib.mjs";
+import * as nativeExactCasesLib from "./v390_ui_native_exact_cases_lib.mjs";
+import {
+  canonicalRequestedProjection,
+  expectedRuntimeObservation,
+  runtimeObservedProjection,
+  validateRequestedObservedEnvelope,
+} from "./v390_ui_requested_observed_schema.mjs";
+import { buildExactRuntimeOracleCatalog } from "./v390_ui_exact_oracle_catalog.mjs";
+import {
+  assertAuthFixtureAbsentFromUsersFile,
+  assertInactiveOrEqualBeforeCleanup,
+  createV390UiCaseRuntime,
+  eventRecordFixtureFamilyCaseIds,
+  eventRecordFixtureFamilyExpectations,
+  eventRecordFixtureFamilyExpectedRecords,
+  eventReadinessSeedProfile,
+  eventReviewSeedSiblingCaseIds,
+  eventExactSeedMaterializerRegistry,
+  eventTypedRecordFieldsForSeed,
+  eventTypedResponseBinding,
+  incidentMemorySearchContractCaseIds,
+  incidentMemorySearchSeedBinding,
+  fixtureViewerScopes,
+  formReadbackProfiles,
+  requiresFixtureSafeIncidentDigest,
+  resolveAuthoritativeReadback,
+  runtimeFixturePlanFor,
+  runAuthoritativeReadbackWithSnapshotRestore,
+  seedExactAccessRequestFixture,
+  seedEventRecordFixture,
+  selectEventReviewJoinedCleanupRecord,
+  selectEventReviewJoinedReview,
+  typedActiveResolutionFiltersFromRequest,
+  validateEventReviewCollectionAbsence,
+  validateEventReviewSeedWriteReceipt,
+  validateEventRecordFixtureFamilyReadback,
+  validateFixtureSafeIncidentDigestReadback,
+  validateAlertDeliveryDryRunReadback,
+} from "./v390_ui_case_runtime.mjs";
+import {
+  eventExactOracleCaseIds,
+  eventExactOracleFor,
+} from "./v390_ui_exact_event_oracles.mjs";
+import {
+  aggregateDiagnosticChildOutcome,
+  buildFailureLifecycleEvidence,
+  buildCaseCleanupAttestation,
+  copyEventReviewSeedWriteEvidence,
+  eventReviewSeedDiagnosticCaseIds,
+  serializeDiagnosticPrimaryFailureEvidence,
+  serializeFailureLifecycleEvidence,
+} from "./v390_ui_diagnostic_lifecycle_lib.mjs";
+import * as diagnosticLifecycle from "./v390_ui_diagnostic_lifecycle_lib.mjs";
+import {
+  deduplicateScreenshotArtifactAgainstTree,
+  deduplicateScreenshotArtifacts,
+  pruneUnreferencedArtifactFiles,
+  scanArtifactTree,
+} from "./evidence_integrity_lib.mjs";
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(scriptDir, "../..");
+const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
+const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
+const manifest = readJson("test/fixtures/v390_ui_native_exact_cases.json");
+const runnerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"), "utf8");
+const generatorSource = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_v390_ui_native_exact_cases.mjs"), "utf8");
+const nativeLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_exact_cases_lib.mjs"), "utf8");
+const runtimeSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_case_runtime.mjs"), "utf8");
+const lifecycleSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_diagnostic_lifecycle_lib.mjs"), "utf8");
+const runtimeOracleSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_exact_oracle_runtime.mjs"), "utf8");
+const environmentSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_acceptance_ui_environment.mjs"), "utf8");
+const producerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_policy_v4_evidence_producer.mjs"), "utf8");
+const policyLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs"), "utf8");
+const trackedFiles = new Set(execFileSync("git", ["ls-files"], { cwd: rootDir, encoding: "utf8" })
+  .split("\n").filter(Boolean));
+const sourceCache = new Map();
+const checks = [];
+const temporaryDirs = [];
+process.on("exit", () => temporaryDirs.forEach(directory => fs.rmSync(directory, { recursive: true, force: true })));
+
+check("generated manifest validates against canonical exact ordered 424", () => {
+  const result = validateNativeExactManifest({ manifest, canonical, implementation });
+  assert(result.caseCount === 424, `caseCount mismatch: ${result.caseCount}`);
+  assert(result.unsupported === 0, `unsupported must be zero: ${result.unsupported}`);
+  assert(result.positiveNative === 423, `positiveNative mismatch: ${result.positiveNative}`);
+  assert(result.negativeRoute === 1, `negativeRoute mismatch: ${result.negativeRoute}`);
+});
+
+check("event typed fixtures select one row and preserve request-derived identities", () => {
+  const fixtureId = "evt-typed-fixture";
+  const sourceId = "9001";
+  const source = eventTypedResponseBinding({
+    assertionPath: "sourceHealth",
+    operator: "contains-fixture-source",
+    fixtureId,
+    sourceId,
+    responseJson: { sourceHealth: [
+      { sourceId: "other", status: "live" },
+      { sourceId, status: "offline", reason: "fixture" },
+    ] },
+  });
+  assert(source.identityValue === sourceId && source.expectedValue.status === "offline",
+    "source-health typed fixture row drift");
+
+  const joinedResponse = candidateId => ({ records: [{
+    event: { eventId: fixtureId },
+    review: { eventId: fixtureId },
+    incidentRuleSuggestionReview: { matchingRuleSuggestion: { candidateId } },
+  }] });
+  const joined = eventTypedResponseBinding({
+    assertionPath: "records[].incidentRuleSuggestionReview.matchingRuleSuggestion",
+    operator: "equals-seed",
+    fixtureId,
+    sourceId,
+    responseJson: joinedResponse(fixtureId),
+  });
+  assert(joined.identityPathMode === "all" && joined.expectedValue.candidateId === fixtureId,
+    "joined event/review typed fixture row drift");
+
+  for (const responseJson of [
+    { records: [{ event: { eventId: fixtureId }, review: { eventId: "other" } }] },
+    { records: [joinedResponse(fixtureId).records[0], joinedResponse(fixtureId).records[0]] },
+  ]) {
+    let rejected = false;
+    try {
+      eventTypedResponseBinding({
+        assertionPath: "records[].incidentRuleSuggestionReview.matchingRuleSuggestion",
+        operator: "equals-seed",
+        fixtureId,
+        sourceId,
+        responseJson,
+      });
+    } catch (error) {
+      rejected = /typed response fixture cardinality mismatch/.test(String(error?.message || error));
+    }
+    assert(rejected, "joined fixture identity mismatch or duplicate was accepted");
+  }
+
+  const workspace = { unifiedResolutionWorkspace: { resolutionQueue: [{
+    eventId: fixtureId,
+    sourceId,
+    evidenceQuality: { evidenceCompleteness: "partial", evidenceConfidence: "medium" },
+    resolutionSearchMetrics: { savedViewMatches: ["open-resolution"] },
+  }] } };
+  for (const [assertionPath, operator, projectionPath] of [
+    ["unifiedResolutionWorkspace.resolutionQueue[].evidenceQuality", "contains-fixture-quality", "$"],
+    ["unifiedResolutionWorkspace.resolutionQueue[].evidenceQuality.evidenceCompleteness", "equals-seed-derivation", "evidenceQuality.evidenceCompleteness"],
+    ["unifiedResolutionWorkspace.resolutionQueue[].resolutionSearchMetrics.savedViewMatches", "equals-seed", "resolutionSearchMetrics.savedViewMatches"],
+  ]) {
+    const binding = eventTypedResponseBinding({ assertionPath, operator, fixtureId, sourceId, responseJson: workspace });
+    assert(binding.identityValue === fixtureId && binding.projectionPath === projectionPath,
+      `${assertionPath} row-local projection drift`);
+  }
+
+  assert(JSON.stringify(typedActiveResolutionFiltersFromRequest({
+    q: fixtureId,
+    ruleId: "1",
+    sourceId,
+    incidentStatus: "open",
+  })) === JSON.stringify({
+    eventId: "", reviewStatus: "", classification: "", incidentStatus: "open",
+    ruleId: "1", sourceId, eventType: "", textQuery: fixtureId,
+    includeArchives: false, limit: "25", filterCount: 4, queryApplied: true,
+  }), "request-derived active resolution filters drift");
+  assert(JSON.stringify(eventTypedRecordFieldsForSeed("cross-zone-track-timeline")) ===
+    JSON.stringify({ eventType: "re-entry", scenarioName: "cross-zone-re-entry", scenarioPhase: "re-entry" }),
+  "cross-zone typed event seed drift");
+  assert(JSON.stringify([0, 1, 2, 3].map(index =>
+    eventReadinessSeedProfile("four-readiness-states", index, `${fixtureId}-${index}`).status)) ===
+    JSON.stringify(["ready", "blocked", "field-smoke-needed", "not-run"]),
+  "four-state readiness seed drift");
+});
+
+check("incident memory search fixtures bind every product filter and searchable query", () => {
+  assert(JSON.stringify(incidentMemorySearchContractCaseIds) ===
+    JSON.stringify(["EVT-041", "EVT-046", "SAFE-045"]),
+  "incident memory search consumer audit scope drift");
+  const binding = incidentMemorySearchSeedBinding({
+    caseId: "EVT-041",
+    seedKind: "searchable-event-review",
+    fixtureId: "evt-041-review4-fixture",
+    sourceId: "9001",
+  });
+  assert(binding.query === "evt-041-review4-fixture" &&
+    binding.scenarioName === binding.query &&
+    binding.ruleId === "1" &&
+    binding.sourceId === "9001" &&
+    binding.incidentStatus === "new" &&
+    binding.queryTermsSha256 &&
+    !JSON.stringify(binding).includes("Authorization"),
+  "EVT-041 memory search seed is not bound to query/rule/source/status");
+  const searchableEventReviewPlan = eventExactSeedMaterializerRegistry["searchable-event-review"];
+  const registryStart = runtimeSource.indexOf(
+    "export const eventExactSeedMaterializerRegistry = Object.freeze({",
+  );
+  const registryEnd = runtimeSource.indexOf("\n});", registryStart);
+  const registrySource = runtimeSource.slice(registryStart, registryEnd);
+  const declaredSeedKinds = [...registrySource.matchAll(/^\s{2}"([^"]+)":/gm)]
+    .map(match => match[1]);
+  const eventMaterializerStart = runtimeSource.indexOf(
+    "async function materializeEventExactSeed(item, context, spec)",
+  );
+  const eventMaterializerSource = runtimeSource.slice(eventMaterializerStart);
+  assert(searchableEventReviewPlan?.eventRecords === 1 &&
+    searchableEventReviewPlan?.review === true &&
+    Object.keys(searchableEventReviewPlan).length === 2 &&
+    !("memorySearch" in searchableEventReviewPlan) &&
+    registryStart >= 0 && registryEnd > registryStart &&
+    declaredSeedKinds.length === new Set(declaredSeedKinds).size &&
+    declaredSeedKinds.filter(seedKind => seedKind === "searchable-event-review").length === 1 &&
+    eventMaterializerStart >= 0 &&
+    eventMaterializerSource.includes('const memorySearchSeed = kind === "searchable-event-review"') &&
+    eventMaterializerSource.includes("scenarioName: typedRecordFields.scenarioName || memorySearchSeed?.scenarioName") &&
+    runtimeSource.includes("...(memorySearchSeed ? { ruleId: memorySearchSeed.ruleId } : {})") &&
+    runtimeSource.includes("incidentStatus: memorySearchSeed?.incidentStatus") &&
+    runtimeOracleSource.includes("bindings.q || bindings.searchQuery || fixtureId"),
+  "shared memory search materializer/runtime call-flow is incomplete");
+  assert(!runtimeOracleSource.includes("exact response token/path missing") &&
+    runnerSource.includes("forbidden response material|unsafe material|sensitive material") &&
+    !runnerSource.includes("/secret|credential|password|token/i.test(message)"),
+  "generic missing response path can still be mislabeled as sensitive material");
+  for (const override of [
+    { seedKind: "unknown-memory-search" },
+    { fixtureId: "" },
+    { sourceId: "" },
+  ]) {
+    let rejected = false;
+    try {
+      incidentMemorySearchSeedBinding({
+        caseId: "EVT-041",
+        seedKind: "searchable-event-review",
+        fixtureId: "evt-041-review4-fixture",
+        sourceId: "9001",
+        ...override,
+      });
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, `incident memory search invalid seed binding was accepted: ${JSON.stringify(override)}`);
+  }
+});
+
+check("event review seed receipts bind PUT response, storage readback, and EventRecord identity", () => {
+  assert(JSON.stringify(eventReviewSeedSiblingCaseIds) === JSON.stringify([
+    "EVT-019", "EVT-020", "EVT-021", "EVT-037", "EVT-061", "EVT-066", "EVT-068",
+  ]), "event review seed sibling audit scope drift");
+  assert(JSON.stringify(eventReviewSeedDiagnosticCaseIds) ===
+    JSON.stringify(eventReviewSeedSiblingCaseIds),
+  "event review seed diagnostic sibling scope drift");
+  for (const caseId of eventReviewSeedSiblingCaseIds) {
+    const spec = eventExactOracleFor(caseId);
+    const plan = eventExactSeedMaterializerRegistry[spec?.seed?.kind];
+    assert(spec?.caseId === caseId && plan?.review === true &&
+      Number(plan.eventRecords || 0) > 0,
+    `${caseId} does not use the shared persisted review seed materializer`);
+  }
+  assert(runtimeSource.includes("const receipt = validateEventReviewSeedWriteReceipt({") &&
+    !runtimeSource.includes('caseId === "EVT-019" ? validateEventReviewSeedWriteReceipt'),
+  "event review seed receipt is not shared by the audited sibling family");
+  const eventId = "evt-019-review4-fixture";
+  const requestedReview = {
+    reviewStatus: "reviewing",
+    classification: "unclassified",
+    note: "REVIEW4 EVT-019 fixture",
+    incidentStatus: "new",
+  };
+  const review = {
+    schema: "media-server.ops.event-review-state.v1",
+    present: true,
+    eventId,
+    ...requestedReview,
+    updatedAtMs: 1722412800000,
+    actor: "review4-operator",
+    role: "operator",
+  };
+  const putEnvelope = {
+    status: "ops-event-review",
+    persistent: true,
+    audit: { action: "event-review-update" },
+    review,
+  };
+  const storageEnvelope = {
+    status: "ops-event-review-inbox",
+    schema: "media-server.ops.event-review-inbox.v1",
+    recordCount: 1,
+    records: [{ event: { eventId }, review }],
+  };
+  const eventRecordSha256 = "a".repeat(64);
+  const receipt = validateEventReviewSeedWriteReceipt({
+    caseId: "EVT-019",
+    eventId,
+    requestedReview,
+    putStatus: 200,
+    putEnvelope,
+    storageStatus: 200,
+    storageEnvelope,
+    eventRecordBeforeSha256: eventRecordSha256,
+    eventRecordAfterSha256: eventRecordSha256,
+  });
+  assert(receipt.putResponseSha256 !== receipt.storageReadbackSha256,
+    "review seed response and storage observations were not independently digested");
+  assert(receipt.eventRecordUnchanged === true,
+    "review seed receipt did not preserve EventRecord byte identity");
+  assert(receipt.notePresent === true && /^[a-f0-9]{64}$/.test(receipt.noteSha256),
+    "review seed receipt did not preserve the operator note digest");
+  assert(receipt.noteDigestEvidence?.matches?.requestExpected === true &&
+    receipt.noteDigestEvidence?.matches?.putExpected === true &&
+    receipt.noteDigestEvidence?.matches?.storageExpected === true &&
+    receipt.noteDigestEvidence?.matches?.putStorage === true,
+  "review seed receipt note digest evidence did not bind all stages");
+  assert(!JSON.stringify(receipt).includes(requestedReview.note),
+    "review seed receipt retained raw operator note material");
+  const negatives = [
+    ["put.body.review.note[type]", {
+      putEnvelope: {
+        ...putEnvelope,
+        note: requestedReview.note,
+        review: { ...review, note: undefined },
+      },
+    }],
+    ["put.body.audit.action", {
+      putEnvelope: { ...putEnvelope, audit: { action: "resolution-state-update" } },
+    }],
+    ["put.body.review.note[digest]", {
+      putEnvelope: { ...putEnvelope, review: { ...review, note: "drifted-note" } },
+    }],
+    ["put.body.review.note[digest]", {
+      putEnvelope: { ...putEnvelope, review: { ...review, note: "" } },
+    }],
+    ["storage.body.records[].review.note[digest]", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        records: [{
+          event: { eventId },
+          review: { ...review, note: "storage-drifted-note" },
+        }],
+      },
+    }],
+    ["storage.body.records[].review.note[digest]", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        records: [{
+          event: { eventId },
+          review: { ...review, note: "" },
+        }],
+      },
+    }],
+    ["put.body.review.classification", {
+      putEnvelope: { ...putEnvelope, review: { ...review, classification: "needs-review" } },
+    }],
+    ["storage.body.records[].review.reviewStatus", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        records: [{
+          event: { eventId },
+          review: { ...review, reviewStatus: "confirmed" },
+        }],
+      },
+    }],
+    ["storage.body.records[joined-identity]", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        recordCount: 1,
+        records: [{ event: { eventId: "other" }, review: { ...review, eventId: "other" } }],
+      },
+    }],
+    ["eventRecord.byteIdentity", {
+      eventRecordAfterSha256: "b".repeat(64),
+    }],
+    ["storage.body.records[].review.actor", {
+      storageEnvelope: {
+        ...storageEnvelope,
+        records: [{
+          event: { eventId },
+          review: { ...review, actor: "different-operator" },
+        }],
+      },
+    }],
+    ["put.body.review", {
+      putEnvelope: { status: "ops-event-review", persistent: true },
+    }],
+    ["storage.body.records", {
+      storageEnvelope: {
+        status: "ops-event-review-inbox",
+        schema: "media-server.ops.event-review-inbox.v1",
+      },
+    }],
+  ];
+  for (const [missingPath, override] of negatives) {
+    let message = "";
+    let noteDigestEvidence = null;
+    try {
+      validateEventReviewSeedWriteReceipt({
+        caseId: "EVT-019",
+        eventId,
+        requestedReview,
+        putStatus: 200,
+        putEnvelope,
+        storageStatus: 200,
+        storageEnvelope,
+        eventRecordBeforeSha256: eventRecordSha256,
+        eventRecordAfterSha256: eventRecordSha256,
+        ...override,
+      });
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+      noteDigestEvidence = error?.eventReviewSeedWriteEvidence || null;
+    }
+    assert(message.includes(`missingPaths=`) && message.includes(missingPath),
+      `review seed negative did not identify ${missingPath}: ${message || "passed"}`);
+    assert(noteDigestEvidence?.schema ===
+      "media-server.v390-ui-event-review-note-digest-evidence.v1" &&
+      !JSON.stringify(noteDigestEvidence).includes(requestedReview.note),
+    `review seed negative did not preserve safe digest-only evidence for ${missingPath}`);
+  }
+});
+
+check("event review authoritative readback selects one exact nested event/review identity", () => {
+  const fixtureId = "evt-021-review4-fixture";
+  const review = {
+    schema: "media-server.ops.event-review-state.v1",
+    present: true,
+    eventId: fixtureId,
+    reviewStatus: "reviewing",
+    classification: "unclassified",
+  };
+  const envelope = records => ({
+    status: "ops-event-review-inbox",
+    schema: "media-server.ops.event-review-inbox.v1",
+    recordCount: records.length,
+    records,
+  });
+  const validRow = { event: { eventId: fixtureId }, review };
+  const unrelatedTopLevelRow = {
+    eventId: fixtureId,
+    event: { eventId: "unrelated-event" },
+    review: { ...review, eventId: "unrelated-event" },
+  };
+  assert(selectEventReviewJoinedReview(
+    envelope([unrelatedTopLevelRow, validRow]),
+    fixtureId,
+  ) === review, "event review readback did not return the exact joined review record");
+
+  const readback = resolveAuthoritativeReadback(
+    `/ops/api/events/reviews/${fixtureId}`,
+    fixtureId,
+  );
+  assert(readback.mode === "event-review-joined-record" &&
+    readback.endpoint === `/ops/api/events/reviews?eventId=${encodeURIComponent(fixtureId)}&limit=25` &&
+    readback.role === "operator",
+  "event review item endpoint did not resolve to the typed authoritative collection readback");
+
+  const negatives = [
+    ["missing fixture row", envelope([]), "requires exactly one fixture row: 0"],
+    ["duplicate fixture row", envelope([validRow, structuredClone(validRow)]),
+      "requires exactly one fixture row: 2"],
+    ["wrong nested eventId", envelope([{
+      event: { eventId: "wrong-event" },
+      review: { ...review, eventId: "wrong-event" },
+    }]), "requires exactly one fixture row: 0"],
+    ["nested eventId mismatch", envelope([{
+      event: { eventId: fixtureId },
+      review: { ...review, eventId: "wrong-review" },
+    }]), "event/review identity mismatch"],
+    ["nested review.eventId mismatch", envelope([{
+      event: { eventId: "wrong-event" },
+      review,
+    }]), "event/review identity mismatch"],
+    ["unrelated top-level eventId", envelope([unrelatedTopLevelRow]),
+      "requires exactly one fixture row: 0"],
+  ];
+  for (const [label, payload, expectedMessage] of negatives) {
+    let message = "";
+    try {
+      selectEventReviewJoinedReview(payload, fixtureId);
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    assert(message.includes(expectedMessage),
+      `${label} was not rejected by the typed event review readback: ${message || "passed"}`);
+  }
+
+  assert(selectEventReviewJoinedCleanupRecord(envelope([]), fixtureId, {
+    originalRecord: null,
+  }) === null, "event review cleanup did not preserve a proven absent original state");
+  assert(selectEventReviewJoinedCleanupRecord(envelope([validRow]), fixtureId, {
+    originalRecord: review,
+  }) === review, "event review cleanup did not preserve an exact original review state");
+  const cleanupNegatives = [
+    ["unexpected fixture after absent original", envelope([validRow]), null,
+      "expected the original absent state"],
+    ["duplicate cleanup fixture", envelope([validRow, structuredClone(validRow)]), review,
+      "requires exactly one original fixture row: 2"],
+    ["cleanup event identity mismatch", envelope([{
+      event: { eventId: fixtureId },
+      review: { ...review, eventId: "wrong-review" },
+    }]), null, "event/review identity mismatch"],
+    ["cleanup review identity mismatch", envelope([{
+      event: { eventId: "wrong-event" },
+      review,
+    }]), null, "event/review identity mismatch"],
+    ["cleanup partial identity", envelope([{
+      event: { eventId: fixtureId },
+      review: {},
+    }]), null, "event/review identity mismatch"],
+    ["cleanup original byte mismatch", envelope([validRow]), {
+      ...review,
+      reviewStatus: "confirmed",
+    }, "differs from the captured original state"],
+  ];
+  for (const [label, payload, originalRecord, expectedMessage] of cleanupNegatives) {
+    let message = "";
+    try {
+      selectEventReviewJoinedCleanupRecord(payload, fixtureId, { originalRecord });
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    assert(message.includes(expectedMessage),
+      `${label} was not rejected by cleanup typed readback: ${message || "passed"}`);
+  }
+
+  for (const snippet of [
+    "mutationBaselineRecord",
+    "cleanupOriginalRecord",
+    "cleanupOriginalRecordCaptured",
+    "captureEventReviewCleanupOriginal",
+    'eventReviewMode: "cleanup-original"',
+    'eventReviewMode = "strict-mutation"',
+  ]) {
+    assert(runtimeSource.includes(snippet),
+      `event review mutation/cleanup state separation missing: ${snippet}`);
+  }
+  assert(runtimeSource.indexOf("await captureEventReviewCleanupOriginal(item, context)") <
+    runtimeSource.indexOf("await materializeEventExactSeed(item, context"),
+  "event review cleanup original state is not captured before the mutation seed");
+  for (const caseId of ["EVT-021", "EVT-037", "EVT-038", "EVT-061", "EVT-068"]) {
+    assert(runtimeSource.includes(`"${caseId}"`),
+      `${caseId} event-review mutation sibling lifecycle is not audited`);
+  }
+
+  const genericBody = extractNamedFunctionBody(runtimeSource, "unwrapRecord");
+  assert(!genericBody.includes("event?.eventId") &&
+    !genericBody.includes("review?.eventId"),
+  "generic unwrapRecord was widened for event-review joined identities");
+});
+
+check("EVT-038 binds one dry-run response to one attempt, audit row, and DOM projection", () => {
+  const fixtureId = "evt-038-review4-fixture";
+  const eventId = "evt-038-runtime-event";
+  const response = {
+    status: "ops-alert-delivery-dry-run",
+    schema: "media-server.ops.alert-delivery-dry-run.v1",
+    dryRun: true,
+    externalDeliveryPerformed: false,
+    eventPostPayloadChanged: false,
+    auditAction: "alert-delivery-dry-run",
+    payloadPreview: {
+      schema: "media-server.ops.alert-delivery-payload-preview.v1",
+      deliveryId: fixtureId,
+      eventId,
+      eventType: "intrusion",
+      sourceId: "sample",
+      payloadRedacted: true,
+    },
+    attempt: {
+      schema: "media-server.ops.alert-delivery-attempt.v1",
+      deliveryId: fixtureId,
+      eventId,
+      eventType: "intrusion",
+      sourceId: "sample",
+      status: "dry-run",
+      transport: "dry-run",
+      dryRun: true,
+      externalDeliveryPerformed: false,
+      eventPostPayloadChanged: false,
+    },
+  };
+  const attempt = structuredClone(response.attempt);
+  const auditEntry = {
+    action: "alert-delivery-dry-run",
+    target: `alert-delivery:${fixtureId}`,
+    after: { eventId },
+  };
+  const dom = {
+    previewCount: 1,
+    resultCount: 1,
+    preview: {
+      schema: response.payloadPreview.schema,
+      deliveryId: fixtureId,
+      eventId,
+      eventType: "intrusion",
+      sourceId: "sample",
+      payloadRedacted: "true",
+    },
+    result: {
+      status: response.status,
+      dryRun: "true",
+      attemptCount: "1",
+      externalDeliveryPerformed: "false",
+      auditAction: "alert-delivery-dry-run",
+    },
+  };
+  const valid = {
+    caseId: "EVT-038",
+    fixtureId,
+    response,
+    deliveries: { attempts: [attempt] },
+    audit: { entries: [auditEntry] },
+    dom,
+  };
+  const evidence = validateAlertDeliveryDryRunReadback(valid);
+  assert(evidence.persistedMutationObserved === true && evidence.responseBound === true &&
+    evidence.attemptBound === true && evidence.auditBound === true && evidence.domBound === true,
+  "EVT-038 valid dry-run readback did not produce complete evidence");
+  const negatives = [
+    ["response identity", { response: { ...response, payloadPreview: { ...response.payloadPreview, deliveryId: "wrong" } } }],
+    ["duplicate attempt", { deliveries: { attempts: [attempt, structuredClone(attempt)] } }],
+    ["audit identity", { audit: { entries: [{ ...auditEntry, after: { eventId: "wrong" } }] } }],
+    ["DOM identity", { dom: { ...dom, preview: { ...dom.preview, eventId: "wrong" } } }],
+  ];
+  for (const [label, override] of negatives) {
+    let rejected = false;
+    try { validateAlertDeliveryDryRunReadback({ ...valid, ...override }); }
+    catch { rejected = true; }
+    assert(rejected, `EVT-038 ${label} drift did not fail closed`);
+  }
+});
+
+check("event review note evidence survives the production failure rewrap and parent aggregation", () => {
+  const eventId = "evt-019-review4-fixture";
+  const rawNote = "REVIEW4 EVT-019 acceptance-owned review fixture";
+  const requestedReview = {
+    reviewStatus: "reviewing",
+    classification: "unclassified",
+    note: rawNote,
+    incidentStatus: "new",
+  };
+  const review = {
+    schema: "media-server.ops.event-review-state.v1",
+    present: true,
+    eventId,
+    ...requestedReview,
+    updatedAtMs: 1722412800000,
+    actor: "review4-operator",
+    role: "operator",
+  };
+  let primaryFailure = null;
+  try {
+    validateEventReviewSeedWriteReceipt({
+      caseId: "EVT-019",
+      eventId,
+      requestedReview,
+      putStatus: 200,
+      putEnvelope: {
+        status: "ops-event-review",
+        persistent: true,
+        audit: { action: "event-review-update" },
+        review: { ...review, note: "put-note-drift" },
+      },
+      storageStatus: 200,
+      storageEnvelope: {
+        status: "ops-event-review-inbox",
+        schema: "media-server.ops.event-review-inbox.v1",
+        recordCount: 1,
+        records: [{ event: { eventId }, review }],
+      },
+      eventRecordBeforeSha256: "a".repeat(64),
+      eventRecordAfterSha256: "a".repeat(64),
+    });
+  } catch (error) {
+    primaryFailure = error;
+  }
+  assert(primaryFailure instanceof Error &&
+    primaryFailure.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+  "review seed mismatch did not produce the expected primary failure evidence");
+
+  const functionStart = runnerSource.indexOf("function caseExecutionFailure(");
+  const functionEnd = runnerSource.indexOf(
+    "\nfunction refreshFailureDiagnosticArtifacts",
+    functionStart,
+  );
+  assert(functionStart >= 0 && functionEnd > functionStart,
+    "production caseExecutionFailure source is unavailable");
+  const productionCaseExecutionFailure = new Function(
+    "fs",
+    "structuredClone",
+    "serializeFailureLifecycleEvidence",
+    "serializeDiagnosticPrimaryFailureEvidence",
+    "copyEventReviewSeedWriteEvidence",
+    "eventReviewSeedDiagnosticCaseIds",
+    `${runnerSource.slice(functionStart, functionEnd)}
+     return caseExecutionFailure;`,
+  )(
+    fs,
+    structuredClone,
+    serializeFailureLifecycleEvidence,
+    serializeDiagnosticPrimaryFailureEvidence,
+    copyEventReviewSeedWriteEvidence,
+    eventReviewSeedDiagnosticCaseIds,
+  );
+  const wrapped = productionCaseExecutionFailure("EVT-019", {
+    primaryFailure,
+    cleanupFailure: null,
+    browserCloseFailure: null,
+    lifecycleFinalizationFailure: null,
+  });
+  assert(wrapped instanceof Error &&
+    wrapped.eventReviewSeedWriteEvidence?.matches?.putExpected === false &&
+    wrapped.partialArtifacts?.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+  "production failure rewrap did not preserve mismatch evidence");
+  assert(!JSON.stringify(wrapped.eventReviewSeedWriteEvidence).includes(rawNote),
+    "production failure rewrap retained raw note material");
+
+  const failedResultStart = runnerSource.indexOf("function createFailedCaseResult(");
+  const failedResultEnd = runnerSource.indexOf(
+    "\nfunction caseExecutionFailure",
+    failedResultStart,
+  );
+  assert(failedResultStart >= 0 && failedResultEnd > failedResultStart,
+    "production failed result serializer source is unavailable");
+  const productionCreateFailedCaseResult = new Function(
+    "structuredClone",
+    "safeDiagnosticFailureClass",
+    "safeDiagnosticFailureDetail",
+    `${runnerSource.slice(failedResultStart, failedResultEnd)}
+     return createFailedCaseResult;`,
+  )(
+    structuredClone,
+    () => "case-execution-failed",
+    error => String(error?.primaryFailure?.message || error?.message || ""),
+  );
+  const item = { caseId: "EVT-019", featureId: "EVT-019" };
+  const resultItem = productionCreateFailedCaseResult(item, wrapped, true);
+  assert(resultItem.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+    "production failed result serializer dropped mismatch evidence");
+
+  const childSummaryStart = runnerSource.indexOf(
+    "function createDiagnosticChildSummary(",
+  );
+  const childSummaryEnd = runnerSource.indexOf(
+    "\nfunction createDiagnosticPreExecutionSummary",
+    childSummaryStart,
+  );
+  assert(childSummaryStart >= 0 && childSummaryEnd > childSummaryStart,
+    "production diagnostic child serializer source is unavailable");
+  const productionCreateDiagnosticChildSummary = new Function(
+    "options",
+    "diagnosticChildSourceBinding",
+    "sha256Text",
+    "serializeFailureLifecycleEvidence",
+    `${runnerSource.slice(childSummaryStart, childSummaryEnd)}
+     return createDiagnosticChildSummary;`,
+  )(
+    { diagnosticSelectionMode: "explicit-positive-case" },
+    caseId => ({
+      gitCommit: "1".repeat(40),
+      manifestSha256: "2".repeat(64),
+      runId: "contract-run",
+      caseId,
+      caseIdsSha256: sha256Text(caseId),
+      selectionMode: "explicit-positive-case",
+    }),
+    sha256Text,
+    serializeFailureLifecycleEvidence,
+  );
+  const childSummary = productionCreateDiagnosticChildSummary({
+    result: "FAIL",
+    executionStatus: "diagnostic-child-case-failed",
+    item,
+    resultItem,
+    environmentContamination: false,
+    caseRuntimeSecretArtifactIntegrity: { status: "PASS" },
+  });
+  childSummary.rawCaptureValidation = {
+    status: "FAIL",
+    errors: ["case-execution-failed"],
+  };
+  assert(childSummary.case.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+    "production diagnostic child serializer dropped mismatch evidence");
+  const parentOutcome = aggregateDiagnosticChildOutcome({
+    summary: childSummary,
+    exitCode: 1,
+  });
+  assert(parentOutcome.status === "FAIL" &&
+    parentOutcome.eventReviewSeedWriteEvidence?.matches?.putExpected === false,
+  "parent diagnostic aggregation lost or promoted mismatch evidence");
+  assert(copyEventReviewSeedWriteEvidence(
+    parentOutcome.eventReviewSeedWriteEvidence,
+    { caseId: "EVT-019" },
+  ).matches.putExpected === false,
+  "parent diagnostic evidence did not remain fail-closed");
+
+  for (const [label, mutate] of [
+    ["missing", () => null],
+    ["stale-schema", evidence => ({ ...evidence, schema: "stale.v0" })],
+    ["wrong-case", evidence => ({ ...evidence, caseId: "EVT-020" })],
+    ["raw-field", evidence => ({ ...evidence, rawNote })],
+    ["false-pass", evidence => ({
+      ...evidence,
+      matches: { ...evidence.matches, putExpected: true },
+    })],
+  ]) {
+    const invalidPrimary = new Error(primaryFailure.message);
+    invalidPrimary.eventReviewSeedWriteEvidence = mutate(
+      structuredClone(primaryFailure.eventReviewSeedWriteEvidence),
+    );
+    let message = "";
+    try {
+      productionCaseExecutionFailure("EVT-019", {
+        primaryFailure: invalidPrimary,
+        cleanupFailure: null,
+        browserCloseFailure: null,
+        lifecycleFinalizationFailure: null,
+      });
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    assert(message.includes("event review note digest evidence invalid"),
+      `${label} event review evidence did not fail closed`);
+    assert(!message.includes(rawNote),
+      `${label} event review evidence failure exposed raw note material`);
+  }
+});
+
+check("builder is deterministic and preserves exact case order", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  assert(JSON.stringify(rebuilt) === JSON.stringify(manifest), "generated manifest drift");
+  assert(JSON.stringify(manifest.cases.map(item => item.caseId)) ===
+    JSON.stringify(canonical.cases.map(item => item.testId)), "canonical ordered IDs drift");
+});
+
+check("all 424 completion modes separate document navigation from application requests", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const bindingMode = completion => [
+    ["requestBinding", Boolean(completion?.request)],
+    ["localTransitionBinding", Boolean(completion?.localTransition)],
+    ["navigationBinding", Boolean(completion?.navigationBinding)],
+  ].filter(([, present]) => present).map(([mode]) => mode);
+  const documentActions = rebuilt.cases.flatMap(item => item.actions
+    .filter(action => ["navigate", "navigate-action-route", "navigate-negative"].includes(action.kind))
+    .map(action => ({ caseId: item.caseId, action })));
+  assert(documentActions.length === 435,
+    `document navigation action count drift: ${documentActions.length}`);
+  for (const { caseId, action } of documentActions) {
+    const modes = bindingMode(action.semanticCompletion);
+    assert(JSON.stringify(modes) === JSON.stringify(["navigationBinding"]) &&
+      action.semanticCompletion.navigationBinding.correlationRequired === false,
+    `${caseId} ${action.actionId} document navigation mode drift: ${modes.join("+")}`);
+  }
+  const primaryModes = rebuilt.cases.map(item => ({
+    caseId: item.caseId,
+    modes: bindingMode(item.workflow.expectedResults[0].completion),
+  }));
+  assert(primaryModes.every(item => item.modes.length === 1),
+    "primary completion binding is missing or ambiguous");
+  const primaryCounts = Object.fromEntries(
+    ["requestBinding", "localTransitionBinding", "navigationBinding"].map(mode => [
+      mode,
+      primaryModes.filter(item => item.modes[0] === mode).length,
+    ]),
+  );
+  assert(JSON.stringify(primaryCounts) === JSON.stringify({
+    requestBinding: 391,
+    localTransitionBinding: 28,
+    navigationBinding: 5,
+  }), `primary completion mode count drift: ${JSON.stringify(primaryCounts)}`);
+  assert(JSON.stringify(primaryModes
+    .filter(item => item.modes[0] === "navigationBinding")
+    .map(item => item.caseId)) ===
+    JSON.stringify(["UI-001", "UI-018", "EVT-004", "SAFE-016", "SAFE-017"]),
+  "primary navigation binding case IDs drift");
+  assert(rebuilt.cases.every(item => item.actions
+    .filter(action => action.semanticCompletion?.request)
+    .every(action => !["navigate", "navigate-action-route", "navigate-negative"].includes(action.kind))),
+  "application request binding leaked into a document navigation action");
+});
+
+check("all 424 failure lifecycles retain the initial manifest navigation binding", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  assert(rebuilt.cases.length === 424, "failure lifecycle route audit requires exact 424 cases");
+  for (const item of rebuilt.cases) {
+    const initialExpected = item.actions[0]?.semanticCompletion?.navigationBinding;
+    const expected = item.actions.find(action =>
+      action.semanticCompletion?.phase === "primary-action")
+      ?.semanticCompletion?.navigationBinding || initialExpected;
+    const expectedRequestedPath = item.caseId === "UI-001" ? "/" : item.screenRoute;
+    const expectedObservedPath = item.caseId === "UI-001" ? "/login" : item.screenRoute;
+    assert(initialExpected?.schema === "media-server.v390-ui-navigation-trust-binding.v1" &&
+      initialExpected.requestedPath === expectedRequestedPath &&
+      initialExpected.expectedCanonicalRoute === expectedRequestedPath &&
+      initialExpected.expectedObservedPath === expectedObservedPath,
+    `${item.caseId} initial manifest navigation binding drift`);
+
+    const lifecycle = expected.caseLifecycleNavigationSequence || [{
+      method: "GET",
+      path: expected.requestedPath,
+      resourceType: "document",
+      sameOrigin: true,
+      correlationRequired: false,
+      redirected: false,
+      responseStatus: 200,
+    }];
+    const orderedDocumentNavigations = lifecycle.map((entry, index) => ({
+      sequence: index * 2 + 2,
+      responseSequence: index * 2 + 3,
+      invocationId: expected.invocationId,
+      navigationKind: "initial-document-navigation",
+      method: entry.method,
+      path: entry.path,
+      resourceType: entry.resourceType,
+      sameOrigin: entry.sameOrigin,
+      correlationPresent: false,
+      redirected: entry.redirected === true,
+      responseStatus: entry.responseStatus,
+      responseBound: true,
+    }));
+    if (item.caseId === "AUTH-007") {
+      orderedDocumentNavigations.push({
+        sequence: 4,
+        responseSequence: 5,
+        invocationId: "AUTH-007:form-submit-document-navigation",
+        navigationKind: "form-submit-document-navigation",
+        method: "POST",
+        path: "/login",
+        resourceType: "document",
+        sameOrigin: true,
+        correlationPresent: false,
+        redirected: false,
+        responseStatus: 403,
+        responseBound: true,
+      });
+    }
+    const navigation = {
+      invocationId: expected.invocationId,
+      requestKind: "document-navigation",
+      method: "GET",
+      requestedPath: expected.requestedPath,
+      observedPath: expected.expectedObservedPath,
+      resourceType: "document",
+      sameOrigin: true,
+      correlationObserved: false,
+      requestAttemptCount: 1,
+      requestCandidateCount: 1,
+      responseCandidateCount: 1,
+      requestResponseBound: true,
+      redirectCount: expected.exactRedirectCount,
+      retryCount: 0,
+      reloadCount: 0,
+      unownedNavigationCount: 0,
+      additionalFetchCount: 0,
+      requestReissued: false,
+      totalDocumentNavigationCount: orderedDocumentNavigations.length,
+      orderedDocumentNavigations,
+      listenerStartSequence: 1,
+      listenerEndSequence: orderedDocumentNavigations.at(-1).responseSequence + 1,
+      listenerActive: false,
+      listenerInstalledBeforeFirstNavigation: true,
+      navigationAfterListenerEndCount: 0,
+    };
+    const runtimeState = new Map([["__caseRuntimeRestored", true]]);
+    const evidence = buildFailureLifecycleEvidence({
+      item,
+      trace: { navigation, cleanup: [] },
+      runtimeState,
+      primaryFailure: new Error("actual-derived contract failure"),
+      cleanupFailure: null,
+      browserCloseFailure: null,
+      browserCloseAttempted: true,
+      browserContextCreated: true,
+      capturedCorrelationWindow: null,
+    });
+    assert(evidence.navigationLifecycleEvidence.pass === true &&
+      evidence.navigationLifecycleEvidence.requestedPath === expected.requestedPath &&
+      evidence.navigationLifecycleEvidence.expectedObservedPath === expected.expectedObservedPath,
+    `${item.caseId} failure lifecycle navigation drift: ` +
+      `${evidence.navigationLifecycleEvidence.failureCode || "wrong-route"}`);
+    if (item.caseId === "EVT-004") {
+      const initialOnlyNavigation = {
+        ...navigation,
+        totalDocumentNavigationCount: 1,
+        orderedDocumentNavigations: orderedDocumentNavigations.slice(0, 1),
+      };
+      const finalized = buildFailureLifecycleEvidence({
+        item,
+        trace: {
+          navigation: initialOnlyNavigation,
+          navigationLifecycleEvidence: evidence.navigationLifecycleEvidence,
+          cleanup: [],
+        },
+        runtimeState,
+        primaryFailure: null,
+        cleanupFailure: null,
+        browserCloseFailure: null,
+        browserCloseAttempted: true,
+        browserContextCreated: true,
+        capturedCorrelationWindow: null,
+      });
+      assert(finalized.navigationLifecycleEvidence.pass === true &&
+        finalized.navigationLifecycleEvidence.expectedLifecycleNavigationCount === 2,
+      "EVT-004 success finalizer replaced complete navigation evidence with its initial snapshot");
+    }
+  }
+});
+
+check("independent readback passes one coordinator ownership context and always ends it", () => {
+  const functionStart = runnerSource.indexOf("async function executeIndependentReadback(");
+  const functionEnd = runnerSource.indexOf("\nfunction exactFixtureId", functionStart);
+  assert(functionStart >= 0 && functionEnd > functionStart,
+    "independent readback production function is unavailable");
+  const source = runnerSource.slice(functionStart, functionEnd);
+  assert(source.includes("actionId: pending.actionEvidence.actionId") &&
+    source.includes("correlationId: pending.actionEvidence.correlationId") &&
+    !source.includes("`${pending.actionEvidence.correlationId}:independent-readback`"),
+  "independent readback coordinator is not bound to the authoritative primary request identity");
+  assert(source.includes("requestActionContext: null") &&
+    source.includes("readbackCoordinatorClosed = true"),
+  "independent readback did not release its coordinator before specialized runtime scopes");
+  const finalBoundary = source.slice(source.lastIndexOf("finally {"));
+  assert(source.includes("try {") && source.includes("finally {") &&
+    source.includes("endRequestActionOwnershipPreservingPrimary(") &&
+    finalBoundary.includes("closeReadbackCoordinator(readbackPrimaryFailure)"),
+  "independent readback ownership is not closed by a primary-preserving finally boundary");
+  assert(!source.includes("requestActionContext: readbackCoordinatorContext"),
+    "independent readback still nests specialized runtime scopes under its coordinator");
+});
+
+check("RULE-097 callback receives only its declared explicit argument projection", () => {
+  const functionStart = runnerSource.indexOf("async function executeIndependentReadback(");
+  const functionEnd = runnerSource.indexOf("\nfunction exactFixtureId", functionStart);
+  const source = runnerSource.slice(functionStart, functionEnd);
+  assert(source.includes("assignedViewId: rejectedActionReadback.assignedViewId") &&
+    source.includes("blockedViewId: rejectedActionReadback.blockedViewId") &&
+    source.includes("disallowedRuleId: rejectedActionReadback.disallowedRuleId") &&
+    !source.includes('"runner.scoped-viewer-dom",\n      rejectedActionReadback'),
+  "RULE-097 callback still receives undeclared readback fields");
+});
+
+check("bounded ownership cleanup precedes physical close without changing close truth", () => {
+  assert(typeof diagnosticLifecycle.cleanupActiveRequestOwnershipBeforeClose === "function",
+    "bounded pre-close request ownership cleanup helper is missing");
+  let activeOwner = { phase: "independent-readback", actionId: "SRC-008:execute-endpoint-action" };
+  let cleanupCalls = 0;
+  const primaryFailure = new Error("actual-derived primary failure");
+  const evidence = diagnosticLifecycle.cleanupActiveRequestOwnershipBeforeClose({
+    browser: {
+      requestActionOwnershipEvidence: () => ({ activeOwner }),
+      cleanupRequestActionOwnership: failure => {
+        cleanupCalls += 1;
+        assert(failure === primaryFailure, "bounded cleanup replaced the primary failure identity");
+        activeOwner = null;
+        return { status: "PASS", clearedActiveOwner: true, clearedRequestCount: 0 };
+      },
+    },
+    primaryFailure,
+  });
+  assert(cleanupCalls === 1 && evidence.cleanupPerformed === true &&
+    evidence.activeOwnerBefore === true && evidence.activeOwnerAfter === false &&
+    evidence.primaryFailurePreserved === true,
+  "bounded ownership cleanup did not close exactly one active scope");
+
+  const physicallyClosed = buildCaseCleanupAttestation({
+    primaryFailure,
+    cleanupFailure: null,
+    browserCloseFailure: null,
+    browserCloseAttempted: true,
+    browserContextCreated: true,
+    caseRuntimeRestored: true,
+  });
+  const physicalCloseFailed = buildCaseCleanupAttestation({
+    primaryFailure,
+    cleanupFailure: null,
+    browserCloseFailure: new Error("context.close failed"),
+    browserCloseAttempted: true,
+    browserContextCreated: true,
+    caseRuntimeRestored: true,
+  });
+  assert(physicallyClosed.pass === true && physicallyClosed.browserContextClosed === true &&
+    physicalCloseFailed.pass === false && physicalCloseFailed.browserContextClosed === false &&
+    physicalCloseFailed.failureCode === "BROWSER_CLOSE_FAILED",
+  "physical close truth was conflated with the preserved primary/lifecycle result");
+  const functionStart = runnerSource.indexOf("async function executeCase(");
+  const functionEnd = runnerSource.indexOf("\nfunction createFailedCaseResult", functionStart);
+  const source = runnerSource.slice(functionStart, functionEnd);
+  assert(source.includes("cleanupActiveRequestOwnershipBeforeClose({") &&
+    source.indexOf("cleanupActiveRequestOwnershipBeforeClose({") <
+      source.lastIndexOf("closeBrowserForFailureLifecycle({ browser, trace })"),
+  "failed-case bounded ownership cleanup does not precede physical browser close");
+});
+
+check("EVT-004 reuses one document navigation and correlates only the authoritative API fetch", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const item = rebuilt.cases.find(value => value.caseId === "EVT-004");
+  const navigation = item?.actions?.[0]?.semanticCompletion?.navigationBinding;
+  const primary = item?.workflow?.expectedResults?.[0]?.completion;
+  assert(navigation?.requestKind === "document-navigation" &&
+    navigation.correlationRequired === false &&
+    navigation.exactRequestSequence === 1 &&
+    navigation.requestedPath === "/ops/events" &&
+    navigation.expectedObservedPath === "/ops/events" &&
+    navigation.exactRedirectCount === 0 &&
+    navigation.authoritativeReadback === null,
+  "EVT-004 initial document navigation trust binding drift");
+  assert(primary?.request === null &&
+    primary?.navigationBinding?.requestKind === "document-navigation" &&
+    primary.navigationBinding.correlationRequired === false &&
+    primary.navigationBinding.exactRequestSequence === 1 &&
+    primary.navigationBinding.expectedObservedPath === "/ops/events" &&
+    primary.navigationBinding.exactRedirectCount === 0 &&
+    primary.navigationBinding.caseLifecycleNavigationSequence?.length === 2 &&
+    primary.navigationBinding.caseLifecycleNavigationSequence[0]?.path === "/ops/events" &&
+    primary.navigationBinding.caseLifecycleNavigationSequence[1]?.path === "/ops/dashboard" &&
+    primary.navigationBinding.caseLifecycleNavigationSequence.every(entry =>
+      entry.redirected === false && entry.responseStatus === 200) &&
+    primary.navigationBinding.authoritativeReadback?.source === "catalog-runtime-fresh-browser-fetch" &&
+    primary.navigationBinding.authoritativeReadback.method === "GET" &&
+    primary.navigationBinding.authoritativeReadback.urlPath ===
+      "/ops/api/diagnostics/log-tail?limit=50" &&
+    primary.navigationBinding.authoritativeReadback.correlationId === primary.correlationId,
+  "EVT-004 primary completion did not separate navigation from authoritative API correlation");
+  assert(item.actions.filter(action =>
+    action.semanticCompletion?.request?.urlPath === "/ops/events").length === 0,
+  "EVT-004 retained an additional /ops/events application fetch contract");
+});
+
+check("canonical and native generator writes are one validated atomic transaction", () => {
+  assert(generatorSource.includes("replaceJsonFixturesAtomically") &&
+    generatorSource.includes("[canonicalPath, canonical]") &&
+    generatorSource.includes("[manifestPath, generated]") &&
+    generatorSource.indexOf("validateNativeExactManifest({ manifest: generated") <
+      generatorSource.indexOf("replaceJsonFixturesAtomically({"),
+  "canonical/native generator does not validate before its atomic replacement");
+  assert(!generatorSource.includes("fs.writeFileSync(canonicalPath") &&
+    !generatorSource.includes("fs.writeFileSync(manifestPath"),
+  "canonical/native generator retains a partial direct-write path");
+});
+
+check("RULE relationship fixtures use one collision-free numeric identity contract", () => {
+  const caseIds = ["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100", "RULE-101"];
+  const identities = caseIds.map(caseId => [caseId, ruleRelationshipFixtureIdentity(caseId)]);
+  const allIds = identities.flatMap(([, identity]) =>
+    [identity.sourceId, identity.viewId, identity.blockedSourceId, identity.blockedViewId].filter(Boolean));
+  assert(allIds.every(value => /^\d+$/.test(value)), "RULE relationship source/view identity must be numeric");
+  assert(new Set(allIds).size === allIds.length, "RULE relationship source/view identity namespace collision");
+
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const byId = new Map(rebuilt.cases.map(item => [item.caseId, item]));
+  for (const caseId of ["RULE-095", "RULE-096"]) {
+    const identity = ruleRelationshipFixtureIdentity(caseId);
+    assert(byId.get(caseId)?.workflow?.productAction?.localAction?.verificationEndpoint?.path ===
+      `/client/api/views/${identity.viewId}/webrtc/session`,
+    `${caseId} numeric session identity drift`);
+  }
+  const rule097Identity = ruleRelationshipFixtureIdentity("RULE-097");
+  const rule097Fixture = byId.get("RULE-097")?.workflow?.inputs
+    ?.find(input => input.kind === "rejected-endpoint-fixture");
+  assert(rule097Fixture?.actualValue?.assignedViewId === rule097Identity.viewId &&
+    rule097Fixture?.actualValue?.blockedViewId === rule097Identity.blockedViewId,
+  "RULE-097 assigned/blocked numeric identity drift");
+  assert(runtimeSource.includes("ruleRelationshipFixtureIdentity(item.caseId)") &&
+    runtimeSource.includes("sourceId: relationshipIdentity.blockedSourceId") &&
+    runtimeSource.includes("viewId: relationshipIdentity.blockedViewId"),
+  "RULE relationship runtime does not consume the shared numeric identity contract");
+  assert(runnerSource.includes("ruleRelationshipFixtureIdentity(item.caseId)") &&
+    !/rule-(?:093|094|095|096|097|098|100|101)-(?:source|view)/.test(runnerSource),
+  "RULE actual browser runner does not consume the shared numeric identity contract");
+  for (const caseId of ["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100", "RULE-101"]) {
+    const identity = ruleRelationshipFixtureIdentity(caseId);
+    assert(runnerSource.includes("relationshipIdentity.sourceId") ||
+      !["RULE-093", "RULE-094", "RULE-100", "RULE-101"].includes(caseId),
+    `${caseId} actual browser runner numeric identity binding missing`);
+    assert(byId.get(caseId), `${caseId} native relationship case missing`);
+    assert(/^\d+$/.test(identity.sourceId) && /^\d+$/.test(identity.viewId),
+      `${caseId} relationship identity is not numeric`);
+  }
+  for (const caseId of ["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101"]) {
+    const item = byId.get(caseId);
+    const completion = item.workflow.expectedResults[0].completion;
+    assert(completion.readbackExpectation.independentRejectedReadbackRequired === true &&
+      completion.readbackExpectation.independentProductErrors.length > 0 &&
+      item.workflow.controlSequence.some(action =>
+        action.kind === "verify-independent-readback" &&
+        action.semanticCompletion.linkedPrimaryActionId === item.oracle.primaryActionId),
+    `${caseId} DOM and actual product rejection evidence are not both required`);
+  }
+  for (const caseId of ["RULE-095", "RULE-096", "RULE-101", "RULE-102", "RULE-103"]) {
+    assert(byId.get(caseId).workflow.expectedResults[0].completion.readbackExpectation
+      .postconditionObservationMode === "after-action-exact",
+    `${caseId} refresh still requires an impossible pre/post DOM transition`);
+  }
+  for (const caseId of ["RULE-097", "RULE-098"]) {
+    const item = byId.get(caseId);
+    assert(item.workflow.inputs.some(input => input.kind === "rejected-endpoint-fixture") &&
+      item.workflow.controlSequence.some(action => action.kind === "verify-independent-readback"),
+    `${caseId} read-only relationship case lost actual runtime rejection evidence`);
+  }
+  assert(runnerSource.includes("explicitObserved?.rejectedActionReadback") &&
+    runnerSource.includes("domValidationMatrix") &&
+    runnerSource.includes("independentProductReadback") &&
+    runtimeSource.includes("runtimeProductResponseObserved: true") &&
+    runtimeSource.includes("productErrors"),
+  "relationship API response is not preserved as separate runtime evidence");
+  let unsupportedRule099 = "";
+  try {
+    ruleRelationshipFixtureIdentity("RULE-099");
+  } catch (error) {
+    unsupportedRule099 = String(error?.message || error);
+  }
+  assert(unsupportedRule099.includes("unsupported rule relationship fixture identity: RULE-099") &&
+    !byId.has("RULE-099"),
+  "RULE-099 indirect-only relationship contract was incorrectly promoted to an exact UI fixture");
+});
+
+check("workflow distribution is owned by the shared exact 424 contract", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const counts = Object.fromEntries(Object.keys(review4WorkflowClassExpectedCounts).map(workflowClass => [
+    workflowClass,
+    rebuilt.cases.filter(item => item.workflow.workflowClass === workflowClass).length,
+  ]));
+  assert(JSON.stringify(counts) === JSON.stringify(review4WorkflowClassExpectedCounts),
+    `shared workflow distribution drift: ${JSON.stringify(counts)}`);
+  assert(Object.values(counts).reduce((sum, count) => sum + count, 0) === 424,
+    "shared workflow distribution total must be exact 424");
+
+  const changed = structuredClone(rebuilt);
+  changed.cases.find(item => item.workflow.workflowClass === "actionable").workflow.workflowClass = "read-only-state";
+  let rejected = false;
+  try {
+    validateNativeExactManifest({ manifest: changed, canonical, implementation });
+  } catch {
+    rejected = true;
+  }
+  assert(rejected, "workflow class mutation must fail closed");
+});
+
+check("declared exact runtime seeds materialize through the shared deterministic fixture registry", () => {
+  const runtimeById = new Map(buildExactRuntimeOracleCatalog({ implementation })
+    .map(item => [item.caseId, item]));
+  const expectedPlans = new Map([
+    ["EVT-001", ["viewer-va-overlay-session"]],
+    ["EVT-004", ["diagnostic-log-marker"]],
+    ["EVT-023", ["event-record"]],
+    ["EVT-026", ["event-record", "viewer-va-overlay-session"]],
+    ["EVT-048", ["event-record"]],
+    ["CLIENT-005", []],
+    ["CLIENT-010", ["viewer-live-layout-preference"]],
+    ["CLIENT-021", ["event-record"]],
+  ]);
+  for (const [caseId, expected] of expectedPlans) {
+    const actual = runtimeFixturePlanFor(runtimeById.get(caseId));
+    assert(JSON.stringify(actual) === JSON.stringify(expected),
+      `${caseId} declared runtime fixture plan drift`);
+  }
+  assert(runtimeFixturePlanFor(runtimeById.get("EVT-003")).length === 0,
+    "undeclared runtime seed must not materialize an extra fixture");
+  assert(runtimeFixturePlanFor({ seed: { kind: "unknown-runtime-seed" }, setup: { fixtures: ["unrelated"] } }).length === 0,
+    "unknown runtime seed must fail closed without materializing a fixture");
+  assert(!runtimeFixturePlanFor(runtimeById.get("CLIENT-005")).some(plan => /session/.test(plan)),
+    "CLIENT-005 must not precreate a backend session before the composed UI action");
+  assert(!runtimeFixturePlanFor(runtimeById.get("CLIENT-021")).some(plan => /session/.test(plan)),
+    "CLIENT-021 must not precreate a backend VA session before the composed UI action");
+  for (const snippet of [
+    "async function materializeExactRuntimeFixturePlan",
+    "diagnostic marker is missing from the authoritative log-tail readback",
+    "VA overlay session seed is absent from authoritative runtime status",
+    "saved layout preference is missing from authoritative readback",
+    'roleOverride: "viewer"',
+  ]) assert(runtimeSource.includes(snippet), `shared runtime fixture registry contract missing ${snippet}`);
+});
+
+check("every exact EVT seed.kind has a declarative store and join materializer", () => {
+  const seedKinds = new Set(eventExactOracleCaseIds().map(caseId => eventExactOracleFor(caseId).seed.kind));
+  assert(seedKinds.size > 0, "exact EVT seed catalog is empty");
+  for (const seedKind of seedKinds) {
+    const plan = eventExactSeedMaterializerRegistry[seedKind];
+    assert(plan && Number.isInteger(plan.eventRecords) && plan.eventRecords >= 0,
+      `exact EVT seed kind is not materialized declaratively: ${seedKind}`);
+    assert(Object.keys(plan).every(key => [
+      "eventRecords", "archivedRecord", "review", "vlm", "audit", "alert", "sourceHealth",
+      "sourceHealthReadback", "related", "evidence",
+    ].includes(key)), `exact EVT seed registry contains an unsupported field: ${seedKind}`);
+  }
+  assert(runtimeSource.includes("async function materializeEventExactSeed") &&
+    runtimeSource.includes("eventExactSeedMaterializerRegistry[kind]") &&
+    runtimeSource.includes("exact EventRecord identity is missing from the authoritative join readback") &&
+    runtimeSource.includes("exact review identity is missing from the authoritative join readback") &&
+    runtimeSource.includes("eventReviewSeedByPath"),
+  "exact EVT runtime does not resolve seed.kind through the shared materializer");
+  assert(runtimeSource.includes("refreshDiagnosticMarkerForDashboard") &&
+    runtimeSource.includes("test-owned-log-marker-tail-prioritization") &&
+    runtimeSource.includes("requires one existing marker") &&
+    runtimeSource.includes("evt004OwnedNoiseCount") &&
+    runtimeSource.includes("isolateEvt004LeakedAnalysisFixtures") &&
+    runtimeSource.includes("EVT004_OWNED_ANALYSIS_ISOLATION_INCOMPLETE"),
+  "EVT-004 diagnostic marker tail prioritization is not exact and fail-closed");
+  assert(runnerSource.includes("beforeScreenNavigation: item.caseId === \"EVT-004\"") &&
+    runtimeOracleSource.includes("EVT-004 dashboard navigation requires a test-owned marker refresh hook"),
+  "EVT-004 dashboard navigation is not bound to the marker refresh hook");
+  for (const scope of ["eventRecords", "review", "vlm", "audit", "alert", "sourceHealth", "related"]) {
+    assert(runtimeSource.includes(`${scope}:`), `exact EVT runtime seed join evidence is missing: ${scope}`);
+  }
+});
+
+check("event review mutation cleanup validates an empty 200 collection and byte restore", () => {
+  const valid = {
+    status: "ops-event-review-inbox",
+    schema: "media-server.ops.event-review-inbox.v1",
+    records: [],
+    recordCount: 0,
+  };
+  const result = validateEventReviewCollectionAbsence({
+    caseId: "EVT-021",
+    eventId: "evt-021-review4-fixture",
+    phase: "after-restore",
+    status: 200,
+    envelope: valid,
+  });
+  assert(result.fixtureAbsent === true && result.recordCount === 0,
+    "empty review collection cleanup evidence mismatch");
+
+  const rejects = [
+    ["status-only", { status: 404, envelope: valid }, "status mismatch"],
+    ["malformed-envelope", { status: 200, envelope: [] }, "envelope is malformed"],
+    ["missing-records", {
+      status: 200,
+      envelope: { ...valid, records: undefined, recordCount: 0 },
+    }, "records are missing"],
+    ["record-count-drift", {
+      status: 200,
+      envelope: { ...valid, recordCount: 1 },
+    }, "recordCount mismatch"],
+    ["residual-joined-identity", {
+      status: 200,
+      envelope: {
+        ...valid,
+        records: [{
+          event: { eventId: "evt-021-review4-fixture" },
+          review: { eventId: "evt-021-review4-fixture" },
+        }],
+        recordCount: 1,
+      },
+    }, "retains the acceptance-owned fixture"],
+    ["wrong-event-identity", {
+      status: 200,
+      envelope: {
+        ...valid,
+        records: [{
+          event: { eventId: "wrong-event" },
+          review: { eventId: "evt-021-review4-fixture" },
+        }],
+        recordCount: 1,
+      },
+    }, "identity mismatch"],
+    ["wrong-review-identity", {
+      status: 200,
+      envelope: {
+        ...valid,
+        records: [{
+          event: { eventId: "evt-021-review4-fixture" },
+          review: { eventId: "wrong-review" },
+        }],
+        recordCount: 1,
+      },
+    }, "identity mismatch"],
+    ["duplicate-row", {
+      status: 200,
+      envelope: {
+        ...valid,
+        records: [
+          {
+            event: { eventId: "evt-021-review4-fixture" },
+            review: { eventId: "evt-021-review4-fixture" },
+          },
+          {
+            event: { eventId: "evt-021-review4-fixture" },
+            review: { eventId: "evt-021-review4-fixture" },
+          },
+        ],
+        recordCount: 2,
+      },
+    }, "duplicate fixture rows"],
+  ];
+  for (const [label, value, expected] of rejects) {
+    let failed = false;
+    try {
+      validateEventReviewCollectionAbsence({
+        caseId: "EVT-021",
+        eventId: "evt-021-review4-fixture",
+        phase: label,
+        ...value,
+      });
+    } catch (error) {
+      failed = true;
+      assert(String(error.message).includes(expected),
+        `${label} returned an unexpected cleanup error: ${error.message}`);
+    }
+    assert(failed, `${label} cleanup evidence must fail closed`);
+  }
+  for (const snippet of [
+    "phase: \"before-seed\"",
+    "phase: \"after-restore\"",
+    "eventReviewMutationCaseIds",
+    "EventRecord storage byte restoration failed",
+    "review storage byte restoration failed",
+    "reviewCollectionStatus: 200",
+  ]) {
+    assert(runtimeSource.includes(snippet),
+      `event review mutation cleanup lifecycle missing: ${snippet}`);
+  }
+  assert(!runtimeSource.includes(
+    '`/ops/api/events/reviews/${encodeURIComponent(eventId)}`,\n' +
+    "            null,\n" +
+    "            item,\n" +
+    "            caseContext,\n" +
+    "            [404],"),
+  "event review mutation cleanup still expects a stale 404 response");
+});
+
+check("event review seed keeps the official top-level note schema and uses structured reload", () => {
+  const runtimeHandler = fs.readFileSync(
+    path.join(rootDir, "src/ingress/webrtc_http_server_runtime.cpp"), "utf8");
+  const storageOwner = fs.readFileSync(
+    path.join(rootDir, "src/ingress/webrtc_http_server_ops_foundation.cpp"), "utf8");
+  const pageScript = fs.readFileSync(
+    path.join(rootDir, "src/ingress/product_ui_page_scripts.cpp"), "utf8");
+  assert(runtimeHandler.includes(
+    'next.note = ParseStringField(request.body, "note").value_or("");') &&
+    runtimeHandler.includes('ExtractObjectField(request.body, "resolution")') &&
+    runtimeHandler.includes('ParseStringField(*resolution, "note")'),
+  "event review PUT parser no longer preserves independent note and resolution.note fields");
+  assert(storageOwner.includes("bool ParseOpsEventReviewStructuredNotes(") &&
+    storageOwner.includes("VlmProfileJsonDocument::Parse(line") &&
+    storageOwner.includes('document.StringField("note")') &&
+    storageOwner.includes('document.ObjectField("resolution")') &&
+    storageOwner.includes('resolution.StringField("note")'),
+  "event review persisted loader is not structurally bound to top-level and nested notes");
+  assert(storageOwner.includes(
+    "structured_notes.review_note.value_or(\"\")") &&
+    storageOwner.includes("structured_notes.resolution_note.value_or(\"\")") &&
+    !storageOwner.includes(
+      'state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));'),
+  "event review loader still permits nested note collision");
+  assert(!runtimeSource.includes("buildEventReviewSeedRequestPayload({") &&
+    runtimeSource.includes("const requestedReview = {") &&
+    runtimeSource.includes("note: `${reviewPayload.note} ${eventId}`"),
+  "event review seed no longer sends only the official top-level review note");
+  const bindStart = pageScript.indexOf("function bindEventReviewActions()");
+  const bindEnd = pageScript.indexOf("function bindEvidenceBundleActions()", bindStart);
+  const bindBlock = pageScript.slice(bindStart, bindEnd);
+  assert(bindBlock.includes(
+    "note: row.querySelector('[data-event-review-field=\"note\"]')?.value || ''") &&
+    !bindBlock.includes("resolution:") &&
+    !bindBlock.includes("resolutionNote:"),
+  "official Ops event review UI payload mirrors review note into resolution state");
+  assert(eventReviewSeedSiblingCaseIds.length === 7 &&
+    JSON.stringify(eventReviewSeedSiblingCaseIds) === JSON.stringify(
+      ["EVT-019", "EVT-020", "EVT-021", "EVT-037", "EVT-061", "EVT-066", "EVT-068"]),
+  "event review note sibling audit scope drift");
+});
+
+check("records.records fixture family uses product dispatch with exact readback and cleanup", () => {
+  assert(JSON.stringify(eventRecordFixtureFamilyCaseIds) ===
+    JSON.stringify(["EVT-007", "EVT-020", "EVT-023", "EVT-026", "EVT-048", "EVT-049"]),
+  "records.records fixture family audit drift");
+  const eventRecordCases = eventExactOracleCaseIds().filter(caseId => {
+    const seedKind = eventExactOracleFor(caseId)?.seed?.kind;
+    return Number(eventExactSeedMaterializerRegistry[seedKind]?.eventRecords || 0) > 0;
+  });
+  assert(eventRecordCases.length === 43,
+    `EventRecord materializer case-count drift: ${eventRecordCases.length}`);
+  assert(eventRecordCases.filter(caseId => eventRecordFixtureFamilyCaseIds.includes(caseId)).length === 6,
+    "product dispatcher scope is not exactly the six records.records cases");
+  const expectedFamilyTable = {
+    "EVT-007": { route: "/ops/events", count: 2, statuses: ["open", "archived"] },
+    "EVT-020": { route: "/ops/events", count: 1, statuses: ["open"] },
+    "EVT-023": {
+      route: "/ops/dashboard",
+      count: 1,
+      statuses: ["open"],
+      safeDigestIdentity: "event-id-as-scenario",
+    },
+    "EVT-026": { route: "/ops/dashboard", count: 1, statuses: ["open"] },
+    "EVT-048": { route: "/ops/dashboard", count: 1, statuses: ["open"] },
+    "EVT-049": { route: "/ops/events", count: 1, statuses: ["open"] },
+  };
+  for (const [caseId, expectedFamily] of Object.entries(expectedFamilyTable)) {
+    const expectation = eventRecordFixtureFamilyExpectations[caseId];
+    assert(expectation?.route === expectedFamily.route &&
+      expectation.records.length === expectedFamily.count &&
+      JSON.stringify(expectation.records.map(record => record.status)) ===
+        JSON.stringify(expectedFamily.statuses) &&
+      expectation.records.every(record => record.evidence === "snapshot-and-clip") &&
+      (expectedFamily.safeDigestIdentity
+        ? expectation.records.every(record =>
+            record.safeDigestIdentity === expectedFamily.safeDigestIdentity)
+        : expectation.records.every(record => record.safeDigestIdentity === undefined)),
+    `${caseId} records.records expected identity table drift`);
+    const expectedRecords = eventRecordFixtureFamilyExpectedRecords({
+      caseId,
+      fixtureId: `${caseId.toLowerCase()}-review4-fixture`,
+      sourceId: `${caseId.toLowerCase()}-source`,
+      streamId: `${caseId.toLowerCase()}-canonical-source`,
+    });
+    assert(expectedRecords.every((record, index) =>
+      record.eventId.startsWith(`${caseId.toLowerCase()}-review4-fixture`) &&
+      record.sourceId === `${caseId.toLowerCase()}-source` &&
+      record.streamId === `${caseId.toLowerCase()}-canonical-source` &&
+      record.route === expectedFamily.route &&
+      record.status === expectedFamily.statuses[index] &&
+      (expectedFamily.safeDigestIdentity
+        ? record.scenarioName === record.eventId
+        : record.scenarioName === undefined)),
+    `${caseId} case-specific EventRecord dispatcher identity drift`);
+  }
+  assert(eventExactSeedMaterializerRegistry["active-and-archived-event-records"].evidence === true,
+    "EVT-007 snapshot-filtered records must materialize product evidence");
+  for (const caseId of eventRecordFixtureFamilyCaseIds) {
+    const spec = eventExactOracleFor(caseId);
+    assert(spec.requests.some(request => (request.assertions || []).some(assertion =>
+      assertion.path === "records.records" &&
+      String(assertion.operator || "").startsWith("contains-fixture"))),
+    `${caseId} records.records family assertion missing`);
+  }
+  for (const snippet of [
+    "dispatchEventRecordFixtureViaProductStorage",
+    "v390_ui_event_record_fixture_dispatch.cpp",
+    "validateEventRecordFixtureFamilyReadback",
+    "cleanupEventRecordFixtureArtifacts",
+    "processStateDisposed",
+  ]) assert(runtimeSource.includes(snippet), `product EventRecord fixture lifecycle missing: ${snippet}`);
+  const materializerStart = runtimeSource.indexOf("async function materializeEventExactSeed(");
+  const materializerEnd = runtimeSource.indexOf("\n  async function ", materializerStart + 1);
+  const materializerSource = runtimeSource.slice(materializerStart, materializerEnd);
+  const dispatchBranchStart = materializerSource.indexOf("if (familyRecord) {");
+  const directSeedBranchStart = materializerSource.indexOf("} else {", dispatchBranchStart);
+  const dispatchBranch = materializerSource.slice(dispatchBranchStart, directSeedBranchStart);
+  const directSeedBranch = materializerSource.slice(directSeedBranchStart,
+    materializerSource.indexOf("\n      }", directSeedBranchStart) + 8);
+  assert(dispatchBranchStart >= 0 &&
+    dispatchBranch.includes("dispatchEventRecordFixtureViaProductStorage({") &&
+    !dispatchBranch.includes("seedEventRecordFixture(eventPath, {") &&
+    directSeedBranch.includes("seedEventRecordFixture(eventPath, {") &&
+    !directSeedBranch.includes("dispatchEventRecordFixtureViaProductStorage({"),
+  "EventRecord product dispatcher is not limited to the six records.records cases");
+  const helperSource = fs.readFileSync(
+    path.join(rootDir, "scripts/internal/v390_ui_event_record_fixture_dispatch.cpp"), "utf8");
+  assert(helperSource.includes("DispatchEventRecordsForApplication(request)") &&
+    helperSource.includes("QueryEventRecordsForApplication(query, &result, &error)") &&
+    helperSource.includes("StopEventStorage()") &&
+    helperSource.includes("ParseStrictJsonObjectDocument(record_json") &&
+    helperSource.includes("StrictJsonObjectField(record, \"metadata\")") &&
+    helperSource.includes("StrictJsonStringField(metadata, \"sourceId\")") &&
+    helperSource.includes("StrictJsonStringField(record, \"streamId\")") &&
+    helperSource.includes("StrictJsonHasTopLevelField(record, \"snapshotPath\")") &&
+    helperSource.includes("StrictJsonHasTopLevelField(record, \"clipPath\")") &&
+    !helperSource.includes("ContainsJsonString"),
+  "test-owned helper does not use the product EventRecord dispatch/query lifecycle");
+
+  const expected = [
+    { eventId: "evt-fixture", sourceId: "9001", streamId: "source-9001", route: "/ops/events", status: "open", evidence: "snapshot-and-clip" },
+    { eventId: "evt-fixture-state-1", sourceId: "9001", streamId: "source-9001", route: "/ops/events", status: "archived", evidence: "snapshot-and-clip" },
+  ];
+  const validResponse = {
+    records: {
+      records: expected.map(record => ({
+        eventId: record.eventId,
+        streamId: record.streamId,
+        status: record.status,
+        metadata: { sourceId: record.sourceId, route: record.route },
+        snapshotPath: `/snapshot/${record.eventId}.jpg`,
+        clipPath: `/clip/${record.eventId}.mp4`,
+      })),
+    },
+  };
+  assert(validateEventRecordFixtureFamilyReadback({
+    caseId: "EVT-007",
+    fixtureId: "evt-fixture",
+    expectedRecords: expected,
+    response: validResponse,
+  }).matchedCount === 2, "valid records.records family readback rejected");
+  const rejected = mutation => {
+    let failed = false;
+    try {
+      validateEventRecordFixtureFamilyReadback({
+        caseId: "EVT-007",
+        fixtureId: "evt-fixture",
+        expectedRecords: expected,
+        response: mutation(structuredClone(validResponse)),
+      });
+    } catch {
+      failed = true;
+    }
+    return failed;
+  };
+  assert(rejected(value => { value.records.records.pop(); return value; }),
+    "missing/readback-filtered fixture EventRecord produced false PASS");
+  assert(rejected(value => { value.records.records.push(structuredClone(value.records.records[0])); return value; }),
+    "duplicate fixture EventRecord produced false PASS");
+  assert(rejected(value => { value.records.records[0].eventId = "wrong"; return value; }),
+    "wrong fixture identity produced false PASS");
+  assert(rejected(value => { value.records.records[0].streamId = "wrong"; return value; }),
+    "wrong fixture canonical stream source produced false PASS");
+  assert(rejected(value => { value.records.records[0].metadata.sourceId = "wrong"; return value; }),
+    "wrong fixture registry source produced false PASS");
+  assert(rejected(value => { value.records.records[0].status = "wrong"; return value; }),
+    "wrong fixture status produced false PASS");
+  assert(rejected(value => { value.records.records[0].metadata.route = "/wrong"; return value; }),
+    "wrong fixture route produced false PASS");
+  assert(rejected(value => { value.records.records[0].snapshotPath = ""; return value; }),
+    "empty fixture snapshot evidence produced false PASS");
+  assert(rejected(value => { delete value.records.records[0].snapshotPath; return value; }),
+    "missing fixture snapshot field produced false PASS");
+  assert(rejected(value => { value.records.records[0].clipPath = ""; return value; }),
+    "empty fixture clip evidence produced false PASS");
+  assert(rejected(value => { delete value.records.records[0].clipPath; return value; }),
+    "missing fixture clip field produced false PASS");
+  let mismatch = "";
+  try {
+    validateEventRecordFixtureFamilyReadback({
+      caseId: "EVT-007",
+      fixtureId: "evt-fixture",
+      expectedRecords: expected,
+      response: (() => {
+        const value = structuredClone(validResponse);
+        value.records.records[0].metadata.sourceId = "wrong";
+        return value;
+      })(),
+    });
+  } catch (error) {
+    mismatch = String(error?.message || error);
+  }
+  assert(mismatch.includes("[metadata.sourceId]") &&
+    mismatch.includes("expectedSha256=") &&
+    mismatch.includes("actualSha256=") &&
+    !mismatch.includes("wrong"),
+  "source mismatch diagnostic is not field-specific and raw-safe");
+
+  const helperRoot = fs.mkdtempSync(path.join(os.tmpdir(), "v390-event-record-helper-"));
+  temporaryDirs.push(helperRoot);
+  const helperBinary = path.join(helperRoot, "fixture-dispatch");
+  const compile = spawnSync(process.env.CXX || "c++", [
+    "-std=c++17",
+    "-pthread",
+    "-DMEDIA_SERVER_USE_GSTREAMER=0",
+    `-I${path.join(rootDir, "include")}`,
+    path.join(rootDir, "scripts/internal/v390_ui_event_record_fixture_dispatch.cpp"),
+    path.join(rootDir, "src/ingress/event_storage_application_service.cpp"),
+    path.join(rootDir, "src/analysis/event_storage.cpp"),
+    path.join(rootDir, "src/analysis/snapshot_encoder.cpp"),
+    path.join(rootDir, "src/domain/strict_json.cpp"),
+    "-o",
+    helperBinary,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(compile.status === 0,
+    `EventRecord helper compile failed:\n${compile.stdout || ""}\n${compile.stderr || ""}`);
+  const storagePath = path.join(helperRoot, "events.jsonl");
+  const snapshotsPath = path.join(helperRoot, "snapshots");
+  const clipsPath = path.join(helperRoot, "clips");
+  fs.mkdirSync(snapshotsPath, { recursive: true });
+  fs.mkdirSync(clipsPath, { recursive: true });
+  const helperRun = spawnSync(helperBinary, [
+    storagePath,
+    snapshotsPath,
+    clipsPath,
+    "evt-fixture",
+    "9001",
+    "source-9001",
+    "open",
+    "presence",
+    "/ops/events",
+    "review4-exact",
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(helperRun.status === 0,
+    `EventRecord helper smoke failed:\n${helperRun.stdout || ""}\n${helperRun.stderr || ""}`);
+  const helperEvidence = JSON.parse(String(helperRun.stdout || "").trim());
+  const digest = value => crypto.createHash("sha256").update(String(value || "")).digest("hex");
+  assert(helperEvidence.productDispatch.observedSourceId === "9001" &&
+    helperEvidence.productDispatch.observedStreamId === "source-9001" &&
+    helperEvidence.productDispatch.observedRoute === "/ops/events" &&
+    helperEvidence.productDispatch.observedStatus === "open" &&
+    helperEvidence.canonicalQuery.observedSourceId === "9001" &&
+    helperEvidence.canonicalQuery.observedStreamId === "source-9001" &&
+    helperEvidence.canonicalQuery.observedRoute === "/ops/events" &&
+    helperEvidence.canonicalQuery.observedStatus === "open" &&
+    helperEvidence.canonicalQuery.snapshotPathPresent === true &&
+    helperEvidence.canonicalQuery.clipPathPresent === true &&
+    digest(helperEvidence.productDispatch.observedSourceId) === digest("9001") &&
+    digest(helperEvidence.canonicalQuery.observedStreamId) === digest("source-9001"),
+  "EventRecord helper actual dispatch/query evidence is not independently bound");
+  assert(runtimeSource.includes("product EventRecord fixture artifact cleanup residue remains"),
+    "fixture cleanup residue is not fail-closed");
+});
+
+check("fixture-safe incident digests bind one authoritative event to one safe summary", () => {
+  const runtimeCatalog = buildExactRuntimeOracleCatalog({ implementation });
+  const affected = runtimeCatalog
+    .filter(spec => requiresFixtureSafeIncidentDigest(spec))
+    .map(spec => spec.caseId);
+  assert(JSON.stringify(affected) ===
+    JSON.stringify(["EVT-023", "CLIENT-006", "CLIENT-007", "CLIENT-023"]),
+  `fixture-safe incident digest audit scope drift: ${affected.join(",")}`);
+  assert(runtimeSource.includes('"/client/dashboard", "/client/events", "/client/live"') &&
+    runtimeSource.includes("scenarioName: fixtureSafeIncidentDigestRequired ? context.fixtureId : \"\"") &&
+    runtimeSource.includes("scenarioName: typedRecordFields.scenarioName || familyRecord.scenarioName ||") &&
+    runtimeSource.includes("validateFixtureSafeIncidentDigestReadback({"),
+  "fixture-safe incident digest materialization is not bound at both runtime boundaries");
+  assert(runtimeSource.includes("expectedFixtureIdentity") &&
+    runtimeSource.includes('source: "materialized-event-record-fixture"') &&
+    runtimeSource.includes("eventIdentityDigest: sha256Text(canonicalFixtureId)") &&
+    runtimeSource.includes("EXPECTED_FIXTURE_DIGEST_MISSING"),
+  "EVT-023/026 expected fixture digest is not generated once by the test-owned materializer");
+  assert(runnerSource.includes("assertExpectedFixtureDigestBeforeBrowser(item, caseContext)") &&
+    runnerSource.indexOf("assertExpectedFixtureDigestBeforeBrowser(item, caseContext)") <
+      runnerSource.indexOf("browser = await adapter.openPage({"),
+  "expected fixture digest is not fail-closed before browser startup");
+
+  const fixtureId = "fixture-safe-incident";
+  const expectedEventRecords = eventRecordFixtureFamilyExpectedRecords({
+    caseId: "EVT-023",
+    fixtureId,
+    sourceId: "fixture-source",
+    streamId: "fixture-stream",
+  });
+  const authoritativeRecordResponse = {
+    records: {
+      records: [{
+        eventId: fixtureId,
+        streamId: "fixture-stream",
+        status: "open",
+        scenarioName: fixtureId,
+        metadata: { sourceId: "fixture-source", route: "/ops/dashboard" },
+        snapshotPath: "/snapshot/fixture.jpg",
+        clipPath: "/clip/fixture.mp4",
+      }],
+    },
+  };
+  assert(validateEventRecordFixtureFamilyReadback({
+    caseId: "EVT-023",
+    fixtureId,
+    expectedRecords: expectedEventRecords,
+    response: authoritativeRecordResponse,
+  }).matchedCount === 1,
+  "EVT-023 authoritative EventRecord safe digest identity was rejected");
+  let scenarioMismatchRejected = false;
+  try {
+    const mismatch = structuredClone(authoritativeRecordResponse);
+    mismatch.records.records[0].scenarioName = "review4-exact";
+    validateEventRecordFixtureFamilyReadback({
+      caseId: "EVT-023",
+      fixtureId,
+      expectedRecords: expectedEventRecords,
+      response: mismatch,
+    });
+  } catch {
+    scenarioMismatchRejected = true;
+  }
+  assert(scenarioMismatchRejected,
+    "EVT-023 authoritative EventRecord scenario identity mismatch produced false PASS");
+  const validResponse = {
+    events: {
+      recent: [{
+        eventId: fixtureId,
+        eventType: "presence",
+        status: "open",
+      }],
+      incidentDigest: {
+        schema: "media-server.client.incident-digest.v1",
+        viewerSafe: true,
+        itemCount: 1,
+        digestItems: [{
+          summaryText: `${fixtureId} / open`,
+          eventType: "presence",
+          status: "open",
+          severity: "attention",
+          time: 1,
+        }],
+      },
+    },
+  };
+  const valid = validateFixtureSafeIncidentDigestReadback({
+    caseId: "EVT-023",
+    fixtureId,
+    response: validResponse,
+  });
+  assert(valid.authoritativeFixtureCandidateCount === 1 &&
+    valid.digestItemCandidateCount === 1 &&
+    /^[a-f0-9]{64}$/.test(valid.eventIdSha256) &&
+    /^[a-f0-9]{64}$/.test(valid.summaryTextSha256),
+  "valid fixture-safe incident digest evidence was rejected or retained raw identity");
+  const rejected = mutation => {
+    try {
+      validateFixtureSafeIncidentDigestReadback({
+        caseId: "EVT-023",
+        fixtureId,
+        response: mutation(structuredClone(validResponse)),
+      });
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  assert(rejected(value => { value.events.recent = []; return value; }),
+    "missing authoritative fixture event produced false PASS");
+  assert(rejected(value => { value.events.recent.push(structuredClone(value.events.recent[0])); return value; }),
+    "duplicate authoritative fixture event produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.itemCount = 2; return value; }),
+    "incident digest itemCount drift produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.digestItems[0].summaryText = "unrelated / open"; return value; }),
+    "unrelated safe summary produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.digestItems.push(structuredClone(value.events.incidentDigest.digestItems[0])); return value; }),
+    "duplicate fixture-safe digest item produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.digestItems[0].eventType = "wrong"; return value; }),
+    "fixture-safe digest eventType mismatch produced false PASS");
+  assert(rejected(value => { value.events.incidentDigest.digestItems[0].status = "closed"; return value; }),
+    "fixture-safe digest status mismatch produced false PASS");
+});
+
+check("EVT-023/026 expected digest binds one materialized EventRecord identity before browser startup", () => {
+  for (const caseId of ["EVT-023", "EVT-026"]) {
+    const spec = eventExactOracleFor(caseId);
+    const fixtureId = `${caseId.toLowerCase()}-materialized-fixture`;
+    const records = eventRecordFixtureFamilyExpectedRecords({
+      caseId,
+      fixtureId,
+      sourceId: "fixture-source",
+      streamId: "fixture-stream",
+    });
+    const materialized = records.filter(record => record.eventId === fixtureId);
+    assert(spec.seed.fixtureId === "{fixtureId}" && materialized.length === 1,
+      `${caseId} template drift or materialized fixture cardinality was accepted`);
+    assert(materialized[0].eventId === fixtureId,
+      `${caseId} expected fixture identity did not derive from the materialized EventRecord family`);
+  }
+  assert(runtimeSource.includes('spec?.seed?.fixtureId || "") === "{fixtureId}"') &&
+    runtimeSource.includes("canonicalRecords.length === 1") &&
+    runtimeSource.includes("eventIds.filter(eventId => eventId === context.fixtureId).length === 1") &&
+    runtimeSource.includes("eventId: canonicalFixtureId") &&
+    runtimeSource.includes('source: "materialized-event-record-fixture"'),
+  "expected fixture digest can drift from exactly one materialized EventRecord identity");
+  const attestation = buildCaseCleanupAttestation({
+    primaryFailure: new Error("EXPECTED_FIXTURE_DIGEST_MISMATCH"),
+    cleanupFailure: null,
+    browserCloseFailure: null,
+    browserCloseAttempted: false,
+    browserContextCreated: false,
+    caseRuntimeRestored: true,
+  });
+  assert(attestation.pass === true && attestation.caseRuntimeRestored === true &&
+    attestation.browserContextClosed === true,
+  "pre-browser expected-digest failure does not retain a passing cleanup attestation");
+  assert(runnerSource.indexOf("caseContext = await caseRuntime.prepareCase(item);") <
+    runnerSource.indexOf("assertExpectedFixtureDigestBeforeBrowser(item, caseContext)") &&
+    runnerSource.indexOf("assertExpectedFixtureDigestBeforeBrowser(item, caseContext)") <
+      runnerSource.indexOf("browser = await adapter.openPage({") &&
+    runnerSource.includes("actualBrowserExecution: browserContextCreated") &&
+    runnerSource.includes("const cleanupResults = await caseRuntime.restoreCase(item, caseContext, browser);"),
+  "pre-browser expected-digest failure can skip restore or claim browser execution");
+  assert(runnerSource.includes("buildDiagnosticFailureProvenance({") &&
+    runnerSource.includes('failurePhase === "browser-case-execution"') &&
+    runnerSource.includes('"TypeError", "ReferenceError", "SyntaxError", "RangeError"') &&
+    runnerSource.includes("serializeDiagnosticPrimaryFailureEvidence(primaryFailure)") &&
+    runnerSource.includes("adapter.isPlaywrightTimeoutError(primaryFailure)") &&
+    runnerSource.includes("error?.primaryFailureEvidence?.structuredEvidence") &&
+    runnerSource.includes("assertionFailureClasses.has(structuredFailureClass)") &&
+    runnerSource.includes('classificationSource = assertionFailureClasses.has(structuredFailureClass)') &&
+    runnerSource.includes("playwrightTimeoutClassAttested") &&
+    runnerSource.includes("failureClass === explicitFailureClass") &&
+    !runnerSource.includes("assertionFailureClasses.has(failureClass) || structuredEvidencePresent") &&
+    runnerSource.includes("structuredEvidencePresent") &&
+    lifecycleSource.includes("diagnosticStructuredAssertionFailureClass(primaryStructuredEvidence)") &&
+    lifecycleSource.includes("diagnosticStructuredAssertionEvidencePresent(primaryStructuredEvidence)") &&
+    lifecycleSource.includes("provenance.errorName === primaryFailureEvidence.errorName") &&
+    lifecycleSource.includes("provenance.structuredEvidencePresent === false") &&
+    lifecycleSource.includes("observedStructuredEvidencePresent === false") &&
+    runnerSource.includes("continuationEligible"),
+  "diagnostic failure lacks explicit browser-assertion provenance");
+});
+
+check("EVT-004 diagnostic log evidence is redacted and byte-restored before native execution", () => {
+  const verifier = path.join(rootDir, "scripts/internal/verify_v390_evt004_diagnostic_log_redaction_contract.mjs");
+  const run = spawnSync(process.execPath, [verifier], {
+    cwd: rootDir,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const output = `${run.stdout || ""}\n${run.stderr || ""}`;
+  assert(run.status === 0, `EVT-004 diagnostic redaction contract failed:\n${output}`);
+  assert(output.includes("- pass: 5") && output.includes("- fail: 0"),
+    `EVT-004 diagnostic redaction summary drift:\n${output}`);
+});
+
+check("audited route-local primary controls match their exact runtime oracles", () => {
+  const runtimeById = new Map(buildExactRuntimeOracleCatalog({ implementation })
+    .map(item => [item.caseId, item]));
+  const expected = new Map([
+    ["EVT-003", ["/ops/dashboard", "#dashRootCauseList", "read-only-state"]],
+    ["EVT-018", ["/ops/events", "#alertDeliveryTest", "persisted-mutation"]],
+    ["EVT-022", ["/ops/events", "#event-review-audit-list", "read-only-state"]],
+    ["SAFE-053", ["/ops/events", "[data-incident-rule-draft-route]", "read-only-state"]],
+    ["SAFE-060", ["/ops/events", '[data-testid="ops-operational-action-pack"]', "read-only-state"]],
+    ["SAFE-061", ["/ops/events", '[data-testid="ops-rule-what-if-preview"]', "read-only-state"]],
+    ["CLIENT-002", ["/client/live", '[data-tile="0"] [data-action="toggle-playback"]', "actionable"]],
+    ["CLIENT-018", ["/client/live", ".client-preview-redaction-strip", "read-only-state"]],
+    ["CLIENT-021", ["/client/live", '[data-tile="0"] [data-mode-action="va-overlay"]', "actionable"]],
+  ]);
+  for (const [caseId, [route, selector, workflowClass]] of expected) {
+    const item = manifest.cases.find(candidate => candidate.caseId === caseId);
+    const runtime = runtimeById.get(caseId);
+    const runtimeSelector = typeof runtime?.visibleControl === "string"
+      ? runtime.visibleControl
+      : runtime?.visibleControl?.selector;
+    assert(runtime?.route === route && runtimeSelector === selector,
+      `${caseId} exact runtime route/control drift`);
+    assert(item?.workflow.workflowClass === workflowClass &&
+      item.workflow.primaryControl.route === route &&
+      item.workflow.primaryControl.selector === selector &&
+      item.workflow.primaryControl.expectedVisible === true,
+    `${caseId} generated route-local primary control drift`);
+  }
+});
+
+check("endpoint source fixtures intentionally cross the published canonical-media baseline without bypassing sourceId identity", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const seed = readJson("test/fixtures/manual_ui_fulltest_va_seed_matrix.json");
+  const baselineFile = seed.sources.find(item => item.kind === "file" && item.file === "sample_h264.mp4");
+  assert(baselineFile, "published acceptance baseline sample_h264.mp4 source is missing");
+  const baseline = [{
+    sourceId: "9001",
+    canonicalSourceKey: `file:${baselineFile.file}`,
+    enabled: true,
+  }];
+  const endpointSources = new Map([
+    ["SRC-008", rebuilt.cases.find(item => item.caseId === "SRC-008")?.workflow.inputs
+      .find(input => input.kind === "endpoint-action-fixture")?.actualValue?.body],
+    ["SRC-010", rebuilt.cases.find(item => item.caseId === "SRC-010")?.workflow.inputs
+      .find(input => input.kind === "endpoint-action-fixture")?.actualValue?.setup?.source],
+    ["SRC-019", rebuilt.cases.find(item => item.caseId === "SRC-019")?.workflow.inputs
+      .find(input => input.kind === "endpoint-action-fixture")?.actualValue?.setup?.source],
+  ]);
+  const expectedFixtureIds = new Map([
+    ["SRC-008", "3900008"],
+    ["SRC-010", "3900010"],
+    ["SRC-019", "3900019"],
+  ]);
+  for (const [caseId, expectedFixtureId] of expectedFixtureIds) {
+    const item = rebuilt.cases.find(candidate => candidate.caseId === caseId);
+    const setup = item?.workflow.setup.find(value => value.kind === "seed-reviewed-state");
+    const input = item?.workflow.inputs.find(value => value.kind === "endpoint-action-fixture")?.actualValue;
+    assert(setup?.fixtureId === expectedFixtureId,
+      `${caseId} fixtureId is not in the deterministic numeric source namespace`);
+    assert(input?.body?.sourceId === expectedFixtureId ||
+      (input?.setup?.source?.sourceId === expectedFixtureId &&
+        input?.setup?.publishedView?.viewId === expectedFixtureId &&
+        input?.setup?.publishedView?.sourceId === expectedFixtureId),
+    `${caseId} source/view identity did not propagate the numeric fixtureId`);
+  }
+  const legacy = { ...endpointSources.get("SRC-008") };
+  delete legacy.allowDuplicateSource;
+  assert(simulateSourceWrite(baseline, legacy, { method: "POST" }).status === 409,
+    "legacy SRC-008 fixture did not reproduce the duplicate canonical source 409");
+  for (const [caseId, source] of endpointSources) {
+    assert(source?.allowDuplicateSource === true,
+      `${caseId} endpoint source fixture does not explicitly allow the acceptance-owned canonical media duplicate`);
+    const result = simulateSourceWrite(baseline, source, { method: caseId === "SRC-008" ? "POST" : "PUT" });
+    assert(result.status === 201 && result.source?.sourceId === source.sourceId && result.source?.enabled === true,
+      `${caseId} canonical-collision fixture did not produce 201 plus authoritative source readback`);
+  }
+  const idCollision = simulateSourceWrite(baseline, {
+    ...endpointSources.get("SRC-008"),
+    sourceId: "9001",
+    allowDuplicateSource: true,
+  }, { method: "POST" });
+  assert(idCollision.status === 409 && idCollision.reason === "sourceId already exists",
+    "allowDuplicateSource bypassed a sourceId collision");
+  const nonNumeric = simulateSourceWrite(baseline, {
+    ...endpointSources.get("SRC-008"),
+    sourceId: "src-008-review4-fixture",
+  }, { method: "POST" });
+  assert(nonNumeric.status === 400 && nonNumeric.reason === "sourceId must be numeric",
+    "mock-only source contract bypassed the product numeric parser");
+});
+
+check("inactive-or-equal-before cleanup accepts absent or disabled state and rejects enabled residue", () => {
+  assert(assertInactiveOrEqualBeforeCleanup({
+    caseId: "SRC-008",
+    observed: { source: null, publishedView: null },
+    expectedRecord: null,
+  }).mode === "inactive", "pre-mutation absent cleanup was rejected");
+  assert(assertInactiveOrEqualBeforeCleanup({
+    caseId: "SRC-008",
+    observed: { source: { sourceId: "src-008", enabled: false }, publishedView: null },
+    expectedRecord: null,
+  }).mode === "inactive", "post-mutation disabled cleanup was rejected");
+  let rejected = false;
+  try {
+    assertInactiveOrEqualBeforeCleanup({
+      caseId: "SRC-008",
+      observed: { source: { sourceId: "src-008", enabled: true }, publishedView: null },
+      expectedRecord: null,
+    });
+  } catch (error) {
+    rejected = String(error.message).includes("suite-created source/view state was not disabled");
+  }
+  assert(rejected, "enabled suite-created source state passed cleanup");
+});
+
+function simulateSourceWrite(existingSources, payload, { method } = {}) {
+  const sourceId = String(payload?.sourceId || "");
+  if (!/^[0-9]+$/.test(sourceId)) {
+    return { status: 400, reason: "sourceId must be numeric" };
+  }
+  const canonicalSourceKey = payload?.kind === "file" && payload?.file
+    ? `file:${payload.file}`
+    : String(payload?.canonicalSourceKey || "");
+  if (method === "POST" && existingSources.some(source => source.sourceId === sourceId)) {
+    return { status: 409, reason: "sourceId already exists" };
+  }
+  const duplicate = existingSources.find(source =>
+    source.canonicalSourceKey === canonicalSourceKey && source.sourceId !== sourceId);
+  if (duplicate && payload?.allowDuplicateSource !== true) {
+    return { status: 409, reason: "duplicate source", duplicateSourceId: duplicate.sourceId };
+  }
+  return {
+    status: existingSources.some(source => source.sourceId === sourceId) ? 200 : 201,
+    source: { sourceId, canonicalSourceKey, enabled: payload?.enabled !== false },
+  };
+}
+
+check("non-canonical implementation review metadata does not invalidate the exact 424 manifest", () => {
+  const generated = buildNativeExactManifest({ canonical, implementation });
+  const metadataOnly = structuredClone(implementation);
+  const unrelated = metadataOnly.items.find(item => item.manualUiCaseId === null);
+  assert(unrelated?.review?.reason, "non-canonical implementation review fixture missing");
+  unrelated.review.reason = `${unrelated.review.reason}|metadata-only-contract-delta`;
+  const result = validateNativeExactManifest({ manifest: generated, canonical, implementation: metadataOnly });
+  assert(result.caseCount === 424, "metadata-only delta changed exact case coverage");
+
+  const verifierMetadataOnly = structuredClone(implementation);
+  const exactItem = verifierMetadataOnly.items.find(item => item.manualUiCaseId === "UI-001");
+  assert(exactItem?.semanticEvidence?.verifierAssertion?.assertedSemanticDigest,
+    "UI-001 verifier assertion fixture missing");
+  exactItem.semanticEvidence.verifierAssertion.assertedSemanticDigest = "0".repeat(64);
+  const verifierMetadataResult = validateNativeExactManifest({
+    manifest: generated,
+    canonical,
+    implementation: verifierMetadataOnly,
+  });
+  assert(verifierMetadataResult.caseCount === 424,
+    "verifier-file assertion metadata invalidated the exact case projection");
+});
+
+check("exact-case implementation projection drift and whole-file fallback are rejected", () => {
+  const generated = buildNativeExactManifest({ canonical, implementation });
+  const relevant = structuredClone(implementation);
+  const exactItem = relevant.items.find(item => item.manualUiCaseId === "UI-003");
+  assert(exactItem?.semanticEvidence?.stateOracle, "UI-003 state oracle fixture missing");
+  exactItem.semanticEvidence.stateOracle.expectedBehavior += " projection-drift";
+  expectManifestInvalid(generated, canonical, relevant, "implementation case projection drift");
+
+  const wholeFileFallback = structuredClone(generated);
+  wholeFileFallback.sourceBindings.implementationSha256 = "0".repeat(64);
+  expectManifestInvalid(wholeFileFallback, canonical, implementation,
+    "whole-file implementation source binding is forbidden");
+});
+
+check("endpoint action execution inputs retain full runtime values but trace inputs are release-safe digests", () => {
+  const item = manifest.cases.find(candidate => candidate.caseId === "SRC-031");
+  assert(item, "SRC-031 native case is missing");
+  const sourceInputs = item.workflow.inputs;
+  const sourceBefore = JSON.stringify(sourceInputs);
+  const traceInputs = nativeExactCasesLib.traceSafeWorkflowInputs(sourceInputs);
+  const serialized = JSON.stringify(traceInputs);
+  const endpoint = traceInputs.find(input => input.kind === "endpoint-action-fixture");
+  assert(endpoint?.actualValue?.method === "POST" &&
+    endpoint?.actualValue?.path === "/ops/api/onvif/import-draft" &&
+    endpoint?.actualValue?.body?.retention === "digest-only" &&
+    /^[0-9a-f]{64}$/.test(endpoint?.actualValue?.body?.sha256 || ""),
+  "endpoint action trace-safe body attestation is incomplete");
+  assert(!/(?:https?|rtsp|rtsps):\/\//i.test(serialized) &&
+    !/credentialRef|operator-entered-secret|profile-live-main/.test(serialized),
+  "endpoint action trace retained forbidden fixture material");
+  assert(JSON.stringify(sourceInputs) === sourceBefore &&
+    /rtsp:\/\//i.test(sourceBefore),
+  "trace projection mutated or weakened the execution-owned input");
+});
+
+check("admin-only ops users cases and runtime role schema stay authoritative", () => {
+  const canonicalAdminCases = canonical.cases.filter(item => normalizeProductScreenRoute(item.route) === "/ops/users");
+  const nativeAdminCases = manifest.cases.filter(item => item.screenRoute === "/ops/users");
+  assert(canonicalAdminCases.length === 20, `canonical /ops/users case count mismatch: ${canonicalAdminCases.length}`);
+  assert(nativeAdminCases.length === 20, `native /ops/users case count mismatch: ${nativeAdminCases.length}`);
+  assert(canonicalAdminCases.every(item => item.accountRole === "admin"),
+    "canonical /ops/users cases must use the product admin role");
+  assert(nativeAdminCases.every(item => item.accountRole === "admin"),
+    "native /ops/users cases must use the product admin role");
+
+  const requested = canonicalRequestedProjection({
+    canonicalRoute: "/ops/users",
+    accountRole: "admin",
+    viewport: { width: 390, height: 844 },
+    theme: "light",
+    controlAction: { selector: "#user-save-selected", actionAnchor: "CreateAuthUser" },
+  });
+  const observed = expectedRuntimeObservation({
+    accountRole: "admin",
+    viewport: { width: 390, height: 844 },
+    theme: "light",
+    screenRoute: "/ops/users",
+    workflow: {
+      primaryControl: {
+        accountRole: "admin",
+        route: "/ops/users",
+        selector: "#user-save-selected",
+        applicability: "required",
+        expectedVisible: true,
+        expectedEnabled: true,
+      },
+    },
+  });
+  assert(validateRequestedObservedEnvelope({ requested, observed }).length === 0,
+    "requested/observed runtime schema rejected the product admin role");
+
+  const invalidCanonical = structuredClone(canonical);
+  invalidCanonical.cases[0].accountRole = "integrator";
+  let invalidRoleMessage = "";
+  try {
+    buildNativeExactManifest({ canonical: invalidCanonical, implementation });
+  } catch (error) {
+    invalidRoleMessage = String(error?.message || error);
+  }
+  assert(invalidRoleMessage.includes("unsupported canonical account role"),
+    `unsupported canonical account role was accepted: ${invalidRoleMessage}`);
+});
+
+check("API ownership routes normalize to product screens", () => {
+  const expected = new Map([
+    ["/", "/login"],
+    ["/logout", "/ops/home"],
+    ["/ops/api/events/reviews", "/ops/events"],
+    ["/client/api/views/{id}/events", "/client/events"],
+    ["/ops/api/source-registry/reliability-timeline", "/ops/sources"],
+    ["/ops/api/onvif/credential-provider-status", "/ops/sources"],
+    ["/ops/api/audit", "/ops/users"],
+  ]);
+  for (const [source, screen] of expected) {
+    assert(normalizeProductScreenRoute(source) === screen, `${source} did not normalize to ${screen}`);
+  }
+  for (const item of manifest.cases.filter(value => value.disposition === "native-executable")) {
+    assert(!item.screenRoute.includes("/api/"), `${item.caseId} retains raw API screen route`);
+  }
+  const rootEntry = manifest.cases.find(item => item.caseId === "UI-001");
+  assert(rootEntry?.canonicalRoute === "/" && rootEntry?.screenRoute === "/login",
+    "UI-001 canonical root request and setup-complete anonymous login observation are not separated");
+  assert(rootEntry.workflow?.productAction?.endpoint?.path === "/" &&
+    JSON.stringify(rootEntry.workflow.productAction.endpoint.allowedStatuses) === JSON.stringify([200, 302]),
+  "UI-001 root product contract must preserve the 302 and followed login 200 statuses");
+  const rootNavigation = rootEntry.actions?.[0]?.semanticCompletion;
+  const rootPrimary = rootEntry.workflow?.controlSequence?.find(action => action.kind === "assert-product-state");
+  for (const completion of [rootNavigation, rootPrimary?.semanticCompletion]) {
+    assert(completion?.request === null &&
+      completion?.localTransition === null &&
+      completion?.navigationBinding?.requestedPath === "/" &&
+      completion.navigationBinding.expectedObservedPath === "/login" &&
+      completion.navigationBinding.correlationRequired === false &&
+      completion.navigationBinding.exactRedirectCount === 1 &&
+      completion.navigationBinding.caseLifecycleNavigationSequence?.length === 2 &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[0]?.path === "/" &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[0]?.responseStatus === 302 &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[1]?.path === "/login" &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[1]?.redirected === true &&
+      completion.navigationBinding.caseLifecycleNavigationSequence[1]?.responseStatus === 200,
+    "UI-001 exact root document redirect navigation binding drift");
+  }
+  const logoutEntry = manifest.cases.find(item => item.caseId === "UI-005");
+  assert(logoutEntry?.canonicalRoute === "/logout" && logoutEntry?.screenRoute === "/ops/home" &&
+    logoutEntry.workflow?.primaryControl?.route === "/ops/home" &&
+    logoutEntry.workflow?.productAction?.endpoint?.path === "/logout",
+  "UI-005 POST-only logout endpoint and product control screen are not separated");
+  const homeEntry = manifest.cases.find(item => item.caseId === "UI-009");
+  assert(homeEntry?.workflow?.workflowClass === "read-only-state" &&
+    homeEntry.workflow?.primaryControl?.selector === '[data-testid="ops-home-page"]' &&
+    homeEntry.workflow?.controlSequence?.some(action =>
+      action.kind === "assert-visible-read-model" && action.selector === '[data-testid="ops-home-page"]') &&
+    !homeEntry.workflow?.controlSequence?.some(action => action.kind === "toggle-details"),
+  "UI-009 exact workflow still treats a row-only context menu template as the ops home control");
+});
+
+check("UI-017 binds the client events read model instead of a dashboard-only preset status", () => {
+  const eventsEntry = manifest.cases.find(item => item.caseId === "UI-017");
+  assert(eventsEntry?.canonicalRoute === "/client/events" &&
+    eventsEntry.controlAction?.selector === ".client-viewer-events" &&
+    eventsEntry.workflow?.primaryControl?.selector === ".client-viewer-events" &&
+    eventsEntry.actions.some(action =>
+      action.kind === "assert-visible-read-model" && action.selector === ".client-viewer-events") &&
+    !eventsEntry.actions.some(action => action.selector === "#clientDashboardPresetStatus"),
+  "UI-017 exact workflow still targets a dashboard-only preset status");
+});
+
+check("UI-018 remains a dedicated negative route case", () => {
+  const item = manifest.cases.find(value => value.caseId === "UI-018");
+  assert(item?.disposition === "negative-route", "UI-018 negative disposition missing");
+  assert(item.canonicalRoute === "/lab" && item.screenRoute === "/lab", "UI-018 route mismatch");
+  assert(item.actions.length === 1 && item.actions[0].kind === "navigate", "UI-018 action must be native navigate");
+  assert(item.oracle.kind === "negative-route-status", "UI-018 negative status oracle missing");
+  assert(JSON.stringify(item.oracle.allowedStatuses) === JSON.stringify([404]), "UI-018 must accept exactly status 404");
+  const negativeInitialStart = runnerSource.indexOf('if (item.disposition === "negative-route") {');
+  const negativeInitialEnd = runnerSource.indexOf("} else {", negativeInitialStart);
+  const negativeInitialBranch = runnerSource.slice(negativeInitialStart, negativeInitialEnd);
+  assert(negativeInitialStart >= 0 && negativeInitialEnd > negativeInitialStart &&
+    negativeInitialBranch.includes("trace.rawPrimaryObservations.push(makeRawPrimaryObservation({") &&
+    negativeInitialBranch.includes("actionEvidence: initialCompletionAction") &&
+    negativeInitialBranch.includes("semanticReadback: initialCompletion.semanticReadback"),
+  "UI-018 initial negative navigation does not emit one raw primary observation");
+});
+
+check("SAFE-017 keeps its cross-route negative behavior without changing UI-018 classification", () => {
+  const item = manifest.cases.find(value => value.caseId === "SAFE-017");
+  assert(item?.disposition === "native-executable", "SAFE-017 must remain in positive native count");
+  assert(item.screenRoute === "/ops", "SAFE-017 product screen route mismatch");
+  const negativeAction = item.actions.find(action => action.kind === "navigate-negative");
+  assert(negativeAction?.route === "/lab", "SAFE-017 /lab negative action missing");
+  assert(negativeAction.allowedStatuses.includes(404), "SAFE-017 404 oracle missing");
+  assert(item.oracle.kind === "semantic-cross-route-negative-status", "SAFE-017 cross-route oracle missing");
+});
+
+check("MEDIA/SAFE client cases and SAFE-016 negative route use one exact route lifecycle", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const byId = new Map(rebuilt.cases.map(item => [item.caseId, item]));
+  for (const caseId of ["MEDIA-017", "SAFE-018", "SAFE-031"]) {
+    const canonicalCase = canonical.cases.find(item => item.testId === caseId);
+    const item = byId.get(caseId);
+    assert(canonicalCase?.route === "/client/live" && canonicalCase.accountRole === "viewer",
+      `${caseId} canonical client/live viewer source-of-truth mismatch`);
+    assert(item?.canonicalRoute === "/client/live" && item.screenRoute === "/client/live" &&
+      item.accountRole === "viewer" && item.workflow.exactRuntimeOracle.route === "/client/live" &&
+      item.workflow.exactRuntimeOracle.role === "viewer",
+    `${caseId} canonical/screen/runtime oracle route-role binding mismatch`);
+    for (const [field, value, expectedError] of [
+      ["route", "/ops", "canonical/runtime oracle route mismatch"],
+      ["accountRole", "operator", "canonical/runtime oracle role mismatch"],
+    ]) {
+      const mutatedCanonical = structuredClone(canonical);
+      mutatedCanonical.cases.find(candidate => candidate.testId === caseId)[field] = value;
+      let message = "";
+      try {
+        buildNativeExactManifest({ canonical: mutatedCanonical, implementation });
+      } catch (error) {
+        message = String(error?.message || error);
+      }
+      assert(message.includes(expectedError),
+        `${caseId} ${field} mismatch did not fail closed: ${message}`);
+    }
+  }
+
+  const safe016 = byId.get("SAFE-016");
+  assert(safe016?.canonicalRoute === "/ops" && safe016.screenRoute === "/ops" &&
+    safe016.disposition === "native-executable" &&
+    safe016.workflow.workflowClass === "negative-route",
+  "SAFE-016 cross-route negative classification mismatch");
+  const negativeAction = safe016.actions.find(action => action.kind === "navigate-negative");
+  assert(negativeAction?.route === "/__v390-undefined-route__" &&
+    JSON.stringify(negativeAction.allowedStatuses) === "[404]" &&
+    safe016.workflow.productAction.endpoint.path === "/__v390-undefined-route__" &&
+    JSON.stringify(safe016.workflow.productAction.endpoint.allowedStatuses) === "[404]",
+  "SAFE-016 exact undefined-route 404 lifecycle mismatch");
+  assert(!safe016.actions.some(action =>
+    action.kind === "assert-product-state" || action.kind === "assert-product-boundary"),
+  "SAFE-016 negative route still enters the generic source-route readback lifecycle");
+});
+
+check("remaining client-safe batch clusters bind dynamic identities and owned lifecycle endpoints", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const byId = new Map(rebuilt.cases.map(item => [item.caseId, item]));
+
+  const client002 = byId.get("CLIENT-002").workflow.expectedResults[0].completion.localTransition;
+  assert(JSON.stringify(client002.requiredRequests.map(request => request.urlPath)) === JSON.stringify([
+    "/client/api/views/{assignedViewId}/webrtc/session",
+    "/client/api/views/{assignedViewId}/webrtc/session/{sessionId}/answer",
+  ]), "CLIENT-002 local completion retained static fixture/session identities");
+
+  for (const [caseId, expectedPath] of [
+    ["SAFE-033", "/ops/vlm"],
+    ["SAFE-041", "/ops/api/events/reviews"],
+  ]) {
+    const completion = byId.get(caseId).workflow.expectedResults[0].completion;
+    assert(completion.request?.method === "GET" &&
+      completion.request.urlPathTemplate === expectedPath &&
+      completion.request.urlPath === expectedPath,
+    `${caseId} completion is not bound to its authoritative runtime read model`);
+  }
+
+  for (const caseId of ["SAFE-016", "SAFE-017"]) {
+    const completion = byId.get(caseId).workflow.expectedResults[0].completion;
+    const sequence = completion.navigationBinding?.caseLifecycleNavigationSequence;
+    assert(sequence?.length === 2 &&
+      sequence[0].purpose === "initial-product-document" &&
+      sequence[1].purpose === "negative-document-navigation" &&
+      sequence[1].responseStatus === 404,
+    `${caseId} negative navigation does not own its exact two-document lifecycle`);
+  }
+
+  assert(runnerSource.includes("exactRuntimeOracleFor(item.caseId)?.requests?.some") &&
+    runnerSource.includes('(candidate.fixtureRefs || []).includes("assigned-view")') &&
+    runnerSource.includes("clientLiveCompositionFromTransition") &&
+    runnerSource.includes("kind: composition.kind") &&
+    runnerSource.includes("exactOracleRuntimeBindings({") &&
+    runtimeSource.includes("viewA: catalog.viewA || catalog.viewId") &&
+    runtimeSource.includes("viewB: catalog.viewB || catalog.viewId"),
+  "runtime completion does not derive assigned-view/single-tile identities from owned actions");
+  for (const snippet of [
+    'if (item.caseId === "MEDIA-017")',
+    "materializeTwoViewPlaybackFixture(item, context)",
+    "scopeRuntimeViewerToViews([defaultViewId, viewId])",
+    "showDashboard: false",
+    "context.catalogBindings.viewIds || []",
+    "fresh viewer authoritative view scopes differ from the case fixture binding",
+  ]) {
+    assert(runtimeSource.includes(snippet),
+      `MEDIA-017 two-view fixture lifecycle source missing ${snippet}`);
+  }
+});
+
+check("actual read-only and hidden-boundary completion requests use exact runtime oracle paths", () => {
+  const rebuilt = buildNativeExactManifest({ canonical, implementation });
+  const byId = new Map(rebuilt.cases.map(item => [item.caseId, item]));
+  for (const caseId of ["SAFE-018", "SAFE-031"]) {
+    const request = byId.get(caseId).workflow.expectedResults[0].completion.request;
+    assert(request.urlPathTemplate === "/client/api/views" && request.urlPath === "/client/api/views",
+      `${caseId} hidden-boundary completion did not use its exact runtime API read`);
+  }
+  const sourceRequest = byId.get("SRC-038").workflow.expectedResults[0].completion.request;
+  assert(sourceRequest.urlPathTemplate === "/client/api/views/{viewId}/events" &&
+    sourceRequest.urlPath === "/client/api/views/9001/events" &&
+    sourceRequest.pathParameters.viewId === "9001" &&
+    sourceRequest.parameterSource === "runtime-default-view",
+  "SRC-038 completion did not preserve the runtime default view path binding");
+});
+
+check("all cases declare native action, oracle seed, and artifact plan", () => {
+  for (const item of manifest.cases) {
+    assert(item.dispatch === "playwright-native", `${item.caseId} dispatch mismatch`);
+    assert(Array.isArray(item.actions) && item.actions.length > 0, `${item.caseId} actions missing`);
+    assert(item.actions.every(action => action.dispatch === "playwright-native"), `${item.caseId} non-native action`);
+    assert(item.oracle?.sourceKind && item.oracle?.expectedBehaviorSha256, `${item.caseId} oracle seed missing`);
+    assert(item.artifacts?.screenshot && item.artifacts?.trace && item.artifacts?.browserConsole && item.artifacts?.serverLog,
+      `${item.caseId} artifact plan missing`);
+    assert(item.accountRole && item.viewport?.width > 0 && item.viewport?.height > 0 && item.theme,
+      `${item.caseId} role/viewport/theme missing`);
+  }
+});
+
+check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () => {
+  assert(manifest.schema === "media-server.v390-ui-native-exact-cases.v2", "REVIEW3-41 manifest schema v2 missing");
+  const workflowIds = [];
+  const workflowClassCounts = {};
+  for (const item of manifest.cases) {
+    const workflow = item.workflow;
+    assert(workflow?.schema === "media-server.v390-ui-case-native-workflow.v2", `${item.caseId} REVIEW4-56 workflow schema missing`);
+    assert(workflow.workflowId === `${item.caseId}:native-workflow`, `${item.caseId} workflow ID mismatch`);
+    workflowIds.push(workflow.workflowId);
+    workflowClassCounts[workflow.workflowClass] = (workflowClassCounts[workflow.workflowClass] || 0) + 1;
+    for (const field of ["setup", "inputs", "controlSequence", "expectedResults", "cleanup"]) {
+      assert(Array.isArray(workflow[field]) && workflow[field].length > 0, `${item.caseId} ${field} missing`);
+    }
+    assert(workflow.inputs.some(input => input.actualValue !== undefined || input.seedReference?.fixtureId),
+      `${item.caseId} actual workflow input missing`);
+    assert(workflow.primaryControl?.applicability === "required" ||
+      workflow.primaryControl?.applicability === "not-applicable",
+    `${item.caseId} primary control applicability missing`);
+    assert(typeof workflow.primaryControl.accountRole === "string" && workflow.primaryControl.accountRole.length > 0,
+      `${item.caseId} primary control account role missing`);
+    const requiresActionRoleBinding = workflow.primaryControl.route !== item.screenRoute ||
+      workflow.primaryControl.accountRole !== item.accountRole;
+    const actionRoleBinding = workflow.setup.find(setup => setup.kind === "bind-action-role-session");
+    if (requiresActionRoleBinding) {
+      assert(actionRoleBinding?.accountRole === workflow.primaryControl.accountRole &&
+        actionRoleBinding?.route === workflow.primaryControl.route && actionRoleBinding?.required === true,
+      `${item.caseId} cross-route/role action session binding missing`);
+    } else {
+      assert(!actionRoleBinding, `${item.caseId} redundant action role session binding forbidden`);
+    }
+    if (workflow.primaryControl.applicability === "required") {
+      assert(typeof workflow.primaryControl.selector === "string" && workflow.primaryControl.selector.length > 0,
+        `${item.caseId} exact primary control missing`);
+      assert(!isRouteRootSelector(workflow.primaryControl.selector), `${item.caseId} route-root primary control forbidden`);
+      assert(typeof workflow.primaryControl.expectedVisible === "boolean" &&
+        typeof workflow.primaryControl.expectedEnabled === "boolean",
+      `${item.caseId} primary control visibility/enabled contract missing`);
+      assertSourceLocator(workflow.primaryControl.sourceLocator, `${item.caseId} primary control`);
+      if (["actionable", "form-submit", "persisted-mutation"].includes(workflow.workflowClass)) {
+        assert(workflow.primaryControl.expectedVisible === true && workflow.primaryControl.expectedEnabled === true,
+          `${item.caseId} actionable primary control must be visible/enabled`);
+      }
+    } else {
+      assert(["read-only-state", "hidden-disabled", "negative-route"].includes(workflow.workflowClass),
+        `${item.caseId} control not-applicable is forbidden for ${workflow.workflowClass}`);
+      assert(typeof workflow.primaryControl.reason === "string" && workflow.primaryControl.reason.length > 0,
+        `${item.caseId} control not-applicable reason missing`);
+      assertSourceLocator(workflow.primaryControl.sourceLocator, `${item.caseId} not-applicable action/state`);
+      assertSourceLocator(workflow.primaryControl.readbackLocator, `${item.caseId} not-applicable readback`);
+    }
+    const endpointCount = workflow.productAction?.endpoint ? 1 : 0;
+    const localActionCount = workflow.productAction?.localAction ? 1 : 0;
+    assert(endpointCount + localActionCount === 1, `${item.caseId} product action must declare exactly one endpoint or local action`);
+    if (workflow.productAction.endpoint) {
+      assert(/^(GET|POST|PUT|DELETE)$/.test(workflow.productAction.endpoint.method || ""),
+        `${item.caseId} product endpoint method missing`);
+      assert(String(workflow.productAction.endpoint.path || "").startsWith("/"),
+        `${item.caseId} product endpoint path missing`);
+      assert(Array.isArray(workflow.productAction.endpoint.allowedStatuses) &&
+        workflow.productAction.endpoint.allowedStatuses.length > 0,
+      `${item.caseId} product endpoint status missing`);
+      if (workflow.workflowClass === "form-submit") {
+        assert(!hasMixedSuccessAndErrorStatuses(workflow.productAction.endpoint.allowedStatuses),
+          `${item.caseId} form broad mixed success/error status set forbidden`);
+        const submitAction = workflow.controlSequence.find(action => action.kind === "submit-form");
+        assert(submitAction?.uiLifecycle?.schema === "media-server.v390-ui-form-lifecycle.v1" &&
+          submitAction.uiLifecycle.adapter && Array.isArray(submitAction.uiLifecycle.fieldControls),
+        `${item.caseId} typed form UI lifecycle missing`);
+        assert(submitAction.uiLifecycle.fieldControls.map(field => field.name).join(",") ===
+          submitAction.fields.join(","), `${item.caseId} typed form field order drift`);
+      }
+      if (workflow.workflowClass === "persisted-mutation") {
+        const persistedAction = workflow.controlSequence.find(action => action.kind === "execute-persisted-action");
+        assert(persistedAction?.uiLifecycle?.adapter && persistedAction.uiLifecycle.fixtureBinding?.fixtureId,
+          `${item.caseId} persisted UI lifecycle adapter/binding missing`);
+        assert(persistedAction.uiLifecycle.fixtureBinding.fixtureId ===
+          workflow.inputs.find(input => input.kind === "reversible-fixture-record")?.actualValue?.id,
+        `${item.caseId} persisted UI lifecycle fixture binding drift`);
+      }
+    } else {
+      assert(workflow.productAction.localAction.type && workflow.productAction.localAction.target &&
+        workflow.productAction.localAction.effect,
+      `${item.caseId} local product action incomplete`);
+    }
+    assert(workflow.expectedProductState?.identity && workflow.expectedProductState?.locator?.file,
+      `${item.caseId} expected product state missing`);
+    assert(workflow.independentReadback?.identity && workflow.independentReadback?.locator?.file,
+      `${item.caseId} independent readback missing`);
+    assertSourceLocator(workflow.expectedProductState.locator, `${item.caseId} expected product state`);
+    assertSourceLocator(workflow.independentReadback.locator, `${item.caseId} independent readback`);
+    assert(workflow.expectedProductState.identity !== workflow.independentReadback.identity,
+      `${item.caseId} state/readback identity self-compare forbidden`);
+    assert(locatorIdentity(workflow.expectedProductState.locator) !== locatorIdentity(workflow.independentReadback.locator),
+      `${item.caseId} state/readback locator self-compare forbidden`);
+    if (workflow.workflowClass === "persisted-mutation" || workflow.workflowClass === "form-submit" ||
+        workflow.productAction?.kind === "endpoint-owned-action") {
+      assert(workflow.cleanup.some(cleanup => {
+        const inverseCount = cleanup.inverseAction?.endpoint ? 1 : 0;
+        const inverseLocalCount = cleanup.inverseAction?.localAction ? 1 : 0;
+        return ["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind) &&
+          cleanup.beforeSnapshotRef && inverseCount + inverseLocalCount === 1 &&
+          cleanup.afterReadback?.identity &&
+          ["absent", "equal-before", "inactive-or-equal-before"].includes(cleanup.afterReadback?.expectation) &&
+          cleanup.readback?.identity && cleanup.readback?.locator?.file;
+      }),
+      `${item.caseId} mutation cleanup restore/delete readback missing`);
+    } else {
+      assert(workflow.cleanup.some(cleanup => cleanup.kind === "no-op-cleanup" && cleanup.persistedMutation === false),
+        `${item.caseId} nonmutation no-op cleanup missing`);
+    }
+    if (workflow.workflowClass === "form-submit") {
+      const formInput = workflow.inputs.find(input => input.kind === "form-values");
+      assert(formInput?.submit === true,
+        `${item.caseId} form submit input missing`);
+      assert(!containsLiteralAuthMaterial(formInput.actualValue), `${item.caseId} form auth literal forbidden`);
+      assert(workflow.controlSequence.some(action => action.kind === "submit-form"),
+        `${item.caseId} form submit action missing`);
+      assert(!workflow.controlSequence.some(action => action.kind === "assert-form-contract"),
+        `${item.caseId} form contract-only action forbidden`);
+    }
+    if (!item.controlAction.selector) {
+      assert(workflow.primaryControl.applicability === "not-applicable" &&
+        ["read-only-state", "hidden-disabled", "negative-route"].includes(workflow.workflowClass),
+      `${item.caseId} selector-null generic workflow forbidden`);
+      if (workflow.workflowClass === "negative-route") {
+        assert(workflow.controlSequence.some(action => ["navigate", "navigate-negative"].includes(action.kind)) &&
+          workflow.productAction.endpoint?.method === "GET" &&
+          JSON.stringify(workflow.productAction.endpoint.allowedStatuses) === JSON.stringify([404]),
+        `${item.caseId} selector-null exact negative-route readback action missing`);
+      } else if (workflow.productAction?.kind === "endpoint-owned-action") {
+        assert(workflow.controlSequence.some(action => action.kind === "execute-endpoint-action"),
+          `${item.caseId} selector-null endpoint-owned action missing`);
+      } else {
+        assert(workflow.controlSequence.some(action => ["assert-product-state", "assert-product-boundary"].includes(action.kind)),
+          `${item.caseId} selector-null exact product readback action missing`);
+      }
+    }
+    const serialized = JSON.stringify(workflow);
+    assert(!serialized.includes("runtime-control"), `${item.caseId} runtime-control is forbidden`);
+    assert(!workflow.controlSequence.some(action => action.kind === "interact"), `${item.caseId} generic interact is forbidden`);
+    assert(!serialized.includes('"submit":false'), `${item.caseId} submit:false is forbidden`);
+    assert(!serialized.includes('"selector":"body"') && !serialized.includes('"selector":"body.'),
+      `${item.caseId} body/route-root fallback is forbidden`);
+    const runtimeReadbacks = workflow.controlSequence.filter(action => action.kind === "verify-independent-readback");
+    if (workflow.workflowClass === "negative-route") {
+      assert(runtimeReadbacks.length === 0, `${item.caseId} negative route must use its status readback`);
+    } else {
+      assert(runtimeReadbacks.length === 1, `${item.caseId} executable independent readback step missing`);
+      const runtimeReadback = runtimeReadbacks[0];
+      assert(runtimeReadback.readbackIdentity === workflow.independentReadback.identity &&
+        runtimeReadback.expectedStateIdentity === workflow.expectedProductState.identity &&
+        runtimeReadback.expectedBehaviorSha256 === workflow.expectedProductState.expectedBehaviorSha256 &&
+        runtimeReadback.runtimeEvidenceRequired === true &&
+        runtimeReadback.staticLocatorIsNotRuntimePass === true,
+      `${item.caseId} independent readback action binding mismatch`);
+      assert(workflow.controlSequence.indexOf(runtimeReadback) > 0,
+        `${item.caseId} independent readback must follow the product action`);
+    }
+  }
+  assert(new Set(workflowIds).size === 424, "workflow IDs must be unique");
+  for (const [workflowClass, expectedCount] of Object.entries(review4WorkflowClassExpectedCounts)) {
+    assert(workflowClassCounts[workflowClass] === expectedCount,
+      `${workflowClass} workflow count mismatch: ${workflowClassCounts[workflowClass] || 0}/${expectedCount}`);
+  }
+  assert(Object.values(workflowClassCounts).every(count => count > 0), "all six workflow classes must be nonzero");
+  assert(Object.values(workflowClassCounts).reduce((sum, count) => sum + count, 0) === 424,
+    "workflow class total must be exact 424");
+  assert(!runnerSource.includes("interactWithRuntimeControl"), "runner generic runtime-control function is forbidden");
+  assert(!runnerSource.includes('strategy: "runtime-control"'), "runner runtime-control strategy is forbidden");
+  for (const forbidden of ["routeRootSelector", "body.ops-shell", "body.client-shell", "body.auth-shell", "body.product-shell"]) {
+    assert(!nativeLibrarySource.includes(forbidden), `native workflow library fallback forbidden: ${forbidden}`);
+  }
+
+  const hiddenCases = manifest.cases.filter(item => ["#opsEventRuleIdInput", "#opsVaRuleIdInput"].includes(item.controlAction.selector));
+  assert(hiddenCases.length > 0, "hidden control cases missing");
+  for (const item of hiddenCases) {
+    assert(item.workflow.controlSequence.some(action => action.kind === "assert-hidden-control"),
+      `${item.caseId} hidden control must use a hidden assertion`);
+    assert(!item.workflow.controlSequence.some(action => ["click", "fill", "select", "set-checked"].includes(action.kind)),
+      `${item.caseId} hidden control must not be actionable`);
+  }
+  const requiredHiddenDisabled = manifest.cases
+    .filter(item => item.workflow.workflowClass === "hidden-disabled" &&
+      item.workflow.primaryControl.applicability === "required");
+  assert(JSON.stringify(requiredHiddenDisabled.map(item => item.caseId).sort()) ===
+    JSON.stringify(["RULE-017", "UI-022", "UI-111"]),
+  `hidden/disabled exact control set drift: ${requiredHiddenDisabled.map(item => item.caseId).join(",")}`);
+  assert(requiredHiddenDisabled.every(item =>
+    item.workflow.controlSequence.some(action => ["assert-hidden-control", "assert-disabled-control"].includes(action.kind))),
+  "hidden/disabled exact controls must use explicit state assertions");
+
+  const endpointOwnedSpecs = new Map([
+    ["AUTH-020", ["POST", "/ops/api/users/{fixtureId}/disable"]],
+    ["SRC-008", ["POST", "/ops/api/sources"]],
+    ["SRC-010", ["DELETE", "/ops/api/sources/{fixtureId}"]],
+    ["SRC-019", ["DELETE", "/ops/api/views/{fixtureId}"]],
+    ["SRC-031", ["POST", "/ops/api/onvif/import-draft"]],
+  ]);
+  const endpointOwnedCases = manifest.cases.filter(item =>
+    item.workflow.productAction?.kind === "endpoint-owned-action");
+  assert(JSON.stringify(endpointOwnedCases.map(item => item.caseId)) ===
+    JSON.stringify([...endpointOwnedSpecs.keys()]),
+  `endpoint-owned case set drift: ${endpointOwnedCases.map(item => item.caseId).join(",")}`);
+  for (const item of endpointOwnedCases) {
+    const [method, endpointPath] = endpointOwnedSpecs.get(item.caseId);
+    const action = item.workflow.controlSequence.find(value => value.kind === "execute-endpoint-action");
+    const input = item.workflow.inputs.find(value => value.kind === "endpoint-action-fixture");
+    assert(item.workflow.primaryControl.applicability === "not-applicable" &&
+      item.workflow.productAction.primaryControlRequired === false,
+    `${item.caseId} endpoint-owned action incorrectly claims a direct UI control`);
+    assert(item.workflow.productAction.endpoint.method === method &&
+      item.workflow.productAction.endpoint.path === endpointPath &&
+      action?.endpoint?.method === method && action?.endpoint?.path === endpointPath &&
+      action?.semanticCompletion?.request?.method === method &&
+      action?.semanticCompletion?.request?.urlPathTemplate === endpointPath,
+    `${item.caseId} endpoint-owned method/path binding drift`);
+    assert(action?.ownership === "product-endpoint-no-primary-control" &&
+      input?.actualValue?.method === method && input?.actualValue?.path === endpointPath,
+    `${item.caseId} endpoint-owned input/action ownership binding missing`);
+    assert(item.workflow.controlSequence.indexOf(action) > 0 &&
+      item.workflow.controlSequence.findIndex(value => value.kind === "verify-independent-readback") >
+        item.workflow.controlSequence.indexOf(action),
+    `${item.caseId} endpoint action/readback sequence drift`);
+    assert(item.workflow.cleanup.some(value => value.kind === "restore-fixture-state"),
+      `${item.caseId} endpoint-owned cleanup is missing`);
+    const cleanup = item.workflow.cleanup.find(value => value.kind === "restore-fixture-state");
+    if (item.caseId === "AUTH-020") {
+      assert(cleanup?.afterReadback?.expectation === "absent" &&
+        cleanup.inverseAction?.localAction?.type === "restore-file-backed-fixture-snapshot",
+      "AUTH-020 must restore the pre-case users file and prove the acceptance-owned user absent");
+    }
+    assert(!item.workflow.controlSequence.some(value =>
+      ["assert-product-boundary", "assert-product-state"].includes(value.kind)),
+    `${item.caseId} endpoint mutation is disguised as a boundary/state read`);
+  }
+  assert(runtimeSource.includes("responseSynthesized: false") &&
+    runtimeSource.includes("actualBrowserRequestObserved: true") &&
+    runnerSource.includes("matchingResponses.length === 1") &&
+    runnerSource.includes("entry.correlationId !== completionRequest.correlationId") &&
+    runnerSource.includes('safeResponseProjectionSource === "playwright-response-json"') &&
+    !runnerSource.includes("structuredClone(response.json ?? response.text)"),
+  "endpoint-owned runtime does not require an actual correlated browser response");
+  assert(runtimeSource.includes("disabled user response/store/list/session/login readback failed") &&
+    runtimeSource.includes("created source response/registry readback failed") &&
+    runtimeSource.includes("disabled source response/registry/client boundary readback failed") &&
+    runtimeSource.includes("disabled view response/registry/client boundary readback failed") &&
+    runtimeSource.includes("ONVIF draft response/registry equal-before readback failed"),
+  "endpoint-owned independent authoritative readback coverage missing");
+
+  assert(manifest.cases.every(item => item.workflow.setup.some(setup => setup.kind === "seed-reviewed-state")),
+    "all 424 cases must declare reviewed state seed");
+  assert(manifest.cases.every(item => item.workflow.expectedResults.every(result =>
+    /^[a-f0-9]{64}$/.test(result.expectedBehaviorSha256) && result.stateLocator?.file && result.readbackLocator?.file)),
+  "all 424 cases must bind expected result state/readback locators");
+  const renderedTemplateSelectors = new Map([
+    ["SRC-038", '[data-testid="client-safe-source-status-digest"]'],
+    ["CLIENT-007", ".client-viewer-events"],
+  ]);
+  for (const [caseId, expectedSelector] of renderedTemplateSelectors) {
+    const item = manifest.cases.find(candidate => candidate.caseId === caseId);
+    assert(item?.controlAction.selector === expectedSelector,
+      `${caseId} rendered template selector was not resolved to ${expectedSelector}`);
+    assert(item.workflow.controlSequence.some(action => action.kind === "assert-visible-read-model"),
+      `${caseId} rendered selector must be a visible read-model workflow`);
+  }
+  const crossRoleCases = new Map([
+    ["AUTH-014", "admin"],
+    ["AUTH-015", "admin"],
+    ["AUTH-033", "admin"],
+    ["AUTH-037", "admin"],
+    ["AUTH-038", "admin"],
+    ["AUTH-039", "anonymous"],
+    ["RULE-097", "viewer"],
+  ]);
+  for (const [caseId, accountRole] of crossRoleCases) {
+    const item = manifest.cases.find(candidate => candidate.caseId === caseId);
+    assert(item?.workflow.primaryControl.accountRole === accountRole,
+      `${caseId} exact action role mismatch`);
+    assert(item.workflow.setup.some(setup => setup.kind === "bind-action-role-session" &&
+      setup.accountRole === accountRole && setup.route === item.workflow.primaryControl.route),
+    `${caseId} exact action role session missing`);
+  }
+  const exactAuthWorkflowCases = new Map([
+    ["AUTH-005", {
+      selector: '[data-testid="auth-setup-form"] button[type="submit"]',
+      route: "/setup", accountRole: "anonymous", method: "POST", path: "/setup",
+    }],
+    ["AUTH-007", {
+      selector: '[data-testid="auth-login-form"] button[type="submit"]',
+      route: "/login", accountRole: "anonymous", method: "POST", path: "/login",
+    }],
+    ["AUTH-014", {
+      selector: "#user-save-selected",
+      route: "/ops/users", accountRole: "admin", method: "POST", path: "/ops/api/users",
+    }],
+    ["AUTH-015", {
+      selector: '#invite-create-form button[type="submit"]',
+      route: "/ops/users", accountRole: "admin", method: "POST", path: "/ops/api/invites",
+    }],
+  ]);
+  for (const [caseId, expected] of exactAuthWorkflowCases) {
+    const item = manifest.cases.find(candidate => candidate.caseId === caseId);
+    assert(item?.workflow.workflowClass === "form-submit", `${caseId} exact auth form workflow missing`);
+    assert(item.workflow.primaryControl.selector === expected.selector &&
+      item.workflow.primaryControl.route === expected.route &&
+      item.workflow.primaryControl.accountRole === expected.accountRole,
+    `${caseId} exact auth primary control mismatch`);
+    assert(item.workflow.productAction.endpoint?.method === expected.method &&
+      item.workflow.productAction.endpoint?.path === expected.path,
+    `${caseId} exact auth endpoint mismatch`);
+  }
+  const correctedRuleWorkflows = new Map([
+    ["UI-036", ["actionable", "[data-vlm-rule-draft-index]", null]],
+    ["UI-046", ["actionable", "[data-incident-rule-draft-route]", null]],
+    ["RULE-007", ["read-only-state", null, "/ops/rules"]],
+    ["RULE-011", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
+    ["RULE-012", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
+    ["RULE-016", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
+    ["RULE-025", ["read-only-state", null, "/ops/rules"]],
+    ["RULE-030", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/profiles/{fixtureId}"]],
+    ["RULE-073", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/rules/{fixtureId}"]],
+    ["RULE-075", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/rules/{fixtureId}"]],
+    ["RULE-093", ["actionable", "#opsRulesComposerSave", null]],
+    ["RULE-094", ["actionable", "#opsRulesComposerSave", null]],
+    ["RULE-095", ["actionable", "#opsRulesRefresh", null]],
+    ["RULE-096", ["actionable", "#opsRulesRefresh", null]],
+    ["RULE-097", ["read-only-state", '[data-testid="client-live-source-tree"]', "/client/api/views"]],
+    ["RULE-098", ["read-only-state", "#opsRulesValidationList", "/ops/api/rules/catalog"]],
+    ["RULE-100", ["actionable", "#opsRulesComposerSave", null]],
+    ["RULE-101", ["actionable", "#opsRulesComposerSave", null]],
+    ["RULE-102", ["actionable", "#opsEventRuleTypeSelect", null]],
+    ["RULE-103", ["actionable", "#opsRulesRefresh", null]],
+    ["RULE-104", ["actionable", "[data-approval-gated-rule-draft-route]", null]],
+    ["RULE-111", ["actionable", "[data-vlm-rule-draft-index]", null]],
+  ]);
+  for (const [caseId, [workflowClass, selector, endpointPath]] of correctedRuleWorkflows) {
+    const item = manifest.cases.find(candidate => candidate.caseId === caseId);
+    assert(item?.workflow.workflowClass === workflowClass, `${caseId} exact workflow class mismatch`);
+    assert(item.workflow.primaryControl.selector === selector, `${caseId} exact primary control mismatch`);
+    assert((item.workflow.productAction.endpoint?.path || null) === endpointPath,
+      `${caseId} exact product endpoint mismatch`);
+  }
+  const rule097 = manifest.cases.find(item => item.caseId === "RULE-097");
+  const rule097Fixture = rule097.workflow.inputs.find(input => input.kind === "rejected-endpoint-fixture");
+  const rule097Identity = ruleRelationshipFixtureIdentity("RULE-097");
+  assert(rule097.workflow.primaryControl.accountRole === "viewer" &&
+    rule097.workflow.primaryControl.route === "/client/live" &&
+    rule097Fixture?.actualValue?.assignedViewId === rule097Identity.viewId &&
+    rule097Fixture?.actualValue?.blockedViewId === rule097Identity.blockedViewId &&
+    rule097Fixture?.actualValue?.disallowedRuleId === "98970" &&
+    rule097.workflow.expectedResults[0].completion.readbackExpectation.textIncludesAll.includes("REVIEW4 RULE-097 view"),
+  "RULE-097 scoped assigned/blocked client read model contract missing");
+  const rule098 = manifest.cases.find(item => item.caseId === "RULE-098");
+  const rule098Fixture = rule098.workflow.inputs.find(input => input.kind === "rejected-endpoint-fixture");
+  assert(rule098.workflow.primaryControl.accountRole === "operator" &&
+    rule098Fixture?.seedReference?.route === "/ops/rules" &&
+    rule098Fixture?.actualValue?.rejectedRequestRole === "viewer" &&
+    rule098Fixture?.actualValue?.expectedStatus === 400 &&
+    rule098.workflow.expectedResults[0].completion.readbackExpectation.textIncludesAll.includes("view-rule-not-allowed"),
+  "RULE-098 operator validation/viewer session rejection split contract missing");
+  const rule100 = manifest.cases.find(item => item.caseId === "RULE-100");
+  const rule100Fixture = rule100.workflow.inputs.find(input => input.kind === "rejected-endpoint-fixture");
+  assert(rule100Fixture?.actualValue?.body?.validRuleId === "9890" &&
+    rule100Fixture?.actualValue?.body?.conflictRuleId === "3920100" &&
+    rule100.workflow.productAction.localAction?.verificationEndpoint?.allowedStatuses.includes(400) &&
+    rule100.workflow.expectedResults[0].completion.localTransition.forbiddenRequests.some(request =>
+      request.methods.includes("PUT") && request.pathPrefix === "/lab/analysis/va-rules/"),
+  "RULE-100 UI no-PUT/API-400/absence split contract missing");
+  const rule101 = manifest.cases.find(item => item.caseId === "RULE-101");
+  const rule101Fixture = rule101.workflow.inputs.find(input => input.kind === "rejected-endpoint-fixture");
+  const rule101Completion = rule101.workflow.expectedResults[0].completion;
+  const rule101Postconditions = rule101Completion.localTransition.postconditions;
+  assert(rule101.workflow.productAction.localAction?.verificationEndpoint?.path ===
+    "/lab/analysis/va-rules/9891" &&
+    JSON.stringify(rule101.workflow.productAction.localAction.verificationEndpoint.allowedStatuses) === "[400]" &&
+    JSON.stringify(rule101Fixture?.actualValue?.body?.variants) ===
+      '["analysis-template-mismatch","profile-template-mismatch"]' &&
+    rule101Fixture?.actualValue?.body?.analysisClasses?.includes("person") &&
+    rule101Fixture?.actualValue?.body?.profileClasses?.includes("person") &&
+    rule101Fixture?.actualValue?.body?.templateClasses?.includes("vehicle") &&
+    rule101Fixture?.actualValue?.body?.alternateProfileClasses?.includes("vehicle") &&
+    rule101Postconditions.some(condition => String(condition.value).includes("프로파일 대상(사람)")) &&
+    !rule101Postconditions.some(condition => String(condition.value).includes("룰 대상(사람)")) &&
+    JSON.stringify(rule101Completion.readbackExpectation.independentProductErrors) === JSON.stringify([
+      "vaRule analysis.classes must include template analysis.classes",
+      "vaRule profile classes must include template analysis.classes",
+    ]) &&
+    rule101Completion.localTransition.forbiddenRequests.some(request =>
+      request.methods.includes("PUT") && request.pathPrefix === "/lab/analysis/va-rules/"),
+  "RULE-101 UI profile no-write/server-only analysis API-400 split contract missing");
+  const rule102 = manifest.cases.find(item => item.caseId === "RULE-102");
+  const rule102Postconditions = rule102.workflow.expectedResults[0].completion.localTransition.postconditions;
+  for (const token of [
+    "EventRecord eventType 후보는 re-entry",
+    "중복 ID, priority, source/class 충돌이 없습니다",
+    "별도 참조 누락이 없습니다",
+    "preset",
+    "verify-va-event-coverage-report",
+  ]) {
+    assert(rule102Postconditions.some(condition => String(condition.value).includes(token)),
+      `RULE-102 review-loop postcondition missing: ${token}`);
+  }
+  const relationshipExpectations = new Map([
+    ["RULE-093", ["/lab/analysis/va-rules/9893", 400, ["missing-profile", "missing-template"]]],
+    ["RULE-094", ["/lab/analysis/va-rules/9894", 400, ["inactive-profile", "inactive-template"]]],
+    ["RULE-095", [`/client/api/views/${ruleRelationshipFixtureIdentity("RULE-095").viewId}/webrtc/session`, 400, ["source-mismatch"]]],
+    ["RULE-096", [`/client/api/views/${ruleRelationshipFixtureIdentity("RULE-096").viewId}/webrtc/session`, 404, ["inactive-view", "inactive-channel"]]],
+  ]);
+  for (const [caseId, [path, status, tokens]] of relationshipExpectations) {
+    const item = manifest.cases.find(candidate => candidate.caseId === caseId);
+    const fixture = item.workflow.inputs.find(input => input.kind === "rejected-endpoint-fixture");
+    const completion = item.workflow.expectedResults[0].completion.localTransition;
+    assert(item.workflow.productAction.localAction?.verificationEndpoint?.path === path &&
+      item.workflow.productAction.localAction.verificationEndpoint.allowedStatuses.includes(status),
+    `${caseId} exact rejected endpoint is missing`);
+    const serialized = JSON.stringify([fixture?.actualValue, completion?.postconditions]);
+    for (const token of tokens) assert(serialized.includes(token), `${caseId} exact variant ${token} is missing`);
+    assert(completion.forbiddenRequests.length > 0, `${caseId} no-write oracle is missing`);
+  }
+  for (const snippet of [
+    "seedRuleRelationshipFixturesViaApi", "verifyRuleRelationshipRejectedReadback",
+    "vaRule analysis.profileId does not exist", "vaRule templateStart.ruleId does not exist",
+    "vaRule analysis.profileId is inactive", "vaRule templateStart.ruleId is inactive",
+    "vaRule source must match PublishedView source", "PublishedView source is not available",
+    "scopeRuntimeViewerToView", "scopedViewerBoundaryObserved",
+    "allowed vaRule is required for va-rule mode", "priority-conflict candidate reached the VA registry",
+  ]) assert(runtimeSource.includes(snippet), `relationship runtime contract missing ${snippet}`);
+  for (const caseId of ["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100", "RULE-101"]) {
+    assert(runtimeSource.includes(`"${caseId}"`), `relationship fixture case binding missing ${caseId}`);
+  }
+  for (const snippet of [
+    "if (ruleRelationshipFixtureCaseIds.has(item.caseId)) return;",
+    'createMethod: "POST",',
+    'createEndpoint: "/ops/api/sources",',
+    'createEndpoint: "/ops/api/views",',
+    'collectionEndpoint: "/ops/api/sources",',
+    'collectionEndpoint: "/ops/api/views",',
+    'collectionRecordsKey: "sources",',
+    'collectionRecordsKey: "views",',
+    "expectedCreateStatuses: [201]",
+    "relationship fixture collection readback mismatch",
+    "transient source/view fixture was not soft-disabled in collection readback before snapshot restoration",
+  ]) assert(runtimeSource.includes(snippet), `relationship fixture lifecycle contract missing ${snippet}`);
+  assert(!runtimeSource.includes("fixtures.push({ endpoint: `/ops/api/sources/${sourceId}`, payload: source });"),
+    "relationship source seed still uses item endpoint fixture shape");
+  const relationshipSeed = runtimeSource.slice(
+    runtimeSource.indexOf("async function seedRuleRelationshipFixturesViaApi"),
+    runtimeSource.indexOf("function scopeRuntimeViewerToView"),
+  );
+  assert(relationshipSeed.indexOf("context.transientApiCleanup.push(fixture.collectionEndpoint") <
+      relationshipSeed.indexOf("const readback = await requestEndpoint"),
+  "relationship fixture cleanup must be registered before authoritative readback validation");
+  assert(!relationshipSeed.includes("readbackEndpoint: `/ops/api/sources/${encodeURIComponent(value.sourceId)}`") &&
+      !relationshipSeed.includes("readbackEndpoint: `/ops/api/views/${encodeURIComponent(value.viewId)}`"),
+  "relationship source/view fixture must use collection readback because item GET is unsupported");
+  assert(runtimeSource.includes('endpoint.startsWith("/ops/api/sources/") ? "source"') &&
+      runtimeSource.includes('endpoint.startsWith("/ops/api/views/") ? "view"'),
+  "all source/view cleanup must derive a collection readback instead of unsupported item GET");
+  for (const [caseId, tokens] of new Map([
+    ["RULE-103", ["configuredRuleId", "defaultRuleId", "missing-zone-red"]],
+    ["RULE-104", ["eventAndVlmSidecar", "approvalGatedRuleDraftReadiness", "registryWritePerformed"]],
+    ["RULE-111", ["actualVlmCandidate", "applyToEventTemplateForm", "manualSaveOnly"]],
+  ])) {
+    const item = manifest.cases.find(candidate => candidate.caseId === caseId);
+    const fixture = item.workflow.inputs.find(input => input.kind === "exact-runtime-fixture");
+    const serialized = JSON.stringify(fixture?.actualValue || {});
+    for (const token of tokens) assert(serialized.includes(token), `${caseId} exact runtime fixture missing ${token}`);
+    assert(item.workflow.expectedResults[0].completion.localTransition.postconditions.length >= 2,
+      `${caseId} exact UI postcondition oracle missing`);
+  }
+  for (const snippet of [
+    "seedRule103ReplayFixtures", "runRule103ExactReplay", "verifyExactRuntimeReadback",
+    "re_entry_cross_zone_metadata.json", "missing-runtime-zone",
+    "approvalGatedRuleDraftReadiness", "rule-suggestion-draft-bridge",
+    "temporary output cleanup failed",
+  ]) assert(runtimeSource.includes(snippet), `RULE-103/104/111 runtime contract missing ${snippet}`);
+  assert(runnerSource.includes("verifyExactRuntimeReadback"), "exact runtime readback runner binding missing");
+  for (const snippet of ["domScopeReadback", "prepare-priority-conflict-no-write", "VA priority-conflict controls are unavailable"]) {
+    assert(runnerSource.includes(snippet), `relationship runner contract missing ${snippet}`);
+  }
+});
+
+check("REVIEW4-56 rejects fallback no-submit generic and self-comparison workflows", () => {
+  expectInvalid("workflow-cleanup", mutate(value => { value.cases[0].workflow.cleanup = []; }), "workflow cleanup missing");
+  expectInvalid("workflow-id-duplicate", mutate(value => {
+    value.cases[1].workflow.workflowId = value.cases[0].workflow.workflowId;
+  }), "workflow IDs contain duplicates");
+  expectInvalid("generic-workflow-action", mutate(value => {
+    value.cases[0].workflow.controlSequence.push({ kind: "interact", dispatch: "playwright-native" });
+  }), "action/workflow drift");
+  expectInvalid("route-root-fallback", mutate(value => {
+    value.cases[0].workflow.primaryControl = {
+      ...value.cases[0].workflow.primaryControl,
+      applicability: "required", selector: "body", expectedVisible: true, expectedEnabled: true,
+    };
+  }), "route-root primary control forbidden");
+  const formCaseIndex = manifest.cases.findIndex(item => item.workflow?.workflowClass === "form-submit");
+  expectInvalid("form-submit-false", mutate(value => {
+    value.cases[formCaseIndex].workflow.inputs.find(input => input.kind === "form-values").submit = false;
+  }), "submit:false is forbidden");
+  expectInvalid("form-contract-only", mutate(value => {
+    const item = value.cases[formCaseIndex];
+    item.workflow.controlSequence = item.workflow.controlSequence.map(action =>
+      action.kind === "submit-form" ? { ...action, kind: "assert-form-contract" } : action);
+    item.actions = structuredClone(item.workflow.controlSequence);
+  }), "form submit action missing");
+  expectInvalid("form-mixed-status", mutate(value => {
+    value.cases[formCaseIndex].workflow.productAction.endpoint.allowedStatuses = [302, 400];
+  }), "form broad mixed success/error status set forbidden");
+  const authFormCaseIndex = manifest.cases.findIndex(item => item.workflow?.workflowClass === "form-submit" &&
+    Object.keys(item.workflow.inputs.find(input => input.kind === "form-values")?.actualValue || {})
+      .some(field => /password|token|confirm/i.test(field)));
+  expectInvalid("form-literal-secret", mutate(value => {
+    const formInput = value.cases[authFormCaseIndex].workflow.inputs.find(input => input.kind === "form-values");
+    const secretField = Object.keys(formInput.actualValue).find(field => /password|token|confirm/i.test(field));
+    formInput.actualValue[secretField] = "checked-in-secret";
+  }), "form auth literal forbidden");
+  const setupCaseIndex = manifest.cases.findIndex(item => item.caseId === "UI-002");
+  expectInvalid("setup-username-drift", mutate(value => {
+    value.cases[setupCaseIndex].workflow.inputs.find(input => input.kind === "form-values")
+      .actualValue.username = "ui-002-review4-fixture";
+  }), "setup readonly admin contract missing");
+  for (const [label, mutateControl] of [
+    ["setup-readonly-control-drift", control => { control.control = "fill"; }],
+    ["setup-readonly-expected-drift", control => { control.expectedValue = "operator"; }],
+  ]) {
+    expectInvalid(label, mutate(value => {
+      const item = value.cases[setupCaseIndex];
+      for (const sequence of [item.actions, item.workflow.controlSequence]) {
+        const usernameControl = sequence.find(action => action.kind === "submit-form")
+          .uiLifecycle.fieldControls.find(field => field.name === "username");
+        mutateControl(usernameControl);
+      }
+    }), "setup readonly admin contract missing");
+  }
+  const mutationCaseIndex = manifest.cases.findIndex(item => item.workflow?.workflowClass === "persisted-mutation");
+  expectInvalid("mutation-cleanup-inverse-missing", mutate(value => {
+    value.cases[mutationCaseIndex].workflow.cleanup[0].inverseAction = { endpoint: null, localAction: null };
+  }), "mutation cleanup inverse/readback missing");
+  const selectorNullIndex = manifest.cases.findIndex(item => !item.controlAction.selector);
+  expectInvalid("selector-null-generic", mutate(value => {
+    const item = value.cases[selectorNullIndex];
+    item.workflow.primaryControl = {
+      ...item.workflow.primaryControl,
+      applicability: "required", selector: "body.ops-shell", expectedVisible: true, expectedEnabled: true,
+    };
+  }), "route-root primary control forbidden");
+  expectInvalid("state-readback-self-compare", mutate(value => {
+    const item = value.cases[0];
+    item.workflow.independentReadback.identity = item.workflow.expectedProductState.identity;
+    item.workflow.independentReadback.locator = structuredClone(item.workflow.expectedProductState.locator);
+  }), "state/readback identity self-compare forbidden");
+  expectInvalid("dual-action-declaration", mutate(value => {
+    value.cases[0].workflow.productAction.localAction = {
+      type: "generic", target: "runtime", effect: "unknown",
+    };
+  }), "product action must declare exactly one endpoint or local action");
+  const unknown = structuredClone(canonical);
+  const candidate = unknown.cases.find(item => item.testId === "UI-001");
+  candidate.controlAction.selector = "#unclassified-runtime-control";
+  let failed = false;
+  try {
+    buildNativeExactManifest({ canonical: unknown, implementation });
+  } catch (error) {
+    failed = true;
+    assert(String(error.message).includes("canonical primary control source missing"),
+      `unexpected unknown selector error: ${error.message}`);
+  }
+  assert(failed, "unclassified selector must fail manifest generation");
+});
+
+check("runner owns native execution, role state, first-fail, and artifact fields", () => {
+  for (const snippet of [
+    "createNativePlaywrightAdapter",
+    "playwright-native",
+    "role state missing",
+    "not run after previous native case failure",
+    "screenshotPath",
+    "tracePath",
+    "browserConsolePath",
+    "serverLogReference",
+    "uiFulltestPass: false",
+  ]) {
+    assert(runnerSource.includes(snippet), `runner source missing ${snippet}`);
+  }
+  const encounteredSetupKinds = [...new Set(manifest.cases.flatMap(item =>
+    item.workflow.setup.map(setup => setup.kind)))].sort();
+  const encounteredActionKinds = [...new Set(manifest.cases.flatMap(item =>
+    item.workflow.controlSequence.map(action => action.kind)))].sort();
+  const encounteredCleanupKinds = [...new Set(manifest.cases.flatMap(item =>
+    item.workflow.cleanup.map(cleanup => cleanup.kind)))].sort();
+  assert(JSON.stringify(extractRunnerKindAllowlist("supportedSetupKinds")) === JSON.stringify(encounteredSetupKinds),
+    "runner setup allowlist does not exactly cover current workflow kinds");
+  assert(JSON.stringify(extractRunnerKindAllowlist("supportedActionKinds")) === JSON.stringify(encounteredActionKinds),
+    "runner action allowlist does not exactly cover current workflow kinds");
+  assert(JSON.stringify(extractRunnerKindAllowlist("supportedCleanupKinds")) === JSON.stringify(encounteredCleanupKinds),
+    "runner cleanup allowlist does not exactly cover current workflow kinds");
+  for (const snippet of [
+    "runner unsupported setup kind",
+    "runner unsupported action kind",
+    "runner unsupported cleanup kind",
+    "independent readback failed for",
+    "primary action remained pending after independent readback",
+  ]) {
+    assert(runnerSource.includes(snippet), `runner explicit non-synthetic failure missing: ${snippet}`);
+  }
+  for (const removedFailure of [
+    "cross-role action session adapter is unavailable",
+    "persisted workflow seed adapter is unavailable",
+    "runtime secret adapter is unavailable",
+    "mutation cleanup adapter is unavailable",
+  ]) {
+    assert(!runnerSource.includes(removedFailure), `runner still has an unavailable adapter boundary: ${removedFailure}`);
+  }
+  const runtimeModulePath = path.join(rootDir, "scripts/internal/v390_ui_case_runtime.mjs");
+  assert(fs.existsSync(runtimeModulePath), "exact case runtime owner module missing");
+  for (const snippet of [
+    "createV390UiCaseRuntime",
+    "prepareCase",
+    "freshRoleStorageState",
+    "prepareDeferredFormFixture",
+    "resolveSecretRef",
+    "switchActionRoleSession",
+    "restoreCase",
+    "verifyCleanupReadback",
+  ]) {
+    assert(runtimeSource.includes(snippet), `exact case runtime owner missing ${snippet}`);
+    assert(runnerSource.includes(snippet), `exact runner is not wired to ${snippet}`);
+  }
+  const persistedSeedCount = manifest.cases.filter(item => item.workflow.setup.some(setup =>
+    setup.kind === "seed-reviewed-state" && setup.persistedMutation === true)).length;
+  const mutationCleanupCount = manifest.cases.filter(item => item.workflow.cleanup.some(cleanup =>
+    ["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind))).length;
+  const crossRoleCount = manifest.cases.filter(item => item.workflow.setup.some(setup =>
+    setup.kind === "bind-action-role-session" && setup.accountRole !== item.accountRole)).length;
+  const secretRefCount = manifest.cases.filter(item => JSON.stringify(item.workflow.inputs).includes("secretRef")).length;
+  const requiredMutationClassCount =
+    review4WorkflowClassExpectedCounts["persisted-mutation"] +
+    review4WorkflowClassExpectedCounts["form-submit"];
+  assert(persistedSeedCount === mutationCleanupCount,
+    `persisted seed/cleanup closure drift: ${persistedSeedCount}/${mutationCleanupCount}`);
+  assert(persistedSeedCount >= requiredMutationClassCount,
+    `persisted seed closure does not cover mutation workflow classes: ${persistedSeedCount}/${requiredMutationClassCount}`);
+  assert(crossRoleCount === 7, `cross-role closure drift: ${crossRoleCount}/7`);
+  assert(secretRefCount === 11, `secretRef case closure drift: ${secretRefCount}/11`);
+  assert(runnerSource.indexOf("validateRunnerWorkflowCompatibility(manifest.cases)") <
+    runnerSource.indexOf("if (options.planOnly)"),
+  "plan-only must validate runner workflow compatibility before reporting PASS");
+});
+
+check("self-contained runtime closes invite, auth readback, preference, and visual-session gaps", () => {
+  for (const snippet of [
+    "normalizeInviteSeedResponse",
+    "seedExactAccessRequestFixture",
+    "seedVlmRuleSuggestionFixture",
+    "defaultPublishedSourceIdentity",
+    "canonicalSourceKey",
+    '["RULE-103", "RULE-104", "RULE-111", "SAFE-038", "UI-036", "UI-046", "UI-052", "UI-053", "UI-064", "UI-065", "UI-066", "UI-067", "UI-068", "UI-069", "UI-070", "UI-071", "UI-072", "UI-073", "UI-074", "UI-075", "UI-080", "UI-088", "UI-089", "UI-090", "UI-091", "UI-092", "UI-093", "UI-094", "UI-095", "UI-096", "UI-097", "UI-098", "UI-099", "UI-100", "UI-101", "UI-102", "UI-103", "UI-104", "UI-105"].includes(item.caseId)',
+    'item.caseId === "UI-052"',
+    "transient operational action pack is missing from the authoritative API readback",
+    'item.caseId === "UI-053"',
+    "transient rule what-if preview is missing from the authoritative API readback",
+    "transient source reliability context is missing from the authoritative API readback",
+    "validateUnifiedWorkspaceCaseReadback",
+    "transient AI review quality context is missing from the authoritative API readback",
+    "transient operator resolution flow is missing from the authoritative API readback",
+    "transient action readiness checklist is missing from the authoritative API readback",
+    "transient resolution search metrics is missing from the authoritative API readback",
+    "transient incident source correlation is missing from the authoritative API readback",
+    "transient operator recheck recovery queue is missing from the authoritative API readback",
+    "transient EventRecord is missing from the viewer-scoped recent event readback",
+    "transient closed EventRecord is not bound to the viewer-safe resolution digest",
+    "viewer-safe source status digest is missing from the authoritative API readback",
+    "source reliability search metrics are missing from the authoritative API readback",
+    "backup recovery source handoff is missing from the authoritative API readback",
+    "continuity drill workspace inputs are missing from the authoritative API readback",
+    "transient incident command handoff is missing from the authoritative API readback",
+    "validateV360SimulationReadback",
+    "simulation workspace core read models are missing from the authoritative API readback",
+    "simulation run ledger is missing from the authoritative API readback",
+    "client notice preview is missing from the authoritative API readback",
+    "Rule/VA what-if replay pack is missing from the authoritative API readback",
+    "validateV390Ui092To105Readback",
+    "schema or non-empty read model is missing",
+    "viewer-safe action notice preview is missing from the authoritative API readback",
+    '["onvif", "live", "review4"]',
+    "/ops/api/vlm/rule-suggestion-drafts?limit=10",
+    "/ops/api/events/reviews?eventId=",
+    "matchingRuleSuggestionPresent",
+    "resolveAuthoritativeReadback",
+    "cleanupOriginalRecord",
+    "mutationBaselineRecord",
+    "freshAuthoritativeReadback",
+    "verifyMutationReadback",
+  ]) {
+    assert(runtimeSource.includes(snippet), `case runtime missing P0 closure: ${snippet}`);
+  }
+  const accessStoreRoot = fs.mkdtempSync("/private/tmp/media_server_v390_ui-access-seed-");
+  try {
+    const eventStoragePath = path.join(accessStoreRoot, "events.jsonl");
+    seedEventRecordFixture(eventStoragePath, {
+      eventId: "reviewed-event-id",
+      sourceId: "9001",
+    });
+    const eventRecord = JSON.parse(fs.readFileSync(eventStoragePath, "utf8").trim());
+    assert(eventRecord.schema === "media-server.va.event-record.v1" &&
+      eventRecord.eventId === "reviewed-event-id" &&
+      Number.isInteger(eventRecord.trackId) &&
+      Number.isFinite(eventRecord.startTime) &&
+      Number.isFinite(eventRecord.updateTime) &&
+      Number.isFinite(eventRecord.endTime),
+    "EventRecord transient seed is not accepted by the canonical event-store parser");
+    const enrichedPath = path.join(accessStoreRoot, "enriched-events.jsonl");
+    seedEventRecordFixture(enrichedPath, {
+      eventId: "reviewed-related-event-id",
+      sourceId: "9001",
+      eventType: "related-incident",
+      scenarioName: "review4-related-incident",
+      snapshotPath: "snapshots/reviewed-related-event-id.jpg",
+      clipPath: "clips/reviewed-related-event-id.mp4",
+      metadata: { relatedTo: "reviewed-event-id", sourceHealth: "degraded" },
+    });
+    const enriched = JSON.parse(fs.readFileSync(enrichedPath, "utf8").trim());
+    assert(enriched.eventType === "related-incident" &&
+      enriched.scenarioName === "review4-related-incident" &&
+      enriched.snapshotPath.endsWith(".jpg") && enriched.clipPath.endsWith(".mp4") &&
+      enriched.metadata?.relatedTo === "reviewed-event-id" && enriched.metadata?.sourceHealth === "degraded",
+    "EventRecord seed does not preserve related/evidence/source-health join material");
+    const usersFile = path.join(accessStoreRoot, "users.json");
+    fs.writeFileSync(usersFile, '{"users":[],"invites":[],"accessRequests":[]}\n', { mode: 0o600 });
+    const seeded = seedExactAccessRequestFixture(usersFile, {
+      requestId: "reviewed-request-id",
+      username: "reviewed-request-user",
+      viewId: "9001",
+    });
+    const stored = JSON.parse(fs.readFileSync(usersFile, "utf8")).accessRequests;
+    assert(seeded.requestId === "reviewed-request-id" && stored.length === 1 &&
+      stored[0].requestId === "reviewed-request-id" && stored[0].status === "pending",
+    "access-request seed did not preserve the reviewed fixture identity/status");
+  } finally {
+    fs.rmSync(accessStoreRoot, { recursive: true, force: true });
+  }
+  assert(!runtimeSource.includes("fetch(`${httpBase}/client/api/access-requests`"),
+    "access-request seed must not accept a random product-generated ID");
+  assert(runtimeSource.includes('inviteId || value?.requestId'),
+    "authoritative record identity must include inviteId/requestId");
+  assert(runtimeSource.includes('mode: "whole-response"'),
+    "client preference cleanup must compare the authoritative whole response");
+  for (const collection of [
+    '"/ops/api/sources"',
+    '"/ops/api/views"',
+    '"/ops/api/users"',
+    '"/ops/api/access-requests"',
+  ]) {
+    assert(runtimeSource.includes(collection), `authoritative collection readback missing: ${collection}`);
+  }
+  assert(runtimeSource.includes('mode: "source-view-pair"'),
+    "ONVIF/source channel cleanup must use paired source/view readback");
+  assert(runtimeSource.includes("buildOnvifPairPayload"),
+    "ONVIF runtime seed/restore must use the product source+publishedView schema");
+  assert(!runtimeSource.includes("if (!allowedStatuses.includes(response.status) && !tolerate)"),
+    "runtime readback must not tolerate undeclared 401/405/500 responses");
+
+  assert(environmentSource.includes('.media_server.client_live_layout_preferences.jsonl'),
+    "self-contained environment does not own the product preference storage path");
+  assert(!environmentSource.includes('path.join(state.temporaryRoot, "ui-preferences.json")'),
+    "self-contained environment still snapshots a non-product preference file");
+
+  const visualFunction = runnerSource.slice(
+    runnerSource.indexOf("async function executeVisualMatrix"),
+    runnerSource.indexOf("async function executeWorkflowSetup"),
+  );
+  assert(visualFunction.includes("caseRuntime.freshRoleStorageState"),
+    "visual matrix must acquire a fresh role session for every probe");
+  assert(!visualFunction.includes("resolveRoleState("),
+    "visual matrix must not reuse bootstrap storage state after exact mutations");
+
+  const adapterSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
+  for (const snippet of [
+    "safePersistedRequestBodyProjection",
+    "safeFormResponseProjection",
+    "captureEndpointOwnedResponseProjection",
+    'safeResponseProjectionSource = "playwright-response-json"',
+    "assertEndpointResponseSensitiveBoundary",
+  ]) {
+    assert(adapterSource.includes(snippet), `native adapter safe identity capture missing: ${snippet}`);
+  }
+  assert(!adapterSource.includes("safeResponseBody = payload"),
+    "native adapter must not persist raw form responses containing invite/auth material");
+
+  for (const snippet of [
+    "preparePersistedUiLifecycle",
+    "assertPersistedRequestBinding",
+    "prepareFormSubmitUiLifecycle",
+    "applyTypedFormInputs",
+    "captureFormResponseIdentity",
+    "runtimeMutationReadback",
+    "primaryFailure",
+    "cleanupFailure",
+    "browserCloseFailure",
+  ]) {
+    assert(runnerSource.includes(snippet), `exact runner P0/P1 lifecycle closure missing: ${snippet}`);
+  }
+  const persistedCases = manifest.cases.filter(item => item.workflow.workflowClass === "persisted-mutation");
+  assert(persistedCases.length === review4WorkflowClassExpectedCounts["persisted-mutation"],
+    `persisted lifecycle count drift: ${persistedCases.length}/${review4WorkflowClassExpectedCounts["persisted-mutation"]}`);
+  assert(new Set(persistedCases.map(item => item.workflow.controlSequence
+    .find(action => action.kind === "execute-persisted-action")?.uiLifecycle?.adapter)).size >= 8,
+  "persisted workflows must use domain-specific UI lifecycle adapters");
+  const channelCases = persistedCases.filter(item => item.workflow.controlSequence
+    .find(action => action.kind === "execute-persisted-action")?.uiLifecycle?.adapter === "channel-source-view-pair");
+  assert(channelCases.length === 10 && channelCases.every(item => {
+    const binding = item.workflow.controlSequence
+      .find(action => action.kind === "execute-persisted-action")?.uiLifecycle?.requestBinding;
+    return ["atomic-pair", "ordered-source-view-pair"].includes(binding?.mode) &&
+      Array.isArray(binding.expectedRequests) &&
+      binding.expectedRequests.length === (binding.mode === "atomic-pair" ? 1 : 2);
+  }), "channel workflows must bind the atomic ONVIF or ordered source/view request transaction");
+  const formCases = manifest.cases.filter(item => item.workflow.workflowClass === "form-submit");
+  assert(formCases.length === 16, `form lifecycle count drift: ${formCases.length}/16`);
+  const formCaseIds = formCases.map(item => item.caseId).sort();
+  const formProfileIds = Object.keys(formReadbackProfiles).sort();
+  assert(JSON.stringify(formCaseIds) === JSON.stringify(formProfileIds),
+    "manifest form cases and authoritative runtime profiles must be an exact set");
+  const documentFormCaseIds = [
+    "AUTH-004", "AUTH-005", "AUTH-006", "AUTH-007", "AUTH-034", "AUTH-035",
+    "UI-002", "UI-003", "UI-004", "UI-005", "UI-007",
+  ];
+  const applicationFormCaseIds = ["AUTH-014", "AUTH-015", "AUTH-033", "AUTH-036", "UI-008"];
+  assert(JSON.stringify(formCaseIds) ===
+    JSON.stringify([...documentFormCaseIds, ...applicationFormCaseIds].sort()),
+  "form-submit transport audit does not cover the exact 16-case set");
+  for (const caseId of documentFormCaseIds) {
+    assert(runnerSource.includes(`["${caseId}", {`),
+      `${caseId} document form navigation contract missing`);
+  }
+  assert(runnerSource.includes("browser.submitDocumentForm") &&
+    runnerSource.includes("bindDocumentFormSubmission") &&
+    runnerSource.includes("documentFormSubmitContracts.has(item.caseId)"),
+  "document form submit runner does not use exact request-object navigation binding");
+  for (const caseId of applicationFormCaseIds) {
+    const item = formCases.find(candidate => candidate.caseId === caseId);
+    const request = item?.workflow.controlSequence.find(action => action.kind === "submit-form")
+      ?.semanticCompletion?.request;
+    assert(request?.urlPath.includes("/api/") &&
+      !documentFormCaseIds.includes(caseId),
+    `${caseId} application form transport classification drift`);
+  }
+  for (const item of formCases) {
+    const profile = formReadbackProfiles[item.caseId];
+    assert(profile.expectedBehaviorSha256 === item.oracle.expectedBehaviorSha256,
+      `${item.caseId} form profile is not digest-bound to its reviewed expected behavior`);
+    assert(Array.isArray(profile.requiredChecks) && profile.requiredChecks.length >= 3 &&
+      new Set(profile.requiredChecks).size === profile.requiredChecks.length,
+    `${item.caseId} form profile required-check coverage is incomplete`);
+  }
+  assert(formCases.every(item => item.workflow.controlSequence.find(action => action.kind === "submit-form")
+    ?.uiLifecycle?.fieldControls.every(field =>
+      ["fill", "select", "check", "hidden-binding", "readonly-value"].includes(field.control))),
+  "form workflows must classify every field by typed UI control");
+  for (const caseId of ["UI-002", "AUTH-005", "AUTH-006"]) {
+    const setupCase = manifest.cases.find(item => item.caseId === caseId);
+    const formInput = setupCase?.workflow.inputs.find(input => input.kind === "form-values");
+    const usernameControl = setupCase?.workflow.controlSequence.find(action => action.kind === "submit-form")
+      ?.uiLifecycle?.fieldControls.find(field => field.name === "username");
+    assert(formInput?.actualValue?.username === "admin" &&
+      usernameControl?.control === "readonly-value" &&
+      usernameControl?.expectedValue === "admin" &&
+      usernameControl?.valueSource === "product-fixed-admin",
+    `${caseId} setup workflow must preserve the product-fixed readonly admin username`);
+  }
+  for (const snippet of ["readonly-value", "before.readOnly === true", "before.value === field.expectedValue"]) {
+    assert(runnerSource.includes(snippet), `setup readonly runtime oracle missing: ${snippet}`);
+  }
+  for (const snippet of [
+    "verifyFormSubmitReadback",
+    "media-server.v390-ui-runtime-form-submit-readback.v1",
+    "form authoritative readback profile is not registered",
+    "form readback profile expected-behavior digest drift",
+    "form readback evidence-key coverage drift",
+    "setup-weak-strong-admin-store-login-whoami",
+    "setup store contains plaintext password",
+  ]) {
+    assert((runnerSource + runtimeSource).includes(snippet), `setup authoritative form readback missing: ${snippet}`);
+  }
+  for (const snippet of [
+    "weakPasswordStatus",
+    "historyReuse",
+    "originalSessionCookie",
+    "beforeSetupClientStatus",
+    "issued-invite-token",
+    "expired-invite-token",
+    "persistentSecretFieldsPresent",
+    "containsForbiddenAuthMaterial",
+    "pendingLoginDenied",
+    "after-cleanup-original-login",
+  ]) {
+    assert((runnerSource + runtimeSource).includes(snippet),
+      `case-specific authoritative form oracle missing: ${snippet}`);
+  }
+  const auth007 = formCases.find(item => item.caseId === "AUTH-007");
+  assert(auth007.workflow.inputs.find(input => input.kind === "form-values")?.actualValue?.username === "admin",
+    "AUTH-007 hashless-admin workflow must submit the product-fixed admin identity");
+  for (const snippet of ["liveGridSize", "liveDensity", "liveDockSide", "ordered-source-view-pair"]) {
+    assert(runnerSource.includes(snippet), `persisted UI lifecycle mutation/binding closure missing: ${snippet}`);
+  }
+
+  for (const caseId of ["SRC-001", "SRC-002", "SRC-003", "SRC-004", "SRC-005", "SRC-017"]) {
+    const cleanup = manifest.cases.find(item => item.caseId === caseId)?.workflow.cleanup[0];
+    assert(cleanup?.inverseAction?.localAction?.type === "restore-source-view-snapshot" &&
+      cleanup.afterReadback?.expectation === "inactive-or-equal-before",
+    `${caseId} soft-delete endpoint must not masquerade as absent cleanup`);
+  }
+  const mutationCases = manifest.cases.filter(item =>
+    ["persisted-mutation", "form-submit"].includes(item.workflow.workflowClass));
+  assert(mutationCases.every(item => {
+    const cleanup = item.workflow.cleanup.find(candidate =>
+      ["restore-fixture-state", "delete-created-fixture"].includes(candidate.kind));
+    return cleanup?.inverseAction?.localAction?.type?.startsWith("restore-") &&
+      ["equal-before", "inactive-or-equal-before"].includes(cleanup.afterReadback?.expectation);
+  }), "every persisted/form mutation must restore owned state or prove source/view inactive isolation");
+  for (const snippet of ["restoreProductMutationState", "restoreSourceViewState"]) {
+    assert(runtimeSource.includes(snippet), `runtime product-memory cleanup closure missing: ${snippet}`);
+  }
+
+  for (const snippet of [
+    "roleStateMapPath",
+    "storageStatePaths",
+    "serverLogPath",
+    "registrySeedPayloadPaths",
+    "artifactPaths",
+    "loopback",
+  ]) {
+    assert(runtimeSource.includes(snippet), `runtime descriptor containment closure missing: ${snippet}`);
+  }
+});
+
+check("case runtime keeps generated secrets ephemeral and rejects state path escape", () => {
+  const temporaryRoot = fs.mkdtempSync("/private/tmp/media_server_v390_ui-case-runtime-");
+  try {
+    const stateFile = path.join(temporaryRoot, "users.json");
+    const roleMapPath = path.join(temporaryRoot, "roles.json");
+    const descriptorPath = path.join(temporaryRoot, "descriptor.json");
+    const serverLogPath = path.join(temporaryRoot, "server.log");
+    const eventStoragePath = path.join(temporaryRoot, "events.jsonl");
+    fs.writeFileSync(stateFile, '{"users":[]}\n', { mode: 0o600 });
+    fs.writeFileSync(roleMapPath, `${JSON.stringify({ schema: "media-server.v390-ui-role-state-map.v1", roles: {} })}\n`, { mode: 0o600 });
+    fs.writeFileSync(serverLogPath, "", { mode: 0o600 });
+    fs.writeFileSync(eventStoragePath, "", { mode: 0o600 });
+    const descriptorFixture = stateFiles => ({
+      schema: "media-server.v390-ui-runtime-descriptor.v1",
+      temporaryRoot,
+      httpBase: "http://127.0.0.1:1",
+      httpPort: 1,
+      roleStateMapPath: roleMapPath,
+      serverLogPath,
+      eventStoragePath,
+      registrySeedPayloadPaths: {},
+      artifactPaths: {},
+      stateFiles,
+      auth: { usersFile: stateFile, usernames: { operator: "operator" }, storageStatePaths: {} },
+    });
+    fs.writeFileSync(descriptorPath, `${JSON.stringify({
+      ...descriptorFixture([stateFile]),
+    })}\n`, { mode: 0o600 });
+    const runtime = createV390UiCaseRuntime({
+      rootDir,
+      httpBase: "http://127.0.0.1:1",
+      runtimeDescriptorPath: descriptorPath,
+      roleStateMapPath: roleMapPath,
+      roleSecretsJson: JSON.stringify({ roles: { operator: "contract-current-secret" }, refs: {} }),
+    });
+    const item = { caseId: "CONTRACT", accountRole: "operator" };
+    const generated = runtime.resolveSecretRef("CONTRACT:fixture-password", { item, field: "password" });
+    assert(generated === runtime.resolveSecretRef("CONTRACT:fixture-password", { item, field: "confirm" }),
+      "same runtime secretRef must resolve consistently inside one case runtime");
+    assert(generated !== "contract-current-secret" && generated.length >= 24,
+      "new fixture password must be generated independently of the current role password");
+    assert(runtime.resolveSecretRef("CONTRACT:fixture-current-password", { item, field: "currentPassword" }) === "contract-current-secret",
+      "current-password secretRef must bind the actual role credential");
+    assert(!fs.readFileSync(descriptorPath, "utf8").includes(generated),
+      "generated runtime secret leaked into the safe descriptor");
+    const serializedSecretScan = runtime.assertRetainedSecretsAbsentFromSerializedValue(
+      JSON.stringify({ schema: "safe-summary", status: "PASS" }),
+    );
+    assert(serializedSecretScan.status === "PASS" && serializedSecretScan.retainedSecretCount >= 2,
+      "serialized summary retained-secret scan did not attest the live secret set");
+    let serializedSecretRejected = false;
+    try {
+      runtime.assertRetainedSecretsAbsentFromSerializedValue(
+        JSON.stringify({ failureMessage: `credential=${generated}` }),
+      );
+    } catch (error) {
+      serializedSecretRejected = String(error?.message || error).includes("retained runtime secret");
+    }
+    assert(serializedSecretRejected,
+      "serialized summary retained-secret scan accepted an exact registered secret value");
+    assert(runtimeSource.includes("acceptance-owned-state-file-byte-readback") &&
+      runtimeSource.includes("cleanup/readback left authoritative state changed") &&
+      runtimeSource.includes("assert(!unexpectedStateChange"),
+    "case runtime authoritative state boundary is not fail-closed");
+
+    const escapedPath = path.join("/private/tmp", `v390-case-runtime-escape-${process.pid}.json`);
+    fs.writeFileSync(escapedPath, "{}\n", { mode: 0o600 });
+    fs.writeFileSync(descriptorPath, `${JSON.stringify({
+      ...descriptorFixture([escapedPath]),
+      auth: { usersFile: stateFile, usernames: {}, storageStatePaths: {} },
+    })}\n`, { mode: 0o600 });
+    let rejected = false;
+    try {
+      createV390UiCaseRuntime({ rootDir, httpBase: "http://127.0.0.1:1", runtimeDescriptorPath: descriptorPath, roleStateMapPath: roleMapPath });
+    } catch (error) {
+      rejected = String(error.message).includes("escapes temporary root");
+    }
+    fs.rmSync(escapedPath, { force: true });
+    assert(rejected, "runtime descriptor accepted a state file outside its temporary root");
+  } finally {
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+check("authoritative cleanup readback restores state after success and failure", async () => {
+  const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_cleanup_readback_"));
+  const stateFile = path.join(temporaryRoot, "users.json");
+  const baseline = Buffer.from('{"users":[{"username":"operator","lastLoginAt":""}]}\n');
+  const fixtureUsername = "auth-020-review4-fixture";
+  const snapshots = [{
+    path: stateFile,
+    exists: true,
+    mode: 0o600,
+    bytes: baseline.toString("base64"),
+  }];
+  try {
+    fs.writeFileSync(stateFile, baseline, { mode: 0o600 });
+    const result = await runAuthoritativeReadbackWithSnapshotRestore({
+      snapshots,
+      readback: async () => {
+        fs.writeFileSync(stateFile,
+          `{"users":[{"username":"operator","lastLoginAt":"changed"},{"username":"${fixtureUsername}","enabled":false}]}\n`);
+        return { status: 302 };
+      },
+      label: "AUTH-020 successful primary cleanup",
+    });
+    assert(result.status === 302, "successful cleanup readback result was not preserved");
+    assert(fs.readFileSync(stateFile).equals(baseline),
+      "successful cleanup readback left authoritative state changed");
+    assertAuthFixtureAbsentFromUsersFile(stateFile, fixtureUsername);
+
+    let failureMessage = "";
+    try {
+      await runAuthoritativeReadbackWithSnapshotRestore({
+        snapshots,
+        readback: async () => {
+          fs.writeFileSync(stateFile,
+            `{"users":[{"username":"operator","lastLoginAt":"failed"},{"username":"${fixtureUsername}","enabled":false}]}\n`);
+          throw new Error("intentional readback failure");
+        },
+        label: "AUTH-020 failing primary cleanup",
+      });
+    } catch (error) {
+      failureMessage = error instanceof Error ? error.message : String(error);
+    }
+    assert(failureMessage === "intentional readback failure",
+      "cleanup readback failure was not preserved");
+    assert(fs.readFileSync(stateFile).equals(baseline),
+      "failed cleanup readback left authoritative state changed");
+    assertAuthFixtureAbsentFromUsersFile(stateFile, fixtureUsername);
+    assert(runtimeSource.includes("fresh authoritative cleanup readback expected an absent fixture") &&
+      runtimeSource.includes("assertAuthFixtureAbsentFromUsersFile") &&
+      runtimeSource.includes("context.cleanupOriginalRecord = null") &&
+      runtimeSource.includes("context.cleanupOriginalRecordCaptured = true"),
+    "AUTH-020 fresh absent cleanup readback is not fail closed");
+  } finally {
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+check("SRC-010 and SRC-019 use a fresh fixture-scoped viewer and restore auth bytes", () => {
+  for (const fixtureId of ["3900010", "3900019"]) {
+    assert(JSON.stringify(fixtureViewerScopes(fixtureId)) === JSON.stringify([
+      `view:read:${fixtureId}`,
+      `dashboard:read:${fixtureId}`,
+      `event:read:${fixtureId}`,
+      `metadata:read:${fixtureId}`,
+    ]), `${fixtureId} fixture viewer scope projection drift`);
+  }
+  for (const snippet of [
+    '["SRC-010", "SRC-019"].includes(item.caseId)',
+    "requestFixtureScopedViewerReadback",
+    "scopeRuntimeViewerToView(context.fixtureId)",
+    "fixture-scoped viewer fresh login",
+    "runAuthoritativeReadbackWithSnapshotRestore",
+    "operatorOrAdminBypass: false",
+    'postForm(`${httpBase}/logout`, {}, { cookie })',
+  ]) {
+    assert(runtimeSource.includes(snippet),
+      `fixture-scoped viewer readback lifecycle missing: ${snippet}`);
+  }
+  assert(!runtimeSource.includes(
+    'null, item, context, [404], { freshRole: true, roleOverride: "viewer" }',
+  ), "SRC endpoint readback still uses the default unscoped viewer session");
+});
+
+check("fresh role session restores login audit writes before a read-only case", async () => {
+  const temporaryRoot = fs.mkdtempSync("/private/tmp/media_server_v390_ui-fresh-role-");
+  const stateFile = path.join(temporaryRoot, "users.json");
+  const roleMapPath = path.join(temporaryRoot, "roles.json");
+  const descriptorPath = path.join(temporaryRoot, "descriptor.json");
+  const serverLogPath = path.join(temporaryRoot, "server.log");
+  const eventStoragePath = path.join(temporaryRoot, "events.jsonl");
+  const baseline = Buffer.from('{"users":[{"username":"operator","lastLoginAt":"","lastLoginIp":""}]}\n');
+  const originalFetch = globalThis.fetch;
+  try {
+    fs.writeFileSync(stateFile, baseline, { mode: 0o600 });
+    fs.writeFileSync(roleMapPath,
+      `${JSON.stringify({ schema: "media-server.v390-ui-role-state-map.v1", roles: {} })}\n`,
+      { mode: 0o600 });
+    fs.writeFileSync(serverLogPath, "", { mode: 0o600 });
+    fs.writeFileSync(eventStoragePath, "", { mode: 0o600 });
+    fs.writeFileSync(descriptorPath, `${JSON.stringify({
+      schema: "media-server.v390-ui-runtime-descriptor.v1",
+      temporaryRoot,
+      httpBase: "http://127.0.0.1:1",
+      httpPort: 1,
+      roleStateMapPath: roleMapPath,
+      serverLogPath,
+      eventStoragePath,
+      registrySeedPayloadPaths: {},
+      artifactPaths: {},
+      stateFiles: [stateFile],
+      auth: {
+        usersFile: stateFile,
+        usernames: { operator: "operator" },
+        storageStatePaths: {},
+      },
+    })}\n`, { mode: 0o600 });
+    globalThis.fetch = async input => {
+      const url = new URL(String(input));
+      if (url.pathname === "/login") {
+        fs.writeFileSync(stateFile,
+          '{"users":[{"username":"operator","lastLoginAt":"changed","lastLoginIp":"127.0.0.1"}]}\n');
+        return new Response("", {
+          status: 302,
+          headers: { location: "/ops/home", "set-cookie": "media_session=contract-cookie; Path=/; HttpOnly" },
+        });
+      }
+      if (url.pathname === "/auth/whoami") {
+        return new Response(JSON.stringify({
+          authenticated: true,
+          username: "operator",
+          role: "operator",
+        }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      throw new Error(`unexpected fresh-role contract request: ${url.pathname}`);
+    };
+    const runtime = createV390UiCaseRuntime({
+      rootDir,
+      httpBase: "http://127.0.0.1:1",
+      runtimeDescriptorPath: descriptorPath,
+      roleStateMapPath: roleMapPath,
+      roleSecretsJson: JSON.stringify({ roles: { operator: "contract-current-secret" }, refs: {} }),
+    });
+    const storageStatePath = await runtime.freshRoleStorageState("operator", "UI-009");
+    const storageState = JSON.parse(fs.readFileSync(storageStatePath, "utf8"));
+    assert(storageState.cookies?.[0]?.value === "contract-cookie",
+      "fresh role session did not preserve the issued session cookie");
+    assert(fs.readFileSync(stateFile).equals(baseline),
+      "fresh role session left login audit fields changed before read-only case execution");
+  } finally {
+    globalThis.fetch = originalFetch;
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+check("fresh viewer session uses scope and client view readback instead of a nonexistent whoami viewId", async () => {
+  const temporaryRoot = fs.mkdtempSync("/private/tmp/media_server_v390_ui-fresh-viewer-");
+  const stateFile = path.join(temporaryRoot, "users.json");
+  const roleMapPath = path.join(temporaryRoot, "roles.json");
+  const descriptorPath = path.join(temporaryRoot, "descriptor.json");
+  const serverLogPath = path.join(temporaryRoot, "server.log");
+  const eventStoragePath = path.join(temporaryRoot, "events.jsonl");
+  const viewId = "94097";
+  const scopes = fixtureViewerScopes(viewId);
+  const baseline = Buffer.from(`${JSON.stringify({
+    users: [{
+      username: "viewer",
+      role: "viewer",
+      scopes,
+      lastLoginAt: "",
+      lastLoginIp: "",
+    }],
+  })}\n`);
+  const originalFetch = globalThis.fetch;
+  try {
+    fs.writeFileSync(stateFile, baseline, { mode: 0o600 });
+    fs.writeFileSync(roleMapPath,
+      `${JSON.stringify({ schema: "media-server.v390-ui-role-state-map.v1", roles: {} })}\n`,
+      { mode: 0o600 });
+    fs.writeFileSync(serverLogPath, "", { mode: 0o600 });
+    fs.writeFileSync(eventStoragePath, "", { mode: 0o600 });
+    fs.writeFileSync(descriptorPath, `${JSON.stringify({
+      schema: "media-server.v390-ui-runtime-descriptor.v1",
+      temporaryRoot,
+      httpBase: "http://127.0.0.1:1",
+      httpPort: 1,
+      roleStateMapPath: roleMapPath,
+      serverLogPath,
+      eventStoragePath,
+      registrySeedPayloadPaths: {},
+      artifactPaths: {},
+      stateFiles: [stateFile],
+      auth: {
+        usersFile: stateFile,
+        usernames: { viewer: "viewer" },
+        storageStatePaths: {},
+      },
+    })}\n`, { mode: 0o600 });
+    globalThis.fetch = async input => {
+      const url = new URL(String(input));
+      if (url.pathname === "/login") {
+        fs.writeFileSync(stateFile, Buffer.from(`${JSON.stringify({
+          users: [{
+            username: "viewer",
+            role: "viewer",
+            scopes,
+            lastLoginAt: "changed",
+            lastLoginIp: "127.0.0.1",
+          }],
+        })}\n`));
+        return new Response("", {
+          status: 302,
+          headers: { location: "/client/live", "set-cookie": "media_session=viewer-cookie; Path=/; HttpOnly" },
+        });
+      }
+      if (url.pathname === "/auth/whoami") {
+        return new Response(JSON.stringify({
+          authenticated: true,
+          username: "viewer",
+          role: "viewer",
+          scopes,
+        }), { status: 200, headers: { "content-type": "application/json" } });
+      }
+      if (url.pathname === "/client/api/views") {
+        return new Response(JSON.stringify({ views: [{ viewId }] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.pathname === `/client/api/views/${viewId}`) {
+        return new Response(JSON.stringify({ view: { viewId } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      throw new Error(`unexpected fresh-viewer contract request: ${url.pathname}`);
+    };
+    const runtime = createV390UiCaseRuntime({
+      rootDir,
+      httpBase: "http://127.0.0.1:1",
+      runtimeDescriptorPath: descriptorPath,
+      roleStateMapPath: roleMapPath,
+      roleSecretsJson: JSON.stringify({ roles: { viewer: "contract-current-secret" }, refs: {} }),
+    });
+    const storageStatePath = await runtime.freshRoleStorageState("viewer", "RULE-097");
+    const storageState = JSON.parse(fs.readFileSync(storageStatePath, "utf8"));
+    assert(storageState.cookies?.[0]?.value === "viewer-cookie",
+      "fresh viewer session did not preserve the issued session cookie");
+    assert(fs.readFileSync(stateFile).equals(baseline),
+      "fresh viewer session left login audit fields changed");
+    assert(!runtimeSource.includes("whoami.json?.viewId"),
+      "fresh viewer session still depends on the nonexistent whoami viewId field");
+  } finally {
+    globalThis.fetch = originalFetch;
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+check("canonical requested route and runtime screen route are explicit projections", () => {
+  const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
+  const projected = manifest.cases.filter(item => item.canonicalRoute !== item.screenRoute);
+  const expectedProjected = manifest.cases.filter(item => {
+    const canonicalCase = canonicalById.get(item.caseId);
+    return item.disposition !== "negative-route" &&
+      normalizeProductScreenRoute(canonicalCase?.route || "") !== canonicalCase?.route;
+  });
+  assert(projected.length === expectedProjected.length,
+    `canonical/runtime route projection count mismatch: ${projected.length}/${expectedProjected.length}`);
+  for (const item of manifest.cases) {
+    const canonicalCase = canonicalById.get(item.caseId);
+    assert(item.canonicalRoute === canonicalCase?.route,
+      `${item.caseId} canonical requested route drift`);
+    const expectedScreenRoute = item.disposition === "negative-route"
+      ? canonicalCase.route
+      : normalizeProductScreenRoute(canonicalCase.route);
+    assert(item.screenRoute === expectedScreenRoute,
+      `${item.caseId} runtime screen route projection drift`);
+    assert(item.disposition === "negative-route" || !item.screenRoute.includes("/api/"),
+      `${item.caseId} runtime screen route retains API ownership route`);
+  }
+});
+
+check("runner and producer share typed capture schema while qualifier is independently implemented", () => {
+  for (const source of [nativeLibrarySource, runnerSource, producerSource]) {
+    assert(source.includes("v390_ui_requested_observed_schema.mjs"),
+      "requested/observed capture schema is not shared by runner and producer");
+  }
+  assert(policyLibrarySource.includes("v390_ui_policy_v4_independent_qualifier.mjs") &&
+    !policyLibrarySource.includes("v390_ui_requested_observed_schema.mjs"),
+  "Policy qualifier reuses the producer requested/observed validator");
+  assert(runnerSource.includes("canonicalRequestedProjection(item)"),
+    "runner requested canonical projection missing");
+  assert(!runnerSource.includes("requested: {\n      route: item.screenRoute"),
+    "legacy requested screen-route/role object remains");
+  assert(runnerSource.includes("observeRequestedObservedState"),
+    "runner does not independently observe screen route/role/viewport/theme/control action");
+  const adapterSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
+  const browserCallbackSource = fs.readFileSync(path.join(rootDir,
+    "scripts/internal/v390_ui_browser_callback_boundary.mjs"), "utf8");
+  const adapterBrowserSource = `${adapterSource}\n${browserCallbackSource}`;
+  assert(adapterBrowserSource.includes("response.status === 401") &&
+    adapterBrowserSource.includes("whoami observation failed with status") &&
+    adapterBrowserSource.includes("whoami observation returned an invalid authenticated principal"),
+  "adapter folds whoami transport/status/schema failures into anonymous role");
+  assert(!adapterBrowserSource.includes("principal = null"),
+    "adapter retains whoami failure-to-anonymous fallback");
+  assert(!producerSource.includes("result.observed || result.requested"),
+    "producer still falls back from missing observed to requested");
+  const source = manifest.cases.find(item => item.caseId === "SRC-031");
+  const requested = canonicalRequestedProjection(source);
+  const observed = expectedRuntimeObservation(source);
+  assert(requested.route === "/ops/api/onvif/import-draft" && observed.screenRoute === "/ops/sources",
+    "SRC-031 canonical API request/runtime screen projection mismatch");
+  assert(validateRequestedObservedEnvelope({
+    requested,
+    observed,
+    canonicalCase: canonical.cases.find(item => item.testId === source.caseId),
+    nativeCase: source,
+  }).length === 0, "valid requested/observed envelope rejected");
+
+  const negativeCases = [
+    ["requested-role-alias", value => { value.requested.role = value.requested.accountRole; }, "requested-fields-mismatch"],
+    ["requested-control-missing", value => { delete value.requested.controlAction; }, "requested-fields-mismatch"],
+    ["observed-route-alias", value => { value.observed.route = value.observed.screenRoute; }, "observed-fields-mismatch"],
+    ["observed-missing", value => { value.observed = undefined; }, "observed-object-missing"],
+    ["observed-api-route", value => { value.observed.screenRoute = value.requested.route; }, "observed-screenRoute-api-route-forbidden"],
+    ["viewport-string", value => { value.observed.viewport.width = "390"; }, "observed-viewport-invalid"],
+    ["theme-invalid", value => { value.observed.theme = "system"; }, "observed-theme-invalid"],
+    ["control-manifest-copy", value => { value.observed.controlAction = structuredClone(value.requested.controlAction); }, "observed-controlAction-fields-mismatch"],
+  ];
+  for (const [label, mutateEnvelope, expectedError] of negativeCases) {
+    const candidate = { requested: structuredClone(requested), observed: structuredClone(observed) };
+    mutateEnvelope(candidate);
+    const errors = validateRequestedObservedEnvelope({
+      ...candidate,
+      canonicalCase: canonical.cases.find(item => item.testId === source.caseId),
+      nativeCase: source,
+    });
+    assert(errors.includes(expectedError), `${label} did not fail with ${expectedError}: ${errors.join(",")}`);
+  }
+  for (const [label, mutateObserved, expectedError] of [
+    ["raw-extra-alias", value => { value.route = value.screenRoute; }, "observed-fields-mismatch"],
+    ["raw-missing-control-state", value => { delete value.controlAction.exists; }, "observed-controlAction-fields-mismatch"],
+    ["raw-missing-provenance", value => { delete value.provenance.accountRole; }, "observed-provenance-fields-mismatch"],
+    ["raw-forged-provenance", value => { value.provenance.theme = "runner-default"; }, "observed-provenance-theme-mismatch"],
+  ]) {
+    const raw = structuredClone(observed);
+    mutateObserved(raw);
+    let message = "";
+    try { runtimeObservedProjection(raw); } catch (error) { message = String(error?.message || error); }
+    assert(message.includes(expectedError), `${label} raw observation drift was normalized away: ${message}`);
+  }
+});
+
+check("missing, reordered, unsupported, API-screen, and field drift are rejected", () => {
+  expectInvalid("missing", mutate(value => value.cases.pop()), "canonical exact case count");
+  expectInvalid("reordered", mutate(value => value.cases.reverse()), "canonical ordered case IDs");
+  expectInvalid("unsupported", mutate(value => { value.cases[0].disposition = "unsupported"; }), "unsupported disposition");
+  expectInvalid("api-screen", mutate(value => { value.cases[0].screenRoute = "/ops/api/audit"; }), "raw API screen route");
+  expectInvalid("role-drift", mutate(value => { value.cases[0].accountRole = "admin"; }), "accountRole drift");
+  expectInvalid("viewport-drift", mutate(value => { value.cases[0].viewport.width = 1180; }), "viewport drift");
+  expectInvalid("oracle-drift", mutate(value => { value.cases[0].oracle.expectedBehaviorSha256 = "0".repeat(64); }), "oracle digest drift");
+});
+
+check("stale implementation binding writes a fail-closed 0/424 pre-execution summary", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-v390-native-pre-execution-"));
+  temporaryDirs.push(workspace);
+  const staleManifestPath = path.join(workspace, "stale-native.json");
+  const outputDir = path.join(workspace, "output");
+  const stale = structuredClone(manifest);
+  stale.sourceBindings.implementationProjectionSha256 = "0".repeat(64);
+  fs.writeFileSync(staleManifestPath, `${JSON.stringify(stale, null, 2)}\n`, "utf8");
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-exact-cases",
+    "--manifest", staleManifestPath,
+    "--output-dir", outputDir,
+    "--plan-only",
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status !== 0, "stale implementation binding must fail before execution");
+  const summaryPath = path.join(outputDir, "summary.json");
+  assert(fs.existsSync(summaryPath), "pre-execution failure summary missing");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  assert(validateNativeExactPreExecutionFailureSummary(summary).length === 0,
+    `pre-execution failure summary invalid: ${validateNativeExactPreExecutionFailureSummary(summary).join(", ")}`);
+  assert(summary.failure.error.includes("implementation case projection drift"),
+    `unexpected pre-execution failure: ${summary.failure.error}`);
+});
+
+check("canonical parent bootstrap failure writes a fail-closed 0/424 summary", () => {
+  const workspace = fs.mkdtempSync(path.join(rootDir, ".tmp-v390-native-bootstrap-contract-"));
+  try {
+    const outputDir = path.join(workspace, "output");
+    const run = spawnSync(path.join(rootDir, "server.sh"), [
+      "run-v390-ui-native-exact-cases",
+      "--output-dir", outputDir,
+      "--http-base", "http://127.0.0.1:1",
+      "--server-log", path.join(rootDir, "VERSION"),
+      "--build-path", path.join(rootDir, "VERSION"),
+      "--role-state-map", path.join(workspace, "missing-role-state-map.json"),
+    ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    assert(run.status !== 0, "missing role-state map must fail runner bootstrap");
+    const summaryPath = path.join(outputDir, "summary.json");
+    assert(fs.existsSync(summaryPath), `bootstrap failure summary missing: ${run.stderr || run.stdout}`);
+    const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+    assert(summary.schema === "media-server.v390-ui-canonical-parent.v1" &&
+      summary.result === "FAIL" && summary.executionStatus === "canonical-parent-infra-fatal",
+    "canonical parent bootstrap failure schema/status mismatch");
+    assert(summary.infraFatal?.code === "SERVER_BOOTSTRAP_FAILED" &&
+      summary.infraFatal?.phase === "before-batch",
+    "canonical parent bootstrap failure code/phase mismatch");
+    assert(JSON.stringify(summary.counts) === JSON.stringify({
+      selected: 424,
+      attempted: 0,
+      pass: 0,
+      fail: 0,
+      notRun: 424,
+      unsupported: 0,
+      runnerAbort: 1,
+    }), "canonical parent bootstrap failure counts mismatch");
+    assert(summary.cases?.length === 424 && summary.cases.every(item =>
+      item.status === "not-run" && item.infraCode === "SERVER_BOOTSTRAP_FAILED"),
+    "canonical parent bootstrap failure did not preserve the full not-run ledger");
+    assert(summary.releaseEvidenceEligible === false && summary.uiFulltestPass === false &&
+      summary.runtimeOwnership?.parentOwned === true &&
+      summary.runtimeOwnership?.childrenBootstrapRuntime === false,
+    "canonical parent bootstrap failure exceeded orchestration evidence authority");
+  } finally {
+    fs.rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
+check("pre-execution failure cannot become UI PASS, Policy v4 eligible, or cleanup evidence", () => {
+  const base = createNativeExactPreExecutionFailureSummary({
+    error: new Error("implementation source binding drift"),
+    manifest,
+    canonical,
+  });
+  const measuredEnvironmentCleanup = {
+    status: "PASS",
+    serversStopped: true,
+    portsClean: true,
+    temporaryArtifactsRemoved: true,
+    runtimeEvidence: true,
+    verificationSource: "pid-port-artifact-before-after-observation",
+  };
+  assert(validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: base,
+    acceptanceEnvironmentCleanup: measuredEnvironmentCleanup,
+  }).length === 0, "valid pre-execution lifecycle must accept measured acceptance cleanup");
+
+  const canonicalParent = {
+    schema: "media-server.v390-ui-canonical-parent.v1",
+    runtimeOwnership: {
+      parentOwned: true,
+      childrenBootstrapRuntime: false,
+    },
+  };
+  assert(validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: canonicalParent,
+    acceptanceEnvironmentCleanup: measuredEnvironmentCleanup,
+  }).length === 0,
+  "canonical parent lifecycle must accept its measured acceptance-owned cleanup");
+  const unmeasuredCanonicalCleanup = validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: canonicalParent,
+    acceptanceEnvironmentCleanup: { ...measuredEnvironmentCleanup, runtimeEvidence: false },
+  });
+  assert(unmeasuredCanonicalCleanup.some(error =>
+    error.includes("acceptance-owned UI environment cleanup is not measured PASS")),
+  "canonical parent lifecycle accepted unmeasured acceptance cleanup");
+
+  const missingSummaryErrors = validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: null,
+    acceptanceEnvironmentCleanup: measuredEnvironmentCleanup,
+  });
+  assert(missingSummaryErrors.includes("UI child summary missing"), "missing pre-execution summary was accepted");
+
+  const resourcesAcquired = structuredClone(base);
+  resourcesAcquired.childResourcesAcquired = true;
+  resourcesAcquired.cleanupRequired = true;
+  assert(validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: resourcesAcquired,
+    acceptanceEnvironmentCleanup: measuredEnvironmentCleanup,
+  }).some(error => error.includes("without measured cleanup")),
+  "acquired child resources without cleanup were accepted");
+
+  const falsePass = structuredClone(base);
+  falsePass.uiFulltestPass = true;
+  assert(validateNativeExactPreExecutionFailureSummary(falsePass).some(error => error.includes("UI PASS")),
+    "0/424 pre-execution failure became UI PASS");
+
+  const falsePolicy = structuredClone(base);
+  falsePolicy.policyV4Qualification.status = "eligible";
+  assert(validateNativeExactPreExecutionFailureSummary(falsePolicy).some(error => error.includes("Policy v4")),
+    "pre-execution failure became Policy v4 eligible");
+});
+
+check("raw capture success and UI qualification remain separate lifecycle states", () => {
+  const captured = {
+    schema: "media-server.ui-automation-evidence.v4",
+    contractFixture: false,
+    result: "CAPTURED",
+    executionKind: "actual-native-visible-dom",
+    actualBrowserExecution: true,
+    manualIntervention: false,
+    selectedAdapter: { engine: "playwright-native", fallbackUsed: false },
+    coverage: {
+      targetCount: 424,
+      attempted: 424,
+      pass: 424,
+      captured: 424,
+      fail: 0,
+      notRun: 0,
+      unsupported: 0,
+      unapprovedExclusions: 0,
+      manualIntervention: 0,
+    },
+    cases: manifest.cases.map(item => ({ testId: item.caseId, rawOutcome: "completed" })),
+    uiFulltestPass: false,
+  };
+  assert(validateNativeExactCaptureSummary(captured).length === 0,
+    `complete raw capture was rejected: ${validateNativeExactCaptureSummary(captured).join(", ")}`);
+
+  const falsePass = structuredClone(captured);
+  falsePass.result = "PASS";
+  falsePass.uiFulltestPass = true;
+  const falsePassErrors = validateNativeExactCaptureSummary(falsePass);
+  assert(falsePassErrors.some(error => error.includes("CAPTURED")) &&
+    falsePassErrors.some(error => error.includes("UI fulltest PASS")),
+  "raw capture was allowed to self-qualify as UI PASS");
+});
+
+check("evidence producer failure always leaves an exact 424 failure ledger", () => {
+  const results = manifest.cases.map((item, index) => ({
+    caseId: item.caseId,
+    featureId: item.featureId,
+    status: index < 3 ? "PASS" : (index === 3 ? "FAIL" : "not-run"),
+    reason: index === 3 ? "evidence producer failure" : "not run after previous native case failure",
+  }));
+  const summary = createNativeExactExecutionFailureSummary({
+    error: new Error("Policy v4 evidence production failed"),
+    manifest,
+    results,
+    phase: "policy-v4-evidence-production",
+  });
+  assert(summary.result === "FAIL" && summary.cases.length === 424,
+    "execution failure summary did not preserve the exact ledger");
+  assert(summary.executed === 4 &&
+    summary.coverage.attempted === 4 && summary.coverage.pass === 3 &&
+    summary.coverage.captured === 3 && summary.coverage.fail === 1 && summary.coverage.notRun === 420,
+    "execution failure coverage is not exact");
+  const actualBoundaryResults = manifest.cases.map((item, index) => ({
+    caseId: item.caseId,
+    featureId: item.featureId,
+    status: index < 278 ? "PASS" : (index === 278 ? "FAIL" : "not-run"),
+  }));
+  const actualBoundary = createNativeExactExecutionFailureSummary({
+    error: new Error("RULE-095 runtime failure"),
+    manifest,
+    results: actualBoundaryResults,
+  });
+  assert(actualBoundary.executed === 279 &&
+    actualBoundary.coverage.attempted === 279 &&
+    actualBoundary.coverage.pass === 278 &&
+    actualBoundary.coverage.fail === 1 &&
+    actualBoundary.coverage.notRun === 145 &&
+    actualBoundary.coverage.attempted + actualBoundary.coverage.notRun === 424,
+  "RULE-095 actual 279/278/1/145 boundary was aggregated incorrectly");
+  assert(summary.policyV4Qualification.status === "not-run" && summary.uiFulltestPass === false,
+    "producer failure became Policy v4 or UI PASS");
+  assert(summary.childResourcesAcquired === true && summary.cleanupRequired === true,
+    "execution failure lost the acquired-resource cleanup boundary");
+});
+
+check("full exact failure ledger preserves the typed EVT-004 lifecycle envelope", () => {
+  const evt004Index = manifest.cases.findIndex(item => item.caseId === "EVT-004");
+  assert(evt004Index >= 0, "EVT-004 is missing from the exact manifest");
+  const markerStageEvidence = {
+    schema: "media-server.v390-ui-evt004-marker-stage-evidence.v1",
+    pass: true,
+    failurePhase: "",
+    failureCode: "PASS",
+    fileStageEvidence: {
+      schema: "media-server.v390-ui-marker-file-stage-evidence.v1",
+      pass: true,
+      hookInvocationCount: 1,
+      fileIdentityMatched: true,
+      markerCount: 1,
+      markerPositionFromTail: 0,
+    },
+    dashboardResponseEvidence: {
+      schema: "media-server.v390-ui-dashboard-marker-response-stage-evidence.v1",
+      pass: true,
+      path: "/ops/api/diagnostics/log-tail?limit=80",
+      responseCandidateCount: 1,
+      responseMatchedCount: 1,
+      markerCount: 1,
+    },
+  };
+  const markerEvidence = {
+    schema: "media-server.v390-ui-event-marker-flow-evidence.v1",
+    pass: false,
+    failurePhase: "timeline-projection",
+    failureCode: "TIMELINE_MARKER_NOT_PROJECTED",
+    responseMarkerObserved: { candidateCount: 29, matchedCount: 1 },
+    timelineProjectionObserved: { candidateCount: 8, matchedCount: 0 },
+    domMarkerObserved: { candidateCount: 8, matchedCount: 0 },
+    evaluatorInvocationCount: 1,
+    correlationResponseBound: true,
+    domReadinessConfirmed: true,
+  };
+  const results = manifest.cases.map((item, index) => ({
+    caseId: item.caseId,
+    featureId: item.featureId,
+    status: index < evt004Index
+      ? "PASS"
+      : (index === evt004Index ? "FAIL" : "not-run"),
+    ...(index === evt004Index ? {
+      markerStageEvidence,
+      markerEvidence,
+      cleanupAttestation: {
+        schema: "media-server.v390-ui-case-cleanup-attestation.v1",
+        pass: true,
+      },
+    } : {}),
+  }));
+  const summary = createNativeExactExecutionFailureSummary({
+    error: new Error("EVT-004 marker projection failed"),
+    manifest,
+    results,
+  });
+  const failedCase = summary.cases.find(item => item.testId === "EVT-004");
+  assert(failedCase?.failureLifecycleEvidence?.schema ===
+    "media-server.v390-ui-failure-lifecycle-evidence.v1",
+  "full exact failure ledger omitted the lifecycle schema");
+  assert(failedCase.failureLifecycleEvidence.failureCode ===
+    "TIMELINE_MARKER_NOT_PROJECTED",
+  "full exact failure ledger lost the marker failure code");
+  assert(failedCase.markerStageEvidence?.fileStageEvidence?.hookInvocationCount === 1 &&
+    failedCase.markerStageEvidence?.dashboardResponseEvidence?.markerCount === 1 &&
+    failedCase.markerEvidence?.responseMarkerObserved?.matchedCount === 1 &&
+    failedCase.markerEvidence?.timelineProjectionObserved?.matchedCount === 0 &&
+    failedCase.markerEvidence?.domMarkerObserved?.matchedCount === 0,
+  "full exact failure ledger lost bounded marker lifecycle counts");
+});
+
+check("failed case partial artifacts are referenced, deduplicated, and orphan-free", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_partial_artifacts_"));
+  try {
+    const screenshots = path.join(workspace, "screenshots");
+    const traces = path.join(workspace, "traces");
+    fs.mkdirSync(screenshots, { recursive: true });
+    fs.mkdirSync(traces, { recursive: true });
+    const canonicalPath = path.join(screenshots, "UI-001.png");
+    const failedPath = path.join(screenshots, "UI-004.png");
+    const orphanPath = path.join(screenshots, "UI-999.png");
+    for (const filePath of [canonicalPath, failedPath, orphanPath]) fs.writeFileSync(filePath, png1x1());
+    const tracePath = path.join(traces, "UI-001.json");
+    fs.writeFileSync(tracePath, "{}\n", "utf8");
+    const items = [
+      { caseId: "UI-001", screenshotPath: canonicalPath, tracePath },
+      { caseId: "UI-004", status: "FAIL", screenshotPath: failedPath },
+    ];
+    pruneUnreferencedArtifactFiles({
+      roots: [screenshots, traces],
+      referencedPaths: items.flatMap(item => [item.screenshotPath, item.tracePath]).filter(Boolean),
+    });
+    deduplicateScreenshotArtifacts(items);
+    const scan = scanArtifactTree(workspace);
+    assert(!fs.existsSync(orphanPath), "unreferenced partial artifact remained");
+    assert(items[1].screenshotPath === canonicalPath && items[1].screenshotEvidence?.deduplicated === true,
+      "failed case duplicate screenshot did not bind to the canonical artifact");
+    assert(scan.duplicateScreenshotFiles === 0, "failed case left duplicate screenshot bytes");
+  } finally {
+    fs.rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
+check("canonical case children bind duplicate screenshots to one prior artifact", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_child_screenshot_"));
+  try {
+    const first = path.join(workspace, "cases", "001-UI-001", "screenshots", "UI-001.png");
+    const second = path.join(workspace, "cases", "002-UI-002", "screenshots", "UI-002.png");
+    fs.mkdirSync(path.dirname(first), { recursive: true });
+    fs.mkdirSync(path.dirname(second), { recursive: true });
+    fs.writeFileSync(first, png1x1());
+    fs.writeFileSync(second, png1x1());
+    const result = { caseId: "UI-002", screenshotPath: second };
+    const evidence = deduplicateScreenshotArtifactAgainstTree(result,
+      path.join(workspace, "cases"));
+    assert(result.screenshotPath === first && !fs.existsSync(second) &&
+      evidence.deduplicated === true && evidence.duplicateOfCaseId === "UI-001" &&
+      scanArtifactTree(workspace).duplicateScreenshotFiles === 0,
+    "canonical child screenshot did not bind to its prior byte-identical artifact");
+  } finally {
+    fs.rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
+const result = await runChecks();
+console.log("");
+console.log("== v3.9.0 exact native UI case contract summary ==");
+console.log("- canonicalExactCases: 424");
+console.log("- positiveNative: 423");
+console.log("- negativeRoute: 1");
+console.log("- unsupported: 0");
+console.log(`- pass: ${result.pass}`);
+console.log(`- fail: ${result.fail}`);
+console.log("- actualBrowserExecution: not-run-by-this-contract");
+if (result.fail > 0) process.exit(1);
+
+function mutate(fn) {
+  const value = structuredClone(manifest);
+  fn(value);
+  return value;
+}
+
+function expectInvalid(label, value, expectedMessage) {
+  let failed = false;
+  try {
+    validateNativeExactManifest({ manifest: value, canonical, implementation });
+  } catch (error) {
+    failed = true;
+    assert(String(error.message).includes(expectedMessage), `${label} missing error ${expectedMessage}: ${error.message}`);
+  }
+  assert(failed, `${label} must fail`);
+}
+
+function countKinds(items) {
+  const counts = {};
+  for (const item of items) counts[item.kind] = (counts[item.kind] || 0) + 1;
+  return counts;
+}
+
+function isRouteRootSelector(value) {
+  return value === "body" || /^body\.(?:ops|client|auth|product)-shell$/.test(value || "");
+}
+
+function locatorIdentity(value) {
+  return `${value?.file || ""}#${value?.symbol || ""}#${value?.contextSha256 || ""}`;
+}
+
+function assertSourceLocator(locator, label) {
+  assert(locator?.file && locator?.anchor, `${label} source locator file/anchor missing`);
+  assert(!path.isAbsolute(locator.file) && !locator.file.split(/[\\/]/).includes(".."),
+    `${label} source locator path must stay repository-relative`);
+  assert(trackedFiles.has(locator.file), `${label} source locator is not tracked: ${locator.file}`);
+  const source = sourceCache.has(locator.file)
+    ? sourceCache.get(locator.file)
+    : fs.readFileSync(path.join(rootDir, locator.file), "utf8");
+  sourceCache.set(locator.file, source);
+  assert(source.includes(locator.anchor), `${label} source anchor missing from ${locator.file}`);
+  assert(/^[a-f0-9]{64}$/.test(locator.contextSha256 || ""), `${label} context digest missing`);
+  assert(locator.anchorSha256 === sha256Text(locator.anchor), `${label} source anchor digest drift`);
+  if (String(locator.symbol || "").startsWith("review4-primary-control:")) {
+    assert(source.split(locator.anchor).length === 2, `${label} source anchor must be unique`);
+    assert(!locator.sourceFileSha256 && locator.contextSha256 === locator.anchorSha256,
+      `${label} primary control must use row-local anchor binding`);
+  }
+  if (locator.sourceFileSha256) {
+    const sourceFileSha256 = sha256Text(source);
+    assert(locator.sourceFileSha256 === sourceFileSha256, `${label} source file digest drift`);
+    assert(locator.contextSha256 === sourceFileSha256,
+      `${label} override context digest must bind the actual tracked source file`);
+  }
+}
+
+function hasMixedSuccessAndErrorStatuses(statuses) {
+  const values = Array.isArray(statuses) ? statuses : [];
+  return values.some(status => status >= 200 && status < 400) &&
+    values.some(status => status >= 400 && status < 600);
+}
+
+function containsLiteralAuthMaterial(value) {
+  if (!value || typeof value !== "object") return false;
+  for (const [key, fieldValue] of Object.entries(value)) {
+    if (/^(?:password|currentPassword|confirm|confirmPassword|token)$/i.test(key) &&
+        (!fieldValue || typeof fieldValue !== "object" || Array.isArray(fieldValue) ||
+         typeof fieldValue.secretRef !== "string" || fieldValue.secretRef.length === 0 ||
+         fieldValue.redacted !== true)) {
+      return true;
+    }
+    if (fieldValue && typeof fieldValue === "object" && containsLiteralAuthMaterial(fieldValue)) return true;
+  }
+  return false;
+}
+
+function extractRunnerKindAllowlist(name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = runnerSource.match(new RegExp(`const ${escaped} = Object\\.freeze\\(\\[([\\s\\S]*?)\\]\\);`));
+  assert(match, `runner allowlist missing: ${name}`);
+  return [...match[1].matchAll(/"([^"]+)"/g)].map(item => item[1]).sort();
+}
+
+function extractNamedFunctionBody(source, name) {
+  const functionStart = source.indexOf(`function ${name}(`);
+  assert(functionStart >= 0, `function declaration missing: ${name}`);
+  const bodyStart = source.indexOf("{", functionStart);
+  assert(bodyStart >= 0, `function body start missing: ${name}`);
+
+  let depth = 0;
+  let quote = "";
+  let lineComment = false;
+  let blockComment = false;
+  for (let index = bodyStart; index < source.length; index += 1) {
+    const character = source[index];
+    const next = source[index + 1] || "";
+    if (lineComment) {
+      if (character === "\n") lineComment = false;
+      continue;
+    }
+    if (blockComment) {
+      if (character === "*" && next === "/") {
+        blockComment = false;
+        index += 1;
+      }
+      continue;
+    }
+    if (quote) {
+      if (character === "\\") {
+        index += 1;
+      } else if (character === quote) {
+        quote = "";
+      }
+      continue;
+    }
+    if (character === "/" && next === "/") {
+      lineComment = true;
+      index += 1;
+      continue;
+    }
+    if (character === "/" && next === "*") {
+      blockComment = true;
+      index += 1;
+      continue;
+    }
+    if (character === "'" || character === '"' || character === "`") {
+      quote = character;
+      continue;
+    }
+    if (character === "{") depth += 1;
+    if (character === "}") {
+      depth -= 1;
+      if (depth === 0) return source.slice(bodyStart + 1, index);
+    }
+  }
+  throw new Error(`function body end missing: ${name}`);
+}
+
+function sha256Text(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
+}
+
+function check(name, fn) {
+  checks.push({ name, fn });
+}
+
+async function runChecks() {
+  let pass = 0;
+  let fail = 0;
+  for (const item of checks) {
+    try {
+      await item.fn();
+      pass += 1;
+      console.log(`[pass] ${item.name}`);
+    } catch (error) {
+      fail += 1;
+      console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  return { pass, fail };
+}
+
+function readJson(relativePath) {
+  return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));
+}
+
+function expectManifestInvalid(value, canonicalValue, implementationValue, expectedMessage) {
+  let message = "";
+  try {
+    validateNativeExactManifest({
+      manifest: value,
+      canonical: canonicalValue,
+      implementation: implementationValue,
+    });
+  } catch (error) {
+    message = error instanceof Error ? error.message : String(error);
+  }
+  assert(message.includes(expectedMessage),
+    `missing error ${expectedMessage}: ${message || "validation unexpectedly passed"}`);
+}
+
+function png1x1() {
+  return Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAHnOcQAAAAABJRU5ErkJggg==", "base64");
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}

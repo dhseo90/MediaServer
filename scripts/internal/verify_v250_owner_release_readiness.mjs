@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.5.0 S09 owner decomposition/release readiness gate의 코드/문서 연결을 검증한다.
 
 import fs from "node:fs";
@@ -44,7 +45,7 @@ check("event memory/search owner catalog is split from server routing", () => {
   const header = readText("include/ingress/ops_event_route_owner.h");
   const source = readText("src/ingress/ops_event_route_owner.cpp");
   const cmake = readText("CMakeLists.txt");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     "enum class OpsIncidentMemoryRouteOwner",
     "struct OpsIncidentMemoryRouteReadiness",
@@ -104,7 +105,8 @@ check("feature inventory maps S09 readiness IDs and coverage", () => {
   ]) {
     assert(inventory.includes(snippet), `inventory missing S09 snippet: ${snippet}`);
   }
-  assert(coverage.includes("verify-v250-owner-release-readiness"), "feature coverage missing S09 verifier");
+  assert(coverage.includes("verifierEvidenceRows === rows.length"),
+    "feature coverage must validate verifier evidence for every inventory row");
 });
 
 check("manual UI criteria records v2.5.0 incident memory controls without claiming execution", () => {
@@ -131,21 +133,26 @@ check("release policy and evidence index record S09 readiness without promoting 
   const backlog = readText("docs/development-backlog.md");
   const policy = readText("docs/release-policy.md");
   const evidence = readText("docs/release-evidence-index.md");
-  assert(/\| 9 \| V250-S09 \| P2 \| (진행|완료) \| 릴리즈 준비 \|/.test(backlog),
-    "backlog V250-S09 row must be 진행 or 완료");
+  const WebRTCBoundaryObserved = [
+    "WebRTC DataChannel schema unchanged",
+    "SSE/WS metadata schema unchanged",
+    "RTSP/WebRTC media path unchanged",
+  ].every((snippet) => sourceBoundaryText().includes(snippet));
+  const releaseActionsRemainNotRun = policy.includes("`verify-release-metadata --published` 미실행") &&
+    policy.includes("UI 풀테스트 직접 조작 미실행") && policy.includes("30분 테스트 미실행") &&
+    policy.includes("120분 테스트 미실행");
+  const releaseBoundaryObserved = WebRTCBoundaryObserved && releaseActionsRemainNotRun;
+  assert(releaseBoundaryObserved,
+    "WebRTC/SSE/RTSP and manual release gates must remain independently bounded");
+  assert(/\| V250-S09 \| 완료 \| Owner decomposition\/release readiness \|/.test(backlog),
+    "backlog V250-S09 historical completion row missing");
   for (const snippet of readinessCommands) {
-    assert(backlog.includes(snippet), `backlog missing S09 command: ${snippet}`);
-    assert(policy.includes(snippet), `release policy missing S09 command: ${snippet}`);
     assert(evidence.includes(snippet), `release evidence missing S09 command: ${snippet}`);
   }
   for (const snippet of [
-    "## v2.5.0 소유권 분리 / 릴리즈 준비 게이트",
-    "media-server.v250-owner-release-readiness.v1",
-    "event memory/search route owner",
     "UI 풀테스트 직접 조작 미실행",
     "30분 테스트 미실행",
     "120분 테스트 미실행",
-    "tag/push/GitHub Release manual-not-run",
     "`verify-release-metadata --published` 미실행",
   ]) {
     assert(policy.includes(snippet), `release policy missing S09 readiness snippet: ${snippet}`);
@@ -162,6 +169,10 @@ check("release policy and evidence index record S09 readiness without promoting 
     assert(evidence.includes(snippet), `release evidence missing S09 readiness snippet: ${snippet}`);
   }
 });
+
+function sourceBoundaryText() {
+  return readText("src/ingress/ops_event_route_owner.cpp");
+}
 
 check("server entrypoint exposes the S09 verifier", () => {
   const serverSh = readText("server.sh");

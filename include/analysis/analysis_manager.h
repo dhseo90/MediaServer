@@ -12,7 +12,7 @@
 #include "analysis/raw_video_decoder.h"
 #include "analysis/track_state_manager.h"
 #include "core/shared_stream.h"
-#include "core/stream_key.h"
+#include "core/analysis_runtime_port.h"
 
 namespace analysis {
 

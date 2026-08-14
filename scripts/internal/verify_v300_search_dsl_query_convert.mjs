@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -43,6 +44,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
@@ -76,6 +78,9 @@ check("fixture covers V300-S06 query convert and search matrix", () => {
 });
 
 check("analysis module exposes constrained DSL conversion and text/tags/filter search", () => {
+  const queryConvertBlock = extractCppFunctionBlock(files.source, "EventSearchDsl ConvertEventSearchQueryToDsl(");
+  const opsEventsUiAdded = queryConvertBlock.includes("/ops/events");
+  assert(queryConvertBlock.includes("identity-search-disallowed") && opsEventsUiAdded === false, "LAB-086 identity-search-disallowed query conversion must not add /ops/events UI");
   for (const snippet of [
     "struct EventSearchFilter",
     "struct EventSearchDsl",
@@ -173,11 +178,23 @@ check("feature inventory and release records map V300-S06 to LAB-086, SAFE-088, 
 check("server entrypoint and inventory verifiers include V300-S06 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S06 command");
   assert(files.server.includes("verify_v300_search_dsl_query_convert.mjs"), "server.sh missing V300-S06 script dispatch");
-  assert(files.featureCoverageVerifier.includes(command), "feature coverage verifier missing V300-S06 command");
+  for (const id of ["LAB-086", "SAFE-088", "OPS-056"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  }
+  assert(files.featureCoverageVerifier.includes("validateImplementationManifest") && files.featureCoverageVerifier.includes("verifierEvidenceRows"), "feature coverage must validate manifest-backed verifier evidence");
   assert(files.projectInventoryVerifier.includes("LAB-086") &&
     files.projectInventoryVerifier.includes("SAFE-088") &&
     files.projectInventoryVerifier.includes("OPS-056"), "project inventory verifier missing V300-S06 IDs");
   assert(files.scriptInventory.includes("verify_v300_search_dsl_query_convert.mjs"), "script inventory missing V300-S06 verifier");
+});
+
+check("SAFE-088 canonical query conversion boundary", () => {
+  const rawMaterialStored = files.source.includes("raw_llm_prompt_stored = true") || files.source.includes("raw_provider_response_stored = true");
+  const providerCallPerformed = files.source.includes("runtime_provider_call_performed = true");
+  const schemaMutationPerformed = files.source.includes("event_post_payload_changed = true") || files.source.includes("rtsp_webrtc_media_path_changed = true");
+  const safe088BoundaryObserved = files.source.includes("identity-search-disallowed") && providerCallPerformed === false;
+  assert(safe088BoundaryObserved && rawMaterialStored === false && providerCallPerformed === false && schemaMutationPerformed === false,
+    "verify-v300-search-dsl-query-convert identity-search-disallowed rejected; raw/provider/WebRTC/SSE/RTSP mutation must remain absent");
 });
 
 const results = runChecks();

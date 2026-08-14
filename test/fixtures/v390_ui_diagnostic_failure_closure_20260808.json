@@ -1,0 +1,100 @@
+{
+  "schema": "media-server.v390-ui-diagnostic-failure-closure.v1",
+  "sourceBinding": {
+    "gitCommit": "da9b60dbe40408e42186178e724d1d06613c27aa",
+    "runId": "v390-ui-diagnostic-20260808004425-80046",
+    "manifestSha256": "8c97c086441f85fd77597564f7f5d904f05a4c910d5b4de08ebc221628d2b028",
+    "buildSha256": "988f77ab621f9b030582dabb633a18279a7655f96cf745ce825ec7e9859c105e",
+    "parentSummarySha256": "60d20623b0107ef55e22306a2a44be36696262598bbfc33638b26ccfe48b432a"
+  },
+  "sourceCounts": {
+    "target": 99,
+    "attempted": 98,
+    "pass": 92,
+    "fail": 6,
+    "notRun": 1,
+    "unsupported": 0
+  },
+  "selectedIds": [
+    "UI-029",
+    "UI-046",
+    "AUTH-007",
+    "AUTH-037",
+    "AUTH-038",
+    "RULE-104",
+    "EVT-004"
+  ],
+  "failures": [
+    {
+      "caseId": "UI-029",
+      "status": "FAIL",
+      "childStatus": "FAIL",
+      "failureClass": "ui-timeout",
+      "failurePhase": "child-execution",
+      "failureCode": "ui-timeout",
+      "summarySha256": "ac47cdfe93e261449776ca5118df4522f5cb6c180a0ab9d57f8f9673a805b326",
+      "traceSha256": "1c97005255bf0ef96abe83c366854c50d7433421f23a92db2d61cf5c80e3a79d"
+    },
+    {
+      "caseId": "UI-046",
+      "status": "FAIL",
+      "childStatus": "FAIL",
+      "failureClass": "ui-timeout",
+      "failurePhase": "child-execution",
+      "failureCode": "ui-timeout",
+      "summarySha256": "2427cfcca4d96b420d437e1cdd818f6a44b257cf3c36244d23fdd5f3a4e7386b",
+      "traceSha256": "02acdc145959beb0de40c194a26e82069fb280037008970f190252c18520484e"
+    },
+    {
+      "caseId": "AUTH-007",
+      "status": "FAIL",
+      "childStatus": "FAIL",
+      "failureClass": "ui-timeout",
+      "failurePhase": "child-execution",
+      "failureCode": "ui-timeout",
+      "summarySha256": "dceb83bdd5675fa6ade6b32b6fac58dfd5f2e5e332fc7127cbcb0f40e2a52784",
+      "traceSha256": "8b0dfadea49852f60b509358f60f496d68b93e4d8488f4f456447502c994f725"
+    },
+    {
+      "caseId": "AUTH-037",
+      "status": "FAIL",
+      "childStatus": "FAIL",
+      "failureClass": "ui-timeout",
+      "failurePhase": "child-execution",
+      "failureCode": "ui-timeout",
+      "summarySha256": "67316951c33b829a7a6021b9b8addb18e06cde279718651466b71cc9923056dd",
+      "traceSha256": "99dd139f4e543dac67b5c7fcceb7983575f163c61fd15d2e924c15d191931d39"
+    },
+    {
+      "caseId": "AUTH-038",
+      "status": "FAIL",
+      "childStatus": "FAIL",
+      "failureClass": "ui-timeout",
+      "failurePhase": "child-execution",
+      "failureCode": "ui-timeout",
+      "summarySha256": "d04ba220541ed777b75a35c777864f4e29689c0704f18612fc416d400ceab658",
+      "traceSha256": "25c632a04724b62a7db31876d4094956a0226c5ddf39b5bfe5db9948410f75f7"
+    },
+    {
+      "caseId": "RULE-104",
+      "status": "FAIL",
+      "childStatus": "FAIL",
+      "failureClass": "ui-timeout",
+      "failurePhase": "child-execution",
+      "failureCode": "ui-timeout",
+      "summarySha256": "a14649c6a4817896995a84f93cd2bde61bbda3c194f5c829681835976a2b04d2",
+      "traceSha256": "3fb1cd5946e351ee9c85ab1c307b46210b267a5869346cf04467b5571fc3cf99"
+    },
+    {
+      "caseId": "EVT-004",
+      "status": "not-run",
+      "childStatus": "FAIL",
+      "failureClass": "case-execution-failed",
+      "failurePhase": "child-evidence-ingestion",
+      "failureCode": "DIAGNOSTIC_CHILD_SUMMARY_MISSING_OR_INVALID",
+      "summarySha256": "85b922e7c95dab0a9f095e719661d288084c13ebc3100563130de394a6e8de81",
+      "traceSha256": "1cf38c959ae0c178f7b36240316a5bd7e807534fbfd7ff2695408e92e22ffe67"
+    }
+  ],
+  "digest": "f822aa1c8f4d55ff0a9ebd2931284bb33065fb276cc69469b8cabb55eadc55c5"
+}

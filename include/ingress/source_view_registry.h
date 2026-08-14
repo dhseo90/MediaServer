@@ -1,13 +1,12 @@
 // 파일 요약: 운영 source registry와 client published view registry API를 선언한다.
-// 동작 요약: source 원본 설정과 클라이언트 공개 view를 분리해 JSON 파일로 저장하고 role/scope 기반 조회를 제공한다.
+// 동작 요약: source 원본 설정과 클라이언트 공개 view를 분리해 JSON 파일로 저장하고 주입된 권한 판정으로 조회를 제공한다.
 #pragma once
 
 #include <filesystem>
+#include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
-
-#include "ingress/http_auth.h"
 
 namespace ingress {
 
@@ -19,6 +18,10 @@ struct RegistryResult {
 
 class SourceViewRegistry {
 public:
+    using ClientViewAccessAuthorizer =
+        std::function<bool(const std::string& view_id,
+                           const std::string& required_scope_prefix)>;
+
     struct SourceRecord {
         std::string source_id;
         std::string display_name;
@@ -142,10 +145,11 @@ public:
     RegistryResult ViewsJson();
     RegistryResult SourceRegistrySnapshotIdentityJson();
     RegistryResult SourceOnboardingQualitySummaryJson();
-    RegistryResult ClientViewsJson(const auth::Principal& principal);
-    RegistryResult ClientViewJson(const std::string& view_id, const auth::Principal& principal);
+    RegistryResult ClientViewsJson(const ClientViewAccessAuthorizer& authorizer);
+    RegistryResult ClientViewJson(const std::string& view_id,
+                                  const ClientViewAccessAuthorizer& authorizer);
     RegistryResult ResolveClientViewAccess(const std::string& view_id,
-                                           const auth::Principal& principal,
+                                           const ClientViewAccessAuthorizer& authorizer,
                                            const std::string& required_scope_prefix,
                                            ClientViewAccess* access);
     bool Snapshot(std::vector<SourceRecord>* sources,
@@ -154,6 +158,9 @@ public:
 
     RegistryResult CreateSource(const std::string& body);
     RegistryResult UpsertSource(const std::string& source_id, const std::string& body);
+    RegistryResult UpsertOnvifSourceView(const std::string& source_id,
+                                         const std::string& source_body,
+                                         const std::string& published_view_body);
     RegistryResult DisableSource(const std::string& source_id);
 
     RegistryResult CreateView(const std::string& body);
@@ -163,9 +170,11 @@ public:
 private:
     bool EnsureLoadedLocked(std::string* error_message);
     bool SaveSourcesLocked(const std::vector<SourceRecord>& sources,
-                           std::string* error_message) const;
+                           std::string* error_message,
+                           bool* target_replaced = nullptr) const;
     bool SaveViewsLocked(const std::vector<PublishedViewRecord>& views,
-                         std::string* error_message) const;
+                         std::string* error_message,
+                         bool* target_replaced = nullptr) const;
 
     mutable std::mutex mu_;
     bool loaded_{false};

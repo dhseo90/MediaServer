@@ -1,0 +1,205 @@
+{
+  "schema": "media-server.v390-webrtc-http-server-source-bundle-snapshots.v1",
+  "sourceRelease": "v3.9.0",
+  "orderedSources": [
+    {
+      "id": "transport-main",
+      "file": "src/ingress/webrtc_http_server.cpp"
+    },
+    {
+      "id": "ops-foundation",
+      "file": "src/ingress/webrtc_http_server_ops_foundation.cpp"
+    },
+    {
+      "id": "ops-workflows",
+      "file": "src/ingress/webrtc_http_server_ops_workflows.cpp"
+    },
+    {
+      "id": "ops-incidents",
+      "file": "src/ingress/webrtc_http_server_ops_incidents.cpp"
+    },
+    {
+      "id": "transport-runtime",
+      "file": "src/ingress/webrtc_http_server_runtime.cpp"
+    },
+    {
+      "id": "private-detail",
+      "file": "src/ingress/webrtc_http_server_detail.h"
+    }
+  ],
+  "completion": {
+    "sourceCommit": "b9a45740e60f087cff6ff6d8358994855db8651f",
+    "bundleSha256": "d2dc01ef58a1379b3c73f22da546ee60a5aa2f0eb4e47234dea0d12762a919e6",
+    "logicalOffsets": [
+      747210,
+      752283,
+      453245,
+      453626
+    ],
+    "metrics": {
+      "fileCount": 6,
+      "totalBytes": 2252961,
+      "totalLines": 46853,
+      "largestFileLines": 10150,
+      "files": [
+        {
+          "id": "transport-main",
+          "file": "src/ingress/webrtc_http_server.cpp",
+          "sha256": "4ca309c982c07a00baed7f910e286edba2a3864f1ab7b62d1f9f4d339338257e",
+          "bytes": 340940,
+          "lines": 7777
+        },
+        {
+          "id": "ops-foundation",
+          "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+          "sha256": "f1877e71124d52cf053ba9b1c3424f7ae3761dc0810ce124b19df074e5f2f6d1",
+          "bytes": 345860,
+          "lines": 7849
+        },
+        {
+          "id": "ops-workflows",
+          "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
+          "sha256": "6e4f3da325362b5899d06f9137cde06782135cfd646fc35da9de3554effd7558",
+          "bytes": 509926,
+          "lines": 10150
+        },
+        {
+          "id": "ops-incidents",
+          "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
+          "sha256": "c444db1b1450210e4e88e6412c49a7c9f70f40f3f0c6cb808f7b0ecf4596f7b7",
+          "bytes": 375384,
+          "lines": 7888
+        },
+        {
+          "id": "transport-runtime",
+          "file": "src/ingress/webrtc_http_server_runtime.cpp",
+          "sha256": "de84c484cf6fe0abf53f3d5073e9e43eda9461003e76bc844fe692a7bfac170a",
+          "bytes": 328385,
+          "lines": 5193
+        },
+        {
+          "id": "private-detail",
+          "file": "src/ingress/webrtc_http_server_detail.h",
+          "sha256": "0af5bc99a0a4912b67ca4fcb96922373aa66254852d7566a59f233dc3f2f16d5",
+          "bytes": 352466,
+          "lines": 7996
+        }
+      ]
+    },
+    "graphBinding": {
+      "path": "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json",
+      "sha256": "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a"
+    },
+    "physicalSplitBinding": {
+      "definitionCount": 1190,
+      "definitionSha256": "eb9f038a775adebb06d9ddd84f6b6ef1b6f5dbcc2803dc020cc4cc9287250729"
+    }
+  },
+  "current": {
+    "sourceBaselineCommit": "72c74f4f71bcb3e212082139077aaf8ed3d478fd",
+    "generatedFrom": "working-tree-six-file-source",
+    "bundleSha256": "6932dc6530fda0db18f3299b2ac064945ad970a259174d61f7a66c0bed106fbb",
+    "logicalOffsets": [
+      751943,
+      757016,
+      453271,
+      453652
+    ],
+    "metrics": {
+      "fileCount": 6,
+      "totalBytes": 2267630,
+      "totalLines": 47174,
+      "largestFileLines": 10150,
+      "files": [
+        {
+          "id": "transport-main",
+          "file": "src/ingress/webrtc_http_server.cpp",
+          "sha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
+          "bytes": 340936,
+          "lines": 7777
+        },
+        {
+          "id": "ops-foundation",
+          "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+          "sha256": "9d50fbae07a2255a7fb2d4204851f4f84b48193e9da7285b21aa4f4f62dd8a60",
+          "bytes": 350219,
+          "lines": 7962
+        },
+        {
+          "id": "ops-workflows",
+          "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
+          "sha256": "6e4f3da325362b5899d06f9137cde06782135cfd646fc35da9de3554effd7558",
+          "bytes": 509926,
+          "lines": 10150
+        },
+        {
+          "id": "ops-incidents",
+          "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
+          "sha256": "95ba30bc99f81f920d289b7006ac92eeeb8f03dfd563fa4c6118fa475b1f2c6b",
+          "bytes": 384602,
+          "lines": 8076
+        },
+        {
+          "id": "transport-runtime",
+          "file": "src/ingress/webrtc_http_server_runtime.cpp",
+          "sha256": "de84c484cf6fe0abf53f3d5073e9e43eda9461003e76bc844fe692a7bfac170a",
+          "bytes": 328385,
+          "lines": 5193
+        },
+        {
+          "id": "private-detail",
+          "file": "src/ingress/webrtc_http_server_detail.h",
+          "sha256": "9b2a4a3f3a4fbfa617cd47bc8219e6aace632d576284cabd47e1ebcb27cd7dab",
+          "bytes": 353562,
+          "lines": 8016
+        }
+      ]
+    },
+    "graphBinding": {
+      "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
+      "sha256": "b75e9b1e698e733f0c1b72737848eb473cd6129b222f352aaf6ae9e755914ef2"
+    },
+    "physicalSplitBinding": {
+      "definitionCount": 1198,
+      "definitionSha256": "787a64b4c4cda607028451265c8622ca01565356c28c92e60a11a1f58642e999"
+    }
+  },
+  "commentOnlyTransition": {
+    "fromCommit": "b9a45740e60f087cff6ff6d8358994855db8651f",
+    "toCommit": "72c74f4f71bcb3e212082139077aaf8ed3d478fd",
+    "files": [
+      {
+        "file": "src/ingress/webrtc_http_server.cpp",
+        "completionSha256": "4ca309c982c07a00baed7f910e286edba2a3864f1ab7b62d1f9f4d339338257e",
+        "currentSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f",
+        "byteDelta": -4,
+        "lineDelta": 0,
+        "startLocator": "    if (!parent_exists) {\n",
+        "endLocator": "        return;\n    }\n    int directory_flags = O_RDONLY;",
+        "completionRegion": "        // A transaction artifact cannot exist without its parent directory. The first\n        // registry mutation will create the directory before preparing a transaction.\n",
+        "currentRegion": "        // Transaction artifact는 parent directory 없이 존재할 수 없다. 첫 registry mutation이\n        // transaction 준비 전에 directory를 생성한다.\n",
+        "completionRegionSha256": "53b2e42a8acd1e1f385526885aae33035d296476ddd646c5edb3c2f3419a06d7",
+        "currentRegionSha256": "4c6a06d30072f09b4f948a9df0d0daef66db7228d3b7d86299eb5bac7ae48952",
+        "executableSourceSha256": "207db9aa9a0aa1b9846394552fcd405e09618eb78f3479ee8eada1f08e6027e3"
+      },
+      {
+        "file": "src/ingress/webrtc_http_server_detail.h",
+        "completionSha256": "0af5bc99a0a4912b67ca4fcb96922373aa66254852d7566a59f233dc3f2f16d5",
+        "currentSha256": "47b42d956e6826db04e29b58dd4da10edf1e10416a2d2eb9a8c3190086486a0a",
+        "byteDelta": 106,
+        "lineDelta": 0,
+        "startLocator": "#pragma once\n",
+        "endLocator": "#include \"ingress/webrtc_http_server.h\"",
+        "completionRegion": "\n",
+        "currentRegion": "// 파일 용도: split WebRTC HTTP server translation unit이 공유하는 내부 선언을 제공한다.\n",
+        "completionRegionSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "currentRegionSha256": "f1e9e7a820089cf97418c322fb13e31b3b4ab6347452830505db52cbd78f1b81",
+        "executableSourceSha256": "641ddcaf306aea6f95080ad2a57520ef11bf78aea537e097ab2d0b013c774bab"
+      }
+    ],
+    "unchangedFileCount": 4,
+    "totalByteDelta": 102,
+    "totalLineDelta": 0
+  },
+  "boundary": "The completion bundle and Slice 32 graph are immutable historical evidence. The current bundle is generated from the ordered working-tree sources and binds only the current graph. Only the two explicitly bounded comment regions may differ between the completion and current source snapshots."
+}

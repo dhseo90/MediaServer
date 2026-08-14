@@ -1,0 +1,114 @@
+{
+  "schema": "media-server.v390-ui-native-adapter.v1",
+  "result": "PASS",
+  "command": "./server.sh verify-v390-ui-native-adapter --output-dir docs/release-artifacts/v3.9.0/ui-native-adapter-final",
+  "selectedAdapter": {
+    "tool": "playwright",
+    "engine": "playwright-native",
+    "fallbackUsed": false,
+    "fallbackReason": "",
+    "visualOnly": false,
+    "dependencyStatus": "bundled-module-available",
+    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+    "moduleVersion": "1.61.1",
+    "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "capabilities": [
+      "wait",
+      "click",
+      "fill",
+      "type",
+      "select",
+      "screenshot",
+      "evaluate"
+    ]
+  },
+  "adapterAttempts": [
+    {
+      "tool": "playwright",
+      "engine": "playwright-native",
+      "status": "missing-package-json",
+      "reason": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
+      "modulePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright"
+    },
+    {
+      "tool": "playwright",
+      "engine": "playwright-native",
+      "status": "missing-package-json",
+      "reason": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright",
+      "modulePath": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright"
+    },
+    {
+      "tool": "playwright",
+      "engine": "playwright-native",
+      "status": "selected",
+      "reason": "Playwright 1.61.1",
+      "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright"
+    }
+  ],
+  "capabilities": [
+    "wait",
+    "click",
+    "fill",
+    "type",
+    "select",
+    "screenshot",
+    "evaluate"
+  ],
+  "actions": [
+    {
+      "kind": "wait",
+      "target": "#native-name",
+      "status": "PASS",
+      "durationMs": 10
+    },
+    {
+      "kind": "fill",
+      "target": "#native-name",
+      "status": "PASS",
+      "durationMs": 3
+    },
+    {
+      "kind": "type",
+      "target": "#native-note",
+      "status": "PASS",
+      "durationMs": 4
+    },
+    {
+      "kind": "select",
+      "target": "#native-mode=ready",
+      "status": "PASS",
+      "durationMs": 1
+    },
+    {
+      "kind": "click",
+      "target": "#native-apply",
+      "status": "PASS",
+      "durationMs": 24
+    },
+    {
+      "kind": "wait",
+      "target": "#native-status=native-adapter:ready:typed",
+      "status": "PASS",
+      "durationMs": 2
+    },
+    {
+      "kind": "screenshot",
+      "target": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/native-adapter.png",
+      "status": "PASS",
+      "durationMs": 43
+    }
+  ],
+  "finalState": "native-adapter:ready:typed",
+  "failureReason": "",
+  "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/native-adapter.png",
+  "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/trace.json",
+  "cleanup": {
+    "pageClosed": true,
+    "serverStopped": true,
+    "fallbackUsed": false
+  },
+  "reproduction": {
+    "command": "./server.sh verify-v390-ui-native-adapter --output-dir <path>",
+    "explicitModuleCommand": "./server.sh verify-v390-ui-native-adapter --output-dir <path> --playwright-module-path <package-dir>"
+  }
+}

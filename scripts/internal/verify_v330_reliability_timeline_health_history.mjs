@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.3.0 Step 4 Reliability Timeline and Health History 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -32,7 +34,7 @@ const command = "verify-v330-reliability-timeline-health-history";
 const schema = "media-server.ops.v330-reliability-timeline-health-history.v1";
 const route = "/ops/api/source-registry/reliability-timeline";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
@@ -50,6 +52,7 @@ const files = {
 const checks = [];
 
 check("Ops server builds the v3.3 reliability timeline health history read model", () => {
+  assert(route === "/ops/api/source-registry/reliability-timeline", "OPS-083 canonical route drift");
   for (const snippet of [
     "struct OpsV330ReliabilityTimelineEvent",
     "struct OpsV330ReliabilityTimelineItem",
@@ -75,10 +78,9 @@ check("Ops server builds the v3.3 reliability timeline health history read model
 });
 
 check("reliability timeline read model is read-only and preserves schema/media/client boundaries", () => {
-  const block = extractBlock(
+  const block = extractCppFunctionBlock(
     files.server,
-    "std::string OpsV330ReliabilityTimelineHealthHistoryJson",
-    "std::string OpsAuditSearchIndexJson"
+    "std::string OpsV330ReliabilityTimelineHealthHistoryJson("
   );
   for (const snippet of [
     "sourceRegistryWritePerformed",
@@ -221,10 +223,24 @@ check("server entrypoint and inventory verifiers include v3.3 Step 4 command", (
   for (const id of ["SRC-035", "SAFE-116", "OPS-083"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-068`", "project inventory SRC range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-216`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-184`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_reliability_timeline_health_history.mjs", "script inventory");
+});
+
+check("SAFE-116 canonical reliability timeline boundary", () => {
+  const timelineBlock = extractCppFunctionBlock(files.server, "std::string OpsV330ReliabilityTimelineHealthHistoryJson(");
+  const reliabilityTimelineRouteObserved = route === "/ops/api/source-registry/reliability-timeline";
+  const safe116BoundaryObserved = reliabilityTimelineRouteObserved && timelineBlock.includes("BuildV330ReliabilityTimelineHealthHistory") &&
+    timelineBlock.includes("media-server.ops.v330-reliability-timeline-health-history.v1") && timelineBlock.includes("AppendV330ReliabilityTimelineItemJson");
+  const sourceRegistryWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource|Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(timelineBlock);
+  const rawLocatorExposed = timelineBlock.includes("\\\"rawLocatorExposedToClient\\\":true") || timelineBlock.includes("\\\"rawJsonExposed\\\":true");
+  const credentialMaterialExposed = timelineBlock.includes("\\\"credentialMaterialExposed\\\":true");
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(timelineBlock);
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(timelineBlock);
+  assert(safe116BoundaryObserved && timelineBlock.includes("BuildV330ReliabilityTimelineHealthHistory") && reliabilityTimelineRouteObserved && sourceRegistryWritePerformed === false && rawLocatorExposed === false && credentialMaterialExposed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
+    "SAFE-116 reliability-timeline-health-history must remain an Ops-only read model without registry/schema/raw credential/client mutation");
 });
 
 const results = runChecks();

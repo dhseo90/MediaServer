@@ -3,7 +3,10 @@
 // 동작 요약: core/ingress/analysis 모듈 사이의 공통 계약 역할을 한다.
 #pragma once
 
-#include "stdafx.h"
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace media {
 

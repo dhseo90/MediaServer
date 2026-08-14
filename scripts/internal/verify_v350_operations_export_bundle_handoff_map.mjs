@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 10 Operations Export Bundle and Handoff Map 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -36,7 +39,7 @@ const drillLedgerRoute = "/ops/api/live-operations/drill-run-ledger";
 const fieldEvidenceRoute = "/ops/api/source-registry/field-bridge-condition-gates";
 const clientImpactRoute = "/client/api/views";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -199,6 +202,9 @@ check("/ops command workspace declares export bundle and handoff map surfaces", 
     "client impact refs",
   ]) {
     assertIncludes(block, snippet, "v350 export bundle dashboard shell");
+    assertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace"), "data-v350-export-bundle-handoff-map", "UI-085 block-scoped canonical product state");
+    assertIncludes(files.uiScript, "/ops/dashboard", "UI-085 canonical route obligation");
+    assertIncludes(files.uiScript, "media-server.ops.v350-export-bundle-handoff-map.v1", "UI-085 canonical schema obligation");
   }
 });
 
@@ -316,11 +322,32 @@ check("feature inventory and release records map v3.5 Step 10", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 10 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_operations_export_bundle_handoff_map.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-085", "SAFE-144", "OPS-111"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v350_operations_export_bundle_handoff_map.mjs", "script inventory");
+});
+
+check("SAFE-144 canonical operations export bundle boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350OperationsExportBundleHandoffMapJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/export-bundle-handoff-map");
+  const safe144BoundaryObserved = block.includes("BuildV350OperationsExportBundleItems") && block.includes("BuildV350OperationsExportBundleSummary");
+  const artifactExportExecuted = /\b(?:Export|Write|Persist|Execute|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\\"(?:rawLocator|credentialMaterial|providerMaterial|vlmMaterial|clientViewerMaterial)Included\\\":true/.test(block);
+  const mutationPerformed = artifactExportExecuted;
+  const handoffWritePerformed = artifactExportExecuted;
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true");
+  assert(routeObserved && safe144BoundaryObserved && artifactExportExecuted === false && mutationPerformed === false && handoffWritePerformed === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false,
+    "SAFE-144 BuildV350OperationsExportBundleItems artifactExportExecuted handoffWritePerformed fieldEvidenceExecutionPerformed commandPlanExecuted must remain false and redacted");
 });
 
 const results = runChecks();

@@ -3,14 +3,18 @@
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
 파일명으로 보관합니다.
 
-현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.8.0`
-Operator-Gated Action Pilot & Outcome Loop를 가리키고, 최신 공개 GitHub Release는
-`v3.7.0` Site-Aware Operations and Safe Runbook Control Plane을 가리킵니다. 이 이미지를 v3.8.0 source baseline,
+현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.9.0`
+Feature Completion, Structure Stabilization, and Test Model Preparation을 가리키고,
+최신 공개 GitHub Release는 `v3.8.0` Operator-Gated Action Pilot & Outcome Loop
+source-only baseline을 가리킵니다. 직전 `v3.7.0` Site-Aware Operations and Safe
+Runbook Control Plane은 historical reference입니다. 이 이미지를 v3.9.0 source baseline,
 UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
 Semantic Incident Memory 검색/timeline/brief 화면, VLM 전용 `/ops/vlm`, `/ops/events`
 리뷰 보조 화면의 전체 UI 증거도 아니며, UI 풀테스트 PASS 증거도 아닙니다.
+또한 REVIEW4-59의 viewport/theme별 `/client/live` ready video, VA overlay containment,
+crop/control/geometry/contrast/focus current visual matrix evidence가 아닙니다.
 
 README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하는 UI/VA
 이미지는 `verify-docs-ui-assets` 정적 gate로 관리합니다. 정적 gate만 실행하고
@@ -27,15 +31,15 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v3.8.0 Step 1 source baseline alignment
+## v3.9.0 source baseline alignment
 
-이번 Step 1에서는 이미지 파일을 새로 교체하지 않았습니다. public entry 문서와
+이번 Task 7에서는 이미지 파일을 새로 교체하지 않았습니다. public entry 문서와
 UI guide가 같은 managed asset set을 참조하는지, 그리고 대표 이미지가 release
 publish evidence나 UI 풀테스트 PASS로 쓰이지 않는지 문서 기준을 정리합니다.
 대표 이미지 교체는 직접 이미지 검수와 `./server.sh verify-docs-ui-assets` 재실행
 후에만 기록합니다. 열지 않은 이미지는 PASS가 아니라 `미확인`으로 남깁니다.
 
-Step 1 기준 공개 문서 묶음:
+v3.9 source 기준 공개 문서 묶음:
 
 - `README.md`
 - `README.en.md`
@@ -44,9 +48,9 @@ Step 1 기준 공개 문서 묶음:
 - `docs/ui-guide.md`
 - `docs/assets/ui/README.md`
 
-Step 1 기준:
+v3.9 source 기준:
 
-- v3.8.0 source roadmap과 latest published v3.8 source-only baseline을 맞추고,
+- v3.9.0 source roadmap과 latest published v3.8 source-only baseline을 분리하고,
   직전 v3.7.0 baseline은 historical reference로만 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.

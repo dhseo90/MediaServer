@@ -1,0 +1,4708 @@
+{
+  "schema": "media-server.v390-review4-semantic-discovery-ledger.v1",
+  "sourceRelease": "v3.9.0",
+  "evidenceBoundary": "static-semantic-audit-only-not-runtime-ui-or-longrun-pass",
+  "summary": {
+    "documents": 208,
+    "sourceMarkers": 38,
+    "currentProductContracts": 84,
+    "historicalOrSuperseded": 91,
+    "conditionalOrTemplate": 27
+  },
+  "documents": [
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "contentSha256": "792f688c6d0017c128794d35d6bd67819d6c4a28b9951291ef342ea601ce1aa5",
+      "semanticRole": "repository-change-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "PULL_REQUEST_TEMPLATE.md — PR 작성 계약이며 release action 실행 증거가 아니다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "PR 생성"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-policy.md",
+          "anchor": "PR"
+        }
+      ],
+      "semanticDigest": "41eebd6ef1a0d202f4c9197e2435b3b57bc4a7a170926a9906d0972eece43d0e"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "contentSha256": "cd002cbd85133cc3360b09ce36cb746310715a3c3bb4693f84e52c6f8cc00db9",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Contributing — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "c8acef8fab70b79e19c9260ee8da45952c5bc2a49f5c71f2e856b15fe791b59b"
+    },
+    {
+      "path": "DEPENDENCY_SNAPSHOT.md",
+      "contentSha256": "56e0edeb9b98abf84c248089cabfe14f6a6ccfb982baff8675e845b5dc509426",
+      "semanticRole": "generated-repository-snapshot",
+      "lifecycle": "generated-snapshot",
+      "alignment": "aligned",
+      "decision": "retain-generated-snapshot",
+      "semanticStatement": "Dependency Snapshot — 생성 시점의 dependency 또는 attribution snapshot이다",
+      "actualOwner": {
+        "path": "scripts/internal/write_dependency_snapshot.mjs",
+        "anchor": ""
+      },
+      "evidence": [
+        {
+          "path": "docs/distribution-policy.md",
+          "anchor": "배포"
+        }
+      ],
+      "semanticDigest": "578b89b456bb60f4536e2295cc58e2ab70fcf922225eee818658a1038f22e8df"
+    },
+    {
+      "path": "README.en.md",
+      "contentSha256": "d59faa04c0d597389c9c22084b6a2af7486ef7d4b1c2c4ba7c4eaa35ee44d66a",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Media Server — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "VERSION",
+        "anchor": "3.9.0"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "60bd45f119ecf8cb52f5bd9b334822bbba1b2dc877f1ac2c954b09b409e9ddcb"
+    },
+    {
+      "path": "README.md",
+      "contentSha256": "ecc9b7c885a005e156ce123dc1fb44dc6fb1fb7a3492e7aec5bf3b8efda00f86",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Media Server — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "VERSION",
+        "anchor": "3.9.0"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "f8277d6d5a572a04510984435752850dc3ec729601204d78e7202693ac3fd90f"
+    },
+    {
+      "path": "SECURITY.md",
+      "contentSha256": "213df7ac01d7a4f1ca6accc5a38108dde90d070638f13522d377661bacd6f002",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Security Policy — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "Auth"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "0dd33d713f7fd8f57626fbfb0c31465ae61fba53a1e0a41ea06570a82cd1e593"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "contentSha256": "f22045bb657852c28ea40f60aa6e65ac23bb882c5a5f320a70a52b6940d8d8de",
+      "semanticRole": "generated-repository-snapshot",
+      "lifecycle": "generated-snapshot",
+      "alignment": "aligned",
+      "decision": "retain-generated-snapshot",
+      "semanticStatement": "Third-Party Notices — 생성 시점의 dependency 또는 attribution snapshot이다",
+      "actualOwner": {
+        "path": "config/third_party_attribution.json",
+        "anchor": ""
+      },
+      "evidence": [
+        {
+          "path": "docs/distribution-policy.md",
+          "anchor": "배포"
+        }
+      ],
+      "semanticDigest": "eea3dd8d63de5131f8d2ff4f81aafdb9abbdffa150cf568b0f2027feb18a2075"
+    },
+    {
+      "path": "docs/README.md",
+      "contentSha256": "74ad5bb5801ee10ee8a491980163fc86336901db5420b8be8ae5a7add1bd711a",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Documentation Index — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "VERSION",
+        "anchor": "3.9.0"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "2371a67dc4775d981a29f9eface0204e91a263082a61f5ac4862edc16f822c8b"
+    },
+    {
+      "path": "docs/analysis-threshold-baselines.md",
+      "contentSha256": "25743330ae154c3a043423cd75a25ca214fc2832d7fb8152bcb9af79a331f2df",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Analysis Threshold Baselines — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/analysis_manager.h",
+        "anchor": "Analysis"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "860daeebe53d24cd317bc1a2bd77cb25db633d530ee122bcfff6e81ad7ba8f27"
+    },
+    {
+      "path": "docs/assets/ui/README.md",
+      "contentSha256": "80b84c1fd4371a5804313ec0e428e5c6706c499b2de04762b071bff134579ad1",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "UI Screenshot Assets — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "VERSION",
+        "anchor": "3.9.0"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "e92112b00861d7e24fb1d42fc516e632547dcf53bd1b420c4f8f033cfa4f562f"
+    },
+    {
+      "path": "docs/bot-sort-deepsort-research-boundary.md",
+      "contentSha256": "9d556f287c6acd94073a2bb7fadba72f7dce78a39fc5eb0ab51ca413e44b2f8a",
+      "semanticRole": "historical-analysis-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-audit-only",
+      "semanticStatement": "BoT-SORT/DeepSORT Research Boundary — 버전 또는 날짜가 고정된 연구·수동 결과 기록이며 current completion proof가 아니다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "과거"
+      },
+      "evidence": [
+        {
+          "path": "docs/bot-sort-deepsort-research-boundary.md",
+          "anchor": "BoT-SORT/DeepSORT Research Boundary"
+        }
+      ],
+      "semanticDigest": "cfc484e9df7b7abf408b363ccbf3a6d75ad7d2a2bc0b7fab6835f1c3140fcd2e"
+    },
+    {
+      "path": "docs/browser-use-clipboard-diagnostics.md",
+      "contentSha256": "bef9960b57b6c20cfd36b13c78afbb92ace0a3770296368b015a68cffbcb2044",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Browser Use Clipboard Diagnostics — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "8a9ef91ad4a1f39ba2a456ef29a234a1b1a87dac62c35c67eadfdfdd304ee300"
+    },
+    {
+      "path": "docs/close-object-report-archive-policy.md",
+      "contentSha256": "39cc40d2dc5ab47d2fb1e3f26a6068f9ce99c2598207424b8acbe2b2bbc5f985",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Close-object Report Archive Policy — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "bb91261705a25f3612df0b27c62894f07948cb7bf55823ffcce48b06a09ea2bd"
+    },
+    {
+      "path": "docs/config-reference.md",
+      "contentSha256": "8cd1f062048d5e912957a123932afd97b00ccc3f39607441b78dd8dfd7509a7b",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Config Reference — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/app_config.cpp",
+        "anchor": "AppConfig"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "486b88b7ed35a58a0d30bfef43bdd9ae4794a53a53b56c5611d553e6b067b66d"
+    },
+    {
+      "path": "docs/development-backlog.md",
+      "contentSha256": "c20ed22fba41b036f1ba8f465643b869b98fddb3797e0e195a551dbe678bf0ad",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Development Backlog — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "VERSION",
+        "anchor": "3.9.0"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "bc440437454cab94f36fdf9bf73fdcf5ce44f4ec7911dcb817f70ec7fbb4b952"
+    },
+    {
+      "path": "docs/development-guide.md",
+      "contentSha256": "c19e946ac247bda5af7c9db02b91eaa21bad8afdf3ddf6d9997fae211ec349aa",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Development Guide — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/app_config.cpp",
+        "anchor": "AppConfig"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "4aef7b63cae70f72c7620861a236fdfcadfe05dd663df28bad67deaab32e49a8"
+    },
+    {
+      "path": "docs/distribution-policy.md",
+      "contentSha256": "061f0135db18e40329e29472635a35d8e6d232e030393d4c4f86c5422915dd79",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Distribution Policy — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "8db6a8dada14332fbf0f0fa58dc43afdbae461dccca7ffaefbced98cab4d8f8a"
+    },
+    {
+      "path": "docs/en/README.md",
+      "contentSha256": "82fe60db2fe3ce93233788fb8008f4ccf0e3c56541bd12373c8598128c8979ee",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "English Documentation — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "VERSION",
+        "anchor": "3.9.0"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "a7e02532b6230b386e7e1a3c7dc954054528800f266d50656915a7bb0da0e394"
+    },
+    {
+      "path": "docs/event-evidence-contract.md",
+      "contentSha256": "7a7c671b148afe00dad5b548d88d130a4ca75689cb282b42c35a8aac669c5f7b",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Event Evidence Contract — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/event_storage.h",
+        "anchor": "Event"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "892e71fa619f490235844ab6894ba167e989b3f8f0e53c4086ed73a37514dba9"
+    },
+    {
+      "path": "docs/event-feature-schema-privacy.md",
+      "contentSha256": "cf5a7793a1265fe4facae675fe3bca55fbf998d4edb05d6ae09b866f175e613c",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Event Feature Schema And Privacy Policy — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/event_storage.h",
+        "anchor": "Event"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "3c85bc409a260af4cdd1db7f574f0e2c6b61b1407c0dbc70af117dc3c5755afb"
+    },
+    {
+      "path": "docs/external-turn-whep-field-gate.md",
+      "contentSha256": "3e087b2bb144c7132be3168fac03318f39f624de9da6f1a9145208caeb68c73d",
+      "semanticRole": "conditional-external-gate",
+      "lifecycle": "conditional-not-run",
+      "alignment": "aligned",
+      "decision": "retain-conditional",
+      "semanticStatement": "External TURN/WHEP Field Gate — credential·endpoint·실기기 또는 외부 runtime 조건이 필요한 별도 gate다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "field smoke"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-policy.md",
+          "anchor": "field smoke"
+        }
+      ],
+      "semanticDigest": "220b6927596353f297a386e8275c0e4d7fac1f02643ad517a11717b79c9bace6"
+    },
+    {
+      "path": "docs/integrator-contract-artifact.md",
+      "contentSha256": "d11b4e55814a5e195f66e11e71ff375611243c0b51bc52ff1dd29f1ba69b8c26",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Integrator Contract Artifact — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "5c1209aff344b03801388989b7712855e6b0a39e62ae3df42e10366d876cef69"
+    },
+    {
+      "path": "docs/live-event-metadata-contracts.md",
+      "contentSha256": "eca16b59e27a696272a75af686dbce87d86cfbf3d84ba0c6599fe3c476efa6d0",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Live Event and Metadata Contracts — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/event_storage.h",
+        "anchor": "Event"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "0d9804ea89b2242f5cd536515fb9f5d62ebfd033d74ec9573987b9752c6be442"
+    },
+    {
+      "path": "docs/live-source-health.md",
+      "contentSha256": "56fca545c9f3758ec23e71892590c95176754794e6fd075200fcd3b28efe22db",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Live Source Health — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/source_view_registry.h",
+        "anchor": "Source"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "2aca5dd5b236e701095f81424d1821200fe39c10c93ef16e6db995d4da7989c3"
+    },
+    {
+      "path": "docs/manual-ui-checklist.md",
+      "contentSha256": "e91feb6ee9f96f2724d035747db5b4a9edf704657d796cb465d92b6b39cb9247",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Manual UI Checklist — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "fb3fc2dc4caca7605c8ed4efab7b63c8d43b4c6d1b54980f0429acd1a397191d"
+    },
+    {
+      "path": "docs/manual-ui-fulltest.md",
+      "contentSha256": "367401e1fa442f8f7c48c11151aada52540d56630d40be87d16f03911b26eb8c",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Manual UI Full Test Standard — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "761822e278f97bc5fef25d84fe57f65f76e83727ce90f81a4eec396f909fc39d"
+    },
+    {
+      "path": "docs/manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md",
+      "contentSha256": "39ec6acb7bedcd5230af54bcd165f3a16ca42ca65acd59ab309609f329dd4b68",
+      "semanticRole": "historical-analysis-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-audit-only",
+      "semanticStatement": "v2.3.0 S01 EventRecord Occurrence Matrix Result — 버전 또는 날짜가 고정된 연구·수동 결과 기록이며 current completion proof가 아니다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "과거"
+      },
+      "evidence": [
+        {
+          "path": "docs/manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md",
+          "anchor": "v2.3.0 S01 EventRecord Occurrence Matrix Result"
+        }
+      ],
+      "semanticDigest": "87776f8ceb1e39549cd4b36c53394b13ffa505f91136f8871e7805a649b23fe5"
+    },
+    {
+      "path": "docs/manual-ui-result-template.md",
+      "contentSha256": "931e5d04e84f3ed0cd37636f88822d1c58f488ec95eea0096fff57392c664972",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "Manual UI Result Template — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/manual-ui-result-template.md",
+          "anchor": "Manual UI Result Template"
+        }
+      ],
+      "semanticDigest": "87e84a6495ee103b0ca20215032342e5089911869283373b70e7b3576fc33f3b"
+    },
+    {
+      "path": "docs/media-server-architecture.md",
+      "contentSha256": "e4865a5fa680fc87bbfe7d311996f6e4c56cf447e0227a8a931d169e5f291ffd",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Media Server Architecture — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "aba6227c71ef731ab14db892127ea07f00af4161af31359cb7843c5a22b86802"
+    },
+    {
+      "path": "docs/oc-sort-benchmark-boundary.md",
+      "contentSha256": "4c003f58cee461d0fd68b73ef58bbe5c8fb8809013900846830cce482384af34",
+      "semanticRole": "historical-analysis-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-audit-only",
+      "semanticStatement": "OC-SORT Benchmark Boundary — 버전 또는 날짜가 고정된 연구·수동 결과 기록이며 current completion proof가 아니다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "과거"
+      },
+      "evidence": [
+        {
+          "path": "docs/oc-sort-benchmark-boundary.md",
+          "anchor": "OC-SORT Benchmark Boundary"
+        }
+      ],
+      "semanticDigest": "672e8823f022e4565ae94397c8de58cf49e93ad71f9ec19e1b401a0df72b4f83"
+    },
+    {
+      "path": "docs/onvif-auth-injection-design.md",
+      "contentSha256": "427ace209bcd0fdd7b2b4647507183aa18186a111bb61d4a06b3b82e204ce486",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "ONVIF Auth Injection Design — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/onvif-auth-injection-design.md",
+          "anchor": "ONVIF Auth Injection Design"
+        }
+      ],
+      "semanticDigest": "7a29acec208d016542d4c750795f001ba60623e914a727ade40d90ff0512be5a"
+    },
+    {
+      "path": "docs/onvif-credential-reference-policy.md",
+      "contentSha256": "3b51ec65cfe6d2f2e27187679ca4a3a5bdb141724c198deb381dcac863126643",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "ONVIF Credential Reference Policy — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/onvif_live_import.h",
+        "anchor": "Onvif"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "01e9b4cddaaf095f0d18f6a22d330bf37b44e6ec86bcff1e3158a8814e5e1b48"
+    },
+    {
+      "path": "docs/onvif-credential-store-integration-design.md",
+      "contentSha256": "6ce51c037ec7c84933b2d9e732a447dfeae9e458d3161bb876ccfe4761e6d7e5",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "ONVIF Credential Store Integration Design — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/onvif-credential-store-integration-design.md",
+          "anchor": "ONVIF Credential Store Integration Design"
+        }
+      ],
+      "semanticDigest": "a0ccd195e6f94e58ee80ba25066016309fa124a9b04eced62a5362d184208d52"
+    },
+    {
+      "path": "docs/onvif-field-smoke-artifact-redaction.md",
+      "contentSha256": "8c872750d384ff75700829c7068d4770817a0154fc924cad06e4221c9cee46fd",
+      "semanticRole": "conditional-external-gate",
+      "lifecycle": "conditional-not-run",
+      "alignment": "aligned",
+      "decision": "retain-conditional",
+      "semanticStatement": "ONVIF Field Smoke Artifact Redaction Checklist — credential·endpoint·실기기 또는 외부 runtime 조건이 필요한 별도 gate다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "field smoke"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-policy.md",
+          "anchor": "field smoke"
+        }
+      ],
+      "semanticDigest": "b0ae7710458103d2fcbfb78893abd5d05dbe2febe67e30f6979a1beacf6f0b68"
+    },
+    {
+      "path": "docs/onvif-field-smoke-gate.md",
+      "contentSha256": "0a93be8470c5296a5267eb9e1449b33b6381f4bfd018af805fb446673a7066f2",
+      "semanticRole": "conditional-external-gate",
+      "lifecycle": "conditional-not-run",
+      "alignment": "aligned",
+      "decision": "retain-conditional",
+      "semanticStatement": "ONVIF Field Smoke Gate — credential·endpoint·실기기 또는 외부 runtime 조건이 필요한 별도 gate다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "field smoke"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-policy.md",
+          "anchor": "field smoke"
+        }
+      ],
+      "semanticDigest": "91fc9398502b8c89c64213aaeb49badfe224641650d2809291d4378a851c4203"
+    },
+    {
+      "path": "docs/onvif-https-soap-transport-design.md",
+      "contentSha256": "7a70ff37ea15416718f2cf08a8256a7ad1f19d441748933fe7b51f809dbb9582",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "ONVIF HTTPS SOAP Transport Design — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/onvif-https-soap-transport-design.md",
+          "anchor": "ONVIF HTTPS SOAP Transport Design"
+        }
+      ],
+      "semanticDigest": "90885291e1587f602970524e2b0564365c36f7a5eda327ef350d8cb5ce40cf72"
+    },
+    {
+      "path": "docs/onvif-https-tls-fixture-harness-design.md",
+      "contentSha256": "3c1cb76c3e0185632cc411d566b4e005398d271785d067c4fb5f409fdee43479",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "ONVIF HTTPS TLS Fixture Harness Design — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/onvif-https-tls-fixture-harness-design.md",
+          "anchor": "ONVIF HTTPS TLS Fixture Harness Design"
+        }
+      ],
+      "semanticDigest": "2c60f0e5d8237570bfafdbf3a5cd3f45805071cc91b77f25ea582b4aa977d99e"
+    },
+    {
+      "path": "docs/onvif-live-source-support.md",
+      "contentSha256": "658e9abc5ad0535f8ad16d1df15b1d29bf68f1b7c98ac4152a6a88455fd9720c",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "ONVIF Live Source Support — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/onvif_live_import.h",
+        "anchor": "Onvif"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "2f6fd98e3724cc038ba7a62911162649eefb1361a9bb2557ddb65837e083743c"
+    },
+    {
+      "path": "docs/onvif-no-device-verification.md",
+      "contentSha256": "7e0a33299ca71f81c1bfacb09120e8ea04cee4f3a78a2d442fcd8d96d4155da3",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "ONVIF No-Device Verification — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/onvif_live_import.h",
+        "anchor": "Onvif"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "79b9248fcaf9e38de3c97368df813a5d7021b0a5235d1b4850e0808ef2e722c4"
+    },
+    {
+      "path": "docs/onvif-protocol-support-matrix.md",
+      "contentSha256": "f50ad7a32fbe36d0ac514f32bf63aac0fd37fbe5791cc8e8d93cde92c5a79114",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "ONVIF Protocol Support Matrix — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/onvif_live_import.h",
+        "anchor": "Onvif"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "e6c53802ac8ca79de6903bc74cb10b0d8bb16e9e518e3fdb123c46037fc09b01"
+    },
+    {
+      "path": "docs/onvif-rtsps-draft-policy.md",
+      "contentSha256": "6ae8354748f08b0551d71a667570ab60a42b32259f42639fc43b35af90d29c0b",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "ONVIF RTSPS Draft Policy — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/onvif_live_import.h",
+        "anchor": "Onvif"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "71964f95e60d4e789b735a53fc194c82a3f763c49edf09d0ede3299a72952e35"
+    },
+    {
+      "path": "docs/onvif-tls-transport-policy.md",
+      "contentSha256": "b699c2e059396aea6ca2097b186a63b3343069ce76f6200cb56332a61fa044bd",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "ONVIF TLS Transport Policy — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/onvif_live_import.h",
+        "anchor": "Onvif"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "3dc04140ff16e873e315b9b449dad9d037cc86006c9e8ffafe5d7dd730bb9a1c"
+    },
+    {
+      "path": "docs/onvif-unsupported-api-guard.md",
+      "contentSha256": "fb34d3554c2ac2030e1bc70ae405b6181712ac8e7cb02e813b3e91380b3bc8a4",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "ONVIF Unsupported API Guard — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/onvif_live_import.h",
+        "anchor": "Onvif"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "8b7e24249bbd17af908c23f4d3e6131e873f7899e10b5b7d0380b4a52b2bc0d0"
+    },
+    {
+      "path": "docs/ops-backup-recovery.md",
+      "contentSha256": "a81f3a07625caed9d11ab35e3c4b40e72dbff7e7e89128308c036a95d074b92b",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Ops Backup / Recovery Guide — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "7f033392c603244ba2b93b68d409be32f2cbb24d1b0a63f9db0c42104ab55ad7"
+    },
+    {
+      "path": "docs/product-shell-component-examples.md",
+      "contentSha256": "3eeed45fdabd347ddbead26d2e88aab15a5a7973ca0df1f70f9f0b15bd653dd5",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Product Shell Component Examples — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "2fae6da964f255b5e7abbcd1618af155fc6ed5b90531c0b23ad9ea1c9eb6c9b4"
+    },
+    {
+      "path": "docs/project-feature-test-inventory.md",
+      "contentSha256": "aaa5e31bb3687b543401abaa52b55681b1fe230a5d13b6debfa47c8f85cd3937",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Project Feature Test Inventory — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "2513a15f8ac51bbd2eaed01a8ed4d826a22cf5db46e7430e8626a1db5d068115"
+    },
+    {
+      "path": "docs/public-repo-final-review.md",
+      "contentSha256": "bd16c7424417d0ba358b902f2285a9cf2f677b2f4126dfbde7dec34fcfbad187",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Public Repo Final Review — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "VERSION",
+        "anchor": "3.9.0"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "8af8842e42ba454b0ed7369f31cbc11b237a7458b586b51b84792e20d2d88315"
+    },
+    {
+      "path": "docs/reid-default-off-research-continuation.md",
+      "contentSha256": "63552e257f8f193557ce79e30ba3e8ff33a24024fc68664c30f1ff569f1561ff",
+      "semanticRole": "historical-analysis-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-audit-only",
+      "semanticStatement": "Re-ID Default-off Research Continuation — 버전 또는 날짜가 고정된 연구·수동 결과 기록이며 current completion proof가 아니다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "과거"
+      },
+      "evidence": [
+        {
+          "path": "docs/reid-default-off-research-continuation.md",
+          "anchor": "Re-ID Default-off Research Continuation"
+        }
+      ],
+      "semanticDigest": "1b3028bcc90af17214b9ee3e53e1b1336ce94ca19f129e54783271363c40d224"
+    },
+    {
+      "path": "docs/reid-fixture-default-on-candidates.md",
+      "contentSha256": "5869e5640317ae50f563fadbd2426e2ecee79da671b10ef3d841e01995fb8418",
+      "semanticRole": "historical-analysis-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-audit-only",
+      "semanticStatement": "Re-ID Fixture Default-on Candidates — 버전 또는 날짜가 고정된 연구·수동 결과 기록이며 current completion proof가 아니다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "과거"
+      },
+      "evidence": [
+        {
+          "path": "docs/reid-fixture-default-on-candidates.md",
+          "anchor": "Re-ID Fixture Default-on Candidates"
+        }
+      ],
+      "semanticDigest": "888c2d47b77f55977757aaa3527a2ad9c728ef59bd1b250fbb4925f624193351"
+    },
+    {
+      "path": "docs/reid-tracking-event-hold-analysis.md",
+      "contentSha256": "60bf55feba628514176ce999120b8b47e6a1fa276d12751590ae399cb5a6b628",
+      "semanticRole": "historical-analysis-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-audit-only",
+      "semanticStatement": "Re-ID Tracking Event Hold Analysis — 버전 또는 날짜가 고정된 연구·수동 결과 기록이며 current completion proof가 아니다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "과거"
+      },
+      "evidence": [
+        {
+          "path": "docs/reid-tracking-event-hold-analysis.md",
+          "anchor": "Re-ID Tracking Event Hold Analysis"
+        }
+      ],
+      "semanticDigest": "10ddd3d51b4f5b7d6f1bb69da1f464ec1383ecb93236db2be489da833e5262bd"
+    },
+    {
+      "path": "docs/release-artifacts/v3.1.0/ui-fulltest-20260621/one-shot/summary.md",
+      "contentSha256": "f61fc5b6fa8fa36dada51193b84d623bfb826798affa4a892e3db6ab54775df1",
+      "semanticRole": "historical-ui-wrapper-summary",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-wrapper-summary-only",
+      "semanticStatement": "UI Fulltest One-Shot Summary — 당시 UI wrapper 요약이며 current exact Policy v4 evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "a5081e5bcb8551f67ea86e5c4cabbf0070fb317fda48146aaca84569e0ea983d"
+    },
+    {
+      "path": "docs/release-artifacts/v3.2.0/predev-1782224337-10773/report.md",
+      "contentSha256": "6ce23be14804ae3e9eddb0f60e43de2c11cf511bcef903a46f0aa6326995806d",
+      "semanticRole": "historical-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "86644cabce07400624f8b62adabc2bf813350ff90a262776b678005dc9eb9f0d"
+    },
+    {
+      "path": "docs/release-artifacts/v3.2.0/ui-fulltest-20260623/one-shot/summary.md",
+      "contentSha256": "f112e4c6b3cba3bda0c2823dadfe6bd27bd769b306ec5405a1e655d7380d85d4",
+      "semanticRole": "historical-ui-wrapper-summary",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-wrapper-summary-only",
+      "semanticStatement": "UI Fulltest One-Shot Summary — 당시 UI wrapper 요약이며 current exact Policy v4 evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "7c3d253f801298f40489589715d1e0f8f709ead81b153fd8e3a7f975e8df496a"
+    },
+    {
+      "path": "docs/release-artifacts/v3.3.0/predev-1782548179-72502/report.md",
+      "contentSha256": "c8ff7f9d909a366156927535e25233af53dc4d64f200927892d46d67db29563a",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "acbe47e4db49e66ebcd2bd7b6ef093436c95f519466cbbf3781e0c56cb9c78e1"
+    },
+    {
+      "path": "docs/release-artifacts/v3.3.0/release-notes-draft.md",
+      "contentSha256": "aae754a1a98e19ca044c5741c0cf5533956638a9c301651cc3d518e99fbc346b",
+      "semanticRole": "historical-release-note-draft",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-release-note-draft",
+      "semanticStatement": "Media Server v3.3.0 — 당시 release note 초안이며 test evidence가 아니다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "release notes"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "8d4213d55d2cb4e7ff24f91df4c256c8c97b304d2493d1ea0759b05700bdd569"
+    },
+    {
+      "path": "docs/release-artifacts/v3.3.0/ui-fulltest-20260627/one-shot/summary.md",
+      "contentSha256": "005fd744ed5d0ad97268d328a276af38ab9d0a1842ef2e972d7e56a037df8221",
+      "semanticRole": "historical-ui-wrapper-summary",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-wrapper-summary-only",
+      "semanticStatement": "UI Fulltest One-Shot Summary — 당시 UI wrapper 요약이며 current exact Policy v4 evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "8ca0aa8dd3b337a045aed6e49b9b6f08f881ca1e05d07e13a46aee41fa387732"
+    },
+    {
+      "path": "docs/release-artifacts/v3.4.0/predev-1782641604-69187/report.md",
+      "contentSha256": "f3c795ee76513e4e2e7047eba89ce72195094d65cd9b47dc415a2afdf59e4e72",
+      "semanticRole": "historical-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "c655cb4dfe24fb9d5a5449005b16ce9501c031935e5e7e98813fe4876148af77"
+    },
+    {
+      "path": "docs/release-artifacts/v3.4.0/ui-fulltest-20260628/one-shot/summary.md",
+      "contentSha256": "0e7451deed01db7767d243d9794b0aca874b7b6a6e77791429ada5ee2085920d",
+      "semanticRole": "historical-ui-wrapper-summary",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-wrapper-summary-only",
+      "semanticStatement": "UI Fulltest One-Shot Summary — 당시 UI wrapper 요약이며 current exact Policy v4 evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "2dc005f4a1a10dbfc9a5b84e9c4c6d9a00d5081d18472a1bc12c59749b26fa19"
+    },
+    {
+      "path": "docs/release-artifacts/v3.5.0/predev-1782831234-48352/report.md",
+      "contentSha256": "28ac045b05efbfe03dfc0987f1828dbff57140f6115a36a2ca367d76b9c0d480",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "4a55746421d9ddea13a59be97267dd7fa6bf5b7a042cc2917963a20ce7b64692"
+    },
+    {
+      "path": "docs/release-artifacts/v3.5.0/ui-fulltest-20260630/one-shot/summary.md",
+      "contentSha256": "895b89ed25ea07e3c7d2bc82a419697204ff706af6cc733227767add6e293080",
+      "semanticRole": "historical-ui-wrapper-summary",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-wrapper-summary-only",
+      "semanticStatement": "UI Fulltest One-Shot Summary — 당시 UI wrapper 요약이며 current exact Policy v4 evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "4a9a5645ea43f033fdf43310f2609bd9dfb3f744d80384d7a95509a50a156a67"
+    },
+    {
+      "path": "docs/release-artifacts/v3.6.0/predev-1783150577-40687-fail-code-comments/media_server_predev-1783150577-40687_report.md",
+      "contentSha256": "d0845cd48fd718d45db57d4b2fd8779a2b48d911d7278f73dbaef20bf079809e",
+      "semanticRole": "historical-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "5251aa7c04e540c8b9f0f0e4d99428444e9c4f09488cb0c3850878d48ed848e4"
+    },
+    {
+      "path": "docs/release-artifacts/v3.6.0/predev-1783153043-79079/media_server_predev-1783153043-79079_report.md",
+      "contentSha256": "db70709f2142ce46cd0ad01f8a959d03305d4154fdafc8c33d3e2728399c4118",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "6d9524c023e359d6c158ddb0f28fbbc60a8e6d01096b2a24225b15b0549e85fa"
+    },
+    {
+      "path": "docs/release-artifacts/v3.6.0/predev-1783164699-79436-120min/media_server_predev-1783164699-79436_report.md",
+      "contentSha256": "55589efdce1890c5ded7dba1174a15b0196799218bd4d5fdb49575543d409022",
+      "semanticRole": "historical-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "66e4666db690754c8113b9997b221212b2934d79a83c6518102d49bc8f769a2b"
+    },
+    {
+      "path": "docs/release-artifacts/v3.6.0/ui-fulltest-20260704/one-shot/summary.md",
+      "contentSha256": "6e6663a52b66f2563b8c916f762c289ce55c5b7e533a7e1fde48d3b90af2be26",
+      "semanticRole": "historical-ui-wrapper-summary",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-wrapper-summary-only",
+      "semanticStatement": "UI Fulltest One-Shot Summary — 당시 UI wrapper 요약이며 current exact Policy v4 evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "6e2d469a3e6863b483cc376a7fcdabcb56c0c49238da98386aab4638c7b5fcad"
+    },
+    {
+      "path": "docs/release-artifacts/v3.7.0/predev-30min-20260705-final/report.md",
+      "contentSha256": "257e3ceffac9e1e9db4b495a64dfa20e7a3f81deb748bc877782fb60b2026864",
+      "semanticRole": "historical-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "a6a94f2a8504c0f2a69f2789bf0daf9634bf4252f16b5f7c5d71184b27809d48"
+    },
+    {
+      "path": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/summary.md",
+      "contentSha256": "3693ccedaebd1ddbe37005e68cbf1695554e749a472efa806e9b5795c0bdd394",
+      "semanticRole": "historical-ui-wrapper-summary",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-wrapper-summary-only",
+      "semanticStatement": "UI Fulltest One-Shot Summary — 당시 UI wrapper 요약이며 current exact Policy v4 evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "2ab397e19cc23364dfe36a97f6e9a724567e410609217e718aadc0acd1ac59a3"
+    },
+    {
+      "path": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/summary.md",
+      "contentSha256": "2c476e703734b0c59620201e75a3909552ec369b2ddd338c1e9b0440d2da77f7",
+      "semanticRole": "historical-ui-wrapper-summary",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-wrapper-summary-only",
+      "semanticStatement": "UI Fulltest One-Shot Summary — 당시 UI wrapper 요약이며 current exact Policy v4 evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "09c57f12204aa636ad4213a3c1ee29591e9c8979152f3e5ebe694e6d86cc279d"
+    },
+    {
+      "path": "docs/release-artifacts/v3.8.0/predev-120min-20260706/report.md",
+      "contentSha256": "f5790d760c63d13a5dc0f218ec07ad02069d8b6d50471d37e8a8657ab5225540",
+      "semanticRole": "historical-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "fa4b0a694d8b5701d554ec92e42db1a49faf6c05291eeaf8a025ff5500dd09a4"
+    },
+    {
+      "path": "docs/release-artifacts/v3.8.0/predev-30min-20260706/report.md",
+      "contentSha256": "2ffd27d0ee877728ccb4a77feca2be4f5eed73b257d4719a67662fe16947669f",
+      "semanticRole": "historical-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "38ca37b712107c12446d33269c66fd7c34382397ce4e7081efa45ebfe2f37cda"
+    },
+    {
+      "path": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/summary.md",
+      "contentSha256": "4c889caf9145527391cd2749825d1506b931cc4e6560323126c5c477350165d4",
+      "semanticRole": "historical-ui-wrapper-summary",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-wrapper-summary-only",
+      "semanticStatement": "UI Fulltest One-Shot Summary — 당시 UI wrapper 요약이며 current exact Policy v4 evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "b3e43778eca040ad6283ef8f352c1ee65109aa3f2bc8a0353d74618187184f29"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/release-notes-draft.md",
+      "contentSha256": "9cf506869f2e1b8c2eaea13c2f6b9b8628fb12b9b9d34d89a23a66cda80d09e1",
+      "semanticRole": "historical-release-note-draft",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-release-note-draft",
+      "semanticStatement": "Media Server v3.9.0 Release Notes (Draft) — 당시 release note 초안이며 test evidence가 아니다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "release notes"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "1297f04a16198a436b5dfaf67a08d8ef9d6ebe77002dc3c3a58463d1e04288f1"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.md",
+      "contentSha256": "515bba135ed5b2db4080ac1e04e21b84e1c72ff57bcb2181f43613be625d996a",
+      "semanticRole": "historical-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "78d5dafbf9bff2d8c0404c7e09315ea0dda72e8b7ca3678f58c0c0f1fb70e26b"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/server-longrun-30min-final/report.md",
+      "contentSha256": "cf172f249bc3683d734fcc699085364d3a5274afd9fbee5b7753919cb32cff77",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "81a90c60aded2a81fc03a1704d81e3d5267a25e8246ae3ba560c1faf94d8d4a4"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/README.md",
+      "contentSha256": "72800b209902ba1db390cb161048dd4ee3bef4d081e50dd51b1cc1680aa760f8",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 final release acceptance evidence — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "00cb29fb51e3e9d1c160d8726823b4777c6b87d3f4f7c9e3ffffb861e660c6ad"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/first-failure.md",
+      "contentSha256": "443df8c10de53bd7a512b27ff50c4edb4de3588932e678a1a49cd30797e3692c",
+      "semanticRole": "historical-first-failure-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-failure-record",
+      "semanticStatement": "v3.9.0 Acceptance First Failure — 당시 acceptance의 최초 실패 기록이다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "first-failure"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "81397b919205c26f1549be3b4f7e191e7dc8f5ca8dd3ef31500d06bdfb133ad9"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
+      "contentSha256": "0defc1447b23e88cbac93a25021399041826e1f67a2d8fdc68e1c49e1b155c44",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Test Acceptance Bundle — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "48e41513260614babaf8b37255620388bc06dc3201bbf94b0c1ae83cd0d4ed52"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-120/predev-report.md",
+      "contentSha256": "a81995b91c595528e8578e0699a84f91a63be8dcbafd368b2bae6d3e1266000a",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "c3131967993e48f0a36fd22ee34d63a513f85c4cd8a870a37a0131eabd0fb219"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-120/report.md",
+      "contentSha256": "34c05a1beca601a735ace4c4f2801f05670982bf7535422fd383995f30c61688",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "ea9dc28fe2bf2c5a472a01d31cde340a4e67aa7eeaac6b1ccce43efd32a8083d"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.md",
+      "contentSha256": "676c4f6c3b2a1dd6aa323d77e2d827170192352778699fccaa6ffd6eaa039958",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "f9f3bb299bec56507499e5f7476f5cff8ed95f9b5a4be4978c94eb2208df49ec"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/report.md",
+      "contentSha256": "bfbb3b45f51c4523adfe0ef7901cac8e383d55bf7cd2e28680fba447771a8c36",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "81fa2fc82bdb91964a23880ee85c9775d97d2f4f1f4a16a15fcdb8b5d63d9b61"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-08ad8b3e/README.md",
+      "contentSha256": "b130bc06ba45a9c4fe81665fe45c4d1f1566f2a90ac6f9fd607c02ed96c35aa4",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 final-integrity failure evidence — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "04fb319f014f94e725205fd156d892024dcb4584fa48ff27a57f7a52f3ec8af5"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-08ad8b3e/first-failure.md",
+      "contentSha256": "f5e816f691448897f474f1e4f85e64c3fa7d7f67bce86d3a4bf5ad96282d31b7",
+      "semanticRole": "historical-first-failure-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-failure-record",
+      "semanticStatement": "v3.9.0 Acceptance First Failure — 당시 acceptance의 최초 실패 기록이다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "first-failure"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "cf457946c9c4c10b27a91650873803113ed69d8b98a56c0452a5383eb0e2103c"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-08ad8b3e/report.md",
+      "contentSha256": "287048d7e99ee83a0c807446f7ce6a358f20de7239a47daa641eb636fb6918db",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Test Acceptance Bundle — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "70c454e0a59dcf91ed422f52ebf6930831215dc6c39099815517ba5263db99bd"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-08ad8b3e/runs/v390-test-acceptance-20260813175844-9840/server-longrun-120/report.md",
+      "contentSha256": "d139176d1dcccadffe2a84e5351d4679c3566d4fc0ccf3e22703cf297c9c3074",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "84a5c8ff0dc41de44d44aa48cc1cbe81b75aa0ca5a326579f4a2d2e5a469dee2"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-08ad8b3e/runs/v390-test-acceptance-20260813175844-9840/server-longrun-30/report.md",
+      "contentSha256": "25cfdbedfc74f82eb5e7a946cb12b02c86cb21d013c4d8cd8a98332899dd487e",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "3a2b61cf68e656f216bcf8aa44e2ebf25540d351dd764c795228031a7a157af6"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-08ad8b3e/runs/v390-test-acceptance-20260813175844-9840/ui-fulltest-qualification/report.md",
+      "contentSha256": "424a28c1c41f84a148032931b632ece686384dd06569cac21417659d4f1c1106",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "Policy v4 UI Fulltest Evidence Evaluation — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "6e0410fc7ec5a0edf6789d4a5bed1767e3af2da00c62c1677d8347c279b705e6"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/README.md",
+      "contentSha256": "1725ca663eeeaf9f25df530b707ffcd68a959569d46592356c46183c6c631b56",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 release acceptance failure evidence — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "cc99feb5e654429349a0e7a0b7a9fdf789b086e96f972e7dc0e70bb7e303ab45"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/first-failure.md",
+      "contentSha256": "f4160275b06af62662a195216cbb4f2fb625cabdeac20fa8d12d18817acd4edb",
+      "semanticRole": "historical-first-failure-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-failure-record",
+      "semanticStatement": "v3.9.0 Acceptance First Failure — 당시 acceptance의 최초 실패 기록이다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "first-failure"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "da3763f7e7f54093f53f2c05c75c86903fb1788ac8a311b66944ed05c074e6d5"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/report.md",
+      "contentSha256": "b0241569f33b07255a667e307eabab9cf375b6fd980c6fce36fb0e565e1e1970",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Test Acceptance Bundle — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "e158b28a6b03fc135789dd93df30792059de23a5e027b08482dcdc42453b7c7e"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
+      "contentSha256": "378251c763666095a96c578cc612ec178589d9abac6c7c4603bdcbb04a625239",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "aebb505feaee33c92147b060987fd7c89660ef4357c7b92d45183051169c463d"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.md",
+      "contentSha256": "20fc0521b7c74541be9952b69030e282c76991d31245c11a33b10a20bf2c749c",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "a43b9f7f4c346bf10a483ca16035b981c5205d58b0eb52af893e9cea96e59ee0"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-efb44bd1/runs/v390-test-acceptance-20260813154309-10950/ui-fulltest-qualification/report.md",
+      "contentSha256": "1d293c57f384da34a1df3b5539e8f7041bff74cbf6b3f24d6e792c8d6ee27213",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "Policy v4 UI Fulltest Evidence Evaluation — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "021d4968474a59889bc5a80b8676ea4eb316631e652439cbaf7ffd339f5bc535"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-final/first-failure.md",
+      "contentSha256": "ad4a81cc852bbfdbe592b235bd60a29dbb4bcaf2b5c9c57999a9ec9aaeb8bcd0",
+      "semanticRole": "historical-first-failure-record",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-failure-record",
+      "semanticStatement": "v3.9.0 Acceptance First Failure — 당시 acceptance의 최초 실패 기록이다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "first-failure"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "d25759579eb343cb601e30a32fedce6263a6ff8a22124cea6693fc18e8be064e"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-final/report.md",
+      "contentSha256": "1f8e28d53a586ec5ac673d9d66792e929d8132ec06183e946f6b5c4f78b12199",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Test Acceptance Bundle — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "868ee03f74bbb40bf25fe39633d03a2995d937c28ef502e00d83fa28464b1bbe"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.md",
+      "contentSha256": "d1344f5013d7c0bdded94120327aebcc3d81cf2cda223a944b0ec4d7743cb188",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "888417cffb279219cf2ee2eb55b21514054cae5f87bdb9141cd2bcd54002672d"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/report.md",
+      "contentSha256": "05d50866b4366b3ce15accff72f18a54f694b3030e01966a01371125b2729811",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "aa00749ed64de536c2f2754232d1dae03f0e48246e667ffd6f81039a6a988dcd"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/report.md",
+      "contentSha256": "ccd18b1ce94ea7ea0f757ee1e6178ed7f614f0c94174f42ce207be03ae9a9c2c",
+      "semanticRole": "historical-producer-declared-ui-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-producer-report-only",
+      "semanticStatement": "v3.9.0 UI Automation Runner Report — producer 또는 marker 기반 UI 보고서이며 독립 qualifier evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_ui_automation.mjs",
+        "anchor": "report"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "b71d834e86aaeeb8f69350e6e6faf970acccb4123d21c488a28fedd146b55ecb"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/report.md",
+      "contentSha256": "041b33703529b368100f2f5f4ca87931f55489f35600441a83e9494f25414f29",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Test Acceptance Bundle — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "79a98601f521d5de9f99c7de471d208515105a6b4a64c22c1575b0eead9d9b2c"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-report.md",
+      "contentSha256": "3efab7e494fdb97868b68a8608c8ffaa91d9b923c09810b725d5a2cf50a1beba",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "c09593ca995487fd42b109122f00df9c0114d9497832c98650cd9aaf491c639f"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.md",
+      "contentSha256": "59320b175346f5dac0a8e5914b4998f6d77147c54c35d63b3cf20f1a68770f19",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "b0c531936090560ad0d988ecc85c0c93de77bbd00061008914fc25a485e7b783"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/report.md",
+      "contentSha256": "ccd18b1ce94ea7ea0f757ee1e6178ed7f614f0c94174f42ce207be03ae9a9c2c",
+      "semanticRole": "historical-producer-declared-ui-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-producer-report-only",
+      "semanticStatement": "v3.9.0 UI Automation Runner Report — producer 또는 marker 기반 UI 보고서이며 독립 qualifier evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_ui_automation.mjs",
+        "anchor": "report"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "dc49509acbb2541548ed72048a21f7e41d1d96b61cfa6752f060953f86c16ea9"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/ui-automation-case-completeness-final/report.md",
+      "contentSha256": "e00af2371fca235cd76d24096132ddbc3c664176253da5fb115fe3d2235fd1ee",
+      "semanticRole": "historical-producer-declared-ui-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-producer-report-only",
+      "semanticStatement": "v3.9.0 UI Automation Runner Report — producer 또는 marker 기반 UI 보고서이며 독립 qualifier evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_ui_automation.mjs",
+        "anchor": "report"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "19d99618da88e968aabd1caccd732dcadce03363905392bf9a51ee107652f6f9"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/ui-automation-native-final/report.md",
+      "contentSha256": "b6fe4959ab31511adb8a09c1db0107f64f34f9a46dcb997253f648696f2c0351",
+      "semanticRole": "historical-producer-declared-ui-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-producer-report-only",
+      "semanticStatement": "v3.9.0 UI Automation Runner Report — producer 또는 marker 기반 UI 보고서이며 독립 qualifier evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_ui_automation.mjs",
+        "anchor": "report"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "3cd19120ab97c99c5c3351aa931935658d7fdbb3bd1e1be99ca7220a75fbf801"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/report.md",
+      "contentSha256": "d026be420af2732d76cb01ced1bf2451941f4fbfc65ec39202c70112e51c1541",
+      "semanticRole": "historical-producer-declared-ui-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-producer-report-only",
+      "semanticStatement": "v3.9.0 UI Automation Runner Report — producer 또는 marker 기반 UI 보고서이며 독립 qualifier evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_ui_automation.mjs",
+        "anchor": "report"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "3767692ad1a1d8ea863fb92da6643a1ff57cae5d8c1e88758a1f207bc7ab11fd"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/report.md",
+      "contentSha256": "ccd18b1ce94ea7ea0f757ee1e6178ed7f614f0c94174f42ce207be03ae9a9c2c",
+      "semanticRole": "historical-producer-declared-ui-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-producer-report-only",
+      "semanticStatement": "v3.9.0 UI Automation Runner Report — producer 또는 marker 기반 UI 보고서이며 독립 qualifier evidence가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_ui_automation.mjs",
+        "anchor": "report"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "7af31549df90cc2ddddb92a4cb346a2f60b338ddf727fd560ad10120976a04eb"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/ui-native-adapter-final/report.md",
+      "contentSha256": "06bc50b5de41f82959a979513036bc9757166afe8c8614711b03a2f4e3ada19a",
+      "semanticRole": "historical-synthetic-ui-adapter-smoke",
+      "lifecycle": "historical-audit-only",
+      "alignment": "superseded",
+      "decision": "preserve-adapter-smoke-only",
+      "semanticStatement": "v3.9.0 Native UI Adapter Report — synthetic adapter smoke이며 제품 UI fulltest가 아니다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_ui_native_adapter.mjs",
+        "anchor": "adapter"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "4321323f62914ffae3fb117a63257c9ae3829c76b04da2cc9123b2e8ace82db9"
+    },
+    {
+      "path": "docs/release-evidence-index.md",
+      "contentSha256": "578f9f3f16c83ad875f8682e954eb549f410679450fe0da237719b58040d37a5",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Release Evidence Index — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "테스트"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "48b51264d84de9327bee2e77eee7d31ab840a8570d3495e3056929ed032e5496"
+    },
+    {
+      "path": "docs/release-policy.md",
+      "contentSha256": "06ff9e8768c4de2c6488e34c47c8cd2c356f58c2ceb018a72346373a7dfe2465",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Release Policy — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "테스트"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "370b23f9a73c64d5731f793a05c688e3b24896a9bfc5efc16a09a6d354a906c9"
+    },
+    {
+      "path": "docs/release-test-records.md",
+      "contentSha256": "f7932896a5d5453b523d0fefe6e8da4dadb641ee46f779637f5c5e32cc35755b",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Release Test Records — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "테스트"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "2afab4095dc90aba9a203f1b193fed74ff5db001dede97dbed4ea3e7c56a60dd"
+    },
+    {
+      "path": "docs/runtime-dashboard-longrun-evidence-template.md",
+      "contentSha256": "143b93fe45c4ff26f508a80d60e9e42bc242a1492ce6a32586ca36ad7a2b5517",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "Runtime Dashboard Longrun Evidence Template — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/runtime-dashboard-longrun-evidence-template.md",
+          "anchor": "Runtime Dashboard Longrun Evidence Template"
+        }
+      ],
+      "semanticDigest": "24b45824f361a451089727ffb7115037f1359aa18169badf5d97930a62472cdc"
+    },
+    {
+      "path": "docs/runtime-model-bundle-rc-rehearsal.md",
+      "contentSha256": "e81ed785736cd21045871c90cd746533b1ee2362bd5cc9334a3ebcc9b71676e0",
+      "semanticRole": "conditional-external-gate",
+      "lifecycle": "conditional-not-run",
+      "alignment": "aligned",
+      "decision": "retain-conditional",
+      "semanticStatement": "Runtime/Model Bundle RC Rehearsal — credential·endpoint·실기기 또는 외부 runtime 조건이 필요한 별도 gate다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "field smoke"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-policy.md",
+          "anchor": "field smoke"
+        }
+      ],
+      "semanticDigest": "0f7f5b1839129b0747b1af7b8c3ac9b18c97c343ec624ae7c26542b97711af7d"
+    },
+    {
+      "path": "docs/sample-fixture-provenance.md",
+      "contentSha256": "d9f329f2466ecae53f550096b13796c693ea85890cb9fd5291ace39b3c8c02c8",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Sample Fixture Provenance — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "636a7e657bf7108a29990a19a4822c37806da1fe87f1b1b9427fefb557965b2c"
+    },
+    {
+      "path": "docs/scenario-timeline-debug.md",
+      "contentSha256": "392740c8428d1ad8aead04ae1cdcb10c5dd4206bb1a04c3d7409cdbca9116934",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Scenario Timeline Debug Fields — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/source_view_registry.h",
+        "anchor": "Source"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "4746a1e99fc68d7dadf01280a4d2acd2774d2f735c75ee30e4af5ba6d2b4b369"
+    },
+    {
+      "path": "docs/stream-verification.md",
+      "contentSha256": "ea700422a94edb24cd56a1294bb56fbefbec928f9f1b8560475112031273de6b",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Stream Verification — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/webrtc_egress_session.h",
+        "anchor": "WebRtc"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "c3ba4a37ae25d3f3f079ca5f8bcfd29e606175f0c55e96004420fca87e8850c3"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-06-05-v230-operational-evidence-steps-5-7.md",
+      "contentSha256": "77033c80492287cd139b7493ce9764f179b0d0ab2e15a12c2c8f36519e74ba2c",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v2.3.0 Operational Evidence Steps 5-7 Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-06-05-v230-operational-evidence-steps-5-7.md",
+          "anchor": "v2.3.0 Operational Evidence Steps 5-7 Implementation Plan"
+        }
+      ],
+      "semanticDigest": "ad748aa1eb19934dd83686104010e78637b461b1256f6f3f464e2ff3f08dbe3b"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-06-11-v250-roadmap-application.md",
+      "contentSha256": "4a5d3b07b6bcfab65a5b7ce00d018a9234cdbb859c325f77527c51c06a6a057e",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v2.5.0 Roadmap Application Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-06-11-v250-roadmap-application.md",
+          "anchor": "v2.5.0 Roadmap Application Implementation Plan"
+        }
+      ],
+      "semanticDigest": "38987638e349ad6666fe0ba5939f5f90c0f8ea1290887b6ddd2cbfc6171d6ed8"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-06-21-v310-s09-stabilization-release-readiness.md",
+      "contentSha256": "c09664b147e24c0c74c83e53402667eb77630579837f2a0e9d56a748f3e85e53",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V310 S09 Stabilization And Release Readiness Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-06-21-v310-s09-stabilization-release-readiness.md",
+          "anchor": "V310 S09 Stabilization And Release Readiness Implementation Plan"
+        }
+      ],
+      "semanticDigest": "295693620de9e6e3671c64ea40556cfeda4d7392a254d1ca686c1fba9d8d52d6"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-06-23-v320-s11-stabilization-release-readiness.md",
+      "contentSha256": "7ab62bdf82bfb3b31b715f675ea834d154e16f7724c152d77f6d5964b08b7795",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V320 S11 Stabilization And Release Readiness Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-06-23-v320-s11-stabilization-release-readiness.md",
+          "anchor": "V320 S11 Stabilization And Release Readiness Implementation Plan"
+        }
+      ],
+      "semanticDigest": "6732604fec13fbe82516fd443474b2c6a8ff5aa7da6c9cd1d3b3a30c6289d9d6"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-07-v390-preparation-master.md",
+      "contentSha256": "c0ef60b52485e3de8473735a44d548ef4b361c447be16a04555d65b2a81c5f91",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Preparation Master Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-07-v390-preparation-master.md",
+          "anchor": "v3.9.0 Preparation Master Implementation Plan"
+        }
+      ],
+      "semanticDigest": "c5001d67b1885bda33bf8bce106c0afe25489c314a332d89a4affd0e523a9b76"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-08-v390-evidence-test-gate-test-model-prep.md",
+      "contentSha256": "9be8af5354a692e107af623dafe6b96f3cc3b7fa0906c39e2040842f698d49ee",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Evidence/Test Gate And Test Model Prep Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-08-v390-evidence-test-gate-test-model-prep.md",
+          "anchor": "v3.9.0 Evidence/Test Gate And Test Model Prep Implementation Plan"
+        }
+      ],
+      "semanticDigest": "0ae357b86c31c2a4af1ca5d3b4a5a64084b75903c097e9331bb1ba89d43f2267"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-08-v390-server-longrun-runner.md",
+      "contentSha256": "78c5dc8406c527dfcb4ec233a5e219743157caf988673b429ed48e7681b509f3",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-08-v390-server-longrun-runner.md",
+          "anchor": "v3.9.0 Server Longrun Runner Implementation Plan"
+        }
+      ],
+      "semanticDigest": "7c363ca0e1cc32ba98e88c9c898a624054008343820c2f445db233834c4b2439"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+      "contentSha256": "7be4edaab49c022430187a292a60f3f688ba48d7a2fad12047b4590e64c591af",
+      "semanticRole": "current-review4-64-refactor-handoff",
+      "lifecycle": "current-plan",
+      "alignment": "aligned",
+      "decision": "retain-active-plan",
+      "semanticStatement": "v3.9.0 Structure Stabilization Handoff Implementation Plan — 64번 actual refactor의 보존 계약과 ordered slice를 기록한다",
+      "actualOwner": {
+        "path": "test/fixtures/v390_structure_execution_scope_decision.json",
+        "anchor": "execute-actual-refactor-in-v3.9.0-after-review4-50-63"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "V390-REVIEW4-64"
+        }
+      ],
+      "semanticDigest": "b61a394af06ea489919167417668f6d1feab2ac28a139854b2e16d7e5c0270f7"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-10-v390-additional-roadmap-6-9.md",
+      "contentSha256": "05e359effea3520208a921e4b1829d89b8e2aec739baf952aa4148985e795f5e",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Additional Roadmap 6-9 Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-10-v390-additional-roadmap-6-9.md",
+          "anchor": "v3.9.0 Additional Roadmap 6-9 Implementation Plan"
+        }
+      ],
+      "semanticDigest": "fa444c8090e05c211b82543f3be4ca31d75df76380463387820f4997063b23b2"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-10-v390-longrun-first-fail-diagnostics.md",
+      "contentSha256": "8f9b79e60dfaa794590036b995902d908373d47829918327e3a0eb1c7c7b1fe9",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Longrun First-Fail Diagnostics Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-10-v390-longrun-first-fail-diagnostics.md",
+          "anchor": "v3.9.0 Longrun First-Fail Diagnostics Implementation Plan"
+        }
+      ],
+      "semanticDigest": "ac4c61235619a63a5ba0c811aafd04e46ecc3e3685301c718e42697c1c2fe178"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-10-v390-test-policy-v4.md",
+      "contentSha256": "82a11615d845e8f557d138059ec3e165c44d0f109832d852588112ae7ee904b8",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Policy v4 UI Evidence Transition Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-10-v390-test-policy-v4.md",
+          "anchor": "v3.9.0 Policy v4 UI Evidence Transition Implementation Plan"
+        }
+      ],
+      "semanticDigest": "9630c6f26ec048affddde0aea30f7f78c7cd9f475cb96a1e08693f2ddbc6c3c0"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-10-v390-ui-automation-coverage-matrix.md",
+      "contentSha256": "455c502a4226e73707d0bb337d151e5d074466c39091f66d2e9a194d1d6bd1c6",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 UI Automation Coverage Matrix Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-10-v390-ui-automation-coverage-matrix.md",
+          "anchor": "v3.9.0 UI Automation Coverage Matrix Implementation Plan"
+        }
+      ],
+      "semanticDigest": "ef5b7a80a37ee6b0b196f819da542b17a243ef7f55d5202a87b8d75289d40b61"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-11-v390-development-15-18.md",
+      "contentSha256": "a68ad1d1eded89d37952f3778c35d7acb9dbf3f421b820bc23cec01cd864dd93",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 (17) Development 15~18 Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-11-v390-development-15-18.md",
+          "anchor": "v3.9.0 (17) Development 15~18 Implementation Plan"
+        }
+      ],
+      "semanticDigest": "8640392a469a5541da2d8681558762a8eef670ebac86e21bbd3f3eb53482af66"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-11-v390-evidence-13-14.md",
+      "contentSha256": "d13178fd5419d339367c6cd5f69442b15676e2df198d5974439e2a2c07f2cd27",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Evidence 13~14 Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-11-v390-evidence-13-14.md",
+          "anchor": "v3.9.0 Evidence 13~14 Implementation Plan"
+        }
+      ],
+      "semanticDigest": "c1a65955520534caab554c39d553d6742d51b4d2dfd1510a523cfbe599cdf43a"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-11-v390-review2-19-20.md",
+      "contentSha256": "e4ffa62d42833d4da2c8e8703a16d08b4de7c5165171c18ebf29ffedab7d3790",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Review2 Steps 19-20 구현 계획 — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-11-v390-review2-19-20.md",
+          "anchor": "v3.9.0 Review2 Steps 19-20 구현 계획"
+        }
+      ],
+      "semanticDigest": "af164e3cec5b2e7defd2d3ca9eae5bfad566fc87c65332183ad9dc02291c4f86"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-11-v390-review2-21.md",
+      "contentSha256": "69dc47cb9236cd013d527dd35e32a7f728eea267d1628c43252c50621c552d7b",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Review2 Step 21 Analysis Registry Durable Write 구현 계획 — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-11-v390-review2-21.md",
+          "anchor": "v3.9.0 Review2 Step 21 Analysis Registry Durable Write 구현 계획"
+        }
+      ],
+      "semanticDigest": "568d66db24590d152a312e9f14226f5ce3a9a188bc52a63572b49bb79ee5fcd2"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-11-v390-review2-24-25-ui-automation.md",
+      "contentSha256": "817961b7e76eb3c52bcab1af4692ad15ce09196c50a6541b36219261f180b5a7",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Review2 24-25 UI Automation Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-11-v390-review2-24-25-ui-automation.md",
+          "anchor": "v3.9.0 Review2 24-25 UI Automation Implementation Plan"
+        }
+      ],
+      "semanticDigest": "99ed5db18b0a216b02eeeb639c07da585a6d54624f9b5bdfed6c8c0d87d91c21"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-v390-review2-26-35.md",
+      "contentSha256": "cf10c113e20837a0ac2cec37ef43dc6b53d52544e14a2b5c84a10e850fb8485b",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Review2 26-35 Completion Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-12-v390-review2-26-35.md",
+          "anchor": "v3.9.0 Review2 26-35 Completion Plan"
+        }
+      ],
+      "semanticDigest": "d05a2f4cede8d8cc0107efb9c4169908d4e755e592e86167cd48bf8ea9819413"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-v390-review3-36-42.md",
+      "contentSha256": "54cae3defd48a3ff2dcefb6313218efaafd84a6b90d0135c9f2bc8428912e79e",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Review3 36~42 Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-12-v390-review3-36-42.md",
+          "anchor": "v3.9.0 Review3 36~42 Implementation Plan"
+        }
+      ],
+      "semanticDigest": "041dfae6a79e67be8009597702481bd6639551f2ce2fe3180b7c1c3856e17c4a"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-v390-review3-43-49.md",
+      "contentSha256": "bafa805c0c5521f7382923d10573e5daa193614dc924045a7678743a23501ccf",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Review3 43~49 Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-12-v390-review3-43-49.md",
+          "anchor": "v3.9.0 Review3 43~49 Implementation Plan"
+        }
+      ],
+      "semanticDigest": "5a0e2bf22d607fd90bbb613b3c3865fb98e84ad90e9f9f40b7526408c922d2a8"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-v390-review4-50-62.md",
+      "contentSha256": "12cb6b0dc8610b7bc2630686dccb7626bba2da8f121af590b9f177495b6772e9",
+      "semanticRole": "current-review4-execution-plan",
+      "lifecycle": "current-plan",
+      "alignment": "aligned",
+      "decision": "retain-active-plan",
+      "semanticStatement": "v3.9.0 REVIEW4 50~63 Implementation Plan — REVIEW4 50~65의 승인 순서와 실행 경계를 기록한다",
+      "actualOwner": {
+        "path": "test/fixtures/v390_structure_execution_scope_decision.json",
+        "anchor": "execute-actual-refactor-in-v3.9.0-after-review4-50-63"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "V390-REVIEW4-52"
+        }
+      ],
+      "semanticDigest": "a9c94535b969980ca198cc398c15329b48f158af4f0dc8bdf64fa117813f927b"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-13-v390-review4-remaining-issues-55-65-implementation.md",
+      "contentSha256": "df9e5cd31e456fbcc1ffaa728739c31f6b3e30ad5b4199e79fd5b5fe77718c2f",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 REVIEW4 잔여 이슈 55~65 구현 계획 및 현재 기록 — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-07-13-v390-review4-remaining-issues-55-65-implementation.md",
+          "anchor": "v3.9.0 REVIEW4 잔여 이슈 55~65 구현 계획 및 현재 기록"
+        }
+      ],
+      "semanticDigest": "2d158de8e8accfb08bd75e182c84ec2d3714928da36b81ecf5d82e15b41deaba"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-09-v390-navigation-pre-post-owner.md",
+      "contentSha256": "ca20c02620a11194973806c9ce44b890431e878c115da859d5039ff997f6c94e",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Navigation Pre/Post Owner Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-09-v390-navigation-pre-post-owner.md",
+          "anchor": "V390 Navigation Pre/Post Owner Implementation Plan"
+        }
+      ],
+      "semanticDigest": "7f1eb0b1c026be39bc53aba5b9efb73a9536d2cde223d20f4d59fbdcc6860f13"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-09-v390-policy-v4-evidence-qualification.md",
+      "contentSha256": "b36268618910d6223771afcc51f329c33b7d76f191a301092c417a2e29f9244f",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Policy v4 Evidence Qualification Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-09-v390-policy-v4-evidence-qualification.md",
+          "anchor": "v3.9.0 Policy v4 Evidence Qualification Implementation Plan"
+        }
+      ],
+      "semanticDigest": "7244ff7a7ef41075ae68ed8672f4174a48d554e73ed08d47251ff7787861f2ec"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-09-v390-request-navigation-epoch.md",
+      "contentSha256": "7dad735c96b06efcfc5ceb13f4381c55bfe3a5cecafb042376656c9e07478593",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Request Navigation Epoch Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-09-v390-request-navigation-epoch.md",
+          "anchor": "V390 Request Navigation Epoch Implementation Plan"
+        }
+      ],
+      "semanticDigest": "a69ba0d6bcaa6c3c5c84ca5f55e4f62b64d05b0bd94c434e0c951603bc0b700b"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-09-v390-request-redirect-chain-cardinality.md",
+      "contentSha256": "11d9e9215a238a1af052a6e65a47b02e1d1dbc830545062c9bc9fd4143738874",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Request Redirect Chain Cardinality Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-09-v390-request-redirect-chain-cardinality.md",
+          "anchor": "V390 Request Redirect Chain Cardinality Plan"
+        }
+      ],
+      "semanticDigest": "982a8451bbf46490d5dfd053c9caf5cae32ff4300b6b5f6c40de59dee833bb8f"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-10-v390-action-request-background-ledger.md",
+      "contentSha256": "a5433307eaa7293f1cdef8a060d8381de30fd7cabd348003802ea4e76762c20c",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Action Request / Background Ledger Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-10-v390-action-request-background-ledger.md",
+          "anchor": "V390 Action Request / Background Ledger Plan"
+        }
+      ],
+      "semanticDigest": "0d75224068cd3fd40f29400845aa594625ea36cbd0c63d21a5f67a022aee7bdb"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-10-v390-initial-route-settling-action-ledger.md",
+      "contentSha256": "ba05d8d7fc625e41cb1aad15f3ed62732e18153118466b41e4075b6cbfea76ff",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "V390 Initial Route Settling / Action Ledger Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-10-v390-initial-route-settling-action-ledger.md",
+          "anchor": "V390 Initial Route Settling / Action Ledger Plan"
+        }
+      ],
+      "semanticDigest": "23068d1ad504a654254bc03f4a44a7d3495102983ddecaec441942ffdda54663"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-11-v390-verification-runner-rebase.md",
+      "contentSha256": "6d21a23ae38759cda1a07ef9076d97b92e677ebc68207e3747fe834853712928",
+      "semanticRole": "current-v390-verification-rebase-execution-plan",
+      "lifecycle": "current-plan",
+      "alignment": "aligned",
+      "decision": "retain-active-plan",
+      "semanticStatement": "v3.9.0 Verification Runner Rebase Implementation Plan — v3.9.0 verification runner 구현, 독립 actual, immutable RC closure가 끝날 때까지 active source-of-truth로 유지한다",
+      "actualOwner": {
+        "path": "docs/superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md",
+        "anchor": "v3.9.0 Verification Runner Rebase Design"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-11-v390-verification-runner-rebase.md",
+          "anchor": "v3.9.0 Verification Runner Rebase Implementation Plan"
+        }
+      ],
+      "semanticDigest": "9072635a297228dbc4049ddb46e7513d2af2d1bc017b93ed1c9ec6462fdc22a5"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-13-v390-release-closeout.md",
+      "contentSha256": "e9b279ef81aa87b93467abf2441516fe5cd5ac713c1a3c4d0667541d3d97bdcb",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Release Closeout Implementation Plan — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-13-v390-release-closeout.md",
+          "anchor": "v3.9.0 Release Closeout Implementation Plan"
+        }
+      ],
+      "semanticDigest": "6d3f24a7cb0923bd4fd146f93248ca8a0544daa88b15a3051a62330b8ee8da96"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md",
+      "contentSha256": "1ffe189dcf840bae4bff8ea6deecd9855b151d298b81c60bcfb604648a5696bc",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.0/v3.1 Event Evidence Search Roadmap Design — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md",
+          "anchor": "v3.0/v3.1 Event Evidence Search Roadmap Design"
+        }
+      ],
+      "semanticDigest": "db0a7cc8de4a69c833e375e1fb2fbc3a534f3dd7d2d299e73ee8d34260d5fadd"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-07-v390-preparation-design.md",
+      "contentSha256": "af42631945a4dae23be35e9ea18a55624ecf6e11a4e4d95aeeae720cdbecc604",
+      "semanticRole": "historical-or-superseded-plan",
+      "lifecycle": "superseded-historical",
+      "alignment": "historical-aligned",
+      "decision": "preserve-plan-history-only",
+      "semanticStatement": "v3.9.0 Preparation Design — 당시 계획·실행 기록이며 current REVIEW4 completion evidence로 소비하지 않는다",
+      "actualOwner": {
+        "path": "docs/development-backlog.md",
+        "anchor": "REVIEW4"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/specs/2026-07-07-v390-preparation-design.md",
+          "anchor": "v3.9.0 Preparation Design"
+        }
+      ],
+      "semanticDigest": "582654dfd64d355fdcab8e6e68de625f307ba4102d7eeb6d3b5ba5686e19fefe"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md",
+      "contentSha256": "90d765c3aadc24c3818d2270bdf25adb0cba35fc449d5bb2c27466f3d8de7a3a",
+      "semanticRole": "current-v390-verification-rebase-design",
+      "lifecycle": "current-plan",
+      "alignment": "aligned",
+      "decision": "retain-active-plan",
+      "semanticStatement": "v3.9.0 Verification Runner Rebase Design — v3.9.0 verification runner 구현, 독립 actual, immutable RC closure가 끝날 때까지 active source-of-truth로 유지한다",
+      "actualOwner": {
+        "path": "docs/superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md",
+        "anchor": "v3.9.0 Verification Runner Rebase Design"
+      },
+      "evidence": [
+        {
+          "path": "docs/superpowers/plans/2026-08-11-v390-verification-runner-rebase.md",
+          "anchor": "v3.9.0 Verification Runner Rebase Implementation Plan"
+        }
+      ],
+      "semanticDigest": "0f77db8e2eaaea96f61329f5d89326b29626a50e8cbed6c6bc1832f0f05e221a"
+    },
+    {
+      "path": "docs/ui-empty-loading-error-copy-matrix.md",
+      "contentSha256": "72fad947891a676c2fd55f799c3d702c846f9ebdbc8f1f6dcd137db012c8d803",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "UI Empty/Loading/Error Copy Matrix — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "7ce896ccc39ba5e7249a9a0b49732163b1d91f96750e8e63908f5930bd1ae50c"
+    },
+    {
+      "path": "docs/ui-guide.md",
+      "contentSha256": "03914e0f1df7c024015e3249676caad6af572c084ef2a75a77f964f2cd6527c6",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "UI Guide — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "f0f074bc1683a4c8ca53126142c12020fcf2acd214b121aebb4f8e5aa82cab73"
+    },
+    {
+      "path": "docs/ui-visual-release-baseline-approval-template.md",
+      "contentSha256": "f8cb7ef9f5ca4f13e18ca44f15d3a6f75c88634a73109b592bfdbf3a50b9ad85",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "UI Visual Release Baseline Approval Log — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/ui-visual-release-baseline-approval-template.md",
+          "anchor": "UI Visual Release Baseline Approval Log"
+        }
+      ],
+      "semanticDigest": "40027f0388523acef8b70ae5504f7db472a70bb7e1b6e70cd7e6dc4febda91f8"
+    },
+    {
+      "path": "docs/v220-auth-setup-redesign.md",
+      "contentSha256": "c565d69aca920a9ed2cd5324ff2c1ae0009c6db3519a50905156ddcf10831d5d",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "v2.2.0 Auth Setup Redesign — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/v220-auth-setup-redesign.md",
+          "anchor": "v2.2.0 Auth Setup Redesign"
+        }
+      ],
+      "semanticDigest": "abe198daecbf841ef7c0a1cbba8ff1874eae39a546a09be7adecbc9655a306fc"
+    },
+    {
+      "path": "docs/v220-client-live-redesign.md",
+      "contentSha256": "6e0954c5f038d4f901b664b510116fb6e43d737705f2e83e2231ed2860d411ce",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "v2.2.0 Client Live Redesign — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/v220-client-live-redesign.md",
+          "anchor": "v2.2.0 Client Live Redesign"
+        }
+      ],
+      "semanticDigest": "df279055bf470a2daafc46c14a934893ad31b73d0be9ebcdd81a6cb4aef32c1b"
+    },
+    {
+      "path": "docs/v220-client-preview-redaction-review.md",
+      "contentSha256": "11af91002f54984d746f1d3b37e20d4dc2745d16b69bedb1844e09871c87b4c9",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.2.0 Client Preview / Viewer Redaction 재검수 정리 — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "f7fa4f4de2c973cc4a3b1d2febb1b60af65df3ab5a8f4998dfd1d6a7a8a854d6"
+    },
+    {
+      "path": "docs/v220-component-primitives.md",
+      "contentSha256": "a3c0ebb8fc4f9b4fe1c9e299c2b0e4785898a483202c6c60a005d1a5c491566f",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.2.0 Component Primitives — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "46ad721fbc0fe51858c12ccf2b75117d6a7cbe7d034fa1afe340754dfbb51592"
+    },
+    {
+      "path": "docs/v220-design-token-refresh.md",
+      "contentSha256": "be3d38f000bad0322f6b0657a7ef5e73e6e1dd929867dd59d80dac5fca6c605d",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.2.0 Design Token Refresh — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "d16b4865bd706cb2a59b1fc72ca9b254e09ff7f67485686711f42c8a7a1e0089"
+    },
+    {
+      "path": "docs/v220-ops-channels-workspace.md",
+      "contentSha256": "b1fb9bb2b23e5887235c94ace173dd69298ae5e2017189b61c3be3b7543ca523",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.2.0 Ops Channels Workspace — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "3c98d015b71447c41a03118524cd12b0fddaac9b11475143d7130b26c108544f"
+    },
+    {
+      "path": "docs/v220-ops-users-access-workspace.md",
+      "contentSha256": "45e8a0d6a71320e19ca67215cabd3025ff12d9034247d4ec572b5a280bd4285c",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.2.0 Ops Users / Access Workspace 재배치 — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "70d08f5f612606c367e2c01cd66f9aef35b8cc013ba941c68548a42651c809f0"
+    },
+    {
+      "path": "docs/v220-ops-vlm-containment.md",
+      "contentSha256": "e893e78a05b3f248022619acf25aa816ef1995524e64762d18d48ccefa394ae6",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.2.0 Ops VLM UI containment 정리 — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "4db8c38ec5e8cf746cac4a0601bf38fd0de9b33adb18ff8cbe0a0960e6ee90cc"
+    },
+    {
+      "path": "docs/v220-ops-workspace-redesign.md",
+      "contentSha256": "337fc145c47d5119463b837465ae50f3bd560dbeb6d27df50f00949737c01175",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "v2.2.0 Ops Workspace Redesign — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/v220-ops-workspace-redesign.md",
+          "anchor": "v2.2.0 Ops Workspace Redesign"
+        }
+      ],
+      "semanticDigest": "724af1b0474e6fb5b4e04ecea2446ab5a3347d9663037d8773ed4c1ae8d9a18c"
+    },
+    {
+      "path": "docs/v220-responsive-task-shell.md",
+      "contentSha256": "7e415793a0eb87da16501dc17b0f6a10a18b37fe5c994a2aba417de1699bdb15",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.2.0 Responsive Task Shell — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "433ce6eaf2bd22df3053178c39f7fa252394d443819118a4516b6a82798fdf12"
+    },
+    {
+      "path": "docs/v220-rules-workspace-redesign.md",
+      "contentSha256": "fcc2aa273250b7fbd434ae1424e9de9f818392b3356d54a644cebd41f52ce8e2",
+      "semanticRole": "design-or-evidence-template",
+      "lifecycle": "template-not-executed",
+      "alignment": "aligned",
+      "decision": "retain-as-template",
+      "semanticStatement": "v2.2.0 Rules Workspace Redesign — 설계 또는 evidence 작성 형식이며 구현·실행 완료를 자체 증명하지 않는다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "완료 evidence"
+      },
+      "evidence": [
+        {
+          "path": "docs/v220-rules-workspace-redesign.md",
+          "anchor": "v2.2.0 Rules Workspace Redesign"
+        }
+      ],
+      "semanticDigest": "57fa0a8ae916470f8b441a7e4db6d769d1ca973767e57b207cc95b0a887cd14b"
+    },
+    {
+      "path": "docs/v220-ui-architecture-inventory.md",
+      "contentSha256": "87f607f022285343ed985e7ef30ce009b04f26259ab1c486345f1c002c8bc472",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.2.0 UI Architecture Inventory — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "6c80763277d8d619aabe30d89b4ca02a30f71c6d6892f14bdebc386cebee2e60"
+    },
+    {
+      "path": "docs/v220-ui-evidence-closeout.md",
+      "contentSha256": "603f6ec9d820545d7bf12b9dd732760c9458231b1ab8a7447fb127a35f148e01",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.2.0 UI Evidence Close-out 준비 — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "e2ba06d89cf795a7dc869499567e80683bf5b326518a1602b1e72e7301a9d1d7"
+    },
+    {
+      "path": "docs/v230-ui-renderer-module-decomposition.md",
+      "contentSha256": "0de98d8e575f4e7017a89db798755707195c51c63516f19e009df1f84cfe9b81",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v2.3.0 S03 UI Renderer/Module Decomposition — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "ee5799ce7bb9aa7764d812bc4436e70b3c5c9886a00339d8ae3675df5592b206"
+    },
+    {
+      "path": "docs/v300-feature-only-retention.md",
+      "contentSha256": "4d5da08bbcbf08ebd0e56d6b0316b5b91d36b65a49d98e9965958e7f80d9859a",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "V300 Feature-only Retention — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/event_storage.h",
+        "anchor": "Event"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "7415eb4aed98e6dab0de5e13d4e970241395e892be9e5bd381005e3f564d6154"
+    },
+    {
+      "path": "docs/v300-feature-search-index.md",
+      "contentSha256": "47d28e71ce832635067b2b9b1906b42bae5c7728e686cecbfe9e650ae4a1a9ed",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.0 Feature/Search Index — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/event_storage.h",
+        "anchor": "Event"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "a7f8caa09edd05c99329f63f197607cdd62083ad6e3a84eb01f0164abb6c1e54"
+    },
+    {
+      "path": "docs/v300-retention-pin-cleanup.md",
+      "contentSha256": "29e2928c3733a11981835b8929d8d2d7f8ec1ed579709a128cd9cd8e0aefdccf",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.0.0 Retention/Pin/Cleanup — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/event_storage.h",
+        "anchor": "Event"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "fa99fd8d4cf856cf53ccfa704a83ce5acb950800bd37cb7a7e94e9a7c66098ae"
+    },
+    {
+      "path": "docs/v300-search-dsl-query-convert.md",
+      "contentSha256": "cd494713ab095389f02f7549dff3ef6a4fa09f36656e993d9ffa447d9bddae0d",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.0 Search DSL and Query Convert — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/event_storage.h",
+        "anchor": "Event"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "a77a5ff819c4c417b2e2723e48520026466237d6174098109afb6c68a14d2891"
+    },
+    {
+      "path": "docs/v300-vlm-feature-queue.md",
+      "contentSha256": "1033d2e4aa9754be1b325c2a0e6e78933c01073598a678d2ede5dc697d05ef29",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "V300 VLM Feature Queue — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "21547b4de9016159d65b712a7239d7691e531a075f8f6953dc69d6e4888d8072"
+    },
+    {
+      "path": "docs/v310-encoded-event-clip-contract.md",
+      "contentSha256": "68c0345f83e988bbd0bb58a3131a4dd5d9076174e24e9f9eb2a537cdf9cfce6d",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.1 Encoded Event Clip Contract — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/event_storage.h",
+        "anchor": "Event"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "427f52e317bbb5f0d2748c82a3437da617547086121b96acdae21e343e5957fe"
+    },
+    {
+      "path": "docs/v390-current-state-and-verification-debt-audit-2026-08-12.md",
+      "contentSha256": "df72bae22fe6c133723264190b2c8aedb9298f690c76c7078133448ed1b44bb1",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.9.0 현재 상태 및 검증 부채 감사 — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "4039abe21e33a2c4d65a34b359cf2b911d28c65bbe9fca0ea78254de67c0d317"
+    },
+    {
+      "path": "docs/v390-feature-completion-inventory.md",
+      "contentSha256": "6600067fee69e6ed801499df639af9877d9f231e5625817198d8862cd74ef5f4",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.9.0 Feature Completion Inventory — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "26698e47a621a4a09ad17fef98137cf6bfc2eab319890855aac771320fa41749"
+    },
+    {
+      "path": "docs/v390-full-status-failure-and-handoff-2026-08-12.md",
+      "contentSha256": "6b87b9c43703f88b7ce5f25b428218c80a26c92decd3d8d1f13830a252ac883d",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.9.0 전체 현황, 실패 원인 및 인계 문서 — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "4f0d543525a6849151f44f4f8433db12ada5810ec1d6aab41350c7262066a2c1"
+    },
+    {
+      "path": "docs/v390-ui-automation-coverage-matrix.md",
+      "contentSha256": "6ee2212b4b7da8bbed64ff3fff9b4f17d35773f934dd5b4e3206b0f9e736b0f6",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "v3.9.0 Full-Feature UI Automation Coverage Matrix — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "AppendOpsShellScript"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "388fcd2e3670dbf339fdd16e425315667f8585730c441053780e8a16b1bb6e97"
+    },
+    {
+      "path": "docs/versioning-policy.md",
+      "contentSha256": "cc783dc7efdfc3fa0f0dd13442c187809704c68991a767f09014934529cf4f46",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Versioning Policy — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "VERSION",
+        "anchor": "3.9.0"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "6f949722aff5c5510c8f340ebd9002156ce49b3fe10f56e0f09e8c8fdf73cd45"
+    },
+    {
+      "path": "docs/video-analysis.md",
+      "contentSha256": "4044c1896c6be84e9874e40a50fbc89844d99c22f014934dce54d1e9c4a771e4",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "Video Analysis / VA Guide — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/analysis_manager.h",
+        "anchor": "Analysis"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "a357abbe31b62ce0413074b2cbfafafb74facaab455bb2e928f496edd5ceac60"
+    },
+    {
+      "path": "docs/vlm-close-out-readiness.md",
+      "contentSha256": "cde4d05bd99e97d6a40db019ccac35ddc65296cc3314cefbd5c4c2502eabe943",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Close-out Readiness — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "6d6a83555e06afc1de7c3311f6d97b5715724f158dd0e908251bda1262fc5caa"
+    },
+    {
+      "path": "docs/vlm-cloud-provider-field-smoke-gate.md",
+      "contentSha256": "c329f1410214159ac6ff6dab7f61aee0a0037ed9aad2800ea8582bca1e0e0c40",
+      "semanticRole": "conditional-external-gate",
+      "lifecycle": "conditional-not-run",
+      "alignment": "aligned",
+      "decision": "retain-conditional",
+      "semanticStatement": "VLM Cloud Provider Field Smoke Gate — credential·endpoint·실기기 또는 외부 runtime 조건이 필요한 별도 gate다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "field smoke"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-policy.md",
+          "anchor": "field smoke"
+        }
+      ],
+      "semanticDigest": "b83570a372fcdae9a353b8208c6f41c087922e4c82f5fdf028c149ab4e193390"
+    },
+    {
+      "path": "docs/vlm-evaluation-harness.md",
+      "contentSha256": "3dea662c7bcdcb2afbff22c9363b7f9f859fb889219ad00adae8b5ed493e4403",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Evaluation Harness — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "02b57655b85de70dfec3738a34c3d184b9e7fc9b0275c15cc3dcb38639b9079c"
+    },
+    {
+      "path": "docs/vlm-evaluation-result-workflow.md",
+      "contentSha256": "ef4d3e852f29954ae528a269d1792c25264fcbd19d2bc9ed612c6a7dfe4eb7d1",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Evaluation Result Workflow — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "3e623a2a93d901fd31b388c2f9249b132768581f2d45db67541453828b979cbd"
+    },
+    {
+      "path": "docs/vlm-event-evidence-extraction.md",
+      "contentSha256": "834d97ef4cf7225b44cb1bf12ee04d8f23f5c3e819e8bf2d1b0817f9d9b3d553",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Event Evidence Extraction — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "812f24cdf3bb5023f98f3ad4f4b662db4e56786a9d6a43d47c9fafd9dbee23a5"
+    },
+    {
+      "path": "docs/vlm-event-explanation-hints.md",
+      "contentSha256": "a4923c7f570c8e3c2138939f0809e148af04475fbeb610778e7b9aa6dadc6075",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Event Explanation And False-Positive Hints — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "9638933839616de8cbf93ef170ab0f541ae893ac7d7502687b965c7435067540"
+    },
+    {
+      "path": "docs/vlm-install-connection-dry-run.md",
+      "contentSha256": "8c46d29637db5caad08589c9e31e178200825a12894175a51e2ef4fca8714b8f",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Install/Connection Dry-run Contract — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "f0e170616fbd9d05ff09ffd6f4d01eb752b54fde850392325290166055c8430c"
+    },
+    {
+      "path": "docs/vlm-local-runtime-connection-smoke.md",
+      "contentSha256": "3039deb423848115a47fbca29b78f84ae09b9361291fe03477e9dd9a45cda14d",
+      "semanticRole": "conditional-external-gate",
+      "lifecycle": "conditional-not-run",
+      "alignment": "aligned",
+      "decision": "retain-conditional",
+      "semanticStatement": "VLM Local Runtime Connection Smoke — credential·endpoint·실기기 또는 외부 runtime 조건이 필요한 별도 gate다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "field smoke"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-policy.md",
+          "anchor": "field smoke"
+        }
+      ],
+      "semanticDigest": "edd635b522d959b840ed0bbe3a248fe57d40f932a84658bc5d519fde0fa8c1e9"
+    },
+    {
+      "path": "docs/vlm-model-selection.md",
+      "contentSha256": "a3c0dc74e212b0be2b71712daa17e546383e5f27d69dea656a1d7f467b7bd6e0",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Model Selection — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "a123d7f2baa7f2dc01170547ad54d160cd7bdd4a196fc076200bfff0aac23477"
+    },
+    {
+      "path": "docs/vlm-observation-sidecar.md",
+      "contentSha256": "b9d249be9e945cd7947d6685920de155cba5204c697b809b2166f7d5ec6788a4",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLMObservation Sidecar — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "d87e6555ca9da1d2caacb71c7042c6cc54c36f3d1eedf91882d6d37d587f2785"
+    },
+    {
+      "path": "docs/vlm-ops-event-review-ui.md",
+      "contentSha256": "dfa5572c18a849aef3734b1ef7216bb73b0f5b3a0967eba49bd8902075285826",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Ops Event Review UI — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "ef8ee4d58d53531851ce9155498c2b2abf550b1d5f08d60ae80d21192a2dcd8d"
+    },
+    {
+      "path": "docs/vlm-privacy-transfer-guard.md",
+      "contentSha256": "bf1a6eb2ec422c6fb94008b953ccaa19c174a9308cfe35b65fa3d6a6f7405af2",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Privacy/Transfer Guard — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "28e03d7a0a8cedb342fd815708a61c2390fbee30f203fec79e80107f6267014b"
+    },
+    {
+      "path": "docs/vlm-profile-storage.md",
+      "contentSha256": "a127a7fc481b29009d76063ed4138c04789fbc948224f7991d8c9c60ae9005a4",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Profile Storage — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "b05e35b67abf27a7c1b77a41a7e50b6cf5efa90f63dcdea24584e22f4c133bfb"
+    },
+    {
+      "path": "docs/vlm-queue-backpressure-stability.md",
+      "contentSha256": "8b5f5c58c0ebd3bc6fb935b6b11f6b00245b823f9cddb9d05b05a6eaab58a61a",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Queue/Backpressure Stability — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "67392a718a1a2e5e95479774b9ab360ae99a6235d4dde4aeff61140c6fa1501b"
+    },
+    {
+      "path": "docs/vlm-recommendation-engine.md",
+      "contentSha256": "21d77d21b3596800c036e3720a46385b8bb8fab3a69ad27c76fa293c4765058b",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Recommendation Engine — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "bf4c3707c8960815b751c5a5600c7f395a043ede2847344a17a3209056ffbedb"
+    },
+    {
+      "path": "docs/vlm-review-action-workflow.md",
+      "contentSha256": "0fc9c47c0b89d9d00bf8386d6dd7d88e9bb10f2b3355469fcbff3b225d142f0d",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Review Action Workflow — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "477b142da2b3f7ec364f0b1c8c31927a6a76e010fb5e67a6ed66c7d39bde5e67"
+    },
+    {
+      "path": "docs/vlm-rule-suggestion-candidates.md",
+      "contentSha256": "3ca3612335e368bb25ccbb06de1f24e078b5089d42a164edc9ba1eec60e74b6b",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Rule Suggestion Candidates — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "8f2a6a3c519093864414bb18d00df5d09b8669f5cf0ce995856ec86f4b165ab6"
+    },
+    {
+      "path": "docs/vlm-runtime-opt-in-contract.md",
+      "contentSha256": "12089b38a9ff474e5c80134343c163fb81c546e58eba9f646ba56599f8516b7a",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Runtime Opt-in Contract — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "b11297ca9909c7964b37bcedd5c178033b8ef90151336c795f8761fd3e102faf"
+    },
+    {
+      "path": "docs/vlm-runtime-status-ui.md",
+      "contentSha256": "d6834ef71b038933c59d0a6795dde03ca197d1f781ae93a99689d3535d05aaa5",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Runtime Status UI — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "63d9e26a493362f1c9cd3a66bfa85024b6783e478ce66ee76ad08978e952f827"
+    },
+    {
+      "path": "docs/vlm-stabilization-longrun-ui-criteria.md",
+      "contentSha256": "cfd590eca885592490cc06c9f5954fbf04529246438cd6fbd7fbfa99b8809a1d",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Stabilization, Longrun, And UI Criteria — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "8f84c13f122d9c4bb6436b8fc0b4dd22acb20bb0f470b4bb306b00ff6b007577"
+    },
+    {
+      "path": "docs/vlm-summary-search-candidates.md",
+      "contentSha256": "0d0734cc2489060a49717bdbf82928ea7629582cd5ed2ababb5a623b9ea7b71a",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "VLM Summary Search Candidates — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/analysis/vlm_feature_queue.h",
+        "anchor": "VlmFeatureQueue"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "8116feff6681d83086bf3f9e23121cf0c48e9e654fcaf2a4b50f01a5297ee0d6"
+    },
+    {
+      "path": "docs/vlm-test-rehearsal.md",
+      "contentSha256": "6d75da9272fe1609bc93fe7273e4abc9ca8dd258e24da19bfa4201694d99211e",
+      "semanticRole": "conditional-external-gate",
+      "lifecycle": "conditional-not-run",
+      "alignment": "aligned",
+      "decision": "retain-conditional",
+      "semanticStatement": "VLM Test Rehearsal — credential·endpoint·실기기 또는 외부 runtime 조건이 필요한 별도 gate다",
+      "actualOwner": {
+        "path": "AGENTS.md",
+        "anchor": "field smoke"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-policy.md",
+          "anchor": "field smoke"
+        }
+      ],
+      "semanticDigest": "a5eecce904ccdd28983f8989aff8e0c1d36e4c77c1aa9a319c9f338bf7463bbe"
+    },
+    {
+      "path": "docs/webrtc-metadata-client.md",
+      "contentSha256": "1965d85d879f85a2aafc35dada2170820897b6153de0b8d81dfd1a8001ff331a",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "WebRTC VA Metadata Client — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "include/ingress/webrtc_egress_session.h",
+        "anchor": "WebRtc"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "166a22a7897490406ccb8aee62b2d3c2a55051a503447927a9abafaa5b5f0c08"
+    },
+    {
+      "path": "docs/youtube-import.md",
+      "contentSha256": "f4ad20a747ee53eb422f1166a7d85b98aecf95bd62a243419332c7d6cde4a3a3",
+      "semanticRole": "current-product-or-repository-contract",
+      "lifecycle": "current-product-contract",
+      "alignment": "aligned",
+      "decision": "retain-current-contract",
+      "semanticStatement": "YouTube Import / Source — 현재 v3.9 source tree의 제품·운영·검증 계약을 설명하며 source owner와 독립 대조됐다",
+      "actualOwner": {
+        "path": "server.sh",
+        "anchor": "verify-"
+      },
+      "evidence": [
+        {
+          "path": "docs/development-backlog.md",
+          "anchor": "REVIEW4"
+        }
+      ],
+      "semanticDigest": "94f653a618acff6afa1f144599cc917af0c015c47bdeaa106a23c4fed98837a7"
+    },
+    {
+      "path": "test/fixtures/integrator_contract_artifact/CHANGELOG.md",
+      "contentSha256": "c7dfa30e28560cf8d371efaaf5188a683b858b27467532f190516b0459ff1a2f",
+      "semanticRole": "test-fixture-contract",
+      "lifecycle": "fixture-template-or-sample",
+      "alignment": "aligned",
+      "decision": "retain-as-test-input",
+      "semanticStatement": "Integrator Contract Artifact Changelog — 검증 입력 또는 결과 템플릿이며 실제 실행 PASS가 아니다",
+      "actualOwner": {
+        "path": "docs/project-feature-test-inventory.md",
+        "anchor": "Project Feature Test Inventory"
+      },
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "실행하지 않은"
+        }
+      ],
+      "semanticDigest": "75d3ea2cbe0cb7128768d68eae9187a3252ba7d21f525044512e40958d4134b8"
+    },
+    {
+      "path": "test/fixtures/integrator_contract_artifact/README.md",
+      "contentSha256": "1ff879d454ef50bfcd5330b4146aecc137ce466cef3ee5d5b4b92d4f5c9c25ef",
+      "semanticRole": "test-fixture-contract",
+      "lifecycle": "fixture-template-or-sample",
+      "alignment": "aligned",
+      "decision": "retain-as-test-input",
+      "semanticStatement": "Integrator Contract Artifact Sample Bundle — 검증 입력 또는 결과 템플릿이며 실제 실행 PASS가 아니다",
+      "actualOwner": {
+        "path": "docs/project-feature-test-inventory.md",
+        "anchor": "Project Feature Test Inventory"
+      },
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "실행하지 않은"
+        }
+      ],
+      "semanticDigest": "6ecc63ff0f8daea813dbba3b4963c3510063d0b87aa8121cd7556d6a012730e4"
+    },
+    {
+      "path": "test/fixtures/integrator_contract_artifact/schema-review-checklist.md",
+      "contentSha256": "cd441a56d9776f5b108c360e24ce7d8b285654fe758192b38edef3950aec522f",
+      "semanticRole": "test-fixture-contract",
+      "lifecycle": "fixture-template-or-sample",
+      "alignment": "aligned",
+      "decision": "retain-as-test-input",
+      "semanticStatement": "Integrator Contract Schema Review Checklist — 검증 입력 또는 결과 템플릿이며 실제 실행 PASS가 아니다",
+      "actualOwner": {
+        "path": "docs/project-feature-test-inventory.md",
+        "anchor": "Project Feature Test Inventory"
+      },
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "실행하지 않은"
+        }
+      ],
+      "semanticDigest": "952e5f10163f8569817d0201b7d9cd20cf56f4dfd158d08348538029d4bfb8b6"
+    },
+    {
+      "path": "test/fixtures/onvif_field_smoke_artifact_sample/README.md",
+      "contentSha256": "f7de6a0b595726754a70d5c4f33bb098ad95bf830f213a401a4ac931be4c3332",
+      "semanticRole": "test-fixture-contract",
+      "lifecycle": "fixture-template-or-sample",
+      "alignment": "aligned",
+      "decision": "retain-as-test-input",
+      "semanticStatement": "ONVIF Field Smoke Artifact Sample — 검증 입력 또는 결과 템플릿이며 실제 실행 PASS가 아니다",
+      "actualOwner": {
+        "path": "docs/project-feature-test-inventory.md",
+        "anchor": "Project Feature Test Inventory"
+      },
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "실행하지 않은"
+        }
+      ],
+      "semanticDigest": "bf0e5080cd4e8a9bd55c672bdd9fa3e93593c570485af31b3af2212f9bdf9a1c"
+    },
+    {
+      "path": "test/fixtures/onvif_field_smoke_artifact_sample/field-smoke-report-template.md",
+      "contentSha256": "93fe67a0760ed7c8b695285c36f8e90a45d6a12843b85690adeec26945b7e421",
+      "semanticRole": "test-fixture-contract",
+      "lifecycle": "fixture-template-or-sample",
+      "alignment": "aligned",
+      "decision": "retain-as-test-input",
+      "semanticStatement": "ONVIF Field Smoke Report Template — 검증 입력 또는 결과 템플릿이며 실제 실행 PASS가 아니다",
+      "actualOwner": {
+        "path": "docs/project-feature-test-inventory.md",
+        "anchor": "Project Feature Test Inventory"
+      },
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "실행하지 않은"
+        }
+      ],
+      "semanticDigest": "b19a0de033765e78d3cf179b62615fafd551b85584feb67508b6fa158b8b3fb1"
+    },
+    {
+      "path": "test/fixtures/onvif_field_smoke_artifact_sample/redaction-checklist.md",
+      "contentSha256": "88ef3265ca4b6321cbf0ca74c5b7200bdf01d571d36f4601407fe0878446a34e",
+      "semanticRole": "test-fixture-contract",
+      "lifecycle": "fixture-template-or-sample",
+      "alignment": "aligned",
+      "decision": "retain-as-test-input",
+      "semanticStatement": "ONVIF Field Smoke Redaction Checklist Sample — 검증 입력 또는 결과 템플릿이며 실제 실행 PASS가 아니다",
+      "actualOwner": {
+        "path": "docs/project-feature-test-inventory.md",
+        "anchor": "Project Feature Test Inventory"
+      },
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "실행하지 않은"
+        }
+      ],
+      "semanticDigest": "134c991541348cc857727f9cc49123c043c4498e56b97e16129378e2caf739db"
+    },
+    {
+      "path": "test/fixtures/runtime_dashboard_longrun_evidence_sample/sample_report.md",
+      "contentSha256": "f06ca24412f27595d70905b14418b22ae3d083b1173ef2fcb2c617c19e3b3557",
+      "semanticRole": "test-fixture-contract",
+      "lifecycle": "fixture-template-or-sample",
+      "alignment": "aligned",
+      "decision": "retain-as-test-input",
+      "semanticStatement": "Runtime Dashboard Longrun Evidence Sample — 검증 입력 또는 결과 템플릿이며 실제 실행 PASS가 아니다",
+      "actualOwner": {
+        "path": "docs/project-feature-test-inventory.md",
+        "anchor": "Project Feature Test Inventory"
+      },
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "실행하지 않은"
+        }
+      ],
+      "semanticDigest": "8e15299b553c64b98eb62c8ee28af57dac1352af4b84df3a7b1982e89230fed3"
+    },
+    {
+      "path": "test/fixtures/ui_visual_release_baseline_approval_log_sample.md",
+      "contentSha256": "7a6b715619d655e597c038f7c087c441055626fcfd008ae28e4c5132aa283f63",
+      "semanticRole": "test-fixture-contract",
+      "lifecycle": "fixture-template-or-sample",
+      "alignment": "aligned",
+      "decision": "retain-as-test-input",
+      "semanticStatement": "UI Visual Release Baseline Approval Log Sample — 검증 입력 또는 결과 템플릿이며 실제 실행 PASS가 아니다",
+      "actualOwner": {
+        "path": "docs/project-feature-test-inventory.md",
+        "anchor": "Project Feature Test Inventory"
+      },
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "anchor": "실행하지 않은"
+        }
+      ],
+      "semanticDigest": "6e25c4bfe52dbc5d2a7e07326527021864534e0f95234a94bde43d9cd808deea"
+    }
+  ],
+  "sourceMarkers": [
+    {
+      "path": "scripts/internal/onvif_probe_adapter_smoke.cpp",
+      "line": 105,
+      "column": 64,
+      "occurrence": 1,
+      "marker": "not implemented",
+      "contextSha256": "2e4e9f3a9425d513236dedb27b14bdf6ecc76b4f72a4b55de64a0f63d7108bd4",
+      "disposition": "unsupported-soap-operation-negative-fixture",
+      "semanticRole": "negative-fixture-sentinel",
+      "owner": {
+        "path": "src/ingress/onvif_live_import.cpp",
+        "anchor": "RunOnvifProbeAdapter"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v290_2x_compatibility_baseline.mjs",
+      "line": 130,
+      "column": 70,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "f0c2fda456254056e3359f3fd1204be79083591e94682d503f68f0485476218f",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v290_final_contract_freeze.mjs",
+      "line": 160,
+      "column": 66,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "b1aee43d61cd8b2ab81c81aad0a44f7d7d5ce3de64d307c284c9df201ffcb4c2",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v290_final_stabilization_run.mjs",
+      "line": 106,
+      "column": 68,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "523b9be651924c037b4ee3ad64132c7e96b1ad4a06bd1f775081be7161a8a705",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v290_owner_release_readiness.mjs",
+      "line": 118,
+      "column": 68,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "a9ae85660050a1ff1127e6b7cb018a8dc70a050e5eaa4d56623def3cfc811ad0",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+      "line": 169,
+      "column": 71,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "31c23596306b804771f52e66caa66aca65d411a65f27915b16f17258daabe9e2",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
+      "line": 107,
+      "column": 69,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "9209142cb5e7079316361d7f924548db8416afacbe15844ca7fd9cc1a9349237",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
+      "line": 98,
+      "column": 77,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "06b9f144808b0354960a5e612c17f4cc7a4ecb7bda79025e489d9af021df020a",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
+      "line": 129,
+      "column": 72,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "8c21eb9e251e5b2becb8a447d4b87303869dc934d19fddeb374b70d8f95fc8ce",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v290_v28_regression_bundle.mjs",
+      "line": 111,
+      "column": 66,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "34ed5c38d7d646b36dfc258216a8dfa2357b3df3c080c20b8dfb90596cba32f6",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v300_entry_baseline.mjs",
+      "line": 125,
+      "column": 59,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "f0d11fbac8a6c7c7d8895a41853cf762abc2dbdf1bbc708bb8c530fef1164ebc",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
+      "line": 137,
+      "column": 76,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "f0e46d877098e8425fa2f617cff843e003fdecee4adb8cdef795a57fb820aacc",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v310_stabilization_release_readiness.mjs",
+      "line": 137,
+      "column": 76,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "dea804ad60a4f99ead7395756d0a45e76834411d083cdf6a9878c59c404fa0e3",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v320_entry_baseline.mjs",
+      "line": 147,
+      "column": 59,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "6f896768957d813837915b50dff22d462ce09da691e99f2213770d8464e3d6d1",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v320_stabilization_release_readiness.mjs",
+      "line": 138,
+      "column": 76,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "27909fde25934e86f728186ea753693d509b6ac6a77063e1c2eafa96939fe5ca",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v330_source_registry_snapshot_identity.mjs",
+      "line": 88,
+      "column": 77,
+      "occurrence": 1,
+      "marker": "not implemented",
+      "contextSha256": "5a8fd55da17ebb2ea876b7a72a4365125bd6b98e308a3dc1191c69e1d7637e0a",
+      "disposition": "historical-step-local-negative-capability-boundary",
+      "semanticRole": "exact-reviewed-marker-literal",
+      "owner": {
+        "path": "src/ingress/source_view_registry.cpp",
+        "anchor": "SourceRegistrySnapshotIdentityJson"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v330_stabilization_release_readiness.mjs",
+      "line": 137,
+      "column": 76,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "8f86b2648788f91771cc2d8492cf34b4ceb032dd0e727f471780a1185292bf58",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v340_stabilization_release_readiness.mjs",
+      "line": 142,
+      "column": 76,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "1e54ec5082a36da1022d6a78c040a7f2d680a1450b3ff11ae1e1ca83f9375b06",
+      "disposition": "historical-red-command-evidence-string",
+      "semanticRole": "historical-red-evidence-literal",
+      "owner": {
+        "path": "docs/release-test-records.md",
+        "anchor": "최초"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
+      "line": 25,
+      "column": 40,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "1bb8151a7d21d034c77f826a38e576493bf5da6b5041008ae0deb152516eb616",
+      "disposition": "truthful-not-executed-policy-help-text",
+      "semanticRole": "truthful-help-boundary-literal",
+      "owner": {
+        "path": "test/fixtures/v390_deferred_product_owner_signoff.json",
+        "anchor": "not-executed"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 27,
+      "column": 46,
+      "occurrence": 1,
+      "marker": "notImplementedYet",
+      "contextSha256": "911fa5259c4d673cea88b92d10a4794a080b1e1dba9f67ce4692f7be4833e418",
+      "disposition": "rules-json-closure-help-text",
+      "semanticRole": "truthful-help-boundary-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "notImplementedYet"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 94,
+      "column": 28,
+      "occurrence": 1,
+      "marker": "notImplementedYet",
+      "contextSha256": "871740aced228adb07b36ceeba7e91f289675e0aa272164841e584d941096a06",
+      "disposition": "rules-json-closure-assertion-token",
+      "semanticRole": "source-closure-assertion-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "notImplementedYet"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 94,
+      "column": 74,
+      "occurrence": 2,
+      "marker": "notImplementedYet",
+      "contextSha256": "871740aced228adb07b36ceeba7e91f289675e0aa272164841e584d941096a06",
+      "disposition": "rules-json-closure-assertion-message",
+      "semanticRole": "source-closure-assertion-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "notImplementedYet"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 185,
+      "column": 57,
+      "occurrence": 1,
+      "marker": "TODO",
+      "contextSha256": "236d4b905e7649f4a4dd3387e313a0733829864446f032db4a3fc4a67fe700e4",
+      "disposition": "markdown-status-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "TODO"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 185,
+      "column": 62,
+      "occurrence": 1,
+      "marker": "FIXME",
+      "contextSha256": "236d4b905e7649f4a4dd3387e313a0733829864446f032db4a3fc4a67fe700e4",
+      "disposition": "markdown-status-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "FIXME"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 185,
+      "column": 83,
+      "occurrence": 1,
+      "marker": "후속 예정",
+      "contextSha256": "236d4b905e7649f4a4dd3387e313a0733829864446f032db4a3fc4a67fe700e4",
+      "disposition": "markdown-status-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "후속 예정"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 257,
+      "column": 34,
+      "occurrence": 1,
+      "marker": "TODO",
+      "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
+      "disposition": "source-incomplete-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "TODO"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 257,
+      "column": 39,
+      "occurrence": 1,
+      "marker": "FIXME",
+      "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
+      "disposition": "source-incomplete-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "FIXME"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 257,
+      "column": 45,
+      "occurrence": 1,
+      "marker": "XXX",
+      "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
+      "disposition": "source-incomplete-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "XXX"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 257,
+      "column": 52,
+      "occurrence": 1,
+      "marker": "notImplementedYet",
+      "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
+      "disposition": "source-incomplete-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "notImplementedYet"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 257,
+      "column": 121,
+      "occurrence": 1,
+      "marker": "미구현",
+      "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
+      "disposition": "source-incomplete-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "미구현"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 257,
+      "column": 125,
+      "occurrence": 1,
+      "marker": "미완성",
+      "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
+      "disposition": "source-incomplete-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "미완성"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 257,
+      "column": 129,
+      "occurrence": 1,
+      "marker": "후속 예정",
+      "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
+      "disposition": "source-incomplete-scanner-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "후속 예정"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 330,
+      "column": 72,
+      "occurrence": 1,
+      "marker": "미완성",
+      "contextSha256": "405dca1bdfe5ca157a1352586986a37a57a619e165bdf2817a1864970ef09041",
+      "disposition": "product-state-classifier-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "미완성"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 333,
+      "column": 97,
+      "occurrence": 1,
+      "marker": "not implemented",
+      "contextSha256": "77e81aa004e901cd5c406826d2c974d700954779d16f760b0c8e0c4490844855",
+      "disposition": "step-boundary-classifier-pattern-literal",
+      "semanticRole": "scanner-or-classifier-pattern-literal",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "not implemented"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+      "line": 355,
+      "column": 84,
+      "occurrence": 1,
+      "marker": "notImplementedYet",
+      "contextSha256": "6bb983384067ec8ad54f37ef376e621d94337927aec3a7bb676fdf6b2db26c6c",
+      "disposition": "rules-json-scope-decision-evidence-text",
+      "semanticRole": "approved-scope-decision-text",
+      "owner": {
+        "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
+        "anchor": "notImplementedYet"
+      }
+    },
+    {
+      "path": "scripts/internal/verify_v390_review4_truth_reset.mjs",
+      "line": 110,
+      "column": 51,
+      "occurrence": 1,
+      "marker": "미완성",
+      "contextSha256": "5ce2e322837a842ebdc65909c707ef6500ccab8fbdf2bb8ee450411783cf8c80",
+      "disposition": "truth-reset-status-summary-copy",
+      "semanticRole": "product-copy-literal",
+      "owner": {
+        "path": "test/fixtures/v390_review4_truth_reset.json",
+        "anchor": "review4_50SnapshotMetrics"
+      }
+    },
+    {
+      "path": "src/ingress/product_ui_js.cpp",
+      "line": 703,
+      "column": 17,
+      "occurrence": 1,
+      "marker": "미완성",
+      "contextSha256": "e30cd286a9db8c1939069235d647fd5e988ccbb1d14ad21d7da637b27f137b04",
+      "disposition": "product-state-copy-not-code-gap",
+      "semanticRole": "product-copy-literal",
+      "owner": {
+        "path": "src/ingress/product_ui_js.cpp",
+        "anchor": "미완성"
+      }
+    },
+    {
+      "path": "src/ingress/product_ui_page_scripts.cpp",
+      "line": 1319,
+      "column": 62,
+      "occurrence": 1,
+      "marker": "not implemented",
+      "contextSha256": "7fd0a31e25b095ced817e89c51f158b8ed4c8bd69ec3b372b0101963a3628d96",
+      "disposition": "preserved-step-boundary-copy",
+      "semanticRole": "historical-step-local-boundary",
+      "owner": {
+        "path": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+        "anchor": "OpsV380ActionReceiptBundleJson"
+      }
+    }
+  ]
+}

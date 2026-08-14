@@ -3,7 +3,7 @@
 // 동작 요약: 기존 이벤트 판단 결과를 바꾸지 않고 context만 산출한다.
 #include "analysis/scene_context_builder.h"
 
-#include "app_config.h"
+#include "core/analysis_runtime_port.h"
 
 #include <algorithm>
 #include <cctype>
@@ -1165,7 +1165,7 @@ SceneGeometryConfig BuildSceneGeometryConfigFromRuleDocuments(const std::vector<
     return config;
 }
 
-SceneContextBuilderOptions BuildSceneContextBuilderOptionsFromConfig(const app::AppConfig& config) {
+SceneContextBuilderOptions BuildSceneContextBuilderOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     SceneContextBuilderOptions options;
     options.max_track_contexts_per_channel =
         std::max<std::size_t>(1, config.analysis_max_active_tracks_per_stream * 2);

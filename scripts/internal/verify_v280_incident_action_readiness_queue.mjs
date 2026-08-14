@@ -1,12 +1,16 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.8.0 S02 Incident Action Readiness Queue와 승인 전 조치 경계를 검증한다.
+import { exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
 
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
+const productUiPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -15,6 +19,7 @@ const manualChecklist = readText("docs/manual-ui-checklist.md");
 const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
 check("roadmap records V280-S02 as active/completed Incident Action Readiness Queue work", () => {
@@ -33,6 +38,16 @@ check("roadmap records V280-S02 as active/completed Incident Action Readiness Qu
 });
 
 check("Ops events API exposes readiness queue view model without delivery/action side effects", () => {
+  const start = server.indexOf("std::string OpsIncidentActionReadinessQueueViewJson(");
+  const end = server.indexOf("std::string OpsEvidenceIntakeFieldReadinessViewJson(", start);
+  assert(start >= 0 && end > start, "EVT-055 action readiness projection block missing");
+  const evt055ProjectionBlock = server.slice(start, end);
+  assertIncludes(evt055ProjectionBlock, "media-server.ops.incident-action-readiness-queue.v1", "EVT-055 block-scoped canonical projection");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-055 canonical review route");
+  assert(evt055ProjectionBlock.includes("media-server.ops.incident-action-readiness-queue.v1") && routeBlock.includes("/ops/api/events/reviews") && exactBooleanFlagValue(evt055ProjectionBlock, "autoActionWritePerformed") === false && exactBooleanFlagValue(evt055ProjectionBlock, "externalDeliveryPerformed") === false, "LAB-079 readiness queue must remain no-write/no-send on canonical review route");
+  assertIncludes(evt055ProjectionBlock, "webrtcDataChannelSchemaChanged", "EVT-055 WebRTC SSE boundary");
   for (const snippet of [
     "OpsIncidentActionReadinessQueueViewJson",
     "OpsIncidentActionReadinessQueueItemJson",
@@ -60,7 +75,7 @@ check("/ops/events UI renders readiness queue panel and manual approval markers"
     'id="opsIncidentActionReadinessQueueRows"',
     "Incident Action Readiness Queue",
   ]) {
-    assertIncludes(server, snippet, "Ops incident action readiness shell");
+    assertIncludes(productUiPages, snippet, "Ops incident action readiness shell");
   }
   for (const snippet of [
     "renderIncidentActionReadinessQueue",
@@ -73,6 +88,14 @@ check("/ops/events UI renders readiness queue panel and manual approval markers"
     "externalDeliveryPerformed",
   ]) {
     assertIncludes(script, snippet, "Ops incident action readiness script");
+    assertIncludes(extractNamedFunctionBlock(script, "renderIncidentActionReadinessQueue"), "incidentActionReadinessQueue", "UI-055 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(script, "renderIncidentActionReadinessQueue").includes(marker)), "UI-055 no-write explicit absence oracle");
+    assert(!["send(","sendClientNotice","deliveryQueueWritePerformed: true"].some(marker => extractNamedFunctionBlock(script, "renderIncidentActionReadinessQueue").includes(marker)), "UI-055 no-send explicit absence oracle");
+    assert(!["method: 'POST'","method: 'PUT'","method: 'PATCH'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(script, "renderIncidentActionReadinessQueue").includes(marker)), "UI-055 no-mutation explicit absence oracle");
+    const mediaPathChanged = ["method: 'POST'", "method: 'PUT'", "method: 'PATCH'", "method: 'DELETE'"].some(marker => extractNamedFunctionBlock(script, "renderIncidentActionReadinessQueue").includes(marker));
+    assert(mediaPathChanged === false, "UI-055 readiness renderer must not mutate EventRecord or media paths");
+    assertIncludes(script, "/ops/events", "UI-055 canonical route obligation");
+    assertIncludes(script, "WebRTC", "UI-055 canonical field obligation");
   }
   for (const snippet of [
     ".incident-action-readiness-queue",
@@ -106,7 +129,16 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S02", ()
     assertIncludes(inventory, snippet, "feature inventory S02 row");
   }
   assertIncludes(manualChecklist, "| V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` |", "manual UI checklist S02 row");
-  assertIncludes(coverageVerifier, "verify-v280-incident-action-readiness-queue", "feature inventory coverage S02 command");
+  for (const [id, expectedCommand] of Object.entries({
+    "UI-055": "verify-v280-incident-action-readiness-queue",
+    "EVT-055": "verify-v280-incident-action-readiness-queue",
+    "LAB-079": "verify-v280-incident-action-readiness-queue",
+    "SAFE-065": "verify-auth-routes",
+  })) {
+    assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
+  }
+  assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v280-incident-action-readiness-queue", "stream verification S02 command");
   assertIncludes(serverSh, "verify-v280-incident-action-readiness-queue", "server.sh S02 command");
   assertIncludes(serverSh, "verify_v280_incident_action_readiness_queue.mjs", "server.sh S02 script target");

@@ -10,14 +10,2651 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.8.0`
+- 현재 소스 버전: `3.9.0`
 - 최신 공개 GitHub Release: `v3.8.0`
-- `v3.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- `v3.9.0` 준비 상태: source-only preparation branch. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+- 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - 최신 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 
-## 현재 source roadmap: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
+### 2026-08-14 release close-out status
+
+- Source `c6b3d20a778a7a641e44decadd1ee5b416426650`의 실제 `./test_release.sh`는 full build와
+  feature gates, 30분 longrun `118 PASS / 0 FAIL / 2 skip`, canonical UI `424/424`,
+  Policy v4 eligible·qualified `424/424`, 120분 longrun `443 PASS / 0 FAIL / 2 skip`,
+  cleanup, final-integrity `12/12`를 모두 통과했습니다.
+- 최종 evidence는
+  [test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
+  80개 파일·11.4MiB의 bounded package로 보존합니다. 4,900여 개·309MB의 per-case 중복 산출물은
+  main 병합 대상에서 제외했습니다.
+- 제품 및 local release acceptance P0는 닫혔습니다. 잔여 P0는 문서/evidence checkpoint,
+  `v3.9.0 -> main` PR checks와 merge입니다. 그 뒤 signed tag, GitHub Release publication,
+  published metadata 검증을 각각 실제 수행 결과로 기록합니다.
+- 최신 공개 GitHub Release는 아직 `v3.8.0`입니다. v3.9.0 tag/GitHub Release/published metadata는
+  실제 publish 전까지 완료로 기록하지 않습니다.
+
+## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
+
+상태: Step 1~29 기능·결정·readiness local gate는 한 차례 닫혔으나, 2026-07-11 실제 구현
+재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되었습니다. 이후 구현됐다고
+기록된 항목을 2026-07-12 다시 source-level로 감사한 결과 semantic closure, exact 424 UI
+automation, Policy v4 actual evidence producer, acceptance 연결, durability, 구조 graph 검증에
+잔여 결함이 확인되어 `V390-REVIEW3-36`~`V390-REVIEW3-49`로 재오픈했습니다. REVIEW3 구현 뒤
+2026-07-12 source를 다시 직접 감사한 결과, semantic evidence와 exact UI/Policy v4 경로,
+durability, one-command acceptance, 구조 실행 범위에 추가 결함이 확인되어
+`V390-REVIEW4-50`~`V390-REVIEW4-65`로 다시 재오픈했습니다. 아래 과거 `완료` 행과
+재검토 결과가 충돌하면 **2026-07-12 REVIEW4 섹션이 최우선**입니다. 여기서
+`완료`라고 표시한 값은 각 step의 문서, read-only decision route, UI status, verifier,
+release evidence boundary가 연결되었다는 뜻이며 제품 의미의 구현 완료와 같지 않습니다.
+실제 30분/120분 runner, 무료 UI 자동화 runner, 구조 안정화 리팩토링, UI 풀테스트 직접 실행,
+30분/120분 장시간 실행, published metadata, release action은 각 직접 evidence가 있을
+때만 완료로 봅니다. 아래 REVIEW4 잔여 구현 목표는 다른 개발 채팅이 이 대화의
+맥락 없이도 구현해야 할 실제 목표와 통과 조건을 이해하도록 남긴 source-of-truth입니다.
+Candidate/structure 영역은 여전히 discovery 결과 승인 전 기능 개발 금지 경계를 따릅니다.
+
+직접 답: v3.9.0의 1차 선택값은 `Feature Completion First with Dedicated Inventory`였으며,
+REVIEW4-51의 최신 승인으로 REVIEW4-50~63을 먼저 닫은 뒤 실제 동작 보존 구조 안정화와
+리팩토링을 같은 `v3.9.0` 브랜치의 REVIEW4-64에서 수행합니다. REVIEW4-65 독립
+acceptance가 그 뒤를 따르며 실제 리팩토링을 v4.0.0으로 이관하지 않습니다.
+
+비범위:
+
+- 자동 대량 apply
+- 승인 없는 action/source/rule/client/media mutation
+- discovery 승인 전 미완성 기능 임의 개발
+- feature completion close-out 전 구조 전면 리팩토링 착수
+- 새 테스트 모델을 다섯 번째 AGENTS 테스트 영역으로 추가
+- Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media schema/path 변경
+- Auth/Role/Scope, SourceRegistry/PublishedView, Rule/Profile 저장 payload 계약 변경
+- viewer/client에 source locator, credential, raw diagnostic JSON, operator-only blocker detail 노출
+- 외부 credential/endpoint/실기기 성공을 기본 PASS로 승격
+- 사용자 승인 없는 30분/120분/UI 풀테스트, PR, main merge, tag, GitHub Release, 후속 브랜치 생성
+- v3.9 published 완료 주장
+
+개발은 중요도와 의존 순서를 함께 고려해 Foundation -> Required Closeout ->
+Evidence/Test Gate -> Test Model Prep -> Product Completion -> Conditional Field/AI ->
+Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0에서 개발을 진행할
+때의 기준 순서입니다.
+
+| 구간 | 제목 | 우선순위 | 개발 내용 |
+| --- | --- | --- | --- |
+| Foundation | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | VERSION/docs/backlog/source roadmap 정렬 |
+| Foundation | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 | `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded 목록과 source group checked 상태를 고정 |
+| Foundation | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | Required development, candidate development, structure-stabilization handoff, excluded/non-scope를 보고하고 사용자 승인 전 기능 개발 중단 |
+| Required Closeout | v3.9.0 (4) Manual UI 기준서 v3.9 current화 | P0 | `V390-REQ-001`: manual UI fulltest/checklist/result template의 v2.x current-looking 기준을 v3.9 기준 또는 historical archive로 정리 |
+| Required Closeout | v3.9.0 (5) 장시간/UI 테스트 시작 조건 v3.9화 | P0 | `V390-REQ-002`: long-test/UI start condition을 v3.9 feature completion inventory와 review gate 기준으로 정렬 |
+| Required Closeout | v3.9.0 (6) v3.5-v3.8 UI coverage bridge | P0 | `V390-REQ-003`: manual UI docs에 v3.5-v3.8 route/control/action coverage를 추가하거나 project inventory delegate를 명시 |
+| Evidence/Test Gate | v3.9.0 (7) UI wrapper/result schema 오판 방지 | P0 | `V390-CAND-007`: wrapper PASS와 UI/longrun/manual evidence PASS를 분리하는 result schema와 문구 정리 |
+| Evidence/Test Gate | v3.9.0 (8) feature inventory coverage wording 오판 방지 | P0 | `V390-CAND-008`: coverage mapping PASS를 실행 PASS로 오해하지 않도록 covered/missing 중심 문구로 정리 |
+| Test Model Prep | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 30분/120분 서버 테스트를 단순 스크립트 실행, case-by-case stop-on-fail, 상세 오류 출력 방식으로 설계 |
+| Test Model Prep | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 무료 UI 자동화 도구 후보를 평가하고, 실패 상황과 재현 정보를 남기는 UI test runner 기준을 설계 |
+| Product Completion | v3.9.0 (11) ONVIF credential/provider status summary | P1 | `V390-CAND-001`: secret/reference value를 노출하지 않는 Ops-only provider readiness/status 요약 여부 결정 |
+| Product Completion | v3.9.0 (12) ONVIF live import persist decision | P1 | `V390-CAND-002`: 승인된 ONVIF probe/import를 source/view 저장까지 연결할지 결정하고 scope guard 설계 |
+| Product Completion | v3.9.0 (13) VLM rule suggestion draft bridge | P1 | `V390-CAND-003`: VLM rule suggestion review-to-draft 흐름과 no-auto-apply evidence를 보강 |
+| Product Completion | v3.9.0 (14) VLM profile promotion guard | P1 | `V390-CAND-004`: passed evaluation 후보의 profile save/activation guard와 default-off boundary를 명확히 함 |
+| Product Completion | v3.9.0 (15) backup/recovery handoff validation | P1 | `V390-CAND-005`: source reliability handoff에 staging restore validation checklist/result를 연결할지 결정 |
+| Product Completion | v3.9.0 (16) action execution deferral decision | P1 | `V390-CAND-006`: v3.8 read-only action pilot의 source recheck, client notice send, rule apply write를 명시 defer |
+| Conditional Field | v3.9.0 (17) field evidence bridge | P2 | `V390-CAND-009`: 외부 endpoint/credential/provider 승인 기반 field evidence bridge를 추가할지 결정 |
+| Conditional AI | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | `V390-CAND-010`: Re-ID assist를 model/config/provenance 기반으로 실동작시킬지 opt-in/defer할지 결정 |
+| Structure | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | `V390-STRUCT-001`~`V390-STRUCT-005`: route/API/UI/VLM/manual UI 문서 구조 안정화 범위를 동작 보존 리팩토링 계획으로 넘김 |
+| Release | v3.9.0 (20) stabilization and release readiness | P0 | AGENTS 네 테스트 영역 판정, evidence, cleanup, release close-out dry-run을 실제 실행/미실행으로 분리 |
+| Post-review Test Closure | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | `verify-v390-test-acceptance-bundle`의 실제 실행 모드를 구현해 dry-run이 아니라 R1/R2 evidence 또는 새 실행 결과를 stop-on-first-fail summary/report로 묶음 |
+| Post-review Test Closure | v3.9.0 (22) v3.9 UI automation case completeness | P0 | `UI-112` staging restore validation handoff 누락을 포함해 v3.9 신규 UI-108~UI-115 case manifest와 replay evidence를 완전하게 정렬 |
+| Post-review Test Closure | v3.9.0 (23) native free UI automation adapter proof | P0 | Playwright/Selenium/SikuliX 중 실제 선택 adapter가 native로 실행되는지 증명하고, `chrome-cdp-fallback`은 fallback evidence로만 남김 |
+| Post-review Test Closure | v3.9.0 (24) server longrun true first-fail case runner | P0 | `verify-predev` 누적형 의존을 줄이거나 `--stop-on-first-fail` opt-in을 추가해 실패 즉시 이후 case를 `not-run`으로 남기는 실제 case runner 구현 |
+| Post-review UI Full Coverage | v3.9.0 (25) route/control/action automation coverage matrix | P0 | v1.0~v3.9 current UI 기능 ID를 manifest화하고 자동 runner가 각 route/control/action을 실행/반영/로그 단위로 검증하게 정렬 |
+| Post-review Release Evidence | v3.9.0 (26) final evidence re-run and cleanup | P0 | post-review 잔여 구현 후 local gate, 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence 보존을 최종 release action 전 다시 실행 |
+| Product Scope Lock | v3.9.0 (27) deferred product decision owner sign-off | P1 | action execution, persistent credential store, field smoke, provider call, model-backed Re-ID 등 의도적으로 defer된 기능을 v3.9 non-goal로 닫을지 실제 구현할지 owner decision으로 고정 |
+| Structure | v3.9.0 (28) structure stabilization implementation readiness | P1 | Step 19 handoff가 실제 refactor가 아니므로 slice와 검증 순서를 확정. 실행 branch 결정은 REVIEW4-51이 current `v3.9.0`으로 supersede |
+| Conditional Field | v3.9.0 (29) real external field smoke gate | P2 | ONVIF 실기기, external WHEP/TURN, cloud/VLM provider credential/endpoint가 제공되는 경우에만 real field smoke를 실행하고 기본 PASS와 분리 |
+
+### v3.9.0 진행 상태
+
+| 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs/backlog/source roadmap과 `verify-v390-entry-baseline` 기준 정렬 |
+| 2 | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 | 완료 | `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded 항목과 checked source group 반영 |
+| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료/initial snapshot historical/current closed | initial review-ready·승인 전 차단 상태는 historical snapshot으로 보존하고, 후속 사용자 goal 승인으로 required/candidate 개발이 모두 `closed-with-evidence`, current active candidate가 없음으로 reconciliation |
+| 4 | v3.9.0 (4) Manual UI 기준서 v3.9 current화 | P0 | 완료 | `V390-REQ-001`: `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`가 v3.9 current target과 historical v2.x/v3.x 기준을 분리하고 `verify-manual-ui-evidence`가 이를 확인 |
+| 5 | v3.9.0 (5) 장시간/UI 테스트 시작 조건 v3.9화 | P0 | 완료 | `V390-REQ-002`: 긴 테스트 시작 조건을 v3.9 feature completion inventory, current project inventory, 사용자 승인/AGENTS 7.6.2 조건 기준으로 정렬 |
+| 6 | v3.9.0 (6) v3.5-v3.8 UI coverage bridge | P0 | 완료 | `V390-REQ-003`: manual UI docs가 v3.5~v3.8 UI/control/action rows를 project feature inventory로 위임하고 실행 PASS와 coverage mapping을 분리 |
+| 7 | v3.9.0 (7) UI wrapper/result schema 오판 방지 | P0 | 완료 | `V390-CAND-007`: `verify-ui-fulltest-one-shot` summary에 `wrapperResult`/`resultScope`/`uiFulltestEvidenceStatus`/`manualResultStatus`/`longrunStatus`/`evidenceBoundary`를 추가하고 `verify-v390-evidence-test-gate-prep`가 오판 방지 경계를 확인 |
+| 8 | v3.9.0 (8) feature inventory coverage wording 오판 방지 | P0 | 완료 | `V390-CAND-008`: feature coverage report를 `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence` 중심으로 바꾸고 mapping coverage와 실행 PASS를 분리 |
+| 9 | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 완료 | 30분/120분 script runner의 one command, fixed phase order, stop-on-first-fail, later phase `not-run`, failure evidence, cleanup/artifact policy 기준을 `stream-verification.md`와 verifier로 고정 |
+| 10 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 완료 | Playwright 우선, Selenium fallback, SikuliX visual fallback과 route/viewport/theme/account-role/action/expected-actual/screenshot/trace-console/log/cleanup/manual-intervention failure report 기준을 `manual-ui-fulltest.md`와 verifier로 고정 |
+| 11 | v3.9.0 (11) ONVIF credential/provider status summary | P1 | 완료 | `V390-CAND-001`: `/ops/api/onvif/credential-provider-status`와 `/ops/sources` ONVIF provider summary가 primary provider `none`, fallback `in-memory-fixture`, persistent/external secret store defer 결정을 secret/reference value 비노출 상태로 표시 |
+| 12 | v3.9.0 (12) ONVIF live import persist decision | P1 | 완료 | `V390-CAND-002`: import draft `notSaved:true`와 one-shot persist disabled를 유지하고, explicit operator save는 `source:write` paired source/view route와 compensating rollback을 사용 |
+| 13 | v3.9.0 (13) VLM rule suggestion draft bridge | P1 | 완료 | `V390-CAND-003`: `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 incident review provenance를 기존 VLM rule suggestion draft-only/manual-save workflow로 연결하고 rule/profile write, auto-apply, provider/runtime call은 수행하지 않음 |
+| 14 | v3.9.0 (14) VLM evaluation promotion guard | P1 | 완료 | `V390-CAND-004`/`V390-ADD1-03`: `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 server-verified candidate promotion을 표시하고 profile save가 candidate/revision/digest/result/provenance 및 option/model/prompt binding을 검증함. runtime/provider call은 수행하지 않음 |
+| 15 | v3.9.0 (15) backup/recovery handoff validation | P1 | 완료 | `V390-CAND-005`: `/ops/api/source-registry/staging-restore-validation-handoff`와 `/ops/sources`가 staging restore checklist/result artifact contract를 source registry, PublishedView, source health, viewer scope 기준으로 표시하고 production restore/write/recovery는 수행하지 않음 |
+| 16 | v3.9.0 (16) action execution deferral decision | P1 | 완료 | `V390-CAND-006`: `/ops/api/actions/execution-deferral-decision`와 `/ops` Action Control Workspace가 `defer-all-action-writes`, source recheck/client notice/rule apply write deferred, approval-gated execution disabled를 표시하고 action execution/write/external delivery는 수행하지 않음 |
+| 17 | v3.9.0 (17) field evidence bridge | P2 | 완료 | `V390-CAND-009`: `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run/no-field-execution boundary를 표시하고 field smoke/provider call/write는 수행하지 않음 |
+| 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 | `V390-CAND-010`: `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, tracker-none forces off boundary를 표시하고 model-backed execution/embedding/crop serialization은 수행하지 않음 |
+| 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관하고 `verify-v390-structure-stabilization-handoff` gate로 구조 변경 미실행 경계를 고정 |
+| 20 | v3.9.0 (20) stabilization and release readiness | P0 | local release acceptance 완료/publication pending | Source `c6b3d20a`의 `./test_release.sh`가 full build, feature gates, 30분, exact UI `424/424`, Policy v4 `424/424`, trigger된 120분, cleanup과 final integrity를 모두 PASS했습니다. 잔여 close-out은 PR/main/tag/GitHub Release/published metadata입니다 |
+| 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | 완료 | `./test_release.sh` exit `0`, `finalEvidenceEligible=true`. Bounded canonical evidence는 `docs/release-artifacts/v3.9.0/test-acceptance-current-final/`에 보존하며 historical failure artifact와 분리합니다 |
+| 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
+| 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
+| 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 완료 | V390-ADD1-10이 `verify-predev --fail-fast`의 duration case 사이를 즉시 중단하고 later case를 `not-run`으로 기록하며 runner console/summary/report에 context, 분리 stderr tail, 재현 명령을 보존 |
+| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | historical source claim / REVIEW4-56~60 대기 | 986개 inventory와 exact `manualUiCaseId` 424개 선택 수치는 유지하지만, 기존 423+negative 1 readiness는 기능별 workflow·canonical schema·primary action oracle·visual matrix·Policy 독립성 완료 근거가 아닙니다. REVIEW4-56~60이 current workflow readiness를 다시 닫습니다 |
+| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 완료 | Source `c6b3d20a`에서 30분 `118/0/2`, exact UI `424/424`, Policy v4 `424/424`, 120분 `443/0/2`, cleanup과 final integrity `12/12`를 완료했습니다. 80-file/11.4MiB bounded canonical package만 Git에 보존했습니다 |
+| 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | decision record | `decision-record`로 역할 기반 owner와 excluded/deferred 결정을 기록합니다. implementation은 `not-executed`이며 개인 이름, 실제 구현, field/release PASS를 주장하지 않습니다 |
+| 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | historical readiness / REVIEW4-51 superseded | 당시 `gate-ready`와 REVIEW4-51 `approved-scheduled`/`not-executed`는 dependency/contract/slice 실행 승인 기록입니다. 이후 current `v3.9.0` REVIEW4-64는 Slice 32와 graph final target·구조 테스트·cleanup으로 완료됐고 REVIEW4-65 acceptance는 별도 pending입니다. |
+| 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | TURN/WHEP, ONVIF 실기기, 외부 VLM/provider는 조건 부재로 `conditional-not-run`입니다. external contact 0, field/release claim false이며 실행 완료/PASS가 아닙니다 |
+
+### v3.9.0 (17) Evidence/Closure 13~18 개발 기록
+
+| 번호 | 구간 | 제목 | 우선순위 | 상태 | 구현/검증 위치 |
+| --- | --- | --- | --- | --- | --- |
+| 13 | Evidence | 최종 evidence 무결성 | P0 | 완료/커밋 `b6cac906` | `verify_v390_ui_automation.mjs`, `verify_v390_server_longrun.mjs`, `verify_v390_test_acceptance_bundle.mjs`, `verify-v390-final-evidence-integrity`에서 screenshot dedupe, video placeholder 금지, 실측 cleanup, source commit/command/first-failure 기록을 구현·검증. RED 3종과 actual UI 최초 환경 실패/재실행 8/8 이력을 `release-test-records.md`에 기록 |
+| 14 | Evidence | 최종 전체 재실행·정리 | P0 | current PASS/source `c6b3d20a` | Current 986 inventory source의 full build·feature gates·30분·exact UI 424·Policy v4·120분·cleanup·final integrity를 한 `./test_release.sh` run에서 완료하고 bounded canonical evidence를 저장소에 보존했습니다 |
+| 15 | Feature Closure | VLM incident-to-rule provenance | P1 | 완료/커밋 `260cbd9e` | `UI-110`/`RULE-112`/`LAB-126`/`SAFE-213`/`OPS-180`: event·candidate·evaluation source를 generated rule의 optional `vlmProvenance`와 `/lab/analysis/rules/{id}` save/readback까지 보존하고 ID/route mismatch는 no-write로 거부합니다. 실제 HTTP save/readback 1건과 negative no-write 2건, `/ops/rules` 인앱 focused smoke, rule/VA 회귀를 통과했습니다 |
+| 16 | Product Decision | 보류 기능 소유자 승인 | P1 | decision record/커밋 `7a100f8f` | `decision-record`, implementation `not-executed`, decision-only evidence로 5개 owner 결정을 고정합니다 |
+| 17 | Stabilization | 구조 안정화 착수 조건 | P1 | gate 준비/커밋 `fcfe9f0d` | `gate-ready`, implementation `not-executed`로 module graph/contract/slice gate를 고정합니다. branch/refactor는 미실행입니다 |
+| 18 | Field Smoke | 외부 환경 검증 | P2 | 조건부 미실행/커밋 `6575e3b9` | 세 외부 target을 `conditional-not-run`으로 기록하고 external contact/field/release PASS claim 0을 검증합니다 |
+
+완료 경계: Evidence 13의 contract PASS는 실제 30분/UI 자동화 재실행 evidence가 아닙니다.
+Evidence 14는 실제 30분과 UI-108~115 자동화를 포함하지만 exact 424개 UI 풀테스트,
+조건 미충족 120분, published metadata, release action PASS로 승격하지 않습니다.
+
+완료 경계: v3.9 source baseline/inventory 준비는 실제 기능 개발, discovery 완료,
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가
+아닙니다. `v3.9.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
+
+## v3.9.0 (13) 추가 로드맵 (1)
+
+이 섹션은 2026-07-10 요청으로 승인된 추가 로드맵의 source 개발 상태를 기록합니다.
+각 단계의 `완료`는 해당 구현과 단계별 local verifier 통과만 뜻하며, UI 풀테스트,
+30분/120분 장시간 실행, published metadata, release action 완료를 뜻하지 않습니다.
+단계는 아래 순서대로만 진행합니다.
+
+| 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 완료 조건 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | V390-ADD1-01 | Foundation | 미추적 파일 정리 | P0 | 완료 | 삭제 이력이 있는 미추적 파일 30개를 현재 참조·삭제 의도·blob 이력과 대조하고 복구 0, 삭제 30, 별도 보존 0으로 확정한 뒤 worktree에서 제거 |
+| 2 | V390-ADD1-02 | Feature Closure | 전체 기능 인벤토리 확정 | P0 | 완료 | 974개 기능 행을 exact manifest로 실제 route/UI control/state/verifier와 1:1 대조하고 stale TODO/오류 문구 제거, negative fixture와 local gate 통과 |
+| 3 | V390-ADD1-03 | Product Correctness | VLM 승격 신뢰 경계 | P0 | 완료 | 클라이언트 result/status 선언을 제거하고 shared server catalog가 후보 ID/revision/digest, 평가 결과/provenance, option/model/prompt binding을 검증·canonicalize한 뒤 저장하며 reload 불일치 profile을 quarantine |
+| 4 | V390-ADD1-04 | Product Correctness | Re-ID 준비 상태 정합성 | P0 | 완료 | extractor factory와 Ops API가 공용 server-owned readiness를 사용해 regular file, SHA 형식·읽기·일치, trim provenance, OpenSSL·ONNX Runtime을 검사하고 preflight/session-load/execution을 분리 |
+| 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 완료 | ONVIF form save/toggle의 source/view 연속 PUT을 single-lock paired route로 교체하고 두 번째 파일 실패 시 실제 교체된 파일을 pre-transaction snapshot으로 rollback |
+| 6 | V390-ADD1-06 | Test Foundation | 실제 acceptance bundle | P0 | 완료 | dry-run 강제를 해제하고 build→현재 기능 gate→실제 30분→실제 UI automation→조건부 120분을 stop-on-first-fail 단일 진입점으로 실행하며 summary/report/cleanup을 보존 |
+| 7 | V390-ADD1-07 | UI Test | UI 케이스 누락 보완 | P0 | 완료 | `UI-112`를 포함한 `UI-108`~`UI-115` 전 case의 실제 route/control/action/state/failure/artifact evidence를 검증 |
+| 8 | V390-ADD1-08 | UI Test | 무료 네이티브 자동화 어댑터 | P0 | 완료 | bundled Playwright와 설치된 Chrome을 사용하는 독립 adapter가 실제 wait/click/fill/type/select/screenshot을 실행하고 UI 8-case도 `playwright-native` dispatch/provenance/fallback false로 검증 |
+| 9 | V390-ADD1-09 | UI Test | 거짓 PASS 방지 | P0 | 완료 | case schema v3 exact-selector `visibleAssertions`와 trusted native action 뒤 computed visibility/visible innerText만 판정하며 source/script/outerHTML/whole-page marker PASS를 negative contract로 거부 |
+| 10 | V390-ADD1-10 | Test Foundation | Longrun first-fail 진단 실행기 | P0 | 완료 | delegated duration case의 첫 실패 직후 후속 case를 실행하지 않고 `not-run`으로 남기며 console/summary/report에 context, 분리 stderr, 재현 명령을 출력 |
+| 11 | V390-ADD1-11 | UI Test | route/control/action 자동화 coverage matrix | P0 | 완료/exact-ID 보정 | exact UI test ID 424개를 featureId/route/control-action/stability verifier/automation caseId에 직접 연결하고 prefix/range 판정 제거, cross-prefix 누락·중복·route/action drift·artifact 누락을 FAIL 처리 |
+| 12 | V390-ADD1-12 | Test Policy | Policy v4 테스트 정책 전환 | P0 | 완료 | native visible-DOM 자동화가 exact case 단위로 direct evidence를 대체할 수 있는 동등성 조건과 전체 UI 풀테스트 PASS 경계를 Policy v4 fixture/evaluator/negative contract로 기계 검증하고, 현재 legacy 8/424 부분 자동화는 ineligible/FAIL로 유지 |
+
+### V390-ADD1-12 Policy v4 테스트 정책 전환 — 실행 전 등록
+
+구현 계획 source-of-truth는
+`docs/superpowers/plans/2026-07-10-v390-test-policy-v4.md`입니다. Policy v4는
+안정화/30분/120분/UI 네 테스트 영역을 유지하고, UI 영역 안에서만
+`direct-browser`, `qualified-native-automation`, `hybrid` evidence mode를 구분합니다.
+자동화 대체는 exact case 단위이며, suite PASS는 424개 exact UI test ID와
+시각/반응형/role/security 교차 항목 전수가 닫힌 경우에만 허용합니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | AGENTS/manual UI/release policy, policy fixture/evaluator/contract, dispatch/docs/inventory를 직접 변경 | `V390-ADD1-12`, `OPS-169`, `SAFE-202` | 최신 `/goal`의 12번 개발 승인 |
+| 30분 테스트 | 미진행 | test policy와 evidence 판정만 변경하고 media/session/runtime path를 변경하지 않음 | AGENTS 7.6.2, `V390-ADD1-12` 변경 범위 | duration 실행 승인 없음 |
+| 120분 테스트 | 미진행 | high-risk runtime/media trigger가 없고 명시 실행 지시도 없음 | AGENTS 7.6.2, `V390-ADD1-12` 변경 범위 | 조건·실행 승인 없음 |
+| UI 풀테스트 | 미진행 | Policy v4 계약은 검증하지만 424개 전체 제품 UI를 새로 실행하는 요청은 아님 | exact UI test ID 424개, historical readiness claim 423+negative 1/unsupported 0, execution pass 0/not-run 424; REVIEW4-56~60 current closure 대기 | 전체 UI 실행 승인 없음 |
+
+실행 전 개별 검증 항목은 policy schema/네 영역 고정/evidence mode, case 동등성 필수
+필드, suite closure, current partial evidence 판정, forbidden fixture/static/screenshot-only
+승격, 문서 정책 정렬, server dispatch, inventory/evidence 연결입니다.
+
+### V390-ADD1-06 실제 acceptance bundle — 실행 전 등록
+
+구현 계획 source-of-truth는
+`docs/superpowers/plans/2026-07-10-v390-additional-roadmap-6-9.md`입니다. Step 6은
+`scripts/internal/verify_v390_test_acceptance_bundle.mjs`의 non-dry mode가 기존 evidence를
+읽기만 하지 않고 build, 현재 기능 gate, 실제 30분 server longrun, 실제 UI automation,
+조건부 120분 판정, cleanup/report를 순서대로 직접 실행하는 것을 완료 조건으로 둡니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | acceptance runner/contract/docs/inventory 변경 | `V390-ADD1-06`, `OPS-179`, `SAFE-212` | 최신 goal에서 6번 개발 승인 |
+| 30분 테스트 | 진행 대상 | 사용자 제시 완료 조건이 build→기능→30분→UI 실제 실행을 명시 | `V390-ADD1-06`, R1 real-duration runner | 최신 goal에서 실제 acceptance 승인 |
+| 120분 테스트 | 조건부 진행 | 사용자 문구가 조건부 120분이며 AGENTS 7.6.2 high-risk trigger 필요 | `V390-ADD1-06`, `SAFE-201` | 현재 trigger 없음; 새 signal 발생 시 실행 |
+| UI 풀테스트 | 미진행 | bundle의 UI는 R2 actual automation이며 Codex 인앱 브라우저 전체 수동 UI와 구분 | `OPS-169`, `SAFE-202` | 직접 UI 풀테스트 승인 없음 |
+
+Step 6 개별 검증 항목은 non-dry RED, actual-mode fixture pass/fail contract, build,
+current feature command set, 실제 30분 summary, 실제 UI automation summary/replay,
+conditional 120 decision, cleanup, docs/inventory/script gate, `git diff --check`입니다.
+
+### V390-ADD1-06 실제 acceptance bundle — 개발 및 실행 결과
+
+- `scripts/internal/verify_v390_test_acceptance_bundle.mjs`의 `runActualBundle`은
+  preflight, build, 26개 current feature gate, real 30-minute server longrun,
+  UI automation/replay, 120-minute decision/run, cleanup, report를 고정 순서로 직접
+  실행합니다. 일반 단계는 첫 실패 뒤 `not-run`이고 cleanup/report는 항상 실행합니다.
+- `scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs`는 dry-run, actual
+  fixture PASS, first-failure later `not-run`, explicit 120, cleanup failure를 검증합니다.
+- `scripts/internal/verify_predev_stability.sh --fail-fast`와
+  `scripts/internal/verify_v390_server_longrun.mjs` 연결은 하위 integrated smoke 실패 뒤
+  soak/queue 일반 검증을 계속하지 않고 cleanup/report만 수행합니다.
+- v3.9 단계 verifier 다섯 곳과 Step 20 verifier는 command 문자열 하드코딩 대신
+  `verify_feature_inventory_coverage.mjs`의 exact implementation manifest gate를 확인합니다.
+- 최종 증적은 `docs/release-artifacts/v3.9.0/test-acceptance-final/summary.json`과
+  `report.md`, `runs/v390-test-acceptance-20260710083909-44592/`에 보존했습니다.
+  최종 단일 run은 build/feature gates, real 30-minute `118 pass / 0 fail`, UI automation
+  `7 pass / 0 fail`, replay, cleanup을 통과했습니다. 120분은 trigger가 없어
+  `conditional-not-run`이며 PASS로 계산하지 않았습니다.
+- 최종 summary의 `knownUiClosureBlockers`는 `UI-112` 누락, Chrome CDP fallback,
+  whole-page marker 판정을 후속 7~9번 범위로 명시합니다. 따라서 Step 6의 자동
+  acceptance 실행은 완료지만 UI 직접 조작 풀테스트 완료를 뜻하지 않습니다.
+
+실패 후 수정 이력:
+
+| 순서 | 실패 | 수정 | 재검증 |
+| --- | --- | --- | --- |
+| 1 | non-dry 구현 전 명령이 dry-run만 허용 | actual stage orchestrator와 summary validator 구현 | contract 6/0 |
+| 2 | 기존 Step 20/11 verifier가 data-driven coverage verifier에 자기 command 문자열을 요구 | exact implementation manifest gate 확인으로 정렬 | 관련 v3.9 verifier PASS |
+| 3 | 통합 smoke code-comment policy에서 신규 VLM header 용도 주석과 영문 주석 1개 실패 | 한글 파일 용도/설명 주석 추가 | `verify-code-comments` missing 0, english-only 0 |
+| 4 | 하위 integrated smoke 실패 뒤 soak가 계속됨 | `verify-predev --fail-fast` 추가 및 longrun 연결 | longrun/acceptance contract PASS |
+| 5 | 첫 actual UI run에서 UI-109의 과거 `compensating-rollback` marker 불일치 | 현재 표시 rollback model 문구로 fixture 정렬 | standalone UI 7/0, 최종 bundle UI 7/0 |
+
+테스트 사용량: token start `0`, token end `901969`, token consumed `901969`,
+elapsed 약 `6636초`, source `Codex goal usage`.
+
+### V390-ADD1-07 UI 케이스 누락 보완 — 실행 전 등록
+
+Step 7은 `test/fixtures/v390_ui_automation_cases.json`을 exact `UI-108`~`UI-115`
+8개 집합으로 고정하고, 각 case가 manifest와 같은 route, 실제 refresh/inspect control,
+action 전후 state, failure reason, screenshot/trace/console/server-log artifact를 기록하는지
+runner/report/contract에서 검증합니다. 이 단계의 DOM action은 현재 adapter를 통해 실행하되,
+native wait/click/type/select adapter 승격은 Step 8, whole-page marker 제거는 Step 9 범위입니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | case manifest/runner/report/contract/docs 변경 | `V390-ADD1-07`, `UI-108`~`UI-115` | 최신 goal에서 7번 개발 승인 |
+| 30분 테스트 | 미진행 | UI case coverage/evidence schema만 변경하고 runtime/media lifecycle은 변경하지 않음 | Step 7 변경 범위 | Step 6 final real 30분과 분리 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2 trigger 없음 | Step 7 변경 범위 | 조건 미충족 |
+| UI 풀테스트 | 미진행 | 8-case actual automation은 실행하지만 Codex 인앱 전체 UI 직접 조작 풀테스트와 구분 | `UI-108`~`UI-115` | 직접 UI 풀테스트 승인 없음 |
+
+### V390-ADD1-07 UI 케이스 누락 보완 — 개발 및 실행 결과
+
+- `test/fixtures/v390_ui_automation_cases.json`을
+  `media-server.v390-ui-automation-cases.v2`로 올리고 exact ordered ID를
+  `UI-108`~`UI-115` 8개로 고정했습니다. `UI-112` staging restore validation handoff를
+  `/ops/sources`의 refresh, checklist, result artifact 상태와 함께 추가했습니다.
+- UI-113~UI-115 route를 exact implementation manifest와 같은 `/ops/dashboard`로
+  수정했습니다. UI-108/109는 채널 추가→ONVIF select→refresh, UI-110/111은 해당
+  refresh control, UI-112는 source refresh, UI-113~115는 dashboard refresh를 실행합니다.
+- `scripts/internal/verify_v390_ui_automation.mjs`는 case ID/route를 974행 implementation
+  manifest와 대조하고 setup/primary interaction, target, before/after state,
+  `failureEvidence`, screenshot/trace/video/console/server-log를 summary에 기록합니다.
+- `scripts/internal/verify_v390_ui_automation_report.mjs`는 v2 summary의 exact 8-case,
+  action 실행, visible target, non-empty state, failure reason, artifact를 replay합니다.
+  `scripts/internal/verify_v390_ui_automation_runner_contract.mjs`는 UI-112 누락과
+  UI-113 wrong route negative manifest를 반드시 거부합니다.
+- 실제 실행 `docs/release-artifacts/v3.9.0/ui-automation-case-completeness-final/summary.json`은
+  `caseCount=8`, `pass=8`, `fail=0`, `notRun=0`; replay는 `pass=7 fail=0`입니다.
+  이 실행은 DOM-dispatch interaction evidence이며 native adapter 승격은 Step 8에서,
+  whole-page marker 제거는 Step 9에서 닫습니다.
+
+실패 후 수정 이력:
+
+| 순서 | 실패 | 수정 | 재검증 |
+| --- | --- | --- | --- |
+| 1 | exact ID RED가 `false`로 종료: UI-112 누락 | UI-112와 exact 8-case/route manifest gate 추가 | contract exact set PASS |
+| 2 | 첫 actual run UI-108 target hidden, 뒤 7 case not-run | 채널 추가와 ONVIF select setup action 추가 | failure evidence에 hidden target 보존 |
+| 3 | setup click 직후 비동기 form reset 전에 select 실행되어 다시 hidden | setup interaction을 순차 await하도록 수정 | actual 8/0, replay 7/0 |
+
+테스트 사용량: token start `901969`, token end `1080515`, token consumed `178546`,
+elapsed 약 `547초`, source `Codex goal usage`.
+
+### V390-ADD1-08 무료 네이티브 자동화 어댑터 — 실행 전 등록
+
+Step 8은 `browserMode=playwright`라는 label과 실제 native engine을 분리합니다. 저장소
+의존성 설치 없이 explicit env, workspace dependency, 현재 Node runtime 인접 bundled
+module 순서로 Playwright를 찾고, 찾지 못하면 Chrome/CDP fallback을 primary PASS로 쓰지
+않고 native preflight FAIL을 반환합니다. 독립 adapter는 wait, click, fill/type, select,
+screenshot과 console/provenance를 제공하고 standalone reproduction이 실제 동작을 수행해야
+합니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | native adapter/module resolver/runner/dispatch/docs 추가 | `V390-ADD1-08`, `OPS-169`, `SAFE-202` | 최신 goal에서 8번 개발 승인 |
+| 30분 테스트 | 미진행 | UI automation adapter만 변경하고 server runtime/media lifecycle은 변경하지 않음 | Step 8 변경 범위 | 장시간 trigger 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2 trigger 없음 | Step 8 변경 범위 | 조건 미충족 |
+| UI 풀테스트 | 미진행 | native adapter actual 8-case는 실행하지만 Codex 인앱 전체 UI 직접 조작과 구분 | `UI-108`~`UI-115` | 직접 UI 풀테스트 승인 없음 |
+
+### V390-ADD1-08 무료 네이티브 자동화 어댑터 — 개발 및 실행 결과
+
+- `scripts/internal/v390_ui_native_adapter.mjs`가 explicit module/env/workspace/Node 인접/Codex bundled Playwright를 탐색하고 module realpath/version, system Chrome executable, capability를 기록합니다. Playwright 전용 browser가 없어도 설치된 Chrome을 `executablePath`로 직접 실행하며 CDP fallback은 사용하지 않습니다.
+- `scripts/internal/verify_v390_ui_native_adapter.mjs`가 독립 로컬 페이지에서 wait, fill, type, select, click, state wait, screenshot을 실제 수행하고 `media-server.v390-ui-native-adapter.v1` summary/trace/report/PNG를 생성합니다.
+- `scripts/internal/verify_v390_ui_automation.mjs`의 UI-108~115 setup/primary 동작을 page-context `element.click()`/event dispatch가 아니라 Playwright locator의 `waitFor`, `click`, `selectOption`으로 실행하며 각 trace에 `dispatch=playwright-native`를 기록합니다.
+- `scripts/internal/verify_v390_ui_native_adapter_contract.mjs`와 `server.sh` dispatch가 module provenance, missing explicit module hard fail, capability, runner 연결, 문서/evidence와 preserved standalone PASS를 재현합니다.
+
+실행 결과:
+
+| 항목 | 명령/결과 | 판정 |
+| --- | --- | --- |
+| RED | Step 7 actual summary의 `selectedAdapter.engine=chrome-cdp-fallback`, `fallbackUsed=true`라 native 조건 `jq -e`가 false/exit 1 | 예상 실패 |
+| 첫 standalone | bundled Playwright 1.61.1은 발견했으나 Playwright-managed Chromium 미설치로 launch FAIL | 수정 후 재실행 |
+| standalone final | `./server.sh verify-v390-ui-native-adapter --output-dir docs/release-artifacts/v3.9.0/ui-native-adapter-final`: system Chrome, `engine=playwright-native`, fallback false, action 7/7, final state `native-adapter:ready:typed` | PASS |
+| native UI 8-case final | `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-native-final`: UI-108~115 8/8, setup/primary dispatch 전부 `playwright-native`, cleanup true | PASS |
+| replay/contract | actual report replay 7/0, native adapter contract 7/0, runner contract 8/0 | PASS |
+| UI 풀테스트 | Codex 인앱 전체 UI 직접 조작 풀테스트는 실행하지 않음 | 미실행 |
+
+첫 실패는 native browser 탐색이 기존 CDP fallback permission helper에 묶여 system Chrome을
+선택하지 못한 것이 원인이었습니다. native adapter 전용 executable resolver를 추가해 외부
+다운로드 없이 해결했습니다. Step 9의 whole-page marker 제거는 아직 이 단계의 PASS에
+포함하지 않습니다.
+
+테스트 사용량: token start `1080515`, token end `1301950`, token consumed `221435`,
+elapsed 약 `902초`, source `Codex goal usage`.
+
+### V390-ADD1-09 거짓 PASS 방지 — 실행 전 등록
+
+Step 9은 case manifest를 exact selector별 visible assertion schema로 바꾸고, runner가
+`document.body.innerText`, `document.documentElement.outerHTML`, script/source marker를
+성공 근거로 읽지 못하게 합니다. 실제 native action 뒤 exact state element가 존재하고
+computed visible이며, 그 element의 visible `innerText`가 명시된 값을 포함할 때만 PASS입니다.
+UI-113의 `defer-all-action-writes`처럼 source에는 있지만 실제 표시 텍스트에는 없는 값은
+negative fixture에서 반드시 FAIL해야 합니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | case schema/runner/report/negative contract/docs 변경 | `V390-ADD1-09`, `UI-108`~`UI-115`, `OPS-169`, `SAFE-202` | 최신 goal에서 9번 개발 승인 |
+| 30분 테스트 | 미진행 | assertion/evidence 로직만 변경하며 server runtime/media lifecycle은 변경하지 않음 | Step 9 변경 범위 | 장시간 trigger 없음; 6~9 통합 후 별도 판정 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2 high-risk trigger 없음 | Step 9 변경 범위 | 조건 미충족 |
+| UI 풀테스트 | 미진행 | native 8-case visible assertion은 실행하지만 Codex 인앱 전체 UI 직접 조작과 구분 | `UI-108`~`UI-115` | 직접 UI 풀테스트 승인 없음 |
+
+RED: runner source 검사에서 `document.documentElement.outerHTML`,
+`document.body.innerText`, `expectedMarkers`가 모두 발견돼 exit 1로 실패했습니다. 또한
+UI-113 actual visible state는 `all-action-writes-deferred`지만 기존 expected marker
+`defer-all-action-writes`가 source/script 문자열만으로 통과한 것을 보존 summary로
+재현했습니다.
+
+### V390-ADD1-09 거짓 PASS 방지 — 개발 및 실행 결과
+
+- `test/fixtures/v390_ui_automation_cases.json`을 schema v3로 올리고 각 `stateSelectors`와 exact 일치하는 `visibleAssertions`를 정의했습니다. UI-113은 source-only `defer-all-action-writes`가 아니라 실제 표시값 `all-action-writes-deferred`를 검증합니다.
+- `scripts/internal/v390_visible_dom_assertions.mjs`가 exact selector snapshot의 `exists`, computed `visible`, visible `innerText`, `textIncludes`만 평가하고 `sourceBoundary=exact-selector-visible-innerText-only` evidence를 생성합니다.
+- `scripts/internal/verify_v390_ui_automation.mjs`가 `document.body.innerText`, `outerHTML`, source marker, DOM-dispatch action을 제거했습니다. trusted adapter action이 없으면 FAIL하고, native action 뒤 selector별 snapshot을 Node-side evaluator에서 판정합니다.
+- report/runner/native adapter/acceptance contract가 schema v3, `assertionModel=visible-dom-user-action-v1`, 모든 assertion PASS/visibility/source boundary와 fallback false를 replay합니다.
+- acceptance dry-run의 stale 7-case preserved path를 `ui-automation-visible-dom-final`로 교체하고 acceptance/longrun contract fixture가 예외 종료에도 `/tmp` 산출물을 자동 제거하도록 process-exit cleanup을 추가했습니다.
+
+실행 결과:
+
+| 항목 | 결과 | 판정 |
+| --- | --- | --- |
+| source/hidden negative | whole-page/source assertion forbidden 4종 부재, script-only `defer-all-action-writes`와 hidden text FAIL, exact visible text PASS | PASS, contract 9/0 |
+| visible DOM UI final | `docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final`: UI-108~115 8/8, native dispatch, fallback false, 모든 assertion visible/missing 0 | PASS |
+| visible DOM replay | schema v3/exact route/action/assertion/failure/artifact/cleanup | PASS 7/0 |
+| acceptance first run | local HTTP H264/AAC `/opus` ffprobe 20초 timeout 1건으로 longrun FAIL; UI/replay/120 not-run, cleanup/report PASS | FAIL, 재시도 |
+| acceptance retry final | run `v390-test-acceptance-20260710100233-58896`: build, 26 feature gates, 실제 30분 predev 118/0/2와 soak 22회, UI 8/8, replay 7/0, cleanup PASS | PASS |
+| 120분 | runtime/media high-risk trigger 없음, decision `not-required`, pass substitution false | 조건부 미실행 |
+| UI 풀테스트 | native exact-selector 자동 UI는 실행했지만 Codex 인앱 전체 UI 직접 조작은 실행하지 않음 | 미실행 |
+
+첫 acceptance 실패는 같은 source의 `/default`, `/h264`, WebRTC와 다음 video-only case는
+통과하고 `/opus` ffprobe만 timeout난 일시적 readiness 실패였습니다. 코드/timeout을
+완화하지 않고 clean 재시도했으며 동일 `/opus` 경로와 전체 30분이 통과했습니다. 실패
+run 608KB, 통합 로그 260KB, predev/contract fixture temp를 삭제했고 최종 acceptance
+1.4MB와 visible-DOM UI 608KB만 보존했습니다.
+
+테스트 사용량: token start `1301950`, token end `1902440`, token consumed `600490`,
+elapsed 약 `4133초`, source `Codex goal usage`.
+
+### V390-ADD1-01 미추적 파일 전수 판정
+
+공통 판정 기준은 현재 tracked 참조, 삭제 커밋의 의도, 현재 blob과 삭제 직전 blob,
+대체 route/verifier, Git history 보존 여부입니다. 아래 30개 외 ignored runtime/build
+경로는 이번 단계에서 삭제하지 않았습니다.
+
+| 경로 | 삭제 이력/현재 상태 | 판정 | 근거 |
+| --- | --- | --- | --- |
+| `docs/assets/diagrams/README.md` | `af15be8a`에서 placeholder 삭제, 삭제 직전 blob과 동일 | 삭제 | 현재 tracked 참조 0, 예정 이미지 placeholder는 Git history에 보존 |
+| `docs/assets/ui/analysis-developer-url.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-preview.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-region-canvas.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-rule-editor-basic.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 제품 룰 UI는 `/ops/rules` |
+| `docs/assets/ui/analysis-rule-editor-scenario.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 제품 룰 UI는 `/ops/rules` |
+| `docs/assets/ui/analysis-rule-list.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 제품 룰 UI는 `/ops/rules` |
+| `docs/assets/ui/analysis-runtime-dashboard-metadata.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-records-issues.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-records.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-runtime.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-scenarios.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-tracking-issues.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-tracks.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-trend.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/history/development-history.md` | `e351db0f`에서 backlog로 통합, 삭제 직전보다 오래된 구본 | 삭제 | 현재 tracked 참조 0, 후속 기록이 누락된 중복 history |
+| `docs/history/verification-history.md` | `e351db0f`에서 backlog로 통합, 삭제 직전보다 오래된 구본 | 삭제 | 현재 tracked 참조 0, 후속 정정·검증 기록이 누락된 중복 history |
+| `docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md` | `bb7db525`에서 release ledger로 통합, 삭제 직전 blob과 동일 | 삭제 | 원문은 Git history, 요약은 release evidence/test records에 보존; verifier 참조는 존재 금지가 아니라 하드코딩 금지 검사 |
+| `include/ingress/lab_import_manager.h` | `a74d9b81`에서 legacy `/lab/import` manager 제거, 삭제 직전 blob과 동일 | 삭제 | CMake/current code 참조 0, 제품 import 경계는 `/ops/sources` |
+| `scripts/internal/auto_start_server.sh` | `1379aa31`에서 중복 lifecycle helper 제거, 삭제 직전 blob과 동일 | 삭제 | dispatch/current tracked 참조 0, `server.sh` lifecycle 명령이 대체 |
+| `scripts/internal/browser_webrtc_publish_consume_check.mjs` | `ee36c323`에서 legacy browser harness 제거, 삭제 직전보다 오래된 active 구본 | 삭제 | current tracked 참조 0, `/client/live`와 current verifier가 대체 |
+| `scripts/internal/rule_ui_smoke_check.mjs` | `a74d9b81`에서 `/lab/rules` smoke 제거, 삭제 직전보다 오래된 구본 | 삭제 | 미추적 wrapper 외 참조 0, Ops native rule verifier가 대체 |
+| `scripts/internal/verify_lab_import_ui.sh` | `a74d9b81`에서 `/lab/import` UI verifier 제거, 삭제 직전 blob과 동일 | 삭제 | dispatch/current tracked 참조 0, `/ops/sources`가 제품 UI |
+| `scripts/internal/verify_lab_layout.mjs` | `a74d9b81`에서 legacy Lab layout verifier 제거, 삭제 직전 blob과 동일 | 삭제 | dispatch/current tracked 참조 0, `/ops`·`/client` UI verifier가 대체 |
+| `scripts/internal/verify_manual_ui_evidence_runner.mjs` | `ec511cdc`에서 오판 가능 runner 제거, 삭제 직전보다 오래된 구본 | 삭제 | current inventory와 고정 count 불일치, manual UI/v3.9 automation 기준이 대체 |
+| `scripts/internal/verify_multichannel_webrtc.sh` | `ee36c323`에서 legacy `/webrtc/test` multichannel verifier 제거, 삭제 직전보다 오래된 구본 | 삭제 | 미추적 browser harness 외 참조 0, client workspace/tile verifier가 대체 |
+| `scripts/internal/verify_rule_ui_smoke.sh` | `a74d9b81`에서 `/lab/rules` wrapper 제거, 삭제 직전 blob과 동일 | 삭제 | 미추적 구형 script 외 참조 0, `verify_ops_rules_embed_smoke.mjs`가 대체 |
+| `scripts/internal/verify_webrtc_va_metadata_sync.mjs` | `a74d9b81`에서 Lab viewer 기반 verifier 통합 제거, 삭제 직전 blob과 동일 | 삭제 | dispatch/current tracked 참조 0, `verify_webrtc_va_metadata.mjs`가 대체 |
+| `src/ingress/lab_import_manager.cpp` | `a74d9b81`에서 legacy `/lab/import` manager 제거, 삭제 직전 blob과 동일 | 삭제 | CMake/current code 참조 0, 제품 import 경계는 `/ops/sources` |
+
+V390-ADD1-01 직접 결과:
+
+- 복구: 0개
+- 삭제: 30개, 총 약 4.2 MiB
+- 별도 보존: 0개. 필요한 과거 원문은 기존 Git object와 통합 ledger에서 조회 가능
+- 범위 밖 미삭제: ignored runtime/build 산출물과 이번 30개에 포함되지 않은 경로
+- 제품/API/UI/media 동작 변경: 없음
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | Foundation 정리 후 tracked 문서, 문서 자산, script dispatch/inventory와 diff 무결성 확인이 단계 완료 조건 | `V390-ADD1-01`, AGENTS 3.5/7.1 | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | 문서 기록과 삭제된 미추적 legacy 파일 정리는 runtime/media lifecycle을 변경하지 않음 | `V390-ADD1-01` 변경 범위 | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2의 media/lifecycle/high-risk trigger 없음 | `V390-ADD1-01` 변경 범위 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | 제품 UI 동작/자산을 변경하지 않고 이미 퇴역한 미추적 자산만 제거 | `V390-ADD1-01` 변경 범위 | 직접 실행 승인 없음 |
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 미추적 경로 잔존 확인 | `git ls-files --others --exclude-standard`: 대상 30개 제거 후 출력 0개 | pass | ignored runtime/build 경로는 명령 대상과 판정에서 제외 |
+| 문서 diff 무결성 | `git diff --check`: exit 0 | pass | 실패 이력 없음 |
+| 문서 링크 | `./server.sh verify-docs-links`: Markdown 141, local links 776, images 22, anchors 99, failures 0 | pass | 실패 이력 없음 |
+| 문서 UI 자산 | `./server.sh verify-docs-ui-assets`: pass 10, fail 0 | pass | legacy `analysis-*` 자산이 current manifest 비대상임을 확인 |
+| script inventory | `./server.sh verify-script-inventory`: pass 11, fail 0 | pass | 삭제된 미추적 legacy verifier가 dispatch/inventory 비대상임을 확인 |
+
+테스트 사용량: token start `169879`, token end `174558`, token consumed `4679`,
+elapsed 약 `3초`, source `Codex goal usage`.
+
+### V390-ADD1-02 전체 기능 인벤토리 exact-ID closure
+
+기존 `verify-feature-inventory-coverage`는 ID prefix 하나에 같은 prefix의 verifier family
+전체를 붙이고 target 하나만 있어도 `covered`로 판정했습니다. 이 방식은 잘못된 route,
+scope, action 의미, 삭제된 owner를 행별로 검출하지 못하므로 exact-ID manifest 기준으로
+교체했습니다.
+
+- `test/fixtures/project_feature_implementation_evidence.json`:
+  `media-server.feature-implementation-evidence.v1` schema로 inventory 974개 ID 각각에
+  section/surface, tracked source file+anchor, UI 필요/간접 또는 absence boundary 440행의
+  screen route와 product UI file+anchor, verifier file+asserted anchor+direct/transitive
+  dispatch command, UI 테스트 영역 424행의 동일한 `manualUiCaseId`, canonical v3.9
+  30/120분 runner를 고정했습니다.
+- `scripts/internal/feature_implementation_manifest_lib.mjs`:
+  manifest explicit refresh와 read-only validation, tracked file/anchor, exact ID set/hash,
+  UI screen route, verifier dispatch, longrun mapping을 검증합니다.
+- `scripts/internal/verify_feature_implementation_evidence.mjs`와
+  `./server.sh verify-feature-implementation-evidence`:
+  기본 read-only validator와 missing/duplicate/wrong-section ID, source/UI/verifier
+  file·anchor, screen route, dispatch, legacy longrun, inventory hash drift negative fixture를
+  제공합니다. `--refresh-manifest`는 명시적 source 변경으로만 사용합니다.
+- `scripts/internal/verify_feature_inventory_coverage.mjs`:
+  prefix fan-out을 제거하고 exact manifest item에서 implementation/UI/verifier/longrun
+  target을 구성합니다. UI target report의 `undefined` 출력도 제거했습니다.
+- `scripts/internal/verify_project_feature_test_inventory.mjs`:
+  누락돼 있던 J section과 completed exact-ID section을 요구하고 manifest 974행을 직접
+  검증합니다.
+- `docs/project-feature-test-inventory.md`:
+  잘못된 `970개`를 `974개`로 정정하고 `UI-001`~`UI-115` 범위를 복원했습니다.
+  27개 dashboard 행을 실제 `/ops/dashboard`로 정렬하고, `AUTH-029`/`AUTH-032` scope,
+  `SRC-010`/`SRC-019` soft-disable 의미, `EVT-055` 확정 route, `MEDIA-014` TCP config,
+  `LAB-079`~`LAB-082` stale 후보 문구를 실제 source/verifier에 맞게 수정했습니다.
+  `Coverage Review To Do`는 974/974 exact-ID 완료 결과로 교체했습니다.
+- manual UI 기준 3문서는 manifest의 UI 테스트 영역 424개 `manualUiCaseId`, screen route,
+  product UI anchor를 exact 실행/결과 집합으로 사용하고 prefix/range delegation으로
+  누락 ID를 대체하지 않게 정렬했습니다.
+
+이번 단계는 source/UI/verifier anchor 대조 완료이며, 해당 974개 기능의 제품 실행,
+UI 직접 조작, 30분/120분 장시간 PASS를 새로 만들었다는 뜻이 아닙니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | inventory/manifest/parser/dispatch/docs를 직접 변경해 구조·negative fixture·문서 연결 검증 필요 | `V390-ADD1-02`, 974 manifest rows | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | 구현/runtime/media path는 변경하지 않고 mapping source만 exact-ID로 교체 | `V390-ADD1-02` 변경 파일 | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2 media/lifecycle/high-risk trigger 없음 | `V390-ADD1-02` 변경 파일 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | manual case source를 확정했지만 제품 UI 동작은 변경하지 않음 | manifest UI anchor 440, manual case 424 | 직접 실행 승인 없음 |
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| implementation manifest refresh | `./server.sh verify-feature-implementation-evidence --refresh-manifest`: inventory/manifest/source/verifier 974, UI anchor 440, manual case 424, negative fixture 11/11 | pass | explicit source refresh 후 default read-only 검증과 분리 |
+| implementation evidence read-only | `./server.sh verify-feature-implementation-evidence`: validationErrors 0, negative fixture 11/11 | pass | 실패 이력 없음 |
+| feature coverage | `./server.sh verify-feature-inventory-coverage`: featureRows 974, covered 974, missing 0, pass 6/fail 0 | pass | 최초 UI absence boundary가 null UI evidence를 역참조해 TypeError fail; UI area 424/manual case와 UI anchor 440을 분리하고 처음부터 재실행 pass |
+| project inventory | `./server.sh verify-project-inventory`: featureRows 974, summary/manifest/current rows/seed, pass 14/fail 0 | pass | 최초 exact-ID 문구 교체 뒤 기존 `inventory 단독으로 UI PASS 판정 불가` boundary 문구 guard fail; 문구 복원 후 처음부터 재실행 pass |
+| manual UI evidence criteria | `./server.sh verify-manual-ui-evidence`: template/checklist 기준 pass 24/fail 0 | pass | 실제 UI 풀테스트 결과 입력 없음, UI 직접 조작 PASS 아님 |
+| script inventory | `./server.sh verify-script-inventory`: pass 11/fail 0 | pass | 새 dispatch/helper 추적·참조 확인 |
+| docs links | `./server.sh verify-docs-links`: Markdown 141, links 776, images 22, anchors 99, failures 0 | pass | 실패 이력 없음 |
+| unresolved closure wording | inventory/manifest의 `TODO`, `TBD`, `FIXME`, `review-required`, `not-approved`, 후속 API/검증 필요/후보 verifier 검색 결과 0 | pass | stale closure 문구 없음 |
+| manifest cardinality audit | items 974, source 974, verifier 974, missing command 0, generic self owner 0, UI anchor 440, manual case 424, 30분 49, 120분 7 | pass | `jq` read-only audit |
+| diff 무결성 | `git diff --check`: exit 0 | pass | 실패 이력 없음 |
+
+테스트 사용량: token start `438676`, token end `494210`, token consumed `55534`,
+elapsed 약 `226초`, source `Codex goal usage`. 최초 실패 2건은 같은 단계 안에서 원인과
+수정 내용을 보존하고 전체 안정화 묶음을 처음부터 재실행했습니다.
+
+### V390-ADD1-03 VLM 승격 신뢰 경계
+
+직접 감사에서 `/ops/vlm`이 editable Evaluation select의 `passed`와
+status/source/caseIds/dimensions/score를 PUT하고, `PrepareVlmProfileDocumentLocked`는
+허용 status 문자열과 active/enabled 조합만 확인한다는 결함을 재현했습니다. 기존
+`/ops/api/vlm/evaluation-promotion-guard`는 read-only 설명 route여서 profile 저장
+경로의 candidate/result/provenance를 enforce하지 않았습니다.
+
+개발 위치와 로직:
+
+- `include/ingress/vlm_evaluation_promotion.h`,
+  `src/ingress/vlm_evaluation_promotion.cpp`:
+  평가 API와 저장 validator가 공유하는 immutable candidate catalog,
+  `VlmEvaluationResultWorkflowJson`, `ValidateVlmEvaluationPromotion`을 추가했습니다.
+  catalog revision, workflow/harness/evaluator/model-catalog SHA-256, candidate digest,
+  option/model/prompt binding을 검증하고 server-canonical
+  `media-server.vlm-evaluation-provenance.v1` JSON을 생성합니다.
+- `src/ingress/webrtc_http_server.cpp`:
+  `PrepareVlmProfileDocumentLocked`가 정확히 하나의 evaluation object와
+  candidate ID/catalog revision/provenance digest만 받습니다. client-declared
+  status/source/caseIds/dimensions/score/provenance와 duplicate evaluation/candidate
+  field를 거부하고, 검증 뒤 request evaluation을 canonical server result로 교체합니다.
+  active/enabled 판정은 이 서버 파생 status에만 의존합니다.
+  registry reload 때 canonical evaluation/provenance를 다시 검증하고 불일치 profile은
+  `quarantinedProfileCount`로 계수해 메모리 registry와 GET 결과에서 제외합니다.
+- `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/webrtc_http_server.cpp` Ops UI:
+  editable passed select를 read-only `Evaluation (server verified)` input으로 교체했습니다.
+  candidate 적용은 model 문자열 추정이 아니라 exact `selectedOptionId`를 사용하고,
+  저장 payload는 candidate ID/revision/digest만 보냅니다. 저장 응답의 server status를
+  readback message에 사용합니다.
+- `test/fixtures/v390_vlm_promotion_trust_boundary/cases.json`,
+  `scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs`,
+  `./server.sh verify-v390-vlm-promotion-trust-boundary`:
+  auth-off throwaway registry/server에서 valid passed/pending/non-passed/no-candidate,
+  forged passed, unknown/stale candidate, option/model/prompt mismatch, failed/non-passed active,
+  rejected update 원본 보존을 포함한 14개 실제 PUT/GET case와 변조 registry restart
+  quarantine 1개 case를 정의했습니다.
+- `UI-111`, `LAB-123`, `SAFE-206`, `OPS-173`은 신규 server-authoritative 기준과 실제
+  HTTP verifier로 갱신했습니다. inventory 총 행 수는 974를 유지하고 manifest는
+  명시적 refresh 대상으로 둡니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | C++ profile 저장 validator, Ops UI payload, 실제 registry write/read, dispatch/docs/inventory를 변경 | `V390-ADD1-03`, `UI-111`, `LAB-123`, `SAFE-206`, `OPS-173` | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | runtime/provider/media lifecycle은 호출하지 않고 profile metadata validation만 변경 | `contractInvariants.*=false`, actual HTTP fixture | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2의 media/lifecycle/high-risk trigger가 없고 실제 server run은 단기 throwaway matrix | V390-ADD1-03 변경 범위 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | UI control/payload를 변경했으므로 최종 release에는 직접 조작 evidence가 필요하지만 이번 최신 지시는 UI 풀테스트 실행 승인 아님 | `UI-111`, `/ops/vlm` | 직접 실행 승인 없음 |
+
+안정화 실행 전 개별 항목:
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| C++ build | `./server.sh build`: shared catalog/profile validator compile/link, target 100% | pass | 최종 incremental clean gate 통과 |
+| promotion HTTP trust matrix | `MEDIA_SERVER_SKIP_BUILD=1 ./server.sh verify-v390-vlm-promotion-trust-boundary`: HTTP 14, restart quarantine 1, failures 0 | pass | 최초 sandbox loopback `EPERM`; 권한 재실행 후 readback wrapper 경로 오류, reload raw formatting/null 처리 오류를 순차 수정하고 전체 재실행 pass |
+| promotion guard regression | `./server.sh verify-v390-vlm-evaluation-promotion-guard`: pass 7, fail 0 | pass | 최초 exact manifest 전환 전 옛 coverage 문자열 요구로 pass 6/fail 1; manifest 기준으로 수정 후 pass |
+| evaluation workflow regression | `./server.sh verify-vlm-evaluation-result-workflow`: pass 6, fail 0 | pass | client-owned status/result field 부재와 shared catalog 확인 |
+| profile storage regression | `./server.sh verify-vlm-profile-storage`: pass 6, fail 0 | pass | 최초 옛 coverage 문자열 요구로 pass 5/fail 1; manifest 기준으로 수정 후 pass |
+| inventory manifest refresh/read-only | explicit refresh 및 `./server.sh verify-feature-implementation-evidence`: rows 974, source/verifier 974, UI 440, manual 424, validation 0, negative 11/11 | pass | `UI-111`/`LAB-123`/`SAFE-206`/`OPS-173` existing rows만 갱신 |
+| UI automation contract | `./server.sh verify-v390-ui-automation-runner-contract`: pass 6, fail 0 | pass | UI-111 current marker 갱신, 실제 UI 풀테스트 실행 아님 |
+| project/feature/script/docs/release gate | project inventory 14/0, feature coverage 6/0(974/974), feature completion 13/0, script inventory 11/0, docs links failures 0, release evidence 8/0 | pass | 모두 최종 묶음 재실행 |
+| auth route execution | `verify-auth-routes` | 미실행 | required password env 없음; static auth route/payload 연결은 profile verifier가 확인, 완료 evidence로 사용하지 않음 |
+| diff 무결성 | `git diff --check`: 출력 없음 | pass | 실패 이력 없음 |
+
+실패 이력과 수정:
+
+1. sandbox loopback bind는 `listen EPERM`으로 실패해 승인된 권한 실행으로 재시도했습니다.
+2. 첫 HTTP matrix는 GET wrapper `vlmProfile`을 검증기가 누락해 첫 readback에서 실패했고,
+   wrapper 경로를 수정한 뒤 14/14가 통과했습니다.
+3. 기존 promotion/profile verifier 2개는 Step 2 exact manifest 전환 뒤에도 옛 coverage
+   script 문자열을 요구해 각각 6/1, 5/1로 실패했고 manifest evidence 기준으로 수정했습니다.
+4. reload quarantine 추가 후 첫 실행은 valid profile까지 6개를 격리했고, 다음 실행은
+   4개를 격리했습니다. 원인은 pretty JSON 공백의 raw 비교, `candidateId: null` 공백 탐지,
+   `1.0` 숫자 표현 정규화였습니다. reload는 trusted revision/digest/binding을 검증한 뒤
+   evaluation 전체를 server canonical JSON으로 재생성하도록 바꾸고 최종 14+1 전체를
+   처음부터 재실행해 통과했습니다.
+
+테스트 사용량: token start `494210`, token end `902804`, token consumed `408594`,
+elapsed 약 `2500초`, source `Codex goal usage`/step boundary 추정.
+
+### V390-ADD1-04 Re-ID 준비 상태 정합성
+
+직접 감사에서 실제 `CreateAppearanceExtractorFromConfig`는 model path, SHA-256,
+provenance, OpenSSL, ONNX Runtime, session start를 확인하지만
+`OpsV390ReidAssistDecisionJson`은 설정 문자열 non-empty만 AND해
+`modelBackedExecutionReady=true`를 만들고 있음을 확인했습니다. 따라서 missing/directory
+model, invalid/mismatched SHA, whitespace provenance, OpenSSL/ONNX 미가용 상태에서 실제
+factory는 NoOp인데 Ops가 ready라고 표시할 수 있었습니다.
+
+개발 위치와 로직:
+
+- `include/analysis/appearance_extractor.h`, `src/analysis/appearance_extractor.cpp`:
+  raw path/SHA/provenance를 담지 않는 `AppearanceModelReadiness`와
+  `InspectAppearanceModelReadiness`를 추가했습니다. enabled/extractor, path configured,
+  exists/regular file, checksum configured/64-hex/readable/matches, trim provenance,
+  OpenSSL SHA-256 runtime, ONNX Runtime API availability를 결정적 reason code로 판정합니다.
+  factory도 이 판정기를 먼저 소비하고 PASS 뒤에만 기존 ONNX session `Start`를 최종
+  gate로 수행합니다.
+- `src/ingress/webrtc_http_server.cpp`:
+  `/ops/api/analysis/reid-assist-decision`이 같은 inspector 결과를 사용합니다.
+  `modelBackedPreflightReady`, `modelSessionLoadValidated=false`,
+  `modelBackedExecutionReady=false`, safe `readinessReason`을 분리하여 decision route가
+  실제 model load/execution을 증명하지 않게 했습니다. raw path/SHA/provenance는 반환하지
+  않습니다.
+- `src/ingress/product_ui_page_scripts.cpp`:
+  `renderV390ReidAssistDecision`이 file, SHA format/read/match, provenance validation scope,
+  OpenSSL, ONNX, reason, preflight/session boundary를 표시합니다. incomplete gate는 명시적
+  NoOp 사유로 표시하고 실행 완료 badge로 승격하지 않습니다.
+- `scripts/internal/reid_readiness_smoke.cpp`,
+  `scripts/internal/verify_reid_readiness_smoke.sh`:
+  OpenSSL/ONNX가 모두 없는 compile과 OpenSSL만 있는 compile을 각각 만들어 early gate,
+  digest mismatch/대문자 digest match, capability reason, factory NoOp을 검사합니다.
+- `test/fixtures/v390_reid_readiness_consistency/cases.json`,
+  `scripts/internal/verify_v390_reid_readiness_consistency.mjs`,
+  `./server.sh verify-v390-reid-readiness-consistency`:
+  AI build의 auth-off throwaway server를 케이스별로 재시작해 disabled, wrong extractor,
+  empty/missing/directory path, missing/invalid/mismatched SHA, whitespace provenance,
+  complete preflight의 실제 HTTP 10개 행렬과 raw material 비노출을 검증합니다.
+- `UI-115`, `LAB-125`, `SAFE-210`, `OPS-177` 네 기존 inventory 행을 공용 readiness와
+  신규 verifier 기준으로 갱신했습니다. 총 feature row는 974를 유지합니다.
+
+provenance 범위는 현재 계약에 맞춰 trim 후 non-empty operator assertion입니다. 별도
+서명/URI/schema가 없는 상태에서 진위 인증으로 과장하지 않습니다. Ops GET은 최신 파일
+변경을 즉시 반영하도록 매 요청에서 digest를 다시 검사하며, ops-only/no-store route이므로
+이번 단계에서는 stale cache를 도입하지 않았습니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | C++ factory gate, filesystem/hash/runtime probe, Ops API/UI, fixture/dispatch/docs/inventory를 변경 | `V390-ADD1-04`, `UI-115`, `LAB-125`, `SAFE-210`, `OPS-177` | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | media path나 지속 실행 lifecycle을 바꾸지 않고 config preflight와 단기 HTTP matrix만 변경 | V390-ADD1-04 변경 범위 | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2의 media/lifecycle/high-risk trigger 없음 | V390-ADD1-04 변경 범위 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | Ops 표시 로직을 변경해 release 전 직접 UI evidence는 필요하지만 최신 지시는 UI 풀테스트 실행 승인이 아님 | `UI-115`, `/ops/dashboard` | 직접 실행 승인 없음 |
+
+안정화 실행 결과:
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| C++ build | `./server.sh build`: 공용 inspector, OpenSSL/ONNX probe, Ops route/UI compile/link, target 100% | pass | 최초 빌드부터 통과 |
+| readiness C++/HTTP matrix | `./server.sh verify-v390-reid-readiness-consistency`: capability compile 2종, actual HTTP 10개, failures 0 | pass | 첫 HTTP 실행은 5개 통과 뒤 verifier process 종료/port 회수 timeout; 종료를 await하고 HTTP/RTSP port 분리 후 전체 재실행 pass |
+| Step 18/static privacy regression | `./server.sh verify-v390-conditional-field-ai-decisions`: pass 8/fail 0; `./server.sh verify-reid-advanced-tracking`: pass 12/fail 0 | pass | 새 preflight/session/raw-material 경계로 verifier와 문서 정렬 후 통과 |
+| analysis state | `./server.sh verify-analysis-state`: pass 178/fail 0 | pass | 기존 factory NoOp/appearance/tracking/scenario/event 회귀 통과; 신규 capability matrix가 missing branches 보완 |
+| implementation manifest | explicit refresh: inventory/source/verifier 974, UI 440, manual 424, validation 0, negative 11/11 | pass | 첫 refresh는 신규 verifier가 아직 index에 없어 tracked evidence 3건 fail; 단계 커밋 대상 신규 파일 stage 후 전체 재실행 pass |
+| UI automation contract | `./server.sh verify-v390-ui-automation-runner-contract`: pass 6/fail 0 | pass | UI-115 marker source 갱신, 실제 UI 직접 조작 결과는 아님 |
+| inventory/docs/release gates | feature completion 13/0, feature coverage 6/0(974/974), project inventory 14/0, script inventory 11/0, docs links failures 0, release evidence 8/0 | pass | 최종 inventory/manifest/docs 연결 뒤 재검증 |
+| auth route verifier | `verify-auth-routes` | 미실행 | 필수 password env 5개 모두 absent. 실제 HTTP matrix는 auth-off throwaway server이고 auth/role/scope 구현은 변경하지 않음; 완료 evidence로 사용하지 않음 |
+| 장시간/UI 직접 실행 | 30분, 120분, UI 풀테스트 | 미실행 | 사용자 별도 실행 승인 없음; 완료 evidence로 사용하지 않음 |
+| diff 무결성 | `git diff --check`: 출력 없음 | pass | 최종 파일 상태 확인 |
+
+실패 이력은 verifier lifecycle 1건과 manifest tracked-file 순서 1건이며 제품 readiness
+판정의 false-positive case는 최종 행렬에서 모두 제거했습니다. 실제 ONNX graph/session
+load와 inference 성공은 모델 artifact가 필요한 별도 실행 evidence이며 이번 preflight
+PASS로 대체하지 않습니다.
+
+테스트 사용량: token start `902804`, token end `1252561`, token consumed `349757`,
+elapsed 약 `2161초`, source `Codex goal usage`/step boundary 추정.
+
+### V390-ADD1-05 ONVIF source/view 저장 원자성
+
+직접 감사에서 `/ops/sources` ONVIF form submit과 enable/disable toggle이 source PUT 성공
+후 view PUT을 별도 요청으로 실행하고, 두 번째 요청 실패 시 catch가 오류만 표시해 첫 source
+저장이 파일·메모리에 남는 것을 확인했습니다. `SourceViewRegistry`의 각 JSON 파일은
+temp write/fsync/rename으로 개별 원자 교체되지만 두 API 호출 사이에는 공통 lock,
+사전검증, transaction, rollback이 없었습니다.
+
+개발 위치와 로직:
+
+- `include/ingress/source_view_registry.h`, `src/ingress/source_view_registry.cpp`:
+  `UpsertOnvifSourceView`를 추가했습니다. 한 mutex 구간에서 source/path ID와 canonical
+  duplicate, `onvif`/`live` tag를 검증하고 candidate source set을 만든 뒤 그 set으로
+  PublishedView의 path/view/source ID와 참조를 검증합니다. 검증이 모두 끝나기 전에는
+  파일 write를 시작하지 않습니다.
+- source 파일 저장 뒤 view 파일 저장이 실패하면 pre-transaction `sources_` snapshot을
+  같은 atomic writer로 복구합니다. writer는 `target_replaced`를 반환하여 rename 전 실패와
+  rename 후 parent fsync 실패를 구분하고, 실제 교체된 view만 추가 복구합니다. 두 파일이
+  모두 성공한 뒤에만 in-memory source/view vector를 함께 교체합니다.
+- 실패 응답은 `paired-write-with-compensating-rollback`, failed stage, source/view write,
+  rollback attempted/succeeded, `partialSave`, consistency status를 안전한 boolean/token으로
+  반환합니다. rollback 실패는 `manual-recovery-required`로 숨기지 않습니다. 이는 process
+  crash journal까지 제공하는 cross-file atomic transaction이 아니라 검증 가능한 보상
+  rollback입니다.
+- `src/ingress/webrtc_http_server.cpp`:
+  `PUT /ops/api/onvif/channels/{channelId}`를 추가했습니다. `ops` principal과
+  `source:write`, 128 KiB body 상한, 정확히 하나의 `source`/`publishedView` object를
+  요구하고 paired registry method만 호출합니다. 기존 개별 source/view API는 호환을 위해
+  유지합니다.
+- `src/ingress/product_ui_ops_sources_script.cpp`:
+  `saveChannelSourceViewPair`가 ONVIF form save와 ONVIF toggle을 단일 paired route로
+  전환했습니다. 비-ONVIF channel flow는 현재 단계 범위를 벗어나 기존 API를 유지합니다.
+  import draft는 계속 `notSaved:true`, one-shot=false이며 저장 버튼을 누르기 전 write하지
+  않습니다.
+- `scripts/internal/verify_onvif_rtsp_downstream.mjs`의 기존 성공 경로도 연속 PUT 대신 paired
+  route를 사용하도록 이관했습니다.
+- `test/fixtures/v390_onvif_source_view_atomicity/cases.json`,
+  `scripts/internal/verify_v390_onvif_source_view_atomicity.mjs`,
+  `./server.sh verify-v390-onvif-source-view-atomicity`:
+  committed create, missing pair/non-ONVIF/mismatched view prevalidation, view parent ENOTDIR
+  second-write failure, exact source rollback, fault 제거 후 retry, concurrent pair no-mix,
+  restart consistency를 actual auth-off HTTP 8개 case로 검증합니다. API memory와 source/view
+  disk bytes, temp file 잔존도 함께 확인합니다.
+- `UI-109`, `SRC-066`, `SAFE-204`, `OPS-171` 네 기존 inventory 행을 paired route와
+  rollback verifier로 갱신했으며 전체 feature row 974개는 유지합니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | SourceRegistry/PublishedView write semantics, Ops route/UI, actual disk failure/restart fixture, docs/inventory 변경 | `V390-ADD1-05`, `UI-109`, `SRC-066`, `SAFE-204`, `OPS-171` | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | registry save는 요청 단위이고 media streaming lifecycle을 변경하지 않음 | paired write/rollback 변경 범위 | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2의 media/lifecycle/high-risk trigger 없음 | paired write/rollback 변경 범위 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | ONVIF form submit/toggle JS를 변경해 release 전 직접 UI evidence는 필요하지만 최신 지시는 UI 풀테스트 실행 승인이 아님 | `UI-109`, `/ops/sources` | 직접 실행 승인 없음 |
+
+안정화 실행 결과:
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| C++ build | `./server.sh build`: paired registry method, route, Ops UI compile/link, target 100% | pass | 두 차례 incremental build 통과 |
+| paired atomicity HTTP matrix | `./server.sh verify-v390-onvif-source-view-atomicity`: actual cases 8, injected failure partialSave=false, restartConsistency=true, failures 0 | pass | 최초 실행은 제품 요청 전 verifier C++ string escape 오판으로 정적 precheck fail; escape 수정 후 처음부터 재실행 pass |
+| rollback disk evidence | source write 성공/view parent ENOTDIR 실패 뒤 source bytes 복구, view saved bytes 불변, API snapshot 불변, retry/restart pair 일치, `.tmp.*` 0 | pass | path component fault 제거와 temp workdir cleanup 완료 |
+| 기존 ONVIF contract/HTTP 호환 | `verify-onvif-live-import-contract` 12/0, local auth-off `verify-onvif-import-draft-api` 22개 check/0 failure, `verify-onvif-rtsp-downstream` paired save/client redaction failures 0 | pass | 외부 ONVIF 실기기에 접속하지 않고 local fixture/RTSP locator로 검증 |
+| UI/decision 정적 회귀 | `verify-v390-onvif-live-import-persist-decision` 6/0, `verify-v390-ui-automation-runner-contract` 6/0, `verify-ops-client-ui --browser-mode static` 28/0 | pass | static mode의 rendered leak/admin form 조작은 skip; UI 풀테스트 직접 evidence가 아님 |
+| inventory/docs/script gate | implementation evidence 974행/validation 0/negative 11, feature coverage 974/974 및 6/0, project inventory 14/0, feature completion 13/0, script inventory 11/0, docs links 0, release evidence 8/0 | pass | manifest의 `UI-109`/`SRC-066`/`SAFE-204`/`OPS-171`를 실제 route/function/verifier anchor로 고정 |
+| auth route matrix | `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`, `PREVIOUS_PASSWORD`, `SECOND_PREVIOUS_PASSWORD`, `WRONG_PASSWORD_ONE`, `WRONG_PASSWORD_TWO` | 미실행 | 필수 password env 5개가 모두 없어 AGENTS auth 조건에 따라 실행하지 않음 |
+| 임시 산출물 cleanup | `/tmp/media_server_v390_add1_05_compat` 8KB와 verifier throwaway workdir | pass | source/view JSON 2개 삭제 후 경로 부재 및 atomicity workdir 0 확인; 보존 파일 없음 |
+| 장시간/UI 직접 실행 | 30분, 120분, UI 풀테스트 | 미실행 | 사용자 별도 실행 승인 없음; 완료 evidence로 사용하지 않음 |
+
+범위 밖 후속으로 DELETE의 view/source 병렬 disable과 multi-process file lock/journal은 이번
+요청의 연속 PUT 결함에 포함하지 않았습니다. 이번 paired route의 product 후속 이슈는 관련
+회귀·inventory·문서 gate까지 통과하면 남기지 않습니다.
+
+테스트 사용량: token start `1252561`, token end `1526311`, token consumed `273750`,
+elapsed 약 `1146초`, source `Codex goal usage`/step boundary 추정.
+
+## v3.9.0 남은 구현 목표: 다른 개발 채팅 인계용 상세 계약
+
+이 섹션은 v3.9.0을 닫기 전에 실제로 구현해야 할 미완성 부분을 명시합니다.
+다른 채팅이나 에이전트는 이 섹션만 읽어도 사용자가 원하는 최종 기능을 구현할 수
+있어야 합니다. 특히 테스트 자동화는 "에이전트가 직접 눌러서 확인했다"가 아니라
+사용자 또는 다른 채팅이 같은 명령을 그대로 실행했을 때 같은 PASS/FAIL과 같은
+failure evidence가 나와야 합니다.
+
+중요한 용어:
+
+- `criteria complete`: 기준, 문서, verifier 문구, not-run boundary가 정리된 상태입니다.
+- `implementation complete`: 실제 실행 가능한 script/route/UI가 있고, 실패 시 상세
+  evidence를 남기며, 사용자가 같은 command를 재실행해 같은 판정을 얻을 수 있는 상태입니다.
+- Step 9와 Step 10은 먼저 `criteria complete`로 닫혔고, R1/R2/R5와
+  V390-ADD1-06~10에서 actual bundle, `UI-112` case completeness, native free UI adapter,
+  visible DOM assertion, true first-fail longrun loop가 `implementation complete`로 보강됐습니다.
+  full route/control/action coverage는 아직 `implementation complete`가 아닙니다.
+
+### v3.9.0 잔여 구현 순서
+
+| 순서 | 우선순위 | 대상 | 현재 상태 | 반드시 구현할 내용 | 완료 evidence |
+| --- | --- | --- | --- | --- | --- |
+| R0 | P0 | `V390-CAND-001` inventory 상태 불일치 정리 | `docs/v390-feature-completion-inventory.md` 원 표 행과 Candidate/Closed 목록이 Step 11 evidence 기준 `closed-with-evidence`로 정리됨 | inventory 원 행을 Step 11 구현 상태와 맞춰 `closed-with-evidence`로 정리하고, Candidate/Closed 목록 문구가 서로 모순되지 않게 보정 | `./server.sh verify-v390-feature-completion-inventory`, `./server.sh verify-v390-onvif-credential-provider-status`, `git diff --check` |
+| R1 | P0 | AI-minimized server longrun runner 실제 구현 | V390-ADD1-10까지 구현됨. `verify-v390-server-longrun`과 `verify-predev --fail-fast`가 phase/case first-fail, later `not-run`, context/stderr/reproduction을 보존합니다. 과거 사용자 승인 30분 evidence는 남아 있지만 새 code 기준 30분/120분은 미실행 | 30분/120분 서버 테스트를 하나의 명령으로 시작하고 첫 실패에서 즉시 중단하며 이후 phase/case를 `not-run`으로 기록. predev delegated summary의 내부 첫 실패와 진단 정보를 `failure`/`failedCase`/`delegatedFailure`로 보존 | `./server.sh verify-v390-server-longrun-runner-contract`, fast predev first-fail fixture, 새 code 기준 실제 30분/120분은 별도 승인 evidence |
+| R2 | P0 | AI-minimized UI automation runner 실제 구현 | `verify-v390-ui-automation`/`verify-v390-ui-automation-report`/`verify-v390-ui-automation-runner-contract` 구현과 실제 Playwright-mode UI automation suite PASS evidence가 보존됨. 현재 환경에서는 Playwright package 부재로 `chrome-cdp-fallback` adapter를 명시 기록 | 무료 UI 자동화 도구 우선순위에 맞춘 runner를 구현하고 route/control/action 단위 실패 report, screenshot, trace/video, console, server log, cleanup evidence를 남김 | `./server.sh verify-v390-ui-automation-runner-contract`, `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1`, `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`, 실패 fixture에서 failure report PASS |
+| R3 | P0 | 사용자가 재실행 가능한 v3.9 test acceptance bundle | `verify-v390-test-acceptance-bundle --dry-run`과 contract verifier가 구현되어 `finalAcceptanceCommandSet`, R1 30분 preserved evidence `pass-existing-evidence`, R2 UI automation preserved evidence `pass-existing-evidence`, 조건부 120분, published/release action not-run boundary를 한 summary/report로 고정함. 실제 acceptance bundle 실행은 사용자 승인 전 미실행 | R1/R2 산출물을 포함한 final acceptance command set을 문서와 script dispatch에 고정하고, 각 command의 summary/report 경로를 release evidence로 복사 가능하게 함 | `./server.sh verify-v390-test-acceptance-bundle --dry-run`, `./server.sh verify-v390-test-acceptance-bundle-contract`, `./server.sh verify-script-inventory`, `./server.sh verify-release-evidence-index` |
+| R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | R4 선택 option 3으로 정리됨. `verify-predev`는 legacy/compatibility cumulative predev runner, `verify-v390-server-longrun`은 release-grade first-fail runner이며 runtime/media trigger matrix row도 새 runner를 표준 trigger로 사용 | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-v390-longrun-runner-role-alignment`, `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
+| R5 | P1 | UI result/release evidence replay guard | v3.9.0 R5 UI automation report replay guard 구현됨. `verify-v390-ui-automation-report --summary <summary.json>`가 progress output과 함께 PASS zero-fail/not-run/manual-intervention, screenshot/trace/video/browser-console/server-log artifact file existence, browserConsole warning/error 허용 사유, first-fail 이후 not-run 순서를 검증함. 실제 R2 suite 보존 summary replay도 PASS로 실행됨 | UI runner summary를 입력으로 받아 route/control/action 개별 행, manual intervention 없음, failed interaction 0, screenshot/trace/log 존재를 검증하는 replay verifier 구현 | `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`, `./server.sh verify-v390-ui-automation-report-replay-guard` |
+
+### v3.9.0 post-review 잔여 이슈: 테스트 철저화와 release 전 재확인
+
+이 섹션은 2026-07-09 post-review에서 문서 완료 표기를 믿지 않고 실제 구현과 evidence를
+다시 대조한 결과입니다. 아래 항목은 v3.9.0 이후 구현 내용을 다시 건드리지 않는다는
+전제에서 release action 전에 닫아야 하는 테스트/증적 잔여 이슈입니다. 이 표는 이전
+요청과 같은 `구간 | 제목 | 우선순위 | 개발 내용` 형식으로 유지합니다.
+
+| 구간 | 제목 | 우선순위 | 개발 내용 |
+| --- | --- | --- | --- |
+| Test Closure | R6 actual acceptance bundle 실행 모드 | P0 | `verify-v390-test-acceptance-bundle`이 `--dry-run` 없이 실행될 때 local readiness, R1 30분, R2 UI automation, 조건부 120분 판정, cleanup/evidence copy를 stop-on-first-fail summary/report로 생성하게 구현. 현재 `release-test-records.md`의 `v390 R3 actual acceptance bundle`은 미실행/FAIL 경계이므로 완료 evidence로 사용 금지 |
+| UI Automation | R7 `UI-112`와 v3.9 신규 UI case completeness | P0 | `test/fixtures/v390_ui_automation_cases.json`과 보존 summary가 `UI-112` staging restore validation handoff를 누락함. `UI-108`~`UI-115` 전 case를 manifest, actual run, replay guard, release evidence에 포함하고 누락 case가 있으면 PASS 불가 처리 |
+| UI Automation | R8 native free UI automation adapter proof | P0 | 현재 R2 실제 run은 `browserMode=playwright`지만 Playwright package 부재로 `selectedAdapter.engine=chrome-cdp-fallback`을 사용함. Playwright/Selenium/SikuliX 중 하나를 native adapter evidence로 실행하거나, native adapter 부재 시 명확한 preflight FAIL과 설치/설정 안내를 남기고 fallback PASS를 primary PASS로 쓰지 않게 함 |
+| Server Longrun | R9 true first-fail longrun loop | P0 | V390-ADD1-10 완료. `verify-predev --fail-fast`가 duration iteration의 각 case 뒤 실패를 확인해 같은 iteration의 later case와 future iteration을 `not-run`으로 남기며, `verify-v390-server-longrun`이 context/stderr/reproduction을 console/summary/report에 보존 |
+| UI Full Coverage | R10 v1.0~v3.9 route/control/action automation coverage matrix | P0 | exact `manualUiCaseId` 424개 mapping은 유지합니다. stale historical 8-case는 current input에서 격리했고 current matrix는 native 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리합니다. Matrix PASS를 UI 풀테스트 PASS로 승격하지 않습니다 |
+| Release Evidence | R11 post-review final evidence re-run and cleanup | P0 | R6~R10 수정 후 `verify-v390-stabilization-release-readiness`, Step 1~20 companion gates, actual 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence 보존을 다시 실행하고 release action 전 최신 evidence로 교체/추가 |
+| Product Scope Lock | R12 deferred product decision owner sign-off | P1 | action execution, persistent credential store, field smoke, provider call, model-backed Re-ID는 현재 read-only/defer 상태임. v3.9에서 non-goal로 닫는지 실제 구현할지 owner decision을 문서/evidence에 명확히 남김. owner decision 없이 완료 주장 금지 |
+| Structure | R13 structure stabilization implementation readiness | P1 | Step 19는 실제 route/API/UI extraction이 아니라 handoff임. v4.0 전/후 어느 branch에서 `webrtc_http_server.cpp`, product UI script, manual UI archive, VLM contract index를 slice별로 분리할지 실행 순서와 verifier를 확정 |
+| Conditional Field | R14 real external field smoke gate | P2 | ONVIF 실기기, external WHEP/TURN, cloud/VLM provider endpoint/credential이 제공될 때만 real field smoke를 실행. 조건 미제공이면 `조건부 미실행`으로 남기고 local/UI/30분 PASS로 field PASS를 대체하지 않음 |
+
+#### post-review 잔여 이슈 완료 evidence 기준
+
+| 이슈 | 완료 evidence | 완료로 인정하지 않는 것 |
+| --- | --- | --- |
+| R6 | `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final` actual summary/report와 contract PASS | `--dry-run` PASS, R1/R2 preserved evidence를 읽기만 한 summary |
+| R7 | `UI-112` 포함 `UI-108`~`UI-115` 전 case actual UI automation PASS와 replay guard PASS | `UI-112`가 빠진 caseCount 7 summary |
+| R8 | native Playwright/Selenium/SikuliX adapter selected evidence 또는 native 부재 시 preflight FAIL/설치 안내 | `chrome-cdp-fallback`을 primary Playwright PASS처럼 해석 |
+| R9 | 실제 longrun case loop에서 fixture failure 이후 case가 `not-run`이고 cumulative `verify-predev`가 이후 case를 계속 실행하지 않았다는 evidence | delegated predev summary만 읽어 첫 실패 이름을 보존한 것 |
+| R10 | exact UI test ID 424개 전수 집합과 featureId/route/control-action/stability verifier/automation caseId별 actualResult/artifact/log 개별 report, prefix/range 판정 제거 contract | 일부 prefix 행 또는 v3.9 신규 card marker만 확인한 자동화 |
+| R11 | post-review 수정 이후 새 final evidence, cleanup 기록, `git diff --check` PASS | Step 20 이전 local readiness PASS 재사용 |
+| R12 | owner decision이 `deferred-by-owner` 또는 `implement-before-release`로 명시되고 release notes/evidence에 반영 | read-only route 존재만으로 실제 실행 기능 완료 주장 |
+| R13 | 구조 안정화 실행 branch/slice/verifier 순서가 확정되고 구현 대상과 비대상이 분리 | Step 19 handoff PASS를 실제 refactor 완료로 해석 |
+| R14 | endpoint/credential/실기기/provider 조건이 주어진 실제 field smoke summary/report | 조건 미제공 상태의 local verifier PASS |
+
+### R1. AI-minimized server longrun runner 구현 계약
+
+목표:
+
+- 사용자는 장시간 서버 테스트를 직접 해석하거나 에이전트가 서버를 손으로 보살피지 않아도 됩니다.
+- 하나의 command가 30분 또는 120분 suite를 시작하고, command line과 모든 phase 결과를
+  summary/report에 남깁니다.
+- 첫 실패가 발생하면 즉시 suite를 중단하고, 실패 phase 이후의 phase는 실행하지 않고
+  `not-run`으로 기록합니다.
+- 최종 exit code는 PASS면 `0`, FAIL이면 non-zero입니다.
+
+권장 command 이름:
+
+```bash
+./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <path>
+./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <path>
+./server.sh verify-v390-server-longrun-runner-contract
+```
+
+구현 위치 기준:
+
+- dispatch: `server.sh`
+- runner: `scripts/internal/verify_v390_server_longrun.mjs` 또는 `.sh`
+- contract verifier: `scripts/internal/verify_v390_server_longrun_runner_contract.mjs`
+- docs: `docs/stream-verification.md`, `docs/release-test-records.md`,
+  `docs/release-evidence-index.md`, `docs/project-feature-test-inventory.md`
+
+필수 phase 순서:
+
+| phase | 목적 | 실패 시 evidence |
+| --- | --- | --- |
+| preflight | command, duration, output dir, ports, required tools, fixture 존재 확인 | missing tool/file/port와 해결 파일 경로 |
+| build | `./server.sh build` 또는 명시적 skip 사유 | build command, exit code, build log path |
+| seed | throwaway registry/event/snapshot/clip path 준비 | seed file/path, cleanup 대상 |
+| start-server | isolated RTSP/HTTP port로 서버 시작 | port, health URL, server log path, tail |
+| integrated-smoke | 기존 `./server.sh test --no-start ...` 또는 동등 smoke | command, exit code, log path, tail |
+| soak-case-loop | VA event, event-post schema/recovery/queue, redaction 등 case를 순서대로 실행 | 실패 case id, route, command, exit code, case log, summary |
+| runtime-idle | session/stream/tap/SSE/WS idle 확인 | final runtime counts, route, log path |
+| cleanup | server terminate, ports clean, temporary artifact cleanup/preserve reason | cleanup state, remaining process/port/path |
+| report | summary JSON과 Markdown report 생성 | report write failure path |
+
+필수 summary schema:
+
+```json
+{
+  "schema": "media-server.v390-server-longrun.v1",
+  "runId": "v390-server-longrun-...",
+  "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir ...",
+  "durationMinutes": 30,
+  "result": "PASS",
+  "stopOnFirstFail": true,
+  "failedPhase": "",
+  "failedCase": "",
+  "exitCode": 0,
+  "ports": { "http": 0, "rtsp": 0 },
+  "outputDir": "",
+  "summaryPath": "",
+  "reportPath": "",
+  "cleanup": {
+    "serverStopped": true,
+    "portsClean": true,
+    "temporaryArtifactsRemoved": true,
+    "preservedArtifacts": []
+  },
+  "phases": [
+    {
+      "id": "integrated-smoke",
+      "status": "PASS",
+      "command": "",
+      "exitCode": 0,
+      "logPath": "",
+      "summaryPath": "",
+      "tail": []
+    }
+  ]
+}
+```
+
+실패 fixture 요구사항:
+
+- contract verifier는 실제 30분을 기다리지 않고 의도적으로 실패하는 작은 fixture를 실행해
+  first-fail 동작을 확인해야 합니다.
+- 실패 fixture 결과는 `failedPhase`와 `failedCase`가 채워져야 합니다.
+- 실패 phase 이후 phase는 `SKIPPED`가 아니라 `not-run`으로 명확히 기록해야 합니다.
+- 실패 report에는 command, exit code, phase, route 또는 health URL, port, log path,
+  summary path, report path, cleanup state, likely investigation files가 있어야 합니다.
+
+기존 `verify-predev`와의 차이:
+
+- 현재 `scripts/internal/verify_predev_stability.sh`는 일부 step에 `|| true`를 사용해
+  실패를 누적한 뒤 마지막에 FAIL을 반환합니다. 이것은 R1 목표인 first-fail runner가 아닙니다.
+- 기존 `verify-predev`를 고치려면 compatibility risk를 문서화하고, 기존 release evidence를
+  깨지 않는 `--stop-on-first-fail` opt-in mode로 시작하는 것을 권장합니다.
+- 더 안전한 선택은 `verify-v390-server-longrun` 새 command를 만들고, release trigger matrix가
+  새 command를 가리키도록 R4에서 정렬하는 것입니다.
+
+R1 완료 판정:
+
+```bash
+./server.sh verify-v390-server-longrun-runner-contract
+./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir docs/release-artifacts/v3.9.0/server-longrun-30min-final
+git diff --check
+```
+
+120분은 AGENTS 7.6.2 high-risk/RC 조건 또는 사용자의 명시 승인 후에만 실행합니다.
+R1 구현 완료와 120분 실행 완료는 서로 다른 evidence입니다.
+
+### R2. AI-minimized UI automation runner 구현 계약
+
+목표:
+
+- 에이전트가 인앱 브라우저를 직접 클릭하지 않아도 UI test suite가 실행됩니다.
+- 무료 도구 우선순위는 Playwright, Selenium, SikuliX/image fallback 순서입니다.
+- 기본 runner는 Playwright를 우선합니다. Selenium은 Playwright 실행 불가 환경의 fallback,
+  SikuliX는 DOM만으로 video viewport, overlay, crop, visual artifact를 판정하기 어려울 때만
+  별도 visual fallback으로 둡니다.
+- 실패 시 어떤 route/control/action에서 무엇이 기대와 달랐는지 사용자가 summary/report만
+  보고 재현할 수 있어야 합니다.
+
+구현 command 이름:
+
+```bash
+./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir <path>
+./server.sh verify-v390-ui-automation --browser-mode selenium --output-dir <path>
+./server.sh verify-v390-ui-automation --browser-mode sikulix --output-dir <path>
+./server.sh verify-v390-ui-automation-runner-contract
+./server.sh verify-v390-ui-automation-report --summary <summary.json>
+```
+
+구현 위치 기준:
+
+- dispatch: `server.sh`
+- runner: `scripts/internal/verify_v390_ui_automation.mjs`
+- report verifier: `scripts/internal/verify_v390_ui_automation_report.mjs`
+- contract verifier: `scripts/internal/verify_v390_ui_automation_runner_contract.mjs`
+- case manifest: `test/fixtures/v390_ui_automation_cases.json`
+- docs: `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`,
+  `docs/manual-ui-result-template.md`, `docs/release-test-records.md`,
+  `docs/release-evidence-index.md`, `docs/project-feature-test-inventory.md`
+
+필수 실행 모델:
+
+| phase | 목적 | 실패 시 evidence |
+| --- | --- | --- |
+| preflight | browser tool, dependency, output dir, auth env, fixture 확인 | missing dependency/env와 설치/설정 위치 |
+| seed | core/auth throwaway registry/users/event path 생성 | seed plan, registry dir |
+| start-core-server | auth off core UI 서버 시작 | health URL, port, server log |
+| start-auth-server | auth auto UI 서버 시작 | users file, health URL, port, server log |
+| case-loop | route/control/action manifest를 순서대로 실행 | case id, route, viewport, theme, role, control/action |
+| visual-capture | screenshot/trace/video/console/server log reference 수집 | artifact path |
+| cleanup | browser context, servers, ports, temp files 정리 | cleanup state |
+| report | summary JSON, Markdown report, optional HTML/index 생성 | report path |
+
+필수 case granularity:
+
+- case는 `Rules PASS`, `Auth PASS` 같은 큰 묶음으로 판정하지 않습니다.
+- 모든 case는 기능 ID와 route/control/action을 가져야 합니다.
+- 예시:
+  - `UI-108 onvif-provider-status visible on /ops/sources`
+  - `UI-109 onvif-live-import-persist-decision visible on /ops/sources`
+  - `UI-110 vlm-rule-suggestion-draft-bridge visible on /ops/rules`
+  - `UI-111 vlm-evaluation-promotion-guard visible on /ops/vlm`
+  - `UI-113 action-execution-deferral visible on /ops`
+  - `UI-114 field-evidence-bridge visible on /ops`
+  - `UI-115 reid-assist-decision visible on /ops`
+
+필수 failure report 필드:
+
+```json
+{
+  "caseId": "UI-108",
+  "route": "/ops/sources",
+  "viewport": { "width": 390, "height": 844 },
+  "theme": "light",
+  "accountRole": "operator",
+  "controlAction": "open-source-tools-panel",
+  "expectedResult": "provider status card shows primarySelection=none",
+  "actualResult": "card not found",
+  "screenshotPath": "",
+  "tracePath": "",
+  "videoPath": "",
+  "browserConsole": [],
+  "serverLogReference": "",
+  "cleanupPortState": "clean",
+  "manualIntervention": false
+}
+```
+
+필수 summary schema:
+
+```json
+{
+  "schema": "media-server.v390-ui-automation.v1",
+  "runId": "v390-ui-automation-...",
+  "command": "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir ...",
+  "browserMode": "playwright",
+  "result": "PASS",
+  "manualIntervention": false,
+  "caseCount": 0,
+  "pass": 0,
+  "fail": 0,
+  "notRun": 0,
+  "failedCaseId": "",
+  "outputDir": "",
+  "summaryPath": "",
+  "reportPath": "",
+  "screenshotsDir": "",
+  "tracesDir": "",
+  "cleanup": {
+    "coreServerStopped": true,
+    "authServerStopped": true,
+    "portsClean": true
+  },
+  "cases": []
+}
+```
+
+R2 완료 판정:
+
+```bash
+./server.sh verify-v390-ui-automation-runner-contract
+./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final
+./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json
+git diff --check
+```
+
+R2 구현/실행 기록:
+
+- `scripts/internal/verify_v390_ui_automation.mjs`는 `adapterPlan`, `selectedAdapter`,
+  `adapterAttempts`, case별 `adapterEvidence`, `browserConsolePath`를 summary에 기록합니다.
+  Playwright package가 없으면 명시 승인된 `--allow-chrome-fallback=1` 조건에서
+  `chrome-cdp-fallback`을 선택하고, Selenium remote endpoint와 SikuliX visual command는
+  환경변수 기반 fallback 후보로 분리합니다.
+- throwaway server는 `MEDIA_SERVER_SKIP_LOCAL_ENV=1`로 로컬 `.media_server.env` override를
+  차단하고 isolated RTSP/HTTP port를 사용합니다.
+- 실제 실행 evidence:
+  `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1`
+  결과 `media-server.v390-ui-automation.v1` summary가 `result=PASS`, `pass=7`,
+  `fail=0`, `notRun=0`, cleanup `coreServerStopped=true`, `portsClean=true`를 기록했습니다.
+- replay evidence:
+  `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`
+  결과 `pass=6 fail=0`으로 통과했습니다.
+
+주의:
+
+- `verify-ui-fulltest-one-shot` wrapper PASS는 계속 wrapper PASS입니다. R2 runner가 PASS하더라도
+  release UI 풀테스트 PASS로 쓰려면 route/control/action 결과표와 summary/report가 함께 있어야 합니다.
+- manual intervention이 `true`인 run은 자동 clean PASS가 아닙니다.
+- screenshot만 있고 DOM/console/server log/report가 없으면 UI PASS가 아닙니다.
+
+### R3. v3.9 test acceptance bundle 구현 계약
+
+목표:
+
+- 다른 채팅이 "통과했다"고 보고할 때 사용자가 같은 command set을 그대로 재실행할 수 있어야 합니다.
+- local/static verifier PASS, server longrun PASS, UI automation PASS, not-run boundary가 서로 섞이지
+  않아야 합니다.
+
+구현 command:
+
+```bash
+./server.sh verify-v390-test-acceptance-bundle --dry-run
+./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>
+./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final
+./server.sh verify-v390-test-acceptance-bundle-contract
+```
+
+`--dry-run`은 command 존재, output path, required env, case manifest, report schema만 확인하고
+장시간 테스트를 실행하지 않습니다. 실제 `--output-dir` 실행은 사용자 승인 후에만 30분/UI/조건부 120분을
+실행합니다.
+
+bundle summary는 `scripts/internal/verify_v390_test_acceptance_bundle.mjs`의
+`readLongrun30Evidence`, `readUiAutomationEvidence`, `buildFinalAcceptanceCommandSet`,
+`writeReport` 로직으로 아래 항목을 분리해야 합니다.
+
+| 항목 | PASS 조건 | PASS 대체 금지 |
+| --- | --- | --- |
+| local readiness | Step 1~20 local verifier와 docs/evidence/script inventory PASS | UI/30분/120분 실행 evidence |
+| server 30분 | R1 runner 30분 command summary `result=PASS`와 `realDurationEvidence=true`를 `pass-existing-evidence`로 읽음 | contract verifier PASS |
+| server 120분 | 사용자 승인 또는 high-risk 조건에서 R1/R4 120분 summary `result=PASS` | 30분 PASS |
+| UI automation | R2 runner route/control/action summary `result=PASS`, `automationResult=PASS`, `manualIntervention=false`, `fail=0`, `notRun=0`, report 존재를 `pass-existing-evidence`로 읽음 | wrapper PASS, screenshot-only, UI 풀테스트 직접 조작 PASS |
+| published metadata | `./server.sh verify-release-metadata --published` PASS | local `verify-release-metadata` |
+| release action | PR/main/tag/GitHub Release/후속 브랜치 각각 사용자 승인 후 evidence | local readiness PASS |
+
+### R4. 기존 longrun command와 새 runner 정렬 계약
+
+현재 historical evidence와 compatibility 문맥에는 기존 command가 남아 있습니다.
+
+```bash
+./server.sh verify-predev --soak-minutes 30
+./server.sh verify-predev --soak-minutes 120
+./server.sh verify-va-runtime-console-longrun --duration-minutes 120
+```
+
+R4 선택: option 3.
+
+R1 구현 후 아래 선택지 중 3번을 채택했습니다.
+
+1. 기존 command에 `--stop-on-first-fail` mode를 추가하고 release policy가 그 mode를
+   사용하도록 정렬합니다.
+2. 새 `verify-v390-server-longrun` command를 30분/120분 표준으로 채택하고 기존 command는
+   legacy/compatibility runner로 남깁니다.
+3. `verify-predev`는 short/predev 누적형, `verify-v390-server-longrun`은 release-grade
+   first-fail runner로 역할을 분리합니다.
+
+선택 근거: 기존 evidence와 verifier 의미를 덜 흔들면서 사용자가 원하는 새 테스트
+방식만 명확히 추가할 수 있습니다. `verify-predev` remains legacy/compatibility cumulative
+predev runner. `verify-v390-server-longrun` is the release-grade first-fail runner.
+Runtime/media trigger matrix row의 30분/120분 server longrun trigger는
+`verify-v390-server-longrun --duration-minutes 30`과
+`verify-v390-server-longrun --duration-minutes 120`을 가리킵니다.
+historical `verify-predev --soak-minutes 30` evidence remains preserved.
+historical `verify-predev --soak-minutes 120` evidence remains preserved.
+`./server.sh verify-v390-server-longrun --duration-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.
+`./server.sh verify-predev --soak-minutes 120`은 runner 내부 delegated predev summary 또는
+historical compatibility evidence 문맥으로만 남기며, v3.9.0 release-grade 120분
+server longrun 표준 trigger는 새 runner입니다.
+
+R4 완료 판정:
+
+```bash
+./server.sh verify-v390-longrun-runner-role-alignment
+./server.sh verify-runtime-media-longrun-trigger-matrix
+./server.sh verify-longrun-separation
+./server.sh verify-rc-release-gate
+./server.sh verify-v390-server-longrun-runner-contract
+git diff --check
+```
+
+### R5. UI automation report replay guard 구현 계약
+
+목표:
+
+- 다른 채팅이 UI automation 결과를 보고할 때 summary JSON만 주면, 사용자가 verifier로
+  report 신뢰성을 다시 확인할 수 있어야 합니다.
+
+권장 command:
+
+```bash
+./server.sh verify-v390-ui-automation-report --summary <summary.json>
+```
+
+검증해야 할 것:
+
+- `schema`가 `media-server.v390-ui-automation.v1`
+- `result=PASS`이면 `fail=0`, `notRun=0`, `manualIntervention=false`
+- 모든 case에 `caseId`, `route`, `viewport`, `theme`, `accountRole`, `controlAction`,
+  `expectedResult`, `actualResult`, `screenshotPath`, `serverLogReference`, `cleanupPortState` 존재
+- `screenshotPath`, `tracePath`, `videoPath`, `browserConsolePath`, `serverLogReference`
+  artifact path가 실제 존재. R5 replay guard에서는 보존하지 않은 사유를 누락 artifact
+  대체 evidence로 인정하지 않음.
+- `browserConsole` error/warning이 있으면 PASS 불가 또는 명시적 허용 사유 필요
+- 실패 report에는 failed case 이후 case가 `not-run`으로 남아야 함
+
+R5 완료 판정:
+
+```bash
+./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json
+./server.sh verify-v390-ui-automation-report-replay-guard
+git diff --check
+```
+
+R5 구현 기록:
+
+- `scripts/internal/verify_v390_ui_automation_report.mjs`:
+  v3.9.0 R5 UI automation report replay guard 조건을 추가했습니다. 각 check는
+  `[progress] (n/total) <check> test; remaining=<count>` 형식으로 진행 상황을 출력합니다.
+  PASS summary는 `fail=0`, `notRun=0`, `manualIntervention=false`, failed interaction 0이어야
+  하며, 모든 case의 `screenshotPath`, `tracePath`, `videoPath`, `serverLogReference`,
+  `browserConsolePath`, `cleanupPortState`, `browserConsole`, `manualIntervention=false`를 확인하고,
+  screenshot/trace/video/browser-console/server-log 파일이 실제 존재해야 통과합니다.
+- `scripts/internal/verify_v390_ui_automation_report_replay_guard_contract.mjs`:
+  missing artifact field, missing screenshot/trace/browser-console/server-log file,
+  `browserConsole` warning/error 무허용, PASS summary의 not-run/manual intervention,
+  failure 이후 계속 실행된 PASS case를 fixture로 검증합니다.
+- `scripts/internal/verify_v390_ui_automation.mjs`:
+  summary에 `failedInteractionCount`를 기록해 replay guard가 failed interaction 0을 직접
+  확인할 수 있게 했습니다.
+- `server.sh`, `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`, `docs/release-evidence-index.md`,
+  `scripts/internal/verify_script_inventory.mjs`:
+  `./server.sh verify-v390-ui-automation-report-replay-guard`를 R5 구현 evidence로 연결했습니다.
+- R5 replay guard PASS는 UI 풀테스트 직접 조작 PASS가 아님. 실제
+  `docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json` replay는
+  R2 suite summary 보존 후 실행했고 `pass=6 fail=0`으로 통과했습니다.
+
+### v3.9.0 잔여 구현 완료 전 금지되는 완료 주장
+
+아래 문장은 R0~R5와 필요한 실제 실행 evidence가 생기기 전에는 쓰지 않습니다.
+
+- `v3.9.0 테스트 방식 전환 구현 완료`
+- `v3.9.0 UI 풀테스트 PASS`
+- `v3.9.0 30분 PASS`
+- `v3.9.0 120분 PASS`
+- `verify-ui-fulltest-one-shot PASS이므로 UI 풀테스트 PASS`
+- `verify-v390-evidence-test-gate-prep PASS이므로 테스트 방식 구현 완료`
+- `verify-v390-stabilization-release-readiness PASS이므로 release 준비 완료`
+- `Step 19 완료이므로 구조 안정화 구현 완료`
+
+R0~R5가 끝난 뒤에도 release close-out은 AGENTS 4장과 7장에 따라 별도 승인, 별도 실행,
+별도 evidence로만 진행합니다.
+
+## v3.9.0 Foundation 개발 기록
+
+이번 Foundation 범위는 `v3.9.0 (1)`~`v3.9.0 (3)`입니다.
+
+- Step 1 `v3.9.0 baseline 정렬`: `VERSION`, `CMakeLists.txt`, README 계열,
+  `docs/README.md`, `docs/en/README.md`, `docs/development-backlog.md`,
+  `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`, `docs/release-evidence-index.md`,
+  `scripts/internal/verify_v390_entry_baseline.mjs`, `server.sh`에 source `3.9.0`와
+  latest published `v3.8.0` 경계를 연결했습니다.
+- Step 2 `Feature Completion Inventory/Discovery Gate`:
+  `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded
+  목록, source group checked 상태, disposition/test-area vocabulary, review gate를
+  고정하고 `scripts/internal/verify_v390_feature_completion_inventory.mjs`와
+  `./server.sh verify-v390-feature-completion-inventory`로 검증합니다.
+- Step 3 `User Review Gate / 개발 순서 확정`:
+  `docs/v390-feature-completion-inventory.md`의 `User Review Output`에 review-ready
+  required/candidate/structure/excluded 목록과 승인 전 차단 상태를 기록하고,
+  `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`, `docs/release-evidence-index.md`,
+  `scripts/internal/verify_v390_user_review_gate.mjs`, `server.sh`에
+  `./server.sh verify-v390-user-review-gate`를 연결했습니다.
+
+## v3.9.0 Evidence/Test Gate and Test Model Prep 개발 기록
+
+이번 범위는 `v3.9.0 (7)`~`v3.9.0 (10)`입니다.
+
+- Step 7 `UI wrapper/result schema 오판 방지`:
+  `scripts/internal/verify_ui_fulltest_one_shot.mjs`가 summary JSON/Markdown에
+  `wrapperResult`, `resultScope`, `uiFulltestEvidenceStatus`, `manualResultStatus`,
+  `longrunStatus`, `evidenceBoundary`를 기록합니다. `wrapperResult=PASS`는 UI 풀테스트
+  직접 조작, 30분/120분 longrun, manual result, published metadata PASS가 아닙니다.
+- Step 8 `feature inventory coverage wording 오판 방지`:
+  `scripts/internal/verify_feature_inventory_coverage.mjs`의 per-feature report가
+  `coverageStatus: covered/missing`와 `executionEvidenceStatus: not-execution-evidence`를
+  사용합니다. command-level verifier pass/fail과 feature mapping coverage를 분리합니다.
+- Step 9 `AI-minimized server longrun runner 기준`:
+  `docs/stream-verification.md`에 one command, fixed phase order,
+  stop-on-first-fail, later phase `not-run`, command/exit code/phase/port/route/log/summary/report/cleanup
+  failure evidence, reproducible fixture, artifact cleanup/preserve reason 기준을 기록했습니다.
+- Step 10 `AI-minimized UI automation adapter 기준`:
+  `docs/manual-ui-fulltest.md`에 Playwright 1차, Selenium 2차, SikuliX/image fallback 조건과
+  route/viewport/theme/account-role/control-action/expected-actual/screenshot/trace-video/browser-console/server-log/cleanup/manual-intervention
+  failure report 기준을 기록했습니다.
+- 통합 확인:
+  `scripts/internal/verify_v390_evidence_test_gate_prep.mjs`와
+  `./server.sh verify-v390-evidence-test-gate-prep`가 Step 7~10 문서, schema, inventory,
+  release records/evidence, server dispatch, script inventory 연결을 확인합니다.
+
+Foundation initial review-ready 상태(historical snapshot):
+
+- 승인 상태: `pending-user-approval`
+- 기능 개발 상태: `blocked-before-user-approval`
+- 다음 개발 순서: `V390-REQ-001` -> `V390-REQ-002` -> `V390-REQ-003`, 이후 사용자
+  승인 범위 안에서 `V390-CAND-*` 또는 `V390-STRUCT-*`로 이동합니다.
+- 다음 개발 착수는 사용자가 v3.9 required/candidate list를 승인한 뒤에만 가능합니다.
+
+Current user approval/closure reconciliation:
+
+- current 승인 상태: `approved-through-recorded-user-goals`
+- current 기능 개발 상태: `closed-with-evidence`
+- current active required/candidate 개발: `없음`
+- required `V390-REQ-001`~`003`과 candidate `V390-CAND-001`~`010`은 후속 사용자 goal 범위에서 모두 닫혔습니다.
+- 이 current 승인/closure는 UI 풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다.
+
+## v3.9.0 Required Closeout 개발 기록
+
+이번 Required Closeout 범위는 `v3.9.0 (4)`~`v3.9.0 (6)`입니다.
+
+- Step 4 `Manual UI 기준서 v3.9 current화`: `docs/manual-ui-fulltest.md`,
+  `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`에 source/UI 기준을
+  `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`으로
+  고정하고, v2.x/v3.x 과거 기준은 historical coverage bridge로 분리했습니다.
+- Step 5 `장시간/UI 테스트 시작 조건 v3.9화`: `docs/manual-ui-fulltest.md`의
+  `긴 테스트 전 fail-fast 기준`, `docs/manual-ui-checklist.md`의
+  `긴 테스트 시작 조건 확인`, `docs/manual-ui-result-template.md`의
+  `네 단계 시작 조건 / 재시작 경계`를 v3.9 feature completion inventory,
+  current project inventory, 사용자 승인, AGENTS 7.6.2 조건 기준으로 정렬했습니다.
+- Step 6 `v3.5-v3.8 UI coverage bridge`: manual UI 기준 문서와 result template에
+  `v3.5-v3.8 UI coverage bridge` 표를 추가해 v3.5 `UI-080`~v3.8 `UI-107` 및
+  관련 `CLIENT-*` rows를 `docs/project-feature-test-inventory.md`로 위임했습니다.
+- `scripts/internal/verify_manual_ui_evidence.mjs`는 `V390-REQ-001`,
+  `V390-REQ-002`, `V390-REQ-003`, `v3.5-v3.8 UI coverage bridge`,
+  `## v3.9.0 Release Evidence Index`가 manual UI 문서에서 누락되면 실패하도록
+  보강했습니다.
+- 이번 범위는 문서/test-source closeout입니다. 제품 API schema, Event payload,
+  WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, UI runtime behavior는
+  변경하지 않았습니다. 30분, 120분, 인앱 브라우저 UI 풀테스트, published metadata,
+  PR/main/tag/GitHub Release는 이번 step에서 실행하지 않았고 PASS evidence로 쓰지 않습니다.
+
+## v3.9.0 Product Completion 개발 기록
+
+이번 Product Completion 범위는 `v3.9.0 (11)`~`v3.9.0 (16)`입니다.
+
+- Step 11 `ONVIF credential/provider status summary`:
+  - 1차 선택값: 제품 persistent credential provider는 `none`으로 둡니다.
+  - fallback: no-device/test fixture 확인용 `in-memory-fixture`만 fallback으로 표시합니다.
+  - 제외/defer: `local-encrypted`, `external-secret-manager`, plaintext API field는 v3.9 Step 11 범위에서 제외하고 별도 security/field roadmap 승인 전까지 defer합니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390OnvifCredentialProviderStatusSummaryJson`과 GET `/ops/api/onvif/credential-provider-status` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-onvif-credential-provider-status.v1` schema, `providerReadiness`, `redactionSummary`, `boundaries`를 반환하며 credential lookup/source-view write/client exposure/schema/media 변경을 수행하지 않습니다.
+  - `src/ingress/product_ui_ops_sources_script.cpp`에 `loadOnvifCredentialProviderStatus`와 `renderOnvifCredentialProviderStatus`를 추가해 `/ops/sources` ONVIF 도구 영역이 `primarySelection=none`, fallback `in-memory-fixture`, `persistent store deferred`, `referenceValueExposed=false`, `credentialMaterialExposed=false` 상태를 표시합니다.
+  - `scripts/internal/verify_v390_onvif_credential_provider_status.mjs`와 `./server.sh verify-v390-onvif-credential-provider-status`를 추가해 route/UI/docs/inventory/release records 연결과 secret/reference value 비노출 경계를 검증합니다.
+  - 이 step은 provider readiness/status summary 완성입니다. ONVIF 실기기 credential 성공, persistent secret store, external secret manager, source/view persist decision, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 12 `ONVIF live import persist decision`:
+  - 1차 선택값: `/ops/api/onvif/import-draft`는 계속 `notSaved:true` draft API로 유지하고, one-shot source/view persist route는 열지 않습니다.
+  - persist 방식: `manual-form-save-handoff`를 선택합니다. Probe/import draft는 `/ops/sources` 채널 form에 적용되고, 실제 SourceRegistry/PublishedView 저장은 기존 operator save flow와 `source:write` scope를 거칩니다.
+  - rollback/audit 경계: save 전에는 draft form clear/edit, save 후에는 기존 channel edit/delete route로 rollback합니다. Step 12 decision route 자체는 SourceRegistry/PublishedView write, rollback write, client exposure, schema/media mutation을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390OnvifLiveImportPersistDecisionJson`과 GET `/ops/api/onvif/live-import-persist-decision` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-onvif-live-import-persist-decision.v1` schema, `decision`, `scopeAndAudit`, `rollbackModel`, `boundaries`를 반환합니다.
+  - `src/ingress/product_ui_ops_sources_script.cpp`와 `/ops/sources` ONVIF 도구 영역에 `loadOnvifLiveImportPersistDecision`, `renderOnvifLiveImportPersistDecision`, `onvifPersistDecisionStatus`를 추가해 `manual-form-save-handoff`, `importDraftNotSaved=true`, `oneShotPersist=false`, `sourceWriteRequired=true`를 표시합니다.
+  - `scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs`와 `./server.sh verify-v390-onvif-live-import-persist-decision`를 추가해 route/UI/docs/inventory/release records 연결, import-draft `notSaved:true`, source/view write boundary, manual save handoff를 검증합니다.
+  - 이 step은 live import persist product decision 완성입니다. one-shot persist, SourceRegistry/PublishedView write by decision route, ONVIF 실기기 success, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 13 `VLM rule suggestion draft bridge`:
+  - 1차 선택값: `ops-review-to-rule-draft-bridge`를 선택합니다. 새 자동 저장/자동 적용 route를 만들지 않고, 기존 `/ops/api/vlm/rule-suggestion-drafts`와 `/ops/events` incident review provenance를 `/ops/rules` 이벤트 템플릿 draft-only flow로 연결합니다.
+  - persistence 방식: bridge route는 read-only decision/evidence summary만 반환합니다. 운영자가 `/ops/rules`에서 `폼에 적용`한 뒤 기존 manual save button을 누를 때만 Rule/Profile registry write가 발생할 수 있습니다.
+  - boundary: Step 13 bridge route 자체는 rule/profile registry write, EventRecord write, auto-apply, VLM runtime/provider call, client/viewer exposure, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390VlmRuleSuggestionDraftBridgeJson`과 GET `/ops/api/vlm/rule-suggestion-draft-bridge` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1` schema, `reviewToDraftBridge`, `evidenceTrail`, `workflowContract`를 반환합니다.
+  - `src/ingress/product_ui_page_scripts.cpp`와 `/ops/rules` VLM Rule draft 영역에 `loadOpsVlmRuleSuggestionDraftBridge`, `renderOpsVlmRuleSuggestionDraftBridge`, `opsVlmRuleDraftBridgeStatus`를 추가해 `ops-review-to-rule-draft-bridge`, `provenance=incident-review-provenance`, `manualSaveRequired=true`, `autoApply=false`, `ruleRegistryWrite=false`를 표시합니다.
+  - `scripts/internal/verify_v390_vlm_rule_suggestion_draft_bridge.mjs`와 `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge`를 추가해 route/UI/docs/inventory/release records 연결, existing draft workflow manual-save boundary, no-auto-apply/no-provider-call boundary를 검증합니다.
+  - 이 step은 VLM rule suggestion review-to-draft bridge 완성입니다. 자동 rule/profile 저장, 자동 적용, 실제 VLM/provider 품질 평가, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 14 `VLM evaluation promotion guard` (V390-ADD1-03에서 correctness 보강):
+  - 1차 선택값: `server-verified-evaluation-promotion`을 선택합니다. 기존 evaluation result 후보를 새 저장/활성화 route로 자동 승격하지 않고, 클라이언트는 candidate ID/revision/digest reference만 제출합니다.
+  - persistence 방식: promotion guard route는 read-only decision/evidence summary를 반환합니다. 실제 저장은 기존 `/ops/api/vlm/profiles`와 `rule:write` scope를 거치며, profile validator가 shared catalog의 result/provenance와 option/model/prompt binding을 확인한 뒤 canonical evaluation을 저장합니다.
+  - boundary: Step 14 guard route 자체는 profile write, activation execution, VLM runtime/provider call, sidecar write, client/viewer exposure, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390VlmEvaluationPromotionGuardJson`과 GET `/ops/api/vlm/evaluation-promotion-guard` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-vlm-evaluation-promotion-guard.v1` schema, `promotionFlow`, `activationGuard`, `workflowContract`를 반환합니다.
+  - `src/ingress/product_ui_page_scripts.cpp`와 `/ops/vlm` Evaluation result workflow 영역은 `server-verified-evaluation-promotion`, `serverVerification=true`, `clientDeclaredEvaluationRejected=true`, `runtimeCall=false`, `providerCall=false`를 표시합니다.
+  - `verify-v390-vlm-evaluation-promotion-guard`가 route/UI/docs 경계를, `verify-v390-vlm-promotion-trust-boundary`가 14개 실제 HTTP save/read/reject/no-write case를 검증합니다.
+  - 이 step은 VLM evaluation promotion guard 완성입니다. 자동 profile 저장, 자동 활성화, 실제 VLM/provider 호출, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 15 `backup/recovery handoff validation`:
+  - 1차 선택값: `staging-restore-validation-checklist-result-handoff`를 선택합니다. 기존 v3.3 backup/recovery source handoff와 v3.4 staging restore validation harness를 연결하되 production restore/cutover를 수행하지 않습니다.
+  - artifact 방식: `/ops/api/source-registry/staging-restore-validation-handoff`는 source registry, PublishedView, source health, viewer scope checklist와 result artifact contract만 반환합니다. 실제 result artifact는 staging run 이후 change ticket 또는 release evidence에 operator가 별도로 첨부합니다.
+  - boundary: Step 15 route 자체는 SourceRegistry/PublishedView write, source health snapshot persist, production restore, automatic recovery, viewer scope 변경, client exposure, credential/raw locator 노출, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390StagingRestoreValidationHandoffJson`과 GET `/ops/api/source-registry/staging-restore-validation-handoff` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-staging-restore-validation-handoff.v1` schema, `stagingRestoreValidationChecklist`, `resultArtifactContract`, `boundaries`를 반환합니다.
+  - `src/ingress/product_ui_ops_sources_script.cpp`와 `/ops/sources` Backup Handoff 영역에 `renderStagingRestoreValidationHandoff`, `sourceStagingRestoreValidationStatus`, `source-staging-restore-checklist-list`, `source-staging-restore-result-artifact-list`를 추가해 `resultArtifactPersistedByRoute=false`, `productionRestorePerformed=false`, `automaticRecoveryPerformed=false`를 표시합니다.
+  - `scripts/internal/verify_v390_backup_recovery_handoff_validation.mjs`와 `./server.sh verify-v390-backup-recovery-handoff-validation`을 추가해 route/UI/docs/inventory/release records 연결, v3.3 handoff route와 v3.4 staging harness 연결, no-production-restore boundary를 검증합니다.
+  - 이 step은 backup/recovery staging restore validation handoff 완성입니다. 실제 restore/cutover, automatic recovery, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 16 `action execution deferral decision`:
+  - 1차 선택값: `defer-all-action-writes`를 선택합니다. v3.8 read-only action pilot을 이번 Step 16에서 제한 실행으로 열지 않고, source recheck execution, client notice send, rule apply를 별도 승인된 execution roadmap 전까지 모두 deferred 상태로 고정합니다.
+  - execution 방식: `/ops/api/actions/execution-deferral-decision`는 기존 v3.8 action/read-model route들을 evidence ref로 참조하는 read-only decision summary만 반환합니다. 새 mutating route, action request persist, approval persist, readiness result persist, receipt/outcome persist, external delivery route는 만들지 않습니다.
+  - boundary: Step 16 route 자체는 action execution, source recheck, client notice send, notice queue write, rule apply, rule registry write, SourceRegistry/PublishedView/EventRecord/Ops audit write, external delivery, field smoke, client payload/schema/media 변경을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390ActionExecutionDeferralDecisionJson`과 GET `/ops/api/actions/execution-deferral-decision` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-action-execution-deferral-decision.v1` schema, `actionExecutionDeferralDecisionSummary`, `deferredActionKinds`, `boundaries`를 반환합니다.
+  - `src/ingress/product_ui_page_scripts.cpp`와 `/ops` Action Control Workspace 인근에 `renderV390ActionExecutionDeferralDecision`, `dashActionExecutionDeferralBadges`, `dashActionExecutionDeferralList`, `dashActionExecutionDeferralBoundary`를 추가해 `approvalGatedExecutionEnabled=false`, `sourceRecheckExecuted=false`, `clientNoticeSent=false`, `ruleApplyPerformed=false`를 표시합니다.
+  - `scripts/internal/verify_v390_action_execution_deferral_decision.mjs`와 `./server.sh verify-v390-action-execution-deferral-decision`을 추가해 route/UI/docs/inventory/release records 연결, v3.8 action workspace/default-off explanation 연결, no-action-execution boundary를 검증합니다.
+  - 이 step은 action execution deferral decision 완성입니다. 실제 source recheck 실행, client notice 발송, rule apply, action/request/approval/readiness/outcome/receipt persist, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+
+## v3.9.0 Conditional Field/AI 개발 기록
+
+이번 Conditional Field/AI 범위는 `v3.9.0 (17)`~`v3.9.0 (18)`입니다.
+
+- Step 17 `field evidence bridge`:
+  - 1차 선택값: `approval-only-minimal-field-evidence-bridge`를 선택합니다. 외부 endpoint/credential/provider field run은 사용자/운영자 승인과 실제 실행 evidence가 있을 때만 field evidence가 될 수 있으며, not-run/failed 상태를 release PASS로 승격하지 않습니다.
+  - bridge 방식: `/ops/api/field-evidence/bridge-decision`는 v3.4 field bridge condition gate, v3.5 field evidence intake, v3.7 field evidence attachment, v3.8 field connector evidence package를 read-only evidence ref로 연결합니다. route 자체는 field smoke, endpoint probe, credential probe, provider call, minimal evidence persist를 수행하지 않습니다.
+  - boundary: Step 17 route 자체는 SourceRegistry/PublishedView/EventRecord/Ops audit write, external WHEP/TURN contact, TURN credential use, cloud/VLM provider call, raw endpoint/credential/provider material 노출, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390FieldEvidenceBridgeDecisionJson`과 GET `/ops/api/field-evidence/bridge-decision` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-field-evidence-bridge-decision.v1` schema, `fieldEvidenceBridgeDecisionSummary`, `fieldEvidenceBridgeDecisions`, `minimalEvidenceFields`, `boundaries`를 반환합니다.
+  - `src/ingress/product_ui_page_scripts.cpp`와 `/ops` dashboard에 `renderV390FieldEvidenceBridgeDecision`, `dashFieldEvidenceBridgeBadges`, `dashFieldEvidenceBridgeList`, `dashFieldEvidenceBridgeBoundary`를 추가해 `fieldSmokeExecuted=false`, `endpointProbePerformed=false`, `credentialProbePerformed=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 표시합니다.
+  - `scripts/internal/verify_v390_conditional_field_ai_decisions.mjs`와 `./server.sh verify-v390-conditional-field-ai-decisions`를 추가해 Step 17/18 route/UI/docs/inventory/release records 연결, no-field-execution/no-provider-call boundary를 검증합니다.
+  - 이 step은 approval-only field evidence bridge decision 완성입니다. field smoke 실행, endpoint/credential/provider 검증 성공, minimal evidence 저장, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 18 `Re-ID appearance assist model-backed path decision`:
+  - 1차 선택값: `explicit-opt-in-provenance-gated-assist`를 선택합니다. Re-ID assist는 독립 identity search가 아니라 선택된 tracker의 association assist이며, model-backed 실행은 appearance enabled, `onnx-reid` extractor, model path, checksum, provenance가 모두 명시되고 operator opt-in이 있을 때만 ready로 표시합니다.
+  - Privacy and runtime fallback gate: Step 18은 기존 Re-ID default-off/privacy gate를 유지합니다. 설정이 부족하거나 tracker가 `none`이면 runtime 의미는 `no-op-visible`/forced-off이며, 모델 path/checksum/provenance 원문이나 embedding/crop identity material은 Ops decision route, client/viewer, WebRTC/SSE/WS/Event metadata로 직렬화하지 않습니다.
+  - Re-ID assist 고도화 종료 판정: 이번 Step 18은 `--reid-policy assist` 제품 default-on 전환이 아니라 model-backed path decision입니다. `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256`와 `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE`가 없거나 checksum 누락/형식 오류/불일치, OpenSSL 없는 checksum 검증 불가, tracker-none 조합이면 fallback으로 둡니다. `verify-reid-advanced-tracking`, `verify-close-object-fixture-matrix`, `verify-va-metadata-sidechannel`를 기준으로 Re-ID default-off research continuation 종료 판정을 분리하며, `reid-default-off-research-continuation.md`, `reid-tracking-event-hold-analysis.md`, `reid-fixture-default-on-candidates.md`의 defaultOnDecision/productDefaultOn/candidateCount/defaultOnReason 기록은 default-on 완료 evidence가 아닙니다. `tracking-event=pass`와 `field-new-york-driving=warning`은 fixture별 WARNING 판정과 후보 상태를 남기는 값이고, 제품 default-on 잔여 이슈를 남깁니다. Step 18 decision route/UI 연결에 대한 개발 가능한 후속 이슈는 위 검증 통과 시 남기지 않습니다.
+  - Re-ID default-on 연구는 종료하지 않고 WARNING(실험 유지) 상태로 둡니다. Step 18은 이 상태를 바꾸지 않고, operator opt-in과 model/checksum/provenance gate가 충족될 때만 readiness를 표시하는 read-only decision으로 제한합니다.
+  - fallback 방식: `/ops/api/analysis/reid-assist-decision`는 현재 `AppConfig`의 appearance/Re-ID 설정 상태를 boolean gate로만 반환합니다. model path/checksum 원문, embedding, crop, identity material은 반환하지 않고, 설정이 부족하면 `no-op-visible` fallback으로 표시합니다.
+  - boundary: Step 18 route 자체는 appearance extractor 생성, runtime Re-ID call, embedding/crop serialization, model path/checksum 노출, identity search, face recognition, watchlist matching, client/viewer exposure, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390ReidAssistDecisionJson`과 GET `/ops/api/analysis/reid-assist-decision` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-reid-assist-decision.v1` schema, `reidAssistDecisionSummary`, `reidAssistRuntimeGate`, `policyDecisions`, `boundaries`를 반환합니다.
+  - `src/ingress/product_ui_page_scripts.cpp`와 `/ops` dashboard에 `renderV390ReidAssistDecision`, `dashReidAssistDecisionBadges`, `dashReidAssistDecisionList`, `dashReidAssistDecisionBoundary`를 추가해 explicit opt-in, model/checksum/provenance gate, no-op fallback, `modelBackedExecutionPerformed=false`, `embeddingSerialized=false`, `cropSerialized=false`를 표시합니다.
+  - `scripts/internal/verify_v390_conditional_field_ai_decisions.mjs`와 `./server.sh verify-v390-conditional-field-ai-decisions`가 `verify-reid-advanced-tracking`, `verify-analysis-state`와 함께 Re-ID assist UI selection, model-backed readiness, privacy boundary를 분리합니다.
+  - 이 step은 Re-ID assist model-backed path decision 완성입니다. 실제 model-backed Re-ID 실행, default-on 승격, identity search, embedding/crop/model path 외부 metadata 노출, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+
+## v3.9.0 Structure & Release 개발 기록
+
+이번 Structure & Release 범위는 `v3.9.0 (19)`~`v3.9.0 (20)`입니다.
+
+- Step 19 `structure stabilization handoff 상세계획`:
+  - 1차 선택값: `behavior-preserving stabilization handoff`를 선택합니다. 이번 단계는 대형 route/API/UI/docs/VLM 경계를 v4.0.0 구조 안정화 작업 단위로 넘기는 계획이며 실제 route/API/UI extraction 구현은 수행하지 않습니다.
+  - 계획 위치: `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`에 `V390-STRUCT-001`~`V390-STRUCT-005`를 `Route/API Ownership Extraction Map`, `Product UI Workspace Split Map`, `Source Registry Read-model Boundary Map`, `Manual UI Result Template Archive Plan`, `VLM Contract Index Consolidation Plan`으로 나눠 기록했습니다.
+  - 불변 조건: Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, SourceRegistry/PublishedView, Rule/Profile payload 계약은 변경하지 않습니다.
+  - `docs/v390-feature-completion-inventory.md`에 `Structure Stabilization Handoff Output`을 추가해 handoff status를 `handoff-planned-with-evidence`, structure implementation status를 `not-run-by-this-step`으로 분리했습니다.
+  - `scripts/internal/verify_v390_structure_stabilization_handoff.mjs`와 `./server.sh verify-v390-structure-stabilization-handoff`를 추가해 계획 문서, backlog, v3.9 inventory, stream verification, project inventory `SAFE-211`/`OPS-178`, release records/evidence, server dispatch/script inventory 연결을 검증합니다.
+  - 이 step은 구조 안정화 이관 계획 완료입니다. 실제 `webrtc_http_server.cpp` 분리, product UI script 분리, manual UI template archive split, VLM contract index 구현, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 20 `stabilization and release readiness`:
+  - 1차 선택값: `local stabilization readiness gate with explicit not-run boundaries`를 선택합니다. 이번 단계는 v3.9.0 source branch의 local readiness 문서/evidence/dispatch 연결을 닫는 작업이며 PR/main/tag/GitHub Release/published metadata/release branch 후속 action을 실행하지 않습니다.
+  - AGENTS 테스트 카테고리 판정:
+
+    | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+    | --- | --- | --- | --- | --- |
+    | 안정화 테스트 | 진행 대상 | Step 20 local readiness는 source tree build, verifier, docs/evidence/index/dispatch, close-out dry-run 연결을 확인해야 함 | `v3.9.0 (20)`, `SAFE-212`, `OPS-179` | 현재 Step 20 범위에서 실행 |
+    | 30분 테스트 | 진행 대상 | AGENTS 7.6.2 기준 버전별 로드맵 완료와 release 가능 판정에는 30분 evidence가 필요하나 장시간 실행은 별도 명시 승인 필요 | `v3.9.0 (20)`, release evidence/not-run boundary | 사용자 명시 실행 승인 없음 - 미실행 필수 blocker |
+    | 120분 테스트 | 진행 대상 | 최신 사용자 지시가 v3.9.0 final close-out 테스트 순서에 120분 포함을 명시 | `v3.9.0 (20)`, 2026-07-11 current close-out decision | 실행 목록 포함 승인/현재 미실행 |
+    | UI 풀테스트 | 진행 대상 | release checklist 전체 route/control/action 직접 조작 evidence는 local/static verifier와 대체 불가 | `v3.9.0 (20)`, release evidence/not-run boundary | 사용자 명시 실행 승인 없음 - 미실행 필수 blocker |
+
+  - Companion local gate:
+
+    ```bash
+    ./server.sh verify-v390-stabilization-release-readiness
+    ./server.sh build
+    ./server.sh verify-v390-entry-baseline
+    ./server.sh verify-v390-feature-completion-inventory
+    ./server.sh verify-v390-user-review-gate
+    ./server.sh verify-manual-ui-evidence
+    ./server.sh verify-v390-evidence-test-gate-prep
+    ./server.sh verify-v390-onvif-credential-provider-status
+    ./server.sh verify-v390-onvif-live-import-persist-decision
+    ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
+    ./server.sh verify-v390-vlm-incident-rule-provenance
+    ./server.sh verify-v390-vlm-evaluation-promotion-guard
+    ./server.sh verify-v390-backup-recovery-handoff-validation
+    ./server.sh verify-v390-action-execution-deferral-decision
+    ./server.sh verify-v390-deferred-product-owner-signoff
+    ./server.sh verify-v390-conditional-field-ai-decisions
+    ./server.sh verify-v390-structure-stabilization-handoff
+    ./server.sh verify-v390-structure-stabilization-readiness
+    ./server.sh verify-v390-external-field-smoke-no-device-closure
+    ./server.sh verify-release-metadata
+    ./server.sh verify-docs-links
+    ./server.sh verify-docs-ui-assets
+    ./server.sh verify-project-inventory
+    ./server.sh verify-feature-inventory-coverage
+    ./server.sh verify-release-evidence-index
+    ./server.sh verify-release-closeout-helper --dry-run
+    ./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+    ./server.sh verify-script-inventory
+    git diff --check
+    ```
+
+  - `scripts/internal/verify_v390_stabilization_release_readiness.mjs`와 `./server.sh verify-v390-stabilization-release-readiness`를 추가해 roadmap, stream verification, project inventory `SAFE-212`/`OPS-179`, release policy/evidence/records, AGENTS 테스트 판정표, server dispatch/script inventory 연결을 검증합니다.
+  - release action 승인 없음 - 미실행: PR 생성, main merge, signed tag, GitHub Release 생성/갱신, `verify-release-metadata --published`, 후속 브랜치 생성, release branch 삭제, field smoke는 이번 Step 20 local readiness PASS로 완료 처리하지 않습니다.
+  - 이 step은 local stabilization/readiness 연결 완료입니다. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release, field smoke PASS가 아닙니다.
+
+## v3.9.0 (14) 장시간 실행기 — V390-ADD1-10
+
+이번 단계의 구현 계획 source-of-truth는
+`docs/superpowers/plans/2026-07-10-v390-longrun-first-fail-diagnostics.md`입니다. 기존 R1
+runner는 phase-level `stopOnFirstFail`과 delegated first failure 이름을 보존했지만,
+`verify-predev` soak iteration 내부 case 사이의 즉시 중단과 context/stderr/재현 명령
+출력 계약은 닫히지 않았습니다. 이번 변경은 product API/schema/media/auth를 변경하지 않고
+longrun/predev orchestration과 failure evidence만 보강했습니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | longrun runner, delegated predev fail-fast, contract, docs/inventory를 직접 변경 | `V390-ADD1-10`, `OPS-168`, `SAFE-201` | 최신 goal에서 10번 개발 승인 |
+| 30분 테스트 | 미진행 | 최신 요청은 실행기 개발이며 실제 30분 duration 명령 실행을 명시하지 않음 | AGENTS 7.6.2/7.7, `V390-ADD1-10` | duration 실행 승인 없음 |
+| 120분 테스트 | 미진행 | 실제 runtime/media path를 변경하지 않고 AGENTS 7.6.2 high-risk trigger와 명시 실행 지시가 없음 | `V390-ADD1-10` 변경 범위 | 조건·실행 승인 없음 |
+| UI 풀테스트 | 미진행 | backend/test orchestration과 failure evidence만 변경하고 제품 UI route/control을 변경하지 않음 | `V390-ADD1-10`, `OPS-168`, `SAFE-201` | UI 실행 지시 없음 |
+
+개발 위치와 로직:
+
+- `scripts/internal/verify_predev_stability.sh`: `run_step`이 stdout/stderr를 별도 파일과
+  tail로 보존하고 첫 실패 순간 context/stderr/reproduction을 출력합니다.
+  real soak와 fast fixture가 같은 `run_ordered_case_sequence`를 사용하며, `run_soak_loop`는
+  `--fail-fast`일 때 case 사이마다 실패를 확인하고 같은 iteration의
+  later case, future iteration, 이후 main/queue case를 `not-run`으로 기록합니다.
+  `run_failure_contract_fixture`는 두 번째 case 실패와 세 번째 case 미실행을 빠르게
+  재현합니다. `--fail-fast`가 없는 legacy cumulative 동작은 계속 후속 case를 수행합니다.
+- `scripts/internal/verify_v390_server_longrun.mjs`: `finishCommandPhase`,
+  `readDelegatedFailure`, `printFirstFailure`가 phase/case/context/stderr/reproduction과
+  delegated later-not-run/contract 상태를 summary `failure`, failed phase, Markdown report,
+  console에 보존합니다.
+- `scripts/internal/verify_v390_server_longrun_runner_contract.mjs`: phase failure/pass,
+  delegated summary, executable predev first-fail fixture, 잘못된 duration, docs/evidence를
+  7개 독립 check로 검증합니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`, `docs/release-evidence-index.md`와 exact 974행 implementation
+  manifest가 `V390-ADD1-10`, `OPS-168`, `SAFE-201`을 같은 경계로 연결합니다.
+
+실패 후 수정 이력:
+
+| 순서 | 최초 실패 | 원인 | 수정 | 재검증 |
+| --- | --- | --- | --- | --- |
+| 1 | first-fail contract `pass=3 fail=4` | 기존 summary/report에 context/stderr/reproduction이 없고 predev executable fixture가 없음 | 계약을 먼저 RED로 고정한 뒤 runner/predev 진단과 fixture 구현 | contract `pass=7 fail=0` |
+| 2 | direct predev fixture exit 127, summary 없음 | `run_failure_contract_fixture`가 Python heredoc 안에 잘못 삽입됨 | Bash 함수 정의를 heredoc 밖으로 이동 | executable fixture가 fail 1/notRun 1과 분리 stderr를 기록, contract PASS |
+| 3 | evidence/test gate `pass=8 fail=1` | 새 필드를 기존 문서 필드 사이에 넣어 verifier의 호환 문자열이 끊김 | 기존 `command...cleanup state` 순서를 보존하고 새 case/context/stderr/reproduction을 뒤에 추가 | gate `pass=9 fail=0` |
+| 4 | manifest refresh가 관련 없는 valid anchor도 재선택 | generator의 현재 탐색 순서가 여러 valid anchor 중 다른 항목을 선택 | `SAFE-201`/`OPS-168`/inventory hash 외 unrelated anchor churn을 원래 값으로 복구 | implementation evidence 974/974, validation error 0, negative 11/11 |
+
+안정화 실행 결과:
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| Bash syntax | `bash -n scripts/internal/verify_predev_stability.sh`, exit 0 | pass | fixture 함수 위치 수정 후 재확인 |
+| Node runner syntax | `node --check scripts/internal/verify_v390_server_longrun.mjs`, exit 0 | pass | summary/failure helper syntax 확인 |
+| Node contract syntax | `node --check scripts/internal/verify_v390_server_longrun_runner_contract.mjs`, exit 0 | pass | executable fixture helper syntax 확인 |
+| first-fail contract RED | `./server.sh verify-v390-server-longrun-runner-contract`, pass 3/fail 4 | fail | context, delegated diagnostics, executable fixture, docs 계약 부재를 예상대로 재현 |
+| first-fail contract final | 같은 명령, phase/delegated/predev fixture/duration/docs 7개 check | pass | 최종 pass 7/fail 0 |
+| role alignment | `./server.sh verify-v390-longrun-runner-role-alignment` | pass | option 3, legacy cumulative와 release-grade first-fail 역할 5/0 |
+| longrun separation | `./server.sh verify-longrun-separation` | pass | 기본 test와 explicit longrun 분리 7/0 |
+| runtime/media trigger matrix | `./server.sh verify-runtime-media-longrun-trigger-matrix` | pass | 13행, 30분 7행, 120분 server 3행, runtime 4행, checks 8/0 |
+| RC release gate | `./server.sh verify-rc-release-gate` | pass | RC-only/승인 경계 10/0 |
+| acceptance compatibility | `./server.sh verify-v390-test-acceptance-bundle-contract` | pass | actual fixture order/first-fail/cleanup/report/120 조건 6/0 |
+| implementation evidence | `./server.sh verify-feature-implementation-evidence` | pass | 974/974, validation 0, negative 11/11 |
+| feature coverage | `./server.sh verify-feature-inventory-coverage` | pass | covered 974, missing 0, checks 6/0 |
+| project inventory | `./server.sh verify-project-inventory` | pass | featureRows 974, checks 14/0 |
+| script inventory | `./server.sh verify-script-inventory` | pass | dispatch/options/auth/default 경계 11/0 |
+| docs links | `./server.sh verify-docs-links` | pass | Markdown 155, local links 788, failures 0 |
+| release evidence index | `./server.sh verify-release-evidence-index` | pass | 상세 결과 source 분리 8/0 |
+| evidence/test gate 최초 | `./server.sh verify-v390-evidence-test-gate-prep` | fail | 문서 호환 문자열 수정 전 8/1 |
+| evidence/test gate 최종 | 같은 명령 | pass | 수정 후 9/0 |
+| feature completion inventory | `./server.sh verify-v390-feature-completion-inventory` | pass | source-of-truth/review/test-area 경계 13/0 |
+| stabilization readiness | `./server.sh verify-v390-stabilization-release-readiness` | pass | local readiness/not-run 경계 7/0 |
+| diff hygiene | `git diff --check` | pass | 최종 실행 결과 출력 없음 |
+
+장시간/UI 경계:
+
+- 실제 30분: 미실행. 새 first-fail code의 duration PASS evidence로 사용하지 않습니다.
+- 실제 120분: 미실행. 직접 trigger와 실행 승인이 없습니다.
+- UI 풀테스트: 미실행. 제품 UI 변경이 없고 직접 실행 지시가 없습니다.
+- 과거 30분/통합 acceptance PASS는 historical evidence로만 보존하며 이번 code의 duration
+  PASS로 승격하지 않습니다.
+
+임시 산출물 cleanup:
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/tmp/v390-debug-summary.json` | direct fixture summary | 4KB | 삭제 | 경로 없음 | final evidence가 아닌 재현용 임시 JSON |
+| `/tmp/v390-debug-report.md` | direct fixture report | 4KB | 삭제 | 경로 없음 | final evidence가 아닌 재현용 임시 report |
+| `/tmp/media_server_predev-1783682373-45267` | fixture stdout/stderr/log | 24KB | 삭제 | 경로 없음 | contract가 동일 정보를 재생성 가능 |
+| `/private/tmp/media_server_predev-*` 이번 실행 잔여 3개 | 초기 실패/contract 빈 workdir | 0B | 삭제 | 최근 잔여 경로 0개 | 첫 fixture 함수 연결 실패와 contract 재실행 산출물 |
+| contract output dirs/files | phase/predev fixture summary/report/log | 재현 가능 임시 산출물 | process-exit cleanup | glob 잔여 0개 | contract verifier cleanup과 후속 직접 확인 |
+
+테스트 사용량: token start `159662`, token end `526159`, token consumed `366497`,
+elapsed `1313초`, source `Codex goal usage` (실행 전 등록 snapshot과 최종 안정화 직후
+snapshot 차이).
+
+## v3.9.0 (25) route/control/action automation coverage matrix — V390-ADD1-11
+
+구현 계획 source-of-truth는
+`docs/superpowers/plans/2026-07-10-v390-ui-automation-coverage-matrix.md`입니다. 이 단계는
+기존 v3.9 actual 8-case automation을 current UI 전체 PASS로 확대하지 않고, 974개 inventory의
+reviewed implementation manifest에서 exact `manualUiCaseId` 424개를 선택해 실제 자동화/
+미지원/manual/positive UI 제외로 분류하는 검증 가능한 matrix로 보정했습니다. feature ID
+prefix/range 판정은 제거했고, testId/featureId/route/control-action anchor/stability verifier/
+automation caseId를 독립 연결합니다. Product route/API/schema/media/auth 동작은 변경하지 않았습니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | coverage verifier/contract/policy/docs와 exact-ID matrix를 변경 | `V390-ADD1-11`, exact UI test ID 424개, `OPS-169`, `SAFE-202` | 최신 `/goal`의 11번 개발 승인 |
+| 30분 테스트 | 미진행 | test/docs coverage tooling만 변경하고 media/session/runtime path를 변경하지 않음 | AGENTS 7.6.2, V390-ADD1-11 변경 범위 | duration 실행 승인 없음 |
+| 120분 테스트 | 미진행 | high-risk runtime/media trigger가 없고 명시 실행 지시도 없음 | AGENTS 7.6.2, V390-ADD1-11 변경 범위 | 조건·실행 승인 없음 |
+| UI 풀테스트 | 미진행 | 보존된 actual 8-case summary는 재검증하지만 exact UI test ID 424개 전체 직접 조작은 최신 요청에서 승인되지 않음 | matrix unsupported 415개, `manualUiFulltestEvidence=false` | 직접 UI 풀테스트 승인 없음 |
+
+개발 위치와 로직:
+
+- `test/fixtures/v390_ui_automation_coverage_policy.json`: schema v2가 974/424/8/415/1
+  count, automated exact case ID 8개, positive UI exclusion `UI-018`, required artifact
+  종류만 고정하며 feature prefix와 numeric range로 unsupported 행을 판정하지 않습니다.
+- `scripts/internal/verify_v390_ui_automation_coverage.mjs`: inventory, implementation evidence,
+  case manifest, 보존 actual summary를 교차 검증하고 exact UI test ID 424행 summary/report를
+  생성합니다. exact `manualUiCaseId`를 selection source로 쓰고 featureId, route,
+  control/action source anchor, stability verifier command/assertion, automation caseId를
+  연결합니다. Automated 행은 route/control/action, `automationStatus`, `actualResult`, screenshot,
+  trace/video, browser console, server log를 보존합니다. 미지원 행은 `not-run`과 사유,
+  `UI-018`은 `not-applicable`과 manual negative route 필요성을 남깁니다.
+- `scripts/internal/verify_v390_ui_automation_coverage_contract.mjs`: exact ID/count/boundary,
+  automated evidence, unsupported/excluded 사유, cross-prefix test ID 누락/중복,
+  route/control-action drift, automation featureId→caseId drift, artifact 누락,
+  prefix/range 판정 제거, reviewed manifest refresh 보존, durable docs/dispatch wiring을
+  12개 check로 검증합니다.
+- `scripts/internal/feature_implementation_manifest_lib.mjs`: 명시 refresh에서도 기존 reviewed
+  UI route/control-action/verifier와 exact test ID를 보존합니다. Prefix별 route fallback은
+  제거했으며 신규 UI mapping에 명시 route가 없으면 refresh를 실패 처리합니다.
+- `docs/v390-ui-automation-coverage-matrix.md`: `mapped-with-explicit-gaps` 424행을 durable
+  source-backed matrix로 보존합니다. `fullAutomationCoverage=false`,
+  `manualUiFulltestEvidence=false`입니다.
+
+실패 후 수정 이력:
+
+| 순서 | 최초 실패 | 원인 | 수정 | 재검증 |
+| --- | --- | --- | --- | --- |
+| 1 | coverage contract `pass=0 fail=8` | verifier, durable matrix, dispatch/negative failure contract 구현 전 RED | policy/verifier/contract/dispatch/docs 구현 | contract `pass=8 fail=0` |
+| 2 | 첫 matrix generation `UI-006 manualUiCaseId mismatch` | UI 계열 ID라는 이유로 안정화 전용 `UI-006`에도 manual case를 강제 | inventory `testAreas`에 UI가 있는 114개만 manual case를 요구하고 `UI-006`은 stability-only로 분리 | exact 115행 generation PASS |
+| 3 | feature evidence/coverage/project inventory SHA drift | project inventory에 Step 25 mapping 행을 추가해 exact manifest 문서 SHA 변경 | 974개 ID/anchor는 그대로 두고 inventory SHA만 explicit refresh | 974/974 validation 0, coverage 6/0, project 14/0 |
+| 4 | matrix review에서 automated `actualResult`가 단순 PASS로 축약 | status와 actual result를 한 필드로 사용 | `automationStatus=PASS`와 보존 summary 실제 결과 문장을 분리 | coverage와 contract 재실행 PASS |
+| 5 | exact-ID correction contract `pass=1 fail=10` | 기존 matrix가 `UI-*` prefix/range 115행만 선택하고 타 prefix exact UI test ID 310개를 누락 | selection을 974개 manifest의 exact `manualUiCaseId` 424개로 바꾸고 schema/policy/contract를 v2로 보정 | 최종 contract 재검증 대상 |
+| 6 | v2 첫 generation `UI-020 route/action source mapping invalid` | UI action anchor 소유 파일과 screen route 소유 파일이 분리되는데 같은 파일 포함을 강제 | action anchor는 지정 source file, route는 전체 product UI route source에서 각각 검증 | v2 generation 974/424/8/415/1 PASS |
+| 7 | route source cache 초기화/파일 matcher 재실행 실패 | top-level 검증보다 뒤의 cache `let` TDZ와 `webrtc_http_server.cpp`를 누락한 filename regex | cache 선언을 검증 전으로 이동하고 exact product UI source filename matcher로 수정 | v2 generation PASS |
+| 8 | exact 전용 verifier 최초 실행 6개 FAIL | feature coverage script 본문 command 문자열, 과거 UI range, 제거된 helper를 고정한 stale assertion | implementation manifest의 exact verifier command/file/anchor와 현재 upstream integration을 직접 확인하도록 UI-042/043/069/074/080/107 verifier 보정 | 6/0, 4/0, 8/0, 8/0, 9/0, 9/0 PASS; UI-110 6/0 유지 |
+| 9 | feature implementation evidence SHA drift | project inventory의 Step 25 exact-ID mapping 행 변경으로 inventory SHA 불일치 | 974개 exact ID를 유지하고 이번 단계의 route/verifier mapping 8개를 직접 검토한 뒤 inventory SHA만 current 값으로 갱신 | 974/974, validation 0, negative 11/11 PASS |
+| 10 | 후속 점검에서 manifest refresh prefix route 재도입 가능성 확인 | matrix runner는 exact ID를 사용하지만 upstream generator의 prefix별 screen route fallback이 남아 있었음 | reviewed UI evidence/verifier/manualUiCaseId를 exact 보존하고 신규 UI mapping의 명시 route 부재를 FAIL 처리하도록 fallback 제거 | contract refresh-preservation check 포함 12/0, feature evidence 974/974 validation 0 PASS |
+
+안정화 실행 결과:
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| Node syntax | coverage/contract 두 `.mjs`의 `node --check` | pass | option/parser/module syntax 확인 |
+| coverage generation | `verify-v390-ui-automation-coverage --output-dir /tmp/media_server_v390_ui_coverage_final_v2` | pass | schema v2, 974/424/8/415/1, exact-manual-ui-test-id, prefixRangeClassification removed |
+| coverage contract | `verify-v390-ui-automation-coverage-contract` | pass | positive/cross-prefix/refresh/negative/docs 12/0 |
+| exact mapped feature verifiers | UI-042/043/069/074/080/107/110 전용 command | pass | 각각 6/0, 4/0, 8/0, 8/0, 9/0, 9/0, 6/0 |
+| existing UI runner contract | `verify-v390-ui-automation-runner-contract` | pass | exact visible-DOM runner 9/0 |
+| replay guard | `verify-v390-ui-automation-report-replay-guard` | pass | summary/artifact false-PASS guard 8/0 |
+| actual summary replay | `verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json` | pass | 보존 actual 8-case replay 7/0 |
+| native adapter contract | `verify-v390-ui-native-adapter-contract` | pass | native Playwright/provenance 7/0 |
+| implementation evidence | `verify-feature-implementation-evidence` | pass | 974/974, validation 0, negative 11/11 |
+| feature/project/script inventory | coverage 6/0, project 14/0, script 11/0 | pass | exact mapping/dispatch/options 확인 |
+| docs/release/evidence gate | docs links 0 failure, release evidence 8/0, evidence/test gate 9/0 | pass | 문서/오판 방지 경계 확인 |
+| acceptance compatibility | `verify-v390-test-acceptance-bundle-contract` | pass | 기존 bundle orchestration 6/0 |
+| diff hygiene | `git diff --check` | pass | 최종 출력 없음 |
+
+완료 경계와 남은 gap:
+
+- Matrix integrity와 actual 8-case artifact 재검증은 완료했습니다.
+- `unsupported-manual` 415개는 exact test ID/route/control-action/verifier 연결과 미지원
+  사유가 기록된 `not-run` gap이며 PASS가 아닙니다.
+- `UI-018`은 positive product UI 자동화 비대상이지만 manual negative route 확인은 유지합니다.
+- exact UI test ID 424개 전체 UI 풀테스트 직접 조작, 실제 30분/120분, published metadata, release action은
+  미실행이며 이 단계 PASS로 대체하지 않습니다.
+
+임시 산출물 cleanup:
+
+| 경로 | 삭제 전 크기 | 조치 | 결과 |
+| --- | ---: | --- | --- |
+| `/tmp/media_server_v390_ui_coverage_dev` | 148KB | 초기/보강 matrix summary/report 삭제 | 경로 없음 |
+| `/tmp/media_server_v390_ui_coverage_final` | 152KB | 최종 재현 가능 summary/report 삭제 | 경로 없음 |
+| `/tmp/media_server_v390_ui_coverage_regenerate` | 152KB | EOF 형식 수정 후 재생성 산출물 삭제 | 사용자 명시 승인 후 경로 없음 |
+| `/tmp/media_server_v390_ui_coverage_dev_v2` | 696KB | exact-ID v2 개발/문서 재생성 summary/report 삭제 | 경로 없음 |
+| `/tmp/media_server_v390_ui_coverage_final_v2` | 696KB | exact-ID v2 최종 안정화 summary/report 삭제 | 경로 없음 |
+| `/tmp/media_server_v390_ui_coverage_final_exact` | 696KB | manifest refresh 보정 후 최종 exact-ID summary/report 삭제 | 경로 없음 |
+| contract `/tmp` workdir | process-exit cleanup | positive/negative fixture 자동 삭제 | `media_server_v390_ui_coverage_contract_*` glob 0개 |
+| 8081/8555 listener | 없음 | 직접 확인 | listener 0개 |
+
+테스트 사용량: token start `526159`, token end `1079640`, token consumed `553481`,
+elapsed `796초`, source `Codex goal usage` (V390-ADD1-10 최종 snapshot과 Step 25
+cleanup blocker 기록 직후 최종 goal snapshot 차이).
+
+exact-ID correction 안정화 사용량: token start `313188`, token end `496236`,
+token consumed `183048`, elapsed `931초`, source `Codex goal usage` (최종 안정화 시작 전과
+manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 snapshot 차이). 이 값은 UI 풀테스트/30분/120분 실행
+사용량이 아닙니다.
+
+## V390-ADD1-12 Policy v4 테스트 정책 전환 개발 기록
+
+- `AGENTS.md` 7.6.3: UI 풀테스트를 다섯 번째 영역으로 늘리지 않고 UI 영역 안에서
+  `direct-browser`, `qualified-native-automation`, `hybrid` evidence mode를 정의했습니다.
+  exact case 동등성과 전체 suite PASS를 분리하고 fixture/wrapper/static/API/screenshot-only/
+  legacy replay/부분 coverage의 승격을 금지합니다.
+- `test/fixtures/ui_fulltest_evidence_policy_v4.json`: 네 영역, 세 evidence mode, allowed
+  completion oracle, exact-selector boundary, source/build/policy/manifest/runner fingerprint,
+  artifact/redaction/visual/suite closure를 `media-server.ui-fulltest-evidence-policy.v4`로
+  고정했습니다.
+- `scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs`: case별 role·viewport·theme,
+  trusted interaction, completion oracle, assertion, actual PNG/JSON/log hash/type/realpath containment,
+  symlink escape, redaction, visual baseline, replay, cleanup, current source binding을 판정합니다.
+- `scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs`: policy validation과 actual evidence
+  qualification을 분리합니다. 현재 legacy v1 summary와 424/8/415/1 coverage를 읽어
+  `partial-automation-evidence`, `evidenceEligibility=ineligible`, `uiFulltestPass=false`를
+  출력합니다. `--require-eligible`일 때만 미적격 evidence를 command FAIL로 처리합니다.
+- `scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs`: contract-only scoped case와
+  exact 424 suite 알고리즘을 검증하고 legacy/fixture/fallback/manual intervention/partial coverage/
+  동일 pre-existing state/role-theme-viewport drift/path escape/symlink/hash/fake PNG/redaction/
+  visual/replay/cleanup negative를 거부합니다. Contract fixture는 실행 evidence가 아닙니다.
+- `server.sh`, manual UI 기준서/checklist/result template, release policy, stream verification,
+  project inventory `OPS-169`/`SAFE-202`, release records/evidence index, implementation manifest를
+  Policy v4 vocabulary와 command로 연결했습니다. Historical evidence는 소급 변경하지 않았습니다.
+
+실패와 수정 이력:
+
+| 순서 | 최초 실패 | 원인 | 수정 | 재검증 |
+| --- | --- | --- | --- | --- |
+| 1 | `verify-ui-fulltest-evidence-policy-v4` exit 1, unknown command | Policy v4 evaluator/dispatch 구현 전 RED | policy fixture/lib/evaluator/contract와 `server.sh` dispatch 추가 | evaluator PASS, contract 10/0 |
+| 2 | `verify-manual-ui-evidence` 20/4, `verify-v390-evidence-test-gate-prep` 8/1 | 기존 verifier가 인앱/직접-only pre-v4 정확 문구를 고정 | verifier를 evidence-mode/qualifier/completion-oracle 기준으로 정렬 | manual 24/0, evidence/test 9/0 |
+| 3 | manifest refresh 후 현재 스텝 외 source anchor 6개 churn | heuristic refresh가 기존 reviewed owner보다 route/verifier anchor를 재선택 | inventory SHA와 OPS-169/SAFE-202만 남기고 unrelated anchor 복원 | feature evidence 974/974 validation 0, negative 11/11 |
+| 4 | feature evidence에서 `SAFE-202` source anchor missing | 새 contract source anchor 문자열 선택 오류 | 실제 보존 output boundary 문자열로 exact anchor 수정 | feature coverage 6/0, project inventory 14/0 |
+| 5 | 후속 감사에서 artifact symlink escape와 current source/build binding 보강 필요 | lexical containment와 hash 형식만으로 realpath/current revision을 증명할 수 없음 | realpath containment, symlink negative, version/commit/worktree patch/build path+hash 비교 추가 | Policy v4 contract 10/0 재통과 |
+
+안정화 실행 결과:
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| Policy v4 evaluator | `./server.sh verify-ui-fulltest-evidence-policy-v4` | pass | policy PASS; current evidence partial/ineligible, `uiFulltestPass=false` |
+| Policy v4 negative contract | `./server.sh verify-ui-fulltest-evidence-policy-v4-contract` | pass | 10/0, contract fixture는 실행 evidence 아님 |
+| manual/evidence policy gates | `verify-manual-ui-evidence`, `verify-v390-evidence-test-gate-prep` | pass | 24/0, 9/0 |
+| implementation/inventory | feature implementation, feature coverage, project inventory, script inventory | pass | 974/974 validation 0 negative 11/11; 6/0; 14/0; 11/0 |
+| existing UI compatibility | coverage contract, runner contract, replay guard, actual summary replay, native adapter contract | pass | 12/0, 9/0, 8/0, 7/0, 7/0 |
+| release compatibility | acceptance contract, stabilization readiness, feature completion, release evidence | pass | 6/0, 7/0, 13/0, 8/0 |
+| docs/diff | `verify-docs-links`, `git diff --check` | pass | link failures 0, diff 출력 없음 |
+
+완료 경계:
+
+- Policy v4 기준과 qualifier 구현은 완료했습니다.
+- 현재 v3.9 보존 automation은 legacy schema v1, exact 8/424, unsupported 415,
+  positive UI 제외 1이므로 Policy v4 대체 적격 0, 전체 UI 결과 FAIL입니다.
+- 424-case actual UI 풀테스트, 30분/120분, published metadata, release action은 이번 단계에서
+  실행하지 않았고 Policy v4 gate PASS로 대체하지 않습니다.
+- 제품 C++/API/schema/Event payload/WebRTC/SSE/WS/RTSP/WebRTC media path/Auth/Role/Scope는
+  변경하지 않았습니다.
+
+임시 산출물 cleanup:
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/tmp/media_server_policy_v4_debug` | evaluator debug JSON/Markdown | 8KB | 결과 수치 확인 후 삭제 | 경로 없음 | `test ! -e` PASS |
+| `/tmp`/`/private/tmp` `media_server_ui_policy_v4_contract_*` | contract positive/negative fixture | process-exit cleanup | contract `finally` 삭제 | glob 0개 | 최종 `find` 출력 없음 |
+| 8081/8555 listener | 없음 | 0 | 확인 | listener 0개 | `lsof -nP ... -sTCP:LISTEN` 출력 없음 |
+
+후속 이슈: 없음. 추천 분석 모델: GPT-5.5 높음. 선정 근거: Policy v4 계약, verifier,
+문서 source-of-truth, false-PASS negative와 historical evidence 경계를 교차 검증한 뒤 현재
+스텝 내부 결함을 모두 수정했습니다.
+
+## v3.9.0 (18) 실제 구현 재검토 잔여 로드맵 19~35
+
+이 섹션은 2026-07-11 전체 정적 재검토에서 문서의 `완료` 표기를 evidence로 사용하지 않고
+실제 C++/JavaScript/shell route, 저장 경계, UI action, verifier 제어 흐름을 직접 대조한
+결과입니다. 테스트 실행은 재검토 범위에서 제외했습니다. 따라서 아래 항목은 테스트 FAIL이
+아니라 **source 구현 자체에서 직접 확인된 미완성, 오판 가능성, 계약 불일치**입니다.
+
+이 섹션은 기존 `V390-ADD1-01`~`V390-ADD1-12`와 Evidence/Closure 13~18 뒤에 이어지는
+현재 active roadmap입니다. 19~35가 닫히기 전에는 `v3.9.0 테스트 제외 개발 전체 완료`,
+`전 기능 exact closure`, `Policy v4 UI 자동화 완료`, `final evidence eligible`을 보고하지 않습니다.
+
+| 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 19 | V390-REVIEW2-19 | Foundation | current entry baseline gate 정렬 | P0 | 완료 | `v390_entry_baseline_state_lib.mjs`와 단일 expectation fixture가 backlog Step 1~3 상태를 구조적으로 읽고, 독립 contract가 current positive·historical wording·missing·duplicate를 판정하며 acceptance가 동일 entry command를 사용함 | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 0, 검증 난이도 0, 변경 범위 0, 총 2점이나 release correctness 직접 영향으로 Sol/high 상향 |
+| 20 | V390-REVIEW2-20 | Feature Closure | 984행 semantic implementation closure | P0 | 완료 | v2 manifest가 984행 exact handler/route/control/action/state/assertion locator와 reviewer-bound unique digest를 검증하고, 자동 closure·generic-alone·wrong/unrelated/drift/ID-only/unapproved를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 전 기능 정확도·동등성 상향 적용 |
+| 21 | V390-REVIEW2-21 | Product Correctness | Analysis Registry durable write contract | P0 | 완료 | profile/rule/VA rule/VLM profile create·update·delete가 atomic persist-before-publish를 사용하고 parent/open/write/flush/rename 실패를 HTTP 5xx로 전파하며 memory/file/restart no-change를 보장 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점, 데이터 손상·거짓 성공 위험 상향 적용 |
+| 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 완료 | canonical v1 manifest 424행을 implementation evidence hash·ordered test/feature ID·route·selector/action anchor에 묶고 evidence requested/observed role·viewport·theme까지 exact 대조하며 합성 424개와 hash-valid drift를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
+| 23 | V390-REVIEW2-23 | UI Policy | Policy v4 evidence attestation 강화 | P0 | 완료 | evidenceRef v1이 completion/visual/cross-cutting/redaction 실파일의 contained path·bytes·SHA-256·type·case/correlation을 대조하고 PNG CRC/IDAT decode, trace/payload schema, 독립 secret scan으로 자기선언 PASS를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 정확도·보안·false-PASS 상향 적용 |
+| 24 | V390-REVIEW2-24 | UI Automation | exact 424 native automation case 구현 | P0 | 완료 | `v390_ui_native_exact_cases.json`이 canonical ordered 424개를 423 native-executable+UI-018 negative-route로 고정하고 unsupported 0, raw API→product screen 정규화, Playwright-native action/oracle seed/artifact plan과 외부 role-state actual runner를 제공. actual 424 UI 실행과 Step 26 eligibility는 미실행 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 대량 cross-version UI 구현 |
+| 25 | V390-REVIEW2-25 | UI Automation | no-op action false-PASS 차단 | P0 | 완료 | 공용 completion evaluator가 action별 before/after DOM digest, expected endpoint-correlated network+DOM, persisted readback, EventRecord, server-log를 판정하고 pre-existing visible text/no-op/unrelated response/action 미실행을 거부. Exact 424 pending 0, legacy UI-108~115 actual 8/8과 replay guard 재검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 PASS 위험 상향 적용 |
+| 26 | V390-REVIEW2-26 | Acceptance | Policy v4 full-suite eligibility 통합 | P0 | 완료 | 공용 evaluator가 actual acceptance PASS, canonical ordered 424, fail/not-run/unsupported/unapproved exclusions/manual intervention 0, Policy v4 source summary hash와 `uiFulltestPass=true`를 독립 요구하고 8-case·plan-only·fixture·forged evaluation을 ineligible로 유지 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, release false-PASS 상향 적용 |
+| 27 | V390-REVIEW2-27 | Evidence | stale placeholder artifact 제거·재바인딩 | P0 | 완료 | tracked placeholder 39개/1,443B를 제거하고 6개 stale root를 audit-only historical로 격리했습니다. REVIEW3-47에서 current 기본 입력을 native 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution으로 교정했습니다 | 5.6 Sol | 높음 (high) | 2+0+1+1=4점, evidence 정확도 상향 적용 |
+| 28 | V390-REVIEW2-28 | Product Correctness | VLM reload full-contract quarantine | P0 | 완료 | save/reload가 공용 canonical envelope validator를 사용하고 restart에서 digest·activation·privacy·forbidden field·runtime side effect·invariant·schema·provider/model·unsafe ID 9종 변조를 reason과 함께 quarantine | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 보안·데이터 무결성 상향 적용 |
+| 29 | V390-REVIEW2-29 | Product Correctness | VLM incident provenance server canonicalization | P0 | 완료 | rule save 전에 active/archive EventRecord와 observation sidecar/ruleSuggestion을 조회해 event/source/observation/candidate/evaluation provenance를 exact 대조하고 forged·duplicate·deleted record를 persist 전 no-write 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, provenance 정확도·보안 상향 적용 |
+| 30 | V390-REVIEW2-30 | Product Correctness | ONVIF byte-exact transaction rollback | P0 | 완료 | source/view paired save 전 존재·raw bytes·mode snapshot을 캡처하고 교체된 파일만 atomic restore/remove하여 unknown extension/format과 source-only/view-only 존재 상태를 보존하며 rollback failure를 partialSave로 정확히 보고 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 데이터 손상 위험 상향 적용 |
+| 31 | V390-REVIEW2-31 | Long-run | parent/delegated phase ledger 정합성 | P0 | 완료 | parent runner가 `server-start-queue-256`/`integrated-smoke`/soak cases/`main-runtime-idle` 이후 runtime steps를 nested summary에서 exact projection하며 실행 전 synthetic PASS를 남기지 않고 첫 delegated 실패를 해당 parent phase FAIL로 기록 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점, 테스트 결과 정확도 상향 적용 |
+| 32 | V390-REVIEW2-32 | Re-ID | NoOp fallback runtime state 정합성 | P1 | 완료 | NoOp이 `Enabled=false`와 disabled/noop/zero stats를 일관되게 반환하고 TrackStateManager의 Enabled guard가 readiness fallback의 worker start, crop/update, async queue를 차단하며 runtime smoke가 모든 counter 0을 확인 | 5.6 Terra | 높음 (high) | 1+1+1+1=4점, 단일 subsystem runtime 정합성 |
+| 33 | V390-REVIEW2-33 | Structure | readiness dependency graph 검증 | P1 | gate 준비 완료 | fixture의 mayDependOn/allowed direction을 exact 상호 검증하고 실제 146개 src/include graph·73개 CMake cpp, legacy core→ingress 3-edge/SCC baseline, new forbidden edge/cycle negative, slice dependency를 검사. 실제 legacy 제거/refactor는 미실행 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점, 구조 전면 리팩토링 진입 gate |
+| 34 | V390-REVIEW2-34 | Inventory | bridge·count·anchor reconciliation | P1 | 완료 | v3.5~v3.8 `UI-080`~`UI-107`+CLIENT 8개 총 36개 route/control/action/state 전수 대조와 middle omission negative, current manifest 산출 30분 50/50·120분 7/7, 986/986 semantic reviewed unique digest와 12개 current locator review를 완료 | 5.6 Terra | 중간 (medium) | 1+1+1+1=4점, 문서·manifest 정합성 작업 |
+| 35 | V390-REVIEW2-35 | Truthfulness | owner/field/structure 상태 표현 정정 | P1 | 완료 | owner=`decision-record`/implementation not-executed, field=`conditional-not-run`/PASS false, structure=`gate-ready`/refactor not-executed를 machine-readable fixture·roadmap·evidence에서 통일하고 overclaim negative 3종으로 검증 | 5.6 Terra | 중간 (medium) | 1+1+1+0=3점, 상태·evidence 진실성 정리 |
+
+### 19~35 상세 구현 계약
+
+#### V390-REVIEW2-19 current entry baseline gate 정렬
+
+- 직접 문제: `verify_v390_entry_baseline.mjs`가 과거 Step 3 exact 문장을 요구했지만 현재 backlog는
+  `완료/initial snapshot historical/current closed` 상태여서 current acceptance bundle의 필수
+  feature gate가 실행 전부터 결정적으로 실패했습니다.
+- 구현 위치:
+  - `test/fixtures/v390_entry_baseline_steps.json`: Step 1~3의 ID, 제목, priority, current status,
+    historical/current detail boundary를 단일 expected state로 고정했습니다.
+  - `scripts/internal/v390_entry_baseline_state_lib.mjs`의 `parseV390ProgressTable()`과
+    `validateV390EntryBaselineSteps()`: `### v3.9.0 진행 상태` 표를 column/row 구조로 parse하고
+    누락·중복·status/detail drift를 판정합니다.
+  - `scripts/internal/verify_v390_entry_baseline.mjs`: 과거 Step 3 전체 문자열 고정을 제거하고
+    공용 validator를 호출하며 `verify_v390_test_acceptance_bundle.mjs`가 같은
+    `verify-v390-entry-baseline` command를 사용하는지 확인합니다.
+  - `scripts/internal/verify_v390_entry_baseline_contract.mjs`, `server.sh`: current backlog positive,
+    과거 exact wording, 누락 Step, 중복 Step negative 4개와 독립 dispatch를 추가했습니다.
+- RED/검증: 최초 contract는 공용 library 미구현으로 `ERR_MODULE_NOT_FOUND` exit 1이었고,
+  구현 후 contract 4/0과 entry baseline 13/0을 통과했습니다. 최종 companion 안정화 결과는
+  `docs/release-test-records.md`에 보존합니다.
+- 경계: C++ 제품 동작, API/schema/Event payload/WebRTC/SSE/WS/RTSP/WebRTC media path,
+  Auth/Role/Scope를 변경하지 않았습니다. 30분/120분/UI 풀테스트/published metadata/release
+  action은 실행하지 않았습니다.
+
+#### V390-REVIEW2-20 984행 semantic implementation closure
+
+- 직접 문제: 기존 generator가 검색 점수가 높은 substring을 owner로 선택하고 모든 item에
+  `status=closed-with-evidence`를 자동 부여했으며, validator는 tracked file 안 `includes(anchor)`만
+  확인했습니다. 실제 `UI-002 /setup`은 `/password`로 오매핑됐고 generic/shared anchor가 반복됐습니다.
+- 구현 위치:
+  - `scripts/internal/feature_semantic_evidence_lib.mjs`: exact file/symbol/line/context hash locator,
+    route dispatch, product control selector 또는 비대상 사유, action handler, state oracle,
+    handler→action→state relation, semantic verifier assertion, 행별 digest와 explicit reviewer approval을
+    생성·검증합니다. include/comment anchor와 manifest 자기 참조를 owner로 사용하지 않습니다.
+  - `scripts/internal/feature_implementation_manifest_lib.mjs`: schema를
+    `media-server.feature-implementation-evidence.v2`로 전환하고 일반 refresh는 신규/변경 행을
+    `review-required`로 유지합니다. 이미 승인된 동일 row/digest는 보존하지만 source context drift는
+    read-only validator에서 FAIL합니다.
+  - `scripts/internal/verify_feature_implementation_evidence.mjs`: reviewer/date/reason을 모두 요구하는
+    명시 approval flow와 semantic reviewed/unique digest summary를 추가했습니다.
+  - `scripts/internal/verify_feature_semantic_closure_contract.mjs`, `server.sh`: 984행 positive와
+    `UI-002 /setup` 교정, wrong handler, same-file unrelated anchor, route/action/state drift,
+    generic-alone, ID-only assertion, unapproved review negative 10개를 독립 검증합니다.
+  - `verify_feature_inventory_coverage.mjs`, `verify_v390_ui_automation_coverage.mjs`와 contract,
+    project inventory, stream verification, durable UI coverage matrix가 v2 semantic source를 소비합니다.
+- 직접 결과: 984/984 `semantic-reviewed`, unique semantic digest 984/984, validation error 0,
+  legacy negative 11/11, semantic contract 10/10입니다. `UI-002`는
+  `WebRtcHttpServer::Start`의 `/setup` dispatch, `SetupPageHtml`,
+  `[data-testid="auth-setup-form"]`로 연결됩니다. feature coverage는 984/984, UI matrix는
+  exact 424개·automated 8·unsupported 415·positive exclusion 1 경계를 유지합니다.
+- 실패/수정: 최초 RED는 semantic library 부재로 `ERR_MODULE_NOT_FOUND`였고, 첫 approval validation은
+  UI 간접 8행의 backend file이 product UI owner로 남아 error 8이었습니다. UI 직접/간접 owner를
+  함께 보정하고 route-owner mismatch를 재감사한 뒤 validation 0으로 재승인했습니다.
+- 경계: `coverageStatus=covered`와 semantic closure는 실행 evidence가 아닙니다. UI 풀테스트,
+  30분/120분, published metadata, release action은 실행하지 않았고 제품 C++/API/schema/media path를
+  변경하지 않았습니다.
+
+#### V390-REVIEW2-21 Analysis Registry durable write contract
+
+- 직접 문제: `UpsertVlmProfile`, `UpsertRule` 등은 메모리를 변경한 뒤 반환값 없는
+  `SaveLocked()`를 호출합니다. open/write/flush 실패는 stderr만 남기고 API 성공을 반환합니다.
+- 구현: `src/ingress/webrtc_http_server.cpp`의 `WriteAnalysisRegistryFileAtomically`이 same-directory
+  temp file 전체 write, file `fsync`, `rename`과 실패 temp cleanup을 담당합니다.
+  `AnalysisDocumentRegistry::PersistAndPublishLocked`는 profile/rule/VA rule/VLM profile의 candidate
+  snapshot을 durable 저장한 뒤에만 vector를 publish합니다. create/update/delete 전 경로가
+  `AnalysisRegistryMutationResult`를 반환하며 `AnalysisRegistryMutationErrorResponse`가 persistence
+  failure를 HTTP 500, code `analysis-registry-persistence-failed`, safe stage로 매핑합니다.
+- 전용 검증: `./server.sh verify-v390-analysis-registry-durable-write`가 profile/rule/VA rule/VLM profile의
+  create/update/delete와 parent/open/short-write/flush/rename 장애 주입을 actual HTTP로 실행합니다.
+- route 범위: `/lab/analysis/profiles/{id}`, `/lab/analysis/rules/{id}`,
+  `/lab/analysis/va-rules/{id}`, `/ops/api/vlm/profiles/{id}`의 mutation failure path를 변경했고
+  기존 validation 400, not-found 404 경계는 유지했습니다.
+- 직접 결과: 전용 verifier mutation 12개, failure stage parent/open/write/flush/rename, HTTP 5xx,
+  memory/file/restart no-change, temp 0, failures 0. `verify-analysis-state` 178/0,
+  `verify-ops-rules-roundtrip` 전체 PASS, VA replay 15개 baseline, VA events 31/0,
+  focused in-app `verify-rule-ui` PASS를 확인했습니다.
+- 후속 보정: current inventory를 986개, UI 비대상 550개, 안정화 대상 976개로 정렬하고
+  semantic manifest 986/986 재승인, project inventory 14/0, feature coverage 986/986,
+  UI coverage contract 12/0, acceptance contract 8/0, stabilization readiness 7/0으로 닫았습니다.
+- 경계: focused rule UI smoke는 Policy v4 424 exact-ID 전체 UI 풀테스트 PASS가 아닙니다.
+  30분/120분 longrun, published metadata, release action, external field smoke는 실행하지 않았습니다.
+
+#### V390-REVIEW2-22 Policy v4 canonical 424 exact-ID binding
+
+- 직접 문제: 기존 contract의 full-suite candidate는 `CONTRACT-001`~`CONTRACT-424` 합성 ID와
+  `{count: 424}`만 든 hash 대상 manifest로 `uiFulltestPass=true`가 됐습니다. evaluator는 manifest
+  내용을 파싱하지 않아 reviewed 424 exact UI ID와 route/action/variant를 대조하지 않았습니다.
+- 구현 위치:
+  - `test/fixtures/ui_fulltest_case_manifest_policy_v4.json`: implementation evidence의 exact
+    `manualUiCaseId` 424개를 ordered `testId`/`featureId`/route/control selector/action anchor에 묶고
+    case별 canonical role/390x844 viewport/light theme를 보존합니다.
+  - `ui_fulltest_evidence_policy_v4_lib.mjs`의 `loadCanonicalCaseBinding()`은 summary가 hash로 제시한
+    manifest 경로·schema·count·implementation evidence 실파일/hash를 확인하고 424개 source row를
+    직접 다시 파싱해 ID/feature/route/control-action drift를 거부합니다.
+  - 각 evidence case는 canonical feature ID와 requested route/role/viewport/theme/control-action이
+    같아야 하며 requested/observed도 기존 계약대로 같아야 합니다. full-suite는 canonical ordered
+    ID 전수와 exact count가 모두 일치해야 합니다.
+- RED/검증: 새 negative contract의 최초 실행은 합성 ID suite가 PASS해 `pass=10 fail=1`이었습니다.
+  구현 후 canonical full-suite positive와 합성 ID, field drift 6종, hash-valid manifest drift를 포함해
+  Policy v4 contract `14/0`, implementation evidence `986/986` validation 0·negative `11/11`, UI coverage
+  contract `12/0`, project inventory `14/0`, feature coverage `986/986`·`6/0`을 통과했습니다.
+- 실패/수정: 테스트 정의 행 추가 뒤 implementation manifest의 inventory hash가 stale해 첫 companion
+  실행이 validation error 1로 중단됐습니다. feature/semantic row 변경 없이 inventory hash와 canonical
+  manifest의 implementation hash만 갱신하고 실패 경계부터 재실행해 validation error 0으로 닫았습니다.
+- 경계: contract fixture의 canonical 424 PASS는 실제 브라우저 실행 evidence가 아닙니다. current 실제
+  summary는 legacy v1, automated 8/unsupported 415/excluded 1이므로 `uiFulltestPass=false`입니다.
+  30분/120분, published metadata, release action은 실행하지 않았습니다.
+
+#### V390-REVIEW2-23 Policy v4 evidence attestation 강화
+
+- 직접 문제: completion/visual/cross-cutting `evidenceRef`는 문자열 존재만 검사했고 case/suite
+  redaction은 `PASS`와 findings 0 자기선언을 신뢰했습니다. Screenshot은 PNG signature 8 bytes만,
+  trace/browser console은 임의 JSON이면 통과해 artifact와 case/correlation의 실질 연결이 없었습니다.
+- 구현 위치:
+  - `ui_fulltest_evidence_policy_v4.json`은 case 필수 artifact에 visual diff/redaction scan을 추가하고
+    evidence ref, interaction trace, browser console, cross-cutting, redaction scan schema와 16MiB 한계,
+    authorization/bearer/secret/RTSP/raw-debug forbidden pattern을 고정합니다.
+  - `ui_fulltest_evidence_policy_v4_lib.mjs`의 `validateEvidenceRef()`는 artifact root containment,
+    bytes/SHA-256/content type/case/correlation과 max size를 실파일에서 검증합니다. Completion ref는
+    trace artifact, visual ref는 visual diff, case redaction ref는 redaction scan artifact와 exact 연결됩니다.
+  - PNG validator는 IHDR/IDAT/IEND chunk 경계와 CRC를 확인하고 IDAT를 inflate해 scanline/filter와
+    decoded size를 검증합니다. Trace는 trusted interaction, completion oracle, network response correlation,
+    visual/cross-cutting/redaction은 payload schema와 screenshot/case-set/artifact hash를 대조합니다.
+  - evaluator는 scan JSON과 별도로 case artifact 및 모든 attested ref 파일을 forbidden pattern으로
+    재스캔해 summary `PASS/0`이 실제 secret material을 가리지 못하게 합니다.
+- RED/검증: 기존 문자열 ref/자기선언 candidate가 attested failure reason 없이 통과해 최초 contract가
+  `14/1`로 실패했습니다. 구현 후 canonical positive와 문자열 ref, PNG header-only, forged trace,
+  case correlation drift, hash-valid visual/cross-cutting payload, 실제 bearer/authorization 삽입, forged
+  redaction output과 attested server-log oracle positive를 포함한 contract `17/0`을 통과했습니다.
+- 실패/수정: 첫 companion은 build 100% 뒤 manual result template의 기존 exact wording이 바뀌어
+  `policyValidationResult=FAIL`로 중단됐습니다. 새 attestation wording에 기존 verifier anchor를 함께
+  보존하고 실패 경계부터 재실행해 Policy v4 PASS, manual UI `24/0`, evidence prep `9/0`으로 닫았습니다.
+- 직접 결과: implementation evidence `986/986` validation 0·negative `11/11`, UI coverage contract
+  `12/0`, project inventory `14/0`, feature coverage `986/986`·`6/0`, script `11/0`, release evidence
+  `8/0`, docs links failures 0, build 100%, JS syntax와 `git diff --check`를 통과했습니다.
+- 경계: contract의 실제 decode/attestation fixture는 제품 브라우저 실행이 아닙니다. current summary는
+  legacy v1, automated 8/unsupported 415/excluded 1이라 `uiFulltestPass=false`이며 30분/120분,
+  published metadata, release action은 실행하지 않았습니다.
+
+#### V390-REVIEW2-24 exact 424 native automation case 구현
+
+- 직접 문제: legacy runner와 coverage policy는 `UI-108`~`UI-115` 8건만 native case로 허용하고
+  exact 424개 중 415건을 `unsupported-manual`, `UI-018`을 positive UI exclusion으로 고정했습니다.
+  Canonical manifest의 38건은 `/ops/api/*`·`/client/api/*` raw endpoint를 screen route처럼 가리켜
+  그대로 browser navigation을 허용하면 raw JSON/API-only false-PASS가 될 수 있었습니다.
+- 구현 위치:
+  - `v390_ui_native_exact_cases_lib.mjs`가 Policy v4 canonical manifest와 reviewed semantic
+    implementation evidence를 exact ordered ID로 결합합니다. `/ops/api/events/reviews`→`/ops/events`,
+    source/onvif API→`/ops/sources`, client events API→`/client/events`, audit API→`/ops/users`로
+    product screen을 정규화하며 prefix/range selection을 사용하지 않습니다.
+  - `v390_ui_native_exact_cases.json`은 424개 각 case의 feature ID, canonical/product route,
+    requested role/viewport/theme, Playwright-native navigate/wait/interact plan, semantic state-oracle seed,
+    screenshot/trace/browser-console/server-log artifact plan을 명시합니다. 결과는 423 native-executable,
+    `UI-018` negative-route 1, unsupported 0입니다.
+  - `run_v390_ui_native_exact_cases.mjs`는 actual mode에서 native Playwright, role별 storage state,
+    first-fail/later not-run, case artifact를 사용합니다. `--plan-only`는 실행 계획만 검증하고
+    `actualBrowserExecution=false`, `uiFulltestPass=false`를 보존합니다.
+  - `verify_v390_ui_native_exact_cases.mjs`와 contract, `server.sh`가 deterministic generation,
+    exact order/count, API route, negative route, unsupported, role/viewport/theme/oracle/artifact drift를 검증합니다.
+- RED/검증: 테스트 정의 후 첫 contract는 library 부재 `ERR_MODULE_NOT_FOUND` exit 1로 실패했습니다.
+  구현 후 첫 contract는 raw API negative가 기대 문구보다 앞선 product-route drift로 거부돼 `6/1`이었고,
+  raw API 거부 순서를 명시한 뒤 `7/0`으로 통과했습니다. 커밋 전 후속 점검에서 `SAFE-017`의
+  `/lab` 404 동작이 `/ops` 정규화 뒤 사라진 결함을 찾아 product screen 진입 후 native
+  `navigate-negative`/404 oracle을 추가했고 최종 contract `8/0`으로 닫았습니다. Plan-only runner는
+  424/unsupported 0과 `uiFulltestPass=false`를 기록했습니다.
+- companion 실패/수정: Step 24 inventory mapping 추가로 implementation manifest source hash가 stale해
+  첫 `verify-project-inventory`가 `13/1`로 중단됐습니다. 986개 semantic row/digest/review는 그대로 두고
+  inventory hash, canonical implementation hash, exact native manifest source binding만 갱신한 뒤
+  project inventory `14/0`으로 재통과했습니다.
+- 경계: historical 8-case actual evidence, coverage policy `8/415/1`, Policy v4 current ineligible 결과,
+  acceptance/final integrity는 Step 26 전까지 변경하지 않습니다. Actual exact 424 UI 풀테스트,
+  30분/120분, published metadata, release action은 실행하지 않았습니다.
+
+#### V390-REVIEW2-25 no-op action false-PASS 차단
+
+- 직접 문제: Step 24 runner는 action 실행과 visible target만 확인해 click이 실제로 상태를 바꾸지 않아도
+  pre-existing text로 PASS할 수 있었습니다. 첫 보강은 action 이후 모든 network response를 같은
+  correlation ID로 묶어 dashboard background fetch 51개 중 unrelated response도 completion이 될 수 있었습니다.
+- 구현 위치:
+  - `v390_ui_completion_oracle_lib.mjs`의 `domSnapshotDigest()`와 `evaluateCompletionOracle()`이
+    native action 실행 여부/dispatch, before/after digest, expected endpoint pattern과 일치하는 2xx/3xx
+    action-window response+visible DOM, persisted digest change, EventRecord, server-log correlation을 판정합니다.
+    동일 digest+기존 visible text, wrong URL/correlation, action 미실행은 `no-correlated-completion` 또는
+    `action-not-executed`로 FAIL합니다.
+  - `v390_ui_native_adapter.mjs`는 navigation response, response method/status/URL, exact selector의
+    visible text/value/checked/selected/url snapshot을 제공합니다.
+  - Exact runner는 각 action trace에 beforeDigest/afterDigest/networkResponses/completion source를 기록하고
+    case manifest가 허용한 source가 하나도 없으면 실패합니다. Exact 424 oracle은 201 correlated-action,
+    221 navigation-network-DOM, UI-018 negative 1, SAFE-017 cross-route negative 1이며 pending 0입니다.
+  - Legacy `verify_v390_ui_automation.mjs`와 8-case manifest는 UI-108~115 각각의 기대 endpoint를 고정하고
+    visible assertion과 별도로 completion PASS를 요구합니다. Report verifier/replay guard도 oracle field,
+    digest 변화, endpoint/correlation을 다시 읽어 누락·no-op·wrong URL summary를 거부합니다.
+- RED/검증: 테스트 정의 후 첫 contract는 library 부재 `ERR_MODULE_NOT_FOUND` exit 1이었습니다.
+  첫 구현 contract는 runner source에 completion digest field 보장 검사가 없어 `8/1`이었고, 두 runner가
+  before/after/network fields를 실제 assert하도록 보강해 최종 completion contract `9/0`을 통과했습니다.
+- 실제 targeted 자동화: sandbox 실행은 loopback port 18239~18438 bind 불가로 browser/server 시작 전에
+  실패했습니다. 승인된 로컬 loopback 재실행은 native Playwright 1.61.1, fallback=false, UI-108~115
+  8/8, cleanup/ports PASS였습니다. Broad temporal network 결함을 찾아 case별 endpoint pattern으로 보강한
+  뒤 다시 8/8 PASS했고 각 case는 기대 endpoint 1개만 `network-dom` completion으로 보존했습니다.
+- replay/inventory 후속: actual summary report `7/0`, replay negative contract `9/0`을 통과했습니다.
+  Step 25 inventory mapping 추가로 첫 project inventory는 hash drift `13/1`이었고 986 semantic row/digest/review를
+  유지한 채 inventory/canonical/native source binding만 갱신해 재검증합니다.
+- 경계: targeted UI-108~115 8건은 exact 424 UI 풀테스트가 아닙니다. Actual exact 424, 30분/120분,
+  published metadata, release action과 Step 26 full-suite eligibility는 실행하지 않았습니다.
+
+#### V390-REVIEW2-26 Policy v4 full-suite eligibility 통합
+
+- `scripts/internal/v390_full_suite_eligibility_lib.mjs`가 acceptance execution mode/result와
+  canonical manifest의 ordered 424 IDs, Policy v4 qualification count/ID, actual browser execution,
+  pass 424, fail/not-run/unsupported/unapproved exclusions/manual intervention 0, source summary SHA-256,
+  `policyValidationResult=PASS`, `evidenceEligibility=eligible`, `uiFulltestPass=true`를 단일 판정합니다.
+- `verify_v390_test_acceptance_bundle.mjs`는 legacy UI replay 뒤 `ui-fulltest-qualification` fixed phase에서
+  `verify-ui-fulltest-evidence-policy-v4 --require-eligible`를 실행하며 targeted 8-case가 PASS해도
+  `automatedAcceptanceStatus=executed-with-known-ui-closure-blockers`, `finalEvidenceEligible=false`입니다.
+- `verify_v390_final_evidence_integrity.mjs`는 summary boolean을 신뢰하지 않고 공용 evaluator를 다시 호출하고,
+  Policy v4 source summary의 repository-contained path와 실제 SHA-256을 대조합니다. 기존 stale
+  `test-acceptance-final`의 8-case `eligible` summary는 final integrity에서 거부됩니다.
+- `verify-v390-full-suite-eligibility-contract`는 canonical positive 알고리즘과 8-case, plan-only/fixture,
+  zero-count 5종, Policy-only PASS, duplicate/noncanonical ID, missing source hash negative를 7/0으로
+  검증합니다. Contract positive는 actual 424 UI 실행 evidence가 아닙니다.
+
+#### V390-REVIEW2-27 stale artifact cleanup
+
+- `docs/release-artifacts/v3.9.0/historical-invalid-ui-evidence.json`이 placeholder/source drift/duplicate
+  screenshot/legacy eligible false-PASS가 있는 6개 root를 audit-only `historical-invalid`로 고정합니다.
+  Summary/report/trace는 historical 원문을 다시 쓰지 않았습니다.
+- tracked `*.video.txt` fixture placeholder 39개, 1,443B를 삭제했습니다. Current source-of-truth는
+  `test/fixtures/v390_ui_current_evidence_state.json`의 `status=not-run`, actual browser false,
+  UI fulltest false, native 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution입니다.
+- coverage policy/runner/durable matrix, Policy v4 default, acceptance dry-run, native adapter contract가
+  current state를 사용합니다. Stale legacy summary override는 missing provenance/current commit/integrity
+  검증에서 거부됩니다.
+- `verify-v390-current-ui-evidence-contract` 6/0과 coverage contract 12/0이 tracked placeholder 0,
+  historical root 전수, active stale binding 0, current readiness/execution 분리를 검증합니다. 실제 UI 재실행은
+  승인되지 않아 수행하지 않았고 not-run은 PASS가 아닙니다.
+
+#### V390-REVIEW2-28 VLM reload full-contract quarantine
+
+- 직접 문제: reload canonicalization은 candidate/revision/digest/option/model/prompt binding만 재검증합니다.
+  정상 save에서 검사하는 activation, runtime/privacy, forbidden material, contract invariant는 생략됩니다.
+- 구현: `src/ingress/webrtc_http_server.cpp`의 `ValidateCanonicalVlmProfileEnvelopeLocked`를 save와
+  reload가 공유합니다. Exact top-level schema/ID/object count, safe ID, selected option/provider/model/runtime/privacy,
+  cloud/local 조합, privacy guard, server canonical evaluation/provenance, activation, runtime opt-in side effect,
+  contract invariant와 forbidden material을 함께 검사한 뒤 실패 profile을 사유와 함께 quarantine합니다.
+- 검증: `verify-v390-vlm-promotion-trust-boundary`가 14개 HTTP case와 restart 변조 9종(digest,
+  activation, privacy, forbidden field, runtime side effect, invariant, schema, provider/model, unsafe ID)을
+  모두 격리하고 정상 profile readback을 보존했습니다. 연관 privacy/runtime 검증기는 event 저장소의
+  `rawProviderResponseStored:false` 비저장 증명을 leak로 오판하지 않고 SAFE-024/025 manifest verifier
+  binding을 직접 확인하도록 정정했으며 각각 5/0으로 통과했습니다.
+- 경계: runtime/provider/sidecar 호출, client/viewer/Event POST/WebRTC/SSE/WS/media schema 변경은 없고,
+  UI 풀테스트·30분·120분은 이 항목에서 실행하지 않았습니다.
+
+#### V390-REVIEW2-29 VLM incident provenance canonicalization
+
+- 직접 문제: 현재 rule validator는 provenance field 존재와 몇 개 boolean만 확인하고 실제 observation,
+  event, candidate와 대조하지 않습니다.
+- 구현: `VlmIncidentProvenanceMatchesServerRecords`가 rule PUT의 persist-before-publish 이전에
+  `QueryEventRecords(include_archives=true)`와 `QueryVlmObservations`를 호출합니다. EventRecord의
+  event/source, observation의 observation/event/source/original rule/scenario, ruleSuggestion의
+  candidate/kind/route/manual-review/no-auto-apply, observation metadata의 provider/model/prompt/privacy를
+  server-owned record와 exact 대조하며 relevant field duplicate도 거부합니다.
+- 검증: 정상 save/readback/restart 3건, field 변조 15건, duplicate-key 2건, observation/EventRecord 삭제
+  2건, generated rule ID/route 2건을 HTTP로 실행해 모든 invalid case의 400/no-write/404를 확인했습니다.
+- 경계: 저장 schema와 UI payload를 바꾸지 않았고 auto-save/apply, provider/runtime 호출,
+  EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경은 없습니다. `verify-rule-ui`는 in-app browser
+  evidence 요구에서 실행 전 중단되어 UI 풀테스트 PASS로 사용하지 않습니다.
+
+#### V390-REVIEW2-30 ONVIF byte-exact rollback
+
+- 직접 문제: second-file 실패 rollback은 transaction 전 file bytes가 아니라 파싱된 `sources_`/`views_`를
+  재직렬화합니다. parser가 모르는 확장 필드와 원본 파일 표현은 소실될 수 있습니다.
+- 구현: `RegistryFileSnapshot`, `CaptureRegistryFileSnapshot`, `RestoreRegistryFileSnapshot`이 양쪽
+  선검증 뒤 첫 write 전에 source/view 실제 파일의 존재 여부, binary bytes, mode를 캡처합니다. 교체 성공한
+  파일만 snapshot bytes로 atomic replace한 뒤 mode/file/parent를 fsync하고, 원래 없던 파일은 삭제해
+  pre-transaction 존재 상태를 복원합니다. In-memory vectors는 양쪽 commit 뒤에만 publish합니다.
+- 검증: actual HTTP/file/restart 13-case가 custom unknown root/item extension, 비정규 whitespace/newline,
+  source 0600/view 0640 mode, source-only/view-only, first/second before-replace failure, source rollback
+  failure, retry/concurrency/restart/temp cleanup을 확인했습니다. 성공 rollback은 bytes/existence/mode exact,
+  주입 rollback 실패는 `rollback-failed`/`manual-recovery-required`/`partialSave=true`로 보고합니다.
+- 경계: 기존 paired-save response schema/storageMode는 유지했습니다. Test failure injection은
+  `MEDIA_SERVER_ENABLE_TEST_FAILURE_INJECTION=1`일 때만 활성화되며 ONVIF 실기기, UI 풀테스트,
+  30분/120분 evidence가 아닙니다.
+
+#### V390-REVIEW2-31 longrun phase ledger
+
+- 직접 문제: parent runner가 nested `verify-predev`를 실행하기 전에 start-server와 integrated-smoke를
+  PASS로 기록합니다. delegated failure가 나중에 보존돼도 parent phase 표에는 실행 전 PASS가 남습니다.
+- 구현: `verify_v390_server_longrun.mjs`가 delegated 실행 전 `start-server`, `integrated-smoke`,
+  `runtime-idle` PASS row를 만들지 않고, predev summary가 생성된 뒤 `server-start-queue-256`을
+  `start-server`, exact `integrated-smoke`를 같은 parent phase, `soak-N-*`을 `soak-case-loop`,
+  `main-runtime-idle`부터 후속 runtime checks를 `runtime-idle`로 투영합니다. 누락/실패는 PASS가
+  아니라 해당 parent FAIL이며 이후 ordinary phase는 `not-run`, cleanup/report만 계속됩니다.
+- 검증: `verify-v390-server-longrun-runner-contract` 8/0이 delegated start/smoke/runtime 실패와
+  성공 summary를 실행 fixture로 대조해 exact parent FAIL/PASS, later not-run, summary provenance,
+  synthetic PASS 부재를 확인했습니다. 실제 30분/120분은 이번 항목에서 실행하지 않았습니다.
+
+#### V390-REVIEW2-32~35 readiness와 상태 정합성
+
+- Re-ID NoOp fallback은 `Enabled()`, `Stats().enabled`, worker start, crop/job enqueue 의미를 하나로 맞춥니다.
+  model readiness 실패 상태에서 실제 inference worker와 queue가 활성화되지 않아야 합니다.
+- structure readiness verifier는 fixture 배열 길이가 아니라 `mayDependOn`과 allowed direction의 일치,
+  실제 include graph forbidden edge, cycle, slice entry/exit gate를 검사합니다.
+- v3.5~v3.8 bridge는 범위 양 끝 ID가 아니라 각 UI ID의 route/control/action을 전수 대조합니다.
+  inventory summary의 30분 대상 50과 49/49 stale 표를 current manifest에서 자동 산출합니다.
+- owner role fixture는 `decision record`, external field는 `조건부 미실행`, structure는 `gate 준비 완료`로
+  표기합니다. 실제 구현, field PASS, refactor 완료와 같은 상태값을 사용하지 않습니다.
+- 완료 조건: NoOp worker 미기동, forbidden dependency/cycle negative, bridge 중간 ID 누락 negative,
+  count 자동 일치, 상태 vocabulary verifier가 각각 독립적으로 PASS해야 합니다.
+
+#### V390-REVIEW2-32 NoOp fallback runtime state
+
+- `NoOpAppearanceExtractor::Enabled()`는 stats의 `enabled=false`와 같은 비활성 의미를 반환합니다.
+  readiness 실패 factory가 NoOp을 반환하면 TrackStateManager의 기존 Enabled guard가 worker start,
+  appearance input/crop build, async enqueue 전에 종료합니다.
+- `analysis_state_smoke.cpp`는 유효 RGB frame과 appearance policy enabled 상태에서도 NoOp manager의
+  request/queued/completed/dropped/missing-crop가 모두 0이고 profile이 없음을 실행 검증합니다.
+  readiness capability smoke도 no-ONNX factory fallback의 Enabled/stats/counter/Extract를 독립 확인합니다.
+- 검증: `verify-v390-reid-readiness-consistency` capability 2 + HTTP 10/failures 0,
+  `verify-reid-advanced-tracking` 12/0, `verify-analysis-state` 179/0. 실제 model session,
+  identity search, UI 풀테스트, 30분/120분은 미실행이며 이 결과로 대체하지 않습니다.
+
+#### V390-REVIEW2-33 readiness dependency graph
+
+- fixture의 `stable-contract-dtos`/`core-utilities`를 실제 module node로 보강하고 모든
+  `mayDependOn` edge와 `allowedDependencyDirections`가 양방향 exact set인지 검증합니다. 각 slice는
+  직전 slice ID를 `dependsOnSlice`로 명시해 entry/exit 순서가 문구 해석에 의존하지 않습니다.
+- verifier는 `src`/`include` 146개 C++ 파일의 include를 실제 resolve하고, CMake의 production cpp
+  73개가 source tree와 정확히 일치하며 test/docs가 target에 들어오지 않는지 검사합니다. 현재 refactor 전
+  core→ingress 3-edge와 analysis/core/ingress SCC는 명시적 legacy baseline으로만 허용하며 새 forbidden
+  edge와 cycle은 synthetic negative에서 거부합니다.
+- 검증: `verify-v390-structure-stabilization-readiness` 7/0. 이는 dependency gate 준비 완료 evidence이고
+  legacy edge/cycle 제거, v4.0.0 branch 생성, route/API/UI refactor 완료 또는 UI/longrun PASS가 아닙니다.
+
+#### V390-REVIEW2-34 bridge, count, anchor reconciliation
+
+- `verify-manual-ui-evidence`가 v3.5~v3.8 UI 28개와 관련 CLIENT 8개 총 36개 exact ID를
+  current implementation manifest의 handler/route/control/action/state/reviewer digest에 결합합니다.
+  범위 양 끝 문자열만 확인하지 않고 `UI-094` 중간 누락 negative를 실행합니다.
+- 30분/120분 mapping 표는 current 986-row manifest의 non-null longrun mapping을 산출해 각각
+  50/50, 7/7과 inventory summary가 일치해야 합니다. 오래된 49/49 표를 제거했습니다.
+- refresh에서 review-required가 된 12개 행을 직접 대조했습니다. `SRC-017`은 generic `client`/
+  `PublishedViewJson` 후보를 거부하고 exact `SourceViewRegistry::CreateView`/`PublishedView` occurrence로
+  재바인딩했습니다. 나머지는 transaction owner line/occurrence, Policy/VLM/ONVIF contract text,
+  manual/structure verifier locator의 current 변동을 확인했습니다. Approval은 pending 12개만 갱신하고
+  기존 974개 reviewer provenance를 보존합니다.
+- 검증: implementation evidence 986/986, validation 0, negative 11/11; manual bridge 26/0;
+  project inventory 14/0; feature coverage 986/986; native exact 424/unsupported 0; Policy v4는
+  current actual UI `ineligible`, `uiFulltestPass=false`입니다.
+
+#### V390-REVIEW2-35 truthful status vocabulary
+
+- owner fixture는 `recordKind=decision-record`, `implementationStatus=not-executed`,
+  `evidenceStatus=decision-only-not-implementation-evidence`를 사용합니다.
+- field fixture와 세 target은 `conditional-not-run`, `condition-record-not-field-pass`이며
+  network/endpoint/credential/device/provider/artifact와 field/release PASS claim은 모두 false입니다.
+- structure fixture는 `status=gate-ready`, `implementationStatus=not-executed`,
+  `gate-contract-not-refactor-evidence`, `refactorEntryReady=false`를 사용합니다.
+- `verify-v390-truthfulness-status-vocabulary`는 위 세 상태와 roadmap/evidence wording을 대조하고
+  owner implementation `complete`, field `PASS`, structure `refactor-complete` negative를 거부합니다.
+
+### 재검토 등록 시점 경계 (historical)
+
+- 초기 19~35 등록은 개발 완료가 아니라 잔여 이슈의 source roadmap 등록이었습니다.
+- 테스트, verifier, build, UI 실행은 이 초기 등록 단계에서는 수행하지 않았습니다.
+- 기존 historical PASS와 문서 `완료` 표기는 19~35의 직접 구현 결함을 덮어쓰지 않습니다.
+- 각 항목 개발 시 AGENTS 단계 규칙에 따라 구현, 관련 개별 테스트 등록·실행, evidence 기록,
+  `git diff --check`, 사용자 커밋 승인을 독립적으로 닫아야 합니다.
+- 19~35 전체가 닫히기 전에는 v3.9.0 개발 전체 완료 또는 release readiness를 보고하지 않습니다.
+
+### V390-REVIEW2-26~35 current closure
+
+- 26~35의 구현, 개별 검증, roadmap/evidence 연결과 같은 스텝 후속 감사를 완료했습니다.
+- current Policy v4 UI evidence는 `ineligible`, qualified 0, `uiFulltestPass=false`입니다. 실제 UI
+  풀테스트와 30분/120분 실행은 이번 goal에서 수행하지 않았으며 contract/fixture PASS로 대체하지 않습니다.
+- owner/field/structure의 decision-record, conditional-not-run, gate-ready 상태도 구현/PASS/complete가 아닙니다.
+- 2026-07-12 source-level 재감사에서 26~35 일부의 구현 범위가 문서 표현보다 좁음이 확인됐습니다.
+  따라서 `추가 구현 후속 이슈 없음`은 historical 판단이며 아래 REVIEW3이 현재 상태를 대체합니다.
+
+## v3.9.0 (19) 2026-07-12 실제 구현 3차 감사와 잔여 로드맵 36~49
+
+이 섹션은 통합 v3.9 순번 `V390-ADD1-01`~`V390-ADD1-12`, Evidence/Closure 13~18,
+`V390-REVIEW2-19`~`V390-REVIEW2-35`를 문서의 완료 표기나 과거 verifier PASS를 evidence로
+사용하지 않고 source, function, route, UI control, runner, fixture, schema 소비 경로를 직접 대조한
+결과입니다. 이번 감사에서는 테스트, build, server, browser, 30분/120분을 실행하지 않았습니다.
+따라서 아래 판정은 runtime PASS/FAIL이 아니라 **현재 source 구현의 충분성 판정**입니다.
+
+### 통합 순번 1~35 직접 판정
+
+| 번호 | ID/구간 | 문서상 상태 | 2026-07-12 직접 판정 | 직접 확인 결과/잔여 경계 |
+| ---: | --- | --- | --- | --- |
+| 1 | V390-ADD1-01 | 완료 | 구현 확인 | 삭제 대상 부재와 current untracked 0 확인. 과거 blob byte 동일성은 현 worktree만으로 재구성 불가 |
+| 2 | V390-ADD1-02 | 완료 | 미완성 | 986행 locator/digest는 존재하지만 무관 symbol/control 연결이 있어 전 기능 1:1 의미 closure가 아님 |
+| 3 | V390-ADD1-03 | 완료 | 구현 확인 | VLM candidate revision/digest/result/provenance와 option/model/prompt server-owned 검증·저장 경로 존재 |
+| 4 | V390-ADD1-04 | 완료 | 구현 확인 | Re-ID 공용 readiness와 NoOp fallback 경계 존재. 실제 model session/inference는 의도적 비범위 |
+| 5 | V390-ADD1-05 | 완료 | 구현 확인 | ONVIF paired source/view save와 process 내 보상 rollback 존재. crash journal은 비범위 |
+| 6 | V390-ADD1-06 | 완료 | 부분 구현 | acceptance orchestrator는 있으나 기본 8-case summary를 424 gate에 넣고 v4 producer도 없어 current canonical PASS 불가 |
+| 7 | V390-ADD1-07 | 완료 | 구현 확인/8-case 한정 | UI-108~UI-115 route/control/artifact case는 존재하나 exact 424 전체 UI 구현이 아님 |
+| 8 | V390-ADD1-08 | 완료 | 구현 확인/adapter 한정 | Playwright native wait/click/fill/type/select/screenshot adapter 존재. 전체 기능 workflow와 별개 |
+| 9 | V390-ADD1-09 | 완료 | 부분 구현 | source/outerHTML marker는 거부하지만 visibility와 사후 network correlation false-PASS가 남음 |
+| 10 | V390-ADD1-10 | 완료 | 구현 확인 | delegated duration case 첫 실패 후 later case not-run과 stderr/context/reproduction 보존 경로 존재 |
+| 11 | V390-ADD1-11 | 완료 | 부분 구현 | exact ID 424 집합은 있으나 route/action anchor가 실제 handler/action 결합을 증명하지 못함 |
+| 12 | V390-ADD1-12 | 완료 | 부분 구현 | Policy v4 evaluator/contract는 있으나 actual evidence v4 producer와 responsive/theme actual source가 없음 |
+| 13 | Evidence integrity | 완료 | 부분 구현 | dedupe/placeholder/first-failure 검사는 있으나 current HEAD 직접 결속과 child path containment가 불충분 |
+| 14 | Final re-run/cleanup | historical PASS | current 미완료 | source `8fe583d8` historical run만 있고 current 986/32-command source 재실행은 미실행 |
+| 15 | VLM provenance | 완료 | 부분 구현 | observation/EventRecord 대조는 있으나 observation-context-only evaluation과 duplicate JSON key 위험 존재 |
+| 16 | Owner sign-off | decision record | 결정 기록 | role 기반 decision만 존재하고 implementation과 실제 개인 owner 승인 evidence는 없음 |
+| 17 | Structure readiness | gate 준비 | gate 준비 | `refactorEntryReady=false`, implementation not-executed. 실제 구조 안정화가 아님 |
+| 18 | External field | 조건부 미실행 | 조건부 미실행 | endpoint/credential/device/provider contact와 field PASS evidence 없음 |
+| 19 | V390-REVIEW2-19 | 완료 | 구현 확인 | backlog Step parser와 missing/duplicate/state drift gate 존재 |
+| 20 | V390-REVIEW2-20 | 완료 | 미완성 | 986행 다수가 declaration/shared context locator이며 일괄 reviewer approval로 의미 closure를 대체함 |
+| 21 | V390-REVIEW2-21 | 완료 | 부분 구현 | persist-before-publish와 file fsync/rename/HTTP 500은 있으나 rename 후 parent directory fsync 없음 |
+| 22 | V390-REVIEW2-22 | 완료 | 부분 구현 | ordered 424/hash binding은 구현됐지만 binding source인 semantic manifest가 신뢰되지 않음 |
+| 23 | V390-REVIEW2-23 | 완료 | 부분 구현 | artifact path/hash/type/correlation은 검사하지만 visual PASS는 실제 pixel/baseline 계산이 아님 |
+| 24 | V390-REVIEW2-24 | 완료 | 미완성 | 223개 navigation-only, 201개 generic tag action이며 기능별 입력·조작·readback을 구현하지 않음 |
+| 25 | V390-REVIEW2-25 | 완료 | 부분 구현 | before/after 동일은 거부하지만 임의 DOM 변화만으로 expected behavior와 무관하게 PASS 가능 |
+| 26 | V390-REVIEW2-26 | 완료 | end-to-end 미완성 | exact runner v1 output과 Policy v4 required schema가 달라 native run→qualification→eligible 경로가 끊김 |
+| 27 | V390-REVIEW2-27 | 완료 | REVIEW3-47에서 보강 완료 | placeholder 삭제와 historical 격리를 유지하면서 coverage를 native 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution으로 교정하고 current consumer의 audit-only source 사용을 차단 |
+| 28 | V390-REVIEW2-28 | 완료 | 부분 구현 | save/reload 공용 validator는 있으나 non-structural first-field parser와 duplicate-key 우회 가능성 존재 |
+| 29 | V390-REVIEW2-29 | 완료 | 구현 확인/save-time 한정 | EventRecord/observation provenance 대조와 no-write 존재. restart 시 저장 rule provenance 재대조는 없음 |
+| 30 | V390-REVIEW2-30 | 완료 | 구현 확인 | bytes/existence/mode snapshot과 atomic restore/remove 존재. process crash journal은 비범위 |
+| 31 | V390-REVIEW2-31 | 완료 | 부분 구현 | synthetic parent PASS는 제거했으나 delegated expected case 전수·중복·순서 검증이 부족 |
+| 32 | V390-REVIEW2-32 | 완료 | 구현 확인 | NoOp Enabled/stats/worker/crop/queue disabled 의미가 일치함 |
+| 33 | V390-REVIEW2-33 | gate 준비 완료 | gate 준비/부분 구현 | 미래 9-module model이 actual file classifier와 연결되지 않고 실제 graph는 4분류와 일부 edge만 검사 |
+| 34 | V390-REVIEW2-34 | 완료 | 부분 구현 | 986/50/7 count와 36개 bridge ID는 맞지만 locator 존재를 의미상 route/control/action closure로 과장 |
+| 35 | V390-REVIEW2-35 | 완료 | 부분 구현 | fixture status vocabulary는 맞지만 문서별 독립 위치/claim과 top-level field flag를 전수 검사하지 않음 |
+
+집계: 구현 확인 11, 부분 구현 16, 미완성 4, 결정/gate/조건부 4입니다. `구현 확인`도 이번
+정적 감사에서 source 경로가 확인됐다는 뜻이며, 실행하지 않은 테스트 PASS를 뜻하지 않습니다.
+
+위 표는 REVIEW3 구현 전 historical 감사 snapshot입니다. REVIEW3 행의 `완료`도 당시 source
+implementation claim일 뿐 current 제품 의미 완료가 아닙니다. REVIEW4-50이 다시 대조한 current
+판정의 machine-readable source는 `test/fixtures/v390_review4_truth_reset.json`이며 다음과 같습니다.
+
+- source 구현 확인 18: 1, 2, 3, 4, 7, 8, 13, 15, 19, 20, 27, 28, 29, 30, 31, 32, 33, 35
+- source 부분 구현 13: 5, 6, 9, 10, 11, 12, 21, 22, 23, 24, 25, 26, 34
+- source 미완성 4: 14, 16, 17, 18
+
+집계: source 구현 확인 18, source 부분 구현 13, source 미완성 4입니다. source 구현 확인은 runtime, UI, 30분, 120분 PASS가 아닙니다. Discovery source 606개는 REVIEW4-50 시점 snapshot이며,
+`webrtc_http_server.cpp` 42,897줄, `product_ui_page_scripts.cpp` 10,217줄입니다.
+
+### REVIEW3 잔여 구현 순서
+
+| 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
+| ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 36 | V390-REVIEW3-36 | Discovery | 누락 기능과 전체 문서 ledger | P0 | historical source claim / REVIEW4 재검증 | `AGENTS.md` 별도 전문 감사와 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action ledger, 606개 source/tooling file marker 분류를 구현했습니다. RulesJson 두 항목은 non-VA 분석 자동부착 `excluded-by-design`, RTSP/WebRTC 장시간 검증 `transferred-to-test-condition`으로 inventory에 등록하고 `notImplementedYet` 응답을 제거했습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 1, 총 6점. 기능 누락 정확도 상향 적용 |
+| 37 | V390-REVIEW3-37 | Feature Closure | 986행 semantic closure 전면 재감사 | P0 | 완료 | 자동 token 최고점과 bulk approval API를 제거하고 986개 기능 각각을 content-addressed owner→route/control→action→state→readback→verifier 5-edge chain, 986개 고유 review reason/digest로 재작성했습니다. `SAFE-140`은 v3.5 command workspace owner로, `RULE-017`은 hidden/generated ID save/readback owner와 `verify-ops-client-ui`로 교정했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 전 기능 정확도 직접 영향 |
+| 38 | V390-REVIEW3-38 | Persistence | Analysis Registry crash durability | P0 | 완료 | 기존 mode를 temp에 복원하고 file fsync/close→parent directory open→rename→directory fsync 뒤에만 성공합니다. 12 success, 12 mutation×9 fault=108, 12×3 crash=36 actual HTTP/restart matrix와 startup stale-temp recovery를 구현했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. 데이터 손상 위험 상향 적용 |
+| 39 | V390-REVIEW3-39 | VLM Integrity | 구조적 JSON과 provenance 재검증 | P0 | 완료 | 공용 strict JSON parser로 모든 object scope의 decoded duplicate key와 malformed/trailing JSON을 거부하고 profile/rule의 top-level/nested type을 exact 조회합니다. Profile reload 13종과 rule provenance reload의 forged/duplicate/nested/deleted server-record를 quarantine합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. provenance·보안·데이터 무결성 상향 적용 |
+| 40 | V390-REVIEW3-40 | Long-run | delegated exact phase ledger | P0 | 완료 | expected case ID/order/uniqueness/count를 parent가 검증하고 누락·중복·부분 summary를 PASS로 투영하지 않음 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. 테스트 결과 정확도 상향 적용 |
+| 41 | V390-REVIEW3-41 | UI Automation | exact 424 기능별 native workflow | P0 | 완료 | 424개 각각에 unique workflow와 role/semantic seed, input, explicit control sequence, reviewed state/readback 결과, reversible cleanup을 고정하고 runtime tag 추측을 제거했습니다. Hidden 10개와 disabled/non-action/read-model을 actionable control과 분리합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 대량 UI 동등성과 false-PASS 상향 적용 |
+| 42 | V390-REVIEW3-42 | UI Correctness | semantic completion oracle | P0 | 완료 | Exact 424의 848 action plan이 request-header에서 실제 관측된 request ID/method/path/status와 case별 exact semantic readback identity를 함께 요구합니다. DOM digest-only와 사후 correlation 부착을 차단하고 persisted/EventRecord/server-log 대안은 attested schema만 허용합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 거짓 PASS 정확도 상향 적용 |
+| 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 완료 | exact runner actual mode가 `media-server.ui-automation-evidence.v4` summary와 case trace/console/server-log/visual/redaction, suite cross-cutting/redaction attestation을 실행 root에서 직접 생성합니다. 44번 visual 측정과 45번 acceptance-owned cleanup 전에는 `uiFulltestPass=false`입니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
+| 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 완료 | actual PNG dimension/hash와 browser DOM geometry/computed-style/focus/video-overlay 측정에서 case visual 및 320/390/760/1180×light/dark cross-cutting status를 계산하고 Policy qualifier가 attested input을 재계산합니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
+| 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 완료 | canonical bundle이 30분→exact 424 v4 producer→throwaway server cleanup→Policy qualification→AGENTS 7.6.2 조건부 120분→cleanup→final integrity를 연결하며 legacy 8-case와 외부 summary 주입을 제거했습니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
+| 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 완료 | acceptance가 실행 시작/종료 provenance와 canonical command-set hash를 기록하고 final integrity가 이를 현재 HEAD·branch, source-clean state, approved artifact root의 realpath containment, Policy v4 source/build binding과 독립 대조합니다 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
+| 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | historical source claim / REVIEW4 재검증 | coverage policy v4가 exact native manifest의 positive 423+negative route 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리하고, current state v2와 Policy/coverage consumer가 `audit-only-historical` source kind/root를 거부합니다 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
+| 48 | V390-REVIEW3-48 | Structure | actual module dependency graph | P1 | 완료 | actual C++ 148개/CMake cpp declared 74·default active 73를 9 owner와 single `media_server` target에 연결하고 32 include direction witness hash, external link, target 위반 25 direction, legacy core 역의존 3 edge, 8-owner SCC, mixed ownership과 6 slice entry/exit를 검증합니다 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점. 구조 전면 안정화 진입 정확도 상향 적용 |
+| 49 | V390-REVIEW3-49 | Structure Decision | 구조 안정화 실행 범위 확정 | P1 | 완료 decision / 구현 미실행 | 48번 actual graph의 25 target 위반, 8-owner SCC, single target, 42,897-line HTTP server와 10,217-line UI script를 근거로 v3.9는 graph/guard/decision-only, 실제 refactor는 explicit 승인 뒤 v4.0.0 ordered slice로 이관합니다 | 5.6 Sol | 높음 (high) | 2+2+1+1=6점. 광범위 구조 변경과 release 경계 상향 적용 |
+
+### REVIEW3 상세 구현 계약
+
+#### V390-REVIEW3-36 discovery prerequisite
+
+- strict `모든 문서 파악` evidence는 저장소의 Markdown 173개 각각에 분류, 전문 확인 여부,
+  current logic 불일치, 중복/복잡도, 조치를 기록하는 ledger입니다. 8개 source group의 `checked` 문구나
+  파일 glob만으로 전수 검토를 완료 처리하지 않습니다.
+- `AnalysisDocumentRegistry::RulesJson()`이 노출하는 `automatic rule matching for non-VA streams`와
+  `long-running RTSP/WebRTC route matching validation`을 completion inventory에 등록하고 v3.9 구현,
+  구조 단계 이관, excluded 중 하나로 사용자 승인받습니다.
+- 완료 조건: 문서와 source incomplete marker 전수 ledger에서 미분류 항목이 0이고, 확정된 기능 수와
+  project inventory/semantic manifest expected row 수가 일치해야 37번으로 넘어갑니다.
+
+구현 기록(2026-07-12):
+
+- `scripts/internal/verify_v390_review3_discovery_ledger.mjs`가 `AGENTS.md`와 나머지 tracked
+  Markdown 173개를 각각 끝까지 읽고 byte count/SHA-256/classification/status marker/exact
+  paragraph duplicate/action을 `test/fixtures/v390_review3_discovery_ledger.json`에 고정합니다.
+- 동일 verifier가 `src`, `include`, `scripts/internal`, `server.sh` 604개 파일의 explicit
+  incomplete marker를 파일/행/context hash/disposition으로 기록하고 미분류 0을 강제합니다.
+- `AnalysisDocumentRegistry::RulesJson()`의 non-VA 자동 분석 부착은 제품 분석 경계를 유지하기
+  위해 제외했고, RTSP/WebRTC 장시간 route matching은 기능이 아니라 AGENTS 7.6.2 조건부 120분
+  검증으로 이관했습니다. 두 결정은 feature row delta 0이며 inventory/semantic manifest는 986행을
+  유지합니다. 이번 단계에서 장시간 실행 PASS를 주장하지 않습니다.
+
+#### V390-REVIEW3-37 semantic closure
+
+- 현재 결함 예시: `SAFE-140`의 v3.5 command workspace action owner가 무관한
+  `OpsV380ClientNoticeDraftQueueJson`으로 연결되고, `RULE-017` state owner가 일반
+  `ExtractObjectField`로 연결됩니다. locator/hash가 맞아도 기능 의미가 맞지 않습니다.
+- generator는 신규/변경 행을 자동 approve하지 않습니다. reviewed owner symbol과 실제 call/dispatch/data-flow
+  관계를 machine-readable edge로 기록하고, verifier는 그 edge를 source에서 확인합니다.
+- 완료 조건: 986행 개별 reviewer reason이 기능별로 구체적이고, generic/shared/unrelated owner,
+  same-file token, bulk approval, ID-only verifier가 모두 negative fixture에서 FAIL합니다.
+
+구현 기록(2026-07-12):
+
+- `scripts/internal/feature_semantic_evidence_lib.mjs`의 closure schema v2가 986행 각각에
+  content-addressed `owner`, `routeControl`, `action`, `state`, `readback` role과 고정된 5개
+  edge, 기능/기대 동작/role symbol/chain digest를 포함한 고유 review reason을 요구합니다.
+- `scripts/internal/feature_implementation_manifest_lib.mjs`에서 token score/owner score 기반
+  `bestEvidence` 경로를 제거했습니다. Refresh는 승인된 call-chain이 source와 일치하면 보존하고,
+  drift가 있으면 해당 행만 `review-required`로 남기며 새 행을 자동 선택하지 않습니다. 동일
+  reason을 전체 행에 넣는 bulk approval API/CLI도 제거했습니다. 과거 자동 selector의 공개
+  entry도 명시 오류로 봉쇄해 개별 검토 v2 chain 외 생성 경로를 허용하지 않습니다.
+- `SAFE-140`은 `AppendOpsDashboardPage` → `/ops` dispatch → `OpsV350CommandPlanJson` →
+  `OpsV350StagedChangePlanImpactPreviewJson` → command workspace verifier로 교정했습니다.
+  `RULE-017`은 hidden `opsEventRuleIdInput` → `opsRulesSaveNativeRecord` → `setOpsGeneratedId` →
+  `opsRulesGeneratedIdExpression`과 `verify-ops-client-ui` readback으로 교정했습니다.
+- `verify-feature-implementation-evidence`는 986/986 call-chain, 986 unique digest/reason,
+  missing chain, duplicate reason, unrelated SAFE-140, generic RULE-017 negative를 검사합니다.
+  `verify-feature-semantic-closure-contract`는 19개 positive/negative contract를 독립 확인합니다.
+- semantic manifest 변경에 종속된 Policy v4 canonical/native 424 binding은
+  `verify-v390-ui-native-exact-cases --update-canonical-binding`으로 implementation hash와 exact
+  route/control을 동기화합니다. Source line 전체를 실행 artifact에 복제하지 않고 API anchor 또는
+  검토 action symbol만 사용하며 Policy v4 contract 17/0, native contract 8/0으로 재검증했습니다.
+  이 결과는 semantic source closure이며 제품 실행/UI 풀테스트/30분/120분 PASS가 아닙니다.
+
+#### V390-REVIEW3-38 Analysis Registry crash durability
+
+- Analysis Registry atomic replace는 file fsync 뒤 rename뿐 아니라 parent directory fsync까지 완료한 뒤
+  success를 publish합니다. 기존 mode를 보존하고 crash point별 recovery contract를 둡니다.
+
+구현 기록(2026-07-12):
+
+- `WriteAnalysisRegistryFileAtomically`은 기존 target의 regular-file mode를 `lstat`으로 읽고 새 temp에
+  `fchmod`합니다. Temp 전체 write/file fsync/close 뒤 parent를 `O_DIRECTORY`로 열고, rename 뒤
+  `fsync(directory_fd)`까지 성공해야 HTTP 성공과 in-memory candidate publish가 가능합니다.
+- rename 이전 `parent/open/mode/write/flush/close/directory-open/rename` 실패는 target bytes,
+  memory GET, restart state와 mode를 보존합니다. Rename 뒤 `directory-flush` 실패는 durable 여부가
+  불확정이므로 HTTP 500을 반환하되 이미 교체된 candidate를 memory와 맞춰 process 내 불일치를 막습니다.
+- `EnsureLoadedLocked`는 target filename의 `.tmp.<pid>.<attempt>` stale regular file/symlink만 시작 시
+  제거합니다. `after-temp-fsync` crash는 이전 target을 복구하고 stale temp를 제거하며,
+  `after-rename`/`after-directory-fsync` crash는 완전한 candidate를 reload합니다.
+- `test/fixtures/v390_analysis_registry_durable_write/cases.json` v2와 actual HTTP verifier가 profile/rule/
+  VA rule/VLM profile create·update·delete 12개를 9개 fault stage 전체와 3개 crash point 전체에 교차해
+  정상 성공 12개와 fault/crash 각각 108/36개를 검사하고 mode `0640`, valid JSON,
+  unrelated collection 불변, temp 0을 확인합니다.
+- Inventory 갱신 뒤 semantic refresh가 `SAFE-217`/`OPS-184` 두 행만 `review-required`로 만든 것을
+  확인하고, targeted `--migrate-review3 --review-ids SAFE-217,OPS-184`로 실제
+  `PersistAndPublishLocked`/HTTP error route/writer/recovery/readback chain과 새 기대 동작만 명시
+  재검토했습니다. 나머지 984개 reviewed chain은 변경하지 않았습니다.
+  실제 UI 풀테스트와 30분/120분은 이번 단계에서 실행하지 않습니다.
+
+#### V390-REVIEW3-39 structural JSON and reload provenance
+
+- VLM profile/rule parser는 구조화된 JSON parser로 exact top-level/object scope와 duplicate key를 거부합니다.
+  저장 시뿐 아니라 reload 시 canonical provenance가 현재 EventRecord/observation과 일치하는지 검증합니다.
+
+구현 기록(2026-07-12):
+
+- `include/ingress/strict_json.h`, `src/ingress/strict_json.cpp`에 C++17 strict object parser를 추가했습니다.
+  문서 전체 소비, 최대 depth, JSON number/string escape/Unicode surrogate, trailing byte를 검증하고 decoded
+  key 기준으로 각 object scope의 duplicate를 거부하며 exact top-level string/bool/object/null 조회를 제공합니다.
+- VLM profile save/reload의 schema/id/provider/model/runtime/privacy/prompt/evaluation/activation/runtimeContract/
+  privacyGuard/invariants 조회를 structural field API로 교체했습니다. Forbidden material도 문자열 포함이 아니라
+  실제 JSON key로 판정하며 nested shadow가 top-level authority를 대체할 수 없습니다.
+- VLM provenance rule save는 전체 rule JSON을 strict parse하고 `vlmProvenance`가 top-level object일 때만
+  event/candidate/evaluation/generatedRule scope를 exact type으로 읽습니다. Duplicate key와 nested-only
+  provenance는 400/no-write로 거부합니다.
+- `AnalysisDocumentRegistry::EnsureLoadedLocked`는 저장된 provenance rule 각각을 현재 active/archive
+  EventRecord와 VLM observation/ruleSuggestion에 다시 대조하고 forged/duplicate/nested scope 또는 삭제된
+  observation/EventRecord에 의존한 rule을 memory GET에서 quarantine합니다. 외부 API schema는 변경하지 않았습니다.
+- `verify-v390-vlm-promotion-trust-boundary` v2는 기존 14 HTTP, structural save 7, reload quarantine 13을,
+  `verify-v390-vlm-incident-rule-provenance`는 정상 3, forged 15, duplicate 3, nested-only 1,
+  reload valid/invalid 5, reload deleted-record 2, 기존 deleted/binding 4를 actual HTTP로 검증했습니다.
+- Inventory refresh에서 drift가 드러난 `UI-018`, `AUTH-041`, `MEDIA-005`, `LAB-126`, `SAFE-017`,
+  `SAFE-213`, `OPS-173`, `OPS-180` 8개 행은 자동 승인하지 않고 actual negative route/auth scope/WebRTC
+  offer/strict VLM save·reload chain으로 개별 재검토했습니다. 986개 unique call-chain/digest/reason과
+  semantic contract 27/0을 확인했습니다.
+  UI 풀테스트·30분·120분·provider/runtime field 실행은 미실행입니다.
+
+#### V390-REVIEW3-40 delegated exact phase ledger
+
+- longrun parent는 expected delegated case manifest와 summary를 ID/order/count/uniqueness로 대조합니다.
+  한 개 soak row 또는 일부 runtime row만 존재하는 summary는 PASS가 아닙니다.
+- `verify_v390_server_longrun.mjs`는 `media-server.v390-delegated-phase-ledger.v1`을 parent summary와
+  Markdown report에 기록합니다. Fixed `build`/start/smoke/external gate, iteration 1부터 연속하는 soak
+  5-case(`va-events`→`event-post-schema`→`event-post-recovery`→`redaction`→`runtime-idle`), main/queue
+  runtime, ports cleanup, report의 전역 순서와 global unique ID를 검증합니다.
+- 각 parent phase는 expected/observed ID와 count, valid/error를 별도 보존합니다. Predev summary의
+  pass/fail/skip/notRun counter와 실제 step 결과를 다시 계산하고, 성공 ledger의 required case는
+  pass(비활성 build/external/redaction은 skip), 첫 실패 뒤 ordinary case는 not-run이어야 합니다.
+- Contract RED에서 event-post case가 빠진 partial summary가 parent PASS로 투영되는 기존 결함을 8/1로
+  재현했습니다. 최종 9/0은 2개 완전 soak iteration과 complete failed-soak ledger를 positive로,
+  partial/missing/duplicate/reordered/unknown/result/notRun/counter mismatch를 negative로 확인합니다.
+- 실제 30분/120분 longrun은 이 단계에서 실행하지 않았으며 fixture/contract PASS로 duration evidence를
+  대체하지 않습니다.
+- 완료 조건: 38~40 각각의 failure matrix와 negative contract가 독립적으로 닫힌 뒤 UI/acceptance 구현으로
+  넘어갑니다. 세 항목은 병렬 개발 가능하지만 각 항목은 별도 완료 evidence를 가집니다.
+
+#### V390-REVIEW3-41~45 exact UI와 Policy v4
+
+41번 구현 기록(2026-07-12):
+
+- `verify-v390-ui-native-exact-cases-contract`는 424개 각각의 unique workflow ID, role/seed setup,
+  case input, explicit control sequence, expected result, persisted/local cleanup을 검증합니다.
+- runner와 manifest의 `runtime-control`/generic `interact`를 금지하고, hidden control은 hidden assertion,
+  disabled/non-action element는 명시적 상태/read-model assertion으로만 처리합니다.
+- exact contract와 plan-only runner만 실행하며 실제 Policy v4 exact 424 browser fulltest, 30분, 120분은
+  별도 실행 승인 전 미실행입니다.
+- v2 manifest는 424 navigate와 `route-read-model` 220, visible read-model 130, form contract 16,
+  hidden 10, explicit fill/select/toggle 38, details 2, enabled/disabled/seeded/link 9,
+  SAFE-017 cross-route negative 1을 exact count로 고정합니다. UI-018은 독립 negative route입니다.
+- Contract RED는 v1 manifest의 workflow 부재를 `8/1`로 재현했습니다. 최종 `10/0`은 workflow
+  누락·중복, generic action, 미분류 selector를 거부합니다. Plan-only는 424 not-run과
+  `uiFulltestPass=false`를 유지했고 native adapter는 sandbox bind EPERM 최초 실패 뒤 동일 명령 외부
+  재시도에서 7/7 PASS였습니다.
+
+- 현재 exact manifest는 424개 모두 390x844/light이며 223개가 route-root navigation-only입니다.
+  201개 interaction 중 대부분은 case별 endpoint가 없고 runtime element tag에 따라 임의 동작합니다.
+- 각 case는 필요한 seed/account/role/scope, 입력값, control sequence, expected endpoint/status,
+  persisted cleanup을 명시합니다. 예를 들어 hidden `#opsEventRuleIdInput`은 visible action control로
+  사용하지 않고 hidden 상태 자체를 geometry/visibility assertion으로 확인합니다.
+- actual runner는 requested 값을 observed로 복사하지 않고 browser URL, role session, viewport,
+  media query/theme, control visibility와 action 결과를 실제 관측합니다.
+- `media-server.ui-automation-evidence.v4` summary, screenshot/trace/console/server log, visual diff,
+  redaction scan, cross-cutting evidence를 한 실행 root에 생성합니다. 1x1 PNG와 fixture status PASS는
+  actual evidence가 될 수 없습니다.
+- completion oracle은 단순 input value 변화가 아니라 case가 선언한 제품 결과를 확인합니다.
+  request correlation은 action request에 연결된 URL/method/request ID 또는 readback identity를 사용합니다.
+- 완료 조건: repo-native one command가 exact 424와 cross-cutting을 실행하고 Policy v4 eligible summary를
+  생성해 acceptance가 외부 수작업 summary 없이 소비할 수 있어야 합니다. 첫 실패 뒤 later case는
+  not-run이며 재현 command와 cleanup을 남깁니다.
+
+42번 구현 기록(2026-07-12):
+
+- Exact manifest의 424 navigate와 primary/negative action을 합한 848개 action plan에
+  `media-server.v390-ui-semantic-completion.v1` request/readback contract를 고정했습니다.
+- Native adapter는 `x-media-server-correlation-id`를 request header로 전송하고 response에서 생성한
+  request ID, header correlation source, method, URL, status를 기록합니다. Runner는 수집 뒤 correlation
+  ID를 덧붙이지 않으며 exact path/status와 readback identity/value가 함께 맞아야 `endpoint-dom`입니다.
+- Exact 424 runner뿐 아니라 targeted `UI-108`~`UI-115` actual 경로도 action 직전에 같은 header를
+  설정하고 exact API path+visible assertion readback을 결합합니다. Fixture-only synthetic summary는
+  actual evidence가 아니며 실제 8-case UI 자동화 실행은 별도 승인 전 미실행입니다.
+- Persisted readback, EventRecord, server log 대안은 각각 schema, correlation source/ID, identity,
+  request/record/log 위치와 digest를 검증합니다. Exact manifest는 `dom-transition`과 legacy
+  `network-dom`을 allowed source로 사용하지 않습니다.
+- 최초 RED는 arbitrary DOM 변화만으로 semantic action이 PASS하는 결함을 `9/1`로 재현했습니다.
+  최종 contract 13/0은 header correlation/readback positive와 synthetic correlation, request ID,
+  method/path, readback ID/value, weak attestation negative 및 848개 action plan을 검증했습니다.
+- Native adapter actual 단기 실행은 correlation request `GET /` 200과 7/7 action을 확인했습니다.
+  Plan-only는 424 not-run과 `uiFulltestPass=false`를 유지합니다. 실제 exact 424 UI 풀테스트·30분·120분은
+  별도 실행 승인 전 미실행입니다.
+
+43번 구현 기록(2026-07-12):
+
+- `v390_ui_policy_v4_evidence_producer.mjs`가 actual exact result와 source binding을 입력받아
+  `media-server.ui-automation-evidence.v4` summary를 직접 작성합니다. Case screenshot은 actual runner
+  artifact를 그대로 참조하고 trace, browser console, server-log slice, visual 상태, redaction scan을
+  attested ref/hash/type/path로 묶습니다. Suite redaction과 7개 cross-cutting payload도 같은 run root에
+  생성합니다.
+- Producer는 artifact root 밖 absolute/relative/symlink 경로를 거부하고 forbidden-material scan 결과를
+  case/suite security에 기록합니다. Native adapter는 Policy v4가 요구하는 실제 `snapshot`/assertion
+  경계를 `query`/`assert` capability로 명시합니다.
+- Standalone exact runner는 외부에서 공급된 server lifecycle을 소유하지 않으므로
+  `serversStopped=false`, `portsClean=false`를 정직하게 기록합니다. 44번 actual pixel/geometry 전에는
+  visual/cross-cutting을 `FAIL`, `reviewRequired=true`로 남기며 `uiFulltestPass=false`입니다.
+- 테스트 정의 등록 뒤 최초 `./server.sh verify-v390-ui-policy-v4-producer-contract`는 command 부재로
+  `알 수 없는 명령` RED였습니다. 구현 뒤 contract 5/0이 v4 schema/source binding, case/suite attestation,
+  visual/cleanup 비승격, contract fixture 비승격, artifact path escape 거부를 확인했습니다.
+- 실제 exact 424 browser UI 풀테스트, 30분, 120분은 실행하지 않았으며 contract PASS로 대체하지 않습니다.
+
+44번 구현 기록(2026-07-12):
+
+- Native adapter가 actual browser의 viewport/device pixel ratio/theme, document overflow, target rect,
+  effective foreground/background, visible video/overlay bounds와 8-step keyboard focus order/indicator를
+  `media-server.ui-browser-visual-measurement.v1`로 수집합니다.
+- `v390_ui_visual_evidence.mjs`는 PNG IHDR dimension/hash와 measurement hash를 결속하고 horizontal
+  overflow·target clipping, WCAG contrast threshold, focus indicator/order, ready video와 overlay containment를
+  계산해 `media-server.ui-visual-baseline-diff.v2` PASS/FAIL을 만듭니다. 입력 status 문자열은 받지 않습니다.
+- Exact runner는 case마다 measurement를 생성하고, 별도 320/390/760/1180×light/dark actual browser matrix를
+  실행하도록 연결했습니다. Producer는 matrix screenshot/measurement/visual 24개 attested ref에서 7개
+  cross-cutting payload를 산출합니다.
+- Policy v4 verifier는 visual payload의 PASS를 신뢰하지 않고 case 및 cross-cutting attested screenshot,
+  measurement, visual payload를 다시 읽어 status/geometry/contrast/focus/video-overlay/matrix를 재계산합니다.
+- 테스트 정의 등록 뒤 최초 visual contract는 command 부재로 `알 수 없는 명령` RED였습니다. 최종 visual
+  contract 5/0은 8개 viewport/theme variant와 clipping·저대비·focus·overlay·dimension negative를 확인했고,
+  Policy v4 contract 18/0은 low-contrast visual과 measurement-ref 없는 cross-cutting 자기선언 PASS를 거부했습니다.
+- 실제 exact 424 browser UI 풀테스트, 30분, 120분은 실행하지 않았으며 fixture/contract PASS로 대체하지 않습니다.
+
+45번 구현 기록(2026-07-12):
+
+- `verify-v390-test-acceptance-bundle`의 canonical stage를 preflight→build→feature gates→30분→
+  exact 424 native runner→explicit throwaway UI server/PID/HTTP·RTSP cleanup→Policy v4 qualification→
+  AGENTS 7.6.2 조건부 120분 decision/run→cleanup→final integrity→report로 교체했습니다.
+- Canonical 경로에서 legacy `verify-v390-ui-automation` 8-case/replay와 `--ui-fulltest-summary` 외부 주입을
+  제거했습니다. Exact child summary를 qualifier가 직접 소비하고 final integrity도 같은 command 안에서
+  provisional/final summary를 독립 재검증합니다.
+- 120분은 더 이상 actual preflight의 무조건 조건이 아니며 AGENTS 7.6.2 직접 trigger와 실행 승인이
+  함께 있을 때만 `--run-120`으로 선택합니다. Flag 자체는 trigger가 아니며 trigger 없는 flag는 거부합니다.
+  Actual exact UI는 loopback throwaway URL, role-state map, server log, 명시 PID와 HTTP/RTSP port,
+  contained temp root를 요구하고 media_server identity·port ownership을 확인한 뒤 종료/port/artifact
+  before/after cleanup을 attestation에 반영합니다.
+- Screenshot content dedupe를 exact case/matrix artifact 생성 전에 적용해 final artifact duplicate를 막고,
+  final integrity는 v4 exact child의 424 coverage와 visual measurement/diff artifact를 인식합니다.
+- 강화한 acceptance contract 최초 실행은 old 8-case/외부 summary/120 강제/stage mismatch로 4/5 RED였습니다.
+  구현 뒤 9/0이 canonical source, fixed order, first-fail, conditional 120, cleanup/final-integrity fixture를
+  확인했습니다. Fixture/dry-run은 실제 30분, exact 424 UI, 120분 evidence가 아닙니다.
+
+#### V390-REVIEW3-46~47 final evidence integrity
+
+- final evidence는 summary 안 commit 형식만 확인하지 않고 실행 직전/직후 `HEAD`, dirty state,
+  command set과 source binding을 직접 기록합니다. child artifact는 approved run root 밖을 참조할 수 없습니다.
+- current coverage/evidence policy는 actual manifest 존재와 not-run 상태를 모순 없이 표현하고 historical
+  artifact는 audit-only path로만 접근합니다.
+- 46번은 current HEAD/run root 검증을 구현하고, 47번이 stale policy/historical binding을 정리한 뒤
+  두 항목을 함께 재검증합니다. 이 단계 전 historical PASS를 current final evidence로 사용하지 않습니다.
+
+46번 구현 기록(2026-07-12):
+
+- `collectSourceProvenanceWithAllowedArtifacts`가 실행 종료/current 상태의 HEAD·branch, 전체 status hash,
+  approved artifact root 내부 path와 source tree의 unapproved dirty path를 분리합니다. Actual acceptance는
+  시작 clean뿐 아니라 종료/current 시점에도 artifact root 밖 변경이 0이어야 합니다.
+- Acceptance summary는 9개 canonical command의 순서·명령·status와 SHA-256을 기록합니다. Final integrity는
+  exact 30분, exact 424 native, throwaway server cleanup, Policy v4, 조건부 120분, final integrity command를
+  자체 expected set과 대조해 legacy command 치환이나 summary 안 hash 동시 위조를 허용하지 않습니다.
+- Acceptance summary/run root, 30분·UI·120분 child summary, Policy v4 source summary와 UI artifact root는
+  존재하는 실제 파일/디렉터리의 realpath로 approved output root 안에 있어야 합니다. UI evidence의
+  `gitCommit`도 current HEAD와 같아야 하며 path traversal/symlink escape를 허용하지 않습니다.
+- 강화 계약의 최초 실행은 HEAD drift/unapproved dirty, canonical command 대체/hash mismatch, child path
+  escape 3건이 검출되지 않아 6/3 RED였습니다. 구현 후 final integrity contract 9/0과 acceptance contract
+  9/0이 통과했습니다. 실제 30분, exact 424 browser UI 풀테스트, 120분은 실행하지 않았습니다.
+
+47번 구현 기록(2026-07-12):
+
+- Coverage policy/summary를 v3으로 올리고 `v390_ui_native_exact_cases.json`의 424개를 implementation 및
+  Policy v4 canonical manifest와 exact ID/feature/canonical route/role/viewport/theme로 대조합니다. Positive
+  native-executable 423개와 `UI-018` negative-route 1개가 모두 workflow를 가지며 unsupported는 0입니다.
+- Current state v2는 readiness 423+1/unsupported 0과 execution pass 0/fail 0/not-run 424/unsupported 0을
+  별도 필드로 기록하고 두 canonical manifest의 SHA-256을 결속합니다. Readiness PASS를 actual UI PASS로
+  승격하지 않으며 current UI fulltest는 계속 `not-run`/false입니다.
+- Historical manifest v2는 `sourceKind=audit-only-historical`, `consumerPolicy=deny-current-evidence`입니다.
+  Coverage runner는 realpath가 6개 historical root 아래면 schema보다 먼저 거부하고 Policy qualifier는
+  `audit-only-historical-denied`/`uiFulltestPass=false`와 denial reason을 기록합니다.
+- 강화 current contract의 최초 실행은 state/historical schema 두 건이 없어 3/2 RED였습니다. 최종 current
+  contract 6/0, coverage contract 12/0, Policy v4 contract 18/0이 통과했습니다. `SAFE-212`/`OPS-169`/
+  `OPS-179` source drift도 targeted review로 986개 semantic-reviewed 상태를 복구했습니다. 실제 exact 424
+  browser UI 풀테스트, 30분, 120분은 실행하지 않았습니다.
+
+#### V390-REVIEW3-48~49 structure entry decision
+
+- structure verifier는 미래 module fixture와 실제 파일 graph를 같은 node identity로 연결합니다.
+- 구조 안정화는 현재 readiness 문서만 있고 실제 source extraction은 없습니다. 현재
+  `src/ingress/webrtc_http_server.cpp` 42,897줄과 `product_ui_page_scripts.cpp` 10,217줄 상태를 기준으로
+  48번 actual dependency graph를 먼저 확정한 뒤 v3.9 안정화에서 수행할지 v4.0에서 수행할지 결정합니다.
+  결정 전 `구조 안정화 완료`를 보고하지 않습니다.
+
+48번 구현 기록(2026-07-12):
+
+- `v390_actual_module_dependency_graph.json`은 `src`/`include`의 `.cpp`/`.h` 148개를 9개 declared
+  owner에 ordered exact/container rule로 분류합니다. Owner별 file/cpp count와 전체 ownership SHA-256을
+  고정하고 unclassified file, exact owner precedence, count/hash drift를 거부합니다.
+- CMake production cpp는 declared 74/default YouTube OFF active 73이고 단일 `media_server` executable에 들어가며 internal module target
+  separation은 false입니다. 8개 optional external link edge와 9 owner target membership을 검사합니다.
+- Actual cross-module include direction은 32개이며 각 direction의 witness count/hash를 고정했습니다.
+  목표 mayDependOn 밖 direction 25개, legacy core→transport/application/domain exact edge 3개와 8-owner
+  SCC 1개를 current debt로 기록합니다. 새 target-violation/link edge와 SCC drift negative를 거부합니다.
+- `webrtc_http_server.cpp` 42,897줄, `product_ui_page_scripts.cpp` 10,217줄, composition root의 mixed
+  responsibility를 primary owner와 별도 debt로 기록하고 6개 refactor slice의 actual entry owner/exit rule을
+  결속했습니다. 최초 schema 강화는 6/1 RED, 최종 readiness는 7/0입니다. 실제 refactor는 미실행입니다.
+
+49번 결정 기록(2026-07-12):
+
+- `v390_structure_execution_scope_decision.json`은 issue 48 actual graph 파일의 schema/SHA-256과
+  148 file, declared 74/default active 73 cpp, 9 owner, target 1, target 위반 25, largest SCC 8,
+  42,897/10,217 line mixed-owner 값을 직접 결속합니다.
+- Release line refactor threshold는 target 위반 0, SCC owner 1, mixed file 15,000줄 이하, separated
+  internal target 필요입니다. 네 factor가 모두 `defer`이므로 decision은
+  `defer-actual-refactor-to-v4.0.0`, v3.9 mode는 `graph-guard-decision-only`입니다.
+- v3.9에서는 production source extraction/ownership move, CMake target split, legacy edge removal,
+  route/API/UI handler relocation, 승인 없는 v4 branch 생성을 금지합니다. v4.0.0 실행은 explicit start와
+  branch 승인, release correctness base, clean worktree, baseline gates 뒤 기존 6개 slice 순서로만 허용합니다.
+- Decision fixture 부재 상태의 최초 readiness는 7/1 RED였고, 구현 후 8/0입니다. Decision 완료는
+  branch/refactor/UI/30분/120분 실행 완료가 아니며 실제 structure implementation은 미실행입니다.
+
+### REVIEW3 완료 경계
+
+- REVIEW3 등록은 개발 완료가 아니라 source-level 결함과 구현 계약의 등록입니다.
+- 36~49가 닫히기 전 `전 기능 exact closure`, `AI-minimized 전체 UI 자동화 구현 완료`,
+  `Policy v4 end-to-end 준비 완료`, `v3.9 테스트 제외 개발 전체 완료`를 보고하지 않습니다.
+- 14번 current final rerun, 30분, 120분, UI 풀테스트, published metadata, release action은 별도 실행
+  evidence이며 이번 문서 반영에서 실행하지 않았습니다.
+- 각 항목은 구현, 개별 테스트 등록, 승인된 테스트 실행, roadmap/evidence, `git diff --check`, 사용자
+  커밋 승인을 독립적으로 닫습니다.
+
+### REVIEW4 직접 감사 후 잔여 개발 순서
+
+2026-07-12 `bf327888b0b87b4dc2fe6479d9df14358ab22271`을 기준으로 문서의 완료 표기를
+신뢰하지 않고 source, consumer, runner, evidence producer, qualifier를 다시 대조했습니다.
+그 결과 REVIEW3의 파일과 verifier는 존재하지만 일부 완료 조건이 제품 의미로 닫히지 않았습니다.
+REVIEW4는 아래 순서를 고정합니다. 앞 단계가 FAIL이면 뒤 단계는 시작하지 않으며, 50~64 개발이
+닫히기 전 65번 current final test를 실행하거나 `v3.9.0 테스트 제외 개발 완료`를 주장하지 않습니다.
+
+| 순서 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
+| ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 50 | V390-REVIEW4-50 | Foundation | roadmap truth reset과 current 기준 정렬 | P0 | 완료 | REVIEW3 완료 표기를 historical source claim으로 낮추고, 통합 순번 1~35를 source 구현 확인 18, 부분 13, 미완성 4로 고정했습니다. readiness와 actual execution 필드를 분리했으며 source 606은 REVIEW4-50 audit snapshot, HTTP server 42,897와 UI script 10,217은 보존 source line 기준입니다. REVIEW4-52 의미 감사에서 workflow readiness는 56~60 전 `false`로 재정렬했습니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 문서와 상태 schema 정렬이며 상향 규칙 없음 |
+| 51 | V390-REVIEW4-51 | Scope Gate | 구조 안정화 버전 범위 재확정 | P0 | 완료 decision / 64 미실행 | 최신 사용자 지시로 50~63 완료 뒤 64번 actual refactor를 current `v3.9.0` branch에서 실행하고 v4.0.0 이관을 취소했습니다. Base `027678ba`, branch 비생성, 9 preserved contract, 6 ordered slice, 64 뒤 65 acceptance를 machine-readable decision v2에 고정했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 전면 구조 변경과 release 경계 상향 적용 |
+| 52 | V390-REVIEW4-52 | Discovery | 문서와 source 의미 전수 감사 | P0 | 완료 | AGENTS와 분리한 tracked Markdown 176개 각각에 semantic role, lifecycle/alignment, decision, actual owner, source-backed evidence와 semantic digest를 기록했습니다. Release artifact 36개를 wrapper/predev aggregate/release-note/acceptance/UI producer/adapter subtype으로 분리하고 source marker 38개를 occurrence/column identity와 exact disposition 15종으로 닫았습니다. current 문서 32개를 실제 v3.9 refactor 결정, HTTP 8080, historical lifecycle, 986/424 pending 의미로 교정했으며 generic/self-owner/stale claim/missing evidence negative를 거부합니다. UI coverage는 56~60 전 `REVIEW_REQUIRED`, readiness false, pass 0/not-run 424입니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 1, 총 7점. 기능 누락 정확도 상향 적용 |
+| 53 | V390-REVIEW4-53 | Feature Closure | 986행 semantic call-chain 독립 재구축 | P0 | 완료 | 2026-07-13 사용자가 53번 잔여 169건과 canonical manifest 반영을 명시 승인했습니다. UI/AUTH/SRC/RULE, EVT/CLIENT/MEDIA/LAB, SAFE/OPS proof fixture를 실제 owner→dispatch→action→state→independent readback에 source-first로 재결속해 frozen auditor 최종 `986 resolved / 0 unresolved`, family 10개 전부 FAIL 0을 확인했습니다. Earlier 53 scope의 실제 구현 gap인 LAB-028~031은 `webrtc_http_server.cpp`의 `AnalysisGlobalMetadataJson`/`AnalysisGlobalBboxDiagnosticsJson`/`AnalysisGlobalStateDumpJson`/`AnalysisGlobalMetricsDumpJson`과 `/lab/analysis/{metadata,bbox-diagnostics,state[-dump],metrics[-dump]}` GET route로 구현하고 canonical LAB core verifier의 throwaway HTTP 실행으로 확인했습니다. External reviewer decision을 canonical approval ledger 986건으로 정규화하고, 승인된 proof만 `project_feature_implementation_evidence.json`에 투영했습니다. 적용기의 inventory hash/readback file 결속, REVIEW4 compatibility validator, semantic closure negative, exact UI 424 action-count ledger 결함을 수정해 implementation evidence 986/986·negative 15/15, semantic closure 31/31, exact UI contract 10/10, Policy v4 18/18, project inventory와 coverage를 통과했습니다. 임시 work JSON 7개와 대체 OPS/SAFE scaffold 15개 및 dispatch는 제거했고 신규 LAB core runtime verifier 38건은 canonical dispatch/proof owner로 보존했습니다. 55번은 시작하지 않습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 전 기능 정확도와 거짓 closure 위험 상향 적용 |
+| 54 | V390-REVIEW4-54 | Persistence | Analysis Registry 실패 원자성 복구 | P0 | 완료 | 신규 target은 `0640`, 기존 target은 exact mode를 보존합니다. Same-directory rollback snapshot과 durable prepared/committed marker를 두어 rename 뒤 directory fsync 실패도 API 500, memory·file·restart 이전 상태로 통일하고, crash recovery가 prepared는 rollback·committed는 candidate를 선택합니다. `WriteAnalysisRegistryFileAtomically`/`RecoverAnalysisRegistryTemporaryFiles`와 v3 fixture/verifier가 profile/rule/VA rule/VLM profile create·update·delete success 12, 9-stage failure 108, fault-cleared single retry 108, 4-point crash/restart 48, artifact 0을 actual HTTP로 검증했습니다. `verify-analysis-state`는 181/0, build와 관련 diff 검사는 통과했습니다. Auth 전용 회귀는 operator secret 5종 미제공으로 미실행이며 Auth/Role/Scope·API/schema/event/media 계약은 변경하지 않았습니다. 55번은 시작하지 않습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. 운영 데이터 손상 위험 상향 적용 |
+| 55 | V390-REVIEW4-55 | Persistence | ONVIF source/view crash transaction 완성 | P0 | 완료 | 기존 v1 route/response token을 유지하면서 source 경로의 private rollback snapshot과 durable prepared/committed marker를 commit point로 추가했습니다. `EnsureLoadedLocked`가 registry parse 전에 prepared는 양쪽 bytes/existence/mode를 이전 pair로 복구하고 committed는 새 pair를 유지하며 orphan/temp를 정리합니다. Writer는 기존 mode를 candidate temp에 적용합니다. Actual 19-case가 first/second failure, rollback-fault restart, prepared/source/view/committed crash, retry, concurrent no-mix, artifact 0을 통과했습니다. multi-process writer coordination·ONVIF 실기기·UI 풀테스트·30분/120분은 이 PASS에 포함하지 않습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. source/view 데이터 정합성 상향 적용 |
+| 56 | V390-REVIEW4-56 | UI Case Design | exact 424 기능별 workflow 재작성 | P0 | 완료 | `review4Proof.flowKind/operation/expectation`과 case별 실제 product action을 함께 대조해 exact 424를 read-only 287, form-submit 15, persisted-mutation 32, actionable 43, hidden-disabled 45, negative-route 2로 분류했습니다. 각 case는 actual value 또는 seed ref, tracked source anchor/file digest가 있는 exact control 또는 명시적 not-applicable proof, endpoint(method/path/status) 또는 local action(type/target/effect), 서로 다른 state/readback identity·locator와 명시적 runtime readback step, mutation inverse cleanup 또는 `persistedMutation:false` no-op cleanup을 가집니다. AUTH-005/007/014/015와 RULE-007/011/012/025/030/101의 잘못된 form·hidden/disabled action을 실제 setup/user/invite/rule workflow로 교정했고, class 이름만으로 일반 div/list/link를 disabled로 판정하지 않습니다. Cross-route action role과 redacted `secretRef`를 고정했습니다. Contract와 424 plan-only는 actual browser 424·Policy v4·30분·120분 PASS가 아니며 current readiness는 57~60 대기로 false입니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 대량 UI 동등성과 false-PASS 상향 적용 |
+| 57 | V390-REVIEW4-57 | UI Runner | canonical requested/observed schema 일치 | P0 | 완료 | `v390_ui_requested_observed_schema.mjs`가 canonical requested(`route/accountRole/viewport/theme/controlAction`)와 runtime observed(`screenRoute/accountRole/viewport/theme/controlAction/provenance`)의 서로 다른 exact projection을 정의합니다. Runner는 browser URL, `/auth/whoami`, 실제 viewport, media query, DOM selector state를 수집하며 producer/qualifier는 공통 envelope를 독립 검증합니다. Legacy `role`/observed `route`, 누락·추가 field, requested control 복사, API route의 screen route 혼용, adapter tool/engine drift를 거부합니다. Exact 424 actual browser, completion oracle, visual matrix, Policy 독립성은 58~60 대기입니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. Policy v4 release eligibility 상향 적용 |
+| 58 | V390-REVIEW4-58 | UI Oracle | 실제 action 결속 completion oracle | P0 | 완료 | `media-server.v390-ui-action-completion.v2`가 exact 424 primary action의 action ID/correlation ID/exact selector/expected-behavior digest/독립 readback identity를 고정합니다. Endpoint 384개는 workflow fixture로 치환된 concrete path와 실제 request ID/method/status를 unique 1건으로 잠그고, local 40개는 handler별 DOM postcondition·필수/금지 request를 사용합니다. V1 expected/observed 복사 대신 V2 raw runtime observation+digest를 evaluator가 직접 판정하고, runner는 primary action을 pending으로 둔 뒤 별도 `verify-independent-readback`에서 fresh DOM/readback을 결속해야만 exact primary completion 1건을 생성합니다. 독립 검토에서 드러난 10개 generic `activate-control`을 교정해 RULE-016/073/075는 persisted PUT transaction, RULE-101은 UI no-dispatch와 별도 API 400, RULE-102는 review-loop select, UI-036/SRC-024/CLIENT-002/005/SAFE-038은 실제 postcondition·seed·request 계약으로 바꿨습니다. Local postcondition은 action 전 불일치→action 후 일치 전이를 최소 1개 요구하고, adapter request-start 원장과 correlation별 network quiet 구간으로 느리거나 응답 전인 금지 dispatch도 거부합니다. Producer는 evaluator가 고정한 `completionRequest`만 보존합니다. Contract는 completion 21/0, native exact 12/0, adapter 7/0, producer 8/0, Policy 20/0이며 actual exact 424 browser 실행과 runtime mutation seed/secret/readback/cleanup은 미실행·fail-closed로 60/62/65 경계에 남깁니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 1, 총 7점. 거짓 PASS 정확도 상향 적용 |
+| 59 | V390-REVIEW4-59 | Visual Evidence | viewport/theme/video-overlay 실제 matrix | P0 | 완료 / actual 실행 대기 | `v390_ui_visual_matrix_plan.json`이 실제 대표 화면 10개(`/ops/home|dashboard|sources|rules|users|events|vlm`, `/client/live|dashboard|events`)를 canonical/native case와 고정하고 320/390/760/1180×light/dark 80개 고유 조합을 만듭니다. Measurement/diff v2/v3는 case/route/role/target selector, 실제 `data-theme`, viewport, screenshot pixel 정보량, overflow/geometry/contrast/focus를 재계산하며 빈 PNG와 legacy 8-probe를 거부합니다. `/client/live` 8개는 동일 tile의 VA mode, correlated `overlayMode=va-overlay` session/answer, live track, ready/intrinsic/frame progress, `object-fit:contain` content rect, placeholder와 control containment를 모두 요구하고 일반 info overlay/canvas는 인정하지 않습니다. 독립 검토에서 다른 view의 session URL을 현재 tile identity로 포장할 수 있던 false PASS를 발견해 request/answer URL `viewId`, tile `data-view-id`, session 생성 응답 `sessionId`, answer URL `sessionId`의 exact equality를 추가했습니다. Current state는 canonical/native/visual 세 manifest의 exact path와 실파일 SHA-256을 모두 재검증해 stale binding을 거부합니다. Runner/adapter/producer/Policy consumer가 80-probe plan을 공유하며 contract 6/0, adapter 8/0, producer 8/0, Policy 20/0, current hygiene 7/0을 통과했습니다. 실제 80개 browser screenshot/trace는 62/65 self-contained acceptance까지 `not-run`이고 source readiness와 실제 UI PASS는 분리합니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 시각 동등성과 영상 UI 검증 상향 적용 |
+| 60 | V390-REVIEW4-60 | UI Policy | Policy v4 producer와 qualifier 독립성 | P0 | 완료 / actual 실행 대기 | Producer는 runner PASS를 trust/completion/visual PASS로 승격하지 않고 raw v2 trace, raw action/network/readback, screenshot/measurement와 fingerprint만 보존합니다. 별도 `v390_ui_policy_v4_independent_qualifier.mjs`가 exact primary action 수·순서·ID·selector·correlation, unique request-start/response method/path/status/request ID, fresh semantic readback identity/selector/behavior digest, requested/observed projection과 visual measurement를 독립 재계산합니다. Policy consumer와 coverage consumer는 producer의 `currentSourceVerified`, result/replay/completion/visual boolean을 신뢰하지 않고 current source hash와 qualification을 재검증합니다. 56 empty workflow/body selector, 57 requested/observed drift, 58 wrong/duplicate request와 stale/wrong readback, 59 producer visual PASS fixture가 모두 거부됐습니다. Independence 10/0, producer 8/0, Policy 20/0, native exact 12/0이며 readiness는 `exact-native-ready-current-not-run`, actual exact 424/80 browser 실행은 62/65까지 pass 0/not-run 424입니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. release correctness와 순환 신뢰 위험 상향 적용 |
+| 61 | V390-REVIEW4-61 | Long-run/Evidence | duration, 120분 판정, cleanup 실측 | P0 | 완료 / actual 장시간 미실행 | Predev는 Bash `SECONDS` monotonic 시작/종료/경과와 exact ordered soak iteration/case ledger, 서버 PID command/port lifecycle ledger를 기록합니다. Longrun v2는 별도 `process.hrtime.bigint` 경과와 delegated duration·step ledger를 함께 검증해 requested minutes 또는 최대 iteration 역산을 거부합니다. 120분 정책 필요성은 AGENTS 7.6.2 base..HEAD change scope와 upstream drift에서 계산하며 `--run-120`은 독립 trigger가 아닙니다. Longrun/UI cleanup은 PID identity·listener owner 전후·bindability·contained artifact 존재와 before/after bytes를 raw schema로 기록하고 acceptance/final integrity가 재검증합니다. Contract/fixture만 실행했으며 실제 30분/120분/UI는 미실행입니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 장시간 및 release evidence 정확도 상향 적용 |
+| 62 | V390-REVIEW4-62 | Acceptance | self-contained one-command 실행 환경 | P0 | 완료 / 사용자용 4-launcher·evidence lifecycle 보강 / actual 장시간·UI 미실행 | 사용자 진입점은 모두 인자·환경변수 없는 `./test_server_30min.sh`, `./test_server_120min.sh`, `./test_ui.sh`, `./test_release.sh`입니다. 공통 launcher가 contract preflight, secret/local env 차단과 결과 출력을 소유합니다. 두 server launcher는 OS temp, UI launcher는 repository-local transient `.media_server.test/v3.9.0/ui-acceptance-current`, release launcher는 `docs/release-artifacts/v3.9.0/test-acceptance-current-final`을 사용합니다. Server launcher는 runner-owned ephemeral port로 30분 또는 120분만 위임하고 직접 `test_server_120min.sh` 실행은 120분 승인으로 기록합니다. UI launcher는 acceptance-owned throwaway HTTP/RTSP server, admin/operator/viewer/integrator account와 0600 storage-state, Playwright/browser provenance, exact 424와 Policy v4, cleanup만 선택합니다. UI preflight는 repository 밖 artifact root와 stale exact source projection을 environment bootstrap 전에 거부하고 exact runner는 raw `CAPTURED`와 Policy v4 `uiFulltestPass`를 분리하며 bootstrap/producer/case 실패에도 exact ledger를 기록합니다. 네 role 비밀번호는 crypto random·unique로 생성해 argv·파일·summary/report·일반 child env에 남기지 않고 exact child에만 memory-only 전달한 뒤 artifact scan 후 해제합니다. Release launcher는 안정화→30분→UI 뒤 AGENTS 7.6.2 trigger가 있을 때만 120분을 자동 실행하고, 없으면 `not-required`로 기록한 뒤 report/final integrity까지 계속합니다. Final integrity는 canonical report와 필수 child evidence의 containment·bytes·SHA-256 및 temp final-reference 0을 직접 검증합니다. Launcher 17/17, acceptance 17/17, native exact 24/24, producer 9/9, final-integrity 12/12 PASS이며 실제 exact 424·80 visual·120분은 이번 correction에서 실행하지 않았습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 복합 실행 경계와 release correctness 상향 적용 |
+| 63 | V390-REVIEW4-63 | Product Scope | deferred 기능 실제 owner 확정 | P1 | 완료 | `.github/CODEOWNERS`의 effective rule에 따라 실제 책임자 `@dhseo90`를 `repository-code-owner`/`repository-scoped-product-scope-attestation`으로 결속하고 기능 역할과 조직 권한 추론을 분리했습니다. Exact 5개는 action write, persistent credential store, production restore, external provider call, model-backed Re-ID이며 외부 field smoke는 별도 조건부입니다. Production restore의 runbook/staging 구현과 product automation 미구현, external provider의 product runtime 금지와 conditional harness 구현, Re-ID의 `implemented-opt-in-experimental` source와 supported release 제외를 구분합니다. 모든 후속은 `post-v3.9-unassigned`, scheduled=false이며 구조화 dependency 승인 전 target version을 예약하지 않습니다. Current release execution/UI/30분/120분/field/release PASS는 주장하지 않습니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 제품 범위 결정 기록이며 상향 규칙 없음 |
+| 64 | V390-REVIEW4-64 | Structure | 승인된 구조 안정화 slice 실행 | P0 | 완료 / current continuation Slice 32 및 구조 final target 충족 | Historical ordered Slice 1~5와 current continuation Slice 1~32를 순서대로 닫았습니다. Slice 32는 standard-only deep DTO와 opaque egress/source session port, canonical adapter로 transport의 SessionManager·WebRTC egress/source session·source registry 직접 결속을 제거해 transport→core-media를 4→0으로 닫았고 application→core-media 4건은 canonical adapter 결속으로 유지합니다. Focused8/8, predecessor40/40, structure15/15, source bundle6/6, physical split6/6, build100%, analysis181/181, ICE8/8, codec67/67(외부3 제외), SSE5/5, side5/5, WS9/9, WebRTC metadata8/8, RTSP6/6, Ops lifecycle/source health와 LAB core PASS입니다. 최종 semantic review의 verifier false-PASS P1 1건은 exact mapping과 paired-swap·descriptor omission RED로 수정했습니다. Auth-off codec Bash 3.2 empty-array nounset 후속을 수정·RED 결속했습니다. Current graph는 production215/C++103, 위반0/SCC0이고 SHA는 `215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a`입니다. 임시 파일30개/32,763바이트 삭제와 listener0을 확인했습니다. REVIEW4-64 구조 개발 완료이며 parked evidence를 확정하는 REVIEW4-65 독립 acceptance PASS는 아닙니다. | 5.6 Sol | 최대 (max) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. Physical split 뒤 dependency 방향과 final evidence를 순차 폐쇄하는 최난도 작업 |
+| 65 | V390-REVIEW4-65 | Final Test | current HEAD 독립 acceptance와 evidence | P0 | UI-068 actual FAIL 보존 / UI 공통 보정 및 current-source lifecycle checkpoint 완료 / actual 재실행 대기 | Source `1e4ed53c`의 standalone UI actual run은 44 PASS 뒤 UI-046에서 `[data-testid="ops-events-page"]`를 찾지 못해 executed/pass/fail/not-run `45/44/1/379`로 중단됐고 Policy v4는 not-run입니다. 제품 source에는 `/ops/events` root와 requested link가 모두 있으며, primary link가 `/ops/rules`로 이동한 뒤 catalog가 초기 source root를 현재 destination에서 재검사한 lifecycle 결함입니다. 남은 379개를 route/role/viewport/theme/root/control/action/workflow와 제품 renderer/runtime에 직접 대조한 결과 deterministic PASS 가능 96, test infrastructure 결함 162, 제품 구현 결함 0, actual browser 전 판단 불가 121입니다. 공통 보정은 catalog source-route 검증 뒤 destination 복원, 이미 실행한 primary action/network evidence 재사용, canonical/native primary control의 route-root 독립 검증을 추가했습니다. `aca754f1`의 actual UI-046 `[data-incident-rule-draft-route]` missing은 required·same-route primary control을 기존 adapter `waitForSelector` 뒤 snapshot하도록 보정했습니다. `8d2c4c47`의 최근 actual은 66 executed/65 PASS 뒤 UI-068 `GET /client/live: raw` false FAIL로 중단됐고, response도 DOM과 동일하게 narrative boundary token을 제외하고 structured material만 검사하도록 보정했습니다. Core 14/14·runtime 22/22·client-safe 9/9·native exact 26/26·completion 22/22·adapter 11/11 PASS, native generator 1회로 response spec/binding만 갱신했습니다. Candidate `c654e271…`도 986행 feature/pass/status/sourceFlow 0 변경입니다. 이 checkpoint에서는 actual UI/Policy v4/30분/120분/release를 실행하지 않았고 이전 actual FAIL은 PASS로 승격하지 않습니다. | 5.6 Terra | 높음 (high) | 영향도 1, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 5점. generated binding과 launcher evidence lifecycle을 닫는 P0 checkpoint |
+
+REVIEW4-65 code-comments early-gate correction(2026-07-18): source `b48ef1bbb5ea6b7a6621781e068e146602e67643`의 canonical run은 build와 historical actual 34/34 feature gate를 통과했지만, `server-longrun-30` integrated-smoke에서 519초 뒤 English-only 설명 주석 두 건으로 실패했습니다. 이 actual FAIL은 그대로 보존합니다. 다음 canonical run은 `verify-code-comments`를 build 직후 feature-gates의 첫 정적 gate로 포함한 35개 current feature gate를 실행하며, 해당 gate 실패는 `testcaseId=code-comments`, 사용자 재현 `./test_release.sh`, 이후 30분·UI·Policy v4·120분·final integrity `not-run`으로 기록해야 합니다. 이 보정 자체에서는 actual acceptance를 재실행하지 않습니다.
+
+REVIEW4-65 UI manifest/cleanup correction(2026-07-18): source `911446e802a5eb984843d929238715563722261a`의 actual run은 historical actual 35/35 feature gate와 real 30분을 PASS한 뒤 exact UI manifest의 implementation source binding drift로 browser 실행 전 0/424 FAIL했습니다. 공식 generator 전후 비교에서 canonical implementation SHA와 native canonical/implementation/runtime-oracle 및 derived semantic digest만 변경됐고 424 ordered ID·route·role·viewport·theme·control action·workflow·completion oracle·cleanup의 non-hash drift는 0입니다. Semantic manifest 적용 뒤 같은 generator를 다시 실행한 최종 fixture SHA는 canonical `0aecda8305a02954b574adfb7453c4034cb8afcb2c4fb2ac8c18ec0b3dd630bc`, native `764138aa45842eb7fe425efb582a11825c115aad81b7d98b2e44e8ebb8621aa3`이며 재비교도 non-hash 0입니다. Current feature gate는 native exact contract를 longrun 전에 정확히 한 번 추가한 36개이며, stale binding은 30분/UI 전에 fail-stop합니다. Runner는 pre-execution failure도 `actualBrowserExecution=false`, executed 0, notRun 424, Policy v4 not-run, child resources/cleanup false인 구조 summary로 기록합니다. 이 summary가 없으면 cleanup FAIL이고, resource 미획득 summary가 있으면 acceptance-owned PID/port/temp-root 실측 cleanup만 요구하며 UI/Policy PASS로 승격하지 않습니다. Fresh semantic candidate `9d8ba38065bb169d2c7ac0b163106d565d95404b95732958f47ca447f2f99548`의 영향은 `UI-018`, `SAFE-202`, `SAFE-212`, `OPS-169`, `OPS-179` 다섯 행이며 981행 carry-forward와 5행 independent review로 986/986 approval을 구성했습니다. 실제 acceptance/30분/UI/Policy/120분은 이 correction에서 재실행하지 않았습니다.
+
+REVIEW4-65 UI artifact/lifecycle invariant correction(2026-07-18): source `2bc7ad050a8eea18fd22892c2485da63523d829e`에서 sandbox 밖 `./test_ui.sh`를 1회 실행한 결과, UI-001~003 뒤 Policy v4 producer가 `Policy v4 artifact root must be inside the repository root`로 종료했습니다. 원인은 launcher contract가 UI output을 OS temp로 강제하면서 producer/qualifier는 repository-relative artifact root만 허용한 상호 모순입니다. 제품 UI assertion 실패로 분류하지 않습니다. 실패 중 UI-004가 screenshot 뒤 cleanup에서 중단돼 partial screenshot만 남았고, result 기반 dedupe가 이를 보지 못해 duplicate cleanup FAIL이 추가됐으며 producer 예외가 child summary를 쓰지 않아 `UI child summary missing`도 연쇄됐습니다. 원천 보정은 (1) UI 전용 output을 ignored repository-local `.media_server.test/v3.9.0/ui-acceptance-current`로 고정, (2) OS temp UI root를 environment bootstrap 전 preflight FAIL, (3) raw exact 완료는 `CAPTURED`이고 `uiFulltestPass=false`인 별도 상태로 고정, (4) manifest/bootstrap/producer/case 실패 모두 424행 ledger와 phase/error/not-run/cleanup 필요성을 기록, (5) 실패 case partial artifact도 reference 집합에 포함하고 orphan prune 뒤 content dedupe하도록 구성했습니다. Fresh semantic candidate `ec38b1be142c73c9f782f4b64ae9964a68f58d32a15ffdb34fddef61c277fb0a`는 983행 strict-equivalent carry-forward와 `UI-018`, `SAFE-212`, `OPS-179` 독립 검토 3행으로 986/986 approval을 구성했습니다. Launcher 15/15, acceptance 17/17, native exact 22/22, producer 9/9, Policy independence 10/10, visual 6/6, full-suite eligibility 7/7, final integrity 12/12, semantic audit 51/51, feature implementation evidence 986/986·negative 15/15, project inventory 17/17을 통과했습니다. 실제 exact 424와 Policy v4는 재실행하지 않았고 checkpoint commit 뒤 `./test_ui.sh` 1회 재실행이 남았습니다.
+
+REVIEW4-65 exact source-projection lifecycle correction(2026-07-18): source `9c5410e84dd8fd18153823ba4f9a425ed87e8615`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행한 결과 preflight와 UI environment bootstrap은 PASS했지만 `ui-exact-424`가 `manifest-validation`의 `implementation source binding drift`로 0/424 FAIL했습니다. 제품 browser/action/assertion은 0건이며 Policy v4는 not-run, child PID/ephemeral port/runtime root와 acceptance cleanup은 모두 PASS했습니다. 원인은 canonical/native manifest가 986행 implementation evidence 전체 SHA와 shared verifier assertion digest에 결속돼 unrelated approval/review metadata 변경도 exact UI를 무효화한 것입니다. 보정은 canonical exact 424 route/control projection과 native generated-case projection만 SHA-256으로 결속하고 whole-file fallback을 거부합니다. Exact route/control/state/readback 의미 drift는 계속 FAIL하며 unrelated review metadata와 shared verifier digest만 무시합니다. Standalone UI launcher는 native source contract를 environment bootstrap 전에 실행하고 실패 시 `ui-source-contract`, exact testcase ID, 사용자 재현 `./test_ui.sh`, 이후 단계 not-run을 출력합니다. Fixture 최종 SHA는 canonical `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989`, native `2f8f39a4940b2bb086cae0cb3a53922b73580873b0b694eb5d389836732185f1`이고 424 ordered ID·route·role·viewport·theme·control/action non-provenance 변경은 0입니다. Fresh semantic candidate `1dd1281bd88e617b72d36a0da008a98551bc3ae14e1e2a754b68bc0d72bd9b03`은 983 carry-forward와 `UI-018`, `SAFE-202`, `OPS-169` 독립 검토 3행으로 986/986 approval을 구성했습니다. Package/decision SHA는 `5a4db0b15daf07b4af787ae597f88a974c91b56af881cb8904cd078d03497469`/`b20508b8a34cde24954958876eef625f1fbb3f98ab6301afcb945f515b255d38`입니다. 이 correction에서는 actual UI/30분/120분/release acceptance를 재실행하지 않습니다.
+
+REVIEW4-65 UI-004 cleanup-readback correction(2026-07-18): source `a762df04b5c1d550caf3364186ef795e674601e6`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행한 결과 preflight/bootstrap PASS, UI-001~003 PASS 뒤 UI-004에서 executed/pass/fail/not-run `4/3/1/420`으로 중단했습니다. Actual browser는 실행됐지만 UI-004 observed capture 전 `no-op/read-only workflow changed authoritative state before cleanup`이 발생했고 Policy v4는 not-run, child PID/ephemeral port/runtime root와 acceptance cleanup은 PASS했습니다. 직접 source 확인 결과 UI-004는 `POST /password/change`와 변경된 users store, 이전 비밀번호 거부, 새 비밀번호 로그인, history 재사용 거부를 검증한 뒤 auth snapshot을 복원합니다. 이후 원래 비밀번호 최종 로그인 검증이 `lastLoginAt`/`lastLoginIp`를 users 파일에 다시 저장했는데 재복원 없이 byte boundary를 실행한 것이 원인입니다. `runAuthoritativeReadbackWithSnapshotRestore`는 상태를 쓰는 cleanup readback을 성공·예외 모두 원 snapshot으로 복원하고 원 readback 결과/실패를 보존합니다. Contract는 실제 임시 users 파일을 변경하는 성공/실패 두 경로를 실행해 재발을 차단하며 native exact 25/25, completion 22/22, adapter 11/11, acceptance 17/17과 MJS syntax가 PASS했습니다. Fresh semantic candidate `8dfefc9da3634c4e355e8b252d6d2878c7bd36df4b0474b2a2296ad109ca7208`은 985행 strict-equivalent carry-forward와 `UI-018` 독립 검토 1행으로 986/986 approval을 구성했습니다. Migration/package/decision SHA는 `facbbb710b7c9a8b563aff7c36edc6b3c8641a13f70f42fcad2ac9ca8b24ad23`/`0841766313f9b2a6c1c0cce728373d177e984090dc624b13eaa5190b1dec61d0`/`624b6237d13913d26fac728bac37d6c4470fa1db3d0e491ed53da67288525f77`입니다. 승인 적용 후 공식 generator 비교는 canonical fixture 변경 0, native digest/provenance 변경 293, ordered product/workflow non-hash 변경 0이며 최종 SHA는 canonical `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989`, native `2e997a047637d30792ea9f299261621ca2f16b907275807a6dedf912038086c0`입니다. 이 correction에서는 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`를 재실행하지 않습니다.
+
+REVIEW4-65 UI-009 fresh-role setup isolation correction(2026-07-18): source `28378c7419c876c4af8cf4b8c8d0759f8de6e96d`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행한 기존 FAIL은 exact executed/pass/fail/not-run `8/7/1/416`이며 UI-009에서 중단됐습니다. UI-009의 제품 UI assertion 전에 `prepareCase`가 authoritative state를 snapshot한 다음 fresh-role setup `/login`이 auth users 파일의 `lastLoginAt`/`lastLoginIp`를 변경해 setup 자체가 cleanup/readback drift를 만들었습니다. 원천 수정은 login 직전 users 파일만 별도 snapshot하고 `runAuthoritativeReadbackWithSnapshotRestore`로 audit write를 성공·예외 양쪽에서 복원하되 발급된 session/cookie와 whoami 결과는 유지합니다. UI-009 전용 예외, drift 판정 완화, read-only 우회는 추가하지 않았습니다. 기존 공통 helper의 실제 users 파일 성공/예외 복원 계약과 fresh-role cookie 보존·users byte 복원 계약이 이 경계를 결속합니다. Feature/pass 계약 변경은 0이고 semantic source-flow 변경은 shared verifier의 `UI-018` 한 행뿐입니다. Fresh candidate `c7bb675ce4074ab029c7fe33a4333fac64b1f973ef276fc97ba647cdd56a0d1d`은 985행 strict-equivalent carry-forward와 `UI-018` 독립 검토로 986/986 approval을 구성했습니다. Migration/package/corrected decision SHA는 `72dbec790b0ebe06fbf5966b05ea20b064550e05586bf0b2a8e0e71b6afef6a4`/`e1feeaed31409753042f8f63e25c25189a63f5a704838c0c1b141079cfa220e4`/`0425ea531e7f1db75e3a3a8af27b674368915d8a72246f54d0c905677624d889`입니다. 공식 generator 비교는 canonical 424 fixture 변경 0, native SHA/digest 변경 293, ordered ID·route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경 0이며 최종 SHA는 canonical `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989`, native `421aa4327b457ae04f1c719c6c0fe91a0baaaf92528aacb001cc97a9f99ec241`입니다. 이전 실제 UI-009 FAIL evidence는 PASS로 변경하지 않으며, 이번 correction에서 actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 실행하지 않습니다.
+
+REVIEW4-65 UI-015 HTML response-material type-boundary correction(2026-07-18): source `f22098f047685951ed39d8f980d9e98ba8bacdbe`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행한 actual 결과는 preflight/bootstrap PASS, UI-001~014 중 13건 PASS 뒤 UI-015에서 executed/pass/fail/not-run `14/13/1/410`으로 중단됐습니다. `GET /client/live`의 실제 client view JSON은 `viewId`, display/source identity, safe tags와 viewer 설정만 포함하고 source URL은 포함하지 않습니다. 실패 원인은 HTML 문자열 전체에 JSON key/value substring 검사를 적용해 `ProductSharedUiScript`의 redaction key `sourceurl`을 실제 `sourceUrl` payload로 오인한 content-type 경계 결함입니다. `v390_ui_exact_oracle_runtime.mjs`는 JSON 응답의 기존 재귀 금지 material 검사를 유지하고, `text/html`은 `application/json` script의 실제 parsed data와 exact forbidden HTML attribute만 검사합니다. 계약은 안전한 redaction JavaScript와 `sourceUrlIncluded:false`를 허용하면서 embedded `"sourceUrl":"rtsp://..."`를 계속 거부합니다. Runtime contract 8/8, core 13/13, client-safe 9/9, native exact 26/26, completion 22/22, adapter 11/11이 PASS했습니다. Fresh candidate는 기존 `c7bb675ce4074ab029c7fe33a4333fac64b1f973ef276fc97ba647cdd56a0d1d`와 986행 모두 동일해 semantic approval/generated fixture 갱신이 없습니다. 이전 actual UI-015 FAIL은 PASS로 변경하지 않으며 이번 correction에서 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`는 실행하지 않습니다.
+
+REVIEW4-65 UI-027 credential DOM material boundary correction(2026-07-18): source `2cad7bb93a29b6d5f3f2e1f45246c4e279fa5e6c`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행한 actual 결과는 preflight/bootstrap PASS, UI-001~026 중 25건 PASS 뒤 UI-027에서 executed/pass/fail/not-run `26/25/1/398`로 중단됐습니다. Actual browser route/role/viewport/theme와 `#opsVlmRuntimeStatusList` control은 일치했고 Policy v4는 not-run, cleanup은 PASS했습니다. 제품 source의 `opsVlmRuntimeStatusSummary`와 `renderOpsVlmRuntimeStatus`는 provider call/credential write를 수행하지 않으며 `/ops/vlm`에는 `credential env 준비 전`, `prompt/raw response/source URL/credential 비노출` 같은 음성 경계 설명만 렌더링합니다. 실패 원인은 core oracle의 forbidden field `credential`을 page root text 전체에서 단순 substring으로 검사한 것입니다. `containsForbiddenDomMaterial`은 일반 금지 토큰의 기존 exact text 검사를 유지하고 credential 계열만 구조화된 `credential=value`/JSON형 assignment 또는 credential 식별 form control의 비어 있지 않은 값으로 검사합니다. 안전한 label/false attestation은 허용하되 `credential=sk-live-exposed-value`와 credential input 값은 계속 거부합니다. 구조 안정화 뒤 `AppendOpsVlmInstallConnectionPage`가 `product_ui_server_pages.cpp`로 이동했는데도 WebRTC source bundle에서 찾던 `verify-vlm-install-connection-ui`의 stale 소유 결속도 page markup과 API/route guard를 실제 owner별로 분리해 복구했습니다. Runtime 9/9, VLM verifier 4/4, core 13/13, client-safe 9/9, catalog 3/3, native exact 26/26, completion 22/22, adapter 11/11이 focused PASS했습니다. Candidate `917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c`는 986행/feature-pass 변경 0이며 978 strict-equivalent carry-forward + `UI-022`, `UI-025`, `UI-026`, `UI-027`, `UI-028`, `UI-030`, `UI-031`, `UI-034` 독립 검토로 approval 986/986를 구성했습니다. Migration/package/decision SHA는 `77249a22408f33a6d4ce3edd596b6d3b7ae80b0d8a60cd7bff73a1def6c958f3`/`4993e45844ad1fb90a4a53125641f56a577812a29df71ab8122f2489e3085f4f`/`6ed2e7b48ee15e50cce32cba9a2f91a5808b1a5bd46629ed133044aea2c42d75`입니다. 공식 generator 비교는 canonical 424 fixture 변경 0, native SHA/digest/provenance 변경 314, ordered product/workflow non-hash 변경 0이며 최종 SHA는 canonical `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989`, native `a6f5b6ea935d11be909dbd5466cd27391dc3f0b112ad1290595e0ef46778b507`입니다. 이전 actual UI-027 FAIL은 PASS로 변경하지 않으며 이번 correction에서 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`는 실행하지 않습니다.
+
+REVIEW4-65 UI-033 client/viewer DOM boundary correction(2026-07-18): source `5edff738b912623d14e9d07d74fa86fe140b1fe2`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행한 actual 결과는 preflight/bootstrap PASS, UI-001~032 중 31건 PASS 뒤 UI-033에서 executed/pass/fail/not-run `32/31/1/392`로 중단됐습니다. `/ops/vlm` actual browser 실행 중 `[data-testid="ops-vlm-page"]`의 안전한 `client/viewer` privacy 경계 문구를 forbidden `client` material로 오인했으며 Policy v4는 not-run, cleanup은 PASS했습니다. 제품 source는 viewer/client에 VLM raw material을 저장·노출하지 않는다는 음성 설명만 렌더링하고 `verify-vlm-runtime-status-ui`는 client markup의 Ops VLM panel 부재와 `viewerClientExposureAdded: true`/`clientExposureAdded: true` 부재를 독립 검증합니다. `v390_ui_exact_core_oracles.mjs`는 `client-viewer-boundary`의 generic audience label `client`/`viewer`를 구조화 response forbidden key에는 유지하되 같은 Ops DOM의 forbidden text에서는 제외하고 concrete `viewerClientExposure` 신호는 유지합니다. `v390_ui_exact_oracle_runtime.mjs`는 exposure token을 assignment/form-control material로 판정해 `viewerClientExposure=false`는 허용하고 `viewerClientExposure=true`는 거부합니다. Core 14/14, runtime 10/10, VLM 5/5, catalog 3/3, native exact 26/26, completion 22/22, adapter 11/11이 PASS했습니다. Candidate `917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c`, audit/approval/migration 986/986, feature evidence 986/986·negative 15/15는 불변입니다. 공식 generator 비교는 canonical fixture SHA `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989` 불변, native 30행 SHA/digest/provenance 변경, ordered product/workflow non-hash 변경 0이며 native SHA는 `fad193591bd3908a9528b92f05454fc084a5954a4ccc2d6eecafbdbe753886fc`입니다. 이전 actual UI-033 FAIL은 PASS로 변경하지 않으며 이번 correction에서 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`는 실행하지 않습니다.
+
+REVIEW4-65 UI-036 typed negative-boundary DOM correction(2026-07-18): source `1f39e86397be5d2ff36262f9305eec146c4c4a02`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행한 actual 결과는 preflight/bootstrap PASS, UI-001~035 중 34건 PASS 뒤 UI-036에서 executed/pass/fail/not-run `35/34/1/389`로 중단됐습니다. `/ops/rules` actual browser 실행 중 `[data-testid="ops-rules-page"]`의 `저장 전 registry write 없음` 등 안전한 draft-only 설명을 forbidden `write` material로 오인했으며 Policy v4는 not-run, cleanup은 PASS했습니다. 986행 typed obligation을 전수 집계한 결과 core negative boundary는 client-viewer 87, credential 143, debug 89, no-auto-apply 20, no-mutation 110, no-send 62, no-write 211, provider 58, raw 193, source-url 134 적용으로, generic narrative token을 DOM substring으로 검사하는 구조 자체가 후속 false-positive를 반복시킬 상태였습니다. `v390_ui_exact_core_oracles.mjs`는 288개 core oracle의 raw narrative DOM ban을 비우고 boundary-kind별 일반어를 제거한 concrete `forbiddenMaterialTokens`를 생성합니다. Runtime은 assignment/form-control material만 판정하며 `false/null/redacted/없음/비노출`은 안전 상태로 유지합니다. 9-family matrix는 narrative와 inactive를 PASS, active `credential`, `Debug`, `autoApply`, `WritePerformed`, `clientNoticeSent`, `viewerClientExposure`, `providerCall`, `rawEvidence`, `sourceUrl`을 FAIL로 고정합니다. Write/mutation/send는 기존 forbidden network와 authoritative before/after equality도 유지합니다. Core 14/14, runtime 12/12, VLM rule draft 6/6, catalog 3/3, native exact 26/26, completion 22/22, adapter 11/11이 PASS했습니다. Candidate `917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c`, audit/approval/migration 986/986는 불변입니다. 공식 generator 비교는 canonical fixture SHA `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989` 불변, native 288개 core 행 SHA/digest/provenance 변경, ordered product/workflow non-hash 변경 0이며 native SHA는 `b1ff54640fc83d3727b328c63ab7c02a52f9dacc0db37019cc06b03cd5dbcc01`입니다. 이전 actual UI-036 FAIL은 PASS로 변경하지 않으며 이번 correction에서 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`는 실행하지 않습니다.
+
+REVIEW4-65 SRC-008 acceptance/semantic producer checkpoint(2026-07-23): endpoint source fixture는 published baseline의 `file:sample_h264.mp4` canonical 중복만 `allowDuplicateSource:true`로 허용하고 source ID 충돌은 계속 거부합니다. Response listener는 AUTH disable 200, source create 201, source/view disable 200, ONVIF draft 200을 success shape보다 먼저 검사하며 non-success는 raw body 없이 redacted status diagnostic으로 실패합니다. Cleanup은 pre-mutation absent, post-mutation disabled를 허용하고 enabled residue를 거부합니다. Migration producer는 네 입력을 동일한 root-relative/absolute 경로 정책으로 해석하고 missing input entrypoint에서 네 fixture bytes를 보존합니다. Decision `reviewedAt`은 `YYYY-MM-DD` 또는 canonical UTC ISO timestamp만 허용하며 원 artifact/hash를 변경하지 않고 approval top-level과 986행의 `reviewedOn=2026-07-23`으로 정규화합니다. Final candidate `495491b66ae4ae525256260e745f0109450e4447de2c05293d5410a61f01fbac`은 986행, feature/pass/status 변경 0, sourceFlow 변경은 `UI-018` 한 행(`6a8a20f3…`→`6d959bc9…`)뿐입니다. 985 carry-forward+1 independent review로 valid-input producer를 정확히 1회 성공 실행해 audit/approval/implementation/native fixture를 원자 교체했습니다. Migration/package/decision SHA는 `b46c958ab947a4911a1466151bf6c7ec3472dfa6df59c4bc0d5f4275a43c41ec`/`084f6f4526948a4efdf028939aa4a8d9ac882e4b43bb9aded8d355c2f3208960`/`39c7961921bb50fe6104c86ee19ef889b2f98495243f41339db4d77e21bac035`입니다. Semantic audit/approval 986/986, feature evidence 986/986, adapter 16/16, native exact 28/28, completion 24/24, acceptance 19/19, launcher 17/17과 inventory/evidence/docs gate가 PASS했습니다. 별도 native generator와 actual UI/Policy v4/30분/120분/release는 실행하지 않았으며 기존 actual FAIL을 PASS로 승격하지 않습니다.
+
+REVIEW4-65 numeric source/view fixture identity correction(2026-07-23): source `9e285917baeae30ef377b6a26ef25c8298695d18`의 최신 actual `./test_ui.sh`는 exact `151/150/1/273`으로 SRC-008 `POST /ops/api/sources`의 expected 201/actual 400에서 중단됐고 Policy v4는 not-run입니다. Actual product parser는 source/view/source-reference ID를 numeric string으로 요구하지만 SRC-008/010/019 generated workflow가 `src-*-review4-fixture`/`view-*-review4-fixture`를 사용했고, 기존 contract simulation이 이 parser를 생략해 false PASS한 것이 원인입니다. 제품 C++·API schema·event/WebRTC/SSE/WS/RTSP media path는 변경하지 않고 `workflowFixtureId()`의 기존 source namespace에 SRC-008=`3900008`, SRC-010=`3900010`, SRC-019=`3900019`를 추가해 setup/body/view/source reference/cleanup identity를 동일 값으로 결속했습니다. 실제 격리 `media_server` verifier는 nonnumeric source/view/reference 400, canonical duplicate 및 ID collision 409, numeric source/view create 201, delete 200, disabled client/session readback 404, success·exception cleanup과 PID/port/temp cleanup을 모두 확인합니다. Verifier 최초 작성 시 readiness route를 `/healthz`로 잘못 지정해 timeout FAIL했으며 `/health`로 교정한 뒤 제품 focused 검증을 통과했습니다.
+
+공식 native generator는 정확히 1회 실행했고 canonical fixture SHA `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989`는 불변이며 424/423+1/unsupported 0, ordered ID·route·role·viewport·theme·product action 변경 0입니다. Product fixture identity 변경은 SRC-008/010/019 세 행이고, producer 뒤 전체 native JSON 행 비교에는 독립 승인된 UI-018 semantic provenance 갱신까지 포함해 네 행이 변경됐습니다. Fresh semantic candidate `f3a4f638eee1a957dec8d4a6fa157c43cc4913c2bf7075476a9eaca1b1bcaf75`은 986행 feature/pass/status 변경 0, sourceFlow 변경은 `UI-018` 한 행(`6d959bc9…`→`816f8659…`)뿐입니다. 985 strict-equivalent carry-forward와 immutable package 기반 UI-018 독립 검토 뒤 valid-input producer를 정확히 1회 실행해 audit/approval/implementation/native fixture를 원자 교체했으며 migration/package/decision SHA는 `9c66fb47b9c59e9f32067e5251b839dbebdb97bb8fba21c8e0d50a687a80fd23`/`14220ba8f515fb75414fe5de8d9c1b7447db0b0049070f27b091a0956e627797`/`5443da0547a7b47170109fcb98961a9e10f08dc4f913614a6a4a721e93a7202b`입니다. Semantic audit/approval 986/986, negative self-test 11/11, migration binding 9·transaction 2·path 5·entrypoint 1·date 1, feature evidence 986/986, adapter 16/16, native exact 28/28, completion 24/24, acceptance 19/19, launcher 17/17, final integrity 12/12과 inventory/evidence/script/docs/MJS/JSON/diff gate가 PASS했습니다. 이 correction에서는 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`를 실행하지 않았으며 기존 SRC-008 actual FAIL을 PASS로 승격하지 않습니다. Commit/push 뒤 다음 사용자 명령은 인자·환경변수 없는 `./test_ui.sh` 하나입니다.
+
+REVIEW4-65 SRC-010/SRC-019 scoped viewer readback correction(2026-07-24): source `c8887148742c62fe84ef43d1e50a2519e1e23f09`의 actual `./test_ui.sh`는 exact `154/153/1/270`, SRC-010의 unscoped viewer `GET /client/api/views/3900010` 403에서 중단됐고 SRC-008은 create 201·authoritative readback·cleanup까지 PASS했습니다. `v390_ui_case_runtime.mjs`는 SRC-010/SRC-019 client boundary readback 직전에 acceptance viewer의 `viewId`와 `view/dashboard/event/metadata:read:<fixtureId>` scope를 users-file snapshot 안에서 결속하고 fresh login cookie로 readback한 뒤 logout과 byte-identical 복원을 성공·예외 모두 수행합니다. Auth-enabled `verify-v390-review4-source-fixture-ids`는 두 case에서 unrelated viewer 403, scoped active view 200, source/view disable 후 404와 users-file/PID/port/temp cleanup을 실제 제품 서버로 확인합니다. 제품 C++·API/Auth 정책·canonical 424 product projection은 변경하지 않았습니다. Candidate `2dfd32fa13d68ad9c33e3f24889cb8110fc7d5136b20a07241ec2160dc7a240c`는 986행, feature/pass/status 변경 0이며 sourceFlow 변경은 UI-018 한 행(`816f8659…`→`0eb14dfb…`)뿐입니다. 이 correction에서는 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`를 실행하지 않으며 기존 SRC-010 actual FAIL을 보존합니다.
+
+REVIEW4-65 SRC-034 API/screen oracle lifecycle correction(2026-07-24): source `dee96939c3b9d2a9127c0f49f9966a7a8049ae5f`의 actual `./test_ui.sh` 원본 evidence는 SRC-034까지 PASS 173, FAIL 1, not-run 250으로 기록됐고, `/ops/api/source-registry/onboarding-quality` JSON 문서에서 화면 root `[data-testid="ops-sources-page"]`를 찾다가 중단됐습니다. 제품 API route, `/ops/sources` page root와 onboarding script는 모두 존재하므로 제품 결함이 아니라 API request와 화면 DOM assertion을 한 route에서 실행한 runtime oracle lifecycle 결함입니다. `executeCatalogRuntimeOracleAtSourceRoute()`는 `/ops|client/api/*` source와 별도 screen route가 결속된 case에서 단일 oracle 실행을 유지하면서 API request를 한 번 검증한 뒤 원 화면으로 한 번 복귀해 DOM과 required primary control을 검증하고 forbidden network와 cleanup도 한 번만 판정합니다. 일반 화면→화면 catalog는 기존 source 화면에서 request/DOM을 검증한 뒤 destination으로 복귀합니다. API failure와 restore failure는 DOM을 실행하거나 navigation을 재시도하지 않고 fail-closed입니다. Runtime contract 최초 RED는 기존 partial split 때문에 21 PASS/2 FAIL이었고 최종 25/25, native exact 29/29, completion 24/24, acceptance 19/19, semantic audit 986/986가 PASS했습니다. Native fixture/catalog와 986행 feature/pass/status/sourceFlow는 변경하지 않아 generator/producer를 실행하지 않았습니다. 이 correction에서는 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`를 재실행하지 않으며 기존 SRC-034 actual FAIL을 보존합니다.
+
+REVIEW4-65 SRC-034 duplicate exact-request lifecycle correction(2026-07-24): 첫 API/screen correction을 반영한 source `2431caf5c7281726c6060128b570ff5beee59222`에서 actual `./test_ui.sh`를 정확히 1회 재실행한 결과 `/ops/sources` route·role·viewport·theme projection과 control not-applicable은 정상 관찰됐지만, SRC-034가 `independent readback failed for assert-product-state: ambiguous-exact-request`로 동일한 PASS captured 173, FAIL 1, not-run 250에서 중단됐습니다. 직접 추적한 결과 API document navigation이 만든 `GET /ops/api/source-registry/onboarding-quality` response와 화면 복귀 뒤 fresh browser fetch가 같은 `SRC-034:assert-product-state:completion` correlation에 서로 다른 request ID로 수집됐고, completion oracle의 exactly-one exact request 계약이 이를 올바르게 거부했습니다. 원천 수정은 API canonical route와 product screen route가 다른 38개 native case의 공통 분기에서 API document navigation을 제거하고, 현재 screen을 유지하거나 navigation correlation으로 screen을 한 번 준비한 뒤 completion correlation 아래 fresh browser fetch를 정확히 한 번 실행합니다. Response·DOM·required primary control·forbidden network·cleanup은 동일 lifecycle에서 한 번씩 판정하며 ambiguity 검사, 일반 화면→화면 source/destination lifecycle, 실패 시 fail-closed 경계는 완화하지 않습니다. API fetch failure는 navigation·DOM·retry 없이, screen 준비 failure는 fetch·DOM·retry 없이 중단합니다. Runtime evidence는 `sourceObservation=fresh-browser-fetch`, `screenPreparationStatus`, `restoreNavigationStatus=null`을 분리해 화면 준비와 복귀를 혼동하지 않습니다. Runtime contract는 RED 23 PASS/2 FAIL 뒤 25/25, native exact 29/29, completion 24/24, acceptance 19/19, semantic audit 986/986가 PASS했습니다. Native/canonical fixture, 제품 C++/API/UI, 986행 feature/pass/status/sourceFlow는 변경하지 않았고 generator/producer도 실행하지 않았습니다. 이 correction에서는 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`를 실행하지 않으며 두 SRC-034 actual FAIL을 모두 보존합니다.
+
+REVIEW4-65 SRC-038 structured response material correction(2026-07-24): source `74ac729eb7f4eeec0cae425b0e92673121307762`의 actual `./test_ui.sh`는 SRC-034를 통과해 exact executed 178, PASS captured 177, FAIL 1, not-run 246까지 진행한 뒤 SRC-038 `GET /client/api/views/9001/events`의 `rawEvidenceIncluded:false`를 forbidden response material로 오인해 중단됐습니다. 제품 `ClientViewEventsJson`과 incident/event/follow-up/resolution digest는 실제 raw evidence를 내보내지 않고 boolean false attestation만 반환하며 기존 제품 verifier도 이를 fail-closed로 검증합니다. 두 독립 감사로 179~424를 확인한 결과 같은 원인의 필수 후보는 SRC-065의 sanitized credential 설명 문자열과 RULE-104/RULE-111의 `autoRuleApplied:false`이고 EVT typed evaluator에는 동일 오탐 경로가 없습니다. Runtime response oracle은 arbitrary JSON string 부분일치를 제거하고 exact structured key만 검사하며, `*Included/*Exposed/*Performed/*Changed/*Added/*Present`와 명시된 auto/provider/write attestation은 값이 boolean false일 때만 허용합니다. `true`, `"false"`, `null`, object/array와 실제 raw/credential/source URL material은 계속 거부합니다. Runtime 25/25, core 17/17, event 10/10·evaluator 15/15, client-safe 9/9, catalog 3/3, native 29/29, completion 24/24, adapter 16/16, Policy producer 9/9·independence 10/10·visual 6/6·eligibility 7/7, semantic audit 986/986가 PASS했습니다. Native/canonical/semantic fixture와 제품 C++/API/UI는 변경하지 않았고 generator/producer도 실행하지 않았습니다. Stale했던 current not-run state의 canonical/native SHA만 실제 fixture bytes로 재결속했으며 actual UI·Policy v4·30분·120분·release는 재실행하지 않습니다.
+
+#### REVIEW4-65 pre-acceptance checkpoint (2026-07-17)
+
+- semantic audit 986/986 PASS, approval은 strict-equivalent carry-forward 984행과 SAFE-212/OPS-179 independent review 2행으로 986/986 coverage를 확인했습니다.
+- migration/selftest contract와 feature implementation evidence(exit 0, 388초), project inventory, release evidence index, script inventory, docs links fast gate가 모두 PASS했습니다.
+- 최초 final clean snapshot fast gate에서 `verify-v390-ui-native-exact-cases-contract`가 stale generated binding으로 FAIL했습니다. canonical generator `verify-v390-ui-native-exact-cases --update-canonical-binding`로 두 generated fixture만 재생성한 뒤 canonical 424, native 423, UI-018 negative route 1, unsupported 0과 ordered ID·current implementation binding을 재확인했습니다.
+- 재생성 뒤 exact core/event/client/catalog/runtime, native completion/adapter, Policy v4 producer/independence/visual/eligibility, semantic audit/approval/migration 및 남은 implementation/inventory/docs fast gate가 모두 PASS했습니다. generator는 non-hash route/control/accountRole/viewport/theme/workflow 구조를 변경하지 않았습니다.
+- 이 결과는 checkpoint source/contract/evidence readiness입니다. 실제 30분, 120분, exact 424 UI, release acceptance는 미실행이며 `/private/tmp` 실행 로그는 최종 evidence가 아닙니다.
+
+#### REVIEW4-65 deferred owner source-region correction (2026-07-17)
+
+- Canonical run `v390-test-acceptance-20260717113149-625`의 최초 실패는 `feature-gates` / `v390-deferred-product-owner-signoff`였습니다. `external-vlm-provider-call`이 unrelated event-rule UI 변경까지 포함한 `product_ui_page_scripts.cpp` whole-file SHA에 결속돼 false drift가 발생했습니다.
+- `renderV390FieldEvidenceBridgeDecision`과 `renderV390ReidAssistDecision`, 대응 서버 page section은 pre-REVIEW4-65 bytes와 동일했습니다. 두 decision의 두 product UI 파일 anchor를 unique start/end locator, bounded-region SHA-256, region-local required token으로 이관했고 migrated anchor의 whole-file fallback을 거부합니다.
+- 독립 reviewer는 기존 984행의 `sourceFlowDigest` 동일성과 변경된 `SAFE-214`, `OPS-181` 두 행만을 확인했습니다. Candidate digest는 `cd59de4730d6d25e8a42e51c5a6a7819f37d6081c96fd60a5c80e0442aeed2d3`, reviewed tree는 `9ae5a19e7536cc9c24de0f797a65de09086ff91b`, review package SHA-256은 `cd03041bbcdf9ec2aaf9d803cd2e47bb2625b71a0b476aef27da5378a453c3cb`, decision artifact SHA-256은 `761a3b2f997bee5dcf01abb3d8df4dad13408eef1c82f638365aca908c6bb26b`입니다.
+- Owner verifier 6/6, source-region contract 7/7, semantic audit 51/51(986/986), approval 986/986, migration 9/9, feature implementation evidence exit 0(negative 15/15), project inventory 17/17, release evidence index 8/8, script inventory 11/11, docs links failure 0이 PASS했습니다. 실제 `./test_release.sh`, 30분, exact 424 UI, Policy v4 actual, 120분은 재실행하지 않았습니다.
+
+#### REVIEW4 단계 의존성과 중단 조건
+
+1. 50번이 current source-of-truth를 교정해야 51~53의 입력 집합이 확정됩니다.
+2. 51번은 구조 구현의 버전 범위만 결정합니다. 64번 실제 refactor는 기능, persistence, UI/test
+   implementation인 52~63이 닫힌 뒤 시작합니다.
+3. 52번 전수 감사 결과로 기능 수나 scope가 바뀌면 53번 semantic manifest와 56번 UI case set을
+   먼저 갱신합니다. 숫자를 기존 986/424에 강제로 맞추지 않습니다.
+4. 54~55 persistence는 독립 개발할 수 있지만 두 항목 모두 성공/실패/restart contract가 닫혀야
+   mutation을 포함하는 UI case를 final로 고정합니다.
+5. UI 경로는 56 case design -> 57 schema -> 58 oracle -> 59 visual -> 60 Policy 순서를 바꾸지 않습니다.
+6. 61번 duration/cleanup contract가 닫혀야 62번 acceptance가 이를 canonical child로 소비합니다.
+7. 63번에서 구현하기로 승인된 deferred 기능이 있으면 해당 구현과 case를 64번 또는 65번 앞으로
+   삽입하고, 제외된 기능은 제외 근거만 남깁니다.
+8. 64번을 v3.9에서 실행하면 구조 변경 뒤 모든 기능 verifier와 UI case binding을 다시 생성하고
+   직접 검토합니다. 64번을 제외하기로 결정하면 `not-executed`를 완료로 바꾸지 않습니다.
+9. 65번은 테스트 실행 단계입니다. 사용자 명시 승인 전 실행하지 않으며, FAIL 시 release action으로
+   넘어가지 않습니다.
+
+#### REVIEW4 공통 완료 조건
+
+- 각 개발 항목은 actual source/consumer 경로, negative contract, 관련 개별 테스트 ID, 변경 파일,
+  회귀 범위와 roadmap 기록이 모두 있어야 완료입니다.
+- manifest/fixture/verifier가 서로 같은 값을 생성하고 비교하는 순환 검증은 독립 evidence가 아닙니다.
+- `covered`, `ready`, `gate-ready`, `decision-record`, `not-run`, `conditional-not-run`은 실행 PASS와
+  구분합니다.
+- 현재 HEAD의 30분, 120분, exact 424, Policy v4 evidence가 없으면 current release PASS가 아닙니다.
+- REVIEW4 등록과 문서 수정 자체는 기능 구현, 테스트 실행, 구조 안정화 또는 release 완료 evidence가
+  아닙니다.
+
+## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
 상태: Step 1 source baseline 정렬, Step 2 Ops Action Route Boundary, Step 3 Action
 Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Decision Gate,
@@ -3238,6 +5875,20 @@ Incident Memory Productization을 닫은 직전 공개 릴리즈입니다. 이 �
 아래 행은 현재 v2.7.0 개발 범위가 아니라 `verify-manual-ui-evidence` 호환을 위한
 과거 UI evidence gate 참조입니다. 실행 evidence나 현재 release 완료 근거가 아닙니다.
 
+### V220-S06 Rules workspace redesign 종료 기준
+
+- `/ops/rules`의 readiness/assist/catalog/detail renderer와 기존 rule/profile/template control은
+  `./server.sh verify-v220-rules-workspace-redesign`로 정적 회귀 확인합니다.
+- 이 historical compatibility gate는 현재 source owner 이동 뒤에도 DOM hook과 저장 roundtrip
+  기준이 남아 있는지 확인할 뿐, v3.9.0 UI 풀테스트 직접 조작이나 release PASS가 아닙니다.
+
+### V220-F04 Ops VLM UI containment 정리
+
+- `/ops/vlm`의 Ops 보조 작업, default-off, privacy, profile 상태, raw debug containment는
+  `./server.sh verify-v220-ops-vlm-containment`로 current source owner를 정적 확인합니다.
+- 이 historical compatibility gate는 runtime/provider 호출, UI 직접 조작, 장시간 또는 release
+  PASS를 대체하지 않습니다.
+
 | ID | verifier | 경계 |
 | --- | --- | --- |
 | V180-P0-03 | Manual UI evidence checklist hardening / `verify-manual-ui-evidence` | `/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live` evidence index 문서가 PASS/FAIL, 제외 기록, raw JSON/API-only 비대체 경계를 유지하는지 확인 |
@@ -3279,10 +5930,1793 @@ v2.7.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
 | V240-S03 | 완료 | Alert Dry-run and Delivery Attempt Log | 과거 baseline, v2.7.0 완료 근거 아님 |
 | V240-S04 | 완료 | Client-safe Event and Status Summary | 과거 baseline, v2.7.0 완료 근거 아님 |
 | V240-S05 | 완료 | Rule and Scenario Review Loop | 과거 baseline, v2.7.0 완료 근거 아님 |
+| V240-S06 | 완료 | UI/API decomposition | `verify-v240-ops-event-route-owner-decomposition` local gate; 과거 baseline, 현재 구조 완료 근거 아님 |
 | V240-S08 | 완료 | release readiness gate | `verify-v240-release-readiness-gate` local readiness이며 publish evidence가 아님 |
+
+V240-S06의 historical 범위는 Ops Events, event review/action API, client summary route,
+alert dry-run route owner입니다. 이 owner 분해는 Event POST/WebRTC DataChannel/SSE/WS
+metadata schema와 RTSP/WebRTC media path를 바꾸지 않았습니다.
+
+## V390-REVIEW4-64 current continuation Slice 2 완료
+
+`product-ui-principal-view-boundary`를 완료했습니다. `include/ingress/product_ui_principal_view.h`가
+display identity, role/auth label, scopes, admin/operator UI capability만 가진 stable-contract DTO를 소유하고,
+`src/ingress/webrtc_http_server.cpp`의 transport adapter만 `auth::Principal`을 이 DTO로 변환합니다.
+`product_ui_auth_pages`와 `product_ui_server_pages`의 Auth transport type·helper 의존은 제거했으며
+password/landing/Ops/source/users/rules/dashboard/events/home/VLM HTML·DOM과 role/scope 의미는 유지했습니다.
+
+검증은 focused boundary 4/0, build 100%, Auth bootstrap/users/routes 19/0·72/0·146/0,
+Ops renderer 5/0, v2.3 renderer decomposition 8/0, loopback static UI 28/0을 통과했습니다.
+Auth 비밀번호는 실행 환경에만 주입했고 저장소나 증적에 기록하지 않았으며, 실제 사용자 registry는
+각 Auth 실행 전후 동일했습니다. Current graph는 production 159/C++ 79, target 위반 20, SCC 8,
+transport 40,833줄, CMake target 1/internal separation false입니다. 따라서 Slice 2는 완료지만
+REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 10 완료
+
+`core-media-registry-rule-port`를 완료했습니다. `webrtc_source_registry` header/source를 실제
+`include/core`/`src/core` 경로로 이동했고 namespace와 public API, header raw bytes, source의 self-include를
+제외한 bytes를 보존했습니다. GStreamer RTSP는 `analysis_rule_registry`를 직접 include/call하지 않고
+`MediaAnalysisPort::PrepareRtspRequest`를 사용하며, URL build 뒤 codec/source parse와 기존 `PrepareRtsp`보다
+앞선 호출 순서 및 exact error log를 유지합니다.
+
+Focused gate는 구현 전 0/5 RED에서 최종 5/0으로 전환했고 contract/consumer/CMake/adapter/graph뿐 아니라
+조기 `return true`, call reorder, 숨은 core-media→domain include mutation도 거부했습니다. Build 100%,
+core-media/public predecessor 11/0·6/0, analysis 181/0, auth-off loopback codec 67/0/3, route 8/0,
+RTSP overlay 6/0, WebRTC metadata 8/0, final freeze 10/0입니다. Codec 최초 listener 부재와 auth-on 401,
+route/overlay/metadata 최초 listener 부재는 동일 auth-off loopback server/명시 base로 재실행해 통과했습니다.
+
+Current graph SHA `b786ec25...45128e4e`, ownership SHA `77d64234...09ddf61`, production 163/C++ 80,
+edge 19, Policy v1 위반 6→5, SCC 0, target 2/internal separation true, server 40,840줄입니다.
+남은 5 direction, server split, parked evidence finalization 때문에 REVIEW4-64 전체와 REVIEW4-65 acceptance는
+아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 11 완료
+
+`webrtc-http-server-source-bundle`을 완료했습니다. Rollback `e5df05f3`의 `scripts/internal`을 직접
+재계산해 server source direct reader 170파일/188식을 SHA로 고정하고, 모든 reader를
+`readWebRtcHttpServerBundle`로 이관했습니다. Helper는 현재 단일 source의 SHA, 1,974,239 bytes,
+40,840 lines를 그대로 반환하며 ordered layout과 token resolver가 중복 경로 및 missing/ambiguous owner를
+거부합니다. Fixture verifier는 기존 `readText`/`read` callback을 전달하므로 live tree로 빠져나가지 않습니다.
+
+Focused gate는 helper/consumer 부재 2/4 expected RED, resolver field 보정과 독립 리뷰 P1 3건 보강 뒤
+최종 6/0이고 legacy reader, missing import, callback 제거/live-tree fallback, empty bundle, duplicate layout,
+ambiguous resolver, graph mutation과 continuation frontier overclaim을 격리 검증에서 거부했습니다. Consumer
+syntax 170/0, build 100%, public/core/action 6/0·11/0·8/0, Ops v2.2 9/0, V300은 stale page owner
+8/1을 실제 `product_ui_server_pages.cpp`에 결속한 뒤 9/0, live graph 9/0, action capability 5/0,
+VLM profile 6/0, structure 15/0입니다. 이 Slice은 비프로덕션이므로 graph SHA와 production/C++/edge/위반/SCC/
+target/server 수치는 Slice 10과 동일합니다. Physical server split, 남은 5 dependency direction, parked evidence가
+남아 REVIEW4-64/65 완료 evidence가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 12 완료
+
+`webrtc-http-server-physical-split`을 완료했습니다. Rollback `2e4a4d7e`의 40,840줄 monolith를
+공통/기반/workflow/incident/runtime implementation 5개와 private detail header로 분리했습니다. 1,151개
+type/enum, 1,000개 function, default argument, constexpr, shared mutable/singleton ownership을 보존하고 모든 cpp를
+`media_server_runtime` target source digest에 결속했습니다. Original-line marker로 logical source 순서를 재구성해
+170 consumer의 struct→function extraction을 보존하며 재실행 가능한 one-shot migration script는 제거했습니다.
+
+Focused split/source-bundle 6/0·6/0, build 100%, public/core/action 6/0·11/0·8/0, Ops/V300/live/action/VLM
+9/0·9/0·9/0·5/0·6/0, analysis 181/0, authenticated codec 67/0/3, route 8/0, overlay 6/0,
+WebRTC metadata 8/0, freeze 10/0입니다. Codec은 승인된 throwaway Auth와 비노출 입력을 사용했고 WHIP
+publish/readiness/cleanup이 같은 owner-only cookie jar를 사용합니다. 최초 runtime evidence 포트를 이전 wildcard
+server가 점유한 사실을 cleanup에서 확인해 그 evidence는 폐기했습니다. 현재 split binary를 고유 18081/18555와
+clean 8081/8555에 각각 재기동해 codec 67/0/3, route 8/0, VA overlay 4/0, exact RTSP overlay 6/0, WebRTC
+metadata 8/0을 다시 결속했고 2.1 MiB run-scoped Auth/HLS/log/image/summary와 이전 current-slice Chrome log를
+삭제한 뒤 관련 listener 0을 확인했습니다. Graph는 production168/C++84, edge19,
+위반5/SCC0, target2/separated, mixed max10,156입니다. Line threshold는 닫혔지만 남은 5 direction과 parked
+evidence 때문에 REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 13 완료
+
+`analysis-runtime-port-boundary`를 완료했습니다. Analysis owner가 `AppConfig`, command runner, runtime debug,
+stream-key utility를 직접 소비하지 않고 `include/core/analysis_runtime_port.h`만 통과하도록 바꿨습니다.
+148개 analysis 설정 필드와 compile-time 기본값은 dependency-free config/default 계약으로 분리하고
+`AppConfig`는 shadow field 없이 상속해 기존 환경변수 reader와 runtime 값 의미를 유지합니다. Standalone
+analysis/replay harness에는 포트와 command adapter link source를 추가했습니다.
+
+Focused gate는 0/5 RED, graph 갱신 전 4/1, 최종 5/0입니다. 독립 리뷰가 include만 바꾸고 남겨 둔
+`app_config::kDefaultAnalysis*` 의미 의존을 P0 false PASS로 발견해 모든 직접 심볼을 제거했습니다. 148-field
+manifest/default/type digest, AppConfig shadow, 모든 diagnostic delegation, `stdafx` 전이, graph 설명과 mutation을
+fail-closed로 강화했고 중복 include도 제거했습니다. Build 100%, predecessor port/public gate 11/0·6/0,
+analysis state 181/0, ReID 12/0과 actual readiness 10 HTTP/0 failure, VA replay 15 case, current-binary VA event
+31/0, freeze 10/0입니다. Graph는 production172/C++85, edge18, 위반4/SCC0, target2/separated,
+mixed max10,156입니다. 남은 transport 4 direction과 parked evidence 때문에 REVIEW4-64/65 전체 완료는 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 3 완료
+
+`source-request-parser-owner-boundary`를 완료했습니다. 기존 `include/ingress/request_parser.h`와
+`src/ingress/request_parser.cpp`를 제거하고 동일 API/구현을 `include/core/source_request_parser.h`와
+`src/core/source_request_parser.cpp`의 `core` namespace로 이동했습니다. SessionManager의 create/attach 두 지점과
+RTSP media configure 한 지점만 새 owner를 호출하고 WebRTC HTTP server의 미사용 parser include는 제거했습니다.
+File root traversal, route, file/url exclusivity, WHEP http(s), source kind, YouTube default-off, exact error와
+Event POST/WebRTC/SSE/WS/RTSP media 계약은 바꾸지 않았습니다.
+
+Focused verifier는 구현 전 0/5 RED였고 최종 5/0, build 100%, codec fresh full rerun 67/0/3,
+route profile 8/0, analysis state 181/0, v2.9 freeze 10/0, Event POST 9/0, WebRTC metadata 8/0,
+SSE 5/0, WS 9/0을 통과했습니다. Event POST 재검증에서 드러난 verifier 들여쓰기·import·고정 해시 결함은
+canonical sample/JSON Schema/actual payload 모양에 맞게 보정했으며 제품 serializer나 payload는 변경하지 않았습니다.
+Current graph는 target 위반 20→19, SCC 8→6, transport 40,833→40,832줄이고 production 159/C++ 79,
+CMake target 1/internal separation false는 유지됩니다. 따라서 Slice 3는 완료지만 남은 architecture debt와 parked
+generated evidence 때문에 REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 4 완료
+
+`cmake-internal-target-separation`을 완료했습니다. `media_server` executable은 `src/main.cpp`와
+`src/application/media_server_application.cpp`만 소유하고, `media_server_runtime` STATIC library는 나머지
+production source 77개와 optional YouTube source를 소유합니다. Runtime을 컴파일하는 target에 include,
+feature definition, GStreamer/Pango/SQLite/libsodium/OpenSSL/ONNX link 설정을 보존하고 executable은 runtime만
+단방향 link합니다. Production source 중복·누락은 0이며 source include edge와 Policy v1은 변경하지 않았습니다.
+
+Focused gate는 구현 전 1/4 RED, 구현 뒤 5/0입니다. Build 100%, server start mode 10/0, fresh codec
+67/0/3, route profile 8/0, analysis state 181/0을 통과했습니다. 첫 codec 시도는 Auth-on 401 때문에 중단했고
+Auth-off 재실행의 cold HLS timeout 뒤 완전히 새 서버에서 전체 행렬을 통과했습니다. Current graph는 production
+159/C++ 79, target 위반 19, SCC 6, transport 40,832줄을 유지하고 CMake target 1→2/internal separation
+false→true로 바뀌었습니다. 남은 dependency/SCC/server debt와 parked generated evidence 때문에 REVIEW4-64 전체와
+REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 17 Appearance readiness application 경계
+
+`include/ingress/appearance_readiness_application_service.h`는 project header를 포함하지 않는 raw 14-input과
+redacted readiness 14-output DTO를 제공합니다. 구현만 `analysis/appearance_extractor.h`를 포함하며 기존 route의
+extractor/checksum lower+trim, provenance trim, dimension/queue/time 하한을 정확히 한 번 적용한 뒤 canonical
+`analysis::InspectAppearanceModelReadiness`에 위임합니다. Ops route의 schema, authority text, field, no-execution 및
+raw model material 비노출은 그대로입니다. Focused 0/5 RED 뒤 5/0, build, compiled capability 2개, actual HTTP
+10-case, advanced12, analysis181, conditional9, transport5, bundle6, physical6, contract10, structure15를 통과했습니다.
+Graph는 production180/C++88, edge17, 위반3/SCC0이며 transport→analysis witness만 18→17입니다. 방향 자체와
+나머지 구조 debt 및 parked evidence가 남아 REVIEW4-64/65 완료 evidence가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 18 Category catalog application 경계
+
+`category_catalog_application_service.h/.cpp`가 canonical analysis catalog를 dependency-free 7-field DTO로
+복사하고 기존 key 순서의 compact JSON bytes를 생성합니다. Transport 10파일에는 analysis category include/type/call이
+남지 않으며 `/lab/analysis/capabilities`는 application의 final bytes만 결합합니다. Focused gate는 10개 ordered entry와
+7개 key의 순서·값·최종 SHA를 실제 C++로 검증하고 actual lab core API도 raw wire 배열의 같은 digest를 readback합니다. 최초 0/5 RED와
+독립 리뷰 뒤 hardened byte oracle 4/1 RED를 거쳐 5/0이 됐습니다. Build, analysis181, predecessor appearance5,
+transport5, bundle6, physical6, structure15를 통과했습니다. Graph는 production182/C++89, edge17, 위반3/SCC0이며
+transport→analysis witness만 17→16입니다. 남은 방향과 parked evidence 때문에 REVIEW4-64/65 완료 evidence는 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 19 VLM observation application 경계
+
+`vlm_observation_application_service.h/.cpp`가 query/result pagination·corrupt-line 상태, summary search와
+rule-suggestion request를 dependency-free DTO로 받고 canonical default observation store에 위임합니다. Transport
+10파일의 direct VLM observation store include/type/function은 0이며 raw observation JSON과 candidate report body는
+그대로 전달합니다. Focused 0/5 RED→5/0, build, actual LAB core, provenance failures0, analysis181, sidecar5,
+Ops review4, draft6, v260 review5, transport/appearance/category5, bundle/physical6을 통과했습니다. Summary/rule
+candidate verifier의 generated implementation manifest drift는 parked final evidence에 속해 완료 evidence에서 제외했습니다.
+Graph184/C++90, edge17, 위반3/SCC0, transport→analysis16→15이며 나머지 방향과 parked evidence는 open입니다.
+
+## V390-REVIEW4-64 current continuation Slice 21 Event POST application 경계
+
+`event_post_application_service.h/.cpp`가 canonical dispatcher가 실제 소비하는 source 6필드와 event 15필드,
+ordered event vector, status 9필드를 dependency-free DTO로 투영합니다. Transport의 raw dispatcher include/snapshot/dispatch는
+0이며 세 호출부의 `DispatchEventRecords`→application POST→Ops alert/metadata 순서는 rollback과 같습니다. Canonical
+`event_post_dispatcher.cpp`는 byte-identical입니다. Focused 0/6 RED→6/0, build100, analysis181, Event POST
+disabled2/schema9/queue11/recovery12, WebRTC metadata8, RTSP overlay6, final contract10, core port11과 predecessor/bundle/physical
+gate를 통과했습니다. Recovery 첫 실행은 직전 slow queue backlog 때문에 실패했고 clean max-queue16 서버에서 12/0·skip1로
+재검증했습니다. Graph188/C++92, edge17, 위반3/SCC0, transport→analysis14→13이며 나머지 방향과 parked evidence는 open입니다.
+
+## V390-REVIEW4-64 current continuation Slice 22 image codec application 경계
+
+`image_codec_application_service.h/.cpp`가 다섯 pixel format과 raw frame 전필드, JPEG MIME/binary bytes를 dependency-free DTO로 전달합니다. Transport는 canonical image loader/snapshot encoder를 직접 include/call하지 않고 decode 1개와 encode 4개를 application service에 위임합니다. Path root containment, detector/overlay 순서, HTTP status/content-type/Cache-Control/error는 rollback 동등성을 유지합니다. Focused 5/1 graph RED→6/0, build, actual image20/0, lab core, redaction4/0(skip3), analysis181/0, final contract10/0, predecessor/bundle/physical gate를 통과했습니다. Graph190/C++93, edge17, 위반3/SCC0, transport→analysis13→11이며 나머지 방향과 parked evidence는 open입니다.
+
+## V390-REVIEW4-64 current continuation Slice 20 incident-memory application 경계
+
+`incident_memory_application_service.h/.cpp`가 event/audit JSON의 canonical text projection, forbidden-material 차단,
+빈 sqlite/jsonl 경로의 forced local JSONL/BM25 fallback, index/search, deterministic highlight와 release-safe projection을
+dependency-free DTO로 제공합니다. Transport 10파일의 raw `IncidentProjection*`, `IncidentMemoryIndex`, `Project*`,
+forbidden-material API 결속은 0입니다. Focused 0/5 RED→7/0은 Upsert 실패 뒤 계속 처리·검색하는 call order, route limit와
+event→paired audit 입력 순서, ordered two-hit/tokens/redacted/matched-term 전필드, 문자열 literal 보존 rollback Ops/evidence JSON output-emission 동등성까지 확인하며, build, projection/index, semantic search, similar incident,
+owner readiness, VLM productization과 predecessor/bundle/physical gate를 통과했습니다. UI와 VLM companion의 stale mixed-server
+owner는 current page/application owner로 재결속했습니다. Graph186/C++91, edge17, 위반3/SCC0,
+transport→analysis15→14이며 나머지 방향과 parked evidence는 open입니다.
+
+## V390-REVIEW4-64 current continuation Slice 5 완료
+
+`stable-contract-leaf-boundary`를 완료했습니다. `analysis_types.h`, `media_types.h`,
+`rtsp_request_context.h`는 `stdafx` 대신 필요한 표준 header를 직접 include합니다. `AnalysisEvent`는 이름,
+namespace, 23개 field의 순서·type·default를 그대로 `analysis_types` contract로 이동했고,
+`va_runtime_metadata.h`는 analysis service인 `event_rule_engine.h`를 더 이상 include하지 않습니다.
+Object tracker·appearance extractor의 AppConfig와 raw decoder의 functional/memory/thread도 실제 소비자가 직접 선언합니다.
+
+Focused gate는 구현 전 1/4 RED, mutation 보정 뒤 5/0입니다. Build는 전이 include 두 묶음을 드러낸 뒤 세 번째
+실행에서 100%, analysis 181/0, loopback Event POST 9/0, WebRTC 8/0, SSE 5/0, WS 9/0입니다.
+Current graph는 stable→analysis/core 두 direction을 제거해 target 위반 19→17, 최대 SCC 6→3이며 production
+159/C++ 79, transport 40,832줄, CMake target 2/internal separation true를 유지합니다. 남은 architecture debt와
+parked generated evidence 때문에 REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 8 완료
+
+`stable-contract-owner-realignment`를 완료했습니다. Stable owner에는 dependency-free
+`ProductUiPrincipalView`만 남기고 analysis contract, `media_types`, RTSP request context는 각각 analysis,
+core utility, core-media owner로 재정렬했습니다. Public contract bytes는 바꾸지 않았고
+`RawVideoDecoder`만 신규 `core/media_packet_contract.h` facade를 통해 media primitive를 소비합니다.
+
+Focused gate는 구현 전 1/5 RED, 최종 6/0이며 격리 mutation 6건을 거부했습니다. Predecessor gate는
+successor-safe frontier로 보정한 뒤 5/0·11/0, build 100%, analysis 181/0, final contract 10/0,
+Event POST/RTSP/WebRTC/SSE/WS 9/0·6/0·8/0·5/0·9/0입니다. Current graph는 production 163/C++ 80,
+위반 14→10, SCC 0, target 2/internal separation true, server 40,840줄입니다. 남은 dependency/server debt와
+parked generated evidence 때문에 REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 9 완료
+
+`public-contract-interface-owner-realignment`를 완료했습니다. Stable owner ID는 historical Policy v1 이름을
+유지하지만 실제 범위는 DTO만이 아니라 dependency-neutral public product UI presentation contract/interface
+9개입니다. ONVIF/Ops/VLM public contract surface는 application owner로 분류하되 ONVIF header의 concrete
+in-memory fixture 선언까지 implementation 분리됐다고 주장하지 않습니다. Product UI implementation 12개와
+Ops implementation 4개는 기존 owner에 남았습니다.
+
+`strict_json`은 분류만 바꾸지 않고 `include/core`/`src/core`에서 `include/domain`/`src/domain`으로 물리
+이동했습니다. Header raw SHA는 동일하고 parser source는 include 경로를 정규화하면 rollback과 동일합니다.
+VLM provenance와 HTTP transport consumer 두 곳, CMake source 경로만 새 domain owner를 사용합니다.
+Focused gate는 물리 경계 선등록 뒤 2/4 expected RED, 최종 6/0이며 contract/classifier/direction/header/
+consumer/CMake 격리 mutation 7건을 거부했습니다. Build 100%, VLM promotion 14 HTTP·7 structural·13 reload,
+VLM provenance positive 3/forged 15/duplicate 3/reload 5/deletion 4/binding 2, profile 6/0,
+ONVIF/action/S06/Ops renderer/principal/v2.3/freeze 회귀를 통과했습니다.
+
+Current graph SHA `33f72bd4...a271a9d3`, ownership SHA `77485b7b...bf6875`, production 163/C++ 80,
+edge 20, Policy v1 위반 10→6, SCC 0, target 2/internal separation true, server 40,840줄입니다.
+이 감소는 하나의 physical domain 경로와 public interface classifier 정렬을 합친 정책 수치이며 source include
+전체가 4방향 줄었다는 뜻이 아닙니다. 남은 6 direction, server split, parked evidence finalization 때문에
+REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 14 완료
+
+`include/ingress/webrtc_http_runtime_config.h`에 dependency-free exact 68-field transport snapshot을 추가하고
+composition root가 `AppConfig`의 모든 소비 필드와 runtime debug/stream-key callback을 정확히 매핑·주입합니다.
+HTTP Auth와 WebRTC HTTP bundle에는 `AppConfig`/`GetAppConfig`/core utility direct 또는 alias 참조가 없습니다.
+Focused 5/0, build, source bundle/physical split 6/0·6/0, Auth route 146/0, ReID 12/0 및 actual
+C++2/HTTP10, analysis-state 181/0, freeze 10/0, structure 15/0입니다. Graph는 production173/C++85,
+edge17, 위반3/SCC0, target2/separated, mixed max10,160이며 남은 세 transport 방향과 parked evidence는 open입니다.
+
+## V390-REVIEW4-64 current continuation Slice 15 VLM strict parser 경계
+
+`include/ingress/vlm_profile_json_document.h`는 domain parser 타입을 노출하지 않는 opaque state API를 제공하고,
+구체 `domain/strict_json.h` 결속은 application-service 구현 파일 한 곳에만 둡니다. Transport 10개 owner에는
+`StrictJson*` 또는 domain strict header가 남지 않습니다. Focused 5/0, build 100%, profile storage 6/0,
+privacy guard 6/0, structure 15/0을 확인했습니다. Runtime opt-in verifier는 제품 계약 4/4를 통과했지만
+parked SAFE-025 implementation evidence의 verifier command binding 1건 때문에 final evidence 전까지 완료 evidence가
+아닙니다. Graph는 production175/C++86, edge17, 위반3/SCC0이며 transport→domain witness만 3→2입니다.
+
+## V390-REVIEW4-64 current continuation Slice 16 Source/View application 경계
+
+`include/ingress/application_service_result.h`와 `include/ingress/source_view_application_service.h`는
+registry 저장·락·transaction 구현을 노출하지 않고 status/status text/body 및 Source 16필드,
+PublishedView 12필드, client access DTO만 제공합니다. 구현은 success 때만 caller access/snapshot output을
+덮어쓰며 null output과 실패 응답을 기존 registry에 그대로 위임합니다. Transport와 ONVIF public header에는
+`SourceViewRegistry`/`RegistryResult`가 남지 않습니다. Focused RED 0/4 뒤 독립 compiled facade harness를
+추가해 5/0, build 100%, ONVIF atomicity 19/0, lifecycle PASS, owner/transport/bundle/physical/structure
+6/5/6/6/15를 확인했습니다. Full source-registry 재검증에서 WebRTC local-description/ICE candidate 수집과
+pipeline teardown이 경쟁해 libnice가 SIGABRT한 문제는 macOS crash report로 원인을 확정했습니다.
+GStreamer 1.28+를 build/runtime 최소 기준으로 고정하고 `webrtcbin close` action의 `REPLIED` 결과를 PC thread에서 확인하며 DataChannel callback/참조를 정리한 뒤
+pipeline을 NULL로 전환하도록 수정했습니다. External signaling 직렬화, weak callback ownership, active callback drain,
+exact handler ID disconnect, atomic state, strong promise/appsrc ref와 close/remote-description 5초 bounded wait를 추가했고 MEDIA-025 순서 oracle, MEDIA-026
+4×8 accepted ICE/DELETE 동시 actual, 전체 SRC-001~068 actual 계약을 5회 연속
+통과했습니다. Split로 노후화된 companion 11개는 exact function/UI owner에만 재결속했고 제품 schema/handler는
+바꾸지 않았습니다. Graph는 production178/C++87, edge17, 위반3/SCC0이며 transport→domain witness만 2→1입니다.
+Close가 non-REPLIED이면 peer/pipeline ref를 process-lifetime quarantine으로 이전하고 이후 WebRTC Start를
+`restart required`로 차단합니다. Start와 Stop 전체 및 quarantine 등록은 같은 재진입 lifecycle mutex를
+가장 먼저 잡아 원자 결속하고 signaling mutex와의 lock order를 고정합니다.
+Background retry/detached thread/unsafe unref는 없으며 정상 close 경로는 즉시 정리됩니다.
+Parked generated evidence와 남은 transport→analysis/core-media/domain 방향 때문에 REVIEW4-64 전체와
+REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 23 Analysis Rule domain port 경계
+
+`src/ingress/analysis_rule_registry.cpp`가 analysis consumer의 canonical snapshot 3개와 request 적용 1개
+함수를 실제 정의합니다. `analysis_rule_application_service.h/.cpp`는 dependency-free callback bundle을
+one-time configure하고 domain port와 transport wrapper가 같은 backend를 사용하게 합니다.
+`webrtc_http_analysis_rule_declarations.h`는 transport backend 네 함수만 선언하며, WebRTC HTTP constructor가
+이 backend를 application service에 설정합니다. Transport는 concrete domain header와 canonical definition을
+소유하지 않고 analysis는 transport symbol에 정적으로 link하지 않습니다. Registry 저장·락·durable transaction,
+route, response, requested/observed schema, event와 media path는 변경하지 않았습니다.
+
+초기 declaration-only shim은 독립 리뷰에서 숨은 analysis→transport link를 제거하지 못한 P1 false closure로
+확인되어 실제 port/adapter/backend 구조로 교체했습니다. Focused verifier의 compiled harness는 incomplete 설정,
+동일 재설정, 다른 backend 거부, 선행 registry bind 충돌의 application no-change, callback 순서·양쪽
+public/application 호출·null/error·exception 전파를 결속합니다. Final independent review가 찾은 fail-soft 의미 변경과
+bind 뒤 실패 split-brain을 제거했고, 실제 transport profile/rule/VA backend body 교환 mutation도 거부하도록 보강해
+5/0을 통과했습니다. Build 100%, durable-write actual, analysis-state 181/0, public6, source-view5,
+final-contract10, image6, Event POST6, source-bundle6, physical6, structure15를 통과했습니다. Durable-write
+첫 실행은 sandbox loopback bind `EPERM`으로 실패했고, 승인된 loopback 실행에서 동일 명령이 통과했습니다.
+Current graph는 production194/C++95, edge16, 위반2/SCC0이고 transport→domain witness는 1→0입니다.
+남은 transport→analysis11/core-media4와 parked generated evidence 때문에 REVIEW4-64 전체 및
+REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 24 Analysis frame application 경계
+
+`analysis_frame_application_service.h/.cpp`가 concrete detector lifecycle, 정적 이미지 one-shot tracker,
+close-object mode projection과 static/live overlay option·timing·render 실행을 application owner에서 수행합니다.
+Transport는 standard-only forward contract로 호출하며 `detector.h`, `object_tracker.h`, `overlay_renderer.h` direct
+include와 해당 concrete symbol 호출이 0입니다. Tracker kind/class와 runtime 14필드, detector Start→Analyze→Stop,
+Korean close-object label/score mutation, overlay debug/timing/redaction query는 focused mutation oracle로 결속했습니다.
+
+Focused 5/1 expected structure RED 뒤 6/0, build 100%, actual image analysis20/0, redaction4/0(선택 3건 skip),
+tracker stability3/0, analysis-state181/0을 통과했습니다. Tracker 첫 시도는 throwaway HTTP server 미기동으로 health
+check가 실패했으며 승인된 auth-off loopback 재실행에서 통과했습니다. `verify-close-object-fixture-matrix`는
+기존 4개 비교행 fail과 `imports/NewYorkDriving.mp4` 부재 때문에 default-on `not-promoted`/exit1이어서 Slice PASS로
+사용하지 않았습니다. 모든 image/redaction/tracker/matrix/analysis 임시 산출물과 8081/8555 listener는 정리했습니다.
+Current graph는 production196/C++96, edge16, 위반2/SCC0이며 transport→analysis witness는 11→8,
+transport→core-media witness는 4와 동일 digest로 유지됩니다. 남은 두 방향과 parked evidence 때문에 전체 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 25 VA metadata application 경계
+
+`va_metadata_application_service.h/.cpp`가 subscription filter9, sync11, runtime build option, canonical
+runtime/WebRTC/missing serializer와 최대 16회 events-first byte-budget loop를 application owner에서 수행합니다.
+Transport는 query/control parsing, metadata sequence와 current timestamp, Record→Post→publish order 및 fallback
+선택을 계속 소유합니다. Direct `metadata_subscription_filter.h`/`va_runtime_metadata.h` include와 low-level call은 0입니다.
+
+첫 build는 stream-open log의 canonical schema 상수 직접 참조로 실패해 application schema accessor로 수정한 뒤
+100%를 통과했습니다. 독립 리뷰가 찾은 transport/app paired swap, budget branch-body/early-return, missing PTS/timestamp,
+metrics/call-order false-PASS도 exact 함수별 mapping·normalized body·대표 negative mutation으로 보강했습니다.
+Focused6/0, actual SSE5/0, side-channel5/0, WS9/0, WebRTC DataChannel8/0, analysis-state181/0입니다.
+최초 네 smoke는 server 미기동 또는 sandbox loopback 제한으로 실패했고 승인된 auth-off 8081 재실행에서 통과했습니다.
+4.6MB 임시 metadata/analysis 산출물과 8081/8555 listener는 정리했습니다. Current graph는 production198/C++97,
+edge16, 위반2/SCC0이며 transport→analysis witness는 8→6, transport→core-media witness는 4와 동일 digest입니다.
+남은 두 방향과 parked evidence 때문에 전체 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 26 Analysis query·overlay application 경계
+
+`analysis_frame_application_service.h/.cpp`가 canonical profile query 생성, context resolve, overlay 요청 판정,
+render/debug/tolerance/wait 설정과 concrete overlay attachment를 소유합니다. Transport detail에서
+`analysis_query.h`와 `analysis_overlay_probe.h` include를 제거했고, runtime/server의 profile 호출 5개와 resolve
+1개는 application wrapper를 통과합니다. Transport는 source PTS resolve, matched result 우선, latest snapshot fallback,
+missing metadata, EventRecord→Event POST→metadata 발행 순서를 그대로 소유합니다.
+
+첫 build는 100%였습니다. 독립 리뷰가 empty provider를 항상 non-empty wrapper로 감싸 기존
+`missing analysis result provider` attach 실패를 inert probe로 바꾸는 fail-open 차이를 찾아 provider가 있을 때만
+adapter를 설치하도록 수정했습니다. Transport provider는 null output을 fail-closed 처리하며, focused verifier는
+wrapper count/direct bypass, render key 우선순위, settings/attachment 전달, matched/fallback output, missing false,
+Wait→snapshot, Record→Post→metadata, fallback condition과 대표 변조를 거부합니다. Focused6/0, build100%,
+query-owner5/0, core inversion11/0, runtime port5/0, actual WebRTC metadata8/0, RTSP overlay6/0,
+analysis-state181/0, source bundle6/0, physical split6/0을 통과했습니다. WebRTC 최초 실행은 기본 포트 8080으로
+fetch 실패, 두 번째는 Auth auto로 401이었고 승인된 Auth off 8081 재실행에서 통과했습니다. 생성된 summary/log와
+analysis 임시 build를 모두 삭제하고 8081/8555 listener가 없음을 확인했습니다. Current graph는
+production198/C++97, edge16, 위반2/SCC0이며 transport→analysis witness는 6→4, core-media4는 동일 digest입니다.
+남은 두 방향과 parked evidence 때문에 REVIEW4-64/65 전체 완료는 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 27 Event Feature Search application 경계
+
+`event_feature_search_application_service.h/.cpp`가 canonical index rebuild, Search DSL 변환, query
+limit/offset 해석, valid-only search와 결과 DTO 투영을 application owner에서 수행합니다. Transport는 event JSON
+fallback, seven-feature/evidence/review record 조립, Auth/view scope, retry filter와 최종 Ops/Integrator JSON을 계속
+소유하며 direct `event_feature_search_index.h` 및 `EventSearchDsl` 결속은 0입니다.
+
+첫 build는 private detail의 이전 raw 타입 선언 때문에 실패했고 DTO 선언을 함께 옮긴 뒤 100%를 통과했습니다.
+독립 리뷰가 찾은 query wiring, conditional privacy overwrite, 부분 mapping P0 false-PASS 세 건은 exact function contract,
+전체 두-record DTO/feature/evidence matrix와 transport 7종·compiled privacy 3종 RED mutation으로 보강했습니다.
+Focused6/0, feature index7/0, DSL7/0, scoped Integrator8/0, analysis-state181/0, source-bundle6/0,
+physical-split6/0, structure15/0입니다. Current graph는 production200/C++98, edge16, 위반2/SCC0이며
+transport→analysis witness는 4→3, transport→core-media witness는 4로 유지됩니다. 남은 두 방향과 parked
+evidence 때문에 REVIEW4-64/65 전체 완료는 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 28 Event Storage application 경계
+
+`event_storage_application_service.h/.cpp`의 dependency-neutral DTO/service가 canonical query, snapshot,
+compaction, compacted-file list/resolve/delete/cleanup과 dispatch mapping을 application owner에서 수행합니다.
+Transport는 query parsing, Auth/Role/Scope, HTTP status와 JSON assembly, Record→Event POST→metadata 순서를
+계속 소유하며 canonical `StopEventStorage`는 composition root에 유지합니다.
+
+독립 리뷰 P1에서 default dispatch `source_kind`와 `route`가 canonical `*` 대신 빈 문자열로 투영되는 차이를
+찾아 수정하고 compiled default RED를 추가했습니다. Focused gate 최초 결과는 resolve failure에서 이전 output을
+덮어쓰지 않아도 통과하는 false-PASS 때문에 5/1이었고, exact failure overwrite oracle을 추가한 뒤 6/0입니다.
+Build100%, v300 event evidence9/0, v310 event clip10/0, scoped Integrator8/0, analysis-state181/0을 통과했습니다.
+Actual `verify-ops-event-records-scope`는 sandbox loopback EPERM, Auth auto 302, 잘못된 Auth env, stale Event POST
+route, credential false-positive, stale compaction field, Chrome fallback flag를 각 원인에 맞게 수정·재실행한 뒤
+HTTP/compaction/browser 전체를 통과했고 verifier script 후속 수정도 포함합니다. Current graph는
+production202/C++99, edge16, 위반2/SCC0이며 transport→analysis witness는 3→2, core-media4는 동일하고 mixed
+owner 최대는 10,156줄입니다. Source bundle6/0, physical6/0, structure15/0, script11/0, docs failures0,
+`git diff --check`, current 4.6MB analysis·60KB UI·throwaway storage cleanup과 listener 0까지 통과했습니다.
+남은 두 방향과 parked evidence 때문에 REVIEW4-64/65 전체 완료는 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 29 Event Rule application 경계
+
+`event_rule_application_service.h/.cpp`의 standard-only forward-declared PIMPL 경계가 canonical stored-rule
+snapshot→evaluation 호출, keyed runtime map/mutex와 acquire/release, SSE/WS 연결별 ephemeral runtime 및 annotated
+result, ordered events, active/matched count, optional metrics, tracking issue JSON accessor를 application owner에서
+수행합니다. Transport는 debug/metrics request flags, state/metrics/events JSON, Record→POST→alert 또는 metadata,
+overlay near-result→latest fallback과 detach `removed` 성공 시 exact 5-key 해제 순서를 유지합니다. Transport의
+direct `event_rule_engine.h`, canonical runtime/evaluation/factory/apply, local runtime map/mutex 결속은 0입니다.
+
+독립 리뷰에서 P0/P1 후속은 없었습니다. Focused 최초 실패는 friend 선언과 public 선언을 단일 exact fragment로
+세어 정상 코드를 거부한 verifier false FAIL이었고, 문맥별 exact manifest와 friend-only/public-only/evaluate-friend
+omission RED를 추가한 뒤 6/0입니다. Build100%, standalone header compile, analysis-state181/0, SSE5/0,
+VA side-channel5/0, WS9/0, WebRTC8/0, RTSP overlay6/0, structure15/0을 통과했습니다. Current graph는
+production204/C++100, application owner37/C++16, edge16, 위반2/SCC0이며 transport→analysis witness는 2→1,
+core-media4는 동일합니다. Current 4.6MB analysis output, summaries와 WebRTC log를 정리했고 listener는 0입니다.
+Predecessor 15개85/0, source bundle6/0, physical6/0, structure15/0, script11/0, docs failures0과 diff,
+cleanup, listener gate까지 통과해 Slice29 closure는 완료했습니다. 남은 두 방향과 parked evidence 때문에
+REVIEW4-64/65 전체 완료는 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 30A Analysis Session read application 경계
+
+`analysis_session_read_application_service.h`, adapter와 internal mapping이 standard-only DTO read 경계를 만들고,
+transport의 canonical Analysis Session read 71건을 0건으로 줄였습니다. Application service 호출은 Snapshot 11,
+Snapshots 54, WaitResultNearPts 2, LatestFrame 1, LatestFrameAndResult 1, ActiveTapCount 2이며 Event Rule, VA metadata,
+overlay, JSON, Ops, SSE, WS, WebRTC 소비자는 canonical object 대신 application DTO를 사용합니다. Attach/Detach,
+tap create와 provider open lifecycle은 의도적으로 Slice 30B에 남겼습니다.
+
+Focused verifier는 parser/exact binding의 transient 실패를 수정한 뒤 6/0이고 structure는 15/0입니다. Build100%,
+analysis-state181/0, SSE5/0, VA side-channel5/0, WS9/0, WebRTC8/0, RTSP overlay6/0, LAB core PASS,
+source health6/0, `git diff --check` PASS와 listener0을 확인했습니다. Current graph는 production208/C++101,
+application41/C++17, edge17, 위반2/SCC0, transport→analysis1, transport→core-media4입니다. Graph SHA는
+`7b589b4df78580e71edbf7e49a5d5953e454a475c50c98a5e1a33db23ebd1f8c`, policy SHA는
+`808cf2395f6d8f8871bc33ae1691d3ed615a5907b23a782bbcacfedd80a315d2`입니다. Slice 30A closure 당시에는
+Slice 30B lifecycle과 parked evidence가 남아 있었고, 그 lifecycle 경계는 아래 Slice 30B 기록에서 닫았습니다.
+
+## V390-REVIEW4-64 current continuation Slice 30B Analysis Session lifecycle application 경계
+
+Standard lifecycle DTO/port와 canonical adapter, data-only legacy application types facade가 Analysis Session
+lifecycle을 application 경계로 옮겼습니다. Transport 호출은 Attach 4, Detach 1, shared helper 15이며 request 4필드,
+attach result 8필드, detach result 5필드가 explicit mapping을 거칩니다. Shared helper는 detach 결과의
+`removed=true`에서만 exact 5개 runtime key를 해제합니다. RTSP, read port, lifecycle port와 provider는 동일한
+canonical Analysis Session identity를 공유합니다.
+
+첫 build는 hidden value-type completeness 실패로 중단됐고 data-only legacy application types facade로 수정한 뒤
+100%입니다. Focused verifier 최초 실행의 anchor/transitive adapter blocker도 수정한 뒤 6/0입니다. Analysis181/0,
+SSE5/0, VA side-channel5/0, WS9/0, WebRTC8/0, RTSP overlay6/0, Ops lifecycle PASS, LAB core PASS,
+structure15/0, cleanup, diff-check PASS와 listener0을 확인했습니다. Current graph는 production212/C++102, application45/C++18,
+edge16, 위반1/SCC0, transport→analysis0, transport→core-media4입니다. Graph SHA는
+`dc68a9bacd49888a89f5689eff85fff8a48a3244596a2aafbd765a3e812017e9`, policy SHA는
+`808cf2395f6d8f8871bc33ae1691d3ed615a5907b23a782bbcacfedd80a315d2`입니다. Slice 30B closure는 PASS이나
+core-media 방향 4건과 parked evidence가 남아 REVIEW4-64는 진행 중이고 REVIEW4-65는 미착수입니다.
+
+## V390-REVIEW4-64 current continuation Slice 32 WebRTC media application 경계
+
+Standard-only deep DTO와 opaque egress/source session port, canonical adapter를 추가했습니다. Transport의
+SessionManager, WebRTC egress/source session, source registry 직접 witness를 application 경계 뒤로 이동해
+transport→core-media를 4→0으로 닫았고 application→core-media 4건은 canonical adapter 결속으로 유지합니다.
+
+Focused 8/8, predecessor 6종 40/40, structure 15/15, source bundle 6/6, physical split 6/6,
+build 100%, analysis-state 181/181을 통과했습니다. 최종 semantic review의 verifier false-PASS P1 1건은
+exact mapping과 paired-swap·descriptor omission RED로 수정했습니다. Immutable Slice 32 completion graph는 production215/C++103, 위반0/SCC0이며
+SHA는 `215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a`입니다.
+
+승인된 sandbox 밖 auth-off throwaway 서버에서 ICE8/8, codec67/67(외부3 제외), SSE5/5, side5/5,
+WS9/9, WebRTC metadata8/8, RTSP6/6, Ops lifecycle/source health와 LAB core를 통과했습니다. 최초 sandbox
+격리 FAIL, auth-on 401, auth-off codec empty-array nounset FAIL은 정확한 명령과 Bash 3.2-safe optional
+argument 수정 뒤 재검증했습니다. 임시 파일30개/32,763바이트 삭제와 listener0을 확인했습니다. Slice32와
+REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVIEW4-65 독립 acceptance PASS는 아닙니다.
+
+## V390-REVIEW4-65 SAFE-211 completion/current graph 분리 보정
+
+Canonical acceptance run `v390-test-acceptance-20260717130122-44713`은 build와 앞선 feature gate를 통과한 뒤
+`v390-structure-stabilization-handoff`에서 Slice 32 completion graph의 product UI 10,156줄을 현재 source
+10,173줄과 비교해 FAIL했습니다. 제품/API/UI 의미, owner/include/target direction, SCC에는 변화가 없었습니다.
+기존 `215ce928...` graph와 Slice 1~32 before/after, `resolvedDebt` 10,217→10,156은 completion evidence로
+불변 보존하고, current graph는 generator가 현재 source에서 별도로 생성해 product UI/최대 mixed owner
+10,173줄, violation 0, SCC 0, target 2, internal separation true를 결속합니다. Source bundle·physical split·media
+application boundary는 completion graph를, handoff/readiness와 current `--graph-only`는 current graph를 사용합니다.
+이 보정은 canonical FAIL evidence를 PASS로 바꾸지 않으며 실제 `test_release.sh`, 30분, exact UI, Policy v4,
+120분은 재실행하지 않습니다.
+
+### WebRTC source-bundle completion/current 보정
+
+WebRTC six-file source bundle도 같은 lifecycle 경계로 분리했습니다. Slice 32 completion snapshot은 source commit
+`b9a45740e60f087cff6ff6d8358994855db8651f`, bundle SHA
+`d2dc01ef58a1379b3c73f22da546ee60a5aa2f0eb4e47234dea0d12762a919e6`, 2,252,961 bytes와 completion graph
+`215ce928...`를 보존합니다. Current snapshot은 comment-only commit
+`72c74f4f71bcb3e212082139077aaf8ed3d478fd` 이후 현재 six-file bundle SHA
+`31f3613d0c56c2a455c1e8e9232a60200557dea7195ed90c90a3f7fc6c1198a9`, 2,253,063 bytes와 current graph
+`fd34ace24775ec0ffbd6617bc1ddcee661f50630471626ff57604e5955eebc24`에 결속합니다. 두 변경 파일의 line delta는
+0, byte delta는 -4/+106이고 지정된 두 주석 영역을 제거한 executable source SHA가 각각 동일함을 exact locator로
+검증합니다. 전체 C++ comment 제거 같은 fallback은 사용하지 않으며 snapshot/graph 교환, source commit·file
+SHA·bytes·logical offset drift, executable token 변경, six-file 누락·순서·중복을 negative contract가 거부합니다.
+
+Focused 구조 gate는 source bundle 8/8, physical split 6/6, media application boundary 8/8, current graph-only 4/4,
+handoff 7/7, readiness 7/7을 통과했습니다. Fresh semantic candidate
+`2f89a5ad453e6aef72db4bf598e5a80d05c0ec5892802b5fe83f9606697a3c14`에서 영향 행은 기존 graph lifecycle에
+결속된 `SAFE-211`, `SAFE-215`, `OPS-178`, `OPS-182` 네 행뿐이고 source-bundle verifier 직접 결속 추가 행은
+0개입니다. 982행 strict-equivalence carry-forward와 네 행 independent review로 approval 986/986을 구성했고,
+semantic audit 986/986, migration/selftest, feature implementation evidence, project inventory를 통과했습니다.
+Canonical actual FAIL evidence는 그대로 보존하며 장시간/UI/release acceptance는 미실행입니다.
+
+## V390-REVIEW4-65 current source-flow와 acceptance 구현 맵
+
+- `feature_implementation_manifest_lib.mjs`의 locator refresh와
+  `feature_semantic_review4_trust_lib.mjs`의 independent decision 검증이 Slice 32 뒤 이동한 owner를
+  canonical 986행 manifest에 재결속합니다. `verify_v390_review4_feature_semantic_source_audit.mjs`는
+  candidate/approval/current source digest를 분리하고 승인 전 manifest 적용을 거부합니다.
+- `v390_ui_native_exact_cases_lib.mjs`와 `v390_ui_native_exact_cases.json`은 canonical 424 workflow를
+  current owner/control/action/readback에 다시 생성하며 `verify-v390-ui-native-exact-cases-contract`가
+  ordered 424, positive 423, negative route 1, unsupported 0을 판정합니다.
+- AUTH-020, SRC-008, SRC-010, SRC-019, SRC-031의 primary-control 없는 mutation은
+  `v390_ui_native_exact_cases_lib.mjs`의 endpoint-owned action, `run_v390_ui_native_exact_cases.mjs`의
+  actual browser fetch/network observation, `v390_ui_case_runtime.mjs`의 deterministic setup·independent
+  readback·success/exception cleanup으로 결속합니다. `verify_v390_test_acceptance_bundle.mjs`는 actual case와
+  source-contract failure 모두 root first-failure를 current commit/run/case/error/log로 갱신하고 과거 실패를
+  `priorFirstFailure`로만 보존합니다. 이 static correction은 actual UI/Policy v4/장시간 PASS가 아닙니다.
+- Endpoint response/cleanup 후속은 `v390_ui_native_adapter.mjs`의 실제 Playwright response listener가 위 5개
+  method/path만 allowlist projection하고 correlation/request ID·HTTP status와 같은 network entry에 결속합니다.
+  Raw body와 password/token/credential/secret/URL material은 보존하지 않고 fail-closed하며, AUTH-020은 원래
+  없던 fixture를 file snapshot으로 제거한 뒤 fresh users readback `absent`와 성공·예외 모두 users-file 원본
+  bytes 일치를 검증합니다. First-failure reproduction은 suite별 `./test_ui.sh`, 30분, 120분, release 명령을
+  summary/report/root artifact에 동일하게 기록합니다. Candidate `41870754…ae0`은 986행과 feature/pass/status를
+  유지하고 UI-018/SAFE-212/OPS-179 세 sourceFlow만 갱신했으며, 983 carry-forward+3 independent review의 공식
+  producer 1회가 semantic/native 네 fixture를 함께 교체했습니다. 별도 native generator와 actual UI·30분·
+  120분·release acceptance는 실행하지 않았습니다.
+- AUTH-020 full-response 후속은 `http_auth.cpp`의 `AppendPublicUserJson` 전체 공개 shape를 listener contract에
+  직접 결속합니다. `user.mustChangePassword` boolean과 `user.passwordUpdatedAt` string은 lifecycle metadata로
+  경로·타입을 검증한 뒤 폐기하고 safe projection에는 status/username/enabled만 남깁니다. Source create/disable,
+  view disable, ONVIF import-draft도 `SourceJson`/`PublishedViewJson`/`BuildOnvifLiveImportDraft`의 전체 응답 shape를
+  같은 listener에서 검증합니다. 허용된 profile token·credential 부재 증명·credential-free RTSP URL은 명시
+  경로/불변값 검증 뒤 폐기하며 그 밖의 password/token/credential/secret/URL material은 field path와 endpoint만
+  남기고 fail-closed합니다. Source `82f83f30...` actual AUTH-020 `126/125/1/298` FAIL은 그대로 보존합니다.
+  Read-only candidate `41870754...ae0`은 feature/pass/status/sourceFlow 변경 0이라 producer와 generator를 실행하지
+  않았고, 이 static correction에서도 actual UI·Policy v4·30분·120분·release acceptance는 미실행입니다.
+- Endpoint-owned completion 후속은 `v390_ui_completion_oracle_lib.mjs`의 canonical observation builder가
+  AUTH-020/SRC-008/SRC-010/SRC-019/SRC-031의 manifest path template과 실제 확장 path·fixture parameter,
+  correlation/request ID, status, Playwright safe response, authoritative independent readback을 함께 검증한 뒤에만
+  completion evidence를 생성합니다. `run_v390_ui_native_exact_cases.mjs`는 기존 wrapper 전체가 아니라 이 canonical
+  observation을 completion oracle에 전달합니다. Source `c8d76cc6...` actual AUTH-020 `126/125/1/298`의
+  `semantic-readback-observation-mismatch` FAIL은 그대로 보존합니다. RED는 completion contract 22/1로 재현했고,
+  다섯 composed case와 wrapper/method/path/fixture/correlation/request/status/safe-response/authoritative negative를
+  추가한 뒤 24/24 PASS했습니다. Candidate `41870754...ae0`/986행과 feature/pass/status/sourceFlow는 모두 불변이라
+  producer·generator를 실행하지 않았으며 actual UI·Policy v4·30분·120분·release acceptance도 미실행입니다.
+- `v390_ui_exact_core_oracles.mjs`는 approval envelope 전체 digest 대신 case/sourceFlow/expected behavior/
+  feature contract/verifier/state locator context의 row-local runtime binding으로 after-state identity를 만듭니다.
+  `v390_ui_exact_oracle_catalog.mjs`와 `v390_ui_native_exact_cases_lib.mjs`는 동일 implementation manifest를
+  주입받아 exact catalog/native 파생물을 생성하고, migration-aware producer는 audit·approval·implementation·
+  native fixture 네 개를 한 transaction에서 readback한 뒤 확정하며 중간 실패 시 모두 이전 bytes로 복원합니다.
+  Candidate `65cc4cf…`는 semantic 변경 0이라 producer를 실행하지 않았고 native generator만 1회 실행했습니다.
+  424/423+1/unsupported0, ordered ID·비해시 workflow 변경0이며 actual UI/장시간/release는 미실행입니다.
+- clean checkout은 `video/imports/va_tracking_event_long_1280x720_30fps_h264.mp4`를 tracked fixture로
+  포함합니다. `manual_ui_fulltest_va_seed_matrix.json`은 7,284,400 bytes와 SHA-256
+  `24147fb07bb3a1e1f86bb41d2cce6274a6f39eb75671a299a61ca9852f37a122`를 고정하고,
+  `prepare_manual_ui_fulltest_seed.mjs`와 acceptance contract는 누락·size drift·SHA drift를 모두 거부합니다.
+  이 clean-checkout input 계약은 actual 30분/UI/120분 execution evidence가 아닙니다.
+- 네 root launcher, `user_test_launcher_common.sh`, `discardInheritedAcceptanceSecrets`, `resolveAcceptanceRoleSecrets`,
+  `startSelfContainedUiEnvironment`, `createV390UiCaseRuntime`, `secretStrippedBrowserEnv`는 무옵션 실행,
+  자동 output/port, direct 120 승인과 조건부 release 120, inherited/local secret 차단, all-role unique secret 생성,
+  non-exact child/browser env 차단, exact-only memory envelope와 raw·URI·form·JSON escaped·base64/base64url
+  artifact byte scan 뒤 release를 결속합니다.
+- `verify-v390-test-acceptance-bundle-contract` 14/14, `verify-v390-ui-native-exact-cases-contract`
+  15/15, 변경 MJS `node --check`, Auth Bash `bash -n`, `git diff --check`, C++ build 100%,
+  `verify-v290-2x-compatibility-baseline` 20/20을 통과했습니다. 이 결과는 실제 30분·exact 424 browser·
+  120분·final integrity PASS가 아니며, 해당 판정은 clean-HEAD canonical bundle summary만 사용합니다.
+- OPS-182의 historical/current/acceptance 결합 claim을 독립 검토에서 두 차례 거절한 뒤 exact feature
+  contract를 실제 readback이 AND 검증하는 current graph 7개 지표로 좁혔습니다. 최종 candidate
+  `93b0b1eeeda84b37d3a0c4242cf9b9d6d9f8ebda9a24b5e7a03d7aa3d5ed1c2c`는 독립 986행
+  재계산과 approval/apply를 통과했고 semantic audit 51/51, feature evidence 986행·validation 0·
+  REVIEW4 global 0·negative 15/15, project inventory 16/16, coverage 7/7을 확인했습니다.
+- `verify_feature_implementation_evidence.mjs`의 25MB manifest negative fixture는 전체 deep clone 대신
+  top-level/array 구조 공유와 변이 대상 단일 item clone을 사용합니다. 장시간 검증 세션에서 15/15와
+  exit 0을 직접 확인했으며 acceptance feature stage의 메모리 폭증을 막습니다. Truthfulness verifier는
+  REVIEW4-51 historical `not-executed`와 REVIEW4-64 current completion owner를 출력에서 명시 분리합니다.
+- Clean commit `53d7fbc9`의 첫 canonical actual은 build/34 feature gate 뒤 30분 child integrated smoke
+  529초에서 `verify-code-comments` 때문에 fail-stop했습니다. Codec/VA overlay/redaction/rule/VA event/image
+  analysis 자체는 20개 PASS였고, UI/120분/final integrity는 순서대로 not-run입니다. 원인은 REVIEW4-64
+  신규/split 파일 header 44개와 machine origin marker를 포함한 English-only comment 2,178개였습니다.
+  기존 줄 수를 유지해 44개 파일의 한글 `파일 용도` header를 보강하고, origin/baseline marker만 좁은
+  policy regex로 분류하고, 나머지 English comment 19개를 한글화해 734 files/header 0/English-only 0을
+  통과했습니다. 30분 child cleanup은 PID/8081/8555/artifact 128,879B 제거 모두 PASS였으나 parent가 아직
+  생성되지 않은 30분/UI cleanup summary의 measurement source까지 요구해 FAIL로 오표기한 조건도 객체 존재
+  guard와 contract assertion으로 수정했습니다. 최초 실패 output을 보존한 canonical retry는 그 output root만
+  source dirtiness에서 제외하며, preflight와 final-integrity가 동일한 `sourceWorktreeClean`/allowed root/unapproved
+  path 경계를 검증합니다. 따라서 다른 source 변경은 계속 current-HEAD acceptance를 차단합니다.
+- 수정 source freeze 후보 `5be8b5813a40d5de7f64d6951d32bc17e0d11af0725d0c8033005a3ac595174f`는
+  독립 검토에서 986/986 승인됐습니다. 이전 승인 대비 211개 drift 중 209개는 comment/hash-only였고,
+  SAFE-212/OPS-179는 cleanup/retry/final-integrity 최신 locator로 재결속됐으며 required outcome은 불변입니다.
+  승인 적용 뒤 semantic audit 51/51, exact 424 contract 15/15, inventory 16/16, coverage 7/7,
+  feature evidence 986/986·validation 0·global 0·negative 15/15를 통과했습니다.
+- 수정 commit `72c74f4f`의 canonical retry는 feature gate 15에서 REVIEW4-63 `production-restore`
+  source hash가 comment header 이전 값이라 fail-stop했습니다. 30분/UI/120분은 not-run이고 source start/end는
+  clean, unapproved path 0이었습니다. 이 실패는 `webrtc_http_server.cpp` current digest로 decision evidence를
+  재결속했습니다. 또한 UI environment가 시작되지 않아 `runtimeEvidence=false`인 cleanup에도 measured source를
+  요구하던 parent 조건을 runtime evidence에만 적용하도록 좁히고 contract negative assertion을 추가했습니다.
+- Retry correction freeze candidate `1d67f5da1ec582567649edeca1a83bf422fefbe34025d53d1b87de449b0bf72d`는
+  독립 986/986 승인을 받았고 SAFE-212/OPS-179의 최신 locator/body/5-edge 오류 0을 확인했습니다. 구 `5be8...`
+  approval은 재사용하지 않고 새 ledger/implementation manifest/exact 424 binding으로 교체했습니다.
+- Clean commit `edc89771`의 세 번째 canonical run은 build와 34 feature gate, real 30분 1,800초를
+  118 PASS/0 FAIL로 닫은 뒤 UI bootstrap에서 published seed fixture `v3.8.0`와 helper current target
+  `v3.9.0` 충돌로 fail-stop했습니다. Exact 424/Policy v4/120분/final integrity는 not-run이며 UI/root
+  cleanup은 PASS입니다. 기본 helper의 current-source strict 판정은 유지하고, acceptance/one-shot만
+  `config/docs_ui_assets.json`의 publishedRelease/sourceVersion/status/SHA에 결속된
+  `--published-seed-baseline`을 명시하도록 수정했습니다. 기본 거부·published 성공·mismatch 거부와
+  plan/runtime attestation을 acceptance contract 13/13, fixture cleanup 11/11로 확인했으며 수정 commit 뒤
+  canonical 전체를 build부터 다시 실행해야 합니다.
+- Correction 사전 검증에서 `SRC-038` 뒤 `CLIENT-023`도 같은 route drift로 연속 실패해 단일 항목이 아니라
+  canonical `/client/api/views/{id}/events`를 쓰는 8개 client-events 증적의 requested/observed 혼용으로
+  분류했습니다. `SRC-038`, `CLIENT-023/029/031/032/040`, `SAFE-110/119`의 canonical route와 control
+  projection은 API 경로로 유지하고 `uiEvidence.screenRoute`만 observed `/client/events`로 맞췄습니다.
+  Coverage contract 12/12, native exact 15/15, current evidence 7/7, Policy producer 8/8, independence 10/10,
+  eligibility 7/7, visual 6/6, feature evidence 986행 validation/global error 0, audit 51/51, approval 986/986를
+  통과했습니다. 이 정적 correction은 actual exact 424/120분 PASS가 아니며 clean correction commit에서
+  canonical 전체 재실행이 필요합니다.
+- Clean correction commit `c8dc5340`의 canonical run은 build/34 feature gate와 real 30분 1,800초
+  118 PASS/0 FAIL을 통과하고 published seed bootstrap도 넘었지만, UI server listener ownership에서 정상
+  `lsof -t` trailing newline을 빈 문자열→`Number("")`→PID 0으로 변환해 `5200,0`으로 오판하면서
+  8회 bounded retry 뒤 fail-stop했습니다. Exact 424/Policy/120/final integrity는 not-run이고 cleanup은
+  PASS입니다. `parseListenerPidOutput`을 분리해 blank/zero/invalid PID를 제거하고 positive integer만
+  dedupe하도록 수정했으며 trailing newline·duplicate·zero·invalid·blank RED/PASS를 acceptance contract
+  13/13으로 고정했습니다. 수정 commit 뒤 canonical 전체를 다시 시작해야 합니다.
+- Listener parser correction candidate `bd9b9834d0d8f75b34e2285dc555d2ede97dc5c75833ec9dbe036d97dd75f021`는
+  독립 재계산에서 986/986 승인, 거절·불확실·오류 0이었습니다. 이전 후보 대비 985행은 불변이고
+  `OPS-179` 한 행만 contract readback 위치가 이동해 digest `903578f08f770fa001558ddced298db6e62141e2190bf3ce3f0f5fafd8752953`로
+  갱신됐으며 required outcome과 owner→dispatch→action→state→readback→verifier 5-edge는 유지됩니다.
+  새 approval ledger와 canonical implementation manifest에 적용했습니다. 적용 직후 exact manifest를 먼저
+  생성한 순서 때문에 source binding 4건이 stale해진 최초 검증은 FAIL이었고, 최종 implementation manifest
+  기준으로 canonical/exact binding과 current not-run SHA를 다시 생성해 exact 15/15, current 7/7을 통과했습니다.
+  이 정적 승인은 actual browser·120분·final integrity PASS가 아닙니다.
+- Clean correction commit `17393ef5`의 canonical run `v390-test-acceptance-20260716104906-28392`는
+  build/34 feature gate와 real 30분 runner 2,374.022초·delegated 2,372초, ordered soak 22회/110 cases,
+  전체 118 PASS/0 FAIL 및 cleanup을 통과했습니다. UI bootstrap과 listener ownership도 통과했지만 exact
+  case 1 `UI-001`에서 canonical 요청 `/` 뒤 실제 setup-complete anonymous browser location `/login`을
+  observed `/`로 기대해 fail-stop했습니다. 나머지 423건, Policy v4, 120분, final integrity는 not-run이고
+  UI/root cleanup은 PASS입니다. 제품 redirect는 정상이며 requested `/`와 observed `/login`을 분리하도록
+  root product screen projection과 contract를 보정했습니다. 보정 commit 뒤 canonical 전체 재실행이 필요합니다.
+- Root projection correction candidate `743da5ac892a45ea47e1bdd602c1a839c7c5bf7ee459fbb23a8a9549c24faa87`는
+  독립 986행 재계산에서 승인 986/거절 0/불확실 0이었습니다. 이전 후보 대비 `UI-018` 한 행만 exact
+  contract readback 위치 이동으로 digest `492393b75cb629fd3c4dfe9706a7442c564964444dfd552edf2c30d4742e1bdb`로
+  갱신됐고 404 oracle·required outcome·5-edge는 유지됩니다. UI-001 source-flow/feature contract는 불변이며
+  canonical `/`와 observed `/login`만 분리됐습니다. Coverage 최초 검증은 UI-001 route를 다시 canonical과
+  비교해 11/12 FAIL이었고 observed UI route를 별도 비교하도록 수정해 12/12를 통과했습니다.
+
+REVIEW4-65 RULE-017 hidden/route-local primary-control correction(2026-07-24): source `e1a62fb9e284dd3b447273811cd6d24ce53d3306`의 actual `./test_ui.sh`는 exact `201/200/1/223`에서 RULE-017의 hidden `#opsEventRuleIdInput`을 visible로 기다리다 30초 timeout으로 중단됐습니다. Runtime은 `expectedVisible:false` primary control을 `attached`로 기다린 뒤 hidden/disabled 상태를 그대로 검증하고, visible control은 기존 `visible` wait를 유지합니다. 남은 exact catalog를 source route와 직접 대조해 stale route-local primary control 6건(EVT-003/018/022, SAFE-053/060/061)을 현재 renderer에 결속하고 SAFE-061은 mutation이 아닌 read-only what-if preview로 교정했습니다. Primary-control source locator 134건은 whole-file SHA 대신 unique exact anchor SHA에 row-local 결속해 unrelated source 변경의 과대 무효화를 제거하고 anchor drift/중복은 fail-closed로 유지합니다. Workflow 분류는 read-only 240/actionable 27로 producer와 validator 양쪽을 맞췄습니다. Terra/high 독립 검토에서 UI-018 bare `/lab`의 explicit unmatched 404 흐름만 승인했고 candidate `8ca0b4bbda5bbacb8085ef0461e167740a3dd401be224981cf304995ef05af39`, migration/package/decision SHA `c9832a76a45bf22a2f16100e9950fcb47a6619697e1dc103cb59ae2b473c17c3`/`3329e83ec74a9e61f17a6dab776bdcd896face95c075bf9c6caece9024984521`/`8d972ec4e86c48fa48809012d5e85247407802eefd2440a360ff59fca7201bf8`로 985 carry-forward+1 independent review를 구성했습니다. 공식 producer는 정확히 1회 실행해 audit/approval/implementation/native fixture를 원자 교체했고 semantic audit/approval 986/986, native exact 30/30, runtime 26/26, client-safe 9/9, completion 24/24, adapter 16/16, acceptance 19/19, launcher 17/17, final integrity 12/12, feature evidence 986/986·negative 15/15 및 inventory/evidence/script/docs gate가 PASS했습니다. 이 correction에서는 actual `./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`를 실행하지 않으며 RULE-017 actual FAIL을 PASS로 승격하지 않습니다.
+
+REVIEW4-65 exact 잔여 147건 정적 전수 감사와 실행 준비 보정(2026-07-24): source `536af3b447206d418701b2479bfd75a275c3a764`의 최신 actual `./test_ui.sh`는 exact `277/276/1/147`에서 RULE-093 source `93093` 조회 404로 중단됐으므로 실제 브라우저 진행률은 `277/424=65.3%`로 보존합니다. 이 actual FAIL 뒤 실행되지 않은 position 278~424를 source route, role, primary control, fixture identity, endpoint/readback, semantic evidence, cleanup 기준으로 `147/147` 직접 대조했습니다. RULE-093~101 numeric source identity/lifecycle, 41개 EVT evaluator seed/request/semantic/canary binding과 EVT-024 세 bounded request, MEDIA-017/SAFE-018/SAFE-031 `/client/live` viewer projection, SAFE-016 direct negative 404, EVT-004 diagnostic redaction, EVT-018 save+test, CLIENT-005/021 product session·VA metadata, acceptance current-source build, first-failure closure, canonical/native atomic generator를 공통 원인 단위로 보정했습니다. Workflow 분류는 actionable 28, form-submit 16, persisted-mutation 102, read-only-state 233, hidden-disabled 42, negative-route 3으로 고정했습니다. Sol/high 구현·전수 감사와 Sol/xhigh 독립 semantic 검토를 사용했고 candidate `126119d4fc5beef66ed75338c335a21a3807a2d03696d77b9d91ce8690518c5f`, 982 strict-equivalent carry-forward+UI-018/EVT-004/SAFE-212/OPS-179 독립 승인, review package/decision SHA `d8a09db09436c0838abd0fb6a8c92441240915c7accd1c44d84155b3b30dbf5b`/`81d520bf041e0244bfcd89cab2a97855ce37da617c890cc95e2c74dd2e861bc6`로 audit/approval 986/986을 구성했습니다. Native exact 36/36, event evaluator 17/17, event 12/12, runtime 31/31, client-safe 10/10, completion 25/25, adapter 16/16, acceptance 21/21, launcher 18/18, final integrity 12/12, Policy v4 producer/independence/visual/eligibility 9/9·10/10·6/6·7/7, feature evidence 986/986·negative 15/15, inventory/evidence/script/docs/build/code-comments gate가 PASS했습니다. `147/147`은 정적 감사와 발견 blocker 보정 완료를 뜻할 뿐 actual browser PASS가 아니며, 이번 작업에서는 `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않습니다.
+
+REVIEW4-65 RULE-095 runtime evidence와 exact 집계 lifecycle 보정(2026-07-25): source
+`a2d90a42edccf24c0f22ed5592bf0d9865e9d9ce`의 actual evidence는 424건 중
+`279 attempted / 278 PASS / RULE-095 FAIL 1 / 145 not-run`입니다. 기존 `coverage.captured=278`은
+PASS 수이며 attempted가 아닙니다. Summary, acceptance report, launcher는 attempted를
+`PASS + FAIL`로 계산하고 `attempted + not-run + unsupported = 424`를 fail-closed 검증합니다.
+RULE-095/096 refresh는 액션 뒤 DOM validation matrix를 정확히 확인하되 pre-existing 표시의
+false transition을 요구하지 않습니다. RULE-093/094/095/096/100/101은 이 DOM 증거와 별개로
+실제 rejected endpoint 제품 응답, 정확한 오류 문구, registry 불변 readback을 모두 요구합니다.
+DOM 또는 static verifier만으로 API runtime PASS를 만들 수 없습니다. Policy v4는 MEDIA-017의
+canonical/runtime screen route `/client/live`와 implementation backend owner route `/ops/sources`를
+typed `routeBinding`으로 분리하며 canonical/native route·role·workflow를 변경하지 않습니다.
+Final candidate `8a66ab228809bd9c96b2defb36fefd323fbc79020fbea1f694671dc05c41752f`는
+982 carry-forward와 `UI-018`, `SAFE-202`, `SAFE-212`, `OPS-169` 독립 검토로 승인됐습니다.
+Review package/decision SHA는 `bc5e1b8a011be8fbb19079708cd4247e184d59bb4b2b405613081ef4fc536f97` /
+`6ff29d0420093df65282f85d696eb67f4789f8232c72b11f9dc009b50f17822d`이며 producer 1회로
+audit/approval/implementation/native를 atomic 교체했습니다. Policy 21/21, acceptance 21/21,
+launcher 18/18, final integrity 12/12, semantic audit 51/51·986/986, approval 986/986,
+feature evidence 986/986, inventory/evidence/script/docs gate가 PASS했습니다. Actual `RULE-095`
+FAIL과 `279/278/1/145`는 보존하며 `./test_ui.sh`, Policy v4 qualification, 30분, 120분,
+`./test_release.sh`, 커밋, 푸시는 수행하지 않았습니다.
+
+REVIEW4-65 diagnostic sweep와 EVT-003 row-local source-health 보정(2026-07-26):
+source `00d515e6d4b9219f012f00ec321e63feb3059a02`의 actual `./test_ui.sh`는
+`281 attempted / 280 PASS / RULE-097 FAIL 1 / 143 not-run`으로 보존합니다.
+`run-v390-ui-native-diagnostic-sweep`은 RULE-097~canonical end 144건을 release/Policy v4
+evidence와 분리해 단건 또는 고정 순서로 실행하고, 자동 재시도 없이 case별 새 격리 환경,
+secret byte scan, PID/port/temp cleanup과 progress를 기록합니다. Bootstrap 실패는 raw URL,
+credential, secret을 저장하지 않고 phase/code와 reason/environment SHA-256 및 cleanup
+attestation만 기록합니다. EVT-003은 acceptance-owned source/view `39065003`/`39065004`를
+실제 registry와 `/ops/api/source-health`에 materialize하고 default source/view 불변과 teardown
+soft-disable readback을 검증합니다. DOM composite는 observation, response baseline, fixture
+identity를 분리하며, source-health baseline은 다른 source의 순서·상태 변화와 분리해
+`39065003` 행의 `status/reason`만 비교합니다. Fixture 행 누락 또는 status/reason drift는
+fail-closed입니다. Diagnostic actual 1회는 row-local 보정 전
+`responseBaselineMatched=false`, observation/fixture=true로 중단됐고 보정 뒤 actual 재실행은
+native static gate 선행 원칙 때문에 수행하지 않았습니다. Native manifest는 공식 generator
+1회로 424/423+1/unsupported0에 재결속했고 RULE-101은 profile mismatch UI no-write와
+analysis/profile API 400 독립 readback을 분리합니다. Diagnostic 13/13, runtime 35/35,
+event 22/22, evaluator 17/17, native 38/38, completion 29/29과 `git diff --check`가 PASS했습니다.
+Same-directory source-built manifest drift follow-up에서는 공식 dispatch
+`./server.sh verify-v390-ui-native-exact-cases --update-canonical-binding`을 정확히 1회 실행해
+canonical/native fixture를 현재 source에 재결속했습니다. 결과는 canonical 424,
+native 424/positive 423/negative 1/unsupported 0, ordered ID 불변이며 native에서 의미 변경된
+case는 EVT-003의 runtime oracle spec hash 1건뿐입니다. Canonical `route/accountRole/controlAction`
+projection은 불변이고 새 `routeBinding`은 screen/backend owner route 결속 metadata입니다. Semantic
+candidate `7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`는 audit/approval
+986/986으로 확인했고 producer는 실행하지 않았습니다. Feature evidence 986/986, project inventory
+17/17, release evidence index 8/8, script inventory 11/11, docs links failure 0, 변경 MJS syntax/JSON
+parse와 `git diff --check`가 PASS했습니다.
+Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 미실행이며
+이 static/diagnostic checkpoint는 actual UI PASS evidence가 아닙니다.
+
+EVT-003 structured diagnostic evidence lifecycle 보정(2026-07-27)은
+`v390_ui_exact_oracle_runtime.mjs`에서 DOM 관찰, fixture binding/source 행/status·reason,
+fixture identity 실패를 서로 다른 reason code와 digest/count/path evidence로 보존하고,
+`run_v390_ui_native_exact_cases.mjs`와 `run_v390_ui_native_diagnostic_sweep.mjs`가 이를
+case/상위 summary로 전달하도록 구현했습니다. 상위 summary는 현재 git commit과 source-built
+manifest, 선택 ID digest, actual browser 실행 여부, PID/HTTP/RTSP/runtime-root cleanup
+attestation을 분리합니다. Raw response body, URL credential, password/token/secret는 기록하지
+않습니다. Diagnostic 13/13, runtime 35/35, event 22/22, evaluator 17/17, native 38/38,
+completion 29/29, adapter 18/18, semantic audit/approval 986/986, feature evidence 986/986와
+inventory/evidence/script/docs gate가 PASS했습니다. Native projection과 semantic candidate
+`7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`는 불변이므로
+generator와 producer는 모두 0회입니다. Actual EVT-003 diagnostic, `./test_ui.sh`, Policy v4,
+30분, 120분, `./test_release.sh`는 미실행이며 기존 actual FAIL은 그대로 보존합니다.
+
+EVT-003 row-local identity closure 보정(2026-07-27)은
+`v390_ui_case_runtime.mjs`에서 acceptance-owned source를 고유 file identity로 materialize하고
+registry와 `/ops/api/source-health` readback에서 해당 `sourceId`가 정확히 1개이며
+`offline/no-subscriber`인지 확인합니다. `v390_ui_exact_oracle_runtime.mjs`는 이 API 행의
+`sourceId/status/reason`과 동일한 세 값을 한 root-cause DOM 항목에서 확인합니다. 관련 contract는
+unrelated source 변화는 허용하되 fixture 행 누락·중복·status/reason drift, DOM identity/control
+누락, API/DOM identity 불일치, whole-array fallback, structured evidence 필드 누락을 각각
+fail-closed로 거부합니다. Product C++/API schema/UI renderer는 변경하지 않았습니다.
+Diagnostic 13/13, runtime 36/36, event 22/22, evaluator 17/17, native 38/38,
+completion 29/29, adapter 18/18, semantic audit/approval 986/986, feature evidence 986/986와
+inventory/evidence/script/docs gate가 PASS했습니다. Source-built manifest가 stored fixture와
+동일하고 semantic candidate
+`7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`가 불변이므로
+generator와 producer는 모두 0회입니다. Actual 테스트는 미실행이며 기존 FAIL evidence를
+PASS로 변경하지 않았습니다.
+
+EVT-003 dashboard fixture identity canonical projection 보정(2026-07-27)은
+실제 `dashboardRootCauseItems`/`renderDashboardRootCause`가 detail에 출력하는
+`#sourceId status:reason` 형식과 `opsText()`의 한국어/영어 label 변환을 직접 대조했습니다.
+`v390_ui_exact_oracle_runtime.mjs`는 공백·punctuation과 명시된 한국어/영어 label만 정규화한 뒤 한 DOM node의 동일
+detail segment에서 정확한 sourceId/status/reason tuple이 한 번만 일치할 때 PASS합니다.
+필드 분산, 중복 node, unrelated/부분 sourceId, status/reason 누락·drift는 별도 reason code로
+fail-closed 처리하며 evidence에는 필드별 일치 count와 candidate/node digest만 남깁니다.
+Product renderer/API/fixture materialization은 변경하지 않았습니다. Diagnostic 13/13,
+runtime 36/36, event 22/22, evaluator 17/17, native 38/38, completion 29/29, adapter 18/18,
+semantic audit/approval 986/986, feature evidence 986/986, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0이 PASS했습니다. Source-built manifest와 stored
+fixture, semantic candidate `7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`가
+불변이므로 generator/producer는 각 0회입니다. Actual EVT-003와 전체 UI/장시간/release
+테스트는 미실행이고 기존 actual FAIL은 그대로 보존합니다.
+
+EVT-003 dashboard source identity 경계 보정(2026-07-28)은 제품의
+`degradedSources.slice(0, 3)` 제한이 초기 구현과 actual evidence에서 유지된 모바일 dashboard
+UX임을 독립 감사해, 전체 degraded source를 DOM에 펼치는 변경을 채택하지 않았습니다.
+`dashboardDegradedSourceIdentitySegments`는 상위 3개 각각의 `#sourceId status:reason`
+segment를 유지하고, `materializeEventExactSeed`는 이미 published된 top-3 source-health 중
+정확히 한 enabled source/view를 가진 행만 읽기 전용으로 선택해 API와 DOM identity를 결속합니다.
+일반 source ordering과 API schema는 불변이며 setup/cleanup은 source/view bytes와 선택 행의
+status/reason 불변을 검증합니다. Native projection은 424/423+1/unsupported 0과 ordered ID가
+동일해 generator는 0회입니다. Semantic candidate
+`7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`의
+feature/pass/status/sourceFlowDigest는 모두 불변이고, UI-014 trust binding만 Sol/high 독립
+검토로 승인했습니다. Review package/decision SHA는
+`6dae74fa1dfe70da4618378bd04718466e2ccdb4b019e9660788fa5c62d2dc87`/
+`f29bd482ef051bf3d36ae27e2bb0ec07d9f69d477188c620f9a82edf3904bdc6`이며 공식 producer는
+정확히 1회 실행해 985 carry-forward+UI-014 independent review로 audit/approval 986/986을
+원자 갱신했습니다. Actual EVT-003, `./test_ui.sh`, Policy v4, 30분, 120분,
+`./test_release.sh`는 이 checkpoint에서 미실행이며 기존 actual FAIL은 PASS로 변경하지 않습니다.
+
+EVT-004 incident timeline marker 경계 보정(2026-07-28)은 acceptance-owned marker가
+`OpsDiagnosticLogTailJson`의 redacted response에는 존재하지만, redaction 뒤 남은 marker 행에
+timeline이 유지하는 incident classifier가 없어 view-model filter에서 제거되던 단일 유실
+경계를 수정합니다. `materializeEventExactSeed`는 marker와 redaction canary를 포함한 하나의
+test-owned `auth incident` 행만 생성하고, API readback은 해당 marker가 정확히 한 redacted
+행에만 존재함을 확인합니다. Runtime은 fixture materialization, response, timeline projection,
+단일 DOM node를 분리한 structured evidence와 count/digest/failure code만 보존하며 raw log,
+URL, credential, token, secret은 기록하지 않습니다. Product C++/API schema/UI renderer는
+변경하지 않았습니다. Diagnostic 13/13, runtime 37/37, event 23/23, evaluator 17/17,
+native 38/38, completion 29/29, adapter 18/18, semantic audit/approval 986/986,
+approval negative 11/11, migration contract, feature evidence 986/986·negative 15/15,
+inventory 17/17, release index 8/8, script inventory 11/11, docs links failure 0이
+PASS했습니다. Native 424/423+1/unsupported 0과 ordered ID, semantic candidate
+`7f8b50bc7f576b1cb4a8ee9af965bfa61782f78c2e82ec6b82f45ce41bc6718c`가
+불변이므로 generator/producer는 각 0회입니다. Actual EVT-004 diagnostic,
+`./test_ui.sh`, Policy v4, 30분, 120분, `./test_release.sh`는 미실행이고 기존
+EVT-004 actual FAIL은 그대로 보존합니다.
+
+EVT-004 전체 navigation/correlation lifecycle 보정(2026-07-29)은 최초
+`/ops/events`만 보던 navigation window와 page-wide `extraHTTPHeaders`, catalog helper의
+`/ops/dashboard` 이동 뒤 `/ops/events` 복귀가 결합해 두 번째 document navigation과
+correlation 누출을 놓치던 false PASS 경계를 제거합니다. Listener는 첫 `page.goto` 전에
+설치되고 context/browser close가 모두 끝날 때까지 전체 main-frame document ledger를
+수집하며, runner는 `await browser.close()`가 반환한 최종 ledger만 PASS 판정에 사용합니다.
+정상 ordered sequence는 correlation 없는 same-origin document
+`GET /ops/events` → `GET /ops/dashboard`이고, dashboard 이동은 기존 incident timeline
+제품 DOM assertion에만 필요하며 `/ops/events` 복귀는 없습니다. Authoritative
+`GET /ops/api/diagnostics/log-tail?limit=50` correlation은 해당 fetch의 명시적 action ID와
+request-scoped header에만 결속되고 다른 document/API request에는 주입되지 않습니다.
+Redirect/reload/reissue/retry, 중복 `/ops/events`, unowned/outside-window navigation과
+correlation 누출은 fail-closed입니다. Marker fixture→response→timeline→DOM 경계와 제품
+C++/API schema/UI renderer는 변경하지 않았습니다. Diagnostic 13/13, runtime 38/38,
+event 23/23, evaluator 17/17, native 39/39, completion 32/32, adapter 18/18,
+semantic audit 51/51·approval 986/986, feature evidence 986/986·negative 15/15,
+inventory 17/17, release index 8/8, script inventory 11/11, docs links failure 0 및
+syntax/diff gate가 PASS했습니다. 공식 native generator는 1회, migration-aware producer는
+1회 실행했습니다. Candidate
+`7121cf24896a825d3bd5b0f325df40d06aa98c486c1157ac8242aca27d24fcdf`는
+feature/pass/status 변경 0, UI-018 sourceFlow 한 행 변경이며 985 carry-forward+UI-018
+독립 승인으로 audit/approval 986/986을 원자 갱신했습니다. Package/decision SHA는
+`00ff209177310f256206c72ec98a07d57759e2c14f4120e479a9bedaf302a344`/
+`45cb08631d4b6cf3788be29f44e1982bdda25d4deeb2e4b54af47721e67275e8`입니다.
+이 정적 checkpoint 시점에는 actual EVT-004를 아직 실행하지 않았고, clean commit 이후
+단건 diagnostic을 정확히 1회 실행하도록 분리합니다.
+
+EVT-004 exact response identity/lifecycle 보정(2026-07-29)은 이전 actual
+`RESPONSE_BINDING_MISMATCH`의 request candidate/matched `1/1`, response `1/0`을
+method/path·시간 근접성이 아니라 Playwright `response.request()` 객체로 닫습니다.
+각 request는 `EVT-004:request-N` identity/sequence를 가지며 initiating request의
+correlation/header digest와 response method/path/status를 같은 객체에 결속합니다.
+서버에는 correlation response echo 계약이 없으므로 echo header를 요구하거나 생성하지
+않습니다. 실패 finally는 restore→context/browser close→bounded ledger capture→evidence
+finalize 순서로 navigation/correlation/cleanup을 보존하고 marker 미도달은
+`markerEvidence=null`, `not-reached`로 기록합니다. Diagnostic 14/14, runtime 38/38,
+event 23/23, evaluator 17/17, native 39/39, completion 33/33, adapter 20/20,
+semantic audit 51/51·approval 986/986, approval negative 11/11, migration,
+feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0과 MJS 12/12·JSON 3/3·diff,
+acceptance 21/21, final integrity 12/12가 PASS했습니다. Actual-mode fixture는
+untracked `build-gst-onnx/media_server` 대신 tracked native manifest fingerprint를
+사용하고, actual mode의 binary attestation은 유지합니다. Runtime fixture는 임의 문자열
+ID가 아니라 opaque `initiatingRequestHandle`을 공통 case-owned registry에 등록합니다.
+Source-built/stored native manifest와 semantic candidate
+`1bbc5bcc68ba954d50b445f7db56292e718e58105c13be97203de4b345c16bd1`는 exact
+match입니다. Feature/pass/status 변경 0, sourceFlow 변경은 `SAFE-212`/`OPS-179`
+두 행이며 984 carry-forward+2 independent review로 producer를 정확히 1회 실행했습니다.
+Migration/package/decision SHA는
+`77c8f99abcb09f75519afb44f8b7f49c0a43c3f1740a6e6f103dd888c0967387`/
+`4b84f539eee8a09b8257b9f318b610a9d68bdf20c743fe328993e5e0ea5d8d11`/
+`a3d59462342c079856508d216b3ca5f20b4ea3838c7e081ca9e2ae942bad8f6b`이며
+native generator는 0회입니다.
+제품 C++·API schema·UI·marker fixture/response/timeline/DOM은 변경하지 않았습니다.
+이 checkpoint에서 actual은 미실행이며 clean commit/push 뒤 EVT-004 단건을 정확히
+1회 실행합니다.
+
+EVT-004 marker finalize/child evidence 보정(2026-07-29)은 exact runner가
+`catalogBindings.logMarker`/`redactionCanary`를 runtime oracle에 전달하지 않아 correlation
+response와 `/ops/dashboard` DOM assertion이 PASS한 뒤에도 marker flow 자체가 생성되지
+않던 0-call 경계를 닫습니다. EVT-004 marker evaluator는 correlation response binding과
+dashboard marker selector의 visible readiness 뒤 정확히 1회만 실행하며, PASS/FAIL/예외를
+모두 invocation count와 prerequisite attestation을 포함한 구조화 `markerEvidence`로
+기록합니다. Marker 평가가 끝난 뒤에만 raw-capture validation을 수행하고,
+restore→browser/context close→bounded ledger finalize 순서를 유지합니다. Parent는 child
+exit 1이어도 current commit/manifest/run/case/selection source binding이 exact한 summary를
+유효한 child FAIL로 집계해 `actualBrowserExecution`, 최초 failure phase/code,
+navigation/correlation/marker/cleanup evidence를 보존합니다. Summary가 실제 누락됐거나
+parse/source identity 검증에 실패한 경우에만 `diagnostic-child-missing`을 사용하며 child
+FAIL을 PASS로 승격하지 않습니다. Diagnostic 15/15, runtime 39/39, event 23/23,
+evaluator 17/17, native 39/39, completion 33/33, adapter 20/20, acceptance 21/21,
+final integrity 12/12, semantic audit 51/51·approval 986/986, approval negative 11/11,
+migration, feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0과 MJS/diff gate가 PASS했습니다. Source-built와
+stored semantic candidate
+`1bbc5bcc68ba954d50b445f7db56292e718e58105c13be97203de4b345c16bd1`는 exact
+match이고 feature/pass/status/sourceFlowDigest 변경은 모두 0이므로 generator/producer는
+각 0회입니다. 제품 C++·API schema·UI와 marker fixture/response/timeline/DOM 계약은
+변경하지 않았습니다. 이 정적 checkpoint에서 actual은 미실행이며 clean commit/push 뒤
+EVT-004 단건을 정확히 1회 실행합니다.
+
+UI-001 document navigation/correlation mode 보정(2026-07-30)은 generic initial
+`navigate`가 EVT-004 한 건을 제외하고 모두 correlated application `requestBinding`으로
+생성되던 경계를 닫습니다. UI-001은 canonical `GET /`의 302 `/login` redirect와 최종
+`GET /login` 200을 exact `navigationBinding` ledger로 검증하며 document request에는
+correlation header를 주입하지 않습니다. 허용되지 않은 target/status, 추가
+reload/retry/reissue, document correlation은 fail-closed입니다. 전체 canonical 424건의
+모든 document action을 감사한 결과 기존 initial navigate 423건, setup navigate 9건,
+negative navigate 2건이 request mode였고, 총 435개 document action을 공통
+navigation abstraction으로 재분류했습니다. Primary completion mode는
+request/navigation/local `391/5/28`이며 중복·누락은 0입니다. Primary navigation case는
+`UI-001`, `UI-018`, `EVT-004`, `SAFE-016`, `SAFE-017`이고 API fetch의
+navigation 오분류는 0입니다. EVT-004의 `/ops/events`→`/ops/dashboard` ledger,
+log-tail request identity/correlation, marker lifecycle은 그대로 유지합니다.
+Diagnostic 15/15, runtime 39/39, event 23/23, evaluator 17/17, native 40/40,
+completion 34/34, adapter 20/20, acceptance 21/21, final integrity 12/12,
+semantic audit 51/51·approval 986/986, approval negative 11/11, migration,
+feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0과 changed MJS 8/JSON 4 syntax 및
+diff gate가 PASS했습니다. Source-built/stored binding drift를 확인한 뒤 공식 native
+generator를 정확히 1회 실행했고, candidate
+`678facc450219d02db3ceb1990f9eef76ddcdf68977ed2911f613e8e2b2b56d9`의
+feature/pass/status 변경은 0입니다. Verifier source SHA에 따른 UI-018 sourceFlow 한
+행만 독립 검토해 985 carry-forward+1 independent로 producer를 정확히 1회 실행했으며
+migration/review/decision SHA는
+`0aaf869afd609382f77df2c90ce22736e2d2ec40a0081cef3a234490eaa753f7`/
+`13ab85228d1743515c8304830d195a7438b57a407f85f79f3ba3c164ac697ec3`/
+`74aea2c944850a650e9fea60241e0284afead41da34b9ff1eca373485f55cb36`입니다.
+제품 route·role·viewport·theme·control projection과 C++·API schema·UI는 변경하지
+않았습니다. 이 정적 checkpoint에서 actual UI-001은 미실행이며 clean commit/push 뒤
+단건 diagnostic을 정확히 1회 실행합니다.
+
+UI-001 exact diagnostic selection checkpoint(2026-07-30)은 기본 무인자
+`RULE-097`~canonical end 144건 selection을 유지하면서 명시적
+`--case-id UI-001`에만 canonical positive `native-executable` 단건 override를
+허용합니다. Parent/child는 `explicit-positive-case`, start/end `UI-001`,
+selectedIds `[UI-001]`, target 1을 source binding과 summary에 함께 결속하며
+EVT-004 override도 동일하게 유지합니다. Unknown, negative `UI-018`, unsupported,
+duplicate `--case-id`, selection metadata drift와 다른 case 동반 실행은 browser
+lifecycle 전 fail-closed입니다. Diagnostic 18/18, runtime 39/39, native 40/40,
+completion 34/34, adapter 20/20, acceptance 21/21, 올바른 final-integrity
+contract 12/12, semantic audit 51/51·approval 986/986, negative 11/11, migration,
+feature evidence 986/986·negative 15/15, inventory 17/17, release index 8/8,
+script inventory 11/11, docs links failure 0과 changed MJS/diff gate가 PASS했습니다.
+Source-built/stored native manifest와 semantic candidate
+`678facc450219d02db3ceb1990f9eef76ddcdf68977ed2911f613e8e2b2b56d9`는 exact
+match이고 feature/pass/status/sourceFlowDigest 변경은 0이므로 generator/producer는
+각 0회입니다. 제품 C++·API schema·UI와 canonical 424 navigation/correlation 계약은
+변경하지 않았습니다. 이 정적 checkpoint에서 actual UI-001은 미실행이며 clean
+commit/push 뒤 explicit 단건을 정확히 1회 실행합니다.
+
+UI-002 및 동형 form-navigation response binding 보정(2026-07-30)은 document
+form submit을 application correlation fetch로 취급해 initiating submit과 response를
+유일하게 결속하지 못하던 경계를 고칩니다. `UI-002/003/004/005/007`,
+`AUTH-004/005/006/007/034/035`는 correlation 없는 same-origin document
+request/response object, method/path/status, redirect chain을 exact 결속하고,
+`UI-008`, `AUTH-014/015/033/036`의 application fetch는 header correlation과
+unique response를 계속 요구합니다. 중복 submit, 다른 request object, reload/retry/reissue,
+path/status/redirect drift는 fail-closed입니다. 제품 C++/API/UI와 native generator는
+변경/실행하지 않았습니다. Fresh candidate
+`16da57b8a1c48ff0cefec398119a4b7b402af8997c54f26435bf8a550a3a5aba`에서
+feature/pass/status 변경은 0이고 UI-018 sourceFlow 한 행만 독립 검토 승인되어,
+migration-aware producer를 정확히 1회 실행해 985 carry-forward+UI-018 independent
+approval 986/986와 audit/approval/implementation/native fixture 원자 갱신을 구성했습니다.
+기존 source `5018860c8189642fd8090f5a741b2e207a604716`의 actual UI-002 FAIL
+(`POST /setup` response unique binding 0)는 historical FAIL evidence로 보존하며,
+이번 checkpoint에서는 actual UI/diagnostic/30분/120분/release를 재실행하지 않습니다.
+
+후속 actual `b7510aeb7cd8ab489c43d1eb4387d19241211bbd`의 `./test_ui.sh` 1회는
+UI-001 PASS 뒤 UI-002의 `POST /setup` 302와 `/login` redirect를 exact document
+form binding으로 캡처했지만, independent completion이 이를 header-correlated API로
+재해석해 `request-correlation-missing`으로 중단했습니다. completion oracle은
+document form의 request/response object identity, request ID/sequence, same-origin,
+method/path/status, no-correlation, one-attempt/no-reissue를 network ledger와 다시
+대조하는 전용 경로로 보정했습니다. 다른 application fetch correlation 경로는
+변경하지 않았고, actual 재실행 전 정적 completion/adapter/native/semantic gate만
+통과했습니다.
+
+UI-008 application-fetch correlation evidence 보정(2026-07-30)은 Playwright
+`request` 이벤트가 route header 주입보다 먼저 관찰될 때 request-start와 response가
+동일한 실제 fetch를 correlation 없이 기록하던 lifecycle을 고칩니다. route가 exact
+intercepted request 객체에 적용한 correlation ID와 header digest를 request-start
+ledger와 response-bound initiating request에 함께 반영하며, document navigation은
+계속 correlation을 제거합니다. global extra header, 재요청, 제품 C++/API/UI 변경은
+추가하지 않았습니다. adapter/native/completion 및 semantic audit/approval 986/986을
+정적으로 재검증했고, 기존 `866378d2` actual UI-008 FAIL은 historical evidence로
+보존합니다.
+
+UI-008 application form completion 분기 보정(2026-07-30)은 generic
+`media-server.v390-ui-form-response-identity.v1`를 document-only identity로
+잘못 해석해 independent readback이 `document-form-binding-invalid`로 멈추던 오류를
+고칩니다. document schema인 경우에만 uncorrelated navigation binding을 검증하고,
+application form은 exact request-header correlation/response object 경로를 사용합니다.
+schema 위장 document binding은 계속 fail-closed이며 제품 C++/API/UI와 generator/producer는
+변경/실행하지 않았습니다.
+
+EVT-004 request-scoped correlation injection 보정(2026-07-30)은 navigation과 schema
+observation용 correlation이 route interceptor를 통해 `/ops/dashboard`의 background fetch에
+전파되어 authoritative log-tail 한 건 외 107건을 누출시키던 경계를 닫습니다. 추적용
+correlation은 `{ inject: false }`로 보존하고, `GET /ops/api/diagnostics/log-tail?limit=50`
+만 자체 request header로 correlation을 소유합니다. application request의 exact
+header/response identity는 계속 검증하며, 전역 header·재시도·재발행·제품 C++/API/UI 변경과
+generator/producer 실행은 없습니다. native 40/40, completion 36/36, adapter 22/22,
+semantic audit/approval 986/986 정적 PASS이며, 기존 `7df74cbd` actual EVT-004 FAIL은
+historical evidence로 보존하고 새 clean commit 뒤 전체 UI를 정확히 1회 실행합니다.
+
+EVT-004 marker recency stabilization(2026-07-31)은 authoritative log-tail에는 marker가
+있지만 dashboard가 최신 세 행만 표시해 marker가 timeline 밖으로 밀리던 test-owned fixture
+순서를 보정합니다. marker는 EVT-004 dashboard navigation 직전에 정확히 한 줄을 log tail의
+마지막으로 이동하며, 중복·누락·다른 case 호출·경로 이탈은 fail-closed입니다. 제품
+C++/API/UI는 변경하지 않았습니다. UI-018만 독립 승인한 뒤 migration-aware producer를
+정확히 한 번 실행해 985 carry-forward+1 independent, audit/approval 986/986을 갱신합니다.
+기존 `fec6a251` actual `./test_ui.sh`의 `291 attempted / 290 PASS / 1 FAIL / 133 not-run`
+EVT-004 FAIL은 historical evidence로 보존하며, 이번 checkpoint에서는 actual UI 재실행,
+diagnostic, Policy v4, 30분, 120분, release를 실행하지 않습니다.
+
+EVT-004 full-run marker lifecycle 보정(2026-07-31)은 `5b2d891` actual full UI가
+`291 attempted / 290 PASS / 1 FAIL / 133 not-run`에서 다시 marker assertion으로 멈춘
+원인을 닫습니다. 기존 relocation hook은 API source-route 분기에만 연결되어 full runner의
+`/ops/dashboard` source route에서는 호출되지 않았습니다. 공통 dashboard navigation 직전에
+hook을 정확히 한 번 호출하고 acceptance-owned log file identity, marker count/tail digest,
+dashboard 소유 `GET /ops/api/diagnostics/log-tail?limit=80` response의 initiating request
+identity를 각각 구조화해 file/response/timeline/DOM 실패를 fail-closed로 분리합니다.
+Focused EVT-004는 이 경로에서 PASS했지만, canonical `./test_ui.sh` 재실행은 이 checkpoint
+이후 별도 실행이며 제품 C++/API/UI/fixture와 generator/producer는 변경·실행하지 않았습니다.
+
+EVT-004 canonical failure lifecycle/order 보정(2026-07-31)은 `16618615` actual full UI의
+`291 attempted / 290 PASS / 1 FAIL / 133 not-run` EVT-004 FAIL을 historical evidence로
+보존합니다. Canonical trace는 marker hook/file/`limit=80`/`limit=50`은 통과했지만 timeline과
+visible DOM 후보가 각각 `8/0`인 `TIMELINE_MARKER_NOT_PROJECTED`였음을 밝혔습니다. Focused와
+canonical은 공통 failure serializer로 typed phase/code와 not-reached 상태를 보존하며, fixture는
+test-owned noise 96행 뒤 marker 한 행을 유지해 API oldest-to-newest index `79`와 renderer reverse
+window index `0`을 회귀 계약으로 고정합니다. 이 checkpoint에서는 focused actual과 canonical UI,
+Policy v4, 30분, 120분, release를 실행하지 않습니다.
+
+EVT-004 scoped EVT-001 session-residue isolation(2026-07-31)은 `2ffdff63356246bd78b627e46fdb83ae95d08134`
+actual full UI의 `291 attempted / 290 PASS / 1 FAIL / 133 not-run` marker assertion FAIL을 historical
+evidence로 보존합니다. EVT-001 viewer VA-overlay session은 종료 뒤 idle grace 중 file/VOD stream
+root-cause를 남길 수 있으며, 이 acceptance-owned residue가 timeline window에서 EVT-004 marker를
+밀어냈습니다. Runtime은 session 전 state identity와 owner를 기록하고 EVT-004에서 해당 owner만 bounded
+polling으로 baseline까지 drain합니다. baseline non-owned root 2/source 3/rule 3 후보와 제품 registry,
+timeline limit/priority/filter는 유지합니다. 후보별 provenance와 digest, removed/restored/post-cleanup
+identity는 fail-closed로 검증하며 broad clear와 제품 C++/API/UI 변경은 없습니다. Focused EVT-004는 PASS했지만
+canonical UI 재실행, Policy v4, 30분, 120분, release는 이 checkpoint에서 미실행입니다.
+
+EVT-007 exact event-record fixture materialization(2026-07-31)은 `evidence=snapshot`
+filter가 direct JSONL append seed를 제외하던 actual failure를 보정합니다. Test-owned helper는
+제품 `DispatchEventRecordsForApplication` dispatch, queue drain, `QueryEventRecordsForApplication`
+readback 경계를 사용하며 EVT-007/020/023/026/048/049에서 eventId/source/route/status/cardinality를
+fail-closed로 결속합니다. top-level `streamId`와 nested `metadata.sourceId`는 별도 strict JSON
+field로 비교해 source identity를 혼용하지 않습니다. 성공과 예외 모두 storage bytes를 복원하고 fixture snapshot/clip을
+삭제합니다. 제품 C++/API/UI는 변경하지 않았습니다. Independent UI-018 approval 뒤 producer 1회로
+candidate `dc6e092af5c02c0a04cb488afec84ffbd6c9e0b759146f2eb69bd453b2680a7e`,
+985 carry-forward + 1 independent, audit/approval 986/986을 갱신합니다. 기존 `7a221e44`
+actual `292 attempted / 291 PASS / 1 FAIL / 132 not-run` EVT-007 FAIL은 historical evidence로
+보존하며, 이번 checkpoint에서는 actual UI/diagnostic/Policy v4/30분/120분/release를 재실행하지 않습니다.
+
+EVT-019 review write-receipt correction(2026-07-31)은 `3e2f98a9` actual
+`./test_ui.sh`의 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`을 historical FAIL로
+보존합니다. Review seed는 제품 허용 enum인 `reviewing/confirmed`,
+`unclassified/needs-tuning`, `new/in-progress`만 사용하며, PUT response와 authoritative
+GET collection storage readback, EventRecord 전후 SHA-256을 독립 관측합니다. GET
+`/ops/api/events/reviews/{eventId}`는 `records[].event.eventId`와
+`records[].review.eventId`를 joined identity로 결속하고, restore 뒤에는 `200` empty
+collection envelope와 두 storage byte restore를 요구합니다. `missingPaths`만 기록해
+raw 값을 남기지 않으며 malformed/missing/residual/wrong/duplicate row는 fail-closed입니다.
+UI-018 독립 승인과 producer exit 0의 atomic fixture 갱신으로 candidate
+`40cbe8d4d271c804a493b9bc0427ee22beb26241950832907a2d27116506183c`, 985 carry-forward +
+1 independent, audit/approval 986/986을 확인했습니다. generator와 producer, actual
+UI/diagnostic/Policy v4/30분/120분/release는 이 checkpoint에서 재실행하지 않습니다.
+
+EVT-019 note-digest receipt checkpoint(2026-07-31)는 동일 historical `3e2f98a9`
+actual UI의 `296 attempted / 295 PASS / 1 FAIL / 128 not-run` note receipt incomplete FAIL을
+그대로 보존합니다. PUT `review.note`와 authoritative collection
+`records[].review.note`는 raw 값을 evidence에 남기지 않고 문자열 존재 여부와 SHA-256으로
+독립 비교하며, `updatedAtMs`/actor/role 및 EventRecord byte identity도 응답과 storage 사이에서
+결속합니다. malformed note, digest/metadata drift, missing storage row는 fail-closed입니다.
+독립 UI-018 승인 뒤 migration-aware producer를 정확히 한 번 실행해 candidate
+`413415d5561595ca65ed626ec587deba5c690d3f2ed9632947f06897381bcf90`,
+985 carry-forward + 1 independent, audit/approval/implementation/native 986/986을 원자 갱신했습니다.
+generator와 actual UI/diagnostic/Policy v4/30분/120분/release는 이 checkpoint에서 실행하지 않습니다.
+
+EVT-019 note diagnostic serializer checkpoint(2026-07-31)는 production
+`validateEventReviewSeedWriteReceipt -> caseExecutionFailure -> createFailedCaseResult ->
+createDiagnosticChildSummary -> aggregateDiagnosticChildOutcome` 경로에서 safe receipt
+evidence가 보존되는지를 고정합니다. Evidence는 note의 `present`/type/SHA-256과 equality
+matrix만 포함하며 raw note는 보존하지 않습니다. 최초 두 independent review는 production
+serializer 경로를 직접 실행하지 않아 거부됐고, serializer field 제거가 실제 RED가 되는
+regression을 보강한 뒤 UI-018 독립 승인을 받았습니다. Candidate
+`4f6c7a05828e0ddf2edfe6806da6cfa4c08f820a0aa29a4481c6e199fd3141c4`,
+985 carry-forward + UI-018 independent review와 producer 1회의 audit/approval/
+implementation/native four-fixture atomic replacement를 확인합니다. 기존 actual EVT-019
+FAIL과 `296 attempted / 295 PASS / 1 FAIL / 128 not-run`은 historical evidence로 보존하며,
+이번 checkpoint에서는 actual EVT-019/UI, Policy v4, 30분, 120분, release를 실행하지 않습니다.
+
+EVT-019 structured product note loader/current graph checkpoint(2026-07-31)는 persisted
+review JSON에서 비구조적 첫 `"note"` 검색이 nested `resolution.note`를 top-level review note로
+오인하던 제품 결함을 닫습니다. Test seed가 두 필드에 같은 값을 쓰는 mirror 우회는 독립 검토에서
+거부했고, production loader가 strict JSON object 구조로 top-level `note`, nested
+`resolution.note`, legacy top-level `resolutionNote`를 분리합니다. Malformed/duplicate/type-invalid
+row와 non-string `eventId`는 fail-closed이며 locked load는 partial state를 비우고 raw record 대신
+행 번호만 기록합니다. Production translation unit harness는 parsed note 폐기, parse failure 무시,
+nested note 승격, invalid row 수용 mutation을 각각 RED로 검증하고 review 500-byte/resolution
+240-byte 경계와 escape/Unicode roundtrip을 보존합니다.
+
+Current graph는 production 215/C++ 103/module edge 16/violation 0/SCC 0, 최대 mixed-owner
+10,176줄, SHA `9dcb0169d84c330371b60dde08781c29cf48b501131beab0493bbfd8a78299ea`로
+현재 source에만 재결속했습니다. Slice 32 completion graph SHA
+`215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a`와 최대
+10,156줄, historical metrics는 변경하지 않았습니다. Current source bundle은
+`933692c5494823bc958793be53fc87735b025a5d3eb33c210a4207b88c842453`,
+2,261,525 bytes/47,076줄, physical split 1,198/`d1fe5017…`이고 completion bundle
+`d2dc01ef…`/2,252,961 bytes와 split 1,190은 immutable입니다. Incident workflow verifier는
+foundation/incidents/runtime/server-pages/page-scripts/CSS canonical owner를 각각 직접 읽으며
+owner 누락·교환·stale combined input을 거부합니다.
+
+Semantic candidate `7010fa49efc887f9cfb7983f9e4dc7e3b5a436e89770197d4df647f12b74af3f`는
+feature/pass/status 변경 0, 973 strict-equivalence carry-forward와
+`UI-014`, `UI-018`, `UI-035`, `UI-037`, `EVT-019`, `EVT-020`, `EVT-021`,
+`EVT-035`, `EVT-037`, `SAFE-211`, `SAFE-215`, `OPS-178`, `OPS-182` 독립 승인으로
+986/986입니다. Migration report/evidence SHA는 `3f7bfe45…`/`7c175839…`, 재정렬된
+package/decision SHA는 `f5a12633…`/`165a1105…`입니다. Migration-aware producer는 durable
+wrapper에서 정확히 1회 exit 0으로 audit/approval/implementation/native를 원자 교체했고 log SHA는
+`18f7bf68…`입니다. 이번 checkpoint에서는 actual EVT-019, `./test_ui.sh`, Policy v4, 30분,
+120분, release acceptance를 실행하지 않으며 기존 canonical
+`296 attempted / 295 PASS / 1 FAIL / 128 not-run`과 focused EVT-019 FAIL을 PASS로 바꾸지 않습니다.
+
+EVT-019 DOM descendant checkpoint(2026-07-31)는 historical focused actual의
+`[data-event-review-row][data-event-id=evt-019-review4-fixture]` 안
+`[data-testid=ops-vlm-event-review-card]` assertion failure를 정적 경계에서 보정합니다.
+제품 DOM에는 fixture-owned row와 card가 있었지만 runtime은 `descendantCount`만 evaluator에
+넘기고 실제 descendant selector 결속을 전달하지 않아 존재하는 card를 빈 descendant로
+오인했습니다. Runtime과 evaluator는 이제 fixture eventId와 일치하는 visible row 하나 안의
+visible canonical card 하나를 같은 selector로 확인합니다. identity 없는 row, duplicate/hidden
+row 또는 card, stale selector와 wrong route는 계속 fail-closed입니다. `EVT-019`, `EVT-020`,
+`EVT-021`, `EVT-028`, `EVT-030`, `EVT-031`, `EVT-036`, `EVT-037`, `EVT-047`, `EVT-061`,
+`EVT-068` sibling audit은 같은 fixture-owned `/ops/events` row boundary를 확인합니다.
+이번 checkpoint는 static gate만 실행하며 actual EVT-019/UI, Policy v4, 30분, 120분,
+release acceptance를 실행하지 않고 historical canonical `296 attempted / 295 PASS / 1 FAIL /
+128 not-run`과 focused EVT-019 DOM FAIL을 PASS로 바꾸지 않습니다.
+
+EVT-021 typed event-review readback checkpoint(2026-08-01)는
+`/ops/api/events/reviews` collection의 joined row를 generic unwrap으로 처리해
+`{ event: { eventId }, review: { eventId } }` identity를 찾지 못하던 fixture readback
+경계를 닫습니다. Typed extractor는 nested 두 eventId가 fixtureId와 일치하는 정확히 한 행만
+허용하고 missing/duplicate/mismatch/unrelated top-level identity를 fail-closed로 거부하며,
+generic `unwrapRecord()`과 제품 C++·API schema·UI는 변경하지 않습니다.
+
+Fresh semantic candidate `3eb21979d5b56c6960b1fe1e5a76d6c6b175451255256c3c09844dc4c5212de9`는
+986행, feature/pass/status 변경 0이고 UI-018 sourceFlow만
+`e41c2c2c726a22eb2759790fa8c189bee1bd58d89c2b5b34c8f9fd19cdcc0c63`에서
+`79120e4eb63da545cf16564d516aace31b795e4fc0b32b3c142a0dc8be2cbe17`로
+변경됐습니다. Immutable package/decision SHA는
+`6739539284853f2ec554849b88614a583cf615444a3a4eca3c2dfc48a9b21f83`/
+`927cf89631cad7e65b3611418b5f5e83d42ef9de93a23e95889a18d070c95be1`이고,
+별도 reviewer가 UI-018의 404 negative 의미와 verifier trust binding을 승인했습니다.
+Migration-aware producer는 정확히 1회 four-fixture atomic replacement를 완료했고 native
+generator는 0회입니다. Semantic 51/51·approval/feature evidence 986/986, focused
+native 47/47·event 26/26·evaluator 19/19·runtime 42/42·completion 36/36·adapter 23/23·
+diagnostic 19/19 및 inventory/evidence/script/docs/syntax/diff가 PASS했습니다. Actual EVT-021,
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 clean checkpoint 전 미실행입니다.
+
+EVT-021 cleanup lifecycle correction은 seed 뒤 상태인 `mutationBaselineRecord`와 case 시작 전
+authoritative 상태인 `cleanupOriginalRecord`를 분리합니다. Strict mutation readback은 joined
+fixture row 정확히 1건을 계속 요구하고, cleanup readback은 seed 전 original이 absent로 캡처된
+경우에만 restore 뒤 0건을 `null`로 허용합니다. Duplicate, nested event/review mismatch,
+partial identity 및 original byte 불일치는 모두 fail-closed입니다. Fresh semantic candidate
+`2f5e15549344387b25b3cbb8a65a8ec09c71e0d4983f39c364a3f1df9cd2d58e`는 feature/pass/status
+변경 0, UI-018 sourceFlow 한 행만 `79120e4eb63da545cf16564d516aace31b795e4fc0b32b3c142a0dc8be2cbe17`에서
+`1368394b430b29ae9fcc0503443b243a10be80828278592f67dca1314f00556d`로 이동했습니다.
+Package/decision SHA는 `527ba661f8ea31ccd23415650561f399714ed5b3fb776bc342a00dec3fd2b7b8`/
+`053f5d735cb95b3392794fa463006933a22b5ac2cc34c88480e9429dea411d2c`이며 별도 reviewer가
+승인했습니다. Migration-aware producer는 정확히 1회 성공했고 native generator는 0회입니다.
+Focused/static gate는 PASS했으며 final staged tree는 commit 전 branch-bearing clean checkout의
+checkout-local build와 동일 gate를 통과해야 합니다. 새 focused actual 전에는 이전
+`case-cleanup-failed` evidence를 PASS로 승격하지 않습니다.
+
+EVT-023 incident digest oracle correction은 제품의 authoritative
+`GET /client/api/views/{viewId}/events` envelope인 `events.incidentDigest`에 schema,
+itemCount, viewerSafe, digestItems를 executable structured lookup으로 결속합니다. 기존 oracle의
+root `incidentDigest.*` 경로는 stale이었고 제품 C++ producer와 UI consumer는 이미 같은 nested
+envelope를 사용하므로 변경하지 않습니다. Missing wrapper/schema, wrong schema, count drift,
+fixture digest drift와 root fallback은 fail-closed입니다. 남은 124건 감사에서 CLIENT-006/007/023은
+같은 `events.incidentDigest` envelope를 exact JSON path로 보강했고 SAFE-049는 `/ops` HTML
+redaction boundary라 억지로 통일하지 않았습니다. Candidate
+`2f5e15549344387b25b3cbb8a65a8ec09c71e0d4983f39c364a3f1df9cd2d58e`와 approvals 986행은
+불변이라 producer는 0회이며, native manifest drift만 공식 generator 1회로 재결속했습니다.
+Focused event27/client15/runtime42/native47/completion36/adapter23/evaluator19/diagnostic19와
+acceptance21/final-integrity12, semantic51/approval986/negative11/migration 및
+feature/inventory/index/script/docs/syntax/JSON/diff gate가 PASS했습니다. Actual EVT-023,
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 clean checkpoint 전 미실행입니다.
+
+EVT-023 fixture-safe digest identity checkpoint는 test-owned event fixture의 `scenarioName`을
+fixture ID에 결속해 product digest가 사용하는 안전한 identity 우선순위와 일치시킵니다.
+Recent event 한 건과 `events.incidentDigest.digestItems` 한 건의 identity/type/status를 각각
+fail-closed로 대조하며, 같은 typed boundary는 CLIENT-006/007/023에도 적용합니다. Candidate
+`2dc205f5aa1674e043b2d0f20f431d82e60a7ae62db90bffc8f33bdedb941e0e`는 feature/pass/status
+변경 0, UI-018 sourceFlow 한 행만 재결속한 985 carry-forward+1 independent approval입니다.
+Migration-aware producer는 정확히 1회 성공했고 native generator는 0회입니다. Focused/static
+gate는 PASS했으며 actual EVT-023, `./test_ui.sh`, Policy v4, 30분, 120분, release는 clean
+checkpoint와 focused actual 전까지 미실행입니다.
+
+EVT-023 Ops timeline row-local DOM checkpoint(2026-08-02)는 `/ops/dashboard`의
+`#dashIncidentTimeline [data-incident-unit="event-record"]`가 Client 전용 digest selector와
+다른 owner임을 고정합니다. Authoritative `records.records`의 eventId/eventType/status 정확히
+한 행과 같은 세 필드를 가진 visible timeline DOM 한 행을 구조화 candidate count/digest와
+함께 결속하며 missing, duplicate, split-node, 각 필드 mismatch를 fail-closed로 거부합니다.
+Canonical/native는 424/423+1/unsupported 0 및 ordered ID가 불변이고, 공식 generator는
+implementation projection/runtime-oracle binding 갱신을 위해 정확히 1회 실행했습니다.
+Candidate `2dc205f5...41e0e`의 feature/pass/status/sourceFlow는 모두 불변이므로 producer는
+0회입니다. Event28/client15/evaluator19/runtime43/native48/completion36/adapter23/diagnostic19,
+acceptance21/final-integrity12, semantic51/approval986/negative11/migration,
+feature986/negative15, inventory/index/script/docs/syntax/JSON/diff는 PASS입니다. Actual EVT-023,
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 clean checkpoint와 focused actual 전까지
+미실행입니다.
+
+EVT-023 EventRecord timeline visibility/count-preservation trust closure(2026-08-03)는 EventRecord가 실제
+millisecond timestamp로 정렬되는 반면 다른 source가 synthetic rank를 받아 8행 timeline 밖으로
+밀리던 문제를 보정합니다. `renderDashboardIncidentTimeline`은 root-cause 최대 3행과 EventRecord
+최대 4행을 유지하는 bounded source band에서 EventRecord를 결정적으로 표시하며 전체 8행 상한,
+API 순서, 기존 source 내부 상대 순위는 바꾸지 않습니다. Shell verifier는
+`AppendOpsDashboardPage`, no-new-schema verifier는 `dashboardIncidentTimelineItems`와
+`renderDashboardIncidentTimeline` owner 범위로 결속합니다. EVT-023은 authoritative Ops response,
+render input, sorted, bounded, DOM 각 단계의 EventRecord count와 fixture identity digest를 결속하고
+input 손실, sorted/bounded identity 교체, bounded 증가, DOM count drift, fixture match 0/2를 모두
+fail-closed로 거부합니다. EVT-026도 같은 lifecycle 계약을 재사용합니다. Candidate
+`2dc205f5aa1674e043b2d0f20f431d82e60a7ae62db90bffc8f33bdedb941e0e`의 feature/pass/status/
+sourceFlow는 불변이지만 UI-014 whole-file trust drift는 985 carry-forward+UI-014 independent
+trust re-review로 처리했습니다. Package/decision SHA는
+`884f03002c7df5adb82c97ce6893e55c4e4a46f9a2467345383a049d32b508a5`/
+`7274377e5220c3f3173ad5b3df6f00d4dfcb01133d5467cc8f6c242cab31dabf`이며 producer는 정확히 1회
+exit 0으로 네 fixture atomic replacement/readback을 완료했고 generator는 0회입니다. Static
+semantic51/approval986/negative11/migration, feature986/negative15, timeline/event28/evaluator19/runtime45/native48/
+completion36/adapter23/diagnostic19/acceptance21/final-integrity12와 inventory/index/script/docs/
+syntax/JSON/diff가 PASS했습니다. Actual EVT-023, `./test_ui.sh`, Policy v4, 30분, 120분,
+release는 clean checkpoint와 focused actual 전까지 미실행입니다.
+
+EVT-023 Ops authoritative response/source-build closure(2026-08-03)는 이전 focused actual의
+`authoritative response 0`이 제품 query 결과가 아니라 lifecycle instrumentation 미관찰값을 0으로
+기본 변환한 오분류였음을 고정합니다. Client events와 Ops status는 모두 canonical
+`EventStorageApplicationService::QueryEventRecordsForApplication` store를 읽고 Ops dashboard GET
+`/ops/api/events/status?limit=5&includeArchives=1`에는 fixture를 제외할 event/view/source/type/status/
+time/visibility predicate가 없습니다. Diagnostic actual은 browser bootstrap 전에 clean current source를
+`./server.sh build`로 직접 build하고 binary SHA를 parent/child source binding에 결속합니다. Runtime은
+Ops GET의 exact Playwright request/response identity·sequence·status와 response→input→sorted→bounded→DOM
+fixture digest를 함께 검증하며 instrumentation missing과 response binding mismatch를 authoritative zero와
+분리합니다. Rank band는 root-cause 3+EventRecord 4의 competing-source permutation에서도 8행 상한 안의
+EventRecord 보존에 필요해 유지합니다. Fixture family `EVT-007/020/023/026/048/049`의 product dispatch,
+readback, cleanup owner를 감사했고 dashboard lifecycle 대상 `EVT-023/026`과 `/ops/events` owner를
+혼합하지 않았습니다. Candidate `2dc205f5...41e0e`, feature/pass/status/sourceFlow, native ordered 424는
+불변이므로 producer/generator는 각 0회입니다. Focused/static gate는 PASS이며 clean-checkout과 actual은
+checkpoint commit 전 미실행입니다.
+
+EVT-023 Ops timeline response identity closure(2026-08-03)는 같은
+`GET /ops/api/events/status?limit=5&includeArchives=1` 세 호출을 initial page load,
+case-owned dashboard refresh/render, diagnostic authoritative readback으로 분리합니다. Runtime은 refresh action에
+opaque action ID와 render-cycle ID를 발급하고, 해당 correlation을 가진 initiating Playwright Request 정확히
+한 개와 `response.request()`가 반환한 동일 객체의 Response 정확히 한 개만 선택합니다. Diagnostic readback은
+별도 action/correlation으로 유지하지만 render evidence 후보로 사용하지 않으며 first/last/path/time-nearest
+선택은 허용하지 않습니다. Selected response의 status 200과 raw material을 제거한 EventRecord projection,
+동일 render cycle의 phase/DOM mutation 및 response→input→sorted→bounded→DOM fixture digest가 함께
+PASS해야 합니다. EVT-026도 같은 계약을 재사용하고 EVT-004의 기존 exact request helper를 확장해 사용합니다.
+Runtime45/completion36/adapter24/timeline6/event28/evaluator19/native48/diagnostic20,
+acceptance21/final-integrity12, semantic51/approval986/negative11/migration,
+feature986/negative15 및 inventory/index/script/docs/syntax/diff가 PASS했습니다. Candidate
+`2dc205f5...41e0e`와 native manifest는 불변이므로 generator/producer는 각 0회이며 clean-checkout과
+focused actual은 checkpoint commit 전 미실행입니다.
+
+EVT-023 explicit diagnostic correlation precedence closure(2026-08-03)는 native adapter의
+전역 route interceptor가 diagnostic readback의 case/action-owned inner correlation을 active outer
+correlation으로 덮어써 `response.request()` digest가 expected digest와 달라지던 문제를 보정합니다.
+Interceptor는 header가 없을 때만 outer correlation을 주입하고, explicit header는 현재 case/action
+registry에 exact 등록된 inner 값일 때만 byte-identical로 보존합니다. Unregistered/stale/wrong-action/
+wrong-case/outer-scope drift, duplicate·case-collision header는 request 전 fail-closed이며 action scope
+종료 시 inner registration을 제거합니다. Evidence는 raw 값 없이 state/action/sequence/digest만 보존합니다.
+EVT-004 exact identity, EVT-026 Ops lifecycle, AUTH/SRC endpoint-owned outer injection 회귀를 유지했습니다.
+Adapter25/runtime45/completion36/diagnostic20/native48/event28/evaluator19/timeline6,
+acceptance21/final-integrity12, semantic51/approval986/negative11/migration,
+feature986/negative15와 inventory17/index8/script11/docs/syntax/diff가 PASS했습니다. Candidate
+`2dc205f5...41e0e`와 native manifest는 불변이므로 reviewer/producer/generator는 각 0회이며
+clean-checkout과 focused actual은 checkpoint commit 전 미실행입니다.
+
+EVT-023 expected fixture digest 및 remaining diagnostic continuation closure(2026-08-03)는
+authoritative EventRecord identity의 expected digest를 browser 관찰값에서 역산하지 않고 canonical
+manifest와 test-owned materializer가 browser 시작 전에 생성하도록 결속합니다. Materializer는 template
+identity가 아니라 `eventId === context.fixtureId`인 정확히 한 EventRecord에서 materialized identity를
+확정하고 0건·중복·template drift를 fail-closed합니다. Prepare/digest/browser-open은 하나의 failure
+lifecycle 안에서 수행해 browser 생성 전 실패도 authoritative state를 복원하고
+`actualBrowserExecution=false` cleanup attestation을 남깁니다. `EVT-023/026`은
+response→render input→sorted→bounded→DOM 전 단계에서 같은 case-owned digest를 보존해야 하며 missing,
+wrong/cross-case digest, observed-value overwrite, fixture loss·replacement·duplicate는 fail-closed입니다.
+Diagnostic-only fixed selection은 canonical index 299의 `EVT-023`부터 `SAFE-140`까지 정확히 125건이며,
+정확히 한 `pass=false` structured assertion 또는 실제 Playwright timeout만 exact failure provenance와
+restore·browser/context close·raw/secret integrity cleanup이 모두 PASS한 경우 다음 case로 진행합니다.
+Generic Error, `pass=true`, 복수·invalid evidence, 위조 provenance, fake timeout, TypeError 계열과
+bootstrap/source/binary/cleanup integrity 실패는 나머지를 not-run으로 두고 batch를 중단합니다. Parent는
+child provenance를 신뢰하지 않고 실제 failed evidence class를 다시 계산하며 canonical `./test_ui.sh`의
+first-failure stop 동작은 변경하지 않습니다. Fresh semantic candidate는
+`1d0900d920333e8a6589b5a1b7cc3af2a31ae10edcb6287a6122142d9313a3b7`이고
+985 carry-forward + UI-018 independent review로 986/986을 구성했습니다. Review package/decision SHA는
+`8af8a301ac703fb62517ad718f93ba1dd0ef0d64638ec92aa27f0729829cc662`/
+`884c23cad0e8987154e1ed185414701d792d4bdfe02b9822608e6200bb892bcb`입니다. Migration-aware producer는
+worktree audit를 prior로 사용한 첫 prevalidation이 index approval ledger와 불일치해 fixture 교체 전 FAIL했고,
+index audit baseline으로 근본 보정한 두 번째 실행이 네 fixture를 atomic 교체했습니다. Native generator는 0회입니다.
+Direct static gate는 semantic51/approval986/negative11/migration, feature986/negative15,
+timeline6/event28/evaluator19/runtime45/native49/completion36/adapter26/diagnostic21,
+acceptance21/launcher18/final-integrity12 PASS입니다. Canonical actual은 기존
+`300 attempted / 299 PASS / 1 FAIL / 124 not-run`을 유지하며 125건 diagnostic batch,
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 미실행입니다.
+
+Remaining diagnostic batch assertion closure(2026-08-03)는 EVT-023의 DOM response baseline을
+assertion target별 exact entry로만 선택하고, missing·zero candidate·mixed candidate를 fail-closed합니다.
+EVT-025의 `webrtcHttp.publishSources`는 resolved value가 정확히 하나이고 그 값이 배열일 때만 PASS하며,
+배열 원소를 flatten한 뒤 검사하던 false failure를 제거했습니다. Browser request assertion 실패는 raw
+값 없이 schema/code/index/operator/path/value digest를 가진 structured evidence로 전달하고, malformed,
+복수, PASS evidence, provenance mismatch와 infrastructure/security/cleanup 실패는 batch를 중단합니다.
+Parent는 evidence의 case ID, request template digest, assertion identity digest를 current case의 exact runtime
+catalog와 교차 검증하고 cross-case·forged identity를 거부합니다. Manifest의 request/DOM/state snapshot
+count와 cleanup strategy도 같은 catalog의 실제 배열·cleanup definition과 exact equality로 preflight합니다.
+`EVT-023`부터 `SAFE-140`까지 125건의 native executable/runtime/cleanup/evidence binding preflight는
+누락·중복 없이 PASS했고 canonical `./test_ui.sh`의 first-failure 동작은 불변입니다. Evaluator20,
+runtime47, native49, completion36, adapter26, diagnostic22, acceptance21, launcher18,
+final-integrity12, semantic51/approval986, feature986/negative15 및 inventory/index/script/docs/syntax/diff가
+PASS했습니다. Candidate `1d0900d9...3a3b7`와 native manifest는 불변이라 generator/producer는 0회이며,
+actual batch와 `./test_ui.sh`, Policy v4, 30분, 120분, release는 미실행입니다.
+
+### REVIEW4-65 remaining diagnostic batch static closure (2026-08-03)
+
+직전 `EVT-023`~`SAFE-140` diagnostic 결과의 9개 failure class를 단건 재실행 없이 한 묶음으로
+보정했습니다. `EVT-023/026`은 materialized EventRecord digest와 Ops timeline row를 같은
+response/render cycle에 결속하고, `EVT-024`는 세 bounded render sample을 각각 소유합니다.
+`EVT-025/028/030/031/036`은 aggregate count와 fixture row identity를 분리해 exact row-local 또는
+row-set DOM evidence로 검증합니다. `EVT-038`은 dry-run POST response, delivery attempt, audit row와
+DOM projection을 동일 request identity에 결속하며 raw endpoint와 credential material은 보존하지 않습니다.
+
+Native generator는 정확히 1회 실행했고 canonical `424 = 423 positive + 1 negative`, unsupported 0과
+ordered ID 불변을 확인했습니다. 최종 semantic candidate는
+`33f19d93f4cda0e4a1afc807304f7fd44943765af92458bbdc9e835f428f5e67`이며,
+`984 carry-forward + UI-014/UI-046 independent review`로 현재 source 986/986을 구성했습니다.
+최종 review package/decision SHA-256은 `f6c19080219d88465bd47b3c49e7ec50260a919aaf6a37b05737cd556c07892d`/
+`5ba61dacefcbce485192917b182c06e0205612127926f2252abe9490de3a2ad0`입니다. 앞선 5-row transaction
+성공 뒤 inventory가 같은 anchor 호환성 계열의 RULE-092/096/100 잔여를 찾아 최종 transaction을 추가했습니다.
+Producer는 성공 2회이며 그 사이 prior index binding prevalidation 실패 1회는 fixture 교체 전에 종료됐습니다.
+Build, native50, event28/evaluator20/runtime47, completion36, adapter26,
+diagnostic22, Policy producer10, acceptance21, launcher18, final-integrity12와 semantic/approval 986/986이
+PASS했습니다. 이 기록은 정적 checkpoint이며 125건 actual batch, `./test_ui.sh`, Policy v4 qualification,
+30분, 120분, `./test_release.sh`는 아직 미실행입니다. Canonical actual은 기존
+`300 attempted / 299 PASS / 1 FAIL / 124 not-run`을 유지합니다.
+
+### REVIEW4-65 EVT-023 catalog runtime response source closure (2026-08-03)
+
+Fixed remaining sweep `v390-ui-diagnostic-20260803105822-95669`은 125건을 선택했지만
+`EVT-023`에서 `1 attempted / 0 PASS / 1 FAIL / 124 not-run`으로 중단됐습니다. 실패 원인은
+runtime producer가 정식 provenance `case-owned-refresh-render-response`를 생성했지만 completion
+catalog validator가 이를 허용하지 않아 발생한 `catalog-runtime-response-invalid:0:source`였습니다.
+공통 typed validator가 producer의 세 정식 source만 허용하고 route-bound attestation에 실제 source를
+보존하도록 보정했으며, unknown source는 계속 fail-closed입니다. 이 보정의 actual/browser 재검증은
+아직 미실행이고 canonical actual은 `299/424 PASS`를 유지합니다. Policy v4, 30분, 120분,
+`./test_release.sh`도 미실행입니다.
+
+### REVIEW4-65 EVT-026/EVT-038 lifecycle validator checkpoint (2026-08-03)
+
+Fixed remaining sweep `v390-ui-diagnostic-20260803122120-11242`는 125건을 선택해
+`10 attempted / 8 PASS / 2 FAIL / 115 not-run`으로 종료됐습니다. PASS ID는
+`EVT-023/024/025/028/030/031/036/037`입니다. `EVT-026`은
+`OWNED_REFRESH_STABILITY_MISMATCH`, `EVT-038`은
+`semantic-readback-observation-mismatch`에서 실패했습니다.
+
+`EVT-026`은 adapter의 중첩 `renderObservation`을 runtime validator가 존재하지 않는 최상위 phase
+필드에서 읽은 것이 원인이었습니다. 실제 adapter shape와 request/response cardinality, Playwright
+response identity, request/render-cycle identity, 시간 순서, phase/DOM mutation을 공통 owned-refresh
+evidence에 결속했습니다. Focused runtime contract는 RED `47 PASS / 1 FAIL` 뒤 `48/48 PASS`입니다.
+`EVT-038`은 POST response, delivery attempt, audit row, DOM projection과 cleanup이 정상이지만 completion
+validator가 generic mutation schema만 허용해 typed dry-run readback을 거부했습니다. Generic 계약은
+유지하고 fixture 및 response/attempt/audit/DOM binding과 SHA-256가 모두 완전한 typed schema만 허용했으며
+unknown/missing/drift는 fail-closed입니다. Focused completion contract는 RED `35 PASS / 1 FAIL` 뒤
+`36/36 PASS`입니다.
+
+보정 뒤 actual/browser는 미실행입니다. Official canonical actual은 `299/424 PASS`를 유지하고,
+이번 diagnostic의 canonical-equivalent PASS 8건을 합산한 diagnostic-equivalent 경계만 `307/424`입니다.
+Policy v4, 30분, 120분, `./test_release.sh`는 미실행이며 완료 evidence로 사용하지 않습니다.
+
+### REVIEW4-65 case-local diagnostic census lifecycle (2026-08-04)
+
+`run_v390_ui_native_diagnostic_sweep.mjs`, `run_v390_ui_native_exact_cases.mjs`,
+`v390_ui_diagnostic_lifecycle_lib.mjs`에 fixed remaining sweep의 case-local 실패 수집 경계를
+추가했습니다. `prepare-case`, fixture digest, browser open/execution의 일반 case 실패는
+primary evidence, raw/secret integrity, runtime restore, browser close가 모두 PASS인 경우 실패
+environment를 완전히 정리한 뒤 새 environment에서 다음 case를 실행합니다. Type/Reference/Syntax/
+RangeError, source 또는 child evidence 오류, raw/secret integrity 실패, runtime restore/browser close/
+environment cleanup 실패는 계속 전체 중단합니다. Canonical `test_ui.sh`의 fail-first 동작은
+변경하지 않았습니다. 첫 actual run `v390-ui-diagnostic-20260803151517-44240`은 child validator가
+`attempted=1`을 browser 실행으로 오인해 EVT-041의 clean pre-browser FAIL을 raw integrity 실패로
+분류하면서 `11 attempted / 10 PASS / 1 FAIL / 114 not-run`으로 종료됐습니다. Attempted와 actual
+browser 실행을 분리한 typed validator를 추가했고 해당 prior child evidence가 case-local continuation으로
+재분류됨을 직접 확인했습니다. Diagnostic `23/23`, native exact `51/51`, acceptance `21/21`, syntax와
+diff check가 PASS했습니다. 보정 후 125건 actual batch와 `./test_ui.sh`는 아직 미실행이며 official
+canonical은 `299/424 PASS`, 기존 diagnostic-equivalent는 `309/424`를 유지합니다.
+
+두 번째 actual `v390-ui-diagnostic-20260803151930-45332`는 `43 attempted / 14 PASS / 29 FAIL /
+82 not-run`까지 진행해 기존 경계를 32건 넘었고 `EVT-061/068`, `CLIENT-001/006` 신규 PASS를
+확인했습니다. CLIENT-007에서 direct attribute 실패와 함께 보존된 PASS structured evidence를
+case-local provenance와 모순으로 오인해 중단된 공통 분류를 교정했습니다. Prior CLIENT-007 child
+evidence가 `continue-case-local-failure`로 판정됨을 직접 재검증했고 제품 assertion은 변경하지 않았습니다.
+Diagnostic-equivalent 경계는 `313/424`이며 official canonical은 계속 `299/424 PASS`입니다.
 
 ## 후속 이슈 추천 규칙
 
-후속 이슈는 현재 `2.8.0` source tree와 현재 스텝 범위 안에서 실제로 처리 가능한 항목만
+### Historical v1.8 tracker research verifier boundary
+
+아래 문구는 기존 tracker research verifier가 보존하는 과거 제품 범위이며 current v3.9 구조 Slice의
+새 기능 승인이 아닙니다.
+
+- BoT-SORT/DeepSORT research boundary: BoT-SORT/botsort/DeepSORT/deepsort token을 제품 tracker로 받지 않습니다.
+- BoT-SORT/DeepSORT dependency/privacy threat model과 runtime/model bundle RC policy는 별도 Phase 후보로 기록합니다.
+- OC-SORT 후순위 benchmark는 `analysis.trackingPolicy.tracker` 허용값에 추가하지 않습니다.
+- OC-SORT는 ByteTrack/Kalman-lite 이후 비교 후보일 뿐이며 제품 tracker 교체 근거로 과장하지 않습니다.
+- 미분류 P0~P1 후속 이슈: 없음.
+- 실제 tracker 연구 구현은 별도 Phase 후보로 기록합니다.
+
+후속 이슈는 현재 source tree와 현재 v3.9 스텝 범위 안에서 실제로 처리 가능한 항목만
 기록합니다. 다음 버전 후보, 별도 Phase 후보, 사용자 승인이 필요한 새 제품 범위는 이
 문서에 추천하지 않습니다.
+
+## v3.9.0 REVIEW4-65 EVT-041 memory-search fixture checkpoint
+
+Run `v390-ui-diagnostic-20260803130742-23877`은 125건을 선택해 11건을 시도했고,
+`EVT-026/038`을 포함한 10건 PASS 뒤 `EVT-041` 1건 FAIL로 중단되어 114건은
+not-run입니다. Diagnostic-equivalent 경계는 `309/424`이며 official canonical actual은
+`299/424 PASS`로 유지합니다.
+
+`EVT-041`의 `memorySearch.hits[].matchedTerms` path missing은 제품 schema 누락이
+아니라 searchable fixture의 query identity와 `ruleId`가 materializer에 결속되지 않은
+문제였고, 일반 response path 오류가 sensitive-material 실패로 오분류됐습니다. 제품의
+필수 `matchedTerms` schema는 유지합니다. Memory-search 설정은 별도 registry 저장 필드로
+중복하지 않고 `searchable-event-review` seed kind에서 파생하며, unknown seed/field와
+query·fixture·source identity 및 duplicate drift는 fail-closed입니다. Focused runtime
+`49/49`, event evaluator `20/20`, native `51/51`을 통과했습니다.
+
+보정 후 actual/browser는 미실행입니다. Policy v4, 30분, 120분, release도 미실행이며
+완료 evidence로 사용하지 않습니다.
+
+### REVIEW4-65 materialized request evidence checkpoint (2026-08-04)
+
+세 번째 actual `v390-ui-diagnostic-20260803152435-50338`은 `62 attempted / 29 PASS /
+33 FAIL / 63 not-run`까지 진행했습니다. `CLIENT-028` 실패 자체는 정상적인 request semantic
+assertion이었지만 materialized request가 canonical `{fixtureId}` path template를 잃어 부모 evidence
+binding에서 stale child로 오인됐습니다. Client-safe request는 actual path와 canonical path template를
+별도로 보존하고 failure evidence를 template에 결속하도록 교정했습니다. Focused client-safe `15/15`,
+runtime `49/49`, diagnostic `23/23`과 equivalent `CLIENT-028` binding이 PASS했습니다. 제품 assertion과
+response schema는 변경하지 않았으며 새 batch와 canonical `test_ui.sh`는 아직 미실행입니다.
+
+### REVIEW4-65 remaining-125 common-cluster checkpoint (2026-08-04)
+
+Fresh census `v390-ui-diagnostic-20260803153406-58218`은 고정된
+`EVT-023`~`SAFE-140` 125건을 모두 시도해 `83 PASS / 42 FAIL`을 보존했습니다.
+실패는 EVT request/fixture·response-derived DOM 26건과 Client/Media/Safe
+route/control/readback 16건의 공통 계약으로 묶었으며 단건 actual 보정은 수행하지
+않았습니다. Typed fixture row 선택, response-derived DOM owner/cardinality, dynamic
+viewer/session binding, details visibility, navigation lifecycle과 EVT-055의 네 readiness
+상태를 fail-closed로 보정했습니다. 제품 변경은 누락된 EVT-055 `not-run` 상태 생성에
+한정합니다.
+
+공식 native generator는 source 동결 뒤 정확히 1회 실행했고 canonical은
+`424 = 423 positive + 1 negative`, unsupported `0`, ordered ID 및
+route/role/viewport/theme 불변입니다. Build, event oracle `29/29`, client-safe `16/16`,
+native exact `52/52`가 PASS했습니다. 동일 125건 batch 재실행과 canonical
+`./test_ui.sh`, Policy v4, 30분, 120분, release는 아직 미실행이며 실제 진척으로
+승격하지 않습니다.
+
+### REVIEW4-65 Playwright selector ownership checkpoint (2026-08-07)
+
+`scripts/internal/v390_ui_native_adapter.mjs`의 `revealClosedDetailsForSelector()`는
+manifest/runtime selector를 native `document.querySelector()`에 전달하지 않고
+`page.locator(selector).first()`가 선택한 target에 locator-bound `evaluate()`를 적용합니다.
+따라서 plain CSS와 Playwright `:has-text()` selector 모두 동일 문자열·first-locator
+정책을 유지하고, target attach 뒤 가장 가까운 closed `details`만 연 다음 같은 locator의
+requested state를 기다립니다. Missing target과 wrong text는 기존 timeout으로 fail-closed합니다.
+
+`scripts/internal/verify_v390_ui_native_adapter_contract.mjs`는 UI-008 actual selector,
+plain CSS, closed details, dynamic attachment, zero/multiple candidate와 scripts/internal의
+dynamic native selector 전달 경로를 전수 검증합니다. Focused adapter `33/33`, native
+exact/runtime/completion/diagnostic, canonical manifest `424/424`, semantic/feature/inventory와
+build gate가 PASS했으며 source-built/stored manifest 및 semantic drift가 없어 generator와
+producer는 각 `0회`입니다. 이 checkpoint 시점 `./test_ui.sh`, Policy v4, 30분, 120분,
+release는 미실행이며 실제 acceptance PASS evidence로 사용하지 않습니다.
+
+### REVIEW4-65 shared adapter post-navigation lifecycle checkpoint (2026-08-07)
+
+`6c6e2e71832d47109751efeccedd6c8eb8c52e2e..2d8864c77721be76fd32caeaf1d2e00a6f2b8924`
+shared adapter diff의 `waitForSelector`, `clickWithRequestOwnership`, `click`, `snapshot`,
+`measureVisualState`, `observeRequestedObservedState` 호출 경로를 canonical 424 전체에 대조했습니다.
+모든 case가 공통 post-action visual/runtime observation 경로를 사용하므로 직접 영향 범위는 ordered
+424/424이며, 기존 remaining-125 교집합도 manifest index 299 이후 125/125입니다. Case별 action
+sequence와 source/destination route·selector는
+`test/fixtures/v390_ui_shared_adapter_impact.json`에 digest-bound artifact로 고정했습니다.
+
+UI-002 actual timeout은 `POST /setup` 302→`/login`과 authoritative readback 뒤 exact runner의
+post-action `measureVisualState()`가 pre-action setup submit selector를 다시 `attached`로 기다린
+호출부였습니다. 공통 lifecycle은 pre-action source 검증, action request/response 결속,
+post-navigation destination route/control readback으로 분리하고 redirect 뒤 source selector 재대기를
+금지합니다. Redirect 9건은 `/login` 또는 `/client/live` destination control에 explicit 결속하고,
+no-redirect는 기존 source control 계약을 유지합니다. Missing destination, wrong route, source detach와
+stale source reuse는 fail-closed이며 timeout 축소·assertion 삭제·case 전용 예외는 없습니다.
+
+영향 batch는 `--selection-artifact test/fixtures/v390_ui_shared_adapter_impact.json`만 허용하고,
+artifact를 current canonical native manifest에서 재생성한 값과 exact 비교한 뒤 ordered 424개를
+누락·중복 없이 선택합니다. 이 모드는 explicit 단건 positive 계약을 넓히지 않으며 UI-018
+negative-route도 같은 trusted full-impact batch 안에서만 diagnostic child로 실행합니다.
+
+Adapter RED→GREEN, native exact/runtime/completion/diagnostic 25/25, event/client-safe/catalog, Policy contract,
+semantic audit/approval 986/986, feature evidence 986/986, inventory/docs와 full build가 PASS했습니다.
+Canonical/native fixture drift가 없어 generator/producer는 각 0회입니다. 이 checkpoint 시점 영향
+diagnostic batch와 `./test_ui.sh`, Policy v4 qualification은 미실행이며 actual PASS로 기록하지 않습니다.
+
+### REVIEW4-65 canonical post-action visual owner lifecycle checkpoint (2026-08-09)
+
+Commit `a81feb42f073b8d72688bf91c528500196466598`의 latest canonical actual은
+`424 target / 108 attempted / 107 PASS / UI-109 FAIL / 316 not-run`입니다.
+UI-109의 endpoint request와 independent readback은 통과했지만, post-action visual 단계가
+숨겨진 `#channel-save-selected` source locator를 다시
+`scrollIntoViewIfNeeded()` 하면서 30초 timeout으로 중단됐습니다.
+
+`v390_ui_shared_adapter_lifecycle.mjs`는 canonical 424의 primary completion을
+request `391`, local `28`, navigation `5`의 exact-one mode로 분류하고,
+post-action visual owner를 navigation epoch와 declared destination route에 결속합니다.
+동일 route에서 source control이 계속 visible하면 exact source owner를 유지하고,
+hidden/detached source는 source를 재대기하지 않은 visible document owner로 전환합니다.
+13개 route-change case는 새 epoch의 exact destination/document owner만 허용합니다.
+Missing/duplicate owner, wrong route/selector/epoch, hidden destination은 즉시 fail-closed이며
+timeout, visibility assertion, selector 범위와 Policy v4 qualification은 완화하지 않습니다.
+
+`v390_ui_native_adapter.mjs`는 main-frame document request마다 monotonic navigation epoch를
+기록하고, post-action owner binding에는 Playwright의 hidden target
+`scrollIntoViewIfNeeded()` retry를 사용하지 않습니다. Exact candidate cardinality와
+computed visibility를 먼저 확인한 뒤 bound visible DOM owner만 최소 scroll/geometry
+measurement에 사용합니다. Runner는 completion action ID와 canonical selector를 공통
+resolver에 넘기며 case ID별 예외는 없습니다.
+
+`test/fixtures/v390_ui_post_action_visual_owner_red_20260809.json`은 latest actual summary,
+first-failure, exact summary와 UI-109 trace SHA-256을 RED 계약으로 보존합니다.
+`v390_ui_shared_adapter_impact.json`은 canonical 424/424 전체에 completion mode,
+source visible/hidden/detached branch, local/route-change/navigation exact-one lifecycle과
+13개 route-change ID를 고정합니다. 전용 verifier는 UI-109 hidden, UI-029 detached,
+UI-109 visible-source 유지, UI-046 local route change, SAFE-016 navigation 및
+wrong route/selector/epoch/cardinality/hidden destination negative를 함께 검증합니다.
+
+Focused GREEN은 post-action census 424/424, adapter 48/48, visual 8/8,
+runtime 63/63, native 55/55, completion 36/36, diagnostic 33/33,
+actual trace replay 548/548와 remaining replay PASS입니다. Replay는 fixed diagnostic
+differential 125/125와 EVT-004 lifecycle을 보존합니다. Policy v4 27/27,
+producer/independence 11/11, eligibility 7/7, acceptance 21/21,
+final integrity 12/12와 full build도 PASS했습니다.
+Release evidence index 8/8, script inventory 11/11, docs links failures 0,
+docs UI assets 10/10, changed MJS 9/9, JSON 5/5, Bash syntax와
+`git diff --check`도 PASS했습니다.
+
+Semantic audit에서 stricter Policy visual evidence file hash로 `SAFE-202`와
+`OPS-169` 두 trust binding만 drift했습니다. 기능 계약, feature PASS/status,
+verifier command, action/state symbol와 enclosing semantic body hash는 불변입니다.
+Migration contract에 따라 984 carry-forward + 두 행 독립 검토를 수행하고
+producer 1회로 audit/approval/implementation/native transaction을 갱신했습니다.
+최종 candidate는 `361e39ff7e5ab2dad3631f654b9a476a4b5e657fcbbc873a7a131a7dfb4ce1ec`,
+semantic audit 51/51, approval 986/986, closure 31/31,
+feature evidence 986/986·negative 15/15입니다. 별도 native generator는 0회이며
+source-built/stored native는 424 = 423 positive + 1 negative, unsupported 0으로 일치합니다.
+
+사용자 지시에 따라 actual browser와 `./test_ui.sh`는 실행하지 않았습니다.
+30분/120분과 release acceptance도 이 correction 범위에서 실행하지 않으며,
+static/fixture/replay 결과를 새 actual UI PASS로 승격하지 않습니다.
+동일 staged snapshot을 임시 `v3.9.0` branch commit으로 구성한 tracked-clean checkout에서도
+full build와 위 공통/Policy/semantic/feature/inventory/docs/syntax gate 전체가 PASS했습니다.
+
+## V390-REVIEW4-65 request-action ownership scope correction
+
+개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 SHA
+`b7391b003f85e77ba5aa86a3c68c9358b593d6e7`의 최신 actual은 exact
+`424 target / 8 attempted / 7 PASS / UI-009 FAIL / 416 not-run`이며,
+primary ownership 안에서 runtime readback helper가 같은 action scope를 다시 열어
+`nested request action ownership is forbidden`으로 중단됐습니다.
+
+공통 registry는 `bootstrap-settling → source-before-frozen → primary-action →
+independent-readback → post-action-observation` 순서를 고정합니다. Canonical 424 census는
+primary request/local/navigation `391/28/5`, independent readback required/not-applicable
+`421/3`입니다. 같은 action helper는 explicit context만 소비하고, 다른 action은 이전
+scope의 exact end와 phase attestation 뒤 시작합니다. Missing, duplicate, nested, stale,
+wrong action/case/phase와 throw/timeout cleanup은 fail-closed이며 UI-009 예외, nesting 허용,
+global stack, silent auto-close, catch-pass는 없습니다.
+
+구현 위치는 `v390_ui_request_action_ownership.mjs`의 단일-owner registry/census,
+`v390_ui_native_adapter.mjs`의 request register/complete 및 explicit context API,
+`v390_ui_exact_oracle_runtime.mjs`의 same-action context 전달과 sequential distinct action,
+`run_v390_ui_native_exact_cases.mjs`의 primary 종료 후 independent readback 실행입니다.
+전용 verifier와 runtime/adapter/native/completion/diagnostic/replay/Policy/acceptance/
+final-integrity/semantic/feature/inventory/docs gate는 PASS했습니다. Fixed replay는
+`548/548`이고 canonical/native manifest는 `424=423+1`, unsupported `0`을 유지합니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는
+사용자 지시에 따라 미실행이며 정적 PASS를 actual 또는 release 성공으로 승격하지 않습니다.
+별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.
+
+## V390-REVIEW4-65 release actual Policy/final-integrity closure (2026-08-14)
+
+Commit `efb44bd1b20517297a22dd17956fb514f26ebbf0`의 `./test_release.sh` actual은 full build와
+feature gates, 30분 longrun(`118 PASS / 0 FAIL / 2 skip`), canonical browser exact
+`424/424 PASS`를 완료했습니다. Policy v4는 qualified case `424/424`를 계산했지만 `MEDIA-017` 한 건의
+unapproved console 경계 때문에 FAIL했고, 120분과 final release completion은 실행되지 않았습니다.
+`MEDIA-017` trace에서 dashboard 권한이 없는 두 번째 test-owned view에
+`GET /client/api/views/39017002/dashboard`가 반복되어 403 6건과 teardown 중 404 1건을 만들었습니다.
+제품 `refreshSelectedTileDetail()`이 `showDashboard=false`를 확인하지 않고 3초 polling한 것이 직접
+원인이며, Policy allowlist로 승인하지 않고 권한 없는 view는 local tile 상태만 렌더링하고 dashboard
+request를 만들지 않도록 보정했습니다.
+
+같은 run의 final-integrity `acceptance UI temporary root binding mismatch`는 runtime 또는 cleanup 실패가
+아닙니다. `summary.uiTemporaryRoot`와 `summary.uiEnvironment.runtimeDescriptor.temporaryRoot`는 실제로
+동일하고 cleanup measurement도 `existedBefore=true`, `existsAfter=false`, `bytesAfter=0`입니다. Verifier가
+존재하지 않는 legacy `summary.uiEnvironment.temporaryRoot`를 읽던 오류를 authoritative nested runtime
+descriptor 결속으로 교정했습니다. Client-live 권한 계약과 final-integrity 계약은 RED 후 GREEN이며 full
+build도 PASS했습니다. 이 보정 commit의 `./test_release.sh` actual은 아직 실행하지 않았으므로 Policy v4,
+조건부 120분, final-integrity, release-ready는 여전히 미완료입니다.
+
+## V390-REVIEW4-65 canonical 424 Policy v4 release closure
+
+개발 상태는 `canonical actual 424/424 PASS / Policy v4 보정 static closure 완료 /
+release actual 재실행 대기`입니다. Source `a31844fe`의 `./test_release.sh`에서 30분
+longrun은 `118 PASS / 0 FAIL / 2 skip`, canonical UI는 실제 browser로
+`424 attempted / 424 PASS / 0 FAIL / 0 not-run / 0 unsupported`를 기록했습니다.
+이 결과는 UI case closure 증적이지만 Policy v4가
+`actual-evidence-current-source-binding-missing`,
+`source-binding-worktreePatchSha256-drift`, `unapproved-console-message-present`로
+실패했으므로 release-ready 증적은 아닙니다.
+
+공통 원인은 acceptance-owned tracked artifact가 실행 중 갱신되는 동안 raw Git diff를
+재계산한 source binding, 정리 뒤 사라지는 bootstrap descriptor를 가리키는 summary,
+command 없는 attestation ledger, 그리고 MEDIA-017 test view의 불필요한 dashboard poll입니다.
+보정은 acceptance artifact root만 source patch 계산에서 제외하고 독립 Policy verifier가
+같은 경계를 재계산하도록 했습니다. Bootstrap attestation은 run directory에 내구 저장하고,
+temporary root는 authoritative runtime descriptor에서 읽으며, command ledger는 실제 command만
+포함합니다. MEDIA-017의 두 번째 test-owned view는 live/events 검증은 유지하면서 dashboard
+poll 대상에서는 제외합니다. Repository root 전체 제외, 임의 source drift 은폐, console allowlist,
+case PASS 우회는 허용하지 않습니다.
+
+Focused 계약은 acceptance `36/36`, Policy producer `19/19`, Policy independent qualifier
+`12/12`, Policy v4 `29/29`, native exact `60/60`, launcher `21/21`, eligibility `8/8`,
+final integrity `15/15` PASS입니다. Semantic closure는 candidate
+`8db5188a2960c8c8e6574cc5bb1aa0f28622999d6fbfff9b8a10ad10ffbf7bb6`,
+`983 carry-forward + UI-018/SAFE-212/OPS-179 independent review`, approval `986/986`입니다.
+다음 release actual은 clean checkpoint에서 `./test_release.sh` 한 번이며, Policy v4,
+조건부 120분 판단·실행, final integrity가 모두 PASS하기 전 완료로 표시하지 않습니다.
+
+## V390-REVIEW4-65 bootstrap/action redirect lifecycle classifier correction
+
+개발 상태는 `개발 완료 / static·replay 검증 완료 / actual 재실행 대기`입니다. 시작 commit
+`6c5c2f613567faf82edd574de7ec3b312aff65df`의 latest actual은 canonical case 실행 전
+`424 target / 0 attempted / 424 not-run`으로 중단됐고, UI-001 initial document
+`GET / → 302 Location: /login → GET /login 200`의 두 번째 hop에서
+`bootstrap/redirect lifecycle mixing is forbidden`이 발생했습니다. 이 runner-start RED는
+`test/fixtures/v390_bootstrap_action_redirect_lifecycle_red_20260810.json`에 actual FAIL 경계로 보존합니다.
+
+공통 수정은 `redirectedFrom` 단독 분기를 제거하고 settling state, request kind/resource type,
+exact navigation invocation identity/kind, action invocation/phase, redirectedFrom parent object와
+parent lifecycle identity를 함께 판정합니다. Initial census는 canonical 424 중 redirect `1`
+(UI-001), no redirect `423`, total document hop `425`입니다. Document form census는 11개 중
+redirect `9`, same-route rejection `2`이며 모든 primary POST는 request/response `1/1`입니다.
+Bootstrap initial document와 redirect hop은 `page/page/bootstrap/initial-page-load`, form primary
+POST는 `action/explicit-action-registration/primary-action/primary-action`, action destination GET은
+`page/document-navigation-ledger/document-navigation-chain/document-navigation-chain`입니다.
+Bootstrap hop은 action redirect cardinality에서 제외하고 action redirect는 bootstrap ledger에서 제외합니다.
+
+구현 위치는 `v390_ui_action_request_ledger.mjs`의 exact classifier, parent-chain/invocation validator와
+bootstrap/action cardinality evidence, `v390_ui_native_adapter.mjs`의 initial/form navigation invocation 및
+exact redirectedFrom Request metadata 전달, `verify_v390_ui_page_owned_request_lifecycle_contract.mjs`의
+UI-001 actual-like chain, canonical census, 11 document-form actual-like와 stale/cross-chain negative입니다.
+Request/response lifecycle identity도 object identity와 함께 exact 비교합니다. Case ID/path exception,
+broad allowlist, redirect validation 삭제, cardinality 완화, catch-pass는 없습니다.
+
+최초 focused RED는 기존 line 367의 동일 mixing 오류로 재현했고 최종 lifecycle `9/9`, action/background
+`5/5`, form `5/5`, callback `10/10`, ownership `4/4`, post-action canonical `424/424`, adapter `48/48`,
+runtime `63/63`, native `55/55`, completion `36/36`, diagnostic replay `548/548`, remaining replay,
+Policy/acceptance/final-integrity, semantic `986/986`, feature evidence `986/986`·negative `15/15`,
+inventory와 full build를 통과했습니다. Inventory 문구 변경을 official feature evidence gate가
+`inventorySha256 drift`로 거부한 뒤 implementation manifest refresh 1회와 기존 independently approved
+source-flow projection 1회만 실행했고, source audit `51/51`이 candidate `986/986`과 저장 approval
+`986/986`을 재검증했습니다. 문서 drift는 current semantic discovery ledger writer 2회로 최종
+187 documents/38 markers에 결속했습니다. Independent reviewer, approval/migration-aware producer,
+native generator, actual Policy producer는 모두 0회입니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는 사용자 지시에 따라
+미실행이며 정적/fixture/replay PASS를 actual 또는 release 성공으로 승격하지 않습니다. 별도 tester의
+정확한 다음 명령은 `./test_ui.sh`입니다.
+
+## V390-REVIEW4-65 document-form initiating response binding
+
+개발 상태는 `개발 완료 / static·replay 검증 완료 / actual 재실행 대기`입니다. 시작 commit
+`81d3ec3ddf6cf6055379c5bbb74fbff81395f876`의 latest actual은 exact
+`424 target / 2 attempted / 1 PASS / UI-002 FAIL / 422 not-run`이며 실패 메시지는
+`primary=action response cardinality mismatch: 0/1`입니다. UI-002의 primary는
+`POST /setup → 302 Location: /login` document form이고 destination은 `GET /login → 200`입니다.
+
+공통 원인은 route interceptor에서 envelope claim을 선행하고 `requestfinished`에서 response binding에
+필요한 Request metadata를 제거하는 동안, navigation click 완료가 exact POST response의 action-envelope
+결속보다 먼저 `endRequestActionOwnership()`을 호출할 수 있었던 timing 경합입니다. Redirect GET도 active
+navigation fallback을 통해 primary owner를 상속할 수 있었습니다.
+
+구현 위치는 `v390_ui_action_request_ledger.mjs`의 object-bound response promise barrier,
+`v390_ui_native_adapter.mjs`의 submit 전 envelope 확인, `page.on("request")` exact Request claim,
+Request 수명과 분리된 response identity WeakMap, `response.request()` 전용 binding, Location projection,
+redirect destination의 page-owned `document-navigation-chain` ledger, finalize/cleanup attestation입니다.
+`v390_ui_request_navigation_lifecycle.mjs`는 primary POST와 redirect GET ownership을 각 hop에 결속하고
+canonical 11-case census를 생성합니다. Census는 redirect 9, same-route 2이며 각 행의 method/path/status,
+redirect hop, Location, final route, response owner, declared primary cardinality `1/1`을 고정합니다.
+
+`verify_v390_ui_document_form_response_binding_contract.mjs`는 SHA-bound actual RED와 11개 모든 branch의
+actual-like late-response ordering을 실행합니다. Missing, duplicate, reordered, wrong-object, status, path,
+Location, redirect destination, late response와 pending waiter/timer는 fail-closed합니다. UI-002/case-ID 예외,
+cardinality 완화, path-only response match, sleep/retry/timeout 증가는 없습니다.
+
+Full build PASS, focused document-form `5/5`·11 cases, action/background ledger `5/5`, adapter `48/48`,
+callback `10/10`, runtime `63/63`, native `55/55`, completion `36/36`, diagnostic replay `548/548`,
+Policy producer/independence `11/11`·`11/11`, Policy v4 `27/27`, eligibility `7/7`, acceptance `21/21`,
+final integrity `12/12`, semantic audit `51/51`, approvals `986/986`, closure `31/31`, implementation
+evidence `986/986`·negative `15/15`, coverage `7/7`, project inventory `17/17`을 확인했습니다.
+
+`server.sh` dispatch와 test inventory 변경으로 implementation evidence line/context/inventory SHA가 실제로
+drift해 manifest refresh generator 1회와 기존 독립 승인 projection 1회를 실행했습니다. 문서 변경으로
+semantic discovery ledger generator는 최종 결속 포함 2회 실행했습니다. Independent reviewer, approval/
+migration producer, native generator, actual Policy producer는 모두 0회입니다. 최초 정적 실행에서 adapter/
+post-action synthetic ownership, mutable current alias hash, code comment 2건, feature manifest와 document ledger
+drift를 발견했고 공통 계약·fixture·문서 projection을 교정한 뒤 모두 재실행 PASS했습니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는 사용자 지시에 따라
+미실행이며 정적/fixture/replay PASS를 actual 또는 release 성공으로 승격하지 않습니다. 별도 tester의
+정확한 명령은 `./test_ui.sh`입니다.
+
+## V390-REVIEW4-65 browser callback raw-schema reconciliation
+
+개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 commit
+`e248d6a904aed3e1c30ddf8e310c0e367d02b4ec`의 latest actual은 exact
+`424 target / 1 attempted / 0 PASS / UI-001 FAIL / 423 not-run`이며,
+navigation `GET / → 302 /login → 200`과 action/background ledger 0, leak 0은 PASS였지만
+`runtime-observed-raw-invalid:observed-fields-mismatch,observed-schema-mismatch`로 중단됐습니다.
+
+최초 변환 경계는 `adapter.runtime-context` browser raw callback envelope에서
+`openNativePlaywrightPage.observeRequestedObservedState` Node assembly로 넘어가는 지점입니다.
+Node가 runtime-observed schema를 먼저 쓴 뒤 callback result를 spread해 schema를 다시 덮어쓰고
+`callbackId`를 누출했습니다. `v390_ui_browser_callback_boundary.mjs`는 14개 callback마다 exact input/raw/
+normalized field·type·SHA-256 계약을 가지며 field 순서와 무관한 structured mapper로만 변환합니다.
+`v390_ui_requested_observed_schema.mjs::mapRuntimeObservedFromBrowserCallback`은 검증된 context 필드와
+control action을 기존 authoritative `media-server.v390-ui-runtime-observed.v1` 7필드로 명시 조립합니다.
+`v390_ui_browser_callback_reachability.mjs`는 canonical 424 각 행을 navigation owner/runtime context/control
+observation과 completion callback schema에 연결하며 runtime context/control/navigation owner 424개씩,
+endpoint 380, pathname 44를 고정합니다. Selector, visibility, disabled/enabled 의미와 navigation epoch는
+손실 없이 보존하고 extra/missing/wrong type/schema는 fail-closed합니다.
+
+`v390_ui_browser_callback_raw_schema_red_20260810.json`은 latest actual summary/first-failure/exact summary/
+UI-001 trace SHA와 actual-derived browser raw, 잘못 조립된 Node raw, 기대 exact GREEN을 보존합니다.
+Focused verifier는 구현 전 schema census 부재 RED 뒤 14/14 callback, 130 callsite/28 file, 424 consumer,
+391 request, raw field-order independence와 negative를 통과했습니다. 기존 negative 오류 문구가 새 mapper의
+더 이른 fail-closed 지점으로 이동해 최초 GREEN 재실행이 1회 실패했고 기대 문구를 교정한 뒤 통과했습니다.
+
+Full build, adapter 48/48, runtime 63/63, native 55/55, completion 36/36, diagnostic 33/33,
+replay 548/548, Policy producer/independence 11/11·11/11, Policy v4 27/27, eligibility 7/7,
+acceptance 21/21, final integrity 12/12, semantic audit 51/51, approvals 986/986, closure 31/31,
+implementation evidence 986/986·negative 15/15, feature completion 14/14, coverage 7/7,
+project inventory 17/17, script inventory 11/11, current evidence 7/7을 확인했습니다.
+Implementation evidence 첫 실행은 inventory 설명 변경에 따른 `inventorySha256 drift` 1건으로 실패했고,
+기존 등록 행 원문을 복원한 뒤 재실행 PASS했습니다. Actual semantic/native drift가 없어 reviewer,
+approval/migration producer, native/semantic generator, actual Policy producer는 모두 0회입니다.
+필수 계획·evidence 문서 4개의 byte 변경은 current semantic discovery ledger가 최초 `6/7`로 거부했고,
+의미 승인과 분리된 파생 문서 ledger만 갱신해 `7/7`로 닫았습니다. Historical REVIEW3 verifier는 현재
+187-document/39-marker baseline을 과거 176-document/38-marker 계약으로 검사해 `3/7`이므로 현 checkpoint의
+완료 gate나 갱신 대상으로 사용하지 않았습니다.
+
+UI-001/case-ID 예외, validator 완화, field mismatch 무시, exists-only, catch-pass, 미정의 `assert` 재도입은
+없습니다. Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, release는 사용자 지시에 따라
+미실행이며 정적/fixture/replay PASS를 actual 또는 release PASS로 승격하지 않습니다. 별도 tester의
+정확한 다음 명령은 `./test_ui.sh`입니다.
+
+## V390-REVIEW4-65 action request/page background ledger separation
+
+개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 SHA
+`a470638ed64987cace31c9a00cdda7f9d1f4000d` actual은 exact
+`424 target / 9 attempted / 8 PASS / UI-010 FAIL / 415 not-run`입니다. 명시된
+`GET /ops/dashboard` initiating request/response와 correlation은 1/1 exact PASS였지만,
+전역 active owner/correlation을 route interceptor와 request listener가 동시 dashboard
+refresh 7/7에도 적용해 action ledger가 팽창했습니다.
+
+공통 수정은 case ID가 아니라 manifest request envelope를 사용합니다. Canonical 391 census는
+method GET/POST/PUT/DELETE `268/25/92/6`, literal/template-materialized `281/110`,
+document-form/exact-api-fetch `11/380`, unique template/materialized target `47/142`입니다.
+Route interceptor는 explicit registration과 exact method/materialized target/cardinality에 맞는
+첫 initiating Playwright request object만 action-owned로 claim합니다. Bootstrap, polling, SSE,
+WS, background refresh는 source owner와 phase가 있는 page-owned ledger에 남고 primary action ID와
+correlation을 상속하지 않습니다. 같은 endpoint의 후속 request도 request object와 registration
+sequence로 page-owned와 분리합니다.
+
+구현 위치는 `v390_ui_action_request_ledger.mjs`의 census/envelope/object/status/cardinality/leak
+validator, `v390_ui_native_adapter.mjs`의 route/request/response object claim과 두 ledger projection,
+`v390_ui_initial_route_settling.mjs`의 action/page partition binder,
+`run_v390_ui_native_exact_cases.mjs`의 manifest envelope 전달 및 trace projection입니다.
+Missing/duplicate/leak/wrong method·path·status·object·action·correlation·phase/reorder는 fail-closed이고
+UI-010 예외, broad polling allowlist, path-only ownership, cardinality 완화, correlation 제거,
+catch-pass는 없습니다. EVT-004 explicit inner correlation은 byte-identical preserve합니다.
+
+검증은 신규 계약 RED(구현 marker 부재) 뒤 GREEN `5/5`, ownership `4/4`, post-action
+canonical `424/424`·request `391/391`, adapter `48/48`, runtime `63/63`, native `55/55`,
+completion `36/36`, diagnostic/replay `548/548`, Policy/acceptance/final-integrity 계약,
+full C++ build, semantic 986/986, implementation evidence 986/986·negative 15/15,
+inventory/docs/syntax/diff gate PASS로 닫았습니다. `server.sh` line/context와 inventory SHA의
+실제 drift 때문에 implementation manifest refresh generator 1회와 저장 승인 projection 1회를
+실행했고, 문서 discovery ledger generator는 최종 tracked 계획 문서 결속까지 3회 실행했습니다. 새 independent
+reviewer, approval producer, migration producer, native generator, Policy actual producer는 모두 0회입니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는 사용자 지시에
+따라 미실행하며 정적/fixture/replay PASS를 actual 또는 release 성공으로 승격하지 않습니다.
+별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.
+
+## V390-REVIEW4-65 browser callback free-identifier boundary
+
+개발 상태는 `개발 완료 / actual 재실행 대기`입니다. 시작 commit
+`f8f819c0c7f6c84cd18f5f7b479e1deb51d58127`의 latest actual은 exact
+`424 target / 2 attempted / 1 PASS / UI-002 FAIL / 422 not-run`이며 실패 메시지는
+`primary=assert is not defined`입니다. UI-001 actual ledger는 action-owned `0`, page
+request/response `5/5`, background request/response `2/2`, action/correlation leak `0/0` PASS입니다.
+
+직접 callsite는 `executeCaseNativeAction → beginRequestActionOwnership → createEnvelopeWrapper`이고,
+adapter의 browser callback wrapper를 만들면서 Node lexical `assert`를 참조했지만 해당 모듈에는
+정의/import가 없었습니다. `page.evaluate` 계열은 callback을 browser realm에서 직렬화 실행하므로
+outer helper/constant를 포획할 수 없습니다. 공통 수정은 runner/adapter/runtime/oracle 14개 callback을
+`v390_ui_browser_callback_boundary.mjs`에 등록하고 exact serialized argument/result schema와 Web API만
+사용하게 했으며 결과 validation은 Node 쪽에서 수행합니다. `window.assert`, UI-002 예외,
+`ReferenceError` catch-pass, validation 삭제는 없습니다.
+
+`verify-v390-ui-browser-callback-free-identifier-contract`는 callback source를 실제 직렬화해 격리 VM
+mock-browser에서 14개 전부 실행하고 canonical exact 424와 request 391 branch reachability를 증명합니다.
+Missing argument, wrong schema, wrong browser result, `ReferenceError`는 모두 fail-closed입니다.
+Immutable RED와 130 dynamic callsite/28 file census는 각각
+`v390_browser_callback_free_identifier_red_20260810.json`,
+`v390_browser_callback_free_variable_audit_20260810.json`에 보존합니다.
+
+최종 static/replay 검증은 신규 계약 `6/6`, action/background `5/5`, ownership `4/4`,
+post-action `424/424`, adapter `48/48`, runtime `63/63`, native `55/55`, completion `36/36`,
+diagnostic replay `548/548`, Policy/acceptance/final-integrity, semantic/feature/inventory/docs와 full build를
+포함합니다. Source locator drift는 candidate `0f8a14e7...a28a`의 985 carry-forward + UI-018
+독립 검토 1행으로 재결속했습니다. Reviewer 1회, migration-aware producer 성공 1회,
+native generator와 actual Policy producer는 0회입니다. Producer의 sandbox index 실패와 성공 뒤 stale
+snapshot 재호출은 atomic replacement 전 실패 2회로 별도 보존합니다.
+
+Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, `./test_release.sh`는 사용자 지시에
+따라 미실행하며 정적/fixture/replay PASS를 actual 또는 release 성공으로 승격하지 않습니다.
+별도 tester의 정확한 다음 명령은 `./test_ui.sh`입니다.

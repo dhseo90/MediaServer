@@ -1,0 +1,126 @@
+{
+  "schema": "media-server.v390-ui-visual-matrix-plan.v2",
+  "version": "3.9.0",
+  "viewportMatrix": {
+    "widths": [320, 390, 760, 1180],
+    "height": 844,
+    "themes": ["light", "dark"]
+  },
+  "representativeScreens": [
+    {
+      "screenId": "ops-home",
+      "canonicalCaseId": "UI-009",
+      "featureId": "UI-009",
+      "screenRoute": "/ops/home",
+      "accountRole": "operator",
+      "targetSelector": "[data-testid=\"ops-home-page\"] > .ops-workspace-hero"
+    },
+    {
+      "screenId": "ops-dashboard",
+      "canonicalCaseId": "UI-010",
+      "featureId": "UI-010",
+      "screenRoute": "/ops/dashboard",
+      "accountRole": "operator",
+      "targetSelector": "[data-testid=\"ops-dashboard-page\"] > .ops-workspace-hero"
+    },
+    {
+      "screenId": "ops-sources",
+      "canonicalCaseId": "UI-011",
+      "featureId": "UI-011",
+      "screenRoute": "/ops/sources",
+      "accountRole": "operator",
+      "targetSelector": "[data-testid=\"ops-sources-page\"] > .ops-workspace-hero"
+    },
+    {
+      "screenId": "ops-rules",
+      "canonicalCaseId": "UI-012",
+      "featureId": "UI-012",
+      "screenRoute": "/ops/rules",
+      "accountRole": "operator",
+      "targetSelector": "[data-testid=\"ops-rules-page\"] > .ops-workspace-hero"
+    },
+    {
+      "screenId": "ops-users",
+      "canonicalCaseId": "UI-013",
+      "featureId": "UI-013",
+      "screenRoute": "/ops/users",
+      "accountRole": "admin",
+      "targetSelector": "[data-testid=\"ops-users-page\"] > .ops-workspace-hero"
+    },
+    {
+      "screenId": "ops-events",
+      "canonicalCaseId": "UI-014",
+      "featureId": "UI-014",
+      "screenRoute": "/ops/events",
+      "accountRole": "operator",
+      "targetSelector": "[data-testid=\"ops-events-page\"] > .ops-workspace-hero"
+    },
+    {
+      "screenId": "ops-vlm",
+      "canonicalCaseId": "UI-022",
+      "featureId": "UI-022",
+      "screenRoute": "/ops/vlm",
+      "accountRole": "operator",
+      "targetSelector": "[data-testid=\"ops-vlm-page\"] > .ops-workspace-hero"
+    },
+    {
+      "screenId": "client-live",
+      "canonicalCaseId": "UI-015",
+      "featureId": "UI-015",
+      "screenRoute": "/client/live",
+      "accountRole": "viewer",
+      "targetSelector": "[data-testid=\"client-live-workspace\"] .live-toolbar"
+    },
+    {
+      "screenId": "client-dashboard",
+      "canonicalCaseId": "UI-016",
+      "featureId": "UI-016",
+      "screenRoute": "/client/dashboard",
+      "accountRole": "viewer",
+      "targetSelector": "[data-testid=\"client-dashboard-shell\"] > .client-dashboard-head"
+    },
+    {
+      "screenId": "client-events",
+      "canonicalCaseId": "UI-017",
+      "featureId": "UI-017",
+      "screenRoute": "/client/events",
+      "accountRole": "viewer",
+      "targetSelector": ".client-viewer-events > .client-events-head"
+    }
+  ],
+  "liveVideoProbe": {
+    "screenId": "client-live",
+    "requiredEveryVariant": true,
+    "requiredObligationIds": ["MEDIA-016", "MEDIA-017", "CLIENT-019", "CLIENT-020", "CLIENT-021"],
+    "tileSelector": ".live-drop-tile[data-tile=\"0\"][data-view-id]:not([data-view-id=\"\"])",
+    "stageSelector": ".live-drop-tile[data-tile=\"0\"] .tile-stage",
+    "videoSelector": ".live-drop-tile[data-tile=\"0\"] .tile-stage video",
+    "placeholderSelector": ".live-drop-tile[data-tile=\"0\"] [data-role=\"placeholder\"]",
+    "modeControlsSelector": ".live-drop-tile[data-tile=\"0\"] [data-testid=\"client-live-va-overlay-toggle\"]",
+    "modeActionSelector": ".live-drop-tile[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
+    "modeSelector": ".live-drop-tile[data-tile=\"0\"] [data-mode-action=\"va-overlay\"][aria-pressed=\"true\"]",
+    "controlSelectors": [
+      ".live-drop-tile[data-tile=\"0\"] .tile-head",
+      ".live-drop-tile[data-tile=\"0\"] .tile-actions",
+      ".live-drop-tile[data-tile=\"0\"] [data-action=\"toggle-playback\"]",
+      ".live-drop-tile[data-tile=\"0\"] [data-action=\"restart\"]",
+      ".live-drop-tile[data-tile=\"0\"] [data-action=\"stop\"]"
+    ],
+    "session": {
+      "method": "POST",
+      "pathPattern": "^/client/api/views/[^/]+/webrtc/session$",
+      "requiredRequestBody": {"overlayMode": "va-overlay"},
+      "allowedStatuses": [200],
+      "answerMethod": "POST",
+      "answerPathPattern": "^/client/api/views/[^/]+/webrtc/session/[^/]+/answer$",
+      "answerAllowedStatuses": [200, 204]
+    },
+    "rendering": {
+      "objectFit": "contain",
+      "requireLiveTrack": true,
+      "requirePresentedFrameProgress": true,
+      "requirePlaceholderHidden": true,
+      "requireControlsContained": true
+    }
+  }
+}

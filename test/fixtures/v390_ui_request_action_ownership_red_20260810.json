@@ -1,0 +1,54 @@
+{
+  "schema": "media-server.v390-ui-request-action-ownership-red.v1",
+  "sourceCommitSha": "b7391b003f85e77ba5aa86a3c68c9358b593d6e7",
+  "sourceBranch": "v3.9.0",
+  "sourceWorktreeClean": true,
+  "actualBrowserExecution": true,
+  "releaseEvidenceEligible": false,
+  "coverage": {
+    "target": 424,
+    "attempted": 8,
+    "pass": 7,
+    "fail": 1,
+    "notRun": 416,
+    "unsupported": 0
+  },
+  "capturedBeforeFailure": [
+    "UI-001",
+    "UI-002",
+    "UI-003",
+    "UI-004",
+    "UI-005",
+    "UI-007",
+    "UI-008"
+  ],
+  "firstFailure": {
+    "caseId": "UI-009",
+    "phase": "primary-action",
+    "error": "nested request action ownership is forbidden"
+  },
+  "cleanup": {
+    "status": "PASS",
+    "primaryFailurePreserved": true,
+    "caseRuntimeRestored": true,
+    "browserContextClosed": true
+  },
+  "artifacts": {
+    "acceptanceSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/summary.json",
+      "sha256": "2ccb7c808281910169905a4b15a04e2bea72d4708af606f863e60bfc09c8fd9e"
+    },
+    "firstFailure": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/first-failure.json",
+      "sha256": "09f6371f0a797ababeb4ef7b61dce9bd97438435e2c391febd5dca2f5bb3d74d"
+    },
+    "exactSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809162309-42812/ui-exact-424/summary.json",
+      "sha256": "9e8dc65ef9fea47edc6172738502dd9853a22a84fffb8295b7f8eb6f86b26f58"
+    },
+    "ui009Trace": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809162309-42812/ui-exact-424/traces/UI-009.trace.json",
+      "sha256": "3ba0544e49638d4d5f68edef4106bb9163c59ad2f5aa1be99640ee65357601a9"
+    }
+  }
+}

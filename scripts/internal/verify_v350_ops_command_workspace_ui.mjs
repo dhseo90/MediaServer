@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 6 Ops Command Workspace UI 구현, 문서, inventory 연결을 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v350-ops-command-workspace-ui";
 const schema = "media-server.ops.v350-command-workspace-ui.v1";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -95,6 +98,14 @@ check("/ops command workspace renderer loads incident, source, drill, staged pla
     "renderBadges('dashCommandWorkspaceBadges'",
   ]) {
     assertIncludes(block, snippet, "v350 command workspace renderer");
+    assertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace"), "data-v350-command-workspace-flow", "UI-081 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-081 no-write explicit absence oracle");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-081 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-081 source-url-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-081 credential-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-081 debug-redaction explicit absence oracle");
+    assertIncludes(files.uiScript, "/ops/dashboard", "UI-081 canonical route obligation");
+    assertIncludes(files.server, "media-server.ops.v350-command-workspace-ui.v1", "UI-081 canonical schema obligation");
   }
 });
 
@@ -200,11 +211,30 @@ check("feature inventory and release records map v3.5 Step 6", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 6 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_ops_command_workspace_ui.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-081", "SAFE-140", "OPS-107"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v350_ops_command_workspace_ui.mjs", "script inventory");
+});
+
+check("SAFE-140 canonical Ops command workspace UI boundary", () => {
+  const block = extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace");
+  const safe140BoundaryObserved = block.includes("const boundaryOk =") && block.includes("v350CommandWorkspaceCard('client-impact'");
+  const commandPlanExecuted = /\b(?:fetch|requestJson|Execute|Write|Apply)[A-Za-z0-9_$:]*\s*\(/.test(block);
+  const rawMaterialExposed = /rawLocator|credentialMaterial|debugMaterial/.test(block);
+  const mutationPerformed = commandPlanExecuted;
+  const sourceUrlExposed = /sourceUrl/.test(block);
+  const credentialMaterialExposed = /credentialMaterial/.test(block);
+  const debugMaterialExposed = /debugMaterial/.test(block);
+  assert(safe140BoundaryObserved && commandPlanExecuted === false && mutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false,
+    "SAFE-140 const boundaryOk = /ops command workspace must remain read-only without command execution mutation raw locator credential debug material");
 });
 
 const results = runChecks();

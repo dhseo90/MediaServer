@@ -110,6 +110,8 @@ Usage:
                  현장형 VA 시나리오 preset UI와 threshold round-trip을 검증합니다.
   verify-ops-source-lifecycle
                  WebRTC session active/cleanup 기준으로 공통 source lifecycle idle 복귀를 검증합니다.
+  verify-ops-source-registry-api
+                 격리 서버에서 SourceRegistry/PublishedView CRUD·soft-disable·client projection을 직접 검증합니다.
   verify-ops-source-health-bulk
                  /ops/api/source-health/bulk partial retry 계약을 검증합니다.
   verify-ops-channel-bulk
@@ -150,6 +152,90 @@ Usage:
                  제품/test UI blocking dialog 허용 기준과 fail-fast 정책을 검증합니다.
   verify-ui-fulltest-one-shot
                  throwaway seed/server와 UI 풀테스트 verifier 묶음을 한 번에 실행합니다.
+  verify-v390-ui-automation
+                 v3.9.0 R2 UI automation runner summary/report를 생성합니다.
+  verify-v390-ui-automation-report
+                 v3.9.0 R2 UI automation summary case evidence를 검증합니다.
+  verify-v390-ui-automation-runner-contract
+                 v3.9.0 R2 UI automation runner contract와 fixture evidence를 검증합니다.
+  verify-v390-ui-automation-coverage
+                 V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
+  verify-v390-ui-automation-coverage-contract
+                 V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
+  verify-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
+  verify-v390-ui-native-exact-cases-contract
+                 V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-ui-case-child-isolation-contract
+                 verification rebase single-case child의 finally summary/격리/infra-fatal 계약을 검증합니다.
+  verify-v390-ui-canonical-parent-isolation-contract
+                 verification rebase canonical parent의 exact-once 424 child/fail-continue/infra 계약을 검증합니다.
+  verify-v390-review4-source-fixture-ids
+                 V390-REVIEW4-65 numeric source/view fixture를 실제 격리 제품 서버에서 검증합니다.
+  verify-v390-ui-exact-core-oracles-contract
+                 V390-REVIEW4-65 UI/AUTH/SRC/RULE 288개 기능별 runtime oracle 계약을 검증합니다.
+  verify-v390-ui-exact-event-oracles-contract
+                 V390-REVIEW4-65 EVT 49개 기능별 runtime oracle 계약을 검증합니다.
+  verify-v390-ui-exact-event-oracle-evaluator-contract
+                 V390-REVIEW4-65 EVT response/DOM/network/state evaluator의 fail-closed 계약을 검증합니다.
+  verify-v390-ui-exact-client-safe-oracles-contract
+                 V390-REVIEW4-65 CLIENT/MEDIA/SAFE 87개 기능별 runtime oracle 계약을 검증합니다.
+  verify-v390-ui-exact-oracle-catalog-contract
+                 V390-REVIEW4-65 exact 424 통합 runtime oracle catalog를 검증합니다.
+  verify-v390-ui-exact-oracle-runtime-contract
+                 V390-REVIEW4-65 actual runtime oracle 실행기의 false-PASS 거부 계약을 검증합니다.
+  verify-v390-ui-request-action-ownership-scope-contract
+                 canonical exact 424 bootstrap/primary/readback request-action ownership 순서를 검증합니다.
+  verify-v390-ui-action-request-background-ledger-contract
+                 canonical request 391건의 action envelope와 page background ledger 분리를 검증합니다.
+  verify-v390-ui-page-owned-request-lifecycle-contract
+                 canonical 424/391/11 request lifecycle tuple의 exact-one 분류를 검증합니다.
+  verify-v390-ui-request-lifecycle-rebase-contract
+                 actual-like object graph로 request recorder/evaluator lifecycle 계약을 검증합니다.
+  verify-v390-ui-document-form-response-binding-contract
+                 canonical document-form 11건의 initiating POST response identity/barrier와 redirect ledger 분리를 검증합니다.
+  verify-v390-ui-browser-callback-free-identifier-contract
+                 browser-evaluated callback의 격리 실행, serialized argument/result, 자유 식별자 fail-closed 계약을 검증합니다.
+  verify-v390-ui-completion-oracle-contract
+                 V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
+  verify-v390-ui-policy-v4-producer-contract
+                 V390-REVIEW3-43 exact runner Policy v4 actual summary/attestation producer 계약을 검증합니다.
+  verify-v390-ui-policy-v4-independence-contract
+                 V390-REVIEW4-60 raw native evidence와 Policy qualifier 독립성 계약을 검증합니다.
+  verify-v390-ui-visual-evidence-contract
+                 V390-REVIEW3-44 screenshot pixel/geometry responsive/theme/visual 판정 계약을 검증합니다.
+  verify-v390-full-suite-eligibility-contract
+                 V390-REVIEW2-26 acceptance/final Policy v4 exact 424 eligibility 계약을 검증합니다.
+  verify-v390-current-ui-evidence-contract
+                 V390-REVIEW2-27 stale placeholder/current UI evidence binding 제거를 검증합니다.
+  run-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
+  run-v390-ui-native-diagnostic-sweep
+                 내부 전용: shared registry로 검증된 diagnostic selection을 release evidence와 분리해 실행합니다.
+  verify-v390-ui-native-diagnostic-sweep-contract
+                 내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
+  verify-v390-ui-native-diagnostic-trace-replay-contract
+                 최신 actual diagnostic 33개 실패를 고정 trace 기반 공통 경계로 replay합니다.
+  verify-v390-ui-remaining-actual-trace-replay-contract
+                 remaining-133 actual census의 7개 실패를 공통 owner 경계로 replay합니다.
+  verify-ui-fulltest-evidence-policy-v4
+                 V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
+  verify-ui-fulltest-evidence-policy-v4-contract
+                 V390-ADD1-12 Policy v4 false-PASS negative contract를 검증합니다.
+  verify-v390-ui-native-adapter
+                 V390-ADD1-08 native Playwright wait/click/fill/select/screenshot을 실제 검증합니다.
+  verify-v390-ui-native-adapter-contract
+                 V390-ADD1-08 native Playwright module/capability/evidence contract를 검증합니다.
+  verify-v390-ui-request-action-ownership-scope-contract
+                 canonical exact 424 bootstrap/primary/readback request-action ownership 순서를 검증합니다.
+  verify-v390-ui-post-action-visual-owner-contract
+                 latest actual RED와 canonical 424 post-action visual exact-one owner lifecycle을 검증합니다.
+  verify-v390-ui-action-request-background-ledger-contract
+                 canonical request 391건의 action envelope와 page background ledger 분리를 검증합니다.
+  verify-v390-ui-document-form-response-binding-contract
+                 canonical document-form 11건의 initiating POST response identity/barrier와 redirect ledger 분리를 검증합니다.
+  verify-v390-ui-browser-callback-free-identifier-contract
+                 browser-evaluated callback의 격리 실행, serialized argument/result, 자유 식별자 fail-closed 계약을 검증합니다.
   prepare-manual-ui-fulltest-seed
                  수동 UI 풀테스트용 VA seed fixture를 dry-run 검증하고, 명시 승인 시 throwaway 서버에 적용합니다.
   verify-docs-links
@@ -339,7 +425,7 @@ Usage:
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v380-entry-baseline
-                 v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
+                 v3.8.0 Step 1 source baseline과 latest published v3.8.0 경계를 검증합니다.
   verify-v380-ops-action-route-boundary
                  v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
   verify-v380-action-capability-contract
@@ -370,6 +456,209 @@ Usage:
                  v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
   verify-v380-stabilization-release-readiness
                  v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v390-entry-baseline
+                 v3.9.0 source baseline, roadmap, docs, feature inventory scaffold, dispatch 경계를 검증합니다.
+  verify-v390-entry-baseline-contract
+                 v3.9.0 current backlog Step 상태 parser의 positive/negative contract를 검증합니다.
+  verify-feature-semantic-closure-contract
+                 986행 REVIEW3 owner/route-control/action/state/readback call-chain contract를 검증합니다.
+  verify-v390-review3-discovery-ledger
+                 V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
+  verify-v390-review4-semantic-discovery-ledger
+                 V390-REVIEW4-52 문서/source marker 의미, actual owner, evidence ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-audit
+                 V390-REVIEW4-53 986행 production source/call/data-flow 독립 ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approvals
+                 V390-REVIEW4-53 저장 audit를 별도 trust-domain에서 재검증하고 approval ledger 경계를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approval-selftest
+                 V390-REVIEW4-53 독립 approval validator의 non-gate negative self-test를 실행합니다.
+  verify-v390-review4-semantic-migration-contract
+                 V390-REVIEW4-65 scoped semantic input과 carry-forward negative contract를 검증합니다.
+  verify-v390-review4-ops-168-184-safe-001-008-semantic
+                 V390-REVIEW4-53 OPS-168~184/SAFE-001~008 product/harness authored closure를 검증합니다.
+  verify-v390-feature-completion-inventory
+                 v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
+  verify-v390-user-review-gate
+                 v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.
+  verify-v390-evidence-test-gate-prep
+                 v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
+  verify-v390-server-longrun
+                 v3.9.0 R1 server longrun stop-on-first-fail runner를 실행합니다.
+  verify-v390-server-longrun-runner-contract
+                 v3.9.0 R1 server longrun runner contract와 fixture evidence를 검증합니다.
+  verify-v390-longrun-evidence-measurement-contract
+                 V390-REVIEW4-61 monotonic duration, 120분 판정, PID/port/artifact cleanup 실측을 검증합니다.
+  verify-v390-ui-automation
+                 v3.9.0 R2 UI automation runner summary/report를 생성합니다.
+  verify-v390-ui-automation-report
+                 v3.9.0 R2 UI automation summary case evidence를 검증합니다.
+  verify-v390-ui-automation-runner-contract
+                 v3.9.0 R2 UI automation runner contract와 fixture evidence를 검증합니다.
+  verify-v390-ui-automation-coverage
+                 V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
+  verify-v390-ui-automation-coverage-contract
+                 V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
+  verify-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
+  verify-v390-ui-native-exact-cases-contract
+                 V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-ui-case-child-isolation-contract
+                 verification rebase single-case child의 finally summary/격리/infra-fatal 계약을 검증합니다.
+  verify-v390-ui-canonical-parent-isolation-contract
+                 verification rebase canonical parent의 exact-once 424 child/fail-continue/infra 계약을 검증합니다.
+  verify-v390-review4-source-fixture-ids
+                 V390-REVIEW4-65 numeric source/view fixture를 실제 격리 제품 서버에서 검증합니다.
+  verify-v390-ui-completion-oracle-contract
+                 V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
+  verify-v390-ui-policy-v4-producer-contract
+                 V390-REVIEW3-43 exact runner Policy v4 actual summary/attestation producer 계약을 검증합니다.
+  verify-v390-ui-visual-evidence-contract
+                 V390-REVIEW3-44 screenshot pixel/geometry responsive/theme/visual 판정 계약을 검증합니다.
+  verify-v390-full-suite-eligibility-contract
+                 V390-REVIEW2-26 acceptance/final Policy v4 exact 424 eligibility 계약을 검증합니다.
+  verify-v390-current-ui-evidence-contract
+                 V390-REVIEW2-27 stale placeholder/current UI evidence binding 제거를 검증합니다.
+  run-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
+  run-v390-ui-native-diagnostic-sweep
+                 내부 전용: shared registry로 검증된 diagnostic selection을 release evidence와 분리해 실행합니다.
+  verify-v390-ui-native-diagnostic-sweep-contract
+                 내부 UI diagnostic sweep의 release 격리, cleanup recycle, retry 금지 계약을 검증합니다.
+  verify-v390-ui-native-diagnostic-trace-replay-contract
+                 최신 actual diagnostic 33개 실패를 고정 trace 기반 공통 경계로 replay합니다.
+  verify-v390-ui-remaining-actual-trace-replay-contract
+                 remaining-133 actual census의 7개 실패를 공통 owner 경계로 replay합니다.
+  verify-ui-fulltest-evidence-policy-v4
+                 V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
+  verify-ui-fulltest-evidence-policy-v4-contract
+                 V390-ADD1-12 Policy v4 false-PASS negative contract를 검증합니다.
+  verify-v390-ui-automation-report-replay-guard
+                 v3.9.0 R5 UI automation report replay guard contract를 검증합니다.
+  verify-v390-ui-native-adapter
+                 V390-ADD1-08 native Playwright wait/click/fill/select/screenshot을 실제 검증합니다.
+  verify-v390-ui-native-adapter-contract
+                 V390-ADD1-08 native Playwright module/capability/evidence contract를 검증합니다.
+  verify-v390-ui-post-action-visual-owner-contract
+                 latest actual RED와 canonical 424 post-action visual exact-one owner lifecycle을 검증합니다.
+  verify-v390-test-acceptance-bundle
+                 v3.9.0 canonical build→기능→30분→exact 424→Policy v4→조건부 120분→final integrity bundle을 실행합니다.
+  verify-v390-test-acceptance-bundle-contract
+                 v3.9.0 R3 test acceptance bundle command/docs/evidence contract를 검증합니다.
+  verify-v390-user-test-launchers-contract
+                 REVIEW4-62/65 사용자용 30분·120분·UI·release 무옵션 launcher 계약을 검증합니다.
+  verify-v390-final-evidence-integrity
+                 v3.9.0 Evidence 13~14 final artifact/provenance/cleanup 무결성을 검증합니다.
+  verify-v390-final-evidence-integrity-contract
+                 v3.9.0 final evidence 무결성 negative fixture를 검증합니다.
+  verify-v390-longrun-runner-role-alignment
+                 v3.9.0 R4 legacy predev와 release-grade longrun runner 역할 정렬을 검증합니다.
+  verify-v390-onvif-credential-provider-status
+                 v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
+  verify-v390-onvif-live-import-persist-decision
+                 v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
+  verify-v390-onvif-source-view-atomicity
+                 V390-REVIEW4-55 ONVIF source/view crash recovery transaction을 검증합니다.
+  verify-v390-analysis-registry-durable-write
+                 V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
+  verify-v390-review4-lab-core-api
+                 REVIEW4-53 LAB core API의 실제 mutation/readback/cleanup을 짧게 검증합니다.
+  verify-v390-vlm-rule-suggestion-draft-bridge
+                 v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
+  verify-v390-vlm-incident-rule-provenance
+                 v3.9.0 (17) Development 15 VLM incident-to-rule 저장 provenance를 검증합니다.
+  verify-v390-deferred-product-owner-signoff
+                 v3.9.0 (17) Development 16 deferred 항목별 owner 역할과 결정을 검증합니다.
+  verify-v390-deferred-product-owner-source-region-contract
+                 REVIEW4-65 deferred owner UI 근거의 row-local source binding negative contract를 검증합니다.
+  verify-v390-vlm-evaluation-promotion-guard
+  verify-v390-vlm-promotion-trust-boundary
+                 v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
+  verify-v390-backup-recovery-handoff-validation
+                 v3.9.0 Step 15 backup/recovery handoff validation을 검증합니다.
+  verify-v390-action-execution-deferral-decision
+                 v3.9.0 Step 16 action execution deferral decision을 검증합니다.
+  verify-v390-conditional-field-ai-decisions
+                 v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
+  verify-v390-reid-readiness-consistency
+                 V390-ADD1-04 Re-ID 파일/SHA/provenance/OpenSSL/ONNX 공용 readiness를 검증합니다.
+  verify-v390-structure-stabilization-handoff
+                 v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
+  verify-v390-structure-stabilization-readiness
+                 v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
+  verify-v390-review4-structure-stabilization-execution
+                 V390-REVIEW4-64 실제 6-slice 구조 안정화 실행 원장과 current graph를 검증합니다.
+  verify-v390-ops-product-ui-renderer-owner
+                 V390-REVIEW4-64 Ops shell/dashboard/rules/events/home/VLM renderer 분리와 HTML byte 불변을 검증합니다.
+  verify-v390-product-ui-principal-view-boundary
+                 V390-REVIEW4-64 product UI renderer의 transport auth 역의존 제거와 HTML byte 불변을 검증합니다.
+  verify-v390-cmake-internal-target-separation
+                 V390-REVIEW4-64 composition executable과 runtime static library 분리를 검증합니다.
+  verify-v390-stable-contract-leaf-boundary
+                 V390-REVIEW4-64 stable DTO의 service/core 역참조 제거와 AnalysisEvent 계약 불변을 검증합니다.
+  verify-v390-analysis-query-owner-boundary
+                 V390-REVIEW4-64 analysis query/profile 해석기의 analysis owner 이동과 중간 SCC 경계를 검증합니다.
+  verify-v390-core-media-analysis-port-inversion
+                 V390-REVIEW4-64 core-media→analysis witness를 port/callback 주입으로 제거합니다.
+  verify-v390-analysis-runtime-port-boundary
+                 V390-REVIEW4-64 analysis→core-utilities 설정·진단·명령 실행을 core-media port로 역전합니다.
+  verify-v390-transport-runtime-config-boundary
+                 V390-REVIEW4-64 transport의 AppConfig·진단·stream-key 직접 의존을 runtime config 주입으로 제거합니다.
+  verify-v390-strict-json-service-boundary
+                 V390-REVIEW4-64 transport의 strict JSON 사용을 의미 기반 application service로 역전합니다.
+  verify-v390-source-view-application-boundary
+                 V390-REVIEW4-64 transport의 Source/View registry 결속을 application service로 역전합니다.
+  verify-v390-appearance-readiness-application-boundary
+                 V390-REVIEW4-64 transport의 Re-ID readiness 결속을 application service로 역전합니다.
+  verify-v390-category-catalog-application-boundary
+                 V390-REVIEW4-64 transport의 category catalog 결속을 application service로 역전합니다.
+  verify-v390-vlm-observation-application-boundary
+                 V390-REVIEW4-64 transport의 VLM observation 조회 결속을 application service로 역전합니다.
+  verify-v390-incident-memory-application-boundary
+                 V390-REVIEW4-64 transport의 incident-memory 결속을 application service로 역전합니다.
+  verify-v390-event-post-application-boundary
+                 V390-REVIEW4-64 transport의 Event POST projection/status 결속을 application service로 역전합니다.
+  verify-v390-image-codec-application-boundary
+                 V390-REVIEW4-64 transport의 image decode/JPEG encode 결속을 application service로 역전합니다.
+  verify-v390-analysis-rule-private-declaration-boundary
+                 V390-REVIEW4-64 transport의 analysis rule domain 선언 결속을 private declaration으로 분리합니다.
+  verify-v390-analysis-frame-application-boundary
+                 V390-REVIEW4-64 transport의 detector/tracker/overlay 실행을 application service로 역전합니다.
+  verify-v390-va-metadata-application-boundary
+                 V390-REVIEW4-64 transport의 VA metadata filter/serializer 결속을 application service로 역전합니다.
+  verify-v390-event-feature-search-application-boundary
+                 V390-REVIEW4-64 transport의 Event Feature/Search Index·DSL 결속을 application service로 역전합니다.
+  verify-v390-event-storage-application-boundary
+                 V390-REVIEW4-64 transport의 Event Storage 결속을 application service로 역전합니다.
+  verify-v390-event-rule-application-boundary
+                 V390-REVIEW4-64 transport의 Event Rule runtime/evaluation 결속을 application service로 역전합니다.
+  verify-v390-analysis-session-read-application-boundary
+                 V390-REVIEW4-64 transport의 Analysis Session 조회 결속을 application service로 역전합니다.
+  verify-v390-analysis-session-lifecycle-application-boundary
+                 V390-REVIEW4-64 transport의 Analysis Session lifecycle 결속을 application service로 역전합니다.
+  verify-v390-webrtc-media-application-boundary
+                 V390-REVIEW4-64 transport의 WebRTC media/runtime 결속을 application service로 역전합니다.
+  verify-v390-stable-contract-owner-realignment
+                 V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
+  verify-v390-public-contract-interface-owner
+                 V390-REVIEW4-64 public contract/interface와 구현 owner를 분리합니다.
+  verify-v390-core-media-registry-rule-port
+                 V390-REVIEW4-64 WebRTC source registry와 RTSP rule lookup의 core-media 경계를 검증합니다.
+  verify-v390-webrtc-http-server-source-bundle
+                 V390-REVIEW4-64 split-safe HTTP server verifier source bundle을 검증합니다.
+  verify-v390-webrtc-http-server-physical-split
+                 V390-REVIEW4-64 HTTP server의 실제 translation-unit 분할과 15,000줄 한계를 검증합니다.
+  verify-v390-source-request-parser-owner
+                 V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
+  verify-v390-review4-truth-reset
+                 V390-REVIEW4-50 current source 판정, metric, readiness/execution 경계를 검증합니다.
+  verify-v390-review4-structure-scope-decision
+                 V390-REVIEW4-51 v3.9 actual refactor 승인, 순서, base/branch, 불변 계약을 검증합니다.
+  verify-v390-external-field-smoke-no-device-closure
+                 v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
+  verify-v390-truthfulness-status-vocabulary
+                 V390-REVIEW2-35 owner/field/structure 상태 진실성 vocabulary를 검증합니다.
+  verify-v390-stabilization-release-readiness
+                 v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -534,6 +823,8 @@ Usage:
                  코드 기능/UI 접근 기능/검증 명령 inventory 문서가 현재 command/route 범위를 덮는지 점검합니다.
   verify-feature-inventory-coverage
                  기능 ID가 verifier/UI evidence/장시간 승인/field exclusion 중 하나에 연결됐는지 점검합니다.
+  verify-feature-implementation-evidence
+                 984개 기능 ID별 실제 owner/UI/verifier anchor manifest와 canonical longrun mapping을 점검합니다.
   verify-v300-entry-baseline
                  v3.0.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
   verify-v300-event-evidence-contract
@@ -655,7 +946,7 @@ Usage:
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v380-entry-baseline
-                 v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
+                 v3.8.0 Step 1 source baseline과 latest published v3.8.0 경계를 검증합니다.
   verify-v380-ops-action-route-boundary
                  v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
   verify-v380-action-capability-contract
@@ -686,6 +977,142 @@ Usage:
                  v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
   verify-v380-stabilization-release-readiness
                  v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v390-entry-baseline
+                 v3.9.0 source baseline, roadmap, docs, feature inventory scaffold, dispatch 경계를 검증합니다.
+  verify-v390-entry-baseline-contract
+                 v3.9.0 current backlog Step 상태 parser의 positive/negative contract를 검증합니다.
+  verify-feature-semantic-closure-contract
+                 986행 REVIEW3 owner/route-control/action/state/readback call-chain contract를 검증합니다.
+  verify-v390-review3-discovery-ledger
+                 V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
+  verify-v390-review4-semantic-discovery-ledger
+                 V390-REVIEW4-52 문서/source marker 의미, actual owner, evidence ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-audit
+                 V390-REVIEW4-53 986행 production source/call/data-flow 독립 ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approvals
+                 V390-REVIEW4-53 저장 audit를 별도 trust-domain에서 재검증하고 approval ledger 경계를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approval-selftest
+                 V390-REVIEW4-53 독립 approval validator의 non-gate negative self-test를 실행합니다.
+  verify-v390-review4-semantic-migration-contract
+                 V390-REVIEW4-65 scoped semantic input과 carry-forward negative contract를 검증합니다.
+  verify-v390-review4-ops-168-184-safe-001-008-semantic
+                 V390-REVIEW4-53 OPS-168~184/SAFE-001~008 product/harness authored closure를 검증합니다.
+  verify-v390-feature-completion-inventory
+                 v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
+  verify-v390-user-review-gate
+                 v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.
+  verify-v390-evidence-test-gate-prep
+                 v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
+  verify-v390-server-longrun
+                 v3.9.0 R1 server longrun stop-on-first-fail runner를 실행합니다.
+  verify-v390-server-longrun-runner-contract
+                 v3.9.0 R1 server longrun runner contract와 fixture evidence를 검증합니다.
+  verify-v390-longrun-evidence-measurement-contract
+                 V390-REVIEW4-61 monotonic duration, 120분 판정, PID/port/artifact cleanup 실측을 검증합니다.
+  verify-v390-onvif-credential-provider-status
+                 v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
+  verify-v390-onvif-live-import-persist-decision
+                 v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
+  verify-v390-onvif-source-view-atomicity
+                 V390-REVIEW4-55 ONVIF source/view crash recovery transaction을 검증합니다.
+  verify-v390-analysis-registry-durable-write
+                 V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
+  verify-v390-review4-lab-core-api
+                 REVIEW4-53 LAB core API의 실제 mutation/readback/cleanup을 짧게 검증합니다.
+  verify-v390-vlm-rule-suggestion-draft-bridge
+                 v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
+  verify-v390-vlm-incident-rule-provenance
+                 v3.9.0 (17) Development 15 VLM incident-to-rule 저장 provenance를 검증합니다.
+  verify-v390-deferred-product-owner-signoff
+                 v3.9.0 (17) Development 16 deferred 항목별 owner 역할과 결정을 검증합니다.
+  verify-v390-deferred-product-owner-source-region-contract
+                 REVIEW4-65 deferred owner UI 근거의 row-local source binding negative contract를 검증합니다.
+  verify-v390-vlm-evaluation-promotion-guard
+                 v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
+  verify-v390-vlm-promotion-trust-boundary
+                 V390-ADD1-03 candidate/result/provenance 서버 권위 승격 경계를 실제 HTTP로 검증합니다.
+  verify-v390-backup-recovery-handoff-validation
+                 v3.9.0 Step 15 backup/recovery handoff validation을 검증합니다.
+  verify-v390-action-execution-deferral-decision
+                 v3.9.0 Step 16 action execution deferral decision을 검증합니다.
+  verify-v390-conditional-field-ai-decisions
+                 v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
+  verify-v390-reid-readiness-consistency
+                 V390-ADD1-04 Re-ID 파일/SHA/provenance/OpenSSL/ONNX 공용 readiness를 검증합니다.
+  verify-v390-structure-stabilization-handoff
+                 v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
+  verify-v390-structure-stabilization-readiness
+                 v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
+  verify-v390-review4-structure-stabilization-execution
+                 V390-REVIEW4-64 실제 6-slice 구조 안정화 실행 원장과 current graph를 검증합니다.
+  verify-v390-cmake-internal-target-separation
+                 V390-REVIEW4-64 composition executable과 runtime static library 분리를 검증합니다.
+  verify-v390-stable-contract-leaf-boundary
+                 V390-REVIEW4-64 stable DTO의 service/core 역참조 제거와 AnalysisEvent 계약 불변을 검증합니다.
+  verify-v390-analysis-query-owner-boundary
+                 V390-REVIEW4-64 analysis query/profile 해석기의 analysis owner 이동과 중간 SCC 경계를 검증합니다.
+  verify-v390-core-media-analysis-port-inversion
+                 V390-REVIEW4-64 core-media→analysis witness를 port/callback 주입으로 제거합니다.
+  verify-v390-analysis-runtime-port-boundary
+                 V390-REVIEW4-64 analysis→core-utilities 설정·진단·명령 실행을 core-media port로 역전합니다.
+  verify-v390-transport-runtime-config-boundary
+                 V390-REVIEW4-64 transport의 AppConfig·진단·stream-key 직접 의존을 runtime config 주입으로 제거합니다.
+  verify-v390-strict-json-service-boundary
+                 V390-REVIEW4-64 transport의 strict JSON 사용을 의미 기반 application service로 역전합니다.
+  verify-v390-source-view-application-boundary
+                 V390-REVIEW4-64 transport의 Source/View registry 결속을 application service로 역전합니다.
+  verify-v390-appearance-readiness-application-boundary
+                 V390-REVIEW4-64 transport의 Re-ID readiness 결속을 application service로 역전합니다.
+  verify-v390-category-catalog-application-boundary
+                 V390-REVIEW4-64 transport의 category catalog 결속을 application service로 역전합니다.
+  verify-v390-vlm-observation-application-boundary
+                 V390-REVIEW4-64 transport의 VLM observation 조회 결속을 application service로 역전합니다.
+  verify-v390-incident-memory-application-boundary
+                 V390-REVIEW4-64 transport의 incident-memory 결속을 application service로 역전합니다.
+  verify-v390-event-post-application-boundary
+                 V390-REVIEW4-64 transport의 Event POST projection/status 결속을 application service로 역전합니다.
+  verify-v390-image-codec-application-boundary
+                 V390-REVIEW4-64 transport의 image decode/JPEG encode 결속을 application service로 역전합니다.
+  verify-v390-analysis-rule-private-declaration-boundary
+                 V390-REVIEW4-64 transport의 analysis rule domain 선언 결속을 private declaration으로 분리합니다.
+  verify-v390-analysis-frame-application-boundary
+                 V390-REVIEW4-64 transport의 detector/tracker/overlay 실행을 application service로 역전합니다.
+  verify-v390-va-metadata-application-boundary
+                 V390-REVIEW4-64 transport의 VA metadata filter/serializer 결속을 application service로 역전합니다.
+  verify-v390-event-feature-search-application-boundary
+                 V390-REVIEW4-64 transport의 Event Feature/Search Index·DSL 결속을 application service로 역전합니다.
+  verify-v390-event-storage-application-boundary
+                 V390-REVIEW4-64 transport의 Event Storage 결속을 application service로 역전합니다.
+  verify-v390-event-rule-application-boundary
+                 V390-REVIEW4-64 transport의 Event Rule runtime/evaluation 결속을 application service로 역전합니다.
+  verify-v390-analysis-session-read-application-boundary
+                 V390-REVIEW4-64 transport의 Analysis Session 조회 결속을 application service로 역전합니다.
+  verify-v390-analysis-session-lifecycle-application-boundary
+                 V390-REVIEW4-64 transport의 Analysis Session lifecycle 결속을 application service로 역전합니다.
+  verify-v390-webrtc-media-application-boundary
+                 V390-REVIEW4-64 transport의 WebRTC media/runtime 결속을 application service로 역전합니다.
+  verify-v390-stable-contract-owner-realignment
+                 V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
+  verify-v390-public-contract-interface-owner
+                 V390-REVIEW4-64 public contract/interface와 구현 owner를 분리합니다.
+  verify-v390-core-media-registry-rule-port
+                 V390-REVIEW4-64 WebRTC source registry와 RTSP rule lookup의 core-media 경계를 검증합니다.
+  verify-v390-webrtc-http-server-source-bundle
+                 V390-REVIEW4-64 split-safe HTTP server verifier source bundle을 검증합니다.
+  verify-v390-webrtc-http-server-physical-split
+                 V390-REVIEW4-64 HTTP server의 실제 translation-unit 분할과 15,000줄 한계를 검증합니다.
+  verify-v390-source-request-parser-owner
+                 V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
+  verify-v390-review4-truth-reset
+                 V390-REVIEW4-50 current source 판정, metric, readiness/execution 경계를 검증합니다.
+  verify-v390-review4-structure-scope-decision
+                 V390-REVIEW4-51 v3.9 actual refactor 승인, 순서, base/branch, 불변 계약을 검증합니다.
+  verify-v390-external-field-smoke-no-device-closure
+                 v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
+  verify-v390-truthfulness-status-vocabulary
+                 V390-REVIEW2-35 owner/field/structure 상태 진실성 vocabulary를 검증합니다.
+  verify-v390-stabilization-release-readiness
+                 v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1169,6 +1596,10 @@ case "${cmd}" in
     require_internal verify_ops_source_lifecycle.mjs
     exec "${INTERNAL_DIR}/verify_ops_source_lifecycle.mjs" "$@"
     ;;
+  verify-ops-source-registry-api)
+    require_internal verify_ops_source_registry_api.mjs
+    exec "${INTERNAL_DIR}/verify_ops_source_registry_api.mjs" "$@"
+    ;;
   verify-ops-source-health-bulk)
     require_internal verify_ops_source_health_bulk.mjs
     exec "${INTERNAL_DIR}/verify_ops_source_health_bulk.mjs" "$@"
@@ -1496,6 +1927,10 @@ case "${cmd}" in
   verify-feature-inventory-coverage)
     require_internal verify_feature_inventory_coverage.mjs
     exec "${INTERNAL_DIR}/verify_feature_inventory_coverage.mjs" "$@"
+    ;;
+  verify-feature-implementation-evidence)
+    require_internal verify_feature_implementation_evidence.mjs
+    exec "${INTERNAL_DIR}/verify_feature_implementation_evidence.mjs" "$@"
     ;;
   verify-v290-final-contract-freeze)
     require_internal verify_v290_final_contract_freeze.mjs
@@ -1852,6 +2287,470 @@ case "${cmd}" in
   verify-v380-stabilization-release-readiness)
     require_internal verify_v380_stabilization_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v380_stabilization_release_readiness.mjs" "$@"
+    ;;
+  verify-v390-entry-baseline)
+    require_internal verify_v390_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v390_entry_baseline.mjs" "$@"
+    ;;
+  verify-v390-entry-baseline-contract)
+    require_internal verify_v390_entry_baseline_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_entry_baseline_contract.mjs" "$@"
+    ;;
+  verify-feature-semantic-closure-contract)
+    require_internal verify_feature_semantic_closure_contract.mjs
+    exec "${INTERNAL_DIR}/verify_feature_semantic_closure_contract.mjs" "$@"
+    ;;
+  verify-v390-review3-discovery-ledger)
+    require_internal verify_v390_review3_discovery_ledger.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review3_discovery_ledger.mjs" "$@"
+    ;;
+  verify-v390-review4-semantic-discovery-ledger)
+    require_internal verify_v390_review4_semantic_discovery_ledger.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_semantic_discovery_ledger.mjs" "$@"
+    ;;
+  verify-v390-review4-feature-semantic-source-audit)
+    require_internal verify_v390_review4_feature_semantic_source_audit.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_feature_semantic_source_audit.mjs" "$@"
+    ;;
+  verify-v390-review4-feature-semantic-source-approvals)
+    require_internal verify_v390_review4_feature_semantic_source_approvals.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_feature_semantic_source_approvals.mjs" "$@"
+    ;;
+  produce-v390-review4-migration-aware-approvals)
+    require_internal produce_v390_review4_migration_aware_approvals.mjs
+    exec "${INTERNAL_DIR}/produce_v390_review4_migration_aware_approvals.mjs" "$@"
+    ;;
+  verify-v390-review4-feature-semantic-source-approval-selftest)
+    require_internal verify_v390_review4_feature_semantic_source_approval_selftest.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_feature_semantic_source_approval_selftest.mjs" "$@"
+    ;;
+  verify-v390-review4-semantic-migration-contract)
+    require_internal verify_v390_review4_semantic_migration_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_semantic_migration_contract.mjs" "$@"
+    ;;
+  verify-v390-review4-ops-168-184-safe-001-008-semantic)
+    require_internal verify_v390_review4_ops_168_184_safe_001_008_semantic.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_ops_168_184_safe_001_008_semantic.mjs" "$@"
+    ;;
+  verify-v390-feature-completion-inventory)
+    require_internal verify_v390_feature_completion_inventory.mjs
+    exec "${INTERNAL_DIR}/verify_v390_feature_completion_inventory.mjs" "$@"
+    ;;
+  verify-v390-user-review-gate)
+    require_internal verify_v390_user_review_gate.mjs
+    exec "${INTERNAL_DIR}/verify_v390_user_review_gate.mjs" "$@"
+    ;;
+  verify-v390-evidence-test-gate-prep)
+    require_internal verify_v390_evidence_test_gate_prep.mjs
+    exec "${INTERNAL_DIR}/verify_v390_evidence_test_gate_prep.mjs" "$@"
+    ;;
+  verify-v390-server-longrun)
+    require_internal verify_v390_server_longrun.mjs
+    exec "${INTERNAL_DIR}/verify_v390_server_longrun.mjs" "$@"
+    ;;
+  verify-v390-server-longrun-runner-contract)
+    require_internal verify_v390_server_longrun_runner_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_server_longrun_runner_contract.mjs" "$@"
+    ;;
+  verify-v390-longrun-evidence-measurement-contract)
+    require_internal verify_v390_longrun_evidence_measurement_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_longrun_evidence_measurement_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-automation)
+    require_internal verify_v390_ui_automation.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-report)
+    require_internal verify_v390_ui_automation_report.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_report.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-runner-contract)
+    require_internal verify_v390_ui_automation_runner_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_runner_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-coverage)
+    require_internal verify_v390_ui_automation_coverage.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_coverage.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-coverage-contract)
+    require_internal verify_v390_ui_automation_coverage_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_coverage_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-native-exact-cases)
+    require_internal verify_v390_ui_native_exact_cases.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_exact_cases.mjs" "$@"
+    ;;
+  verify-v390-ui-native-exact-cases-contract)
+    require_internal verify_v390_ui_native_exact_cases_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_exact_cases_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-case-child-isolation-contract)
+    require_internal verify_v390_ui_case_child_isolation_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_case_child_isolation_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-canonical-parent-isolation-contract)
+    require_internal verify_v390_ui_canonical_parent_isolation_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_canonical_parent_isolation_contract.mjs" "$@"
+    ;;
+  verify-v390-review4-source-fixture-ids)
+    require_internal verify_v390_review4_source_fixture_ids.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_source_fixture_ids.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-core-oracles-contract)
+    require_internal verify_v390_ui_exact_core_oracles_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_core_oracles_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-event-oracles-contract)
+    require_internal verify_v390_ui_exact_event_oracles_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_event_oracles_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-event-oracle-evaluator-contract)
+    require_internal verify_v390_ui_exact_event_oracle_evaluator_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_event_oracle_evaluator_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-client-safe-oracles-contract)
+    require_internal verify_v390_ui_exact_client_safe_oracles_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_client_safe_oracles_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-oracle-catalog-contract)
+    require_internal verify_v390_ui_exact_oracle_catalog_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_oracle_catalog_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-oracle-runtime-contract)
+    require_internal verify_v390_ui_exact_oracle_runtime_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_oracle_runtime_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-completion-oracle-contract)
+    require_internal verify_v390_ui_completion_oracle_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_completion_oracle_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-policy-v4-producer-contract)
+    require_internal verify_v390_ui_policy_v4_producer_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_policy_v4_producer_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-policy-v4-independence-contract)
+    require_internal verify_v390_ui_policy_v4_independence_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_policy_v4_independence_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-visual-evidence-contract)
+    require_internal verify_v390_ui_visual_evidence_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_visual_evidence_contract.mjs" "$@"
+    ;;
+  verify-v390-full-suite-eligibility-contract)
+    require_internal verify_v390_full_suite_eligibility_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_full_suite_eligibility_contract.mjs" "$@"
+    ;;
+  verify-v390-current-ui-evidence-contract)
+    require_internal verify_v390_current_ui_evidence_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_current_ui_evidence_contract.mjs" "$@"
+    ;;
+  run-v390-ui-native-exact-cases)
+    require_internal run_v390_ui_native_exact_cases.mjs
+    exec "${INTERNAL_DIR}/run_v390_ui_native_exact_cases.mjs" "$@"
+    ;;
+  run-v390-ui-native-diagnostic-sweep)
+    require_internal run_v390_ui_native_diagnostic_sweep.mjs
+    exec "${INTERNAL_DIR}/run_v390_ui_native_diagnostic_sweep.mjs" "$@"
+    ;;
+  verify-v390-ui-native-diagnostic-sweep-contract)
+    require_internal verify_v390_ui_native_diagnostic_sweep_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_diagnostic_sweep_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-native-diagnostic-trace-replay-contract)
+    require_internal verify_v390_ui_native_diagnostic_trace_replay_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_diagnostic_trace_replay_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-remaining-actual-trace-replay-contract)
+    require_internal verify_v390_ui_remaining_actual_trace_replay_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_remaining_actual_trace_replay_contract.mjs" "$@"
+    ;;
+  verify-ui-fulltest-evidence-policy-v4)
+    require_internal verify_ui_fulltest_evidence_policy_v4.mjs
+    exec "${INTERNAL_DIR}/verify_ui_fulltest_evidence_policy_v4.mjs" "$@"
+    ;;
+  verify-ui-fulltest-evidence-policy-v4-contract)
+    require_internal verify_ui_fulltest_evidence_policy_v4_contract.mjs
+    exec "${INTERNAL_DIR}/verify_ui_fulltest_evidence_policy_v4_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-report-replay-guard)
+    require_internal verify_v390_ui_automation_report_replay_guard_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_report_replay_guard_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-native-adapter)
+    require_internal verify_v390_ui_native_adapter.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_adapter.mjs" "$@"
+    ;;
+  verify-v390-ui-native-adapter-contract)
+    require_internal verify_v390_ui_native_adapter_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_adapter_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-request-action-ownership-scope-contract)
+    require_internal verify_v390_ui_request_action_ownership_scope_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_request_action_ownership_scope_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-action-request-background-ledger-contract)
+    require_internal verify_v390_ui_action_request_background_ledger_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_action_request_background_ledger_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-page-owned-request-lifecycle-contract)
+    require_internal verify_v390_ui_page_owned_request_lifecycle_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_page_owned_request_lifecycle_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-request-lifecycle-rebase-contract)
+    require_internal verify_v390_ui_request_lifecycle_rebase_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_request_lifecycle_rebase_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-document-form-response-binding-contract)
+    require_internal verify_v390_ui_document_form_response_binding_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_document_form_response_binding_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-browser-callback-free-identifier-contract)
+    require_internal verify_v390_ui_browser_callback_free_identifier_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_browser_callback_free_identifier_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-post-action-visual-owner-contract)
+    require_internal verify_v390_ui_post_action_visual_owner_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_post_action_visual_owner_contract.mjs" "$@"
+    ;;
+  verify-v390-test-acceptance-bundle)
+    require_internal verify_v390_test_acceptance_bundle.mjs
+    exec "${INTERNAL_DIR}/verify_v390_test_acceptance_bundle.mjs" "$@"
+    ;;
+  verify-v390-test-acceptance-bundle-contract)
+    require_internal verify_v390_test_acceptance_bundle_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_test_acceptance_bundle_contract.mjs" "$@"
+    ;;
+  verify-v390-user-test-launchers-contract)
+    require_internal verify_v390_user_test_launchers_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_user_test_launchers_contract.mjs" "$@"
+    ;;
+  verify-v390-final-evidence-integrity)
+    require_internal verify_v390_final_evidence_integrity.mjs
+    exec "${INTERNAL_DIR}/verify_v390_final_evidence_integrity.mjs" "$@"
+    ;;
+  verify-v390-final-evidence-integrity-contract)
+    require_internal verify_v390_final_evidence_integrity_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_final_evidence_integrity_contract.mjs" "$@"
+    ;;
+  verify-v390-longrun-runner-role-alignment)
+    require_internal verify_v390_longrun_runner_role_alignment.mjs
+    exec "${INTERNAL_DIR}/verify_v390_longrun_runner_role_alignment.mjs" "$@"
+    ;;
+  verify-v390-onvif-credential-provider-status)
+    require_internal verify_v390_onvif_credential_provider_status.mjs
+    exec "${INTERNAL_DIR}/verify_v390_onvif_credential_provider_status.mjs" "$@"
+    ;;
+  verify-v390-onvif-live-import-persist-decision)
+    require_internal verify_v390_onvif_live_import_persist_decision.mjs
+    exec "${INTERNAL_DIR}/verify_v390_onvif_live_import_persist_decision.mjs" "$@"
+    ;;
+  verify-v390-onvif-source-view-atomicity)
+    require_internal verify_v390_onvif_source_view_atomicity.mjs
+    exec "${INTERNAL_DIR}/verify_v390_onvif_source_view_atomicity.mjs" "$@"
+    ;;
+  verify-v390-analysis-registry-durable-write)
+    require_internal verify_v390_analysis_registry_durable_write.mjs
+    exec "${INTERNAL_DIR}/verify_v390_analysis_registry_durable_write.mjs" "$@"
+    ;;
+  verify-v390-review4-lab-core-api)
+    require_internal verify_v390_review4_lab_core_api.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_lab_core_api.mjs" "$@"
+    ;;
+  verify-v390-vlm-rule-suggestion-draft-bridge)
+    require_internal verify_v390_vlm_rule_suggestion_draft_bridge.mjs
+    exec "${INTERNAL_DIR}/verify_v390_vlm_rule_suggestion_draft_bridge.mjs" "$@"
+    ;;
+  verify-v390-vlm-incident-rule-provenance)
+    require_internal verify_v390_vlm_incident_rule_provenance.mjs
+    exec "${INTERNAL_DIR}/verify_v390_vlm_incident_rule_provenance.mjs" "$@"
+    ;;
+  verify-v390-deferred-product-owner-signoff)
+    require_internal verify_v390_deferred_product_owner_signoff.mjs
+    exec "${INTERNAL_DIR}/verify_v390_deferred_product_owner_signoff.mjs" "$@"
+    ;;
+  verify-v390-deferred-product-owner-source-region-contract)
+    require_internal verify_v390_deferred_product_owner_signoff.mjs
+    exec "${INTERNAL_DIR}/verify_v390_deferred_product_owner_signoff.mjs" --source-region-contract "$@"
+    ;;
+  verify-v390-vlm-evaluation-promotion-guard)
+    require_internal verify_v390_vlm_evaluation_promotion_guard.mjs
+    exec "${INTERNAL_DIR}/verify_v390_vlm_evaluation_promotion_guard.mjs" "$@"
+    ;;
+  verify-v390-vlm-promotion-trust-boundary)
+    require_internal verify_v390_vlm_promotion_trust_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_vlm_promotion_trust_boundary.mjs" "$@"
+    ;;
+  verify-v390-backup-recovery-handoff-validation)
+    require_internal verify_v390_backup_recovery_handoff_validation.mjs
+    exec "${INTERNAL_DIR}/verify_v390_backup_recovery_handoff_validation.mjs" "$@"
+    ;;
+  verify-v390-action-execution-deferral-decision)
+    require_internal verify_v390_action_execution_deferral_decision.mjs
+    exec "${INTERNAL_DIR}/verify_v390_action_execution_deferral_decision.mjs" "$@"
+    ;;
+  verify-v390-conditional-field-ai-decisions)
+    require_internal verify_v390_conditional_field_ai_decisions.mjs
+    exec "${INTERNAL_DIR}/verify_v390_conditional_field_ai_decisions.mjs" "$@"
+    ;;
+  verify-v390-reid-readiness-consistency)
+    require_internal verify_v390_reid_readiness_consistency.mjs
+    exec "${INTERNAL_DIR}/verify_v390_reid_readiness_consistency.mjs" "$@"
+    ;;
+  verify-v390-structure-stabilization-handoff)
+    require_internal verify_v390_structure_stabilization_handoff.mjs
+    exec "${INTERNAL_DIR}/verify_v390_structure_stabilization_handoff.mjs" "$@"
+    ;;
+  verify-v390-structure-stabilization-readiness)
+    require_internal verify_v390_structure_stabilization_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v390_structure_stabilization_readiness.mjs" "$@"
+    ;;
+  verify-v390-review4-structure-stabilization-execution)
+    require_internal verify_v390_structure_stabilization_execution.mjs
+    exec "${INTERNAL_DIR}/verify_v390_structure_stabilization_execution.mjs" "$@"
+    ;;
+  verify-v390-ops-product-ui-renderer-owner)
+    require_internal verify_v390_ops_product_ui_renderer_owner.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ops_product_ui_renderer_owner.mjs" "$@"
+    ;;
+  verify-v390-product-ui-principal-view-boundary)
+    require_internal verify_v390_product_ui_principal_view_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_product_ui_principal_view_boundary.mjs" "$@"
+    ;;
+  verify-v390-cmake-internal-target-separation)
+    require_internal verify_v390_cmake_internal_target_separation.mjs
+    exec "${INTERNAL_DIR}/verify_v390_cmake_internal_target_separation.mjs" "$@"
+    ;;
+  verify-v390-stable-contract-leaf-boundary)
+    require_internal verify_v390_stable_contract_leaf_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_stable_contract_leaf_boundary.mjs" "$@"
+    ;;
+  verify-v390-analysis-query-owner-boundary)
+    require_internal verify_v390_analysis_query_owner_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_analysis_query_owner_boundary.mjs" "$@"
+    ;;
+  verify-v390-core-media-analysis-port-inversion)
+    require_internal verify_v390_core_media_analysis_port_inversion.mjs
+    exec "${INTERNAL_DIR}/verify_v390_core_media_analysis_port_inversion.mjs" "$@"
+    ;;
+  verify-v390-analysis-runtime-port-boundary)
+    require_internal verify_v390_analysis_runtime_port_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_analysis_runtime_port_boundary.mjs" "$@"
+    ;;
+  verify-v390-transport-runtime-config-boundary)
+    require_internal verify_v390_transport_runtime_config_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_transport_runtime_config_boundary.mjs" "$@"
+    ;;
+  verify-v390-strict-json-service-boundary)
+    require_internal verify_v390_strict_json_service_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_strict_json_service_boundary.mjs" "$@"
+    ;;
+  verify-v390-source-view-application-boundary)
+    require_internal verify_v390_source_view_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_source_view_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-appearance-readiness-application-boundary)
+    require_internal verify_v390_appearance_readiness_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_appearance_readiness_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-category-catalog-application-boundary)
+    require_internal verify_v390_category_catalog_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_category_catalog_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-vlm-observation-application-boundary)
+    require_internal verify_v390_vlm_observation_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_vlm_observation_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-incident-memory-application-boundary)
+    require_internal verify_v390_incident_memory_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_incident_memory_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-event-post-application-boundary)
+    require_internal verify_v390_event_post_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_event_post_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-image-codec-application-boundary)
+    require_internal verify_v390_image_codec_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_image_codec_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-analysis-rule-private-declaration-boundary)
+    require_internal verify_v390_analysis_rule_private_declaration_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_analysis_rule_private_declaration_boundary.mjs" "$@"
+    ;;
+  verify-v390-analysis-frame-application-boundary)
+    require_internal verify_v390_analysis_frame_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_analysis_frame_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-va-metadata-application-boundary)
+    require_internal verify_v390_va_metadata_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_va_metadata_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-event-feature-search-application-boundary)
+    require_internal verify_v390_event_feature_search_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_event_feature_search_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-event-storage-application-boundary)
+    require_internal verify_v390_event_storage_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_event_storage_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-event-rule-application-boundary)
+    require_internal verify_v390_event_rule_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_event_rule_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-analysis-session-read-application-boundary)
+    require_internal verify_v390_analysis_session_read_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_analysis_session_read_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-analysis-session-lifecycle-application-boundary)
+    require_internal verify_v390_analysis_session_lifecycle_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_analysis_session_lifecycle_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-webrtc-media-application-boundary)
+    require_internal verify_v390_webrtc_media_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_webrtc_media_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-stable-contract-owner-realignment)
+    require_internal verify_v390_stable_contract_owner_realignment.mjs
+    exec "${INTERNAL_DIR}/verify_v390_stable_contract_owner_realignment.mjs" "$@"
+    ;;
+  verify-v390-public-contract-interface-owner)
+    require_internal verify_v390_public_contract_interface_owner.mjs
+    exec "${INTERNAL_DIR}/verify_v390_public_contract_interface_owner.mjs" "$@"
+    ;;
+  verify-v390-core-media-registry-rule-port)
+    require_internal verify_v390_core_media_registry_rule_port.mjs
+    exec "${INTERNAL_DIR}/verify_v390_core_media_registry_rule_port.mjs" "$@"
+    ;;
+  verify-v390-webrtc-http-server-source-bundle)
+    require_internal verify_v390_webrtc_http_server_source_bundle.mjs
+    exec "${INTERNAL_DIR}/verify_v390_webrtc_http_server_source_bundle.mjs" "$@"
+    ;;
+  verify-v390-webrtc-http-server-physical-split)
+    require_internal verify_v390_webrtc_http_server_physical_split.mjs
+    exec "${INTERNAL_DIR}/verify_v390_webrtc_http_server_physical_split.mjs" "$@"
+    ;;
+  verify-v390-source-request-parser-owner)
+    require_internal verify_v390_source_request_parser_owner.mjs
+    exec "${INTERNAL_DIR}/verify_v390_source_request_parser_owner.mjs" "$@"
+    ;;
+  verify-v390-review4-truth-reset)
+    require_internal verify_v390_review4_truth_reset.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_truth_reset.mjs" "$@"
+    ;;
+  verify-v390-review4-structure-scope-decision)
+    require_internal verify_v390_review4_structure_scope_decision.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_structure_scope_decision.mjs" "$@"
+    ;;
+  verify-v390-external-field-smoke-no-device-closure)
+    require_internal verify_v390_external_field_smoke_no_device_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v390_external_field_smoke_no_device_closure.mjs" "$@"
+    ;;
+  verify-v390-truthfulness-status-vocabulary)
+    require_internal verify_v390_truthfulness_status_vocabulary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_truthfulness_status_vocabulary.mjs" "$@"
+    ;;
+  verify-v390-stabilization-release-readiness)
+    require_internal verify_v390_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v390_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs
@@ -2434,8 +3333,8 @@ case "${cmd}" in
     exec "${INTERNAL_DIR}/verify_image_analysis.sh" "$@"
     ;;
   verify-analysis-state)
-    require_internal verify_analysis_state_smoke.sh
-    exec "${INTERNAL_DIR}/verify_analysis_state_smoke.sh" "$@"
+    require_internal verify_analysis_state_review4_wrapper.mjs
+    exec "${INTERNAL_DIR}/verify_analysis_state_review4_wrapper.mjs" "$@"
     ;;
   verify-sse-metadata)
     require_internal va_metadata_stream_smoke.py

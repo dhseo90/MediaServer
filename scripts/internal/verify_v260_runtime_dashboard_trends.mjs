@@ -1,12 +1,15 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S04 Runtime dashboard baseline/sparkline 후보와 비범위 경계를 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
+const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -42,11 +45,13 @@ check("/ops/dashboard renders runtime trend card without persistent storage clai
     "id=\"dashRuntimeTrendBaseline\"",
     "런타임 추세",
   ]) {
-    assertIncludes(server, snippet, "ops dashboard S04 trend card");
+    assertIncludes(serverPages, snippet, "ops dashboard S04 trend card");
   }
 });
 
 check("dashboard script keeps trend samples page-local and renders baseline deltas", () => {
+  const trendBlock = extractNamedFunctionBlock(pageScripts, "renderDashboardRuntimeTrend");
+  assertIncludes(trendBlock, "dashboardRuntimeTrendSamples", "RTSP/WebRTC dashboard runtime trend samples");
   for (const snippet of [
     "MAX_RUNTIME_TREND_SAMPLES",
     "dashboardRuntimeTrendSamples",
@@ -58,6 +63,8 @@ check("dashboard script keeps trend samples page-local and renders baseline delt
     "renderDashboardRuntimeTrend(runtime, sourceHealth, eventsStatus)",
   ]) {
     assertIncludes(pageScripts, snippet, "dashboard runtime trend script");
+    assertIncludes(pageScripts, "renderDashboardRuntimeTrend", "UI-048 canonical product state");
+    assertIncludes(pageScripts, "/ops/dashboard", "UI-048 canonical route obligation");
   }
   for (const forbidden of [
     "localStorage.setItem('mediaServerRuntime",
@@ -69,7 +76,7 @@ check("dashboard script keeps trend samples page-local and renders baseline delt
     "/ops/api/runtime/trends",
     "/lab/runtime/trends",
   ]) {
-    assert(!pageScripts.includes(forbidden) && !server.includes(forbidden),
+    assert(!pageScripts.includes(forbidden) && !serverPages.includes(forbidden) && !server.includes(forbidden),
       `runtime trend must stay page-local; forbidden snippet present: ${forbidden}`);
   }
 });

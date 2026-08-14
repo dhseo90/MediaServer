@@ -1,0 +1,21 @@
+{
+  "schema": "media-server.v390-reid-readiness-consistency-fixtures.v1",
+  "targetStep": "V390-ADD1-04",
+  "modelBytes": "reid-readiness-v390-add1-04",
+  "modelSha256": "38e6a4de4d43e8ec1c8cebc599f6d446d1f2be1cebddfd4f9174284f79ba49aa",
+  "cases": [
+    { "id": "appearance-disabled", "mutation": "disabled", "reason": "appearance-disabled" },
+    { "id": "extractor-not-selected", "mutation": "noop", "reason": "onnx-reid-extractor-not-selected" },
+    { "id": "path-missing", "mutation": "empty-path", "reason": "model-path-missing" },
+    { "id": "file-missing", "mutation": "missing-file", "reason": "model-file-missing" },
+    { "id": "file-not-regular", "mutation": "directory", "reason": "model-file-not-regular" },
+    { "id": "checksum-missing", "mutation": "empty-checksum", "reason": "model-checksum-missing" },
+    { "id": "checksum-invalid", "mutation": "invalid-checksum", "reason": "model-checksum-invalid" },
+    { "id": "provenance-whitespace", "mutation": "whitespace-provenance", "reason": "model-provenance-missing" },
+    { "id": "checksum-mismatch", "mutation": "checksum-mismatch", "reason": "model-checksum-mismatch" },
+    { "id": "complete-preflight", "mutation": "valid", "reason": "ready", "ready": true }
+  ],
+  "forbiddenResponseValues": [
+    "operator-secret-provenance-v390-add1-04"
+  ]
+}

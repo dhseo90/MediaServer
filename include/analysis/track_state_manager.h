@@ -44,19 +44,19 @@ struct TrackStateManagerOptions {
     float overlap_center_distance_threshold{0.08F};
     std::uint32_t missed_frame_unstable_threshold{1};
     std::uint32_t direction_change_unstable_threshold{3};
-    bool tracking_issue_report_enabled{app_config::kDefaultAnalysisTrackingIssueReportEnabled};
-    bool tracking_issue_log_enabled{app_config::kDefaultAnalysisTrackingIssueLogEnabled};
-    std::size_t tracking_issue_max_entries{app_config::kDefaultAnalysisTrackingIssueMaxEntries};
+    bool tracking_issue_report_enabled{core::analysis_runtime_defaults::kDefaultAnalysisTrackingIssueReportEnabled};
+    bool tracking_issue_log_enabled{core::analysis_runtime_defaults::kDefaultAnalysisTrackingIssueLogEnabled};
+    std::size_t tracking_issue_max_entries{core::analysis_runtime_defaults::kDefaultAnalysisTrackingIssueMaxEntries};
     std::int64_t tracking_issue_rate_limit_ns{
-        static_cast<std::int64_t>(app_config::kDefaultAnalysisTrackingIssueRateLimitMs) *
+        static_cast<std::int64_t>(core::analysis_runtime_defaults::kDefaultAnalysisTrackingIssueRateLimitMs) *
         1000000LL};
     float tracking_issue_overlap_risk_threshold{
-        app_config::kDefaultAnalysisTrackingIssueOverlapRiskThreshold};
+        core::analysis_runtime_defaults::kDefaultAnalysisTrackingIssueOverlapRiskThreshold};
     std::uint32_t tracking_issue_missed_frame_jump_threshold{
-        app_config::kDefaultAnalysisTrackingIssueMissedFrameJumpThreshold};
+        core::analysis_runtime_defaults::kDefaultAnalysisTrackingIssueMissedFrameJumpThreshold};
     std::uint32_t tracking_issue_direction_change_jump_threshold{
-        app_config::kDefaultAnalysisTrackingIssueDirectionChangeJumpThreshold};
-    bool use_ground_plane_for_speed{app_config::kDefaultAnalysisGroundPlaneSpeedEnabled};
+        core::analysis_runtime_defaults::kDefaultAnalysisTrackingIssueDirectionChangeJumpThreshold};
+    bool use_ground_plane_for_speed{core::analysis_runtime_defaults::kDefaultAnalysisGroundPlaneSpeedEnabled};
     AppearanceUpdatePolicy appearance_update_policy;
 };
 
@@ -331,7 +331,7 @@ private:
     std::atomic<std::int64_t> metric_last_cleanup_time_ns_{0};
 };
 
-TrackStateManagerOptions BuildTrackStateManagerOptionsFromConfig(const app::AppConfig& config);
+TrackStateManagerOptions BuildTrackStateManagerOptionsFromConfig(const core::AnalysisRuntimeConfig& config);
 TrackHealthSnapshot MakeTrackHealthSnapshot(const TrackHealth& health);
 std::string TrackingIssueReportToJson(const TrackingIssueReport& report);
 

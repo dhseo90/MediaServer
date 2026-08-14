@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 11 Field Evidence Intake 구현, UI, 문서, inventory 연결을 검증한다.
+import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -33,7 +36,7 @@ const schema = "media-server.ops.v350-field-evidence-intake.v1";
 const route = "/ops/api/live-operations/field-evidence-intake";
 const fieldBridgeRoute = "/ops/api/source-registry/field-bridge-condition-gates";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -43,12 +46,19 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
 
 const checks = [];
+
+check("MEDIA-023 exact product field intake preserves external WHEP/TURN no-execution", () => {
+  const productBlock = extractCppFunctionBlock(files.server, "std::string OpsV350FieldEvidenceIntakeJson(");
+  assert(productBlock.includes("externalWhepTurnContacted") && productBlock.includes("fieldEvidenceIntakeRecords") && productBlock.includes("rtspOrWebrtcMediaPathChanged"), "MEDIA-023 exact external WHEP/TURN intake boundary missing");
+  assert(exactBooleanFlagValue(productBlock, "rtspOrWebrtcMediaPathChanged") === false && exactBooleanFlagValue(productBlock, "credentialMaterialIncluded") === false, "MEDIA-023 rtspOrWebrtcMediaPathChanged/credentialMaterialIncluded exact false boundary missing");
+});
 
 check("Ops server builds redacted field evidence intake models", () => {
   for (const snippet of [
@@ -218,6 +228,12 @@ check("/ops command workspace declares field evidence intake surfaces", () => {
     "cloud/VLM provider",
   ]) {
     assertIncludes(block, snippet, "v350 field evidence dashboard shell");
+    assertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace"), "data-v350-field-evidence-intake", "UI-086 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-086 raw-material-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-086 credential-redaction explicit absence oracle");
+    assertIncludes(files.uiScript, "/ops/dashboard", "UI-086 canonical route obligation");
+    assertIncludes(files.uiScript, "media-server.ops.v350-field-evidence-intake.v1", "UI-086 canonical schema obligation");
+    assertIncludes(files.uiScript, "ONVIF", "UI-086 canonical field obligation");
   }
 });
 
@@ -341,11 +357,26 @@ check("feature inventory and release records map v3.5 Step 11", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 11 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_field_evidence_intake.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
   for (const id of ["UI-086", "SRC-047", "MEDIA-023", "LAB-093", "SAFE-145", "OPS-112"]) {
-    assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
   }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.scriptInventory, "verify_v350_field_evidence_intake.mjs", "script inventory");
+});
+
+check("SAFE-145 canonical field evidence intake boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350FieldEvidenceIntakeJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/field-evidence-intake");
+  const safe145BoundaryObserved = block.includes("BuildV350FieldEvidenceIntakeRecords") && block.includes("BuildV350FieldEvidenceIntakeSummary");
+  const fieldSmokeExecuted = /\b(?:Probe|Contact|Write|Persist|Execute)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\\"(?:rawEndpoint|credentialMaterial|providerMaterial|vlmMaterial)Included\\\":true/.test(block);
+  const writePerformed = /\b(?:Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = fieldSmokeExecuted;
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true");
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  assert(routeObserved && safe145BoundaryObserved && block.includes("executionStatus") && fieldSmokeExecuted === false && providerCallPerformed === false && writePerformed === false && mutationPerformed === false && rawMaterialExposed === false && credentialMaterialExposed === false,
+    "SAFE-145 BuildV350FieldEvidenceIntakeRecords fieldEvidenceWritePerformed fieldSmokeExecuted endpointProbePerformed credentialProbePerformed provider contact must remain false and redacted");
 });
 
 const results = runChecks();

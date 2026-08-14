@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: /ops/api/source-health/bulk 계약과 partial retry 정책 hook을 정적 검증한다.
 
 import fs from "node:fs";
@@ -11,7 +12,7 @@ const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
 check("server exposes source health bulk API contract", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const required = [
     "/ops/api/source-health/bulk",
     "OpsSourceHealthBulkJson",
@@ -29,7 +30,7 @@ check("server exposes source health bulk API contract", () => {
 });
 
 check("server keeps existing source health schema intact", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   assert(server.includes("media-server.ops.source-health.v1"), "source health v1 schema is missing");
   assert(server.includes("BuildOpsSourceHealthSnapshot"), "shared source health snapshot builder is missing");
   assert(server.includes("AppendOpsSourceHealthItemJson"), "source health item serializer is missing");
@@ -53,7 +54,7 @@ check("documentation describes bulk retry policy", () => {
 });
 
 check("ops sources UI omits source health bulk controls", () => {
-  const html = readText("src/ingress/webrtc_http_server.cpp");
+  const html = readWebRtcHttpServerBundle(readText);
   const opsSourcesScript = readText("src/ingress/product_ui_ops_sources_script.cpp");
   const forbiddenHtml = [
     'id="channel-health-bulk-check"',

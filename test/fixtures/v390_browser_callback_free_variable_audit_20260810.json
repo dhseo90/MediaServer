@@ -1,0 +1,163 @@
+{
+  "schema": "media-server.v390-browser-callback-free-variable-audit.v1",
+  "auditedAt": "2026-08-10T00:00:00.000Z",
+  "redSourceCommitSha": "f8f819c0c7f6c84cd18f5f7b479e1deb51d58127",
+  "scope": "scripts/internal",
+  "auditTarget": "v3.9.0 browser callback common-boundary fix",
+  "dynamicEvaluateCallCount": 130,
+  "dynamicEvaluateFileCount": 28,
+  "registeredCallbackCount": 14,
+  "registeredCallbacks": [
+    {
+      "callbackId": "adapter.navigation-owner",
+      "owner": "v390_ui_native_adapter.mjs",
+      "canonicalBranches": "424 initial/action route owners",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "adapter.request",
+      "owner": "v390_ui_native_adapter.mjs",
+      "canonicalBranches": "explicit correlated adapter request",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "adapter.runtime-context",
+      "owner": "v390_ui_native_adapter.mjs",
+      "canonicalBranches": "424 requested/observed context",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "adapter.control-observation",
+      "owner": "v390_ui_native_adapter.mjs",
+      "canonicalBranches": "424 exact control owners",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "runner.endpoint-request",
+      "owner": "run_v390_ui_native_exact_cases.mjs",
+      "canonicalBranches": "380 exact API fetch completions",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "runner.scoped-viewer-dom",
+      "owner": "run_v390_ui_native_exact_cases.mjs",
+      "canonicalBranches": "RULE-097 scoped viewer readback",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "runtime.alert-delivery-dom",
+      "owner": "v390_ui_case_runtime.mjs",
+      "canonicalBranches": "alert delivery runtime projection",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "runtime.location-pathname",
+      "owner": "v390_ui_case_runtime.mjs",
+      "canonicalBranches": "11 document forms, 28 local, 5 navigation completions",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "runtime.whoami",
+      "owner": "v390_ui_case_runtime.mjs",
+      "canonicalBranches": "UI-002~008 and AUTH principal readback",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "runtime.role-boundary",
+      "owner": "v390_ui_case_runtime.mjs",
+      "canonicalBranches": "client/ops role boundary readback",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "runtime.ops-users-dom",
+      "owner": "v390_ui_case_runtime.mjs",
+      "canonicalBranches": "AUTH user/invite/access-request UI readback",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "runtime.login",
+      "owner": "v390_ui_case_runtime.mjs",
+      "canonicalBranches": "isolated privileged form readback login",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "runtime.logout",
+      "owner": "v390_ui_case_runtime.mjs",
+      "canonicalBranches": "isolated privileged form readback cleanup",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    },
+    {
+      "callbackId": "oracle.viewport-owner",
+      "owner": "v390_ui_exact_oracle_runtime.mjs",
+      "canonicalBranches": "exact DOM viewport owner preparation",
+      "selfContained": true,
+      "serializableArgumentOnly": true,
+      "nodeValidationOutsideCallback": true
+    }
+  ],
+  "remainingEvaluateInventory": {
+    "classification": "self-contained callback or source-built browser expression",
+    "files": [
+      "capture_docs_ui_assets.mjs",
+      "run_v390_ui_native_exact_cases.mjs",
+      "ui_visual_smoke_lib.mjs",
+      "v390_ui_browser_callback_boundary.mjs",
+      "v390_ui_exact_oracle_runtime.mjs",
+      "v390_ui_native_adapter.mjs",
+      "v390_ui_shared_adapter_lifecycle.mjs",
+      "verify_auth_scope_picker.mjs",
+      "verify_client_live_workspace.mjs",
+      "verify_client_saved_views_layout_presets.mjs",
+      "verify_client_source_dock_events.mjs",
+      "verify_client_tile_disconnect_contract.mjs",
+      "verify_client_tile_info_overlay_health.mjs",
+      "verify_onvif_ops_sources_ui_roundtrip.mjs",
+      "verify_ops_alert_delivery_integrations.mjs",
+      "verify_ops_client_shared_declutter.mjs",
+      "verify_ops_client_ui_smoke.mjs",
+      "verify_ops_event_records_scope.mjs",
+      "verify_ops_event_review_inbox.mjs",
+      "verify_ops_operator_incident_timeline.mjs",
+      "verify_ops_route_boundaries.mjs",
+      "verify_ops_rules_embed_smoke.mjs",
+      "verify_ops_scenario_builder_ui.mjs",
+      "verify_ops_tables_layout.mjs",
+      "verify_ops_ui_click_e2e.mjs",
+      "verify_v390_ui_automation.mjs",
+      "verify_v390_ui_exact_oracle_runtime_contract.mjs",
+      "verify_webrtc_va_metadata.mjs"
+    ]
+  },
+  "forbiddenPatterns": [
+    "window.assert injection",
+    "case-ID exception",
+    "ReferenceError catch-and-pass",
+    "validation deletion"
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "schema": "media-server.v390-ui-automation-cases.v3",
+  "cases": [
+    {
+      "caseId": "UI-108",
+      "featureId": "UI-108",
+      "route": "/ops/sources",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-onvif-provider-status",
+      "setupInteractions": [{ "kind": "click", "selector": "#add-channel" }, { "kind": "select", "selector": "#channel-form select[name=\"kind\"]", "value": "onvif" }],
+      "interaction": { "kind": "click", "selector": "#refresh" },
+      "completionOracle": { "networkUrlIncludes": ["/ops/api/onvif/credential-provider-status"] },
+      "targetSelector": "[data-testid=\"onvif-credential-gate\"]",
+      "stateSelectors": ["#onvifCredentialGateStatus"],
+      "expectedResult": "provider status card shows primarySelection=none and credentialMaterialExposed=false",
+      "visibleAssertions": [
+        { "selector": "#onvifCredentialGateStatus", "textIncludes": ["providerReadiness", "primarySelection=none", "credentialMaterialExposed=false"] }
+      ]
+    },
+    {
+      "caseId": "UI-109",
+      "featureId": "UI-109",
+      "route": "/ops/sources",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-live-import-persist-decision",
+      "setupInteractions": [{ "kind": "click", "selector": "#add-channel" }, { "kind": "select", "selector": "#channel-form select[name=\"kind\"]", "value": "onvif" }],
+      "interaction": { "kind": "click", "selector": "#refresh" },
+      "completionOracle": { "networkUrlIncludes": ["/ops/api/onvif/live-import-persist-decision"] },
+      "targetSelector": "#onvifPersistDecisionStatus",
+      "stateSelectors": ["#onvifPersistDecisionStatus"],
+      "expectedResult": "persist decision card shows manual paired save rollback and oneShotPersist=false",
+      "visibleAssertions": [
+        { "selector": "#onvifPersistDecisionStatus", "textIncludes": ["persistDecision", "manual-form-save-handoff", "oneShotPersist=false", "pairedSave=/ops/api/onvif/channels/{channelId}", "rollback=server restores every registry file replaced before a paired save failure"] }
+      ]
+    },
+    {
+      "caseId": "UI-110",
+      "featureId": "UI-110",
+      "route": "/ops/rules",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-vlm-rule-draft-bridge",
+      "interaction": { "kind": "click", "selector": "#opsVlmRuleDraftRefresh" },
+      "completionOracle": { "networkUrlIncludes": ["/ops/api/vlm/rule-suggestion-drafts"] },
+      "targetSelector": "[data-testid=\"ops-vlm-rule-draft-workflow\"]",
+      "stateSelectors": ["#opsVlmRuleDraftBridgeStatus", "#opsVlmRuleDraftSummary"],
+      "expectedResult": "rule suggestion bridge shows manualSaveRequired=true and autoApply=false",
+      "visibleAssertions": [
+        { "selector": "#opsVlmRuleDraftBridgeStatus", "textIncludes": ["ops-review-to-rule-draft-bridge", "manualSaveRequired=true", "autoApply=false"] },
+        { "selector": "#opsVlmRuleDraftSummary", "textNotEmpty": true }
+      ]
+    },
+    {
+      "caseId": "UI-111",
+      "featureId": "UI-111",
+      "route": "/ops/vlm",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-vlm-evaluation-promotion-guard",
+      "interaction": { "kind": "click", "selector": "#opsVlmRefresh" },
+      "completionOracle": { "networkUrlIncludes": ["/ops/api/runtime/status"] },
+      "targetSelector": "#opsVlmEvaluationPromotionGuardStatus",
+      "stateSelectors": ["#opsVlmEvaluationPromotionGuardStatus", "#opsVlmEvaluationSelectionSummary"],
+      "expectedResult": "promotion guard shows server-verified candidate save",
+      "visibleAssertions": [
+        { "selector": "#opsVlmEvaluationPromotionGuardStatus", "textIncludes": ["operator-select-candidate-then-server-verify-save"] },
+        { "selector": "#opsVlmEvaluationSelectionSummary", "textNotEmpty": true }
+      ]
+    },
+    {
+      "caseId": "UI-112",
+      "featureId": "UI-112",
+      "route": "/ops/sources",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-staging-restore-validation-handoff",
+      "interaction": { "kind": "click", "selector": "#refresh" },
+      "completionOracle": { "networkUrlIncludes": ["/ops/api/source-registry/staging-restore-validation-handoff"] },
+      "targetSelector": "[data-source-staging-restore-validation-handoff]",
+      "stateSelectors": ["#sourceStagingRestoreValidationStatus", "#source-staging-restore-checklist-list", "#source-staging-restore-result-artifact-list"],
+      "expectedResult": "staging restore checklist and result artifact keep production restore disabled",
+      "visibleAssertions": [
+        { "selector": "#sourceStagingRestoreValidationStatus", "textIncludes": ["staging-restore-validation-checklist-result-handoff", "resultArtifactPersistedByRoute=false", "productionRestorePerformed=false", "automaticRecoveryPerformed=false"] },
+        { "selector": "#source-staging-restore-checklist-list", "textNotEmpty": true },
+        { "selector": "#source-staging-restore-result-artifact-list", "textIncludes": ["resultArtifactPersistedByRoute: false", "productionRestorePerformed: false", "automaticRecoveryPerformed: false"] }
+      ]
+    },
+    {
+      "caseId": "UI-113",
+      "featureId": "UI-113",
+      "route": "/ops/dashboard",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-action-execution-deferral",
+      "interaction": { "kind": "click", "selector": "#opsDashboardRefresh" },
+      "completionOracle": { "networkUrlIncludes": ["/ops/api/actions/execution-deferral-decision"] },
+      "targetSelector": "[data-testid=\"ops-action-execution-deferral-decision\"]",
+      "stateSelectors": ["#dashActionExecutionDeferralText", "#dashActionExecutionDeferralBoundary"],
+      "expectedResult": "action execution decision shows all action writes deferred",
+      "visibleAssertions": [
+        { "selector": "#dashActionExecutionDeferralText", "textIncludes": ["all-action-writes-deferred", "approvalGatedExecutionEnabled=false"] },
+        { "selector": "#dashActionExecutionDeferralBoundary", "textIncludes": ["actionExecutionPerformed=false", "externalDeliveryPerformed=false"] }
+      ]
+    },
+    {
+      "caseId": "UI-114",
+      "featureId": "UI-114",
+      "route": "/ops/dashboard",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-field-evidence-bridge",
+      "interaction": { "kind": "click", "selector": "#opsDashboardRefresh" },
+      "completionOracle": { "networkUrlIncludes": ["/ops/api/field-evidence/bridge-decision"] },
+      "targetSelector": "[data-testid=\"ops-field-evidence-bridge-decision\"]",
+      "stateSelectors": ["#dashFieldEvidenceBridgeText", "#dashFieldEvidenceBridgeBoundary"],
+      "expectedResult": "field evidence bridge shows approval-only minimal evidence",
+      "visibleAssertions": [
+        { "selector": "#dashFieldEvidenceBridgeText", "textIncludes": ["approval-only-minimal-field-evidence-bridge", "fieldPassClaimed=false"] },
+        { "selector": "#dashFieldEvidenceBridgeBoundary", "textIncludes": ["fieldSmokeExecuted=false", "vlmProviderCalled=false"] }
+      ]
+    },
+    {
+      "caseId": "UI-115",
+      "featureId": "UI-115",
+      "route": "/ops/dashboard",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-reid-assist-decision",
+      "interaction": { "kind": "click", "selector": "#opsDashboardRefresh" },
+      "completionOracle": { "networkUrlIncludes": ["/ops/api/analysis/reid-assist-decision"] },
+      "targetSelector": "[data-testid=\"ops-reid-assist-decision\"]",
+      "stateSelectors": ["#dashReidAssistDecisionText", "#dashReidAssistDecisionBoundary"],
+      "expectedResult": "Re-ID assist decision shows server-owned file/SHA/provenance/runtime preflight without execution claim",
+      "visibleAssertions": [
+        { "selector": "#dashReidAssistDecisionText", "textIncludes": ["explicit-opt-in-provenance-gated-assist", "reason=", "fallback=no-op-visible"] },
+        { "selector": "#dashReidAssistDecisionBoundary", "textIncludes": ["OpenSSL=", "ONNX=", "sessionLoadValidated=false"] }
+      ]
+    }
+  ]
+}

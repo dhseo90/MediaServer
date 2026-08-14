@@ -1,6 +1,6 @@
 # ONVIF Live Source Support
 
-이 문서는 현재 main 기준의 ONVIF Profile S/T live source 지원 범위를 고정합니다.
+이 문서는 현재 source tree 기준의 ONVIF Profile S/T live source 지원 범위를 고정합니다.
 ONVIF는 file, RTSP pull, HTTP/HLS URI, WHEP pull, Published WebRTC와 같은
 채널 source 유형 중 하나로 취급합니다. 제품 UI에서 ONVIF만 별도 import
 화면이나 특별한 workflow로 분리하지 않습니다.

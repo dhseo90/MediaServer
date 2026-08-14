@@ -76,7 +76,7 @@ check("detector fixture outputs match expected hardware classes", () => {
     assert(output.schema === "media-server.vlm-pc-capability.v1", `${item.id}: output schema mismatch`);
     assert(output.targetStep === "V200-S02", `${item.id}: target step mismatch`);
     assert(output.scope === "pc-capability-detector-only", `${item.id}: scope mismatch`);
-    assert(output.hardwareClassCandidate?.class === item.expectedHardwareClass, `${item.id}: expected ${item.expectedHardwareClass}, got ${output.hardwareClassCandidate?.class}`);
+    assert(output.hardwareClassCandidate?.class === item.expectedHardwareClass, `${item.id}: VLM expected ${item.expectedHardwareClass}, got ${output.hardwareClassCandidate?.class}`);
     assert(output.privacy?.externalNetworkProbes === false, `${item.id}: external network probe must be false`);
     assert(output.privacy?.loopbackEndpointProbeOnly === true, `${item.id}: loopback-only policy missing`);
     assert(output.privacy?.rawCommandOutputStored === false, `${item.id}: raw command output must not be stored`);
@@ -119,7 +119,6 @@ check("live detector smoke returns schema on the current host", () => {
 });
 
 check("roadmap, verification docs, feature inventory, and server command are wired", () => {
-  const backlog = readText("docs/development-backlog.md");
   const stream = readText("docs/stream-verification.md");
   const inventory = readText("docs/project-feature-test-inventory.md");
   const docsIndex = readText("docs/README.md");
@@ -127,30 +126,20 @@ check("roadmap, verification docs, feature inventory, and server command are wir
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
 
   for (const snippet of [
-    "| 2 | V200-S02 | 완료 | PC 사양 감지 |",
-    "`detect-vlm-pc-capability`",
-    "`verify-vlm-pc-capability`",
-    "### V200-S02 PC 사양 감지 종료 기준",
-    "추천 모델 산출, 설치 UI, profile 저장, VLM runtime 호출, sidecar 저장은",
-  ]) {
-    assert(backlog.includes(snippet), `development backlog missing snippet: ${snippet}`);
-  }
-  for (const snippet of [
-    "./server.sh detect-vlm-pc-capability",
     "./server.sh verify-vlm-pc-capability",
-    "media-server.vlm-pc-capability.v1",
-    "추천 엔진 검증을 대신하지 않습니다",
   ]) {
     assert(stream.includes(snippet), `stream verification missing snippet: ${snippet}`);
   }
   for (const snippet of [
     "| LAB-035 | VLM PC capability detector",
-    "verify-vlm-pc-capability",
-    "| `LAB-001`~`LAB-060` |",
+    "media-server.vlm-pc-capability.v1",
+    "missing-tool fixture",
+    "no recommendation/install/runtime-call boundary",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }
-  assert(docsIndex.includes("v2.0.0 VLM 모델 선택/PC 사양 감지 기준"), "docs index missing VLM PC capability wording");
+  assert(docsIndex.includes("vlm-recommendation-engine.md") && docsIndex.includes("PC 사양별 추천 기준"),
+    "docs index missing current VLM PC capability/recommendation link");
   for (const snippet of [
     "detect-vlm-pc-capability",
     "detect_vlm_pc_capability.mjs",

@@ -78,6 +78,7 @@ const streamVerification = readText("docs/stream-verification.md");
 const featureInventory = readText("docs/project-feature-test-inventory.md");
 const releaseRecords = readText("docs/release-test-records.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
 const serverSh = readText("server.sh");
 
@@ -111,7 +112,13 @@ check("feature inventory maps V290-S03 to OPS-044 and SAFE-074", () => {
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S03 snippet: ${snippet}`);
   }
-  assert(coverageVerifier.includes("verify-v290-2x-compatibility-baseline"), "feature coverage missing V290-S03 verifier");
+  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"),
+    "feature coverage missing canonical implementation manifest validation");
+  for (const id of ["SAFE-074", "OPS-044"]) {
+    const mapping = implementationManifest.items?.find((item) => item.id === id);
+    assert(mapping?.verifierEvidence?.command === "verify-v290-2x-compatibility-baseline",
+      `implementation manifest ${id} missing V290-S03 verifier mapping`);
+  }
   assert(projectInventoryVerifierRangeCovers("SAFE", 74), "project inventory verifier missing SAFE-074 coverage");
   assert(projectInventoryVerifierRangeCovers("OPS", 44), "project inventory verifier missing OPS-044 coverage");
 });
@@ -148,6 +155,7 @@ check("compatibility subcommands are documented and registered", () => {
 
 const docResults = runChecks();
 const commandResults = docResults.fail === 0 ? runSubcommands() : [];
+assertCanonical2xCompatibilityBaseline(commandResults, docResults);
 const commandFail = commandResults.filter((item) => item.status !== 0).length;
 
 console.log("");
@@ -202,6 +210,17 @@ function runSubcommands() {
     if (results.some((item) => item.release === group.release && item.status !== 0)) break;
   }
   return results;
+}
+
+function assertCanonical2xCompatibilityBaseline(results, docs) {
+  const expectedCommands = flatCommands;
+  const executedCommands = results.map((item) => item.command);
+  const compatibilityCommandsMatched = JSON.stringify(executedCommands) === JSON.stringify(expectedCommands);
+  const compatibilityBaselineObserved = compatibilityCommandsMatched &&
+    docs.fail === 0 &&
+    results.every((item) => item.status === 0);
+  assert(compatibilityBaselineObserved,
+    "verify-v290-2x-compatibility-baseline must bind each current child exit status without UI/longrun/published promotion");
 }
 
 function check(name, fn) {

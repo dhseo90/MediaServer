@@ -1,12 +1,15 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S03 ONVIF credential binding/store gate와 redaction guard 경계를 검증한다.
+import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
 
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const liveImport = readText("src/ingress/onvif_live_import.cpp");
 const liveImportHeader = readText("include/ingress/onvif_live_import.h");
 const opsSourcesScript = readText("src/ingress/product_ui_ops_sources_script.cpp");
@@ -17,6 +20,9 @@ const credentialPolicy = readText("docs/onvif-credential-reference-policy.md");
 const storeDesign = readText("docs/onvif-credential-store-integration-design.md");
 const streamVerification = readText("docs/stream-verification.md");
 const serverSh = readText("server.sh");
+const credentialGateBlock = extractCppFunctionBlock(liveImport, "std::string OnvifCredentialGateJson(");
+const credentialGateUiBlock = extractNamedFunctionBlock(opsSourcesScript, "renderOnvifCredentialGate");
+const opsSourcesRouteBlock = extractNamedFunctionBlock(opsSourcesScript, "renderSourceReliabilitySearchMetrics");
 
 check("fixture records S03 store selection, fallback, exclusions, and redaction gate", () => {
   const fixture = readJson("test/fixtures/onvif_credential_binding_gate.json");
@@ -44,6 +50,7 @@ check("fixture records S03 store selection, fallback, exclusions, and redaction 
 });
 
 check("ONVIF import draft emits credentialGate and rejects URL credential material", () => {
+  assert(credentialGateBlock.includes("credentialReferenceStatus") && opsSourcesRouteBlock.includes("/ops/sources") && exactBooleanFlagValue(credentialGateBlock, "referenceValueExposed") === false, "LAB-071 ONVIF credentialReferenceStatus must remain redacted on /ops/sources");
   for (const snippet of [
     "OnvifCredentialGateJson",
     "media-server.onvif-credential-binding-gate.v1",
@@ -69,6 +76,7 @@ check("ONVIF import draft emits credentialGate and rejects URL credential materi
 });
 
 check("/ops/sources renders credential gate without secret input or reference echo", () => {
+  const gateBlock = extractNamedFunctionBlock(opsSourcesScript, "renderOnvifCredentialGate");
   for (const snippet of [
     "data-testid=\"onvif-credential-gate\"",
     "data-credential-store=\"deferred-product-store\"",
@@ -86,6 +94,15 @@ check("/ops/sources renders credential gate without secret input or reference ec
   ]) {
     assertIncludes(opsSourcesScript, snippet, "ops sources credential gate script");
   }
+  assertIncludes(gateBlock, "onvifCredentialGateStatus", "UI-047 block-scoped canonical product state");
+  assert(!["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => gateBlock.includes(marker)), "UI-047 no-write explicit absence oracle");
+  const sourceWritePerformed = ["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => gateBlock.includes(marker));
+  assert(sourceWritePerformed === false, "UI-047 credential gate renderer must not write a source");
+  const credentialExposed = ["onvifPassword", "onvifUsername", "credentialValue", "passwordHash"].some(marker => gateBlock.includes(marker));
+  assert(credentialExposed === false, "UI-047 credential gate renderer must not expose credential material");
+  assertIncludes(opsSourcesScript, "/ops/sources", "UI-047 canonical route obligation");
+  assertIncludes(liveImport, "media-server.onvif-credential-binding-gate.v1", "UI-047 canonical schema obligation");
+  assertIncludes(opsSourcesScript, "ONVIF", "UI-047 canonical field obligation");
   for (const forbidden of [
     "name=\"credentialRef\"",
     "name=\"onvifPassword\"",

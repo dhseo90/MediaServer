@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.3.0 Step 3 Source Onboarding Quality Summary 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -35,7 +37,7 @@ const route = "/ops/api/source-registry/onboarding-quality";
 const files = {
   header: readText("include/ingress/source_view_registry.h"),
   registry: readText("src/ingress/source_view_registry.cpp"),
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
@@ -61,6 +63,7 @@ check("SourceViewRegistry declares the v3.3 source onboarding quality read model
 });
 
 check("SourceViewRegistry builds onboarding quality status, duplicate, missing, and input quality summaries", () => {
+  assert(route === "/ops/api/source-registry/onboarding-quality", "OPS-082 canonical route drift");
   for (const snippet of [
     "BuildSourceOnboardingQualityItems",
     "BuildSourceOnboardingQualitySummary",
@@ -162,7 +165,7 @@ check("Ops API exposes the source onboarding quality route as guarded read-only 
   assertIncludes(block, route, "source onboarding quality route");
   assertIncludes(block, "request.method == \"GET\"", "source onboarding quality route");
   assertIncludes(block, "require_ops_principal()", "source onboarding quality route");
-  assertIncludes(block, "SourceViewRegistry::Instance().SourceOnboardingQualitySummaryJson()", "source onboarding quality route");
+  assertIncludes(block, "SourceViewApplicationService::Instance().SourceOnboardingQualitySummaryJson()", "source onboarding quality route");
   assertIncludes(block, "Cache-Control", "source onboarding quality route");
   assertIncludes(block, "no-store", "source onboarding quality route");
   assert(!block.includes("require_source_write_principal"), "source onboarding quality route must not require or perform source writes");
@@ -254,10 +257,23 @@ check("server entrypoint and inventory verifiers include v3.3 Step 3 command", (
   for (const id of ["SRC-034", "SAFE-115", "OPS-082"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-068`", "project inventory SRC range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-216`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-184`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_source_onboarding_quality_summary.mjs", "script inventory");
+});
+
+check("SAFE-115 canonical source onboarding quality boundary", () => {
+  const qualityBlock = extractCppFunctionBlock(files.registry, "RegistryResult SourceViewRegistry::SourceOnboardingQualitySummaryJson()");
+  const onboardingRouteObserved = "/ops/api/source-registry/onboarding-quality" === route;
+  const safe115BoundaryObserved = onboardingRouteObserved && qualityBlock.includes("BuildSourceOnboardingQualityItems(sources_, views_)") &&
+    qualityBlock.includes("media-server.ops.v330-source-onboarding-quality-summary.v1") && qualityBlock.includes("BuildSourceOnboardingQualitySummary");
+  const sourceRegistryWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource|Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(qualityBlock);
+  const rawLocatorExposed = qualityBlock.includes("\\\"rawLocatorExposedToClient\\\":true") || qualityBlock.includes("\\\"rawJsonExposed\\\":true");
+  const credentialMaterialExposed = qualityBlock.includes("\\\"credentialMaterialExposed\\\":true");
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedViewJson/.test(qualityBlock);
+  assert(safe115BoundaryObserved && qualityBlock.includes("BuildSourceOnboardingQualityItems(sources_, views_)") && onboardingRouteObserved && sourceRegistryWritePerformed === false && rawLocatorExposed === false && credentialMaterialExposed === false && viewerClientExposureAdded === false,
+    "SAFE-115 source-onboarding-quality-summary must remain read-only and exclude raw locator/credential/client material");
 });
 
 const results = runChecks();

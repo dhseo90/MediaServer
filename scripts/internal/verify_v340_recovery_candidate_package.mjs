@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.4.0 Step 3 Recovery Candidate Package read model 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -32,7 +34,8 @@ const command = "verify-v340-recovery-candidate-package";
 const schema = "media-server.ops.v340-recovery-candidate-package.v1";
 const route = "/ops/api/source-registry/recovery-candidate-package";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
+  eventStorageApplication: readText("src/ingress/event_storage_application_service.cpp"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
@@ -46,6 +49,11 @@ const files = {
 const checks = [];
 
 check("Ops server builds the v3.4 redacted recovery candidate package read model", () => {
+  const start = files.server.indexOf("std::string OpsV340RecoveryCandidatePackageJson(");
+  const end = files.server.indexOf("struct OpsV340ApprovalGatedRecoveryChecklistItem", start);
+  assert(start >= 0 && end > start, "EVT-073 recovery candidate package block missing");
+  const evt073RecoveryPackageBlock = files.server.slice(start, end);
+  assert(!evt073RecoveryPackageBlock.includes("\\\"rawAuditBodyIncluded\\\":true") && evt073RecoveryPackageBlock.includes("\\\"rawAuditBodyIncluded\\\":false"), "EVT-073 rawAuditBodyIncluded redacted canonical package");
   for (const snippet of [
     "struct OpsV340RecoveryCandidateContext",
     "struct OpsV340RecoveryCandidatePackageItem",
@@ -68,11 +76,18 @@ check("Ops server builds the v3.4 redacted recovery candidate package read model
 });
 
 check("recovery candidate package reads source, view, source health, EventRecord, and audit context", () => {
-  const block = extractBlock(files.server, "struct OpsV340RecoveryCandidateContext", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV340RecoveryCandidateContext", "struct OpsV340ApprovalGatedRecoveryChecklistItem");
+  const eventStorageDelegate = extractBlock(files.eventStorageApplication,
+    "bool QueryEventRecordsForApplication(", "bool CompactEventRecordsForApplication(");
+  const eventRecordReadDelegateObserved = block.includes("QueryEventRecordsForApplication") &&
+    eventStorageDelegate.includes("analysis::QueryEventRecords") &&
+    eventStorageDelegate.includes("result->records_json = std::move(canonical.records_json)");
+  assert(eventRecordReadDelegateObserved,
+    "SRC-041 recovery candidate package must bind the application-service EventRecord read delegate and result readback");
   for (const snippet of [
-    "SourceViewRegistry::Instance().Snapshot",
+    "SourceViewApplicationService::Instance().Snapshot",
     "source_health_snapshot.items",
-    "analysis::QueryEventRecords",
+    "QueryEventRecordsForApplication",
     "QueryOpsAuditEntries",
     "ParseStringField(event_json, \"eventId\")",
     "ParseStringField(event_json, \"streamId\")",
@@ -91,7 +106,7 @@ check("recovery candidate package reads source, view, source health, EventRecord
 });
 
 check("recovery candidate package preserves redaction, read-only, schema, media, and client boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV340RecoveryCandidatePackageJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "std::string OpsV340RecoveryCandidatePackageJson", "struct OpsV340ApprovalGatedRecoveryChecklistItem");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -222,11 +237,23 @@ check("feature inventory and release records map v3.4 Step 3", () => {
 check("server entrypoint and inventory verifiers include v3.4 Step 3 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v340_recovery_candidate_package.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["SRC-041", "EVT-073", "SAFE-126", "OPS-093"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v340_recovery_candidate_package.mjs", "script inventory");
+});
+
+check("SAFE-126 canonical recovery candidate redaction boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV340RecoveryCandidatePackageJson(");
+  const routeObserved = files.server.includes("/ops/api/source-registry/recovery-candidate-package");
+  const safe126BoundaryObserved = block.includes("BuildV340RecoveryCandidatePackages") && block.includes("media-server.ops.v340-recovery-candidate-package.v1");
+  const rawMaterialExposed = /\\\"(?:rawAuditBody|rawLocator|sourceUrl|credentialMaterial|clientViewerMaterial)Included\\\":true/.test(block);
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"clientViewerMaterialIncluded\\\":true");
+  const schemaMutationPerformed = /\b(?:DispatchEventRecords|Write|Persist|UpdateSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  assert(routeObserved && safe126BoundaryObserved && rawMaterialExposed === false && credentialMaterialExposed === false && viewerClientExposureAdded === false && schemaMutationPerformed === false,
+    "SAFE-126 BuildV340RecoveryCandidatePackages redacted source locator credential raw audit media client material must remain absent");
 });
 
 const results = runChecks();

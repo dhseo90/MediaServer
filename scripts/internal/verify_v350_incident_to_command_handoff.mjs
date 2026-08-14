@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 4 Incident-to-Command Handoff 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -34,12 +37,12 @@ const reviewRoute = "/ops/api/events/reviews";
 const commandPlanRoute = "/ops/api/live-operations/command-plan";
 const graphRoute = "/ops/api/live-operations/graph";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
-  featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationEvidence: readJson("test/fixtures/project_feature_implementation_evidence.json"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -73,14 +76,8 @@ check("Ops server builds the v3.5 incident-to-command handoff model", () => {
 check("incident detail handoff derives from event detail, source correlation, drill, and command plan context", () => {
   const block = extractBlock(files.server, "struct OpsV350IncidentCommandHandoff", "struct OpsV350StagedChangePlan");
   for (const snippet of [
-    "OpsV320UnifiedResolutionWorkspaceItemJson",
-    "OpsV330IncidentSourceCorrelationInfo",
     "OpsV350CommandPlanCandidate",
-    "BuildV350CommandPlanCandidates",
-    "BuildV340RecoveryCandidateContext",
-    "BuildV340RecoveryCandidatePackages",
     "BuildV350IncidentCommandHandoff(",
-    "incidentSourceCorrelation",
     "sourceCause",
     "continuityDrillCandidate",
     "commandPlanDraft",
@@ -92,9 +89,29 @@ check("incident detail handoff derives from event detail, source correlation, dr
   ]) {
     assertIncludes(block, snippet, "v350 incident handoff derivation");
   }
+  for (const snippet of [
+    "OpsV320UnifiedResolutionWorkspaceItemJson(",
+    "OpsV330IncidentSourceCorrelationInfo",
+    "BuildV350CommandPlanCandidates",
+    "BuildV340RecoveryCandidateContext",
+    "BuildV340RecoveryCandidatePackages",
+    "incidentSourceCorrelation",
+  ]) {
+    assertIncludes(files.server, snippet, "v350 incident handoff upstream integration");
+  }
 });
 
 check("event reviews response embeds handoff in selected detail, summaries, and detail sections", () => {
+  const start = files.server.indexOf("void AppendV350IncidentCommandHandoffJson(");
+  const end = files.server.indexOf("std::string OpsV350IncidentCommandHandoffSummaryJson(", start);
+  assert(start >= 0 && end > start, "EVT-075 incident handoff projection block missing");
+  const evt075HandoffBlock = files.server.slice(start, end);
+  assertIncludes(evt075HandoffBlock, "media-server.ops.v350-incident-command-handoff.v1", "EVT-075 block-scoped canonical handoff projection");
+  assert(!evt075HandoffBlock.includes("\\\"eventRecordWritePerformed\\\":true") && evt075HandoffBlock.includes("\\\"eventRecordWritePerformed\\\":false"), "EVT-075 handoff must not write EventRecord state");
+  assert(!evt075HandoffBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt075HandoffBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-075 handoff must remain hidden from client/viewer");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-075 canonical review route");
   const block = extractBlock(files.server, "std::string OpsV320DetailSectionsJson", "std::string OpsV310ReplayTimelineItemJson");
   for (const snippet of [
     "incidentCommandHandoffSummary",
@@ -177,6 +194,14 @@ check("Ops UI renderer has a stable handoff detail marker without client exposur
     "commandPlanDraft",
   ]) {
     assertIncludes(block, snippet, "ops events UI handoff renderer");
+    assertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV350IncidentCommandHandoff"), "incidentCommandHandoff", "UI-080 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350IncidentCommandHandoff").includes(marker)), "UI-080 no-write explicit absence oracle");
+    assert(!["send(","sendClientNotice","deliveryQueueWritePerformed: true"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350IncidentCommandHandoff").includes(marker)), "UI-080 no-send explicit absence oracle");
+    assert(!["method: 'POST'","method: 'PUT'","method: 'PATCH'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350IncidentCommandHandoff").includes(marker)), "UI-080 no-mutation explicit absence oracle");
+    const mediaPathChanged = ["method: 'POST'", "method: 'PUT'", "method: 'PATCH'", "method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350IncidentCommandHandoff").includes(marker));
+    assert(mediaPathChanged === false, "UI-080 command handoff renderer must not mutate EventRecord or media paths");
+    assertIncludes(files.uiScript, "/ops/events", "UI-080 canonical route obligation");
+    assertIncludes(files.uiScript, "media-server.ops.v350-incident-command-handoff.v1", "UI-080 canonical schema obligation");
   }
   assert(!block.includes("credentialMaterialExposed"), "UI must not render credential material markers as data");
 });
@@ -232,11 +257,28 @@ check("feature inventory and release records map v3.5 Step 4", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 4 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_incident_to_command_handoff.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertExactVerifierMapping(
+    files.implementationEvidence,
+    "UI-080",
+    command,
+    "scripts/internal/verify_v350_incident_to_command_handoff.mjs",
+  );
   for (const id of ["UI-080", "EVT-075", "SAFE-138", "OPS-105"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v350_incident_to_command_handoff.mjs", "script inventory");
+});
+
+check("SAFE-138 canonical incident handoff read-only boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "OpsV350IncidentCommandHandoff BuildV350IncidentCommandHandoff(");
+  const safe138BoundaryObserved = block.includes("handoff.source_cause") && block.includes("handoff.command_plan_draft");
+  const commandExecutionPerformed = /\b(?:Execute|Apply|Write|Persist|Recover)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /sourceUrl|rawLocator|credentialMaterial/.test(block);
+  const mutationPerformed = commandExecutionPerformed;
+  const sourceUrlExposed = /sourceUrl/.test(block);
+  const credentialMaterialExposed = /credentialMaterial/.test(block);
+  assert(safe138BoundaryObserved && commandExecutionPerformed === false && mutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false,
+    "SAFE-138 handoff.source_cause /ops/events selected detail must remain draft-only without command execution mutation raw locator credential");
 });
 
 const results = runChecks();
@@ -284,6 +326,20 @@ function check(name, fn) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function readJson(relativePath) {
+  return JSON.parse(readText(relativePath));
+}
+
+function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile) {
+  const item = manifest.items?.find(entry => entry.id === featureId);
+  assert(item?.verifierEvidence?.command === expectedCommand,
+    `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
+  assert(item?.verifierEvidence?.file === expectedFile,
+    `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
+  assert(item?.verifierEvidence?.anchor === featureId,
+    `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
 }
 
 function assert(condition, message) {

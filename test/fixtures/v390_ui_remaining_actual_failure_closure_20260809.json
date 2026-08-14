@@ -1,0 +1,38 @@
+{
+  "schema": "media-server.v390-ui-diagnostic-failure-closure.v1",
+  "sourceBinding": {
+    "gitCommit": "4c06197093f2e0ff5c292c23602c0d5b68defba5",
+    "runId": "v390-ui-diagnostic-20260809031330-49276",
+    "manifestSha256": "6d35e6e5570a079315ca658a386d765cb28d299bfa8bb7a26904bbf866d5f2d5",
+    "buildSha256": "93482b03f2e60df0b4a3f46178e90c83713948cffe9b594bdd3a3aa98b7c4e26",
+    "parentSummarySha256": "c4636a8ac2a19dd6f16798bd5892f8fe7f8f2c5de6257f662b5b73f131e2f45d",
+    "failureCensusArtifactDigestSha256": "5fe9468996698f3096b8991da53f0bdd92edc144a50bc2054a35990e1e110b45"
+  },
+  "sourceCounts": {
+    "target": 133,
+    "attempted": 133,
+    "pass": 126,
+    "fail": 7,
+    "notRun": 0,
+    "unsupported": 0
+  },
+  "selectedIds": [
+    "EVT-007",
+    "EVT-017",
+    "EVT-019",
+    "EVT-020",
+    "EVT-022",
+    "EVT-023",
+    "EVT-026"
+  ],
+  "failures": [
+    {"caseId":"EVT-007","status":"FAIL","childStatus":"FAIL","failureClass":"dom-semantic-assertion-failed","failurePhase":"child-execution","failureCode":"RENDERER_PROJECTION_VALUE_MISMATCH","summarySha256":"b7a140a187b47c363e201ce638f4748b5c65176afa7ff0790093638f92ecd043","traceSha256":"4828ae0a8b4091e59d51585faea0ad5ec1738e6a25366c8c2ce763d739f2a8d8"},
+    {"caseId":"EVT-017","status":"FAIL","childStatus":"FAIL","failureClass":"dom-semantic-assertion-failed","failurePhase":"child-execution","failureCode":"RENDERER_PROJECTION_VALUE_MISMATCH","summarySha256":"8ccdcdb06accd6375d52b7ef0e6e608f7d9d299b9ad6ff5ed56624722584e746","traceSha256":"14b2c1c17454b73c2029565053a221f5f6b3a52c7da3a6220e8e5a83b24babee"},
+    {"caseId":"EVT-019","status":"FAIL","childStatus":"FAIL","failureClass":"dom-semantic-assertion-failed","failurePhase":"child-execution","failureCode":"RESPONSE_FIELD_OWNER_AMBIGUOUS","summarySha256":"717816d098516391abd923da9ef53d3b3cac1a6d82d1a54ce1b8f4a0a84ed4cd","traceSha256":"9f30ca064fdc3dc7a4fb65c738fa171068892aa5efe72e38bc70bf91b244aa03"},
+    {"caseId":"EVT-020","status":"FAIL","childStatus":"FAIL","failureClass":"dom-semantic-assertion-failed","failurePhase":"child-execution","failureCode":"RESPONSE_FIELD_OWNER_AMBIGUOUS","summarySha256":"9c2d7d13ead306f8b2408500771662bef45c3f3e7234a704a3b2c61f5ab06c16","traceSha256":"d619ef1f8faa091e4090c4e7f37f8617f5f47981e7f89d83869e53f2633d1075"},
+    {"caseId":"EVT-022","status":"FAIL","childStatus":"FAIL","failureClass":"dom-semantic-assertion-failed","failurePhase":"child-execution","failureCode":"RESPONSE_BASELINE_MISSING","summarySha256":"39d5db4bd9c095c837e5b6ee44e2f3b8158ce194d89dfcc8136d5e5620e946cb","traceSha256":"742f301d4a9ccfd2d78f6e19a495a8b25898363129600251c59618b0c854313d"},
+    {"caseId":"EVT-023","status":"FAIL","childStatus":"FAIL","failureClass":"dom-semantic-assertion-failed","failurePhase":"child-execution","failureCode":"API_DOM_FIXTURE_IDENTITY_MISMATCH","summarySha256":"68420f745b170780b631e931748302dc61194ab9f65fc5aed33197a22835a8e7","traceSha256":"0563001483726bc68d8f87fc5e0ba1df8d06550a759894bd2e15d1f8bd4820e2"},
+    {"caseId":"EVT-026","status":"FAIL","childStatus":"FAIL","failureClass":"dom-semantic-assertion-failed","failurePhase":"child-execution","failureCode":"API_DOM_FIXTURE_IDENTITY_MISMATCH","summarySha256":"d591b24a2b3258c671cb7d3a4b5485d46bd06291a95e90949253e640cf629d0d","traceSha256":"2eebfb4fc4564f422572f1d98a6527d6fddcba525679eb7d8fc522155c686efc"}
+  ],
+  "digest": "e6317099a52f0feec46b346381558ec96ddc3e994902ad96b3bcef4fac04766d"
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "media-server.v390-browser-callback-free-identifier-red.v1",
+  "recordedAt": "2026-08-09T20:00:33.571Z",
+  "sourceCommitSha": "f8f819c0c7f6c84cd18f5f7b479e1deb51d58127",
+  "sourceBranch": "v3.9.0",
+  "sourceWorktreeClean": true,
+  "coverage": {
+    "target": 424,
+    "attempted": 2,
+    "pass": 1,
+    "fail": 1,
+    "notRun": 422,
+    "unsupported": 0
+  },
+  "firstFailure": {
+    "caseId": "UI-002",
+    "errorName": "ReferenceError",
+    "message": "assert is not defined",
+    "lastCompletedActionId": "UI-002:wait-visible",
+    "actionLedgerReached": false,
+    "evaluatorInvocationCount": 0
+  },
+  "ui001LedgerActual": {
+    "actionOwnedRequests": 0,
+    "actionOwnedResponses": 0,
+    "pageOwnedRequests": 5,
+    "pageOwnedResponses": 5,
+    "backgroundRequests": 2,
+    "backgroundResponses": 2,
+    "correlationLeakRequests": 0,
+    "correlationLeakResponses": 0,
+    "status": "PASS"
+  },
+  "artifacts": {
+    "acceptanceSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/summary.json",
+      "sha256": "de339a2dd27685eb86987e511db39a42cdde4ade3b89c228fd48b9580444b134"
+    },
+    "firstFailure": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/first-failure.json",
+      "sha256": "dfef41c53a92c081a965e090d3eeb3fe97e02189846afcd535eb7dc65151edac"
+    },
+    "exactSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809200029-90248/ui-exact-424/summary.json",
+      "sha256": "cf5ab63a2c40b2d910ce6112aab4aefe87294ceef6b8561516d7239b1f9edf99"
+    },
+    "ui001Trace": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809200029-90248/ui-exact-424/traces/UI-001.trace.json",
+      "sha256": "0940a7e3084b15ecbb796fac1f66f941594f6fc7937e7e7936ad877d4fa6793b"
+    },
+    "ui002Trace": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809200029-90248/ui-exact-424/traces/UI-002.trace.json",
+      "sha256": "dc2017782c4377554aa5aedbdb31716120aa962e45c7ca779de8c57a29b54d5d"
+    }
+  },
+  "boundary": "Historical RED only; it is not current UI PASS evidence and does not authorize actual browser execution."
+}

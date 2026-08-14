@@ -274,10 +274,10 @@ ObjectTracker::ObjectTracker(ObjectTrackerOptions options) : options_(options) {
     if (options_.iou_weight + options_.distance_weight + options_.direction_weight +
             options_.class_weight <=
         0.0F) {
-        options_.iou_weight = app_config::kDefaultAnalysisTrackingIouWeight;
-        options_.distance_weight = app_config::kDefaultAnalysisTrackingDistanceWeight;
-        options_.direction_weight = app_config::kDefaultAnalysisTrackingDirectionWeight;
-        options_.class_weight = app_config::kDefaultAnalysisTrackingClassWeight;
+        options_.iou_weight = core::analysis_runtime_defaults::kDefaultAnalysisTrackingIouWeight;
+        options_.distance_weight = core::analysis_runtime_defaults::kDefaultAnalysisTrackingDistanceWeight;
+        options_.direction_weight = core::analysis_runtime_defaults::kDefaultAnalysisTrackingDirectionWeight;
+        options_.class_weight = core::analysis_runtime_defaults::kDefaultAnalysisTrackingClassWeight;
     }
     options_.min_association_score = std::max(0.0F, std::min(1.0F, options_.min_association_score));
     options_.smoothing_alpha = std::max(0.0F, std::min(0.95F, options_.smoothing_alpha));

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 10 Ops Action Control Workspace UI 구현, 문서, inventory 연결을 검증한다.
 
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -101,6 +103,15 @@ check("action control renderer loads the request, approval, readiness, pilot, pa
   ]) {
     assertIncludes(block, snippet, "v380 action control workspace renderer");
   }
+  const dashboardRoutePresent = files.server.includes('path == "/ops/dashboard"');
+  const schemaPresent = files.server.includes("media-server.ops.v380-action-control-workspace-ui.v1");
+  const sendPerformed = /\b(?:sendClientNotice|deliverClientNotice|enqueueClientNotice)\s*\(/.test(block);
+  const schemaChanged = /\b(?:eventSchema|mediaSchema|payloadSchema)\s*=/.test(block);
+  assert(dashboardRoutePresent, "v380 action control dashboard route missing");
+  assert(schemaPresent, "v380 action control schema missing");
+  assert(sendPerformed === false, "v380 action control renderer must not send notices");
+  assert(schemaChanged === false, "v380 action control renderer must not mutate client or media schema");
+  assertIncludes(block, "dashActionControlBoundary", "v380 action control boundary state");
 });
 
 check("dashboard refresh wires action control workspace without write actions", () => {
@@ -203,8 +214,34 @@ check("docs, inventory, and dispatch map v3.8 Step 10 without overclaiming UI fu
   assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, "release records v3.8 Step 10");
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_ops_action_control_workspace_ui.mjs", "server.sh dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of featureIds) {
+    const evidence = files.implementationEvidence.items.find((item) => item.id === id);
+    assert(evidence?.verifierEvidence?.command === command, `implementation evidence ${id} verifier mapping drift`);
+  }
   assertIncludes(files.scriptInventory, "verify_v380_ops_action_control_workspace_ui.mjs", "script inventory");
+});
+
+check("SAFE-189 canonical bounded product boundary", () => {
+  const block = extractNamedFunctionBlock(files.uiScript, "renderV380OpsActionControlWorkspace");
+  const routeObserved = files.uiScript.includes("/ops");
+  const outcomeObserved = files.uiScript.includes("renderV380OpsActionControlWorkspace") && files.uiScript.includes("refreshV380OpsActionControlWorkspace");
+  const safe189BoundaryObserved = block.includes("v380ActionControlWorkspaceState") && block.includes("preflightBlockers");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer|RecheckSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial|rawDiagnosticJson)\\":true/.test(block);
+  const sourceUrlExposed = /\\"(?:sourceUrlIncluded|sourceUrlExposed)\\":true/.test(block);
+  const credentialMaterialExposed = /\\"(?:credentialMaterialIncluded|credentialMaterialExposed)\\":true/.test(block);
+  const debugMaterialExposed = /\\"(?:debugMaterialIncluded|debugMaterialExposed)\\":true/.test(block);
+  const viewerClientExposureAdded = /\\"(?:viewerClientExposureAdded|viewerClientPayloadChanged)\\":true/.test(block);
+  const mediaPathChanged = /\\"rtspOrWebrtcMediaPathChanged\\":true/.test(block);
+  assert(routeObserved && outcomeObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && providerCallPerformed === false, "OPS-156 canonical bounded absence oracle");
+  assert(safe189BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && automaticApplyPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-189 preflightBlockers must remain no-execution no-write redacted and client/provider isolated");
 });
 
 finish("== v3.8.0 Ops Action Control Workspace UI summary ==", {
@@ -215,14 +252,14 @@ finish("== v3.8.0 Ops Action Control Workspace UI summary ==", {
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
     css: readText("src/ingress/product_ui_css.cpp"),
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
-    featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+    implementationEvidence: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),

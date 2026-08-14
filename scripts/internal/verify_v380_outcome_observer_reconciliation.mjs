@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 12 Outcome Observer and Reconciliation 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -7,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -38,7 +40,7 @@ const rulePackageRoute = "/ops/api/actions/rule-draft-package";
 const featureIds = ["UI-104", "EVT-084", "CLIENT-041", "LAB-119", "SAFE-191", "OPS-158"];
 
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -46,6 +48,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -82,6 +85,8 @@ check("Ops server builds the v3.8 Outcome Observer and Reconciliation model", ()
   ]) {
     assertIncludes(files.server, snippet, "v380 outcome observer server model");
   }
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV380OutcomeObserverReconciliationJson(");
+  assertIncludes(producerBlock, "media-server.ops.v380-outcome-observer-reconciliation.v1", "v380 outcome observer schema");
 });
 
 check("Outcome Observer derives from readiness, source recheck, notice, and rule package refs", () => {
@@ -112,11 +117,15 @@ check("Outcome Observer derives from readiness, source recheck, notice, and rule
 });
 
 check("Outcome Observer preserves pending/not-run and no-mutation boundaries", () => {
-  const block = extractBlock(
-    files.server,
-    "std::string OpsV380OutcomeObserverReconciliationJson",
-    "struct OpsV370SiteSourceGroupContractItem",
-  );
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV380OutcomeObserverReconciliationJson(");
+  const rawMaterialExposed = /raw(?:Evidence|Json|Locator).*true/.test(block);
+  const credentialMaterialExposed = /credential(?:Material|Ref)?.*true/i.test(block);
+  const clientNoticeSendPerformed = exactBooleanFlagValue(block, "clientNoticeSent");
+  assert(clientNoticeSendPerformed === false, "CLIENT-041 client notice delivery must remain false");
+  assert(exactBooleanFlagValue(block, "clientNoticeSent") === false, "CLIENT-041 client notice delivery must remain false");
+  assert(rawMaterialExposed === false, "CLIENT-041 viewer raw material must remain redacted");
+  assert(credentialMaterialExposed === false, "CLIENT-041 credential material must remain redacted");
+  assert(exactBooleanFlagValue(block, "viewerClientPayloadChanged") === false, "CLIENT-041 exact viewerClientPayloadChanged observer readback must remain false for /ops and /client");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -172,6 +181,7 @@ check("Outcome Observer preserves pending/not-run and no-mutation boundaries", (
     const nearby = block.slice(index, index + 160);
     assert(nearby.includes("false"), `boundary flag must be false: ${flag}`);
   }
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
   for (const forbidden of [
     "ExecuteSourceRecheck",
     "SendClientNotice",
@@ -240,6 +250,17 @@ check("/ops action control workspace declares and renders Outcome Observer signa
   ]) {
     assertIncludes(scriptBlock, snippet, "v380 outcome observer renderer");
   }
+  const dashboardRoutePresent = files.server.includes('path == "/ops/dashboard"');
+  const schemaPresent = serverBlock.includes("media-server.ops.v380-outcome-observer-reconciliation.v1");
+  const writePerformed = /\bmethod\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(scriptBlock);
+  const sendPerformed = /\b(?:sendClientNotice|deliverClientNotice|enqueueClientNotice)\s*\(/.test(scriptBlock);
+  const schemaChanged = /\b(?:eventSchema|mediaSchema|payloadSchema)\s*=/.test(scriptBlock);
+  assert(dashboardRoutePresent, "v380 outcome observer dashboard route missing");
+  assert(schemaPresent, "v380 outcome observer schema missing");
+  assert(writePerformed === false, "v380 outcome observer renderer must not write state");
+  assert(sendPerformed === false, "v380 outcome observer renderer must not send notices");
+  assert(schemaChanged === false, "v380 outcome observer renderer must not mutate schema");
+  assertIncludes(scriptBlock, "dashActionOutcomeBoundary", "v380 outcome observer boundary state");
   const refreshBlock = extractBlock(files.uiScript, "async function refreshDashboard()", "async function refreshEvents()");
   assertIncludes(refreshBlock, "refreshV380OutcomeObserverReconciliation", "dashboard refresh");
   assertIncludes(refreshBlock, route, "dashboard refresh");
@@ -320,11 +341,36 @@ check("roadmap, stream verification, inventory, and release records map v3.8 Ste
 check("server entrypoint and inventory verifiers include v3.8 Step 12 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_outcome_observer_reconciliation.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["UI-104", "EVT-084", "CLIENT-041", "LAB-119", "SAFE-191", "OPS-158"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v380_outcome_observer_reconciliation.mjs", "script inventory");
+});
+
+check("SAFE-191 canonical bounded product boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV380OutcomeObserverReconciliationJson(");
+  const routeObserved = files.server.includes("/ops/api/actions/outcome-reconciliation");
+  const outcomeObserved = files.uiScript.includes("renderV380OutcomeObserverReconciliation");
+  const safe191BoundaryObserved = block.includes("BuildV380OutcomeObserverReconciliationItems") && block.includes("actionExecutionPerformed");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer|RecheckSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial|rawDiagnosticJson)\\":true/.test(block);
+  const sourceUrlExposed = /\\"(?:sourceUrlIncluded|sourceUrlExposed)\\":true/.test(block);
+  const credentialMaterialExposed = /\\"(?:credentialMaterialIncluded|credentialMaterialExposed)\\":true/.test(block);
+  const debugMaterialExposed = /\\"(?:debugMaterialIncluded|debugMaterialExposed)\\":true/.test(block);
+  const viewerClientExposureAdded = /\\"(?:viewerClientExposureAdded|viewerClientPayloadChanged)\\":true/.test(block);
+  const mediaPathChanged = /\\"rtspOrWebrtcMediaPathChanged\\":true/.test(block);
+  assert(routeObserved && outcomeObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && providerCallPerformed === false, "OPS-158 canonical bounded absence oracle");
+  assert(safe191BoundaryObserved && block.includes("media-server.ops.v380-outcome-observer-reconciliation.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && automaticApplyPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-191 actionExecutionPerformed must remain no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

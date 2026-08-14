@@ -1,0 +1,599 @@
+{
+  "schema": "media-server.v390-deferred-product-owner-signoff.v3",
+  "release": "v3.9.0",
+  "developmentItem": 16,
+  "review4Item": 63,
+  "recordKind": "accountable-owner-decision-record",
+  "implementationStatus": "decision-record-complete-capabilities-mixed",
+  "evidenceStatus": "decision-only-not-implementation-or-execution-evidence",
+  "ownerIdentityPolicy": "codeowners-handle-plus-functional-role-no-personal-name-or-organizational-authority-inference",
+  "approvalAuthority": {
+    "accountableSubject": {
+      "id": "repo-owner-v1",
+      "kind": "repository-code-owner",
+      "handle": "@dhseo90",
+      "authorityScope": "repository-scoped-product-scope-attestation",
+      "source": ".github/CODEOWNERS",
+      "effectivePattern": "*",
+      "effectiveOwners": [
+        "@dhseo90"
+      ],
+      "notClaimed": [
+        "personal-identity",
+        "organizational-role-delegation",
+        "employment-relationship",
+        "security-privacy-ml-certification"
+      ]
+    },
+    "attestation": {
+      "status": "accepted-by-current-goal",
+      "source": "/goal v3.9.0 (25) 잔여이슈 해결 4",
+      "sourceDigest": "ca9df70ca01b749eefcd01e09edec6c125e8a503c82d1f0df780048f377a0d55",
+      "recordedDate": "2026-07-13",
+      "reviewItem": 63,
+      "evidenceStatus": "user-directive-recorded-not-cryptographically-verifiable"
+    }
+  },
+  "externalFieldSmoke": {
+    "includedInDeferredDecisionSet": false,
+    "status": "conditional-not-run",
+    "fixture": "test/fixtures/v390_external_field_smoke_no_device_closure.json",
+    "verifier": "./server.sh verify-v390-external-field-smoke-no-device-closure"
+  },
+  "decisions": [
+    {
+      "id": "action-execution",
+      "functionalOwnerRole": "Product Owner",
+      "accountableSubjectRef": "repo-owner-v1",
+      "approvalStatus": "attested-current-goal",
+      "decision": "excluded-from-v3.9",
+      "implementationStatus": "deferred-capability-not-implemented",
+      "capabilityStatus": {
+        "productReadModelStatus": "implemented",
+        "actionWriteStatus": "not-implemented",
+        "currentReleaseExecutionEvidenceStatus": "not-run"
+      },
+      "executionStatus": "not-executed",
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "uiFulltestPassClaimed": false,
+      "longrunPassClaimed": false,
+      "rationale": "v3.9 action workspace의 read-only 결정과 상태 UI는 구현되어 있지만 source recheck, client notice send, rule apply를 수행하는 write 계약과 authorization, audit, rollback 제품 정책은 승인·구현되지 않았으므로 supported release 범위에서 제외합니다.",
+      "evidence": {
+        "route": "/ops/api/actions/execution-deferral-decision",
+        "method": "GET",
+        "schema": "media-server.ops.v390-action-execution-deferral-decision.v1",
+        "sourceAnchors": [
+          {
+            "file": "src/ingress/ops_action_execution_deferral.cpp",
+            "requiredTokens": [
+              "OpsV390ActionExecutionDeferralDecisionJson",
+              "/ops/api/actions/execution-deferral-decision",
+              "approvalGatedExecutionEnabled",
+              "actionExecutionPerformed"
+            ],
+            "sourceFileSha256": "ccc2781ecc8aca7445dc719cbfb02cf203ddb047b5716493cbd49f069ec1f246"
+          },
+          {
+            "file": "src/ingress/product_ui_action_execution_deferral.cpp",
+            "requiredTokens": [
+              "renderV390ActionExecutionDeferralDecision",
+              "dashActionExecutionDeferralText",
+              "dashActionExecutionDeferralBoundary"
+            ],
+            "sourceFileSha256": "c6594d636a929ff48624da26c4cd2e5fadec931726054a5139d05adb06256416"
+          }
+        ],
+        "uiRoute": "/ops/dashboard",
+        "uiSelectors": [
+          "[data-testid=\"ops-action-execution-deferral-decision\"]",
+          "#dashActionExecutionDeferralText",
+          "#dashActionExecutionDeferralBoundary"
+        ],
+        "boundaryFields": [
+          "approvalGatedExecutionEnabled=false",
+          "actionExecutionPerformed=false",
+          "externalDeliveryPerformed=false"
+        ],
+        "verifierCommands": [
+          "./server.sh verify-v390-action-execution-deferral-decision"
+        ],
+        "documentation": [
+          "docs/v390-feature-completion-inventory.md",
+          "docs/development-backlog.md"
+        ]
+      },
+      "followup": {
+        "assignment": "post-v3.9-unassigned",
+        "scheduled": false,
+        "targetVersion": null,
+        "dependencyStatus": "blocked-until-reopen-conditions-approved",
+        "dependencies": [
+          {
+            "id": "action-write-contract",
+            "ownerRole": "Product Owner",
+            "approvalCondition": "실행 가능한 action 종류와 사용자 가치, 실패 의미, 취소 가능 범위를 제품 책임자가 승인해야 합니다.",
+            "verificationCondition": "source recheck, notice send, rule apply의 실제 write와 독립 readback을 positive·negative 계약으로 검증해야 합니다."
+          },
+          {
+            "id": "authorization-audit-rollback",
+            "ownerRole": "Security Owner",
+            "approvalCondition": "role/scope authorization, audit 보존, idempotency, rollback과 외부 side effect 경계를 승인해야 합니다.",
+            "verificationCondition": "권한 우회, 중복 실행, 부분 실패, rollback 실패를 포함한 HTTP·저장·재시작 행렬이 통과해야 합니다."
+          },
+          {
+            "id": "execution-evidence-plan",
+            "ownerRole": "Release Owner",
+            "approvalCondition": "실행형 action의 UI, 장시간, cleanup 및 field 증적 범위와 중단 조건을 사전 승인해야 합니다.",
+            "verificationCondition": "승인된 current HEAD에서 UI action 결속, 실행 결과, cleanup과 release evidence를 독립 재검증해야 합니다."
+          }
+        ],
+        "reopenConditions": [
+          "action-write-contract",
+          "authorization-audit-rollback",
+          "execution-evidence-plan"
+        ]
+      }
+    },
+    {
+      "id": "persistent-credential-store",
+      "functionalOwnerRole": "Security Owner",
+      "accountableSubjectRef": "repo-owner-v1",
+      "approvalStatus": "attested-current-goal",
+      "decision": "excluded-from-v3.9",
+      "implementationStatus": "deferred-capability-not-implemented",
+      "capabilityStatus": {
+        "sanitizedStatusSummaryStatus": "implemented",
+        "inMemoryFixtureFallbackStatus": "implemented",
+        "persistentStoreStatus": "not-implemented",
+        "currentReleaseIntegrationEvidenceStatus": "not-run"
+      },
+      "executionStatus": "not-executed",
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "uiFulltestPassClaimed": false,
+      "longrunPassClaimed": false,
+      "rationale": "v3.9에는 credential 값과 secret material을 숨기는 상태 요약 및 테스트용 in-memory fixture fallback만 있으며, 제품 persistent backend의 암호화, rotation, revocation, audit, backup/recovery 계약은 승인·구현되지 않았으므로 제외합니다.",
+      "evidence": {
+        "route": "/ops/api/onvif/credential-provider-status",
+        "method": "GET",
+        "schema": "media-server.ops.v390-onvif-credential-provider-status.v1",
+        "sourceAnchors": [
+          {
+            "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+            "requiredTokens": [
+              "OpsV390OnvifCredentialProviderStatusSummaryJson",
+              "/ops/api/onvif/credential-provider-status",
+              "productPersistentSecretStoreEnabled",
+              "secretMaterialStored"
+            ],
+            "sourceFileSha256": "9d50fbae07a2255a7fb2d4204851f4f84b48193e9da7285b21aa4f4f62dd8a60"
+          },
+          {
+            "file": "src/ingress/product_ui_ops_sources_script.cpp",
+            "requiredTokens": [
+              "renderOnvifCredentialProviderStatus",
+              "onvifCredentialGateStatus",
+              "persistent store deferred"
+            ],
+            "sourceFileSha256": "c88ca801a345ccfb635a8ba755bc652adddb24b82b846be70d96718a15cb93b9"
+          }
+        ],
+        "uiRoute": "/ops/sources",
+        "uiSelectors": [
+          "#onvifCredentialGateStatus"
+        ],
+        "boundaryFields": [
+          "productPersistentSecretStoreEnabled=false",
+          "secretMaterialStored=false",
+          "credentialMaterialExposed=false"
+        ],
+        "verifierCommands": [
+          "./server.sh verify-v390-onvif-credential-provider-status"
+        ],
+        "documentation": [
+          "docs/onvif-credential-reference-policy.md",
+          "docs/onvif-credential-store-integration-design.md"
+        ]
+      },
+      "followup": {
+        "assignment": "post-v3.9-unassigned",
+        "scheduled": false,
+        "targetVersion": null,
+        "dependencyStatus": "blocked-until-reopen-conditions-approved",
+        "dependencies": [
+          {
+            "id": "secret-backend-selection",
+            "ownerRole": "Security Owner",
+            "approvalCondition": "제품 secret backend, encryption at rest, key ownership과 운영 환경별 provider를 명시 승인해야 합니다.",
+            "verificationCondition": "선택 backend의 create/read/rotate/revoke/restart 경로와 raw secret 비노출을 실제 integration으로 검증해야 합니다."
+          },
+          {
+            "id": "rotation-revocation-recovery-policy",
+            "ownerRole": "Security and Operations Owner",
+            "approvalCondition": "credential rotation, revocation, audit retention, backup과 disaster recovery 정책을 공동 승인해야 합니다.",
+            "verificationCondition": "교체 중 실패, 폐기 reference, backup restore, 권한 없는 접근과 audit completeness 행렬이 통과해야 합니다."
+          },
+          {
+            "id": "secret-negative-integration-evidence",
+            "ownerRole": "Release Owner",
+            "approvalCondition": "credential integration의 redaction, fault injection, cleanup과 field evidence 범위를 사전 승인해야 합니다.",
+            "verificationCondition": "로그·API·UI·artifact 전체의 secret scan과 실제 backend negative/positive 증적이 current HEAD에서 통과해야 합니다."
+          }
+        ],
+        "reopenConditions": [
+          "secret-backend-selection",
+          "rotation-revocation-recovery-policy",
+          "secret-negative-integration-evidence"
+        ]
+      }
+    },
+    {
+      "id": "production-restore",
+      "functionalOwnerRole": "Operations and Release Owner",
+      "accountableSubjectRef": "repo-owner-v1",
+      "approvalStatus": "attested-current-goal",
+      "decision": "excluded-from-v3.9",
+      "implementationStatus": "product-automation-not-implemented",
+      "capabilityStatus": {
+        "operationalRunbookStatus": "documented",
+        "stagingValidationStatus": "implemented",
+        "productRestoreAutomationStatus": "not-implemented",
+        "productionCutoverEvidenceStatus": "not-run"
+      },
+      "executionStatus": "not-executed",
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "uiFulltestPassClaimed": false,
+      "longrunPassClaimed": false,
+      "rationale": "운영 backup/recovery runbook과 staging restore validation handoff는 존재하지만 제품 route는 production write, automatic recovery, cutover를 수행하지 않습니다. 실제 production restore 자동화와 승인된 cutover evidence가 없으므로 v3.9 지원 범위에서 제외합니다.",
+      "evidence": {
+        "route": "/ops/api/source-registry/staging-restore-validation-handoff",
+        "method": "GET",
+        "schema": "media-server.ops.v390-staging-restore-validation-handoff.v1",
+        "sourceAnchors": [
+          {
+            "file": "src/ingress/webrtc_http_server_runtime.cpp",
+            "requiredTokens": [
+              "/ops/api/source-registry/staging-restore-validation-handoff",
+              "OpsV390StagingRestoreValidationHandoffJson"
+            ],
+            "sourceFileSha256": "de84c484cf6fe0abf53f3d5073e9e43eda9461003e76bc844fe692a7bfac170a"
+          },
+          {
+            "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+            "requiredTokens": [
+              "OpsV390StagingRestoreValidationHandoffJson",
+              "media-server.ops.v390-staging-restore-validation-handoff.v1",
+              "productionRestorePerformed",
+              "automaticRecoveryPerformed"
+            ],
+            "sourceFileSha256": "9d50fbae07a2255a7fb2d4204851f4f84b48193e9da7285b21aa4f4f62dd8a60"
+          },
+          {
+            "file": "src/ingress/product_ui_ops_sources_script.cpp",
+            "requiredTokens": [
+              "renderStagingRestoreValidationHandoff",
+              "sourceStagingRestoreValidationStatus",
+              "productionRestorePerformed"
+            ],
+            "sourceFileSha256": "c88ca801a345ccfb635a8ba755bc652adddb24b82b846be70d96718a15cb93b9"
+          },
+          {
+            "file": "src/ingress/webrtc_http_server.cpp",
+            "requiredTokens": [
+              "data-source-staging-restore-validation-handoff",
+              "sourceStagingRestoreValidationStatus"
+            ],
+            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
+          },
+          {
+            "file": "docs/ops-backup-recovery.md",
+            "requiredTokens": [
+              "staging",
+              "restore"
+            ],
+            "sourceFileSha256": "a81f3a07625caed9d11ab35e3c4b40e72dbff7e7e89128308c036a95d074b92b"
+          }
+        ],
+        "uiRoute": "/ops/sources",
+        "uiSelectors": [
+          "[data-source-staging-restore-validation-handoff=\"media-server.ops.v390-staging-restore-validation-handoff.v1\"]",
+          "#sourceStagingRestoreValidationStatus"
+        ],
+        "boundaryFields": [
+          "productionRestorePerformed=false",
+          "automaticRecoveryPerformed=false",
+          "sourceRegistryWritePerformed=false"
+        ],
+        "verifierCommands": [
+          "./server.sh verify-v390-backup-recovery-handoff-validation"
+        ],
+        "documentation": [
+          "docs/ops-backup-recovery.md",
+          "docs/v390-feature-completion-inventory.md"
+        ]
+      },
+      "followup": {
+        "assignment": "post-v3.9-unassigned",
+        "scheduled": false,
+        "targetVersion": null,
+        "dependencyStatus": "blocked-until-reopen-conditions-approved",
+        "dependencies": [
+          {
+            "id": "production-cutover-approval",
+            "ownerRole": "Operations and Release Owner",
+            "approvalCondition": "대상 환경, maintenance window, operator 권한, cutover와 중단 기준을 명시 승인해야 합니다.",
+            "verificationCondition": "승인 ticket과 동일한 backup을 staging에서 복구하고 production 전후 source/view identity를 대조해야 합니다."
+          },
+          {
+            "id": "backup-restore-integrity-evidence",
+            "ownerRole": "Operations Owner",
+            "approvalCondition": "backup manifest, checksum, schema/version compatibility와 credential 분리 정책을 확정해야 합니다.",
+            "verificationCondition": "손상·누락·구버전 backup 거부와 정상 backup의 registry/view/auth 경계 복구를 독립 검증해야 합니다."
+          },
+          {
+            "id": "rollback-and-field-validation",
+            "ownerRole": "Release Owner",
+            "approvalCondition": "production 실패 시 rollback, viewer reconnect, cleanup과 field validation 절차를 승인해야 합니다.",
+            "verificationCondition": "부분 실패와 재시작 후 rollback, 서비스 health, listener/media 경계와 cleanup evidence를 확인해야 합니다."
+          }
+        ],
+        "reopenConditions": [
+          "production-cutover-approval",
+          "backup-restore-integrity-evidence",
+          "rollback-and-field-validation"
+        ]
+      }
+    },
+    {
+      "id": "external-vlm-provider-call",
+      "functionalOwnerRole": "Privacy and Security Owner",
+      "accountableSubjectRef": "repo-owner-v1",
+      "approvalStatus": "attested-current-goal",
+      "decision": "excluded-from-v3.9",
+      "implementationStatus": "product-runtime-call-not-implemented",
+      "capabilityStatus": {
+        "productRuntimeProviderCallStatus": "forbidden-and-not-implemented",
+        "conditionalFieldHarnessStatus": "implemented",
+        "currentFieldRunStatus": "not-run"
+      },
+      "executionStatus": "not-executed",
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "uiFulltestPassClaimed": false,
+      "longrunPassClaimed": false,
+      "rationale": "조건부 field smoke harness는 승인과 credential이 있을 때 별도 실행 가능하지만 제품 VLM runtime 계약은 providerCallAllowed=false와 side effect false를 강제합니다. privacy transfer, retention, redaction, 비용·장애 정책 미승인으로 제품 호출은 v3.9에서 제외합니다.",
+      "evidence": {
+        "route": "/ops/api/field-evidence/bridge-decision",
+        "method": "GET",
+        "schema": "media-server.ops.v390-field-evidence-bridge-decision.v1",
+        "sourceAnchors": [
+          {
+            "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
+            "requiredTokens": [
+              "OpsV390FieldEvidenceBridgeDecisionJson",
+              "/ops/api/field-evidence/bridge-decision",
+              "cloudProviderCalled",
+              "vlmProviderCalled"
+            ],
+            "sourceFileSha256": "6e4f3da325362b5899d06f9137cde06782135cfd646fc35da9de3554effd7558"
+          },
+          {
+            "file": "src/ingress/product_ui_page_scripts.cpp",
+            "requiredTokens": [
+              "renderV390FieldEvidenceBridgeDecision",
+              "dashFieldEvidenceBridgeText",
+              "dashFieldEvidenceBridgeBoundary"
+            ],
+            "sourceRegion": {
+              "startLocator": "      const renderV390FieldEvidenceBridgeDecision = (payload = {}) => {",
+              "endLocator": "      const refreshV390FieldEvidenceBridgeDecision = async ({",
+              "regionSha256": "4ee1566a473d9ddc338c052499b9ed8fc0831bcaa99e19867921c4958f8e84cc"
+            }
+          },
+          {
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "requiredTokens": [
+              "ops-field-evidence-bridge-decision",
+              "dashFieldEvidenceBridgeText",
+              "dashFieldEvidenceBridgeBoundary"
+            ],
+            "sourceRegion": {
+              "startLocator": "      <section class=\"section-card ops-workspace-wide ops-field-evidence-bridge-decision\"",
+              "endLocator": "      <section class=\"section-card ops-workspace-wide ops-reid-assist-decision\"",
+              "regionSha256": "cd5024e9ab5caa968bb0b387df9e6d399485ff69cb06e907439083d8f27522b8"
+            }
+          },
+          {
+            "file": "scripts/internal/verify_vlm_cloud_provider_field_smoke_gate.mjs",
+            "requiredTokens": [
+              "approval",
+              "provider"
+            ],
+            "sourceFileSha256": "887a2c830da7849f1d1acd21a7ea59e7702cc60a028856784e14c195751dc7fb"
+          }
+        ],
+        "uiRoute": "/ops/dashboard",
+        "uiSelectors": [
+          "[data-testid=\"ops-field-evidence-bridge-decision\"]",
+          "#dashFieldEvidenceBridgeText",
+          "#dashFieldEvidenceBridgeBoundary"
+        ],
+        "boundaryFields": [
+          "providerCallAllowed=false",
+          "cloudProviderCalled=false",
+          "vlmProviderCalled=false"
+        ],
+        "verifierCommands": [
+          "./server.sh verify-v390-conditional-field-ai-decisions",
+          "./server.sh verify-vlm-cloud-provider-field-smoke-gate --help"
+        ],
+        "documentation": [
+          "docs/vlm-cloud-provider-field-smoke-gate.md",
+          "docs/vlm-privacy-transfer-guard.md"
+        ]
+      },
+      "followup": {
+        "assignment": "post-v3.9-unassigned",
+        "scheduled": false,
+        "targetVersion": null,
+        "dependencyStatus": "blocked-until-reopen-conditions-approved",
+        "dependencies": [
+          {
+            "id": "data-transfer-retention-approval",
+            "ownerRole": "Privacy and Security Owner",
+            "approvalCondition": "전송 가능 frame/context, 지역, retention, deletion, provider 학습 사용과 incident 대응을 승인해야 합니다.",
+            "verificationCondition": "허용·금지 payload, redaction, retention/deletion과 raw prompt/response 비보존 negative를 검증해야 합니다."
+          },
+          {
+            "id": "provider-credential-budget-policy",
+            "ownerRole": "Product and Security Owner",
+            "approvalCondition": "provider, endpoint, credential backend, 예산 한도, timeout/retry/circuit-breaker 정책을 승인해야 합니다.",
+            "verificationCondition": "credential 비노출, 비용 한도, timeout/retry, provider 장애와 fallback 동작을 실제 환경에서 검증해야 합니다."
+          },
+          {
+            "id": "redaction-field-evidence",
+            "ownerRole": "Release Owner",
+            "approvalCondition": "conditional field run의 target, 실행 시간, artifact redaction, cleanup과 실패 중단 기준을 승인해야 합니다.",
+            "verificationCondition": "승인된 field harness로 provider 응답 의미, redaction scan, cleanup과 no-release-PASS 경계를 확인해야 합니다."
+          }
+        ],
+        "reopenConditions": [
+          "data-transfer-retention-approval",
+          "provider-credential-budget-policy",
+          "redaction-field-evidence"
+        ]
+      }
+    },
+    {
+      "id": "model-backed-reid-session",
+      "functionalOwnerRole": "Product and ML Owner",
+      "accountableSubjectRef": "repo-owner-v1",
+      "approvalStatus": "attested-current-goal",
+      "decision": "excluded-from-v3.9-supported-release-scope",
+      "implementationStatus": "experimental-capability-implemented-release-evidence-not-executed",
+      "capabilityStatus": {
+        "sourceCapabilityStatus": "implemented-opt-in-experimental",
+        "defaultEnabled": false,
+        "supportedReleaseScope": "excluded",
+        "modelBundleStatus": "not-included",
+        "actualSessionEvidenceStatus": "not-run"
+      },
+      "executionStatus": "not-executed",
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "uiFulltestPassClaimed": false,
+      "longrunPassClaimed": false,
+      "rationale": "ExperimentalOnnxReidExtractor의 ONNX session 생성과 inference 코드는 opt-in capability로 구현되어 있으나 기본값은 off/no-op이며 승인된 model bundle, license/privacy 범위, current release actual session·성능 evidence가 없습니다. 따라서 전체 미구현이 아니라 v3.9 supported release 범위에서 제외합니다.",
+      "evidence": {
+        "route": "/ops/api/analysis/reid-assist-decision",
+        "method": "GET",
+        "schema": "media-server.ops.v390-reid-assist-decision.v1",
+        "sourceAnchors": [
+          {
+            "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
+            "requiredTokens": [
+              "OpsV390ReidAssistDecisionJson",
+              "/ops/api/analysis/reid-assist-decision",
+              "modelSessionLoadPerformed",
+              "modelBackedExecutionPerformed"
+            ],
+            "sourceFileSha256": "6e4f3da325362b5899d06f9137cde06782135cfd646fc35da9de3554effd7558"
+          },
+          {
+            "file": "src/analysis/appearance_extractor.cpp",
+            "requiredTokens": [
+              "ExperimentalOnnxReidExtractor",
+              "session_->Run",
+              "CreateAppearanceExtractorFromConfig"
+            ],
+            "sourceFileSha256": "1763a3f69ecd35a49260a16431a0cb51d2c5b174be5d96224f1b33d856af42f4"
+          },
+          {
+            "file": "src/analysis/analysis_manager.cpp",
+            "requiredTokens": [
+              "CreateAppearanceExtractorFromConfig"
+            ],
+            "sourceFileSha256": "7e3e3068d5efa7791ae9b8f09a76395084d873430ff5337fe455f79f31de2936"
+          },
+          {
+            "file": "src/ingress/product_ui_page_scripts.cpp",
+            "requiredTokens": [
+              "renderV390ReidAssistDecision",
+              "dashReidAssistDecisionText",
+              "dashReidAssistDecisionBoundary"
+            ],
+            "sourceRegion": {
+              "startLocator": "      const renderV390ReidAssistDecision = (payload = {}) => {",
+              "endLocator": "      const refreshV390ReidAssistDecision = async ({",
+              "regionSha256": "22a48c2a5d243611ea77c92579a245ec75b92ad5cf94869d3baedca48f73513c"
+            }
+          },
+          {
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "requiredTokens": [
+              "ops-reid-assist-decision",
+              "dashReidAssistDecisionText",
+              "dashReidAssistDecisionBoundary"
+            ],
+            "sourceRegion": {
+              "startLocator": "      <section class=\"section-card ops-workspace-wide ops-reid-assist-decision\"",
+              "endLocator": "      <section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace\"",
+              "regionSha256": "adace168532d37a155dcf5e551a1cf37ffb989d3c0775e6f56633adea4c7b970"
+            }
+          }
+        ],
+        "uiRoute": "/ops/dashboard",
+        "uiSelectors": [
+          "[data-testid=\"ops-reid-assist-decision\"]",
+          "#dashReidAssistDecisionText",
+          "#dashReidAssistDecisionBoundary"
+        ],
+        "boundaryFields": [
+          "defaultEnabled=false",
+          "modelSessionLoadPerformed=false",
+          "modelBackedExecutionPerformed=false"
+        ],
+        "verifierCommands": [
+          "./server.sh verify-v390-reid-readiness-consistency"
+        ],
+        "documentation": [
+          "docs/reid-default-off-research-continuation.md",
+          "docs/v390-feature-completion-inventory.md"
+        ]
+      },
+      "followup": {
+        "assignment": "post-v3.9-unassigned",
+        "scheduled": false,
+        "targetVersion": null,
+        "dependencyStatus": "blocked-until-reopen-conditions-approved",
+        "dependencies": [
+          {
+            "id": "model-bundle-license-approval",
+            "ownerRole": "Product and ML Owner",
+            "approvalCondition": "배포 model bundle, checksum/provenance, license, 입력 shape와 정확도 목표를 명시 승인해야 합니다.",
+            "verificationCondition": "실제 bundle의 session load, tensor shape/type, inference 성공·실패와 checksum/provenance를 검증해야 합니다."
+          },
+          {
+            "id": "privacy-retention-approval",
+            "ownerRole": "Privacy Owner",
+            "approvalCondition": "crop, embedding, tracking identity의 메모리·로그·artifact·retention과 viewer 노출 금지 범위를 승인해야 합니다.",
+            "verificationCondition": "embedding/crop/model material 비직렬화, cleanup, retention과 client/event/media schema 불변을 확인해야 합니다."
+          },
+          {
+            "id": "session-performance-field-evidence",
+            "ownerRole": "Release and ML Owner",
+            "approvalCondition": "실환경 session, 정확도, latency, resource, fallback과 field failure 기준을 사전 승인해야 합니다.",
+            "verificationCondition": "current model과 target hardware에서 session load/inference, 성능, no-op fallback, longrun cleanup을 검증해야 합니다."
+          }
+        ],
+        "reopenConditions": [
+          "model-bundle-license-approval",
+          "privacy-retention-approval",
+          "session-performance-field-evidence"
+        ]
+      }
+    }
+  ]
+}

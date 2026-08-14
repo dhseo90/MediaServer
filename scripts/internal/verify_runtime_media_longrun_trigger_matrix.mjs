@@ -24,7 +24,7 @@ Options:
   -h, --help            도움말 출력
 
 Checks:
-  - runtime/media 변경 유형별 30분 soak, 120분 predev, VA runtime longrun trigger를 분리
+  - runtime/media 변경 유형별 30분 server longrun, 120분 server/VA runtime longrun trigger를 분리
   - 120분 gate는 상시 실행이 아니라 사용자 승인/RC/high-risk 조건일 때만 요구
   - docs, release gate, feature inventory, runtime longrun template이 같은 기준을 말함
 `);
@@ -35,6 +35,9 @@ assertKnownOptions(rawArgs, ["report", "json-report", "h", "help"]);
 const args = parseArgs(rawArgs);
 const reportPath = args.report ? path.resolve(rootDir, args.report) : "";
 const jsonReportPath = args.jsonReport ? path.resolve(rootDir, args.jsonReport) : "";
+const releaseGrade30 = "verify-v390-server-longrun --duration-minutes 30";
+const releaseGrade120 = "verify-v390-server-longrun --duration-minutes 120";
+const runtimeConsole120 = "verify-va-runtime-console-longrun --duration-minutes 120";
 const rows = matrixRows();
 const checks = [];
 const payload = {
@@ -43,9 +46,9 @@ const payload = {
   status: "pass",
   summary: {
     rows: rows.length,
-    soak30Rows: rows.filter(row => row.triggers.includes("verify-predev --soak-minutes 30")).length,
-    predev120Rows: rows.filter(row => row.triggers.includes("verify-predev --soak-minutes 120")).length,
-    runtime120Rows: rows.filter(row => row.triggers.includes("verify-va-runtime-console-longrun --duration-minutes 120")).length,
+    server30Rows: rows.filter(row => row.triggers.includes(releaseGrade30)).length,
+    server120Rows: rows.filter(row => row.triggers.includes(releaseGrade120)).length,
+    runtime120Rows: rows.filter(row => row.triggers.includes(runtimeConsole120)).length,
     approvalRequiredRows: rows.filter(row => row.approvalRequired === true).length,
   },
   rows,
@@ -58,27 +61,27 @@ check("trigger matrix separates short stability, 30 minute, 120 minute, and UI f
   assert(docsOnly.triggers.includes("short-stability"), "docs-only row must keep short stability");
   assert(!docsOnly.triggers.some(item => item.includes("120")), "docs-only row must not require 120 minute longrun");
   const mediaPath = rowById("rtsp-gstreamer-webrtc-session-lifecycle");
-  assert(mediaPath.triggers.includes("verify-predev --soak-minutes 30"), "media path row must require 30 minute soak");
-  assert(mediaPath.triggers.includes("verify-predev --soak-minutes 120"), "media path row must trigger 120 minute predev for high risk");
+  assert(mediaPath.triggers.includes(releaseGrade30), "media path row must require 30 minute release-grade runner");
+  assert(mediaPath.triggers.includes(releaseGrade120), "media path row must trigger 120 minute release-grade runner for high risk");
   assert(mediaPath.approvalRequired === true, "media path 120 minute trigger must require approval");
 });
 
 check("VA runtime high-risk row requires runtime console longrun", () => {
   const fanout = rowById("runtime-dashboard-metadata-fanout");
-  assert(fanout.triggers.includes("verify-va-runtime-console-longrun --duration-minutes 120"), "runtime fanout row missing VA runtime longrun");
+  assert(fanout.triggers.includes(runtimeConsole120), "runtime fanout row missing VA runtime longrun");
   assert(fanout.approvalRequired === true, "runtime fanout row must require approval");
   assert(fanout.highRiskSignals.includes("metadata fanout lifecycle"), "runtime fanout row missing high-risk signal");
 });
 
 check("VLM queue, memory, provider timeout, and model install rows are classified", () => {
   const queue = rowById("vlm-queue-timeout-nonblocking");
-  assert(queue.triggers.includes("verify-predev --soak-minutes 30"), "VLM queue row must require 30 minute soak");
-  assert(queue.triggers.includes("verify-va-runtime-console-longrun --duration-minutes 120"), "VLM queue row must trigger runtime longrun for high risk");
+  assert(queue.triggers.includes(releaseGrade30), "VLM queue row must require 30 minute release-grade runner");
+  assert(queue.triggers.includes(runtimeConsole120), "VLM queue row must trigger runtime longrun for high risk");
   assert(queue.approvalRequired === true, "VLM queue 120 minute trigger must require approval");
   assert(queue.highRiskSignals.includes("VLM queue backpressure"), "VLM queue row missing backpressure signal");
 
   const memory = rowById("vlm-memory-runtime-cache");
-  assert(memory.triggers.includes("verify-predev --soak-minutes 120"), "VLM memory row must trigger 120 minute predev");
+  assert(memory.triggers.includes(releaseGrade120), "VLM memory row must trigger 120 minute release-grade runner");
   assert(memory.approvalRequired === true, "VLM memory row must require approval");
 
   const provider = rowById("vlm-provider-timeout-cloud");
@@ -112,6 +115,9 @@ check("docs expose runtime/media longrun trigger matrix", () => {
     "vlm-memory-runtime-cache",
     "vlm-provider-timeout-cloud",
     "vlm-model-install-state",
+    "verify-v390-server-longrun --duration-minutes 30",
+    "verify-v390-server-longrun --duration-minutes 120",
+    "v3.9.0 release-grade longrun runner",
     "30분 soak는 120분 longrun PASS를 대체하지 않습니다",
   ]) {
     assert(stream.includes(snippet), `stream verification missing matrix snippet: ${snippet}`);
@@ -138,6 +144,8 @@ check("existing longrun separation and RC gates remain connected", () => {
     "./server.sh verify-longrun-separation",
     "./server.sh verify-rc-release-gate",
     "./server.sh verify-runtime-dashboard-longrun-template",
+    "./server.sh verify-v390-server-longrun --duration-minutes 30",
+    "./server.sh verify-v390-server-longrun --duration-minutes 120",
     "./server.sh verify-predev --soak-minutes 30",
     "./server.sh verify-predev --soak-minutes 120",
     "./server.sh verify-va-runtime-console-longrun --duration-minutes 120",
@@ -149,7 +157,7 @@ check("existing longrun separation and RC gates remain connected", () => {
 check("high-risk trigger rehearsal fails if approval is missing", () => {
   const rehearsal = evaluateTrigger({ changedArea: "rtsp-gstreamer-webrtc-session-lifecycle", approval: false });
   assert(rehearsal.status === "hold", "high-risk media path rehearsal must hold without approval");
-  assert(rehearsal.required.includes("verify-predev --soak-minutes 120"), "rehearsal missing 120 minute predev");
+  assert(rehearsal.required.includes(releaseGrade120), "rehearsal missing 120 minute release-grade runner");
   const approved = evaluateTrigger({ changedArea: "rtsp-gstreamer-webrtc-session-lifecycle", approval: true });
   assert(approved.status === "ready-to-run", "approved high-risk media path rehearsal should be ready-to-run");
 });
@@ -174,8 +182,8 @@ console.log("");
 console.log("== Runtime/media longrun trigger matrix summary ==");
 console.log(`- schema: ${payload.schema}`);
 console.log(`- rows: ${payload.summary.rows}`);
-console.log(`- 30m rows: ${payload.summary.soak30Rows}`);
-console.log(`- 120m predev rows: ${payload.summary.predev120Rows}`);
+console.log(`- 30m server rows: ${payload.summary.server30Rows}`);
+console.log(`- 120m server rows: ${payload.summary.server120Rows}`);
 console.log(`- 120m runtime rows: ${payload.summary.runtime120Rows}`);
 console.log(`- approvalRequired rows: ${payload.summary.approvalRequiredRows}`);
 console.log(`- pass: ${pass}`);
@@ -208,7 +216,7 @@ function matrixRows() {
     row({
       id: "runtime-dashboard-metadata-fanout",
       changeType: "Runtime dashboard, metadata fanout, SSE/WS/DataChannel counters",
-      triggers: ["short-stability", "verify-predev --soak-minutes 30", "verify-va-runtime-console-longrun --duration-minutes 120"],
+      triggers: ["short-stability", "verify-v390-server-longrun --duration-minutes 30", "verify-va-runtime-console-longrun --duration-minutes 120"],
       approvalRequired: true,
       highRiskSignals: ["metadata fanout lifecycle", "active RSS high-water growth", "cleanup drift"],
       notSubstitutes: ["UI fulltest PASS"],
@@ -217,7 +225,7 @@ function matrixRows() {
     row({
       id: "rtsp-gstreamer-webrtc-session-lifecycle",
       changeType: "RTSP/GStreamer/WebRTC session lifecycle or media path ownership",
-      triggers: ["short-stability", "verify-predev --soak-minutes 30", "verify-predev --soak-minutes 120"],
+      triggers: ["short-stability", "verify-v390-server-longrun --duration-minutes 30", "verify-v390-server-longrun --duration-minutes 120"],
       approvalRequired: true,
       highRiskSignals: ["SessionManager ownership", "SharedStream lifecycle", "RTSP/WebRTC cleanup", "memory growth"],
       notSubstitutes: ["UI fulltest PASS"],
@@ -226,7 +234,7 @@ function matrixRows() {
     row({
       id: "event-post-queue-recovery",
       changeType: "Event POST queue, recovery, cooldown, dispatch persistence",
-      triggers: ["short-stability", "verify-event-post-longrun", "verify-predev --soak-minutes 30"],
+      triggers: ["short-stability", "verify-event-post-longrun", "verify-v390-server-longrun --duration-minutes 30"],
       approvalRequired: false,
       highRiskSignals: ["queue backpressure", "retry/cooldown persistence"],
       notSubstitutes: ["120-minute PASS"],
@@ -262,7 +270,7 @@ function matrixRows() {
     row({
       id: "vlm-queue-timeout-nonblocking",
       changeType: "VLM queue/backpressure, timeout, worker lifecycle, media non-blocking behavior",
-      triggers: ["short-stability", "verify-predev --soak-minutes 30", "verify-va-runtime-console-longrun --duration-minutes 120"],
+      triggers: ["short-stability", "verify-v390-server-longrun --duration-minutes 30", "verify-va-runtime-console-longrun --duration-minutes 120"],
       approvalRequired: true,
       highRiskSignals: ["VLM queue backpressure", "timeout retries persist", "metadata fanout lifecycle", "media non-blocking boundary changed"],
       notSubstitutes: ["UI fulltest PASS"],
@@ -271,7 +279,7 @@ function matrixRows() {
     row({
       id: "vlm-memory-runtime-cache",
       changeType: "VLM runtime cache, crop/frame retention, memory ownership",
-      triggers: ["short-stability", "verify-predev --soak-minutes 30", "verify-predev --soak-minutes 120"],
+      triggers: ["short-stability", "verify-v390-server-longrun --duration-minutes 30", "verify-v390-server-longrun --duration-minutes 120"],
       approvalRequired: true,
       highRiskSignals: ["model/runtime cache ownership", "frame or crop buffer retention", "active RSS high-water growth"],
       notSubstitutes: ["UI fulltest PASS"],
@@ -280,7 +288,7 @@ function matrixRows() {
     row({
       id: "va-tracker-reid-scenario-runtime",
       changeType: "VA tracker/Re-ID/scenario runtime behavior",
-      triggers: ["short-stability", "verify-predev --soak-minutes 30", "verify-va-runtime-console-longrun --duration-minutes 120"],
+      triggers: ["short-stability", "verify-v390-server-longrun --duration-minutes 30", "verify-va-runtime-console-longrun --duration-minutes 120"],
       approvalRequired: true,
       highRiskSignals: ["tracker state retention", "Re-ID assist runtime", "scenario timeline drift"],
       notSubstitutes: ["UI fulltest PASS"],
@@ -298,7 +306,7 @@ function matrixRows() {
     row({
       id: "release-candidate-closeout",
       changeType: "Release candidate close-out",
-      triggers: ["short-stability", "verify-predev --soak-minutes 30", "verify-predev --soak-minutes 120", "verify-va-runtime-console-longrun --duration-minutes 120"],
+      triggers: ["short-stability", "verify-v390-server-longrun --duration-minutes 30", "verify-v390-server-longrun --duration-minutes 120", "verify-va-runtime-console-longrun --duration-minutes 120"],
       approvalRequired: true,
       highRiskSignals: ["RC release gate", "release-grade artifact retention"],
       notSubstitutes: ["UI fulltest PASS"],

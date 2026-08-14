@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.4.0 Step 2 Continuity Drill Contract 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +33,7 @@ const command = "verify-v340-continuity-drill-contract";
 const schema = "media-server.ops.v340-continuity-drill-contract.v1";
 const route = "/ops/api/source-registry/continuity-drill/contract";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
@@ -45,6 +47,7 @@ const files = {
 const checks = [];
 
 check("Ops server builds the v3.4 continuity drill contract", () => {
+  assert(route === "/ops/api/source-registry/continuity-drill/contract", "OPS-092 canonical route drift");
   for (const snippet of [
     "struct OpsV340ContinuityDrillContractInput",
     "BuildV340ContinuityDrillContractInputs",
@@ -198,6 +201,24 @@ check("server entrypoint and inventory verifiers include v3.4 Step 2 command", (
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v340_continuity_drill_contract.mjs", "script inventory");
+});
+
+check("SAFE-125 canonical continuity drill contract boundary", () => {
+  const contractBlock = extractCppFunctionBlock(files.server, "std::string OpsV340ContinuityDrillContractJson()");
+  const continuityDrillContractRouteObserved = route === "/ops/api/source-registry/continuity-drill/contract";
+  const safe125BoundaryObserved = continuityDrillContractRouteObserved && contractBlock.includes("BuildV340ContinuityDrillContractInputs()") && contractBlock.includes("media-server.ops.v340-continuity-drill-contract.v1") && contractBlock.includes("AppendV340ContinuityDrillContractInputJson");
+  const persistencePerformed = /\b(?:Write|Persist|AppendFile|SavePlan)[A-Za-z0-9_:]*\s*\(/.test(contractBlock);
+  const sourceOrEventWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(contractBlock);
+  const rawMaterialExposed = contractBlock.includes("\\\"rawJsonExposed\\\":true");
+  const rawLocatorExposed = contractBlock.includes("\\\"rawLocatorExposed\\\":true");
+  const sourceUrlExposed = contractBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = contractBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const credentialMaterialExposed = contractBlock.includes("\\\"credentialMaterialExposed\\\":true");
+  const secretMaterialExposed = contractBlock.includes("\\\"secretMaterialExposed\\\":true");
+  const automaticRecoveryPerformed = /\b(?:Restore|Recover|Execute)[A-Za-z0-9_:]*\s*\(/.test(contractBlock);
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedViewJson/.test(contractBlock);
+  assert(safe125BoundaryObserved && (continuityDrillContractRouteObserved && contractBlock.includes("BuildV340ContinuityDrillContractInputs()") && contractBlock.includes("media-server.ops.v340-continuity-drill-contract.v1") && contractBlock.includes("AppendV340ContinuityDrillContractInputJson")) && persistencePerformed === false && sourceOrEventWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && secretMaterialExposed === false && automaticRecoveryPerformed === false && viewerClientExposureAdded === false,
+    "SAFE-125 continuity-drill-contract must remain Ops-only read-only/no-secret/no-media-path-change without recovery or client mutation");
 });
 
 const results = runChecks();

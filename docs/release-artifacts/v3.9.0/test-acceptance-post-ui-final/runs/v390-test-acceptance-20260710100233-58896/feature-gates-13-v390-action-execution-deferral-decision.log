@@ -1,0 +1,22 @@
+[pass] Ops server exposes the v3.9 action execution deferral decision
+[pass] deferral decision preserves no-action/no-write/no-external-side-effect boundaries
+[pass] Ops API exposes the action execution deferral route as guarded no-store JSON
+[pass] /ops action control workspace renders action execution deferral decision
+[pass] client/viewer scripts do not receive action deferral internals
+[pass] roadmap, action docs, stream verification, inventory, and release records map v3.9 Step 16
+[pass] server entrypoint and inventory verifiers include v3.9 Step 16 command
+
+== v3.9.0 action execution deferral decision ==
+- schema: media-server.ops.v390-action-execution-deferral-decision.v1
+- step: v3.9.0 (16)
+- route: /ops/api/actions/execution-deferral-decision
+- selectedMode: defer-all-action-writes
+- actionExecutionPerformed: false
+- sourceRecheckExecuted: false
+- clientNoticeSent: false
+- ruleApplyPerformed: false
+- uiFulltest: not-run-by-this-command
+- longrun30: not-run-by-this-command
+- longrun120: not-run-by-this-command
+- pass: 7
+- fail: 0

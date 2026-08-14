@@ -35,6 +35,7 @@ const featureInventory = readText("docs/project-feature-test-inventory.md");
 const releaseRecords = readText("docs/release-test-records.md");
 const releaseEvidenceIndex = readText("docs/release-evidence-index.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
 const serverSh = readText("server.sh");
 const normalizedRecords = normalizeWhitespace(releaseRecords);
@@ -92,7 +93,7 @@ check("feature inventory maps V290-S08 to OPS-049 and SAFE-079", () => {
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S08 snippet: ${snippet}`);
   }
-  assert(coverageVerifier.includes("verify-v290-final-stabilization-run"), "feature coverage missing V290-S08 verifier");
+  assertCanonicalCoverage(["SAFE-079", "OPS-049"], "verify-v290-final-stabilization-run");
   assert(projectInventoryVerifier.includes('"OPS-049"'), "project inventory verifier missing OPS-049");
   assert(projectInventoryVerifier.includes('"SAFE-079"'), "project inventory verifier missing SAFE-079");
   assert(projectInventoryVerifierRangeCovers("SAFE", 79), "project inventory verifier SAFE range below 079");
@@ -151,6 +152,14 @@ check("server exposes S08 final stabilization command", () => {
   ]) {
     assert(serverSh.includes(snippet), `server.sh missing S08 command snippet: ${snippet}`);
   }
+});
+
+check("SAFE-079 canonical final stabilization boundary", () => {
+  const stabilizationCommandRecorded = normalizedRecords.includes("verify-v290-final-stabilization-run");
+  const manualUiStatusSeparated = normalizedRecords.includes("v290 S08 UI 풀테스트");
+  const safe079BoundaryObserved = stabilizationCommandRecorded && manualUiStatusSeparated;
+  assert(safe079BoundaryObserved && (stabilizationCommandRecorded && manualUiStatusSeparated),
+    "verify-v290-final-stabilization-run must keep direct UI/longrun/published work separate");
 });
 
 let pass = 0;
@@ -215,6 +224,11 @@ function projectInventoryVerifierRangeCovers(prefix, minimum) {
   if (matches.length === 0) return false;
   const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
   return max >= minimum;
+}
+
+function assertCanonicalCoverage(ids, command) {
+  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"), "feature coverage missing canonical implementation manifest validation");
+  for (const id of ids) assert(implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === command, `implementation manifest ${id} missing ${command}`);
 }
 
 function escapeRegExp(value) {

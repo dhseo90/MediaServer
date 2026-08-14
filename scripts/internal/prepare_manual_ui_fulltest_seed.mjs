@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -22,6 +23,7 @@ Usage:
 Options:
   --dry-run                    Explicit dry-run flag. This is also the default.
   --fixture <path>             Seed fixture path. Default: test/fixtures/manual_ui_fulltest_va_seed_matrix.json
+  --published-seed-baseline    Validate the fixture against config/docs_ui_assets.json baseline.publishedRelease.
   --emit-plan <path>           Write the validated ordered seed plan as JSON.
   --emit-registry-dir <dir>    Write throwaway sources/views/analysis/preconditions files. Sends 0 HTTP requests.
   --apply                      Apply the seed to a running throwaway server. Not a default action.
@@ -40,6 +42,7 @@ Boundaries:
 assertKnownOptions(rawArgs, [
   "dry-run",
   "fixture",
+  "published-seed-baseline",
   "emit-plan",
   "emit-registry-dir",
   "apply",
@@ -54,8 +57,17 @@ const args = parseArgs(rawArgs);
 const fixturePath = path.resolve(rootDir, args.fixture || "test/fixtures/manual_ui_fulltest_va_seed_matrix.json");
 const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
 const relativeFixturePath = path.relative(rootDir, fixturePath);
-const currentTag = `v${fs.readFileSync(path.join(rootDir, "VERSION"), "utf8").trim()}`;
-const plan = buildValidatedPlan(fixture, relativeFixturePath);
+const currentVersion = fs.readFileSync(path.join(rootDir, "VERSION"), "utf8").trim();
+const currentTag = `v${currentVersion}`;
+const seedTargetSelection = args.publishedSeedBaseline
+  ? readPublishedSeedBaseline()
+  : {
+      mode: "current-source",
+      expectedReleaseTarget: currentTag,
+      policyPath: "VERSION",
+      policySha256: sha256Text(`${currentVersion}\n`),
+    };
+const plan = buildValidatedPlan(fixture, relativeFixturePath, seedTargetSelection);
 
 if (args.apply && args.dryRun) {
   fail("--apply and --dry-run cannot be used together");
@@ -82,9 +94,10 @@ if (args.apply) {
   printDryRun(plan, Boolean(args.emitPlan));
 }
 
-function buildValidatedPlan(seed, fixtureLabel) {
+function buildValidatedPlan(seed, fixtureLabel, seedTargetSelection) {
   assert(seed.schema === "media-server.manual-ui-fulltest-va-seed-matrix.v1", "unexpected seed fixture schema");
-  assert(seed.releaseTarget === currentTag, `seed fixture must pin ${currentTag}`);
+  assert(seed.releaseTarget === seedTargetSelection.expectedReleaseTarget,
+    `seed fixture must pin ${seedTargetSelection.expectedReleaseTarget}`);
   assert(seed.usageBoundary?.notEvidenceUntilAppliedAndVerified === true, "seed fixture must not be evidence by itself");
   assert(seed.usageBoundary?.keepFinalRulesForEventLogReview === true, "seed fixture must keep final rules for event log review");
   assert(seed.usageBoundary?.separateCrudFromScenarioEventReview === true, "seed fixture must separate CRUD from scenario review");
@@ -108,7 +121,7 @@ function buildValidatedPlan(seed, fixtureLabel) {
     sourceIds.add(id);
     if (source.kind === "file") {
       const localPath = requireNonEmptyString(source.localPath, `source ${id} localPath`);
-      assert(fs.existsSync(path.join(rootDir, localPath)), `source ${id} local file missing: ${localPath}`);
+      validateLocalFileFixture(source, path.join(rootDir, localPath));
     }
   }
 
@@ -228,6 +241,7 @@ function buildValidatedPlan(seed, fixtureLabel) {
     schema: "media-server.manual-ui-fulltest-seed-plan.v1",
     fixture: fixtureLabel,
     releaseTarget: seed.releaseTarget,
+    seedTargetSelection,
     mode: "dry-run",
     httpRequests: 0,
     boundaries: {
@@ -265,6 +279,56 @@ function buildValidatedPlan(seed, fixtureLabel) {
       })),
     },
   };
+}
+
+function readPublishedSeedBaseline() {
+  const assetConfigPath = path.join(rootDir, "config/docs_ui_assets.json");
+  const assetConfigText = fs.readFileSync(assetConfigPath, "utf8");
+  const assetConfig = JSON.parse(assetConfigText);
+  const publishedRelease = requireNonEmptyString(
+    assetConfig?.baseline?.publishedRelease,
+    "docs UI asset published release",
+  );
+  assert(assetConfig?.baseline?.sourceVersion === currentVersion,
+    `docs UI asset source version must be ${currentVersion}`);
+  assert(/^v\d+\.\d+\.\d+$/.test(publishedRelease),
+    `invalid docs UI asset published release: ${publishedRelease}`);
+  assert(assetConfig?.baseline?.publicReleaseStatus === `${publishedRelease}-published-source-only`,
+    "docs UI asset public release status mismatch");
+  return {
+    mode: "published-seed-baseline",
+    expectedReleaseTarget: publishedRelease,
+    policyPath: "config/docs_ui_assets.json",
+    policySha256: sha256Text(assetConfigText),
+  };
+}
+
+function sha256Text(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function validateLocalFileFixture(source, filePath) {
+  const sourceId = requireNonEmptyString(source.id, "source.id");
+  const localPath = requireNonEmptyString(source.localPath, `source ${sourceId} localPath`);
+  assert(fs.existsSync(filePath), `source ${sourceId} local file missing: ${localPath}`);
+
+  const hasExpectedSize = source.fixtureSizeBytes !== undefined;
+  const hasExpectedSha256 = source.fixtureSha256 !== undefined;
+  if (!hasExpectedSize && !hasExpectedSha256) return;
+
+  assert(hasExpectedSize && hasExpectedSha256,
+    `source ${sourceId} fixture integrity requires both fixtureSizeBytes and fixtureSha256`);
+  assert(Number.isSafeInteger(source.fixtureSizeBytes) && source.fixtureSizeBytes >= 0,
+    `source ${sourceId} fixtureSizeBytes must be a non-negative integer`);
+  assert(/^[a-f0-9]{64}$/.test(String(source.fixtureSha256)),
+    `source ${sourceId} fixtureSha256 must be lowercase SHA-256`);
+
+  const actualSize = fs.statSync(filePath).size;
+  assert(actualSize === source.fixtureSizeBytes,
+    `source ${sourceId} fixture size mismatch: expected ${source.fixtureSizeBytes}, got ${actualSize}`);
+  const actualSha256 = createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+  assert(actualSha256 === source.fixtureSha256,
+    `source ${sourceId} fixture SHA-256 mismatch`);
 }
 
 async function applySeedPlan(plan, { httpBase, cookieFile }) {
@@ -550,6 +614,8 @@ function parseArgs(argv) {
     const token = argv[index];
     if (token === "--dry-run") {
       result.dryRun = true;
+    } else if (token === "--published-seed-baseline") {
+      result.publishedSeedBaseline = true;
     } else if (token === "--apply") {
       result.apply = true;
     } else if (token === "--confirm-throwaway-data") {

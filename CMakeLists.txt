@@ -1,6 +1,6 @@
 # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
 cmake_minimum_required(VERSION 3.16)
-project(media_server VERSION 3.8.0 LANGUAGES CXX)
+project(media_server VERSION 3.9.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,8 +13,9 @@ set(MEDIA_SERVER_ONNXRUNTIME_ROOT "" CACHE PATH "ONNX Runtime installation root"
 
 find_package(PkgConfig QUIET)
 
-add_executable(media_server
+add_library(media_server_runtime STATIC
     src/analysis/analysis_manager.cpp
+    src/analysis/analysis_session_service.cpp
     src/analysis/appearance_extractor.cpp
     src/analysis/category_tokens.cpp
     src/analysis/detector_factory.cpp
@@ -49,24 +50,43 @@ add_executable(media_server
     src/analysis/zone_occupancy_scenario.cpp
     src/analysis/yolo_onnx_detector.cpp
     src/app_config.cpp
-    src/main.cpp
+    src/core/analysis_runtime_port.cpp
     src/core/command_runner.cpp
     src/core/shared_stream.cpp
     src/core/source_factory.cpp
     src/core/stream_registry.cpp
     src/core/stream_key.cpp
+    src/domain/strict_json.cpp
     src/core/resource_guard.cpp
     src/core/session_manager.cpp
+    src/core/source_request_parser.cpp
     src/ingress/gst_pipeline_builder.cpp
+    src/ingress/analysis_rule_application_service.cpp
+    src/ingress/analysis_frame_application_service.cpp
+    src/ingress/va_metadata_application_service.cpp
+    src/ingress/event_feature_search_application_service.cpp
+    src/ingress/event_storage_application_service.cpp
+    src/ingress/event_rule_application_service.cpp
+    src/ingress/analysis_session_lifecycle_application_adapter.cpp
+    src/ingress/analysis_session_read_application_adapter.cpp
+    src/ingress/webrtc_media_application_adapter.cpp
+    src/ingress/analysis_rule_registry.cpp
     src/ingress/analysis_overlay_probe.cpp
-    src/ingress/analysis_query.cpp
+    src/ingress/appearance_readiness_application_service.cpp
+    src/ingress/category_catalog_application_service.cpp
+    src/ingress/vlm_observation_application_service.cpp
+    src/ingress/incident_memory_application_service.cpp
+    src/ingress/event_post_application_service.cpp
+    src/ingress/image_codec_application_service.cpp
+    src/analysis/analysis_query.cpp
     src/ingress/http_auth.cpp
     src/ingress/onvif_credential_provider.cpp
     src/ingress/onvif_live_import.cpp
+    src/ingress/ops_action_execution_deferral.cpp
     src/ingress/ops_event_route_owner.cpp
     src/ingress/rtsp_request_context.cpp
-    src/ingress/request_parser.cpp
     src/ingress/product_ui_assets.cpp
+    src/ingress/product_ui_action_execution_deferral.cpp
     src/ingress/product_ui_auth_pages.cpp
     src/ingress/product_ui_components.cpp
     src/ingress/product_ui_client_css.cpp
@@ -76,24 +96,39 @@ add_executable(media_server
     src/ingress/product_ui_ops_sources_script.cpp
     src/ingress/product_ui_ops_users_script.cpp
     src/ingress/product_ui_page_scripts.cpp
+    src/ingress/product_ui_server_pages.cpp
     src/ingress/rtsp_egress_session.cpp
     src/ingress/source_view_registry.cpp
+    src/ingress/source_view_application_service.cpp
+    src/ingress/vlm_profile_json_document.cpp
+    src/ingress/vlm_evaluation_promotion.cpp
+    src/ingress/vlm_incident_rule_provenance.cpp
     src/ingress/webrtc_egress_session.cpp
     src/ingress/webrtc_gst_utils.cpp
-    src/ingress/webrtc_source_registry.cpp
+    src/core/webrtc_source_registry.cpp
     src/ingress/webrtc_source_session.cpp
     src/ingress/webrtc_http_server.cpp
+    src/ingress/webrtc_http_server_ops_foundation.cpp
+    src/ingress/webrtc_http_server_ops_workflows.cpp
+    src/ingress/webrtc_http_server_ops_incidents.cpp
+    src/ingress/webrtc_http_server_runtime.cpp
     src/ingress/rtsp_adapter.cpp
     src/ingress/gstreamer_rtsp_server.cpp
 )
 
-target_include_directories(media_server PRIVATE include)
+add_executable(media_server
+    src/application/media_server_application.cpp
+    src/main.cpp
+)
+
+target_include_directories(media_server_runtime PUBLIC include)
+target_link_libraries(media_server PRIVATE media_server_runtime)
 
 if(MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE)
-    target_sources(media_server PRIVATE src/core/youtube_resolver.cpp)
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=1)
+    target_sources(media_server_runtime PRIVATE src/core/youtube_resolver.cpp)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=1)
 else()
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0)
 endif()
 
 if(MEDIA_SERVER_USE_GSTREAMER)
@@ -105,57 +140,57 @@ if(MEDIA_SERVER_USE_GSTREAMER)
         gstreamer-rtsp-server-1.0
         gstreamer-pbutils-1.0
         gstreamer-app-1.0
-        gstreamer-webrtc-1.0
+        gstreamer-webrtc-1.0>=1.28
         gstreamer-sdp-1.0)
-    target_link_libraries(media_server PRIVATE PkgConfig::GSTREAMER)
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_GSTREAMER=1 GST_USE_UNSTABLE_API=1)
+    target_link_libraries(media_server_runtime PUBLIC PkgConfig::GSTREAMER)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_GSTREAMER=1 GST_USE_UNSTABLE_API=1)
 else()
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_GSTREAMER=0)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_GSTREAMER=0)
 endif()
 
 if(PkgConfig_FOUND)
     pkg_check_modules(PANGOCAIRO QUIET IMPORTED_TARGET pangocairo)
 endif()
 if(PANGOCAIRO_FOUND)
-    target_link_libraries(media_server PRIVATE PkgConfig::PANGOCAIRO)
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_PANGOCAIRO=1)
+    target_link_libraries(media_server_runtime PUBLIC PkgConfig::PANGOCAIRO)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_PANGOCAIRO=1)
 else()
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_PANGOCAIRO=0)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_PANGOCAIRO=0)
 endif()
 
 if(PkgConfig_FOUND)
     pkg_check_modules(SQLITE3 QUIET IMPORTED_TARGET sqlite3)
 endif()
 if(SQLITE3_FOUND)
-    target_link_libraries(media_server PRIVATE PkgConfig::SQLITE3)
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_SQLITE3=1)
+    target_link_libraries(media_server_runtime PUBLIC PkgConfig::SQLITE3)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_SQLITE3=1)
 else()
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_SQLITE3=0)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_SQLITE3=0)
 endif()
 
 if(PkgConfig_FOUND)
     pkg_check_modules(LIBSODIUM QUIET IMPORTED_TARGET libsodium)
 endif()
 if(LIBSODIUM_FOUND)
-    target_link_libraries(media_server PRIVATE PkgConfig::LIBSODIUM)
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_LIBSODIUM=1)
+    target_link_libraries(media_server_runtime PUBLIC PkgConfig::LIBSODIUM)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_LIBSODIUM=1)
 else()
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_LIBSODIUM=0)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_LIBSODIUM=0)
 endif()
 
 if(PkgConfig_FOUND)
     pkg_check_modules(OPENSSL QUIET IMPORTED_TARGET openssl)
 endif()
 if(OPENSSL_FOUND)
-    target_link_libraries(media_server PRIVATE PkgConfig::OPENSSL)
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_OPENSSL=1)
+    target_link_libraries(media_server_runtime PUBLIC PkgConfig::OPENSSL)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_OPENSSL=1)
 else()
     find_package(OpenSSL QUIET)
     if(OpenSSL_FOUND)
-        target_link_libraries(media_server PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-        target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_OPENSSL=1)
+        target_link_libraries(media_server_runtime PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+        target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_OPENSSL=1)
     else()
-        target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_OPENSSL=0)
+        target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_OPENSSL=0)
     endif()
 endif()
 
@@ -179,9 +214,9 @@ if(MEDIA_SERVER_USE_ONNXRUNTIME)
     if(NOT ONNXRUNTIME_INCLUDE_DIR OR NOT ONNXRUNTIME_LIBRARY)
         message(FATAL_ERROR "ONNX Runtime not found. Set MEDIA_SERVER_ONNXRUNTIME_ROOT or disable MEDIA_SERVER_USE_ONNXRUNTIME.")
     endif()
-    target_include_directories(media_server PRIVATE ${ONNXRUNTIME_INCLUDE_DIR})
-    target_link_libraries(media_server PRIVATE ${ONNXRUNTIME_LIBRARY})
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_ONNXRUNTIME=1)
+    target_include_directories(media_server_runtime PUBLIC ${ONNXRUNTIME_INCLUDE_DIR})
+    target_link_libraries(media_server_runtime PUBLIC ${ONNXRUNTIME_LIBRARY})
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_ONNXRUNTIME=1)
 else()
-    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_ONNXRUNTIME=0)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_ONNXRUNTIME=0)
 endif()

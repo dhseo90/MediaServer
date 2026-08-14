@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 12 Field Evidence Simulation Adapter 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -7,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -32,7 +34,8 @@ const command = "verify-v360-field-evidence-simulation-adapter";
 const schema = "media-server.ops.v360-field-evidence-simulation-adapter.v1";
 const route = "/ops/api/live-operations/simulation/field-evidence-adapter";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
+  uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -40,6 +43,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -47,6 +51,12 @@ const files = {
 };
 
 const checks = [];
+
+check("MEDIA-024 exact product simulation adapter preserves external WHEP/TURN no-execution", () => {
+  const productBlock = extractCppFunctionBlock(files.server, "std::string OpsV360FieldEvidenceSimulationAdapterJson(");
+  assert(productBlock.includes("externalWhepTurnContacted") && productBlock.includes("fieldEvidenceSimulationAdapters") && productBlock.includes("rtspOrWebrtcMediaPathChanged"), "MEDIA-024 exact external WHEP/TURN simulation boundary missing");
+  assert(exactBooleanFlagValue(productBlock, "rtspOrWebrtcMediaPathChanged") === false && exactBooleanFlagValue(productBlock, "credentialMaterialIncluded") === false, "MEDIA-024 rtspOrWebrtcMediaPathChanged/credentialMaterialIncluded exact false boundary missing");
+});
 
 check("Ops server builds the v3.6 Field Evidence Simulation Adapter model", () => {
   for (const snippet of [
@@ -68,7 +78,11 @@ check("Ops server builds the v3.6 Field Evidence Simulation Adapter model", () =
 });
 
 check("field evidence adapter derives ONVIF, WHEP/TURN, and cloud/VLM conditions without execution", () => {
-  const block = extractBlock(files.server, "struct OpsV360FieldEvidenceSimulationAdapterItem", "std::string OpsAuditSearchIndexJson");
+  const block = [
+    extractCppFunctionBlock(files.server, "BuildV360FieldEvidenceSimulationAdapterItems("),
+    extractCppFunctionBlock(files.server, "AppendV360FieldEvidenceSimulationAdapterItemJson("),
+    extractCppFunctionBlock(files.server, "std::string OpsV360FieldEvidenceSimulationAdapterJson("),
+  ].join("\n");
   for (const snippet of [
     "BuildV340FieldBridgeConditionGates",
     "BuildV350FieldEvidenceIntakeRecords",
@@ -90,7 +104,10 @@ check("field evidence adapter derives ONVIF, WHEP/TURN, and cloud/VLM conditions
 });
 
 check("field evidence adapter boundary flags prevent field execution, raw material, and media/schema changes", () => {
-  const block = extractBlock(files.server, "std::string OpsV360FieldEvidenceSimulationAdapterJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(
+    files.server,
+    "std::string OpsV360FieldEvidenceSimulationAdapterJson(",
+  );
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -174,7 +191,7 @@ check("Ops API exposes the field evidence adapter route as guarded no-store JSON
 });
 
 check("/ops simulation workspace declares and renders Field Evidence Simulation Adapter", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "dashSimulationWorkspaceFieldEvidenceAdapterList",
     "ops-simulation-field-evidence-adapter-list",
@@ -185,6 +202,14 @@ check("/ops simulation workspace declares and renders Field Evidence Simulation 
     assertIncludes(serverBlock, snippet, "v360 field evidence adapter dashboard shell");
   }
   const scriptBlock = extractBlock(files.uiScript, "const renderV360OpsSimulationWorkspace", "const renderDashboardRootCause");
+  assertIncludes(scriptBlock, "data-v360-field-evidence-simulation-adapter", "v360 field evidence adapter product UI state");
+  const credentialExposed = ["passwordHash", "tokenHash", "Authorization:", "credentialValue", "providerCredential"].some(marker => scriptBlock.includes(marker));
+  assert(credentialExposed === false, "UI-093 field evidence adapter must not expose credentials");
+  const rawMaterialExposed = ["rawEvidenceIncluded: true", "rawLocatorIncluded === true", "rawDiagnosticJsonIncluded === true", "rtsp://", "rtsps://"].some(marker => scriptBlock.includes(marker));
+  assert(rawMaterialExposed === false, "UI-093 raw-material-redaction explicit absence oracle");
+  assertIncludes(files.uiScript, "/ops/dashboard", "UI-093 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v360-field-evidence-simulation-adapter.v1", "UI-093 canonical schema obligation");
+  assertIncludes(files.uiScript, "ONVIF", "UI-093 canonical field obligation");
   for (const snippet of [
     "fieldEvidenceSimulationAdapter",
     "fieldEvidenceSimulationAdapterRoute",
@@ -260,11 +285,37 @@ check("docs, inventory, and dispatch map v3.6 Step 12", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_field_evidence_simulation_adapter.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["UI-093", "SRC-052", "MEDIA-024", "LAB-099", "SAFE-159", "OPS-126"]) {
+    const expectedCommand = id === "SRC-052" ? "verify-ops-source-registry-api" : command;
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
+  }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of ["UI-093", "SRC-052", "MEDIA-024", "LAB-099", "SAFE-159", "OPS-126"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v360_field_evidence_simulation_adapter.mjs", "script inventory");
+});
+
+check("SAFE-159 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360FieldEvidenceSimulationAdapterJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/simulation/field-evidence-adapter");
+  const safe159BoundaryObserved = block.includes("BuildV360FieldEvidenceSimulationAdapterItems");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe159BoundaryObserved && block.includes("media-server.ops.v360-field-evidence-simulation-adapter.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-159 BuildV360FieldEvidenceSimulationAdapterItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

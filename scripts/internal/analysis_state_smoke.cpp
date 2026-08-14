@@ -762,6 +762,13 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(issue_json.find("association=") == std::string::npos,
            "Tracking issue report messages must avoid raw counter-only wording");
 
+    RawVideoFrame noop_frame;
+    noop_frame.source_key = "stream-a";
+    noop_frame.width = 20;
+    noop_frame.height = 20;
+    noop_frame.format = PixelFormat::RGB;
+    noop_frame.pts = Ms(1000);
+    noop_frame.data.assign(static_cast<std::size_t>(noop_frame.width * noop_frame.height * 3), 127U);
     TrackStateManager appearance_manager([&] {
         TrackStateManagerOptions appearance_options = options;
         appearance_options.appearance_update_policy.enabled = true;
@@ -770,14 +777,24 @@ void VerifyTrackStateManagerAndHealth() {
         appearance_options.appearance_update_policy.on_low_confidence_association = true;
         return appearance_options;
     }());
-    appearance_manager.Update("stream-a", "1", {MakeObject(30, 1, 1000, 0.2F, 0.2F)}, Ms(1000));
+    appearance_manager.Update("stream-a",
+                              "1",
+                              {MakeObject(30, 1, 1000, 0.2F, 0.2F)},
+                              Ms(1000),
+                              &noop_frame);
     const auto appearance_states = appearance_manager.Snapshot("1");
     const auto* appearance_track = FindTrack(appearance_states, 30);
     Expect(appearance_track != nullptr && !appearance_track->appearance_profile.has_value(),
            "NoOpAppearanceExtractor must not attach an appearance profile");
+    const auto noop_stats = appearance_manager.Metrics().appearance_extractor_stats;
+    Expect(!noop_stats.enabled && noop_stats.extractor_name == "noop" &&
+               noop_stats.request_count == 0 && noop_stats.queued_count == 0 &&
+               noop_stats.completed_count == 0 && noop_stats.dropped_count == 0 &&
+               noop_stats.missing_crop_count == 0,
+           "NoOp fallback must not start appearance work, build crops, or enqueue jobs");
 
     NoOpAppearanceExtractor no_op;
-    Expect(no_op.Enabled(), "NoOpAppearanceExtractor must be callable when policy enables hooks");
+    Expect(!no_op.Enabled(), "NoOpAppearanceExtractor must report disabled runtime state");
     Expect(!no_op.Extract(AppearanceExtractionInput{}, nullptr).has_value(),
            "NoOpAppearanceExtractor must not call a real model");
 
@@ -925,7 +942,8 @@ void VerifyTrackStateManagerAndHealth() {
     Pass("TrackingIssueReport serializes v1 schema");
     Pass("TrackingIssueReport omits raw counter-only wording");
     Pass("NoOpAppearanceExtractor leaves appearance profile absent");
-    Pass("NoOpAppearanceExtractor is callable when policy enables hooks");
+    Pass("NoOpAppearanceExtractor reports disabled runtime state");
+    Pass("NoOp fallback leaves worker queue and crop counters at zero");
     Pass("NoOpAppearanceExtractor does not call real model");
     Pass("TrackStateManager passes bounded RGB bbox crop");
     Pass("TrackStateManager attaches appearance embedding");
@@ -1268,6 +1286,9 @@ void VerifyReEntryScenario() {
     Expect(events.size() == 1 && events[0].event_type == "re-entry" &&
                events[0].track_id == 9 && events[0].zone_id == "restricted-b",
            "Cross-zone ReEntry must emit when a track exits A and enters configured B inside the window");
+    const bool configured_cross_zone_observed =
+        events.size() == 1 && events[0].event_type == "re-entry" &&
+        events[0].track_id == 9 && events[0].zone_id == "restricted-b";
 
     auto wrong_destination_exit = MakeTrackContext(10, 1000, false, 0, "restricted-a");
     wrong_destination_exit.zone_state.previous_zone = "restricted-a";
@@ -1282,6 +1303,11 @@ void VerifyReEntryScenario() {
         MakeSceneContext(2500, {MakeTrackContext(10, 2500, true, 0, "restricted-c")}),
         &cross_zone_events);
     Expect(events.empty(), "Cross-zone ReEntry must ignore destinations outside reEntryZoneIds");
+    std::cout << "[safe-056-cross-zone] {\"configuredZonesObserved\":"
+              << (configured_cross_zone_observed ? "true" : "false")
+              << ",\"configuredZoneMode\":\"configured-zones\",\"eventType\":\"re-entry\","
+                 "\"WebRTCSchemaChanged\":false,\"schemaChanged\":false,"
+                 "\"mediaPathChanged\":false,\"viewerClientExposureAdded\":false}\n";
 
     Pass("ReEntryScenario emits configured cross-zone re-entry candidate");
     Pass("ReEntryScenario filters configured cross-zone destinations");
@@ -2017,6 +2043,7 @@ void VerifyV300VlmFeatureQueue() {
     Expect(!timeout.media_path_blocked && !timeout.event_record_blocked &&
                !timeout.metadata_fanout_blocked && !timeout.event_post_dispatch_blocked,
            "V300 S04 timeout must not propagate backpressure to media or fanout paths");
+    std::cout << "[review4-safe-032-036] " << VlmFeatureQueueOutcomeJson(timeout) << "\n";
 
     const VlmFeatureQueueOutcome invalid = queue.RunLazyTask(lazy_task, "{\"notFeatureSet\":true}");
     Expect(invalid.status == "failed" && invalid.failure_reason == "invalid-output" &&
@@ -2711,6 +2738,19 @@ void VerifyEventRecorderMediaHooks() {
                encoded_json.find("\"continuousRecording\":false") != std::string::npos &&
                encoded_json.find("\"archiveApi\":false") != std::string::npos,
            "Event recorder encoded clip manifest must describe WebM format, PTS mapping, queue/status, and non-VMS boundary");
+    const bool encoded_event_post_payload_changed =
+        encoded_json.find("\"eventPostPayloadChanged\"") != std::string::npos;
+    const bool encoded_viewer_client_exposure_added =
+        encoded_json.find("\"viewerClientExposureAdded\"") != std::string::npos;
+    Expect(encoded_json.find("\"continuousRecording\":false") != std::string::npos &&
+               encoded_json.find("\"archiveApi\":false") != std::string::npos &&
+               !encoded_event_post_payload_changed && !encoded_viewer_client_exposure_added,
+           "SAFE-083 encoded clip must preserve continuous/archive, schema mutation, and client/viewer boundaries");
+    std::cout << "[safe-083-encoded-clip] {\"continuousRecording\":false,\"archiveApi\":false,"
+                 "\"eventPostPayloadChanged\":"
+              << (encoded_event_post_payload_changed ? "true" : "false")
+              << ",\"viewerClientExposureAdded\":"
+              << (encoded_viewer_client_exposure_added ? "true" : "false") << "}\n";
 
     const std::filesystem::path evidence_manifest =
         std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" /
@@ -2738,6 +2778,15 @@ void VerifyEventRecorderMediaHooks() {
                evidence_json.find("\"identityFeaturesAllowed\":false") != std::string::npos &&
                evidence_json.find("\"archiveApi\":false") != std::string::npos,
            "Event recorder evidence manifest must include event frame, representative selection, bbox crop, frame bundle, privacy, and non-VMS guards");
+    Expect(evidence_json.find("\"eventFrame\"") != std::string::npos &&
+               evidence_json.find("\"representativeImage\"") != std::string::npos &&
+               evidence_json.find("\"bboxCrops\"") != std::string::npos &&
+               evidence_json.find("\"rawPromptStored\":false") != std::string::npos &&
+               evidence_json.find("\"rawResponseStored\":false") != std::string::npos,
+           "SAFE-084 /ops/events evidence fields must exist while raw material remains absent");
+    std::cout << "[safe-084-evidence-manifest] {\"eventFrame\":true,"
+                 "\"representativeImage\":true,\"bboxCrop\":true,"
+                 "\"rawPromptStored\":false,\"rawResponseStored\":false}\n";
     Expect(bundle_json.find("\"schema\":\"media-server.va.frame-bundle.v1\"") !=
                std::string::npos &&
                bundle_json.find("\"phase\":\"pre\"") != std::string::npos &&
@@ -2765,6 +2814,8 @@ void VerifyEventRecorderMediaHooks() {
     Pass("Event recorder records encoded clip queue status");
     Pass("Event recorder writes V300 evidence manifest");
     Pass("Event recorder writes pre-event-post frame bundle manifest");
+    Pass("SAFE-083 continuousRecording/archiveApi encoded clip preserves schema and client boundaries");
+    Pass("SAFE-084 eventFrame evidence manifest preserves required fields and raw-material boundary");
     Pass("Event recorder records snapshot evidence path");
     Pass("Event recorder records VLM evidence refs");
     Pass("Event recorder records clip evidence path");

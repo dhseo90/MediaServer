@@ -1,0 +1,172 @@
+{
+  "schema": "media-server.ui-fulltest-evidence-policy.v4",
+  "policyVersion": 4,
+  "testCategories": [
+    "stabilization",
+    "30-minute",
+    "120-minute",
+    "ui-fulltest"
+  ],
+  "uiEvidenceModes": [
+    "direct-browser",
+    "qualified-native-automation",
+    "hybrid"
+  ],
+  "caseEquivalence": {
+    "level": "exact-case",
+    "allowedExecutionKinds": [
+      "actual-native-visible-dom"
+    ],
+    "allowedAdapterEngines": [
+      "playwright-native",
+      "selenium-native",
+      "chrome-cdp-native"
+    ],
+    "forbiddenEvidenceKinds": [
+      "legacy-v1",
+      "fixture",
+      "one-shot-wrapper",
+      "static-smoke",
+      "api-only",
+      "raw-json-only",
+      "screenshot-only",
+      "source-marker",
+      "hidden-dom-marker"
+    ],
+    "requiredAdapterCapabilities": [
+      "wait",
+      "query",
+      "assert",
+      "click",
+      "type",
+      "select",
+      "evaluate",
+      "screenshot"
+    ],
+    "allowedCompletionOracles": [
+      "dom-transition",
+      "network-response-and-dom",
+      "persisted-state-readback",
+      "eventrecord-correlation",
+      "server-log-correlation"
+    ],
+    "requiredAssertionBoundary": "exact-selector-visible-innerText-only",
+    "requiredArtifacts": [
+      "screenshot",
+      "trace",
+      "browserConsole",
+      "serverLog",
+      "visualMeasurement",
+      "visualDiff",
+      "redactionScan"
+    ],
+    "optionalArtifacts": [
+      "video"
+    ],
+    "visualBaselineSchema": "media-server.ui-visual-baseline-diff.v3",
+    "maxEvidenceAgeHours": 24
+  },
+  "attestation": {
+    "evidenceRefSchema": "media-server.ui-evidence-ref.v1",
+    "interactionTraceSchema": "media-server.v390-ui-native-interaction-trace.v2",
+    "browserConsoleSchema": "media-server.ui-browser-console.v1",
+    "crossCuttingSchema": "media-server.ui-cross-cutting-evidence.v1",
+    "redactionScanSchema": "media-server.ui-evidence-redaction-scan.v1",
+    "maxArtifactBytes": 16777216
+  },
+  "suiteClosure": {
+    "expectedExactUiTestIds": 424,
+    "allowedCaseStatuses": [
+      "direct-pass",
+      "automation-equivalent-pass"
+    ],
+    "requiredZeroCounts": [
+      "fail",
+      "notRun",
+      "unsupported",
+      "unapprovedExclusions",
+      "manualIntervention"
+    ],
+    "requiredCrossCuttingObligations": [
+      "visual-quality",
+      "responsive-320-390-760-1180",
+      "light-dark-theme",
+      "role-scope-guards",
+      "client-viewer-redaction",
+      "video-overlay-crop",
+      "accessibility-focus-contrast"
+    ]
+  },
+  "sourceBinding": {
+    "canonicalCaseManifestPath": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
+    "canonicalCaseManifestSchema": "media-server.ui-fulltest-canonical-case-manifest.v1",
+    "canonicalImplementationEvidenceSchema": "media-server.feature-implementation-evidence.v2",
+    "nativeExactManifestPath": "test/fixtures/v390_ui_native_exact_cases.json",
+    "nativeExactManifestSchema": "media-server.v390-ui-native-exact-cases.v2",
+    "requiredFields": [
+      "version",
+      "gitCommit",
+      "worktreePatchSha256",
+      "buildPath",
+      "buildSha256",
+      "policyPath",
+      "policySha256",
+      "caseManifestPath",
+      "caseManifestSha256",
+      "nativeExactManifestPath",
+      "nativeExactManifestSha256",
+      "nativeExactManifestStableSha256",
+      "runnerPath",
+      "runnerSha256",
+      "artifactRoot"
+    ],
+    "sha256Pattern": "^[a-f0-9]{64}$",
+    "requireCurrentSourceVerification": true
+  },
+  "security": {
+    "redactionStatus": "PASS",
+    "unapprovedConsoleMessages": 0,
+    "forbiddenMaterial": [
+      "credential",
+      "session-cookie",
+      "auth-token",
+      "password",
+      "viewer-source-url",
+      "raw-debug-json"
+    ],
+    "forbiddenMaterialPatterns": [
+      {
+        "id": "authorization-header",
+        "source": "authorization\\s*:",
+        "flags": "i"
+      },
+      {
+        "id": "bearer-token",
+        "source": "bearer\\s+[A-Za-z0-9._~-]{8,}",
+        "flags": "i"
+      },
+      {
+        "id": "secret-assignment",
+        "source": "(?:password|session(?:id|cookie)?|authtoken|token|cookie)\\s*[=:]\\s*[\\\"']?[^\\s,;\\\"']+",
+        "flags": "i"
+      },
+      {
+        "id": "viewer-source-url",
+        "source": "(?:rtsp|rtsps)://[^\\s\\\"']+",
+        "flags": "i"
+      },
+      {
+        "id": "raw-debug-json",
+        "source": "\\\"(?:passwordHash|tokenHash|debugCounters|sourceUrl)\\\"\\s*:",
+        "flags": "i"
+      }
+    ]
+  },
+  "boundaries": {
+    "policyVerifierPassIsUiFulltestPass": false,
+    "replayAloneIsUiFulltestPass": false,
+    "coverageMappingAloneIsUiFulltestPass": false,
+    "partialAutomationIsUiFulltestPass": false,
+    "historicalEvidenceIsRetroactivelyUpgraded": false
+  }
+}

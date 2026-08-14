@@ -10,7 +10,7 @@
 #include <string>
 
 #include "core/egress_session.h"
-#include "ingress/analysis_overlay_probe.h"
+#include "core/media_analysis_port.h"
 #include "ingress/rtsp_request_context.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -35,7 +35,7 @@ public:
     void Stop() override;
 
     void HandleSample(const media::Packet& packet);
-    void SetAnalysisOverlay(AnalysisOverlayConfig config);
+    void SetPipelineAttachment(core::MediaPipelineAttachment attachment);
     std::int64_t ResolveOverlaySourcePts(std::int64_t normalized_pts) const;
 
 private:
@@ -70,7 +70,7 @@ private:
     std::optional<std::int64_t> last_audio_pts_;
     std::int64_t last_audio_frame_duration_ns_{0};
     bool synthesize_silent_audio_{false};
-    AnalysisOverlayConfig analysis_overlay_;
+    core::MediaPipelineAttachment pipeline_attachment_;
     bool started_{false};
     bool stop_recorded_{false};
 

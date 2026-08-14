@@ -1,0 +1,148 @@
+{
+  "schema": "media-server.v390-ui-automation-trace.v1",
+  "caseId": "UI-112",
+  "route": "/ops/sources",
+  "controlAction": "inspect-staging-restore-validation-handoff",
+  "browserMode": "playwright",
+  "adapter": {
+    "tool": "playwright",
+    "engine": "playwright-native",
+    "fallbackUsed": false,
+    "fallbackReason": "",
+    "visualOnly": false,
+    "dependencyStatus": "bundled-module-available",
+    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+    "moduleVersion": "1.61.1",
+    "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "capabilities": [
+      "wait",
+      "click",
+      "fill",
+      "type",
+      "select",
+      "screenshot",
+      "evaluate"
+    ]
+  },
+  "expectedMarkers": [
+    "staging-restore-validation-checklist-result-handoff",
+    "resultArtifactPersistedByRoute=false",
+    "productionRestorePerformed=false",
+    "automaticRecoveryPerformed=false"
+  ],
+  "interactionEvidence": {
+    "kind": "click",
+    "selector": "#refresh",
+    "executed": true,
+    "dispatch": "playwright-native",
+    "setup": []
+  },
+  "stateEvidence": {
+    "target": {
+      "selector": "[data-source-staging-restore-validation-handoff]",
+      "exists": true,
+      "visible": true
+    },
+    "before": [
+      {
+        "selector": "#sourceStagingRestoreValidationStatus",
+        "exists": true,
+        "visible": true,
+        "text": "staging-restore-validation-checklist-result-handoff / checklist 4 / resultArtifactPersistedByRoute=false / productionRestorePerformed=false / automaticRecoveryPerformed=false"
+      },
+      {
+        "selector": "#source-staging-restore-checklist-list",
+        "exists": true,
+        "visible": true,
+        "text": "SourceRegistry staging restore validation operator-required · source registry snapshot sourceId / source kind / canonical source key / owner/site/group context / JSON parse result PublishedView staging restore validation operator-required · PublishedView registry viewId / sourceId link / enabled state / dashboard/events flags / maxTiles / viewer scope Source health staging validation operator-required · fresh source health snapshot live count / stale count / offline count / reconnect count / warning drift Viewer scope validation operator-required · scoped client API /client/api/views / client route scope / viewer/integrator traffic reconnect approval"
+      },
+      {
+        "selector": "#source-staging-restore-result-artifact-list",
+        "exists": true,
+        "visible": true,
+        "text": "media-server.ops.v390-staging-restore-validation-result.v1 operator-supplied-after-staging-run · change-ticket-or-release-evidence-only sourceRegistryValidation / publishedViewValidation / sourceHealthSnapshotValidation / viewerScopeValidation / operator / generatedAt / failureOrSkipReason resultArtifactPersistedByRoute: false productionRestorePerformed: false automaticRecoveryPerformed: false"
+      }
+    ],
+    "after": [
+      {
+        "selector": "#sourceStagingRestoreValidationStatus",
+        "exists": true,
+        "visible": true,
+        "text": "staging-restore-validation-checklist-result-handoff / checklist 4 / resultArtifactPersistedByRoute=false / productionRestorePerformed=false / automaticRecoveryPerformed=false"
+      },
+      {
+        "selector": "#source-staging-restore-checklist-list",
+        "exists": true,
+        "visible": true,
+        "text": "SourceRegistry staging restore validation operator-required · source registry snapshot sourceId / source kind / canonical source key / owner/site/group context / JSON parse result PublishedView staging restore validation operator-required · PublishedView registry viewId / sourceId link / enabled state / dashboard/events flags / maxTiles / viewer scope Source health staging validation operator-required · fresh source health snapshot live count / stale count / offline count / reconnect count / warning drift Viewer scope validation operator-required · scoped client API /client/api/views / client route scope / viewer/integrator traffic reconnect approval"
+      },
+      {
+        "selector": "#source-staging-restore-result-artifact-list",
+        "exists": true,
+        "visible": true,
+        "text": "media-server.ops.v390-staging-restore-validation-result.v1 operator-supplied-after-staging-run · change-ticket-or-release-evidence-only sourceRegistryValidation / publishedViewValidation / sourceHealthSnapshotValidation / viewerScopeValidation / operator / generatedAt / failureOrSkipReason resultArtifactPersistedByRoute: false productionRestorePerformed: false automaticRecoveryPerformed: false"
+      }
+    ]
+  },
+  "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-112.browser-console.json",
+  "result": {
+    "ok": true,
+    "missing": [],
+    "missingStateSelectors": [],
+    "interaction": {
+      "kind": "click",
+      "selector": "#refresh",
+      "executed": true,
+      "dispatch": "playwright-native",
+      "setup": []
+    },
+    "target": {
+      "selector": "[data-source-staging-restore-validation-handoff]",
+      "exists": true,
+      "visible": true
+    },
+    "beforeState": [
+      {
+        "selector": "#sourceStagingRestoreValidationStatus",
+        "exists": true,
+        "visible": true,
+        "text": "staging-restore-validation-checklist-result-handoff / checklist 4 / resultArtifactPersistedByRoute=false / productionRestorePerformed=false / automaticRecoveryPerformed=false"
+      },
+      {
+        "selector": "#source-staging-restore-checklist-list",
+        "exists": true,
+        "visible": true,
+        "text": "SourceRegistry staging restore validation operator-required · source registry snapshot sourceId / source kind / canonical source key / owner/site/group context / JSON parse result PublishedView staging restore validation operator-required · PublishedView registry viewId / sourceId link / enabled state / dashboard/events flags / maxTiles / viewer scope Source health staging validation operator-required · fresh source health snapshot live count / stale count / offline count / reconnect count / warning drift Viewer scope validation operator-required · scoped client API /client/api/views / client route scope / viewer/integrator traffic reconnect approval"
+      },
+      {
+        "selector": "#source-staging-restore-result-artifact-list",
+        "exists": true,
+        "visible": true,
+        "text": "media-server.ops.v390-staging-restore-validation-result.v1 operator-supplied-after-staging-run · change-ticket-or-release-evidence-only sourceRegistryValidation / publishedViewValidation / sourceHealthSnapshotValidation / viewerScopeValidation / operator / generatedAt / failureOrSkipReason resultArtifactPersistedByRoute: false productionRestorePerformed: false automaticRecoveryPerformed: false"
+      }
+    ],
+    "afterState": [
+      {
+        "selector": "#sourceStagingRestoreValidationStatus",
+        "exists": true,
+        "visible": true,
+        "text": "staging-restore-validation-checklist-result-handoff / checklist 4 / resultArtifactPersistedByRoute=false / productionRestorePerformed=false / automaticRecoveryPerformed=false"
+      },
+      {
+        "selector": "#source-staging-restore-checklist-list",
+        "exists": true,
+        "visible": true,
+        "text": "SourceRegistry staging restore validation operator-required · source registry snapshot sourceId / source kind / canonical source key / owner/site/group context / JSON parse result PublishedView staging restore validation operator-required · PublishedView registry viewId / sourceId link / enabled state / dashboard/events flags / maxTiles / viewer scope Source health staging validation operator-required · fresh source health snapshot live count / stale count / offline count / reconnect count / warning drift Viewer scope validation operator-required · scoped client API /client/api/views / client route scope / viewer/integrator traffic reconnect approval"
+      },
+      {
+        "selector": "#source-staging-restore-result-artifact-list",
+        "exists": true,
+        "visible": true,
+        "text": "media-server.ops.v390-staging-restore-validation-result.v1 operator-supplied-after-staging-run · change-ticket-or-release-evidence-only sourceRegistryValidation / publishedViewValidation / sourceHealthSnapshotValidation / viewerScopeValidation / operator / generatedAt / failureOrSkipReason resultArtifactPersistedByRoute: false productionRestorePerformed: false automaticRecoveryPerformed: false"
+      }
+    ],
+    "markerCount": 4,
+    "title": "운영 콘솔",
+    "textSnippet": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 5개 source / ready 5 / warning 0 / blocked 0 Ready 5 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 5개 source / live 0 / stale 0 / offline 5 / warning 0 Live 0 Stale 0 Offline 5 Warnings 0 Transitions 0 offline Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current source health is offline (no-subscriber) offline VA Test File Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current source health is offline (no-subscriber) offline Public RTSP Test Audit no-subscriber · rtsp · reconnect 0 history 0 · warnings warning 없음 · late"
+  }
+}

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 2 Ops Action Route Boundary 구현, 문서, inventory 연결을 검증한다.
 
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -135,6 +137,9 @@ check("action route boundary preserves no-execution, no-write, and no-schema-cha
   ]) {
     assert(!block.includes(forbidden), `action route boundary must not execute, write, or expose restricted material: ${forbidden}`);
   }
+  assertFlagFalse(block, "ruleRegistryWritePerformed");
+  assertFlagFalse(block, "viewerClientPayloadChanged");
+  assertFlagFalse(block, "rawLocatorExposedToClient");
 });
 
 check("Ops API exposes the action route boundary as guarded no-store JSON", () => {
@@ -171,19 +176,58 @@ check("docs, inventory, and dispatch map v3.8 Step 2", () => {
   assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, "release records v3.8 Step 2");
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_ops_action_route_boundary.mjs", "server.sh dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  const expectedCanonicalCommands = new Map([
+    ["LAB-111", command],
+    ["SAFE-015", "verify-auth-routes"],
+    ["SAFE-020", "verify-auth-routes"],
+    ["SAFE-028", "verify-auth-routes"],
+    ["SAFE-030", "verify-auth-routes"],
+    ["SAFE-044", "verify-auth-routes"],
+    ["SAFE-181", command],
+    ["OPS-148", command],
+  ]);
+  for (const [id, expectedCommand] of expectedCanonicalCommands) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand,
+      `${id} manifest verifier command drift`);
+  }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.scriptInventory, "verify_v380_ops_action_route_boundary.mjs", "script inventory");
+});
+
+check("SAFE-181 canonical bounded product boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV380ActionRouteBoundaryJson(");
+  const routeObserved = files.server.includes("/ops/api/actions/route-boundary");
+  const safe181BoundaryObserved = block.includes("BuildV380ActionRouteBoundaryItems") && block.includes("actionExecutionPerformed");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer|RecheckSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial|rawDiagnosticJson)\\":true/.test(block);
+  const sourceUrlExposed = /\\"(?:sourceUrlIncluded|sourceUrlExposed)\\":true/.test(block);
+  const credentialMaterialExposed = /\\"(?:credentialMaterialIncluded|credentialMaterialExposed)\\":true/.test(block);
+  const debugMaterialExposed = /\\"(?:debugMaterialIncluded|debugMaterialExposed)\\":true/.test(block);
+  const viewerClientExposureAdded = /\\"(?:viewerClientExposureAdded|viewerClientPayloadChanged)\\":true/.test(block);
+  const mediaPathChanged = /\\"rtspOrWebrtcMediaPathChanged\\":true/.test(block);
+  assert(block.includes("media-server.ops.v380-action-route-boundary.v1") && sendPerformed === false, "LAB-111 /ops/api/actions/route-boundary must remain no-send");
+  assert(routeObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && providerCallPerformed === false, "OPS-148 canonical bounded absence oracle");
+  assert(safe181BoundaryObserved && block.includes("media-server.ops.v380-action-route-boundary.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && automaticApplyPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-181 actionExecutionPerformed must remain no-execution no-write redacted and client/provider isolated");
 });
 
 finish("== v3.8.0 Ops Action Route Boundary summary ==", { schema, step: "v3.8.0 (2)", route });
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+    implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),

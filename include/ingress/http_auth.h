@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app_config.h"
+#include "ingress/webrtc_http_runtime_config.h"
 
 namespace ingress::auth {
 
@@ -89,31 +89,31 @@ struct BootstrapState {
 using HeaderMap = std::unordered_map<std::string, std::string>;
 using QueryMap = std::unordered_map<std::string, std::string>;
 
-const char* AuthModeName(app::AuthMode mode);
+const char* AuthModeName(HttpAuthMode mode);
 std::vector<std::string> DefaultScopesForRole(const std::string& role);
 Principal MakePrincipalForRole(const std::string& role,
                                const std::vector<std::string>& scopes,
                                const std::string& display_name,
-                               app::AuthMode auth_mode,
+                               HttpAuthMode auth_mode,
                                const std::string& username = "",
                                bool password_change_required = false);
 
-AuthResult BuildPrincipalFromRequest(const app::AppConfig& config,
+AuthResult BuildPrincipalFromRequest(const WebRtcHttpRuntimeConfig& config,
                                      const HeaderMap& headers,
                                      const QueryMap& query);
-AuthResult RefreshPrincipalFromUser(const app::AppConfig& config,
+AuthResult RefreshPrincipalFromUser(const WebRtcHttpRuntimeConfig& config,
                                     const Principal& principal);
-AuthResult AuthenticateUserPassword(const app::AppConfig& config,
+AuthResult AuthenticateUserPassword(const WebRtcHttpRuntimeConfig& config,
                                     const std::string& username,
                                     const std::string& password,
                                     const std::string& remote_ip = "");
 
-PasswordPolicyResult ValidatePasswordPolicy(const app::AppConfig& config,
+PasswordPolicyResult ValidatePasswordPolicy(const WebRtcHttpRuntimeConfig& config,
                                             const std::string& username,
                                             const std::string& password,
                                             const std::string& confirm,
                                             const UserRecord* existing_user);
-bool ChangeUserPassword(const app::AppConfig& config,
+bool ChangeUserPassword(const WebRtcHttpRuntimeConfig& config,
                         const std::string& username,
                         const std::string& current_password,
                         const std::string& new_password,
@@ -122,48 +122,48 @@ bool ChangeUserPassword(const app::AppConfig& config,
                         std::string* error_message);
 std::vector<std::string> ScopeTemplateForRole(const std::string& role,
                                               const std::string& view_id);
-AuthUserResult ListAuthUsers(const app::AppConfig& config);
-AuthUserResult CreateAuthUser(const app::AppConfig& config,
+AuthUserResult ListAuthUsers(const WebRtcHttpRuntimeConfig& config);
+AuthUserResult CreateAuthUser(const WebRtcHttpRuntimeConfig& config,
                               const UserMutation& mutation);
-AuthUserResult UpdateAuthUser(const app::AppConfig& config,
+AuthUserResult UpdateAuthUser(const WebRtcHttpRuntimeConfig& config,
                               const std::string& username,
                               const UserMutation& mutation);
-AuthUserResult ResetAuthUserPassword(const app::AppConfig& config,
+AuthUserResult ResetAuthUserPassword(const WebRtcHttpRuntimeConfig& config,
                                      const std::string& username,
                                      const std::string& password);
-AuthUserResult SetAuthUserEnabled(const app::AppConfig& config,
+AuthUserResult SetAuthUserEnabled(const WebRtcHttpRuntimeConfig& config,
                                   const std::string& username,
                                   bool enabled);
-AuthUserResult CreateAuthUserFromJson(const app::AppConfig& config,
+AuthUserResult CreateAuthUserFromJson(const WebRtcHttpRuntimeConfig& config,
                                       const std::string& body);
-AuthUserResult UpdateAuthUserFromJson(const app::AppConfig& config,
+AuthUserResult UpdateAuthUserFromJson(const WebRtcHttpRuntimeConfig& config,
                                       const std::string& username,
                                       const std::string& body);
-AuthUserResult ResetAuthUserPasswordFromJson(const app::AppConfig& config,
+AuthUserResult ResetAuthUserPasswordFromJson(const WebRtcHttpRuntimeConfig& config,
                                              const std::string& username,
                                              const std::string& body);
-AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
+AuthUserResult CreateInviteFromJson(const WebRtcHttpRuntimeConfig& config,
                                     const std::string& body);
-AuthUserResult ListInvites(const app::AppConfig& config);
-AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,
+AuthUserResult ListInvites(const WebRtcHttpRuntimeConfig& config);
+AuthUserResult CompleteInvitePasswordSetup(const WebRtcHttpRuntimeConfig& config,
                                            const std::string& token,
                                            const std::string& password,
                                            const std::string& confirm);
-AuthUserResult ListAccessRequests(const app::AppConfig& config);
-AuthUserResult CreateAccessRequestFromJson(const app::AppConfig& config,
+AuthUserResult ListAccessRequests(const WebRtcHttpRuntimeConfig& config);
+AuthUserResult CreateAccessRequestFromJson(const WebRtcHttpRuntimeConfig& config,
                                            const std::string& body);
-AuthUserResult ApproveAccessRequestFromJson(const app::AppConfig& config,
+AuthUserResult ApproveAccessRequestFromJson(const WebRtcHttpRuntimeConfig& config,
                                             const std::string& request_id,
                                             const std::string& body);
-AuthUserResult RejectAccessRequest(const app::AppConfig& config,
+AuthUserResult RejectAccessRequest(const WebRtcHttpRuntimeConfig& config,
                                    const std::string& request_id);
 
 bool PasswordHashingAvailable();
 const char* PasswordHashingScheme();
 std::optional<std::string> GeneratePasswordHash(const std::string& password,
                                                 std::string* error_message);
-BootstrapState InspectBootstrapState(const app::AppConfig& config);
-bool SaveBootstrapAdmin(const app::AppConfig& config,
+BootstrapState InspectBootstrapState(const WebRtcHttpRuntimeConfig& config);
+bool SaveBootstrapAdmin(const WebRtcHttpRuntimeConfig& config,
                         const std::string& password,
                         std::string* error_message);
 std::optional<std::string> GenerateSessionId(std::string* error_message);

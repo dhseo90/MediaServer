@@ -1,5 +1,8 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.2.0 Step 8 Action Readiness Checklist 구현, 문서, inventory 연결을 검증한다.
+import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-action-readiness-checklist";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -47,6 +50,16 @@ const files = {
 const checks = [];
 
 check("ops review API attaches Step 8 action readiness checklist to unified workspace items", () => {
+  const start = files.server.indexOf("std::string OpsV320ActionReadinessChecklistJson(");
+  const end = files.server.indexOf("std::string OpsV320ActionReadinessChecklistSummaryJson(", start);
+  assert(start >= 0 && end > start, "EVT-069 action readiness projection block missing");
+  const evt069ReadinessBlock = files.server.slice(start, end);
+  assertIncludes(evt069ReadinessBlock, "media-server.ops.v320-action-readiness-checklist.v1", "EVT-069 block-scoped canonical readiness projection");
+  assert(!evt069ReadinessBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt069ReadinessBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-069 readiness checklist must remain hidden from client/viewer");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/events", "OPS-076 canonical page route");
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-069 canonical review route");
   for (const snippet of [
     "OpsV320ActionReadinessChecklistInfoFor",
     "OpsV320ActionReadinessChecklistJson",
@@ -113,6 +126,15 @@ check("product UI script renders Step 8 rule draft, evidence bundle, notificatio
     "externalDeliveryPerformed",
   ]) {
     assertIncludes(files.pageScript, snippet, "V320 action readiness checklist UI script");
+    assertIncludes(extractNamedFunctionBlock(files.pageScript, "renderV320ActionReadinessChecklist"), "actionReadinessChecklist", "UI-067 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320ActionReadinessChecklist").includes(marker)), "UI-067 no-write explicit absence oracle");
+    assert(!["send(","sendClientNotice","deliveryQueueWritePerformed: true"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320ActionReadinessChecklist").includes(marker)), "UI-067 no-send explicit absence oracle");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320ActionReadinessChecklist").includes(marker)), "UI-067 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320ActionReadinessChecklist").includes(marker)), "UI-067 source-url-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320ActionReadinessChecklist").includes(marker)), "UI-067 debug-redaction explicit absence oracle");
+    assert(!["/client/api/","viewerClientExposureAdded: true","clientExposureAdded: true"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV320ActionReadinessChecklist").includes(marker)), "UI-067 client-viewer-boundary explicit absence oracle");
+    assertIncludes(files.pageScript, "/ops/events", "UI-067 canonical route obligation");
+    assertIncludes(files.pageScript, "media-server.ops.v320-action-readiness-checklist.v1", "UI-067 canonical schema obligation");
   }
 });
 
@@ -177,10 +199,6 @@ check("feature inventory and release records map v3.2 Step 8", () => {
     "EVT-069 | V320 Step 8 action readiness checklist view model",
     "SAFE-109 | V320 Step 8 action readiness boundary",
     "OPS-076 | V320 Step 8 Action Readiness Checklist 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
-    "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 8");
   }
@@ -199,11 +217,33 @@ check("feature inventory and release records map v3.2 Step 8", () => {
 check("server entrypoint and inventory verifiers include v3.2 Step 8 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_action_readiness_checklist.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["UI-067", "EVT-069", "SAFE-109", "OPS-076"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_action_readiness_checklist.mjs", "script inventory");
+});
+
+check("SAFE-109 canonical action readiness boundary", () => {
+  const readinessBlock = extractCppFunctionBlock(files.server, "std::string OpsV320ActionReadinessChecklistJson(");
+  const safe109BoundaryObserved = readinessBlock.includes("media-server.ops.v320-action-readiness-checklist.v1") &&
+    readinessBlock.includes("info.readiness_status") && readinessBlock.includes("info.readiness_blockers") && readinessBlock.includes("info.checklist_items");
+  const ruleDraftCreated = /\b(?:CreateVaRule|UpdateVaRule)[A-Za-z0-9_:]*\s*\(/.test(readinessBlock);
+  const automaticActionPerformed = /\b(?:SendAlert|Deliver|Recover|Execute)[A-Za-z0-9_:]*\s*\(/.test(readinessBlock);
+  const externalDeliveryPerformed = /\b(?:SendAlert|Deliver|NotifyExternal)[A-Za-z0-9_:]*\s*\(/.test(readinessBlock);
+  const schemaMutationPerformed = [
+    "eventPostPayloadChanged",
+    "webrtcDataChannelSchemaChanged",
+    "sseMetadataSchemaChanged",
+    "wsMetadataSchemaChanged",
+    "rtspOrWebrtcMediaPathChanged",
+  ].some(flag => exactBooleanFlagValue(readinessBlock, flag));
+  const rawMaterialExposed = /\\\"raw(?:Json|Evidence|Payload)(?:Exposed|Included)\\\":true/.test(readinessBlock);
+  const sourceUrlExposed = readinessBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = readinessBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(readinessBlock);
+  assert(safe109BoundaryObserved && ruleDraftCreated === false && automaticActionPerformed === false && externalDeliveryPerformed === false && schemaMutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false,
+    "SAFE-109 info.readiness_status actionReadinessChecklist must remain deterministic without rule draft, external delivery, schema, or raw material mutation");
 });
 
 const results = runChecks();

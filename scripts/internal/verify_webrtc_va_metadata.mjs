@@ -3,6 +3,7 @@
 // 동작 요약: vaMetadata=1 세션에서 video track, ICE 연결, DataChannel open, metadata schema를 확인한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -45,6 +46,138 @@ const logFile =
   args.logFile ||
   process.env.MEDIA_SERVER_VERIFY_WEBRTC_VA_METADATA_LOG ||
   path.join(os.tmpdir(), `media_server_webrtc_va_metadata_chrome_${Date.now()}.log`);
+
+const egressSource = fs.readFileSync("src/ingress/webrtc_egress_session.cpp", "utf8");
+const egressHeader = fs.readFileSync("include/ingress/webrtc_egress_session.h", "utf8");
+const cmakeSource = fs.readFileSync("CMakeLists.txt", "utf8");
+const readmeKo = fs.readFileSync("README.md", "utf8");
+const readmeEn = fs.readFileSync("README.en.md", "utf8");
+const setRemoteAnswerSource = extractFunctionBody(egressSource, "bool WebRtcEgressSession::SetRemoteAnswer(");
+const applyNegotiatedPayloadTypesSource = extractFunctionBody(egressSource, "void WebRtcEgressSession::ApplyNegotiatedPayloadTypes(");
+const publishMetadataSource = extractFunctionBody(egressSource, "bool WebRtcEgressSession::PublishAnalysisMetadata(");
+const iceStateSource = extractFunctionBody(egressSource, "void WebRtcEgressSession::HandleIceConnectionStateChanged()");
+const startSource = extractFunctionBody(egressSource, "bool WebRtcEgressSession::Start(");
+const stopSource = extractFunctionBody(egressSource, "void WebRtcEgressSession::Stop()");
+const createOfferSource = extractFunctionBody(egressSource, "bool WebRtcEgressSession::CreateOffer(");
+const createAnswerSource = extractFunctionBody(egressSource, "bool WebRtcEgressSession::CreateAnswer(");
+const setRemoteOfferLifecycleSource = extractFunctionBody(egressSource, "bool WebRtcEgressSession::SetRemoteOffer(");
+const addRemoteIceSource = extractFunctionBody(egressSource, "void WebRtcEgressSession::AddRemoteIceCandidate(");
+const boundedPromiseSource = extractFunctionBody(egressSource, "GstPromiseResult WaitForBoundedPromise(");
+const quarantineCleanupSource = extractFunctionBody(egressSource, "void QuarantineFailedWebRtcCleanup(");
+assertSourceContract(setRemoteAnswerSource.includes("ApplyNegotiatedPayloadTypes(sdp_answer)") && applyNegotiatedPayloadTypesSource.includes("encoding-name=H264") && applyNegotiatedPayloadTypesSource.includes('g_object_set(video_pay, "pt", *video_pt, nullptr)'), "MEDIA-015 exact H264 negotiation state missing from SetRemoteAnswer");
+assertSourceContract(publishMetadataSource.includes("++metadata_send_failures_") && !publishMetadataSource.includes("StopMediaOutput") && iceStateSource.includes('StartMediaOutputIfReady("ice-connected")'), "MEDIA-018 metadata failure must remain isolated from media output readiness");
+assertSourceContract(publishMetadataSource.includes("gst_webrtc_data_channel_send_string_full") && publishMetadataSource.includes("++metadata_send_failures_") && publishMetadataSource.includes("return false;"), "MEDIA-020 DataChannel send failure counter must not become a media-path failure");
+assertSourceContract(
+  stopSource.includes("metadata_data_channel = metadata_data_channel_") &&
+    stopSource.includes("metadata_data_channel_ = nullptr") &&
+    stopSource.includes("disconnect_handler(metadata_data_channel, &metadata_open_handler_id_)") &&
+    stopSource.includes("disconnect_handler(metadata_data_channel, &metadata_close_handler_id_)") &&
+    stopSource.includes("disconnect_handler(metadata_data_channel, &metadata_error_handler_id_)") &&
+    stopSource.includes("gst_webrtc_data_channel_close(metadata_data_channel)") &&
+    stopSource.indexOf("disconnect_handler(metadata_data_channel, &metadata_open_handler_id_)") <
+      stopSource.indexOf("gst_webrtc_data_channel_close(metadata_data_channel)") &&
+    stopSource.indexOf("gst_webrtc_data_channel_close(metadata_data_channel)") <
+      stopSource.indexOf("gst_element_set_state(pipeline_, GST_STATE_NULL)"),
+  "MEDIA-025 DataChannel close must precede pipeline NULL teardown",
+);
+assertSourceContract(
+  cmakeSource.includes("gstreamer-webrtc-1.0>=1.28") &&
+    readmeKo.includes("GStreamer 1.28+") &&
+    readmeEn.includes("GStreamer 1.28+") &&
+    stopSource.includes('g_signal_lookup("close", G_OBJECT_TYPE(webrtcbin_))') &&
+    /if \(close_signal == 0\) \{[\s\S]*?close signal unavailable; quarantining pipeline cleanup[\s\S]*?peer_close_complete = false;\s*\}/.test(stopSource) &&
+    stopSource.includes('g_signal_emit_by_name(webrtcbin_, "close", close_promise.promise)') &&
+    stopSource.includes("WaitForBoundedPromise(close_promise, std::chrono::seconds(5))") &&
+    /if \(close_result != GST_PROMISE_RESULT_REPLIED\) \{[\s\S]*?close did not complete; quarantining pipeline cleanup[\s\S]*?peer_close_complete = false;\s*\}/.test(stopSource) &&
+    stopSource.includes("if (peer_close_complete && pipeline_ != nullptr)") &&
+    !stopSource.includes("gst_promise_wait(") &&
+    stopSource.indexOf('g_signal_emit_by_name(webrtcbin_, "close", close_promise.promise)') <
+      stopSource.indexOf("WaitForBoundedPromise(close_promise, std::chrono::seconds(5))") &&
+    stopSource.indexOf("WaitForBoundedPromise(close_promise, std::chrono::seconds(5))") <
+      stopSource.indexOf("if (close_result != GST_PROMISE_RESULT_REPLIED)") &&
+    stopSource.indexOf("if (close_result != GST_PROMISE_RESULT_REPLIED)") <
+      stopSource.indexOf("gst_element_set_state(pipeline_, GST_STATE_NULL)"),
+  "MEDIA-025 GStreamer 1.28 PeerConnection close must reply before pipeline NULL teardown",
+);
+const signalingLockAnchor = "std::lock_guard lifecycle_lock(signaling_lifecycle_mu_)";
+assertSourceContract(
+  egressHeader.includes("std::mutex signaling_lifecycle_mu_;") &&
+    ["started_", "negotiation_ready_", "ice_connected_", "media_output_ready_"].every((field) =>
+      egressHeader.includes(`std::atomic_bool ${field}`),
+    ) &&
+    [stopSource, createOfferSource, createAnswerSource, setRemoteOfferLifecycleSource, setRemoteAnswerSource, addRemoteIceSource].every(
+      (body) => body.includes(signalingLockAnchor),
+    ),
+  "MEDIA-025 external signaling and Stop must serialize while callback-visible lifecycle flags remain atomic",
+);
+assertSourceContract(
+  egressHeader.includes("public std::enable_shared_from_this<WebRtcEgressSession>") &&
+    !egressHeader.includes("GstElement* webrtcbin() const") &&
+    egressSource.includes("struct SessionCallbackBinding") &&
+    egressSource.includes("std::weak_ptr<WebRtcEgressSession> session") &&
+    egressSource.includes("class ScopedGStreamerCallback final") &&
+    !egressSource.includes("static_cast<WebRtcEgressSession*>(user_data)") &&
+    !egressSource.includes("gst_promise_new_with_change_func(OnOfferCreated, this") &&
+    !egressSource.includes("gst_promise_new_with_change_func(OnAnswerCreated, this") &&
+    createOfferSource.includes("NewSessionCallbackBinding(shared_from_this(), webrtcbin_)") &&
+    createAnswerSource.includes("NewSessionCallbackBinding(shared_from_this(), webrtcbin_)") &&
+    stopSource.includes("stopping_gstreamer_callbacks_ = true") &&
+    stopSource.includes("active_gstreamer_callbacks_ == 0") &&
+    stopSource.indexOf("active_gstreamer_callbacks_ == 0") <
+      stopSource.indexOf("disconnect_handler(webrtcbin_, &ice_candidate_handler_id_)") &&
+    stopSource.indexOf("disconnect_handler(webrtcbin_, &ice_candidate_handler_id_)") <
+      stopSource.indexOf("gst_webrtc_data_channel_close(metadata_data_channel)") &&
+    stopSource.indexOf("gst_webrtc_data_channel_close(metadata_data_channel)") <
+      stopSource.indexOf('g_signal_emit_by_name(webrtcbin_, "close", close_promise.promise)'),
+  "MEDIA-025 weak callback ownership and active-callback drain must precede peer teardown",
+);
+assertSourceContract(
+  boundedPromiseSource.includes("cv.wait_for(lock, timeout") &&
+    boundedPromiseSource.includes("gst_promise_interrupt(bounded.promise)") &&
+    boundedPromiseSource.includes("std::chrono::milliseconds(100)") &&
+    setRemoteOfferLifecycleSource.includes("WaitForBoundedPromise(promise, std::chrono::seconds(5))") &&
+    setRemoteOfferLifecycleSource.includes("promise_result != GST_PROMISE_RESULT_REPLIED") &&
+    setRemoteAnswerSource.includes("WaitForBoundedPromise(promise, std::chrono::seconds(5))") &&
+    setRemoteAnswerSource.includes("promise_result != GST_PROMISE_RESULT_REPLIED") &&
+    !setRemoteOfferLifecycleSource.includes("gst_promise_wait(") &&
+    !setRemoteAnswerSource.includes("gst_promise_wait("),
+  "MEDIA-025 close and remote-description promise waits must be bounded and fail closed",
+);
+assertSourceContract(
+  stopSource.includes("std::exchange(webrtcbin_, nullptr)") &&
+    stopSource.includes("std::exchange(pipeline_, nullptr)") &&
+    stopSource.includes("QuarantineFailedWebRtcCleanup(std::move(cleanup))") &&
+    stopSource.indexOf("std::exchange(webrtcbin_, nullptr)") <
+      stopSource.indexOf("QuarantineFailedWebRtcCleanup(std::move(cleanup))") &&
+    stopSource.indexOf("std::exchange(pipeline_, nullptr)") <
+      stopSource.indexOf("QuarantineFailedWebRtcCleanup(std::move(cleanup))") &&
+    quarantineCleanupSource.includes("quarantine.entries.push_back(std::move(cleanup))") &&
+    egressSource.includes("static auto* quarantine = new WebRtcCleanupQuarantine()") &&
+    egressSource.includes("std::recursive_mutex& WebRtcStartQuarantineMutex()") &&
+    quarantineCleanupSource.includes("std::lock_guard<std::recursive_mutex> start_quarantine_lock(WebRtcStartQuarantineMutex())") &&
+    startSource.includes("std::unique_lock<std::recursive_mutex> start_quarantine_lock(WebRtcStartQuarantineMutex())") &&
+    stopSource.includes("std::unique_lock<std::recursive_mutex> start_quarantine_lock(WebRtcStartQuarantineMutex())") &&
+    startSource.indexOf("std::unique_lock<std::recursive_mutex> start_quarantine_lock(WebRtcStartQuarantineMutex())") <
+      startSource.indexOf("HasQuarantinedWebRtcCleanup()") &&
+    startSource.indexOf("std::unique_lock<std::recursive_mutex> start_quarantine_lock(WebRtcStartQuarantineMutex())") <
+      startSource.indexOf("started_ = true") &&
+    stopSource.indexOf("std::unique_lock<std::recursive_mutex> start_quarantine_lock(WebRtcStartQuarantineMutex())") <
+      stopSource.indexOf("std::lock_guard lifecycle_lock(signaling_lifecycle_mu_)") &&
+    startSource.includes("HasQuarantinedWebRtcCleanup()") &&
+    startSource.includes("WebRTC cleanup quarantine active; restart required") &&
+    !startSource.includes("start_quarantine_lock.unlock()") &&
+    !startSource.includes("start_quarantine_lock.release()") &&
+    !stopSource.includes("start_quarantine_lock.unlock()") &&
+    !stopSource.includes("start_quarantine_lock.release()") &&
+    !quarantineCleanupSource.includes("start_quarantine_lock.unlock()") &&
+    !quarantineCleanupSource.includes("start_quarantine_lock.release()") &&
+    !egressSource.includes("ScheduleDeferredWebRtcCleanup") &&
+    !quarantineCleanupSource.includes("std::thread") &&
+    !quarantineCleanupSource.includes(".detach()") &&
+    !quarantineCleanupSource.includes("WaitForBoundedPromise") &&
+    !quarantineCleanupSource.includes("g_signal_emit_by_name"),
+  "MEDIA-025 non-replied peer cleanup must transfer to process-lifetime quarantine and block new starts",
+);
 
 if (args.help || args.h) {
   console.log(`WebRTC VA metadata DataChannel smoke
@@ -172,6 +305,7 @@ function buildBrowserVerificationExpression() {
         interMessageGapSumMs: 0,
         clientBufferedAmountMax: 0,
         parseErrors: [],
+        metadataFieldTypes: {},
       };
       let pc = null;
       let iceTimer = null;
@@ -257,6 +391,19 @@ function buildBrowserVerificationExpression() {
               const rawMessage = String(messageEvent.data || '');
               state.messageBytesMax = Math.max(state.messageBytesMax, new TextEncoder().encode(rawMessage).length);
               const payload = JSON.parse(rawMessage);
+              state.metadataFieldTypes = {
+                schema: typeof payload.schema,
+                tracks: Array.isArray(payload.tracks) ? 'array' : typeof payload.tracks,
+                events: Array.isArray(payload.events) ? 'array' : typeof payload.events,
+                syncStatus: typeof payload.syncStatus,
+                metadataSequence: typeof payload.metadataSequence,
+                sentAtMs: typeof payload.sentAtMs,
+                videoFramePtsMs: typeof payload.videoFramePtsMs,
+                analysisPtsMs: typeof payload.analysisPtsMs,
+                syncDeltaMs: typeof payload.syncDeltaMs,
+                syncToleranceMs: typeof payload.syncToleranceMs,
+                coordinateSpace: typeof payload.coordinateSpace,
+              };
               state.metadataSchema = payload.schema || '';
               state.tracksCount = Array.isArray(payload.tracks) ? payload.tracks.length : -1;
               state.eventsCount = Array.isArray(payload.events) ? payload.events.length : -1;
@@ -337,15 +484,17 @@ function buildBrowserVerificationExpression() {
         }
         const session = await fetchJson('/webrtc/session?' + params.toString(), { method: 'POST' }, { attempts: 6 });
         state.sessionId = session.sessionId || '';
-        assertOk(state.sessionId && session.offer, 'WebRTC session response missing sessionId/offer');
+        assertOk(state.sessionId && session.offer, 'CreateOffer WebRTC session response missing sessionId/offer');
+        assertOk(/H264/i.test(String(session.offer || '')), 'MEDIA-015 WebRTC offer missing H264 codec capability');
         await pc.setRemoteDescription({ type: 'offer', sdp: session.offer });
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        await fetchJson('/webrtc/session/' + encodeURIComponent(state.sessionId) + '/answer', {
+        const answerReadback = await fetchJson('/webrtc/session/' + encodeURIComponent(state.sessionId) + '/answer', {
           method: 'POST',
           headers: { 'Content-Type': 'application/sdp' },
           body: answer.sdp,
         });
+        assertOk(answerReadback?.ok === true, 'set-remote-answer response was not accepted');
         iceTimer = setInterval(() => { pollIce().catch(() => {}); }, 500);
 
         while (stillWaiting()) {
@@ -404,12 +553,12 @@ function validateResult(result) {
     throw new Error("browser verification returned no result");
   }
   if (!result.videoTrack || !Array.isArray(result.trackKinds) || !result.trackKinds.includes("video")) {
-    throw new Error(`video ontrack was not observed: ${JSON.stringify(result)}`);
+    throw new Error(`bridge->Start video ontrack was not observed: ${JSON.stringify(result)}`);
   }
   const iceConnected =
     ["connected", "completed"].includes(result.iceConnectionState) || result.connectionState === "connected";
   if (!iceConnected) {
-    throw new Error(`ICE did not connect: ${JSON.stringify(result)}`);
+    throw new Error(`add-ice-candidate ICE did not connect: ${JSON.stringify(result)}`);
   }
   if (!result.dataChannelOpened && Number(result.metadataMessageCount || 0) <= 0) {
     throw new Error(`DataChannel did not open: ${JSON.stringify(result)}`);
@@ -421,7 +570,11 @@ function validateResult(result) {
     throw new Error(`metadata message was not received: ${JSON.stringify(result)}`);
   }
   if (result.metadataSchema !== "media-server.webrtc.va-metadata.v1") {
-    throw new Error(`unexpected metadata schema: ${result.metadataSchema}`);
+    throw new Error(`PublishAnalysisMetadata unexpected WebRTC metadata schema: ${result.metadataSchema}`);
+  }
+  const metadataProjectionSha256 = crypto.createHash("sha256").update(JSON.stringify(result.metadataFieldTypes || {})).digest("hex");
+  if (metadataProjectionSha256 !== "e11c527612491bf82f60f64015b9e4aadac7b96d81af51e475f8559bc008a76d") {
+    throw new Error(`WebRTC metadata field/type frozen baseline SHA-256 mismatch: ${metadataProjectionSha256}`);
   }
   if (Number(result.tracksCount) < 0 || Number(result.eventsCount) < 0) {
     throw new Error(`tracks/events arrays are missing: ${JSON.stringify(result)}`);
@@ -447,6 +600,24 @@ function validateResult(result) {
   if (result.metadataStalled) {
     throw new Error(`metadata DataChannel stalled: ${JSON.stringify(result)}`);
   }
+}
+
+function extractFunctionBody(source, signature) {
+  const start = source.indexOf(signature);
+  assertSourceContract(start >= 0, `function signature missing: ${signature}`);
+  const open = source.indexOf("{", start);
+  assertSourceContract(open >= 0, `function body missing: ${signature}`);
+  let depth = 0;
+  for (let index = open; index < source.length; index += 1) {
+    if (source[index] === "{") depth += 1;
+    if (source[index] === "}") depth -= 1;
+    if (depth === 0) return source.slice(start, index + 1);
+  }
+  throw new Error(`unterminated function body: ${signature}`);
+}
+
+function assertSourceContract(condition, message) {
+  if (!condition) throw new Error(message);
 }
 
 async function launchBrowser(port) {

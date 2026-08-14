@@ -164,6 +164,6 @@ int main(int argc, char** argv) {
     Expect(!analysis::IncidentProjectionContainsForbiddenMaterial(fallback_report.backend),
            "fallback backend report must not contain forbidden material");
 
-    std::cout << "[pass] incident memory index smoke\n";
+    std::cout << "[pass] fallback incident memory index smoke\n";
     return 0;
 }

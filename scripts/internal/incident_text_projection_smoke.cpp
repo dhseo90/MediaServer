@@ -118,6 +118,6 @@ int main() {
                analysis::IncidentProjectionDocumentJson(event_doc_again),
            "projection JSON must be deterministic");
 
-    std::cout << "[pass] incident text projection smoke\n";
+    std::cout << "[pass] IncidentProjectionDocumentJson incident text projection smoke\n";
     return 0;
 }

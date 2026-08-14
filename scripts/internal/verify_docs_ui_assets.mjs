@@ -7,6 +7,8 @@ import process from "node:process";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const docsAssetDir = path.join(rootDir, "docs/assets/ui");
@@ -119,6 +121,13 @@ check("managed UI asset manifest stays complete", () => {
 
 check("capture script owns every documented UI asset", () => {
   const script = readText("scripts/internal/capture_docs_ui_assets.mjs");
+  const productThemeBlock = extractCppFunctionBlock(
+    readText("src/ingress/product_ui_js.cpp"),
+    "void AppendProductThemeScript(std::ostringstream& out)",
+  );
+  assert(productThemeBlock.includes("const next = currentTheme() === 'dark' ? 'light' : 'dark';"), "UI-019 bounded light/dark theme action missing");
+  assert(productThemeBlock.includes("document.documentElement.dataset.theme = next;"), "UI-019 bounded document theme state readback missing");
+  assert(productThemeBlock.includes("localStorage.setItem('mediaServerTheme', next);"), "UI-019 bounded theme persistence readback missing");
   const ruleSmoke = readText("scripts/internal/verify_ops_rules_embed_smoke.mjs");
   const sharedFixture = readText("scripts/internal/rule_preview_fixture_helpers.mjs");
   const requiredSnippets = [

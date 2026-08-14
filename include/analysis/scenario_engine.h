@@ -10,10 +10,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app_config.h"
 #include "analysis/event_manager.h"
 #include "analysis/scene_context_builder.h"
-#include "stdafx.h"
+#include "core/analysis_runtime_port.h"
 
 namespace analysis {
 
@@ -31,15 +30,15 @@ enum class ScenarioPhase {
 const char* ToString(ScenarioPhase phase);
 
 struct ScenarioEngineOptions {
-    bool enabled{app_config::kDefaultAnalysisScenarioEnabled};
-    std::size_t max_instances_per_channel{app_config::kDefaultAnalysisScenarioMaxInstancesPerChannel};
-    int default_cooldown_ms{app_config::kDefaultAnalysisScenarioCooldownMs};
-    int default_update_interval_ms{app_config::kDefaultAnalysisScenarioUpdateIntervalMs};
-    int ended_retention_ms{app_config::kDefaultAnalysisScenarioEndedRetentionMs};
-    int cleanup_interval_ms{app_config::kDefaultAnalysisCleanupIntervalMs};
+    bool enabled{core::analysis_runtime_defaults::kDefaultAnalysisScenarioEnabled};
+    std::size_t max_instances_per_channel{core::analysis_runtime_defaults::kDefaultAnalysisScenarioMaxInstancesPerChannel};
+    int default_cooldown_ms{core::analysis_runtime_defaults::kDefaultAnalysisScenarioCooldownMs};
+    int default_update_interval_ms{core::analysis_runtime_defaults::kDefaultAnalysisScenarioUpdateIntervalMs};
+    int ended_retention_ms{core::analysis_runtime_defaults::kDefaultAnalysisScenarioEndedRetentionMs};
+    int cleanup_interval_ms{core::analysis_runtime_defaults::kDefaultAnalysisCleanupIntervalMs};
 };
 
-ScenarioEngineOptions BuildScenarioEngineOptionsFromConfig(const app::AppConfig& config);
+ScenarioEngineOptions BuildScenarioEngineOptionsFromConfig(const core::AnalysisRuntimeConfig& config);
 
 struct ScenarioInstance {
     std::string stream_id;

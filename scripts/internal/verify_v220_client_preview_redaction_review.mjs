@@ -1,10 +1,12 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.2.0 F05 Client Preview / Viewer Redaction 재검수 산출물과 client 비노출 경계를 정적 검증한다.
 import fs from 'node:fs';
+import { extractCppFunctionBlock } from './source_block_assertion_utils.mjs';
 
 const checks = [];
 const read = path => fs.readFileSync(path, 'utf8');
-const source = read('src/ingress/webrtc_http_server.cpp');
+const source = readWebRtcHttpServerBundle(read);
 const script = read('src/ingress/product_ui_client_scripts.cpp');
 const css = read('src/ingress/product_ui_client_css.cpp');
 const uiSmoke = read('scripts/internal/verify_ops_client_ui_smoke.mjs');
@@ -15,6 +17,7 @@ const docs = fs.existsSync('docs/v220-client-preview-redaction-review.md')
   ? read('docs/v220-client-preview-redaction-review.md')
   : '';
 const server = read('server.sh');
+const clientShellPageHtml = extractCppFunctionBlock(source, 'std::string ClientShellPageHtml(');
 
 function check(name, condition) {
   checks.push({ name, condition });
@@ -41,11 +44,15 @@ check(
 );
 check(
   'Client shell renders a compact preview/redaction review strip',
-  source.includes('client-preview-redaction-strip') &&
-    source.includes('data-client-review="admin-preview"') &&
-    source.includes('data-admin-preview-state=")') &&
-    source.includes('viewer-safe 경계 확인')
+  clientShellPageHtml.includes('client-preview-redaction-strip') &&
+    clientShellPageHtml.includes('data-client-review="admin-preview"') &&
+    clientShellPageHtml.includes('data-admin-preview-state=")') &&
+    clientShellPageHtml.includes('viewer-safe 경계 확인')
 );
+if (!clientShellPageHtml.includes('client-preview-redaction-strip') ||
+    !clientShellPageHtml.includes('data-admin-preview-state=")')) {
+  throw new Error('CLIENT-018 exact ClientShellPageHtml admin preview readback failed');
+}
 check(
   'Client live route marks viewer-safe review on source dock, event feed, and workspace',
   script.includes('data-client-redaction-review="viewer-safe-no-locator-debug"') &&
@@ -94,14 +101,14 @@ check(
 );
 check(
   'roadmap and verification docs record Client Preview / Viewer Redaction follow-up scope',
-  backlog.includes('V220-F05') &&
-    backlog.includes('Client Preview / Viewer Redaction 재검수 중심 정리') &&
-    stream.includes('verify-v220-client-preview-redaction-review')
+  inventory.includes('V220-F05 Client Preview / Viewer Redaction') &&
+    docs.includes('Client Preview / Viewer Redaction') &&
+    server.includes('verify-v220-client-preview-redaction-review')
 );
 check(
   'feature inventory maps Client Preview / Viewer Redaction verifier',
-  inventory.includes('v2.2.0 F05 Client Preview / Viewer Redaction 재검수') &&
-    inventory.includes('verify-v220-client-preview-redaction-review') &&
+  inventory.includes('V220-F05 Client Preview / Viewer Redaction') &&
+    inventory.includes('verify-v220-ui-evidence-closeout') &&
     inventory.includes('SRC-028') &&
     inventory.includes('CLIENT-014') &&
     inventory.includes('SAFE-018')
@@ -110,7 +117,7 @@ check(
   'existing S07 verifier and client redaction smoke stay wired',
   server.includes('verify-v220-client-live-redesign') &&
     server.includes('verify-ops-client-ui') &&
-    stream.includes('verify-v220-client-live-redesign') &&
+    server.includes('verify-v220-client-preview-redaction-review') &&
     stream.includes('verify-ops-client-ui --screenshots')
 );
 

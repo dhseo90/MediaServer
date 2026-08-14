@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Saved Views/Layout Presets의 preference API/UI/권한 preset 분리 계약을 검증한다.
 
 import fs from "node:fs";
@@ -6,12 +7,21 @@ import process from "node:process";
 
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
-const args = parseArgs(process.argv.slice(2));
-const failures = [];
+const rawArgs = process.argv.slice(2);
+if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
+  console.log(`Saved Views/Layout Presets verification
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
-const script = readText("src/ingress/product_ui_page_scripts.cpp");
-const css = readText("src/ingress/product_ui_css.cpp");
+Usage:
+  ./server.sh verify-client-saved-views-layout-presets [--roundtrip-smoke] [--browser-smoke]
+    [--http-base <url>] [--timeout-ms <ms>] [--chrome-path <path>] [--debug-port <port>]`);
+  process.exit(0);
+}
+const failures = [];
+const args = parseArgs(rawArgs);
+
+const server = readWebRtcHttpServerBundle(readText);
+const script = readText("src/ingress/product_ui_client_scripts.cpp");
+const css = readText("src/ingress/product_ui_client_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const auth = readText("src/ingress/http_auth.cpp");
 const serverSh = readText("server.sh");
@@ -265,7 +275,7 @@ async function runRoundtripSmoke() {
     });
     assert(saved.response.ok, `PUT preference HTTP ${saved.response.status}: ${saved.text}`);
     assert(saved.json?.saved === true, "saved flag missing");
-    assert(saved.json?.userPreference?.workspaceLayout?.dockSide === "right", "saved dockSide did not roundtrip");
+    assert(saved.json?.userPreference?.workspaceLayout?.gridSize === 2 && saved.json?.userPreference?.workspaceLayout?.density === "compact" && saved.json?.userPreference?.workspaceLayout?.dockSide === "right", "ClientLiveLayoutPreferenceRecordJson saved grid/density/dock did not roundtrip");
     assert(saved.json?.userPreference?.overlayDefaults?.infoOverlayEnabled === true, "overlay default did not roundtrip");
     assert(saved.json?.rolePreset?.presetType === "role", "role preset was not returned separately");
 
@@ -330,6 +340,12 @@ async function runBrowserSmoke() {
             dock: document.querySelector('#liveDockSide')?.value,
             density: document.querySelector('#liveDensity')?.value,
             overlay: document.querySelector('#liveInfoOverlayToggle')?.checked,
+            userPreference: {
+              grid: document.querySelector('#liveGridSize')?.value,
+              dock: document.querySelector('#liveDockSide')?.value,
+              density: document.querySelector('#liveDensity')?.value,
+              overlay: document.querySelector('#liveInfoOverlayToggle')?.checked,
+            },
             status: document.querySelector('[data-role="layout-preset-status"]')?.textContent || '',
             forbidden,
             overflowX: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
@@ -377,6 +393,12 @@ async function runBrowserSmoke() {
             dock: document.querySelector('#liveDockSide')?.value,
             density: document.querySelector('#liveDensity')?.value,
             overlay: document.querySelector('#liveInfoOverlayToggle')?.checked,
+            userPreference: {
+              grid: document.querySelector('#liveGridSize')?.value,
+              dock: document.querySelector('#liveDockSide')?.value,
+              density: document.querySelector('#liveDensity')?.value,
+              overlay: document.querySelector('#liveInfoOverlayToggle')?.checked,
+            },
             status: document.querySelector('[data-role="layout-preset-status"]')?.textContent || '',
             forbidden,
             overflowX: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
@@ -386,7 +408,7 @@ async function runBrowserSmoke() {
       args.timeoutMs,
     );
     check("browser saved layout reload smoke", () => {
-      assert(Boolean(result?.ok), "browser saved layout result was not ok");
+      assert(Boolean(result?.ok) && result?.userPreference?.grid === "2" && result?.userPreference?.dock === "right", "browser userPreference saved layout result was not restored");
     });
     if (!result?.ok) console.log(JSON.stringify(result, null, 2));
   } finally {

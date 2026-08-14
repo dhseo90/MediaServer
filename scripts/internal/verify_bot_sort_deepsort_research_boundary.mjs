@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: 현재 release BoT-SORT/DeepSORT research boundary가 runtime tracker로 승격되지 않았는지 검증한다.
 // 동작 요약: BoT-SORT/DeepSORT를 제품 tracker 허용값에서 배제하고, privacy/dependency/bundle review만 남아 있는지 정적 점검한다.
 
@@ -66,8 +67,8 @@ const deepSortTokens = [
 const researchRuntimeTokens = [...botSortTokens, ...deepSortTokens];
 
 check("runtime tracker policy rejects BoT-SORT tokens", () => {
-  const analysisQuery = readText("src/ingress/analysis_query.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const analysisQuery = readText("src/analysis/analysis_query.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const ui = readText("src/ingress/product_ui_page_scripts.cpp");
 
   for (const [label, text] of [
@@ -81,8 +82,8 @@ check("runtime tracker policy rejects BoT-SORT tokens", () => {
 });
 
 check("runtime tracker policy rejects DeepSORT tokens", () => {
-  const analysisQuery = readText("src/ingress/analysis_query.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const analysisQuery = readText("src/analysis/analysis_query.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const ui = readText("src/ingress/product_ui_page_scripts.cpp");
 
   for (const [label, text] of [
@@ -96,8 +97,8 @@ check("runtime tracker policy rejects DeepSORT tokens", () => {
 });
 
 check("runtime tracker policy keeps current allowed values", () => {
-  const analysisQuery = readText("src/ingress/analysis_query.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const analysisQuery = readText("src/analysis/analysis_query.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
 
   for (const snippet of [
     'value == "none" || value == "kalman-lite" || value == "bytetrack"',

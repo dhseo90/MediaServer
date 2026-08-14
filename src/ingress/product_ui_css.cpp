@@ -28,10 +28,10 @@ std::string ProductDesignTokensCss() {
       --color-primary-weak-text: #0f766e;
       --color-success: #15803d;
       --color-warning: #b45309;
-      --color-danger: #dc2626;
+      --color-danger: #b91c1c;
       --color-danger-hover: #b91c1c;
       --color-danger-weak-bg: #fff1f1;
-      --color-info: #2563eb;
+      --color-info: #1d4ed8;
       --color-neutral: #64748b;
       --color-on-primary: #ffffff;
       --color-on-danger: #ffffff;
@@ -173,7 +173,7 @@ std::string ProductDesignTokensCss() {
       --color-danger: #f87171;
       --color-danger-hover: #fb7185;
       --color-danger-weak-bg: rgba(248, 113, 113, 0.14);
-      --color-info: #60a5fa;
+      --color-info: #63a8ff;
       --color-neutral: #cbd5e1;
       --color-on-primary: #06231f;
       --color-on-danger: #260606;
@@ -1170,16 +1170,25 @@ std::string ProductUiCss() {
       border-color: var(--color-primary);
       color: var(--color-on-primary);
     }
+    .button-primary:hover,
+    button.primary:hover {
+      background: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
+      color: var(--color-on-primary);
+    }
     button:disabled,
     .button-primary:disabled,
     .button-secondary:disabled,
     button[aria-disabled="true"],
     .button-primary[aria-disabled="true"],
     .button-secondary[aria-disabled="true"] {
-      opacity: 0.58;
+      opacity: 1;
       cursor: not-allowed;
       box-shadow: none;
-      filter: saturate(0.72);
+      filter: none;
+      background: var(--color-input-disabled-bg);
+      color: var(--color-text-muted);
+      border-color: var(--color-input-border);
     }
     button[aria-disabled="true"],
     .button-primary[aria-disabled="true"],
@@ -2193,7 +2202,7 @@ std::string ProductUiCss() {
       display: grid;
       place-items: center;
       padding: var(--space-4);
-      color: var(--color-text-muted);
+      color: var(--color-text);
       font-size: 13px;
       text-align: center;
       pointer-events: none;
@@ -5613,6 +5622,53 @@ std::string ProductUiCss() {
       .user-row-actions {
         display: grid;
         grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 760px) {
+      body.ops-shell [data-testid="ops-events-page"] :where(
+        .grid,
+        .ops-workspace-event-grid,
+        .ops-command-flow-grid,
+        .ops-action-control-flow-grid,
+        .ops-action-outcome-grid,
+        .event-review-grid,
+        .incident-brief-slot-grid
+      ) {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.ops-shell [data-testid="ops-events-page"],
+      body.ops-shell [data-testid="ops-events-page"] :where(
+        section,
+        article,
+        form,
+        fieldset,
+        .section-card,
+        .panel,
+        .toolbar,
+        .actions,
+        .table-wrap
+      ) {
+        min-width: 0;
+        max-width: 100%;
+      }
+      body.ops-shell [data-testid="ops-events-page"] {
+        width: 100%;
+        overflow-x: clip;
+      }
+      body.ops-shell [data-testid="ops-events-page"] .table-wrap {
+        overflow-x: auto;
+      }
+      body.ops-shell [data-testid="ops-events-page"] :where(
+        input,
+        select,
+        textarea,
+        button,
+        pre,
+        code
+      ) {
+        min-width: 0;
+        max-width: 100%;
+        overflow-wrap: anywhere;
       }
     }
   </style>

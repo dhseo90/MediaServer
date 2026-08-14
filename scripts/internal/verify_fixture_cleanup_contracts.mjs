@@ -135,7 +135,7 @@ check("auto-start lifecycle uses throwaway state and port cleanup", () => {
     "managedServer.kill(\"SIGTERM\")",
     "managedServer.kill(\"SIGKILL\")",
     "fs.rmSync(managedStateDir",
-    "assertZeroLifecycle(idle.sourceLifecycle)",
+    "assertZeroLifecycle(readback.sourceLifecycle)",
   ], "verify_ops_source_lifecycle.mjs");
 });
 
@@ -155,7 +155,7 @@ check("stream verification docs expose cleanup-sensitive commands", () => {
   assertIncludes(docs, [
     "verify-ops-click-e2e --auth-users-file <path>",
     "접근 요청 fixture cleanup",
-    "prepare-manual-ui-fulltest-seed --dry-run --emit-registry-dir <dir>",
+    "prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline --emit-registry-dir <dir>",
     "`sources.json`, `views.json`, `analysis.json`, `preconditions.json`",
     "verify-ops-event-records-scope --http-base",
     "active file에 잠시 주입하고 복원",

@@ -1,10 +1,12 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.2.0 F04 Ops VLM UI containment 재정리 산출물과 VLM default-off/privacy/profile 경계를 정적 검증한다.
 import fs from 'node:fs';
 
 const checks = [];
 const read = path => fs.readFileSync(path, 'utf8');
-const source = read('src/ingress/webrtc_http_server.cpp');
+const source = readWebRtcHttpServerBundle(read) +
+  read('src/ingress/product_ui_server_pages.cpp');
 const css = read('src/ingress/product_ui_css.cpp');
 const pageScript = read('src/ingress/product_ui_page_scripts.cpp');
 const backlog = read('docs/development-backlog.md');

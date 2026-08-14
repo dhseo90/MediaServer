@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: EventRecord가 장기 녹화가 아닌 짧은 증거 기록 범위로 노출되고, /ops/events UI가 그 계약을 표시하는지 검증한다.
 
 import os from "node:os";
@@ -71,6 +72,15 @@ for (const control of opsEventsControls) {
 }
 
 const storageStatus = await requestJson("/lab/analysis/event-storage/status");
+const eventPostStatus = await requestJson("/lab/analysis/event-post/status");
+if (!Number.isFinite(Number(eventPostStatus?.failedCount))) {
+  throw new Error("event POST status failedCount readback missing");
+}
+if (!Number.isFinite(Number(storageStatus?.skippedCorruptLines))) {
+  throw new Error("event storage skippedCorruptLines readback missing");
+}
+const serverSource = readWebRtcHttpServerBundle(file => fs.readFileSync(file, "utf8"));
+assertContains("evidence-resolved-path-source", serverSource, ["*resolved_path = resolved;"]);
 assertEvidencePolicy("lab-storage-status", storageStatus.evidencePolicy);
 if (storageStatus.enabled !== true) {
   throw new Error("event storage must be enabled for populated ops-events fixture smoke");
@@ -80,6 +90,7 @@ const auditSnapshot = snapshotFile(path.resolve(".media_server.ops_audit.jsonl")
 const fixture = seedPopulatedEventRecordFixture(storageStatus);
 try {
   await verifyEvidenceBundleDownload(storageStatus);
+  await verifyEventRecordCompactionLifecycle(fixture);
 
   const populatedRecords = await requestJson("/lab/analysis/events/records?limit=5&evidence=any&includeArchives=1");
   assertRecordList("lab-records-evidence-any", populatedRecords);
@@ -99,6 +110,7 @@ try {
   if (opsStatus?.status !== "ops-events") {
     throw new Error(`ops events status mismatch: ${JSON.stringify(opsStatus).slice(0, 160)}`);
   }
+  if (opsStatus?.records?.schema !== "media-server.va.event-record-list.v1") throw new Error(`/ops/events EventRecord schema mismatch: ${opsStatus?.records?.schema || "(missing)"}`);
   console.log("[pass] ops events API status is ops-events");
   assertEvidencePolicy("ops-events-status", opsStatus?.storage?.evidencePolicy);
   assertRecordList("ops-events-records", opsStatus?.records);
@@ -123,6 +135,39 @@ try {
 } finally {
   cleanupPopulatedEventRecordFixture(fixture);
   restoreFileSnapshot(auditSnapshot);
+}
+
+async function verifyEventRecordCompactionLifecycle(fixture) {
+  const compacted = await requestJsonWithInit(
+    `/lab/analysis/events/records/compact?eventId=${encodeURIComponent(fixture.eventId)}&limit=10`,
+    { method: "POST" },
+  );
+  if (compacted?.schema !== "media-server.va.event-record-compaction.v1" ||
+      !compacted?.compactedPath || Number(compacted?.retainedRecords || 0) < 1) {
+    throw new Error(`EVT compaction observed response mismatch: ${JSON.stringify(compacted).slice(0, 320)}`);
+  }
+  const fileName = path.basename(String(compacted.compactedPath));
+  const listed = await requestJson("/lab/analysis/events/records/compactions");
+  if (listed?.schema !== "media-server.va.event-record-compacted-list.v1" ||
+      !Array.isArray(listed?.files) || !listed.files.some(item => item?.fileName === fileName)) {
+    throw new Error(`EVT compaction list observed file mismatch: ${JSON.stringify(listed).slice(0, 320)}`);
+  }
+  const fetched = await requestText(`/lab/analysis/events/records/compactions/${encodeURIComponent(fileName)}`);
+  if (!fetched.split(/\r?\n/).some(line => line.includes(fixture.eventId))) {
+    throw new Error(`EVT compacted artifact observed EventRecord mismatch: ${fileName}`);
+  }
+  const deleted = await requestJsonWithInit(
+    `/lab/analysis/events/records/compactions/${encodeURIComponent(fileName)}`,
+    { method: "DELETE" },
+  );
+  if (deleted?.schema !== "media-server.va.event-record-compacted-delete.v1" ||
+      deleted?.fileName !== fileName || deleted?.deleted !== true) {
+    throw new Error(`EVT compaction delete observed response mismatch: ${JSON.stringify(deleted).slice(0, 320)}`);
+  }
+  const deletedReadback = await requestJson("/lab/analysis/events/records/compactions");
+  if (deletedReadback.files.some(item => item?.fileName === fileName)) {
+    throw new Error(`EVT compacted artifact deleted readback still listed: ${fileName}`);
+  }
 }
 
 async function verifyBrowserUi(fixture) {
@@ -546,6 +591,60 @@ async function verifyEvidenceBundleDownload(storageStatus) {
       throw new Error(`bundle response missing frame ${path.basename(framePath)} bytes=${body.length}`);
     }
     console.log("[pass] lab event evidence bundle contains clip frame file");
+
+    const releaseSafeParams = new URLSearchParams({
+      eventId,
+      snapshotPath,
+      clipPath,
+      expiresAtMs: String(Date.now() + 60000),
+      download: "1",
+      releaseSafe: "1",
+    });
+    const releaseSafeToken = await requestJson(`/lab/analysis/events/evidence/bundle-token?${releaseSafeParams.toString()}`);
+    if (releaseSafeToken?.releaseSafe !== true || !String(releaseSafeToken?.bundleUrl || "").includes("releaseSafe=1")) {
+      throw new Error(`release-safe token payload mismatch: ${JSON.stringify(releaseSafeToken).slice(0, 240)}`);
+    }
+    const releaseSafeResponse = await fetch(`${httpBase}${releaseSafeToken.bundleUrl}`);
+    const releaseSafeBody = Buffer.from(await releaseSafeResponse.arrayBuffer());
+    if (releaseSafeResponse.status !== 200) {
+      throw new Error(`release-safe bundle response status mismatch status=${releaseSafeResponse.status}`);
+    }
+    const releaseSafeDisposition = releaseSafeResponse.headers.get("content-disposition") || "";
+    if (!releaseSafeDisposition.includes("redacted-incident-evidence-")) {
+      throw new Error(`release-safe bundle disposition mismatch disposition=${releaseSafeDisposition}`);
+    }
+    if (!releaseSafeBody.includes(Buffer.from("media-server.v250.redacted-incident-evidence-bundle.v1")) ||
+        !releaseSafeBody.includes(Buffer.from('"rawEvidenceIncluded":false'))) {
+      throw new Error("release-safe manifest readback must keep rawEvidenceIncluded=false");
+    }
+    if (releaseSafeBody.includes(Buffer.from('"rawJson"')) ||
+        releaseSafeBody.includes(Buffer.from('"rawLocator"'))) {
+      throw new Error("release-safe manifest readback must exclude raw material");
+    }
+    if (releaseSafeBody.includes(Buffer.from('"sourceUrl"'))) {
+      throw new Error("release-safe manifest readback must exclude sourceUrl material");
+    }
+    if (!releaseSafeBody.includes(Buffer.from('"credentialIncluded":false'))) {
+      throw new Error("release-safe manifest readback must keep credentialIncluded=false");
+    }
+    if (releaseSafeBody.includes(Buffer.from('"credential":')) ||
+        releaseSafeBody.includes(Buffer.from('"credentialValue":')) ||
+        releaseSafeBody.includes(Buffer.from('"credentialMaterial":'))) {
+      throw new Error("release-safe manifest readback must exclude credential material");
+    }
+    if (releaseSafeBody.includes(Buffer.from('"debugMaterial"'))) {
+      throw new Error("release-safe manifest readback must exclude debug material");
+    }
+    if (releaseSafeBody.includes(Buffer.from('"providerMaterial"'))) {
+      throw new Error("release-safe manifest readback must exclude provider material");
+    }
+    if (releaseSafeBody.includes(Buffer.from(path.basename(snapshotPath))) ||
+        releaseSafeBody.includes(Buffer.from(path.basename(framePath))) ||
+        releaseSafeBody.includes(Buffer.from("255 0 0")) ||
+        releaseSafeBody.includes(Buffer.from("0 255 0"))) {
+      throw new Error("release-safe manifest-only export contains raw snapshot/clip material");
+    }
+    console.log("[pass] release-safe manifest export readback is redacted and excludes raw evidence files");
     const audit = await requestJson("/ops/api/audit?area=events&limit=5");
     const entries = Array.isArray(audit?.entries) ? audit.entries : [];
     if (!entries.some(item => item?.action === "export-bundle" && String(item?.target || "").includes(eventId))) {
@@ -635,6 +734,19 @@ async function requestText(pathname) {
 
 async function requestJson(pathname) {
   const text = await requestText(pathname);
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`${pathname} returned non-JSON: ${text.slice(0, 160)}`);
+  }
+}
+
+async function requestJsonWithInit(pathname, init) {
+  const response = await fetch(`${httpBase}${pathname}`, init);
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`${pathname} failed HTTP ${response.status}: ${text.slice(0, 160)}`);
+  }
   try {
     return text ? JSON.parse(text) : {};
   } catch {

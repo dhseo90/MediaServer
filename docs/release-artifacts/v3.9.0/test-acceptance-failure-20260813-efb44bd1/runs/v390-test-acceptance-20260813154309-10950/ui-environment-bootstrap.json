@@ -1,0 +1,181 @@
+{
+  "schema": "media-server.v390-acceptance-ui-environment.v1",
+  "result": "PASS",
+  "fixtureMode": false,
+  "dependency": {
+    "status": "dependency-bootstrap-attestation",
+    "engine": "playwright-native",
+    "fixtureMode": false,
+    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+    "moduleVersion": "1.62.1",
+    "modulePackageSha256": "ca170ec143a88ed3043ac953eb3b2377b2b97304104f4e1e23316684ce2c35af",
+    "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "browserVersion": "151.0.7922.110",
+    "browserLaunchVerified": true,
+    "fallbackUsed": false,
+    "resolutionAttempts": [
+      {
+        "candidate": "/Users/dhseo/Workspace/mediaServer/node_modules/playwright",
+        "status": "missing-package-json",
+        "version": "",
+        "reason": ""
+      },
+      {
+        "candidate": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright",
+        "status": "missing-package-json",
+        "version": "",
+        "reason": ""
+      },
+      {
+        "candidate": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+        "status": "selected",
+        "version": "1.62.1",
+        "reason": ""
+      }
+    ]
+  },
+  "secretHandling": "all-role-secrets-generated-memory-only",
+  "roleSecretSource": "acceptance-crypto-random-generated-memory-only",
+  "roleSecretLifecycle": "generated-held-for-exact-child",
+  "secretSerialization": false,
+  "ownership": {
+    "serverStartedByAcceptance": true,
+    "portsAllocatedByAcceptance": true,
+    "rolesSeededByAcceptance": true,
+    "storageStatesGeneratedByAcceptance": true,
+    "boundary": "self-contained-pid-port-artifact-ownership"
+  },
+  "runtimeDescriptor": {
+    "schema": "media-server.v390-ui-runtime-descriptor.v1",
+    "runId": "v390-test-acceptance-20260813154309-10950",
+    "fixtureMode": false,
+    "temporaryRoot": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD",
+    "httpBase": "http://127.0.0.1:61741",
+    "httpPort": 61741,
+    "rtspPort": 61742,
+    "serverPid": 52688,
+    "serverLogPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/media-server.log",
+    "roleStateMapPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/role-state-map.json",
+    "stateFiles": [
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/auth-users.json",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/sources.json",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/views.json",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/analysis.json",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/events.jsonl",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/.media_server.client_live_layout_preferences.jsonl",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/.media_server.event_reviews.jsonl",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/.media_server.ops_audit.jsonl",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/.media_server.alert_deliveries.jsonl",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/.media_server.alert_delivery_attempts.jsonl",
+      "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/events.vlm-observations.jsonl"
+    ],
+    "auth": {
+      "usersFile": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/auth-users.json",
+      "defaultViewId": "9001",
+      "usernames": {
+        "admin": "admin",
+        "operator": "ui_operator",
+        "viewer": "ui_viewer",
+        "integrator": "ui_integrator"
+      },
+      "storageStatePaths": {
+        "admin": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/storage-state-admin.json",
+        "operator": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/storage-state-operator.json",
+        "viewer": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/storage-state-viewer.json",
+        "integrator": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/storage-state-integrator.json"
+      },
+      "generatedBy": "role-storage-state-generated-by-acceptance"
+    },
+    "registrySeedPayloadPaths": {
+      "plan": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/seed-plan.json",
+      "preconditions": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/preconditions.json",
+      "sources": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/sources.json",
+      "views": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/views.json",
+      "analysis": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/registry/analysis.json"
+    },
+    "seedTargetSelection": {
+      "mode": "published-seed-baseline",
+      "expectedReleaseTarget": "v3.8.0",
+      "policyPath": "config/docs_ui_assets.json",
+      "policySha256": "9c703218958fab35a1bfdce5e339d0861fbd17e971e2ec6f800e324b7b89df76"
+    },
+    "eventStoragePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/events.jsonl",
+    "artifactPaths": {
+      "snapshots": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/snapshots",
+      "clips": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/clips"
+    },
+    "ownership": "self-contained-pid-port-artifact-ownership"
+  },
+  "runtimeDescriptorPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/runtime-descriptor.json",
+  "seedTargetSelection": {
+    "mode": "published-seed-baseline",
+    "expectedReleaseTarget": "v3.8.0",
+    "policyPath": "config/docs_ui_assets.json",
+    "policySha256": "9c703218958fab35a1bfdce5e339d0861fbd17e971e2ec6f800e324b7b89df76"
+  },
+  "roles": [
+    {
+      "role": "admin",
+      "username": "admin",
+      "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/storage-state-admin.json",
+      "storageStateMode": "0600",
+      "status": "actual-whoami-verified"
+    },
+    {
+      "role": "operator",
+      "username": "ui_operator",
+      "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/storage-state-operator.json",
+      "storageStateMode": "0600",
+      "status": "actual-whoami-verified"
+    },
+    {
+      "role": "viewer",
+      "username": "ui_viewer",
+      "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/storage-state-viewer.json",
+      "storageStateMode": "0600",
+      "status": "actual-whoami-verified"
+    },
+    {
+      "role": "integrator",
+      "username": "ui_integrator",
+      "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-ptomTD/storage-state-integrator.json",
+      "storageStateMode": "0600",
+      "status": "actual-whoami-verified"
+    }
+  ],
+  "portAllocation": {
+    "strategy": "ephemeral-probe-bounded-retry-with-exact-child-listener-ownership",
+    "maxAttempts": 8,
+    "attempts": [
+      {
+        "attempt": 1,
+        "httpPort": 61741,
+        "rtspPort": 61742,
+        "pid": 52688,
+        "status": "owned-ready",
+        "readiness": {
+          "status": 200,
+          "httpOwners": [
+            52688
+          ],
+          "rtspOwners": [
+            52688
+          ],
+          "commandIdentity": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server"
+        }
+      }
+    ]
+  },
+  "actualRuntimeEvidence": true,
+  "evidenceBoundary": "runtime environment attestation does not substitute for exact-424 or Policy v4 case evidence",
+  "failureReason": "",
+  "uiBuildBinding": {
+    "schema": "media-server.v390-ui-build-source-binding.v1",
+    "sourceCommitSha": "efb44bd1b20517297a22dd17956fb514f26ebbf0",
+    "sourceWorktreeStatusSha256": "1e6389a023fa09d9028ef5dd26bb714ac5032f1f20c8fa298d8f59bcf21ce989",
+    "buildPath": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+    "buildSha256": "2e4e67d159579fc138988766509eb59dc84c44cc3a73c33fb265c2e625e4b25f",
+    "buildBytes": 17511664,
+    "bindingKind": "built-media-server-binary"
+  }
+}

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import http.client
 import json
 import os
@@ -15,6 +16,7 @@ from urllib.parse import urlencode, urlparse
 
 
 SCHEMA = "media-server.va.runtime-metadata.v1"
+FROZEN_SSE_METADATA_PROJECTION_SHA256 = "02b06f335fbc848b5a892e12114c55f29720c4128cb4c43ca26cb57cc6da2dd7"
 
 
 def parse_args() -> argparse.Namespace:
@@ -166,9 +168,13 @@ def read_sse_metadata(base: str, path: str, timeout_s: float, max_messages: int)
         conn.close()
 
 
-def assert_metadata(payload: dict[str, Any], args: argparse.Namespace) -> None:
+def assert_schema(payload: dict[str, Any]) -> None:
     if payload.get("schema") != SCHEMA:
-        fail(f"unexpected schema: {payload.get('schema')}")
+        fail(f"unexpected SSE metadata schema: {payload.get('schema')}")
+
+
+def assert_metadata(payload: dict[str, Any], args: argparse.Namespace) -> None:
+    assert_schema(payload)
     required_arrays = ["tracks", "events"]
     if not args.omit_scenarios:
         required_arrays.append("scenarios")
@@ -181,6 +187,18 @@ def assert_metadata(payload: dict[str, Any], args: argparse.Namespace) -> None:
         fail("metrics field must be omitted when includeMetrics=0")
     if not args.omit_metrics and not isinstance(payload.get("metrics"), dict):
         fail("missing metrics object")
+    if not args.omit_scenarios and not args.omit_metrics:
+        projection = {
+            "schema": type(payload.get("schema")).__name__,
+            "tracks": type(payload.get("tracks")).__name__,
+            "events": type(payload.get("events")).__name__,
+            "scenarios": type(payload.get("scenarios")).__name__,
+            "metrics": type(payload.get("metrics")).__name__,
+        }
+        projection_json = json.dumps(projection, sort_keys=True, separators=(",", ":"))
+        projection_sha256 = hashlib.sha256(projection_json.encode("utf-8")).hexdigest()
+        if projection_sha256 != FROZEN_SSE_METADATA_PROJECTION_SHA256:
+            fail(f"SSE metadata field/type frozen baseline SHA-256 mismatch: {projection_sha256}")
     if args.omit_source and "source" in payload:
         fail("source field must be omitted when includeSource=0")
     if args.omit_tracking_issue_report and "trackingIssueReport" in payload:

@@ -36,6 +36,7 @@ const featureInventory = readText("docs/project-feature-test-inventory.md");
 const releaseEvidence = readText("docs/release-evidence-index.md");
 const releaseRecords = readText("docs/release-test-records.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
 const releaseEvidenceVerifier = readText("scripts/internal/verify_release_evidence_index.mjs");
 const serverSh = readText("server.sh");
@@ -124,7 +125,7 @@ check("feature inventory maps V290-S06 to OPS-047 and SAFE-077", () => {
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S06 snippet: ${snippet}`);
   }
-  assert(coverageVerifier.includes("verify-v290-release-evidence-hygiene"), "feature coverage missing V290-S06 verifier");
+  assertCanonicalCoverage(["SAFE-077", "OPS-047"], "verify-v290-release-evidence-hygiene");
   assert(projectInventoryVerifierRangeCovers("SAFE", 77), "project inventory verifier missing SAFE-077 coverage");
   assert(projectInventoryVerifierRangeCovers("OPS", 47), "project inventory verifier missing OPS-047 coverage");
 });
@@ -137,6 +138,14 @@ check("server exposes S06 hygiene command without promoting internal evidence in
     assert(serverSh.includes(snippet), `server.sh missing S06 command snippet: ${snippet}`);
   }
   assert(!streamVerification.includes("./server.sh verify-release-evidence-index"), "stream verification must not expose internal release evidence index command");
+});
+
+check("SAFE-077 canonical release evidence hygiene boundary", () => {
+  const hygieneCommandDocumented = serverSh.includes("verify-v290-release-evidence-hygiene");
+  const hygieneStatesSeparated = normalizedEvidence.includes("미실행/제외/manual-not-run/미확인");
+  const safe077BoundaryObserved = hygieneCommandDocumented && hygieneStatesSeparated;
+  assert(safe077BoundaryObserved && (hygieneCommandDocumented && hygieneStatesSeparated),
+    "verify-v290-release-evidence-hygiene must keep non-executed states outside PASS/FAIL");
 });
 
 let pass = 0;
@@ -204,6 +213,11 @@ function projectInventoryVerifierRangeCovers(prefix, minimum) {
   if (matches.length === 0) return false;
   const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
   return max >= minimum;
+}
+
+function assertCanonicalCoverage(ids, command) {
+  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"), "feature coverage missing canonical implementation manifest validation");
+  for (const id of ids) assert(implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === command, `implementation manifest ${id} missing ${command}`);
 }
 
 function escapeRegExp(text) {

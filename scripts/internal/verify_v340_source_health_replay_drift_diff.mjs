@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.4.0 Step 5 Source Health Replay and Drift Diff 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -32,7 +34,7 @@ const command = "verify-v340-source-health-replay-drift-diff";
 const schema = "media-server.ops.v340-source-health-replay-drift-diff.v1";
 const route = "/ops/api/source-registry/source-health-replay-drift-diff";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
@@ -210,6 +212,20 @@ check("server entrypoint and inventory verifiers include v3.4 Step 5 command", (
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v340_source_health_replay_drift_diff.mjs", "script inventory");
+});
+
+check("SAFE-128 canonical source health replay boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV340SourceHealthReplayDriftDiffJson(");
+  const routeObserved = files.server.includes("/ops/api/source-registry/source-health-replay-drift-diff");
+  const safe128BoundaryObserved = block.includes("BuildV340SourceHealthReplayDriftDiffItems") && block.includes("media-server.ops.v340-source-health-replay-drift-diff.v1");
+  const writeOrRecoveryPerformed = /\b(?:Write|Persist|Recover|UpdateSource|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\\"(?:sourceUrl|rawLocator|rawJson|debugMaterial|credentialMaterial)Exposed\\\":true/.test(block);
+  const mutationPerformed = writeOrRecoveryPerformed;
+  const sourceUrlExposed = block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialExposed\\\":true");
+  assert(routeObserved && safe128BoundaryObserved && writeOrRecoveryPerformed === false && mutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false,
+    "SAFE-128 BuildV340SourceHealthReplayDriftDiffItems must remain read-only without registry audit persistence recovery or raw material");
 });
 
 const results = runChecks();

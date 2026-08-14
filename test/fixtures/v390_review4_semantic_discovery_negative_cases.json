@@ -1,0 +1,75 @@
+{
+  "schema": "media-server.v390-review4-semantic-discovery-negative-cases.v1",
+  "cases": [
+    {
+      "id": "generic-role",
+      "expectedError": "generic-semantic-role",
+      "record": {
+        "path": "README.md",
+        "semanticRole": "generic-document",
+        "lifecycle": "current-product-contract",
+        "alignment": "aligned",
+        "decision": "retain",
+        "semanticStatement": "현재 제품 문서라는 말만 반복해 실제 의미와 owner를 숨기는 잘못된 레코드입니다.",
+        "actualOwner": { "path": "VERSION", "anchor": "3.9.0" },
+        "evidence": [{ "path": "AGENTS.md", "anchor": "source-of-truth" }]
+      }
+    },
+    {
+      "id": "missing-owner",
+      "expectedError": "missing-actual-owner",
+      "record": {
+        "path": "README.md",
+        "semanticRole": "public-product-entry",
+        "lifecycle": "current-product-contract",
+        "alignment": "aligned",
+        "decision": "retain",
+        "semanticStatement": "현재 공개 제품 진입 문서의 의미를 실제 source와 대조해야 하는 레코드입니다.",
+        "actualOwner": {},
+        "evidence": [{ "path": "AGENTS.md", "anchor": "source-of-truth" }]
+      }
+    },
+    {
+      "id": "missing-evidence",
+      "expectedError": "missing-evidence-anchor",
+      "record": {
+        "path": "README.md",
+        "semanticRole": "public-product-entry",
+        "lifecycle": "current-product-contract",
+        "alignment": "aligned",
+        "decision": "retain",
+        "semanticStatement": "현재 공개 제품 진입 문서의 의미를 실제 source와 대조해야 하는 레코드입니다.",
+        "actualOwner": { "path": "VERSION", "anchor": "3.9.0" },
+        "evidence": []
+      }
+    },
+    {
+      "id": "stale-current-claim",
+      "expectedError": "stale-current-claim",
+      "record": {
+        "path": "README.md",
+        "semanticRole": "public-product-entry",
+        "lifecycle": "current-product-contract",
+        "alignment": "stale-current-claim",
+        "decision": "retain",
+        "semanticStatement": "현재 구현과 충돌하는 오래된 구조 이관 주장을 완료 근거로 유지하는 잘못된 레코드입니다.",
+        "actualOwner": { "path": "VERSION", "anchor": "3.9.0" },
+        "evidence": [{ "path": "AGENTS.md", "anchor": "source-of-truth" }]
+      }
+    },
+    {
+      "id": "self-owner",
+      "expectedError": "current-product-self-owner",
+      "record": {
+        "path": "README.md",
+        "semanticRole": "public-product-entry",
+        "lifecycle": "current-product-contract",
+        "alignment": "aligned",
+        "decision": "retain",
+        "semanticStatement": "현재 공개 제품 진입 문서가 자기 문구만을 owner로 삼는 순환 근거 레코드입니다.",
+        "actualOwner": { "path": "README.md", "anchor": "MediaServer" },
+        "evidence": [{ "path": "VERSION", "anchor": "3.9.0" }]
+      }
+    }
+  ]
+}

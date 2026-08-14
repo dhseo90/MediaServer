@@ -1,0 +1,35 @@
+{
+  "schema": "media-server.v390-entry-baseline-steps.v1",
+  "tableHeading": "### v3.9.0 진행 상태",
+  "steps": [
+    {
+      "id": 1,
+      "title": "v3.9.0 (1) v3.9.0 baseline 정렬",
+      "priority": "P0",
+      "status": "완료",
+      "detailIncludes": [
+        "verify-v390-entry-baseline"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "v3.9.0 (2) Feature Completion Inventory/Discovery Gate",
+      "priority": "P0",
+      "status": "완료",
+      "detailIncludes": [
+        "required/candidate/structure/excluded"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "v3.9.0 (3) User Review Gate / 개발 순서 확정",
+      "priority": "P0",
+      "status": "완료/initial snapshot historical/current closed",
+      "detailIncludes": [
+        "historical snapshot",
+        "closed-with-evidence",
+        "current active candidate가 없음"
+      ]
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V200-S05 VLM profile 저장 API/UI/문서/fixture 계약을 정적 검증한다.
 
 import fs from "node:fs";
@@ -7,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -32,7 +34,12 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const checks = [];
 
 check("registry persists VLM profiles with strict validation", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
+  const profilePreparationBlock = extractCppFunctionBlock(server, "std::optional<Document> PrepareVlmProfileDocumentLocked(");
+  const strictJson = readText("src/domain/strict_json.cpp");
+  const profileJsonDocument = readText("src/ingress/vlm_profile_json_document.cpp");
+  const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
+  const implementation = `${server}\n${profileJsonDocument}\n${promotion}`;
   for (const snippet of [
     "VlmProfilesJson",
     "VlmProfileJson",
@@ -46,7 +53,13 @@ check("registry persists VLM profiles with strict validation", () => {
     "media-server.vlm-profile-registry.v1",
     "selectedOptionId",
     "promptProfile.id",
-    "evaluation.status",
+    "ValidateVlmEvaluationPromotion",
+    "expectedCatalogRevision",
+    "expectedProvenanceDigest",
+    "server-verified-evaluation-catalog",
+    "media-server.vlm-evaluation-provenance.v1",
+    "CanonicalizeStoredVlmProfileLocked",
+    "quarantinedProfileCount",
     "activation.status",
     "ValidateVlmRuntimeOptInContract",
     "runtimeContract",
@@ -59,7 +72,8 @@ check("registry persists VLM profiles with strict validation", () => {
     "invalid-output",
     "timeout",
     "cloudOptInAcknowledged",
-    "ContainsForbiddenVlmProfileField",
+    "VlmProfileJsonDocument::Parse",
+    ".ContainsKey(",
     "ValidateVlmPrivacyGuardContract",
     "media-server.vlm-privacy-transfer-guard.v1",
     "privacyGuard",
@@ -82,8 +96,14 @@ check("registry persists VLM profiles with strict validation", () => {
     "rtspOrWebrtcMediaPathChanged",
     "viewerClientExposureAdded",
   ]) {
-    assert(server.includes(snippet), `server missing VLM profile storage snippet: ${snippet}`);
+    assert(implementation.includes(snippet), `server missing VLM profile storage snippet: ${snippet}`);
   }
+  assert(strictJson.includes("duplicate JSON key"), "strict JSON parser must reject duplicate decoded keys");
+  assert(profileJsonDocument.includes("ParseStrictJsonObjectDocument") &&
+    profileJsonDocument.includes("StrictJsonContainsKey"),
+  "VLM profile document boundary must delegate strict parse and recursive forbidden-key lookup");
+  assert(!server.includes("ContainsForbiddenVlmProfileField"),
+    "legacy string-search VLM forbidden-field helper must stay removed");
   for (const forbidden of [
     "\"apiKey\"",
     "\"providerCredential\"",
@@ -94,10 +114,18 @@ check("registry persists VLM profiles with strict validation", () => {
   ]) {
     assert(server.includes(forbidden), `server missing forbidden VLM profile field guard: ${forbidden}`);
   }
+  const registryWritePerformed = /\b(?:Write|Persist|DispatchEventRecords|ProviderCall|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(profilePreparationBlock);
+  const mutationPerformed = registryWritePerformed || /\b(?:Apply|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\s*\(/.test(profilePreparationBlock);
+  const rawMaterialExposed = /\\\"(?:rawPrompt|rawResponse|rawJson|rawLocator)\\\":true/.test(profilePreparationBlock);
+  const sourceUrlExposed = /\\\"sourceUrl\\\":true/.test(profilePreparationBlock);
+  const credentialMaterialExposed = /\\\"(?:credential|providerCredential|apiKey)\\\":true/.test(profilePreparationBlock);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(profilePreparationBlock);
+  assert(mutationPerformed === false && providerCallPerformed === false, "SAFE-023 profile storage must not call a cloud provider or mutate non-profile state");
+  assert(profilePreparationBlock.includes("credential") && profilePreparationBlock.includes("SetRegistryError") && registryWritePerformed === false && mutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && providerCallPerformed === false, "LAB-051 VLM profile credential/raw/source reject must not write registry state");
 });
 
 check("ops API exposes guarded VLM profile CRUD routes", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     "request.path == \"/ops/api/vlm/profiles\"",
     "std::string(\"/ops/api/vlm/profiles/\")",
@@ -115,7 +143,7 @@ check("ops API exposes guarded VLM profile CRUD routes", () => {
 });
 
 check("ops UI renders profile storage controls and saved profile table", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readText("src/ingress/product_ui_server_pages.cpp");
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   for (const snippet of [
     "data-testid=\"ops-vlm-profile-panel\"",
@@ -152,6 +180,10 @@ check("ops UI renders profile storage controls and saved profile table", () => {
   ]) {
     assert(script.includes(snippet), `page script missing VLM profile behavior snippet: ${snippet}`);
   }
+  assert(server.includes('id="opsVlmEvaluationStatus" value="not-run" readonly'), "evaluation status must be read-only");
+  assert(!/evaluation:\s*\{\s*status:/s.test(script), "client must not declare evaluation.status");
+  assert(script.includes("expectedCatalogRevision"), "client missing catalog revision reference");
+  assert(script.includes("expectedProvenanceDigest"), "client missing provenance digest reference");
 });
 
 check("invalid profile fixture covers rejection classes", () => {
@@ -196,7 +228,7 @@ check("docs, inventory, server command, and script inventory are wired", () => {
   ].join("\n");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
-  const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const implementationManifest = readText("test/fixtures/project_feature_implementation_evidence.json");
   for (const snippet of [
     "V200-S05",
     "VLM profile 저장",
@@ -213,7 +245,7 @@ check("docs, inventory, server command, and script inventory are wired", () => {
   assert(serverSh.includes("verify-vlm-profile-storage"), "server.sh missing VLM profile verifier command");
   assert(serverSh.includes("verify_vlm_profile_storage.mjs"), "server.sh missing VLM profile verifier dispatch");
   assert(scriptInventory.includes("verify_vlm_profile_storage.mjs"), "script inventory missing VLM profile verifier");
-  assert(coverage.includes("verify-vlm-profile-storage"), "feature inventory coverage missing VLM profile verifier");
+  assert(implementationManifest.includes("verify-vlm-profile-storage"), "feature implementation manifest missing VLM profile verifier");
 });
 
 let pass = 0;

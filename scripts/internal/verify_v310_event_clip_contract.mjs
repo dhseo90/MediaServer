@@ -42,9 +42,24 @@ const files = {
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
+  eventStorageSource: readText("src/analysis/event_storage.cpp"),
   server: readText("server.sh"),
 };
 const manifest = JSON.parse(readText(fixturePath));
+
+check("encoded clip encoder source owns the runtime manifest contract", () => {
+  const start = files.eventStorageSource.indexOf("bool EncodeEventClipArtifact(");
+  const end = files.eventStorageSource.indexOf("bool WriteFrameBundleManifest(", start);
+  assert(start >= 0 && end > start, "EVT-059 encoded clip encoder block missing");
+  const evt059EncoderBlock = files.eventStorageSource.slice(start, end);
+  assert(evt059EncoderBlock.includes("result->media_path = media_path.string();"), "EVT-059 block-scoped canonical encoder contract");
+  const manifestStart = files.eventStorageSource.indexOf("bool WriteEncodedClipManifest(");
+  const manifestEnd = files.eventStorageSource.indexOf("bool EncodeEventClipArtifact(", manifestStart);
+  assert(manifestStart >= 0 && manifestEnd > manifestStart, "EVT-059 encoded clip manifest block missing");
+  const evt059ManifestBlock = files.eventStorageSource.slice(manifestStart, manifestEnd);
+  assert(evt059ManifestBlock.includes("media-server.encoded-event-clip-contract.v1"), "EVT-059 canonical runtime manifest schema");
+  assert(evt059ManifestBlock.includes("frameMap"), "EVT-059 frameMap queueName WebRTC SSE RTSP boundary");
+});
 
 check("contract document defines V310-S01 encoded clip boundary", () => {
   for (const snippet of [
@@ -211,8 +226,16 @@ check("feature inventory and release records map V310-S01 to OPS-062 and SAFE-09
 check("server entrypoint and inventory verifiers include V310-S01 command", () => {
   assert(files.server.includes(command), "server.sh missing V310-S01 command");
   assert(files.server.includes("verify_v310_event_clip_contract.mjs"), "server.sh missing V310-S01 script dispatch");
-  assert(files.featureCoverageVerifier.includes(command), "feature coverage verifier missing V310-S01 command");
+  assert(files.featureInventory.includes(command), "feature inventory missing V310-S01 command");
   assert(files.projectInventoryVerifier.includes("SAFE-094") && files.projectInventoryVerifier.includes("OPS-062"), "project inventory verifier missing V310-S01 IDs");
+});
+
+check("SAFE-094 canonical encoded clip contract boundary", () => {
+  const encodedContractCommandDocumented = files.server.includes("verify-v310-event-clip-contract");
+  const rawMaterialStored = manifest.privacy?.rawPromptStored !== false || manifest.privacy?.rawProviderResponseStored !== false;
+  const safe094BoundaryObserved = encodedContractCommandDocumented && rawMaterialStored === false;
+  assert(safe094BoundaryObserved && (encodedContractCommandDocumented && rawMaterialStored === false) && rawMaterialStored === false,
+    "verify-v310-event-clip-contract raw material must remain absent before encoder generation evidence");
 });
 
 const results = runChecks();

@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -43,8 +44,27 @@ const files = {
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
+  featureSource: readText("src/analysis/vlm_feature_queue.cpp"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
 };
 const fixture = JSON.parse(readText(fixturePath));
+
+check("product FeatureSet projection owns the schema and privacy boundary", () => {
+  const featureSetBlock = extractCppFunctionBlock(files.featureSource, "std::string BuildVlmFeatureSetFixtureJson(");
+  const opsEventsUiAdded = featureSetBlock.includes("/ops/events");
+  const runtimeProviderCallPerformed = exactBooleanFlagValue(featureSetBlock, "runtimeProviderCallPerformed");
+  assert(featureSetBlock.includes("media-server.event-feature-set.v1") && opsEventsUiAdded === false && runtimeProviderCallPerformed === false, "LAB-083 FeatureSet schema must not add /ops/events UI or provider/runtime calls");
+  for (const snippet of [
+    "BuildVlmFeatureSetFixtureJson",
+    "media-server.event-feature-set.v1",
+    "feature-only-structured-non-identifying",
+    "identityFeaturesAllowed\\\":false",
+    "rawPromptStored\\\":false",
+    "rawProviderResponseStored\\\":false",
+  ]) {
+    assert(files.featureSource.includes(snippet), `product FeatureSet projection missing: ${snippet}`);
+  }
+});
 
 check("policy document defines V300-S03 feature and privacy boundary", () => {
   for (const snippet of [
@@ -184,8 +204,22 @@ check("feature inventory and release records map V300-S03 to LAB-083, SAFE-085, 
 check("server entrypoint and inventory verifiers include V300-S03 command", () => {
   assert(files.server.includes("verify-v300-feature-schema-privacy"), "server.sh missing V300-S03 command");
   assert(files.server.includes("verify_v300_feature_schema_privacy.mjs"), "server.sh missing V300-S03 script dispatch");
-  assert(files.featureCoverageVerifier.includes("verify-v300-feature-schema-privacy"), "feature coverage verifier missing V300-S03 command");
+  for (const id of ["LAB-083", "SAFE-064", "SAFE-085", "OPS-053"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v300-feature-schema-privacy", `${id} manifest verifier command drift`);
+  }
+  assert(files.featureCoverageVerifier.includes("validateImplementationManifest") && files.featureCoverageVerifier.includes("verifierEvidenceRows"), "feature coverage must validate manifest-backed verifier evidence");
   assert(files.projectInventoryVerifier.includes("LAB-083") && files.projectInventoryVerifier.includes("SAFE-085") && files.projectInventoryVerifier.includes("OPS-053"), "project inventory verifier missing V300-S03 IDs");
+});
+
+check("SAFE-085 canonical feature privacy boundary", () => {
+  const privacyCommandDocumented = files.server.includes("verify-v300-feature-schema-privacy");
+  const schemaMutationPerformed = files.featureSource.includes("event_post_payload_changed = true") ||
+    files.featureSource.includes("webrtc_data_channel_schema_changed = true");
+  const featurePrivacyInputsObserved = privacyCommandDocumented && schemaMutationPerformed === false;
+  const safe085BoundaryObserved = featurePrivacyInputsObserved &&
+    files.featureSource.includes("raw_prompt_stored = false") && schemaMutationPerformed === false;
+  assert(safe085BoundaryObserved && schemaMutationPerformed === false,
+    "verify-v300-feature-schema-privacy VLM/WebRTC/SSE schema mutation must remain absent");
 });
 
 const results = runChecks();

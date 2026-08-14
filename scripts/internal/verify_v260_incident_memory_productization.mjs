@@ -1,12 +1,16 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S01 VLM summary candidate의 Ops incident memory productization 경계를 검증한다.
+import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
 
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
+const pages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -15,6 +19,16 @@ const backlog = readText("docs/development-backlog.md");
 const summaryDoc = readText("docs/vlm-summary-search-candidates.md");
 const streamVerification = readText("docs/stream-verification.md");
 const serverSh = readText("server.sh");
+const incidentMemory = readText("src/analysis/incident_memory.cpp");
+const incidentMemoryHeader = readText("include/analysis/incident_memory.h");
+const eventProjectionBlock = extractCppFunctionBlock(incidentMemory, "IncidentProjectionDocument ProjectEventRecordIncidentText(");
+const memorySearchBlock = extractCppFunctionBlock(incidentMemory, "bool IncidentMemoryIndex::Search(");
+const summaryCandidateReviewBlock = extractCppFunctionBlock(server, "std::string OpsVlmSummaryCandidateReviewJson(");
+
+check("canonical incident projection and memory index source flows remain bound", () => {
+  assert(eventProjectionBlock.includes("FinalizeDocument") && incidentMemory.includes("media-server.incident-text-projection.v1") && !eventProjectionBlock.includes("WebRTC") && !eventProjectionBlock.includes("SSE"), "Event POST/WebRTC/SSE incident projection finalization must remain local-only");
+  assert(memorySearchBlock.includes("impl_->Search") && incidentMemoryHeader.includes("media-server.incident-memory-index.v1"), "incident memory search delegation schema mismatch");
+});
 
 check("roadmap and docs record V260-S01 productization boundary", () => {
   const hasCurrentRoadmapRow = /\| 1 \| V260-S01 \| P0 \| (진행|완료) \| Incident memory productization \|/.test(backlog);
@@ -33,11 +47,14 @@ check("roadmap and docs record V260-S01 productization boundary", () => {
 });
 
 check("ops events API wraps VLM summary candidates as Ops-only manual review view model", () => {
+  assertIncludes(summaryCandidateReviewBlock, "media-server.ops.vlm-summary-candidate-review.v1", "/ops/api/events/reviews Ops VLM summary candidate review API");
+  assert(summaryCandidateReviewBlock.includes("sourceCandidateReport"),
+    "LAB-069 summary candidate sourceCandidateReport block readback mismatch");
+  assert(exactBooleanFlagValue(summaryCandidateReviewBlock, "eventPostPayloadChanged") === false, "summary candidate review must not change Event POST");
   for (const snippet of [
     "OpsVlmSummaryCandidateReviewJson",
     "media-server.ops.vlm-summary-candidate-review.v1",
-    "BuildVlmSummarySearchCandidatesJson",
-    "DefaultVlmObservationStorePath",
+    "BuildVlmSummaryCandidates",
     "\\\"vlmSummaryCandidateReview\\\":",
     "\\\"sourceCandidateReport\\\":",
     "\\\"candidateStatus\\\":\\\"ops-manual-review-not-auto-applied\\\"",
@@ -69,7 +86,7 @@ check("ops events UI renders VLM summary candidate review without exposing it to
     'id="opsVlmSummaryCandidateRows"',
     "VLM Summary Candidate Review",
   ]) {
-    assertIncludes(server, snippet, "Ops VLM summary candidate review shell");
+    assertIncludes(pages, snippet, "Ops VLM summary candidate review shell");
   }
   for (const snippet of [
     "renderVlmSummaryCandidateReview",
@@ -81,6 +98,11 @@ check("ops events UI renders VLM summary candidate review without exposing it to
   ]) {
     assertIncludes(script, snippet, "Ops VLM summary candidate review script");
   }
+  assertIncludes(extractNamedFunctionBlock(script, "renderVlmSummaryCandidateReview"), "media-server.vlm-summary-search-candidates.v1", "UI-045 block-scoped canonical product state");
+  assertIncludes(script, "media-server.vlm-summary-search-candidates.v1", "UI-045 canonical product state");
+  assertIncludes(script, "/ops/events", "UI-045 canonical route obligation");
+  assertIncludes(server, "media-server.ops.vlm-summary-candidate-review.v1", "UI-045 canonical schema obligation");
+  assertIncludes(script, "VLM", "UI-045 canonical field obligation");
   for (const snippet of [
     ".vlm-summary-candidate-review",
     ".vlm-summary-candidate-list",

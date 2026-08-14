@@ -1,0 +1,79 @@
+{
+  "schema": "media-server.v390-analysis-registry-failure-atomicity-fixtures.v3",
+  "targetStep": "V390-REVIEW4-54",
+  "preservedMode": "0640",
+  "newTargetMode": "0640",
+  "commitPoint": "parent-directory-fsync-and-commit-marker",
+  "failureStages": [
+    "parent",
+    "open",
+    "mode",
+    "write",
+    "flush",
+    "close",
+    "directory-open",
+    "rename",
+    "directory-flush"
+  ],
+  "retryableFailureStages": [
+    "parent",
+    "open",
+    "mode",
+    "write",
+    "flush",
+    "close",
+    "directory-open",
+    "rename",
+    "directory-flush"
+  ],
+  "postRenameFailureStages": ["directory-flush"],
+  "retryContract": {
+    "faultedAttemptState": "previous",
+    "faultClearedRetryState": "candidate-success",
+    "maxMutationRetriesPerCase": 1
+  },
+  "crashStages": [
+    {
+      "stage": "after-temp-fsync",
+      "expectedPreRecoveryFileState": "previous",
+      "expectedRestartState": "previous",
+      "staleTempBeforeRestart": true,
+      "transactionRecoveryRequired": false
+    },
+    {
+      "stage": "after-rename",
+      "expectedPreRecoveryFileState": "candidate",
+      "expectedRestartState": "previous",
+      "staleTempBeforeRestart": false,
+      "transactionRecoveryRequired": true
+    },
+    {
+      "stage": "after-directory-fsync",
+      "expectedPreRecoveryFileState": "candidate",
+      "expectedRestartState": "candidate",
+      "staleTempBeforeRestart": false,
+      "transactionRecoveryRequired": true
+    },
+    {
+      "stage": "during-rollback",
+      "expectedPreRecoveryFileState": "candidate",
+      "expectedRestartState": "previous",
+      "staleTempBeforeRestart": false,
+      "transactionRecoveryRequired": true
+    }
+  ],
+  "mutationCases": [
+    { "id": "profile-create", "kind": "profile", "mutation": "create", "method": "POST", "route": "/lab/analysis/profiles" },
+    { "id": "profile-update", "kind": "profile", "mutation": "update", "method": "PUT", "route": "/lab/analysis/profiles/601" },
+    { "id": "rule-create", "kind": "rule", "mutation": "create", "method": "POST", "route": "/lab/analysis/rules" },
+    { "id": "rule-update", "kind": "rule", "mutation": "update", "method": "PUT", "route": "/lab/analysis/rules/701" },
+    { "id": "va-rule-create", "kind": "vaRule", "mutation": "create", "method": "POST", "route": "/lab/analysis/va-rules" },
+    { "id": "va-rule-update", "kind": "vaRule", "mutation": "update", "method": "PUT", "route": "/lab/analysis/va-rules/801" },
+    { "id": "va-rule-delete", "kind": "vaRule", "mutation": "delete", "method": "DELETE", "route": "/lab/analysis/va-rules/801" },
+    { "id": "vlm-profile-create", "kind": "vlmProfile", "mutation": "create", "method": "POST", "route": "/ops/api/vlm/profiles" },
+    { "id": "vlm-profile-update", "kind": "vlmProfile", "mutation": "update", "method": "PUT", "route": "/ops/api/vlm/profiles/vlm-durable-base" },
+    { "id": "vlm-profile-delete", "kind": "vlmProfile", "mutation": "delete", "method": "DELETE", "route": "/ops/api/vlm/profiles/vlm-durable-base" },
+    { "id": "profile-delete", "kind": "profile", "mutation": "delete", "method": "DELETE", "route": "/lab/analysis/profiles/601" },
+    { "id": "rule-delete", "kind": "rule", "mutation": "delete", "method": "DELETE", "route": "/lab/analysis/rules/701" }
+  ]
+}

@@ -20,6 +20,7 @@ AUTH_MODE="${MEDIA_SERVER_VERIFY_PREDEV_AUTH_MODE:-off}"
 RUN_ID="predev-$(date +%s)-$$"
 WORK_DIR="/tmp/media_server_${RUN_ID}"
 STEPS_FILE="${WORK_DIR}/steps.ndjson"
+SERVER_PROCESS_LEDGER_FILE="${WORK_DIR}/server-process-ledger.ndjson"
 SUMMARY_FILE="${MEDIA_SERVER_VERIFY_PREDEV_SUMMARY_FILE:-/tmp/media_server_${RUN_ID}_summary.json}"
 REPORT_FILE="${MEDIA_SERVER_VERIFY_PREDEV_REPORT_FILE:-/tmp/media_server_${RUN_ID}_report.md}"
 REPORT_HTML_FILE="${MEDIA_SERVER_VERIFY_PREDEV_REPORT_HTML_FILE:-/tmp/media_server_${RUN_ID}_report.html}"
@@ -28,11 +29,16 @@ SERVER_PID=""
 PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
+NOT_RUN_COUNT=0
 SKIP_BUILD=0
 QUICK_MODE=0
 INCLUDE_EXTERNAL_TURN=0
 INCLUDE_EXTERNAL_CLIENT=0
 INCLUDE_REDACTION="${MEDIA_SERVER_VERIFY_PREDEV_INCLUDE_REDACTION:-1}"
+FAIL_FAST=0
+FIXTURE_FIRST_FAIL=0
+FIXTURE_CUMULATIVE_FAIL=0
+FIRST_FAILED_CASE=""
 
 mkdir -p "${WORK_DIR}"
 
@@ -63,6 +69,10 @@ Options:
                            LAN IP 외부 클라이언트 접근성도 hard gate로 포함
   --skip-redaction         사람 객체 자동 모자이크 검증을 predev 묶음에서 제외
   --heartbeat-interval <n> 긴 step 진행 중 상태 출력 주기. 기본 ${HEARTBEAT_INTERVAL_S}초, 0이면 끔
+  --fail-fast             첫 실패 뒤 일반 검증을 중단하고 cleanup/report만 수행
+  --fixture-first-fail    contract 전용 fast case loop. 두 번째 case 실패와 이후 not-run을 검증
+  --fixture-cumulative-fail
+                           contract 전용 legacy case loop. 실패 뒤 후속 case 실행을 검증
   -h, --help               도움말 출력
 
 기준:
@@ -138,6 +148,19 @@ parse_args() {
       --heartbeat-interval)
         HEARTBEAT_INTERVAL_S="${2:-}"
         shift 2
+        ;;
+      --fail-fast)
+        FAIL_FAST=1
+        shift
+        ;;
+      --fixture-first-fail)
+        FIXTURE_FIRST_FAIL=1
+        FAIL_FAST=1
+        shift
+        ;;
+      --fixture-cumulative-fail)
+        FIXTURE_CUMULATIVE_FAIL=1
+        shift
         ;;
       -h|--help)
         usage
@@ -222,10 +245,20 @@ append_step() {
   local command="$3"
   local log_file="$4"
   local duration_sec="$5"
-  python3 - "${STEPS_FILE}" "${name}" "${result}" "${command}" "${log_file}" "${duration_sec}" <<'PY'
+  local context="${6:-}"
+  local stdout_file="${7:-}"
+  local stderr_file="${8:-}"
+  local reproduction_command="${9:-${command}}"
+  python3 - "${STEPS_FILE}" "${name}" "${result}" "${command}" "${log_file}" "${duration_sec}" "${context}" "${stdout_file}" "${stderr_file}" "${reproduction_command}" <<'PY'
 import json
 import pathlib
 import sys
+
+def tail(path_value):
+    path = pathlib.Path(path_value) if path_value else None
+    if path is None or not path.exists() or not path.is_file():
+        return []
+    return path.read_text(encoding="utf-8", errors="replace").splitlines()[-20:]
 
 record = {
     "name": sys.argv[2],
@@ -233,10 +266,71 @@ record = {
     "command": sys.argv[4],
     "logFile": sys.argv[5],
     "durationSec": float(sys.argv[6]),
+    "context": sys.argv[7],
+    "stdoutFile": sys.argv[8],
+    "stderrFile": sys.argv[9],
+    "stdoutTail": tail(sys.argv[8]) if sys.argv[3] == "fail" else [],
+    "stderrTail": tail(sys.argv[9]) if sys.argv[3] == "fail" else [],
+    "reproductionCommand": sys.argv[10] or sys.argv[4],
 }
 with pathlib.Path(sys.argv[1]).open("a", encoding="utf-8") as handle:
     handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
 PY
+}
+
+mark_first_failure() {
+  local name="$1"
+  if [[ -z "${FIRST_FAILED_CASE}" ]]; then
+    FIRST_FAILED_CASE="${name}"
+  fi
+}
+
+print_first_failure_evidence() {
+  local name="$1"
+  local context="$2"
+  local stderr_file="$3"
+  local reproduction_command="$4"
+  if [[ "${FIRST_FAILED_CASE}" != "${name}" ]]; then
+    return 0
+  fi
+  echo "[first-fail] context: ${context}"
+  echo "[first-fail] stderr:"
+  if [[ -n "${stderr_file}" && -s "${stderr_file}" ]]; then
+    tail -n 80 "${stderr_file}" || true
+  else
+    echo "(empty)"
+  fi
+  echo "[first-fail] reproduce: ${reproduction_command}"
+}
+
+step_recorded() {
+  local name="$1"
+  [[ -f "${STEPS_FILE}" ]] && grep -Fq "\"name\":\"${name}\"" "${STEPS_FILE}"
+}
+
+append_not_run_step() {
+  local name="$1"
+  local command="$2"
+  local reason="${3:-first failure ${FIRST_FAILED_CASE}}"
+  if step_recorded "${name}"; then
+    return 0
+  fi
+  NOT_RUN_COUNT=$((NOT_RUN_COUNT + 1))
+  append_step "${name}" "not-run" "${command}" "" 0 \
+    "not run after first failure ${FIRST_FAILED_CASE}: ${reason}" "" "" "${command}"
+  echo "[not-run] ${name}: first failure=${FIRST_FAILED_CASE}"
+}
+
+write_combined_step_log() {
+  local log_file="$1"
+  local stdout_file="$2"
+  local stderr_file="$3"
+  {
+    echo "[stdout]"
+    [[ -f "${stdout_file}" ]] && sed -n '1,$p' "${stdout_file}"
+    echo "[stderr]"
+    [[ -f "${stderr_file}" ]] && sed -n '1,$p' "${stderr_file}"
+  } >"${log_file}"
 }
 
 # shell command를 실행하고 성공/실패와 로그 경로를 기록한다.
@@ -244,17 +338,23 @@ run_step() {
   local name="$1"
   local command="$2"
   local log_file="${WORK_DIR}/${name//[^A-Za-z0-9_]/_}.log"
+  local stdout_file="${WORK_DIR}/${name//[^A-Za-z0-9_]/_}.stdout.log"
+  local stderr_file="${WORK_DIR}/${name//[^A-Za-z0-9_]/_}.stderr.log"
+  local context="case=${name}; rtspPort=${RTSP_PORT}; httpPort=${HTTP_PORT}; httpBase=${HTTP_BASE}; authMode=${AUTH_MODE}; workDir=${WORK_DIR}"
   local started_at="${SECONDS}"
   local next_heartbeat=$((SECONDS + HEARTBEAT_INTERVAL_S))
   log_info "${name} 시작"
-  (cd "${ROOT_DIR}" && bash -lc "${command}") >"${log_file}" 2>&1 &
+  (cd "${ROOT_DIR}" && bash -lc "${command}") >"${stdout_file}" 2>"${stderr_file}" &
   local step_pid="$!"
   while kill -0 "${step_pid}" >/dev/null 2>&1; do
     if [[ "${HEARTBEAT_INTERVAL_S}" =~ ^[0-9]+$ ]] && (( HEARTBEAT_INTERVAL_S > 0 && SECONDS >= next_heartbeat )); then
       local elapsed=$((SECONDS - started_at))
       echo "[info] ${name} 진행 중 (${elapsed}s) log=${log_file}"
-      if [[ -s "${log_file}" ]]; then
-        tail -n 3 "${log_file}" | sed 's/^/[tail] /' || true
+      if [[ -s "${stdout_file}" ]]; then
+        tail -n 2 "${stdout_file}" | sed 's/^/[stdout-tail] /' || true
+      fi
+      if [[ -s "${stderr_file}" ]]; then
+        tail -n 2 "${stderr_file}" | sed 's/^/[stderr-tail] /' || true
       fi
       next_heartbeat=$((SECONDS + HEARTBEAT_INTERVAL_S))
     fi
@@ -262,17 +362,25 @@ run_step() {
   done
   if wait "${step_pid}"; then
     local duration=$((SECONDS - started_at))
+    write_combined_step_log "${log_file}" "${stdout_file}" "${stderr_file}"
     PASS_COUNT=$((PASS_COUNT + 1))
-    append_step "${name}" "pass" "${command}" "${log_file}" "${duration}"
+    append_step "${name}" "pass" "${command}" "${log_file}" "${duration}" "${context}" "${stdout_file}" "${stderr_file}" "${command}"
     echo "[pass] ${name} (${duration}s)"
     return 0
   fi
   local duration=$((SECONDS - started_at))
+  write_combined_step_log "${log_file}" "${stdout_file}" "${stderr_file}"
   FAIL_COUNT=$((FAIL_COUNT + 1))
-  append_step "${name}" "fail" "${command}" "${log_file}" "${duration}"
+  mark_first_failure "${name}"
+  append_step "${name}" "fail" "${command}" "${log_file}" "${duration}" "${context}" "${stdout_file}" "${stderr_file}" "${command}"
   echo "[fail] ${name} (${duration}s) log=${log_file}"
-  tail -n 80 "${log_file}" || true
+  print_first_failure_evidence "${name}" "${context}" "${stderr_file}" "${command}"
   return 1
+}
+
+# fail-fast 모드에서 이미 실패가 기록됐는지 확인한다.
+fail_fast_triggered() {
+  [[ "${FAIL_FAST}" == "1" && "${FAIL_COUNT}" -gt 0 ]]
 }
 
 # 외부 운영 TURN credential과 relay policy가 준비된 경우에만 hard gate를 수행한다.
@@ -285,14 +393,26 @@ run_external_turn_gate() {
   fi
   if [[ -z "${MEDIA_SERVER_WEBRTC_TURN_SERVER:-${MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER:-}}" ]]; then
     FAIL_COUNT=$((FAIL_COUNT + 1))
-    append_step "external-turn-hard-gate" "fail" "missing TURN credential" "" 0
+    mark_first_failure "external-turn-hard-gate"
+    append_step "external-turn-hard-gate" "fail" "missing TURN credential" "" 0 \
+      "case=external-turn-hard-gate; missing TURN credential; httpBase=${HTTP_BASE}" "" "" \
+      "MEDIA_SERVER_WEBRTC_TURN_SERVER='<provide-secret>' MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay ./server.sh verify-webrtc-ice --external-turn"
     echo "[fail] external-turn-hard-gate: MEDIA_SERVER_WEBRTC_TURN_SERVER 또는 MEDIA_SERVER_VERIFY_WEBRTC_EXTERNAL_TURN_SERVER가 필요합니다"
+    print_first_failure_evidence "external-turn-hard-gate" \
+      "case=external-turn-hard-gate; missing TURN credential; httpBase=${HTTP_BASE}" "" \
+      "MEDIA_SERVER_WEBRTC_TURN_SERVER='<provide-secret>' MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay ./server.sh verify-webrtc-ice --external-turn"
     return 1
   fi
   if [[ "${MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY:-all}" != "relay" ]]; then
     FAIL_COUNT=$((FAIL_COUNT + 1))
-    append_step "external-turn-hard-gate" "fail" "missing relay policy" "" 0
+    mark_first_failure "external-turn-hard-gate"
+    append_step "external-turn-hard-gate" "fail" "missing relay policy" "" 0 \
+      "case=external-turn-hard-gate; missing relay policy; httpBase=${HTTP_BASE}" "" "" \
+      "MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay ./server.sh verify-webrtc-ice --external-turn"
     echo "[fail] external-turn-hard-gate: MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay가 필요합니다"
+    print_first_failure_evidence "external-turn-hard-gate" \
+      "case=external-turn-hard-gate; missing relay policy; httpBase=${HTTP_BASE}" "" \
+      "MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay ./server.sh verify-webrtc-ice --external-turn"
     return 1
   fi
   run_step "external-turn-hard-gate" \
@@ -337,7 +457,14 @@ start_server() {
   local queue_size="$1"
   if ! ensure_start_ports_free; then
     FAIL_COUNT=$((FAIL_COUNT + 1))
-    append_step "server-start" "fail" "port preflight" "${SERVER_LOG}" 0
+    mark_first_failure "server-start-queue-${queue_size}"
+    append_step "server-start-queue-${queue_size}" "fail" "port preflight" "${SERVER_LOG}" 0 \
+      "case=server-start-queue-${queue_size}; busy port; rtspPort=${RTSP_PORT}; httpPort=${HTTP_PORT}" "" "" \
+      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} ./scripts/internal/run_server_foreground.sh"
+    print_first_failure_evidence "server-start-queue-${queue_size}" \
+      "case=server-start-queue-${queue_size}; busy port; rtspPort=${RTSP_PORT}; httpPort=${HTTP_PORT}" \
+      "" \
+      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} ./scripts/internal/run_server_foreground.sh"
     return 1
   fi
   log_info "server 시작: rtsp=${RTSP_PORT} http=${HTTP_PORT} eventPostQueue=${queue_size} authMode=${AUTH_MODE}"
@@ -363,8 +490,15 @@ start_server() {
     return 0
   fi
   FAIL_COUNT=$((FAIL_COUNT + 1))
-  append_step "server-start-queue-${queue_size}" "fail" "run_server_foreground" "${SERVER_LOG}" 60
+  mark_first_failure "server-start-queue-${queue_size}"
+  append_step "server-start-queue-${queue_size}" "fail" "run_server_foreground" "${SERVER_LOG}" 60 \
+    "case=server-start-queue-${queue_size}; health timeout; rtspPort=${RTSP_PORT}; httpPort=${HTTP_PORT}; httpBase=${HTTP_BASE}" "" "${SERVER_LOG}" \
+    "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} ./scripts/internal/run_server_foreground.sh"
   echo "[fail] server 시작 실패 log=${SERVER_LOG}"
+  print_first_failure_evidence "server-start-queue-${queue_size}" \
+    "case=server-start-queue-${queue_size}; health timeout; rtspPort=${RTSP_PORT}; httpPort=${HTTP_PORT}; httpBase=${HTTP_BASE}" \
+    "${SERVER_LOG}" \
+    "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} ./scripts/internal/run_server_foreground.sh"
   tail -n 120 "${SERVER_LOG}" || true
   return 1
 }
@@ -409,28 +543,83 @@ PY
     sleep 1
   done
   FAIL_COUNT=$((FAIL_COUNT + 1))
-  append_step "${name}" "fail" "runtime idle check" "${log_file}" 0
+  mark_first_failure "${name}"
+  append_step "${name}" "fail" "runtime idle check" "${log_file}" 0 \
+    "case=${name}; runtime did not become idle; httpBase=${HTTP_BASE}" "" "" \
+    "curl -fsS ${HTTP_BASE}/lab/runtime/status"
   echo "[fail] ${name} log=${log_file}"
+  print_first_failure_evidence "${name}" \
+    "case=${name}; runtime did not become idle; httpBase=${HTTP_BASE}" "" \
+    "curl -fsS ${HTTP_BASE}/lab/runtime/status"
   cat "${log_file}"
   return 1
 }
 
 # 서버 process를 종료하고 wait한다.
 stop_server() {
+  local observed_pid_file="${WORK_DIR}/server-stop-pids-${SECONDS}.txt"
+  : >"${observed_pid_file}"
+  for port in "${RTSP_PORT}" "${HTTP_PORT}"; do
+    lsof -nP -tiTCP:"${port}" -sTCP:LISTEN 2>/dev/null >>"${observed_pid_file}" || true
+  done
+  sort -u "${observed_pid_file}" -o "${observed_pid_file}"
+  while IFS= read -r pid; do
+    [[ "${pid}" =~ ^[0-9]+$ ]] || continue
+    local command_identity=""
+    local owned_ports=""
+    local alive_before=false
+    local alive_after=false
+    command_identity="$(ps -p "${pid}" -o command= 2>/dev/null || true)"
+    if kill -0 "${pid}" >/dev/null 2>&1; then alive_before=true; fi
+    for port in "${RTSP_PORT}" "${HTTP_PORT}"; do
+      if lsof -nP -a -p "${pid}" -iTCP:"${port}" -sTCP:LISTEN >/dev/null 2>&1; then
+        owned_ports="${owned_ports}${owned_ports:+,}${port}"
+      fi
+    done
+    if [[ "${command_identity}" == *media_server* || "${command_identity}" == *run_server_foreground* ]]; then
+      kill "${pid}" >/dev/null 2>&1 || true
+      local stop_deadline=$((SECONDS + 10))
+      while kill -0 "${pid}" >/dev/null 2>&1 && [[ "${SECONDS}" -lt "${stop_deadline}" ]]; do
+        sleep 0.1
+      done
+      wait "${pid}" >/dev/null 2>&1 || true
+    fi
+    if kill -0 "${pid}" >/dev/null 2>&1; then alive_after=true; fi
+    append_server_process_measurement "${pid}" "${command_identity}" "${alive_before}" "${alive_after}" "${owned_ports}"
+  done <"${observed_pid_file}"
+  rm -f "${observed_pid_file}"
   if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
-    log_info "server 종료 pid=${SERVER_PID}"
+    log_info "server wrapper 종료 pid=${SERVER_PID}"
     kill "${SERVER_PID}" >/dev/null 2>&1 || true
     wait "${SERVER_PID}" >/dev/null 2>&1 || true
   fi
   SERVER_PID=""
-  for port in "${RTSP_PORT}" "${HTTP_PORT}"; do
-    while IFS= read -r pid; do
-      [[ -n "${pid}" ]] || continue
-      kill "${pid}" >/dev/null 2>&1 || true
-      wait "${pid}" >/dev/null 2>&1 || true
-    done < <(lsof -nP -tiTCP:"${port}" -sTCP:LISTEN 2>/dev/null || true)
-  done
   sleep 1
+}
+
+# 종료 직전/직후 process와 소유 port를 raw ledger에 기록한다.
+append_server_process_measurement() {
+  local pid="$1"
+  local command_identity="$2"
+  local alive_before="$3"
+  local alive_after="$4"
+  local owned_ports="$5"
+  python3 - "${SERVER_PROCESS_LEDGER_FILE}" "${pid}" "${command_identity}" "${alive_before}" "${alive_after}" "${owned_ports}" <<'PY'
+import json
+import pathlib
+import sys
+
+ports = [int(value) for value in sys.argv[6].split(",") if value]
+record = {
+    "pid": int(sys.argv[2]),
+    "commandIdentity": sys.argv[3],
+    "aliveBefore": sys.argv[4] == "true",
+    "aliveAfter": sys.argv[5] == "true",
+    "ownedPorts": ports,
+}
+with pathlib.Path(sys.argv[1]).open("a", encoding="utf-8") as handle:
+    handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
+PY
 }
 
 # 검증 종료 후 이번 predev run이 사용한 port listener가 남지 않았는지 확인한다.
@@ -461,8 +650,14 @@ assert_ports_clean() {
     return 0
   fi
   FAIL_COUNT=$((FAIL_COUNT + 1))
-  append_step "ports-clean" "fail" "lsof predev ports" "${log_file}" 0
+  mark_first_failure "ports-clean"
+  append_step "ports-clean" "fail" "lsof predev ports" "${log_file}" 0 \
+    "case=ports-clean; listener remained; rtspPort=${RTSP_PORT}; httpPort=${HTTP_PORT}" "" "" \
+    "lsof -nP -iTCP:${RTSP_PORT} -sTCP:LISTEN; lsof -nP -iTCP:${HTTP_PORT} -sTCP:LISTEN"
   echo "[fail] ports-clean log=${log_file}"
+  print_first_failure_evidence "ports-clean" \
+    "case=ports-clean; listener remained; rtspPort=${RTSP_PORT}; httpPort=${HTTP_PORT}" "" \
+    "lsof -nP -iTCP:${RTSP_PORT} -sTCP:LISTEN; lsof -nP -iTCP:${HTTP_PORT} -sTCP:LISTEN"
   cat "${log_file}"
   return 1
 }
@@ -472,6 +667,27 @@ restart_server_with_queue() {
   local queue_size="$1"
   stop_server
   start_server "${queue_size}"
+}
+
+# 이름/명령 쌍을 고정 순서로 실행하고 fail-fast 모드에서는 남은 case를 not-run으로 남긴다.
+run_ordered_case_sequence() {
+  local reason="$1"
+  shift
+  while [[ $# -gt 0 ]]; do
+    local name="$1"
+    local command="$2"
+    shift 2
+    if ! run_step "${name}" "${command}"; then
+      if fail_fast_triggered; then
+        while [[ $# -gt 0 ]]; do
+          append_not_run_step "$1" "$2" "${reason}"
+          shift 2
+        done
+        return 1
+      fi
+    fi
+  done
+  return 0
 }
 
 # 지정 시간 동안 VA event, event POST schema/recovery를 반복 실행한다.
@@ -487,31 +703,55 @@ run_soak_loop() {
   while (( SECONDS < deadline || iteration == 1 )); do
     local child_env="MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS}"
     log_info "soak iteration ${iteration} 시작"
-    run_step "soak-${iteration}-va-events" \
-      "${child_env} MEDIA_SERVER_VERIFY_VA_HTTP_BASE=${HTTP_BASE} MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${VA_EVENT_DURATION_S} ./server.sh verify-va-events --duration ${VA_EVENT_DURATION_S}" || true
-    run_step "soak-${iteration}-event-post-schema" \
-      "${child_env} MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode schema" || true
-    run_step "soak-${iteration}-event-post-recovery" \
-      "${child_env} MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode recovery" || true
+    local va_command="${child_env} MEDIA_SERVER_VERIFY_VA_HTTP_BASE=${HTTP_BASE} MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${VA_EVENT_DURATION_S} ./server.sh verify-va-events --duration ${VA_EVENT_DURATION_S}"
+    local schema_command="${child_env} MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode schema"
+    local recovery_command="${child_env} MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode recovery"
+    local redaction_command="${child_env} MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=${HTTP_BASE} MEDIA_SERVER_VERIFY_VA_HTTP_BASE=${HTTP_BASE} ./server.sh verify-redaction --live-only --duration ${REDACTION_DURATION_S}"
+    local sequence_status=0
     if [[ "${INCLUDE_REDACTION}" == "1" ]]; then
-      run_step "soak-${iteration}-redaction" \
-        "${child_env} MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=${HTTP_BASE} MEDIA_SERVER_VERIFY_VA_HTTP_BASE=${HTTP_BASE} ./server.sh verify-redaction --live-only --duration ${REDACTION_DURATION_S}" || true
+      run_ordered_case_sequence "same soak iteration" \
+        "soak-${iteration}-va-events" "${va_command}" \
+        "soak-${iteration}-event-post-schema" "${schema_command}" \
+        "soak-${iteration}-event-post-recovery" "${recovery_command}" \
+        "soak-${iteration}-redaction" "${redaction_command}" || sequence_status=$?
     else
-      SKIP_COUNT=$((SKIP_COUNT + 1))
-      append_step "soak-${iteration}-redaction" "skip" "--skip-redaction" "" 0
-      echo "[skip] soak-${iteration}-redaction: --skip-redaction"
+      run_ordered_case_sequence "same soak iteration" \
+        "soak-${iteration}-va-events" "${va_command}" \
+        "soak-${iteration}-event-post-schema" "${schema_command}" \
+        "soak-${iteration}-event-post-recovery" "${recovery_command}" || sequence_status=$?
+      if [[ "${sequence_status}" -eq 0 ]]; then
+        SKIP_COUNT=$((SKIP_COUNT + 1))
+        append_step "soak-${iteration}-redaction" "skip" "--skip-redaction" "" 0
+        echo "[skip] soak-${iteration}-redaction: --skip-redaction"
+      fi
     fi
-    assert_runtime_idle "soak-${iteration}-runtime-idle" || true
+    if [[ "${sequence_status}" -ne 0 ]]; then
+      if [[ "${INCLUDE_REDACTION}" != "1" ]]; then
+        append_not_run_step "soak-${iteration}-redaction" "--skip-redaction" "disabled case reached after first failure"
+      fi
+      append_not_run_step "soak-${iteration}-runtime-idle" "curl -fsS ${HTTP_BASE}/lab/runtime/status" "same soak iteration"
+      append_not_run_step "soak-future-iterations" "repeat soak cases until ${SOAK_MINUTES} minutes" "duration loop stopped"
+      return 1
+    fi
+    if ! assert_runtime_idle "soak-${iteration}-runtime-idle"; then
+      if fail_fast_triggered; then
+        append_not_run_step "soak-future-iterations" "repeat soak cases until ${SOAK_MINUTES} minutes" "duration loop stopped"
+        return 1
+      fi
+    fi
     iteration=$((iteration + 1))
   done
 }
 
 # 전체 predev summary JSON을 생성한다.
 write_summary() {
-  local duration_sec="$1"
-  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${REPORT_HTML_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" "${INCLUDE_EXTERNAL_TURN}" "${WORK_DIR}" "${INCLUDE_EXTERNAL_CLIENT}" "${INCLUDE_REDACTION}" <<'PY'
+  local started_seconds="$1"
+  local ended_seconds="$2"
+  local duration_sec=$((ended_seconds - started_seconds))
+  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${NOT_RUN_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${REPORT_HTML_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" "${INCLUDE_EXTERNAL_TURN}" "${WORK_DIR}" "${INCLUDE_EXTERNAL_CLIENT}" "${INCLUDE_REDACTION}" "${started_seconds}" "${ended_seconds}" "${SERVER_PROCESS_LEDGER_FILE}" <<'PY'
 import json
 import pathlib
+import re
 import sys
 import time
 
@@ -521,27 +761,90 @@ if steps_path.exists():
     for line in steps_path.read_text(encoding="utf-8").splitlines():
         if line.strip():
             steps.append(json.loads(line))
+iteration_rows = {}
+for step in steps:
+    match = re.fullmatch(r"soak-([0-9]+)-(va-events|event-post-schema|event-post-recovery|redaction|runtime-idle)", str(step.get("name") or ""))
+    if not match:
+        continue
+    iteration = int(match.group(1))
+    iteration_rows.setdefault(iteration, []).append({"caseId": step["name"], "result": step.get("result")})
+
+processes = []
+process_path = pathlib.Path(sys.argv[18])
+if process_path.exists():
+    for line in process_path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            processes.append(json.loads(line))
+
+started_seconds = int(sys.argv[16])
+ended_seconds = int(sys.argv[17])
+duration_sec = int(float(sys.argv[7]))
 summary = {
     "kind": "predev",
     "status": "fail" if int(sys.argv[4]) > 0 else "pass",
     "pass": int(sys.argv[3]),
     "fail": int(sys.argv[4]),
     "skip": int(sys.argv[5]),
-    "durationSec": int(float(sys.argv[6])),
-    "reportFile": sys.argv[7],
-    "reportHtmlFile": sys.argv[8],
-    "soakMinutes": int(sys.argv[9]),
-    "quickMode": sys.argv[10] == "1",
-    "includeExternalTurn": sys.argv[11] == "1",
-    "workDir": sys.argv[12],
-    "includeExternalClient": sys.argv[13] == "1",
-    "includeRedaction": sys.argv[14] == "1",
+    "notRun": int(sys.argv[6]),
+    "durationSec": duration_sec,
+    "reportFile": sys.argv[8],
+    "reportHtmlFile": sys.argv[9],
+    "soakMinutes": int(sys.argv[10]),
+    "quickMode": sys.argv[11] == "1",
+    "includeExternalTurn": sys.argv[12] == "1",
+    "workDir": sys.argv[13],
+    "includeExternalClient": sys.argv[14] == "1",
+    "includeRedaction": sys.argv[15] == "1",
     "finishedAtEpochMs": int(time.time() * 1000),
+    "monotonicDuration": {
+        "schema": "media-server.predev-monotonic-duration.v1",
+        "clockSource": "bash-SECONDS-monotonic",
+        "startedSeconds": started_seconds,
+        "endedSeconds": ended_seconds,
+        "elapsedSeconds": ended_seconds - started_seconds,
+        "requestedSoakSeconds": int(sys.argv[10]) * 60,
+        "durationSec": duration_sec,
+    },
+    "soakIterationLedger": {
+        "schema": "media-server.predev-soak-iteration-ledger.v1",
+        "source": "explicit-step-ledger-not-max-inference",
+        "observedIterations": len(iteration_rows),
+        "iterations": [
+            {"iteration": iteration, "cases": iteration_rows[iteration]}
+            for iteration in sorted(iteration_rows)
+        ],
+    },
+    "serverProcessLedger": {
+        "schema": "media-server.predev-server-process-ledger.v1",
+        "processes": processes,
+    },
     "steps": steps,
 }
+
 pathlib.Path(sys.argv[1]).write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
   echo "[info] predev summary=${SUMMARY_FILE}"
+}
+
+run_failure_contract_fixture() {
+  local started_at="${SECONDS}"
+  : >"${STEPS_FILE}"
+  : >"${SERVER_PROCESS_LEDGER_FILE}"
+  run_ordered_case_sequence "contract fixture first-fail" \
+    "fixture-first" "printf 'fixture first pass\\n'" \
+    "fixture-second" "printf 'fixture second stdout\\n'; printf 'fixture delegated stderr\\n' >&2; exit 23" \
+    "fixture-third" "printf 'fixture third must not execute\\n'" || true
+  write_summary "${started_at}" "${SECONDS}"
+  {
+    echo "# predev failure contract fixture"
+    echo
+    echo "status: fail"
+    echo "firstFailedCase: ${FIRST_FAILED_CASE}"
+    echo "summary: ${SUMMARY_FILE}"
+  } >"${REPORT_FILE}"
+  echo "[info] fixture summary=${SUMMARY_FILE}"
+  echo "[info] fixture report=${REPORT_FILE}"
+  return 1
 }
 
 refresh_summary_report() {
@@ -552,8 +855,12 @@ refresh_summary_report() {
     return 0
   fi
   FAIL_COUNT=$((FAIL_COUNT + 1))
-  append_step "summary-report-refresh" "fail" "${command}" "${log_file}" 0
+  mark_first_failure "summary-report-refresh"
+  append_step "summary-report-refresh" "fail" "${command}" "${log_file}" 0 \
+    "case=summary-report-refresh; report generation failed; report=${REPORT_FILE}" "" "${log_file}" "${command}"
   echo "[fail] summary-report-refresh log=${log_file}"
+  print_first_failure_evidence "summary-report-refresh" \
+    "case=summary-report-refresh; report generation failed; report=${REPORT_FILE}" "${log_file}" "${command}"
   tail -n 80 "${log_file}" || true
   return 1
 }
@@ -567,6 +874,10 @@ trap cleanup EXIT
 # predev 안정화 검증을 순서대로 실행한다.
 main() {
   parse_args "$@"
+  if [[ "${FIXTURE_FIRST_FAIL}" == "1" || "${FIXTURE_CUMULATIVE_FAIL}" == "1" ]]; then
+    run_failure_contract_fixture
+    return $?
+  fi
   if [[ -z "${RTSP_LISTEN_ADDRESS}" ]]; then
     RTSP_LISTEN_ADDRESS="$([[ "${INCLUDE_EXTERNAL_CLIENT}" == "1" ]] && printf '0.0.0.0' || printf '127.0.0.1')"
   fi
@@ -595,6 +906,7 @@ main() {
     external_client_option=""
   fi
   : >"${STEPS_FILE}"
+  : >"${SERVER_PROCESS_LEDGER_FILE}"
 
   if [[ "${SKIP_BUILD}" -eq 0 ]]; then
     run_step "build" "cmake --build ${BUILD_DIR}" || true
@@ -604,33 +916,50 @@ main() {
     echo "[skip] build: --skip-build"
   fi
 
-  start_server 256 || true
-  if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
+  if ! fail_fast_triggered; then
+    start_server 256 || true
+  else
+    append_not_run_step "server-start-queue-256" "run_server_foreground" "build failure"
+  fi
+  if ! fail_fast_triggered && [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
     local rule_ui_option="--include-rule-ui"
     if is_codex_in_app_browser_environment && [[ -z "${MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH:-}" ]]; then
       rule_ui_option=""
     fi
     run_step "integrated-smoke" \
       "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} MEDIA_SERVER_AUTH_MODE=${AUTH_MODE} ./server.sh test --no-start ${external_client_option} --include-rules ${rule_ui_option} --include-va-events --include-image-analysis $([[ "${INCLUDE_REDACTION}" == "1" ]] && printf -- '--include-redaction')" || true
-    run_external_turn_gate || true
-    run_soak_loop
-    assert_runtime_idle "main-runtime-idle" || true
+    if ! fail_fast_triggered; then run_external_turn_gate || true; else append_not_run_step "external-turn-hard-gate" "./server.sh verify-webrtc-ice --external-turn" "integrated smoke failure"; fi
+    if ! fail_fast_triggered; then run_soak_loop || true; else append_not_run_step "soak-case-loop" "duration soak case loop" "pre-soak failure"; fi
+    if ! fail_fast_triggered; then assert_runtime_idle "main-runtime-idle" || true; else append_not_run_step "main-runtime-idle" "curl -fsS ${HTTP_BASE}/lab/runtime/status" "pre-runtime-idle failure"; fi
+  elif fail_fast_triggered; then
+    append_not_run_step "integrated-smoke" "./server.sh test --no-start --include-va-events" "server start/build failure"
+    append_not_run_step "external-turn-hard-gate" "./server.sh verify-webrtc-ice --external-turn" "server start/build failure"
+    append_not_run_step "soak-case-loop" "duration soak case loop" "server start/build failure"
+    append_not_run_step "main-runtime-idle" "curl -fsS ${HTTP_BASE}/lab/runtime/status" "server start/build failure"
   fi
 
-  if restart_server_with_queue 2; then
+  if ! fail_fast_triggered && restart_server_with_queue 2; then
     run_step "event-post-queue" \
       "MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode queue" || true
-    assert_runtime_idle "queue-runtime-idle" || true
+    if ! fail_fast_triggered; then
+      assert_runtime_idle "queue-runtime-idle" || true
+    else
+      append_not_run_step "queue-runtime-idle" "curl -fsS ${HTTP_BASE}/lab/runtime/status" "event-post queue failure"
+    fi
+  elif fail_fast_triggered; then
+    append_not_run_step "server-start-queue-2" "run_server_foreground" "earlier first failure"
+    append_not_run_step "event-post-queue" "./server.sh verify-event-post --mode queue" "earlier first failure"
+    append_not_run_step "queue-runtime-idle" "curl -fsS ${HTTP_BASE}/lab/runtime/status" "earlier first failure"
   fi
   stop_server
   assert_ports_clean || true
 
-  write_summary "$((SECONDS - started_at))"
+  write_summary "${started_at}" "${SECONDS}"
   run_step "summary-report" \
     "./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPORT_FILE} --html-output ${REPORT_HTML_FILE}" || true
-  write_summary "$((SECONDS - started_at))"
+  write_summary "${started_at}" "${SECONDS}"
   refresh_summary_report || true
-  write_summary "$((SECONDS - started_at))"
+  write_summary "${started_at}" "${SECONDS}"
 
   echo
   echo "== predev 안정화 검증 요약 =="

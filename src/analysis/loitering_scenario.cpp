@@ -70,7 +70,7 @@ std::string JsonEscape(const std::string& value) {
 
 }  // namespace
 
-LoiteringScenarioOptions BuildLoiteringScenarioOptionsFromConfig(const app::AppConfig& config) {
+LoiteringScenarioOptions BuildLoiteringScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     LoiteringScenarioOptions options;
     options.enabled = config.analysis_loitering_enabled;
     options.min_dwell_time_ms = config.analysis_loitering_min_dwell_time_ms;

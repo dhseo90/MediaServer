@@ -1,0 +1,25 @@
+[pass] UI one-shot wrapper writes explicit evidence status schema
+[pass] manual UI docs explain wrapper result schema boundaries
+[pass] feature coverage report uses covered/missing and not execution evidence
+[pass] project inventory documents coverage mapping as non-execution evidence
+[pass] stream verification records AI-minimized longrun runner criteria
+[pass] manual UI docs record free automation adapter criteria and failure fields
+[pass] v390 inventory and backlog close approved items without execution overclaim
+[pass] release records and evidence index track the gate and not-run boundaries
+[pass] server dispatch and script inventory expose the gate
+[pass] SAFE-199 canonical UI wrapper result truthfulness boundary
+[pass] SAFE-200 canonical coverage execution-evidence boundary
+
+== v3.9.0 evidence/test gate and test model prep summary ==
+- schema: media-server.v390-evidence-test-gate-prep.v1
+- command: verify-v390-evidence-test-gate-prep
+- uiWrapperSchema: wrapper-only
+- featureCoverageStatus: covered/missing
+- longrunRunnerCriteria: stop-on-first-fail
+- uiAutomationAdapterCriteria: free-tool-first
+- uiFulltest: not-run-by-this-command
+- longrun30: not-run-by-this-command
+- longrun120: not-run-by-this-command
+- publishedMetadata: not-run-by-this-command
+- pass: 11
+- fail: 0

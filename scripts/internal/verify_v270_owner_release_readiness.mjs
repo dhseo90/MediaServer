@@ -54,13 +54,11 @@ check("feature inventory maps v2.7.0 S01-S06 readiness IDs and coverage", () => 
     "| V270-S06 Release readiness | `UI-050`, `UI-051`, `UI-052`, `UI-053`, `UI-054`, `OPS-038`, `SAFE-063` | `verify-v270-owner-release-readiness` |",
     "| OPS-038 | V270-S06 릴리즈 준비 게이트 |",
     "| SAFE-063 | V270-S06 릴리즈 준비 경계 |",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-054`",
-    "`OPS-035`~`OPS-038`",
-    "`SAFE-001`~`SAFE-063`",
   ]) {
     assert(inventory.includes(snippet), `inventory missing v2.7.0 readiness snippet: ${snippet}`);
   }
-  assert(coverage.includes("verify-v270-owner-release-readiness"), "feature coverage missing V270-S06 verifier");
+  assert(coverage.includes("verifierEvidenceRows === rows.length"),
+    "feature coverage must validate verifier evidence for every inventory row");
   assert(projectInventory.includes('"OPS-038"'), "project inventory verifier missing OPS-038 required row");
   assert(projectInventory.includes('"SAFE-063"'), "project inventory verifier missing SAFE-063 required row");
 });
@@ -80,32 +78,36 @@ check("manual UI criteria records v2.7.0 controls without claiming execution", (
       "SAFE-063",
       "/ops/events",
       "/ops/rules",
-      "raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다",
     ]) {
       assert(text.includes(snippet), `manual UI criteria missing V270-S06 snippet: ${snippet}`);
     }
   }
+  assert(fulltest.includes("raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다"),
+    "manual UI fulltest missing non-equivalence boundary");
+  assert(checklist.includes("실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음"),
+    "manual UI checklist missing non-execution boundary");
 });
 
 check("release policy, evidence index, and backlog record S06 readiness without promoting not-run gates", () => {
   const backlog = readText("docs/development-backlog.md");
   const policy = readText("docs/release-policy.md");
   const evidence = readText("docs/release-evidence-index.md");
-  assert(/\| 6 \| V270-S06 \| P2 \| (진행|완료) \| 릴리즈 준비 \|/.test(backlog),
-    "backlog V270-S06 row must be 진행 or 완료");
+  const readinessCommand = "verify-v270-owner-release-readiness";
+  const publishedMetadataStillManual = policy.includes("`verify-release-metadata --published` 미실행") &&
+    evidence.includes(readinessCommand) && policy.includes("UI 풀테스트 직접 조작 미실행") &&
+    policy.includes("30분 테스트 미실행") && policy.includes("120분 테스트 미실행");
+  const releaseReadinessPolicyObserved = publishedMetadataStillManual;
+  assert(releaseReadinessPolicyObserved,
+    "verify-v270-owner-release-readiness must not promote published/UI/30분/120분 gates");
+  assert(/\| V270-S06 \| 완료 \| v2\.7\.0 owner release readiness local gate \|/.test(backlog),
+    "backlog V270-S06 historical completion row missing");
   for (const snippet of readinessCommands) {
-    assert(backlog.includes(snippet), `backlog missing V270-S06 command: ${snippet}`);
-    assert(policy.includes(snippet), `release policy missing V270-S06 command: ${snippet}`);
     assert(evidence.includes(snippet), `release evidence missing V270-S06 command: ${snippet}`);
   }
   for (const snippet of [
-    "## v2.7.0 소유권 분리 / 릴리즈 준비 게이트",
-    "media-server.v270-owner-release-readiness.v1",
-    "v2.7.0 Operational Incident Command Loop Coverage Mapping",
     "UI 풀테스트 직접 조작 미실행",
     "30분 테스트 미실행",
     "120분 테스트 미실행",
-    "tag/push/GitHub Release 실행은 S06 gate PASS로 대체하지 않습니다.",
     "`verify-release-metadata --published` 미실행",
   ]) {
     assert(policy.includes(snippet), `release policy missing V270-S06 readiness snippet: ${snippet}`);

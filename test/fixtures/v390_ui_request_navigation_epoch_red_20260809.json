@@ -1,0 +1,52 @@
+{
+  "schema": "media-server.v390-ui-request-navigation-epoch-red.v1",
+  "sourceCommitSha": "312a4f077f3cc50c6838fc09c31ed3b255c0b6a9",
+  "actualBrowserExecution": true,
+  "releaseEvidenceEligible": false,
+  "coverage": {
+    "target": 424,
+    "attempted": 7,
+    "pass": 6,
+    "fail": 1,
+    "notRun": 417,
+    "unsupported": 0
+  },
+  "firstFailure": {
+    "caseId": "UI-008",
+    "completionMode": "request",
+    "error": "source-before owner navigation epoch mismatch",
+    "sourceRoute": "/client/request-access",
+    "sourceSelector": "#request-form button[type=\"submit\"]",
+    "sourceBeforeEpoch": 1,
+    "sourceAfterEpoch": 1,
+    "readbackRoute": "/ops/users",
+    "finalRoute": "/client/request-access",
+    "finalEpoch": 3
+  },
+  "capturedBeforeFailure": [
+    "UI-001",
+    "UI-002",
+    "UI-003",
+    "UI-004",
+    "UI-005",
+    "UI-007"
+  ],
+  "artifacts": {
+    "acceptanceSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809132201-99582/summary.json",
+      "sha256": "e06fa5a24dd475cfa67582cd385e18d7e49a6067db3096e75022147b8f95bff7"
+    },
+    "firstFailure": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809132201-99582/first-failure.json",
+      "sha256": "e3cfdd3e8c94d43144793074a61afd38f03299f972a176883da23f0ca026fd09"
+    },
+    "exactSummary": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809132201-99582/ui-exact-424/summary.json",
+      "sha256": "dc60dbd31ab2be382d49801e1db5bfe68e08e3cd01711c3b70462dd86f7e85b2"
+    },
+    "ui008Trace": {
+      "path": ".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809132201-99582/ui-exact-424/traces/UI-008.trace.json",
+      "sha256": "680e8a707ed2e48121a87e4c4497a4a321c983ed23e03181b123c3bedb709833"
+    }
+  }
+}

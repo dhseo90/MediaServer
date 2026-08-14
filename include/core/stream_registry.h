@@ -17,12 +17,15 @@ public:
     };
 
     AcquireResult Acquire(const StreamKey& key, const media::SourceSpec& source_spec);
+    bool ReleaseLease(const StreamKey& key);
+    bool ReleaseLeaseAndTryRemoveIfIdle(const StreamKey& key);
     bool TryRemoveIfIdle(const StreamKey& key);
     std::size_t ActiveStreamCount() const;
 
 private:
     mutable std::mutex mu_;
     std::unordered_map<StreamKey, std::shared_ptr<SharedStream>> streams_;
+    std::unordered_map<StreamKey, std::size_t> outstanding_leases_;
 };
 
 }  // namespace core

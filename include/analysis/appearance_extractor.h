@@ -3,6 +3,7 @@
 // 동작 요약: 기본 비활성화 상태로 TrackStateManager가 필요 시점에만 호출할 수 있는 인터페이스다.
 #pragma once
 
+#include "core/analysis_runtime_port.h"
 #include <cstdint>
 #include <optional>
 
@@ -52,35 +53,54 @@ struct AppearanceExtractorStats {
 };
 
 struct AppearanceExtractorOptions {
-    bool enabled{app_config::kDefaultAnalysisAppearanceEnabled};
-    std::string extractor_name{app_config::kDefaultAnalysisAppearanceExtractor};
-    std::string model_path{app_config::kDefaultAnalysisAppearanceModelPath};
-    std::string model_sha256{app_config::kDefaultAnalysisAppearanceModelSha256};
-    std::string model_provenance{app_config::kDefaultAnalysisAppearanceModelProvenance};
-    int input_width{app_config::kDefaultAnalysisAppearanceInputWidth};
-    int input_height{app_config::kDefaultAnalysisAppearanceInputHeight};
-    std::size_t max_embedding_dim{app_config::kDefaultAnalysisAppearanceMaxEmbeddingDim};
-    bool log_enabled{app_config::kDefaultAnalysisAppearanceLogEnabled};
-    bool async_enabled{app_config::kDefaultAnalysisAppearanceAsyncEnabled};
-    std::size_t max_queue_size{app_config::kDefaultAnalysisAppearanceMaxQueue};
-    std::size_t global_max_queue_size{app_config::kDefaultAnalysisAppearanceGlobalMaxQueue};
-    int per_stream_rate_limit_ms{app_config::kDefaultAnalysisAppearancePerStreamRateLimitMs};
-    int max_job_age_ms{app_config::kDefaultAnalysisAppearanceMaxJobAgeMs};
+    bool enabled{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceEnabled};
+    std::string extractor_name{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceExtractor};
+    std::string model_path{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceModelPath};
+    std::string model_sha256{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceModelSha256};
+    std::string model_provenance{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceModelProvenance};
+    int input_width{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceInputWidth};
+    int input_height{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceInputHeight};
+    std::size_t max_embedding_dim{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceMaxEmbeddingDim};
+    bool log_enabled{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceLogEnabled};
+    bool async_enabled{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceAsyncEnabled};
+    std::size_t max_queue_size{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceMaxQueue};
+    std::size_t global_max_queue_size{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceGlobalMaxQueue};
+    int per_stream_rate_limit_ms{core::analysis_runtime_defaults::kDefaultAnalysisAppearancePerStreamRateLimitMs};
+    int max_job_age_ms{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceMaxJobAgeMs};
+};
+
+// Re-ID 모델을 실제 extractor에 전달하기 전에 확인하는 서버 소유 준비 상태다.
+// 원본 path/checksum/provenance는 포함하지 않아 Ops API가 민감한 설정을 노출하지 않는다.
+struct AppearanceModelReadiness {
+    bool appearance_enabled{false};
+    bool onnx_reid_extractor_selected{false};
+    bool model_path_configured{false};
+    bool model_file_exists{false};
+    bool model_file_regular{false};
+    bool checksum_configured{false};
+    bool checksum_format_valid{false};
+    bool openssl_runtime_available{false};
+    bool checksum_readable{false};
+    bool checksum_matches{false};
+    bool provenance_configured{false};
+    bool onnxruntime_available{false};
+    bool model_backed_preflight_ready{false};
+    std::string fallback_reason{"appearance-disabled"};
 };
 
 struct AppearanceUpdatePolicy {
-    bool enabled{app_config::kDefaultAnalysisAppearanceEnabled};
-    bool on_track_created{app_config::kDefaultAnalysisAppearanceOnTrackCreated};
-    int every_n_seconds{app_config::kDefaultAnalysisAppearanceEveryNSeconds};
-    bool on_track_lost{app_config::kDefaultAnalysisAppearanceOnTrackLost};
-    bool on_reacquire_candidate{app_config::kDefaultAnalysisAppearanceOnReacquireCandidate};
+    bool enabled{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceEnabled};
+    bool on_track_created{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceOnTrackCreated};
+    int every_n_seconds{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceEveryNSeconds};
+    bool on_track_lost{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceOnTrackLost};
+    bool on_reacquire_candidate{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceOnReacquireCandidate};
     bool on_low_confidence_association{
-        app_config::kDefaultAnalysisAppearanceOnLowConfidenceAssociation};
-    bool async_enabled{app_config::kDefaultAnalysisAppearanceAsyncEnabled};
-    std::size_t max_queue_size{app_config::kDefaultAnalysisAppearanceMaxQueue};
-    std::size_t global_max_queue_size{app_config::kDefaultAnalysisAppearanceGlobalMaxQueue};
-    int per_stream_rate_limit_ms{app_config::kDefaultAnalysisAppearancePerStreamRateLimitMs};
-    int max_job_age_ms{app_config::kDefaultAnalysisAppearanceMaxJobAgeMs};
+        core::analysis_runtime_defaults::kDefaultAnalysisAppearanceOnLowConfidenceAssociation};
+    bool async_enabled{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceAsyncEnabled};
+    std::size_t max_queue_size{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceMaxQueue};
+    std::size_t global_max_queue_size{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceGlobalMaxQueue};
+    int per_stream_rate_limit_ms{core::analysis_runtime_defaults::kDefaultAnalysisAppearancePerStreamRateLimitMs};
+    int max_job_age_ms{core::analysis_runtime_defaults::kDefaultAnalysisAppearanceMaxJobAgeMs};
 };
 
 enum class AppearanceUpdateReason {
@@ -128,8 +148,11 @@ public:
                                              const AppearanceProfile* previous_profile) override;
 };
 
-AppearanceUpdatePolicy BuildAppearanceUpdatePolicyFromConfig(const app::AppConfig& config);
-AppearanceExtractorOptions BuildAppearanceExtractorOptionsFromConfig(const app::AppConfig& config);
-std::shared_ptr<IAppearanceExtractor> CreateAppearanceExtractorFromConfig(const app::AppConfig& config);
+AppearanceUpdatePolicy BuildAppearanceUpdatePolicyFromConfig(const core::AnalysisRuntimeConfig& config);
+AppearanceExtractorOptions BuildAppearanceExtractorOptionsFromConfig(const core::AnalysisRuntimeConfig& config);
+AppearanceModelReadiness InspectAppearanceModelReadiness(
+    const AppearanceExtractorOptions& options);
+AppearanceModelReadiness InspectAppearanceModelReadiness(const core::AnalysisRuntimeConfig& config);
+std::shared_ptr<IAppearanceExtractor> CreateAppearanceExtractorFromConfig(const core::AnalysisRuntimeConfig& config);
 
 }  // namespace analysis

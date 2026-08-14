@@ -1,0 +1,20 @@
+[progress] (1/8) UI-108 /ops/sources inspect-onvif-provider-status test; remaining=7
+[progress] (2/8) UI-109 /ops/sources inspect-live-import-persist-decision test; remaining=6
+[progress] (3/8) UI-110 /ops/rules inspect-vlm-rule-draft-bridge test; remaining=5
+[progress] (4/8) UI-111 /ops/vlm inspect-vlm-evaluation-promotion-guard test; remaining=4
+[progress] (5/8) UI-112 /ops/sources inspect-staging-restore-validation-handoff test; remaining=3
+[progress] (6/8) UI-113 /ops/dashboard inspect-action-execution-deferral test; remaining=2
+[progress] (7/8) UI-114 /ops/dashboard inspect-field-evidence-bridge test; remaining=1
+[progress] (8/8) UI-115 /ops/dashboard inspect-reid-assist-decision test; remaining=0
+
+== v3.9.0 UI automation runner summary ==
+- schema: media-server.v390-ui-automation.v1
+- result: PASS
+- browserMode: playwright
+- caseCount: 8
+- pass: 8
+- fail: 0
+- notRun: 0
+- failedCaseId:
+- summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/summary.json
+- reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/ui-automation/report.md

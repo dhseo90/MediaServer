@@ -1,0 +1,4463 @@
+#!/usr/bin/env node
+// 파일 용도: 설치 없는 bundled Playwright를 찾아 wait/click/fill/select/screenshot 네이티브 UI 동작을 제공한다.
+
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import process from "node:process";
+import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
+
+import {
+  bindRuntimeControlObservationOwner,
+  selectExactNavigationOwnerLifecycle,
+} from "./v390_ui_shared_adapter_lifecycle.mjs";
+import { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
+import { evaluateRegisteredBrowserCallback } from "./v390_ui_browser_callback_boundary.mjs";
+import { mapRuntimeObservedFromBrowserCallback } from "./v390_ui_requested_observed_schema.mjs";
+import { createRequestEventRecorder } from "./v390_ui_request_event_recorder.mjs";
+import { evaluateRequestLifecycle } from "./v390_ui_request_lifecycle_evaluator.mjs";
+import { createRequestActionOwnershipRegistry } from "./v390_ui_request_action_ownership.mjs";
+import {
+  assertZeroActionCorrelationLeaks,
+  createActionRequestEnvelopeLedger,
+  createObjectBoundActionResponseBarrier,
+  normalizeActionRequestEnvelope,
+  normalizeRequestTarget,
+} from "./v390_ui_action_request_ledger.mjs";
+
+export { bindBrowserConsoleResponseMessages } from "./v390_ui_console_evidence.mjs";
+
+const require = createRequire(import.meta.url);
+export const nativeCapabilities = [
+  "navigate",
+  "wait",
+  "query",
+  "assert",
+  "click",
+  "fill",
+  "type",
+  "select",
+  "screenshot",
+  "evaluate",
+  "visual-geometry",
+  "product-theme-observation",
+  "live-video-session-evidence",
+  "request-correlation",
+  "request-start-ledger",
+  "request-action-ownership",
+  "post-action-visual-owner-lifecycle",
+  "network-quiet",
+  "role-session-switch",
+];
+
+export function discoverPlaywrightCandidates(explicitModulePath = "") {
+  const nodePathCandidates = String(process.env.NODE_PATH || "")
+    .split(path.delimiter)
+    .filter(Boolean)
+    .map(entry => path.join(entry, "playwright"));
+  return unique([
+    explicitModulePath,
+    process.env.MEDIA_SERVER_PLAYWRIGHT_MODULE_PATH || "",
+    process.env.CODEX_PRIMARY_RUNTIME_PLAYWRIGHT_PATH || "",
+    path.join(process.cwd(), "node_modules/playwright"),
+    path.resolve(path.dirname(process.execPath), "../node_modules/playwright"),
+    path.join(os.homedir(), ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright"),
+    ...nodePathCandidates,
+  ].filter(Boolean).map(candidate => path.resolve(candidate)));
+}
+
+export function resolvePlaywrightModule({ modulePath = "", requireExplicit = false } = {}) {
+  const candidates = requireExplicit && modulePath
+    ? [path.resolve(modulePath)]
+    : discoverPlaywrightCandidates(modulePath);
+  const attempts = [];
+  for (const candidate of candidates) {
+    const packagePath = path.join(candidate, "package.json");
+    if (!fs.existsSync(packagePath)) {
+      attempts.push({ candidate, status: "missing-package-json" });
+      continue;
+    }
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+      const playwright = require(candidate);
+      if (!playwright?.chromium) throw new Error("chromium browser type missing");
+      attempts.push({ candidate, status: "selected", version: packageJson.version || "unknown" });
+      return {
+        playwright,
+        modulePath: fs.realpathSync(candidate),
+        moduleVersion: packageJson.version || "unknown",
+        attempts,
+      };
+    } catch (error) {
+      attempts.push({
+        candidate,
+        status: "load-failed",
+        reason: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  const failure = new Error("native Playwright module unavailable; set MEDIA_SERVER_PLAYWRIGHT_MODULE_PATH to a Playwright package directory");
+  failure.attempts = attempts;
+  throw failure;
+}
+
+export function isResolvedPlaywrightTimeoutError(playwright, error) {
+  const TimeoutError = playwright?.errors?.TimeoutError;
+  return typeof TimeoutError === "function" && error instanceof TimeoutError;
+}
+
+export async function collectUniqueFocusSamples({ pressTab, observeFocus, maxSteps = 64 }) {
+  const samples = [];
+  const seen = new Set();
+  for (let index = 0; index < maxSteps; index += 1) {
+    await pressTab();
+    const sample = await observeFocus(index);
+    const identity = String(sample?.focusIdentity || "");
+    if (identity && seen.has(identity)) break;
+    if (identity) seen.add(identity);
+    samples.push(sample);
+  }
+  return samples;
+}
+
+export function visualEvidenceScrollDelta(targetRect, liveTileRect, viewportHeight) {
+  const rectTop = rect => Number(rect?.top ?? rect?.y);
+  const rectBottom = rect => Number(rect?.bottom ?? (Number(rect?.y) + Number(rect?.height)));
+  const top = Math.min(rectTop(targetRect), rectTop(liveTileRect));
+  const bottom = Math.max(rectBottom(targetRect), rectBottom(liveTileRect));
+  const height = Number(viewportHeight);
+  if (![top, bottom, height].every(Number.isFinite) || height <= 0 || bottom - top > height) return 0;
+  if (top < 0) return top;
+  if (bottom > height) return bottom - height;
+  return 0;
+}
+
+export async function createNativePlaywrightAdapter({ modulePath = "", chromePath = "" } = {}) {
+  const resolved = resolvePlaywrightModule({ modulePath, requireExplicit: Boolean(modulePath) });
+  const executablePath = resolveNativeBrowserExecutable(chromePath);
+  return {
+    summary: {
+      tool: "playwright",
+      engine: "playwright-native",
+      fallbackUsed: false,
+      fallbackReason: "",
+      visualOnly: false,
+      dependencyStatus: "bundled-module-available",
+      modulePath: resolved.modulePath,
+      moduleVersion: resolved.moduleVersion,
+      browserExecutable: executablePath || "playwright-managed-browser",
+      capabilities: nativeCapabilities,
+    },
+    attempts: resolved.attempts.map(item => ({
+      tool: "playwright",
+      engine: "playwright-native",
+      status: item.status,
+      reason: item.reason || (item.status === "selected" ? `Playwright ${item.version}` : item.candidate),
+      modulePath: item.candidate,
+    })),
+    openPage: args => openNativePlaywrightPage(resolved.playwright, {
+      ...args,
+      executablePath,
+    }),
+    isPlaywrightTimeoutError: error =>
+      isResolvedPlaywrightTimeoutError(resolved.playwright, error),
+  };
+}
+
+export function resolveNativeBrowserExecutable(explicitPath = "") {
+  const candidates = unique([
+    explicitPath,
+    process.env.CHROME_PATH || "",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+  ].filter(Boolean).map(candidate => path.resolve(candidate)));
+  if (explicitPath && !fs.existsSync(path.resolve(explicitPath))) {
+    throw new Error(`native browser executable does not exist: ${path.resolve(explicitPath)}`);
+  }
+  return candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) || "";
+}
+
+export function secretStrippedBrowserEnv(sourceEnv = process.env) {
+  const env = { ...sourceEnv };
+  delete env.MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD;
+  delete env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
+  return env;
+}
+
+const correlationHeaderName = "x-media-server-correlation-id";
+
+export function createAdapterActionRequestEnvelopeWrapper({
+  requestActionOwnershipRegistry,
+  context,
+  requestEnvelope,
+  caseId = "",
+  requestKind = "application-fetch",
+  registrationKind = "manifest-envelope",
+} = {}) {
+  requestActionOwnershipRegistry.validate(context, {
+    caseId,
+    actionId: context.actionId,
+    phase: context.phase,
+  });
+  const envelope = normalizeActionRequestEnvelope(requestEnvelope, {
+    caseId,
+    phase: context.phase,
+    actionId: context.actionId,
+    correlationId: context.correlationId,
+    requestKind,
+    registrationKind,
+  });
+  if (envelope.actionId !== context.actionId ||
+      envelope.phase !== context.phase ||
+      envelope.correlationId !== context.correlationId) {
+    throw new Error("action request envelope does not match its active context");
+  }
+  const responseBarrier = createObjectBoundActionResponseBarrier({
+    expectedResponseCount: envelope.expectedResponseCount,
+    label: `${envelope.caseId}:${envelope.actionId}:${envelope.method} ${envelope.target}`,
+  });
+  return {
+    ledger: createActionRequestEnvelopeLedger(envelope),
+    responseBarrier,
+    claimCount: 0,
+    responseCount: 0,
+    closed: false,
+    claimInRequestEvent(request, claim) {
+      if (this.closed) throw new Error("action request arrived after envelope finalization");
+      const result = this.ledger.claim(request, claim);
+      this.claimCount += 1;
+      return result;
+    },
+    bindRequestIdentity(request, identity) {
+      if (this.closed) throw new Error("action request identity arrived after envelope finalization");
+      return this.ledger.bindRequestIdentity(request, identity);
+    },
+    bindResponseRequestObject(request, response) {
+      if (this.closed) throw new Error("late action response after envelope finalization");
+      this.ledger.bindResponse(request, response);
+      this.responseCount += 1;
+      return this.responseBarrier.observe(request);
+    },
+    waitForExpectedResponse(timeoutMs) {
+      return this.responseBarrier.wait({ timeoutMs });
+    },
+    abort(error) {
+      return this.responseBarrier.abort(error);
+    },
+  };
+}
+
+function correlationDigest(value) {
+  return value
+    ? createHash("sha256").update(String(value)).digest("hex")
+    : "";
+}
+
+export async function revealClosedDetailsForSelector(page, selector, {
+  state = "attached",
+  timeout,
+} = {}) {
+  const selectorValue = String(selector || "");
+  const candidates = page.locator(selectorValue);
+  const targetLocator = candidates.first();
+  const waitOptions = requestedState => ({
+    state: requestedState,
+    ...(Number.isFinite(timeout) ? { timeout } : {}),
+  });
+  await targetLocator.waitFor(waitOptions("attached"));
+  const candidateCount = await candidates.count();
+  const disclosureEvidence = await targetLocator.evaluate(target => {
+    const disclosure = target?.closest?.("details");
+    const isDisclosureSummary = target?.tagName?.toLowerCase?.() === "summary" &&
+      target.parentElement === disclosure;
+    const disclosureInitiallyOpen = Boolean(disclosure?.open);
+    if (disclosure && !disclosureInitiallyOpen && !isDisclosureSummary) disclosure.open = true;
+    return {
+      disclosureFound: Boolean(disclosure),
+      disclosureInitiallyOpen,
+      disclosureOpened: Boolean(disclosure && !disclosureInitiallyOpen && disclosure.open),
+      isDisclosureSummary,
+    };
+  });
+  await targetLocator.waitFor(waitOptions(state));
+  return {
+    schema: "media-server.v390-ui-selector-owner-reveal.v1",
+    selectorEngine: "playwright-locator",
+    selectorSha256: createHash("sha256").update(selectorValue).digest("hex"),
+    candidatePolicy: "first",
+    candidateCount,
+    selectedCandidateIndex: 0,
+    requestedState: state,
+    ...disclosureEvidence,
+  };
+}
+
+function correlationPrecedenceFailure(failureCode, message, {
+  actionId = "",
+  state = "rejected-explicit-correlation",
+} = {}) {
+  const error = new Error(message);
+  error.failureCode = failureCode;
+  error.safeEvidence = Object.freeze({
+    state,
+    actionId: String(actionId || ""),
+    failureCode,
+  });
+  return error;
+}
+
+export function resolveRequestCorrelationPrecedence({
+  headerEntries = [],
+  outerCorrelationId = "",
+  outerInjectionEnabled = false,
+  correlationAllowed = true,
+  registration = null,
+  currentCaseId = "",
+  currentActionId = "",
+} = {}) {
+  const correlationHeaders = (Array.isArray(headerEntries) ? headerEntries : [])
+    .filter(entry => String(entry?.name || "").toLowerCase() === correlationHeaderName)
+    .map(entry => ({
+      name: String(entry?.name || ""),
+      value: String(entry?.value || ""),
+    }));
+  if (correlationHeaders.length > 1) {
+    throw correlationPrecedenceFailure(
+      "CORRELATION_HEADER_DUPLICATE",
+      "duplicate or case-conflicting correlation headers are forbidden",
+      { actionId: currentActionId },
+    );
+  }
+  const explicit = correlationHeaders[0] || null;
+  const outer = String(outerCorrelationId || "");
+  const actionId = String(currentActionId || "");
+  const caseId = String(currentCaseId || "");
+  if (explicit) {
+    if (!correlationAllowed) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_NOT_ALLOWED",
+        "explicit correlation is forbidden for this request boundary",
+        { actionId },
+      );
+    }
+    if (!registration || registration.active !== true) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_UNREGISTERED",
+        "explicit correlation is not registered to an active request action",
+        { actionId },
+      );
+    }
+    if (String(registration.caseId || "") !== caseId) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_CASE_MISMATCH",
+        "explicit correlation registration belongs to a different case",
+        { actionId },
+      );
+    }
+    if (!actionId || String(registration.actionId || "") !== actionId) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_ACTION_MISMATCH",
+        "explicit correlation registration belongs to a different action",
+        { actionId },
+      );
+    }
+    if (String(registration.outerCorrelationId || "") !== outer) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_OUTER_SCOPE_MISMATCH",
+        "outer correlation changed after inner correlation registration",
+        { actionId },
+      );
+    }
+    if (!explicit.value || String(registration.correlationId || "") !== explicit.value) {
+      throw correlationPrecedenceFailure(
+        "EXPLICIT_CORRELATION_VALUE_MISMATCH",
+        "explicit correlation does not match the active action registration",
+        { actionId },
+      );
+    }
+    const decision = {
+      state: "preserved-explicit-inner",
+      actionId,
+      correlationDigest: correlationDigest(explicit.value),
+      inject: false,
+      preserve: true,
+      failureCode: "",
+    };
+    Object.defineProperty(decision, "correlationId", {
+      value: explicit.value,
+      enumerable: false,
+    });
+    return Object.freeze(decision);
+  }
+  if (outer && outerInjectionEnabled === true && correlationAllowed) {
+    const decision = {
+      state: "injected-outer",
+      actionId,
+      correlationDigest: correlationDigest(outer),
+      inject: true,
+      preserve: false,
+      failureCode: "",
+    };
+    Object.defineProperty(decision, "correlationId", {
+      value: outer,
+      enumerable: false,
+    });
+    return Object.freeze(decision);
+  }
+  return Object.freeze({
+    state: "correlation-absent",
+    actionId,
+    correlationDigest: "",
+    inject: false,
+    preserve: false,
+    failureCode: "",
+  });
+}
+
+export function createCaseOwnedRequestIdentityRegistry({
+  caseId = "",
+  requestIdPrefix = "native-request",
+} = {}) {
+  let requestSequence = 0;
+  const playwrightRequests = new WeakMap();
+  const fixtureRequestHandles = new WeakMap();
+  const issueIdentity = () => {
+    const caseRequestSequence = ++requestSequence;
+    return Object.freeze({
+      requestId: `${requestIdPrefix}-${caseRequestSequence}`,
+      caseRequestIdentity:
+        `${String(caseId || "unbound-case")}:request-${caseRequestSequence}`,
+      caseRequestSequence,
+    });
+  };
+  const requireOpaqueObject = (value, label) => {
+    if ((typeof value !== "object" && typeof value !== "function") ||
+        value === null) {
+      throw new Error(`${label} must be an opaque object handle`);
+    }
+  };
+  return {
+    registerPlaywrightRequest(request) {
+      requireOpaqueObject(request, "Playwright request");
+      const existing = playwrightRequests.get(request);
+      if (existing) return existing;
+      const identity = issueIdentity();
+      playwrightRequests.set(request, identity);
+      return identity;
+    },
+    resolvePlaywrightRequest(request) {
+      if ((typeof request !== "object" && typeof request !== "function") ||
+          request === null) return null;
+      return playwrightRequests.get(request) || null;
+    },
+    registerFixtureRequestHandle(requestHandle) {
+      requireOpaqueObject(requestHandle, "fixture request handle");
+      if (fixtureRequestHandles.has(requestHandle)) {
+        throw new Error("duplicate fixture request handle");
+      }
+      const identity = issueIdentity();
+      fixtureRequestHandles.set(requestHandle, identity);
+      return identity;
+    },
+    resolveFixtureRequestHandle(requestHandle) {
+      if ((typeof requestHandle !== "object" &&
+          typeof requestHandle !== "function") || requestHandle === null) {
+        return null;
+      }
+      return fixtureRequestHandles.get(requestHandle) || null;
+    },
+  };
+}
+
+export function bindPlaywrightResponseToInitiatingRequest(
+  response,
+  pendingRequests,
+  requestIdentityRegistry = null,
+) {
+  const request = response.request();
+  const registeredIdentity =
+    requestIdentityRegistry?.resolvePlaywrightRequest(request) || null;
+  const pendingRequest = pendingRequests.get(request) || null;
+  const initiatingRequest = pendingRequest &&
+    (!requestIdentityRegistry ||
+      (registeredIdentity &&
+       registeredIdentity.requestId === pendingRequest.requestId &&
+       registeredIdentity.caseRequestIdentity ===
+         pendingRequest.caseRequestIdentity &&
+       registeredIdentity.caseRequestSequence ===
+         pendingRequest.caseRequestSequence))
+    ? pendingRequest
+    : null;
+  return { request, initiatingRequest };
+}
+
+export function bindFixtureResponseToInitiatingRequest(
+  response,
+  requestIdentityRegistry,
+) {
+  const requestHandle = response?.initiatingRequestHandle;
+  const initiatingRequest =
+    requestIdentityRegistry?.resolveFixtureRequestHandle(requestHandle) || null;
+  return { requestHandle, initiatingRequest };
+}
+
+export function bindDocumentFormSubmission(entries, {
+  method = "POST",
+  path: expectedPath,
+  allowedStatuses = [],
+  expectedRedirectPath = null,
+} = {}) {
+  const expectedMethod = String(method).toUpperCase();
+  const documentRequests = entries.filter(entry =>
+    entry.phase === "request-start" &&
+    entry.requestKind === "document-navigation");
+  const primaryRequests = documentRequests.filter(entry =>
+    entry.method === expectedMethod &&
+    urlTarget(entry.url) === expectedPath);
+  if (primaryRequests.length !== 1) {
+    throw new Error(`document form submit request count mismatch: ${primaryRequests.length}`);
+  }
+  const primaryRequest = primaryRequests[0];
+  if (primaryRequest.resourceType !== "document" ||
+      primaryRequest.sameOrigin !== true ||
+      !primaryRequest.initiatorActionId ||
+      primaryRequest.requestOwnershipKind !== "primary-action" ||
+      primaryRequest.ledgerOwner !== "action" ||
+      primaryRequest.sourceOwner !== "explicit-action-registration" ||
+      primaryRequest.ownerPhase !== "primary-action" ||
+      primaryRequest.correlationId ||
+      primaryRequest.redirectedFromRequestId) {
+    throw new Error("document form submit request trust binding mismatch");
+  }
+  const primaryResponses = entries.filter(entry =>
+    entry.phase === "response" &&
+    entry.requestKind === "document-navigation" &&
+    entry.requestId === primaryRequest.requestId);
+  if (primaryResponses.length !== 1) {
+    throw new Error(`document form submit response count mismatch: ${primaryResponses.length}`);
+  }
+  const primaryResponse = primaryResponses[0];
+  if (primaryResponse.responseRequestObjectObserved !== true ||
+      primaryResponse.requestIdentitySource !== "playwright-response-request" ||
+      primaryResponse.caseRequestIdentity !== primaryRequest.caseRequestIdentity ||
+      primaryResponse.caseRequestSequence !== primaryRequest.caseRequestSequence ||
+      primaryResponse.method !== expectedMethod ||
+      urlTarget(primaryResponse.url) !== expectedPath ||
+      primaryResponse.resourceType !== "document" ||
+      primaryResponse.sameOrigin !== true ||
+      primaryResponse.initiatorActionId !== primaryRequest.initiatorActionId ||
+      primaryResponse.requestOwnershipKind !== primaryRequest.requestOwnershipKind ||
+      primaryResponse.ledgerOwner !== "action" ||
+      primaryResponse.sourceOwner !== "explicit-action-registration" ||
+      primaryResponse.ownerPhase !== "primary-action" ||
+      primaryResponse.correlationId ||
+      !allowedStatuses.includes(primaryResponse.status) ||
+      String(primaryResponse.responseLocationPath || "") !==
+        String(expectedRedirectPath || "")) {
+    throw new Error("document form submit response trust binding mismatch");
+  }
+
+  const redirectRequests = documentRequests.filter(entry =>
+    entry.redirectedFromRequestId === primaryRequest.requestId);
+  const expectedRedirectCount = expectedRedirectPath ? 1 : 0;
+  if (redirectRequests.length !== expectedRedirectCount ||
+      documentRequests.length !== 1 + expectedRedirectCount) {
+    throw new Error(`document form submit redirect/reissue count mismatch: ${redirectRequests.length}/${documentRequests.length}`);
+  }
+
+  let redirectResponse = null;
+  if (expectedRedirectPath) {
+    const redirectRequest = redirectRequests[0];
+    if (primaryResponse.status !== 302 ||
+        redirectRequest.method !== "GET" ||
+        urlTarget(redirectRequest.url) !== expectedRedirectPath ||
+        redirectRequest.resourceType !== "document" ||
+        redirectRequest.sameOrigin !== true ||
+        redirectRequest.ledgerOwner !== "page" ||
+        redirectRequest.sourceOwner !== "document-navigation-ledger" ||
+        redirectRequest.ownerPhase !== "document-navigation-chain" ||
+        redirectRequest.initiatorActionId ||
+        redirectRequest.requestOwnershipKind !== "document-navigation-chain" ||
+        redirectRequest.correlationId) {
+      throw new Error("document form submit redirect request trust binding mismatch");
+    }
+    const redirectResponses = entries.filter(entry =>
+      entry.phase === "response" &&
+      entry.requestKind === "document-navigation" &&
+      entry.requestId === redirectRequest.requestId);
+    if (redirectResponses.length !== 1) {
+      throw new Error(`document form submit redirect response count mismatch: ${redirectResponses.length}`);
+    }
+    redirectResponse = redirectResponses[0];
+    if (redirectResponse.responseRequestObjectObserved !== true ||
+        redirectResponse.requestIdentitySource !== "playwright-response-request" ||
+        redirectResponse.caseRequestIdentity !== redirectRequest.caseRequestIdentity ||
+        redirectResponse.caseRequestSequence !== redirectRequest.caseRequestSequence ||
+        redirectResponse.method !== "GET" ||
+        urlTarget(redirectResponse.url) !== expectedRedirectPath ||
+        redirectResponse.resourceType !== "document" ||
+        redirectResponse.sameOrigin !== true ||
+        redirectResponse.ledgerOwner !== "page" ||
+        redirectResponse.sourceOwner !== "document-navigation-ledger" ||
+        redirectResponse.ownerPhase !== "document-navigation-chain" ||
+        redirectResponse.initiatorActionId ||
+        redirectResponse.requestOwnershipKind !== "document-navigation-chain" ||
+        redirectResponse.correlationId ||
+        redirectResponse.status !== 200) {
+      throw new Error("document form submit redirect response trust binding mismatch");
+    }
+  }
+
+  return {
+    schema: "media-server.v390-ui-document-form-submit-binding.v1",
+    requestId: primaryRequest.requestId,
+    caseRequestIdentity: primaryRequest.caseRequestIdentity,
+    caseRequestSequence: primaryRequest.caseRequestSequence,
+    initiatorActionId: primaryRequest.initiatorActionId,
+    requestOwnershipKind: primaryRequest.requestOwnershipKind,
+    method: expectedMethod,
+    path: expectedPath,
+    status: primaryResponse.status,
+    requestKind: "document-navigation",
+    resourceType: "document",
+    sameOrigin: true,
+    correlationObserved: false,
+    responseRequestObjectObserved: true,
+    redirectCount: expectedRedirectCount,
+    redirectPath: expectedRedirectPath,
+    redirectRequestId: redirectResponse?.requestId || null,
+    requestAttemptCount: primaryRequests.length,
+    responseCandidateCount: primaryResponses.length,
+    reissueCount: 0,
+  };
+}
+
+export function captureDiagnosticMarkerResponseProjection({
+  response,
+  entry,
+  probe,
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  if (!probe?.armed ||
+      entry?.method !== probe.method ||
+      urlTarget(entry?.url) !== probe.urlPath) {
+    return null;
+  }
+  const read = response.json()
+    .then(payload => {
+      const lines = Array.isArray(payload?.lines) ? payload.lines.map(String) : [];
+      const normalizedMarker = String(probe.marker || "").normalize("NFKC").trim();
+      const markerMatches = lines.filter(line =>
+        line.split(/\s+/u).includes(normalizedMarker));
+      const markerResponseIndex = markerMatches.length === 1
+        ? lines.lastIndexOf(markerMatches[0])
+        : -1;
+      const markerReverseIndex = markerResponseIndex >= 0
+        ? lines.length - 1 - markerResponseIndex
+        : -1;
+      const classifierMatches = [...lines].reverse().filter(line =>
+        /source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP/i
+          .test(line));
+      const rendererLogSelectedIndex = markerMatches.length === 1
+        ? classifierMatches.indexOf(markerMatches[0])
+        : -1;
+      probe.captures.push({
+        requestId: String(entry.requestId || ""),
+        caseRequestIdentity: String(entry.caseRequestIdentity || ""),
+        caseRequestSequence: Number(entry.caseRequestSequence || 0),
+        responseRequestObjectObserved:
+          entry.responseRequestObjectObserved === true,
+        method: String(entry.method || ""),
+        path: urlTarget(entry.url),
+        status: Number(entry.status || 0),
+        markerCount: markerMatches.length,
+        lineCount: lines.length,
+        responseOrder: "oldest-to-newest",
+        rendererLogOrder: "newest-matching-first",
+        markerResponseIndex,
+        markerReverseIndex,
+        classifierCandidateCount: classifierMatches.length,
+        rendererLogSelectedIndex,
+        rendererLogWindow: 3,
+        ownedNoiseCount: String(probe.ownedNoisePrefix || "")
+          ? lines.filter(line => line.startsWith(probe.ownedNoisePrefix)).length
+          : 0,
+        candidateDigest: createHash("sha256")
+          .update(JSON.stringify(lines.map(line =>
+            createHash("sha256").update(line).digest("hex"))))
+          .digest("hex"),
+        matchedDigest: createHash("sha256")
+          .update(JSON.stringify(markerMatches.map(line =>
+            createHash("sha256").update(line).digest("hex"))))
+          .digest("hex"),
+      });
+    })
+    .catch(() => {
+      safeResponseReadFailures.push(
+        `diagnostic marker response projection failed for ${probe.method} ${probe.urlPath}`,
+      );
+      probe.readFailureCount += 1;
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+export function buildDiagnosticMarkerResponseStageEvidence(probe = {}) {
+  const captures = Array.isArray(probe.captures) ? probe.captures : [];
+  const capture = captures.length === 1 ? captures[0] : null;
+  const failureCode = Number(probe.readFailureCount || 0) > 0
+    ? "DASHBOARD_MARKER_RESPONSE_PARSE_FAILED"
+    : (captures.length === 0
+        ? "DASHBOARD_MARKER_RESPONSE_MISSING"
+        : (captures.length > 1
+            ? "DASHBOARD_MARKER_RESPONSE_DUPLICATE"
+            : (!capture.responseRequestObjectObserved || !capture.requestId
+                ? "DASHBOARD_MARKER_RESPONSE_REQUEST_IDENTITY_MISSING"
+                : (capture.status !== 200
+                    ? "DASHBOARD_MARKER_RESPONSE_STATUS_MISMATCH"
+                    : (capture.markerCount === 0
+                        ? "DASHBOARD_MARKER_RESPONSE_MARKER_MISSING"
+                        : (capture.markerCount > 1
+                            ? "DASHBOARD_MARKER_RESPONSE_MARKER_DUPLICATE"
+                            : (capture.rendererLogSelectedIndex !== 0
+                                ? "DASHBOARD_MARKER_RENDERER_WINDOW_MISMATCH"
+                                : "PASS")))))));
+  return {
+    schema: "media-server.v390-ui-dashboard-marker-response-stage-evidence.v1",
+    pass: failureCode === "PASS",
+    failurePhase: "dashboard-owned-log-tail-response",
+    failureCode,
+    method: String(probe.method || ""),
+    path: String(probe.urlPath || ""),
+    markerDigest: createHash("sha256")
+      .update(String(probe.marker || "").normalize("NFKC").trim())
+      .digest("hex"),
+    responseCandidateCount: captures.length,
+    responseMatchedCount: capture?.markerCount === 1 ? 1 : 0,
+    requestId: String(capture?.requestId || ""),
+    caseRequestIdentity: String(capture?.caseRequestIdentity || ""),
+    caseRequestSequence: Number(capture?.caseRequestSequence || 0),
+    responseRequestObjectObserved:
+      capture?.responseRequestObjectObserved === true,
+    status: Number(capture?.status || 0),
+    lineCount: Number(capture?.lineCount || 0),
+    markerCount: Number(capture?.markerCount || 0),
+    responseOrder: String(capture?.responseOrder || ""),
+    rendererLogOrder: String(capture?.rendererLogOrder || ""),
+    markerResponseIndex: Number.isInteger(capture?.markerResponseIndex)
+      ? capture.markerResponseIndex
+      : -1,
+    markerReverseIndex: Number.isInteger(capture?.markerReverseIndex)
+      ? capture.markerReverseIndex
+      : -1,
+    classifierCandidateCount: Number(capture?.classifierCandidateCount || 0),
+    rendererLogSelectedIndex:
+      Number.isInteger(capture?.rendererLogSelectedIndex)
+        ? capture.rendererLogSelectedIndex
+        : -1,
+    rendererLogWindow: Number(capture?.rendererLogWindow || 0),
+    ownedNoiseCount: Number(capture?.ownedNoiseCount || 0),
+    candidateDigest: String(capture?.candidateDigest || ""),
+    matchedDigest: String(capture?.matchedDigest || ""),
+  };
+}
+
+export function selectNativeLifecycleCaptureInvocations(request, {
+  navigation = null,
+  action = null,
+} = {}) {
+  try {
+    const resourceType = request.resourceType();
+    const isNavigationRequest = request.isNavigationRequest();
+    const documentNavigation = isNavigationRequest === true && resourceType === "document";
+    const actionInitiatingCandidate = documentNavigation ||
+      (isNavigationRequest === false && (resourceType === "fetch" || resourceType === "xhr"));
+    return Object.freeze({
+      navigation: documentNavigation ? navigation : null,
+      actionClaim: actionInitiatingCandidate ? action : null,
+    });
+  } catch {
+    return Object.freeze({ navigation: null, actionClaim: null });
+  }
+}
+
+export function resolveNativeLifecycleActionCapture({
+  directActionRequestOwnership = null,
+  redirectParentActionRequestOwnership = null,
+  actionLifecycleInvocationByContext = null,
+} = {}) {
+  const directContext = directActionRequestOwnership?.context || null;
+  const redirectParentContext = redirectParentActionRequestOwnership?.context || null;
+  if (directContext && redirectParentContext && directContext !== redirectParentContext) {
+    throw new Error("request redirect crosses different action contexts");
+  }
+  const context = directContext || redirectParentContext;
+  if (!context) return null;
+  if (!actionLifecycleInvocationByContext ||
+      typeof actionLifecycleInvocationByContext.get !== "function") {
+    throw new Error("action lifecycle invocation registry is unavailable");
+  }
+  const invocation = actionLifecycleInvocationByContext.get(context) || null;
+  if (!invocation) {
+    throw new Error("exact action request lifecycle invocation is missing");
+  }
+  return invocation;
+}
+
+export function captureLegacyFormResponseProjection({
+  response,
+  entry,
+  pathname = "",
+  onRuntimeSecret = null,
+  observedRuntimeSecrets = new Set(),
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  const normalizedPathname = String(pathname || "");
+  const read = Promise.resolve()
+    .then(() => response.json())
+    .then(payload => {
+      if (normalizedPathname === "/ops/api/invites") {
+        const issuedToken = typeof payload?.invite?.token === "string"
+          ? payload.invite.token
+          : "";
+        if (issuedToken) {
+          observedRuntimeSecrets.add(issuedToken);
+          if (typeof onRuntimeSecret !== "function") {
+            safeResponseReadFailures.push(
+              "invite response runtime secret sink is unavailable",
+            );
+            entry.safeResponseBody = safeFormResponseProjection(normalizedPathname, null);
+            return;
+          }
+          onRuntimeSecret({ kind: "issued-invite-token", value: issuedToken });
+        }
+      }
+      entry.safeResponseBody = safeFormResponseProjection(normalizedPathname, payload);
+    })
+    .catch(() => {
+      safeResponseReadFailures.push(
+        `form response projection failed for POST ${normalizedPathname}: response parsing or runtime secret registration failed`,
+      );
+      entry.safeResponseBody = safeFormResponseProjection(normalizedPathname, null);
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+export function createNativeRequestLifecycleLedger({
+  caseId = "noncanonical-page",
+  correlationDigest: defaultCorrelationDigest = "",
+  evaluator = evaluateRequestLifecycle,
+  clock = Date.now,
+} = {}) {
+  if (typeof caseId !== "string" || !caseId ||
+      typeof defaultCorrelationDigest !== "string" ||
+      typeof evaluator !== "function" || typeof clock !== "function") {
+    throw new TypeError("native request lifecycle ledger options are invalid");
+  }
+  const requestLifecycleRecorder = createRequestEventRecorder({
+    caseId,
+    correlationDigest: defaultCorrelationDigest,
+  });
+  const states = new Set();
+  const events = { navigation: [], action: [] };
+  const rows = { navigation: [], action: [] };
+  const invocationIds = { navigation: new Set(), action: new Set() };
+  const capturedEnvelopeByRequest = new WeakMap();
+  const pendingActionMembershipByRequest = new WeakMap();
+  let sealed = false;
+  let memoizedEvaluation = null;
+  let invocationEventSequence = 0;
+  let lastInvocationEventTimestamp = null;
+
+  const readInvocationClock = () => {
+    const observed = clock();
+    if (!Number.isSafeInteger(observed) || observed < 0) {
+      throw new Error("request lifecycle invocation clock is invalid");
+    }
+    return observed;
+  };
+  const nextInvocationEventTimestamp = () => {
+    const observed = readInvocationClock();
+    const timestamp = lastInvocationEventTimestamp === null
+      ? observed
+      : Math.max(observed, lastInvocationEventTimestamp + 1);
+    if (!Number.isSafeInteger(timestamp)) {
+      throw new Error("request lifecycle invocation timestamp is invalid");
+    }
+    lastInvocationEventTimestamp = timestamp;
+    return timestamp;
+  };
+  const currentCaptureTimestamp = () => {
+    const timestamp = Math.max(readInvocationClock(), lastInvocationEventTimestamp ?? 0);
+    lastInvocationEventTimestamp = timestamp;
+    return timestamp;
+  };
+
+  const maxCapture = () => {
+    const snapshot = requestLifecycleRecorder.snapshot();
+    const envelopes = [snapshot.requests, snapshot.responses, snapshot.requestFinished,
+      snapshot.requestFailed, snapshot.captureErrors].flat();
+    return envelopes.reduce((maximum, item) => Math.max(maximum,
+      Number.isSafeInteger(item?.sequence) ? item.sequence : 0), 0);
+  };
+  const beginInvocation = (kind, { invocationId = "", phase = "" } = {}) => {
+    assertLedgerOpen();
+    if (!Object.hasOwn(rows, kind) || typeof invocationId !== "string" || !invocationId ||
+        typeof phase !== "string" || !phase || invocationIds[kind].has(invocationId)) {
+      throw new Error("request lifecycle invocation begin is invalid");
+    }
+    const startedSequence = maxCapture() + 1;
+    const startedAtMs = nextInvocationEventTimestamp();
+    const begin = Object.freeze({
+      sequence: ++invocationEventSequence,
+      timestamp: startedAtMs,
+      kind,
+      event: "begin",
+      invocationId,
+      phase,
+      startedSequence,
+      startedAtMs,
+    });
+    const state = {
+      kind, invocationId, phase, startedSequence, startedAtMs,
+      projection: Object.freeze({ invocationId, phase, startedSequence,
+        endedSequence: null, startedAtMs, endedAtMs: null, current: true }),
+      requests: [],
+      ended: false,
+    };
+    invocationIds[kind].add(invocationId);
+    events[kind].push(begin);
+    states.add(state);
+    return state;
+  };
+  const endInvocation = state => {
+    assertLedgerOpen();
+    if (!states.has(state) || state.ended === true) {
+      throw new Error("request lifecycle invocation end is invalid");
+    }
+    const endedSequence = Math.max(state.startedSequence, maxCapture());
+    const endedAtMs = nextInvocationEventTimestamp();
+    const end = Object.freeze({
+      sequence: ++invocationEventSequence,
+      timestamp: endedAtMs,
+      kind: state.kind,
+      event: "end",
+      invocationId: state.invocationId,
+      phase: state.phase,
+      endedSequence,
+      endedAtMs,
+    });
+    const row = Object.freeze({
+      invocationId: state.invocationId,
+      phase: state.phase,
+      startedSequence: state.startedSequence,
+      endedSequence,
+      startedAtMs: state.startedAtMs,
+      endedAtMs,
+      current: true,
+      requests: Object.freeze([...state.requests]),
+    });
+    state.ended = true;
+    events[state.kind].push(end);
+    rows[state.kind].push(row);
+    return row;
+  };
+  const captureContext = ({ navigation = null, action = null,
+    correlationDigest: requestCorrelationDigest = undefined } = {}) => {
+    assertLedgerOpen();
+    for (const state of [navigation, action]) {
+      if (state !== null && (!states.has(state) || state.ended === true)) {
+        throw new Error("request lifecycle capture references a stale invocation");
+      }
+    }
+    return Object.freeze({
+      navigationInvocation: navigation?.projection || null,
+      actionInvocation: action?.projection || null,
+      timestampMs: currentCaptureTimestamp(),
+      ...(requestCorrelationDigest === undefined
+        ? {}
+        : { correlationDigest: requestCorrelationDigest }),
+    });
+  };
+  const addExactMembership = (state, request) => {
+    if (!states.has(state) || state.ended === true || state.requests.includes(request)) {
+      throw new Error("request lifecycle invocation membership is invalid");
+    }
+    state.requests.push(request);
+  };
+  const registerCapturedRequest = (envelope, {
+    navigation = null,
+    actionClaim = null,
+  } = {}) => {
+    if (envelope === null) return null;
+    if (!envelope || typeof envelope !== "object" || !envelope.requestObject) {
+      throw new Error("captured request envelope is invalid");
+    }
+    const request = envelope.requestObject;
+    if (capturedEnvelopeByRequest.has(request)) {
+      throw new Error("captured request object is already registered");
+    }
+    if (navigation !== null) addExactMembership(navigation, request);
+    if (actionClaim !== null && (!states.has(actionClaim) || actionClaim.ended === true ||
+        envelope.actionInvocation?.invocationId !== actionClaim.invocationId)) {
+      throw new Error("captured request action claim is invalid");
+    }
+    capturedEnvelopeByRequest.set(request, envelope);
+    const pendingAction = pendingActionMembershipByRequest.get(request) || null;
+    if (pendingAction !== null) {
+      if (actionClaim !== pendingAction) {
+        throw new Error("pending exact action membership does not match capture claim");
+      }
+      addExactMembership(pendingAction, request);
+      pendingActionMembershipByRequest.delete(request);
+    }
+    return envelope;
+  };
+  const bindExactActionRequestMembership = (request, action) => {
+    assertLedgerOpen();
+    if ((typeof request !== "object" || request === null) && typeof request !== "function") {
+      throw new Error("exact action membership requires a Request object");
+    }
+    if (!states.has(action) || action.ended === true || action.kind !== "action") {
+      throw new Error("exact action membership requires an open action invocation");
+    }
+    const envelope = capturedEnvelopeByRequest.get(request) || null;
+    if (envelope !== null) {
+      if (envelope.actionInvocation?.invocationId !== action.invocationId) {
+        throw new Error("exact action membership does not match capture claim");
+      }
+      addExactMembership(action, request);
+      return envelope;
+    }
+    const pending = pendingActionMembershipByRequest.get(request) || null;
+    if (pending !== null && pending !== action) {
+      throw new Error("Request object is pending for a different action invocation");
+    }
+    pendingActionMembershipByRequest.set(request, action);
+    return null;
+  };
+  const bindCapturedRequest = (envelope, { navigation = null, action = null,
+    navigationMembership = true, actionMembership = true } = {}) => {
+    const registered = registerCapturedRequest(envelope, {
+      navigation: navigationMembership === true ? navigation : null,
+      actionClaim: action,
+    });
+    if (registered !== null && action !== null && actionMembership === true) {
+      bindExactActionRequestMembership(registered.requestObject, action);
+    }
+    return registered;
+  };
+  const sealRequestLifecycleLedger = () => {
+    if (sealed) return invocationRows();
+    if ([...states].some(state => state.ended !== true)) {
+      throw new Error("request lifecycle ledger cannot seal with an open invocation");
+    }
+    sealed = true;
+    Object.freeze(events.navigation);
+    Object.freeze(events.action);
+    Object.freeze(rows.navigation);
+    Object.freeze(rows.action);
+    return invocationRows();
+  };
+  const invocationRows = () => Object.freeze({
+    navigationInvocations: Object.freeze([...rows.navigation]),
+    actionInvocations: Object.freeze([...rows.action]),
+  });
+  const invocationEvents = () => Object.freeze({
+    navigationEvents: Object.freeze([...events.navigation]),
+    actionEvents: Object.freeze([...events.action]),
+  });
+  const evaluateRequestLifecycleLedger = () => {
+    if (!sealed) throw new Error("request lifecycle ledger must be sealed before evaluation");
+    if (memoizedEvaluation === null) {
+      const ledgers = invocationRows();
+      memoizedEvaluation = evaluator({
+        caseId,
+        recorderSnapshot: requestLifecycleRecorder.snapshot(),
+        navigationInvocations: ledgers.navigationInvocations,
+        actionInvocations: ledgers.actionInvocations,
+      });
+      if (!memoizedEvaluation || typeof memoizedEvaluation !== "object") {
+        throw new Error("request lifecycle evaluator returned an invalid result");
+      }
+      Object.freeze(memoizedEvaluation);
+    }
+    return memoizedEvaluation;
+  };
+  const safeRequestLifecycleProjection = () => {
+    const result = evaluateRequestLifecycleLedger();
+    const snapshot = requestLifecycleRecorder.snapshot();
+    const requestIdentity = new Map([
+      ...snapshot.requests.map(item => [item.requestObject, item.objectIdentity]),
+      ...snapshot.captureErrors.filter(item => item.requestObject)
+        .map(item => [item.requestObject, item.requestObjectIdentity]),
+    ]);
+    const responseIdentity = new Map([
+      ...snapshot.responses.map(item => [item.responseObject, item.responseObjectIdentity]),
+      ...snapshot.captureErrors.filter(item => item.responseObject)
+        .map(item => [item.responseObject, item.responseObjectIdentity]),
+    ]);
+    return freezeJsonProjection({
+      status: String(result.status || "FAIL"),
+      census: { ...result.census },
+      requests: snapshot.requests.map(item => ({
+        requestIdentity: item.objectIdentity,
+        redirectedFromIdentity: item.redirectedFromObjectIdentity,
+        correlationDigest: item.correlationDigest,
+      })),
+      classifications: result.classifications.map(item => ({
+        requestIdentity: requestIdentity.get(item.request) || "",
+        responseIdentity: responseIdentity.get(item.response) || "",
+        requestKind: String(item.requestKind || ""),
+        classification: String(item.classification || ""),
+        owner: String(item.owner || ""),
+        phase: String(item.phase || ""),
+      })),
+      failures: result.failures.map(item => ({
+        code: String(item.code || "INPUT_INVALID"),
+        requestIdentity: requestIdentity.get(item.request) || "",
+        responseIdentity: responseIdentity.get(item.response) || "",
+      })),
+    });
+  };
+  const api = {
+    requestLifecycleRecorder,
+    beginInvocation,
+    endInvocation,
+    captureContext,
+    bindCapturedRequest,
+    registerCapturedRequest,
+    bindExactActionRequestMembership,
+    sealRequestLifecycleLedger,
+    evaluateRequestLifecycleLedger,
+    safeRequestLifecycleProjection,
+    invocationRows,
+    invocationEvents,
+  };
+  return Object.freeze(api);
+
+  function assertLedgerOpen() {
+    if (sealed) throw new Error("request lifecycle ledger is sealed");
+  }
+}
+
+export function buildNativeRequestLifecycleInvocationId({
+  actionId = "",
+  phase = "",
+  scopeSequence = 0,
+} = {}) {
+  if (typeof actionId !== "string" || !actionId ||
+      typeof phase !== "string" || !phase ||
+      !Number.isSafeInteger(scopeSequence) || scopeSequence <= 0) {
+    throw new Error("request lifecycle invocation identity input is invalid");
+  }
+  return `${actionId}:${phase}:scope-${scopeSequence}`;
+}
+
+function freezeJsonProjection(value) {
+  if (Array.isArray(value)) return Object.freeze(value.map(freezeJsonProjection));
+  if (value && typeof value === "object") {
+    const projection = {};
+    for (const [key, item] of Object.entries(value)) {
+      projection[key] = freezeJsonProjection(item);
+    }
+    return Object.freeze(projection);
+  }
+  return value;
+}
+
+const legacyRequestEvidenceTuples = Object.freeze({
+  "bootstrap-document": Object.freeze(["page", "page", "bootstrap", "initial-page-load"]),
+  "bootstrap-fetch": Object.freeze(["page", "page", "bootstrap", "bootstrap"]),
+  "background-fetch": Object.freeze(["page", "page", "background-refresh", "background-refresh"]),
+  "page-subresource": Object.freeze(["page", "page", "page-subresource", "page-subresource"]),
+  sse: Object.freeze(["page", "page", "sse", "sse"]),
+  websocket: Object.freeze(["page", "page", "websocket", "websocket"]),
+  "primary-action": Object.freeze(["action", "explicit-action-registration", "primary-action", "primary-action"]),
+  "same-route-form-rejection": Object.freeze(["action", "explicit-action-registration", "primary-action", "primary-action"]),
+  "document-redirect-chain": Object.freeze(["page", "document-navigation-ledger", "document-navigation-chain", "document-navigation-chain"]),
+  "independent-readback": Object.freeze(["page", "page", "independent-readback", "independent-readback"]),
+});
+
+export function legacyRequestEvidenceTuple(lifecycleClass, {
+  actionInvocationId = "",
+  navigationInvocationId = "",
+} = {}) {
+  const requestedClass = String(lifecycleClass || "");
+  const selectedClass = Object.hasOwn(legacyRequestEvidenceTuples, requestedClass)
+    ? requestedClass
+    : "page-subresource";
+  const values = legacyRequestEvidenceTuples[selectedClass];
+  return Object.freeze({
+    lifecycleClass: selectedClass,
+    ledgerOwner: values[0],
+    sourceOwner: values[1],
+    ownerPhase: values[2],
+    requestOwnershipKind: values[3],
+    initiatorActionId: "",
+    actionInvocationId: String(actionInvocationId || ""),
+    navigationInvocationId: String(navigationInvocationId || ""),
+    correlationId: "",
+  });
+}
+
+async function openNativePlaywrightPage(playwright, {
+  httpBase,
+  pagePath,
+  timeoutMs,
+  width = 390,
+  height = 844,
+  executablePath = "",
+  storageStatePath = "",
+  colorScheme = "light",
+  caseId = "",
+  navigationCorrelationId = "",
+  navigationInvocationId = "",
+  onRuntimeSecret = null,
+}) {
+  const consoleEntries = [];
+  const networkEntries = [];
+  const requestIdentityRegistry = createCaseOwnedRequestIdentityRegistry({
+    caseId,
+  });
+  const requestLifecycleLedger = createNativeRequestLifecycleLedger({
+    caseId: String(caseId || "noncanonical-page"),
+    correlationDigest: correlationDigest(navigationCorrelationId),
+  });
+  const { requestLifecycleRecorder } = requestLifecycleLedger;
+  const pendingRequests = new Map();
+  const responseRequestBindings = new WeakMap();
+  const routeInjectedCorrelations = new WeakMap();
+  const routeRequestOwnerships = new WeakMap();
+  const correlationRouteFailures = [];
+  const pendingSafeResponseReads = new Set();
+  const safeResponseReadFailures = [];
+  let diagnosticMarkerProbe = null;
+  const observedRuntimeSecrets = new Set();
+  let requestListenersInstalled = false;
+  let requestListenerStartSequence = 0;
+  let requestListenerEndSequence = null;
+  let requestCaptureSealed = false;
+  let lifecycleSequence = 0;
+  let navigationOperationSequence = 0;
+  let activeNavigationOperation = null;
+  let activeCorrelationId = String(navigationCorrelationId || "");
+  let activeCorrelationInjectionEnabled = Boolean(navigationCorrelationId);
+  let activeRequestOwnership = null;
+  let activeActionLifecycleInvocation = null;
+  const actionLifecycleInvocationByContext = new WeakMap();
+  let activeRequestRenderCycleId = "";
+  let activeActionRequestLedgers = [];
+  let activeActionScopeNetworkStart = 0;
+  const completedActionRequestLedgers = [];
+  const requestActionOwnershipCaseId = String(caseId || "noncanonical-page");
+  const requestActionOwnershipRegistry = createRequestActionOwnershipRegistry({
+    caseId: requestActionOwnershipCaseId,
+  });
+  let activeExplicitCorrelationRegistration = null;
+  let explicitCorrelationScopeSequence = 0;
+  const documentNavigationLedger = [];
+  const documentNavigationByRequestId = new Map();
+  let documentNavigationEpoch = 0;
+  let documentNavigationAfterListenerEndCount = 0;
+  const navigationOwnerLifecycles = [];
+  let initialRouteSettlingAttestation = null;
+  let actionLedgerStart = null;
+  let closePromise = null;
+  let browserClosed = false;
+  const requestKindFor = request => request.isNavigationRequest() &&
+      request.resourceType() === "document"
+    ? "document-navigation"
+    : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
+  const legacyRequestEvidenceForCallback = ({
+    requestKind,
+    resourceType,
+    redirected,
+    navigationOperation,
+    actionContext,
+  }) => {
+    const actionInvocationId = String(actionContext?.actionId ||
+      navigationOperation?.actionId || "");
+    const navigationInvocationId = String(navigationOperation?.invocationId || "");
+    if (actionContext) {
+      const lifecycleClass = actionContext.phase === "independent-readback"
+        ? "independent-readback"
+        : "primary-action";
+      return legacyRequestEvidenceTuple(lifecycleClass, {
+        actionInvocationId,
+        navigationInvocationId,
+      });
+    }
+    if (redirected && navigationOperation?.kind === "form-submit-document-navigation") {
+      return legacyRequestEvidenceTuple("document-redirect-chain", {
+        actionInvocationId,
+        navigationInvocationId,
+      });
+    }
+    const bootstrap = !initialRouteSettlingAttestation;
+    const lifecycleClass = requestKind === "document-navigation" && resourceType === "document"
+      ? "bootstrap-document"
+      : bootstrap && requestKind === "application-fetch"
+        ? "bootstrap-fetch"
+        : requestKind === "application-fetch"
+          ? "background-fetch"
+          : resourceType === "eventsource"
+            ? "sse"
+            : resourceType === "websocket"
+              ? "websocket"
+              : "page-subresource";
+    const selectedClass = resourceType === "eventsource"
+      ? "sse"
+      : resourceType === "websocket"
+        ? "websocket"
+        : lifecycleClass;
+    return legacyRequestEvidenceTuple(selectedClass, {
+      navigationInvocationId,
+    });
+  };
+  const createEnvelopeWrapper = (context, requestEnvelope, {
+    requestKind = "application-fetch",
+    registrationKind = "manifest-envelope",
+  } = {}) => {
+    const wrapper = createAdapterActionRequestEnvelopeWrapper({
+      requestActionOwnershipRegistry,
+      context,
+      requestEnvelope,
+      caseId,
+      requestKind,
+      registrationKind,
+    });
+    activeActionRequestLedgers.push(wrapper);
+    return wrapper;
+  };
+  const findAvailableEnvelope = ({ method, target, requestKind }) =>
+    activeActionRequestLedgers.find(wrapper => !wrapper.closed &&
+      wrapper.claimCount < wrapper.ledger.envelope.expectedRequestCount &&
+      wrapper.ledger.matches({ method, target, requestKind })) || null;
+  const selectActionRequestOwnership = (request, {
+    registration = null,
+  } = {}) => {
+    if (!activeRequestOwnership) return null;
+    const method = request.method();
+    const target = normalizeRequestTarget(request.url());
+    const requestKind = requestKindFor(request);
+    const wrapper = registration?.ledgerWrapper ||
+      findAvailableEnvelope({ method, target, requestKind });
+    if (!wrapper) {
+      if (registration?.active === true) {
+        throw new Error("explicit action request registration envelope mismatch");
+      }
+      return null;
+    }
+    return {
+      context: activeRequestOwnership,
+      ledgerWrapper: wrapper,
+      registrationKind: registration?.active === true
+        ? "explicit-inner-request"
+        : "manifest-envelope-sequence",
+    };
+  };
+  const correlationHeaderDigest = correlationId => correlationId
+    ? createHash("sha256").update(JSON.stringify({
+        "x-media-server-correlation-id": correlationId,
+      })).digest("hex")
+    : "";
+  const applyRouteInjectedCorrelation = (request, correlationId, {
+    state = "injected-outer",
+    actionId = "",
+  } = {}) => {
+    const applied = {
+      correlationId,
+      requestHeaderDigest: correlationHeaderDigest(correlationId),
+      correlationInjectionSource: "route-continue",
+      correlationRouteState: String(state || ""),
+      correlationRouteActionId: String(actionId || ""),
+      correlationRouteDigest: correlationDigest(correlationId),
+    };
+    routeInjectedCorrelations.set(request, applied);
+    const pending = pendingRequests.get(request);
+    if (pending) Object.assign(pending, applied);
+    const requestId = pending?.requestId;
+    if (!requestId) return;
+    for (const entry of networkEntries) {
+      if (entry.phase === "request-start" && entry.requestId === requestId) {
+        Object.assign(entry, applied, {
+          correlationSource: "request-header",
+        });
+      }
+    }
+  };
+  const browser = await playwright.chromium.launch({
+    headless: true,
+    env: secretStrippedBrowserEnv(),
+    ...(executablePath ? { executablePath } : {}),
+  });
+  const context = await browser.newContext({
+    viewport: { width, height },
+    colorScheme,
+    ...(storageStatePath ? { storageState: storageStatePath } : {}),
+  });
+  await context.route("**/*", async route => {
+    const request = route.request();
+    const headers = { ...request.headers() };
+    const headerEntries = typeof request.headersArray === "function"
+      ? await request.headersArray()
+      : Object.entries(headers).map(([name, value]) => ({ name, value }));
+    const documentNavigation = request.isNavigationRequest() &&
+      request.resourceType() === "document";
+    const correlationAllowed = !documentNavigation ||
+      activeNavigationOperation?.allowCorrelation === true;
+    let decision;
+    let actionRequestOwnership = null;
+    try {
+      const explicitCorrelationHeaderPresent = headerEntries.some(entry =>
+        String(entry?.name || "").toLowerCase() === correlationHeaderName);
+      const requestEventPending = pendingRequests.get(request) || null;
+      const requestEventOwnership = requestEventPending?.actionRequestLedgerWrapper
+        ? {
+            context: requestEventPending.requestActionContext,
+            ledgerWrapper: requestEventPending.actionRequestLedgerWrapper,
+            registrationKind: "request-event-before-route",
+          }
+        : null;
+      actionRequestOwnership = activeExplicitCorrelationRegistration?.active === true &&
+          Boolean(activeExplicitCorrelationRegistration.correlationId) &&
+          !explicitCorrelationHeaderPresent
+        ? null
+        : requestEventOwnership || selectActionRequestOwnership(request, {
+            registration: explicitCorrelationHeaderPresent
+              ? activeExplicitCorrelationRegistration
+              : null,
+          });
+      const claimedContext = actionRequestOwnership?.context || null;
+      const claimedActionLifecycleInvocation = claimedContext
+        ? actionLifecycleInvocationByContext.get(claimedContext) || null
+        : null;
+      decision = resolveRequestCorrelationPrecedence({
+        headerEntries,
+        outerCorrelationId: claimedContext ? activeCorrelationId : "",
+        outerInjectionEnabled: claimedContext
+          ? activeCorrelationInjectionEnabled &&
+            actionRequestOwnership?.ledgerWrapper?.ledger.envelope.correlationRequired !== false
+          : false,
+        correlationAllowed: Boolean(claimedContext) && correlationAllowed,
+        registration: activeExplicitCorrelationRegistration,
+        currentCaseId: caseId,
+        currentActionId: String(claimedContext?.actionId || ""),
+      });
+      if (actionRequestOwnership && claimedActionLifecycleInvocation) {
+        requestLifecycleLedger.bindExactActionRequestMembership(request,
+          claimedActionLifecycleInvocation);
+      }
+    } catch (error) {
+      correlationRouteFailures.push({
+        sequence: ++lifecycleSequence,
+        state: String(error?.safeEvidence?.state || "rejected-explicit-correlation"),
+        actionId: String(error?.safeEvidence?.actionId || activeRequestOwnership?.actionId || ""),
+        failureCode: String(error?.failureCode || "CORRELATION_PRECEDENCE_REJECTED"),
+      });
+      await route.abort("blockedbyclient");
+      return;
+    }
+    if (actionRequestOwnership) {
+      routeRequestOwnerships.set(request, actionRequestOwnership);
+    }
+    if (decision.inject) {
+      headers[correlationHeaderName] = decision.correlationId;
+      applyRouteInjectedCorrelation(request, decision.correlationId, decision);
+    } else if (decision.preserve) {
+      applyRouteInjectedCorrelation(request, decision.correlationId, decision);
+    } else if (documentNavigation) {
+      delete headers[correlationHeaderName];
+    }
+    await route.continue({ headers });
+  });
+  await context.addInitScript(theme => {
+    localStorage.setItem("mediaServerTheme", theme);
+  }, colorScheme);
+  const page = await context.newPage();
+  page.setDefaultTimeout(timeoutMs);
+  page.on("console", message => {
+    const location = message.location();
+    consoleEntries.push({
+      kind: "console",
+      level: message.type(),
+      text: message.text(),
+      location,
+      callsite: `${String(location?.url || "")}:${Number(location?.lineNumber || 0)}:${Number(location?.columnNumber || 0)}`,
+      caseId,
+      actionId: String(activeRequestOwnership?.actionId || ""),
+      phase: String(activeRequestOwnership?.ownershipKind ||
+        (activeNavigationOperation ? "initial-page-load" : "unowned")),
+      secretBearing: false,
+      observedAtMs: Date.now(),
+    });
+  });
+  page.on("pageerror", error => {
+    const stack = error instanceof Error ? String(error.stack || "") : "";
+    consoleEntries.push({
+      kind: "pageerror",
+      level: "error",
+      text: error instanceof Error ? error.message : String(error),
+      callsite: stack.split("\n").slice(1).map(line => line.trim()).find(Boolean) || "unavailable",
+      caseId,
+      actionId: String(activeRequestOwnership?.actionId || ""),
+      phase: String(activeRequestOwnership?.ownershipKind ||
+        (activeNavigationOperation ? "initial-page-load" : "unowned")),
+      secretBearing: false,
+      observedAtMs: Date.now(),
+    });
+  });
+  const requestIdentity = request => {
+    return requestIdentityRegistry.registerPlaywrightRequest(request);
+  };
+  requestListenerStartSequence = ++lifecycleSequence;
+  page.on("request", request => {
+    if (requestCaptureSealed) return;
+    let redirectedFrom = null;
+    let actionRequestOwnership = null;
+    let redirectParentActionRequestOwnership = null;
+    let exactActionLifecycleInvocation = null;
+    let actionLifecycleCaptureResolutionFailed = false;
+    try {
+      redirectedFrom = request.redirectedFrom();
+      actionRequestOwnership = routeRequestOwnerships.get(request) ||
+        selectActionRequestOwnership(request);
+      if (redirectedFrom) {
+        const parentPending = pendingRequests.get(redirectedFrom) || null;
+        redirectParentActionRequestOwnership = routeRequestOwnerships.get(redirectedFrom) ||
+          (parentPending?.actionRequestLedgerWrapper
+            ? {
+                context: parentPending.requestActionContext,
+                ledgerWrapper: parentPending.actionRequestLedgerWrapper,
+                registrationKind: "redirect-parent-request",
+              }
+            : null);
+      }
+      exactActionLifecycleInvocation = resolveNativeLifecycleActionCapture({
+        directActionRequestOwnership: actionRequestOwnership,
+        redirectParentActionRequestOwnership,
+        actionLifecycleInvocationByContext,
+      });
+    } catch {
+      actionRequestOwnership = null;
+      redirectParentActionRequestOwnership = null;
+      exactActionLifecycleInvocation = null;
+      actionLifecycleCaptureResolutionFailed = true;
+    }
+    const captureInvocations = selectNativeLifecycleCaptureInvocations(request, {
+      navigation: activeNavigationOperation?.requestLifecycleInvocation || null,
+      action: exactActionLifecycleInvocation,
+    });
+    const navigationLifecycleInvocation = captureInvocations.navigation;
+    const actionLifecycleInvocation = captureInvocations.actionClaim;
+    const requestCorrelationDigest = String(
+      routeInjectedCorrelations.get(request)?.correlationRouteDigest ||
+      correlationDigest(actionRequestOwnership?.context?.correlationId ||
+        redirectParentActionRequestOwnership?.context?.correlationId ||
+        (navigationLifecycleInvocation ? activeCorrelationId : "")),
+    );
+    let lifecycleCaptureContext;
+    if (actionLifecycleCaptureResolutionFailed) {
+      lifecycleCaptureContext = Object.freeze({ navigationInvocation: undefined });
+    } else try {
+      lifecycleCaptureContext = requestLifecycleLedger.captureContext({
+        navigation: navigationLifecycleInvocation,
+        action: actionLifecycleInvocation,
+        ...(requestCorrelationDigest
+          ? { correlationDigest: requestCorrelationDigest }
+          : {}),
+      });
+    } catch {
+      lifecycleCaptureContext = Object.freeze({ navigationInvocation: undefined });
+    }
+    const requestEnvelope = requestLifecycleRecorder.recordRequest(
+      request,
+      lifecycleCaptureContext,
+    );
+    try {
+      requestLifecycleLedger.registerCapturedRequest(requestEnvelope, {
+        navigation: navigationLifecycleInvocation,
+        actionClaim: actionLifecycleInvocation,
+      });
+    } catch {
+      // Recorder capture가 authoritative이므로 operational membership 오류는 callback 밖으로 전파하지 않는다.
+    }
+    try {
+    const routeInjectedCorrelation = routeInjectedCorrelations.get(request);
+    const correlationId = String(routeInjectedCorrelation?.correlationId ||
+      request.headers()["x-media-server-correlation-id"] || "");
+    const identity = requestIdentity(request);
+    const requestId = identity.requestId;
+    const requestStartedAtMs = Date.now();
+    const actionContext = actionRequestOwnership?.context || null;
+    const requestKind = requestKindFor(request);
+    const lifecycleOwnership = legacyRequestEvidenceForCallback({
+      requestKind,
+      resourceType: request.resourceType(),
+      redirected: Boolean(redirectedFrom),
+      navigationOperation: activeNavigationOperation,
+      actionContext,
+    });
+    const ledgerOwner = lifecycleOwnership.ledgerOwner;
+    const ownerPhase = lifecycleOwnership.ownerPhase;
+    const lifecycleActionId = actionContext ? String(actionContext.actionId || "") : "";
+    const requestHeaderDigest = String(routeInjectedCorrelation?.requestHeaderDigest ||
+      correlationHeaderDigest(correlationId));
+    const pendingRequest = {
+      ...identity,
+      correlationId,
+      requestHeaderDigest,
+      correlationInjectionSource: String(routeInjectedCorrelation?.correlationInjectionSource || ""),
+      correlationRouteState: String(routeInjectedCorrelation?.correlationRouteState || "correlation-absent"),
+      correlationRouteActionId: String(routeInjectedCorrelation?.correlationRouteActionId || ""),
+      correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
+      initiatorActionId: lifecycleActionId,
+      renderCycleId: actionContext
+        ? activeRequestRenderCycleId
+        : String(actionContext?.renderCycleId || ""),
+      requestOwnershipKind: lifecycleOwnership.requestOwnershipKind,
+      lifecycleClass: lifecycleOwnership.lifecycleClass,
+      actionInvocationId: lifecycleOwnership.actionInvocationId,
+      navigationInvocationId: lifecycleOwnership.navigationInvocationId,
+      requestObject: request,
+      requestActionContext: actionContext,
+      actionRequestLedgerWrapper: actionRequestOwnership?.ledgerWrapper || null,
+      exactActionRequestOwned: Boolean(actionRequestOwnership),
+      ledgerOwner,
+      sourceOwner: lifecycleOwnership.sourceOwner,
+      ownerPhase,
+      requestStartedAtMs,
+      requestKind,
+      method: request.method(),
+      path: urlTarget(request.url()),
+    };
+    pendingRequests.set(request, pendingRequest);
+    responseRequestBindings.set(request, pendingRequest);
+    if (actionContext) {
+      try {
+        actionRequestOwnership.ledgerWrapper.claimInRequestEvent(request, {
+          method: request.method(),
+          target: normalizeRequestTarget(request.url()),
+          requestKind,
+          registrationKind: actionRequestOwnership.registrationKind,
+        });
+      } catch (error) {
+        actionRequestOwnership.ledgerWrapper.abort(error);
+      }
+      requestActionOwnershipRegistry.register(actionContext, {
+        requestId,
+        caseId,
+        actionId: String(actionContext.actionId || ""),
+        phase: String(actionContext.phase || ""),
+      });
+      try {
+        actionRequestOwnership.ledgerWrapper.bindRequestIdentity(request, identity);
+      } catch (error) {
+        actionRequestOwnership.ledgerWrapper.abort(error);
+      }
+    }
+    networkEntries.push({
+      phase: "request-start",
+      requestId,
+      caseRequestIdentity: identity.caseRequestIdentity,
+      caseRequestSequence: identity.caseRequestSequence,
+      requestKind,
+      resourceType: request.resourceType(),
+      sameOrigin: urlOrigin(request.url()) === urlOrigin(httpBase),
+      redirectedFromRequestId: redirectedFrom ? requestIdentity(redirectedFrom).requestId : "",
+      correlationId,
+      correlationSource: correlationId ? 'request-header' : 'none',
+      correlationInjectionSource: String(routeInjectedCorrelation?.correlationInjectionSource || ""),
+      correlationRouteState: String(routeInjectedCorrelation?.correlationRouteState || "correlation-absent"),
+      correlationRouteActionId: String(routeInjectedCorrelation?.correlationRouteActionId || ""),
+      correlationRouteDigest: String(routeInjectedCorrelation?.correlationRouteDigest || ""),
+      requestHeaderDigest,
+      ledgerOwner,
+      sourceOwner: lifecycleOwnership.sourceOwner,
+      ownerPhase,
+      actionRegistrationKind: String(actionRequestOwnership?.registrationKind || ""),
+      exactActionRequestOwned: Boolean(actionRequestOwnership),
+      initiatorActionId: lifecycleActionId,
+      renderCycleId: actionContext
+        ? activeRequestRenderCycleId
+        : String(actionContext?.renderCycleId || ""),
+      requestOwnershipKind: lifecycleOwnership.requestOwnershipKind,
+      lifecycleClass: lifecycleOwnership.lifecycleClass,
+      actionInvocationId: lifecycleOwnership.actionInvocationId,
+      navigationInvocationId: lifecycleOwnership.navigationInvocationId,
+      requestStartedAtMs,
+      method: request.method(),
+      status: 0,
+      url: request.url(),
+      requestBody: safeRequestBodyProjection(request),
+    });
+    if (requestKind === "document-navigation") {
+      documentNavigationEpoch += 1;
+      const operation = activeNavigationOperation;
+      const navigationKind = operation?.kind ||
+        (urlTarget(request.url()) === urlTarget(page.url())
+          ? "reload"
+          : "unowned-document-navigation");
+      const ledgerEntry = {
+        sequence: ++lifecycleSequence,
+        responseSequence: null,
+        invocationId: String(operation?.invocationId || ""),
+        navigationKind: String(navigationKind),
+        method: request.method(),
+        path: urlTarget(request.url()),
+        resourceType: request.resourceType(),
+        sameOrigin: urlOrigin(request.url()) === urlOrigin(httpBase),
+        correlationPresent: Boolean(correlationId),
+        correlationDigest: correlationId
+          ? createHash("sha256").update(correlationId).digest("hex")
+          : "",
+        redirected: Boolean(redirectedFrom),
+        redirectedFromRequestId: redirectedFrom
+          ? requestIdentity(redirectedFrom).requestId
+          : "",
+        requestId,
+        caseRequestIdentity: identity.caseRequestIdentity,
+        caseRequestSequence: identity.caseRequestSequence,
+        responseStatus: 0,
+        responseBound: false,
+        responseRequestId: "",
+        responseRequestObjectObserved: false,
+        responseLocationPath: "",
+        navigationEpoch: documentNavigationEpoch,
+        listenerActive: requestListenerEndSequence === null,
+        ledgerOwner,
+        sourceOwner: lifecycleOwnership.sourceOwner,
+        ownerPhase,
+        initiatorActionId: lifecycleActionId,
+        requestOwnershipKind: lifecycleOwnership.requestOwnershipKind,
+        lifecycleClass: lifecycleOwnership.lifecycleClass,
+        actionInvocationId: lifecycleOwnership.actionInvocationId,
+        navigationInvocationId: lifecycleOwnership.navigationInvocationId,
+      };
+      if (requestListenerEndSequence !== null) {
+        documentNavigationAfterListenerEndCount += 1;
+      }
+      documentNavigationLedger.push(ledgerEntry);
+      documentNavigationByRequestId.set(requestId, ledgerEntry);
+    }
+    } catch {
+      // Legacy network/evidence projection은 best-effort이며 lifecycle authority가 아니다.
+    }
+  });
+  page.on("response", response => {
+    if (requestCaptureSealed) return;
+    requestLifecycleRecorder.recordResponse(response);
+    try {
+    const { request, initiatingRequest } =
+      bindPlaywrightResponseToInitiatingRequest(
+        response,
+        responseRequestBindings,
+        requestIdentityRegistry,
+      );
+    const correlationId = String(initiatingRequest?.correlationId || "");
+    const requestKind = request.isNavigationRequest() && request.frame() === page.mainFrame()
+      ? "document-navigation"
+      : (request.resourceType() === "fetch" ? "application-fetch" : "subresource");
+    const entry = {
+      phase: "response",
+      requestId: String(initiatingRequest?.requestId || ""),
+      caseRequestIdentity: String(initiatingRequest?.caseRequestIdentity || ""),
+      caseRequestSequence: initiatingRequest?.caseRequestSequence || null,
+      responseRequestObjectObserved: Boolean(initiatingRequest),
+      requestIdentitySource: initiatingRequest ? "playwright-response-request" : "",
+      requestKind,
+      resourceType: request.resourceType(),
+      sameOrigin: urlOrigin(response.url()) === urlOrigin(httpBase),
+      correlationId,
+      correlationSource: correlationId ? "request-header" : "none",
+      responseCorrelationSource: correlationId
+        ? "initiating-request-identity"
+        : "none",
+      requestHeaderDigest: String(initiatingRequest?.requestHeaderDigest || ""),
+      correlationRouteState: String(initiatingRequest?.correlationRouteState || "correlation-absent"),
+      correlationRouteActionId: String(initiatingRequest?.correlationRouteActionId || ""),
+      correlationRouteDigest: String(initiatingRequest?.correlationRouteDigest || ""),
+      responseEchoHeaderContract: "not-required",
+      responseEchoHeaderObserved: false,
+      ledgerOwner: String(initiatingRequest?.ledgerOwner || "page"),
+      sourceOwner: String(initiatingRequest?.sourceOwner || "page"),
+      ownerPhase: String(initiatingRequest?.ownerPhase ||
+        (initialRouteSettlingAttestation ? "background-refresh" : "bootstrap")),
+      exactActionRequestOwned: initiatingRequest?.exactActionRequestOwned === true,
+      initiatorActionId: String(initiatingRequest?.initiatorActionId || ""),
+      renderCycleId: String(initiatingRequest?.renderCycleId || ""),
+      requestOwnershipKind: String(initiatingRequest?.requestOwnershipKind || ""),
+      lifecycleClass: String(initiatingRequest?.lifecycleClass || ""),
+      actionInvocationId: String(initiatingRequest?.actionInvocationId || ""),
+      navigationInvocationId: String(initiatingRequest?.navigationInvocationId || ""),
+      requestStartedAtMs: Number(initiatingRequest?.requestStartedAtMs || 0),
+      responseObservedAtMs: Date.now(),
+      method: request.method(),
+      status: response.status(),
+      httpOk: response.ok(),
+      url: response.url(),
+      responseHeaders: {
+        "content-type": String(response.headers()["content-type"] || ""),
+        location: String(response.headers().location || ""),
+      },
+    };
+    entry.responseLocationPath = entry.responseHeaders.location
+      ? urlTarget(new URL(entry.responseHeaders.location, response.url()).toString())
+      : "";
+    networkEntries.push(entry);
+    if (initiatingRequest?.actionRequestLedgerWrapper) {
+      try {
+        initiatingRequest.actionRequestLedgerWrapper.bindResponseRequestObject(request, {
+          method: request.method(),
+          target: response.url(),
+          status: response.status(),
+          requestId: initiatingRequest.requestId,
+          caseRequestIdentity: initiatingRequest.caseRequestIdentity,
+          caseRequestSequence: initiatingRequest.caseRequestSequence,
+          responseRequestObjectObserved: true,
+        });
+      } catch (error) {
+        initiatingRequest.actionRequestLedgerWrapper.abort(error);
+      }
+    }
+    if (requestKind === "document-navigation") {
+      const ledgerEntry = documentNavigationByRequestId.get(entry.requestId);
+      if (ledgerEntry) {
+        ledgerEntry.responseSequence = ++lifecycleSequence;
+        ledgerEntry.responseStatus = response.status();
+        ledgerEntry.responseBound = true;
+        ledgerEntry.responseRequestId = String(initiatingRequest?.requestId || "");
+        ledgerEntry.responseRequestObjectObserved = Boolean(initiatingRequest);
+        const location = String(response.headers().location || "");
+        ledgerEntry.responseLocationPath = location
+          ? urlTarget(new URL(location, response.url()).toString())
+          : "";
+      }
+    }
+    const clientLiveSessionProjection = captureClientLiveSessionResponseProjection({
+      response,
+      entry,
+      pendingSafeResponseReads,
+      safeResponseReadFailures,
+    });
+    const endpointOwnedProjection = clientLiveSessionProjection || captureEndpointOwnedResponseProjection({
+      response,
+      entry,
+      pendingSafeResponseReads,
+      safeResponseReadFailures,
+    });
+    if (endpointOwnedProjection) {
+      // 공용 response listener projection이 endpoint-action evidence를 소유한다.
+    } else if (captureOpsIncidentTimelineResponseProjection({
+      response,
+      entry,
+      pendingSafeResponseReads,
+      safeResponseReadFailures,
+    })) {
+      // Ops timeline refresh response는 raw payload 없이 EventRecord safe projection만 보존한다.
+    } else if (captureDiagnosticMarkerResponseProjection({
+      response,
+      entry,
+      probe: diagnosticMarkerProbe,
+      pendingSafeResponseReads,
+      safeResponseReadFailures,
+    })) {
+      // dashboard 소유 log-tail 응답은 marker 원문 없이 stage evidence만 보존한다.
+    } else if (request.method() === "POST" && /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(urlPath(response.url()))) {
+      const read = response.json()
+        .then(payload => {
+          entry.safeResponseBody = {
+            sessionId: typeof payload?.sessionId === "string" ? payload.sessionId : "",
+            offerReceived: typeof payload?.offer === "string" && payload.offer.length > 0,
+          };
+        })
+        .catch(() => {
+          entry.safeResponseBody = { sessionId: "", offerReceived: false };
+        })
+        .finally(() => pendingSafeResponseReads.delete(read));
+      pendingSafeResponseReads.add(read);
+    } else if (request.method() === "POST" && [
+      "/ops/api/users",
+      "/ops/api/invites",
+      "/client/api/access-requests",
+    ].includes(urlPath(response.url()))) {
+      captureLegacyFormResponseProjection({
+        response,
+        entry,
+        pathname: urlPath(response.url()),
+        onRuntimeSecret,
+        observedRuntimeSecrets,
+        pendingSafeResponseReads,
+        safeResponseReadFailures,
+      });
+    }
+    } catch {
+      // Recorder가 exact response identity를 캡처했으므로 legacy safe projection은 throw하지 않는다.
+    }
+  });
+  const completeOwnedRequest = request => {
+    try {
+      const pending = pendingRequests.get(request);
+      if (pending?.requestActionContext) {
+        requestActionOwnershipRegistry.completeRequest(
+          pending.requestActionContext,
+          pending.requestId,
+        );
+      }
+      pendingRequests.delete(request);
+    } catch {
+      // Compatibility cleanup 실패 시에도 terminal recorder callback을 authoritative로 유지한다.
+    }
+  };
+  page.on("requestfinished", request => {
+    if (requestCaptureSealed) return;
+    requestLifecycleRecorder.recordRequestFinished(request);
+    completeOwnedRequest(request);
+  });
+  page.on("requestfailed", request => {
+    if (requestCaptureSealed) return;
+    let failure = null;
+    try {
+      failure = request.failure();
+    } catch {
+      failure = { errorText: "unreadable request failure" };
+    }
+    requestLifecycleRecorder.recordRequestFailed(request, failure);
+    completeOwnedRequest(request);
+  });
+  requestListenersInstalled = true;
+  const navigationRequestedPath = urlTarget(new URL(pagePath, `${httpBase}/`).toString());
+  const navigationOrigin = urlOrigin(new URL(pagePath, `${httpBase}/`).toString());
+  const captureNavigationOwner = async selector => {
+    const ownedSelector = String(selector || "");
+    const candidates = page.locator(ownedSelector);
+    const candidateCount = ownedSelector ? await candidates.count() : 0;
+    const owner = candidateCount === 1
+      ? await evaluateRegisteredBrowserCallback(
+          candidates.first(),
+          "adapter.navigation-owner",
+          { selectorValue: ownedSelector, documentEpoch: documentNavigationEpoch },
+        )
+      : {
+          selector: ownedSelector,
+          candidateCount,
+          navigationEpoch: documentNavigationEpoch,
+          exists: false,
+          visible: false,
+        };
+    return sanitizeEvidenceValue(owner, observedRuntimeSecrets);
+  };
+  const projectDocumentNavigationEntry = entry => ({
+    sequence: entry.sequence,
+    responseSequence: entry.responseSequence,
+    invocationId: entry.invocationId,
+    navigationKind: entry.navigationKind,
+    method: entry.method,
+    path: entry.path,
+    resourceType: entry.resourceType,
+    sameOrigin: entry.sameOrigin,
+    correlationPresent: entry.correlationPresent,
+    correlationDigest: entry.correlationDigest,
+    redirected: entry.redirected,
+    redirectedFromRequestId: entry.redirectedFromRequestId,
+    requestId: entry.requestId,
+    caseRequestIdentity: entry.caseRequestIdentity,
+    caseRequestSequence: entry.caseRequestSequence,
+    responseStatus: entry.responseStatus,
+    responseBound: entry.responseBound,
+    responseRequestId: entry.responseRequestId,
+    responseRequestObjectObserved: entry.responseRequestObjectObserved,
+    responseLocationPath: entry.responseLocationPath,
+    navigationEpoch: entry.navigationEpoch,
+    ledgerOwner: entry.ledgerOwner,
+    sourceOwner: entry.sourceOwner,
+    ownerPhase: entry.ownerPhase,
+    initiatorActionId: entry.initiatorActionId,
+    requestOwnershipKind: entry.requestOwnershipKind,
+    actionInvocationId: entry.actionInvocationId,
+    navigationInvocationId: entry.navigationInvocationId,
+  });
+  const captureNavigationOwnerLifecycle = async (operation, sourceOwner, action) => {
+    if (navigationOwnerLifecycles.some(item =>
+      item.invocationId === operation.invocationId)) {
+      throw new Error(`duplicate navigation owner invocation: ${operation.invocationId}`);
+    }
+    const destinationOwner = await captureNavigationOwner("body");
+    const documentChain = documentNavigationLedger
+      .slice(operation.documentLedgerStart)
+      .map(projectDocumentNavigationEntry);
+    const lifecycle = {
+      schema: "media-server.v390-ui-navigation-owner-lifecycle.v1",
+      caseId: String(caseId || ""),
+      invocationId: operation.invocationId,
+      kind: operation.kind,
+      action: String(action || ""),
+      sourceRoute: sourceOwner.route,
+      destinationRoute: page.url(),
+      sourceOwner: { ...sourceOwner },
+      destinationOwner,
+      documentChain: {
+        schema: "media-server.v390-ui-owned-document-chain.v1",
+        invocationId: operation.invocationId,
+        kind: operation.kind,
+        hopCount: documentChain.length,
+        hops: documentChain,
+      },
+    };
+    delete lifecycle.sourceOwner.route;
+    navigationOwnerLifecycles.push(lifecycle);
+    return lifecycle;
+  };
+  const performNavigation = async (nextPagePath, {
+    invocationId = "",
+    kind = "explicit-navigation",
+    allowCorrelation = Boolean(activeCorrelationId),
+  } = {}) => {
+    if (requestListenerEndSequence !== null) {
+      throw new Error(`document navigation attempted after listener end: ${nextPagePath}`);
+    }
+    const operation = {
+      invocationId: String(invocationId || `native-document-navigation-${++navigationOperationSequence}`),
+      kind,
+      allowCorrelation,
+      documentLedgerStart: documentNavigationLedger.length,
+    };
+    const sourceOwner = {
+      ...(await captureNavigationOwner("body")),
+      route: page.url(),
+    };
+    if (sourceOwner.candidateCount !== 1 || sourceOwner.visible !== true) {
+      throw new Error(`navigation source-before document owner is not visible: ${operation.invocationId}`);
+    }
+    operation.requestLifecycleInvocation = requestLifecycleLedger.beginInvocation(
+      "navigation",
+      { invocationId: operation.invocationId, phase: operation.kind },
+    );
+    activeNavigationOperation = operation;
+    try {
+      const response = await page.goto(new URL(nextPagePath, `${httpBase}/`).toString(), {
+        waitUntil: "load",
+        timeout: timeoutMs,
+      });
+      await captureNavigationOwnerLifecycle(operation, sourceOwner, nextPagePath);
+      return { status: response?.status() || 0, url: page.url(), invocationId: operation.invocationId };
+    } finally {
+      activeNavigationOperation = null;
+      requestLifecycleLedger.endInvocation(operation.requestLifecycleInvocation);
+    }
+  };
+  const navigationResponse = await performNavigation(pagePath, {
+    invocationId: String(navigationInvocationId),
+    kind: "initial-document-navigation",
+    allowCorrelation: Boolean(navigationCorrelationId),
+  });
+  activeCorrelationId = "";
+  const buildNavigationEvidence = ({
+    requestedPath = navigationRequestedPath,
+    invocationId = String(navigationInvocationId),
+    response = navigationResponse,
+    ledger = documentNavigationLedger,
+    scopedNetworkEntries = networkEntries,
+  } = {}) => {
+    const candidates = ledger.filter(entry =>
+      entry.method === "GET" &&
+      entry.path === requestedPath &&
+      (!invocationId || entry.invocationId === invocationId));
+    const responses = candidates.filter(entry => entry.responseBound);
+    const first = candidates[0] || null;
+    const redirectCount = ledger.filter(entry => entry.redirected).length;
+    const unownedNavigationCount = ledger.filter(entry =>
+      entry.navigationKind === "unowned-document-navigation").length;
+    const reloadCount = ledger.filter(entry =>
+      entry.navigationKind === "reload").length;
+    const additionalFetchCount = scopedNetworkEntries.filter(entry =>
+      entry.phase === "request-start" &&
+      entry.requestKind === "application-fetch" &&
+      urlTarget(entry.url) === requestedPath).length;
+    return {
+      status: response.status || first?.responseStatus || 0,
+      url: response.url || (first ? new URL(first.path, `${httpBase}/`).toString() : ""),
+      invocationId,
+      requestKind: "document-navigation",
+      resourceType: candidates.length === 1 ? String(first?.resourceType || "") : "",
+      method: "GET",
+      requestedPath,
+      observedPath: urlTarget(response.url),
+      sameOrigin: Boolean(navigationOrigin) &&
+        ledger.every(entry => entry.sameOrigin === true),
+      requestAttemptCount: candidates.length,
+      requestCandidateCount: candidates.length,
+      responseCandidateCount: responses.length,
+      requestResponseBound: candidates.length === 1 &&
+        responses.length === 1 &&
+        candidates[0].requestId === responses[0].requestId,
+      correlationObserved: ledger.some(entry => entry.correlationPresent),
+      redirectCount,
+      retryCount: 0,
+      reloadCount,
+      unownedNavigationCount,
+      additionalFetchCount,
+      requestReissued: candidates.length !== 1,
+      totalDocumentNavigationCount: ledger.length,
+      orderedDocumentNavigations: ledger.map(entry => ({
+        ...projectDocumentNavigationEntry(entry),
+      })),
+      listenerStartSequence: requestListenerStartSequence,
+      listenerEndSequence: requestListenerEndSequence,
+      listenerActive: requestListenerEndSequence === null,
+      listenerInstalledBeforeFirstNavigation: Boolean(first) &&
+        requestListenerStartSequence > 0 &&
+        first.sequence > requestListenerStartSequence,
+      navigationAfterListenerEndCount: documentNavigationAfterListenerEndCount,
+    };
+  };
+  const finalizeNavigationLedger = () => {
+    if (requestListenerEndSequence === null) {
+      requestListenerEndSequence = ++lifecycleSequence;
+      requestListenersInstalled = false;
+    }
+    return initialRouteSettlingAttestation?.navigation
+      ? structuredClone(initialRouteSettlingAttestation.navigation)
+      : buildNavigationEvidence();
+  };
+  const sealRequestCaptureBoundary = () => {
+    if (requestCaptureSealed) return;
+    requestCaptureSealed = true;
+    if (requestListenerEndSequence === null) {
+      requestListenerEndSequence = ++lifecycleSequence;
+    }
+    requestListenersInstalled = false;
+  };
+  return {
+    get navigation() {
+      return initialRouteSettlingAttestation?.navigation
+        ? structuredClone(initialRouteSettlingAttestation.navigation)
+        : buildNavigationEvidence();
+    },
+    get caseNavigation() {
+      return buildNavigationEvidence({ ledger: documentNavigationLedger });
+    },
+    finalizeNavigationLedger,
+    navigationOwnerLifecycle: invocationId =>
+      selectExactNavigationOwnerLifecycle(navigationOwnerLifecycles, invocationId),
+    navigationOwnerLifecycles: () =>
+      structuredClone(navigationOwnerLifecycles),
+    sealRequestLifecycleLedger: () => {
+      if (!browserClosed) {
+        throw new Error("request lifecycle ledger cannot seal before browser close");
+      }
+      return requestLifecycleLedger.sealRequestLifecycleLedger();
+    },
+    evaluateRequestLifecycleLedger: () => {
+      if (!browserClosed) {
+        throw new Error("request lifecycle ledger cannot evaluate before browser close");
+      }
+      return requestLifecycleLedger.evaluateRequestLifecycleLedger();
+    },
+    safeRequestLifecycleProjection: () => {
+      if (!browserClosed) {
+        throw new Error("request lifecycle evidence cannot project before browser close");
+      }
+      return requestLifecycleLedger.safeRequestLifecycleProjection();
+    },
+    attestInitialRouteSettling: async ({
+      controlSelector = null,
+      controlApplicability = "required",
+      expectedControlVisible = true,
+    } = {}) => {
+      if (initialRouteSettlingAttestation) {
+        throw new Error(`duplicate initial route settling attestation: ${caseId}`);
+      }
+      if (actionLedgerStart) {
+        throw new Error(`initial route settling attested after action ledger start: ${caseId}`);
+      }
+      const lifecycle = selectExactNavigationOwnerLifecycle(
+        navigationOwnerLifecycles,
+        String(navigationInvocationId),
+      );
+      const documentChain = structuredClone(lifecycle.documentChain?.hops || []);
+      const settledDocumentOwner = await captureNavigationOwner("body");
+      const applicability = controlApplicability === "not-applicable"
+        ? "not-applicable"
+        : "required";
+      const settledControl = applicability === "not-applicable"
+        ? {
+            selector: null,
+            candidateCount: 0,
+            navigationEpoch: documentNavigationEpoch,
+            exists: false,
+            visible: false,
+          }
+        : await captureNavigationOwner(String(controlSelector || ""));
+      if (applicability === "required" &&
+          (settledControl.candidateCount !== 1 || settledControl.exists !== true ||
+           settledControl.visible !== (expectedControlVisible === true))) {
+        throw new Error(`initial settled control cardinality/visibility mismatch: ${caseId}`);
+      }
+      const sourceBeforeOwner = expectedControlVisible === true && applicability === "required"
+        ? settledControl
+        : settledDocumentOwner;
+      if (sourceBeforeOwner.candidateCount !== 1 || sourceBeforeOwner.visible !== true) {
+        throw new Error(`initial settled source owner is not exact-one visible: ${caseId}`);
+      }
+      const bootstrapApplicationFetchCount = networkEntries.filter(entry =>
+        entry.phase === "request-start" && entry.requestKind === "application-fetch").length;
+      const actionOwnedRequestCount = networkEntries.filter(entry =>
+        entry.phase === "request-start" && entry.requestOwnershipKind === "primary-action").length;
+      const actionOwnedNavigationCount = documentNavigationLedger.filter(entry =>
+        entry.navigationKind !== "initial-document-navigation").length;
+      if (actionOwnedRequestCount !== 0 || actionOwnedNavigationCount !== 0) {
+        throw new Error(`initial route settling observed action-owned work before attestation: ${caseId}`);
+      }
+      const frozenNavigation = buildNavigationEvidence({
+        requestedPath: navigationRequestedPath,
+        invocationId: String(navigationInvocationId),
+        response: navigationResponse,
+        ledger: documentChain,
+        scopedNetworkEntries: [],
+      });
+      initialRouteSettlingAttestation = {
+        schema: "media-server.v390-ui-initial-route-settling-attestation.v1",
+        caseId: String(caseId || ""),
+        invocationId: String(navigationInvocationId || ""),
+        requestedRoute: navigationRequestedPath,
+        observedRoute: urlTarget(page.url()),
+        status: Number(navigationResponse.status || 0),
+        redirectCount: documentChain.filter(entry => entry.redirected === true).length,
+        documentChain,
+        settledDocumentOwner,
+        settledControl,
+        sourceBeforeOwner,
+        bootstrapApplicationFetchCount,
+        bootstrapLedgerClosed: true,
+        actionLedgerStarted: false,
+        actionOwnedRequestCount,
+        actionOwnedNavigationCount,
+        navigation: frozenNavigation,
+      };
+      requestActionOwnershipRegistry.attest({
+        phase: "bootstrap-settling",
+        actionId: String(navigationInvocationId || `${caseId}:initial-navigation`),
+        ownershipMode: "initial-page-load-ended-and-attested",
+      });
+      return structuredClone(initialRouteSettlingAttestation);
+    },
+    beginActionNavigationLedger: async ({
+      actionId = "",
+      correlationId = "",
+      sourceRoute = "",
+      sourceSelector = "body",
+      expectedSourceVisible = true,
+    } = {}) => {
+      if (!initialRouteSettlingAttestation?.bootstrapLedgerClosed) {
+        throw new Error(`action ledger started before initial route settling: ${caseId}`);
+      }
+      if (actionLedgerStart) {
+        throw new Error(`duplicate action ledger start: ${caseId}`);
+      }
+      const expectedRoute = urlTarget(new URL(sourceRoute, `${httpBase}/`).toString());
+      if (!expectedRoute || urlTarget(page.url()) !== expectedRoute) {
+        throw new Error(`action ledger source route mismatch: ${caseId}`);
+      }
+      const controlOwner = await captureNavigationOwner(String(sourceSelector || "body"));
+      if (controlOwner.candidateCount !== 1 || controlOwner.exists !== true ||
+          controlOwner.visible !== (expectedSourceVisible === true)) {
+        throw new Error(`action ledger source control cardinality/visibility mismatch: ${caseId}`);
+      }
+      const sourceBeforeOwner = expectedSourceVisible === true
+        ? controlOwner
+        : await captureNavigationOwner("body");
+      if (sourceBeforeOwner.candidateCount !== 1 || sourceBeforeOwner.visible !== true) {
+        throw new Error(`action ledger source-before owner is not exact-one visible: ${caseId}`);
+      }
+      const navigationCheckpoint = {
+        schema: "media-server.v390-ui-request-navigation-checkpoint.v1",
+        ownerLifecycleCount: navigationOwnerLifecycles.length,
+        documentNavigationCount: documentNavigationLedger.length,
+        navigationEpoch: documentNavigationEpoch,
+      };
+      const caseRequestSequenceFloor = networkEntries.reduce((maximum, entry) =>
+        Math.max(maximum, Number(entry?.caseRequestSequence || 0)), 0);
+      actionLedgerStart = {
+        schema: "media-server.v390-ui-action-ledger-start.v1",
+        caseId: String(caseId || ""),
+        actionId: String(actionId || ""),
+        correlationId: String(correlationId || ""),
+        sourceRoute: expectedRoute,
+        sourceControl: controlOwner,
+        sourceBeforeOwner,
+        navigationEpoch: documentNavigationEpoch,
+        caseRequestSequenceFloor,
+        networkEntryCount: networkEntries.length,
+        navigationCheckpoint,
+      };
+      requestActionOwnershipRegistry.attest({
+        phase: "source-before-frozen",
+        actionId: String(actionId || ""),
+        ownershipMode: "exact-one-visible-source-owner-frozen",
+      });
+      initialRouteSettlingAttestation.actionLedgerStarted = true;
+      return structuredClone(actionLedgerStart);
+    },
+    requestNavigationCheckpoint: () => ({
+      schema: "media-server.v390-ui-request-navigation-checkpoint.v1",
+      ownerLifecycleCount: navigationOwnerLifecycles.length,
+      documentNavigationCount: documentNavigationLedger.length,
+      navigationEpoch: documentNavigationEpoch,
+    }),
+    requestNavigationScope: checkpoint => {
+      if (checkpoint?.schema !== "media-server.v390-ui-request-navigation-checkpoint.v1") {
+        throw new Error("request navigation checkpoint schema mismatch");
+      }
+      const ownerLifecycleCount = Number(checkpoint.ownerLifecycleCount);
+      const documentNavigationCount = Number(checkpoint.documentNavigationCount);
+      const startEpoch = Number(checkpoint.navigationEpoch);
+      if (![ownerLifecycleCount, documentNavigationCount, startEpoch]
+          .every(value => Number.isInteger(value) && value >= 0) ||
+          ownerLifecycleCount > navigationOwnerLifecycles.length ||
+          documentNavigationCount > documentNavigationLedger.length ||
+          startEpoch > documentNavigationEpoch) {
+        throw new Error("request navigation checkpoint bounds mismatch");
+      }
+      return {
+        schema: "media-server.v390-ui-request-navigation-scope.v1",
+        startEpoch,
+        endEpoch: documentNavigationEpoch,
+        ownerLifecycles: structuredClone(
+          navigationOwnerLifecycles.slice(ownerLifecycleCount),
+        ),
+        documentNavigations: structuredClone(
+          documentNavigationLedger.slice(documentNavigationCount)
+            .map(projectDocumentNavigationEntry),
+        ),
+      };
+    },
+    waitForSelector: async (selector, options = {}) => {
+      return revealClosedDetailsForSelector(page, selector, {
+        state: options.state || "visible",
+        timeout: options.timeout || timeoutMs,
+      });
+    },
+    navigate: async (nextPagePath, {
+      invocationId = "",
+      kind = "explicit-navigation",
+      lifecycleScope = "operation",
+    } = {}) => {
+      const ledgerStart = documentNavigationLedger.length;
+      const networkStart = networkEntries.length;
+      const response = await performNavigation(nextPagePath, {
+        invocationId,
+        kind,
+        allowCorrelation: false,
+      });
+      const observedInvocationId = response.invocationId;
+      return buildNavigationEvidence({
+        requestedPath: urlTarget(new URL(nextPagePath, `${httpBase}/`).toString()),
+        invocationId: observedInvocationId,
+        response,
+        ledger: lifecycleScope === "case" ? documentNavigationLedger : documentNavigationLedger.slice(ledgerStart),
+        scopedNetworkEntries: networkEntries.slice(networkStart),
+      });
+    },
+    setCorrelationId: async (
+      correlationId,
+      { inject = true, actionId = "", ownershipKind = "" } = {},
+    ) => {
+      if (actionId || ownershipKind) {
+        throw new Error("request action ownership requires explicit begin/end scope");
+      }
+      activeCorrelationId = String(correlationId || "");
+      activeCorrelationInjectionEnabled = Boolean(activeCorrelationId) && inject === true;
+    },
+    beginRequestActionOwnership: async ({
+      phase = "",
+      actionId = "",
+      correlationId = "",
+      ownershipKind = "",
+      renderCycleId = "",
+      actionRequestEnvelope = null,
+      actionRequestEnvelopes = null,
+      actionRequestKind = "application-fetch",
+    } = {}) => {
+      if (actionRequestEnvelope && actionRequestEnvelopes !== null) {
+        throw new Error("request action ownership envelope modes are mutually exclusive");
+      }
+      if (actionRequestEnvelopes !== null &&
+          (!Array.isArray(actionRequestEnvelopes) || actionRequestEnvelopes.length === 0)) {
+        throw new Error("request action ownership envelope sequence is empty or invalid");
+      }
+      const context = requestActionOwnershipRegistry.begin({
+        caseId,
+        phase,
+        actionId,
+        correlationId,
+        ownershipKind,
+        renderCycleId,
+      });
+      activeActionLifecycleInvocation = requestLifecycleLedger.beginInvocation("action", {
+        invocationId: buildNativeRequestLifecycleInvocationId(context),
+        phase: String(context.phase || "primary-action"),
+      });
+      actionLifecycleInvocationByContext.set(context, activeActionLifecycleInvocation);
+      activeRequestOwnership = context;
+      activeRequestRenderCycleId = String(renderCycleId || "");
+      activeActionRequestLedgers = [];
+      activeActionScopeNetworkStart = networkEntries.length;
+      activeCorrelationId = String(correlationId || "");
+      activeCorrelationInjectionEnabled = Boolean(activeCorrelationId);
+      const requestEnvelopes = actionRequestEnvelopes ||
+        (actionRequestEnvelope ? [actionRequestEnvelope] : []);
+      for (const envelope of requestEnvelopes) {
+        createEnvelopeWrapper(context, envelope, {
+          requestKind: actionRequestKind,
+          registrationKind: requestEnvelopes.length > 1
+            ? "manifest-envelope-sequence"
+            : "manifest-envelope",
+        });
+      }
+      return activeRequestOwnership;
+    },
+    registerRequestActionEnvelope: (actionContext, requestEnvelope, {
+      requestKind = "application-fetch",
+      registrationKind = "runtime-materialized-envelope",
+    } = {}) => {
+      requestActionOwnershipRegistry.validate(actionContext, {
+        caseId,
+        actionId: String(actionContext?.actionId || ""),
+        phase: String(actionContext?.phase || ""),
+      });
+      if (actionContext !== activeRequestOwnership) {
+        throw new Error("request action envelope context is not active");
+      }
+      return createEnvelopeWrapper(actionContext, requestEnvelope, {
+        requestKind,
+        registrationKind,
+      }).ledger.envelope;
+    },
+    waitForRequestActionResponses: async actionContext => {
+      requestActionOwnershipRegistry.validate(actionContext, {
+        caseId,
+        actionId: String(actionContext?.actionId || ""),
+        phase: String(actionContext?.phase || ""),
+      });
+      if (actionContext !== activeRequestOwnership) {
+        throw new Error("request action response context is not active");
+      }
+      if (activeActionRequestLedgers.length === 0) {
+        throw new Error("request action response envelope is missing");
+      }
+      const barriers = [];
+      for (const wrapper of activeActionRequestLedgers) {
+        barriers.push(await wrapper.waitForExpectedResponse(timeoutMs));
+      }
+      return barriers;
+    },
+    validateRequestActionOwnership: (context, expected = {}) =>
+      requestActionOwnershipRegistry.validate(context, {
+        caseId,
+        actionId: expected.actionId,
+        phase: expected.phase,
+      }),
+    endRequestActionOwnership: async context => {
+      let evidence;
+      let envelopeLedgers;
+      try {
+        for (const wrapper of activeActionRequestLedgers) {
+          const barrier = wrapper.responseBarrier.evidence();
+          if (barrier.settled !== true || barrier.settlement !== "resolved" ||
+              barrier.responseCount !== barrier.expectedResponseCount) {
+            throw new Error(
+              `action response completion barrier is not resolved: ` +
+              `${barrier.responseCount}/${barrier.expectedResponseCount}`,
+            );
+          }
+        }
+        evidence = requestActionOwnershipRegistry.end(context);
+        envelopeLedgers = activeActionRequestLedgers.map(wrapper => {
+          const ledgerEvidence = wrapper.ledger.close();
+          wrapper.closed = true;
+          const responseBarrier = wrapper.responseBarrier.evidence();
+          if (responseBarrier.pass !== true) {
+            throw new Error("action response completion barrier cleanup is incomplete");
+          }
+          return { ...ledgerEvidence, responseBarrier };
+        });
+      } catch (error) {
+        for (const wrapper of activeActionRequestLedgers) {
+          wrapper.abort(error);
+          wrapper.closed = true;
+        }
+        requestActionOwnershipRegistry.cleanup({ failure: error });
+        if (activeActionLifecycleInvocation) {
+          requestLifecycleLedger.endInvocation(activeActionLifecycleInvocation);
+          activeActionLifecycleInvocation = null;
+        }
+        activeRequestOwnership = null;
+        activeRequestRenderCycleId = "";
+        activeActionRequestLedgers = [];
+        activeCorrelationId = "";
+        activeCorrelationInjectionEnabled = false;
+        throw error;
+      }
+      const scopedEntries = networkEntries.slice(activeActionScopeNetworkStart);
+      const correlationLeakEvidence = assertZeroActionCorrelationLeaks(scopedEntries, {
+        actionId: context.actionId,
+        correlationId: context.correlationId,
+      });
+      completedActionRequestLedgers.push({
+        schema: "media-server.v390-ui-action-request-scope-ledgers.v1",
+        scopeSequence: context.scopeSequence,
+        caseId,
+        phase: context.phase,
+        actionId: context.actionId,
+        actionOwnedRequestLedgers: envelopeLedgers,
+        pageOwnedRequestLedger: scopedEntries.filter(entry => entry.ledgerOwner === "page")
+          .map(entry => ({ ...entry })),
+        actionCorrelationLeakCount:
+          correlationLeakEvidence.actionCorrelationLeakCount,
+      });
+      if (activeActionLifecycleInvocation) {
+        requestLifecycleLedger.endInvocation(activeActionLifecycleInvocation);
+        activeActionLifecycleInvocation = null;
+      }
+      activeRequestOwnership = null;
+      activeRequestRenderCycleId = "";
+      activeActionRequestLedgers = [];
+      activeCorrelationId = "";
+      activeCorrelationInjectionEnabled = false;
+      return { ...evidence, envelopeLedgers, correlationLeakEvidence };
+    },
+    attestRequestActionOwnershipPhase: input =>
+      requestActionOwnershipRegistry.attest(input),
+    requestActionOwnershipEvidence: () =>
+      requestActionOwnershipRegistry.evidence(),
+    actionRequestLedgerEvidence: () =>
+      structuredClone(completedActionRequestLedgers),
+    pageOwnedRequestLedger: () =>
+      structuredClone(networkEntries.filter(entry => entry.ledgerOwner === "page")),
+    cleanupRequestActionOwnership: failure => {
+      const evidence = requestActionOwnershipRegistry.cleanup({ failure });
+      for (const wrapper of activeActionRequestLedgers) {
+        wrapper.abort(failure || new Error("request action ownership cleanup"));
+        wrapper.closed = true;
+      }
+      if (activeActionLifecycleInvocation) {
+        requestLifecycleLedger.endInvocation(activeActionLifecycleInvocation);
+        activeActionLifecycleInvocation = null;
+      }
+      activeRequestOwnership = null;
+      activeRequestRenderCycleId = "";
+      activeActionRequestLedgers = [];
+      activeExplicitCorrelationRegistration = null;
+      activeCorrelationId = "";
+      activeCorrelationInjectionEnabled = false;
+      return evidence;
+    },
+    clickWithRequestOwnership: async ({
+      actionContext = null,
+      selector,
+      actionId,
+      correlationId,
+      renderCycleId,
+      targetMethod = "GET",
+      targetPath,
+      renderSelector = "",
+      expectedRenderPhase = "dom-committed",
+      minimumObservationMs = 500,
+      quietMs = 200,
+    } = {}) => {
+      const ownedActionId = String(actionId || "");
+      const ownedCorrelationId = String(correlationId || "");
+      const ownedRenderCycleId = String(renderCycleId || "");
+      const expectedMethod = String(targetMethod || "GET").toUpperCase();
+      const expectedPath = urlTarget(String(targetPath || ""));
+      if (!ownedActionId || !ownedCorrelationId || !ownedRenderCycleId || !expectedPath) {
+        throw new Error("owned request action/correlation/render-cycle binding is incomplete");
+      }
+      requestActionOwnershipRegistry.validate(actionContext, {
+        caseId,
+        actionId: ownedActionId,
+        phase: String(actionContext?.phase || ""),
+      });
+      if (ownedCorrelationId !== String(actionContext.correlationId || "")) {
+        throw new Error("owned request action correlation does not match its explicit context");
+      }
+      if (actionContext.ownershipKind !== "case-owned-refresh-action") {
+        throw new Error("owned render-cycle context kind must be case-owned-refresh-action");
+      }
+      if (!findAvailableEnvelope({
+        method: expectedMethod,
+        target: expectedPath,
+        requestKind: "application-fetch",
+      })) {
+        createEnvelopeWrapper(actionContext, {
+          method: expectedMethod,
+          urlPath: expectedPath,
+          allowedStatuses: [200],
+          correlationId: ownedCorrelationId,
+          correlationSource: "request-header",
+          initiatorActionId: ownedActionId,
+          requestOwnershipKind: actionContext.phase,
+        }, {
+          requestKind: "application-fetch",
+          registrationKind: "owned-render-cycle",
+        });
+      }
+      if (activeRequestRenderCycleId &&
+          activeRequestRenderCycleId !== ownedRenderCycleId) {
+        throw new Error("nested request render-cycle ownership is forbidden");
+      }
+      const scopedRenderCycleId = activeRequestRenderCycleId;
+      const networkStart = networkEntries.length;
+      const actionStartedAtMs = Date.now();
+      const renderOwnerLocator = renderSelector
+        ? page.locator(String(renderSelector)).first()
+        : null;
+      if (renderOwnerLocator) {
+        await renderOwnerLocator.waitFor({ state: "attached", timeout: timeoutMs });
+        await renderOwnerLocator.evaluate((owner, {
+          ownedActionId: browserActionId,
+          ownedRenderCycleId: browserCycleId,
+        }) => {
+          const previous = globalThis.__mediaServerDiagnosticOwnedRenderCycle;
+          if (previous?.observer && typeof previous.observer.disconnect === "function") {
+            previous.observer.disconnect();
+          }
+          const tracker = {
+            actionId: browserActionId,
+            renderCycleId: browserCycleId,
+            startedAtMs: Date.now(),
+            phaseMutationCount: 0,
+            domMutationCount: 0,
+            initialPhase: String(owner.getAttribute("data-incident-render-phase") || ""),
+            finalPhase: "",
+            completedAtMs: 0,
+            observer: null,
+          };
+          tracker.observer = new MutationObserver(records => {
+            for (const record of records) {
+              if (record.type === "attributes" && record.attributeName === "data-incident-render-phase") {
+                tracker.phaseMutationCount += 1;
+              }
+              if (record.type === "childList") tracker.domMutationCount += 1;
+            }
+          });
+          tracker.observer.observe(owner, {
+            attributes: true,
+            attributeFilter: ["data-incident-render-phase"],
+            childList: true,
+            subtree: true,
+          });
+          globalThis.__mediaServerDiagnosticOwnedRenderCycle = tracker;
+        }, {
+          ownedActionId,
+          ownedRenderCycleId,
+        });
+      }
+      activeRequestRenderCycleId = ownedRenderCycleId;
+      try {
+        await page.locator(String(selector || "")).first().click();
+        const quietDeadline = Date.now() + timeoutMs;
+        let lastEntryCount = networkEntries.length;
+        let quietStartedAt = Date.now();
+        let quietObserved = false;
+        while (Date.now() < quietDeadline) {
+          const currentEntryCount = networkEntries.length;
+          if (currentEntryCount !== lastEntryCount) {
+            lastEntryCount = currentEntryCount;
+            quietStartedAt = Date.now();
+          }
+          const actionPending = [...pendingRequests.values()].some(item =>
+            item.initiatorActionId === ownedActionId &&
+            item.renderCycleId === ownedRenderCycleId);
+          if (Date.now() - actionStartedAtMs >= minimumObservationMs &&
+              !actionPending && pendingSafeResponseReads.size === 0 &&
+              Date.now() - quietStartedAt >= quietMs) {
+            quietObserved = true;
+            break;
+          }
+          await page.waitForTimeout(25);
+        }
+        if (!quietObserved) {
+          throw new Error(`owned request action network quiet timeout: ${ownedActionId}`);
+        }
+        if (safeResponseReadFailures.length > 0) {
+          throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
+        }
+        if (renderOwnerLocator) {
+          const phaseDeadline = Date.now() + timeoutMs;
+          let expectedPhaseObserved = false;
+          while (Date.now() < phaseDeadline) {
+            if (await renderOwnerLocator.getAttribute("data-incident-render-phase") === expectedRenderPhase) {
+              expectedPhaseObserved = true;
+              break;
+            }
+            await page.waitForTimeout(25);
+          }
+          if (!expectedPhaseObserved) {
+            throw new Error(`owned render phase timeout: ${expectedRenderPhase}`);
+          }
+        }
+        const scopedEntries = networkEntries.slice(networkStart);
+        const requests = scopedEntries.filter(entry =>
+          entry.phase === "request-start" &&
+          entry.method === expectedMethod &&
+          urlTarget(entry.url) === expectedPath &&
+          entry.initiatorActionId === ownedActionId &&
+          entry.renderCycleId === ownedRenderCycleId);
+        const responses = scopedEntries.filter(entry =>
+          entry.phase === "response" &&
+          entry.method === expectedMethod &&
+          urlTarget(entry.url) === expectedPath &&
+          entry.initiatorActionId === ownedActionId &&
+          entry.renderCycleId === ownedRenderCycleId);
+        const request = requests.length === 1 ? requests[0] : null;
+        const response = responses.length === 1 ? responses[0] : null;
+        const identityMatched = Boolean(request && response &&
+          response.responseRequestObjectObserved === true &&
+          response.requestIdentitySource === "playwright-response-request" &&
+          response.requestId === request.requestId &&
+          response.caseRequestIdentity === request.caseRequestIdentity &&
+          response.caseRequestSequence === request.caseRequestSequence);
+        const renderObservation = renderOwnerLocator
+          ? await renderOwnerLocator.evaluate((owner, browserExpectedPhase) => {
+              const tracker = globalThis.__mediaServerDiagnosticOwnedRenderCycle || {};
+              tracker.observer?.disconnect?.();
+              tracker.finalPhase = String(owner.getAttribute("data-incident-render-phase") || "");
+              tracker.completedAtMs = Date.now();
+              const safe = {
+                actionId: String(tracker.actionId || ""),
+                renderCycleId: String(tracker.renderCycleId || ""),
+                startedAtMs: Number(tracker.startedAtMs || 0),
+                completedAtMs: Number(tracker.completedAtMs || 0),
+                initialPhase: String(tracker.initialPhase || ""),
+                finalPhase: String(tracker.finalPhase || ""),
+                phaseMutationCount: Number(tracker.phaseMutationCount || 0),
+                domMutationCount: Number(tracker.domMutationCount || 0),
+                expectedPhaseMatched: tracker.finalPhase === browserExpectedPhase,
+              };
+              globalThis.__mediaServerDiagnosticOwnedRenderCycle = safe;
+              return safe;
+            }, expectedRenderPhase)
+          : null;
+        const result = {
+          schema: "media-server.v390-ui-owned-request-render-cycle.v1",
+          actionId: ownedActionId,
+          renderCycleId: ownedRenderCycleId,
+          correlationDigest: createHash("sha256").update(ownedCorrelationId).digest("hex"),
+          method: expectedMethod,
+          path: expectedPath,
+          requestCandidateCount: requests.length,
+          responseCandidateCount: responses.length,
+          requestIdentityDigest: request?.caseRequestIdentity
+            ? createHash("sha256").update(String(request.caseRequestIdentity)).digest("hex")
+            : "",
+          requestSequence: Number.isInteger(request?.caseRequestSequence)
+            ? request.caseRequestSequence
+            : 0,
+          requestStartedAtMs: Number(request?.requestStartedAtMs || 0),
+          responseObservedAtMs: Number(response?.responseObservedAtMs || 0),
+          status: Number(response?.status || 0),
+          responseRequestObjectObserved: response?.responseRequestObjectObserved === true,
+          identityMatched,
+          correlationRouteState: String(request?.correlationRouteState || ""),
+          correlationRouteActionId: String(request?.correlationRouteActionId || ""),
+          correlationRouteDigest: String(request?.correlationRouteDigest || ""),
+          renderObservation,
+          safeResponseProjectionSource: String(response?.safeResponseProjectionSource || ""),
+          safeResponseProjectionKind: String(response?.safeResponseProjectionKind || ""),
+          safeResponseForbiddenMaterialObserved:
+            response?.safeResponseForbiddenMaterialObserved === true,
+          safeResponseBody: response?.safeResponseBody
+            ? structuredClone(response.safeResponseBody)
+            : null,
+        };
+        Object.defineProperty(result, "networkEntries", {
+          value: scopedEntries.map(entry => ({ ...entry })),
+          enumerable: false,
+        });
+        return result;
+      } finally {
+        activeRequestRenderCycleId = scopedRenderCycleId;
+        if (renderSelector) {
+          await page.evaluate(() => {
+            globalThis.__mediaServerDiagnosticOwnedRenderCycle?.observer?.disconnect?.();
+          }).catch(() => {});
+        }
+      }
+    },
+    armDiagnosticMarkerProbe: ({
+      caseId: probeCaseId,
+      marker,
+      method = "GET",
+      urlPath: probePath,
+      ownedNoisePrefix = "",
+    } = {}) => {
+      if (probeCaseId !== "EVT-004") {
+        throw new Error("diagnostic marker response probe is limited to EVT-004");
+      }
+      if (diagnosticMarkerProbe?.armed) {
+        throw new Error("diagnostic marker response probe was armed more than once");
+      }
+      diagnosticMarkerProbe = {
+        armed: true,
+        caseId: probeCaseId,
+        marker: String(marker || ""),
+        method: String(method || "").toUpperCase(),
+        urlPath: urlTarget(probePath),
+        ownedNoisePrefix: String(ownedNoisePrefix || ""),
+        captures: [],
+        readFailureCount: 0,
+      };
+    },
+    diagnosticMarkerProbeEvidence: async () => {
+      await Promise.all([...pendingSafeResponseReads]);
+      if (!diagnosticMarkerProbe?.armed) {
+        return buildDiagnosticMarkerResponseStageEvidence({});
+      }
+      return buildDiagnosticMarkerResponseStageEvidence(diagnosticMarkerProbe);
+    },
+    replaceStorageState: async (storageStatePath = "") => {
+      await context.clearCookies();
+      if (!storageStatePath) return;
+      const state = JSON.parse(fs.readFileSync(storageStatePath, "utf8"));
+      if (Array.isArray(state.cookies) && state.cookies.length > 0) {
+        await context.addCookies(state.cookies);
+      }
+      for (const origin of Array.isArray(state.origins) ? state.origins : []) {
+        if (!origin?.origin || !Array.isArray(origin.localStorage)) continue;
+        await page.goto(origin.origin, { waitUntil: "load", timeout: timeoutMs });
+        await page.evaluate(entries => {
+          for (const entry of entries) localStorage.setItem(entry.name, entry.value);
+        }, origin.localStorage);
+      }
+    },
+    request: async ({
+      actionContext = null,
+      method = "GET",
+      urlPath,
+      body = null,
+      allowedStatuses = [200],
+      actionId = "",
+      correlationId = "",
+      renderCycleId = "",
+      ownershipKind = "diagnostic-authoritative-readback",
+    }) => {
+      const requestMethod = String(method).toUpperCase();
+      const requestPath = String(urlPath);
+      const expectedPath = urlTarget(requestPath);
+      const networkStart = networkEntries.length;
+      const routeFailureStart = correlationRouteFailures.length;
+      const startedAt = Date.now();
+      const explicitCorrelationId = String(correlationId || "");
+      const ownedActionId = String(actionId || "");
+      requestActionOwnershipRegistry.validate(actionContext, {
+        caseId,
+        actionId: ownedActionId,
+        phase: String(actionContext?.phase || ""),
+      });
+      if (explicitCorrelationId !== String(actionContext.correlationId || "")) {
+        throw new Error("request correlation does not match its explicit action context");
+      }
+      if (explicitCorrelationId && !ownedActionId) {
+        throw new Error("explicit request correlation requires an action ID");
+      }
+      if (explicitCorrelationId && activeExplicitCorrelationRegistration) {
+        throw new Error("nested explicit correlation registration is forbidden");
+      }
+      let ledgerWrapper = findAvailableEnvelope({
+        method: requestMethod,
+        target: expectedPath,
+        requestKind: "application-fetch",
+      });
+      if (!ledgerWrapper) {
+        ledgerWrapper = createEnvelopeWrapper(actionContext, {
+          method: requestMethod,
+          urlPath: expectedPath,
+          allowedStatuses,
+          correlationId: explicitCorrelationId,
+          correlationSource: explicitCorrelationId ? "request-header" : "none",
+          initiatorActionId: ownedActionId,
+          requestOwnershipKind: ownershipKind,
+        }, {
+          requestKind: "application-fetch",
+          registrationKind: "explicit-inner-request",
+        });
+      }
+      const explicitRegistration = explicitCorrelationId
+        ? {
+            active: true,
+            scopeSequence: ++explicitCorrelationScopeSequence,
+            caseId: String(caseId || ""),
+            actionId: ownedActionId,
+            correlationId: explicitCorrelationId,
+            outerCorrelationId: String(activeCorrelationId || ""),
+            ledgerWrapper,
+          }
+        : null;
+      activeExplicitCorrelationRegistration = explicitRegistration;
+      let response;
+      try {
+        response = await evaluateRegisteredBrowserCallback(page, "adapter.request", {
+          requestMethod,
+          requestPath,
+          requestCorrelationId: explicitCorrelationId,
+          requestBody: body,
+        });
+      } catch (error) {
+        const routeFailure = correlationRouteFailures.slice(routeFailureStart)
+          .find(item => item.actionId === ownedActionId) || null;
+        if (routeFailure) {
+          const failure = new Error(
+            `request correlation route rejected: ${routeFailure.failureCode}`,
+          );
+          failure.failureCode = routeFailure.failureCode;
+          throw failure;
+        }
+        throw error;
+      } finally {
+        if (explicitRegistration) explicitRegistration.active = false;
+        activeExplicitCorrelationRegistration = null;
+      }
+      const deadline = Date.now() + Math.min(timeoutMs, 1000);
+      let ledgerSettled = false;
+      while (Date.now() <= deadline) {
+        const window = networkEntries.slice(networkStart);
+        const requests = window.filter(entry =>
+          entry.phase === "request-start" &&
+          entry.method === requestMethod &&
+          urlTarget(entry.url) === expectedPath);
+        const responses = window.filter(entry =>
+          entry.phase === "response" &&
+          entry.method === requestMethod &&
+          urlTarget(entry.url) === expectedPath);
+        if (requests.length > 0 && responses.length > 0) {
+          ledgerSettled = true;
+          break;
+        }
+        await page.waitForTimeout(10);
+      }
+      const requestEntry = networkEntries.slice(networkStart).find(entry =>
+        entry.phase === "request-start" &&
+        entry.method === requestMethod &&
+        urlTarget(entry.url) === expectedPath) || null;
+      return {
+        status: response.status,
+        url: response.url,
+        text: response.text,
+        json: response.json,
+        contentType: response.contentType,
+        actionId: String(actionId),
+        requestKind: "application-fetch",
+        requestAttemptCount: 1,
+        requestReissued: false,
+        listenerInstalledBeforeRequest: requestListenersInstalled,
+        ledgerSettled,
+        ledgerWaitMs: Date.now() - startedAt,
+        correlationRouteState: String(requestEntry?.correlationRouteState || ""),
+        correlationRouteActionId: String(requestEntry?.correlationRouteActionId || ""),
+        correlationRouteDigest: String(requestEntry?.correlationRouteDigest || ""),
+      };
+    },
+    requestListenersInstalled: () => requestListenersInstalled,
+    waitForNetworkQuiet: async ({ correlationId, minimumObservationMs = 750, quietMs = 250 } = {}) => {
+      const startedAt = Date.now();
+      const deadline = startedAt + timeoutMs;
+      const correlatedEntryCount = () => networkEntries.reduce((count, entry) =>
+        count + ((!correlationId || entry.correlationId === correlationId) ? 1 : 0), 0);
+      let lastEntryCount = correlatedEntryCount();
+      let quietStartedAt = Date.now();
+      while (Date.now() < deadline) {
+        const currentEntryCount = correlatedEntryCount();
+        if (currentEntryCount !== lastEntryCount) {
+          lastEntryCount = currentEntryCount;
+          quietStartedAt = Date.now();
+        }
+        const actionPending = [...pendingRequests.values()].some(item =>
+          !correlationId || item.correlationId === correlationId);
+        if (Date.now() - startedAt >= minimumObservationMs &&
+            !actionPending && pendingSafeResponseReads.size === 0 &&
+            Date.now() - quietStartedAt >= quietMs) {
+          if (safeResponseReadFailures.length > 0) {
+            throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
+          }
+          return {
+            correlationId: correlationId || "",
+            observedMs: Date.now() - startedAt,
+            entryCount: currentEntryCount,
+          };
+        }
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      throw new Error(`network quiet timeout for correlation ${correlationId || "(any)"}`);
+    },
+    waitForPendingRequestSnapshot: async ({
+      minimumObservationMs = 250,
+      unresolvedQuietMs = 25,
+    } = {}) => {
+      const startedAt = Date.now();
+      const deadline = startedAt + timeoutMs;
+      const capturedRequestIds = new Set();
+      let unresolvedQuietStartedAt = null;
+      while (Date.now() < deadline) {
+        for (const request of pendingRequests.values()) {
+          const requestId = String(request.requestId || "");
+          if (requestId) capturedRequestIds.add(requestId);
+        }
+        const pendingRequestIds = new Set([...pendingRequests.values()]
+          .map(request => String(request.requestId || ""))
+          .filter(Boolean));
+        const terminalRequestIds = new Set(networkEntries
+          .filter(entry => entry.phase === "response")
+          .map(entry => String(entry.requestId || ""))
+          .filter(Boolean));
+        const unresolvedRequestIds = [...capturedRequestIds].filter(requestId =>
+          pendingRequestIds.has(requestId) && !terminalRequestIds.has(requestId));
+        const observationComplete = Date.now() - startedAt >= minimumObservationMs;
+        if (observationComplete && unresolvedRequestIds.length === 0 &&
+            pendingSafeResponseReads.size === 0) {
+          unresolvedQuietStartedAt ??= Date.now();
+        } else {
+          unresolvedQuietStartedAt = null;
+        }
+        if (unresolvedQuietStartedAt !== null &&
+            Date.now() - unresolvedQuietStartedAt >= unresolvedQuietMs) {
+          if (safeResponseReadFailures.length > 0) {
+            throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
+          }
+          sealRequestCaptureBoundary();
+          return {
+            capturedRequestCount: capturedRequestIds.size,
+            unresolvedRequestCount: 0,
+            observedMs: Date.now() - startedAt,
+            unresolvedQuietMs: Date.now() - unresolvedQuietStartedAt,
+          };
+        }
+        await page.waitForTimeout(10);
+      }
+      throw new Error(
+        `pending request snapshot timeout: ${pendingRequests.size}`,
+      );
+    },
+    click: async (selector) => {
+      await revealClosedDetailsForSelector(page, selector, {
+        state: "visible",
+        timeout: timeoutMs,
+      });
+      await page.locator(selector).first().click();
+    },
+    clickDocumentNavigation: async (selector, {
+      invocationId = "",
+      kind = "local-link-document-navigation",
+    } = {}) => {
+      if (requestListenerEndSequence !== null) {
+        throw new Error(`document link activation attempted after listener end: ${selector}`);
+      }
+      const operation = {
+        invocationId: String(invocationId ||
+          `native-document-link-${++navigationOperationSequence}`),
+        kind: String(kind || "local-link-document-navigation"),
+        allowCorrelation: false,
+        documentLedgerStart: documentNavigationLedger.length,
+      };
+      const sourceOwner = {
+        ...(await captureNavigationOwner(selector)),
+        route: page.url(),
+      };
+      if (sourceOwner.candidateCount !== 1 || sourceOwner.visible !== true) {
+        throw new Error(`document link source-before owner is not visible: ${operation.invocationId}`);
+      }
+      operation.requestLifecycleInvocation = requestLifecycleLedger.beginInvocation(
+        "navigation",
+        { invocationId: operation.invocationId, phase: operation.kind },
+      );
+      activeNavigationOperation = operation;
+      try {
+        await page.locator(selector).first().click();
+        await page.waitForLoadState("load", { timeout: timeoutMs });
+        await captureNavigationOwnerLifecycle(operation, sourceOwner, selector);
+      } finally {
+        activeNavigationOperation = null;
+        requestLifecycleLedger.endInvocation(operation.requestLifecycleInvocation);
+      }
+    },
+    submitDocumentForm: async (selector, {
+      invocationId = "",
+    } = {}) => {
+      if (requestListenerEndSequence !== null) {
+        throw new Error(`document form submission attempted after listener end: ${selector}`);
+      }
+      const operation = {
+        invocationId: String(invocationId || `native-document-form-${++navigationOperationSequence}`),
+        kind: "form-submit-document-navigation",
+        allowCorrelation: false,
+        documentLedgerStart: documentNavigationLedger.length,
+      };
+      const sourceOwner = {
+        ...(await captureNavigationOwner(selector)),
+        route: page.url(),
+      };
+      if (sourceOwner.candidateCount !== 1 || sourceOwner.visible !== true) {
+        throw new Error(`document form source-before owner is not visible: ${operation.invocationId}`);
+      }
+      const documentEnvelopeWrappers = activeActionRequestLedgers.filter(wrapper =>
+        wrapper.closed !== true &&
+        wrapper.ledger.envelope.requestKind === "document-navigation");
+      if (documentEnvelopeWrappers.length !== 1) {
+        throw new Error(
+          `document form action envelope cardinality mismatch before submit: ` +
+          `${documentEnvelopeWrappers.length}/1`,
+        );
+      }
+      const documentEnvelopeWrapper = documentEnvelopeWrappers[0];
+      operation.actionId = String(documentEnvelopeWrapper.ledger.envelope.actionId || "");
+      if (documentEnvelopeWrapper.claimCount !== 0 ||
+          documentEnvelopeWrapper.responseCount !== 0 ||
+          documentEnvelopeWrapper.responseBarrier.evidence().settlement !== "pending") {
+        throw new Error("document form action envelope was not pristine before submit");
+      }
+      operation.requestLifecycleInvocation = requestLifecycleLedger.beginInvocation(
+        "navigation",
+        { invocationId: operation.invocationId, phase: operation.kind },
+      );
+      activeNavigationOperation = operation;
+      try {
+        await page.locator(selector).click();
+        const responseBarrier = await documentEnvelopeWrapper
+          .waitForExpectedResponse(timeoutMs);
+        await captureNavigationOwnerLifecycle(operation, sourceOwner, selector);
+        return {
+          invocationId: operation.invocationId,
+          responseBarrier,
+        };
+      } finally {
+        activeNavigationOperation = null;
+        requestLifecycleLedger.endInvocation(operation.requestLifecycleInvocation);
+      }
+    },
+    fill: async (selector, value) => {
+      await page.locator(selector).fill(String(value));
+    },
+    type: async (selector, value) => {
+      await page.locator(selector).pressSequentially(String(value));
+    },
+    select: async (selector, value) => {
+      await page.locator(selector).selectOption(String(value));
+    },
+    waitForText: async (selector, expected, waitTimeoutMs = timeoutMs) => {
+      await page.locator(selector).filter({ hasText: String(expected) }).waitFor({ state: "visible", timeout: waitTimeoutMs });
+      return page.locator(selector).innerText();
+    },
+    registerRuntimeSecret: value => {
+      if (typeof value === "string" && value) observedRuntimeSecrets.add(value);
+    },
+    captureInviteRuntimeSecret: async (selector = "#invite-create-output") => {
+      const captured = await page.evaluate(({ targetSelector, replacement }) => {
+        const target = document.querySelector(targetSelector);
+        const text = String(target?.textContent || "");
+        const tokenLineMatch = text.match(/(?:^|\n)\s*토큰:\s*([^\s]+)\s*(?:\n|$)/);
+        const setupUrlMatch = text.match(/\/invite\/setup\?token=([^\s]+)/);
+        let secret = String(tokenLineMatch?.[1] || "");
+        if (!secret && setupUrlMatch?.[1]) {
+          try {
+            secret = decodeURIComponent(setupUrlMatch[1]);
+          } catch {
+            secret = String(setupUrlMatch[1]);
+          }
+        }
+        if (!secret) return {
+          secret: "",
+          redactedNodes: 0,
+          targetExists: Boolean(target),
+          textPresent: text.length > 0,
+          tokenLinePresent: text.includes("토큰:"),
+          setupUrlPresent: text.includes("/invite/setup?token="),
+        };
+        const variants = [...new Set([secret, encodeURIComponent(secret)])].filter(Boolean);
+        const replaceSecrets = source => {
+          let next = String(source || "");
+          for (const value of variants) next = next.split(value).join(replacement);
+          return next;
+        };
+        let redactedNodes = 0;
+        const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const next = replaceSecrets(node.nodeValue);
+          if (next !== node.nodeValue) {
+            node.nodeValue = next;
+            redactedNodes += 1;
+          }
+        }
+        for (const element of document.querySelectorAll("*")) {
+          if ("value" in element && typeof element.value === "string") {
+            element.value = replaceSecrets(element.value);
+          }
+          for (const attribute of [...element.attributes]) {
+            const next = replaceSecrets(attribute.value);
+            if (next !== attribute.value) element.setAttribute(attribute.name, next);
+          }
+        }
+        return {
+          secret,
+          redactedNodes,
+          targetExists: true,
+          textPresent: true,
+          tokenLinePresent: Boolean(tokenLineMatch),
+          setupUrlPresent: Boolean(setupUrlMatch),
+        };
+      }, { targetSelector: selector, replacement: "[REDACTED-RUNTIME-SECRET]" });
+      if (!captured.secret) {
+        return {
+          captured: false,
+          redactedNodes: 0,
+          targetExists: captured.targetExists,
+          textPresent: captured.textPresent,
+          tokenLinePresent: captured.tokenLinePresent,
+          setupUrlPresent: captured.setupUrlPresent,
+        };
+      }
+      observedRuntimeSecrets.add(captured.secret);
+      if (typeof onRuntimeSecret !== "function") {
+        throw new Error("invite DOM runtime secret sink is unavailable");
+      }
+      onRuntimeSecret({ kind: "issued-invite-token", value: captured.secret });
+      captured.secret = "";
+      return {
+        captured: true,
+        redactedNodes: captured.redactedNodes,
+        targetExists: captured.targetExists,
+        textPresent: captured.textPresent,
+        tokenLinePresent: captured.tokenLinePresent,
+        setupUrlPresent: captured.setupUrlPresent,
+      };
+    },
+    cookieHeader: async () => (await context.cookies())
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join("; "),
+    redactObservedSecrets: async () => {
+      await Promise.all([...pendingSafeResponseReads]);
+      if (safeResponseReadFailures.length > 0) {
+        throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
+      }
+      const variants = secretVariants([...observedRuntimeSecrets]);
+      if (variants.length === 0) {
+        return {
+          schema: "media-server.v390-ui-runtime-secret-redaction.v1",
+          status: "PASS",
+          registeredSecrets: 0,
+          redactedTextNodes: 0,
+          redactedValues: 0,
+          redactedAttributes: 0,
+          residualSecrets: 0,
+        };
+      }
+      const redactDomPass = () => page.evaluate(({ secretVariants: values, replacement }) => {
+        const replaceSecrets = source => {
+          let next = String(source || "");
+          for (const value of values) next = next.split(value).join(replacement);
+          return next;
+        };
+        let redactedTextNodes = 0;
+        let redactedValues = 0;
+        let redactedAttributes = 0;
+        const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const next = replaceSecrets(node.nodeValue);
+          if (next !== node.nodeValue) {
+            node.nodeValue = next;
+            redactedTextNodes += 1;
+          }
+        }
+        for (const element of document.querySelectorAll("input,textarea,select,option")) {
+          if (!("value" in element)) continue;
+          const next = replaceSecrets(element.value);
+          if (next !== element.value) {
+            element.value = next;
+            redactedValues += 1;
+          }
+        }
+        for (const element of document.querySelectorAll("*")) {
+          for (const attribute of [...element.attributes]) {
+            const next = replaceSecrets(attribute.value);
+            if (next !== attribute.value) {
+              element.setAttribute(attribute.name, next);
+              redactedAttributes += 1;
+            }
+          }
+        }
+        const serialized = document.documentElement.outerHTML;
+        const residualSecrets = values.filter(value => serialized.includes(value)).length;
+        return { redactedTextNodes, redactedValues, redactedAttributes, residualSecrets };
+      }, { secretVariants: variants, replacement: "[REDACTED-RUNTIME-SECRET]" });
+      const result = {
+        redactedTextNodes: 0,
+        redactedValues: 0,
+        redactedAttributes: 0,
+        residualSecrets: 0,
+      };
+      for (let pass = 0; pass < 5; pass += 1) {
+        const observed = await redactDomPass();
+        result.redactedTextNodes += observed.redactedTextNodes;
+        result.redactedValues += observed.redactedValues;
+        result.redactedAttributes += observed.redactedAttributes;
+        result.residualSecrets = observed.residualSecrets;
+        if (pass < 4) await page.waitForTimeout(50);
+      }
+      if (result.residualSecrets !== 0) {
+        throw new Error("runtime secret remained in the evidence DOM after redaction");
+      }
+      return {
+        schema: "media-server.v390-ui-runtime-secret-redaction.v1",
+        status: "PASS",
+        registeredSecrets: observedRuntimeSecrets.size,
+        ...result,
+      };
+    },
+    snapshot: async (selector) => {
+      const selectorValue = String(selector || "");
+      const locator = page.locator(selectorValue).first();
+      const candidateCount = selectorValue.length > 0
+        ? await page.locator(selectorValue).count()
+        : 0;
+      const exists = candidateCount === 1;
+      const observed = exists
+        ? await locator.evaluate((element, { ownedSelector, documentEpoch }) => {
+            const rect = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            return {
+              selector: ownedSelector,
+              candidateCount: 1,
+              navigationEpoch: documentEpoch,
+              exists: true,
+              visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== "none" && style.visibility !== "hidden"),
+              tag: String(element.tagName || "").toLowerCase(),
+              hidden: Boolean(element.hidden),
+              disabled: Boolean("disabled" in element && element.disabled),
+              readOnly: Boolean("readOnly" in element && element.readOnly),
+              open: Boolean("open" in element && element.open),
+              href: String(element.getAttribute?.("href") || ""),
+              title: String(element.getAttribute?.("title") || ""),
+              ariaLabel: String(element.getAttribute?.("aria-label") || ""),
+              ariaPressed: String(element.getAttribute?.("aria-pressed") || ""),
+              text: String(element.innerText || "").replace(/\s+/g, " ").trim().slice(0, 4000),
+              value: "value" in element ? String(element.value || "") : "",
+              checked: Boolean("checked" in element && element.checked),
+              selectedValues: element.tagName === "SELECT" ? Array.from(element.selectedOptions).map(option => String(option.value)) : [],
+              optionValues: element.tagName === "SELECT" ? Array.from(element.options).filter(option => !option.disabled).map(option => String(option.value)) : [],
+              url: location.href,
+            };
+          }, { ownedSelector: selectorValue, documentEpoch: documentNavigationEpoch })
+        : {
+            selector: selectorValue,
+            candidateCount,
+            navigationEpoch: documentNavigationEpoch,
+            exists: false,
+            visible: false,
+            tag: "",
+            hidden: false,
+            disabled: false,
+            readOnly: false,
+            open: false,
+            href: "",
+            title: "",
+            ariaLabel: "",
+            ariaPressed: "",
+            text: "",
+            value: "",
+            checked: false,
+            selectedValues: [],
+            optionValues: [],
+            url: page.url(),
+          };
+      return sanitizeEvidenceValue(observed, observedRuntimeSecrets);
+    },
+    observePostActionVisualContext: async () => {
+      const bodyLocator = page.locator("body");
+      const candidateCount = await bodyLocator.count();
+      const documentOwner = candidateCount === 1
+        ? await bodyLocator.evaluate((element, documentEpoch) => {
+            const rect = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            return {
+              selector: "body",
+              candidateCount: 1,
+              navigationEpoch: documentEpoch,
+              exists: true,
+              visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style &&
+                style.display !== "none" && style.visibility !== "hidden"),
+            };
+          }, documentNavigationEpoch)
+        : {
+            selector: "body",
+            candidateCount,
+            navigationEpoch: documentNavigationEpoch,
+            exists: false,
+            visible: false,
+          };
+      return {
+        schema: "media-server.v390-ui-post-action-visual-context.v1",
+        route: await page.evaluate(() => location.pathname),
+        navigationEpoch: documentNavigationEpoch,
+        documentOwner,
+      };
+    },
+    measureVisualState: async (selector = "body", {
+      caseBinding = null,
+      requestedTheme = colorScheme,
+      liveVideoSpec = null,
+      liveCorrelationId = "",
+      ownerBinding = null,
+    } = {}) => {
+      const targetSelector = String(selector);
+      const targetCandidates = page.locator(targetSelector);
+      const targetLocator = targetCandidates.first();
+      if (ownerBinding) {
+        if (ownerBinding.schema !== "media-server.v390-ui-post-action-visual-target.v1" ||
+            ownerBinding.selector !== targetSelector) {
+          throw new Error("post-action visual owner binding mismatch");
+        }
+        if (urlPath(page.url()) !== ownerBinding.observedRoute) {
+          throw new Error("post-action visual owner route changed before measurement");
+        }
+        if (documentNavigationEpoch !== Number(ownerBinding.navigationEpoch)) {
+          throw new Error("post-action visual owner navigation epoch changed before measurement");
+        }
+        const candidateCount = await targetCandidates.count();
+        if (candidateCount !== 1) {
+          throw new Error(`post-action visual owner selector cardinality mismatch: ${candidateCount}`);
+        }
+        const visible = await targetLocator.evaluate(element => {
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          return Boolean(rect && rect.width > 0 && rect.height > 0 && style &&
+            style.display !== "none" && style.visibility !== "hidden" &&
+            Number(style.opacity || 1) > 0);
+        });
+        if (!visible) throw new Error("post-action visual owner is not visible");
+      } else {
+        await targetLocator.waitFor({ state: "attached", timeout: timeoutMs });
+      }
+      const documentTarget = ["body", "html", ":root"].includes(targetSelector.trim());
+      if (!documentTarget && !liveVideoSpec?.tileSelector) {
+        await targetLocator.evaluate(element => element.scrollIntoView({
+          block: "center",
+          inline: "nearest",
+        }));
+      }
+      if (liveVideoSpec?.tileSelector) {
+        const liveTileLocator = page.locator(String(liveVideoSpec.tileSelector)).first();
+        await liveTileLocator.waitFor({ state: "attached", timeout: timeoutMs });
+        const [targetBox, liveTileBox] = await Promise.all([
+          targetLocator.boundingBox(),
+          liveTileLocator.boundingBox(),
+        ]);
+        const scrollDelta = visualEvidenceScrollDelta(targetBox, liveTileBox, height);
+        if (scrollDelta !== 0) await page.evaluate(delta => window.scrollBy(0, delta), scrollDelta);
+      }
+      const geometry = await targetLocator.evaluate(async (target, {
+        targetSelector: browserTargetSelector,
+        binding,
+        requestedThemeValue,
+        liveSpec,
+      }) => {
+        if (document.fonts?.ready) await document.fonts.ready;
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const stableDocumentTarget = ["body", "html", ":root"].includes(
+          String(browserTargetSelector || "").trim(),
+        );
+        if (!stableDocumentTarget && !liveSpec?.tileSelector) {
+          target.scrollIntoView({ block: "center", inline: "nearest" });
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        }
+        const rectValue = element => {
+          const rect = element?.getBoundingClientRect?.();
+          if (!rect) return null;
+          return { x: rect.x, y: rect.y, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
+        };
+        const intersectsViewport = rect => Boolean(rect && rect.right > 0 && rect.bottom > 0 &&
+          rect.left < innerWidth && rect.top < innerHeight);
+        const isVisible = element => {
+          const rect = element?.getBoundingClientRect?.();
+          const style = element ? getComputedStyle(element) : null;
+          return Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) > 0);
+        };
+        const effectiveBackground = element => {
+          const parseCssColorAlpha = value => {
+            const rgb = value.match(/^rgba?\(\s*[0-9.]+[, ]+[0-9.]+[, ]+[0-9.]+(?:\s*[,/]\s*([0-9.]+))?\s*\)$/i);
+            if (rgb) return value.startsWith("rgb(") ? 1 : Number(rgb[1] || 0);
+            const srgb = value.match(/^color\(\s*srgb\s+[0-9.]+\s+[0-9.]+\s+[0-9.]+(?:\s*\/\s*([0-9.]+))?\s*\)$/i);
+            if (srgb) return srgb[1] === undefined ? 1 : Number(srgb[1]);
+            return 0;
+          };
+          let current = element;
+          while (current) {
+            const value = getComputedStyle(current).backgroundColor;
+            const alpha = parseCssColorAlpha(value);
+            if (alpha >= 0.99) return value;
+            current = current.parentElement;
+          }
+          return document.documentElement.dataset.theme === "dark" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)";
+        };
+        const textOwners = [];
+        const textOwnerSet = new Set();
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode() && textOwners.length < 120) {
+          if (!String(walker.currentNode.nodeValue || "").trim()) continue;
+          const element = walker.currentNode.parentElement;
+          const rect = element?.getBoundingClientRect?.();
+          if (!element || textOwnerSet.has(element) || !isVisible(element) || !intersectsViewport(rect)) continue;
+          textOwnerSet.add(element);
+          textOwners.push(element);
+        }
+        const textSamples = textOwners.map(element => {
+          const style = getComputedStyle(element);
+          return { foreground: style.color, background: effectiveBackground(element), fontSizePx: Number.parseFloat(style.fontSize || "0"), fontWeight: style.fontWeight, rect: rectValue(element) };
+        });
+        const roleResponse = await fetch("/auth/whoami", { credentials: "same-origin", cache: "no-store" });
+        let accountRole = "";
+        if (roleResponse.status === 401) accountRole = "anonymous";
+        else if (roleResponse.ok) {
+          const principal = await roleResponse.json();
+          if (principal?.authenticated === false) accountRole = "anonymous";
+          else if (principal?.authenticated === true && typeof principal?.role === "string") accountRole = principal.role;
+        }
+        const sampleLive = () => {
+          if (!liveSpec) return null;
+          const tile = document.querySelector(liveSpec.tileSelector);
+          const stage = document.querySelector(liveSpec.stageSelector);
+          const video = document.querySelector(liveSpec.videoSelector);
+          const placeholder = document.querySelector(liveSpec.placeholderSelector);
+          const modeControls = document.querySelector(liveSpec.modeControlsSelector);
+          const mode = document.querySelector(liveSpec.modeSelector);
+          if (!tile) return null;
+          const tileIdentity = `tile-${String(tile.getAttribute("data-tile") || "")}:${String(tile.getAttribute("data-view-id") || "")}`;
+          const stageRect = rectValue(stage);
+          const videoRect = rectValue(video);
+          let contentRect = null;
+          if (videoRect && Number(video?.videoWidth || 0) > 0 && Number(video?.videoHeight || 0) > 0) {
+            const intrinsicRatio = Number(video.videoWidth) / Number(video.videoHeight);
+            const elementRatio = videoRect.width / videoRect.height;
+            const contentWidth = elementRatio > intrinsicRatio ? videoRect.height * intrinsicRatio : videoRect.width;
+            const contentHeight = elementRatio > intrinsicRatio ? videoRect.height : videoRect.width / intrinsicRatio;
+            const left = videoRect.left + (videoRect.width - contentWidth) / 2;
+            const top = videoRect.top + (videoRect.height - contentHeight) / 2;
+            contentRect = { left, top, right: left + contentWidth, bottom: top + contentHeight, width: contentWidth, height: contentHeight };
+          }
+          const playbackQuality = video?.getVideoPlaybackQuality?.();
+          return {
+            tileIdentity,
+            tile: { selector: liveSpec.tileSelector, identity: tileIdentity, viewId: String(tile.getAttribute("data-view-id") || ""), visible: isVisible(tile), rect: rectValue(tile) },
+            stage: { selector: liveSpec.stageSelector, tileIdentity, visible: isVisible(stage), rect: stageRect },
+            videoEvidence: { selector: liveSpec.videoSelector, tileIdentity, visible: isVisible(video), rect: videoRect },
+            placeholder: { selector: liveSpec.placeholderSelector, tileIdentity, hidden: Boolean(placeholder?.hidden || !isVisible(placeholder)) },
+            modeControls: { selector: liveSpec.modeControlsSelector, tileIdentity, visible: isVisible(modeControls) },
+            mode: { selector: liveSpec.modeSelector, tileIdentity, active: Boolean(mode && mode.getAttribute("aria-pressed") === "true"), value: String(mode?.getAttribute("data-mode-action") || "") },
+            playback: {
+              tileIdentity,
+              srcObject: Boolean(video?.srcObject),
+              liveVideoTracks: Number(video?.srcObject?.getVideoTracks?.().filter(track => track.readyState === "live").length || 0),
+              readyState: Number(video?.readyState || 0),
+              videoWidth: Number(video?.videoWidth || 0),
+              videoHeight: Number(video?.videoHeight || 0),
+              currentTime: Number(video?.currentTime || 0),
+              presentedFrames: Number(playbackQuality?.totalVideoFrames || 0),
+            },
+            rendering: { tileIdentity, objectFit: String(video ? getComputedStyle(video).objectFit : ""), stageRect, contentRect },
+            controls: (liveSpec.controlSelectors || []).map(controlSelector => {
+              const control = document.querySelector(controlSelector);
+              return { selector: controlSelector, tileIdentity, visible: isVisible(control), rect: rectValue(control) };
+            }),
+            genericDomOverlays: Array.from(document.querySelectorAll("canvas,[data-testid*='overlay' i],[class*='overlay' i]")).filter(isVisible).map(element => ({
+              selector: element.id ? `#${element.id}` : String(element.getAttribute("data-testid") || element.className || element.tagName),
+              visible: true,
+              rect: rectValue(element),
+            })),
+            videoElement: video,
+          };
+        };
+        const liveBefore = sampleLive();
+        let liveAfter = liveBefore;
+        if (liveBefore?.videoElement) {
+          for (let attempt = 0; attempt < 12; attempt += 1) {
+            await Promise.race([
+              new Promise(resolve => {
+                if (typeof liveBefore.videoElement.requestVideoFrameCallback === "function") {
+                  liveBefore.videoElement.requestVideoFrameCallback(() => resolve());
+                } else {
+                  setTimeout(resolve, 100);
+                }
+              }),
+              new Promise(resolve => setTimeout(resolve, 250)),
+            ]);
+            liveAfter = sampleLive();
+            if (Number(liveAfter?.playback?.currentTime || 0) > Number(liveBefore.playback.currentTime || 0) &&
+                Number(liveAfter?.playback?.presentedFrames || 0) > Number(liveBefore.playback.presentedFrames || 0)) {
+              break;
+            }
+          }
+        }
+        const liveVideo = liveAfter ? {
+          tile: liveAfter.tile,
+          stage: liveAfter.stage,
+          video: liveAfter.videoEvidence,
+          placeholder: liveAfter.placeholder,
+          modeControls: liveAfter.modeControls,
+          mode: liveAfter.mode,
+          playback: {
+            ...liveAfter.playback,
+            currentTimeBefore: Number(liveBefore?.playback?.currentTime || 0),
+            currentTimeAfter: Number(liveAfter.playback.currentTime || 0),
+            presentedFramesBefore: Number(liveBefore?.playback?.presentedFrames || 0),
+            presentedFramesAfter: Number(liveAfter.playback.presentedFrames || 0),
+          },
+          rendering: liveAfter.rendering,
+          controls: liveAfter.controls,
+          genericDomOverlays: liveAfter.genericDomOverlays,
+        } : null;
+        return {
+          schema: "media-server.ui-browser-visual-measurement.v2",
+          caseBinding: { ...binding, accountRole },
+          route: location.pathname,
+          accountRole,
+          requestedTheme: requestedThemeValue,
+          appliedTheme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
+          mediaTheme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+          viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
+          document: { scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, clientWidth: document.documentElement.clientWidth, clientHeight: document.documentElement.clientHeight },
+          target: { selector: browserTargetSelector, visible: isVisible(target), documentTarget: ["body", "html", ":root"].includes(browserTargetSelector.trim()), rect: rectValue(target) },
+          textSamples,
+          focus: {
+            focusableCount: Array.from(document.querySelectorAll('a[href],button,input,select,textarea,[tabindex]')).filter(element => {
+              const tabIndex = Number(element.getAttribute('tabindex') || 0);
+              return isVisible(element) && !element.disabled && tabIndex >= 0;
+            }).length,
+          },
+          liveVideo,
+        };
+      }, {
+        targetSelector,
+        binding: caseBinding,
+        requestedThemeValue: String(requestedTheme),
+        liveSpec: liveVideoSpec,
+      });
+      const focusSamples = await collectUniqueFocusSamples({
+        pressTab: () => page.keyboard.press("Tab"),
+        observeFocus: index => page.evaluate(indexValue => {
+          const element = document.activeElement;
+          const style = element ? getComputedStyle(element) : null;
+          const rect = element?.getBoundingClientRect?.();
+          const focusIdentity = (() => {
+            if (!element || element === document.documentElement) return "document";
+            if (element.id) return `#${CSS.escape(element.id)}`;
+            const testId = String(element.getAttribute?.("data-testid") || "");
+            if (testId) return `[data-testid="${CSS.escape(testId)}"]`;
+            const segments = [];
+            let current = element;
+            while (current && current.nodeType === Node.ELEMENT_NODE) {
+              const tag = String(current.tagName || "").toLowerCase();
+              if (!tag) break;
+              const siblings = current.parentElement
+                ? Array.from(current.parentElement.children).filter(item => item.tagName === current.tagName)
+                : [];
+              const position = siblings.length > 1 ? `:nth-of-type(${siblings.indexOf(current) + 1})` : "";
+              segments.unshift(`${tag}${position}`);
+              if (current === document.body) break;
+              current = current.parentElement;
+            }
+            return segments.join(" > ");
+          })();
+          return {
+            index: indexValue,
+            focusIdentity,
+            tag: String(element?.tagName || '').toLowerCase(),
+            id: String(element?.id || ''),
+            testId: String(element?.getAttribute?.('data-testid') || ''),
+            visible: Boolean(rect && rect.width > 0 && rect.height > 0),
+            outlineStyle: String(style?.outlineStyle || ''),
+            outlineWidth: String(style?.outlineWidth || ''),
+            boxShadow: String(style?.boxShadow || ''),
+          };
+        }, index),
+        maxSteps: 64,
+      });
+      if (geometry.liveVideo) {
+        await Promise.all([...pendingSafeResponseReads]);
+        geometry.liveVideo.session = buildLiveSessionEvidence(
+          networkEntries,
+          liveCorrelationId,
+          geometry.liveVideo.tile?.identity || "",
+          geometry.liveVideo.tile?.viewId || "",
+        );
+      }
+      return {
+        ...geometry,
+        ...(ownerBinding ? { postActionVisualOwner: structuredClone(ownerBinding) } : {}),
+        focus: {
+          ...geometry.focus,
+          applicable: Number(geometry.focus?.focusableCount || 0) > 0,
+        },
+        focusSamples,
+      };
+    },
+    waitForLiveVideoReady: async ({ videoSelector, modeSelector, timeout = timeoutMs }) => {
+      await page.waitForFunction(({ videoSelectorValue, modeSelectorValue }) => {
+        const video = document.querySelector(videoSelectorValue);
+        const mode = document.querySelector(modeSelectorValue);
+        const liveTracks = video?.srcObject?.getVideoTracks?.().filter(track => track.readyState === "live").length || 0;
+        return Boolean(mode && mode.getAttribute("aria-pressed") === "true" && video?.readyState >= 2 &&
+          video.videoWidth > 0 && video.videoHeight > 0 && liveTracks > 0);
+      }, { videoSelectorValue: videoSelector, modeSelectorValue: modeSelector }, { timeout });
+    },
+    evaluate: (expression, argument) => page.evaluate(expression, argument),
+    observeRequestedObservedState: async ({
+      selector = null,
+      ownerSelector = selector,
+      applicability = "required",
+    } = {}) => {
+      const selectorValue = selector === null ? null : String(selector);
+      const ownerSelectorValue = ownerSelector === null ? selectorValue : String(ownerSelector);
+      const contextObservation = await evaluateRegisteredBrowserCallback(
+        page,
+        "adapter.runtime-context",
+      );
+      let controlObservation = { exists: false, visible: false, disabled: false };
+      if (ownerSelectorValue) {
+        const locator = page.locator(ownerSelectorValue).first();
+        if (await locator.count() === 1) {
+          controlObservation = await evaluateRegisteredBrowserCallback(
+            locator,
+            "adapter.control-observation",
+          );
+        }
+      }
+      const controlAction = bindRuntimeControlObservationOwner({
+          identitySelector: applicability === "not-applicable" ? null : selectorValue,
+          executionOwnerSelector: ownerSelectorValue,
+          ownerObservation: controlObservation,
+        });
+      return mapRuntimeObservedFromBrowserCallback({
+        contextObservation,
+        controlAction,
+      });
+    },
+    screenshot: async outputFile => {
+      await assertEvidenceDomSecretsAbsent(page, observedRuntimeSecrets);
+      return page.screenshot({ path: outputFile, fullPage: false });
+    },
+    consoleEntries: () => sanitizeEvidenceValue(
+      bindBrowserConsoleResponseMessages(consoleEntries, networkEntries),
+      observedRuntimeSecrets,
+    ),
+    networkEntries: () => sanitizeEvidenceValue(networkEntries.map(item => ({ ...item })), observedRuntimeSecrets),
+    close: async () => {
+      if (!closePromise) {
+        closePromise = (async () => {
+          let closeFailure = null;
+          try {
+            await context.close();
+          } catch (error) {
+            closeFailure = error;
+          }
+          try {
+            await browser.close();
+          } catch (error) {
+            closeFailure ||= error;
+          }
+          browserClosed = true;
+          const finalNavigation = finalizeNavigationLedger();
+          if (closeFailure) {
+            closeFailure.navigationLifecycleEvidence = structuredClone(finalNavigation);
+            throw closeFailure;
+          }
+          return finalNavigation;
+        })();
+      }
+      return closePromise;
+    },
+  };
+}
+
+function secretVariants(values) {
+  const variants = new Set();
+  for (const value of values) {
+    if (typeof value !== "string" || !value) continue;
+    variants.add(value);
+    variants.add(encodeURIComponent(value));
+    variants.add(new URLSearchParams({ value }).toString().slice("value=".length));
+  }
+  return [...variants].filter(Boolean).sort((left, right) => right.length - left.length);
+}
+
+function sanitizeEvidenceValue(value, secrets) {
+  const variants = secretVariants([...secrets]);
+  const sanitizeString = source => {
+    let next = source;
+    for (const secret of variants) next = next.split(secret).join("[REDACTED-RUNTIME-SECRET]");
+    return next;
+  };
+  if (typeof value === "string") return sanitizeString(value);
+  if (Array.isArray(value)) return value.map(item => sanitizeEvidenceValue(item, secrets));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeEvidenceValue(item, secrets)]));
+  }
+  return value;
+}
+
+async function assertEvidenceDomSecretsAbsent(page, secrets) {
+  const variants = secretVariants([...secrets]);
+  if (variants.length === 0) return;
+  const residual = await page.evaluate(values => {
+    const serialized = document.documentElement.outerHTML;
+    return values.filter(value => serialized.includes(value)).length;
+  }, variants);
+  if (residual !== 0) throw new Error("runtime secret reached an evidence capture boundary");
+}
+
+function unique(values) {
+  return [...new Set(values)];
+}
+
+function safeRequestBodyProjection(request) {
+  try {
+    if (!["POST", "PUT", "DELETE"].includes(request.method())) return null;
+    const pathname = new URL(request.url()).pathname;
+    if (/^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(pathname)) {
+      const parsed = JSON.parse(request.postData() || "{}");
+      return {
+        overlayMode: typeof parsed.overlayMode === "string" ? parsed.overlayMode : "",
+      };
+    }
+    const allowed = [
+      /^\/ops\/api\/(?:sources|views|onvif\/channels|vlm\/profiles|users|invites|access-requests|events\/reviews)(?:\/|$)/,
+      /^\/lab\/analysis\/(?:va-rules|rules|profiles)(?:\/|$)/,
+      /^\/client\/api\/(?:access-requests|preferences\/live-layout)$/,
+      /^\/(?:setup|login|logout|password\/change|invite\/setup)$/,
+    ];
+    if (!allowed.some(pattern => pattern.test(pathname))) return null;
+    const contentType = String(request.headers()["content-type"] || "");
+    let parsed = {};
+    if (contentType.includes("application/json")) {
+      parsed = JSON.parse(request.postData() || "{}");
+    } else {
+      parsed = Object.fromEntries(new URLSearchParams(request.postData() || ""));
+    }
+    return safePersistedRequestBodyProjection(parsed);
+  } catch {
+    return { projectionError: true };
+  }
+}
+
+function safePersistedRequestBodyProjection(value) {
+  const record = value && typeof value === "object" ? value : {};
+  const identity = source => ({
+    id: String(source?.id || ""),
+    sourceId: String(source?.sourceId || ""),
+    viewId: String(source?.viewId || ""),
+    channelId: String(source?.channelId || ""),
+    ruleId: String(source?.ruleId || ""),
+    profileId: String(source?.profileId || ""),
+    eventId: String(source?.eventId || ""),
+    username: String(source?.username || ""),
+  });
+  const result = {
+    identity: identity(record),
+    fieldNames: Object.keys(record).filter(name => !/password|token|confirm|credential|secret/i.test(name)).sort(),
+  };
+  if (record.source && typeof record.source === "object") result.sourceIdentity = identity(record.source);
+  if (record.publishedView && typeof record.publishedView === "object") {
+    result.publishedViewIdentity = identity(record.publishedView);
+  }
+  if (record.workspaceLayout && typeof record.workspaceLayout === "object") {
+    result.workspaceLayout = {
+      gridSize: Number(record.workspaceLayout.gridSize || 0),
+      density: String(record.workspaceLayout.density || ""),
+      dockSide: String(record.workspaceLayout.dockSide || ""),
+    };
+  }
+  if (typeof record.role === "string") result.role = record.role;
+  if (typeof record.reviewStatus === "string") result.reviewStatus = record.reviewStatus;
+  return result;
+}
+
+function safeFormResponseProjection(pathname, payload) {
+  const value = payload && typeof payload === "object" ? payload : {};
+  const record = value.accessRequest || value.invite || value.user || {};
+  const token = typeof value.invite?.token === "string" ? value.invite.token : "";
+  const setupUrl = typeof value.invite?.setupUrl === "string" ? value.invite.setupUrl : "";
+  return {
+    pathname,
+    status: String(value.status || record.status || ""),
+    username: String(record.username || ""),
+    requestId: String(record.requestId || ""),
+    inviteId: String(record.inviteId || ""),
+    tokenPresent: token.length > 0,
+    setupUrlTokenBound: Boolean(token && setupUrl.includes(encodeURIComponent(token))),
+    persistentSecretFieldsPresent: objectContainsKey(value,
+      new Set(["passwordHash", "passwordHistory", "tokenHash"])),
+  };
+}
+
+const endpointOwnedResponsePatterns = Object.freeze([
+  Object.freeze({ kind: "auth-user-disable", method: "POST", expectedStatus: 200, pattern: /^\/ops\/api\/users\/([^/]+)\/disable$/ }),
+  Object.freeze({ kind: "source-create", method: "POST", expectedStatus: 201, pattern: /^\/ops\/api\/sources$/ }),
+  Object.freeze({ kind: "source-disable", method: "DELETE", expectedStatus: 200, pattern: /^\/ops\/api\/sources\/([^/]+)$/ }),
+  Object.freeze({ kind: "view-disable", method: "DELETE", expectedStatus: 200, pattern: /^\/ops\/api\/views\/([^/]+)$/ }),
+  Object.freeze({ kind: "onvif-import-draft", method: "POST", expectedStatus: 200, pattern: /^\/ops\/api\/onvif\/import-draft$/ }),
+  Object.freeze({ kind: "alert-delivery-dry-run", method: "POST", expectedStatus: 200, pattern: /^\/ops\/api\/alerts\/deliveries\/dry-run$/ }),
+]);
+
+const clientLiveSessionResponsePatterns = Object.freeze([
+  Object.freeze({
+    kind: "client-live-session-create",
+    method: "POST",
+    expectedStatus: 200,
+    pattern: /^\/client\/api\/views\/[^/]+\/webrtc\/session$/,
+  }),
+  Object.freeze({
+    kind: "client-live-session-answer",
+    method: "POST",
+    expectedStatus: 200,
+    pattern: /^\/client\/api\/views\/[^/]+\/webrtc\/session\/[^/]+\/answer$/,
+  }),
+  Object.freeze({
+    kind: "client-live-session-delete",
+    method: "DELETE",
+    expectedStatus: 200,
+    pattern: /^\/client\/api\/views\/[^/]+\/webrtc\/session\/[^/]+$/,
+  }),
+]);
+
+export function formatSafeResponseReadFailure(failures = []) {
+  const reasons = [...new Set(failures.map(value => String(value || "").trim()).filter(Boolean))];
+  const suffix = reasons.length > 0 ? `: ${reasons.join("; ")}` : "";
+  return `safe response projection or runtime secret registration failed${suffix}`;
+}
+
+export function captureClientLiveSessionResponseProjection({
+  response,
+  entry,
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  const request = response?.request?.();
+  const method = String(request?.method?.() || "").toUpperCase();
+  const pathname = urlPath(response?.url?.() || "");
+  const descriptor = clientLiveSessionResponsePatterns.find(candidate =>
+    candidate.method === method && candidate.pattern.test(pathname));
+  if (!descriptor) return null;
+
+  const actualStatus = Number(entry?.status || 0);
+  entry.safeResponseProjectionKind = descriptor.kind;
+  entry.safeResponseExpectedStatus = descriptor.expectedStatus;
+  if (actualStatus !== descriptor.expectedStatus) {
+    safeResponseReadFailures.push(
+      `client live session response status mismatch [${descriptor.kind}] ${method} ${pathname}: expected status ${descriptor.expectedStatus}, actual status ${actualStatus}`,
+    );
+    delete entry.safeResponseBody;
+    delete entry.safeResponseProjectionSource;
+    return Promise.resolve();
+  }
+
+  const read = Promise.resolve()
+    .then(() => response.json())
+    .then(payload => {
+      entry.safeResponseBody = clientLiveSessionSafeResponseProjection(descriptor.kind, payload);
+      entry.safeResponseProjectionSource = "playwright-response-json";
+    })
+    .catch(error => {
+      safeResponseReadFailures.push(
+        `client live session response projection failed [${descriptor.kind}] ${method} ${pathname}: ${redactedEndpointProjectionFailure(error)}`,
+      );
+      delete entry.safeResponseBody;
+      delete entry.safeResponseProjectionSource;
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+function clientLiveSessionSafeResponseProjection(kind, payload) {
+  const value = requireResponseObject(payload, `${kind} response`);
+  if (kind === "client-live-session-create") {
+    const sessionId = requireResponseIdentity(value.sessionId, "", "client session create sessionId", { nonEmpty: true });
+    const offer = requireResponseIdentity(value.offer, "", "client session create offer", { nonEmpty: true });
+    void offer;
+    return { sessionId, offerReceived: true };
+  }
+  requireResponseBoolean(value.ok, true, `${kind} ok`);
+  return { ok: true };
+}
+
+export function captureEndpointOwnedResponseProjection({
+  response,
+  entry,
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  const request = response?.request?.();
+  const method = String(request?.method?.() || "").toUpperCase();
+  const pathname = urlPath(response?.url?.() || "");
+  const descriptor = endpointOwnedResponsePatterns.find(candidate =>
+    candidate.method === method && candidate.pattern.test(pathname));
+  if (!descriptor) return null;
+  const actualStatus = Number(entry?.status || 0);
+  entry.endpointResponseKind = descriptor.kind;
+  entry.endpointExpectedStatus = descriptor.expectedStatus;
+  if (actualStatus !== descriptor.expectedStatus) {
+    safeResponseReadFailures.push(
+      `endpoint response status mismatch [${descriptor.kind}] ${method} ${pathname}: expected status ${descriptor.expectedStatus}, actual status ${actualStatus}`,
+    );
+    delete entry.safeResponseBody;
+    delete entry.safeResponseProjectionSource;
+    delete entry.safeResponseProjectionKind;
+    return Promise.resolve();
+  }
+  const read = Promise.resolve()
+    .then(() => response.json())
+    .then(payload => {
+      entry.safeResponseBody = endpointOwnedSafeResponseProjection({
+        kind: descriptor.kind,
+        method,
+        pathname,
+        payload,
+      });
+      entry.safeResponseProjectionSource = "playwright-response-json";
+      entry.safeResponseProjectionKind = descriptor.kind;
+    })
+    .catch(error => {
+      safeResponseReadFailures.push(
+        `endpoint response projection failed [${descriptor.kind}] ${method} ${pathname}: ${redactedEndpointProjectionFailure(error)}`,
+      );
+      delete entry.safeResponseBody;
+      delete entry.safeResponseProjectionSource;
+      delete entry.safeResponseProjectionKind;
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+const opsIncidentTimelineForbiddenResponseKeys = new Set([
+  "sourceUrl",
+  "rawJson",
+  "debugMaterial",
+  "debugCounters",
+  "providerPrompt",
+  "providerResponse",
+  "providerMaterial",
+  "credential",
+  "authorization",
+  "password",
+  "sessionSecret",
+  "tokenHash",
+]);
+
+export function captureOpsIncidentTimelineResponseProjection({
+  response,
+  entry,
+  pendingSafeResponseReads = new Set(),
+  safeResponseReadFailures = [],
+} = {}) {
+  const request = response?.request?.();
+  const method = String(request?.method?.() || "").toUpperCase();
+  const target = urlTarget(response?.url?.() || "");
+  const expectedTarget = "/ops/api/events/status?limit=5&includeArchives=1";
+  if (method !== "GET" || target !== expectedTarget) return null;
+  const actualStatus = Number(entry?.status || 0);
+  entry.safeResponseProjectionKind = "ops-incident-timeline-event-records";
+  entry.safeResponseExpectedStatus = 200;
+  if (actualStatus !== 200) {
+    safeResponseReadFailures.push(
+      `Ops incident timeline response status mismatch GET ${expectedTarget}: expected status 200, actual status ${actualStatus}`,
+    );
+    return Promise.resolve();
+  }
+  const read = Promise.resolve()
+    .then(() => response.json())
+    .then(payload => {
+      if (objectContainsKey(payload, opsIncidentTimelineForbiddenResponseKeys)) {
+        throw new EndpointResponseProjectionError(
+          "response-sensitive-field-present",
+          "Ops incident timeline response contains forbidden material",
+        );
+      }
+      const value = requireResponseObject(payload, "Ops incident timeline response");
+      const records = requireResponseObject(value.records, "Ops incident timeline records");
+      if (!Array.isArray(records.records)) {
+        throw new EndpointResponseProjectionError(
+          "response-shape-invalid",
+          "Ops incident timeline records.records is missing",
+        );
+      }
+      const safeRecords = records.records.map((record, index) => {
+        const row = requireResponseObject(record, `Ops incident timeline record ${index}`);
+        return {
+          eventId: requireResponseIdentity(
+            row.eventId,
+            "",
+            `Ops incident timeline record ${index} eventId`,
+            { nonEmpty: true },
+          ),
+          eventType: String(row.eventType || ""),
+          status: String(row.status || ""),
+        };
+      });
+      entry.safeResponseBody = {
+        status: String(value.status || ""),
+        records: {
+          matchedRecords: Number(records.matchedRecords || 0),
+          total: Number(records.total || 0),
+          records: safeRecords,
+        },
+      };
+      entry.safeResponseProjectionSource = "playwright-response-json";
+      entry.safeResponseForbiddenMaterialObserved = false;
+    })
+    .catch(error => {
+      safeResponseReadFailures.push(
+        `Ops incident timeline response projection failed GET ${expectedTarget}: ${redactedEndpointProjectionFailure(error)}`,
+      );
+      delete entry.safeResponseBody;
+      delete entry.safeResponseProjectionSource;
+    })
+    .finally(() => pendingSafeResponseReads.delete(read));
+  pendingSafeResponseReads.add(read);
+  return read;
+}
+
+function endpointOwnedSafeResponseProjection({ kind, pathname, payload }) {
+  const value = requireResponseObject(payload, `${kind} response`);
+  assertEndpointResponseSensitiveBoundary(kind, value);
+  if (kind === "auth-user-disable") {
+    const username = decodePathSegment(pathname.match(/^\/ops\/api\/users\/([^/]+)\/disable$/)?.[1]);
+    const user = requireResponseObject(value.user, "auth disable user");
+    requireResponseIdentity(user.username, username, "auth disable username");
+    requireResponseBoolean(user.enabled, false, "auth disable enabled");
+    requireResponseIdentity(value.status, "disabled", "auth disable status");
+    return { status: "disabled", user: { username, enabled: false } };
+  }
+  if (kind === "source-create") {
+    const source = requireResponseObject(value.source, "source create source");
+    const sourceId = requireResponseIdentity(source.sourceId, "", "source create sourceId", { nonEmpty: true });
+    const enabled = requireResponseBoolean(source.enabled, true, "source create enabled");
+    requireResponseBoolean(value.ok, true, "source create ok");
+    return { ok: true, source: { sourceId, enabled } };
+  }
+  if (kind === "source-disable") {
+    const sourceId = decodePathSegment(pathname.match(/^\/ops\/api\/sources\/([^/]+)$/)?.[1]);
+    const source = requireResponseObject(value.source, "source disable source");
+    requireResponseIdentity(source.sourceId, sourceId, "source disable sourceId");
+    requireResponseBoolean(source.enabled, false, "source disable enabled");
+    requireResponseBoolean(value.ok, true, "source disable ok");
+    requireResponseIdentity(value.status, "disabled", "source disable status");
+    return { ok: true, status: "disabled", source: { sourceId, enabled: false } };
+  }
+  if (kind === "view-disable") {
+    const viewId = decodePathSegment(pathname.match(/^\/ops\/api\/views\/([^/]+)$/)?.[1]);
+    const view = requireResponseObject(value.view, "view disable view");
+    requireResponseIdentity(view.viewId, viewId, "view disable viewId");
+    requireResponseBoolean(view.enabled, false, "view disable enabled");
+    requireResponseBoolean(value.ok, true, "view disable ok");
+    requireResponseIdentity(value.status, "disabled", "view disable status");
+    return {
+      ok: true,
+      status: "disabled",
+      view: {
+        viewId,
+        sourceId: String(view.sourceId || ""),
+        enabled: false,
+      },
+    };
+  }
+  if (kind === "alert-delivery-dry-run") {
+    requireResponseIdentity(value.status, "ops-alert-delivery-dry-run", "alert dry-run status");
+    requireResponseIdentity(value.schema, "media-server.ops.alert-delivery-dry-run.v1", "alert dry-run schema");
+    requireResponseBoolean(value.dryRun, true, "alert dry-run flag");
+    requireResponseBoolean(value.externalDeliveryPerformed, false, "alert external delivery flag");
+    requireResponseBoolean(value.eventPostPayloadChanged, false, "alert event post mutation flag");
+    const contract = requireResponseObject(value.contract, "alert dry-run contract");
+    requireResponseBoolean(contract.payloadPreview, true, "alert payload preview contract");
+    requireResponseBoolean(contract.deliveryAttemptLog, true, "alert attempt log contract");
+    requireResponseBoolean(contract.separateFromEventPostPayload, true, "alert event post separation contract");
+    const audit = requireResponseObject(value.audit, "alert dry-run audit");
+    requireResponseIdentity(audit.action, "alert-delivery-dry-run", "alert dry-run audit action");
+    const previews = Array.isArray(value.payloadPreviews) ? value.payloadPreviews : [];
+    const attempts = Array.isArray(value.attempts) ? value.attempts : [];
+    if (previews.length !== 1 || attempts.length !== 1) {
+      throw new EndpointResponseProjectionError(
+        "response-cardinality-mismatch",
+        `alert dry-run preview/attempt cardinality mismatch: ${previews.length}/${attempts.length}`,
+      );
+    }
+    const preview = requireResponseObject(previews[0], "alert payload preview");
+    const previewEvent = requireResponseObject(preview.event, "alert payload preview event");
+    const previewBody = requireResponseObject(preview.body, "alert payload preview body");
+    const deliveryId = requireResponseIdentity(preview.deliveryId, "", "alert preview deliveryId", { nonEmpty: true });
+    const eventId = requireResponseIdentity(previewEvent.eventId, "", "alert preview eventId", { nonEmpty: true });
+    const eventType = requireResponseIdentity(previewEvent.eventType, "", "alert preview eventType", { nonEmpty: true });
+    const sourceId = requireResponseIdentity(previewEvent.sourceId, "", "alert preview sourceId", { nonEmpty: true });
+    requireResponseIdentity(preview.schema, "media-server.ops.alert-delivery-payload-preview.v1", "alert preview schema");
+    requireResponseBoolean(preview.payloadRedacted, true, "alert preview redaction");
+    requireResponseBoolean(preview.eventPostPayloadChanged, false, "alert preview event post mutation");
+    requireResponseBoolean(preview.externalDeliveryPerformed, false, "alert preview external delivery");
+    requireResponseIdentity(previewBody.deliveryId, deliveryId, "alert preview body deliveryId");
+    requireResponseIdentity(previewBody.eventId, eventId, "alert preview body eventId");
+    requireResponseIdentity(previewBody.eventType, eventType, "alert preview body eventType");
+    requireResponseIdentity(previewBody.sourceId, sourceId, "alert preview body sourceId");
+    requireResponseIdentity(previewBody.endpoint, "[redacted-alert-target]", "alert preview redacted endpoint");
+    const attempt = requireResponseObject(attempts[0], "alert dry-run attempt");
+    requireResponseIdentity(attempt.schema, "media-server.ops.alert-delivery-attempt.v1", "alert attempt schema");
+    requireResponseIdentity(attempt.deliveryId, deliveryId, "alert attempt deliveryId");
+    requireResponseIdentity(attempt.eventId, eventId, "alert attempt eventId");
+    requireResponseIdentity(attempt.eventType, eventType, "alert attempt eventType");
+    requireResponseIdentity(attempt.sourceId, sourceId, "alert attempt sourceId");
+    requireResponseIdentity(attempt.status, "dry-run", "alert attempt status");
+    requireResponseIdentity(attempt.transport, "dry-run", "alert attempt transport");
+    requireResponseBoolean(attempt.dryRun, true, "alert attempt dry-run flag");
+    requireResponseBoolean(attempt.externalDeliveryPerformed, false, "alert attempt external delivery");
+    requireResponseBoolean(attempt.eventPostPayloadChanged, false, "alert attempt event post mutation");
+    return {
+      status: "ops-alert-delivery-dry-run",
+      schema: "media-server.ops.alert-delivery-dry-run.v1",
+      dryRun: true,
+      externalDeliveryPerformed: false,
+      eventPostPayloadChanged: false,
+      auditAction: "alert-delivery-dry-run",
+      payloadPreview: {
+        schema: "media-server.ops.alert-delivery-payload-preview.v1",
+        deliveryId,
+        eventId,
+        eventType,
+        sourceId,
+        payloadRedacted: true,
+      },
+      attempt: {
+        schema: "media-server.ops.alert-delivery-attempt.v1",
+        deliveryId,
+        eventId,
+        eventType,
+        sourceId,
+        status: "dry-run",
+        transport: "dry-run",
+        dryRun: true,
+        externalDeliveryPerformed: false,
+        eventPostPayloadChanged: false,
+      },
+    };
+  }
+  const gate = requireResponseObject(value.credentialGate, "ONVIF credential gate");
+  const redaction = requireResponseObject(gate.redactionGuard, "ONVIF redaction guard");
+  const sourceDraft = requireResponseObject(value.sourceDraft, "ONVIF source draft");
+  const publishedViewDraft = requireResponseObject(value.publishedViewDraft, "ONVIF published view draft");
+  requireResponseBoolean(value.ok, true, "ONVIF import ok");
+  const sourceId = requireResponseIdentity(sourceDraft.sourceId, "", "ONVIF source draft sourceId", { nonEmpty: true });
+  const viewId = requireResponseIdentity(publishedViewDraft.viewId, "", "ONVIF view draft viewId", { nonEmpty: true });
+  requireResponseIdentity(publishedViewDraft.sourceId, sourceId, "ONVIF view draft sourceId");
+  const sourceEnabled = requireResponseBoolean(sourceDraft.enabled, true, "ONVIF source draft enabled");
+  const viewEnabled = requireResponseBoolean(publishedViewDraft.enabled, true, "ONVIF view draft enabled");
+  return {
+    ok: true,
+    credentialGate: {
+      schema: String(gate.schema || ""),
+      requiredScope: String(gate.requiredScope || ""),
+      primaryStoreProvider: String(gate.primaryStoreProvider || ""),
+      primaryStoreDecision: String(gate.primaryStoreDecision || ""),
+      credentialReferenceStatus: String(gate.credentialReferenceStatus || ""),
+      urlCredentialsRejected: redaction.urlCredentialsRejected === true,
+      secretMaterialStored: gate.secretMaterialStored === true,
+    },
+    sourceDraft: { sourceId, enabled: sourceEnabled },
+    publishedViewDraft: { viewId, sourceId, enabled: viewEnabled },
+  };
+}
+
+function assertEndpointResponseSensitiveBoundary(kind, value) {
+  const allowedDiscardValidators = endpointResponseAllowedDiscardValidators(kind);
+  const findings = [];
+  const visit = (candidate, segments = []) => {
+    if (Array.isArray(candidate)) {
+      candidate.forEach((item, index) => visit(item, [...segments, String(index)]));
+      return;
+    }
+    if (!candidate || typeof candidate !== "object") return;
+    for (const [key, item] of Object.entries(candidate)) {
+      const next = [...segments, key];
+      const fieldPath = next.join(".");
+      const leaf = item === null || typeof item !== "object";
+      const sensitiveKey = leaf && /password|token|credential|secret|(?:^|_)(?:url|uri)$|(?:url|uri)$/i.test(key);
+      const sensitiveValue = typeof item === "string" && /^(?:rtsp|rtsps|http|https|whep):\/\//i.test(item);
+      const allowedDrop = (sensitiveKey || sensitiveValue) &&
+        allowedDiscardValidators.get(fieldPath)?.(item) === true;
+      if ((sensitiveKey || sensitiveValue) && !allowedDrop) findings.push(fieldPath);
+      visit(item, next);
+    }
+  };
+  visit(value);
+  if (findings.length > 0) {
+    throw new EndpointResponseProjectionError(
+      "sensitive-response-field-rejected",
+      `rejected field paths: ${[...new Set(findings)].join(",")}`,
+    );
+  }
+}
+
+function endpointResponseAllowedDiscardValidators(kind) {
+  if (kind === "auth-user-disable") {
+    return new Map([
+      ["user.mustChangePassword", value => typeof value === "boolean"],
+      ["user.passwordUpdatedAt", value => typeof value === "string"],
+    ]);
+  }
+  if (kind !== "onvif-import-draft") return new Map();
+  const falseBoolean = value => value === false;
+  return new Map([
+    ["previewContract.credentialMaterialIncluded", falseBoolean],
+    ["selectedProfile.token", value => typeof value === "string" && value.length > 0],
+    ["auth.credentialRefPresent", value => typeof value === "boolean"],
+    ["auth.plaintextSecretIncluded", falseBoolean],
+    ["credentialGate.credentialRefPresent", value => typeof value === "boolean"],
+    ["credentialGate.credentialReferenceStatus", value =>
+      value === "reference-present-redacted" || value === "reference-absent"],
+    ["credentialGate.productPersistentSecretStoreEnabled", falseBoolean],
+    ["credentialGate.externalSecretManagerEnabled", falseBoolean],
+    ["credentialGate.credentialBindingStoreEnabled", falseBoolean],
+    ["credentialGate.secretMaterialStored", falseBoolean],
+    ["credentialGate.redactionGuard.urlCredentialsRejected", value => value === true],
+    ["credentialGate.redactionGuard.draftApiOmitsCredentialRef", value => value === true],
+    ["credentialGate.redactionGuard.sourceRegistrySecretFields", falseBoolean],
+    ["credentialGate.redactionGuard.publishedViewSecretFields", falseBoolean],
+    ["credentialGate.redactionGuard.authHeaderMaterialIncluded", falseBoolean],
+    ["credentialGate.redactionGuard.soapSecurityHeaderIncluded", falseBoolean],
+    ["sourceDraft.rtspUrl", isCredentialFreeRtspUrl],
+  ]);
+}
+
+function isCredentialFreeRtspUrl(value) {
+  if (typeof value !== "string") return false;
+  try {
+    const parsed = new URL(value);
+    return ["rtsp:", "rtsps:"].includes(parsed.protocol) && !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
+}
+
+function redactedEndpointProjectionFailure(error) {
+  if (error instanceof EndpointResponseProjectionError) return error.message;
+  return "response JSON parsing or response shape validation failed";
+}
+
+class EndpointResponseProjectionError extends Error {
+  constructor(code, detail) {
+    super(`${code}: ${detail}`);
+    this.name = "EndpointResponseProjectionError";
+    this.code = code;
+  }
+}
+
+function requireResponseObject(value, label) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new EndpointResponseProjectionError("response-shape-invalid", `${label} is missing`);
+  }
+  return value;
+}
+
+function requireResponseIdentity(actual, expected, label, { nonEmpty = false } = {}) {
+  const value = String(actual || "");
+  if ((nonEmpty && !value) || (!nonEmpty && value !== String(expected))) {
+    throw new EndpointResponseProjectionError("response-identity-mismatch", `${label} mismatch`);
+  }
+  return value;
+}
+
+function requireResponseBoolean(actual, expected, label) {
+  if (typeof actual !== "boolean" || actual !== expected) {
+    throw new EndpointResponseProjectionError("response-boolean-mismatch", `${label} mismatch`);
+  }
+  return actual;
+}
+
+function objectContainsKey(value, forbidden) {
+  if (Array.isArray(value)) return value.some(item => objectContainsKey(item, forbidden));
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(([key, item]) =>
+    forbidden.has(key) || objectContainsKey(item, forbidden));
+}
+
+export function buildLiveSessionEvidence(entries, correlationId, tileIdentity, tileViewId) {
+  const correlated = entries.filter(item => !correlationId || item.correlationId === correlationId);
+  const sessionStart = [...correlated].reverse().find(item => {
+    if (item.phase !== "request-start" || item.method !== "POST") return false;
+    return /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(urlPath(item.url));
+  });
+  const sessionResponse = sessionStart
+    ? correlated.find(item => item.phase === "response" && item.requestId === sessionStart.requestId)
+    : null;
+  const sessionMatch = sessionStart ? urlPath(sessionStart.url).match(/^\/client\/api\/views\/([^/]+)\/webrtc\/session$/) : null;
+  const answerStart = [...correlated].reverse().find(item => {
+    if (item.phase !== "request-start" || item.method !== "POST") return false;
+    const match = urlPath(item.url).match(/^\/client\/api\/views\/([^/]+)\/webrtc\/session\/([^/]+)\/answer$/);
+    return Boolean(match && (!sessionMatch || match[1] === sessionMatch[1]));
+  });
+  const answerResponse = answerStart
+    ? correlated.find(item => item.phase === "response" && item.requestId === answerStart.requestId)
+    : null;
+  const answerMatch = answerStart ? urlPath(answerStart.url).match(/^\/client\/api\/views\/([^/]+)\/webrtc\/session\/([^/]+)\/answer$/) : null;
+  const responseSessionId = String(sessionResponse?.safeResponseBody?.sessionId || "");
+  return {
+    tileIdentity,
+    tileViewId,
+    requestViewId: decodePathSegment(sessionMatch?.[1]),
+    answerViewId: decodePathSegment(answerMatch?.[1]),
+    correlationId: sessionStart?.correlationId || correlationId || "",
+    requestMethod: sessionStart?.method || "",
+    requestPath: sessionStart ? urlPath(sessionStart.url) : "",
+    requestBody: sessionStart?.requestBody || {},
+    responseStatus: Number(sessionResponse?.status || 0),
+    sessionId: responseSessionId,
+    responseSessionId,
+    answerSessionId: decodePathSegment(answerMatch?.[2]),
+    offerReceived: Boolean(sessionResponse?.safeResponseBody?.offerReceived && answerStart),
+    answerMethod: answerStart?.method || "",
+    answerPath: answerStart ? urlPath(answerStart.url) : "",
+    answerStatus: Number(answerResponse?.status || 0),
+  };
+}
+
+function decodePathSegment(value) {
+  try { return decodeURIComponent(String(value || "")); }
+  catch { return ""; }
+}
+
+function urlPath(value) {
+  try { return new URL(String(value)).pathname; }
+  catch { return ""; }
+}
+
+function urlTarget(value) {
+  try {
+    const parsed = new URL(String(value), "http://localhost");
+    return `${parsed.pathname}${parsed.search}`;
+  } catch {
+    return "";
+  }
+}
+
+function urlOrigin(value) {
+  try {
+    return new URL(String(value), "http://localhost").origin;
+  } catch {
+    return "";
+  }
+}

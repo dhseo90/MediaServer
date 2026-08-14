@@ -1,0 +1,399 @@
+{
+  "schema": "media-server.v390-ui-diagnostic-evt004-recorded-contract.v1",
+  "sourceArtifacts": {
+    "preservedCaseLocalFailureSha256": "85b922e7c95dab0a9f095e719661d288084c13ebc3100563130de394a6e8de81",
+    "latestBrowserFailureSha256": "afb8876d75d2775d48b516448d211fc41492151e65ca53403d635f12b96d70ef"
+  },
+  "preservedCaseLocalFailure": {
+    "schema": "media-server.v390-ui-diagnostic-child.v1",
+    "actualBrowserExecution": true,
+    "executionStatus": "diagnostic-child-browser-evidence",
+    "result": "FAIL",
+    "counts": {
+      "target": 1,
+      "attempted": 1,
+      "pass": 0,
+      "fail": 1,
+      "notRun": 0
+    },
+    "sourceBinding": {
+      "gitCommit": "da9b60dbe40408e42186178e724d1d06613c27aa",
+      "manifestSha256": "8c97c086441f85fd77597564f7f5d904f05a4c910d5b4de08ebc221628d2b028",
+      "buildSha256": "988f77ab621f9b030582dabb633a18279a7655f96cf745ce825ec7e9859c105e",
+      "runId": "v390-ui-diagnostic-20260808004425-80046",
+      "caseId": "EVT-004",
+      "caseIdsSha256": "997d97de0a94431b97126ea16783e4ea062cb12cd0d764d6aa01a5f6ace61eaa",
+      "selectionMode": "diagnostic-failure-census-sweep",
+      "parentSelectionCount": 99,
+      "parentSelectionIdsSha256": "95c8ef7a7d32f2c76735b1fb7ad7a1b11133e1338960157b8da745ac35333b47",
+      "selectionContractDigest": "b4ca96d6ec1ce45f0882203df1693dcad88359ffe4995aea20ea47ccd85ebcfe"
+    },
+    "environmentContamination": {
+      "detected": false
+    },
+    "rawCaptureValidation": {
+      "status": "FAIL",
+      "errors": [
+        "diagnostic-child-EVT-004-request-correlation-missing"
+      ],
+      "releaseEvidenceEligible": false
+    },
+    "caseRuntimeSecretArtifactIntegrity": {
+      "status": "PASS"
+    },
+    "case": {
+      "caseId": "EVT-004",
+      "featureId": "EVT-004",
+      "status": "FAIL",
+      "failureClass": "case-execution-failed",
+      "actualBrowserExecution": true,
+      "failureProvenance": {
+        "schema": "media-server.v390-ui-diagnostic-failure-provenance.v1",
+        "kind": "case-local-failure",
+        "phase": "browser-case-execution",
+        "failureClass": "case-execution-failed",
+        "errorName": "Error",
+        "classificationSource": "case-local-error",
+        "actualBrowserExecution": true,
+        "structuredEvidencePresent": false,
+        "continuationEligible": true
+      },
+      "primaryFailureEvidence": {
+        "schema": "media-server.v390-ui-diagnostic-primary-failure-evidence.v1",
+        "errorName": "Error",
+        "playwrightTimeoutClassAttested": false,
+        "structuredEvidence": {}
+      },
+      "requested": {
+        "route": "/ops/events"
+      },
+      "observed": {
+        "screenRoute": "/ops/events"
+      },
+      "navigationLifecycleEvidence": {
+        "schema": "media-server.v390-ui-navigation-trust-evidence.v1",
+        "pass": false
+      },
+      "markerEvidence": null,
+      "markerStageEvidence": null,
+      "markerEvidenceLifecycle": {
+        "phase": "not-reached"
+      },
+      "cleanupAttestation": {
+        "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+        "pass": true,
+        "primaryFailurePresent": true,
+        "primaryFailurePreserved": true,
+        "caseRuntimeRestoreAttempted": true,
+        "caseRuntimeRestored": true,
+        "browserCloseAttempted": true,
+        "browserContextClosed": true,
+        "cleanupEntryCount": 3,
+        "failureCode": ""
+      }
+    }
+  },
+  "latestBrowserFailure": {
+    "schema": "media-server.v390-ui-diagnostic-child.v1",
+    "actualBrowserExecution": true,
+    "executionStatus": "diagnostic-child-browser-evidence",
+    "result": "FAIL",
+    "counts": {
+      "target": 1,
+      "attempted": 1,
+      "pass": 0,
+      "fail": 1,
+      "notRun": 0
+    },
+    "sourceBinding": {
+      "gitCommit": "c6a1eb5697f139d749dc0392dbc31b07469eec12",
+      "manifestSha256": "8c97c086441f85fd77597564f7f5d904f05a4c910d5b4de08ebc221628d2b028",
+      "buildSha256": "988f77ab621f9b030582dabb633a18279a7655f96cf745ce825ec7e9859c105e",
+      "runId": "v390-ui-diagnostic-20260808021130-96376",
+      "caseId": "EVT-004",
+      "caseIdsSha256": "997d97de0a94431b97126ea16783e4ea062cb12cd0d764d6aa01a5f6ace61eaa",
+      "selectionMode": "diagnostic-failure-closure-sweep",
+      "parentSelectionCount": 7,
+      "parentSelectionIdsSha256": "78fca0081ee343224b3ea64da7eb8b521e355aa3a550a465ee90163e3edd7be0",
+      "selectionContractDigest": "ecb8cd71ee433fe89cf477d5c5d3a3dc1e86ca02a2d555ce40854b1db8fb3685"
+    },
+    "environmentContamination": {
+      "detected": false
+    },
+    "rawCaptureValidation": {
+      "status": "FAIL",
+      "errors": [
+        "diagnostic-child-EVT-004-marker-evidence-required-after-prerequisites"
+      ],
+      "releaseEvidenceEligible": false
+    },
+    "caseRuntimeSecretArtifactIntegrity": {
+      "status": "PASS"
+    },
+    "case": {
+      "caseId": "EVT-004",
+      "featureId": "EVT-004",
+      "status": "FAIL",
+      "failureClass": "dom-semantic-assertion-failed",
+      "actualBrowserExecution": true,
+      "failureProvenance": {
+        "schema": "media-server.v390-ui-diagnostic-failure-provenance.v1",
+        "kind": "browser-case-assertion",
+        "phase": "browser-case-execution",
+        "failureClass": "dom-semantic-assertion-failed",
+        "errorName": "Error",
+        "classificationSource": "failed-structured-evidence",
+        "actualBrowserExecution": true,
+        "structuredEvidencePresent": true,
+        "continuationEligible": true
+      },
+      "primaryFailureEvidence": {
+        "schema": "media-server.v390-ui-diagnostic-primary-failure-evidence.v1",
+        "errorName": "Error",
+        "playwrightTimeoutClassAttested": false,
+        "structuredEvidence": {
+          "eventDomSemanticEvidence": {
+            "schema": "media-server.v390-ui-event-dom-semantic-composite-evidence.v1",
+            "pass": false,
+            "actualBrowserExecution": true,
+            "error": {
+              "code": "EVT_DOM_SEMANTIC_COMPOSITE_FAILED",
+              "causes": [
+                "responseBaselineMatched",
+                "routeLocalDomBinding"
+              ],
+              "causeCodes": [
+                "RESPONSE_BASELINE_MISSING",
+                "EXPECTED_FIXTURE_DIGEST_MISSING"
+              ]
+            },
+            "failedChecks": [
+              "responseBaselineMatched",
+              "routeLocalDomBinding"
+            ],
+            "causeCodes": [
+              "RESPONSE_BASELINE_MISSING",
+              "EXPECTED_FIXTURE_DIGEST_MISSING"
+            ],
+            "observationPresent": {
+              "pass": true,
+              "reasonCode": "PASS",
+              "selectorDigest": "a0f45f2c0aefcf10263a7678d4cd2649fbd835c0f1c67a199011a265641c6268",
+              "exists": true,
+              "visible": true,
+              "nodeCount": 1,
+              "visibleCount": 1,
+              "textPresent": true,
+              "textDigest": "2f691487b62e1b7b35baf2af2aefb96aa601415acc356eb7e85c96744868199b",
+              "structurePresent": true,
+              "descendantCount": 7,
+              "attributeNodeCount": 1,
+              "valueCount": 1
+            },
+            "responseBaselineMatched": {
+              "pass": false,
+              "pathCount": 1,
+              "comparedPathCount": 0,
+              "candidateCount": 0,
+              "mismatchPaths": [
+                "log tail"
+              ],
+              "reasonCodes": [
+                "RESPONSE_BASELINE_MISSING"
+              ],
+              "paths": [
+                {
+                  "path": "log tail",
+                  "matched": false,
+                  "compared": false,
+                  "reasonCode": "RESPONSE_BASELINE_MISSING",
+                  "bindingMode": "path-value",
+                  "baselineDigest": "3c479b91486e3cd708fd7f932de7c6bda0f84aa9453885231086d088818069f8",
+                  "projectionDigest": "3c479b91486e3cd708fd7f932de7c6bda0f84aa9453885231086d088818069f8",
+                  "candidateCount": 0,
+                  "candidateDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                  "candidateDigests": []
+                }
+              ]
+            },
+            "fixtureObserved": {
+              "pass": true,
+              "reasonCode": "PASS",
+              "evaluated": true,
+              "failureCode": "PASS",
+              "required": false,
+              "bindingMode": "generic-fixture-candidate",
+              "apiFixtureIdentityMatched": true,
+              "domCandidateCount": 1,
+              "candidateCount": 6,
+              "matchedCandidateCount": 0,
+              "matchedNodeCount": 0,
+              "matchedNodeIndices": [],
+              "candidateDigests": [
+                "dadc9729238ae24b5c6fd63234991662eedfb8f73305a70f683d1e6458e9d46a",
+                "0ca11e4ae717f705ce5621f38d4787faab2060214d087a70b9d10088cbc7a7af",
+                "0ca11e4ae717f705ce5621f38d4787faab2060214d087a70b9d10088cbc7a7af",
+                "13b7994fae9387c2e1b598524ba1204ae404d02fa67016ed86c74183ab1aafca",
+                "0ca11e4ae717f705ce5621f38d4787faab2060214d087a70b9d10088cbc7a7af",
+                "13b7994fae9387c2e1b598524ba1204ae404d02fa67016ed86c74183ab1aafca"
+              ],
+              "matchedCandidateDigests": [],
+              "nodeDigests": [
+                "2f691487b62e1b7b35baf2af2aefb96aa601415acc356eb7e85c96744868199b"
+              ],
+              "matchedNodeDigests": [],
+              "fieldMatches": {},
+              "candidateDigest": "cda4bd8deff8a494f84eae3a53075c4ec1eb522d8411e3e5241bda9dc4c647a0",
+              "matchedCandidateDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "identityDigest": "cda4bd8deff8a494f84eae3a53075c4ec1eb522d8411e3e5241bda9dc4c647a0",
+              "expectedNodeTokensDigest": "cda4bd8deff8a494f84eae3a53075c4ec1eb522d8411e3e5241bda9dc4c647a0",
+              "observationDigest": "aaebd4b7fc929cfcda4eb971d818049b7aaee93b73a2a7dc254101a4a2e5d585"
+            }
+          }
+        }
+      },
+      "requested": {
+        "route": "/ops/events"
+      },
+      "observed": {
+        "screenRoute": "/ops/events"
+      },
+      "eventDomSemanticEvidence": {
+        "schema": "media-server.v390-ui-event-dom-semantic-composite-evidence.v1",
+        "pass": false,
+        "actualBrowserExecution": true,
+        "error": {
+          "code": "EVT_DOM_SEMANTIC_COMPOSITE_FAILED",
+          "causes": [
+            "responseBaselineMatched",
+            "routeLocalDomBinding"
+          ],
+          "causeCodes": [
+            "RESPONSE_BASELINE_MISSING",
+            "EXPECTED_FIXTURE_DIGEST_MISSING"
+          ]
+        },
+        "failedChecks": [
+          "responseBaselineMatched",
+          "routeLocalDomBinding"
+        ],
+        "causeCodes": [
+          "RESPONSE_BASELINE_MISSING",
+          "EXPECTED_FIXTURE_DIGEST_MISSING"
+        ],
+        "observationPresent": {
+          "pass": true,
+          "reasonCode": "PASS",
+          "selectorDigest": "a0f45f2c0aefcf10263a7678d4cd2649fbd835c0f1c67a199011a265641c6268",
+          "exists": true,
+          "visible": true,
+          "nodeCount": 1,
+          "visibleCount": 1,
+          "textPresent": true,
+          "textDigest": "2f691487b62e1b7b35baf2af2aefb96aa601415acc356eb7e85c96744868199b",
+          "structurePresent": true,
+          "descendantCount": 7,
+          "attributeNodeCount": 1,
+          "valueCount": 1
+        },
+        "responseBaselineMatched": {
+          "pass": false,
+          "pathCount": 1,
+          "comparedPathCount": 0,
+          "candidateCount": 0,
+          "mismatchPaths": [
+            "log tail"
+          ],
+          "reasonCodes": [
+            "RESPONSE_BASELINE_MISSING"
+          ],
+          "paths": [
+            {
+              "path": "log tail",
+              "matched": false,
+              "compared": false,
+              "reasonCode": "RESPONSE_BASELINE_MISSING",
+              "bindingMode": "path-value",
+              "baselineDigest": "3c479b91486e3cd708fd7f932de7c6bda0f84aa9453885231086d088818069f8",
+              "projectionDigest": "3c479b91486e3cd708fd7f932de7c6bda0f84aa9453885231086d088818069f8",
+              "candidateCount": 0,
+              "candidateDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "candidateDigests": []
+            }
+          ]
+        },
+        "fixtureObserved": {
+          "pass": true,
+          "reasonCode": "PASS",
+          "evaluated": true,
+          "failureCode": "PASS",
+          "required": false,
+          "bindingMode": "generic-fixture-candidate",
+          "apiFixtureIdentityMatched": true,
+          "domCandidateCount": 1,
+          "candidateCount": 6,
+          "matchedCandidateCount": 0,
+          "matchedNodeCount": 0,
+          "matchedNodeIndices": [],
+          "candidateDigests": [
+            "dadc9729238ae24b5c6fd63234991662eedfb8f73305a70f683d1e6458e9d46a",
+            "0ca11e4ae717f705ce5621f38d4787faab2060214d087a70b9d10088cbc7a7af",
+            "0ca11e4ae717f705ce5621f38d4787faab2060214d087a70b9d10088cbc7a7af",
+            "13b7994fae9387c2e1b598524ba1204ae404d02fa67016ed86c74183ab1aafca",
+            "0ca11e4ae717f705ce5621f38d4787faab2060214d087a70b9d10088cbc7a7af",
+            "13b7994fae9387c2e1b598524ba1204ae404d02fa67016ed86c74183ab1aafca"
+          ],
+          "matchedCandidateDigests": [],
+          "nodeDigests": [
+            "2f691487b62e1b7b35baf2af2aefb96aa601415acc356eb7e85c96744868199b"
+          ],
+          "matchedNodeDigests": [],
+          "fieldMatches": {},
+          "candidateDigest": "cda4bd8deff8a494f84eae3a53075c4ec1eb522d8411e3e5241bda9dc4c647a0",
+          "matchedCandidateDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "identityDigest": "cda4bd8deff8a494f84eae3a53075c4ec1eb522d8411e3e5241bda9dc4c647a0",
+          "expectedNodeTokensDigest": "cda4bd8deff8a494f84eae3a53075c4ec1eb522d8411e3e5241bda9dc4c647a0",
+          "observationDigest": "aaebd4b7fc929cfcda4eb971d818049b7aaee93b73a2a7dc254101a4a2e5d585"
+        }
+      },
+      "navigationLifecycleEvidence": {
+        "schema": "media-server.v390-ui-navigation-trust-evidence.v1",
+        "pass": true
+      },
+      "markerEvidence": null,
+      "markerStageEvidence": {
+        "schema": "media-server.v390-ui-evt004-marker-stage-evidence.v1",
+        "pass": true,
+        "failurePhase": "",
+        "failureCode": "PASS",
+        "fileStageEvidence": {
+          "schema": "media-server.v390-ui-marker-file-stage-evidence.v1",
+          "pass": true,
+          "failurePhase": "marker-file-relocation",
+          "failureCode": "PASS"
+        },
+        "dashboardResponseEvidence": {
+          "schema": "media-server.v390-ui-dashboard-marker-response-stage-evidence.v1",
+          "pass": true,
+          "failurePhase": "dashboard-owned-log-tail-response",
+          "failureCode": "PASS"
+        }
+      },
+      "markerEvidenceLifecycle": {
+        "phase": "not-reached"
+      },
+      "cleanupAttestation": {
+        "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+        "pass": true,
+        "primaryFailurePresent": true,
+        "primaryFailurePreserved": true,
+        "caseRuntimeRestoreAttempted": true,
+        "caseRuntimeRestored": true,
+        "browserCloseAttempted": true,
+        "browserContextClosed": true,
+        "cleanupEntryCount": 3,
+        "failureCode": ""
+      }
+    }
+  }
+}

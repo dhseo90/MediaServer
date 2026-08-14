@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "analysis/event_rule_engine.h"
+#include "analysis/analysis_types.h"
 
 namespace analysis {
 

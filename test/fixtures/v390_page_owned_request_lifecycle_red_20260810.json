@@ -1,0 +1,26 @@
+{
+  "schema": "media-server.v390-page-owned-request-lifecycle-red.v1",
+  "sourceBranch": "v3.9.0",
+  "sourceCommitSha": "dfda3a6431b30f99971cd19c1cab22a231c109da",
+  "sourceWorktreeClean": true,
+  "runId": "v390-test-acceptance-20260809225637-31369",
+  "coverage": {"target":424,"attempted":2,"pass":1,"fail":1,"notRun":422,"unsupported":0},
+  "firstFailure": {
+    "caseId": "UI-002",
+    "reason": "page-owned request source/phase mismatch",
+    "rootCause": "the common action-ledger validator requires every page-owned entry to use sourceOwner=page and rejects the authoritative document redirect-chain tuple",
+    "bootstrapTuple": ["page", "page", "bootstrap", "initial-page-load"],
+    "primaryTuple": ["action", "explicit-action-registration", "primary-action", "primary-action"],
+    "redirectTuple": ["page", "document-navigation-ledger", "document-navigation-chain", "document-navigation-chain"],
+    "primaryCardinality": "1/1",
+    "redirectRequestMethod": "GET",
+    "redirectedFromPrimaryObject": true,
+    "actionCorrelationLeakCount": 0
+  },
+  "artifacts": {
+    "trace": {"path":".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809225637-31369/ui-exact-424/traces/UI-002.trace.json","sha256":"3f5853ee1270ecd504b95125733278bf6192e19006ef785ebd82347dfff2feca"},
+    "summary": {"path":".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809225637-31369/ui-exact-424/summary.json","sha256":"0555c9a890d1ba941af42c9b600f7371aa8b17a0b874f672ef6d66426002c0a6"},
+    "log": {"path":".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809225637-31369/ui-exact-424.log","sha256":"7a05950a7c041c7d8b8efb71a8aa390331d1e1aa77523aa8466447a580de45d2"},
+    "browserConsole": {"path":".media_server.test/v3.9.0/ui-acceptance-current/runs/v390-test-acceptance-20260809225637-31369/ui-exact-424/logs/UI-002.browser-console.json","sha256":"ea55344e9b733e5a376c25954d71fadd67f171e21e6b48559ef2d870667092cc"}
+  }
+}

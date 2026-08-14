@@ -31,9 +31,9 @@ Options:
 
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
-  - README/English README의 현재 release 링크가 current tag와 GitHub Release를 가리키는지 확인
+  - README/English README의 최신 공개 release 링크가 latest published tag와 GitHub Release를 가리키는지 확인
   - 기본 모드에서는 GitHub latest/tag 외부 확인을 실행하지 않고 --published 재검증 안내로 기록
-  - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag/branch, repository page Releases/Latest link가 현재 tag를 가리키는지 확인
+  - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag/branch, repository page Releases/Latest link가 최신 공개 tag를 가리키는지 확인
   - gh 인증/도구 실패는 curl GitHub REST API fallback, SSH origin refs 실패는 HTTPS refs fallback으로 재시도하고 외부 접근 실패를 failure-class로 구분
   - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 active next-roadmap gate를 말하는지 확인
 `);
@@ -69,7 +69,7 @@ assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`
 const currentTag = `v${version}`;
 const latestPublishedTag = "v3.8.0";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
-const currentRoadmap = "v3.8.0 Operator-Gated Action Pilot & Outcome Loop";
+const currentRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";
 const latestPublishedBaseline = "v3.8.0 Operator-Gated Action Pilot & Outcome Loop";
 const previousPublishedTag = "v3.7.0";
 const previousPublishedBaseline = `${previousPublishedTag} Site-Aware Operations and Safe Runbook Control Plane`;
@@ -80,6 +80,8 @@ const currentBranch = resolveCurrentBranch();
 const releaseBranch = args.releaseBranch || process.env.MEDIA_SERVER_RELEASE_BRANCH || currentBranch;
 report.currentVersion = version;
 report.currentTag = currentTag;
+report.latestPublishedTag = latestPublishedTag;
+report.latestPublishedVersion = latestPublishedVersion;
 report.github = {
   repository: githubRepository,
   repositoryUrl,
@@ -125,7 +127,11 @@ check("README.md points to the current published release", () => {
   const readme = readText("README.md");
   assert(readme.includes(`현재 소스 버전: \`${version}\``), "README.md source version wording drifted");
   assert(readme.includes(`최신 공개 GitHub Release: [${latestPublishedTag}](${expectedReleaseUrl})`), "README.md latest release link drifted");
-  assert(readme.includes(`${latestPublishedTag} 공개 상태: source-only GitHub Release`), "README.md missing source-only published release wording");
+  assert(
+    readme.includes(`${latestPublishedTag} 공개 상태: source-only GitHub Release`) ||
+      readme.includes(`최신 공개 릴리즈: \`${latestPublishedTag}\` Operator-Gated Action Pilot & Outcome Loop, source-only`),
+    "README.md missing source-only published release wording"
+  );
   assert(readme.includes(`현재 source roadmap: \`${currentRoadmap}\``), "README.md source roadmap wording drifted");
   assertAllowedReleaseLinks(readme, "README.md", latestPublishedTag);
   return { file: "README.md", currentTag, latestPublishedTag, expectedReleaseUrl };
@@ -142,7 +148,11 @@ check("README.en.md points to the current published release", () => {
   const readmeEn = readText("README.en.md");
   assert(readmeEn.includes(`Current source version: \`${version}\``), "README.en.md source version wording drifted");
   assert(readmeEn.includes(`Latest published GitHub Release: [${latestPublishedTag}](${expectedReleaseUrl})`), "README.en.md latest release link drifted");
-  assert(readmeEn.includes(`${latestPublishedTag} public status: source-only GitHub Release`), "README.en.md missing source-only published release wording");
+  assert(
+    readmeEn.includes(`${latestPublishedTag} public status: source-only GitHub Release`) ||
+      readmeEn.includes(`Latest published release: \`${latestPublishedTag}\` Operator-Gated Action Pilot & Outcome Loop, source-only`),
+    "README.en.md missing source-only published release wording"
+  );
   assert(readmeEn.includes(`Current source roadmap: \`${currentRoadmap}\``), "README.en.md source roadmap wording drifted");
   assertAllowedReleaseLinks(readmeEn, "README.en.md", latestPublishedTag);
   return { file: "README.en.md", currentTag, latestPublishedTag, expectedReleaseUrl };
@@ -153,6 +163,17 @@ check("README.en.md keeps release source-of-truth links lightweight", () => {
   assert(readmeEn.includes("docs/development-backlog.md"), "README.en.md missing development backlog link");
   assert(readmeEn.includes("docs/release-policy.md"), "README.en.md missing release policy link");
   return { file: "README.en.md", currentTag, latestPublishedTag };
+});
+
+check("historical v2.9 source-of-truth remains distinct from latest published v2.8", () => {
+  const releaseTestRecords = readText("docs/release-test-records.md");
+  const v290SourceOfTruthRow = releaseTestRecords.split(/\r?\n/)
+    .find((line) => line.includes("| V290 source-of-truth split |")) || "";
+  const historicalBoundaryObserved = v290SourceOfTruthRow.includes("source `2.9.0`") &&
+    v290SourceOfTruthRow.includes("latest published `v2.8.0`") &&
+    v290SourceOfTruthRow.includes("published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음");
+  assert(historicalBoundaryObserved,
+    "historical V290 source 2.9.0 and latest published v2.8.0 boundary drifted");
 });
 
 if (!publishedMode) {
@@ -167,7 +188,7 @@ if (!publishedMode) {
     };
   });
 } else {
-  check("GitHub release list latest tag matches current tag", () => {
+  check("GitHub release list latest tag matches latest published tag", () => {
   const releaseListEvidence = readGithubReleaseListLatestWithFallback();
   const releaseList = releaseListEvidence.releaseList;
   assert(Array.isArray(releaseList), "GitHub release list did not return an array");
@@ -191,7 +212,7 @@ if (!publishedMode) {
   };
   });
 
-  check("GitHub API latest release matches current tag", () => {
+  check("GitHub API latest release matches latest published tag", () => {
   const latestEvidence = readGithubLatestApiWithFallback();
   const latestApi = latestEvidence.release;
   assert(latestApi?.tag_name === latestPublishedTag, `GitHub API latest release tag ${latestApi?.tag_name || "-"} does not match ${latestPublishedTag}`);
@@ -214,7 +235,7 @@ if (!publishedMode) {
   };
   });
 
-  check("GitHub release view matches current tag", () => {
+  check("GitHub release view matches latest published tag", () => {
   const releaseViewEvidence = readGithubReleaseViewWithFallback();
   const releaseView = releaseViewEvidence.release;
   assert(releaseView?.tagName === latestPublishedTag, `gh release view tag ${releaseView?.tagName || "-"} does not match ${latestPublishedTag}`);
@@ -237,14 +258,14 @@ if (!publishedMode) {
   };
   });
 
-  check("remote origin exposes current release tag", () => {
+  check("remote origin exposes latest published release tag", () => {
   const remoteTagEvidence = readRemoteRefWithHttpsFallback("tags", latestPublishedTag);
   const remoteTag = remoteTagEvidence.output;
   const remoteLines = remoteTag.split("\n").map(line => line.trim()).filter(Boolean);
   const exactTagLine = remoteLines.find(line => line.endsWith(`refs/tags/${latestPublishedTag}`));
   assert(exactTagLine, `remote origin does not expose refs/tags/${latestPublishedTag}`);
   const [sha] = exactTagLine.split(/\s+/);
-  assert(/^[0-9a-f]{40}$/.test(sha), `remote tag ${currentTag} did not return a commit SHA`);
+  assert(/^[0-9a-f]{40}$/.test(sha), `remote tag ${latestPublishedTag} did not return a commit SHA`);
   report.github.remoteTag = {
     tag: latestPublishedTag,
     sha,
@@ -325,10 +346,11 @@ check("versioning policy separates source version and published release", () => 
     `최신 공개 GitHub Release: \`${latestPublishedTag}\``,
     `최신 공개 roadmap: \`${latestPublishedBaseline}\``,
     `\`${latestPublishedTag}\` 공개 상태: source-only GitHub Release`,
-    `현재 소스 트리의 \`${version}\` roadmap은 v3.8.0 Operator-Gated Action Pilot & Outcome Loop`,
+    `현재 소스 트리의 \`${version}\` roadmap은 v3.9.0 Feature Completion, Structure Stabilization,`,
     `published tag \`${latestPublishedTag}\`와 현재 source tag \`${currentTag}\``,
     "## 2.x runway / 3.0 전환 정책",
-    "## 3.8.0 active source roadmap 범위",
+    "## 3.9.0 active source roadmap 범위",
+    "## v3.8.0 latest published source-only release 범위",
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
   }
@@ -357,6 +379,7 @@ check("release policy separates source version and published release", () => {
     `현재 latest published release는 \`${latestPublishedTag}\`입니다.`,
     `현재 공개 release tag 기준은 \`${latestPublishedTag}\`입니다.`,
     `현재 source tag 기준은 \`${currentTag}\`입니다.`,
+    `\`${currentTag}\` GitHub Release publish 완료는 tag, GitHub Release,`,
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
@@ -396,15 +419,15 @@ check("development backlog pins current source roadmap and public release bounda
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 source roadmap: ${currentRoadmap}`,
-    "| Foundation | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | VERSION/CMake/README/docs/backlog/source roadmap을 `3.8.0`와 `verify-v380-entry-baseline` 기준으로 정렬 |",
-    "Ops Action Route Boundary",
-    "Action Capability Contract",
-    "Approval Decision Gate",
-    "Ops Action Control Workspace UI",
+    "| Foundation | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | VERSION/docs/backlog/source roadmap 정렬 |",
+    "| Foundation | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 | `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded 목록과 source group checked 상태를 고정 |",
+    "discovery 결과 승인 전 기능 개발 금지",
+    "Feature Completion First with Dedicated Inventory",
     `## 최신 공개 기준: ${latestPublishedTag} Source Release Baseline`,
     `## 직전 공개 기준: ${previousPublishedTag} Source Release Baseline`,
     "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
-    `\`${currentTag}\` GitHub Release publish 완료는 tag, GitHub Release, \`verify-release-metadata --published\` evidence가 있을 때만 기록합니다.`,
+    `\`${currentTag}\` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가`,
+    "있을 때만 완료로 기록합니다.",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }
@@ -458,7 +481,8 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
-  assert(releasePolicy.includes("## v3.8.0 Source Roadmap Scope"), "release policy must own the v3.8.0 source roadmap boundary");
+  assert(releasePolicy.includes("## v3.9.0 Source Roadmap Scope"), "release policy must own the v3.9.0 source roadmap boundary");
+  assert(releasePolicy.includes("## v3.8.0 Published Source Roadmap Scope"), "release policy must preserve the v3.8.0 published source roadmap boundary");
   assert(backlog.includes(`## 현재 source roadmap: ${currentRoadmap}`), `development backlog must own the ${currentTag} source roadmap`);
   assert(backlog.includes(`직전 공개 릴리즈입니다.`), "development backlog must preserve previous published release boundary");
   return {
@@ -480,8 +504,17 @@ check("UI guide pins current release wording", () => {
   const uiGuide = readText("docs/ui-guide.md");
   assert(uiGuide.includes(`현재 소스 버전은 \`${version}\`입니다.`), "docs/ui-guide.md source version drifted");
   assert(uiGuide.includes(`최신 공개 GitHub Release는 \`${latestPublishedTag}\` source-only`), "docs/ui-guide.md source-only release wording drifted");
-  assert(uiGuide.includes(`${currentRoadmap} roadmap 경계`), "docs/ui-guide.md source roadmap boundary drifted");
+  assert(uiGuide.includes("v3.9.0 Feature Completion, Structure"), "docs/ui-guide.md source roadmap boundary drifted");
   return { file: "docs/ui-guide.md", currentTag, latestPublishedTag };
+});
+
+check("UI asset policy pins current source and published baseline wording", () => {
+  const uiAssets = readText("docs/assets/ui/README.md");
+  assert(uiAssets.includes("현재 source tree는 `v3.9.0`"), "docs/assets/ui/README.md source version drifted");
+  assert(uiAssets.includes(`최신 공개 GitHub Release는 \`${latestPublishedTag}\` Operator-Gated Action Pilot & Outcome Loop`), "docs/assets/ui/README.md latest published wording drifted");
+  assert(uiAssets.includes("직전 `v3.7.0`"), "docs/assets/ui/README.md previous baseline wording drifted");
+  assert(uiAssets.includes("image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는"), "docs/assets/ui/README.md image evidence boundary drifted");
+  return { file: "docs/assets/ui/README.md", currentTag, latestPublishedTag };
 });
 
 let pass = 0;
@@ -512,6 +545,8 @@ console.log("");
 console.log("== Release metadata consistency summary ==");
 console.log(`- current version: ${version}`);
 console.log(`- current tag: ${currentTag}`);
+console.log(`- latest published tag: ${latestPublishedTag}`);
+console.log(`- published metadata: ${report.publishedEvidence.status}`);
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 
@@ -564,6 +599,8 @@ function renderMarkdown(payload) {
     `- mode: ${payload.mode}`,
     `- currentVersion: ${payload.currentVersion}`,
     `- currentTag: ${payload.currentTag}`,
+    `- latestPublishedTag: ${payload.latestPublishedTag || "-"}`,
+    `- publishedMetadata: ${payload.publishedEvidence?.status || "-"}`,
     `- repository: ${payload.github?.repository || "-"}`,
     `- releaseBranch: ${payload.github?.releaseBranch || "-"}`,
     "",
@@ -753,10 +790,10 @@ function readGithubReleaseViewWithFallback() {
   } catch (primaryError) {
     const primaryMessage = errorMessage(primaryError);
     try {
-      const release = runCurlJson(githubApiUrl(`repos/${githubRepository}/releases/tags/${encodeURIComponent(currentTag)}`));
+      const release = runCurlJson(githubApiUrl(`repos/${githubRepository}/releases/tags/${encodeURIComponent(latestPublishedTag)}`));
       return {
         release: normalizeGithubApiReleaseView(release),
-        source: "curl GitHub REST API /releases/tags/<tag> fallback",
+        source: "curl GitHub REST API /releases/tags/<latest-published-tag> fallback",
         fallbackUsed: true,
         primaryFailure: summarizeExternalFailure(primaryMessage),
       };

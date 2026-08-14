@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.4.0 S06 Ops 이벤트 route owner decomposition wiring을 검증한다.
 
 import fs from "node:fs";
@@ -31,9 +32,9 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const checks = [];
 
 check("backlog S06 points to the route owner decomposition gate", () => {
-  const backlog = readText("docs/development-backlog.md");
-  assert(/\| 6 \| V240-S06 \| P1 \| (진행|완료) \| UI\/API decomposition \|/.test(backlog),
-    "backlog V240-S06 row must be 진행 or 완료");
+  const backlog = readText("docs/development-backlog.md").replace(/\s+/g, " ");
+  assert(/\| V240-S06 \| 완료 \| UI\/API decomposition \|/.test(backlog),
+    "backlog V240-S06 historical archive row is missing or invalid");
   for (const snippet of [
     "verify-v240-ops-event-route-owner-decomposition",
     "Ops Events, event review/action API, client summary route, alert dry-run route owner",
@@ -79,7 +80,7 @@ check("CMake builds the route owner module", () => {
 });
 
 check("server delegates matching to the route owner module", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   assert(server.includes('#include "ingress/ops_event_route_owner.h"'),
     "webrtc_http_server.cpp must include ops_event_route_owner.h");
   for (const snippet of [
@@ -98,7 +99,7 @@ check("server delegates matching to the route owner module", () => {
 });
 
 check("server no longer owns hard-coded target route comparisons", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     'request.path == "/ops/events"',
     'request.path == "/ops/api/events/status"',

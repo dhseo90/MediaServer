@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 5 Site Impact Graph 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -7,6 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -53,6 +55,8 @@ check("Ops server builds the v3.7 site impact graph model", () => {
     "PublishedView",
     "clientImpact",
   ]) assertIncludes(files.server, snippet, "v370 site impact graph server model");
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV370SiteImpactGraphJson(");
+  assertIncludes(producerBlock, "media-server.ops.v370-site-impact-graph.v1", "v370 site impact graph schema");
 });
 
 check("site impact graph derives from existing graph context, health rollup, and site projection", () => {
@@ -70,7 +74,13 @@ check("site impact graph derives from existing graph context, health rollup, and
 });
 
 check("site impact graph preserves read-only redaction boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV370SiteImpactGraphJson", "struct OpsV350CommandPlanCandidate");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370SiteImpactGraphJson(");
+  const clientNoticeSendCallPresent = /sendClientNotice|clientNoticeDelivery|deliveryQueue/.test(block);
+  const debugMaterialExposed = exactBooleanFlagValue(block, "rawDiagnosticJsonIncluded");
+  assert(clientNoticeSendCallPresent === false, "CLIENT-035 client notice send must remain absent");
+  assert(exactBooleanFlagValue(block, "rawLocatorIncluded") === false, "CLIENT-035 raw/source locator material must remain redacted");
+  assert(debugMaterialExposed === false, "CLIENT-035 debug material must remain redacted");
+  assert(block.includes("clientImpact") && block.includes("viewer-safe summary only"), "CLIENT-035 exact clientImpact summary readback missing");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -107,6 +117,7 @@ check("site impact graph preserves read-only redaction boundaries", () => {
     "wsMetadataSchemaChanged",
     "rtspOrWebrtcMediaPathChanged",
   ]) assertFlagFalse(block, flag);
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
 });
 
 check("Ops API exposes the impact graph route as guarded no-store JSON", () => {
@@ -127,8 +138,36 @@ check("docs, inventory, and dispatch map v3.7 Step 5", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_site_impact_graph.mjs", "server.sh dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "loadImplementationManifest", "feature coverage manifest loading");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  const manifestById = new Map(files.implementationManifest.items.map(item => [item.id, item]));
+  for (const id of ["SRC-057", "EVT-080", "CLIENT-035", "SAFE-166", "OPS-133"]) {
+    const expectedCommand = id === "SRC-057" ? "verify-ops-source-registry-api" : command;
+    assert(manifestById.get(id)?.verifierEvidence?.command === expectedCommand,
+      `${id} implementation manifest verifier must be ${expectedCommand}`);
+  }
   assertIncludes(files.scriptInventory, "verify_v370_site_impact_graph.mjs", "script inventory");
+});
+
+check("SAFE-166 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370SiteImpactGraphJson(");
+  const routeObserved = files.server.includes("/ops/api/site-operations/impact-graph");
+  const safe166BoundaryObserved = block.includes("BuildV370SiteImpactGraphNodes");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe166BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-166 BuildV370SiteImpactGraphNodes must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 finish("== v3.7.0 site impact graph summary ==", { schema, step: "v3.7.0 (5)", route });
@@ -149,7 +188,7 @@ function assertStepDocs(step, title, ...ids) {
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
@@ -157,6 +196,7 @@ function loadFiles() {
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),
+    implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     serverSh: readText("server.sh"),
   };
 }

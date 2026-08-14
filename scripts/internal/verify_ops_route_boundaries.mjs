@@ -4,6 +4,7 @@
 import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
 if (hasHelpFlag(rawArgs)) {
@@ -15,13 +16,17 @@ Usage:
 Options:
   --http-base <url>  실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
   --timeout-ms <ms>  HTTP 대기 시간입니다. 기본 10000.
+  --chrome-path <p>  client live DOM oracle에 사용할 Chrome 경로입니다.
+  --debug-port <n>   Chrome DevTools 포트입니다. 기본 9941.
   -h, --help         도움말 출력
 `);
 }
-assertKnownOptions(rawArgs, ["http-base", "timeout-ms", "h", "help"]);
+assertKnownOptions(rawArgs, ["http-base", "timeout-ms", "chrome-path", "debug-port", "h", "help"]);
 const args = parseArgs(rawArgs);
 const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 10000);
+const chromePath = args.chromePath || findChrome();
+const debugPort = Number(args.debugPort || 9941);
 
 const opsShellMust = [
   'class="product-shell',
@@ -84,10 +89,14 @@ const clientForbiddenJsonKeys = [
 const checks = [
   {
     name: "ops-home-shell",
-    run: async () => assertHtmlContract("/ops/home", opsShellMust, [
-      'data-testid="ops-home-page"',
-      'data-ops-panel="home"',
-    ], opsShellMustNot),
+    run: async () => {
+      const opsHomeResponse = await assertHtmlContract("/ops/home", opsShellMust, [
+        'data-testid="ops-home-page"',
+        'data-ops-panel="home"',
+      ], opsShellMustNot);
+      assert(opsHomeResponse.includes('data-testid="ops-home-page"'),
+        "ops-home-page runtime response readback missing");
+    },
   },
   {
     name: "ops-dashboard-shell",
@@ -140,30 +149,44 @@ const checks = [
   },
   {
     name: "client-live-shell",
-    run: async () => assertHtmlContract("/client/live", clientShellMust, [
-      'data-client-active="live"',
-      'id="views"',
-      'id="detail"',
-      "/client/api/views",
-    ], clientShellMustNot),
+    run: async () => {
+      await assertHtmlContract("/client/live", clientShellMust, [
+        'data-testid="client-live-workspace"',
+        'data-client-active="live"',
+        'id="views"',
+        'id="detail"',
+        "/client/api/views",
+      ], clientShellMustNot);
+      await assertClientLiveBrowserContract();
+    },
   },
   {
     name: "client-dashboard-shell",
-    run: async () => assertHtmlContract("/client/dashboard", clientShellMust, [
-      'data-client-active="dashboard"',
-      'id="views"',
-      'id="detail"',
-      "/client/api/views",
-    ], clientShellMustNot),
+    run: async () => {
+      const clientDashboardResponse = await assertHtmlContract("/client/dashboard", clientShellMust, [
+        'client-viewer-dashboard',
+        'data-client-active="dashboard"',
+        'id="views"',
+        'id="detail"',
+        "/client/api/views",
+      ], clientShellMustNot);
+      assert(clientDashboardResponse.includes('client-viewer-dashboard'),
+        "client-viewer-dashboard runtime response readback missing");
+    },
   },
   {
     name: "client-events-shell",
-    run: async () => assertHtmlContract("/client/events", clientShellMust, [
-      'data-client-active="events"',
-      'id="views"',
-      'id="detail"',
-      "/client/api/views",
-    ], clientShellMustNot),
+    run: async () => {
+      const clientEventsResponse = await assertHtmlContract("/client/events", clientShellMust, [
+        'client-viewer-events',
+        'data-client-active="events"',
+        'id="views"',
+        'id="detail"',
+        "/client/api/views",
+      ], clientShellMustNot);
+      assert(clientEventsResponse.includes('client-viewer-events'),
+        "client-viewer-events runtime response readback missing");
+    },
   },
   {
     name: "lab-analysis-api-remains-open",
@@ -245,6 +268,57 @@ async function assertHtmlContract(path, shellNeedles, pageNeedles, forbiddenNeed
   if (path === "/ops" || path.startsWith("/ops/")) {
     assertOpsPrimaryNavContract(path, text);
   }
+  return text;
+}
+
+async function assertClientLiveBrowserContract() {
+  const browser = await openBrowserPage({
+    httpBase,
+    pagePath: "/client/live",
+    timeoutMs,
+    chromePath,
+    debugPort,
+    width: 1180,
+    height: 900,
+  });
+  try {
+    const observed = await browser.evaluate(`
+      (() => {
+        const workspace = document.querySelector('[data-testid="client-live-workspace"]');
+        const video = workspace?.querySelector('video[playsinline]');
+        const playback = workspace?.querySelector('[data-action="toggle-playback"]');
+        const overlay = workspace?.querySelector('[data-testid="client-live-va-overlay-toggle"]');
+        const infoOverlay = workspace?.querySelector('[data-testid="client-live-tile-info-overlay"]');
+        const scripts = Array.from(document.scripts).map(node => node.textContent || '').join('\n');
+        return {
+          workspace: Boolean(workspace),
+          video: Boolean(video),
+          playbackControl: Boolean(playback),
+          overlayControl: Boolean(overlay),
+          infoOverlay: Boolean(infoOverlay),
+          sessionCreate: scripts.includes('/client/api/views/') && scripts.includes('/webrtc/session'),
+          sessionOffer: scripts.includes("payload.sessionId || ''") && scripts.includes("payload.offer"),
+          sessionMedia: scripts.includes('video.srcObject = event.streams[0]'),
+          sessionCleanup: scripts.includes('cleanupClientLiveSession') && scripts.includes('video.srcObject = null'),
+        };
+      })()
+    `, timeoutMs);
+    assert(observed?.workspace === true, "client-live-workspace browser oracle missing");
+    assert(observed?.video === true, "client-live browser video element missing");
+    assert(observed?.playbackControl === true, "client-live browser playback control missing");
+    assert(observed?.overlayControl === true, "client-live browser VA overlay control missing");
+    assert(observed?.infoOverlay === true, "client-live browser playback overlay missing");
+    assert(observed?.sessionCreate === true && observed?.sessionOffer === true,
+      "client-live browser session create/offer workflow missing");
+    assert(observed?.sessionMedia === true && observed?.sessionCleanup === true,
+      "client-live browser media attachment/cleanup workflow missing");
+  } finally {
+    await browser.close();
+  }
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
 }
 
 async function assertJsonPath(path, requiredKeys) {

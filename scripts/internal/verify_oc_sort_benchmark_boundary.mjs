@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: 현재 release OC-SORT benchmark 경계가 runtime tracker로 승격되지 않았는지 검증한다.
 // 동작 요약: OC-SORT를 제품 tracker 허용값에서 배제하고, benchmark/report 문서와 기존 비교 harness만 열려 있는지 정적 점검한다.
 
@@ -55,8 +56,8 @@ const ocSortTokens = [
 ];
 
 check("OC-SORT is not a runtime tracker policy value", () => {
-  const analysisQuery = readText("src/ingress/analysis_query.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const analysisQuery = readText("src/analysis/analysis_query.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const ui = readText("src/ingress/product_ui_page_scripts.cpp");
 
   for (const [label, text] of [
