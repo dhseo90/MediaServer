@@ -252,9 +252,14 @@ function documentSemantic(file, title) {
 
 function releaseArtifactSemantic(file) {
   const commonEvidence = [owner("docs/release-evidence-index.md", "historical")];
-  if (file.endsWith("release-notes-draft.md")) {
-    return semantic("historical-release-note-draft", "historical-audit-only", "historical-aligned", "preserve-release-note-draft",
-      "당시 release note 초안이며 test evidence가 아니다",
+  if (file.endsWith("release-notes-draft.md") || file.endsWith("release-notes.md")) {
+    const published = file.endsWith("release-notes.md");
+    return semantic(published ? "published-release-note" : "historical-release-note-draft",
+      "historical-audit-only", "historical-aligned",
+      published ? "preserve-published-release-note" : "preserve-release-note-draft",
+      published
+        ? "공개된 source-only release note이며 제품 test evidence를 대체하지 않는다"
+        : "당시 release note 초안이며 test evidence가 아니다",
       owner("AGENTS.md", "release notes"), commonEvidence);
   }
   if (file.includes("/predev-") || file.endsWith("/predev-report.md")) {

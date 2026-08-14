@@ -28,7 +28,7 @@
 - Modify: `.superpowers/sdd/2026-08-11-v390-verification-runner-rebase/progress.md`
 - Modify: `docs/v390-full-status-failure-and-handoff-2026-08-12.md`
 - Modify: `docs/v390-current-state-and-verification-debt-audit-2026-08-12.md`
-- Create: `docs/release-artifacts/v3.9.0/release-notes-draft.md`
+- Create the draft, then publish it as: `docs/release-artifacts/v3.9.0/release-notes.md`
 
 - [x] Record `47582fea` UI `424/424`, Policy `424/424`, cleanup, and UI final-integrity without claiming full release PASS.
 - [x] Mark the two 2026-08-12 failure audits as historical and link the current source-of-truth.

@@ -72,7 +72,7 @@
     },
     {
       "path": "README.en.md",
-      "contentSha256": "d59faa04c0d597389c9c22084b6a2af7486ef7d4b1c2c4ba7c4eaa35ee44d66a",
+      "contentSha256": "8f96b44970db1939a6d8e80b29da4cd78e1bb437f60a321420c77c6450c505d9",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -92,7 +92,7 @@
     },
     {
       "path": "README.md",
-      "contentSha256": "ecc9b7c885a005e156ce123dc1fb44dc6fb1fb7a3492e7aec5bf3b8efda00f86",
+      "contentSha256": "b19da7325eb19c8b4782f3c22396ef7a99776cc0bd6bcfc4823251dbe86fecde",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -152,7 +152,7 @@
     },
     {
       "path": "docs/README.md",
-      "contentSha256": "74ad5bb5801ee10ee8a491980163fc86336901db5420b8be8ae5a7add1bd711a",
+      "contentSha256": "36df62167aebefe4803ad21dcaeceea726f8c1f03eedeabafcc9dfd3d6650a85",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -192,7 +192,7 @@
     },
     {
       "path": "docs/assets/ui/README.md",
-      "contentSha256": "80b84c1fd4371a5804313ec0e428e5c6706c499b2de04762b071bff134579ad1",
+      "contentSha256": "4353e064f5211e817b84682e8dc8465e8f441c061ea2a4f0655d3665d021140f",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -292,7 +292,7 @@
     },
     {
       "path": "docs/development-backlog.md",
-      "contentSha256": "c20ed22fba41b036f1ba8f465643b869b98fddb3797e0e195a551dbe678bf0ad",
+      "contentSha256": "ea988f1732e9fbaaf300b10dc579e8b52e93f15eec222d80714225b75eb18473",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -352,7 +352,7 @@
     },
     {
       "path": "docs/en/README.md",
-      "contentSha256": "82fe60db2fe3ce93233788fb8008f4ccf0e3c56541bd12373c8598128c8979ee",
+      "contentSha256": "3fc86a766cc71a93339671847e1bb07948e651018a6a6cb98a079b046a9feef4",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -932,7 +932,7 @@
     },
     {
       "path": "docs/public-repo-final-review.md",
-      "contentSha256": "bd16c7424417d0ba358b902f2285a9cf2f677b2f4126dfbde7dec34fcfbad187",
+      "contentSha256": "1c0e249fbf3307edae51f07009e7524c2a7c162d3eb83932ea10fc4b0ebc6c62",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1411,13 +1411,13 @@
       "semanticDigest": "b3e43778eca040ad6283ef8f352c1ee65109aa3f2bc8a0353d74618187184f29"
     },
     {
-      "path": "docs/release-artifacts/v3.9.0/release-notes-draft.md",
-      "contentSha256": "9cf506869f2e1b8c2eaea13c2f6b9b8628fb12b9b9d34d89a23a66cda80d09e1",
-      "semanticRole": "historical-release-note-draft",
+      "path": "docs/release-artifacts/v3.9.0/release-notes.md",
+      "contentSha256": "9f5cce10fdbe94088c6af3bab9af4528b1235a7e9c0d3ce931ffc1e4a51b9adf",
+      "semanticRole": "published-release-note",
       "lifecycle": "historical-audit-only",
       "alignment": "historical-aligned",
-      "decision": "preserve-release-note-draft",
-      "semanticStatement": "Media Server v3.9.0 Release Notes (Draft) — 당시 release note 초안이며 test evidence가 아니다",
+      "decision": "preserve-published-release-note",
+      "semanticStatement": "Media Server v3.9.0 Release Notes — 공개된 source-only release note이며 제품 test evidence를 대체하지 않는다",
       "actualOwner": {
         "path": "AGENTS.md",
         "anchor": "release notes"
@@ -1428,7 +1428,7 @@
           "anchor": "historical"
         }
       ],
-      "semanticDigest": "1297f04a16198a436b5dfaf67a08d8ef9d6ebe77002dc3c3a58463d1e04288f1"
+      "semanticDigest": "bfae50624a00822685f5cf793f11ff262666c43c1d29a697882d9121a7743f48"
     },
     {
       "path": "docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.md",
@@ -2132,7 +2132,7 @@
     },
     {
       "path": "docs/release-evidence-index.md",
-      "contentSha256": "578f9f3f16c83ad875f8682e954eb549f410679450fe0da237719b58040d37a5",
+      "contentSha256": "18a2a48078d4c27fdc425614d59f0ecf28e290d5651c223e21349672ac036979",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2152,7 +2152,7 @@
     },
     {
       "path": "docs/release-policy.md",
-      "contentSha256": "06ff9e8768c4de2c6488e34c47c8cd2c356f58c2ceb018a72346373a7dfe2465",
+      "contentSha256": "d0d47a7a05898e30649a81930641b617a375e20b1c551a6e85a353a5e30d7f15",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2872,7 +2872,7 @@
     },
     {
       "path": "docs/superpowers/plans/2026-08-13-v390-release-closeout.md",
-      "contentSha256": "e9b279ef81aa87b93467abf2441516fe5cd5ac713c1a3c4d0667541d3d97bdcb",
+      "contentSha256": "9b8139b1bf9ff44d1c49500e99feaeedc2cc8451e6a5cd853b3d0c5c04bb3361",
       "semanticRole": "historical-or-superseded-plan",
       "lifecycle": "superseded-historical",
       "alignment": "historical-aligned",
@@ -2972,7 +2972,7 @@
     },
     {
       "path": "docs/ui-guide.md",
-      "contentSha256": "03914e0f1df7c024015e3249676caad6af572c084ef2a75a77f964f2cd6527c6",
+      "contentSha256": "12809bbb8485fe170ddc5c9c4bcaccf0df8151ba865d654c2ea10ea6f495eb95",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -3492,7 +3492,7 @@
     },
     {
       "path": "docs/versioning-policy.md",
-      "contentSha256": "cc783dc7efdfc3fa0f0dd13442c187809704c68991a767f09014934529cf4f46",
+      "contentSha256": "585ed28bface163d336a3f5c399b6a5d38d38d132378a8243cfbfba08528b21e",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",

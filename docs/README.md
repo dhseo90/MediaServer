@@ -42,7 +42,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | 검증 명령 | [stream-verification.md](stream-verification.md) |
 | 버전과 release 정책 | [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md) |
 | 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
-| v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes-draft.md](release-artifacts/v3.9.0/release-notes-draft.md) |
+| v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes.md](release-artifacts/v3.9.0/release-notes.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 공개 문서 전체 목록
