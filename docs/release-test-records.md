@@ -16,21 +16,23 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
-## v3.9.1 현재 소스 정정 상태 (2026-08-14)
+## v3.9.1 현재 소스 정정 상태 (2026-08-15)
 
 - current source: `v3.9.1` (`VERSION=3.9.1`)
 - latest published: v3.9.0
-- fresh full test: 1·2차 clean-clone 시도 FAIL; historical entry gate 보정 후 재실행 대기
-- release action: source correction commit `7f3e9dc9`, `63d59839` 완료; push·PR·main merge·tag·GitHub Release 미실행
+- fresh full test: 1~5차 clean-clone 시도 FAIL; 5차는 36 feature gate PASS 뒤 30분 integrated smoke의 Git 비추적 YOLO model 누락에서 중단
+- release action: source correction commit `7f3e9dc9`, `63d59839`, `6f9ad88e` 완료; push·PR·main merge·tag·GitHub Release 미실행
 
 | 영역 | 현재 결과 | 직접 evidence | 릴리즈 판정 |
 | --- | --- | --- | --- |
 | metadata/docs links | PASS | `verify-release-metadata` 18/0, `verify-docs-links` failure 0 | focused gate이며 fresh full test 대체 불가 |
 | public repository hygiene | PASS | `verify-public-repo-readiness --no-history` 8/0, 개인/임시 경로 0, raw release artifact 0 | history scan과 full test는 별도 |
 | v3.9.0 public evidence archive | PASS | `release-artifacts/v3.9.0/public-evidence-manifest.json`, bounded artifact SHA-256 검증 | published v3.9.0 historical evidence 보존 |
-| v3.9.1 clean-clone preflight/build | PASS | source `7f3e9dc9`, `63d59839` 각각의 `--no-local` clone HEAD 일치, 두 실행 모두 preflight/build exit 0 | 뒤 feature-gates FAIL을 대체하지 않음 |
-| v3.9.1 feature gates | FAIL | 1차 `v390-stabilization-release-readiness` 상태 vocabulary 불일치; 2차 `v390-entry-baseline`의 `VERSION=3.9.0` current 고정 | 각 실행의 첫 실패; historical/current 경계 보정 후 전체 clean-clone 재실행 필요 |
-| v3.9.1 30분/UI/120분 | 미실행 | feature-gates 첫 실패 뒤 stop-on-first-fail 적용 | release blocker; PASS로 사용 불가 |
+| v3.9.1 clean-clone preflight/build | PASS | source `7f3e9dc9`, `63d59839`, `6f9ad88e`의 독립 clone HEAD 일치; 다섯 실행 모두 preflight/build exit 0 | 뒤 최초 실패를 대체하지 않음 |
+| v3.9.1 feature gates | PASS/과거 FAIL 보존 | 1차 readiness vocabulary FAIL, 2차 historical entry FAIL, 3차 sandbox loopback `EPERM`, 4차 local-origin metadata FAIL 뒤 5차 36개 gate 전부 PASS | 5차 source `6f9ad88e`; 이전 실패는 환경/구성 이력으로 보존 |
+| v3.9.1 30분 | FAIL | 5차 integrated smoke 417초; codec matrix 8개 PASS 뒤 ignored `models/yolo11n.onnx` 누락으로 YOLO/VA overlay, redaction, VA event, image analysis 실패 | clean-clone dependency bootstrap blocker; 실제 30분 PASS 아님 |
+| v3.9.1 UI/120분 | 미실행 | 5차 30분 최초 실패 뒤 stop-on-first-fail 적용 | release blocker; PASS로 사용 불가 |
+| test AI asset bootstrap correction | contract/live URL PASS | `media_server_prepare_user_test_ai_assets`; fixed URL/SHA, atomic model publish, canonical 80-label SHA, launcher contract `22/22`; 기본 URL 10.4 MB download와 model/label SHA·80 labels readback PASS, 10 MiB 임시 root cleanup PASS | 새 clean commit actual 재실행 전 release PASS 아님 |
 
 1차 clean-clone acceptance 실행 기록:
 
@@ -89,6 +91,36 @@
 - elapsed: acceptance 약 56초, `--no-local` clone 약 23초
 - source: Codex goal snapshot + terminal wall time
 - 실패 clone cleanup: 580 MiB, 2,059 files 삭제 완료; 원본 작업트리 clean, models/samples 원본 미변경
+
+3~5차 clean-clone acceptance 실행 기록:
+
+| 시도 | source/환경 | 최초 실패 또는 결과 | 뒤 단계 | cleanup |
+| --- | --- | --- | --- | --- |
+| 3차 | `6f9ad88e`, `/private/tmp` 독립 clone, sandbox 실행 | feature gate 12 `v390-vlm-incident-rule-provenance`; loopback `127.0.0.1` listen `EPERM` | 30분/UI/120분 건너뜀 | 580 MiB, 2,067 files 삭제 |
+| 4차 | `6f9ad88e`, `/Users/dhseo/Workspace` 독립 clone, sandbox 밖 실행 | feature gate 28 `release-metadata`; local clone의 `origin`이 GitHub URL이 아니라 원본 filesystem path | 30분/UI/120분 건너뜀 | 596 MiB, 2,085 files 삭제 |
+| 5차 | `6f9ad88e`, GitHub origin 복원, sandbox 밖 실행 | preflight/build/36 feature gate PASS. 30분 integrated smoke 417초에서 `models/yolo11n.onnx` 누락으로 FAIL | UI exact 424/Policy v4/120분 건너뜀 | runner port/temp cleanup PASS; clone 598 MiB, 2,134 files 삭제 완료 |
+
+5차 30분 최초 실패 상세:
+
+| integrated smoke 항목 | 결과 | 직접 관찰 |
+| --- | --- | --- |
+| file/local RTSP/WHIP/HTTP URI codec matrix 8개 | pass | H264/H265, AAC/Opus/PCMU/PCMA, WHIP, HTTP video-only RTSP/WebRTC 경로 통과 |
+| YOLO/VA overlay | fail | `missing YOLO model: models/yolo11n.onnx` |
+| person mosaic redaction | fail | static metadata HTTP 400, live verifier는 같은 model 누락 |
+| VA tracking events | fail | rule 11개 저장 후 analysis request HTTP 400 |
+| image analysis/tracking category | fail | health/path traversal은 통과했지만 metadata/snapshot/overlay/redaction HTTP 400 |
+| integrated smoke 합계 | fail | `17 pass / 4 fail / 9 skip`, elapsed 416초 |
+
+5차 실패 뒤 `ui-environment-bootstrap`, `ui-exact-424`, `ui-fulltest-qualification`,
+`longrun-120-decision`, `server-longrun-120`, `ui-final-integrity`는 모두 `건너뜀`이며
+완료 evidence로 사용할 수 없습니다. final-integrity FAIL은 30분/UI child evidence가 완전하지
+않은 파생 결과이고 최초 실패는 `server-longrun-30`입니다.
+
+- token start: `2,640,447` (Codex goal continuation snapshot)
+- token end/consumed: 미집계 (active goal 진행 중)
+- elapsed: full launcher 약 18분, integrated smoke 417초
+- source: Codex goal snapshot + terminal wall time
+- 임시 failure asset 16 KiB와 실패 clone 598 MiB, 2,134 files 삭제 완료
 
 ## Historical v3.9.0 릴리즈 종료 상태 (2026-08-14)
 
@@ -155,6 +187,7 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | Feature inventory coverage | 새 기능 ID와 exact semantic implementation/UI/verifier/longrun 매핑이 누락되지 않았는지 확인 | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-implementation-evidence.v2` manifest를 읽어 handler/route/control/action/state relation, reviewer digest, semantic assertion과 canonical v3.9 longrun mapping을 확인. `covered`는 mapping coverage이며 실행 PASS가 아님 | v2.0.0, v3.9.0 semantic exact-ID 강화 |
 | Feature implementation evidence manifest | current 986개 inventory 행의 owner source, product UI route/control/state, verifier assertion, manual UI case, 30/120분 runner를 1:1 대조 | `./server.sh verify-feature-implementation-evidence`로 current manifest 986행과 source/verifier 986, exact manual UI case 424, negative fixture 11종을 확인. historical 974/984행 결과는 당시 evidence로 보존합니다. `--refresh-manifest`는 명시적 source 갱신이고 기본 검증은 read-only이며 제품/UI/장시간 실행 evidence가 아님 | v3.9.0 V390-ADD1-02 |
 | Script inventory 확인 | 새 verifier/command가 server entrypoint와 script inventory에 등록됐는지 확인 | `./server.sh verify-script-inventory` 실행 결과와 `server.sh` dispatch 확인 | v2.0.0 |
+| User test AI asset bootstrap | Git 비추적 YOLO model/COCO labels가 무옵션 30분·120분·UI·release launcher의 실제 test 위임 전에 준비되는지 확인 | `./server.sh verify-v390-user-test-launchers-contract`가 missing download, fixed SHA-256, existing verify, corrupt repair, digest mismatch no-publish/temp cleanup을 확인. 기본 Ultralytics URL의 실제 10.4 MB download와 SHA readback도 확인. Actual launcher는 `ai-asset-bootstrap` 실패 시 build/30분/UI/120분 전에 fail-stop | v3.9.1 |
 | Build | C++/UI/static asset build가 통과하는지 확인 | `./server.sh build` exit code 0 확인. 실패 후 수정했다면 최초 fail과 최종 pass를 모두 결과 기록에 남김 | v1.8.0 |
 | V390-REVIEW4-64 ordered structure execution | current `v3.9.0`에서 composition root → route/API handler → registry/domain → UI script/CSS → VLM/parser → verifier/docs 순서의 실제 구조 이동과 누적 debt 감소를 확인 | 각 Slice 구현 전에 execution ledger에 rollback/before/after/contract/test를 등록합니다. Slice 32 completion graph와 이후 current source graph를 별도 artifact로 결속하고 completion/current hash 교환·historical rewrite·current owner/include/target/SCC drift를 거부합니다. Slice PASS를 REVIEW4-65 acceptance PASS로 승격하지 않습니다 | v3.9.0 REVIEW4-64 |
 | Auth bootstrap | 초기 admin setup과 auth bootstrap policy 확인 | auth 전용 환경변수 5개가 모두 설정된 상태에서 `./server.sh verify-auth-bootstrap` 실행 | v2.0.0 |

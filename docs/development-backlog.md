@@ -38,6 +38,31 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 문서 current truth, bounded evidence와 대표 UI asset 현재성을 정정하는 patch source입니다.
 아래 v3.9.0 상세 roadmap과 실행 기록은 당시 범위와 판단을 보존한 historical section입니다.
 
+### 2026-08-15 clean-clone test dependency bootstrap correction
+
+상태: 구현 및 local contract PASS, 새 clean-clone actual release acceptance 재실행 대기.
+
+- `scripts/internal/user_test_launcher_common.sh`의
+  `media_server_prepare_user_test_ai_assets`가 네 무옵션 사용자 test launcher의 실제 하위
+  test 위임 전에 Git 비추적 `models/yolo11n.onnx`와 `models/coco.names`를 준비합니다.
+  YOLO 모델은 Ultralytics `v8.4.0` 고정 URL과 SHA-256
+  `634279b40c07c6391472c51ad45b81ebc48706a9a1fe72dd3396322acd0c053b`에 결속하고,
+  임시 파일 다운로드, digest 확인, atomic rename 순서로만 게시합니다. 기존 파일은 같은
+  digest일 때 재사용하고 다르면 동일 절차로 교체합니다.
+- COCO 80개 label은 launcher 소유 canonical bytes로 생성한 뒤 SHA-256
+  `bd17f1ee35d5f3c862a4894605855abbb9dda4b0621fdb0ac4c2c8c7bb7e730a`를 확인하고
+  atomic rename합니다. 다운로드 또는 readback 실패는 `ai-asset-bootstrap` 최초 실패로
+  기록하고 build·feature gate·30분·UI·120분을 실행하지 않습니다.
+- `scripts/internal/verify_v390_user_test_launchers_contract.mjs`는 missing asset download,
+  existing asset verify, corrupt model repair, digest mismatch no-publish/temp cleanup을 실제
+  local `file://` fixture로 검증합니다. RED `20 PASS / 2 FAIL` 뒤 구현 후 `22/22` PASS,
+  Bash syntax와 원본 model/label SHA readback도 PASS했습니다. 이어서 기본 Ultralytics URL을
+  사용한 임시 root 검증에서 10.4 MB model download, 고정 model/label SHA, COCO 80 labels가
+  모두 PASS했고 10 MiB 임시 root는 삭제했습니다.
+- 이 보정은 model/runtime을 릴리즈 bundle이나 Git에 포함하지 않고, C++ 제품 로직,
+  API/schema/event payload, RTSP/WebRTC media path를 변경하지 않습니다. 실제 30분/UI/120분
+  PASS는 새 clean commit의 `./test_release.sh` 결과로만 판정합니다.
+
 상태: Step 1~29 기능·결정·readiness local gate는 한 차례 닫혔으나, 2026-07-11 실제 구현
 재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되었습니다. 이후 구현됐다고
 기록된 항목을 2026-07-12 다시 source-level로 감사한 결과 semantic closure, exact 424 UI

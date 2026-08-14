@@ -2,6 +2,7 @@
 // 파일 용도: REVIEW4-62/65 사용자용 무옵션 launcher 네 개의 위임·금지 인자·조건부 120분 계약을 검증한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -62,6 +63,11 @@ check("common launcher owns output, contract preflight, sanitization, and exact 
     "unset MEDIA_SERVER_V390_UI_ROLE_SECRETS",
     "unset MEDIA_SERVER_VERIFY_PREDEV_HTTP_PORT",
     "unset MEDIA_SERVER_VERIFY_PREDEV_RTSP_PORT",
+    "unset MEDIA_SERVER_TEST_YOLO_MODEL_URL",
+    "unset MEDIA_SERVER_TEST_YOLO_MODEL_SHA256",
+    'media_server_prepare_user_test_ai_assets "${root_dir}"',
+    "failureStage=ai-asset-bootstrap",
+    "testcaseId=prepare-user-test-ai-assets",
     "verify-v390-server-longrun --duration-minutes 30",
     "--user-launcher test_server_30min",
     "verify-v390-server-longrun --duration-minutes 120",
@@ -84,6 +90,66 @@ check("common launcher owns output, contract preflight, sanitization, and exact 
   assert(!commonSource.includes("--run-120"), "release launcher unconditionally requests 120 minutes");
   assert(!commonSource.includes("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD="), "launcher assigns a password");
   assert(!commonSource.includes("MEDIA_SERVER_V390_UI_ROLE_SECRETS="), "launcher assigns a role-secret envelope");
+});
+
+check("user launcher bootstraps checksum-bound AI assets before actual test delegation", () => {
+  const fakeRoot = fixtureRoot("ai-asset-bootstrap");
+  const fixtureModel = path.join(fakeRoot, "fixture-yolo.onnx");
+  const fixtureBytes = Buffer.from("v390 launcher contract model fixture\n", "utf8");
+  const fixtureSha256 = crypto.createHash("sha256").update(fixtureBytes).digest("hex");
+  fs.writeFileSync(fixtureModel, fixtureBytes);
+  const commonPath = path.join(rootDir, "scripts/internal/user_test_launcher_common.sh");
+  const env = {
+    ...contractEnv(),
+    MEDIA_SERVER_TEST_YOLO_MODEL_URL: `file://${fixtureModel}`,
+    MEDIA_SERVER_TEST_YOLO_MODEL_SHA256: fixtureSha256,
+  };
+  const run = () => spawnSync("bash", ["-c",
+    'source "$1"; media_server_prepare_user_test_ai_assets "$2"',
+    "bash", commonPath, fakeRoot], {
+    cwd: rootDir,
+    env,
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
+  });
+
+  const first = run();
+  assert(first.status === 0, first.stderr || first.stdout);
+  const modelPath = path.join(fakeRoot, "models/yolo11n.onnx");
+  const labelsPath = path.join(fakeRoot, "models/coco.names");
+  assert(fs.readFileSync(modelPath).equals(fixtureBytes), "downloaded model bytes mismatch");
+  assert(crypto.createHash("sha256").update(fs.readFileSync(modelPath)).digest("hex") === fixtureSha256,
+    "downloaded model digest mismatch");
+  const labels = fs.readFileSync(labelsPath, "utf8").trim().split("\n");
+  assert(labels.length === 80 && labels[0] === "person" && labels.at(-1) === "toothbrush",
+    "generated COCO labels mismatch");
+  assert(first.stdout.includes("model=downloaded") && first.stdout.includes("labels=generated"),
+    "first bootstrap result does not expose downloaded/generated state");
+
+  const second = run();
+  assert(second.status === 0, second.stderr || second.stdout);
+  assert(second.stdout.includes("model=verified") && second.stdout.includes("labels=verified"),
+    "second bootstrap did not verify existing assets");
+
+  fs.writeFileSync(modelPath, "corrupt\n");
+  const repaired = run();
+  assert(repaired.status === 0, repaired.stderr || repaired.stdout);
+  assert(fs.readFileSync(modelPath).equals(fixtureBytes), "corrupt model was not atomically repaired");
+
+  const badRoot = fixtureRoot("ai-asset-bootstrap-bad-digest");
+  const rejected = spawnSync("bash", ["-c",
+    'source "$1"; media_server_prepare_user_test_ai_assets "$2"',
+    "bash", commonPath, badRoot], {
+    cwd: rootDir,
+    env: { ...env, MEDIA_SERVER_TEST_YOLO_MODEL_SHA256: "0".repeat(64) },
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  assert(rejected.status !== 0, "checksum-mismatched model download was accepted");
+  assert(!fs.existsSync(path.join(badRoot, "models/yolo11n.onnx")),
+    "checksum-mismatched model was published");
+  assert(!fs.readdirSync(path.join(badRoot, "models")).some(name => name.includes(".download.")),
+    "failed model download left a temporary file");
 });
 
 check("server launchers use OS temp while UI and release use distinct repository roots", () => {

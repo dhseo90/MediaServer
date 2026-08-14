@@ -1,6 +1,180 @@
 #!/usr/bin/env bash
 # 파일 용도: 현재 source version의 사용자용 무옵션 테스트 launcher output, 위임, 결과 출력을 공통 소유한다.
 
+media_server_user_test_sha256() {
+  local file_path="$1"
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "${file_path}" | awk '{print $1}'
+    return 0
+  fi
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "${file_path}" | awk '{print $1}'
+    return 0
+  fi
+  echo "[assets] SHA-256 도구가 없습니다: shasum 또는 sha256sum 필요" >&2
+  return 1
+}
+
+media_server_prepare_user_test_ai_assets() {
+  local root_dir="$1"
+  local model_url="${MEDIA_SERVER_TEST_YOLO_MODEL_URL:-https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo11n.onnx}"
+  local expected_model_sha256="${MEDIA_SERVER_TEST_YOLO_MODEL_SHA256:-634279b40c07c6391472c51ad45b81ebc48706a9a1fe72dd3396322acd0c053b}"
+  local expected_labels_sha256="bd17f1ee35d5f3c862a4894605855abbb9dda4b0621fdb0ac4c2c8c7bb7e730a"
+  local model_path="${root_dir}/models/yolo11n.onnx"
+  local labels_path="${root_dir}/models/coco.names"
+  local model_temp="${model_path}.download.$$"
+  local labels_temp="${labels_path}.generate.$$"
+  local model_state="verified"
+  local labels_state="verified"
+  local observed_sha256=""
+
+  if [[ ! "${expected_model_sha256}" =~ ^[0-9a-f]{64}$ ]]; then
+    echo "[assets] 유효하지 않은 YOLO SHA-256 계약" >&2
+    return 1
+  fi
+  mkdir -p "${root_dir}/models"
+  rm -f "${model_temp}" "${labels_temp}"
+
+  if [[ -f "${model_path}" ]]; then
+    observed_sha256="$(media_server_user_test_sha256 "${model_path}")" || return 1
+  fi
+  if [[ "${observed_sha256}" != "${expected_model_sha256}" ]]; then
+    if ! command -v curl >/dev/null 2>&1; then
+      echo "[assets] YOLO 모델 다운로드용 curl이 없습니다" >&2
+      return 1
+    fi
+    echo "[assets] download=${model_url}"
+    if ! curl -fL --retry 3 --connect-timeout 20 --max-time 300 -o "${model_temp}" "${model_url}"; then
+      rm -f "${model_temp}" "${labels_temp}"
+      echo "[assets] YOLO 모델 다운로드 실패" >&2
+      return 1
+    fi
+    observed_sha256="$(media_server_user_test_sha256 "${model_temp}")" || {
+      rm -f "${model_temp}" "${labels_temp}"
+      return 1
+    }
+    if [[ "${observed_sha256}" != "${expected_model_sha256}" ]]; then
+      rm -f "${model_temp}" "${labels_temp}"
+      echo "[assets] YOLO 모델 SHA-256 불일치: expected=${expected_model_sha256} actual=${observed_sha256}" >&2
+      return 1
+    fi
+    mv "${model_temp}" "${model_path}"
+    model_state="downloaded"
+  fi
+
+  observed_sha256=""
+  if [[ -f "${labels_path}" ]]; then
+    observed_sha256="$(media_server_user_test_sha256 "${labels_path}")" || return 1
+  fi
+  if [[ "${observed_sha256}" != "${expected_labels_sha256}" ]]; then
+    cat >"${labels_temp}" <<'EOF'
+person
+bicycle
+car
+motorcycle
+airplane
+bus
+train
+truck
+boat
+traffic light
+fire hydrant
+stop sign
+parking meter
+bench
+bird
+cat
+dog
+horse
+sheep
+cow
+elephant
+bear
+zebra
+giraffe
+backpack
+umbrella
+handbag
+tie
+suitcase
+frisbee
+skis
+snowboard
+sports ball
+kite
+baseball bat
+baseball glove
+skateboard
+surfboard
+tennis racket
+bottle
+wine glass
+cup
+fork
+knife
+spoon
+bowl
+banana
+apple
+sandwich
+orange
+broccoli
+carrot
+hot dog
+pizza
+donut
+cake
+chair
+couch
+potted plant
+bed
+dining table
+toilet
+tv
+laptop
+mouse
+remote
+keyboard
+cell phone
+microwave
+oven
+toaster
+sink
+refrigerator
+book
+clock
+vase
+scissors
+teddy bear
+hair drier
+toothbrush
+EOF
+    observed_sha256="$(media_server_user_test_sha256 "${labels_temp}")" || {
+      rm -f "${model_temp}" "${labels_temp}"
+      return 1
+    }
+    if [[ "${observed_sha256}" != "${expected_labels_sha256}" ]]; then
+      rm -f "${model_temp}" "${labels_temp}"
+      echo "[assets] COCO label SHA-256 불일치: expected=${expected_labels_sha256} actual=${observed_sha256}" >&2
+      return 1
+    fi
+    mv "${labels_temp}" "${labels_path}"
+    labels_state="generated"
+  fi
+
+  local final_model_sha256
+  local final_labels_sha256
+  final_model_sha256="$(media_server_user_test_sha256 "${model_path}")" || return 1
+  final_labels_sha256="$(media_server_user_test_sha256 "${labels_path}")" || return 1
+  if [[ "${final_model_sha256}" != "${expected_model_sha256}" ||
+        "${final_labels_sha256}" != "${expected_labels_sha256}" ]]; then
+    echo "[assets] 최종 AI asset readback 불일치" >&2
+    return 1
+  fi
+  echo "[assets] model=${model_state} path=${model_path} sha256=${final_model_sha256}"
+  echo "[assets] labels=${labels_state} path=${labels_path} sha256=${final_labels_sha256}"
+}
+
 media_server_run_user_test() {
   local suite="$1"
   shift
@@ -40,6 +214,8 @@ media_server_run_user_test() {
   unset MEDIA_SERVER_V390_UI_ROLE_SECRETS
   unset MEDIA_SERVER_VERIFY_PREDEV_HTTP_PORT
   unset MEDIA_SERVER_VERIFY_PREDEV_RTSP_PORT
+  unset MEDIA_SERVER_TEST_YOLO_MODEL_URL
+  unset MEDIA_SERVER_TEST_YOLO_MODEL_SHA256
   export MEDIA_SERVER_SKIP_LOCAL_ENV=1
 
   local root_dir="${ROOT_DIR}"
@@ -88,6 +264,24 @@ media_server_run_user_test() {
       echo "[test] reproductionCommand=${user_command}" >&2
       echo "[test] laterNotRun=${suite}" >&2
       return "${contract_status}"
+    fi
+
+    local asset_log="${output_dir}/ai-asset-bootstrap.log"
+    local asset_status=0
+    if media_server_prepare_user_test_ai_assets "${root_dir}" >"${asset_log}" 2>&1; then
+      asset_status=0
+    else
+      asset_status=$?
+    fi
+    sed -n '1,240p' "${asset_log}"
+    if [[ "${asset_status}" -ne 0 ]]; then
+      echo "[test] failureStage=ai-asset-bootstrap" >&2
+      echo "[test] testcaseId=prepare-user-test-ai-assets" >&2
+      echo "[test] exitCode=${asset_status}" >&2
+      echo "[test] logPath=${asset_log}" >&2
+      echo "[test] reproductionCommand=${user_command}" >&2
+      echo "[test] laterNotRun=${suite}" >&2
+      return "${asset_status}"
     fi
   fi
 
