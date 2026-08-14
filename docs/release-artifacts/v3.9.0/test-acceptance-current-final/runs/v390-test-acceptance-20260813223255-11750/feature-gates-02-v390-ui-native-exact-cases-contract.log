@@ -1,0 +1,69 @@
+[pass] generated manifest validates against canonical exact ordered 424
+[pass] event typed fixtures select one row and preserve request-derived identities
+[pass] incident memory search fixtures bind every product filter and searchable query
+[pass] event review seed receipts bind PUT response, storage readback, and EventRecord identity
+[pass] event review authoritative readback selects one exact nested event/review identity
+[pass] EVT-038 binds one dry-run response to one attempt, audit row, and DOM projection
+[pass] event review note evidence survives the production failure rewrap and parent aggregation
+[pass] builder is deterministic and preserves exact case order
+[pass] all 424 completion modes separate document navigation from application requests
+[pass] all 424 failure lifecycles retain the initial manifest navigation binding
+[pass] independent readback passes one coordinator ownership context and always ends it
+[pass] RULE-097 callback receives only its declared explicit argument projection
+[pass] bounded ownership cleanup precedes physical close without changing close truth
+[pass] EVT-004 reuses one document navigation and correlates only the authoritative API fetch
+[pass] canonical and native generator writes are one validated atomic transaction
+[pass] RULE relationship fixtures use one collision-free numeric identity contract
+[pass] workflow distribution is owned by the shared exact 424 contract
+[pass] declared exact runtime seeds materialize through the shared deterministic fixture registry
+[pass] every exact EVT seed.kind has a declarative store and join materializer
+[pass] event review mutation cleanup validates an empty 200 collection and byte restore
+[pass] event review seed keeps the official top-level note schema and uses structured reload
+[pass] records.records fixture family uses product dispatch with exact readback and cleanup
+[pass] fixture-safe incident digests bind one authoritative event to one safe summary
+[pass] EVT-023/026 expected digest binds one materialized EventRecord identity before browser startup
+[pass] EVT-004 diagnostic log evidence is redacted and byte-restored before native execution
+[pass] audited route-local primary controls match their exact runtime oracles
+[pass] endpoint source fixtures intentionally cross the published canonical-media baseline without bypassing sourceId identity
+[pass] inactive-or-equal-before cleanup accepts absent or disabled state and rejects enabled residue
+[pass] non-canonical implementation review metadata does not invalidate the exact 424 manifest
+[pass] exact-case implementation projection drift and whole-file fallback are rejected
+[pass] endpoint action execution inputs retain full runtime values but trace inputs are release-safe digests
+[pass] admin-only ops users cases and runtime role schema stay authoritative
+[pass] API ownership routes normalize to product screens
+[pass] UI-017 binds the client events read model instead of a dashboard-only preset status
+[pass] UI-018 remains a dedicated negative route case
+[pass] SAFE-017 keeps its cross-route negative behavior without changing UI-018 classification
+[pass] MEDIA/SAFE client cases and SAFE-016 negative route use one exact route lifecycle
+[pass] remaining client-safe batch clusters bind dynamic identities and owned lifecycle endpoints
+[pass] actual read-only and hidden-boundary completion requests use exact runtime oracle paths
+[pass] all cases declare native action, oracle seed, and artifact plan
+[pass] REVIEW4-56 requires exact typed product workflows for all 424 cases
+[pass] REVIEW4-56 rejects fallback no-submit generic and self-comparison workflows
+[pass] runner owns native execution, role state, first-fail, and artifact fields
+[pass] self-contained runtime closes invite, auth readback, preference, and visual-session gaps
+[pass] case runtime keeps generated secrets ephemeral and rejects state path escape
+[pass] authoritative cleanup readback restores state after success and failure
+[pass] SRC-010 and SRC-019 use a fresh fixture-scoped viewer and restore auth bytes
+[pass] fresh role session restores login audit writes before a read-only case
+[pass] fresh viewer session uses scope and client view readback instead of a nonexistent whoami viewId
+[pass] canonical requested route and runtime screen route are explicit projections
+[pass] runner and producer share typed capture schema while qualifier is independently implemented
+[pass] missing, reordered, unsupported, API-screen, and field drift are rejected
+[pass] stale implementation binding writes a fail-closed 0/424 pre-execution summary
+[pass] canonical parent bootstrap failure writes a fail-closed 0/424 summary
+[pass] pre-execution failure cannot become UI PASS, Policy v4 eligible, or cleanup evidence
+[pass] raw capture success and UI qualification remain separate lifecycle states
+[pass] evidence producer failure always leaves an exact 424 failure ledger
+[pass] full exact failure ledger preserves the typed EVT-004 lifecycle envelope
+[pass] failed case partial artifacts are referenced, deduplicated, and orphan-free
+[pass] canonical case children bind duplicate screenshots to one prior artifact
+
+== v3.9.0 exact native UI case contract summary ==
+- canonicalExactCases: 424
+- positiveNative: 423
+- negativeRoute: 1
+- unsupported: 0
+- pass: 60
+- fail: 0
+- actualBrowserExecution: not-run-by-this-contract

@@ -19,16 +19,19 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ### 2026-08-14 release close-out status
 
-- Source `08ad8b3ee70391be84cdf21de07215ec7ce0f070`의 실제 release run에서 full build,
-  feature gates, 30분 longrun, canonical UI `424/424`, Policy v4 eligible `424/424`,
-  120분 longrun `443 PASS / 0 FAIL / 2 skip`, cleanup이 PASS했습니다.
-- 전체 release는 마지막 final-integrity의 `final-policy-independent-evaluation-mismatch` 1건으로
-  FAIL입니다. 제품/브라우저 case 실패가 아니라 canonical artifact root를 source diff에 다시
-  포함한 verifier 경계 불일치입니다.
-- 잔여 P0는 allowed-artifact-aware source patch digest 보정 checkpoint와 같은 clean source의
-  `./test_release.sh` 1회 PASS입니다. 그 뒤 최종 evidence 문서화, 임시 v3.9 브랜치 제거,
-  `v3.9.0 -> main` PR 검증과 merge를 수행합니다.
-- 현재 상태는 release-ready가 아니며 tag/GitHub Release/published metadata 완료로 기록하지 않습니다.
+- Source `c6b3d20a778a7a641e44decadd1ee5b416426650`의 실제 `./test_release.sh`는 full build와
+  feature gates, 30분 longrun `118 PASS / 0 FAIL / 2 skip`, canonical UI `424/424`,
+  Policy v4 eligible·qualified `424/424`, 120분 longrun `443 PASS / 0 FAIL / 2 skip`,
+  cleanup, final-integrity `12/12`를 모두 통과했습니다.
+- 최종 evidence는
+  [test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
+  80개 파일·11.4MiB의 bounded package로 보존합니다. 4,900여 개·309MB의 per-case 중복 산출물은
+  main 병합 대상에서 제외했습니다.
+- 제품 및 local release acceptance P0는 닫혔습니다. 잔여 P0는 문서/evidence checkpoint,
+  `v3.9.0 -> main` PR checks와 merge입니다. 그 뒤 signed tag, GitHub Release publication,
+  published metadata 검증을 각각 실제 수행 결과로 기록합니다.
+- 최신 공개 GitHub Release는 아직 `v3.8.0`입니다. v3.9.0 tag/GitHub Release/published metadata는
+  실제 publish 전까지 완료로 기록하지 않습니다.
 
 ## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 

@@ -3434,6 +3434,23 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 | Evidence | `docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-08ad8b3e/` | 13-file/6.5MB bounded historical package; 전체 309MB run은 커밋 제외 |
 | 잔여 | 새 clean checkpoint의 `./test_release.sh`, 최종 문서/evidence commit, 임시 branch 정리, PR/main merge | 미완료, release-ready 아님 |
 
+## v3.9.0 final release acceptance PASS (2026-08-14)
+
+| 항목 | 실제 결과 | 판정 |
+| --- | --- | --- |
+| Source | `c6b3d20a778a7a641e44decadd1ee5b416426650`, `v3.9.0`, 실행 전 local/origin `0/0`·source clean | exact release source |
+| Command | `./test_release.sh`, 인자 없음, 동일 source 1회 | exit `0`, result PASS |
+| Build/feature/30분 | Full build·feature gates PASS; 30분 `118 PASS / 0 FAIL / 2 skip`, 22 soak iterations | PASS |
+| Canonical UI | actual browser `424 attempted / 424 PASS / 0 FAIL / 0 not-run / 0 unsupported`, runner abort 0 | PASS |
+| Policy v4 | validation PASS, eligible, qualified `424/424`, reasons 0, `uiFulltestPass=true` | PASS |
+| 120분 | 조건부 trigger 5개로 실행; `443 PASS / 0 FAIL / 2 skip`, 87 soak iterations; main/queue idle·ports clean | PASS |
+| Cleanup | UI server, longrun runtimes, owned PID/ports/runtime roots, retained secret scan | PASS |
+| Final integrity | canonical parent/child census, Policy source, cleanup, artifact hashes와 path containment `12/12` | PASS, `finalEvidenceEligible=true` |
+| Build binding | binary SHA-256 `e59e098bb57e34be1ba8161371db5fba01d9db6e0e2173e7aa876776b088b382`, 17,511,664 bytes | source-bound |
+| Evidence | [test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md), top summary SHA-256 `673bd94804022bee52ed6b8172007c373839aae3bb03549f4e7889593f51619a` | 80-file/11.4MiB bounded canonical package; generated 309MB per-case duplicate는 Git 제외 |
+| Token/elapsed | token start/end/consumed `manual-not-available`; source `manual-not-available`; wall time 약 3시간 29분 | 토큰 미집계를 PASS로 대체하지 않음 |
+| 잔여 close-out | evidence/docs checkpoint, PR checks, main merge, signed tag, GitHub Release, published metadata, 임시 v3.9 branch 정리 | 각 실제 실행 전에는 완료 아님 |
+
 ## v3.9.0 release actual Policy/final-integrity residual closure (2026-08-14)
 
 | 항목 | 결과 | 판정 |

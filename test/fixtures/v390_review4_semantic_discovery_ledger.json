@@ -3,10 +3,10 @@
   "sourceRelease": "v3.9.0",
   "evidenceBoundary": "static-semantic-audit-only-not-runtime-ui-or-longrun-pass",
   "summary": {
-    "documents": 205,
+    "documents": 208,
     "sourceMarkers": 38,
     "currentProductContracts": 84,
-    "historicalOrSuperseded": 88,
+    "historicalOrSuperseded": 91,
     "conditionalOrTemplate": 27
   },
   "documents": [
@@ -292,7 +292,7 @@
     },
     {
       "path": "docs/development-backlog.md",
-      "contentSha256": "6ad19dfb4407c22d5746cc3d236ae7c3980b775029daa937919251e9c5b03b17",
+      "contentSha256": "247db60d362949591a1a2addafa638930c234c78b0b0440270e93c93c774a4b9",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1412,7 +1412,7 @@
     },
     {
       "path": "docs/release-artifacts/v3.9.0/release-notes-draft.md",
-      "contentSha256": "14d3788368803c6074cd9eeb33355e5f1448b6ac6270bc27790f34285e98712f",
+      "contentSha256": "ff020b7c67625c8800c26f22a28aaae6c97f61ec71f08623db2bac3c8fa13b47",
       "semanticRole": "historical-release-note-draft",
       "lifecycle": "historical-audit-only",
       "alignment": "historical-aligned",
@@ -1471,8 +1471,28 @@
       "semanticDigest": "81a90c60aded2a81fc03a1704d81e3d5267a25e8246ae3ba560c1faf94d8d4a4"
     },
     {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/README.md",
+      "contentSha256": "72800b209902ba1db390cb161048dd4ee3bef4d081e50dd51b1cc1680aa760f8",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 final release acceptance evidence — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "00cb29fb51e3e9d1c160d8726823b4777c6b87d3f4f7c9e3ffffb861e660c6ad"
+    },
+    {
       "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/first-failure.md",
-      "contentSha256": "7f614aeefff38ae5a3cb7ba8124eaa29a1bb7291aacd645774eb92748a5f9a13",
+      "contentSha256": "443df8c10de53bd7a512b27ff50c4edb4de3588932e678a1a49cd30797e3692c",
       "semanticRole": "historical-first-failure-record",
       "lifecycle": "historical-audit-only",
       "alignment": "historical-aligned",
@@ -1492,7 +1512,7 @@
     },
     {
       "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
-      "contentSha256": "9d74b7ed62bfe0b73e1e798db5d8339b79d3cef760709ac414e339fb6b33eda1",
+      "contentSha256": "0defc1447b23e88cbac93a25021399041826e1f67a2d8fdc68e1c49e1b155c44",
       "semanticRole": "historical-acceptance-or-longrun-report",
       "lifecycle": "superseded-historical",
       "alignment": "superseded",
@@ -1511,8 +1531,8 @@
       "semanticDigest": "48e41513260614babaf8b37255620388bc06dc3201bbf94b0c1ae83cd0d4ed52"
     },
     {
-      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/predev-report.md",
-      "contentSha256": "0c40bbe60842f79534c10e81d4ea7e1890ebb63650a0fee14b098e627964cdd1",
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-120/predev-report.md",
+      "contentSha256": "a81995b91c595528e8578e0699a84f91a63be8dcbafd368b2bae6d3e1266000a",
       "semanticRole": "historical-mixed-predev-aggregate",
       "lifecycle": "historical-audit-only",
       "alignment": "historical-aligned",
@@ -1528,11 +1548,11 @@
           "anchor": "historical"
         }
       ],
-      "semanticDigest": "e5255728f9d62bef432306b3940f063015fbab8d1e62cd2603036b151192d2d3"
+      "semanticDigest": "c3131967993e48f0a36fd22ee34d63a513f85c4cd8a870a37a0131eabd0fb219"
     },
     {
-      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.md",
-      "contentSha256": "a78835a8783a1f701bc679fd0275f209f4ede7016805829173a6656d5a8acec7",
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-120/report.md",
+      "contentSha256": "34c05a1beca601a735ace4c4f2801f05670982bf7535422fd383995f30c61688",
       "semanticRole": "historical-acceptance-or-longrun-report",
       "lifecycle": "superseded-historical",
       "alignment": "superseded",
@@ -1548,7 +1568,47 @@
           "anchor": "historical"
         }
       ],
-      "semanticDigest": "d0599a336e4dcd8bff55e5c8e91103b5871c65736d5e244386014fdcc0ce962c"
+      "semanticDigest": "ea9dc28fe2bf2c5a472a01d31cde340a4e67aa7eeaac6b1ccce43efd32a8083d"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.md",
+      "contentSha256": "676c4f6c3b2a1dd6aa323d77e2d827170192352778699fccaa6ffd6eaa039958",
+      "semanticRole": "historical-mixed-predev-aggregate",
+      "lifecycle": "historical-audit-only",
+      "alignment": "historical-aligned",
+      "decision": "preserve-child-aggregate-only",
+      "semanticStatement": "MediaServer 검증 요약 — summary producer가 여러 결과를 합친 Markdown이며 paired JSON 또는 parent summary가 판정 owner다",
+      "actualOwner": {
+        "path": "scripts/internal/summarize_verification_reports.py",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "f9f3bb299bec56507499e5f7476f5cff8ed95f9b5a4be4978c94eb2208df49ec"
+    },
+    {
+      "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/report.md",
+      "contentSha256": "bfbb3b45f51c4523adfe0ef7901cac8e383d55bf7cd2e28680fba447771a8c36",
+      "semanticRole": "historical-acceptance-or-longrun-report",
+      "lifecycle": "superseded-historical",
+      "alignment": "superseded",
+      "decision": "preserve-historical-run-only",
+      "semanticStatement": "v3.9.0 Server Longrun Runner Report — 고정된 과거 commit의 acceptance 또는 long-run 보고서이며 current HEAD PASS를 대체하지 않는다",
+      "actualOwner": {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "summary"
+      },
+      "evidence": [
+        {
+          "path": "docs/release-evidence-index.md",
+          "anchor": "historical"
+        }
+      ],
+      "semanticDigest": "81fa2fc82bdb91964a23880ee85c9775d97d2f4f1f4a16a15fcdb8b5d63d9b61"
     },
     {
       "path": "docs/release-artifacts/v3.9.0/test-acceptance-failure-20260813-08ad8b3e/README.md",
@@ -2072,7 +2132,7 @@
     },
     {
       "path": "docs/release-evidence-index.md",
-      "contentSha256": "a312901d845576150e2584e131fa353636245bbbb5e1b7f45cbea97eb97acf59",
+      "contentSha256": "578f9f3f16c83ad875f8682e954eb549f410679450fe0da237719b58040d37a5",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2112,7 +2172,7 @@
     },
     {
       "path": "docs/release-test-records.md",
-      "contentSha256": "0e8e17b792705522dc346998ac143c7688203d103ee1b46e20232c3e80765526",
+      "contentSha256": "7bad3fa884eb953711e3c0834cd5e1485c82ac6b53cf2c316b7f644f41363d76",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",

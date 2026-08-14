@@ -1,0 +1,24 @@
+[pass] canonical parent Policy qualification requires validated complete census and exact rows
+[pass] producer emits captured raw envelope without qualification claims
+[pass] producer preserves the acceptance-owned source-only patch binding
+[pass] core Policy evaluator rejects actual full-suite evidence without canonical parent binding
+[pass] core Policy evaluator rejects a hash-valid synthetic canonical parent without child refs
+[pass] core Policy binds parent manifest to canonical digest while retaining file integrity
+[pass] canonical failed-case envelope preserves typed EVT-004 lifecycle failures
+[pass] producer preserves the native trace byte-for-byte
+[pass] producer visual and cross-cutting artifacts remain unqualified
+[pass] producer approves only an exact trace-bound source contract console response
+[pass] console approvals use exact page-owned lifecycle contracts for bootstrap, negative navigation, and readback
+[pass] console approvals bind expected 401 and 403 responses to validated post-action roles
+[pass] producer cannot repair a wrong raw request with runner PASS
+[pass] producer rejects legacy or missing raw trace structure
+[pass] producer creates contained attested raw artifacts
+[pass] contract fixture cannot become execution evidence
+[pass] Policy v4 rejects missing zero-count fields instead of defaulting them
+[pass] producer rejects artifact path escape
+[pass] producer rejects an artifact root outside the repository before capture
+
+== v3.9.0 Policy v4 producer contract ==
+- pass: 19
+- fail: 0
+- actualExact424BrowserExecution: not-run-by-this-contract

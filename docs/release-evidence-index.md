@@ -37,14 +37,14 @@
 
 | Evidence | 상태 | 결속/위치 | 사용 범위 |
 | --- | --- | --- | --- |
-| Verification Static | PASS | `v3.9.0` source `08ad8b3ee70391be84cdf21de07215ec7ce0f070` 및 allowed-artifact-aware final-integrity correction의 focused/full static | 선수 gate; 새 clean checkpoint 검증 전 |
-| Canonical UI Actual | PASS | source `08ad8b3e...` exact `424/424`, Policy v4 eligible·qualified `424/424`, actual browser execution | 동일 run의 최종 integrity FAIL 때문에 전체 release PASS로 승격하지 않음 |
-| UI transient summary | 보존 중 | `.media_server.test/v3.9.0/ui-acceptance-current/summary.json` | full release 이전 현재 evidence; 최종 저장소 evidence가 아님 |
-| 30분/120분/전체 release | 30분 PASS, 120분 PASS, cleanup PASS, 전체 FAIL | bounded package `test-acceptance-failure-20260813-08ad8b3e`; final-integrity source digest mismatch 1건 | 새 clean source의 전체 재실행 전이며 완료 evidence로 사용 불가 |
-| Release notes | 초안 | [v3.9.0 release notes draft](./release-artifacts/v3.9.0/release-notes-draft.md) | publish 전 검토용 |
+| Verification Static | PASS | `v3.9.0` source `c6b3d20a778a7a641e44decadd1ee5b416426650`, 원 checkout과 독립 `--no-local` clean clone | source/runner/contract 선수 gate |
+| Canonical UI Actual | PASS | source `c6b3d20a...`, exact `424/424`, Policy v4 eligible·qualified `424/424`, actual browser execution | 동일 full release run의 최종 evidence |
+| 30분/120분/전체 release | PASS | [bounded canonical package](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md); 30분 `118/0/2`, 120분 `443/0/2`, final-integrity `12/12`, cleanup PASS | local release acceptance 완료 evidence |
+| Historical failed runs | 보존 | `test-acceptance-failure-*` bounded packages | 원인/회귀 이력이며 최신 PASS를 대체하지 않음 |
+| Release notes | 초안 | [v3.9.0 release notes draft](./release-artifacts/v3.9.0/release-notes-draft.md) | PR/main/tag/GitHub Release 전 검토용 |
 
-과거 `test-acceptance-current-final` 실패 artifact는 역사 evidence로 유지합니다. 최신 full release 실행이 PASS하면
-동일 canonical artifact root를 새 source binding으로 원자 갱신하고 이 행을 최종 결과로 교체합니다.
+`test-acceptance-current-final`은 최신 PASS source binding으로 교체했습니다. 생성 당시 약 4,900개·309MB였던
+case-level detail은 중복 추적하지 않고, 최종 판정과 hash binding에 필요한 80개·11.4MiB만 보존합니다.
 
 ## Evidence Matrix
 

@@ -21,22 +21,22 @@ tag, and GitHub Release steps are complete.
 
 | Area | Result | Binding |
 | --- | --- | --- |
-| Static and clean-checkout verification | PASS | source `08ad8b3ee70391be84cdf21de07215ec7ce0f070`; final-integrity correction pending a clean checkpoint |
-| 30-minute longrun | PASS | source `08ad8b3e...`, `118 PASS / 0 FAIL / 2 skip`, 22 soak iterations |
-| Canonical UI actual | `424/424 PASS` | source `08ad8b3e...`, actual browser execution |
+| Static and clean-checkout verification | PASS | source `c6b3d20a778a7a641e44decadd1ee5b416426650` |
+| 30-minute longrun | PASS | `118 PASS / 0 FAIL / 2 skip`, 22 soak iterations |
+| Canonical UI actual | `424/424 PASS` | actual browser execution, fail/not-run/unsupported `0/0/0` |
 | Policy v4 | PASS | eligible and qualified `424/424`; no unapproved console response |
 | 120-minute longrun | PASS | `443 PASS / 0 FAIL / 2 skip`, 87 soak iterations |
-| Cleanup/final integrity | cleanup PASS, final integrity FAIL | independent Policy re-evaluation included canonical evidence output in the source patch digest |
+| Cleanup/final integrity | PASS | cleanup PASS, final integrity `12/12`, final evidence eligible |
+| Evidence retention | PASS | 80-file/11.4MiB bounded canonical package; generated 309MB per-case detail excluded from Git |
 
 ## Release Gates Still Pending
 
-- Commit the allowed-artifact-aware final-integrity source digest correction, then run
-  `./test_release.sh` once from the clean `v3.9.0` branch.
-- Require 30-minute, exact UI `424/424`, Policy v4 `424/424`, conditional 120-minute,
-  cleanup, and final-integrity PASS on that same source commit.
-- Preserve the final acceptance evidence under `docs/release-artifacts/v3.9.0/`.
-- Complete PR checks, main merge, signed tag verification, GitHub Release publication, and published
+- Commit the final bounded evidence and release documentation.
+- Complete PR checks and merge `v3.9.0` into `main`.
+- Create and verify the signed `v3.9.0` tag, publish the source-only GitHub Release, and run published
   metadata verification.
+- Remove obsolete v3.9 temporary branches only after their commits are proven reachable from the
+  merged release history.
 
 ## Excluded or Conditional Validation
 

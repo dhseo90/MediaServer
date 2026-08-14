@@ -2,8 +2,12 @@
 
 schema: media-server.v390-acceptance-first-failure.v1
 recordedAt: 2026-07-16T05:49:17.760Z
+runId: not-recorded
 sourceCommitSha: 53d7fbc9bf2c8fc0004215efb56b3ba1f29db578
 failedStage: server-longrun-30
+testcaseId: not-recorded
+error: [progress] (9/9) report test; remaining=0 | == v3.9.0 server longrun runner summary == | - schema: media-server.v390-server-longrun.v2 | - result: FAIL | - durationMinutes: 30 | - stopOnFirstFail: true | - failedPhase: integrated-smoke | - failedCase: integrated-smoke | - delegatedPhaseLedgerValid: true | - longrunEvidenceStatus: real-duration-failed-no-pass-evidence | - summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/summary.json | - reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/report.md
+logPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30.log
 failedCommand: ./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30
 reproductionCommand: ./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30
 context: [progress] (9/9) report test; remaining=0 | == v3.9.0 server longrun runner summary == | - schema: media-server.v390-server-longrun.v2 | - result: FAIL | - durationMinutes: 30 | - stopOnFirstFail: true | - failedPhase: integrated-smoke | - failedCase: integrated-smoke | - delegatedPhaseLedgerValid: true | - longrunEvidenceStatus: real-duration-failed-no-pass-evidence | - summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/summary.json | - reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/report.md
