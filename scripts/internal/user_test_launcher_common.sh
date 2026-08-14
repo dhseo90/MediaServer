@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 파일 용도: v3.9.0 사용자용 무옵션 테스트 launcher의 output, 위임, 결과 출력을 공통 소유한다.
+# 파일 용도: 현재 source version의 사용자용 무옵션 테스트 launcher output, 위임, 결과 출력을 공통 소유한다.
 
 media_server_run_user_test() {
   local suite="$1"
@@ -43,16 +43,23 @@ media_server_run_user_test() {
   export MEDIA_SERVER_SKIP_LOCAL_ENV=1
 
   local root_dir="${ROOT_DIR}"
+  local source_version
+  source_version="$(tr -d '[:space:]' < "${root_dir}/VERSION")"
+  if [[ ! "${source_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "유효하지 않은 source VERSION: ${source_version:-missing}" >&2
+    return 65
+  fi
+  local source_tag="v${source_version}"
   local temp_root="${TMPDIR:-/private/tmp}"
   if [[ ! -d "${temp_root}" ]]; then
     temp_root="/tmp"
   fi
   local output_dir
   if [[ "${suite}" == "release" ]]; then
-    output_dir="${root_dir}/docs/release-artifacts/v3.9.0/test-acceptance-current-final"
+    output_dir="${root_dir}/docs/release-artifacts/${source_tag}/test-acceptance-current-final"
     mkdir -p "${output_dir}"
   elif [[ "${suite}" == "ui" ]]; then
-    output_dir="${root_dir}/.media_server.test/v3.9.0/ui-acceptance-current"
+    output_dir="${root_dir}/.media_server.test/${source_tag}/ui-acceptance-current"
     mkdir -p "${output_dir}"
   else
     output_dir="$(mktemp -d "${temp_root%/}/${output_prefix}.XXXXXX")"

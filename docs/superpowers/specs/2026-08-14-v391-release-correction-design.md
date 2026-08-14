@@ -25,7 +25,7 @@ signed tag와 GitHub Release는 역사적 사실로 보존하고 force update하
    제거하거나 공개용 redacted summary로 대체한다.
 5. historical FAIL/not-run 사실은 지우지 않는다. 공개 문서 색인에서는 제외하고,
    필요한 경우 history 문서나 최소 manifest에서 추적 가능하게 유지한다.
-6. `/Users/<name>`, `/private/var/folders/...`, 실행별 `/tmp/...` 경로는 repository-relative
+6. `<personal-home>`, `<macOS-ephemeral-temp>`, 실행별 `<temporary-run>` 경로는 repository-relative
    path 또는 명시적인 placeholder로 정규화한다.
 7. verifier가 검사하지 않는 조건을 PASS로 확대하지 않는다.
 8. 테스트는 첫 실패에서 중단하며 뒤 단계는 `건너뜀`으로 기록한다.

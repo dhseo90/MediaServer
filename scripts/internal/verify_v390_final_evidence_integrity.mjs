@@ -70,7 +70,10 @@ const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
 const outputDir = path.resolve(summary.outputDir || path.dirname(summaryPath));
 const outputReal = requireContainedDirectory(outputDir, outputDir, "acceptance artifact root");
 const repositoryRoot = process.cwd();
-const canonicalReleaseOutputDir = path.join(repositoryRoot, "docs/release-artifacts/v3.9.0/test-acceptance-current-final");
+const currentVersion = fs.readFileSync(path.join(repositoryRoot, "VERSION"), "utf8").trim();
+assert(/^\d+\.\d+\.\d+$/.test(currentVersion), `invalid source VERSION: ${currentVersion || "missing"}`);
+const canonicalReleaseOutputDir = path.join(repositoryRoot,
+  `docs/release-artifacts/v${currentVersion}/test-acceptance-current-final`);
 const currentProvenance = collectSourceProvenanceWithAllowedArtifacts(repositoryRoot, outputReal);
 const checks = [];
 const canonicalUiCaseIds = JSON.parse(fs.readFileSync(path.resolve(

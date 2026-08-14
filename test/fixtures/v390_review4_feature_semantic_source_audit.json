@@ -198662,35 +198662,35 @@
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "owner:SAFE-212",
           "anchor": "function assertFirstFailureClosure(stageLedger, firstFailedStage) {",
-          "line": 237,
+          "line": 240,
           "contextSha256": "dd27a675d65ff1af002bb94b184f71712ea764b95e0f5945a745ead56d14cb99"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "dispatch:SAFE-212",
           "anchor": "const failedIndex = stageIds.indexOf(firstFailedStage);",
-          "line": 239,
+          "line": 242,
           "contextSha256": "fb59daf564aee1dd139d89d68ef5a7494088e2bed9666e0db0dacff648f7ab42"
         },
         "action": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "action:SAFE-212",
           "anchor": "const laterOrdinaryStageIds = stageIds.slice(failedIndex + 1)",
-          "line": 240,
+          "line": 243,
           "contextSha256": "eb140477b3e93d6c438158e6302dc2538bfd3b38bfa71ce45e76b4aa93cd63be"
         },
         "state": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "state:laterStagesNotRun",
           "anchor": "const laterStagesNotRun = laterOrdinaryStageIds.every((id) =>",
-          "line": 242,
+          "line": 245,
           "contextSha256": "fd35f39a21b6bcc982b34bb013a1f526b8d41ba300d2cb0d1af94edd788391ae"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "readback:SAFE-212",
           "anchor": "assert(laterStagesNotRun, `stages after ${firstFailedStage} failure must remain not-run`);",
-          "line": 245,
+          "line": 248,
           "contextSha256": "495c88547ca035238ebbf2c7ed59743523809f0e5de23197f22cc6c82c61fc4d"
         },
         "verifier": {
@@ -198707,39 +198707,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-212 owner-dispatch",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:237",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:239"
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:240",
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:242"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-212 dispatch-action",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:239",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:240"
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:242",
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:243"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-212 action-state",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:240",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:242"
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:243",
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:245"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-212 state-readback",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:242",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:245"
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:245",
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:248"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-test-acceptance-bundle",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:245",
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:248",
           "target": "server.sh:2521"
         }
       ],
@@ -198789,53 +198789,53 @@
           "sha256": "1c49e8ba6cadcb15b24932e3fac0cdea09064b7d32e960a3a36ac4c60a20f1b6"
         }
       },
-      "sourceFlowDigest": "211f4f0866b7da70c4c4ec3019b72b31d2742df4a210c8a0194a36bdccf8f536",
+      "sourceFlowDigest": "b58ef9c16abce82a7008c50029cf0611139365b8670608cb59f050671db0201f",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "owner:SAFE-212",
-            "trackedBlobSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
-            "enclosingBodyStartLine": 237,
-            "enclosingBodyEndLine": 246,
+            "enclosingBodyStartLine": 240,
+            "enclosingBodyEndLine": 249,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "dispatch:SAFE-212",
-            "trackedBlobSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
-            "enclosingBodyStartLine": 237,
-            "enclosingBodyEndLine": 246,
+            "enclosingBodyStartLine": 240,
+            "enclosingBodyEndLine": 249,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "action:SAFE-212",
-            "trackedBlobSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
-            "enclosingBodyStartLine": 237,
-            "enclosingBodyEndLine": 246,
+            "enclosingBodyStartLine": 240,
+            "enclosingBodyEndLine": 249,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "state:laterStagesNotRun",
-            "trackedBlobSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
-            "enclosingBodyStartLine": 237,
-            "enclosingBodyEndLine": 246,
+            "enclosingBodyStartLine": 240,
+            "enclosingBodyEndLine": 249,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "readback:SAFE-212",
-            "trackedBlobSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
-            "enclosingBodyStartLine": 237,
-            "enclosingBodyEndLine": 246,
+            "enclosingBodyStartLine": 240,
+            "enclosingBodyEndLine": 249,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -198847,7 +198847,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+        "verifierFileSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
         "dispatch": {
           "command": "verify-v390-test-acceptance-bundle",
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
@@ -233942,35 +233942,35 @@
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "runActualBundle",
           "anchor": "async function runActualBundle() {",
-          "line": 197,
+          "line": 200,
           "contextSha256": "f1c8ac678cde0a2912fcfcc629c6ff78b33b49be45da8638d5028fb72b52192f"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "runActualBundle",
           "anchor": "else await runRealStage(stageId);",
-          "line": 219,
+          "line": 222,
           "contextSha256": "a86f30fedef63c31623bb3afbb82c7720b626297f48a5e779946a6c8ca371480"
         },
         "action": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "runRealStage",
           "anchor": "async function runRealStage(stageId) {",
-          "line": 248,
+          "line": 251,
           "contextSha256": "1e1d934d84abb1fb4f43edc6c440ec103eb0309b281bbfa302f988c308167f87"
         },
         "state": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "runRealStage",
           "anchor": "if (stageId === \"server-longrun-120\") {",
-          "line": 484,
+          "line": 487,
           "contextSha256": "9076c980368dfe995329b3a4eef97034f5885824a519a405604b7f82062263c5"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
           "symbol": "check:actual-mode-fixture-order",
           "anchor": "assert(summary.stages.find(item => item.id === \"server-longrun-120\")?.status === \"not-run\", \"120 stage must be not-run without trigger\");",
-          "line": 831,
+          "line": 833,
           "contextSha256": "99a58fdc0a75623fcb160ad21075ffe6aa7cd6e3177c9b93f59a00b81fe9c3ca"
         },
         "verifier": {
@@ -233987,39 +233987,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-179 owner-dispatch",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:197",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:219"
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:200",
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:222"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OPS-179 dispatch-action",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:219",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:248"
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:222",
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:251"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "OPS-179 action-state",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:248",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:484"
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:251",
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:487"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-179 state-readback",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:484",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:831"
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:487",
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:833"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-test-acceptance-bundle-contract",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:831",
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:833",
           "target": "server.sh:2525"
         }
       ],
@@ -234065,53 +234065,53 @@
           "sha256": "87351b8299314422d265153ec0ef3714914f164428cc7d403a1ea59b00cae7ae"
         }
       },
-      "sourceFlowDigest": "3a2ad0ad83aa9b13bde3d5551e83e00e2cb032f5a9b57804052211aa9db1dde7",
+      "sourceFlowDigest": "59b2487f579337265b0998469448dbf237f5c5e6b3933ca99349eab1f56d34f7",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runActualBundle",
-            "trackedBlobSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
             "enclosingBodySha256": "8c0dbda930e036b59abc640f45d380395d318148ad6fa92d9a5c3c39d1d53c39",
-            "enclosingBodyStartLine": 197,
-            "enclosingBodyEndLine": 235,
+            "enclosingBodyStartLine": 200,
+            "enclosingBodyEndLine": 238,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runActualBundle",
-            "trackedBlobSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
             "enclosingBodySha256": "8c0dbda930e036b59abc640f45d380395d318148ad6fa92d9a5c3c39d1d53c39",
-            "enclosingBodyStartLine": 197,
-            "enclosingBodyEndLine": 235,
+            "enclosingBodyStartLine": 200,
+            "enclosingBodyEndLine": 238,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runRealStage",
-            "trackedBlobSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
             "enclosingBodySha256": "09bd942412114cf7301b6b3545776621917bd3530e6aedd8be83d334653f3510",
-            "enclosingBodyStartLine": 248,
-            "enclosingBodyEndLine": 564,
+            "enclosingBodyStartLine": 251,
+            "enclosingBodyEndLine": 567,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runRealStage",
-            "trackedBlobSha256": "a9fcf2686a298aeb803096e0c025851210e71aae6d3c8ce52be3ee9ed6b705af",
+            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
             "enclosingBodySha256": "09bd942412114cf7301b6b3545776621917bd3530e6aedd8be83d334653f3510",
-            "enclosingBodyStartLine": 248,
-            "enclosingBodyEndLine": 564,
+            "enclosingBodyStartLine": 251,
+            "enclosingBodyEndLine": 567,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
             "symbol": "check:actual-mode-fixture-order",
-            "trackedBlobSha256": "4ac7411ed1319a3a775d3e3ba2a1ccd2e350136df4dfbd3ea39e0dfc30296972",
+            "trackedBlobSha256": "6b1ace830326ba2a2babb05d23fc7354f88d5f317eec1691f1ba97df3ecf85e2",
             "enclosingBodySha256": "61a562f6ab95ec51d3108f2761ec100e6b6d9b9eac495ffd410354cd45958829",
-            "enclosingBodyStartLine": 767,
-            "enclosingBodyEndLine": 849,
+            "enclosingBodyStartLine": 769,
+            "enclosingBodyEndLine": 851,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -234123,7 +234123,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "4ac7411ed1319a3a775d3e3ba2a1ccd2e350136df4dfbd3ea39e0dfc30296972",
+        "verifierFileSha256": "6b1ace830326ba2a2babb05d23fc7354f88d5f317eec1691f1ba97df3ecf85e2",
         "dispatch": {
           "command": "verify-v390-test-acceptance-bundle-contract",
           "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
@@ -235283,5 +235283,5 @@
       }
     }
   ],
-  "candidateDigest": "5c0d0ab29c492db8f3f448c4214e28a69d7b24ed79210c4cee6400babaeb887d"
+  "candidateDigest": "e7d55752bc819713d344bdc18f03875674215fc5ef0fdf8429f351644ff712ab"
 }

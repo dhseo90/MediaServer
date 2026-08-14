@@ -20,15 +20,46 @@
 
 - current source: `v3.9.1` (`VERSION=3.9.1`)
 - latest published: v3.9.0
-- fresh full test: 미실행
-- release action: 커밋·push·PR·main merge·tag·GitHub Release 미실행
+- fresh full test: 1차 clean-clone 시도 FAIL; 보정 후 재실행 대기
+- release action: source correction commit `7f3e9dc9` 완료; push·PR·main merge·tag·GitHub Release 미실행
 
 | 영역 | 현재 결과 | 직접 evidence | 릴리즈 판정 |
 | --- | --- | --- | --- |
 | metadata/docs links | PASS | `verify-release-metadata` 18/0, `verify-docs-links` failure 0 | focused gate이며 fresh full test 대체 불가 |
 | public repository hygiene | PASS | `verify-public-repo-readiness --no-history` 8/0, 개인/임시 경로 0, raw release artifact 0 | history scan과 full test는 별도 |
 | v3.9.0 public evidence archive | PASS | `release-artifacts/v3.9.0/public-evidence-manifest.json`, bounded artifact SHA-256 검증 | published v3.9.0 historical evidence 보존 |
-| v3.9.1 30분/UI/120분/release acceptance | 미실행 | source 변경을 아직 커밋하지 않았고 clean-clone 실행 전 | release blocker; PASS로 사용 불가 |
+| v3.9.1 clean-clone preflight/build | PASS | source `7f3e9dc9`, `--no-local` clone HEAD 일치, preflight/build exit 0 | 뒤 feature-gates FAIL을 대체하지 않음 |
+| v3.9.1 feature gates | FAIL | `v390-stabilization-release-readiness`: backlog Step 20의 truthful `release close-out 완료` 상태와 verifier 허용 목록 불일치 | 첫 실패; 보정 후 전체 clean-clone 재실행 필요 |
+| v3.9.1 30분/UI/120분 | 미실행 | feature-gates 첫 실패 뒤 stop-on-first-fail 적용 | release blocker; PASS로 사용 불가 |
+
+1차 clean-clone acceptance 실행 기록:
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| preflight | clean source와 canonical command/evidence 경계 | pass | source `7f3e9dc9` |
+| build | GStreamer 1.28.1 clean build | pass | `media_server` 100% build |
+| feature-gates | v3.9 feature/verifier 묶음 | fail | 최초 실패 `v390-stabilization-release-readiness` |
+| ui-server-cleanup | 미기동 UI 환경 cleanup | pass | acceptance cleanup 경로만 실행 |
+| cleanup | acceptance 임시 산출물 cleanup | pass | clone 삭제 전 runner cleanup PASS |
+| report | 실패 report 생성 | pass | primary failure를 보존 |
+| final-integrity | 전체 evidence 무결성 | fail | primary failure/UI·duration 미실행의 파생 실패; 최초 실패 아님 |
+
+| 미실행 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 |
+| --- | --- | --- | --- |
+| server-longrun-30 | 건너뜀 | feature-gates 첫 실패 | 아니오 |
+| ui-environment-bootstrap | 건너뜀 | feature-gates 첫 실패 | 아니오 |
+| ui-exact-424 | 건너뜀 | feature-gates 첫 실패 | 아니오 |
+| ui-fulltest-qualification | 건너뜀 | feature-gates 첫 실패 | 아니오 |
+| longrun-120-decision | 건너뜀 | feature-gates 첫 실패 | 아니오 |
+| server-longrun-120 | 건너뜀 | feature-gates 첫 실패 | 아니오 |
+| ui-final-integrity | 건너뜀 | UI 미실행 | 아니오 |
+
+- token start: `1,946,708` (Codex goal continuation snapshot)
+- token end: 미집계 (active goal 진행 중)
+- token consumed: 미집계
+- elapsed: 약 1분 20초 (clean clone 생성 시간 제외)
+- source: Codex goal snapshot + terminal wall time
+- 실패 clone cleanup: 569.5 MiB, 2,036 files 삭제 완료; models/samples 원본 미변경
 
 ## Historical v3.9.0 릴리즈 종료 상태 (2026-08-14)
 

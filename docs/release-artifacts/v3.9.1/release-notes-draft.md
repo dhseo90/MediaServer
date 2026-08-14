@@ -28,9 +28,12 @@ bounded release evidence, and representative UI asset currency.
 
 ## Verification
 
-No v3.9.1 release verification has completed yet. This draft will record fresh build, clean-clone,
-30-minute, actual-browser UI fulltest/Policy v4, 120-minute, integrity, and cleanup evidence only
-after each command succeeds against the final source commit.
+The first clean-clone run against source `7f3e9dc9` passed preflight and build, then stopped at the
+`v390-stabilization-release-readiness` feature gate because its accepted Step 20 status vocabulary
+had not followed the truthful v3.9.0 `release close-out 완료` state. The 30-minute, actual-browser
+UI fulltest/Policy v4, and 120-minute stages were not run. The failed clone was removed after its
+primary failure and later-not-run states were recorded. Fresh PASS evidence remains pending a
+corrected source commit and a complete clean-clone rerun.
 
 ## Not Run / Excluded
 

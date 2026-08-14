@@ -134,10 +134,13 @@ assertKnownOptions(rawArgs, [
 ]);
 
 const options = parseArgs(rawArgs);
+const currentVersion = fs.readFileSync(path.join(rootDir, "VERSION"), "utf8").trim();
+assert(/^\d+\.\d+\.\d+$/.test(currentVersion), `invalid source VERSION: ${currentVersion || "missing"}`);
+const currentTag = `v${currentVersion}`;
 const runId = `v390-test-acceptance-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}-${process.pid}`;
 const outputDir = path.resolve(rootDir, options.outputDir || path.join(os.tmpdir(), `media_server_${runId}`));
-const canonicalReleaseOutputDir = path.join(rootDir, "docs/release-artifacts/v3.9.0/test-acceptance-current-final");
-const canonicalUiOutputDir = path.join(rootDir, ".media_server.test/v3.9.0/ui-acceptance-current");
+const canonicalReleaseOutputDir = path.join(rootDir, `docs/release-artifacts/${currentTag}/test-acceptance-current-final`);
+const canonicalUiOutputDir = path.join(rootDir, `.media_server.test/${currentTag}/ui-acceptance-current`);
 const runDir = path.join(outputDir, "runs", runId);
 const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
@@ -1223,8 +1226,8 @@ function cleanupEvidence() {
 }
 
 function prepareOutputRoot() {
-  const allowedReleaseRoot = path.join(rootDir, "docs/release-artifacts/v3.9.0");
-  const allowedUiRoot = path.join(rootDir, ".media_server.test/v3.9.0");
+  const allowedReleaseRoot = path.join(rootDir, `docs/release-artifacts/${currentTag}`);
+  const allowedUiRoot = path.join(rootDir, `.media_server.test/${currentTag}`);
   const allowedTempRoots = [os.tmpdir(), "/tmp", "/private/tmp"].map(value => path.resolve(value));
   assert(isInside(allowedReleaseRoot, outputDir) || isInside(allowedUiRoot, outputDir) ||
     allowedTempRoots.some(tempRoot => isInside(tempRoot, outputDir)), `unsafe acceptance output directory: ${outputDir}`);

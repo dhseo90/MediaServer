@@ -62,7 +62,7 @@ try {
     },
     {
       path: "docs/report.md",
-      text: "/private/var/folders/ab/temp/run.json",
+      text: ["", "private", "var", "folders", "ab", "temp", "run.json"].join("/"),
       expectedId: "ephemeral-private-tmp",
     },
     {

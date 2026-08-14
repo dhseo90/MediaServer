@@ -92,6 +92,7 @@ check("roadmap and stream verification expose v3.9 Step 20 stabilization readine
     "보강 완료/current test pending",
     "UI PASS/full release pending",
     "full release PASS",
+    "release close-out 완료",
   ]).has(step20Cells[3]), `backlog v3.9 Step 20 status invalid: ${step20Cells[3] || "missing"}`);
   for (const snippet of ["release close-out", currentFinalCommand, "동일 source binding"]) {
     assertIncludes(step20Cells[4], snippet, "backlog v3.9 Step 20 current release lifecycle");

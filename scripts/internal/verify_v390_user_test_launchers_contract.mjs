@@ -32,6 +32,8 @@ const launchers = [
 const commonSource = read("scripts/internal/user_test_launcher_common.sh");
 const bundleSource = read("scripts/internal/verify_v390_test_acceptance_bundle.mjs");
 const longrunSource = read("scripts/internal/verify_v390_server_longrun.mjs");
+const currentVersion = read("VERSION").trim();
+const currentTag = `v${currentVersion}`;
 
 check("four root launchers are executable zero-option entrypoints", () => {
   for (const item of launchers) {
@@ -86,20 +88,22 @@ check("common launcher owns output, contract preflight, sanitization, and exact 
 
 check("server launchers use OS temp while UI and release use distinct repository roots", () => {
   for (const snippet of [
+    'source_version="$(tr -d \'[:space:]\' < "${root_dir}/VERSION")"',
+    'local source_tag="v${source_version}"',
     'if [[ "${suite}" == "release" ]]',
-    'output_dir="${root_dir}/docs/release-artifacts/v3.9.0/test-acceptance-current-final"',
+    'output_dir="${root_dir}/docs/release-artifacts/${source_tag}/test-acceptance-current-final"',
     'elif [[ "${suite}" == "ui" ]]',
-    'output_dir="${root_dir}/.media_server.test/v3.9.0/ui-acceptance-current"',
+    'output_dir="${root_dir}/.media_server.test/${source_tag}/ui-acceptance-current"',
     'output_dir="$(mktemp -d "${temp_root%/}/${output_prefix}.XXXXXX")"',
   ]) assertIncludes(commonSource, snippet, "launcher evidence lifecycle");
   assert(commonSource.indexOf('elif [[ "${suite}" == "ui" ]]') <
     commonSource.indexOf('output_dir="$(mktemp -d'),
   "UI repository-local output is not separated from server temp output");
   assertIncludes(bundleSource,
-    'canonicalReleaseOutputDir = path.join(rootDir, "docs/release-artifacts/v3.9.0/test-acceptance-current-final")',
+    'canonicalReleaseOutputDir = path.join(rootDir, `docs/release-artifacts/${currentTag}/test-acceptance-current-final`)',
     "canonical acceptance output boundary");
   assertIncludes(bundleSource,
-    'canonicalUiOutputDir = path.join(rootDir, ".media_server.test/v3.9.0/ui-acceptance-current")',
+    'canonicalUiOutputDir = path.join(rootDir, `.media_server.test/${currentTag}/ui-acceptance-current`)',
     "canonical standalone UI output boundary");
   assertIncludes(bundleSource,
     'executionMode === "actual" && outputDir !== canonicalReleaseOutputDir',
@@ -148,7 +152,7 @@ esac
     "UI source-contract failure stage missing");
   assert(`${result.stdout}\n${result.stderr}`.includes("testcaseId=verify-v390-ui-native-exact-cases-contract"),
     "UI source-contract testcase ID missing");
-  const evidenceDir = path.join(fakeRoot, ".media_server.test/v3.9.0/ui-acceptance-current");
+  const evidenceDir = path.join(fakeRoot, `.media_server.test/${currentTag}/ui-acceptance-current`);
   const summary = readJson(path.join(evidenceDir, "summary.json"));
   assert(summary.runId?.startsWith("v390-ui-source-contract-"), "fresh source-contract invocation ID missing");
   assert(summary.failedStage === "ui-source-contract", "fresh source-contract failure stage mismatch");
@@ -549,6 +553,7 @@ function check(name, fn) {
 function fixtureRoot(label) {
   const target = fs.mkdtempSync(path.join(os.tmpdir(), `media_server_v390_user_launcher_contract_${label}_`));
   temporaryRoots.push(target);
+  fs.writeFileSync(path.join(target, "VERSION"), `${currentVersion}\n`, "utf8");
   return target;
 }
 

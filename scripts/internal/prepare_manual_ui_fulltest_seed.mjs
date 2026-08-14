@@ -312,7 +312,8 @@ function readPublishedSeedBaseline() {
     `invalid docs UI asset source version: ${assetSourceVersion}`);
   assert(/^v\d+\.\d+\.\d+$/.test(publishedRelease),
     `invalid docs UI asset published release: ${publishedRelease}`);
-  assert(assetConfig?.baseline?.publicReleaseStatus === `${publishedRelease}-published-source-only`,
+  const expectedPublicReleaseStatus = `v${assetSourceVersion}-source-${publishedRelease}-published`;
+  assert(assetConfig?.baseline?.publicReleaseStatus === expectedPublicReleaseStatus,
     "docs UI asset public release status mismatch");
   return {
     mode: "published-seed-baseline",

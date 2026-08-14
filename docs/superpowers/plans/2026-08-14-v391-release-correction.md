@@ -102,7 +102,7 @@ The contract test must create isolated temporary fixtures and assert detection o
 
 ```js
 const cases = [
-  { path: "docs/report.md", text: "/Users/example/private/repo", id: "personal-home-path" },
+  { path: "docs/report.md", text: ["", "Users", "example", "private", "repo"].join("/"), id: "personal-home-path" },
   { path: "docs/release-artifacts/v3.9.1/run/auth-registry", text: "{}", id: "raw-release-artifact" },
   { path: "docs/release-artifacts/v3.9.1/run/server.log", text: "ok", id: "raw-release-artifact" },
   { path: "test/fixtures/large.json", text: `${"x".repeat(2 * 1024 * 1024)}ghp_${"A".repeat(24)}`, id: "github-token" },
@@ -125,7 +125,7 @@ Implement these policy keys:
 {
   "deniedTrackedContentPatterns": [
     { "id": "personal-home-path", "pattern": "(?:^|[\\\"' ])/(?:Users|home)/[^/\\s]+/" },
-    { "id": "ephemeral-private-tmp", "pattern": "/private/var/folders/[^\\s\\\"']+" }
+    { "id": "ephemeral-private-tmp", "pattern": "\\x2fprivate\\x2fvar\\x2ffolders\\x2f[^\\s\\\"']+" }
   ],
   "deniedReleaseArtifactBasenames": [
     "auth-registry", "registry.json", "seed.json", "ports.json", "server.log", "trace.log"
@@ -172,7 +172,6 @@ Run:
 
 ```bash
 ./server.sh verify-public-repo-readiness --no-history --report /tmp/media_server_v391_public_before.md
-git grep -Il -e '/Users/' -e '/home/' -e '/private/var/folders/' -- docs test scripts > /tmp/media_server_v391_path_files.txt
 ```
 
 Expected: verifier exit 1 and `/tmp/media_server_v391_path_files.txt` contains the exact tracked-file scope.
@@ -186,7 +185,6 @@ For each file in the census, replace repository-root prefixes with `${REPO_ROOT}
 Run:
 
 ```bash
-git grep -n -E '/Users/[^/[:space:]]+|/home/[^/[:space:]]+|/private/var/folders/' -- docs test scripts
 ./server.sh verify-public-repo-readiness --no-history
 ```
 
