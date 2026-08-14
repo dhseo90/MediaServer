@@ -67,12 +67,12 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const latestPublishedTag = "v3.8.0";
+const latestPublishedTag = "v3.9.0";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
 const currentRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";
-const latestPublishedBaseline = "v3.8.0 Operator-Gated Action Pilot & Outcome Loop";
-const previousPublishedTag = "v3.7.0";
-const previousPublishedBaseline = `${previousPublishedTag} Site-Aware Operations and Safe Runbook Control Plane`;
+const latestPublishedBaseline = currentRoadmap;
+const previousPublishedTag = "v3.8.0";
+const previousPublishedBaseline = `${previousPublishedTag} Operator-Gated Action Pilot & Outcome Loop`;
 const githubRepository = resolveGithubRepository();
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${latestPublishedTag}`;
@@ -349,8 +349,8 @@ check("versioning policy separates source version and published release", () => 
     `현재 소스 트리의 \`${version}\` roadmap은 v3.9.0 Feature Completion, Structure Stabilization,`,
     `published tag \`${latestPublishedTag}\`와 현재 source tag \`${currentTag}\``,
     "## 2.x runway / 3.0 전환 정책",
-    "## 3.9.0 active source roadmap 범위",
-    "## v3.8.0 latest published source-only release 범위",
+    "## 3.9.0 latest published source-only release 범위",
+    "## v3.8.0 previous published source-only release 범위",
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
   }
@@ -481,8 +481,8 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
-  assert(releasePolicy.includes("## v3.9.0 Source Roadmap Scope"), "release policy must own the v3.9.0 source roadmap boundary");
-  assert(releasePolicy.includes("## v3.8.0 Published Source Roadmap Scope"), "release policy must preserve the v3.8.0 published source roadmap boundary");
+  assert(releasePolicy.includes("## v3.9.0 Published Source Roadmap Scope"), "release policy must own the v3.9.0 published roadmap boundary");
+  assert(releasePolicy.includes("## v3.8.0 Previous Published Source Roadmap Scope"), "release policy must preserve the v3.8.0 previous published roadmap boundary");
   assert(backlog.includes(`## 현재 source roadmap: ${currentRoadmap}`), `development backlog must own the ${currentTag} source roadmap`);
   assert(backlog.includes(`직전 공개 릴리즈입니다.`), "development backlog must preserve previous published release boundary");
   return {
@@ -511,8 +511,8 @@ check("UI guide pins current release wording", () => {
 check("UI asset policy pins current source and published baseline wording", () => {
   const uiAssets = readText("docs/assets/ui/README.md");
   assert(uiAssets.includes("현재 source tree는 `v3.9.0`"), "docs/assets/ui/README.md source version drifted");
-  assert(uiAssets.includes(`최신 공개 GitHub Release는 \`${latestPublishedTag}\` Operator-Gated Action Pilot & Outcome Loop`), "docs/assets/ui/README.md latest published wording drifted");
-  assert(uiAssets.includes("직전 `v3.7.0`"), "docs/assets/ui/README.md previous baseline wording drifted");
+  assert(uiAssets.includes(`최신 공개 GitHub Release는 \`${latestPublishedTag}\` Feature Completion, Structure Stabilization, and Test Model Preparation`), "docs/assets/ui/README.md latest published wording drifted");
+  assert(uiAssets.includes("직전 `v3.8.0`"), "docs/assets/ui/README.md previous baseline wording drifted");
   assert(uiAssets.includes("image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는"), "docs/assets/ui/README.md image evidence boundary drifted");
   return { file: "docs/assets/ui/README.md", currentTag, latestPublishedTag };
 });

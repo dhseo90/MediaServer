@@ -13059,35 +13059,35 @@
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
           "symbol": "canonical-owner:OPS-163",
           "anchor": "check(\"SAFE-196 canonical source baseline no-overclaim boundary\", () => {",
-          "line": 241,
+          "line": 242,
           "contextSha256": "ef517c4494f282e39c153dba6013b0a5ac3970e5dbb07af9b443e101473fea9a"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
           "symbol": "canonical-dispatch:OPS-163",
           "anchor": "const currentSourceAligned = version === currentVersion && files.cmake.includes(`VERSION ${currentVersion}`);",
-          "line": 242,
-          "contextSha256": "a886069ec3b71c00b763540c2112be86cc12859a59e0d19be800521ea656cc82"
+          "line": 243,
+          "contextSha256": "73c8dfd8da6699f3cc7e9fe498a263ecabafef3b385e2aa0c1f55300ce58f344"
         },
         "action": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
           "symbol": "canonical-action:OPS-163",
           "anchor": "const safe196BoundaryObserved = currentSourceAligned && publishedBaselineSeparated && files.projectInventory.includes(\"SAFE-196\");",
-          "line": 245,
+          "line": 246,
           "contextSha256": "d3a38248143a2d45415df81f079b267e7b8b0594a02d6b37ca72b8b3d7be1176"
         },
         "state": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
           "symbol": "canonical-state:OPS-163",
           "anchor": "const ops163BaselineObserved = safe196BoundaryObserved;",
-          "line": 246,
+          "line": 247,
           "contextSha256": "df86c25e1267d88c4ab8222dec63e0b28f0e4cf0d055a5beb2cacfe6583a505d"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
           "symbol": "canonical-readback:OPS-163",
           "anchor": "assert(ops163BaselineObserved && safe196BoundaryObserved && executionPassClaimed === false,",
-          "line": 247,
+          "line": 248,
           "contextSha256": "882f18f911ff130c42406fdb4a805e9661aeba1d677da10734a098f436ed0309"
         },
         "verifier": {
@@ -13104,39 +13104,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-163 owner-dispatch",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:241",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:242"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:242",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:243"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-163 dispatch-action",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:242",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:245"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:243",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:246"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-163 action-state",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:245",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:246"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:246",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:247"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-163 state-readback",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:246",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:247"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:247",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:248"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-entry-baseline",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:247",
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:248",
           "target": "server.sh:2217"
         }
       ],
@@ -34569,35 +34569,35 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 241,
+          "line": 242,
           "anchor": "check(\"SAFE-196 canonical source baseline no-overclaim boundary\", () => {",
           "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
           "contextSha256": "ef517c4494f282e39c153dba6013b0a5ac3970e5dbb07af9b443e101473fea9a"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 242,
+          "line": 243,
           "anchor": "const currentSourceAligned = version === currentVersion && files.cmake.includes(`VERSION ${currentVersion}`);",
           "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
-          "contextSha256": "a886069ec3b71c00b763540c2112be86cc12859a59e0d19be800521ea656cc82"
+          "contextSha256": "73c8dfd8da6699f3cc7e9fe498a263ecabafef3b385e2aa0c1f55300ce58f344"
         },
         "action": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 245,
+          "line": 246,
           "anchor": "const safe196BoundaryObserved = currentSourceAligned && publishedBaselineSeparated && files.projectInventory.includes(\"SAFE-196\");",
           "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
           "contextSha256": "d3a38248143a2d45415df81f079b267e7b8b0594a02d6b37ca72b8b3d7be1176"
         },
         "state": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 246,
+          "line": 247,
           "anchor": "const ops163BaselineObserved = safe196BoundaryObserved;",
           "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
           "contextSha256": "df86c25e1267d88c4ab8222dec63e0b28f0e4cf0d055a5beb2cacfe6583a505d"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_entry_baseline.mjs",
-          "line": 247,
+          "line": 248,
           "anchor": "assert(ops163BaselineObserved && safe196BoundaryObserved && executionPassClaimed === false,",
           "symbol": "check:SAFE-196 canonical source baseline no-overclaim boundary",
           "contextSha256": "882f18f911ff130c42406fdb4a805e9661aeba1d677da10734a098f436ed0309"
@@ -34616,39 +34616,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-196 owner-dispatch",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:241",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:242"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:242",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:243"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "SAFE-196 dispatch-action",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:242",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:245"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:243",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:246"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-196 action-state",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:245",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:246"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:246",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:247"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-196 state-readback",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:246",
-          "target": "scripts/internal/verify_v390_entry_baseline.mjs:247"
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:247",
+          "target": "scripts/internal/verify_v390_entry_baseline.mjs:248"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-entry-baseline",
-          "source": "scripts/internal/verify_v390_entry_baseline.mjs:247",
+          "source": "scripts/internal/verify_v390_entry_baseline.mjs:248",
           "target": "server.sh:2217"
         }
       ],

@@ -5,9 +5,9 @@
 
 현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.9.0`
 Feature Completion, Structure Stabilization, and Test Model Preparation을 가리키고,
-최신 공개 GitHub Release는 `v3.8.0` Operator-Gated Action Pilot & Outcome Loop
-source-only baseline을 가리킵니다. 직전 `v3.7.0` Site-Aware Operations and Safe
-Runbook Control Plane은 historical reference입니다. 이 이미지를 v3.9.0 source baseline,
+최신 공개 GitHub Release는 `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation
+source-only baseline을 가리킵니다. 직전 `v3.8.0` Operator-Gated Action Pilot & Outcome Loop은
+previous reference입니다. 이 이미지를 v3.9.0 source baseline,
 UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
@@ -50,8 +50,8 @@ v3.9 source 기준 공개 문서 묶음:
 
 v3.9 source 기준:
 
-- v3.9.0 source roadmap과 latest published v3.8 source-only baseline을 분리하고,
-  직전 v3.7.0 baseline은 historical reference로만 둡니다.
+- v3.9.0 source roadmap과 latest published v3.9 source-only baseline을 정렬하고,
+  직전 v3.8.0 baseline은 previous reference로 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.
 - Chrome/CDP fallback 재캡처는 사용자가 명시 승인한 예외일 때만 후보로 둡니다.

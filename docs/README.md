@@ -6,28 +6,28 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 
 ## 현재 상태
 
-- 최신 공개 GitHub Release: [v3.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.8.0)
-- 최신 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
-- 직전 published baseline: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
+- 최신 공개 GitHub Release: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
+- 최신 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- 직전 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 - 현재 소스 버전: `3.9.0`
-- v3.9.0 준비 상태: source-only 준비 브랜치. Binary, runtime, model bundle은 포함하지 않음
+- v3.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - 기본 공개 형태: source-only
 - 공개 문서/대표 asset 기준: `README.md`, `README.en.md`, `docs/README.md`,
   `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`는 v3.9
-  source roadmap과 latest published v3.8 baseline을 분리하고 직전 v3.7 baseline은
+  source roadmap과 latest published v3.9 baseline을 정렬하고 직전 v3.8 baseline은
   historical reference로 유지합니다. 대표 이미지는
   `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리하고,
   교체 시 직접 이미지 검수 기록을 별도로 남깁니다.
 
 ## v3.9 Source Roadmap
 
-- 최신 공개 릴리즈: `v3.8.0` Operator-Gated Action Pilot & Outcome Loop, source-only.
+- 최신 공개 릴리즈: `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation, source-only.
 - 현재 소스: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
 - v3.9 로드맵: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 전수 확인하고,
   REVIEW4-50~63을 닫은 뒤 같은 v3.9.0 브랜치에서 동작 보존 구조 안정화와 리팩토링을
   REVIEW4-64로 수행하며, REVIEW4-65에서 독립 acceptance를 실행합니다.
-- 최신 공개 기준: v3.8.0 Operator-Gated Action Pilot & Outcome Loop는 published baseline이며, v3.9.0은 아직 publish evidence가 없는 준비 브랜치입니다.
+- 최신 공개 기준: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation은 published baseline이며, v3.8.0 Operator-Gated Action Pilot & Outcome Loop는 직전 published baseline입니다.
 
 ## 먼저 볼 문서
 
@@ -42,7 +42,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | 검증 명령 | [stream-verification.md](stream-verification.md) |
 | 버전과 release 정책 | [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md) |
 | 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
-| v3.9.0 release notes 초안 | [release-artifacts/v3.9.0/release-notes-draft.md](release-artifacts/v3.9.0/release-notes-draft.md) |
+| v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes-draft.md](release-artifacts/v3.9.0/release-notes-draft.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 공개 문서 전체 목록

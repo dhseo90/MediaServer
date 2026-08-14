@@ -1,9 +1,9 @@
-# Media Server v3.9.0 Release Notes (Draft)
+# Media Server v3.9.0 Release Notes
 
 v3.9.0 completes the source-only feature inventory from earlier 3.x releases, stabilizes the
 Ops/Client product structure, and makes the UI acceptance path reproducible from a clean checkout.
-Full release acceptance is complete. This draft becomes publishable after PR checks, main merge,
-the signed tag, and the GitHub Release steps are complete.
+Full release acceptance, PR checks, and main integration are complete. The release remains
+source-only and does not attach runtime, model, media, or evidence bundles.
 
 ## Highlights
 
@@ -17,7 +17,7 @@ the signed tag, and the GitHub Release steps are complete.
   evaluation, case isolation, exact request/response identity, and deterministic cleanup evidence.
 - Added Policy v4 evidence qualification and final-integrity binding for the exact 424-case UI suite.
 
-## Verified So Far
+## Verification
 
 | Area | Result | Binding |
 | --- | --- | --- |
@@ -29,13 +29,12 @@ the signed tag, and the GitHub Release steps are complete.
 | Cleanup/final integrity | PASS | cleanup PASS, final integrity `12/12`, final evidence eligible |
 | Evidence retention | PASS | 80-file/11.4MiB bounded canonical package; generated 309MB per-case detail excluded from Git |
 
-## Release Gates Still Pending
+## Publication
 
-- Complete PR checks and merge `v3.9.0` into `main`.
-- Create and verify the signed `v3.9.0` tag, publish the source-only GitHub Release, and run published
-  metadata verification.
-- Remove obsolete v3.9 temporary branches only after their commits are proven reachable from the
-  merged release history.
+- Merged the checked `v3.9.0` release history into `main`.
+- Published from a signed annotated `v3.9.0` tag as a source-only GitHub Release.
+- Verified GitHub Latest Release, release view/API metadata, remote tag, release branch, and
+  repository release links through the published metadata gate.
 
 ## Excluded or Conditional Validation
 
@@ -46,7 +45,7 @@ the signed tag, and the GitHub Release steps are complete.
 
 ## Upgrade Notes
 
-- The source version is `3.9.0`; the latest published baseline remains `v3.8.0` until publication.
+- The source version and latest published baseline are `3.9.0`; v3.8.0 is the previous published baseline.
 - Existing Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC contracts remain governed
   by their compatibility verifiers and release evidence.
 - Operators should review `docs/config-reference.md`, `docs/ui-guide.md`, and

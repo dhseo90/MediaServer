@@ -6,11 +6,11 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.9.0`
-- 최신 공개 GitHub Release: `v3.8.0`
-- `v3.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
-- 최신 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+- 최신 공개 GitHub Release: `v3.9.0`
+- `v3.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
+- 최신 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
-- `v3.9.0` publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 완료로 기록합니다.
+- `v3.9.0` publish 완료는 signed tag, source-only GitHub Release, `verify-release-metadata --published` evidence로 확인합니다.
 - public repository 기준은 source-only 공개입니다.
 
 ## 공개 대상

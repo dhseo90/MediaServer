@@ -6,27 +6,27 @@ points to the current public sources.
 
 ## Current Status
 
-- Latest published GitHub Release: [v3.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.8.0)
-- Latest published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
-- Previous published baseline: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
+- Latest published GitHub Release: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
+- Latest published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- Previous published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 - Current source version: `3.9.0`
-- v3.9.0 preparation status: source-only preparation branch. Binary, runtime, and model bundles are not included.
+- v3.9.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - Default public distribution: source-only
 - Public docs/assets baseline: `README.md`, `README.en.md`, `docs/README.md`,
   `docs/en/README.md`, `docs/ui-guide.md`, and `docs/assets/ui/README.md`
-  separate the v3.9 source roadmap from the latest published v3.8 baseline while
-  keeping the v3.7 baseline as historical reference. Representative
+  align the v3.9 source roadmap with the latest published v3.9 baseline while
+  keeping the v3.8 baseline as the previous reference. Representative
   screenshots are managed by `config/docs_ui_assets.json` and
   `./server.sh verify-docs-ui-assets`; replacements require a separate direct
   image review record.
 
 ## v3.9 Source Roadmap
 
-- Latest published release: `v3.8.0` Operator-Gated Action Pilot & Outcome Loop, source-only.
+- Latest published release: `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation, source-only.
 - Current source: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
 - The v3.9 roadmap audits exposed, promised, and partially implemented functionality from v1.0.0 through v3.8.0, closes REVIEW4 items 50 through 63, then executes the approved behavior-preserving REVIEW4-64 refactor on the current `v3.9.0` branch before REVIEW4-65 independent acceptance. The actual refactor is not transferred to v4.0.0 and is not yet execution-complete.
-- Latest published baseline: v3.8.0 Operator-Gated Action Pilot & Outcome Loop. v3.9.0 is a preparation branch with no publish evidence yet.
+- Latest published baseline: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation. v3.8.0 Operator-Gated Action Pilot & Outcome Loop is the previous published baseline.
 
 ## Start Here
 
