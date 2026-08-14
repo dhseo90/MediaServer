@@ -28,13 +28,19 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 - 로컬 auth store, credential, token, 운영 로그
 - 고객/현장 영상, 운영 evidence media, snapshot, clip bundle
 
-현재 추적되는 `video/*.mp4`와 allowlist된
-`video/imports/va_tracking_event_1280x720_30fps_h264.mp4`는 재현용 생성 fixture로만
+현재 추적되는 `video/*.mp4`와 allowlist된 아래 두 VA 입력은 재현용 생성 fixture로만
 취급합니다.
+
+- `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`
+- `video/imports/va_tracking_event_long_1280x720_30fps_h264.mp4`
+
+두 번째 입력은 re-entry 시나리오의 clean-checkout 재현에 필요한 고정 fixture입니다.
 릴리즈 UI full-test 스크린샷은 `docs/release-artifacts/v<version>/ui-fulltest-<date>/in-app-screenshots/`
 또는 `docs/release-artifacts/v<version>/ui-fulltest-<date>/in-app-final-screenshots/`
-아래의 최종 evidence 경로만 허용하며, raw auth/registry/log/ports/seed 산출물과 운영
-snapshot/clip bundle은 공개 대상이 아닙니다.
+아래의 최종 evidence 경로만 허용합니다. v3.9.0에서 이미 보존 계약에 결속된 audit-only
+historical root 7개와 bounded failure root 1개의 PNG는 해당 정확한 경로만 추가 허용합니다.
+그 밖의 raw auth/registry/log/ports/seed 산출물과 운영 snapshot/clip bundle은 공개 대상이
+아닙니다.
 
 ## 자동 확인
 

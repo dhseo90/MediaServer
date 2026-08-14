@@ -33,23 +33,23 @@
 - [x] Record `47582fea` UI `424/424`, Policy `424/424`, cleanup, and UI final-integrity without claiming full release PASS.
 - [x] Mark the two 2026-08-12 failure audits as historical and link the current source-of-truth.
 - [x] Run docs, metadata, inventory, semantic, syntax, and diff gates.
-- [ ] Commit and push the documentation checkpoint.
+- [x] Commit and push the documentation checkpoint (`b7cd2e77`).
 
 ### Task 2: Promote the verified source to v3.9.0
 
 **Files:** Git refs only.
 
-- [ ] Prune the missing stale worktree registration.
-- [ ] Fast-forward `v3.9.0` to the verified documentation checkpoint.
-- [ ] Push `origin/v3.9.0` and verify ahead/behind `0/0` with a clean worktree.
+- [x] Confirm no stale worktree registration remains.
+- [x] Fast-forward `v3.9.0` to the verified documentation checkpoint.
+- [x] Push `origin/v3.9.0` and verify ahead/behind `0/0` with a clean worktree.
 
 ### Task 3: Run canonical full release acceptance
 
 **Files:**
 - Generated final evidence: `docs/release-artifacts/v3.9.0/test-acceptance-current-final/`
 
-- [ ] Run `./test_release.sh` without arguments exactly once on clean `v3.9.0`.
-- [ ] Require build/feature gates, 30-minute, exact UI `424/424`, Policy v4, triggered 120-minute, cleanup, and final-integrity PASS.
+- [x] Run `./test_release.sh` without arguments exactly once on clean `v3.9.0` source `c6b3d20a`.
+- [x] Require build/feature gates, 30-minute, exact UI `424/424`, Policy v4, triggered 120-minute, cleanup, and final-integrity PASS.
 - [ ] If a gate fails, fix the shared root cause, rerun required static verification, commit, push, and run the complete launcher again on the new source; preserve each failure history.
 
 ### Task 4: Final evidence and publication
@@ -57,7 +57,7 @@
 **Files:**
 - Modify: release records, evidence index, backlog, release notes, public version metadata after publication.
 
-- [ ] Record the full release run with source/build/manifest/evidence hashes and all exclusions.
+- [x] Record the full release run with source/build/manifest/evidence hashes and all exclusions.
 - [ ] Verify no tracked temporary outputs, stale generated files, dead helpers, or current-source references to local ignored artifacts remain.
 - [ ] Create the PR from `v3.9.0` to `main`, require all checks and zero blocking annotations, then merge.
 - [ ] Create and verify the signed `v3.9.0` tag, publish the GitHub Release, and run published metadata verification.

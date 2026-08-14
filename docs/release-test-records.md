@@ -16,23 +16,33 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
-## v3.9.0 현재 릴리즈 종료 상태 (2026-08-13)
+## v3.9.0 현재 릴리즈 종료 상태 (2026-08-14)
 
 이 절은 아래의 날짜별 RED/보정 이력을 덮어쓰지 않고 현재 판정을 먼저 보여 줍니다.
 
 | 영역 | 현재 결과 | 직접 evidence | 릴리즈 판정 |
 | --- | --- | --- | --- |
-| 안정화 Static | PASS | source `efb44bd1b20517297a22dd17956fb514f26ebbf0` 및 현재 permission/final-integrity correction의 focused/full static PASS | branch-bearing clean checkout 최종 재검증 전 |
-| UI 풀테스트 | FAIL | exact browser `424/424 PASS`, Policy v4 qualified `424/424`이나 MEDIA-017 unapproved console로 eligible=false | case 전수 PASS를 Policy v4 UI 풀테스트 PASS로 승격하지 않음 |
-| 30분 | PASS | source `efb44bd1...`, `118 PASS / 0 FAIL / 2 skip`, soak 22회와 cleanup PASS | 새 correction source에서 재실행 필요 |
-| 120분 | 미실행 | Policy v4 fail-stop으로 decision/execution에 도달하지 못함; v3.9.0 release policy의 기존 직접 runtime/media 변경 판정 유지 | release blocker |
-| 전체 release acceptance | FAIL | source `efb44bd1...`의 Policy v4 MEDIA-017 console과 final-integrity temporary-root verifier 오류 | correction checkpoint의 clean `./test_release.sh` 재실행 전 release-ready 아님 |
+| 안정화 Static | PASS | source `c6b3d20a778a7a641e44decadd1ee5b416426650`의 full build, 36 feature gate와 clean-checkout verification | local release acceptance 완료 |
+| UI 풀테스트 | PASS | actual browser exact `424/424`, fail/not-run/unsupported `0/0/0`, Policy v4 eligible·qualified `424/424` | UI release gate 완료 |
+| 30분 | PASS | `118 PASS / 0 FAIL / 2 skip`, soak 22회와 cleanup PASS | 완료 |
+| 120분 | PASS | trigger 5개, `443 PASS / 0 FAIL / 2 skip`, soak 87회와 cleanup PASS | 완료 |
+| 전체 release acceptance | PASS | `./test_release.sh` exit `0`, final integrity `12/12`, `finalEvidenceEligible=true` | PR/main/tag/publish와 분리된 local release acceptance 완료 |
+
+Actual source는 `c6b3d20a778a7a641e44decadd1ee5b416426650`이며, 실행 코드 변경 없이 최종 문서와
+bounded evidence를 기록한 checkpoint는 `b7cd2e77dbf7e03be8407015bee94991746abdb7`입니다. 저장소 보존 evidence는
+[test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)입니다.
+남은 release close-out은 PR checks, main merge, signed tag, source-only GitHub Release,
+published metadata 검증과 임시 verification branch 정리입니다.
+
+### Historical correction and failed-run log
+
+아래 기록은 최종 PASS에 도달하기 전의 RED와 보정 이력입니다. 현재 릴리즈 판정에는 위 표와
+`v3.9.0 final release acceptance PASS (2026-08-14)` 절을 사용합니다.
 
 UI run은 `2026-08-13T10:32:51`에 시작됐고 source commit은 `47582fea7e7fad2c5ef06caf86d9ef6901fd5939`, build SHA-256은
 `2e4e67d159579fc138988766509eb59dc84c44cc3a73c33fb265c2e625e4b25f`, canonical manifest SHA-256은
-`38be06145be2d1b542ec1ba1386bc59aa7368d5142769332d1833537ae2a323c`입니다. 현재 최소 evidence는
-`.media_server.test/v3.9.0/ui-acceptance-current/{summary.json,report.md}`에 있으며, 전체 릴리즈 실행에서
-`docs/release-artifacts/v3.9.0/test-acceptance-current-final/`로 이관되기 전까지 transient evidence입니다.
+`38be06145be2d1b542ec1ba1386bc59aa7368d5142769332d1833537ae2a323c`입니다. 이 UI-only run은
+최종 full release evidence가 아니며 후속 canonical release run으로 대체됐습니다.
 
 첫 full release 시도는 source `7ebcfb60b9e76a6cf23104e2024708604f56a18a`에서 build를 PASS한 뒤
 feature gate의 `verify-code-comments`가 `verify_v390_test_acceptance_bundle.mjs`의 영어 전용 설명 주석 한 줄을
@@ -42,7 +52,7 @@ English-only `0`으로 PASS했습니다. 새 source commit에서 전체 launcher
 
 두 번째 full release 시도는 source `17da5f2c088944ff3e62a00abe47ece58c519c29`에서 code-comment gate를
 통과한 뒤 `verify-v390-stabilization-release-readiness`가 backlog의 과거 상태 문자열을 하드코딩해 FAIL했습니다.
-현재 문서의 Step 20 상태는 `UI PASS/full release pending`이므로 실제 판정과 문서가 일치하며, 30분·UI·120분은
+당시 문서의 Step 20 상태는 `UI PASS/full release pending`이었으므로 당시 판정과 문서가 일치했고, 30분·UI·120분은
 다시 fail-stop으로 미실행입니다. verifier는 Step 20 행을 정확히 하나 파싱하고 명시된 release lifecycle 상태만
 허용하도록 보정한 뒤 전체 launcher를 새 source에서 재실행합니다.
 

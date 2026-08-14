@@ -1017,6 +1017,7 @@ Annotation JSON을 확보한 경우:
 - PR / GitHub Actions status check: <fill after PR checks>
 - Licensing and Artifact Guardrails: <fill after required check>
 - UI fulltest: <fill only after approved direct UI fulltest evidence>
+- Longrun / soak: <record the 30-minute result and conditional 120-minute result separately>
 - 30-minute soak: <fill only after approved 30-minute run>
 - 120-minute predev: <fill only after approved 120-minute run>
 - 120-minute runtime console: <fill only after approved 120-minute runtime

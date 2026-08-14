@@ -292,7 +292,7 @@
     },
     {
       "path": "docs/development-backlog.md",
-      "contentSha256": "247db60d362949591a1a2addafa638930c234c78b0b0440270e93c93c774a4b9",
+      "contentSha256": "c20ed22fba41b036f1ba8f465643b869b98fddb3797e0e195a551dbe678bf0ad",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -932,7 +932,7 @@
     },
     {
       "path": "docs/public-repo-final-review.md",
-      "contentSha256": "c83fa33b0b8b0b2fb8d49aa9580b991b3fdd573b34ddd333c73fb493d1052fbf",
+      "contentSha256": "bd16c7424417d0ba358b902f2285a9cf2f677b2f4126dfbde7dec34fcfbad187",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -1412,7 +1412,7 @@
     },
     {
       "path": "docs/release-artifacts/v3.9.0/release-notes-draft.md",
-      "contentSha256": "ff020b7c67625c8800c26f22a28aaae6c97f61ec71f08623db2bac3c8fa13b47",
+      "contentSha256": "9cf506869f2e1b8c2eaea13c2f6b9b8628fb12b9b9d34d89a23a66cda80d09e1",
       "semanticRole": "historical-release-note-draft",
       "lifecycle": "historical-audit-only",
       "alignment": "historical-aligned",
@@ -2152,7 +2152,7 @@
     },
     {
       "path": "docs/release-policy.md",
-      "contentSha256": "de720ed2cdb1edc89c02bba2856d214499e06360ceb10b69b19109c163c6c754",
+      "contentSha256": "06ff9e8768c4de2c6488e34c47c8cd2c356f58c2ceb018a72346373a7dfe2465",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2172,7 +2172,7 @@
     },
     {
       "path": "docs/release-test-records.md",
-      "contentSha256": "7bad3fa884eb953711e3c0834cd5e1485c82ac6b53cf2c316b7f644f41363d76",
+      "contentSha256": "f7932896a5d5453b523d0fefe6e8da4dadb641ee46f779637f5c5e32cc35755b",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -2872,7 +2872,7 @@
     },
     {
       "path": "docs/superpowers/plans/2026-08-13-v390-release-closeout.md",
-      "contentSha256": "f35712e4d9c5e00c626ba30820964b43cdfcb31c145ad9608ef9ca6eea67279e",
+      "contentSha256": "e9b279ef81aa87b93467abf2441516fe5cd5ac713c1a3c4d0667541d3d97bdcb",
       "semanticRole": "historical-or-superseded-plan",
       "lifecycle": "superseded-historical",
       "alignment": "historical-aligned",
@@ -3412,7 +3412,7 @@
     },
     {
       "path": "docs/v390-current-state-and-verification-debt-audit-2026-08-12.md",
-      "contentSha256": "21633f764db08df9dab33fdb1b3fa52f53e968f2006aca2a1a0d4863cbd51436",
+      "contentSha256": "df72bae22fe6c133723264190b2c8aedb9298f690c76c7078133448ed1b44bb1",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",
@@ -3452,7 +3452,7 @@
     },
     {
       "path": "docs/v390-full-status-failure-and-handoff-2026-08-12.md",
-      "contentSha256": "717a52261a8b7c7ea7af7b8b277ec4467fed00e83aa17ac577af4a5789efc9a6",
+      "contentSha256": "6b87b9c43703f88b7ce5f25b428218c80a26c92decd3d8d1f13830a252ac883d",
       "semanticRole": "current-product-or-repository-contract",
       "lifecycle": "current-product-contract",
       "alignment": "aligned",

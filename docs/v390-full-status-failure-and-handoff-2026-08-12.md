@@ -1,9 +1,9 @@
 # v3.9.0 전체 현황, 실패 원인 및 인계 문서
 
 > **역사 기록 / 현재 판정으로 대체됨 (2026-08-13):** 이 문서는 `dc996dd4` 시점의 실패와 검증 부채를 보존합니다.
-> 최신 verification commit `47582fea`에서는 `./test_ui.sh` exact `424/424`, Policy v4 `424/424`, UI final-integrity와 cleanup이 PASS했습니다.
-> 현재 source-of-truth는 [release-test-records.md](release-test-records.md)의 `v3.9.0 현재 릴리즈 종료 상태`이며,
-> 30분·120분·`./test_release.sh`는 아직 미실행이므로 전체 release-ready 판정은 계속 false입니다.
+> 최신 actual source `c6b3d20a`의 `./test_release.sh`는 30분, exact UI `424/424`, Policy v4
+> `424/424`, 120분, cleanup과 final integrity를 모두 PASS했습니다. 현재 source-of-truth는
+> [release-test-records.md](release-test-records.md)의 `v3.9.0 현재 릴리즈 종료 상태`입니다.
 
 작성일: 2026-08-12
 대상 작업: `019f4905-f132-7202-bb94-685ff85d92da` 이후 v3.9.0 전체 작업

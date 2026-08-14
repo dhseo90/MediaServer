@@ -2,8 +2,8 @@
 
 v3.9.0 completes the source-only feature inventory from earlier 3.x releases, stabilizes the
 Ops/Client product structure, and makes the UI acceptance path reproducible from a clean checkout.
-This draft becomes publishable only after the full release acceptance, PR checks, main merge, signed
-tag, and GitHub Release steps are complete.
+Full release acceptance is complete. This draft becomes publishable after PR checks, main merge,
+the signed tag, and the GitHub Release steps are complete.
 
 ## Highlights
 
@@ -31,7 +31,6 @@ tag, and GitHub Release steps are complete.
 
 ## Release Gates Still Pending
 
-- Commit the final bounded evidence and release documentation.
 - Complete PR checks and merge `v3.9.0` into `main`.
 - Create and verify the signed `v3.9.0` tag, publish the source-only GitHub Release, and run published
   metadata verification.
