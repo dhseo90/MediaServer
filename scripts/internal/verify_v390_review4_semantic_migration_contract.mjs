@@ -196,10 +196,15 @@ function runProducerInputPathContract() {
 
     for (const token of [
       'readInputJson("prior-audit", priorAuditPath)',
+      'readInputJson("prior-approvals", priorApprovalsPath)',
       'readInputJson("migration-evidence", migrationPath)',
       'readInputJson("decisions", decisionsPath)',
       'readInputJson("review-package", packagePath)',
     ]) assert(producerSource.includes(token), `producer input does not share resolveInputPath: ${token}`);
+    assert(!producerSource.includes('execFileSync("git", ["show", `:${approvalRelative}`]'),
+      "producer still reads prior approvals from the mutable Git index checkpoint");
+    assert(producerSource.includes('encoding: null, maxBuffer: 256 * 1024 * 1024'),
+      "producer review snapshot hashing is not binary-safe above the 64 MiB release diff boundary");
     assert(!producerSource.includes("path.join(rootDir, migrationRelative)"),
       "producer still joins repository root to the migration input");
 
@@ -231,13 +236,15 @@ function runProducerInputPathContract() {
     const fixtureBytes = fixturePaths.map(file => fs.readFileSync(file));
     const missingPriorAudit = path.join(temp, "missing-prior-audit.json");
     const migration = path.join(temp, "migration.json");
+    const priorApprovals = path.join(temp, "prior-approvals.json");
     const decisions = path.join(temp, "decisions.json");
     const reviewPackage = path.join(temp, "review-package.json");
-    for (const file of [migration, decisions, reviewPackage]) fs.writeFileSync(file, "{}\n");
+    for (const file of [priorApprovals, migration, decisions, reviewPackage]) fs.writeFileSync(file, "{}\n");
     const smoke = spawnSync(process.execPath, [
       producerPath,
       "--write-ledger",
       "--prior-audit", missingPriorAudit,
+      "--prior-approvals", priorApprovals,
       "--migration-evidence", migration,
       "--decisions", decisions,
       "--review-package", reviewPackage,

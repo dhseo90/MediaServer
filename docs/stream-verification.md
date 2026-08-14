@@ -46,15 +46,16 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v3.9.0 verifier
+## 현재 v3.9.1 release correction과 v3.9.0 verifier
 
-아래 명령은 v3.9.0 Feature Completion, Structure Stabilization, and Test Model
-Preparation의 source baseline, feature completion inventory, user review gate 준비
-gate입니다. 실제 feature development, UI 풀테스트, 30분/120분 longrun,
-published metadata, release action evidence가 아닙니다.
+v3.9.1 release correction은 published v3.9.0의 제품 기능 baseline을 변경하지 않고
+release metadata, 공개 저장소 hygiene, 문서 truth, bounded evidence, UI asset 현재성을
+정정합니다. 아래 v3.9.0 명령은 inherited feature/acceptance verifier이며, v3.9.1 fresh
+UI 풀테스트·30분·120분·published metadata 또는 release action evidence를 대신하지 않습니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |
+| v3.9.1 release correction | `./server.sh verify-release-metadata`, `./server.sh verify-v391-documentation-truth`, `./server.sh verify-public-repo-readiness`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | current source `3.9.1`, latest published `v3.9.0`, public docs/evidence/UI asset correction을 검증합니다. fresh build, 30분, exact UI 424/Policy v4, 120분, PR/main/tag/GitHub Release는 별도 gate입니다. |
 | v3.9.0 (1) | `./server.sh verify-v390-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` 정렬. v3.9 기능 discovery/dev, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
 | v3.9.0 (2) | `./server.sh verify-v390-feature-completion-inventory` | v3.9 feature completion inventory scaffold, discovery source groups, disposition/test-area vocabulary, user review gate 경계를 확인합니다. 실제 feature discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v3.9.0 (3) | `./server.sh verify-v390-user-review-gate` | initial historical review-ready snapshot의 승인 전 개발 중단 경계와 후속 사용자 goal 이후 current `approved-through-recorded-user-goals`/`closed-with-evidence` 상태를 함께 검증합니다. current review closure도 UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |

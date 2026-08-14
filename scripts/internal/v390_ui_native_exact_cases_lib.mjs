@@ -17,6 +17,7 @@ import {
   validateExactRuntimeOracleCatalog,
 } from "./v390_ui_exact_oracle_catalog.mjs";
 import { serializeFailureLifecycleEvidence } from "./v390_ui_failure_lifecycle_evidence.mjs";
+import { serializeCompactJsonArtifact } from "./json_artifact_serialization_lib.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -878,7 +879,7 @@ export function writeCanonicalParentSummaryAtomic(filePath, value) {
   let descriptor = null;
   try {
     descriptor = fs.openSync(temporary, "wx", 0o600);
-    const serialized = `${JSON.stringify(value, null, 2)}\n`;
+    const serialized = serializeCompactJsonArtifact(value);
     fs.writeFileSync(descriptor, serialized, "utf8");
     fs.fsyncSync(descriptor);
     fs.closeSync(descriptor);

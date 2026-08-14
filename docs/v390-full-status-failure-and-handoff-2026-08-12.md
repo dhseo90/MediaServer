@@ -7,7 +7,7 @@
 
 작성일: 2026-08-12
 대상 작업: `019f4905-f132-7202-bb94-685ff85d92da` 이후 v3.9.0 전체 작업
-대상 저장소: `/Users/dhseo/Workspace/mediaServer`
+대상 저장소: `${REPO_ROOT}`
 문서 목적: 다른 엔지니어 또는 다른 AI가 과거의 완료 보고를 신뢰하지 않고 현재 상태부터 독립적으로 판단할 수 있도록, v3.9.0에서 하려고 했던 일, 실제 변경, 현재 문제, 실패한 작업 및 미완료 release 조건을 한 문서에 고정한다.
 
 관련 정량 감사: `docs/v390-current-state-and-verification-debt-audit-2026-08-12.md`
@@ -389,7 +389,7 @@ focused contract, semantic approval, clean build, replay 또는 partial batch를
 
 ### Worktree metadata
 
-- active: `/Users/dhseo/Workspace/mediaServer`
+- active: `${REPO_ROOT}`
 - prunable metadata: `/private/tmp/v390-review4-65-code-comments-clean`
 - prunable metadata는 별도 승인 없이 삭제하지 않는다.
 

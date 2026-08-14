@@ -1183,6 +1183,12 @@ Usage:
                  로컬 verifier와 GitHub Actions static/guardrail gate 매핑을 검증합니다.
   verify-public-repo-readiness
                  public 전환 전 secret/history/asset/문서 준비 상태를 검증합니다.
+  verify-public-repo-readiness-contract
+                 public readiness의 개인 경로/raw artifact/대형 text fail-closed 계약을 검증합니다.
+  verify-generated-fixture-serialization-contract
+                 대형 generated fixture의 compact 직렬화·schema·cardinality·크기 계약을 검증합니다.
+  verify-v391-documentation-truth
+                 v3.9.1 public README/현재 문서/release evidence의 정합성을 검증합니다.
   verify-post-release-reconciliation
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
@@ -2971,6 +2977,18 @@ case "${cmd}" in
   verify-public-repo-readiness)
     require_internal verify_public_repo_readiness.mjs
     exec "${INTERNAL_DIR}/verify_public_repo_readiness.mjs" "$@"
+    ;;
+  verify-public-repo-readiness-contract)
+    require_internal verify_public_repo_readiness_contract.mjs
+    exec "${INTERNAL_DIR}/verify_public_repo_readiness_contract.mjs" "$@"
+    ;;
+  verify-generated-fixture-serialization-contract)
+    require_internal verify_generated_fixture_serialization_contract.mjs
+    exec "${INTERNAL_DIR}/verify_generated_fixture_serialization_contract.mjs" "$@"
+    ;;
+  verify-v391-documentation-truth)
+    require_internal verify_v391_documentation_truth.mjs
+    exec "${INTERNAL_DIR}/verify_v391_documentation_truth.mjs" "$@"
     ;;
   verify-post-release-reconciliation)
     require_internal verify_post_release_reconciliation.mjs

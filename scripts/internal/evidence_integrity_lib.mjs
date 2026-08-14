@@ -27,11 +27,11 @@ export function collectSourceProvenanceWithAllowedArtifacts(rootDir, allowedArti
   const allowedArtifactPaths = dirtyPaths.filter(candidate => isWithin(allowedRoot, candidate));
   const unapprovedDirtyPaths = dirtyPaths.filter(candidate => !isWithin(allowedRoot, candidate));
   const root = path.resolve(rootDir);
-  const allowedRelative = path.relative(root, allowedRoot).split(path.sep).join("/");
-  const sourcePatch = allowedRelative && !allowedRelative.startsWith("../") &&
-    allowedRelative !== ".." && !path.isAbsolute(allowedRelative)
-    ? git(rootDir, ["diff", "--binary", "HEAD", "--", ".", `:(exclude)${allowedRelative}`])
-    : git(rootDir, ["diff", "--binary", "HEAD"]);
+  // `git diff --binary` 전체를 child-process 버퍼에 적재하면 대형 fixture 정리처럼
+  // 정상적인 release patch가 64 MiB를 넘을 때 provenance 수집 자체가 실패한다.
+  // base commit, dirty path, 현재 file bytes/mode를 bounded read로 결합하면 같은
+  // source state를 안정적으로 식별하면서 acceptance-owned artifact는 제외할 수 있다.
+  const sourceState = sourceStateFingerprint(root, commitSha, unapprovedDirtyPaths);
   return {
     commitSha,
     branch,
@@ -42,7 +42,7 @@ export function collectSourceProvenanceWithAllowedArtifacts(rootDir, allowedArti
     unapprovedDirtyPaths: unapprovedDirtyPaths.map(candidate => path.relative(rootDir, candidate) || "."),
     allowedArtifactRoot: allowedRoot,
     worktreeStatusSha256: sha256Text(status),
-    sourcePatchSha256: sha256Text(sourcePatch),
+    sourcePatchSha256: sha256Text(sourceState),
     capturedAt: new Date().toISOString(),
   };
 }
@@ -210,6 +210,62 @@ function isPlaceholderVideoFile(filePath) {
   const stat = fs.statSync(filePath);
   if (stat.size > 1024 * 1024) return false;
   return /(?:fixture\s+)?video\s+placeholder\b/i.test(fs.readFileSync(filePath, "utf8"));
+}
+
+function sourceStateFingerprint(rootDir, commitSha, absolutePaths) {
+  if (absolutePaths.length === 0) return "";
+  const entries = absolutePaths
+    .map(absolute => {
+      const relative = path.relative(rootDir, absolute).split(path.sep).join("/");
+      if (!relative || relative.startsWith("../") || path.isAbsolute(relative)) {
+        throw new Error(`source provenance path escapes repository: ${absolute}`);
+      }
+      let stat;
+      try { stat = fs.lstatSync(absolute); }
+      catch (error) {
+        if (error?.code === "ENOENT") return { path: relative, type: "missing" };
+        throw error;
+      }
+      if (stat.isSymbolicLink()) {
+        return {
+          path: relative,
+          type: "symlink",
+          targetSha256: sha256Text(fs.readlinkSync(absolute)),
+        };
+      }
+      if (stat.isFile()) {
+        return {
+          path: relative,
+          type: "file",
+          mode: stat.mode & 0o777,
+          size: stat.size,
+          sha256: sha256FileBounded(absolute),
+        };
+      }
+      return { path: relative, type: "other", mode: stat.mode & 0o777 };
+    })
+    .sort((left, right) => left.path.localeCompare(right.path));
+  return JSON.stringify({
+    schema: "media-server.source-state-fingerprint.v1",
+    baseCommit: commitSha,
+    entries,
+  });
+}
+
+function sha256FileBounded(filePath) {
+  const hash = crypto.createHash("sha256");
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  const descriptor = fs.openSync(filePath, "r");
+  try {
+    for (;;) {
+      const bytesRead = fs.readSync(descriptor, buffer, 0, buffer.length, null);
+      if (bytesRead === 0) break;
+      hash.update(buffer.subarray(0, bytesRead));
+    }
+  } finally {
+    fs.closeSync(descriptor);
+  }
+  return hash.digest("hex");
 }
 
 function git(rootDir, args) {

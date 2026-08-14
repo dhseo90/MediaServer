@@ -4,8 +4,8 @@
   "immutable": true,
   "artifactDigestSha256": "5fe9468996698f3096b8991da53f0bdd92edc144a50bc2054a35990e1e110b45",
   "source": {
-    "runRoot": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809031330-49276",
-    "summaryPath": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809031330-49276/summary.json",
+    "runRoot": "${REPO_ROOT}/.media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809031330-49276",
+    "summaryPath": "${REPO_ROOT}/.media_server.test/v3.9.0/ui-diagnostic-sweep/v390-ui-diagnostic-20260809031330-49276/summary.json",
     "summarySha256": "c4636a8ac2a19dd6f16798bd5892f8fe7f8f2c5de6257f662b5b73f131e2f45d",
     "diagnosticNativeManifestSha256": "bd59fe13da2082a409bcdde942696e90d4927720fb4e07e094b456171eb8c6ac",
     "diagnosticSelectionSha256": "4bb3fdca129d6ab0b805641ace16753dd32210c01428b767ef9487d98e8c1c76",

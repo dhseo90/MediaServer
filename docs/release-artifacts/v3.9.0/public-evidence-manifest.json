@@ -1,0 +1,85 @@
+{
+  "schema": "media-server.public-release-evidence-manifest.v1",
+  "releaseVersion": "3.9.0",
+  "records": [
+    {
+      "id": "v390-test-acceptance-current-final",
+      "schema": "media-server.public-release-evidence.v1",
+      "sourceCommit": "c6b3d20a778a7a641e44decadd1ee5b416426650",
+      "command": "./test_release.sh",
+      "status": "PASS",
+      "startedAt": "2026-08-13T22:32:55.946Z",
+      "finishedAt": "2026-08-14T02:01:33.401Z",
+      "firstFailure": null,
+      "counts": {
+        "pass": 13,
+        "fail": 0,
+        "notRun": 1
+      },
+      "cleanup": {
+        "status": "PASS",
+        "rawArtifactsPruned": true,
+        "prunedFileCount": 235,
+        "prunedBytes": 1741792,
+        "preservationRule": "bounded summaries, reports, first-failure records, Policy v4 evaluation, screenshots, and hashes only"
+      },
+      "policyEvaluation": {
+        "status": "PASS",
+        "policyVersion": 4,
+        "qualifiedCaseCount": 424
+      },
+      "artifactHashes": [
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json",
+          "bytes": 1797917,
+          "sha256": "6243204257ee5d546b814f7477aef91a473da00884ce23d993ebb2f8c3aac128"
+        },
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
+          "bytes": 19337,
+          "sha256": "f556a441e00e90df68ae7df105893d7e79d29ec1958848231cbd0c9f36b4e4ae"
+        },
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/first-failure.json",
+          "bytes": 62287,
+          "sha256": "61c0c1a0c6063dca4313f60de7493af861e391ba4857713e0d6a1d442a2ae65d"
+        },
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/first-failure.md",
+          "bytes": 45798,
+          "sha256": "b000433abdc4a3da6471a62eb12a366bf1eb2ce7d2b0ff52d822afa37ecfcfbf"
+        },
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/summary.json",
+          "bytes": 67169,
+          "sha256": "22bed70d4f640e4872c6b9314cf1eeafb02c5da43dc23ef6efe2a08eaeaa4734"
+        },
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/report.md",
+          "bytes": 8028,
+          "sha256": "d17ff6d088ae374c9ed8667cd6113c7f6440d9af5c334c3859e52aaff07bcb05"
+        },
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-120/summary.json",
+          "bytes": 191679,
+          "sha256": "2959cb98900b63c76d2e9ae5a666b8ce04f6046888b381c246ba35c8015bcc22"
+        },
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-120/report.md",
+          "bytes": 15272,
+          "sha256": "3b45b62d7aadf3c9bd413c093c01cb0ad24a37ffb231bbd3f5427dc2e340b41a"
+        },
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/ui-exact-424/summary.json",
+          "bytes": 608213,
+          "sha256": "c3680076d72429b4988928b27ca093241e848119a2835ed462a5549b3f3c8171"
+        },
+        {
+          "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/ui-exact-424/policy-v4-summary.json",
+          "bytes": 3952942,
+          "sha256": "2ace8ba3350f361700fd71a2e8c8383f423c3dfe334eb0c48c2d3bfd618c2bc8"
+        }
+      ]
+    }
+  ]
+}

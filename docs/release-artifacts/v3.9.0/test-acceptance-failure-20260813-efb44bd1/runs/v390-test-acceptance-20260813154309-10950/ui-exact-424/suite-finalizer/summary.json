@@ -40,7 +40,7 @@
     "fallbackReason": "",
     "visualOnly": false,
     "dependencyStatus": "bundled-module-available",
-    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+    "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
     "moduleVersion": "1.62.1",
     "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "capabilities": [
@@ -77,7 +77,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-009-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -643,7 +643,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-009-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -1209,7 +1209,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-009-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -1775,7 +1775,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-009-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -2341,7 +2341,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-009-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -3115,7 +3115,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-009-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -3889,7 +3889,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-009-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -4775,7 +4775,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-009-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-009-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -5661,7 +5661,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-010-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -6394,7 +6394,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-010-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -7127,7 +7127,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-010-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -7924,7 +7924,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-010-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -8721,7 +8721,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-010-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -9518,7 +9518,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-010-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -10315,7 +10315,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-010-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -11512,7 +11512,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-010-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-010-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -12709,7 +12709,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-011-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -13810,7 +13810,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-011-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -14911,7 +14911,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-011-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -16028,7 +16028,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-011-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -17145,7 +17145,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-011-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -18278,7 +18278,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-011-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -19411,7 +19411,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-011-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -20672,7 +20672,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-011-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-011-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -21933,7 +21933,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-012-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -23034,7 +23034,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-012-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -24135,7 +24135,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-012-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -25236,7 +25236,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-012-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -26337,7 +26337,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-012-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -27582,7 +27582,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-012-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -28827,7 +28827,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-012-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -30520,7 +30520,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-012-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-012-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -32213,7 +32213,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-013-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -33104,7 +33104,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-013-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -33995,7 +33995,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-013-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -34918,7 +34918,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-013-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -35841,7 +35841,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-013-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -36812,7 +36812,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-013-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -37783,7 +37783,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-013-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -39714,7 +39714,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-013-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-013-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -41645,7 +41645,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-014-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -42733,7 +42733,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-014-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -43821,7 +43821,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-014-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -44925,7 +44925,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-014-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -46029,7 +46029,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-014-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -47197,7 +47197,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-014-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -48365,7 +48365,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-014-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -49933,7 +49933,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-014-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-014-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -51501,7 +51501,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-022-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -52131,7 +52131,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-022-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -52761,7 +52761,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-022-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -53407,7 +53407,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-022-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -54053,7 +54053,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-022-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -54715,7 +54715,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-022-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -55377,7 +55377,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-022-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -56295,7 +56295,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-022-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-022-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -57213,7 +57213,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-015-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -58354,7 +58354,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-015-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -59495,7 +59495,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-015-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -60636,7 +60636,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-015-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -61777,7 +61777,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-015-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -62918,7 +62918,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-015-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -64059,7 +64059,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-015-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -65819,7 +65819,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-015-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-015-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -67579,7 +67579,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-016-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -68247,7 +68247,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-016-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -68915,7 +68915,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-016-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -69583,7 +69583,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-016-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -70251,7 +70251,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-016-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -71127,7 +71127,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-016-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -72003,7 +72003,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-016-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -73151,7 +73151,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-016-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-016-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -74299,7 +74299,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-017-320-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-320-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-320-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -74875,7 +74875,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-017-320-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-320-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-320-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -75451,7 +75451,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-017-390-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-390-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-390-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -76043,7 +76043,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-017-390-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-390-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-390-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -76635,7 +76635,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-017-760-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-760-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-760-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -77291,7 +77291,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-017-760-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-760-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-760-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -77947,7 +77947,7 @@
       "height": 844,
       "theme": "light",
       "correlationId": "visual-UI-017-1180-light:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-1180-light.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-1180-light.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {
@@ -78859,7 +78859,7 @@
       "height": 844,
       "theme": "dark",
       "correlationId": "visual-UI-017-1180-dark:navigation",
-      "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-1180-dark.png",
+      "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/suite-finalizer/visual-matrix/visual-UI-017-1180-dark.png",
       "measurement": {
         "schema": "media-server.ui-browser-visual-measurement.v2",
         "caseBinding": {

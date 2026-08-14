@@ -131,6 +131,69 @@ check("English screenshot-visible copy QA is pinned", () => {
   }
 });
 
+check("v3.9.1 docs screenshot-visible copy is mapped", () => {
+  const js = readText("src/ingress/product_ui_js.cpp");
+  const requiredSources = [
+    "구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다.",
+    "VLM 설치/연결 준비",
+    "local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다.",
+    "profile 저장 지원",
+    "runtime 호출 없음",
+    "채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다.",
+    "Onboarding 품질",
+    "저장 전 validation 이슈가 없습니다.",
+    "감지",
+    "미설정",
+    "진입",
+    "이탈",
+    "라인 통과 후 영역 침입",
+    "영역 점유",
+    "사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다.",
+    "로그인 가능",
+    "변경 없음",
+    "Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다.",
+    "런타임 추세",
+    "현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다.",
+    "longrun evidence 아님",
+    "세션 변동 없음",
+    "스트림 변동 없음",
+    "분석 변동 없음",
+    "메타데이터 변동 없음",
+    "관리자 preview",
+    "viewer-safe 경계 확인",
+    "인시던트 상태",
+    "이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다.",
+    "소스 상태 digest",
+    "허용된 소스 상태와 연결 요약만 표시됩니다.",
+    "locator 숨김",
+    "정비 상태 digest",
+    "정비/복구/미제공 요약만 표시됩니다.",
+    "raw 숨김",
+    "운영 notice",
+    "운영 상태와 timeline hint만 표시됩니다.",
+    "상태와 일정만 표시됩니다.",
+    "영향 forecast",
+    "source/view/command plan 영향이 안전 요약으로 표시됩니다.",
+    "command detail 숨김",
+    "허용된 이벤트 요약만 표시됩니다.",
+    "clip path 숨김",
+    "표시할 viewer-safe event digest가 없습니다.",
+    "판정 digest",
+    "허용된 판정 상태 요약만 표시됩니다.",
+    "operator note 숨김",
+    "표시할 viewer-safe resolution digest가 없습니다.",
+    "인시던트 요약",
+    "안전 요약만 표시됩니다.",
+    "표시할 viewer-safe digest가 없습니다.",
+    "후속 조치 요약",
+    "허용된 view의 상태만 표시됩니다.",
+    "표시할 viewer-safe follow-up digest가 없습니다.",
+  ];
+  for (const source of requiredSources) {
+    assert(js.includes(`'${source}':`), `docs screenshot-visible translation missing: ${source}`);
+  }
+});
+
 check("product translation patterns include repeated live tile labels", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
@@ -149,7 +212,7 @@ check("product translation patterns include repeated live tile labels", () => {
 
 check("client live tile a11y i18n snapshot is pinned", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
-  const clientScript = readText("src/ingress/product_ui_page_scripts.cpp");
+  const clientScript = readText("src/ingress/product_ui_client_scripts.cpp");
   const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
   const fixture = JSON.parse(readText("test/fixtures/client_live_tile_a11y_i18n_snapshot.json"));
   assert(fixture.schema === "media-server.client-live-tile-a11y-i18n-snapshot.v1", "snapshot schema mismatch");
@@ -221,10 +284,10 @@ check("client live tile a11y i18n snapshot is pinned", () => {
 
 check("copy matrix references i18n parity verifier", () => {
   const doc = readText("docs/ui-empty-loading-error-copy-matrix.md");
-  const backlog = readText("docs/development-backlog.md");
+  const screenshotPolicy = readText("docs/assets/ui/README.md");
   assert(doc.includes("./server.sh verify-ui-copy-i18n-parity"), "copy matrix doc missing i18n verifier");
   assert(doc.includes("client_live_tile_a11y_i18n_snapshot.json"), "copy matrix doc missing client live a11y i18n snapshot");
-  assert(backlog.includes("UI copy Korean/English parity"), "backlog missing i18n parity closure");
+  assert(screenshotPolicy.includes("English visual copy QA checklist"), "screenshot policy missing English i18n QA boundary");
 });
 
 check("server entrypoint exposes i18n parity verifier", () => {

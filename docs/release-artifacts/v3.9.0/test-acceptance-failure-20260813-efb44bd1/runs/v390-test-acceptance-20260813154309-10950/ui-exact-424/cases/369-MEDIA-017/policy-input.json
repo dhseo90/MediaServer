@@ -983,9 +983,9 @@
       "theme": "light",
       "liveVideoRequired": false
     },
-    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/cases/369-MEDIA-017/screenshots/MEDIA-017.png",
-    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/cases/369-MEDIA-017/traces/MEDIA-017.trace.json",
-    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/cases/369-MEDIA-017/logs/MEDIA-017.browser-console.json",
+    "screenshotPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/cases/369-MEDIA-017/screenshots/MEDIA-017.png",
+    "tracePath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/cases/369-MEDIA-017/traces/MEDIA-017.trace.json",
+    "browserConsolePath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/cases/369-MEDIA-017/logs/MEDIA-017.browser-console.json",
     "cleanupAttestation": {
       "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
       "pass": true,

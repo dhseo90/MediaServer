@@ -6,15 +6,15 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.9.0`
+- 현재 소스 버전: `3.9.1`
 - 최신 공개 GitHub Release: `v3.9.0`
 - `v3.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
+- 현재 source roadmap은 `v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
 - 현재 latest published release는 `v3.9.0`입니다.
 - 현재 공개 release tag 기준은 `v3.9.0`입니다.
-- 현재 source tag 기준은 `v3.9.0`입니다.
-- `v3.9.0` GitHub Release publish 완료는 tag, GitHub Release,
+- 현재 source tag 기준은 `v3.9.1`입니다.
+- `v3.9.1` GitHub Release publish 완료는 tag, GitHub Release,
   `verify-release-metadata --published` evidence가 있을 때만 완료로 기록합니다.
 
 ## 기본 공개 범위
@@ -60,9 +60,9 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.9.0 published baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.9.0`, current roadmap
-`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`,
+v3.9.1 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.9.1`, current roadmap
+`v3.9.1 Release Correctness and Public Repository Hygiene`,
 latest published `v3.9.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
 대상 문서는 `README.md`, `README.en.md`,
@@ -992,11 +992,11 @@ Annotation JSON을 확보한 경우:
 
 ## v3.9.0 Release Note Template
 
-아래 템플릿은 v3.9.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.9.1 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v3.9.0
+# Media Server v3.9.1
 
 ## Scope
 

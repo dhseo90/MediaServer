@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.9.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-![Source Version](https://img.shields.io/badge/source-3.9.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.9.1-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,9 +15,9 @@ and runtime/model bundle distribution are outside the default public release.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published GitHub Release: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-- Current source version: `3.9.0`
+- Current source version: `3.9.1`
 - v3.9.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- Current source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
 
 ## At a Glance
 
@@ -34,11 +34,11 @@ and runtime/model bundle distribution are outside the default public release.
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
 
-## v3.9 Source Roadmap
+## v3.9.1 Source Roadmap
 
 - Latest published release: `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation, source-only.
-- Current source: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
-- The v3.9 roadmap audits exposed, promised, and partially implemented functionality from v1.0.0 through v3.8.0. After REVIEW4-50 through REVIEW4-63 close, behavior-preserving structure stabilization and refactoring run on the same v3.9.0 branch as REVIEW4-64, followed by independent acceptance in REVIEW4-65.
+- Current source: `3.9.1` Release Correctness and Public Repository Hygiene.
+- The v3.9.1 roadmap preserves the published v3.9.0 release while correcting post-tag correctness changes, public repository hygiene, documentation truth, bounded release evidence, and representative UI asset currency.
 - Latest published baseline: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation. v3.8.0 Operator-Gated Action Pilot & Outcome Loop is the previous published baseline.
 - Invariants: Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC
   media paths are unchanged unless explicitly requested.
@@ -130,7 +130,7 @@ records live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Latest published release notes: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-- Current source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` in
+- Current source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
@@ -169,7 +169,8 @@ plus link/asset verification and a separate record.
 ## Account Views
 
 - First run, or an empty account store, opens the admin password setup view.
-- `admin` and `operator` users see Ops screens for channels, rules, users, and diagnostics.
+- `admin` users see Ops screens for channels, rules, users, and diagnostics. User management is admin-only.
+- `operator` users see Ops screens for channels, rules, and diagnostics, but cannot access user management.
 - `viewer` users see only assigned Client screens. Raw source URLs, internal diagnostic JSON, and rule/profile editors are not exposed.
 - `integrator` is intended for scoped API integration rather than daily UI operation.
 

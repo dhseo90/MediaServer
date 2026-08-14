@@ -24,7 +24,7 @@ Checks:
   - 로컬 이미지 참조가 존재하고 확장자가 이미지 형식임
   - 로컬 Markdown anchor가 실제 heading anchor와 일치함
   - docs/README.md가 tracked docs Markdown 정보 문서를 색인함
-  - release/test 실행 기록, 재감사, Superpowers plan 같은 개발 산출물은 색인 강제 대상에서 제외
+  - release/test 실행 기록, 재감사, generated inventory, Superpowers 자료 같은 개발 산출물은 색인 강제 대상에서 제외
   - 외부 URL, mailto 링크는 파일 존재 검사에서 제외
 `);
 }
@@ -135,12 +135,17 @@ function checkDocsIndexCoverage() {
 function isDocsIndexCoverageExcluded(file) {
   const normalized = file.replaceAll(path.sep, "/");
   return (
-    normalized.startsWith("docs/superpowers/plans/") ||
+    normalized.startsWith("docs/superpowers/") ||
     normalized.startsWith("docs/release-artifacts/") ||
     normalized.startsWith("docs/v220-") ||
     normalized.startsWith("docs/v230-") ||
     normalized === "docs/release-evidence-index.md" ||
+    normalized === "docs/release-test-records.md" ||
     normalized === "docs/project-feature-test-inventory.md" ||
+    normalized === "docs/v390-current-state-and-verification-debt-audit-2026-08-12.md" ||
+    normalized === "docs/v390-feature-completion-inventory.md" ||
+    normalized === "docs/v390-full-status-failure-and-handoff-2026-08-12.md" ||
+    normalized === "docs/v390-ui-automation-coverage-matrix.md" ||
     normalized === "docs/runtime-dashboard-longrun-evidence-template.md" ||
     normalized === "docs/ui-visual-release-baseline-approval-template.md" ||
     normalized === "docs/manual-ui-checklist.md" ||

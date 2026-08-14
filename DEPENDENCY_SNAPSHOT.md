@@ -13,7 +13,7 @@
 
 | 구성요소 | 기준 버전/정책 | 감지 결과 | Asset/hash | 주의 |
 | --- | --- | --- | --- | --- |
-| GStreamer, gst-rtsp-server, gst-plugins-base/good/bad | 미고정. CMake는 pkg-config에서 필요한 GStreamer 1.0 module 존재 여부를 확인합니다. GStreamer 1.0 API 계열을 사용하며, 실제 설치 버전은 pkg-config 결과를 release snapshot에 기록합니다. | gstreamer-1.0: 1.28.1; gstreamer-rtsp-server-1.0: 1.28.1; gstreamer-pbutils-1.0: 1.28.1; gstreamer-app-1.0: 1.28.1; gstreamer-webrtc-1.0: 1.28.1; gstreamer-sdp-1.0: 1.28.1 | - | - |
+| GStreamer, gst-rtsp-server, gst-plugins-base/good/bad | minimum supported version: 1.28. GStreamer 1.0 API/pkg-config namespace를 사용하며, 실제 설치 버전은 pkg-config 결과를 release snapshot에 기록합니다. | gstreamer-1.0: 1.28.1; gstreamer-rtsp-server-1.0: 1.28.1; gstreamer-pbutils-1.0: 1.28.1; gstreamer-app-1.0: 1.28.1; gstreamer-webrtc-1.0: 1.28.1; gstreamer-sdp-1.0: 1.28.1 | - | - |
 | libnice and libnice GStreamer plugin | 미고정. 설치 패키지와 GStreamer plugin 호환성을 우선합니다. GStreamer WebRTC ICE 기능에 필요한 libnice 설치 버전을 release snapshot에 기록합니다. | nice: 0.1.23 | - | - |
 | Cairo and Pango | 미고정. 없으면 MEDIA_SERVER_USE_PANGOCAIRO=0으로 빌드합니다. PangoCairo가 발견되면 overlay text rendering에 사용하고, 설치 버전은 release snapshot에 기록합니다. | pangocairo: 1.57.0; cairo: 1.18.4; pango: 1.57.0 | - | - |
 | ONNX Runtime | 1.20.1 기본 설치 기준. 최신 시스템 패키지도 허용합니다. Linux 자동 설치 기본값은 1.20.1입니다. Homebrew/수동 설치 환경은 감지된 버전을 snapshot에 기록합니다. | libonnxruntime: 1.25.0 | - | - |

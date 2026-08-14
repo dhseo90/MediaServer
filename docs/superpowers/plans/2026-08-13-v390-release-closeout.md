@@ -1,5 +1,8 @@
 # v3.9.0 Release Closeout Implementation Plan
 
+> Historical archive: 이 계획은 완료된 v3.9.0 closeout의 당시 절차를 보존하며,
+> v3.9.1 실행 계획으로 사용하지 않습니다.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Promote the verified UI source to `v3.9.0`, produce same-source full release evidence, merge through a reviewed PR, publish v3.9.0, and remove temporary verification state.

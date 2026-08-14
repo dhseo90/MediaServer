@@ -45,8 +45,8 @@
       "usage": "RTSP/RTP/WebRTC 파이프라인, 디코딩, 인코딩, appsrc/appsink, RTSP 서버 연동",
       "source": "Homebrew, apt, dnf, pacman 같은 시스템 패키지 관리자",
       "distribution": "외부 runtime/development dependency이며 이 저장소에 vendoring하지 않음",
-      "versionPolicy": "GStreamer 1.0 API 계열을 사용하며, 실제 설치 버전은 pkg-config 결과를 release snapshot에 기록합니다.",
-      "minimumVersion": "미고정. CMake는 pkg-config에서 필요한 GStreamer 1.0 module 존재 여부를 확인합니다.",
+      "versionPolicy": "GStreamer 1.0 API/pkg-config namespace를 사용하며, 실제 설치 버전은 pkg-config 결과를 release snapshot에 기록합니다.",
+      "minimumVersion": "minimum supported version: 1.28",
       "bundlePolicy": "기본 bundle에는 GStreamer runtime/plugin 바이너리를 포함하지 않습니다. 포함 배포 시 plugin별 upstream license와 gst-libav/x264/x265/ugly 계열 영향을 별도 검토합니다.",
       "detectors": [
         { "label": "gstreamer-1.0", "command": "pkg-config", "args": ["--modversion", "gstreamer-1.0"], "versionPattern": "^(.+)$" },

@@ -52,7 +52,7 @@
     "fallbackReason": "",
     "visualOnly": false,
     "dependencyStatus": "bundled-module-available",
-    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+    "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
     "moduleVersion": "1.61.1",
     "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "capabilities": [
@@ -70,22 +70,22 @@
       "tool": "playwright",
       "engine": "playwright-native",
       "status": "missing-package-json",
-      "reason": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
-      "modulePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright"
+      "reason": "<workspace>/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
+      "modulePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/node_modules/playwright"
     },
     {
       "tool": "playwright",
       "engine": "playwright-native",
       "status": "missing-package-json",
-      "reason": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright",
-      "modulePath": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright"
+      "reason": "<workspace>/.nvm/versions/node/v24.13.0/node_modules/playwright",
+      "modulePath": "<workspace>/.nvm/versions/node/v24.13.0/node_modules/playwright"
     },
     {
       "tool": "playwright",
       "engine": "playwright-native",
       "status": "selected",
       "reason": "Playwright 1.61.1",
-      "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright"
+      "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright"
     }
   ],
   "nativeAdapterRequired": true,
@@ -110,19 +110,19 @@
   "fail": 0,
   "notRun": 0,
   "failedCaseId": "",
-  "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final",
-  "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/summary.json",
-  "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/report.md",
-  "screenshotsDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots",
-  "tracesDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces",
-  "logsDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs",
+  "outputDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final",
+  "summaryPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/summary.json",
+  "reportPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/report.md",
+  "screenshotsDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots",
+  "tracesDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces",
+  "logsDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs",
   "cleanup": {
     "coreServerStopped": true,
     "authServerStopped": true,
     "portsClean": true,
     "temporaryArtifactsRemoved": true,
     "removedTemporaryArtifacts": [
-      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/core-registry"
+      "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/core-registry"
     ]
   },
   "cases": [
@@ -209,12 +209,12 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-108.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-108.trace.json",
-      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-108.video.txt",
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-108.browser-console.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-108.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-108.trace.json",
+      "videoPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-108.video.txt",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-108.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -224,7 +224,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -336,12 +336,12 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-109.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-109.trace.json",
-      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-109.video.txt",
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-109.browser-console.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-109.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-109.trace.json",
+      "videoPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-109.video.txt",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-109.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -351,7 +351,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -437,12 +437,12 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-110.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-110.trace.json",
-      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-110.video.txt",
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-110.browser-console.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-110.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-110.trace.json",
+      "videoPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-110.video.txt",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-110.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -452,7 +452,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -536,12 +536,12 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-111.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-111.trace.json",
-      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-111.video.txt",
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-111.browser-console.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-111.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-111.trace.json",
+      "videoPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-111.video.txt",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-111.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -551,7 +551,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -651,12 +651,12 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-112.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-112.trace.json",
-      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-112.video.txt",
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-112.browser-console.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-112.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-112.trace.json",
+      "videoPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-112.video.txt",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-112.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -666,7 +666,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -750,12 +750,12 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-113.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-113.trace.json",
-      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-113.video.txt",
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-113.browser-console.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-113.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-113.trace.json",
+      "videoPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-113.video.txt",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-113.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -765,7 +765,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -849,12 +849,12 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-114.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-114.trace.json",
-      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-114.video.txt",
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-114.browser-console.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-114.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-114.trace.json",
+      "videoPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-114.video.txt",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-114.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -864,7 +864,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -952,12 +952,12 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-115.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-115.trace.json",
-      "videoPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-115.video.txt",
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-115.browser-console.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/screenshots/ui-115.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-115.trace.json",
+      "videoPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/traces/ui-115.video.txt",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/ui-115.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-native-final/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -967,7 +967,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [

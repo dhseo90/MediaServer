@@ -68,7 +68,7 @@ check("manual UI docs are current release baseline", () => {
   ], "docs/manual-ui-checklist.md");
   assertIncludes(fulltest, [
     "현재 제품 UI 기준",
-    `${currentTag} Feature Completion`,
+    `${currentTag} Release Correctness`,
     "V390-REQ-001",
     "V390-REQ-002",
     "V390-REQ-003",

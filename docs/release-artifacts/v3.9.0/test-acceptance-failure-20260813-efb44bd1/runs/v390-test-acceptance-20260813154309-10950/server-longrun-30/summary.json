@@ -1,7 +1,7 @@
 {
   "schema": "media-server.v390-server-longrun.v2",
   "runId": "v390-server-longrun-20260813155604-18248",
-  "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30",
+  "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30",
   "sourceProvenance": {
     "commitSha": "efb44bd1b20517297a22dd17956fb514f26ebbf0",
     "branch": "v3.9.0",
@@ -1094,9 +1094,9 @@
     "source": "canonical-parent-runner",
     "userLauncher": ""
   },
-  "outputDir": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30",
-  "summaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/summary.json",
-  "reportPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.md",
+  "outputDir": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30",
+  "summaryPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/summary.json",
+  "reportPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.md",
   "cleanup": {
     "status": "PASS",
     "verificationSource": "pid-port-artifact-before-after-observation",
@@ -1788,16 +1788,16 @@
       "status": "PASS",
       "command": "validate duration/output-dir/tools",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/preflight.log",
+      "logPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/preflight.log",
       "summaryPath": "",
       "tail": [
         "durationMinutes=30",
-        "outputDir=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30"
+        "outputDir=${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30"
       ],
       "context": "phase=preflight; result=PASS",
       "stdoutTail": [
         "durationMinutes=30",
-        "outputDir=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30"
+        "outputDir=${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30"
       ],
       "stderrTail": [],
       "reproductionCommand": "validate duration/output-dir/tools"
@@ -1807,28 +1807,28 @@
       "status": "PASS",
       "command": "./server.sh build",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/build.log",
+      "logPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/build.log",
       "summaryPath": "",
       "tail": [
-        "[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)",
+        "[1/2] configure: ${REPO_ROOT}/build-gst-onnx (ai=1, youtube=0)",
         "-- Configuring done (0.1s)",
         "-- Generating done (0.0s)",
-        "-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx",
+        "-- Build files have been written to: ${REPO_ROOT}/build-gst-onnx",
         "[2/2] build",
         "[ 98%] Built target media_server_runtime",
         "[100%] Built target media_server",
-        "[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server"
+        "[done] build=${REPO_ROOT}/build-gst-onnx/media_server"
       ],
       "context": "phase=build; result=PASS",
       "stdoutTail": [
-        "[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)",
+        "[1/2] configure: ${REPO_ROOT}/build-gst-onnx (ai=1, youtube=0)",
         "-- Configuring done (0.1s)",
         "-- Generating done (0.0s)",
-        "-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx",
+        "-- Build files have been written to: ${REPO_ROOT}/build-gst-onnx",
         "[2/2] build",
         "[ 98%] Built target media_server_runtime",
         "[100%] Built target media_server",
-        "[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server"
+        "[done] build=${REPO_ROOT}/build-gst-onnx/media_server"
       ],
       "stderrTail": [],
       "reproductionCommand": "./server.sh build"
@@ -1836,27 +1836,27 @@
     {
       "id": "seed",
       "status": "PASS",
-      "command": "write /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.json",
+      "command": "write ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.json",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.log",
+      "logPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.log",
       "summaryPath": "",
       "tail": [
-        "seedPath=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.json"
+        "seedPath=${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.json"
       ],
       "context": "phase=seed; result=PASS",
       "stdoutTail": [
-        "seedPath=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.json"
+        "seedPath=${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.json"
       ],
       "stderrTail": [],
-      "reproductionCommand": "write /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.json"
+      "reproductionCommand": "write ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/seed.json"
     },
     {
       "id": "start-server",
       "status": "PASS",
-      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/soak-case-loop.log",
-      "summaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
+      "logPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/soak-case-loop.log",
+      "summaryPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
       "tail": [
         "required=server-start-queue-256",
         "delegated=server-start-queue-256",
@@ -1868,21 +1868,21 @@
         "- 통과: 118",
         "- 실패: 0",
         "- 건너뜀: 2",
-        "- summary: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
-        "- report: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
-        "- report html: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
+        "- summary: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
+        "- report: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
+        "- report html: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
         "- logs: /tmp/media_server_predev-1786636564-18328"
       ],
       "stderrTail": [],
-      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html"
+      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html"
     },
     {
       "id": "integrated-smoke",
       "status": "PASS",
-      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/soak-case-loop.log",
-      "summaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
+      "logPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/soak-case-loop.log",
+      "summaryPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
       "tail": [
         "required=integrated-smoke",
         "delegated=integrated-smoke",
@@ -1894,21 +1894,21 @@
         "- 통과: 118",
         "- 실패: 0",
         "- 건너뜀: 2",
-        "- summary: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
-        "- report: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
-        "- report html: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
+        "- summary: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
+        "- report: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
+        "- report html: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
         "- logs: /tmp/media_server_predev-1786636564-18328"
       ],
       "stderrTail": [],
-      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html"
+      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html"
     },
     {
       "id": "soak-case-loop",
       "status": "PASS",
-      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/soak-case-loop.log",
-      "summaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
+      "logPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/soak-case-loop.log",
+      "summaryPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
       "tail": [
         "required=soak-<iteration>-<case>",
         "delegated=soak-1-va-events,soak-1-event-post-schema,soak-1-event-post-recovery,soak-1-redaction,soak-1-runtime-idle,soak-2-va-events,soak-2-event-post-schema,soak-2-event-post-recovery,soak-2-redaction,soak-2-runtime-idle,soak-3-va-events,soak-3-event-post-schema,soak-3-event-post-recovery,soak-3-redaction,soak-3-runtime-idle,soak-4-va-events,soak-4-event-post-schema,soak-4-event-post-recovery,soak-4-redaction,soak-4-runtime-idle,soak-5-va-events,soak-5-event-post-schema,soak-5-event-post-recovery,soak-5-redaction,soak-5-runtime-idle,soak-6-va-events,soak-6-event-post-schema,soak-6-event-post-recovery,soak-6-redaction,soak-6-runtime-idle,soak-7-va-events,soak-7-event-post-schema,soak-7-event-post-recovery,soak-7-redaction,soak-7-runtime-idle,soak-8-va-events,soak-8-event-post-schema,soak-8-event-post-recovery,soak-8-redaction,soak-8-runtime-idle,soak-9-va-events,soak-9-event-post-schema,soak-9-event-post-recovery,soak-9-redaction,soak-9-runtime-idle,soak-10-va-events,soak-10-event-post-schema,soak-10-event-post-recovery,soak-10-redaction,soak-10-runtime-idle,soak-11-va-events,soak-11-event-post-schema,soak-11-event-post-recovery,soak-11-redaction,soak-11-runtime-idle,soak-12-va-events,soak-12-event-post-schema,soak-12-event-post-recovery,soak-12-redaction,soak-12-runtime-idle,soak-13-va-events,soak-13-event-post-schema,soak-13-event-post-recovery,soak-13-redaction,soak-13-runtime-idle,soak-14-va-events,soak-14-event-post-schema,soak-14-event-post-recovery,soak-14-redaction,soak-14-runtime-idle,soak-15-va-events,soak-15-event-post-schema,soak-15-event-post-recovery,soak-15-redaction,soak-15-runtime-idle,soak-16-va-events,soak-16-event-post-schema,soak-16-event-post-recovery,soak-16-redaction,soak-16-runtime-idle,soak-17-va-events,soak-17-event-post-schema,soak-17-event-post-recovery,soak-17-redaction,soak-17-runtime-idle,soak-18-va-events,soak-18-event-post-schema,soak-18-event-post-recovery,soak-18-redaction,soak-18-runtime-idle,soak-19-va-events,soak-19-event-post-schema,soak-19-event-post-recovery,soak-19-redaction,soak-19-runtime-idle,soak-20-va-events,soak-20-event-post-schema,soak-20-event-post-recovery,soak-20-redaction,soak-20-runtime-idle,soak-21-va-events,soak-21-event-post-schema,soak-21-event-post-recovery,soak-21-redaction,soak-21-runtime-idle,soak-22-va-events,soak-22-event-post-schema,soak-22-event-post-recovery,soak-22-redaction,soak-22-runtime-idle",
@@ -1920,21 +1920,21 @@
         "- 통과: 118",
         "- 실패: 0",
         "- 건너뜀: 2",
-        "- summary: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
-        "- report: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
-        "- report html: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
+        "- summary: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
+        "- report: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
+        "- report html: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
         "- logs: /tmp/media_server_predev-1786636564-18328"
       ],
       "stderrTail": [],
-      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html"
+      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html"
     },
     {
       "id": "runtime-idle",
       "status": "PASS",
-      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/soak-case-loop.log",
-      "summaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
+      "logPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/soak-case-loop.log",
+      "summaryPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
       "tail": [
         "required=main-runtime-idle",
         "delegated=main-runtime-idle,server-start-queue-2,event-post-queue,queue-runtime-idle",
@@ -1946,20 +1946,20 @@
         "- 통과: 118",
         "- 실패: 0",
         "- 건너뜀: 2",
-        "- summary: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
-        "- report: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
-        "- report html: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
+        "- summary: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json",
+        "- report: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md",
+        "- report html: ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html",
         "- logs: /tmp/media_server_predev-1786636564-18328"
       ],
       "stderrTail": [],
-      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html"
+      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-summary.json --report-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.md --report-html-file ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/predev-report.html"
     },
     {
       "id": "cleanup",
       "status": "PASS",
       "command": "measured cleanup phase",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/cleanup.log",
+      "logPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/cleanup.log",
       "summaryPath": "",
       "tail": [
         "server-pid-52301-stopped=PASS",
@@ -1984,16 +1984,16 @@
       "status": "PASS",
       "command": "report phase",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.log",
+      "logPath": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.log",
       "summaryPath": "",
       "tail": [
-        "summaryPath=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/summary.json",
-        "reportPath=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.md"
+        "summaryPath=${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/summary.json",
+        "reportPath=${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.md"
       ],
       "context": "phase=report; result=PASS",
       "stdoutTail": [
-        "summaryPath=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/summary.json",
-        "reportPath=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.md"
+        "summaryPath=${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/summary.json",
+        "reportPath=${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/server-longrun-30/report.md"
       ],
       "stderrTail": [],
       "reproductionCommand": "report phase"

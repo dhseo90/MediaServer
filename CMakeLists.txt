@@ -1,6 +1,6 @@
 # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
 cmake_minimum_required(VERSION 3.16)
-project(media_server VERSION 3.9.0 LANGUAGES CXX)
+project(media_server VERSION 3.9.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -136,12 +136,12 @@ if(MEDIA_SERVER_USE_GSTREAMER)
         message(FATAL_ERROR "pkg-config is required when MEDIA_SERVER_USE_GSTREAMER=ON")
     endif()
     pkg_check_modules(GSTREAMER REQUIRED IMPORTED_TARGET
-        gstreamer-1.0
-        gstreamer-rtsp-server-1.0
-        gstreamer-pbutils-1.0
-        gstreamer-app-1.0
+        gstreamer-1.0>=1.28
+        gstreamer-rtsp-server-1.0>=1.28
+        gstreamer-pbutils-1.0>=1.28
+        gstreamer-app-1.0>=1.28
         gstreamer-webrtc-1.0>=1.28
-        gstreamer-sdp-1.0)
+        gstreamer-sdp-1.0>=1.28)
     target_link_libraries(media_server_runtime PUBLIC PkgConfig::GSTREAMER)
     target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_GSTREAMER=1 GST_USE_UNSTABLE_API=1)
 else()

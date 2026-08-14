@@ -6,8 +6,8 @@
   "skip": 2,
   "notRun": 0,
   "durationSec": 2380,
-  "reportFile": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.md",
-  "reportHtmlFile": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.html",
+  "reportFile": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.md",
+  "reportHtmlFile": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.html",
   "soakMinutes": 30,
   "quickMode": false,
   "includeExternalTurn": false,
@@ -2274,7 +2274,7 @@
     {
       "name": "summary-report",
       "result": "pass",
-      "command": "./server.sh summarize-reports /tmp/media_server_*summary*.json --output /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.md --html-output /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.html",
+      "command": "./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.md --html-output ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.html",
       "logFile": "",
       "durationSec": 1,
       "context": "case=summary-report; rtspPort=61998; httpPort=61997; httpBase=http://127.0.0.1:61997; authMode=off; workDir=/tmp/media_server_predev-1786661150-19163",
@@ -2282,7 +2282,7 @@
       "stderrFile": "",
       "stdoutTail": [],
       "stderrTail": [],
-      "reproductionCommand": "./server.sh summarize-reports /tmp/media_server_*summary*.json --output /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.md --html-output /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.html",
+      "reproductionCommand": "./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.md --html-output ${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813223255-11750/server-longrun-30/predev-report.html",
       "temporaryArtifactCleanup": "removed-after-summary-capture"
     }
   ],

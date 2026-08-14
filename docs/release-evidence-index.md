@@ -33,7 +33,21 @@
   `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
-## v3.9.0 현재 evidence (2026-08-14)
+## v3.9.1 현재 소스 정정 상태 (2026-08-14)
+
+- current source: `v3.9.1` (`VERSION=3.9.1`)
+- latest published: v3.9.0
+- fresh full test: 미실행
+- release action: 커밋·push·PR·main merge·tag·GitHub Release 미실행
+
+| Evidence | 상태 | 결속/위치 | 사용 범위 |
+| --- | --- | --- | --- |
+| Metadata/docs focused gate | PASS | `verify-release-metadata` 18/0, `verify-docs-links` failure 0 | v3.9.1 source/published 경계와 local link 검증 |
+| Public readiness focused gate | PASS | `verify-public-repo-readiness --no-history` 8/0 | 개인/임시 경로와 raw release artifact 부재; history scan은 별도 |
+| Published v3.9.0 public archive | PASS | [public evidence manifest](./release-artifacts/v3.9.0/public-evidence-manifest.json) | bounded summary/report/first-failure/Policy/hash 보존 |
+| v3.9.1 fresh release acceptance | 미실행 | clean source commit과 별도 clone 필요 | 30분, exact UI 424/Policy v4, 120분, final integrity를 PASS로 주장하지 않음 |
+
+## Historical v3.9.0 evidence (2026-08-14)
 
 | Evidence | 상태 | 결속/위치 | 사용 범위 |
 | --- | --- | --- | --- |

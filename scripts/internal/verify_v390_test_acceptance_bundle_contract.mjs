@@ -21,6 +21,7 @@ import {
   scanArtifactTree,
 } from "./evidence_integrity_lib.mjs";
 import * as nativeExactCasesLib from "./v390_ui_native_exact_cases_lib.mjs";
+import { validatePublicReleaseEvidence } from "./public_release_evidence_lib.mjs";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
@@ -58,6 +59,34 @@ const checks = [];
 const temporaryOutputDirs = new Set();
 process.on("exit", () => {
   for (const outputDir of temporaryOutputDirs) fs.rmSync(outputDir, { recursive: true, force: true });
+});
+
+check("acceptance public archive contract is summary and hash based", () => {
+  const base = {
+    schema: "media-server.public-release-evidence.v1",
+    sourceCommit: "1".repeat(40),
+    command: "./test_release.sh",
+    status: "PASS",
+    startedAt: "2026-08-13T22:32:55.946Z",
+    finishedAt: "2026-08-14T02:01:33.401Z",
+    firstFailure: null,
+    counts: { pass: 4, fail: 0, notRun: 0 },
+    cleanup: { status: "PASS", rawArtifactsPruned: true },
+    policyEvaluation: { status: "PASS", qualifiedCaseCount: 424 },
+    artifactHashes: [{
+      path: "docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
+      bytes: 100,
+      sha256: "1".repeat(64),
+    }],
+  };
+  assert(validatePublicReleaseEvidence(base).pass === true,
+    "summary-only public archive contract was rejected");
+  for (const field of ["firstFailure", "counts", "artifactHashes"]) {
+    const candidate = structuredClone(base);
+    delete candidate[field];
+    assert(validatePublicReleaseEvidence(candidate).pass === false,
+      `acceptance public archive without ${field} was accepted`);
+  }
 });
 
 const files = {
@@ -457,9 +486,10 @@ check("canonical actual command owns the complete throwaway UI environment", () 
     'readPublishedSeedBaseline()',
     'path.join(rootDir, "config/docs_ui_assets.json")',
     'assetConfig?.baseline?.publishedRelease',
-    'assetConfig?.baseline?.sourceVersion === currentVersion',
     'assetConfig?.baseline?.publicReleaseStatus === `${publishedRelease}-published-source-only`',
-    'seed.releaseTarget === seedTargetSelection.expectedReleaseTarget',
+    'const releaseTargetField = seedTargetSelection.mode === "published-seed-baseline"',
+    'seed[releaseTargetField]',
+    'latestPublishedBaseline: seed.publishedReleaseTarget',
     'mode: "published-seed-baseline"',
     'policySha256: sha256Text(assetConfigText)',
   ]) assertIncludes(files.seedPreparation, snippet, "published seed baseline contract");
@@ -521,10 +551,14 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   const outputDir = fixtureDir("published-seed-baseline");
   const fixturePath = path.join(rootDir, "test/fixtures/manual_ui_fulltest_va_seed_matrix.json");
   const defaultResult = spawnSync(path.join(rootDir, "server.sh"), [
-    "prepare-manual-ui-fulltest-seed", "--dry-run",
+    "prepare-manual-ui-fulltest-seed", "--dry-run", "--emit-plan", path.join(outputDir, "current-seed-plan.json"),
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  assert(defaultResult.status !== 0 && defaultResult.stderr.includes("seed fixture must pin v3.9.0"),
-    "default seed preparation did not reject the stale published fixture against current source");
+  assert(defaultResult.status === 0, `current-source seed preparation failed: ${defaultResult.stderr}`);
+  const currentPlan = readJson(path.join(outputDir, "current-seed-plan.json"));
+  assert(currentPlan.releaseTarget === "v3.9.1" &&
+    currentPlan.fixtureReleaseTargets?.currentSource === "v3.9.1" &&
+    currentPlan.fixtureReleaseTargets?.latestPublishedBaseline === "v3.9.0",
+  "default seed preparation is not bound to the current source and published baseline");
 
   const planPath = path.join(outputDir, "seed-plan.json");
   const registryDir = path.join(outputDir, "registry");
@@ -536,7 +570,7 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   const plan = readJson(planPath);
   const policy = readJson(path.join(rootDir, "config/docs_ui_assets.json"));
   const fixture = readJson(fixturePath);
-  assert(plan.releaseTarget === fixture.releaseTarget &&
+  assert(plan.releaseTarget === fixture.publishedReleaseTarget &&
     plan.releaseTarget === policy.baseline.publishedRelease,
   "published seed plan target is not bound to fixture and policy");
   assert(plan.seedTargetSelection?.mode === "published-seed-baseline" &&
@@ -574,12 +608,12 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   }, "source ui-file-va-tracking-long fixture SHA-256 mismatch");
 
   const mismatchedFixturePath = path.join(outputDir, "mismatched-seed.json");
-  fs.writeFileSync(mismatchedFixturePath, `${JSON.stringify({ ...fixture, releaseTarget: "v3.9.0" }, null, 2)}\n`);
+  fs.writeFileSync(mismatchedFixturePath, `${JSON.stringify({ ...fixture, publishedReleaseTarget: "v3.9.1" }, null, 2)}\n`);
   const mismatchResult = spawnSync(path.join(rootDir, "server.sh"), [
     "prepare-manual-ui-fulltest-seed", "--dry-run", "--published-seed-baseline",
     "--fixture", mismatchedFixturePath,
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes("seed fixture must pin v3.8.0"),
+  assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes("seed fixture must pin v3.9.0"),
     "published seed preparation accepted a current-source fixture outside the published baseline");
 });
 

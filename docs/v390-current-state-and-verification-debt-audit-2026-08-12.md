@@ -6,7 +6,7 @@
 > 유지하지만 현재 릴리즈 상태는 [release-test-records.md](release-test-records.md)를 따릅니다.
 
 작성일: 2026-08-12
-대상 저장소: `/Users/dhseo/Workspace/mediaServer`
+대상 저장소: `${REPO_ROOT}`
 대상 작업: `019f4905-f132-7202-bb94-685ff85d92da`
 작성 목적: v3.9.0 작업에서 누적된 제품 변경, 검증 코드, 생성 evidence 및 현재 릴리즈 실패 상태를 사실과 추정으로 분리해 기록한다.
 

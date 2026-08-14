@@ -10,6 +10,7 @@ import {
   summarizeSemanticClosure,
   validateSemanticItem,
 } from "./feature_semantic_evidence_lib.mjs";
+import { serializeCompactJsonArtifact } from "./json_artifact_serialization_lib.mjs";
 
 export const IMPLEMENTATION_MANIFEST_SCHEMA =
   "media-server.feature-implementation-evidence.v2";
@@ -281,7 +282,7 @@ export function loadImplementationManifest(rootDir) {
 export function writeImplementationManifest(rootDir, manifest) {
   const target = path.join(rootDir, IMPLEMENTATION_MANIFEST_PATH);
   fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.writeFileSync(target, `${JSON.stringify(manifest, null, 2)}\n`);
+  fs.writeFileSync(target, serializeCompactJsonArtifact(manifest));
 }
 
 function buildItem(rootDir, row, repository, dispatch, reviewedItem = null) {

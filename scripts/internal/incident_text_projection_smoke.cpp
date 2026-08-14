@@ -74,7 +74,7 @@ int main() {
     const std::string alert_dry_run =
         R"({"schema":"media-server.ops.alert-delivery-dry-run.v1","id":"alert-dry-run-101","deliveryId":"alert-main","eventId":"evt-101","transport":"webhook","status":"dry-run","externalDeliveryPerformed":false,"payloadPreview":{"eventId":"evt-101","endpoint":"https://example.invalid/hook","token":"secret"},"audit":{"action":"alert-delivery-dry-run"}})";
     const std::string local_file_event_record =
-        R"({"schema":"media-server.va.event-record.v1","eventId":"evt-102","eventType":"presence","streamId":"file::/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video/imports/va_tracking_event_1280x720_30fps_h264.mp4","channelId":"file::/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video/imports/va_tracking_event_1280x720_30fps_h264.mp4","trackId":2,"className":"person","status":"confirmed","zoneId":"loading-bay","confidence":0.82,"startTime":1710000002000})";
+        R"({"schema":"media-server.va.event-record.v1","eventId":"evt-102","eventType":"presence","streamId":"file::<workspace>/Desktop/workspace/codexTest/mediaServer/video/imports/va_tracking_event_1280x720_30fps_h264.mp4","channelId":"file::<workspace>/Desktop/workspace/codexTest/mediaServer/video/imports/va_tracking_event_1280x720_30fps_h264.mp4","trackId":2,"className":"person","status":"confirmed","zoneId":"loading-bay","confidence":0.82,"startTime":1710000002000})";
 
     const auto event_doc = analysis::ProjectEventRecordIncidentText(event_record);
     Expect(event_doc.source_kind == "event-record", "event source kind");

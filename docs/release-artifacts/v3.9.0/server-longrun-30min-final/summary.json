@@ -12,9 +12,9 @@
     "http": 8081,
     "rtsp": 8555
   },
-  "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final",
-  "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/summary.json",
-  "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/report.md",
+  "outputDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final",
+  "summaryPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/summary.json",
+  "reportPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/report.md",
   "cleanup": {
     "serverStopped": true,
     "portsClean": true,
@@ -29,11 +29,11 @@
       "status": "PASS",
       "command": "validate duration/output-dir/tools",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/preflight.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/preflight.log",
       "summaryPath": "",
       "tail": [
         "durationMinutes=30",
-        "outputDir=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final"
+        "outputDir=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final"
       ]
     },
     {
@@ -41,28 +41,28 @@
       "status": "PASS",
       "command": "./server.sh build",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/build.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/build.log",
       "summaryPath": "",
       "tail": [
-        "[env] loaded override: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env",
-        "[1/2] configure: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx (ai=1, youtube=0)",
+        "[env] loaded override: <workspace>/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env",
+        "[1/2] configure: <workspace>/Desktop/workspace/codexTest/mediaServer/build-gst-onnx (ai=1, youtube=0)",
         "-- Configuring done (0.1s)",
         "-- Generating done (0.0s)",
-        "-- Build files have been written to: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx",
+        "-- Build files have been written to: <workspace>/Desktop/workspace/codexTest/mediaServer/build-gst-onnx",
         "[2/2] build",
         "[100%] Built target media_server",
-        "[done] build=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server"
+        "[done] build=<workspace>/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server"
       ]
     },
     {
       "id": "seed",
       "status": "PASS",
-      "command": "write /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/seed.json",
+      "command": "write <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/seed.json",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/seed.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/seed.log",
       "summaryPath": "",
       "tail": [
-        "seedPath=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/seed.json"
+        "seedPath=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/seed.json"
       ]
     },
     {
@@ -70,7 +70,7 @@
       "status": "PASS",
       "command": "delegated to verify-predev",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/start-server.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/start-server.log",
       "summaryPath": "",
       "tail": [
         "verify-predev owns isolated test server lifecycle"
@@ -81,7 +81,7 @@
       "status": "PASS",
       "command": "delegated to verify-predev integrated-smoke",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/integrated-smoke.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/integrated-smoke.log",
       "summaryPath": "",
       "tail": [
         "verify-predev runs integrated-smoke after starting the isolated test server"
@@ -90,18 +90,18 @@
     {
       "id": "soak-case-loop",
       "status": "PASS",
-      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --summary-file /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-summary.json --report-file /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.md --report-html-file /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.html",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --summary-file <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-summary.json --report-file <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.md --report-html-file <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.html",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/soak-case-loop.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/soak-case-loop.log",
       "summaryPath": "",
       "tail": [
         "== predev 안정화 검증 요약 ==",
         "- 통과: 118",
         "- 실패: 0",
         "- 건너뜀: 2",
-        "- summary: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-summary.json",
-        "- report: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.md",
-        "- report html: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.html",
+        "- summary: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-summary.json",
+        "- report: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.md",
+        "- report html: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/predev-report.html",
         "- logs: /tmp/media_server_predev-1783517879-80040"
       ]
     },
@@ -110,7 +110,7 @@
       "status": "PASS",
       "command": "runtime idle delegated to verify-predev cleanup checks",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/runtime-idle.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/runtime-idle.log",
       "summaryPath": "",
       "tail": [
         "runtime idle state recorded by predev summary"
@@ -121,7 +121,7 @@
       "status": "PASS",
       "command": "cleanup phase",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/cleanup.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/cleanup.log",
       "summaryPath": "",
       "tail": [
         "serverStopped=true",
@@ -133,11 +133,11 @@
       "status": "PASS",
       "command": "report phase",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/report.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/report.log",
       "summaryPath": "",
       "tail": [
-        "summaryPath=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/summary.json",
-        "reportPath=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/report.md"
+        "summaryPath=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/summary.json",
+        "reportPath=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/server-longrun-30min-final/report.md"
       ]
     }
   ]

@@ -9,9 +9,9 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 최신 공개 GitHub Release: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
 - 최신 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - 직전 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
-- 현재 소스 버전: `3.9.0`
+- 현재 소스 버전: `3.9.1`
 - v3.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 기본 공개 형태: source-only
 - 공개 문서/대표 asset 기준: `README.md`, `README.en.md`, `docs/README.md`,
   `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`는 v3.9
@@ -20,13 +20,12 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
   `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리하고,
   교체 시 직접 이미지 검수 기록을 별도로 남깁니다.
 
-## v3.9 Source Roadmap
+## v3.9.1 Source Roadmap
 
 - 최신 공개 릴리즈: `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation, source-only.
-- 현재 소스: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
-- v3.9 로드맵: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 전수 확인하고,
-  REVIEW4-50~63을 닫은 뒤 같은 v3.9.0 브랜치에서 동작 보존 구조 안정화와 리팩토링을
-  REVIEW4-64로 수행하며, REVIEW4-65에서 독립 acceptance를 실행합니다.
+- 현재 소스: `3.9.1` Release Correctness and Public Repository Hygiene.
+- v3.9.1 로드맵은 게시된 v3.9.0을 보존하면서 tag 이후 correctness 변경, 공개 저장소
+  hygiene, 문서 current truth, bounded evidence와 대표 UI asset 현재성을 정정합니다.
 - 최신 공개 기준: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation은 published baseline이며, v3.8.0 Operator-Gated Action Pilot & Outcome Loop는 직전 published baseline입니다.
 
 ## 먼저 볼 문서
@@ -43,6 +42,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | 버전과 release 정책 | [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md) |
 | 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
 | v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes.md](release-artifacts/v3.9.0/release-notes.md) |
+| v3.9.1 release notes 초안 | [release-artifacts/v3.9.1/release-notes-draft.md](release-artifacts/v3.9.1/release-notes-draft.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 공개 문서 전체 목록
@@ -55,14 +55,8 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [config-reference.md](config-reference.md) | 서버, RTSP/WebRTC, source, VA, event storage 설정 |
 | [distribution-policy.md](distribution-policy.md) | source-only, bundle, container 배포 경계 |
 | [release-policy.md](release-policy.md) | release 권한, tag, GitHub Release, not-run 경계 |
-| [release-test-records.md](release-test-records.md) | 릴리즈 테스트 항목과 버전별 pass/fail 기록 |
 | [versioning-policy.md](versioning-policy.md) | 소스 버전, 공개 릴리즈, semver 기준 |
 | [public-repo-final-review.md](public-repo-final-review.md) | 공개 저장소 점검 기준 |
-| [v390-current-state-and-verification-debt-audit-2026-08-12.md](v390-current-state-and-verification-debt-audit-2026-08-12.md) | v3.9.0 누적 변경과 검증 부채 정량 감사 |
-| [v390-full-status-failure-and-handoff-2026-08-12.md](v390-full-status-failure-and-handoff-2026-08-12.md) | v3.9.0 현재 실패 상태, 판정 기준, 후속 인계 |
-| [superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md) | v3.0/v3.1 event evidence search roadmap design |
-| [superpowers/specs/2026-07-07-v390-preparation-design.md](superpowers/specs/2026-07-07-v390-preparation-design.md) | v3.9 준비 방향과 feature completion first 설계 |
-| [superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md](superpowers/specs/2026-08-11-v390-verification-runner-rebase-design.md) | v3.9 UI request lifecycle 실행기 재기준화 설계와 actual 검증 경계 |
 | [ops-backup-recovery.md](ops-backup-recovery.md) | 운영 설정 백업과 복구 |
 | [sample-fixture-provenance.md](sample-fixture-provenance.md) | sample fixture 공개 판단 |
 | [runtime-model-bundle-rc-rehearsal.md](runtime-model-bundle-rc-rehearsal.md) | runtime/model bundle RC rehearsal 경계 |
@@ -83,9 +77,6 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | --- | --- |
 | [media-server-architecture.md](media-server-architecture.md) | 서버 구조와 요청 흐름 |
 | [stream-verification.md](stream-verification.md) | 검증 명령과 테스트 영역 경계 |
-| [project-feature-test-inventory.md](project-feature-test-inventory.md) | 기능별 테스트 영역 inventory. 실행 evidence가 아니라 coverage 기준 |
-| [v390-ui-automation-coverage-matrix.md](v390-ui-automation-coverage-matrix.md) | v1.0~v3.9 exact UI test ID 424개 route/control/action와 actual automation/unsupported/excluded matrix |
-| [v390-feature-completion-inventory.md](v390-feature-completion-inventory.md) | v3.9 feature completion discovery와 user review gate source-of-truth |
 | [video-analysis.md](video-analysis.md) | VA pipeline, rule, scenario, metadata |
 | [event-evidence-contract.md](event-evidence-contract.md) | v3.0 Event Evidence Contract와 FrameRef/retention/non-VMS 경계 |
 | [v310-encoded-event-clip-contract.md](v310-encoded-event-clip-contract.md) | v3.1 Encoded Event Clip Contract와 FrameRef/PTS/non-VMS 경계 |

@@ -1,7 +1,7 @@
 {
   "schema": "media-server.v390-ui-automation.v1",
   "runId": "v390-ui-automation-20260710164836-26000",
-  "command": "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation",
+  "command": "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation",
   "browserMode": "playwright",
   "toolSelection": [
     {
@@ -52,7 +52,7 @@
     "fallbackReason": "",
     "visualOnly": false,
     "dependencyStatus": "bundled-module-available",
-    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+    "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
     "moduleVersion": "1.61.1",
     "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "capabilities": [
@@ -70,22 +70,22 @@
       "tool": "playwright",
       "engine": "playwright-native",
       "status": "missing-package-json",
-      "reason": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
-      "modulePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright"
+      "reason": "<workspace>/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
+      "modulePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/node_modules/playwright"
     },
     {
       "tool": "playwright",
       "engine": "playwright-native",
       "status": "missing-package-json",
-      "reason": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright",
-      "modulePath": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright"
+      "reason": "<workspace>/.nvm/versions/node/v24.13.0/node_modules/playwright",
+      "modulePath": "<workspace>/.nvm/versions/node/v24.13.0/node_modules/playwright"
     },
     {
       "tool": "playwright",
       "engine": "playwright-native",
       "status": "selected",
       "reason": "Playwright 1.61.1",
-      "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright"
+      "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright"
     }
   ],
   "nativeAdapterRequired": true,
@@ -118,12 +118,12 @@
   "fail": 0,
   "notRun": 0,
   "failedCaseId": "",
-  "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation",
-  "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/summary.json",
-  "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/report.md",
-  "screenshotsDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots",
-  "tracesDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces",
-  "logsDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs",
+  "outputDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation",
+  "summaryPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/summary.json",
+  "reportPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/report.md",
+  "screenshotsDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots",
+  "tracesDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces",
+  "logsDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs",
   "cleanup": {
     "status": "PASS",
     "verificationSource": "filesystem-and-port-observation",
@@ -134,14 +134,14 @@
     "portsClean": true,
     "temporaryArtifactsRemoved": true,
     "removedTemporaryArtifacts": [
-      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-registry"
+      "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-registry"
     ],
     "checks": [
       {
         "check": "core-server-started",
         "status": "PASS",
         "observed": true,
-        "source": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log"
+        "source": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log"
       },
       {
         "check": "core-server-exited",
@@ -162,28 +162,28 @@
       },
       {
         "check": "temporary-path-removed",
-        "path": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-registry",
+        "path": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-registry",
         "existedBefore": true,
         "existsAfter": false,
         "status": "PASS"
       },
       {
         "check": "temporary-path-removed",
-        "path": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-events.jsonl",
+        "path": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-events.jsonl",
         "existedBefore": false,
         "existsAfter": false,
         "status": "PASS"
       },
       {
         "check": "temporary-path-removed",
-        "path": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-snapshots",
+        "path": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-snapshots",
         "existedBefore": false,
         "existsAfter": false,
         "status": "PASS"
       },
       {
         "check": "temporary-path-removed",
-        "path": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-clips",
+        "path": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/core-clips",
         "existedBefore": false,
         "existsAfter": false,
         "status": "PASS"
@@ -196,26 +196,26 @@
     "duplicateScreenshotFilesRemoved": 4,
     "removedDuplicateScreenshots": [
       {
-        "path": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-109.png",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
+        "path": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-109.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
         "sha256": "aef8b2dec089ffe842816dca2f7433895fe8765eca86ad663145064653f15a89",
         "duplicateOfCaseId": "UI-108"
       },
       {
-        "path": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-112.png",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
+        "path": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-112.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
         "sha256": "aef8b2dec089ffe842816dca2f7433895fe8765eca86ad663145064653f15a89",
         "duplicateOfCaseId": "UI-108"
       },
       {
-        "path": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-114.png",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
+        "path": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-114.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
         "sha256": "83c5cc8680ceda816c425e89c0fb969f94fc77292a0a84795a2742662cd5d893",
         "duplicateOfCaseId": "UI-113"
       },
       {
-        "path": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-115.png",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
+        "path": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-115.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
         "sha256": "83c5cc8680ceda816c425e89c0fb969f94fc77292a0a84795a2742662cd5d893",
         "duplicateOfCaseId": "UI-113"
       }
@@ -330,17 +330,17 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-108.trace.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-108.trace.json",
       "videoPath": "",
       "videoEvidence": {
         "status": "not-captured",
         "reason": "selected native adapter does not advertise video capture",
         "placeholderCreated": false
       },
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-108.browser-console.json",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-108.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -350,7 +350,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -366,7 +366,7 @@
       "screenshotEvidence": {
         "status": "captured",
         "sha256": "aef8b2dec089ffe842816dca2f7433895fe8765eca86ad663145064653f15a89",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
         "deduplicated": false,
         "duplicateOfCaseId": ""
       }
@@ -481,17 +481,17 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-109.trace.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-109.trace.json",
       "videoPath": "",
       "videoEvidence": {
         "status": "not-captured",
         "reason": "selected native adapter does not advertise video capture",
         "placeholderCreated": false
       },
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-109.browser-console.json",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-109.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -501,7 +501,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -517,7 +517,7 @@
       "screenshotEvidence": {
         "status": "captured",
         "sha256": "aef8b2dec089ffe842816dca2f7433895fe8765eca86ad663145064653f15a89",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
         "deduplicated": true,
         "duplicateOfCaseId": "UI-108"
       }
@@ -632,17 +632,17 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-110.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-110.trace.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-110.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-110.trace.json",
       "videoPath": "",
       "videoEvidence": {
         "status": "not-captured",
         "reason": "selected native adapter does not advertise video capture",
         "placeholderCreated": false
       },
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-110.browser-console.json",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-110.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -652,7 +652,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -668,7 +668,7 @@
       "screenshotEvidence": {
         "status": "captured",
         "sha256": "cb372a1517c59502dc8c9066cb6eba253eaa1d1e9bc2c9bd83b61e8bbef92c96",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-110.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-110.png",
         "deduplicated": false,
         "duplicateOfCaseId": ""
       }
@@ -779,17 +779,17 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-111.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-111.trace.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-111.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-111.trace.json",
       "videoPath": "",
       "videoEvidence": {
         "status": "not-captured",
         "reason": "selected native adapter does not advertise video capture",
         "placeholderCreated": false
       },
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-111.browser-console.json",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-111.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -799,7 +799,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -815,7 +815,7 @@
       "screenshotEvidence": {
         "status": "captured",
         "sha256": "490acae718d6fe2259c6d5786a7d96f3d93db1ec43a5feb1dee8603f38db14bb",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-111.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-111.png",
         "deduplicated": false,
         "duplicateOfCaseId": ""
       }
@@ -968,17 +968,17 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-112.trace.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-112.trace.json",
       "videoPath": "",
       "videoEvidence": {
         "status": "not-captured",
         "reason": "selected native adapter does not advertise video capture",
         "placeholderCreated": false
       },
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-112.browser-console.json",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-112.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -988,7 +988,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -1004,7 +1004,7 @@
       "screenshotEvidence": {
         "status": "captured",
         "sha256": "aef8b2dec089ffe842816dca2f7433895fe8765eca86ad663145064653f15a89",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-108.png",
         "deduplicated": true,
         "duplicateOfCaseId": "UI-108"
       }
@@ -1123,17 +1123,17 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-113.trace.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-113.trace.json",
       "videoPath": "",
       "videoEvidence": {
         "status": "not-captured",
         "reason": "selected native adapter does not advertise video capture",
         "placeholderCreated": false
       },
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-113.browser-console.json",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-113.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -1143,7 +1143,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -1159,7 +1159,7 @@
       "screenshotEvidence": {
         "status": "captured",
         "sha256": "83c5cc8680ceda816c425e89c0fb969f94fc77292a0a84795a2742662cd5d893",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
         "deduplicated": false,
         "duplicateOfCaseId": ""
       }
@@ -1278,17 +1278,17 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-114.trace.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-114.trace.json",
       "videoPath": "",
       "videoEvidence": {
         "status": "not-captured",
         "reason": "selected native adapter does not advertise video capture",
         "placeholderCreated": false
       },
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-114.browser-console.json",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-114.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -1298,7 +1298,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -1314,7 +1314,7 @@
       "screenshotEvidence": {
         "status": "captured",
         "sha256": "83c5cc8680ceda816c425e89c0fb969f94fc77292a0a84795a2742662cd5d893",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
         "deduplicated": true,
         "duplicateOfCaseId": "UI-113"
       }
@@ -1437,17 +1437,17 @@
         ]
       },
       "failureEvidence": null,
-      "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
-      "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-115.trace.json",
+      "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
+      "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/traces/ui-115.trace.json",
       "videoPath": "",
       "videoEvidence": {
         "status": "not-captured",
         "reason": "selected native adapter does not advertise video capture",
         "placeholderCreated": false
       },
-      "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-115.browser-console.json",
+      "browserConsolePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-115.browser-console.json",
       "browserConsole": [],
-      "serverLogReference": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
+      "serverLogReference": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/core-ui.server.log",
       "cleanupPortState": "clean",
       "manualIntervention": false,
       "adapterEvidence": {
@@ -1457,7 +1457,7 @@
         "fallbackReason": "",
         "dependencyStatus": "bundled-module-available",
         "visualOnly": false,
-        "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+        "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
         "moduleVersion": "1.61.1",
         "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "capabilities": [
@@ -1473,7 +1473,7 @@
       "screenshotEvidence": {
         "status": "captured",
         "sha256": "83c5cc8680ceda816c425e89c0fb969f94fc77292a0a84795a2742662cd5d893",
-        "canonicalPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
+        "canonicalPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/screenshots/ui-113.png",
         "deduplicated": true,
         "duplicateOfCaseId": "UI-113"
       }

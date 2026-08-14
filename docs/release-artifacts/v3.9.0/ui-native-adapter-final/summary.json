@@ -9,7 +9,7 @@
     "fallbackReason": "",
     "visualOnly": false,
     "dependencyStatus": "bundled-module-available",
-    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+    "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
     "moduleVersion": "1.61.1",
     "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "capabilities": [
@@ -27,22 +27,22 @@
       "tool": "playwright",
       "engine": "playwright-native",
       "status": "missing-package-json",
-      "reason": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
-      "modulePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright"
+      "reason": "<workspace>/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
+      "modulePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/node_modules/playwright"
     },
     {
       "tool": "playwright",
       "engine": "playwright-native",
       "status": "missing-package-json",
-      "reason": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright",
-      "modulePath": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright"
+      "reason": "<workspace>/.nvm/versions/node/v24.13.0/node_modules/playwright",
+      "modulePath": "<workspace>/.nvm/versions/node/v24.13.0/node_modules/playwright"
     },
     {
       "tool": "playwright",
       "engine": "playwright-native",
       "status": "selected",
       "reason": "Playwright 1.61.1",
-      "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright"
+      "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright"
     }
   ],
   "capabilities": [
@@ -93,15 +93,15 @@
     },
     {
       "kind": "screenshot",
-      "target": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/native-adapter.png",
+      "target": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/native-adapter.png",
       "status": "PASS",
       "durationMs": 43
     }
   ],
   "finalState": "native-adapter:ready:typed",
   "failureReason": "",
-  "screenshotPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/native-adapter.png",
-  "tracePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/trace.json",
+  "screenshotPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/native-adapter.png",
+  "tracePath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/trace.json",
   "cleanup": {
     "pageClosed": true,
     "serverStopped": true,

@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import * as nativeExactCasesLib from "./v390_ui_native_exact_cases_lib.mjs";
+import { validatePublicReleaseEvidence } from "./public_release_evidence_lib.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const rawArgs = process.argv.slice(2);
@@ -30,6 +31,26 @@ const command = "verify-v390-final-evidence-integrity";
 const checks = [];
 const workspaces = [];
 process.on("exit", () => workspaces.forEach(workspace => fs.rmSync(workspace, { recursive: true, force: true })));
+
+check("minimal public evidence keeps semantic fields without raw runtime paths", () => {
+  const record = makePublicEvidenceRecord();
+  assert(validatePublicReleaseEvidence(record).pass === true,
+    "complete minimal public evidence was rejected");
+  for (const field of ["firstFailure", "counts", "artifactHashes"]) {
+    const candidate = structuredClone(record);
+    delete candidate[field];
+    assert(validatePublicReleaseEvidence(candidate).pass === false,
+      `public evidence without ${field} was accepted`);
+  }
+  const rawPath = structuredClone(record);
+  rawPath.artifactHashes.push({
+    path: "docs/release-artifacts/v3.9.0/run/server.log",
+    bytes: 10,
+    sha256: "2".repeat(64),
+  });
+  assert(validatePublicReleaseEvidence(rawPath).pass === false,
+    "public evidence retained a raw runtime log path");
+});
 
 check("canonical final integrity binds parent, Policy rows, cleanup, and first failure", () => {
   assert(typeof nativeExactCasesLib.validateCanonicalFinalIntegrityBindings === "function",
@@ -631,3 +652,23 @@ async function runChecks() {
 }
 
 function assert(condition, message) { if (!condition) throw new Error(message); }
+
+function makePublicEvidenceRecord() {
+  return {
+    schema: "media-server.public-release-evidence.v1",
+    sourceCommit: "1".repeat(40),
+    command: "./test_release.sh",
+    status: "PASS",
+    startedAt: "2026-08-13T22:32:55.946Z",
+    finishedAt: "2026-08-14T02:01:33.401Z",
+    firstFailure: null,
+    counts: { pass: 4, fail: 0, notRun: 0 },
+    cleanup: { status: "PASS", rawArtifactsPruned: true },
+    policyEvaluation: { status: "PASS", qualifiedCaseCount: 424 },
+    artifactHashes: [{
+      path: "docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json",
+      bytes: 100,
+      sha256: "1".repeat(64),
+    }],
+  };
+}

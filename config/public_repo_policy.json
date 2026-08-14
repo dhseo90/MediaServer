@@ -10,6 +10,51 @@
     "^video/imports/(?!va_tracking_event_(?:long_)?1280x720_30fps_h264\\.mp4$).+",
     "^.*\\.DS_Store$"
   ],
+  "deniedTrackedContentPatterns": [
+    {
+      "id": "personal-home-path",
+      "pattern": "(?:^|[\\\"' ])/(?:Users|home)/[^/\\s]+/"
+    },
+    {
+      "id": "ephemeral-private-tmp",
+      "pattern": "\\x2fprivate\\x2fvar\\x2ffolders\\x2f[^\\s\\\"']+"
+    }
+  ],
+  "deniedReleaseArtifactBasenames": [
+    "auth-registry",
+    "registry.json",
+    "seed.json",
+    "ports.json",
+    "server.log",
+    "trace.log"
+  ],
+  "deniedReleaseArtifactExtensions": [
+    ".log"
+  ],
+  "deniedReleaseArtifactNamePatterns": [
+    "(?:^|[-_.])(?:registry|seed|ports?|trace)(?:[-_.]|$)"
+  ],
+  "trackedTextExtensions": [
+    ".md",
+    ".json",
+    ".jsonl",
+    ".mjs",
+    ".js",
+    ".ts",
+    ".cpp",
+    ".cc",
+    ".h",
+    ".hpp",
+    ".txt",
+    ".html",
+    ".yml",
+    ".yaml",
+    ".sh",
+    ".cmake",
+    ".csv",
+    ".toml",
+    ".ini"
+  ],
   "allowedTrackedAssetPatterns": [
     "^video/sample(_h264|_h265|_h264_video_only)?\\.mp4$",
     "^video/va_four_scene_sample\\.mp4$",

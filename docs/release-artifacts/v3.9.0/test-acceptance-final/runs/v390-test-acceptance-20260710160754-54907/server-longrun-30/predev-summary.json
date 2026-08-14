@@ -6,8 +6,8 @@
   "skip": 2,
   "notRun": 0,
   "durationSec": 2373,
-  "reportFile": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.md",
-  "reportHtmlFile": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.html",
+  "reportFile": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.md",
+  "reportHtmlFile": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.html",
   "soakMinutes": 30,
   "quickMode": false,
   "includeExternalTurn": false,
@@ -1683,7 +1683,7 @@
     {
       "name": "summary-report",
       "result": "pass",
-      "command": "./server.sh summarize-reports /tmp/media_server_*summary*.json --output /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.md --html-output /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.html",
+      "command": "./server.sh summarize-reports /tmp/media_server_*summary*.json --output <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.md --html-output <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.html",
       "logFile": "",
       "durationSec": 1,
       "context": "case=summary-report; rtspPort=8555; httpPort=8081; httpBase=http://127.0.0.1:8081; authMode=off; workDir=/tmp/media_server_predev-1783699742-57420",
@@ -1691,7 +1691,7 @@
       "stderrFile": "",
       "stdoutTail": [],
       "stderrTail": [],
-      "reproductionCommand": "./server.sh summarize-reports /tmp/media_server_*summary*.json --output /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.md --html-output /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.html",
+      "reproductionCommand": "./server.sh summarize-reports /tmp/media_server_*summary*.json --output <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.md --html-output <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/server-longrun-30/predev-report.html",
       "temporaryArtifactCleanup": "removed-after-summary-capture"
     }
   ],

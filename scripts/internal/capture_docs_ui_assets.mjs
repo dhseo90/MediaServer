@@ -51,9 +51,9 @@ const tasks = [
       selectors: [
         'header',
         '[data-testid="client-live-source-tree"]',
-        '[data-testid="client-live-workspace"]'
+        '[data-testid="client-live-drop-grid"]'
       ],
-      fitMainWidth: true,
+      fitMainWidth: false,
       margin: 18,
     },
   },
@@ -62,7 +62,15 @@ const tasks = [
     file: "ops-channels.png",
     pagePath: "/ops/sources",
     viewport: { width: 1680, height: 1250 },
-    clip: { selectors: ['header', '[data-testid="ops-sources-page"]'], fitMainWidth: true, margin: 18 },
+    clip: {
+      selectors: [
+        'header',
+        '[data-testid="ops-sources-page"] > .ops-workspace-hero',
+        '[data-testid="source-onboarding-quality-summary"]'
+      ],
+      fitMainWidth: true,
+      margin: 18,
+    },
   },
   {
     name: "ops-rules",
@@ -73,8 +81,9 @@ const tasks = [
     clip: {
       selectors: [
         'header',
-        '[data-testid="ops-rules-page"] .rules-metrics-grid',
-        '#opsVaRulesSection'
+        '[data-testid="ops-rules-page"] > .ops-workspace-hero',
+        '[data-testid="ops-rules-page"] > .rules-metrics-grid',
+        '[data-testid="ops-rules-page"] > .rules-workspace-readiness-grid'
       ],
       fitMainWidth: true,
       margin: 18,
@@ -86,7 +95,7 @@ const tasks = [
     pagePath: "/ops/rules",
     viewport: { width: 1680, height: 1600 },
     setup: setupOpsRules,
-    clip: { selectors: ['.ops-va-stage-settings'], fitMainWidth: true, margin: 18 },
+    clip: { selectors: ['.ops-va-stage-panel'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "ops-users",
@@ -101,7 +110,16 @@ const tasks = [
     file: "ops-dashboard.png",
     pagePath: "/ops/dashboard",
     viewport: { width: 1680, height: 1220 },
-    clip: { selectors: ['header', '[data-testid="ops-dashboard-page"]'], fitMainWidth: true, margin: 18 },
+    clip: {
+      selectors: [
+        'header',
+        '[data-testid="ops-dashboard-page"] > .ops-workspace-hero',
+        '[data-testid="ops-dashboard-page"] > .ops-metric-grid',
+        '[data-testid="ops-dashboard-page"] > .ops-dashboard-card-grid'
+      ],
+      fitMainWidth: true,
+      margin: 18,
+    },
   },
   {
     name: "client-dashboard",
@@ -109,7 +127,18 @@ const tasks = [
     pagePath: "/client/dashboard",
     viewport: { width: 1680, height: 1180 },
     setup: setupClientDashboard,
-    clip: { selectors: ['header', '[data-testid="client-shell-page"]'], fitMainWidth: true, margin: 18 },
+    clip: {
+      selectors: [
+        '.client-preview-redaction-strip',
+        '.client-channel-dock',
+        '[data-testid="client-dashboard-shell"] > .client-dashboard-head',
+        '[data-testid="client-dashboard-field-summary"]',
+        '[data-testid="client-dashboard-safe-summary"]',
+        '[data-testid="client-dashboard-shell"] > .summary'
+      ],
+      fitMainWidth: false,
+      margin: 18,
+    },
     optional: true,
   },
   {
@@ -121,7 +150,7 @@ const tasks = [
       await applyDarkTheme(browser);
       await delay(500);
     },
-    clip: { selectors: [".auth-card"], margin: 24, minWidth: 700, minHeight: 420 },
+    clip: { selectors: ["body"], fitMainWidth: true, margin: 0, minWidth: 700, minHeight: 420 },
     optional: true,
   }
 ];
@@ -389,7 +418,9 @@ async function setupOpsUsers(browser) {
 async function setupClientDashboard(browser) {
   await applyDarkTheme(browser);
   await evaluate(browser, `(() => {
-    const viewButton = document.querySelector('#views .view[data-view-id="2"]') || document.querySelector('#views .view');
+    const viewButton = document.querySelector('#views .view[data-view-id="9002"]') ||
+      Array.from(document.querySelectorAll('#views .view')).find((item) => item.textContent.includes('VA Visual Matrix')) ||
+      document.querySelector('#views .view');
     if (viewButton) viewButton.click();
     return !!viewButton;
   })()`);

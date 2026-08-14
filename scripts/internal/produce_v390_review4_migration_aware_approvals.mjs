@@ -32,22 +32,24 @@ const defaultMigrationRelative = "test/fixtures/v390_review4_semantic_migration_
 if (hasHelpFlag(args)) printUsageAndExit(`V390 REVIEW4 migration-aware approval producer
 
 Usage:
-  ./server.sh produce-v390-review4-migration-aware-approvals --write-ledger --prior-audit PATH --migration-evidence PATH --decisions PATH --review-package PATH
+  ./server.sh produce-v390-review4-migration-aware-approvals --write-ledger --prior-audit PATH --prior-approvals PATH --migration-evidence PATH --decisions PATH --review-package PATH
 
 The producer generates a fresh candidate in a temporary path, verifies the old applied audit and
 approval plus migration evidence, then derives and atomically replaces audit, approval, applied
 manifest, and native exact manifest only after complete readback validation. It cannot create
 approval without exact strict-equivalent prior approval coverage and independent decisions for
 every changed row.`);
-assertKnownOptions(args, ["h", "help", "write-ledger", "prior-audit", "migration-evidence", "decisions", "review-package"]);
+assertKnownOptions(args, ["h", "help", "write-ledger", "prior-audit", "prior-approvals", "migration-evidence", "decisions", "review-package"]);
 if (!args.includes("--write-ledger")) throw new Error("migration-aware producer requires --write-ledger");
 const priorAuditPath = optionValue("prior-audit");
+const priorApprovalsPath = optionValue("prior-approvals");
 const migrationPath = optionValue("migration-evidence") || defaultMigrationRelative;
 const decisionsPath = optionValue("decisions");
 const packagePath = optionValue("review-package");
-if (!priorAuditPath || !decisionsPath || !packagePath) throw new Error("--write-ledger requires --prior-audit, --decisions, and --review-package");
+if (!priorAuditPath || !priorApprovalsPath || !decisionsPath || !packagePath) throw new Error("--write-ledger requires --prior-audit, --prior-approvals, --decisions, and --review-package");
 
 const priorAuditInput = readInputJson("prior-audit", priorAuditPath);
+const priorApprovalsInput = readInputJson("prior-approvals", priorApprovalsPath);
 const migrationInput = readInputJson("migration-evidence", migrationPath);
 const decisionsInput = readInputJson("decisions", decisionsPath);
 const packageInput = readInputJson("review-package", packagePath);
@@ -65,9 +67,10 @@ try {
   const priorManifest = loadImplementationManifest(rootDir);
   const priorAuditAbsolute = priorAuditInput.absolute;
   const priorAudit = priorAuditInput.value;
-  // Index는 checkpoint가 보존한 마지막 independent approval ledger다. worktree의
-  // 대상 approval은 이 producer가 성공한 뒤에만 바뀌어야 하므로 읽지 않는다.
-  const priorApprovals = JSON.parse(execFileSync("git", ["show", `:${approvalRelative}`], { cwd: rootDir, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 }));
+  // 이전 audit과 approval은 같은 명시 checkpoint에서 받아야 한다. Git index를
+  // 암묵적 approval 원본으로 사용하면 commit 전 연속 migration의 review snapshot이
+  // staged 상태에 따라 달라질 수 있다.
+  const priorApprovals = priorApprovalsInput.value;
   const migration = migrationInput.value;
   const migrationAbsolute = migrationInput.absolute;
   const decisionsAbsolute = decisionsInput.absolute;
@@ -177,7 +180,7 @@ function currentReviewSnapshotBindings(tempDir) {
     cwd: rootDir, env, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
   }).trim();
   const trackedDiff = execFileSync("git", ["diff", "--binary"], {
-    cwd: rootDir, encoding: "utf8", maxBuffer: 64 * 1024 * 1024,
+    cwd: rootDir, encoding: null, maxBuffer: 256 * 1024 * 1024,
   });
   const changedFiles = execFileSync("git", ["diff", "--name-only"], {
     cwd: rootDir, encoding: "utf8",
