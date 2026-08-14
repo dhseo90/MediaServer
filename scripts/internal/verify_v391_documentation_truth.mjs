@@ -101,8 +101,8 @@ check("release records and evidence report v3.9.1 as not-yet-fresh-PASS", () => 
     const current = head(read(file), 90);
     assert(current.includes("v3.9.1 현재 소스 정정 상태"), `${file} missing v3.9.1 current correction status`);
     const notRun = current.includes("fresh full test: 미실행");
-    const failedBeforeDurationAndUi = current.includes("fresh full test: 1차 clean-clone") &&
-      current.includes("FAIL") && current.includes("30분") && current.includes("미실행");
+    const failedBeforeDurationAndUi = /fresh full test: [^\n]*clean-clone[^\n]*FAIL/.test(current) &&
+      current.includes("30분") && current.includes("미실행");
     assert(notRun || failedBeforeDurationAndUi,
       `${file} overclaims or omits v3.9.1 fresh full-test status`);
     assert(current.includes("latest published: v3.9.0"), `${file} missing latest-published v3.9.0`);

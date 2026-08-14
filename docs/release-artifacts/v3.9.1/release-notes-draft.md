@@ -30,10 +30,13 @@ bounded release evidence, and representative UI asset currency.
 
 The first clean-clone run against source `7f3e9dc9` passed preflight and build, then stopped at the
 `v390-stabilization-release-readiness` feature gate because its accepted Step 20 status vocabulary
-had not followed the truthful v3.9.0 `release close-out 완료` state. The 30-minute, actual-browser
-UI fulltest/Policy v4, and 120-minute stages were not run. The failed clone was removed after its
-primary failure and later-not-run states were recorded. Fresh PASS evidence remains pending a
-corrected source commit and a complete clean-clone rerun.
+had not followed the truthful v3.9.0 `release close-out 완료` state. After that correction, the
+second clean-clone run against source `63d59839` again passed preflight and build, then stopped at
+the historical `v390-entry-baseline` gate because it still required the current source to equal
+`3.9.0`. Both runs stopped before the 30-minute, actual-browser UI fulltest/Policy v4, and
+120-minute stages. Both failed clones were removed after their primary failure and later-not-run
+states were recorded. Fresh PASS evidence remains pending the historical/current-source boundary
+correction, a source commit, and a complete clean-clone rerun.
 
 ## Not Run / Excluded
 
