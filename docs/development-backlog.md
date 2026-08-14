@@ -11,11 +11,11 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.9.0`
-- 최신 공개 GitHub Release: `v3.8.0`
-- `v3.9.0` 준비 상태: source-only preparation branch. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.9.0`
+- `v3.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
-- 최신 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+- 최신 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 
 ### 2026-08-14 release close-out status
 
@@ -27,11 +27,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
   [test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
   80개 파일·11.4MiB의 bounded package로 보존합니다. 4,900여 개·309MB의 per-case 중복 산출물은
   main 병합 대상에서 제외했습니다.
-- 제품 및 local release acceptance P0는 닫혔습니다. 잔여 P0는 문서/evidence checkpoint,
-  `v3.9.0 -> main` PR checks와 merge입니다. 그 뒤 signed tag, GitHub Release publication,
-  published metadata 검증을 각각 실제 수행 결과로 기록합니다.
-- 최신 공개 GitHub Release는 아직 `v3.8.0`입니다. v3.9.0 tag/GitHub Release/published metadata는
-  실제 publish 전까지 완료로 기록하지 않습니다.
+- 제품 및 local release acceptance, PR checks, main merge, signed tag, source-only GitHub
+  Release와 published metadata 검증을 v3.9.0 release close-out evidence로 분리해 확인합니다.
+- 최신 공개 GitHub Release는 `v3.9.0`이며 v3.8.0은 직전 published baseline입니다.
 
 ## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
@@ -131,7 +129,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 17 | v3.9.0 (17) field evidence bridge | P2 | 완료 | `V390-CAND-009`: `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run/no-field-execution boundary를 표시하고 field smoke/provider call/write는 수행하지 않음 |
 | 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 | `V390-CAND-010`: `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, tracker-none forces off boundary를 표시하고 model-backed execution/embedding/crop serialization은 수행하지 않음 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관하고 `verify-v390-structure-stabilization-handoff` gate로 구조 변경 미실행 경계를 고정 |
-| 20 | v3.9.0 (20) stabilization and release readiness | P0 | local release acceptance 완료/publication pending | Source `c6b3d20a`의 `./test_release.sh`가 full build, feature gates, 30분, exact UI `424/424`, Policy v4 `424/424`, trigger된 120분, cleanup과 final integrity를 모두 PASS했습니다. 잔여 close-out은 PR/main/tag/GitHub Release/published metadata입니다 |
+| 20 | v3.9.0 (20) stabilization and release readiness | P0 | release close-out 완료 | Source `c6b3d20a`의 `./test_release.sh`가 full build, feature gates, 30분, exact UI `424/424`, Policy v4 `424/424`, trigger된 120분, cleanup과 final integrity를 모두 PASS했습니다. PR checks/main merge와 signed tag/source-only GitHub Release/published metadata는 별도 release action evidence로 확인합니다 |
 | 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | 완료 | `./test_release.sh` exit `0`, `finalEvidenceEligible=true`. Bounded canonical evidence는 `docs/release-artifacts/v3.9.0/test-acceptance-current-final/`에 보존하며 historical failure artifact와 분리합니다 |
 | 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
@@ -4356,7 +4354,15 @@ close-out dry-run, script inventory, `git diff --check` 연결입니다.
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
-## 최신 공개 기준: v3.8.0 Source Release Baseline
+## 최신 공개 기준: v3.9.0 Source Release Baseline
+
+v3.9.0은 Feature Completion, Structure Stabilization, and Test Model Preparation
+source-only 공개 릴리즈입니다. 986개 feature evidence와 semantic approval, 구조 안정화,
+exact UI `424/424`, Policy v4 `424/424`, 30분/120분 longrun, cleanup과 final integrity를
+release evidence로 닫았습니다. Binary/runtime/model bundle과 external field smoke는
+공개 asset 또는 실행 PASS로 승격하지 않습니다.
+
+## 직전 공개 기준: v3.8.0 Source Release Baseline
 
 v3.8.0은 Operator-Gated Action Pilot & Outcome Loop source-only 공개 릴리즈입니다. 이 기준은
 Ops Action Route Boundary, Action Capability Contract, Action Request Ledger Contract,
@@ -4364,12 +4370,12 @@ Approval Decision Gate, Action Readiness Preflight, Source Recheck Action Pilot,
 Client Notice Draft Queue, Rule Draft Action Package, Ops Action Control Workspace UI,
 Client-safe Action Notice Preview, Outcome Observer and Reconciliation, Action Receipt
 Bundle, Field Connector Evidence Package, Default-off Action Explanation, release
-readiness를 local evidence와 release validation evidence로 닫은 latest published
+readiness를 local evidence와 release validation evidence로 닫은 previous published
 baseline입니다. 30분/120분 predev와 UI 풀테스트는 실행했고, 별도 runtime-console
 120분과 external field smoke는 실제 endpoint/credential/실기기/provider 조건이 없어
 실행하지 않은 영역으로 계속 분리합니다.
 
-## 직전 공개 기준: v3.7.0 Source Release Baseline
+## 이전 공개 기준: v3.7.0 Source Release Baseline
 
 v3.7.0은 Site-Aware Operations and Safe Runbook Control Plane source-only 공개 릴리즈입니다. 이 기준은
 Site / Source Group Contract, Site-Aware Source Registry Projection, Site Health
@@ -4378,7 +4384,7 @@ Readiness, Runbook Template Contract, Runbook Instance Ledger, Approval Ticket
 Workflow, Site Operations Workspace UI, Client Notice by Site/View Group,
 Rule/VA What-if by Site, Field Evidence Attachment, Limited Safe Execution Pilot,
 Outcome Reconciliation, Export / Handoff Bundle, release readiness를 local evidence와
-함께 닫은 직전 published baseline입니다. 120분 longrun은 AGENTS 7.6.2 직접 조건이
+함께 닫은 historical published baseline입니다. 120분 longrun은 AGENTS 7.6.2 직접 조건이
 충족되지 않아 조건부 미실행이며 external field smoke는 실제 endpoint/credential/실기기/provider 조건이 없어
 실행하지 않은 영역으로 계속 분리합니다.
 

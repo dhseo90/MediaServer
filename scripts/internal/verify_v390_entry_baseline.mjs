@@ -42,8 +42,8 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v390-entry-baseline";
 const currentVersion = "3.9.0";
 const currentRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";
-const latestPublishedTag = "v3.8.0";
-const latestPublishedBaseline = "v3.8.0 Operator-Gated Action Pilot & Outcome Loop";
+const latestPublishedTag = "v3.9.0";
+const latestPublishedBaseline = currentRoadmap;
 const targetScript = "verify_v390_entry_baseline.mjs";
 
 const files = {
@@ -73,7 +73,7 @@ check("source version is v3.9.0 and CMake matches", () => {
   assertIncludes(files.cmake, `project(media_server VERSION ${currentVersion} LANGUAGES CXX)`, "CMake project version");
 });
 
-check("public entry docs separate current source v3.9.0 and latest published v3.8.0", () => {
+check("public entry docs align current source v3.9.0 and latest published v3.9.0", () => {
   const docs = [
     {
       label: "README.md",
@@ -107,10 +107,10 @@ check("public entry docs separate current source v3.9.0 and latest published v3.
   }
 });
 
-check("development backlog records v3.9 roadmap, status, review gate, v3.8 history, and scoped follow-up boundary", () => {
+check("development backlog records v3.9 published roadmap, status, review gate, v3.8 history, and scoped follow-up boundary", () => {
   for (const snippet of [
     "현재 소스 버전: `3.9.0`",
-    "최신 공개 GitHub Release: `v3.8.0`",
+    "최신 공개 GitHub Release: `v3.9.0`",
     `현재 source roadmap: \`${currentRoadmap}\``,
     `최신 published baseline: \`${latestPublishedBaseline}\``,
     `## 현재 source roadmap: ${currentRoadmap}`,
@@ -118,7 +118,8 @@ check("development backlog records v3.9 roadmap, status, review gate, v3.8 histo
     "| Foundation | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | VERSION/docs/backlog/source roadmap 정렬 |",
     "| Foundation | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 |",
     "## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop",
-    "## 최신 공개 기준: v3.8.0 Source Release Baseline",
+    "## 최신 공개 기준: v3.9.0 Source Release Baseline",
+    "## 직전 공개 기준: v3.8.0 Source Release Baseline",
     "후속 이슈는 현재 source tree와 현재 v3.9 스텝 범위 안에서",
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");
@@ -204,9 +205,9 @@ check("release records and evidence index track v3.9 source baseline boundary", 
   }
 });
 
-check("release metadata verifier expects v3.9 source and v3.8 latest published boundary", () => {
+check("release metadata verifier expects v3.9 source and latest published boundary", () => {
   for (const snippet of [
-    'const latestPublishedTag = "v3.8.0";',
+    'const latestPublishedTag = "v3.9.0";',
     'const currentRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";',
     "publishedMode ? \"published-release\" : \"local-release-metadata\"",
     "Default mode checks local release metadata only",
@@ -215,11 +216,11 @@ check("release metadata verifier expects v3.9 source and v3.8 latest published b
   }
 });
 
-check("UI asset policy records v3.9 source and v3.8 published baseline boundary", () => {
+check("UI asset policy records v3.9 published and v3.8 previous baseline boundary", () => {
   for (const snippet of [
     "현재 source tree는 `v3.9.0`",
-    "최신 공개 GitHub Release는 `v3.8.0` Operator-Gated Action Pilot & Outcome Loop",
-    "직전 `v3.7.0`",
+    "최신 공개 GitHub Release는 `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation",
+    "직전 `v3.8.0`",
     "UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다",
     "image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는",
   ]) {
@@ -240,7 +241,7 @@ check("script inventory explicitly tracks v3.9 entry baseline script", () => {
 
 check("SAFE-196 canonical source baseline no-overclaim boundary", () => {
   const currentSourceAligned = version === currentVersion && files.cmake.includes(`VERSION ${currentVersion}`);
-  const publishedBaselineSeparated = latestPublishedTag === "v3.8.0" && files.releaseRecords.includes("v390 Step 1 entry baseline final");
+  const publishedBaselineSeparated = latestPublishedTag === "v3.9.0" && files.releaseRecords.includes("v390 Step 1 entry baseline final");
   const executionPassClaimed = !(files.releaseRecords.includes("feature discovery/dev") && files.releaseRecords.includes("not-run-by-this-command"));
   const safe196BoundaryObserved = currentSourceAligned && publishedBaselineSeparated && files.projectInventory.includes("SAFE-196");
   const ops163BaselineObserved = safe196BoundaryObserved;
