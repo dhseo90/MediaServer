@@ -59,7 +59,7 @@ const expected = {
     "source-offer-checklist",
   ],
   rc: [
-    "verify-predev",
+    "verify-v390-server-longrun",
     "verify-va-runtime-console-longrun",
     "rc-release-checklist",
     "rc-artifact-archive",
