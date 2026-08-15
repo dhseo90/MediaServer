@@ -37,8 +37,8 @@
 
 - current source: `v3.9.1` (`VERSION=3.9.1`)
 - latest published: v3.9.0
-- fresh full test: clean-clone 1~4차는 source/environment/clone-origin gate FAIL, 5차는 36 feature gate PASS 뒤 30분 ignored YOLO model 누락 FAIL
-- release action: source correction commit `7f3e9dc9`, `63d59839`, `6f9ad88e` 완료; push·PR·main merge·tag·GitHub Release 미실행
+- fresh full test: 1~6차 FAIL 이력 보존. 7차 GitHub clean-clone `./test_release.sh`는 source `2882bb35`에서 local acceptance PASS
+- release action: source `2882bb35`는 `origin/v3.9.1`에 있음. PR·main merge·tag·GitHub Release·published metadata는 미실행
 
 | Evidence | 상태 | 결속/위치 | 사용 범위 |
 | --- | --- | --- | --- |
@@ -50,7 +50,9 @@
 | v3.9.1 fresh release acceptance 3차 | FAIL | source `6f9ad88e`; sandbox loopback listen `EPERM`으로 feature gate 12 중단 | 환경 제한으로 확인; 30분/UI/120분 미실행; clone 580 MiB/2,067 files cleanup 완료 |
 | v3.9.1 fresh release acceptance 4차 | FAIL | source `6f9ad88e`; sandbox 밖 non-symlink clone에서 feature gate 28 `release-metadata` 중단 | local clone origin이 filesystem path라 GitHub repository 해석 불가; clone 596 MiB/2,085 files cleanup 완료 |
 | v3.9.1 fresh release acceptance 5차 | FAIL | source `6f9ad88e`; GitHub origin 복원, preflight/build/36 feature gate PASS 뒤 30분 integrated smoke 417초 실패 | Git ignored `models/yolo11n.onnx` 누락; codec 8개 PASS, AI-dependent 4개 FAIL, UI/Policy/120분 미실행 |
-| v3.9.1 test AI asset bootstrap | contract/live URL PASS / full test pending | common launcher가 fixed Ultralytics URL+SHA 모델 다운로드, canonical COCO labels SHA, atomic publish/readback을 소유; launcher contract 22/22, 기본 URL 10.4 MB download와 model/label SHA·80 labels readback PASS, 10 MiB 임시 root cleanup PASS | 새 clean commit full test 전 준비 보정이며 actual 30분/UI/120분 PASS를 대체하지 않음 |
+| v3.9.1 test AI asset bootstrap | contract/live URL PASS | common launcher가 fixed Ultralytics URL+SHA 모델 다운로드, canonical COCO labels SHA, atomic publish/readback을 소유; launcher contract 22/22 | 7차 actual에서 bootstrap이 다시 확인됨 |
+| v3.9.1 6차 Policy v4 qualification | FAIL | source `b7a6ed1c` exact UI 424/424 뒤 `canonical-case-manifest-version-mismatch` census throw | 7차 PASS를 대체하지 않는 이력 |
+| v3.9.1 7차 GitHub clean-clone acceptance | PASS | source `2882bb35`, [bounded package](./release-artifacts/v3.9.1/test-acceptance-current-final/README.md); 30분 `118/0/2`, UI `424/424`, Policy v4 qualified 424, 120분 `448/0/2` | local release acceptance. PR/main/tag/GitHub Release/published metadata는 별도 |
 
 ## Historical v3.9.0 evidence (2026-08-14)
 

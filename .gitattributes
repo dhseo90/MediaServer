@@ -1,2 +1,4 @@
 # Release reports are immutable, hash-bound generated evidence.
 docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md whitespace=-blank-at-eol
+docs/release-artifacts/v3.9.1/test-acceptance-current-final/report.md whitespace=-blank-at-eol
+docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/ui-fulltest-qualification/report.md whitespace=-blank-at-eof

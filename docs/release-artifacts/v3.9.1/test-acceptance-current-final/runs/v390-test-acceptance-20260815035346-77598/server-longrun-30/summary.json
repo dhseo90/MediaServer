@@ -1,0 +1,2002 @@
+{
+  "schema": "media-server.v390-server-longrun.v2",
+  "runId": "v390-server-longrun-20260815040625-84749",
+  "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30",
+  "sourceProvenance": {
+    "commitSha": "2882bb3594c87c3aa0d24d6bc8d45825a0054e92",
+    "branch": "v3.9.1",
+    "worktreeClean": false,
+    "worktreeStatusSha256": "16c55f9ed64739ed3f510aacff1011c4d838b822bb6b88ebc3ac8f3642e26987",
+    "capturedAt": "2026-08-15T04:46:08.829Z"
+  },
+  "durationMinutes": 30,
+  "runStartedAt": "2026-08-15T04:06:25.155Z",
+  "runEndedAt": "2026-08-15T04:46:08.796Z",
+  "durationEvidence": {
+    "schema": "media-server.v390-monotonic-duration-evidence.v1",
+    "clockSource": "process.hrtime.bigint-monotonic",
+    "fixtureMode": false,
+    "requestedMinutes": 30,
+    "requestedSeconds": 1800,
+    "runnerStartedMonotonicNs": "1806887219564666",
+    "runnerEndedMonotonicNs": "1809272770710875",
+    "runnerElapsedNs": "2385551146209",
+    "runnerElapsedMilliseconds": 2385551.146209,
+    "runnerElapsedSeconds": 2385.551146209,
+    "delegated": {
+      "schema": "media-server.predev-monotonic-duration.v1",
+      "clockSource": "bash-SECONDS-monotonic",
+      "startedSeconds": 0,
+      "endedSeconds": 2381,
+      "elapsedSeconds": 2381,
+      "requestedSoakSeconds": 1800,
+      "durationSec": 2381
+    },
+    "eligibleRealDuration": true,
+    "validationErrors": []
+  },
+  "iterationEvidence": {
+    "schema": "media-server.v390-iteration-evidence.v1",
+    "valid": true,
+    "errors": [],
+    "ledger": {
+      "schema": "media-server.predev-soak-iteration-ledger.v1",
+      "source": "explicit-step-ledger-not-max-inference",
+      "observedIterations": 22,
+      "iterations": [
+        {
+          "iteration": 1,
+          "cases": [
+            {
+              "caseId": "soak-1-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-1-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-1-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-1-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-1-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 2,
+          "cases": [
+            {
+              "caseId": "soak-2-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-2-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-2-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-2-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-2-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 3,
+          "cases": [
+            {
+              "caseId": "soak-3-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-3-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-3-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-3-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-3-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 4,
+          "cases": [
+            {
+              "caseId": "soak-4-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-4-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-4-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-4-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-4-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 5,
+          "cases": [
+            {
+              "caseId": "soak-5-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-5-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-5-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-5-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-5-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 6,
+          "cases": [
+            {
+              "caseId": "soak-6-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-6-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-6-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-6-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-6-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 7,
+          "cases": [
+            {
+              "caseId": "soak-7-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-7-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-7-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-7-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-7-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 8,
+          "cases": [
+            {
+              "caseId": "soak-8-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-8-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-8-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-8-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-8-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 9,
+          "cases": [
+            {
+              "caseId": "soak-9-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-9-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-9-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-9-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-9-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 10,
+          "cases": [
+            {
+              "caseId": "soak-10-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-10-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-10-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-10-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-10-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 11,
+          "cases": [
+            {
+              "caseId": "soak-11-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-11-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-11-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-11-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-11-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 12,
+          "cases": [
+            {
+              "caseId": "soak-12-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-12-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-12-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-12-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-12-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 13,
+          "cases": [
+            {
+              "caseId": "soak-13-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-13-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-13-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-13-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-13-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 14,
+          "cases": [
+            {
+              "caseId": "soak-14-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-14-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-14-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-14-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-14-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 15,
+          "cases": [
+            {
+              "caseId": "soak-15-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-15-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-15-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-15-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-15-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 16,
+          "cases": [
+            {
+              "caseId": "soak-16-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-16-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-16-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-16-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-16-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 17,
+          "cases": [
+            {
+              "caseId": "soak-17-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-17-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-17-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-17-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-17-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 18,
+          "cases": [
+            {
+              "caseId": "soak-18-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-18-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-18-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-18-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-18-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 19,
+          "cases": [
+            {
+              "caseId": "soak-19-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-19-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-19-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-19-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-19-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 20,
+          "cases": [
+            {
+              "caseId": "soak-20-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-20-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-20-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-20-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-20-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 21,
+          "cases": [
+            {
+              "caseId": "soak-21-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-21-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-21-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-21-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-21-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        },
+        {
+          "iteration": 22,
+          "cases": [
+            {
+              "caseId": "soak-22-va-events",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-22-event-post-schema",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-22-event-post-recovery",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-22-redaction",
+              "result": "pass"
+            },
+            {
+              "caseId": "soak-22-runtime-idle",
+              "result": "pass"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "delegatedSteps": [
+    {
+      "name": "build",
+      "result": "skip"
+    },
+    {
+      "name": "server-start-queue-256",
+      "result": "pass"
+    },
+    {
+      "name": "integrated-smoke",
+      "result": "pass"
+    },
+    {
+      "name": "external-turn-hard-gate",
+      "result": "skip"
+    },
+    {
+      "name": "soak-1-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-1-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-1-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-1-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-1-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-2-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-2-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-2-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-2-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-2-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-3-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-3-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-3-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-3-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-3-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-4-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-4-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-4-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-4-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-4-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-5-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-5-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-5-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-5-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-5-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-6-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-6-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-6-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-6-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-6-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-7-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-7-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-7-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-7-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-7-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-8-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-8-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-8-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-8-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-8-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-9-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-9-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-9-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-9-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-9-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-10-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-10-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-10-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-10-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-10-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-11-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-11-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-11-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-11-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-11-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-12-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-12-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-12-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-12-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-12-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-13-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-13-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-13-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-13-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-13-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-14-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-14-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-14-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-14-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-14-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-15-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-15-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-15-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-15-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-15-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-16-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-16-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-16-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-16-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-16-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-17-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-17-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-17-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-17-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-17-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-18-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-18-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-18-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-18-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-18-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-19-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-19-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-19-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-19-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-19-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-20-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-20-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-20-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-20-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-20-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-21-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-21-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-21-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-21-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-21-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "soak-22-va-events",
+      "result": "pass"
+    },
+    {
+      "name": "soak-22-event-post-schema",
+      "result": "pass"
+    },
+    {
+      "name": "soak-22-event-post-recovery",
+      "result": "pass"
+    },
+    {
+      "name": "soak-22-redaction",
+      "result": "pass"
+    },
+    {
+      "name": "soak-22-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "main-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "server-start-queue-2",
+      "result": "pass"
+    },
+    {
+      "name": "event-post-queue",
+      "result": "pass"
+    },
+    {
+      "name": "queue-runtime-idle",
+      "result": "pass"
+    },
+    {
+      "name": "ports-clean",
+      "result": "pass"
+    },
+    {
+      "name": "summary-report",
+      "result": "pass"
+    }
+  ],
+  "result": "PASS",
+  "stopOnFirstFail": true,
+  "failedPhase": "",
+  "failedCase": "",
+  "exitCode": 0,
+  "ports": {
+    "http": 51644,
+    "rtsp": 51645,
+    "allocation": "runner-owned-ephemeral-loopback"
+  },
+  "authorization": {
+    "status": "not-required",
+    "source": "canonical-parent-runner",
+    "userLauncher": ""
+  },
+  "outputDir": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30",
+  "summaryPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/summary.json",
+  "reportPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/report.md",
+  "cleanup": {
+    "status": "PASS",
+    "verificationSource": "pid-port-artifact-before-after-observation",
+    "serverStopped": true,
+    "portsClean": true,
+    "temporaryArtifactsRemoved": true,
+    "removedTemporaryArtifacts": [
+      "/tmp/media_server_predev-1786766786-84842"
+    ],
+    "preservedArtifacts": [],
+    "measurement": {
+      "schema": "media-server.v390-cleanup-measurement.v1",
+      "processes": [
+        {
+          "pid": 84863,
+          "commandIdentity": "build-gst-onnx/media_server",
+          "aliveBefore": true,
+          "aliveAfter": false,
+          "ownedPorts": [
+            51645,
+            51644
+          ]
+        },
+        {
+          "pid": 13449,
+          "commandIdentity": "build-gst-onnx/media_server",
+          "aliveBefore": true,
+          "aliveAfter": false,
+          "ownedPorts": [
+            51645,
+            51644
+          ]
+        }
+      ],
+      "ports": [
+        {
+          "port": 51644,
+          "listenerPidsBefore": [
+            84863,
+            13449
+          ],
+          "listenerPidsAfter": [],
+          "bindableAfter": true
+        },
+        {
+          "port": 51645,
+          "listenerPidsBefore": [
+            84863,
+            13449
+          ],
+          "listenerPidsAfter": [],
+          "bindableAfter": true
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "/tmp/media_server_predev-1786766786-84842",
+          "contained": true,
+          "existedBefore": true,
+          "bytesBefore": 609332,
+          "existsAfter": false,
+          "bytesAfter": 0,
+          "removedBytes": 609332
+        }
+      ]
+    },
+    "measurementErrors": [],
+    "checks": [
+      {
+        "check": "server-pid-84863-stopped",
+        "status": "PASS",
+        "pid": 84863,
+        "commandIdentity": "build-gst-onnx/media_server",
+        "ownedPorts": [
+          51645,
+          51644
+        ],
+        "aliveBefore": true,
+        "aliveAfter": false
+      },
+      {
+        "check": "server-pid-13449-stopped",
+        "status": "PASS",
+        "pid": 13449,
+        "commandIdentity": "build-gst-onnx/media_server",
+        "ownedPorts": [
+          51645,
+          51644
+        ],
+        "aliveBefore": true,
+        "aliveAfter": false
+      },
+      {
+        "check": "port-51644-clean",
+        "status": "PASS",
+        "port": 51644,
+        "listenerPidsBefore": [
+          84863,
+          13449
+        ],
+        "listenerPidsAfter": [],
+        "bindableAfter": true
+      },
+      {
+        "check": "port-51645-clean",
+        "status": "PASS",
+        "port": 51645,
+        "listenerPidsBefore": [
+          84863,
+          13449
+        ],
+        "listenerPidsAfter": [],
+        "bindableAfter": true
+      },
+      {
+        "check": "delegated-ports-clean-step",
+        "status": "PASS",
+        "observed": "pass"
+      },
+      {
+        "check": "predev-temporary-workdir-removed",
+        "status": "PASS",
+        "path": "/tmp/media_server_predev-1786766786-84842",
+        "contained": true,
+        "existedBefore": true,
+        "bytesBefore": 609332,
+        "existsAfter": false,
+        "bytesAfter": 0,
+        "removedBytes": 609332
+      }
+    ]
+  },
+  "delegatedFailure": null,
+  "delegatedPhaseLedger": {
+    "schema": "media-server.v390-delegated-phase-ledger.v1",
+    "valid": true,
+    "expectedCaseIds": [
+      "build",
+      "server-start-queue-256",
+      "integrated-smoke",
+      "external-turn-hard-gate",
+      "soak-1-va-events",
+      "soak-1-event-post-schema",
+      "soak-1-event-post-recovery",
+      "soak-1-redaction",
+      "soak-1-runtime-idle",
+      "soak-2-va-events",
+      "soak-2-event-post-schema",
+      "soak-2-event-post-recovery",
+      "soak-2-redaction",
+      "soak-2-runtime-idle",
+      "soak-3-va-events",
+      "soak-3-event-post-schema",
+      "soak-3-event-post-recovery",
+      "soak-3-redaction",
+      "soak-3-runtime-idle",
+      "soak-4-va-events",
+      "soak-4-event-post-schema",
+      "soak-4-event-post-recovery",
+      "soak-4-redaction",
+      "soak-4-runtime-idle",
+      "soak-5-va-events",
+      "soak-5-event-post-schema",
+      "soak-5-event-post-recovery",
+      "soak-5-redaction",
+      "soak-5-runtime-idle",
+      "soak-6-va-events",
+      "soak-6-event-post-schema",
+      "soak-6-event-post-recovery",
+      "soak-6-redaction",
+      "soak-6-runtime-idle",
+      "soak-7-va-events",
+      "soak-7-event-post-schema",
+      "soak-7-event-post-recovery",
+      "soak-7-redaction",
+      "soak-7-runtime-idle",
+      "soak-8-va-events",
+      "soak-8-event-post-schema",
+      "soak-8-event-post-recovery",
+      "soak-8-redaction",
+      "soak-8-runtime-idle",
+      "soak-9-va-events",
+      "soak-9-event-post-schema",
+      "soak-9-event-post-recovery",
+      "soak-9-redaction",
+      "soak-9-runtime-idle",
+      "soak-10-va-events",
+      "soak-10-event-post-schema",
+      "soak-10-event-post-recovery",
+      "soak-10-redaction",
+      "soak-10-runtime-idle",
+      "soak-11-va-events",
+      "soak-11-event-post-schema",
+      "soak-11-event-post-recovery",
+      "soak-11-redaction",
+      "soak-11-runtime-idle",
+      "soak-12-va-events",
+      "soak-12-event-post-schema",
+      "soak-12-event-post-recovery",
+      "soak-12-redaction",
+      "soak-12-runtime-idle",
+      "soak-13-va-events",
+      "soak-13-event-post-schema",
+      "soak-13-event-post-recovery",
+      "soak-13-redaction",
+      "soak-13-runtime-idle",
+      "soak-14-va-events",
+      "soak-14-event-post-schema",
+      "soak-14-event-post-recovery",
+      "soak-14-redaction",
+      "soak-14-runtime-idle",
+      "soak-15-va-events",
+      "soak-15-event-post-schema",
+      "soak-15-event-post-recovery",
+      "soak-15-redaction",
+      "soak-15-runtime-idle",
+      "soak-16-va-events",
+      "soak-16-event-post-schema",
+      "soak-16-event-post-recovery",
+      "soak-16-redaction",
+      "soak-16-runtime-idle",
+      "soak-17-va-events",
+      "soak-17-event-post-schema",
+      "soak-17-event-post-recovery",
+      "soak-17-redaction",
+      "soak-17-runtime-idle",
+      "soak-18-va-events",
+      "soak-18-event-post-schema",
+      "soak-18-event-post-recovery",
+      "soak-18-redaction",
+      "soak-18-runtime-idle",
+      "soak-19-va-events",
+      "soak-19-event-post-schema",
+      "soak-19-event-post-recovery",
+      "soak-19-redaction",
+      "soak-19-runtime-idle",
+      "soak-20-va-events",
+      "soak-20-event-post-schema",
+      "soak-20-event-post-recovery",
+      "soak-20-redaction",
+      "soak-20-runtime-idle",
+      "soak-21-va-events",
+      "soak-21-event-post-schema",
+      "soak-21-event-post-recovery",
+      "soak-21-redaction",
+      "soak-21-runtime-idle",
+      "soak-22-va-events",
+      "soak-22-event-post-schema",
+      "soak-22-event-post-recovery",
+      "soak-22-redaction",
+      "soak-22-runtime-idle",
+      "main-runtime-idle",
+      "server-start-queue-2",
+      "event-post-queue",
+      "queue-runtime-idle",
+      "ports-clean",
+      "summary-report"
+    ],
+    "observedCaseIds": [
+      "build",
+      "server-start-queue-256",
+      "integrated-smoke",
+      "external-turn-hard-gate",
+      "soak-1-va-events",
+      "soak-1-event-post-schema",
+      "soak-1-event-post-recovery",
+      "soak-1-redaction",
+      "soak-1-runtime-idle",
+      "soak-2-va-events",
+      "soak-2-event-post-schema",
+      "soak-2-event-post-recovery",
+      "soak-2-redaction",
+      "soak-2-runtime-idle",
+      "soak-3-va-events",
+      "soak-3-event-post-schema",
+      "soak-3-event-post-recovery",
+      "soak-3-redaction",
+      "soak-3-runtime-idle",
+      "soak-4-va-events",
+      "soak-4-event-post-schema",
+      "soak-4-event-post-recovery",
+      "soak-4-redaction",
+      "soak-4-runtime-idle",
+      "soak-5-va-events",
+      "soak-5-event-post-schema",
+      "soak-5-event-post-recovery",
+      "soak-5-redaction",
+      "soak-5-runtime-idle",
+      "soak-6-va-events",
+      "soak-6-event-post-schema",
+      "soak-6-event-post-recovery",
+      "soak-6-redaction",
+      "soak-6-runtime-idle",
+      "soak-7-va-events",
+      "soak-7-event-post-schema",
+      "soak-7-event-post-recovery",
+      "soak-7-redaction",
+      "soak-7-runtime-idle",
+      "soak-8-va-events",
+      "soak-8-event-post-schema",
+      "soak-8-event-post-recovery",
+      "soak-8-redaction",
+      "soak-8-runtime-idle",
+      "soak-9-va-events",
+      "soak-9-event-post-schema",
+      "soak-9-event-post-recovery",
+      "soak-9-redaction",
+      "soak-9-runtime-idle",
+      "soak-10-va-events",
+      "soak-10-event-post-schema",
+      "soak-10-event-post-recovery",
+      "soak-10-redaction",
+      "soak-10-runtime-idle",
+      "soak-11-va-events",
+      "soak-11-event-post-schema",
+      "soak-11-event-post-recovery",
+      "soak-11-redaction",
+      "soak-11-runtime-idle",
+      "soak-12-va-events",
+      "soak-12-event-post-schema",
+      "soak-12-event-post-recovery",
+      "soak-12-redaction",
+      "soak-12-runtime-idle",
+      "soak-13-va-events",
+      "soak-13-event-post-schema",
+      "soak-13-event-post-recovery",
+      "soak-13-redaction",
+      "soak-13-runtime-idle",
+      "soak-14-va-events",
+      "soak-14-event-post-schema",
+      "soak-14-event-post-recovery",
+      "soak-14-redaction",
+      "soak-14-runtime-idle",
+      "soak-15-va-events",
+      "soak-15-event-post-schema",
+      "soak-15-event-post-recovery",
+      "soak-15-redaction",
+      "soak-15-runtime-idle",
+      "soak-16-va-events",
+      "soak-16-event-post-schema",
+      "soak-16-event-post-recovery",
+      "soak-16-redaction",
+      "soak-16-runtime-idle",
+      "soak-17-va-events",
+      "soak-17-event-post-schema",
+      "soak-17-event-post-recovery",
+      "soak-17-redaction",
+      "soak-17-runtime-idle",
+      "soak-18-va-events",
+      "soak-18-event-post-schema",
+      "soak-18-event-post-recovery",
+      "soak-18-redaction",
+      "soak-18-runtime-idle",
+      "soak-19-va-events",
+      "soak-19-event-post-schema",
+      "soak-19-event-post-recovery",
+      "soak-19-redaction",
+      "soak-19-runtime-idle",
+      "soak-20-va-events",
+      "soak-20-event-post-schema",
+      "soak-20-event-post-recovery",
+      "soak-20-redaction",
+      "soak-20-runtime-idle",
+      "soak-21-va-events",
+      "soak-21-event-post-schema",
+      "soak-21-event-post-recovery",
+      "soak-21-redaction",
+      "soak-21-runtime-idle",
+      "soak-22-va-events",
+      "soak-22-event-post-schema",
+      "soak-22-event-post-recovery",
+      "soak-22-redaction",
+      "soak-22-runtime-idle",
+      "main-runtime-idle",
+      "server-start-queue-2",
+      "event-post-queue",
+      "queue-runtime-idle",
+      "ports-clean",
+      "summary-report"
+    ],
+    "expectedCount": 120,
+    "observedCount": 120,
+    "duplicateCaseIds": [],
+    "counts": {
+      "expected": {
+        "pass": 118,
+        "fail": 0,
+        "skip": 2,
+        "notRun": 0
+      },
+      "observed": {
+        "pass": 118,
+        "fail": 0,
+        "skip": 2,
+        "notRun": 0
+      }
+    },
+    "phases": [
+      {
+        "parentPhase": "start-server",
+        "expectedCaseIds": [
+          "server-start-queue-256"
+        ],
+        "observedCaseIds": [
+          "server-start-queue-256"
+        ],
+        "expectedCount": 1,
+        "observedCount": 1,
+        "valid": true,
+        "failedCase": "",
+        "errors": []
+      },
+      {
+        "parentPhase": "integrated-smoke",
+        "expectedCaseIds": [
+          "integrated-smoke"
+        ],
+        "observedCaseIds": [
+          "integrated-smoke"
+        ],
+        "expectedCount": 1,
+        "observedCount": 1,
+        "valid": true,
+        "failedCase": "",
+        "errors": []
+      },
+      {
+        "parentPhase": "soak-case-loop",
+        "expectedCaseIds": [
+          "soak-1-va-events",
+          "soak-1-event-post-schema",
+          "soak-1-event-post-recovery",
+          "soak-1-redaction",
+          "soak-1-runtime-idle",
+          "soak-2-va-events",
+          "soak-2-event-post-schema",
+          "soak-2-event-post-recovery",
+          "soak-2-redaction",
+          "soak-2-runtime-idle",
+          "soak-3-va-events",
+          "soak-3-event-post-schema",
+          "soak-3-event-post-recovery",
+          "soak-3-redaction",
+          "soak-3-runtime-idle",
+          "soak-4-va-events",
+          "soak-4-event-post-schema",
+          "soak-4-event-post-recovery",
+          "soak-4-redaction",
+          "soak-4-runtime-idle",
+          "soak-5-va-events",
+          "soak-5-event-post-schema",
+          "soak-5-event-post-recovery",
+          "soak-5-redaction",
+          "soak-5-runtime-idle",
+          "soak-6-va-events",
+          "soak-6-event-post-schema",
+          "soak-6-event-post-recovery",
+          "soak-6-redaction",
+          "soak-6-runtime-idle",
+          "soak-7-va-events",
+          "soak-7-event-post-schema",
+          "soak-7-event-post-recovery",
+          "soak-7-redaction",
+          "soak-7-runtime-idle",
+          "soak-8-va-events",
+          "soak-8-event-post-schema",
+          "soak-8-event-post-recovery",
+          "soak-8-redaction",
+          "soak-8-runtime-idle",
+          "soak-9-va-events",
+          "soak-9-event-post-schema",
+          "soak-9-event-post-recovery",
+          "soak-9-redaction",
+          "soak-9-runtime-idle",
+          "soak-10-va-events",
+          "soak-10-event-post-schema",
+          "soak-10-event-post-recovery",
+          "soak-10-redaction",
+          "soak-10-runtime-idle",
+          "soak-11-va-events",
+          "soak-11-event-post-schema",
+          "soak-11-event-post-recovery",
+          "soak-11-redaction",
+          "soak-11-runtime-idle",
+          "soak-12-va-events",
+          "soak-12-event-post-schema",
+          "soak-12-event-post-recovery",
+          "soak-12-redaction",
+          "soak-12-runtime-idle",
+          "soak-13-va-events",
+          "soak-13-event-post-schema",
+          "soak-13-event-post-recovery",
+          "soak-13-redaction",
+          "soak-13-runtime-idle",
+          "soak-14-va-events",
+          "soak-14-event-post-schema",
+          "soak-14-event-post-recovery",
+          "soak-14-redaction",
+          "soak-14-runtime-idle",
+          "soak-15-va-events",
+          "soak-15-event-post-schema",
+          "soak-15-event-post-recovery",
+          "soak-15-redaction",
+          "soak-15-runtime-idle",
+          "soak-16-va-events",
+          "soak-16-event-post-schema",
+          "soak-16-event-post-recovery",
+          "soak-16-redaction",
+          "soak-16-runtime-idle",
+          "soak-17-va-events",
+          "soak-17-event-post-schema",
+          "soak-17-event-post-recovery",
+          "soak-17-redaction",
+          "soak-17-runtime-idle",
+          "soak-18-va-events",
+          "soak-18-event-post-schema",
+          "soak-18-event-post-recovery",
+          "soak-18-redaction",
+          "soak-18-runtime-idle",
+          "soak-19-va-events",
+          "soak-19-event-post-schema",
+          "soak-19-event-post-recovery",
+          "soak-19-redaction",
+          "soak-19-runtime-idle",
+          "soak-20-va-events",
+          "soak-20-event-post-schema",
+          "soak-20-event-post-recovery",
+          "soak-20-redaction",
+          "soak-20-runtime-idle",
+          "soak-21-va-events",
+          "soak-21-event-post-schema",
+          "soak-21-event-post-recovery",
+          "soak-21-redaction",
+          "soak-21-runtime-idle",
+          "soak-22-va-events",
+          "soak-22-event-post-schema",
+          "soak-22-event-post-recovery",
+          "soak-22-redaction",
+          "soak-22-runtime-idle"
+        ],
+        "observedCaseIds": [
+          "soak-1-va-events",
+          "soak-1-event-post-schema",
+          "soak-1-event-post-recovery",
+          "soak-1-redaction",
+          "soak-1-runtime-idle",
+          "soak-2-va-events",
+          "soak-2-event-post-schema",
+          "soak-2-event-post-recovery",
+          "soak-2-redaction",
+          "soak-2-runtime-idle",
+          "soak-3-va-events",
+          "soak-3-event-post-schema",
+          "soak-3-event-post-recovery",
+          "soak-3-redaction",
+          "soak-3-runtime-idle",
+          "soak-4-va-events",
+          "soak-4-event-post-schema",
+          "soak-4-event-post-recovery",
+          "soak-4-redaction",
+          "soak-4-runtime-idle",
+          "soak-5-va-events",
+          "soak-5-event-post-schema",
+          "soak-5-event-post-recovery",
+          "soak-5-redaction",
+          "soak-5-runtime-idle",
+          "soak-6-va-events",
+          "soak-6-event-post-schema",
+          "soak-6-event-post-recovery",
+          "soak-6-redaction",
+          "soak-6-runtime-idle",
+          "soak-7-va-events",
+          "soak-7-event-post-schema",
+          "soak-7-event-post-recovery",
+          "soak-7-redaction",
+          "soak-7-runtime-idle",
+          "soak-8-va-events",
+          "soak-8-event-post-schema",
+          "soak-8-event-post-recovery",
+          "soak-8-redaction",
+          "soak-8-runtime-idle",
+          "soak-9-va-events",
+          "soak-9-event-post-schema",
+          "soak-9-event-post-recovery",
+          "soak-9-redaction",
+          "soak-9-runtime-idle",
+          "soak-10-va-events",
+          "soak-10-event-post-schema",
+          "soak-10-event-post-recovery",
+          "soak-10-redaction",
+          "soak-10-runtime-idle",
+          "soak-11-va-events",
+          "soak-11-event-post-schema",
+          "soak-11-event-post-recovery",
+          "soak-11-redaction",
+          "soak-11-runtime-idle",
+          "soak-12-va-events",
+          "soak-12-event-post-schema",
+          "soak-12-event-post-recovery",
+          "soak-12-redaction",
+          "soak-12-runtime-idle",
+          "soak-13-va-events",
+          "soak-13-event-post-schema",
+          "soak-13-event-post-recovery",
+          "soak-13-redaction",
+          "soak-13-runtime-idle",
+          "soak-14-va-events",
+          "soak-14-event-post-schema",
+          "soak-14-event-post-recovery",
+          "soak-14-redaction",
+          "soak-14-runtime-idle",
+          "soak-15-va-events",
+          "soak-15-event-post-schema",
+          "soak-15-event-post-recovery",
+          "soak-15-redaction",
+          "soak-15-runtime-idle",
+          "soak-16-va-events",
+          "soak-16-event-post-schema",
+          "soak-16-event-post-recovery",
+          "soak-16-redaction",
+          "soak-16-runtime-idle",
+          "soak-17-va-events",
+          "soak-17-event-post-schema",
+          "soak-17-event-post-recovery",
+          "soak-17-redaction",
+          "soak-17-runtime-idle",
+          "soak-18-va-events",
+          "soak-18-event-post-schema",
+          "soak-18-event-post-recovery",
+          "soak-18-redaction",
+          "soak-18-runtime-idle",
+          "soak-19-va-events",
+          "soak-19-event-post-schema",
+          "soak-19-event-post-recovery",
+          "soak-19-redaction",
+          "soak-19-runtime-idle",
+          "soak-20-va-events",
+          "soak-20-event-post-schema",
+          "soak-20-event-post-recovery",
+          "soak-20-redaction",
+          "soak-20-runtime-idle",
+          "soak-21-va-events",
+          "soak-21-event-post-schema",
+          "soak-21-event-post-recovery",
+          "soak-21-redaction",
+          "soak-21-runtime-idle",
+          "soak-22-va-events",
+          "soak-22-event-post-schema",
+          "soak-22-event-post-recovery",
+          "soak-22-redaction",
+          "soak-22-runtime-idle"
+        ],
+        "expectedCount": 110,
+        "observedCount": 110,
+        "valid": true,
+        "failedCase": "",
+        "errors": []
+      },
+      {
+        "parentPhase": "runtime-idle",
+        "expectedCaseIds": [
+          "main-runtime-idle",
+          "server-start-queue-2",
+          "event-post-queue",
+          "queue-runtime-idle"
+        ],
+        "observedCaseIds": [
+          "main-runtime-idle",
+          "server-start-queue-2",
+          "event-post-queue",
+          "queue-runtime-idle"
+        ],
+        "expectedCount": 4,
+        "observedCount": 4,
+        "valid": true,
+        "failedCase": "",
+        "errors": []
+      }
+    ],
+    "errors": []
+  },
+  "delegatedFirstFailContractSatisfied": true,
+  "failure": null,
+  "realDurationEvidence": true,
+  "longrunEvidenceStatus": "real-duration-evidence",
+  "phases": [
+    {
+      "id": "preflight",
+      "status": "PASS",
+      "command": "validate duration/output-dir/tools",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/preflight.log",
+      "summaryPath": "",
+      "tail": [
+        "durationMinutes=30",
+        "outputDir=/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30"
+      ],
+      "context": "phase=preflight; result=PASS",
+      "stdoutTail": [
+        "durationMinutes=30",
+        "outputDir=/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30"
+      ],
+      "stderrTail": [],
+      "reproductionCommand": "validate duration/output-dir/tools"
+    },
+    {
+      "id": "build",
+      "status": "PASS",
+      "command": "./server.sh build",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/build.log",
+      "summaryPath": "",
+      "tail": [
+        "[1/2] configure: /Users/dhseo/Workspace/mediaServer-v391-release-clean/build-gst-onnx (ai=1, youtube=0)",
+        "-- Configuring done (0.1s)",
+        "-- Generating done (0.0s)",
+        "-- Build files have been written to: /Users/dhseo/Workspace/mediaServer-v391-release-clean/build-gst-onnx",
+        "[2/2] build",
+        "[ 98%] Built target media_server_runtime",
+        "[100%] Built target media_server",
+        "[done] build=/Users/dhseo/Workspace/mediaServer-v391-release-clean/build-gst-onnx/media_server"
+      ],
+      "context": "phase=build; result=PASS",
+      "stdoutTail": [
+        "[1/2] configure: /Users/dhseo/Workspace/mediaServer-v391-release-clean/build-gst-onnx (ai=1, youtube=0)",
+        "-- Configuring done (0.1s)",
+        "-- Generating done (0.0s)",
+        "-- Build files have been written to: /Users/dhseo/Workspace/mediaServer-v391-release-clean/build-gst-onnx",
+        "[2/2] build",
+        "[ 98%] Built target media_server_runtime",
+        "[100%] Built target media_server",
+        "[done] build=/Users/dhseo/Workspace/mediaServer-v391-release-clean/build-gst-onnx/media_server"
+      ],
+      "stderrTail": [],
+      "reproductionCommand": "./server.sh build"
+    },
+    {
+      "id": "seed",
+      "status": "PASS",
+      "command": "write /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/seed.json",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/seed.log",
+      "summaryPath": "",
+      "tail": [
+        "seedPath=/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/seed.json"
+      ],
+      "context": "phase=seed; result=PASS",
+      "stdoutTail": [
+        "seedPath=/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/seed.json"
+      ],
+      "stderrTail": [],
+      "reproductionCommand": "write /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/seed.json"
+    },
+    {
+      "id": "start-server",
+      "status": "PASS",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/soak-case-loop.log",
+      "summaryPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json",
+      "tail": [
+        "required=server-start-queue-256",
+        "delegated=server-start-queue-256",
+        "results=server-start-queue-256:pass"
+      ],
+      "context": "delegated projection parent=start-server; status=PASS",
+      "stdoutTail": [
+        "== predev 안정화 검증 요약 ==",
+        "- 통과: 118",
+        "- 실패: 0",
+        "- 건너뜀: 2",
+        "- summary: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json",
+        "- report: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md",
+        "- report html: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html",
+        "- logs: /tmp/media_server_predev-1786766786-84842"
+      ],
+      "stderrTail": [],
+      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html"
+    },
+    {
+      "id": "integrated-smoke",
+      "status": "PASS",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/soak-case-loop.log",
+      "summaryPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json",
+      "tail": [
+        "required=integrated-smoke",
+        "delegated=integrated-smoke",
+        "results=integrated-smoke:pass"
+      ],
+      "context": "delegated projection parent=integrated-smoke; status=PASS",
+      "stdoutTail": [
+        "== predev 안정화 검증 요약 ==",
+        "- 통과: 118",
+        "- 실패: 0",
+        "- 건너뜀: 2",
+        "- summary: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json",
+        "- report: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md",
+        "- report html: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html",
+        "- logs: /tmp/media_server_predev-1786766786-84842"
+      ],
+      "stderrTail": [],
+      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html"
+    },
+    {
+      "id": "soak-case-loop",
+      "status": "PASS",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/soak-case-loop.log",
+      "summaryPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json",
+      "tail": [
+        "required=soak-<iteration>-<case>",
+        "delegated=soak-1-va-events,soak-1-event-post-schema,soak-1-event-post-recovery,soak-1-redaction,soak-1-runtime-idle,soak-2-va-events,soak-2-event-post-schema,soak-2-event-post-recovery,soak-2-redaction,soak-2-runtime-idle,soak-3-va-events,soak-3-event-post-schema,soak-3-event-post-recovery,soak-3-redaction,soak-3-runtime-idle,soak-4-va-events,soak-4-event-post-schema,soak-4-event-post-recovery,soak-4-redaction,soak-4-runtime-idle,soak-5-va-events,soak-5-event-post-schema,soak-5-event-post-recovery,soak-5-redaction,soak-5-runtime-idle,soak-6-va-events,soak-6-event-post-schema,soak-6-event-post-recovery,soak-6-redaction,soak-6-runtime-idle,soak-7-va-events,soak-7-event-post-schema,soak-7-event-post-recovery,soak-7-redaction,soak-7-runtime-idle,soak-8-va-events,soak-8-event-post-schema,soak-8-event-post-recovery,soak-8-redaction,soak-8-runtime-idle,soak-9-va-events,soak-9-event-post-schema,soak-9-event-post-recovery,soak-9-redaction,soak-9-runtime-idle,soak-10-va-events,soak-10-event-post-schema,soak-10-event-post-recovery,soak-10-redaction,soak-10-runtime-idle,soak-11-va-events,soak-11-event-post-schema,soak-11-event-post-recovery,soak-11-redaction,soak-11-runtime-idle,soak-12-va-events,soak-12-event-post-schema,soak-12-event-post-recovery,soak-12-redaction,soak-12-runtime-idle,soak-13-va-events,soak-13-event-post-schema,soak-13-event-post-recovery,soak-13-redaction,soak-13-runtime-idle,soak-14-va-events,soak-14-event-post-schema,soak-14-event-post-recovery,soak-14-redaction,soak-14-runtime-idle,soak-15-va-events,soak-15-event-post-schema,soak-15-event-post-recovery,soak-15-redaction,soak-15-runtime-idle,soak-16-va-events,soak-16-event-post-schema,soak-16-event-post-recovery,soak-16-redaction,soak-16-runtime-idle,soak-17-va-events,soak-17-event-post-schema,soak-17-event-post-recovery,soak-17-redaction,soak-17-runtime-idle,soak-18-va-events,soak-18-event-post-schema,soak-18-event-post-recovery,soak-18-redaction,soak-18-runtime-idle,soak-19-va-events,soak-19-event-post-schema,soak-19-event-post-recovery,soak-19-redaction,soak-19-runtime-idle,soak-20-va-events,soak-20-event-post-schema,soak-20-event-post-recovery,soak-20-redaction,soak-20-runtime-idle,soak-21-va-events,soak-21-event-post-schema,soak-21-event-post-recovery,soak-21-redaction,soak-21-runtime-idle,soak-22-va-events,soak-22-event-post-schema,soak-22-event-post-recovery,soak-22-redaction,soak-22-runtime-idle",
+        "results=soak-1-va-events:pass,soak-1-event-post-schema:pass,soak-1-event-post-recovery:pass,soak-1-redaction:pass,soak-1-runtime-idle:pass,soak-2-va-events:pass,soak-2-event-post-schema:pass,soak-2-event-post-recovery:pass,soak-2-redaction:pass,soak-2-runtime-idle:pass,soak-3-va-events:pass,soak-3-event-post-schema:pass,soak-3-event-post-recovery:pass,soak-3-redaction:pass,soak-3-runtime-idle:pass,soak-4-va-events:pass,soak-4-event-post-schema:pass,soak-4-event-post-recovery:pass,soak-4-redaction:pass,soak-4-runtime-idle:pass,soak-5-va-events:pass,soak-5-event-post-schema:pass,soak-5-event-post-recovery:pass,soak-5-redaction:pass,soak-5-runtime-idle:pass,soak-6-va-events:pass,soak-6-event-post-schema:pass,soak-6-event-post-recovery:pass,soak-6-redaction:pass,soak-6-runtime-idle:pass,soak-7-va-events:pass,soak-7-event-post-schema:pass,soak-7-event-post-recovery:pass,soak-7-redaction:pass,soak-7-runtime-idle:pass,soak-8-va-events:pass,soak-8-event-post-schema:pass,soak-8-event-post-recovery:pass,soak-8-redaction:pass,soak-8-runtime-idle:pass,soak-9-va-events:pass,soak-9-event-post-schema:pass,soak-9-event-post-recovery:pass,soak-9-redaction:pass,soak-9-runtime-idle:pass,soak-10-va-events:pass,soak-10-event-post-schema:pass,soak-10-event-post-recovery:pass,soak-10-redaction:pass,soak-10-runtime-idle:pass,soak-11-va-events:pass,soak-11-event-post-schema:pass,soak-11-event-post-recovery:pass,soak-11-redaction:pass,soak-11-runtime-idle:pass,soak-12-va-events:pass,soak-12-event-post-schema:pass,soak-12-event-post-recovery:pass,soak-12-redaction:pass,soak-12-runtime-idle:pass,soak-13-va-events:pass,soak-13-event-post-schema:pass,soak-13-event-post-recovery:pass,soak-13-redaction:pass,soak-13-runtime-idle:pass,soak-14-va-events:pass,soak-14-event-post-schema:pass,soak-14-event-post-recovery:pass,soak-14-redaction:pass,soak-14-runtime-idle:pass,soak-15-va-events:pass,soak-15-event-post-schema:pass,soak-15-event-post-recovery:pass,soak-15-redaction:pass,soak-15-runtime-idle:pass,soak-16-va-events:pass,soak-16-event-post-schema:pass,soak-16-event-post-recovery:pass,soak-16-redaction:pass,soak-16-runtime-idle:pass,soak-17-va-events:pass,soak-17-event-post-schema:pass,soak-17-event-post-recovery:pass,soak-17-redaction:pass,soak-17-runtime-idle:pass,soak-18-va-events:pass,soak-18-event-post-schema:pass,soak-18-event-post-recovery:pass,soak-18-redaction:pass,soak-18-runtime-idle:pass,soak-19-va-events:pass,soak-19-event-post-schema:pass,soak-19-event-post-recovery:pass,soak-19-redaction:pass,soak-19-runtime-idle:pass,soak-20-va-events:pass,soak-20-event-post-schema:pass,soak-20-event-post-recovery:pass,soak-20-redaction:pass,soak-20-runtime-idle:pass,soak-21-va-events:pass,soak-21-event-post-schema:pass,soak-21-event-post-recovery:pass,soak-21-redaction:pass,soak-21-runtime-idle:pass,soak-22-va-events:pass,soak-22-event-post-schema:pass,soak-22-event-post-recovery:pass,soak-22-redaction:pass,soak-22-runtime-idle:pass"
+      ],
+      "context": "delegated projection parent=soak-case-loop; status=PASS",
+      "stdoutTail": [
+        "== predev 안정화 검증 요약 ==",
+        "- 통과: 118",
+        "- 실패: 0",
+        "- 건너뜀: 2",
+        "- summary: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json",
+        "- report: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md",
+        "- report html: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html",
+        "- logs: /tmp/media_server_predev-1786766786-84842"
+      ],
+      "stderrTail": [],
+      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html"
+    },
+    {
+      "id": "runtime-idle",
+      "status": "PASS",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/soak-case-loop.log",
+      "summaryPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json",
+      "tail": [
+        "required=main-runtime-idle",
+        "delegated=main-runtime-idle,server-start-queue-2,event-post-queue,queue-runtime-idle",
+        "results=main-runtime-idle:pass,server-start-queue-2:pass,event-post-queue:pass,queue-runtime-idle:pass"
+      ],
+      "context": "delegated projection parent=runtime-idle; status=PASS",
+      "stdoutTail": [
+        "== predev 안정화 검증 요약 ==",
+        "- 통과: 118",
+        "- 실패: 0",
+        "- 건너뜀: 2",
+        "- summary: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json",
+        "- report: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md",
+        "- report html: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html",
+        "- logs: /tmp/media_server_predev-1786766786-84842"
+      ],
+      "stderrTail": [],
+      "reproductionCommand": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/predev-report.html"
+    },
+    {
+      "id": "cleanup",
+      "status": "PASS",
+      "command": "measured cleanup phase",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/cleanup.log",
+      "summaryPath": "",
+      "tail": [
+        "server-pid-13449-stopped=PASS",
+        "port-51644-clean=PASS",
+        "port-51645-clean=PASS",
+        "delegated-ports-clean-step=PASS",
+        "predev-temporary-workdir-removed=PASS"
+      ],
+      "context": "phase=cleanup; result=PASS",
+      "stdoutTail": [
+        "server-pid-13449-stopped=PASS",
+        "port-51644-clean=PASS",
+        "port-51645-clean=PASS",
+        "delegated-ports-clean-step=PASS",
+        "predev-temporary-workdir-removed=PASS"
+      ],
+      "stderrTail": [],
+      "reproductionCommand": "measured cleanup phase"
+    },
+    {
+      "id": "report",
+      "status": "PASS",
+      "command": "report phase",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/report.log",
+      "summaryPath": "",
+      "tail": [
+        "summaryPath=/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/summary.json",
+        "reportPath=/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/report.md"
+      ],
+      "context": "phase=report; result=PASS",
+      "stdoutTail": [
+        "summaryPath=/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/summary.json",
+        "reportPath=/Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-acceptance-20260815035346-77598/server-longrun-30/report.md"
+      ],
+      "stderrTail": [],
+      "reproductionCommand": "report phase"
+    }
+  ]
+}

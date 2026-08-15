@@ -20,20 +20,19 @@
 
 - current source: `v3.9.1` (`VERSION=3.9.1`)
 - latest published: v3.9.0
-- fresh full test: 1~5차 clean-clone 시도 FAIL; 5차는 36 feature gate PASS 뒤 30분 integrated smoke의 Git 비추적 YOLO model 누락에서 중단. 6차는 AI asset bootstrap 이후 30분 `118/0/2`와 exact UI `424/424`까지 통과했으나 Policy v4 qualification이 stale canonical `3.9.0` version mismatch에서 예외로 중단
-- release action: source correction commit `7f3e9dc9`, `63d59839`, `6f9ad88e`, `b7a6ed1c` 완료; Policy v4 current-source version rebind는 미커밋; push·PR·main merge·tag·GitHub Release 미실행
+- fresh full test: 1~6차 FAIL 이력 보존. 7차 GitHub clean-clone `./test_release.sh`는 source `2882bb3594c87c3aa0d24d6bc8d45825a0054e92`에서 exit 0, `result=PASS`
+- release action: source `2882bb35`는 이미 `origin/v3.9.1`에 push됨. PR·main merge·tag·GitHub Release·published metadata는 미실행
 
 | 영역 | 현재 결과 | 직접 evidence | 릴리즈 판정 |
 | --- | --- | --- | --- |
-| metadata/docs links | PASS | `verify-release-metadata` 18/0, `verify-docs-links` failure 0 | focused gate이며 fresh full test 대체 불가 |
-| public repository hygiene | PASS | `verify-public-repo-readiness --no-history` 8/0, 개인/임시 경로 0, raw release artifact 0 | history scan과 full test는 별도 |
-| v3.9.0 public evidence archive | PASS | `release-artifacts/v3.9.0/public-evidence-manifest.json`, bounded artifact SHA-256 검증 | published v3.9.0 historical evidence 보존 |
-| v3.9.1 clean-clone preflight/build | PASS | source `7f3e9dc9`, `63d59839`, `6f9ad88e`의 독립 clone HEAD 일치; 다섯 실행 모두 preflight/build exit 0 | 뒤 최초 실패를 대체하지 않음 |
-| v3.9.1 feature gates | PASS/과거 FAIL 보존 | 1차 readiness vocabulary FAIL, 2차 historical entry FAIL, 3차 sandbox loopback `EPERM`, 4차 local-origin metadata FAIL 뒤 5차 36개 gate 전부 PASS | 5차 source `6f9ad88e`; 이전 실패는 환경/구성 이력으로 보존 |
-| v3.9.1 30분 | FAIL | 5차 integrated smoke 417초; codec matrix 8개 PASS 뒤 ignored `models/yolo11n.onnx` 누락으로 YOLO/VA overlay, redaction, VA event, image analysis 실패 | clean-clone dependency bootstrap blocker; 실제 30분 PASS 아님 |
-| v3.9.1 UI/120분 | 6차 UI exact PASS / qualification FAIL / 120분 건너뜀 | source `b7a6ed1c`에서 exact UI `424/424` 후 `canonical-case-manifest-version-mismatch`가 census 미등록이라 uncaught exception. 120분·UI final-integrity·release PASS 미실행 | release blocker; 6차 UI 실행을 PASS로 사용 불가 |
-| test AI asset bootstrap correction | contract/live URL PASS | `media_server_prepare_user_test_ai_assets`; fixed URL/SHA, atomic model publish, canonical 80-label SHA, launcher contract `22/22`; 기본 URL 10.4 MB download와 model/label SHA·80 labels readback PASS, 10 MiB 임시 root cleanup PASS | 새 clean commit actual 재실행 전 release PASS 아님 |
-| Policy v4 current-source version rebind | focused contract PASS / actual rerun 미실행 | canonical/visual/current evidence를 `3.9.1`로 재결속. census가 `canonical-case-manifest-version-mismatch`를 `canonical-source-binding`에 배정하고 미등록 reason은 `fail-closed-incomplete-assignment`. current evidence `8/0`, actual evidence contract PASS, native exact 424/423/1/0, visual `15/0` | 새 clean commit의 `./test_release.sh` 또는 UI qualification 재실행 전 release PASS 아님 |
+| metadata/docs links | PASS | 7차 feature gate `verify-release-metadata` 18/0, `verify-docs-links` failure 0 | focused gate와 7차 full acceptance 모두 확인 |
+| public repository hygiene | PASS | 이전 focused `verify-public-repo-readiness --no-history` 8/0 | history scan은 이번 7차 명령에 없음 |
+| v3.9.0 public evidence archive | PASS | `release-artifacts/v3.9.0/public-evidence-manifest.json` | published v3.9.0 historical evidence 보존 |
+| v3.9.1 7차 local acceptance | PASS | GitHub clean-clone `./test_release.sh` START `2026-08-15T03:53:37Z` END `2026-08-15T07:21:30Z`, exit 0, `finalEvidenceEligible=true` | local release acceptance. PR/main/tag/GitHub Release/published metadata는 별도 |
+| v3.9.1 30분 | PASS | predev `118 pass / 0 fail / 2 skip`, soak 22회, real duration 2381s | 5차 YOLO 누락 FAIL 이력은 보존. 이번 결과가 현재 30분 evidence |
+| v3.9.1 UI 풀테스트 | PASS | exact `424/424`, Policy v4 `policyValidationResult=PASS`, `uiFulltestPass=true`, qualified 424 | 6차 qualification FAIL 이력은 보존. Codex 인앱 수동 UI는 not-run |
+| v3.9.1 120분 | PASS | 7.6.2 조건부 진행 후 predev `448 pass / 0 fail / 2 skip`, soak 88회, real duration 7822s | 자동 trigger 5개. 사용자 직접 120 지시가 아니라 launcher `--auto-run-120` |
+| 1~6차 실패 이력 | 보존 | 아래 1~6차 표 | 최신 7차 PASS를 대체하지 않음 |
 
 1차 clean-clone acceptance 실행 기록:
 
@@ -164,6 +163,1125 @@
 | git diff --check | 변경 파일 whitespace | pass |
 | Policy v4 evidence contract | contract fixture `sourceBinding.version`이 `3.9.0`으로 남아 적격 경로 4건이 `canonical-case-manifest-version-mismatch`. 이 파일을 고치면 SAFE-202/OPS-169 REVIEW4 digest 재결속이 필요해 이번 범위에서 유지 | fail |
 | 30분/UI/120분 재실행 | 사용자 승인 전 미실행 | fail |
+
+## v3.9.1 local release acceptance PASS (2026-08-15)
+
+7차 실행은 이전 6차와 다른 source `2882bb3594c87c3aa0d24d6bc8d45825a0054e92`의
+GitHub origin clean clone에서 `./test_release.sh`를 인자 없이 1회 실행한 결과다.
+
+| 항목 | 실제 결과 | 판정 |
+| --- | --- | --- |
+| Source | `2882bb3594c87c3aa0d24d6bc8d45825a0054e92`, branch `v3.9.1`, origin `git@github.com:dhseo90/MediaServer.git`, clone `/Users/dhseo/Workspace/mediaServer-v391-release-clean` | exact release source |
+| Command | `./test_release.sh`, 인자 없음, 동일 source 1회 | exit `0`, result PASS |
+| Build/feature | GStreamer 1.28.1 full build, feature gates 36/36 PASS | PASS |
+| 30분 | `118 PASS / 0 FAIL / 2 skip`, soak 22회, runner 2385.55s, delegated 2381s, ports 51645/51644 cleanup PASS | PASS |
+| Canonical UI | actual browser `424 attempted / 424 PASS / 0 FAIL / 0 not-run / 0 unsupported`, duration 1,400,741ms, http://127.0.0.1:58812 | PASS |
+| Policy v4 | validation PASS, eligible, qualified `424/424`, reasons 0, `uiFulltestPass=true` | PASS |
+| 120분 | 7.6.2 `조건부 진행`, trigger 5개; `448 PASS / 0 FAIL / 2 skip`, soak 88회, runner 7827.81s, delegated 7822s | PASS |
+| Cleanup | UI server, longrun runtimes, owned PID/ports/runtime roots | PASS |
+| Final integrity | `finalEvidenceEligible=true`, `automatedAcceptanceStatus=eligible` | PASS |
+| Build binding | binary SHA-256 `637f8880cb3363111320e2d31682f0e592666ac32c25f13182225d7bed3c91d0`, 17,528,176 bytes | source-bound |
+| Evidence | [test-acceptance-current-final](./release-artifacts/v3.9.1/test-acceptance-current-final/README.md), top summary SHA-256 `6e931015c70eb411282a7f883e20f1a4e6c5f2a21daf96eefb96ada828bb8d88` | 65-file/11.7MiB bounded package. 309MB per-case UI는 Git 제외 |
+| Token/elapsed | token start/end/consumed `manual-not-available`; wall time 12,519s (03:53:37Z–07:21:30Z) | 토큰 미집계를 PASS로 대체하지 않음 |
+| 잔여 close-out | PR, main merge, signed tag, GitHub Release, published metadata | 각 실제 실행 전에는 완료 아님 |
+
+`ui-final-integrity` stage는 release suite에서 not selected이며, 대신 top-level
+`final-integrity`가 PASS다. producer 쪽 `uiFulltestPass=false` /
+`policyV4Qualification=not-eligible-task-6-parent-contract`는 부모 contract 표기고,
+별도 qualifier가 424건을 적격으로 닫았다.
+
+### 안정화 테스트 개별 항목 (7차 GitHub clean-clone)
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| launcher-contract-01 | four root launchers are executable zero-option entrypoints. `verify-v390-user-test-launchers-contract` pass 22/0 | pass | contract-only, actual 30/UI/120 not-run-by-contract |
+| launcher-contract-02 | common launcher owns output, contract preflight, sanitization, and exact delegation | pass |  |
+| launcher-contract-03 | user launcher bootstraps checksum-bound AI assets before actual test delegation | pass |  |
+| launcher-contract-04 | server launchers use OS temp while UI and release use distinct repository roots | pass |  |
+| launcher-contract-05 | standalone UI verifies the exact source manifest before environment bootstrap | pass |  |
+| launcher-contract-06 | standalone UI source-contract failure cannot reach the acceptance environment | pass |  |
+| launcher-contract-07 | 30-minute launcher delegates only the runner-owned 30-minute suite | pass |  |
+| launcher-contract-08 | 120-minute launcher invocation is recorded as direct user authorization | pass |  |
+| launcher-contract-09 | server launchers preserve suite-specific first failure and later not-run evidence | pass |  |
+| launcher-contract-10 | release launcher falls back to the failed feature-gate check testcase ID | pass |  |
+| launcher-contract-11 | UI launcher prints exact canonical fields and fails closed on a false gate | pass |  |
+| launcher-contract-12 | UI launcher fails closed and prints explicit blanks when canonical summary path is missing | pass |  |
+| launcher-contract-13 | UI launcher prints every canonical gate blank when the top acceptance summary is absent | pass |  |
+| launcher-contract-14 | UI launcher builds current source before exact 424 environment and Policy v4 stages | pass |  |
+| launcher-contract-15 | UI launcher build failure never reaches bootstrap or browser execution | pass |  |
+| launcher-contract-16 | UI launcher fail-stop keeps Policy v4 not-run and still cleans up | pass |  |
+| launcher-contract-17 | actual UI suite rejects an OS temp artifact root before environment bootstrap | pass |  |
+| launcher-contract-18 | release launcher records 120 minutes as not-required without a trigger | pass |  |
+| launcher-contract-19 | release launcher automatically runs 120 minutes only after a trigger | pass |  |
+| launcher-contract-20 | AGENTS 7.6.2 change classifier covers every automatic 120-minute area | pass |  |
+| launcher-contract-21 | media-path ICE classification requires an independent path token | pass |  |
+| launcher-contract-22 | lower runners expose automatic UI suite and conditional 120 source contracts | pass |  |
+| ai-asset-bootstrap | Ultralytics yolo11n.onnx 10.4MB download SHA `634279b40c07c6391472c51ad45b81ebc48706a9a1fe72dd3396322acd0c053b`; coco.names SHA `bd17f1ee35d5f3c862a4894605855abbb9dda4b0621fdb0ac4c2c8c7bb7e730a` | pass | Git-ignored model; 6차 YOLO 누락 FAIL 이후 bootstrap 경로 |
+| preflight | clean clone source `2882bb35`, GitHub origin, non-/tmp path, canonical command/evidence 경계. exit 0 | pass |  |
+| build | `./server.sh build` GStreamer 1.28.1, `media_server` 100%, binary SHA-256 `637f8880cb3363111320e2d31682f0e592666ac32c25f13182225d7bed3c91d0`, 17,528,176 bytes | pass |  |
+| feature-gates-01-code-comments | `./server.sh verify-code-comments` files 800, missing headers 0, english-only 0 | pass |  |
+| feature-gates-02-ui-native-exact-cases-contract | `./server.sh verify-v390-ui-native-exact-cases-contract` canonical 424, positive 423, negative 1, unsupported 0, pass 60/0 | pass | contract only |
+| feature-gates-03-stabilization-release-readiness | `./server.sh verify-v390-stabilization-release-readiness` local gate wiring PASS. uiFulltest/longrun not-run-by-this-command | pass |  |
+| feature-gates-04-entry-baseline | `./server.sh verify-v390-entry-baseline` current source 3.9.1, latest published v3.9.0 | pass | 1~2차 실패 이력 후 최종 pass |
+| feature-gates-05-feature-completion-inventory | `./server.sh verify-v390-feature-completion-inventory` | pass |  |
+| feature-gates-06-user-review-gate | `./server.sh verify-v390-user-review-gate` V390-CAND-001..010 closed | pass |  |
+| feature-gates-07-manual-ui-evidence | `./server.sh verify-manual-ui-evidence` | pass | 문서 gate이며 실제 UI 대체 아님 |
+| feature-gates-08-evidence-test-gate-prep | `./server.sh verify-v390-evidence-test-gate-prep` | pass |  |
+| feature-gates-09-onvif-credential-provider-status | `./server.sh verify-v390-onvif-credential-provider-status` no credential write. 실기기 호출 없음 | pass | field smoke 아님 |
+| feature-gates-10-onvif-live-import-persist-decision | `./server.sh verify-v390-onvif-live-import-persist-decision` import-draft notSaved:true | pass | field smoke 아님 |
+| feature-gates-11-vlm-rule-suggestion-draft-bridge | `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge` no auto apply | pass |  |
+| feature-gates-12-vlm-incident-rule-provenance | `./server.sh verify-v390-vlm-incident-rule-provenance` forged/duplicate no-write | pass | 3차 sandbox EPERM 이력 후 최종 pass |
+| feature-gates-13-vlm-evaluation-promotion-guard | `./server.sh verify-v390-vlm-evaluation-promotion-guard` runtimeVlmCallPerformed=false | pass |  |
+| feature-gates-14-vlm-promotion-trust-boundary | `./server.sh verify-v390-vlm-promotion-trust-boundary` HTTP 14, structural 7 | pass |  |
+| feature-gates-15-backup-recovery-handoff-validation | `./server.sh verify-v390-backup-recovery-handoff-validation` productionRestorePerformed=false | pass |  |
+| feature-gates-16-action-execution-deferral-decision | `./server.sh verify-v390-action-execution-deferral-decision` no sourceRecheck/clientNotice/ruleApply | pass |  |
+| feature-gates-17-deferred-product-owner-signoff | `./server.sh verify-v390-deferred-product-owner-signoff` decisions 5 | pass |  |
+| feature-gates-18-conditional-field-ai-decisions | `./server.sh verify-v390-conditional-field-ai-decisions` fieldSmokeExecuted=false | pass | 실기기/provider 미실행 경계를 검증한 gate PASS |
+| feature-gates-19-reid-readiness-consistency | `./server.sh verify-v390-reid-readiness-consistency` HTTP 10, C++ matrices 2 | pass |  |
+| feature-gates-20-onvif-source-view-atomicity | `./server.sh verify-v390-onvif-source-view-atomicity` cases 19, paired-write rollback | pass | 실기기 아님 |
+| feature-gates-21-structure-stabilization-handoff | `./server.sh verify-v390-structure-stabilization-handoff` | pass |  |
+| feature-gates-22-structure-stabilization-readiness | `./server.sh verify-v390-structure-stabilization-readiness` owners 10, targets 2, SCC 0 | pass |  |
+| feature-gates-23-external-field-smoke-no-device-closure | `./server.sh verify-v390-external-field-smoke-no-device-closure` targets 3, executionStatus=conditional-not-run, fieldPassClaimed=false, releasePassClaimed=false | pass | 실기기/STUN-TURN 미실행을 닫는 gate. field smoke PASS 아님 |
+| feature-gates-24-truthfulness-status-vocabulary | `./server.sh verify-v390-truthfulness-status-vocabulary` | pass |  |
+| feature-gates-25-analysis-registry-durable-write | `./server.sh verify-v390-analysis-registry-durable-write` | pass |  |
+| feature-gates-26-ui-policy-v4-producer-contract | `./server.sh verify-v390-ui-policy-v4-producer-contract` | pass | contract only |
+| feature-gates-27-ui-visual-evidence-contract | `./server.sh verify-v390-ui-visual-evidence-contract` pass 15/0, screens 10, variants 80 | pass | contract only |
+| feature-gates-28-release-metadata | `./server.sh verify-release-metadata` current 3.9.1, latest published v3.9.0, pass 18/0, published metadata external-not-checked | pass | 4차 local-origin FAIL 이력 후 GitHub origin에서 최종 pass |
+| feature-gates-29-docs-links | `./server.sh verify-docs-links` md 203, local links 939, failures 0 | pass |  |
+| feature-gates-30-docs-ui-assets | `./server.sh verify-docs-ui-assets` 10/0 | pass |  |
+| feature-gates-31-feature-implementation-evidence | `./server.sh verify-feature-implementation-evidence` semantic 986/986, negative 15/15 | pass | 실행 PASS 아님 |
+| feature-gates-32-project-inventory | `./server.sh verify-project-inventory` featureRows 986 | pass |  |
+| feature-gates-33-feature-inventory-coverage | `./server.sh verify-feature-inventory-coverage` covered 986/986, pass 7/0 | pass |  |
+| feature-gates-34-release-evidence-index | `./server.sh verify-release-evidence-index` | pass |  |
+| feature-gates-35-script-inventory | `./server.sh verify-script-inventory` | pass |  |
+| feature-gates-36-git-diff-check | `git diff --check` exit 0 | pass |  |
+| ui-environment-bootstrap | throwaway server/auth roles/Playwright storage-state, http://127.0.0.1:58812 | pass |  |
+| ui-server-cleanup | exact UI throwaway server stop, ports clean | pass |  |
+| longrun-120-decision | AGENTS 7.6.2 conditionMet=true, 조건부 진행, trigger 5개, executionDecision=run | pass | 자동 120 실행 근거 |
+| acceptance-cleanup | child cleanup verified, temporaryArtifactsRemoved=true | pass |  |
+| acceptance-report | summary.json/report.md 기록, result PASS | pass |  |
+| final-integrity | `./server.sh verify-v390-final-evidence-integrity` PASS, finalEvidenceEligible=true | pass |  |
+
+### 30분 테스트 개별 항목 (7차)
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| server-start-queue-256 | run_server_foreground , 0s | pass |  |
+| integrated-smoke | `./server.sh test --no-start --skip-external --include-rules --include-rule-ui --include-va-events --include-image-analysis --include-redaction` exit 0, 543s. 관찰된 하위 구간: file H264/AAC, file H265/AAC, local RTSP H265/Opus, local RTSP H264/PCMU, local RTSP H264/PCMA, local WHIP, local HTTP URI H264/AAC, YOLO/VA overlay, person mosaic image/live, VA tracking events, static image analysis+tracking category. 포트 rtsp=51645 http=51644 | pass | 5차 YOLO 누락 FAIL 이후 같은 구간 최종 pass |
+| soak-1-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-1-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 4s | pass |  |
+| soak-1-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-1-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-1-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-2-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:51644 | pass |  |
+| soak-2-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-2-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-2-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-2-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-3-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-3-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-3-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-3-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-3-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-4-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:51644 | pass |  |
+| soak-4-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-4-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 1s | pass |  |
+| soak-4-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-4-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-5-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-5-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-5-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-5-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-5-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-6-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:51644 | pass |  |
+| soak-6-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-6-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-6-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-6-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-7-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-7-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-7-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-7-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-7-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-8-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:51644 | pass |  |
+| soak-8-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-8-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-8-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-8-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-9-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-9-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-9-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-9-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-9-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-10-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-10-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-10-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-10-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-10-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-11-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:51644 | pass |  |
+| soak-11-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-11-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-11-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-11-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-12-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-12-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-12-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-12-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-12-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-13-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:51644 | pass |  |
+| soak-13-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-13-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-13-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-13-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-14-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-14-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-14-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-14-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-14-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-15-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-15-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-15-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-15-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-15-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-16-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-16-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-16-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-16-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-16-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-17-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:51644 | pass |  |
+| soak-17-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-17-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-17-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-17-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-18-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-18-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-18-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-18-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-18-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-19-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-19-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-19-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-19-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-19-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-20-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:51644 | pass |  |
+| soak-20-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-20-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-20-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-20-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-21-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-21-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-21-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-21-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-21-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-22-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:51644 | pass |  |
+| soak-22-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-22-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-22-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s. 내부 static-redaction은 --live-only로 제외되며 이 스텝 자체는 live-va-redaction pass | pass |  |
+| soak-22-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| main-runtime-idle | runtime idle check , 0s | pass |  |
+| server-start-queue-2 | run_server_foreground , 0s | pass |  |
+| event-post-queue | MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:51644 ./server.sh verify-event-post --mode queue , 3s | pass |  |
+| queue-runtime-idle | runtime idle check , 0s | pass |  |
+| ports-clean | lsof predev ports , 0s | pass |  |
+| summary-report | ./server.sh summarize-reports /tmp/media_server_*summary*.json --output /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current- , 1s | pass |  |
+
+### 120분 테스트 개별 항목 (7차)
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| server-start-queue-256 | run_server_foreground , 0s | pass |  |
+| integrated-smoke | `./server.sh test --no-start --skip-external --include-rules --include-rule-ui --include-va-events --include-image-analysis --include-redaction` exit 0, 536s. 포트 rtsp=50820 http=50819. 30분과 동일 codec/YOLO/redaction/VA/image 구간 후 soak 88회 | pass |  |
+| soak-1-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-1-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-1-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-1-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-1-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-2-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-2-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-2-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-2-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-2-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-3-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-3-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-3-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-3-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-3-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-4-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-4-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-4-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-4-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-4-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-5-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-5-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-5-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-5-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-5-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-6-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-6-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-6-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-6-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-6-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-7-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-7-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-7-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-7-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-7-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-8-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-8-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-8-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-8-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-8-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-9-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-9-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-9-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-9-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-9-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-10-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-10-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-10-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-10-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-10-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-11-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-11-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-11-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-11-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-11-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-12-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-12-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-12-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 5s | pass |  |
+| soak-12-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-12-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-13-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-13-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-13-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-13-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-13-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-14-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-14-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-14-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-14-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-14-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-15-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-15-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-15-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-15-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-15-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-16-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-16-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-16-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-16-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-16-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-17-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-17-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-17-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-17-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-17-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-18-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-18-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-18-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-18-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-18-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-19-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-19-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-19-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-19-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-19-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-20-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-20-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-20-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-20-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-20-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-21-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-21-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 4s | pass |  |
+| soak-21-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-21-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-21-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-22-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-22-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-22-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-22-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-22-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-23-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-23-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 4s | pass |  |
+| soak-23-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-23-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-23-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-24-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-24-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-24-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-24-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-24-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-25-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-25-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-25-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-25-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-25-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-26-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-26-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-26-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-26-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-26-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-27-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-27-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-27-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-27-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-27-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-28-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-28-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-28-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-28-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-28-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-29-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-29-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-29-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-29-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-29-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-30-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-30-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-30-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-30-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-30-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-31-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-31-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-31-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-31-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-31-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-32-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-32-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-32-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-32-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-32-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-33-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-33-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-33-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-33-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-33-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-34-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-34-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-34-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-34-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-34-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-35-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-35-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-35-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-35-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-35-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-36-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-36-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-36-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-36-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-36-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-37-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-37-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-37-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-37-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-37-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-38-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-38-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-38-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-38-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-38-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-39-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-39-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-39-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-39-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-39-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-40-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-40-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-40-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-40-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-40-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-41-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-41-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-41-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-41-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-41-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-42-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-42-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-42-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-42-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-42-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-43-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-43-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-43-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-43-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-43-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-44-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-44-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-44-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-44-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-44-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-45-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-45-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-45-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-45-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-45-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-46-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-46-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-46-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-46-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-46-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-47-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-47-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-47-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-47-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-47-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-48-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-48-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-48-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-48-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-48-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-49-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-49-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-49-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-49-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-49-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-50-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-50-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-50-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-50-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-50-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-51-va-events | `./server.sh verify-va-events --duration 30` exit 0, 35s, http://127.0.0.1:50819 | pass |  |
+| soak-51-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-51-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-51-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-51-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-52-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-52-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-52-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-52-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-52-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-53-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-53-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-53-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-53-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-53-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-54-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-54-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-54-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-54-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-54-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-55-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-55-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-55-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-55-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-55-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-56-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-56-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-56-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-56-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-56-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-57-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-57-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-57-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-57-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-57-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-58-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-58-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-58-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-58-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-58-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-59-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-59-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-59-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-59-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-59-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-60-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-60-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-60-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-60-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-60-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-61-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-61-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-61-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-61-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-61-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-62-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-62-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-62-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-62-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-62-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-63-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-63-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-63-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-63-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-63-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-64-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-64-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-64-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-64-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-64-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-65-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-65-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-65-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-65-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-65-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-66-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-66-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-66-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-66-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-66-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-67-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-67-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-67-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-67-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-67-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-68-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-68-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-68-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-68-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-68-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-69-va-events | `./server.sh verify-va-events --duration 30` exit 0, 31s, http://127.0.0.1:50819 | pass |  |
+| soak-69-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-69-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-69-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-69-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-70-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-70-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-70-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-70-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-70-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-71-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-71-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-71-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-71-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-71-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-72-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-72-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 4s | pass |  |
+| soak-72-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-72-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-72-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-73-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-73-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-73-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-73-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-73-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-74-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-74-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-74-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-74-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-74-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-75-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-75-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-75-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-75-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-75-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-76-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-76-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-76-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-76-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-76-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-77-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-77-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-77-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-77-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-77-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-78-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-78-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 4s | pass |  |
+| soak-78-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-78-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-78-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-79-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-79-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-79-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-79-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-79-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-80-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-80-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-80-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-80-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 31s | pass |  |
+| soak-80-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-81-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-81-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-81-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-81-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-81-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-82-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-82-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-82-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-82-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-82-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-83-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-83-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-83-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-83-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-83-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-84-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-84-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-84-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-84-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-84-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-85-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-85-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-85-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-85-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-85-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-86-va-events | `./server.sh verify-va-events --duration 30` exit 0, 34s, http://127.0.0.1:50819 | pass |  |
+| soak-86-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-86-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 4s | pass |  |
+| soak-86-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 33s | pass |  |
+| soak-86-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-87-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-87-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 3s | pass |  |
+| soak-87-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-87-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 35s | pass |  |
+| soak-87-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| soak-88-va-events | `./server.sh verify-va-events --duration 30` exit 0, 33s, http://127.0.0.1:50819 | pass |  |
+| soak-88-event-post-schema | `./server.sh verify-event-post --mode schema` exit 0, 4s | pass |  |
+| soak-88-event-post-recovery | `./server.sh verify-event-post --mode recovery` exit 0, 3s | pass |  |
+| soak-88-redaction | `./server.sh verify-redaction --live-only --duration 12` exit 0, 34s | pass |  |
+| soak-88-runtime-idle | runtime-idle, resourceActiveStreams=1 registryActiveStreams=1, 0s | pass |  |
+| main-runtime-idle | runtime idle check , 0s | pass |  |
+| server-start-queue-2 | run_server_foreground , 0s | pass |  |
+| event-post-queue | MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:50819 ./server.sh verify-event-post --mode queue , 3s | pass |  |
+| queue-runtime-idle | runtime idle check , 0s | pass |  |
+| ports-clean | lsof predev ports , 0s | pass |  |
+| summary-report | ./server.sh summarize-reports /tmp/media_server_*summary*.json --output /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current- , 1s | pass |  |
+
+### UI 풀테스트 개별 항목 (7차 exact 424)
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| UI-001 | actual browser Playwright, case `UI-001`, route `/login`, role `anonymous`, viewport 390x844, theme `light`, action `/login`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7fd94541cfd93392...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-002 | actual browser Playwright, case `UI-002`, route `/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/setup`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8c0e38509702cae9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-003 | actual browser Playwright, case `UI-003`, route `/login`, role `anonymous`, viewport 390x844, theme `light`, action `/login`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9c1c0789b4e57868...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-004 | actual browser Playwright, case `UI-004`, route `/password/change`, role `operator`, viewport 390x844, theme `light`, action `/password/change`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d9c26287f150e541...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-005 | actual browser Playwright, case `UI-005`, route `/ops/home`, role `operator`, viewport 390x844, theme `light`, action `/ops/home`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`280721d03a47f2a6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-007 | actual browser Playwright, case `UI-007`, route `/invite/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/invite/setup`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7c5ae33d2aff2157...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-008 | actual browser Playwright, case `UI-008`, route `/client/request-access`, role `anonymous`, viewport 390x844, theme `light`, action `/client/request-access`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`48a92412a161e7c9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-009 | actual browser Playwright, case `UI-009`, route `/ops/home`, role `operator`, viewport 390x844, theme `light`, action `/ops/home`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`16c234547ed71953...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-010 | actual browser Playwright, case `UI-010`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9c0820b62b8f4ad6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-011 | actual browser Playwright, case `UI-011`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`890ac27171e38acd...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-012 | actual browser Playwright, case `UI-012`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`959af85801675a37...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-013 | actual browser Playwright, case `UI-013`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d3b327892dbd8ab2...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-014 | actual browser Playwright, case `UI-014`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`aa2d6a59dfdacac8...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-015 | actual browser Playwright, case `UI-015`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4fe692770a66a3bf...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-016 | actual browser Playwright, case `UI-016`, route `/client/dashboard`, role `viewer`, viewport 390x844, theme `light`, action `/client/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f029bf450024f1d4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-017 | actual browser Playwright, case `UI-017`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`cdef3c4df3e86ae2...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-018 | actual browser Playwright, case `UI-018`, route `/lab`, role `operator`, viewport 390x844, theme `light`, action `/lab`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a1ce57a137c506d2...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-019 | actual browser Playwright, case `UI-019`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f8515ec5aee15e51...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-020 | actual browser Playwright, case `UI-020`, route `/ops/dashboard`, role `operator`, viewport 1440x900, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`98059bdf0cfb2b24...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-021 | actual browser Playwright, case `UI-021`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4780946617ddef14...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-022 | actual browser Playwright, case `UI-022`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f8ab5ecb18788dbb...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-023 | actual browser Playwright, case `UI-023`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c79839f284d9458d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-024 | actual browser Playwright, case `UI-024`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`80bb38159dc86f65...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-025 | actual browser Playwright, case `UI-025`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ed8cf660983b5a5f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-026 | actual browser Playwright, case `UI-026`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ebc66c88235e02a5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-027 | actual browser Playwright, case `UI-027`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`eb2ba9f1083bb288...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-028 | actual browser Playwright, case `UI-028`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2d74c558ebe0a9e3...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-029 | actual browser Playwright, case `UI-029`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4990427b438c6366...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-030 | actual browser Playwright, case `UI-030`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5af46925bdb90762...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-031 | actual browser Playwright, case `UI-031`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`6f5a4b8c9e75dcf7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-032 | actual browser Playwright, case `UI-032`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a3aee19c195c52b6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-033 | actual browser Playwright, case `UI-033`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e06a7e3e2ba126a4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-034 | actual browser Playwright, case `UI-034`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4b4ad39a740f40d5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-035 | actual browser Playwright, case `UI-035`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0d46fdae54af2c0e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-036 | actual browser Playwright, case `UI-036`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`212d37f5a4ca8f9e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-037 | actual browser Playwright, case `UI-037`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5193bdcd82d7fcf9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-038 | actual browser Playwright, case `UI-038`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`3845ec14ef689be7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-039 | actual browser Playwright, case `UI-039`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`faba5c8b6ffb7197...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-040 | actual browser Playwright, case `UI-040`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d1da9a64d7efa134...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-041 | actual browser Playwright, case `UI-041`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`3a3bfd5ee77a96cb...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-042 | actual browser Playwright, case `UI-042`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`3afcae155446a870...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-043 | actual browser Playwright, case `UI-043`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f13f7ed9004a2140...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-044 | actual browser Playwright, case `UI-044`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`60cf00a44bbdbc55...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-045 | actual browser Playwright, case `UI-045`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9960ee9f4edc421c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-046 | actual browser Playwright, case `UI-046`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9141c53f5f6d3d3b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-047 | actual browser Playwright, case `UI-047`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`92956b323e11917a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-048 | actual browser Playwright, case `UI-048`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`fd3249d3b4079cee...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-049 | actual browser Playwright, case `UI-049`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`bb46aa2f858b6810...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-050 | actual browser Playwright, case `UI-050`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`35a70d28062251ea...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-051 | actual browser Playwright, case `UI-051`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9ac20bd6a5ad6093...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-052 | actual browser Playwright, case `UI-052`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`70a5048d60d632e7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-053 | actual browser Playwright, case `UI-053`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9136688173f4431f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-054 | actual browser Playwright, case `UI-054`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0b8f9a6fee636c62...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-055 | actual browser Playwright, case `UI-055`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`44ebeec2fcf69590...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-056 | actual browser Playwright, case `UI-056`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ae32f7b484a751b2...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-057 | actual browser Playwright, case `UI-057`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ea189954377bb941...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-058 | actual browser Playwright, case `UI-058`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ef563e3d8fd179e7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-059 | actual browser Playwright, case `UI-059`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`29f7dc5e8948a74a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-060 | actual browser Playwright, case `UI-060`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c868779d0732518c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-061 | actual browser Playwright, case `UI-061`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`864834793e057575...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-062 | actual browser Playwright, case `UI-062`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4324c8d966ec8469...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-063 | actual browser Playwright, case `UI-063`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`44b5720b38b65e3e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-064 | actual browser Playwright, case `UI-064`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ef945cefc275bc49...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-065 | actual browser Playwright, case `UI-065`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f0688a8bfdc808e8...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-066 | actual browser Playwright, case `UI-066`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ddfc2caa69cb31d3...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-067 | actual browser Playwright, case `UI-067`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7f49bf20974535be...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-068 | actual browser Playwright, case `UI-068`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`cb387e19672c25ea...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-069 | actual browser Playwright, case `UI-069`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`95c71b1a3a51390a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-070 | actual browser Playwright, case `UI-070`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b9fa5d229dcfa3fc...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-071 | actual browser Playwright, case `UI-071`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`71a953ceaca55816...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-072 | actual browser Playwright, case `UI-072`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1e42bbd3bc106ca8...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-073 | actual browser Playwright, case `UI-073`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ae5d92a89bea3af9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-074 | actual browser Playwright, case `UI-074`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f90440b35e226c01...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-075 | actual browser Playwright, case `UI-075`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`3eb7a40672c3f062...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-076 | actual browser Playwright, case `UI-076`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a599966f0f230fc3...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-077 | actual browser Playwright, case `UI-077`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`da589a69537f68eb...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-078 | actual browser Playwright, case `UI-078`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`41734a884b3e6487...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-079 | actual browser Playwright, case `UI-079`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ba7288fdcef01947...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-080 | actual browser Playwright, case `UI-080`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`fe3d285f5e0ef8a5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-081 | actual browser Playwright, case `UI-081`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`173d4d87bbbcf125...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-082 | actual browser Playwright, case `UI-082`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`31f515ac4d783caa...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-083 | actual browser Playwright, case `UI-083`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`705f2b0c73582ddd...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-084 | actual browser Playwright, case `UI-084`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`326822a0edb536b8...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-085 | actual browser Playwright, case `UI-085`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`723403689e463a84...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-086 | actual browser Playwright, case `UI-086`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`fddad822c2c472aa...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-087 | actual browser Playwright, case `UI-087`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0890af965f233d62...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-088 | actual browser Playwright, case `UI-088`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d44e0d7425006e48...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-089 | actual browser Playwright, case `UI-089`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2fea575c30c84f99...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-090 | actual browser Playwright, case `UI-090`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8ee3e100b4277ab5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-091 | actual browser Playwright, case `UI-091`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`64f557302e830edf...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-092 | actual browser Playwright, case `UI-092`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a15a444b68745900...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-093 | actual browser Playwright, case `UI-093`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ca54b2310c0052b3...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-094 | actual browser Playwright, case `UI-094`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`abae9e0e96d5dc73...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-095 | actual browser Playwright, case `UI-095`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`40d058bd06f51f62...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-096 | actual browser Playwright, case `UI-096`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e59cb5d54348d4bf...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-097 | actual browser Playwright, case `UI-097`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f59f1db8d3c915a7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-098 | actual browser Playwright, case `UI-098`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b1d48111b92d3018...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-099 | actual browser Playwright, case `UI-099`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b40d5ebe633a22ee...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-100 | actual browser Playwright, case `UI-100`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8db135c13ae9b40c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-101 | actual browser Playwright, case `UI-101`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5e3854b39dddb648...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-102 | actual browser Playwright, case `UI-102`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`6c59d28f8f0cb17b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-103 | actual browser Playwright, case `UI-103`, route `/client/dashboard`, role `viewer`, viewport 390x844, theme `light`, action `/client/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`77b3e14fc4492c69...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-104 | actual browser Playwright, case `UI-104`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0379f0dbd3603021...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-105 | actual browser Playwright, case `UI-105`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c52804e2529949b6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-106 | actual browser Playwright, case `UI-106`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b0929a375cd4b7a6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-107 | actual browser Playwright, case `UI-107`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`816de271eedabf36...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-108 | actual browser Playwright, case `UI-108`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9bc6762fb856eca7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-109 | actual browser Playwright, case `UI-109`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`805c5d6308c2ba00...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-110 | actual browser Playwright, case `UI-110`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c63ee4093e3621b5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-111 | actual browser Playwright, case `UI-111`, route `/ops/vlm`, role `operator`, viewport 390x844, theme `light`, action `/ops/vlm`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d0fd90b5efd22afd...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-112 | actual browser Playwright, case `UI-112`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ef1ce6936a25b9cc...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-113 | actual browser Playwright, case `UI-113`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`91a1348661764067...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-114 | actual browser Playwright, case `UI-114`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`fea88fbe3d890ff6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| UI-115 | actual browser Playwright, case `UI-115`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5e9f15f9fade9880...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-004 | actual browser Playwright, case `AUTH-004`, route `/login`, role `anonymous`, viewport 390x844, theme `light`, action `/login`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`16f27add27bb50b6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-005 | actual browser Playwright, case `AUTH-005`, route `/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/setup`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`77408b520d0bb7f5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-006 | actual browser Playwright, case `AUTH-006`, route `/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/setup`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`22e7d9d44ea0e466...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-007 | actual browser Playwright, case `AUTH-007`, route `/login`, role `anonymous`, viewport 390x844, theme `light`, action `/login`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d3d0a58d2b1f65f8...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-012 | actual browser Playwright, case `AUTH-012`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9d4fbe6f2a537b86...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-013 | actual browser Playwright, case `AUTH-013`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`fb5cad6677f5e8df...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-014 | actual browser Playwright, case `AUTH-014`, route `/login`, role `anonymous`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`90a2f8ad1855a47d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-015 | actual browser Playwright, case `AUTH-015`, route `/invite/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c73dfa7a1fa56b57...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-016 | actual browser Playwright, case `AUTH-016`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ad3fec240fd65e4a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-018 | actual browser Playwright, case `AUTH-018`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`227d24b820f6c16b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-019 | actual browser Playwright, case `AUTH-019`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1690d019ff3ab957...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-020 | actual browser Playwright, case `AUTH-020`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0849e65f2c608a0d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-021 | actual browser Playwright, case `AUTH-021`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9136aeade3836cff...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-022 | actual browser Playwright, case `AUTH-022`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`96c64f36d898cb5e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-023 | actual browser Playwright, case `AUTH-023`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0e6a1d2f84d772c9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-024 | actual browser Playwright, case `AUTH-024`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`69cd525d35f6feed...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-025 | actual browser Playwright, case `AUTH-025`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9df881a9b0f2dd72...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-026 | actual browser Playwright, case `AUTH-026`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d6a29a608855f742...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-027 | actual browser Playwright, case `AUTH-027`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e970b8176d38a037...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-028 | actual browser Playwright, case `AUTH-028`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`25bf7f8aff5840a2...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-029 | actual browser Playwright, case `AUTH-029`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7d3ceb290dd0267a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-030 | actual browser Playwright, case `AUTH-030`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`16c767cf3103a99a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-033 | actual browser Playwright, case `AUTH-033`, route `/invite/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9186a7d936899327...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-034 | actual browser Playwright, case `AUTH-034`, route `/invite/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/invite/setup`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e3ff4edf41c4d4c4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-035 | actual browser Playwright, case `AUTH-035`, route `/invite/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/invite/setup`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e070365bf05cf29d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-036 | actual browser Playwright, case `AUTH-036`, route `/login`, role `anonymous`, viewport 390x844, theme `light`, action `/client/request-access`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f84e781a6f8d00d6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-037 | actual browser Playwright, case `AUTH-037`, route `/invite/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a84e6e1b95b3fe03...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-038 | actual browser Playwright, case `AUTH-038`, route `/invite/setup`, role `anonymous`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ad094117b2fe3914...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-039 | actual browser Playwright, case `AUTH-039`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/client/request-access`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4e5448eb28d38793...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| AUTH-040 | actual browser Playwright, case `AUTH-040`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`86f1aea12a9c23d4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-001 | actual browser Playwright, case `SRC-001`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2a6e389081d80442...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-002 | actual browser Playwright, case `SRC-002`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1609c4779b82cfe5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-003 | actual browser Playwright, case `SRC-003`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ee57801e52bc9d36...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-004 | actual browser Playwright, case `SRC-004`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`aa24908876edc317...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-005 | actual browser Playwright, case `SRC-005`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`30707289ac15e4ba...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-006 | actual browser Playwright, case `SRC-006`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`12190c2a815dff25...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-007 | actual browser Playwright, case `SRC-007`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d1a47529068b972e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-008 | actual browser Playwright, case `SRC-008`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`28deb74be1e0f783...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-009 | actual browser Playwright, case `SRC-009`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c56a3bb7fbe8b07d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-010 | actual browser Playwright, case `SRC-010`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`74e0a2a3779165b0...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-011 | actual browser Playwright, case `SRC-011`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e173785200017073...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-012 | actual browser Playwright, case `SRC-012`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2125c0cd25b6d9f4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-014 | actual browser Playwright, case `SRC-014`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`014506572f147d80...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-016 | actual browser Playwright, case `SRC-016`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f8cb04b275001e76...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-017 | actual browser Playwright, case `SRC-017`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a91219c00548f638...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-018 | actual browser Playwright, case `SRC-018`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4add279e409e0a7f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-019 | actual browser Playwright, case `SRC-019`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`61efa820f57576f0...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-020 | actual browser Playwright, case `SRC-020`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`18e427d0a790c43d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-021 | actual browser Playwright, case `SRC-021`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`fb6573e96c66df60...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-022 | actual browser Playwright, case `SRC-022`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2140dc1089104a54...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-023 | actual browser Playwright, case `SRC-023`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7461a016cbea19ac...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-024 | actual browser Playwright, case `SRC-024`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`72c83806838d4a18...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-025 | actual browser Playwright, case `SRC-025`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`051621ef6492208a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-026 | actual browser Playwright, case `SRC-026`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8e4ceac4cef10df9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-028 | actual browser Playwright, case `SRC-028`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5fdabcbaaec86952...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-029 | actual browser Playwright, case `SRC-029`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`891b25d3fd852ef9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-030 | actual browser Playwright, case `SRC-030`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e215098b7867f00f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-031 | actual browser Playwright, case `SRC-031`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`180adfacfbfd6978...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-032 | actual browser Playwright, case `SRC-032`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ecb27caba742e695...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-034 | actual browser Playwright, case `SRC-034`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a9a21b7323c3a1a4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-035 | actual browser Playwright, case `SRC-035`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`61ab6bd6e0786f5e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-036 | actual browser Playwright, case `SRC-036`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d9cd622195e90829...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-037 | actual browser Playwright, case `SRC-037`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`88f1dc4e2ef7c709...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-038 | actual browser Playwright, case `SRC-038`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`bb30aad5e9fa2b51...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-039 | actual browser Playwright, case `SRC-039`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`212477b79bced121...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-040 | actual browser Playwright, case `SRC-040`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`56cf31238cc19a79...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-065 | actual browser Playwright, case `SRC-065`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`3cb2403e1111e720...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-066 | actual browser Playwright, case `SRC-066`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ec53f800b30e53ac...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-067 | actual browser Playwright, case `SRC-067`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1eaf9872bbdd7538...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SRC-068 | actual browser Playwright, case `SRC-068`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8f7fcde860fa4beb...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-001 | actual browser Playwright, case `RULE-001`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4dddd72458fba196...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-002 | actual browser Playwright, case `RULE-002`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c47210a1cef926cb...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-003 | actual browser Playwright, case `RULE-003`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`51a5477c01038792...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-004 | actual browser Playwright, case `RULE-004`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`23027fa9a682404c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-005 | actual browser Playwright, case `RULE-005`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9387df8c268145d9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-006 | actual browser Playwright, case `RULE-006`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4921f0b12727ab92...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-007 | actual browser Playwright, case `RULE-007`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`24c69840ffd3e194...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-008 | actual browser Playwright, case `RULE-008`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e9f51be5a28ed183...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-009 | actual browser Playwright, case `RULE-009`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4cce4a7892c8eb91...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-010 | actual browser Playwright, case `RULE-010`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7edfeba006ce4416...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-011 | actual browser Playwright, case `RULE-011`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`42e318c886e52c68...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-012 | actual browser Playwright, case `RULE-012`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c59f775aa171dce4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-013 | actual browser Playwright, case `RULE-013`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ffced99968112e13...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-014 | actual browser Playwright, case `RULE-014`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`906bb4d6a6d53a1a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-015 | actual browser Playwright, case `RULE-015`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9da32b5999dcc450...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-016 | actual browser Playwright, case `RULE-016`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`953576cc93d4b54b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-017 | actual browser Playwright, case `RULE-017`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f4e0a31012a08f61...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-018 | actual browser Playwright, case `RULE-018`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1f82a22214b85721...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-019 | actual browser Playwright, case `RULE-019`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c22e4f2e4f0ed830...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-020 | actual browser Playwright, case `RULE-020`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`601239eac13c3b5d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-021 | actual browser Playwright, case `RULE-021`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`303ed03a38b5246d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-022 | actual browser Playwright, case `RULE-022`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`fe360f9676ae582f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-023 | actual browser Playwright, case `RULE-023`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`fcf1aa9355e7df34...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-024 | actual browser Playwright, case `RULE-024`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`39b9386fed14a0d7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-025 | actual browser Playwright, case `RULE-025`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2d28a6dd0111757a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-026 | actual browser Playwright, case `RULE-026`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1bfe3da6707af69a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-027 | actual browser Playwright, case `RULE-027`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d6838eeb47b87f01...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-028 | actual browser Playwright, case `RULE-028`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`45e30624573d4a00...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-029 | actual browser Playwright, case `RULE-029`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`92c1546ca740332f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-030 | actual browser Playwright, case `RULE-030`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1cb1f8bdd9ca0caf...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-031 | actual browser Playwright, case `RULE-031`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`37d9a21a32e19388...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-032 | actual browser Playwright, case `RULE-032`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`6b64131385712773...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-033 | actual browser Playwright, case `RULE-033`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d9cbcb1c117905a1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-034 | actual browser Playwright, case `RULE-034`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0ce44486ffbd9e16...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-035 | actual browser Playwright, case `RULE-035`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5828f961c09b95e2...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-036 | actual browser Playwright, case `RULE-036`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`dcde9a714029de62...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-037 | actual browser Playwright, case `RULE-037`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c4a0c860f3897375...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-038 | actual browser Playwright, case `RULE-038`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5f46737d38b3aa13...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-039 | actual browser Playwright, case `RULE-039`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`55e5d2b8b096f651...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-040 | actual browser Playwright, case `RULE-040`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7bb7b2e4719bc13c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-041 | actual browser Playwright, case `RULE-041`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`092c98b8234cf704...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-042 | actual browser Playwright, case `RULE-042`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2f7f14ec90cb05fd...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-043 | actual browser Playwright, case `RULE-043`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d022c2b95f2369a1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-044 | actual browser Playwright, case `RULE-044`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`237387220f0529e9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-045 | actual browser Playwright, case `RULE-045`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0949ab9d9f8c07ff...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-046 | actual browser Playwright, case `RULE-046`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5e0070bffa650802...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-047 | actual browser Playwright, case `RULE-047`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e889a61b2fa8e784...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-048 | actual browser Playwright, case `RULE-048`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c7dec3639dcc31b5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-049 | actual browser Playwright, case `RULE-049`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9f69f1964456b156...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-050 | actual browser Playwright, case `RULE-050`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`73e0e8e0ad625fc1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-051 | actual browser Playwright, case `RULE-051`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`579947eb21e8b228...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-052 | actual browser Playwright, case `RULE-052`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ff0b9516b33744e4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-053 | actual browser Playwright, case `RULE-053`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e8fc9d4103600607...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-054 | actual browser Playwright, case `RULE-054`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`bd77b706335cf16f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-055 | actual browser Playwright, case `RULE-055`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7e93ec66d4a2278e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-056 | actual browser Playwright, case `RULE-056`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`89ccb94fd4e324cf...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-057 | actual browser Playwright, case `RULE-057`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`dfe81b13672b291b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-058 | actual browser Playwright, case `RULE-058`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`147bdddad44cea57...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-059 | actual browser Playwright, case `RULE-059`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9433b0527fae777f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-060 | actual browser Playwright, case `RULE-060`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1770d6759306dcbd...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-061 | actual browser Playwright, case `RULE-061`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c81d4624b76a1914...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-062 | actual browser Playwright, case `RULE-062`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`764d5af17dc0f2bc...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-063 | actual browser Playwright, case `RULE-063`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`17989ee56fd76306...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-064 | actual browser Playwright, case `RULE-064`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`eb0a87e8c5ef64a3...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-065 | actual browser Playwright, case `RULE-065`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b832b5136303ab5b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-066 | actual browser Playwright, case `RULE-066`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d31a7862c8ec4efd...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-067 | actual browser Playwright, case `RULE-067`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8ad3abd30fa41880...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-068 | actual browser Playwright, case `RULE-068`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0436e2bcfa98cf4e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-069 | actual browser Playwright, case `RULE-069`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8b5053cdc4222be8...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-070 | actual browser Playwright, case `RULE-070`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d91d7d3c44c7d1f4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-071 | actual browser Playwright, case `RULE-071`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`bd95944fb6ab3539...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-072 | actual browser Playwright, case `RULE-072`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d0591b547f431720...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-073 | actual browser Playwright, case `RULE-073`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`de41dfabfa7ccdad...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-074 | actual browser Playwright, case `RULE-074`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0704de8f023f9b3a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-075 | actual browser Playwright, case `RULE-075`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`280be6bd7b19b6ea...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-076 | actual browser Playwright, case `RULE-076`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a1d0b154f2574828...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-077 | actual browser Playwright, case `RULE-077`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1a7a6b41ddbce1a7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-078 | actual browser Playwright, case `RULE-078`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`40df9a8e867b009a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-079 | actual browser Playwright, case `RULE-079`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`86d9708d101b90dc...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-080 | actual browser Playwright, case `RULE-080`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a1367b488bf325c5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-081 | actual browser Playwright, case `RULE-081`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d4784419d41130ef...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-082 | actual browser Playwright, case `RULE-082`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`acf3d75b76d7d790...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-083 | actual browser Playwright, case `RULE-083`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`fc399a9c3d5ded93...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-084 | actual browser Playwright, case `RULE-084`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`14f4c5b6979ecc1f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-085 | actual browser Playwright, case `RULE-085`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9457f1ed0ffc16bc...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-086 | actual browser Playwright, case `RULE-086`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`138a0510d2cc0520...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-087 | actual browser Playwright, case `RULE-087`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d35183177da7b160...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-088 | actual browser Playwright, case `RULE-088`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`06587ec0d1881b31...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-089 | actual browser Playwright, case `RULE-089`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a494a32e9b21fe32...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-090 | actual browser Playwright, case `RULE-090`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`144d260b402b3a29...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-091 | actual browser Playwright, case `RULE-091`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7219954c2abdcf1c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-092 | actual browser Playwright, case `RULE-092`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`bb032979f761782e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-093 | actual browser Playwright, case `RULE-093`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`827b44196b52dd97...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-094 | actual browser Playwright, case `RULE-094`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1e5c33241b13af8c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-095 | actual browser Playwright, case `RULE-095`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f20eddf801664c3c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-096 | actual browser Playwright, case `RULE-096`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2b0ade04d4680d9c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-097 | actual browser Playwright, case `RULE-097`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0a5d958be2a9ce4b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-098 | actual browser Playwright, case `RULE-098`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d1f0441c007134d9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-100 | actual browser Playwright, case `RULE-100`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c2e50486213805be...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-101 | actual browser Playwright, case `RULE-101`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`64ae4b40b3534d5c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-102 | actual browser Playwright, case `RULE-102`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7d86e6ddd5ede809...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-103 | actual browser Playwright, case `RULE-103`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`54b03b2d2ab404da...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-104 | actual browser Playwright, case `RULE-104`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b9c4add953c1dbfb...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| RULE-111 | actual browser Playwright, case `RULE-111`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`6a4c27377bf91580...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-001 | actual browser Playwright, case `EVT-001`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`37f9006b81cae530...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-003 | actual browser Playwright, case `EVT-003`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a32f78cece569fed...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-004 | actual browser Playwright, case `EVT-004`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ab3288e64adc1c86...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-007 | actual browser Playwright, case `EVT-007`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`84e61beaa5b53b63...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-016 | actual browser Playwright, case `EVT-016`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`939f6a0c565e380b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-017 | actual browser Playwright, case `EVT-017`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7ec42941b8612c67...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-018 | actual browser Playwright, case `EVT-018`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`47b61c2399a45a4f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-019 | actual browser Playwright, case `EVT-019`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`52091efc3d0e6026...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-020 | actual browser Playwright, case `EVT-020`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9f8c911a3ae5e703...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-021 | actual browser Playwright, case `EVT-021`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`99e143a6f3fa0543...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-022 | actual browser Playwright, case `EVT-022`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`55ee2fb28475e9e4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-023 | actual browser Playwright, case `EVT-023`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`db8198c47039566f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-024 | actual browser Playwright, case `EVT-024`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ab386f1db400a347...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-025 | actual browser Playwright, case `EVT-025`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`cba40a1897afe331...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-026 | actual browser Playwright, case `EVT-026`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`13c3478683c6ee56...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-028 | actual browser Playwright, case `EVT-028`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c6c68bd4e4ffe6b4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-030 | actual browser Playwright, case `EVT-030`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a3411b2e6e120d8c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-031 | actual browser Playwright, case `EVT-031`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`cbf937c376c22134...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-036 | actual browser Playwright, case `EVT-036`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`be49370e5b2d4d51...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-037 | actual browser Playwright, case `EVT-037`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`6954f379d2c160e5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-038 | actual browser Playwright, case `EVT-038`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`97cc007357688f79...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-041 | actual browser Playwright, case `EVT-041`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`243c62cb42040565...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-042 | actual browser Playwright, case `EVT-042`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`59943bdc36be65c6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-043 | actual browser Playwright, case `EVT-043`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`eac56ff41139a644...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-044 | actual browser Playwright, case `EVT-044`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ec80a0fb4ee4c9d1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-046 | actual browser Playwright, case `EVT-046`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`dc1f47ac4e3a8e82...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-047 | actual browser Playwright, case `EVT-047`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b117c0138a1ffc1b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-048 | actual browser Playwright, case `EVT-048`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`dfedcef436424ce1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-049 | actual browser Playwright, case `EVT-049`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7ee2888af45e20f9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-050 | actual browser Playwright, case `EVT-050`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`cb7820479ad5b732...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-051 | actual browser Playwright, case `EVT-051`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`82d956467a0bbc85...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-052 | actual browser Playwright, case `EVT-052`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`94a2a3a9ca6f0579...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-053 | actual browser Playwright, case `EVT-053`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`93bcff37f9c896b9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-054 | actual browser Playwright, case `EVT-054`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`0a4657da73eff287...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-055 | actual browser Playwright, case `EVT-055`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a269525efb61c755...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-056 | actual browser Playwright, case `EVT-056`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`7878613c174afa4f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-057 | actual browser Playwright, case `EVT-057`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`51f9c1275fb7755b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-058 | actual browser Playwright, case `EVT-058`, route `/ops/dashboard`, role `operator`, viewport 390x844, theme `light`, action `/ops/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`585532cc795dd544...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-061 | actual browser Playwright, case `EVT-061`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`16b8f9f105b53ae1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-064 | actual browser Playwright, case `EVT-064`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`548e103eb1152bde...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-065 | actual browser Playwright, case `EVT-065`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b91d81b38e720754...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-066 | actual browser Playwright, case `EVT-066`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`19d4e02ba5064424...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-067 | actual browser Playwright, case `EVT-067`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`6110127f0720d5b1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-068 | actual browser Playwright, case `EVT-068`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`18616c12ca0f4063...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-069 | actual browser Playwright, case `EVT-069`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`23f37b4b2352bac0...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-070 | actual browser Playwright, case `EVT-070`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`96253bc9a7921be6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-071 | actual browser Playwright, case `EVT-071`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`e914f44ca6a02559...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-072 | actual browser Playwright, case `EVT-072`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ff42de0ba9e1016c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| EVT-075 | actual browser Playwright, case `EVT-075`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a020c0adde064453...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-001 | actual browser Playwright, case `CLIENT-001`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`cf29e7d001d88830...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-002 | actual browser Playwright, case `CLIENT-002`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`cc435942279e6c54...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-005 | actual browser Playwright, case `CLIENT-005`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8e12c8f4a115cac8...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-006 | actual browser Playwright, case `CLIENT-006`, route `/client/dashboard`, role `viewer`, viewport 390x844, theme `light`, action `/client/dashboard`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9b2f61923ee6466a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-007 | actual browser Playwright, case `CLIENT-007`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`443f48827022ff7b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-009 | actual browser Playwright, case `CLIENT-009`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9dadb41842f350c9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-010 | actual browser Playwright, case `CLIENT-010`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1c2ffb19e2d89d06...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-011 | actual browser Playwright, case `CLIENT-011`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c8a5b9c71b256b3f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-012 | actual browser Playwright, case `CLIENT-012`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`577b3f792e81aa4d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-013 | actual browser Playwright, case `CLIENT-013`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`bd4b3c404c410ee6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-014 | actual browser Playwright, case `CLIENT-014`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8a25b42281ddfb5c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-015 | actual browser Playwright, case `CLIENT-015`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2e5cd3f3c46e0cb0...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-016 | actual browser Playwright, case `CLIENT-016`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`22cfc8601e04acc6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-017 | actual browser Playwright, case `CLIENT-017`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b26da12c27304844...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-018 | actual browser Playwright, case `CLIENT-018`, route `/client/live`, role `admin`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5a0470922836e7ce...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-019 | actual browser Playwright, case `CLIENT-019`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`37c47127e21f6642...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-020 | actual browser Playwright, case `CLIENT-020`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8616ad30c6610a23...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-021 | actual browser Playwright, case `CLIENT-021`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5696ae55b9dc478a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-022 | actual browser Playwright, case `CLIENT-022`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8ddd623fa47442e7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-023 | actual browser Playwright, case `CLIENT-023`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5f8472d1e3d1af06...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-024 | actual browser Playwright, case `CLIENT-024`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`9d42f97960bc0ce6...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-025 | actual browser Playwright, case `CLIENT-025`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`21cffcc42de901fa...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-027 | actual browser Playwright, case `CLIENT-027`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`87b8c5691826f4a7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-028 | actual browser Playwright, case `CLIENT-028`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`a104ddee7247a784...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-029 | actual browser Playwright, case `CLIENT-029`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`571974926afc150f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-031 | actual browser Playwright, case `CLIENT-031`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`4f42feb9d99b5239...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-032 | actual browser Playwright, case `CLIENT-032`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5140639016173128...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-040 | actual browser Playwright, case `CLIENT-040`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ec1d205384e91ba8...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-041 | actual browser Playwright, case `CLIENT-041`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`49fa4e371179bda5...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| CLIENT-042 | actual browser Playwright, case `CLIENT-042`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1207f3b119ef2bb4...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| MEDIA-016 | actual browser Playwright, case `MEDIA-016`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ba82df94fbc43e88...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| MEDIA-017 | actual browser Playwright, case `MEDIA-017`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ab0dc04e1262f7f1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-015 | actual browser Playwright, case `SAFE-015`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`305f5e5d4d2c3b8c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-016 | actual browser Playwright, case `SAFE-016`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`241f9844fecf5a7d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-017 | actual browser Playwright, case `SAFE-017`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`32dbbd0759821373...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-018 | actual browser Playwright, case `SAFE-018`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f83d3586b9db95ff...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-019 | actual browser Playwright, case `SAFE-019`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`6edd5731d1820e15...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-020 | actual browser Playwright, case `SAFE-020`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`32d451b28ba0c499...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-021 | actual browser Playwright, case `SAFE-021`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`1b420468f41b4982...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-024 | actual browser Playwright, case `SAFE-024`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`48943ae876285ebd...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-028 | actual browser Playwright, case `SAFE-028`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f96ac3c8d87e8b57...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-031 | actual browser Playwright, case `SAFE-031`, route `/client/live`, role `viewer`, viewport 390x844, theme `light`, action `/client/live`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`6a74439dfcb9f895...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-033 | actual browser Playwright, case `SAFE-033`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`02dc8a12c8c8afe9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-038 | actual browser Playwright, case `SAFE-038`, route `/ops/rules`, role `operator`, viewport 390x844, theme `light`, action `/ops/rules`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`74e199ba9e43b310...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-041 | actual browser Playwright, case `SAFE-041`, route `/ops/users`, role `admin`, viewport 390x844, theme `light`, action `/ops/users`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f81b0fb963e52491...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-042 | actual browser Playwright, case `SAFE-042`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`584e03558bd41a68...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-045 | actual browser Playwright, case `SAFE-045`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`314aabe12dd7e2bc...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-046 | actual browser Playwright, case `SAFE-046`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`c05caedb2df3f8f1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-047 | actual browser Playwright, case `SAFE-047`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`906e257c6c8d434a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-048 | actual browser Playwright, case `SAFE-048`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`18415d2a74c1a1af...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-049 | actual browser Playwright, case `SAFE-049`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`bc9e06b728d72c54...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-050 | actual browser Playwright, case `SAFE-050`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2e41049db171f83b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-052 | actual browser Playwright, case `SAFE-052`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b6e97d4b35adc25f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-053 | actual browser Playwright, case `SAFE-053`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`85ac08f9fe03e203...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-054 | actual browser Playwright, case `SAFE-054`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`cbbc9bd15d7672aa...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-055 | actual browser Playwright, case `SAFE-055`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`6d19724f82871f7d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-056 | actual browser Playwright, case `SAFE-056`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`eb4c4f64b23eca6b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-058 | actual browser Playwright, case `SAFE-058`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f7374e3b0b691cf3...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-059 | actual browser Playwright, case `SAFE-059`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`544579cc9eaec606...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-060 | actual browser Playwright, case `SAFE-060`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`27e68a815c0c6b45...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-061 | actual browser Playwright, case `SAFE-061`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`522bd94daa5e8423...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-062 | actual browser Playwright, case `SAFE-062`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`167571b14c9ca78f...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-065 | actual browser Playwright, case `SAFE-065`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`bb5f45e26713d8fc...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-066 | actual browser Playwright, case `SAFE-066`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`61adb0cbaf6175b2...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-067 | actual browser Playwright, case `SAFE-067`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`074ca185d237f926...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-068 | actual browser Playwright, case `SAFE-068`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8a28d9b6fc363dca...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-069 | actual browser Playwright, case `SAFE-069`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5f1931558bcc8988...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-098 | actual browser Playwright, case `SAFE-098`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`3c3874e3205a3995...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-104 | actual browser Playwright, case `SAFE-104`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d55244509cf081b9...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-105 | actual browser Playwright, case `SAFE-105`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`5aeffd5e4f27b4c7...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-106 | actual browser Playwright, case `SAFE-106`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`248eca811dd4e0de...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-107 | actual browser Playwright, case `SAFE-107`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`b5245010143f477e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-108 | actual browser Playwright, case `SAFE-108`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`8bd34103c3224b42...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-109 | actual browser Playwright, case `SAFE-109`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`368571cc4e02876c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-110 | actual browser Playwright, case `SAFE-110`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`93738203f86c1fa8...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-111 | actual browser Playwright, case `SAFE-111`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`59ade1256c1bf09e...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-117 | actual browser Playwright, case `SAFE-117`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`749e2b20b9a43c4c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-118 | actual browser Playwright, case `SAFE-118`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2528ab0cb98e471b...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-119 | actual browser Playwright, case `SAFE-119`, route `/client/events`, role `viewer`, viewport 390x844, theme `light`, action `/client/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`ba7d30dbbfb94b37...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-121 | actual browser Playwright, case `SAFE-121`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`027b244fc7171c3d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-122 | actual browser Playwright, case `SAFE-122`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`d590b7ed997b1d8d...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-129 | actual browser Playwright, case `SAFE-129`, route `/ops/sources`, role `operator`, viewport 390x844, theme `light`, action `/ops/sources`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`39dcb95d38805892...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-130 | actual browser Playwright, case `SAFE-130`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`2d08c98287ff3d57...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-131 | actual browser Playwright, case `SAFE-131`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`3a5200840c9a505c...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-132 | actual browser Playwright, case `SAFE-132`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`14eb417006690e7a...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-138 | actual browser Playwright, case `SAFE-138`, route `/ops/events`, role `operator`, viewport 390x844, theme `light`, action `/ops/events`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`f0f8aab2a13887b1...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| SAFE-140 | actual browser Playwright, case `SAFE-140`, route `/ops`, role `operator`, viewport 390x844, theme `light`, action `/ops`. 기대: canonical exact case. status=PASS, childExitCode=0, summarySha256=`84acb60c640bf450...` | pass | 6차 exact pass / qualification fail 이후 이번 qualification도 pass |
+| Policy v4 qualification | `verify-ui-fulltest-evidence-policy-v4 --require-eligible` policyValidationResult=PASS, uiFulltestPass=true, qualified 424/424, reasonCount=0, assignmentStatus=exact-one-cluster | pass | 6차 canonical-case-manifest-version-mismatch throw 이후 최종 pass |
+
+
+| 미실행/제외 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 |
+| --- | --- | --- | --- |
+| 30분 `--skip-build` | 제외 | acceptance parent가 이미 build함 | 아니오. 제품 미실행이 아니라 parent-owned build |
+| 30분 `external-turn-hard-gate` | 제외 | `--include-external-turn` 미지정. 사용자 실기기/STUN·TURN 불가 | 아니오. 제품 PASS 아님 |
+| 120분 `--skip-build` | 제외 | 동일 parent-owned build | 아니오 |
+| 120분 `external-turn-hard-gate` | 제외 | `--include-external-turn` 미지정. 사용자 실기기/STUN·TURN 불가 | 아니오. 제품 PASS 아님 |
+| 실기기 ONVIF field smoke | 제외 | 사용자 실기기 없음. `v390-external-field-smoke-no-device-closure`는 conditional-not-run / fieldPassClaimed=false를 검증한 gate | 아니오 |
+| STUN/TURN / external TURN field | 제외 | 사용자 endpoint 없음. 기본 안정 묶음에서 skip | 아니오 |
+| Codex 인앱 수동 UI 풀테스트 | 미실행 | `manualUiFulltest.status=not-run-by-this-command` | 아니오. Policy v4 적격 자동화로 대체한 범위만 PASS |
+| published metadata | 미실행 | `publishedMetadata.status=not-run-by-this-command` | 아니오 |
+| release action (push/PR/main/tag/GitHub Release/next branch) | 미실행 | `releaseAction.status=not-run-by-this-command`. 이번 요청은 테스트 1회와 보고 | 아니오 |
+
+- token start: 미집계
+- token end: 미집계
+- token consumed: 미집계
+- elapsed: 12,519s (약 3시간 28분)
+- source: launcher wall clock `START=2026-08-15T03:53:37Z` / `END=2026-08-15T07:21:30Z`
 
 ## Historical v3.9.0 릴리즈 종료 상태 (2026-08-14)
 
@@ -483,6 +1601,34 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | 미실행 항목을 결과표 PASS/FAIL에 섞기 | 실행하지 않은 30분/120분/UI/field smoke를 결과표에 조건부 통과처럼 기록 | 결과표는 pass/fail만 쓰고, 미실행/제외는 별도 표에 사유와 완료 evidence로 쓸 수 없다는 경계를 기록 | v2.8.0 |
 
 ## 버전별 테스트 결과 기록
+
+### v3.9.1
+
+7차 GitHub clean-clone `./test_release.sh` (source `2882bb35`, 2026-08-15).
+결과표는 실행한 항목만 `pass`/`fail`로 남긴다. skip/제외는 아래 미실행/제외 표.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| launcher contract | `verify-v390-user-test-launchers-contract` 22/0 | pass |
+| AI asset bootstrap | yolo11n.onnx SHA `634279b4...`, coco.names SHA `bd17f1ee...` | pass |
+| preflight | GitHub clean clone, non-/tmp, HEAD `2882bb35` | pass |
+| build | GStreamer 1.28.1, binary SHA `637f8880...` | pass |
+| feature-gates | 36/36 current feature commands | pass |
+| 30분 server longrun | `118/0/2`, soak 22, 2381s | pass |
+| UI exact 424 | actual browser 424/424 | pass |
+| Policy v4 qualification | uiFulltestPass=true, qualified 424/424 | pass |
+| 120분 decision | 7.6.2 조건부 진행, trigger 5 | pass |
+| 120분 server longrun | `448/0/2`, soak 88, 7822s | pass |
+| cleanup | child/port/temp cleanup | pass |
+| final-integrity | finalEvidenceEligible=true | pass |
+
+| 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
+| --- | --- | --- | --- |
+| external-turn-hard-gate | 30분/120분 기본 안정 묶음 TURN hard gate | 사용자 STUN/TURN 불가, `--include-external-turn` 미지정 | 예, 사용 불가 |
+| 실기기 ONVIF field smoke | 실카메라 import/live persist | 사용자 실기기 없음 | 예, 사용 불가 |
+| published metadata | `verify-release-metadata --published` | 이번 명령 범위 밖 | 예, 사용 불가 |
+| release action | PR/main/tag/GitHub Release | 사용자 미승인 | 예, 사용 불가 |
+| Codex 인앱 수동 UI | 인앱 브라우저 직접 조작 | not-run-by-this-command | 예, 사용 불가 |
 
 ### v3.9.0
 

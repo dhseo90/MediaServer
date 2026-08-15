@@ -1,0 +1,22 @@
+[pass] canonical parent, child census, Policy source, and cleanup form one run
+[pass] acceptance summary and actual eligibility
+[pass] canonical summary report and child evidence manifest are direct and hash-bound
+[pass] source provenance and command ledger are complete
+[pass] canonical command set is exact and hash-bound
+[pass] acceptance and child summary paths are contained by the current artifact root
+[pass] Policy v4 evaluation is bound to its actual source summary
+[pass] first failure record matches summary state
+[pass] recovered retry preserves its earliest first failure
+[pass] canonical artifacts contain no duplicate screenshots or video placeholders
+[pass] top-level cleanup is measured
+[pass] actual child evidence uses measured cleanup
+
+== v3.9.0 final evidence integrity summary ==
+- summary: /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current-final/summary.json
+- executionMode: actual
+- finalEvidenceEligible: true
+- uiFulltestPass: true
+- qualifiedCaseCount: 424
+- sourceCommitSha: 2882bb3594c87c3aa0d24d6bc8d45825a0054e92
+- pass: 12
+- fail: 0
