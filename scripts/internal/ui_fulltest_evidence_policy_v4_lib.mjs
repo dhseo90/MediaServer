@@ -485,7 +485,9 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
     return empty;
   }
   if (manifest.schema !== policy.sourceBinding.canonicalCaseManifestSchema) reasons.push("canonical-case-manifest-schema-mismatch");
-  if (manifest.version !== binding.version) reasons.push("canonical-case-manifest-version-mismatch");
+  if (resolveStoredSourceVersion(manifest.version) !== readRepositoryVersion()) {
+    reasons.push("canonical-case-manifest-version-mismatch");
+  }
   const manifestCases = Array.isArray(manifest.cases) ? manifest.cases : [];
   if (manifest.caseCount !== manifestCases.length) reasons.push("canonical-case-manifest-count-mismatch");
   if (manifestCases.length !== policy.suiteClosure.expectedExactUiTestIds) reasons.push("canonical-case-manifest-exact-count-mismatch");
@@ -645,6 +647,7 @@ export function refreshCanonicalCaseManifest({ canonical, implementation }) {
   });
   const projectionById = new Map(projection.map(item => [item.testId, item]));
   const refreshed = structuredClone(canonical);
+  refreshed.version = "current";
   refreshed.implementationEvidence = {
     path: refreshed.implementationEvidence?.path || "test/fixtures/project_feature_implementation_evidence.json",
     schema: implementation.schema,
@@ -1090,6 +1093,14 @@ export function sha256File(filePath) {
 
 export function sha256Text(text) {
   return crypto.createHash("sha256").update(text).digest("hex");
+}
+
+function readRepositoryVersion() {
+  return fs.readFileSync(path.join(process.cwd(), "VERSION"), "utf8").trim();
+}
+
+function resolveStoredSourceVersion(value) {
+  return String(value || "") === "current" ? readRepositoryVersion() : String(value || "");
 }
 
 function resolveContained(baseDir, candidate) {

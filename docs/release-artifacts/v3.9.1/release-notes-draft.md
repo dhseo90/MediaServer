@@ -14,6 +14,14 @@ bounded release evidence, and representative UI asset currency.
 - Prepare the Git-ignored YOLO model and canonical COCO labels before the zero-option test launchers
   delegate to build, long-run, UI, or release acceptance. The model download is pinned to an exact
   URL and SHA-256 and is published atomically only after digest verification.
+- Rebind Policy v4 canonical/visual/current UI evidence to current source `3.9.1`. A sixth
+  clean-clone run passed 30-minute `118/0/2` and exact UI `424/424`, then crashed in
+  qualification because the canonical manifest still said `3.9.0` and the reason census threw
+  instead of failing closed. The census now classifies `canonical-case-manifest-version-mismatch`
+  and returns a structured fail-closed result for unknown reasons. The Policy v4 contract
+  fixture still hardcodes `sourceBinding.version=3.9.0`; changing that file requires a
+  SAFE-202/OPS-169 REVIEW4 digest rebind and is left for a follow-up. Fresh UI qualification
+  PASS remains pending a clean-commit rerun.
 
 ## Public Repository Hygiene
 

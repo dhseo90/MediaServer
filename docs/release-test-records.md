@@ -20,8 +20,8 @@
 
 - current source: `v3.9.1` (`VERSION=3.9.1`)
 - latest published: v3.9.0
-- fresh full test: 1~5차 clean-clone 시도 FAIL; 5차는 36 feature gate PASS 뒤 30분 integrated smoke의 Git 비추적 YOLO model 누락에서 중단
-- release action: source correction commit `7f3e9dc9`, `63d59839`, `6f9ad88e` 완료; push·PR·main merge·tag·GitHub Release 미실행
+- fresh full test: 1~5차 clean-clone 시도 FAIL; 5차는 36 feature gate PASS 뒤 30분 integrated smoke의 Git 비추적 YOLO model 누락에서 중단. 6차는 AI asset bootstrap 이후 30분 `118/0/2`와 exact UI `424/424`까지 통과했으나 Policy v4 qualification이 stale canonical `3.9.0` version mismatch에서 예외로 중단
+- release action: source correction commit `7f3e9dc9`, `63d59839`, `6f9ad88e`, `b7a6ed1c` 완료; Policy v4 current-source version rebind는 미커밋; push·PR·main merge·tag·GitHub Release 미실행
 
 | 영역 | 현재 결과 | 직접 evidence | 릴리즈 판정 |
 | --- | --- | --- | --- |
@@ -31,8 +31,9 @@
 | v3.9.1 clean-clone preflight/build | PASS | source `7f3e9dc9`, `63d59839`, `6f9ad88e`의 독립 clone HEAD 일치; 다섯 실행 모두 preflight/build exit 0 | 뒤 최초 실패를 대체하지 않음 |
 | v3.9.1 feature gates | PASS/과거 FAIL 보존 | 1차 readiness vocabulary FAIL, 2차 historical entry FAIL, 3차 sandbox loopback `EPERM`, 4차 local-origin metadata FAIL 뒤 5차 36개 gate 전부 PASS | 5차 source `6f9ad88e`; 이전 실패는 환경/구성 이력으로 보존 |
 | v3.9.1 30분 | FAIL | 5차 integrated smoke 417초; codec matrix 8개 PASS 뒤 ignored `models/yolo11n.onnx` 누락으로 YOLO/VA overlay, redaction, VA event, image analysis 실패 | clean-clone dependency bootstrap blocker; 실제 30분 PASS 아님 |
-| v3.9.1 UI/120분 | 미실행 | 5차 30분 최초 실패 뒤 stop-on-first-fail 적용 | release blocker; PASS로 사용 불가 |
+| v3.9.1 UI/120분 | 6차 UI exact PASS / qualification FAIL / 120분 건너뜀 | source `b7a6ed1c`에서 exact UI `424/424` 후 `canonical-case-manifest-version-mismatch`가 census 미등록이라 uncaught exception. 120분·UI final-integrity·release PASS 미실행 | release blocker; 6차 UI 실행을 PASS로 사용 불가 |
 | test AI asset bootstrap correction | contract/live URL PASS | `media_server_prepare_user_test_ai_assets`; fixed URL/SHA, atomic model publish, canonical 80-label SHA, launcher contract `22/22`; 기본 URL 10.4 MB download와 model/label SHA·80 labels readback PASS, 10 MiB 임시 root cleanup PASS | 새 clean commit actual 재실행 전 release PASS 아님 |
+| Policy v4 current-source version rebind | focused contract PASS / actual rerun 미실행 | canonical/visual/current evidence를 `3.9.1`로 재결속. census가 `canonical-case-manifest-version-mismatch`를 `canonical-source-binding`에 배정하고 미등록 reason은 `fail-closed-incomplete-assignment`. current evidence `8/0`, actual evidence contract PASS, native exact 424/423/1/0, visual `15/0` | 새 clean commit의 `./test_release.sh` 또는 UI qualification 재실행 전 release PASS 아님 |
 
 1차 clean-clone acceptance 실행 기록:
 
@@ -122,6 +123,48 @@
 - source: Codex goal snapshot + terminal wall time
 - 임시 failure asset 16 KiB와 실패 clone 598 MiB, 2,134 files 삭제 완료
 
+6차 clean-clone acceptance 실행 기록:
+
+| 제목 | 테스트내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AI asset bootstrap | source `b7a6ed1c`에서 Git-ignored YOLO/COCO SHA 고정 준비 | pass |
+| preflight/build | clean clone preflight와 GStreamer AI build | pass |
+| feature-gates | v3.9 feature/verifier 36개 | pass |
+| 30분 안정화 | `118 PASS / 0 FAIL / 2 조건부 SKIP` | pass |
+| ui-exact-424 | exact browser `424/424`, 실패 census 0 | pass |
+| 서버·포트·임시 runtime cleanup | listener/temp cleanup | pass |
+| ui-fulltest-qualification | producer는 `VERSION=3.9.1`을 기록하고 canonical manifest는 `3.9.0`. qualifier가 `canonical-case-manifest-version-mismatch`를 생성한 뒤 census가 미등록 reason으로 throw | fail |
+| longrun-120-decision | 최초 실패 뒤 건너뜀 | fail |
+| server-longrun-120 | 최초 실패 뒤 건너뜀 | fail |
+| ui-final-integrity | 최초 실패 뒤 건너뜀 | fail |
+| 최종 release PASS | 최초 실패 뒤 건너뜀 | fail |
+
+| 미실행 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 |
+| --- | --- | --- | --- |
+| 120분 필요성 판정 | 건너뜀 | ui-fulltest-qualification 예외 | 아니오 |
+| 120분 테스트 | 건너뜀 | 최초 실패 후 stop-on-first-fail | 아니오 |
+| UI final-integrity | 건너뜀 | qualification 미완료 | 아니오 |
+| 최종 release PASS | 건너뜀 | 최초 실패 | 아니오 |
+
+- 실패 clone: 908MiB, 6,723 files 삭제 완료
+- predev/UI runtime temp 삭제 확인, 테스트 포트 listener 없음
+- 원본 `v3.9.1` 작업트리 당시 clean, push 미실행
+- 6차 exact UI `424/424`는 qualification 예외 때문에 Policy v4/`uiFulltestPass` 완료 evidence로 사용할 수 없음
+
+6차 실패 후 current-source version rebind focused 검증:
+
+| 제목 | 테스트내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Policy v4 actual evidence contract | 미등록 reason은 `fail-closed-incomplete-assignment`, `canonical-case-manifest-version-mismatch`는 `canonical-source-binding` 2건 | pass |
+| current UI evidence contract | VERSION/canonical/visual/current state exact equality와 SHA 재결속 `8/0` | pass |
+| native exact cases | `--update-manifest` 뒤 424/423/1/0 검증 | pass |
+| visual matrix contract | current VERSION 기준 `15/0` | pass |
+| Policy v4 producer/independence | producer `19/0`, independence `12/0` | pass |
+| project inventory | inventory 문구/Policy v4 contract 파일을 건드리지 않아 REVIEW4 digest 연쇄 없이 PASS | pass |
+| git diff --check | 변경 파일 whitespace | pass |
+| Policy v4 evidence contract | contract fixture `sourceBinding.version`이 `3.9.0`으로 남아 적격 경로 4건이 `canonical-case-manifest-version-mismatch`. 이 파일을 고치면 SAFE-202/OPS-169 REVIEW4 digest 재결속이 필요해 이번 범위에서 유지 | fail |
+| 30분/UI/120분 재실행 | 사용자 승인 전 미실행 | fail |
+
 ## Historical v3.9.0 릴리즈 종료 상태 (2026-08-14)
 
 이 절은 published v3.9.0의 날짜별 RED/보정 이력을 덮어쓰지 않고 당시 최종 판정을 보존합니다.
@@ -188,6 +231,7 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | Feature implementation evidence manifest | current 986개 inventory 행의 owner source, product UI route/control/state, verifier assertion, manual UI case, 30/120분 runner를 1:1 대조 | `./server.sh verify-feature-implementation-evidence`로 current manifest 986행과 source/verifier 986, exact manual UI case 424, negative fixture 11종을 확인. historical 974/984행 결과는 당시 evidence로 보존합니다. `--refresh-manifest`는 명시적 source 갱신이고 기본 검증은 read-only이며 제품/UI/장시간 실행 evidence가 아님 | v3.9.0 V390-ADD1-02 |
 | Script inventory 확인 | 새 verifier/command가 server entrypoint와 script inventory에 등록됐는지 확인 | `./server.sh verify-script-inventory` 실행 결과와 `server.sh` dispatch 확인 | v2.0.0 |
 | User test AI asset bootstrap | Git 비추적 YOLO model/COCO labels가 무옵션 30분·120분·UI·release launcher의 실제 test 위임 전에 준비되는지 확인 | `./server.sh verify-v390-user-test-launchers-contract`가 missing download, fixed SHA-256, existing verify, corrupt repair, digest mismatch no-publish/temp cleanup을 확인. 기본 Ultralytics URL의 실제 10.4 MB download와 SHA readback도 확인. Actual launcher는 `ai-asset-bootstrap` 실패 시 build/30분/UI/120분 전에 fail-stop | v3.9.1 |
+| Current UI evidence VERSION binding | Policy v4 current-source fixture가 패치 숫자를 고정하지 않고 token `current`로 `VERSION`에 결속되는지 확인 | `./server.sh verify-v390-current-ui-evidence-contract`가 canonical/visual/current state version token이 `current`인지 확인. qualifier는 token을 `VERSION`으로 해석한 뒤 비교한다. `node scripts/internal/verify_v390_ui_policy_v4_actual_evidence_contract.mjs`가 `canonical-case-manifest-version-mismatch`를 `canonical-source-binding`에 배정하고 미등록 reason은 throw 대신 `fail-closed-incomplete-assignment`를 남김. historical `3.9.0` fixture는 token이 아니므로 현재 소스로 승격되지 않음 | v3.9.1 |
 | Build | C++/UI/static asset build가 통과하는지 확인 | `./server.sh build` exit code 0 확인. 실패 후 수정했다면 최초 fail과 최종 pass를 모두 결과 기록에 남김 | v1.8.0 |
 | V390-REVIEW4-64 ordered structure execution | current `v3.9.0`에서 composition root → route/API handler → registry/domain → UI script/CSS → VLM/parser → verifier/docs 순서의 실제 구조 이동과 누적 debt 감소를 확인 | 각 Slice 구현 전에 execution ledger에 rollback/before/after/contract/test를 등록합니다. Slice 32 completion graph와 이후 current source graph를 별도 artifact로 결속하고 completion/current hash 교환·historical rewrite·current owner/include/target/SCC drift를 거부합니다. Slice PASS를 REVIEW4-65 acceptance PASS로 승격하지 않습니다 | v3.9.0 REVIEW4-64 |
 | Auth bootstrap | 초기 admin setup과 auth bootstrap policy 확인 | auth 전용 환경변수 5개가 모두 설정된 상태에서 `./server.sh verify-auth-bootstrap` 실행 | v2.0.0 |

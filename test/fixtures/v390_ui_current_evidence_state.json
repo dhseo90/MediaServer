@@ -1,22 +1,22 @@
 {
   "schema": "media-server.v390-ui-current-evidence-state.v2",
   "sourceKind": "current-not-run-state",
-  "version": "3.9.0",
+  "version": "current",
   "status": "not-run",
   "actualBrowserExecution": false,
   "uiFulltestPass": false,
   "automatedCaseCount": 0,
   "canonicalCaseManifest": {
     "path": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
-    "sha256": "eb99180530180179c632807fa2598c79f04891ac696c2be87f3e39a1b628f3fe"
+    "sha256": "66c1d6d2952d243658615067a7a1aadf3ad56b3055603cfbd8c2fbf342e401fa"
   },
   "nativeExactManifest": {
     "path": "test/fixtures/v390_ui_native_exact_cases.json",
-    "sha256": "03034063e1bdd63c3dd4d9c6227d0c1d36f58a1a430ee51c586f0d44443f9810"
+    "sha256": "8df42a6b91e2dbd5e923fec614f4ffe97fa39dc1495e8075d27086a4e58c888b"
   },
   "visualMatrixPlan": {
     "path": "test/fixtures/v390_ui_visual_matrix_plan.json",
-    "sha256": "f9a578f02725f92b943ef3e147a366d9b380ded7971305841fe2b608190d0576"
+    "sha256": "b27c3508d33ff35f1254c4a973c2465adf94cc6b6f817ee853bcadc444fd5242"
   },
   "readiness": {
     "complete": true,

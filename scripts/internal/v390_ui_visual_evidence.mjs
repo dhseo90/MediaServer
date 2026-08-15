@@ -4,6 +4,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import zlib from "node:zlib";
 
+import { currentRepositoryVersion, resolveCurrentSourceVersion } from "./current_source_version.mjs";
+
 export const visualEvidenceSchema = "media-server.ui-visual-baseline-diff.v3";
 export const browserMeasurementSchema = "media-server.ui-browser-visual-measurement.v2";
 export const visualMatrixPlanSchema = "media-server.v390-ui-visual-matrix-plan.v2";
@@ -47,9 +49,11 @@ const requiredLiveObligations = Object.freeze([
 
 export function validateVisualMatrixPlan({ plan, canonical, native }) {
   assert(plan?.schema === visualMatrixPlanSchema, "visual matrix plan schema mismatch");
-  assert(plan.version === "3.9.0", "visual matrix plan version mismatch");
+  assert(resolveCurrentSourceVersion(plan.version) === currentRepositoryVersion(),
+    "visual matrix plan version mismatch");
   assert(canonical?.schema === "media-server.ui-fulltest-canonical-case-manifest.v1", "canonical case manifest schema mismatch");
-  assert(canonical.version === plan.version, "visual plan/canonical version mismatch");
+  assert(resolveCurrentSourceVersion(canonical.version) === resolveCurrentSourceVersion(plan.version),
+    "visual plan/canonical version mismatch");
   assert(native?.schema === "media-server.v390-ui-native-exact-cases.v2", "native exact manifest schema mismatch");
   assert(equalArray(plan.viewportMatrix?.widths, requiredResponsiveWidths), "visual matrix widths must be exact 320/390/760/1180");
   assert(Number.isInteger(plan.viewportMatrix?.height) && plan.viewportMatrix.height > 0, "visual matrix height is invalid");

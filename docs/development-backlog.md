@@ -63,6 +63,29 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
   API/schema/event payload, RTSP/WebRTC media path를 변경하지 않습니다. 실제 30분/UI/120분
   PASS는 새 clean commit의 `./test_release.sh` 결과로만 판정합니다.
 
+### 2026-08-15 Policy v4 current-source version rebind
+
+상태: 구현 및 focused contract PASS, 새 clean-commit actual UI qualification/release acceptance 재실행 대기.
+
+- 6차 clean-clone은 source `b7a6ed1c`에서 AI asset bootstrap, preflight/build, feature gate 36,
+  30분 `118/0/2`, exact UI `424/424`까지 통과한 뒤 `ui-fulltest-qualification`에서 중단됐습니다.
+  producer는 `VERSION=3.9.1`을 기록하고 canonical manifest는 `3.9.0`이어서
+  `canonical-case-manifest-version-mismatch`가 발생했고, reason census가 미등록 reason을 throw해
+  120분 판정과 final-integrity가 건너뛰어졌습니다.
+- 보정은 v3.9.0 published baseline을 허용하지 않습니다. current-source fixture의
+  version 필드는 패치 숫자 대신 token `current`를 쓰고, qualifier/visual/current
+  contract가 `VERSION`으로 해석합니다. 다음 버전 bump에서 이 JSON 숫자를 다시 고치지
+  않습니다. historical `3.9.0` fixture는 token이 아니므로 현재 소스로 승격되지 않습니다.
+- `censusQualificationReasons`는 `canonical-case-manifest-version-mismatch`를
+  `canonical-source-binding`에 배정하고, 미등록 reason은 uncaught exception 대신
+  `assignmentStatus=fail-closed-incomplete-assignment`와 `unassignedReasons`를 남깁니다.
+  `verify-ui-fulltest-evidence-policy-v4`는 불완전 census를 `uiFulltestPass=false`로 닫습니다.
+- focused 검증: current evidence `8/0`, actual evidence contract PASS, native exact 424/423/1/0,
+  visual `15/0`, producer `19/0`, independence `12/0`, project inventory PASS,
+  `git diff --check` PASS. Policy v4 contract는 fixture `sourceBinding.version=3.9.0` 때문에
+  적격 경로 4건이 FAIL이며, 이 파일을 고치면 SAFE-202/OPS-169 REVIEW4 digest 재결속이
+  필요해 이번 범위에서 유지합니다. 실제 30분/UI/120분 재실행은 미실행입니다.
+
 상태: Step 1~29 기능·결정·readiness local gate는 한 차례 닫혔으나, 2026-07-11 실제 구현
 재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되었습니다. 이후 구현됐다고
 기록된 항목을 2026-07-12 다시 source-level로 감사한 결과 semantic closure, exact 424 UI

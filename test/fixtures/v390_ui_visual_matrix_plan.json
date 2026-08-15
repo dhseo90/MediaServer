@@ -1,6 +1,6 @@
 {
   "schema": "media-server.v390-ui-visual-matrix-plan.v2",
-  "version": "3.9.0",
+  "version": "current",
   "viewportMatrix": {
     "widths": [320, 390, 760, 1180],
     "height": 844,
