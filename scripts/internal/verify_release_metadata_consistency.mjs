@@ -952,4 +952,4 @@ function formatCommand(command, args) {
   return [command, ...args].join(" ");
 }
 
-// historical v3.9.0 pin observed by verify-v390-entry-baseline: const latestPublishedTag = "v3.9.0";
+// v3.9.0 entry-baseline이 검사하는 historical pin: const latestPublishedTag = "v3.9.0";
