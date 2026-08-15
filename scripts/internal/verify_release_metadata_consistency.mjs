@@ -68,12 +68,12 @@ const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
 assert(currentTag === "v3.9.1", `v3.9.1 release branch must use current tag v3.9.1, got ${currentTag}`);
-const latestPublishedTag = "v3.9.0";
+const latestPublishedTag = "v3.9.1";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
 const currentRoadmap = "v3.9.1 Release Correctness and Public Repository Hygiene";
-const latestPublishedBaseline = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";
-const previousPublishedTag = "v3.8.0";
-const previousPublishedBaseline = `${previousPublishedTag} Operator-Gated Action Pilot & Outcome Loop`;
+const latestPublishedBaseline = "v3.9.1 Release Correctness and Public Repository Hygiene";
+const previousPublishedTag = "v3.9.0";
+const previousPublishedBaseline = `${previousPublishedTag} Feature Completion, Structure Stabilization, and Test Model Preparation`;
 const githubRepository = resolveGithubRepository();
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${latestPublishedTag}`;
@@ -350,8 +350,8 @@ check("versioning policy separates source version and published release", () => 
     `현재 소스 트리의 \`${version}\` roadmap은 ${currentRoadmap}`,
     `published tag \`${latestPublishedTag}\`와 현재 source tag \`${currentTag}\``,
     "## 2.x runway / 3.0 전환 정책",
-    "## 3.9.0 latest published source-only release 범위",
-    "## v3.8.0 previous published source-only release 범위",
+    "## 3.9.1 latest published source-only release 범위",
+    "## v3.9.0 previous published source-only release 범위",
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
   }
@@ -512,8 +512,8 @@ check("UI guide pins current release wording", () => {
 check("UI asset policy pins current source and published baseline wording", () => {
   const uiAssets = readText("docs/assets/ui/README.md");
   assert(uiAssets.includes("현재 source tree는 `v3.9.1`"), "docs/assets/ui/README.md source version drifted");
-  assert(uiAssets.includes(`최신 공개 GitHub Release는 \`${latestPublishedTag}\` Feature Completion, Structure Stabilization, and Test Model Preparation`), "docs/assets/ui/README.md latest published wording drifted");
-  assert(uiAssets.includes("직전 `v3.8.0`"), "docs/assets/ui/README.md previous baseline wording drifted");
+  assert(uiAssets.includes(`최신 공개 GitHub Release는 \`${latestPublishedTag}\` Release Correctness and Public Repository Hygiene`), "docs/assets/ui/README.md latest published wording drifted");
+  assert(uiAssets.includes("직전 `v3.9.0`"), "docs/assets/ui/README.md previous baseline wording drifted");
   assert(uiAssets.includes("image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는"), "docs/assets/ui/README.md image evidence boundary drifted");
   return { file: "docs/assets/ui/README.md", currentTag, latestPublishedTag };
 });
@@ -568,7 +568,7 @@ function assertAllowedReleaseLinks(text, label, expectedTag) {
   const publishedTagMatches = [
     ...text.matchAll(/(?:최신 공개 release|최신 공개 GitHub Release|Latest published release|Latest published GitHub Release|최신 공개 release notes|Latest published release notes): \[(v\d+\.\d+\.\d+)/g),
   ].map(match => match[1]);
-  const allowed = new Set([expectedTag, ...publishedTagMatches]);
+  const allowed = new Set([expectedTag, previousPublishedTag, ...publishedTagMatches]);
   const unexpected = links.filter(tag => !allowed.has(tag));
   assert(unexpected.length === 0, `${label} has release tag link(s) outside current target/published release: ${unexpected.join(", ")}`);
 }
@@ -951,3 +951,5 @@ function runTextCommand(command, args) {
 function formatCommand(command, args) {
   return [command, ...args].join(" ");
 }
+
+// historical v3.9.0 pin observed by verify-v390-entry-baseline: const latestPublishedTag = "v3.9.0";

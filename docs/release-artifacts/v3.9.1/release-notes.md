@@ -1,8 +1,5 @@
 # Media Server v3.9.1
 
-Status: unpublished source notes. Latest GitHub Release remains
-[v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0).
-
 ## Summary
 
 v3.9.1 is a source-only patch release. It keeps the v3.9.0 product baseline and
