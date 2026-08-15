@@ -18,6 +18,7 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - 현재 소스 버전: `3.9.1`
 - v3.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 최신 공개 기준: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
 ## 한눈에 보기
 
@@ -31,25 +32,6 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
   `/ops/events` 검색, timeline, 설명, 유사 사건 lookup으로 정리합니다.
 - **제외 범위**: VMS/NVR, 장기 녹화, broad archive playback/search, VLM default-on,
   model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
-
-## v3.9.1 Source Roadmap
-
-- 최신 공개 릴리즈: `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation, source-only.
-- 현재 소스: `3.9.1` Release Correctness and Public Repository Hygiene.
-- v3.9.1 로드맵: 게시된 v3.9.0을 보존하면서 tag 이후 correctness 변경, 공개 저장소
-  hygiene, 문서 current truth, release evidence 최소화와 대표 UI asset 현재성을 정정합니다.
-- 최신 공개 기준: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation은 published baseline이며, v3.8.0 Operator-Gated Action Pilot & Outcome Loop는 직전 published baseline입니다.
-- 불변 조건: Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path는
-  요청 없이 변경하지 않습니다.
-- AI/model 경계: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B 평가 후보,
-  Gemini cloud opt-in fallback 기준이며 runtime/model bundle 배포와 default-on 승격은 제외합니다.
-
-관련 문서:
-
-- 모델 선택: [docs/vlm-model-selection.md](docs/vlm-model-selection.md)
-- PC 사양별 추천 엔진: [docs/vlm-recommendation-engine.md](docs/vlm-recommendation-engine.md)
-- 설치/연결 dry-run: [docs/vlm-install-connection-dry-run.md](docs/vlm-install-connection-dry-run.md)
-- 운영 UI 리뷰 흐름: [docs/vlm-ops-event-review-ui.md](docs/vlm-ops-event-review-ui.md)
 
 ## 실행 환경
 
@@ -120,19 +102,11 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-- 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v3.9.1 Release Correctness and Public Repository Hygiene`
 
 ## 대표 UI 미리보기
 
-README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합니다.
-개발 진단과 분석 편집 상세는 [docs/ui-guide.md](docs/ui-guide.md)에서 따로 다룹니다.
-대표 이미지는 문서용 역할 이미지입니다. UI 풀테스트 PASS 증거, GitHub Release publish
-evidence, 운영 QA registry가 섞인 재캡처를 대신하지 않습니다.
-공개 문서/대표 asset 기준은 `config/docs_ui_assets.json`과
-`./server.sh verify-docs-ui-assets`로 관리합니다. 현재 S07 public docs/assets
-refresh에서는 기존 대표 이미지를 유지하며, 새 이미지 교체는 직접 이미지 검수와
-링크/asset 검증 후 별도 기록합니다.
+README에는 대표 제품 화면만 둡니다. 상세 UI는 [docs/ui-guide.md](docs/ui-guide.md)를
+봅니다. 이 이미지는 문서용 미리보기이며 UI 풀테스트나 GitHub Release 증거가 아닙니다.
 
 **Ops Home**
 

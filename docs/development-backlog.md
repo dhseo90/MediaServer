@@ -17,30 +17,23 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 최신 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 
-### 2026-08-14 release close-out status
+### 2026-08-14 v3.9.0 historical close-out status
 
-- Source `c6b3d20a778a7a641e44decadd1ee5b416426650`의 실제 `./test_release.sh`는 full build와
-  feature gates, 30분 longrun `118 PASS / 0 FAIL / 2 skip`, canonical UI `424/424`,
-  Policy v4 eligible·qualified `424/424`, 120분 longrun `443 PASS / 0 FAIL / 2 skip`,
-  cleanup, final-integrity `12/12`를 모두 통과했습니다.
-- 최종 evidence는
-  [test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
-  80개 파일·11.4MiB의 bounded package로 보존합니다. 4,900여 개·309MB의 per-case 중복 산출물은
-  main 병합 대상에서 제외했습니다.
-- 제품 및 local release acceptance, PR checks, main merge, signed tag, source-only GitHub
-  Release와 published metadata 검증을 v3.9.0 release close-out evidence로 분리해 확인합니다.
-- 최신 공개 GitHub Release는 `v3.9.0`이며 v3.8.0은 직전 published baseline입니다.
+- Source `c6b3d20a778a7a641e44decadd1ee5b416426650`의 `./test_release.sh`는 v3.9.0
+  local acceptance를 통과했습니다. 상세는
+  [v3.9.0 test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
+  보존합니다. 이 절은 현재 v3.9.1 완료 증거가 아닙니다.
 
 ## 현재 source roadmap: v3.9.1 Release Correctness and Public Repository Hygiene
 
-상태: v3.9.0 signed tag와 source-only GitHub Release는 역사적 published baseline으로
-보존합니다. v3.9.1은 tag 이후 동일 버전 correctness 변경, 공개 저장소 hygiene,
-문서 current truth, bounded evidence와 대표 UI asset 현재성을 정정하는 patch source입니다.
-아래 v3.9.0 상세 roadmap과 실행 기록은 당시 범위와 판단을 보존한 historical section입니다.
+상태: local `./test_release.sh` PASS. 7차 GitHub clean-clone source `2882bb35`에서
+30분 `118/0/2`, exact UI `424/424`, Policy v4 `uiFulltestPass=true`, 120분 `448/0/2`,
+final integrity를 확인했습니다. 기록 커밋은 `b2373cf1`입니다. 아래 v3.9.0 상세
+roadmap은 historical section입니다.
 
 ### 2026-08-15 clean-clone test dependency bootstrap correction
 
-상태: 구현 및 local contract PASS, 새 clean-clone actual release acceptance 재실행 대기.
+상태: 구현 완료. 7차 actual `./test_release.sh`에서 AI asset bootstrap이 다시 확인됐습니다.
 
 - `scripts/internal/user_test_launcher_common.sh`의
   `media_server_prepare_user_test_ai_assets`가 네 무옵션 사용자 test launcher의 실제 하위
@@ -65,7 +58,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ### 2026-08-15 Policy v4 current-source version rebind
 
-상태: 구현 및 focused contract PASS, 새 clean-commit actual UI qualification/release acceptance 재실행 대기.
+상태: 구현 완료. 7차 actual qualification은 `uiFulltestPass=true`, qualified 424/424.
 
 - 6차 clean-clone은 source `b7a6ed1c`에서 AI asset bootstrap, preflight/build, feature gate 36,
   30분 `118/0/2`, exact UI `424/424`까지 통과한 뒤 `ui-fulltest-qualification`에서 중단됐습니다.
@@ -82,9 +75,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
   `verify-ui-fulltest-evidence-policy-v4`는 불완전 census를 `uiFulltestPass=false`로 닫습니다.
 - focused 검증: current evidence `8/0`, actual evidence contract PASS, native exact 424/423/1/0,
   visual `15/0`, producer `19/0`, independence `12/0`, project inventory PASS,
-  `git diff --check` PASS. Policy v4 contract는 fixture `sourceBinding.version=3.9.0` 때문에
-  적격 경로 4건이 FAIL이며, 이 파일을 고치면 SAFE-202/OPS-169 REVIEW4 digest 재결속이
-  필요해 이번 범위에서 유지합니다. 실제 30분/UI/120분 재실행은 미실행입니다.
+  `git diff --check` PASS. Policy v4 contract fixture의 historical `3.9.0` binding은
+  current token과 분리해 유지합니다. 7차 actual UI/30분/120분은 PASS입니다.
 
 상태: Step 1~29 기능·결정·readiness local gate는 한 차례 닫혔으나, 2026-07-11 실제 구현
 재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되었습니다. 이후 구현됐다고

@@ -13,20 +13,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - v3.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 기본 공개 형태: source-only
-- 공개 문서/대표 asset 기준: `README.md`, `README.en.md`, `docs/README.md`,
-  `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`는 v3.9
-  source roadmap과 latest published v3.9 baseline을 정렬하고 직전 v3.8 baseline은
-  historical reference로 유지합니다. 대표 이미지는
-  `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리하고,
-  교체 시 직접 이미지 검수 기록을 별도로 남깁니다.
-
-## v3.9.1 Source Roadmap
-
-- 최신 공개 릴리즈: `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation, source-only.
-- 현재 소스: `3.9.1` Release Correctness and Public Repository Hygiene.
-- v3.9.1 로드맵은 게시된 v3.9.0을 보존하면서 tag 이후 correctness 변경, 공개 저장소
-  hygiene, 문서 current truth, bounded evidence와 대표 UI asset 현재성을 정정합니다.
-- 최신 공개 기준: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation은 published baseline이며, v3.8.0 Operator-Gated Action Pilot & Outcome Loop는 직전 published baseline입니다.
+- 대표 이미지는 `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리합니다.
 
 ## 먼저 볼 문서
 
@@ -41,8 +28,8 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | 검증 명령 | [stream-verification.md](stream-verification.md) |
 | 버전과 release 정책 | [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md) |
 | 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
+| v3.9.1 release notes | [release-artifacts/v3.9.1/release-notes.md](release-artifacts/v3.9.1/release-notes.md) |
 | v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes.md](release-artifacts/v3.9.0/release-notes.md) |
-| v3.9.1 release notes 초안 | [release-artifacts/v3.9.1/release-notes-draft.md](release-artifacts/v3.9.1/release-notes-draft.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 공개 문서 전체 목록

@@ -20,8 +20,8 @@
 
 - current source: `v3.9.1` (`VERSION=3.9.1`)
 - latest published: v3.9.0
-- fresh full test: 1~6차 FAIL 이력 보존. 7차 GitHub clean-clone `./test_release.sh`는 source `2882bb3594c87c3aa0d24d6bc8d45825a0054e92`에서 exit 0, `result=PASS`
-- release action: source `2882bb35`는 이미 `origin/v3.9.1`에 push됨. PR·main merge·tag·GitHub Release·published metadata는 미실행
+- fresh full test: 1~6차 clean-clone FAIL 이력 보존. 7차 GitHub clone `./test_release.sh`는 source `2882bb3594c87c3aa0d24d6bc8d45825a0054e92`에서 exit 0, `result=PASS`
+- release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
 
 | 영역 | 현재 결과 | 직접 evidence | 릴리즈 판정 |
 | --- | --- | --- | --- |

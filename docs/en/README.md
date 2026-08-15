@@ -12,21 +12,10 @@ points to the current public sources.
 - Current source version: `3.9.1`
 - v3.9.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- Latest published baseline: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 - Default public distribution: source-only
-- Public docs/assets baseline: `README.md`, `README.en.md`, `docs/README.md`,
-  `docs/en/README.md`, `docs/ui-guide.md`, and `docs/assets/ui/README.md`
-  align the v3.9 source roadmap with the latest published v3.9 baseline while
-  keeping the v3.8 baseline as the previous reference. Representative
-  screenshots are managed by `config/docs_ui_assets.json` and
-  `./server.sh verify-docs-ui-assets`; replacements require a separate direct
-  image review record.
-
-## v3.9.1 Source Roadmap
-
-- Latest published release: `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation, source-only.
-- Current source: `3.9.1` Release Correctness and Public Repository Hygiene.
-- The v3.9.1 patch preserves the published v3.9.0 release while correcting post-tag correctness, public repository hygiene, documentation truth, bounded evidence, and representative UI asset currency.
-- Latest published baseline: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation. v3.8.0 Operator-Gated Action Pilot & Outcome Loop is the previous published baseline.
+- Representative screenshots are managed by `config/docs_ui_assets.json` and
+  `./server.sh verify-docs-ui-assets`.
 
 ## Start Here
 
@@ -49,7 +38,7 @@ points to the current public sources.
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
 - The current source tree tracks the `v3.9.1 Release Correctness and Public Repository Hygiene`
-  patch roadmap. v3.9.0 feature completion and acceptance remain historical published evidence.
+  release. v3.9.0 remains the previous published baseline.
 - Binary, runtime, and model bundles are excluded from the default public release.
 - Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G
   recording/replay, Re-ID default-on, tracker default-on, and VLM default-on
