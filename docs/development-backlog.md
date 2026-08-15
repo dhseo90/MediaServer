@@ -17,6 +17,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 최신 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 직전 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- 다음 source 개발 로드맵: `v4.0.0 Local Operations Policy and Stabilization`
+- v4.0.0 범위: 로컬 운영 정책화 및 안정화. 신규 기능은 `v4.1.0`부터
 
 ### 2026-08-14 v3.9.0 historical close-out status
 
@@ -78,6 +80,101 @@ roadmap은 historical section입니다.
   visual `15/0`, producer `19/0`, independence `12/0`, project inventory PASS,
   `git diff --check` PASS. Policy v4 contract fixture의 historical `3.9.0` binding은
   current token과 분리해 유지합니다. 7차 actual UI/30분/120분은 PASS입니다.
+
+## v4.0.0 개발 로드맵: Local Operations Policy and Stabilization
+
+상태: 로드맵 작성. `VERSION`/`CMake`/공개 문서의 현재 소스 기준은 아직 `3.9.1`이다.
+v4.0.0 (1) baseline 정렬 전에는 현재 metadata pin을 바꾸지 않는다. 아래 표는
+구현 완료 evidence가 아니다.
+
+직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
+read-only/decision-only 운영 표면을 정책으로 고정하고, 로컬 file/replay/fixture로
+닫히는 운영 흐름만 안정화한다. 신규 기능은 v4.1.0부터 넣는다.
+
+### 테스트 스크립트 반영 불변 조건
+
+모든 v4.0.0 / v4.1.0 스텝은 구현과 같은 작업 범위에서 아래를 끝내지 않으면
+완료가 아니다. 테스트 스크립트 반영을 다음 스텝으로 미루거나, 문서만 고치고
+verifier를 빼는 것은 해당 스텝 `fail`이다.
+
+1. `docs/project-feature-test-inventory.md`에 해당 기능/정책 ID와 네 테스트 영역 칸을
+   테스트 실행 전에 추가하거나 갱신한다.
+2. `docs/stream-verification.md`에 해당 `./server.sh` 명령을 추가하거나 갱신한다.
+3. `scripts/internal` verifier와 `server.sh` dispatch를 추가하거나 갱신한다.
+4. `docs/release-test-records.md` 테스트 항목 상세 기록에 제목, 수행내용, 확인 방법을
+   추가한다.
+5. `./server.sh verify-script-inventory`, `./server.sh verify-project-inventory`,
+   `./server.sh verify-feature-inventory-coverage`가 새 항목을 인식해야 한다.
+6. 해당 스텝 전용 안정화 verifier가 없으면 그 스텝은 완료가 아니다.
+
+### 비범위
+
+- ONVIF 실카메라 성공, 외부 TURN/WHEP field, cloud VLM 제품 호출
+- VMS/NVR, 장기 녹화, Re-ID default-on, VLM default-on, model/runtime bundle
+- 요청 없는 Event POST / DataChannel / SSE·WS / RTSP·WebRTC media path 변경
+- 승인 없는 action write, 외부 알림 실발송, production restore cutover
+- 구조 리팩터를 v4.0.0 본작업으로 다시 여는 것. REVIEW4-51이 v3.9 이관을 취소했다.
+
+### v4.0.0 진행 순서
+
+개발은 Foundation -> Policy -> Stabilization -> Release 순서로만 진행한다.
+한 스텝이 실패하면 뒤 스텝은 건너뛴다. 실제 커밋은 사용자 승인 후에만 한다.
+
+| 구간 | 제목 | 우선순위 | 개발 내용 | 테스트 스크립트 반영 |
+| --- | --- | --- | --- | --- |
+| Foundation | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | `VERSION`/`CMake`/README/docs/backlog/source roadmap을 `4.0.0`과 `v4.0.0 Local Operations Policy and Stabilization`으로 정렬. published는 `v3.9.1` 유지 | 테스트 스크립트 반영 필수. `verify-v400-entry-baseline`과 `verify-release-metadata` current/published 분리를 같은 스텝에서 추가·갱신 |
+| Foundation | v4.0.0 (2) User Review Gate | P0 | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 사용자 승인 전 고정. 승인 전 신규 기능 개발 금지 | 테스트 스크립트 반영 필수. review-gate verifier와 inventory/stream-verification 행을 같은 스텝에서 추가 |
+| Policy | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 새 verifier/fixture 남발 금지, 424/986 유지·축소 규칙, wrapper PASS와 실행 PASS 분리 강화 | 테스트 스크립트 반영 필수. 축소 규칙 자체를 검사하는 verifier와 inventory 행을 같은 스텝에서 추가 |
+| Policy | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | action write, persistent credential store, production restore, external VLM call, model-backed Re-ID를 4.0 비구현 정책으로 고정. field smoke는 조건부 미실행 | 테스트 스크립트 반영 필수. 기존 deferral/signoff verifier를 4.0 정책 문구와 다시 결속하고 inventory를 갱신 |
+| Policy | v4.0.0 (5) Incident OS 정책화 | P0 | 기존 `/ops/events` 검색/timeline/resolution 면을 운영 정책으로 정리. 새 event type/저장 형식은 추가하지 않음 | 테스트 스크립트 반영 필수. 정책/IA/route 경계를 확인하는 verifier와 inventory 행을 같은 스텝에서 추가 |
+| Policy | v4.0.0 (6) Evidence 운영 정책화 | P0 | EventRecord/clip/retention의 opt-in, 비-VMS, 삭제 금지 경계를 정책으로 고정. default-on 저장은 v4.1.0 | 테스트 스크립트 반영 필수. evidence 정책 verifier와 inventory/records 행을 같은 스텝에서 추가 |
+| Stabilization | v4.0.0 (7) 로컬 운영 안정화 | P0 | 기존 로컬 Ops 흐름의 decision-only 오판 방지, 문서/inventory/verifier 정합, 로컬 file/replay로 닫히는 회귀 | 테스트 스크립트 반영 필수. 안정화 대상 기존 verifier를 전수 연결하고 누락 항목을 inventory에 먼저 등록 |
+| Release | v4.0.0 (8) stabilization and release readiness | P0 | AGENTS 네 테스트 영역 판정, cleanup, release close-out dry-run을 실제 실행/미실행으로 분리. 30분/UI는 승인 전 미실행 필수 blocker | 테스트 스크립트 반영 필수. close-out verifier와 실행/미실행 기록을 inventory/records에 남김 |
+
+### v4.0.0 진행 상태
+
+| 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
+| --- | --- | --- | --- | --- |
+| 1 | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | 미완료 | VERSION/docs current pin은 아직 `3.9.1`. 이 로드맵 작성은 baseline 완료가 아님 |
+| 2 | v4.0.0 (2) User Review Gate | P0 | 미완료 | 사용자 방향은 접수. 전용 review-gate verifier/승인 기록은 없음 |
+| 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 미완료 | 규칙만 로드맵에 적음. 축소 구현 없음 |
+| 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 미완료 | 3.9 defer 5개를 4.0 비구현으로 유지하기로 제안. 구현/write 없음 |
+| 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 미완료 | 기존 `/ops/events` 면 정책 정리 전 |
+| 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 미완료 | opt-in/비-VMS 정책 고정 전. default-on은 4.1.0 |
+| 7 | v4.0.0 (7) 로컬 운영 안정화 | P0 | 미완료 | 기존 로컬 흐름 정합 작업 전 |
+| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 미완료 | 4.0 본작업 후 close-out |
+
+이 절의 로드맵 계약 자체는 `./server.sh verify-v400-roadmap-contract`가 검사한다.
+계약 PASS는 4.0.0 구현 완료, baseline 완료, UI/30분/120분, published metadata가 아니다.
+
+### v4.1.0 이후 신규 기능 후보
+
+아래는 4.0.0 완료 후 넣는 신규 기능이다. 4.0.0에서 구현하지 않는다.
+
+| 번호 | 제목 | 우선순위 | 개발 내용 | 테스트 스크립트 반영 |
+| --- | --- | --- | --- | --- |
+| 1 | v4.1.0 (1) Incident OS 제품 승격 | P1 | `/ops/events`를 primary 운영 면으로 승격하고 검색/timeline/resolution을 한 제품 흐름으로 묶음 | 테스트 스크립트 반영 필수. 새 route/control/action을 inventory·UI case·verifier에 실행 전 등록 |
+| 2 | v4.1.0 (2) Evidence default-on 제품화 | P1 | EventRecord/clip/retention을 기본 운영 저장으로 켜되 VMS/장기 녹화는 금지 | 테스트 스크립트 반영 필수. 저장/retention/privacy verifier와 30분 대상 여부를 실행 전 등록 |
+| 3 | v4.1.0 (3) 로컬 Action Execution | P0 | file source recheck, rule apply, 내부 notice persist만. 외부 발송·자동 apply 금지 | 테스트 스크립트 반영 필수. write/audit/rollback/권한 행렬 verifier를 실행 전 등록 |
+| 4 | v4.1.0 (4) 로컬 credential store | P1 | 암호화 로컬 store + no-device 검증. 실 ONVIF 성공은 조건부 제외 | 테스트 스크립트 반영 필수. store/redaction/negative verifier를 실행 전 등록 |
+| 5 | v4.1.0 (5) Tracker 제품 기본 선택 | P1 | file/4신 sample/replay로 기본 tracker를 선택. Re-ID default-on 제외 | 테스트 스크립트 반영 필수. replay/VA event 항목을 실행 전 등록 |
+| 6 | v4.1.0 (6) 로컬 VLM 운영 경로 | P1 | 로컬 stub/runtime opt-in만. cloud/default-on 금지 | 테스트 스크립트 반영 필수. opt-in/no-call/privacy verifier를 실행 전 등록 |
+
+### v4.0.0 / v4.1.0 모델 추천
+
+런타임 패밀리: Grok. 현재 에이전트가 Grok이므로 Codex 등급명을 쓰지 않는다.
+
+| 항목 | 추천 모델 | 추론 수준 | 선정 근거 |
+| --- | --- | --- | --- |
+| v4.0.0 (1) baseline 정렬 | grok-4.6 | 중간 (medium) | 영향도 1, 불확실성 0, 검증 난이도 1, 변경 범위 1, 총 4점. 상향 없음 |
+| v4.0.0 (2) User Review Gate | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 0, 총 5점. 범위 결정이라 추론만 상향 |
+| v4.0.0 (3) 검증 계층 축소 규칙 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. 거짓 PASS 위험으로 13.4 상향 |
+| v4.0.0 (4) 로컬 운영 정책 freeze | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 5점. 운영 정책/권한 경계라 최소 high |
+| v4.0.0 (5) Incident OS 정책화 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. UI/권한 교차 |
+| v4.0.0 (6) Evidence 운영 정책화 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 저장/프라이버시 정책. Event POST schema는 변경 금지 |
+| v4.0.0 (7) 로컬 운영 안정화 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 기존 회귀와 오판 방지 |
+| v4.0.0 (8) close-out | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. release correctness 13.4 |
+| v4.1.0 (3) 로컬 Action Execution | grok-4.6 | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. auth/write/audit. TUI는 max 미지원 |
 
 ## Historical archive: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 

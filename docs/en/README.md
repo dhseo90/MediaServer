@@ -12,6 +12,7 @@ points to the current public sources.
 - Current source version: `3.9.1`
 - v3.9.1 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- Next source development roadmap: `v4.0.0 Local Operations Policy and Stabilization`
 - Default public distribution: source-only
 - Representative screenshots are managed by `config/docs_ui_assets.json` and
   `./server.sh verify-docs-ui-assets`.

@@ -12,6 +12,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 현재 소스 버전: `3.9.1`
 - v3.9.1 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 다음 source 개발 로드맵: `v4.0.0 Local Operations Policy and Stabilization`
 - 기본 공개 형태: source-only
 - 대표 이미지는 `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리합니다.
 

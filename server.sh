@@ -1189,6 +1189,8 @@ Usage:
                  대형 generated fixture의 compact 직렬화·schema·cardinality·크기 계약을 검증합니다.
   verify-v391-documentation-truth
                  v3.9.1 public README/현재 문서/release evidence의 정합성을 검증합니다.
+  verify-v400-roadmap-contract
+                 v4.0.0 로컬 운영 정책화/안정화 로드맵과 테스트 스크립트 반영 불변 조건을 검증합니다.
   verify-post-release-reconciliation
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
@@ -2989,6 +2991,10 @@ case "${cmd}" in
   verify-v391-documentation-truth)
     require_internal verify_v391_documentation_truth.mjs
     exec "${INTERNAL_DIR}/verify_v391_documentation_truth.mjs" "$@"
+    ;;
+  verify-v400-roadmap-contract)
+    require_internal verify_v400_roadmap_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v400_roadmap_contract.mjs" "$@"
     ;;
   verify-post-release-reconciliation)
     require_internal verify_post_release_reconciliation.mjs

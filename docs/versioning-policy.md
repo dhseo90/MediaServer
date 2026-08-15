@@ -79,6 +79,15 @@ binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 integrity evidence를 보존했습니다. 외부 field smoke는 실제 endpoint, credential,
 실기기, provider 조건이 없어 실행하지 않은 영역으로 계속 분리합니다.
 
+## v4.0.0 다음 source 개발 범위
+
+- `v4.0.0`은 로컬 운영 정책화 및 안정화 major다.
+- 현재 소스 트리의 `VERSION`은 v4.0.0 (1) baseline 전까지 `3.9.1`을 유지한다.
+- 신규 기능은 `v4.1.0`부터 넣는다.
+- 실기기 ONVIF 성공, 외부 TURN/WHEP field, cloud VLM 제품 호출은 4.0.0 기본 범위가 아니다.
+- 상세 스텝과 테스트 스크립트 반영 불변 조건은 [development-backlog.md](./development-backlog.md)의
+  `v4.0.0 Local Operations Policy and Stabilization` 절이 source-of-truth다.
+
 ## v3.9.0 previous published source-only release 범위
 
 - v3.9.0 source baseline alignment
