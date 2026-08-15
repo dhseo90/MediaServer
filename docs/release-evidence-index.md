@@ -43,7 +43,7 @@
 | Evidence | 상태 | 결속/위치 | 사용 범위 |
 | --- | --- | --- | --- |
 | Metadata/docs focused gate | PASS | `verify-release-metadata` 18/0, `verify-docs-links` failure 0 | v3.9.1 source/published 경계와 local link 검증 |
-| Public readiness focused gate | PASS | `verify-public-repo-readiness --no-history` 8/0 | 개인/임시 경로와 raw release artifact 부재; history scan은 별도 |
+| Public readiness focused gate | PASS | 원본 패키지 raw `.log`/home path 제거 후 `verify-public-repo-readiness --no-history` 8/0 | 정리 전 CI FAIL 이력은 보존. history scan은 이번 명령에 없음 |
 | Published v3.9.0 public archive | PASS | [public evidence manifest](./release-artifacts/v3.9.0/public-evidence-manifest.json) | bounded summary/report/first-failure/Policy/hash 보존 |
 | v3.9.1 fresh release acceptance 1차 | FAIL | source `7f3e9dc9` 별도 `--no-local` clone; preflight/build PASS 뒤 `v390-stabilization-release-readiness` 최초 실패 | 30분, exact UI 424/Policy v4, 120분은 미실행이며 PASS로 주장하지 않음; 실패 clone 569.5 MiB/2,036 files cleanup 완료 |
 | v3.9.1 fresh release acceptance 2차 | FAIL | source `63d59839f6a476bc5e4f1afb491a4038f1032aaa` 별도 `--no-local` clone; preflight/build PASS 뒤 `v390-entry-baseline` 최초 실패 | historical v3.9.0 exact-source 조건이 current v3.9.1을 거부; 30분/UI/120분 미실행; 실패 clone 580 MiB/2,059 files cleanup 완료 |

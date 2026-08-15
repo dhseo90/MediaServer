@@ -78,6 +78,11 @@ roadmap은 historical section입니다.
   `git diff --check` PASS. Policy v4 contract fixture의 historical `3.9.0` binding은
   current token과 분리해 유지합니다. 7차 actual UI/30분/120분은 PASS입니다.
 
+## Historical archive: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
+
+이 절은 published `v3.9.0` 이력이다. 현재 source `3.9.1`의 완료 증거가 아니다.
+아래 REVIEW4 본문과 표는 원문 보존용이며 현재 실행 계획으로 쓰지 않는다.
+
 상태: Step 1~29 기능·결정·readiness local gate는 한 차례 닫혔으나, 2026-07-11 실제 구현
 재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되었습니다. 이후 구현됐다고
 기록된 항목을 2026-07-12 다시 source-level로 감사한 결과 semantic closure, exact 424 UI
@@ -203,7 +208,7 @@ Evidence 14는 실제 30분과 UI-108~115 자동화를 포함하지만 exact 424
 완료 경계: v3.9 source baseline/inventory 준비는 실제 기능 개발, discovery 완료,
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가
 아닙니다. `v3.9.1` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.9.0`입니다.
 
 ## v3.9.0 (13) 추가 로드맵 (1)
 

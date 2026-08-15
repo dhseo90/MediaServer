@@ -75,7 +75,7 @@ client/viewer shell에는 내부 진단 응답, debug 정보, developer/source U
 
 ### 1.1 Design token/component inventory
 
-현재 v2.9.0 계획과 v2.8.0까지의 UI 변경, `v2.2.0 Responsive UI Foundation`,
+historical v2.9.0 계획과 v2.8.0까지의 UI 변경, `v2.2.0 Responsive UI Foundation`,
 `v2.3.0 UI renderer/module decomposition`, `v2.4.0 Operator Event Review`의
 UI 정리는 아래 inventory를 기준으로 합니다.
 v2.5.0 Semantic Incident Memory 전용 검색/timeline/brief UI, v2.6.0 Operational
@@ -1536,9 +1536,9 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-05-23 캡처 자산을 대표 shell 설명 이미지로 유지. 이 이미지는 v2.9.0 release evidence, GitHub Release publish evidence, UI 풀테스트 PASS 증거가 아님. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
+| 현재 대표 이미지 | 2026-08-14에 source `3.9.1` / published `v3.9.0` 기준으로 다시 캡처한 제품 shell 설명 이미지. GitHub Release publish evidence나 UI 풀테스트 PASS 증거가 아님. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
 | 관리 목록 | `config/docs_ui_assets.json`의 managed asset list가 파일명, capture task, 최소 크기, direct review checklist를 고정 |
-| v2.9.0 S07 public docs/assets refresh | 대표 이미지 교체 없이 README/README.en/docs index/UI guide/docs asset policy를 v2.9 source/published baseline 기준으로 정리하고, 직전 v2.8 baseline은 historical reference로 분리. 대표 이미지 교체는 직접 이미지 검수와 `./server.sh verify-docs-ui-assets` 재실행 후에만 기록 |
+| historical v2.9.0 S07 | 당시 대표 이미지 교체 없이 v2.9 source/published baseline 문구만 정리한 기록. 현재 대표 이미지는 2026-08-14 recapture |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082`. Codex 세션에서는 인앱 브라우저 확인을 우선하고, Chrome/CDP fallback 재캡처는 사용자 명시 승인 후에만 사용 |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |
 | visual regression 산출물 | Codex 인앱 브라우저 screenshot/evidence 또는 인앱 브라우저 부재 외부 환경의 `verify-ops-client-ui --screenshots --output-dir <dir>` 실행 후 `<dir>/visual-regression-manifest.json`, `<dir>/index.md` |

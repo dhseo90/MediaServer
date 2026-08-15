@@ -990,10 +990,11 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v3.9.0 Release Note Template
+## v3.9.1 Release Note Template
 
 아래 템플릿은 v3.9.1 source-only GitHub Release note 기준입니다. 실행하지 않은
-장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
+장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. GitHub Latest Release는
+게시 전까지 `v3.9.0`입니다.
 
 ```markdown
 # Media Server v3.9.1
@@ -1002,7 +1003,7 @@ Annotation JSON을 확보한 경우:
 
 - Source-only live media server release
 - Feature Completion, Structure Stabilization, and Test Model Preparation source scope
-- Latest published baseline before this release: v3.8.0
+- Latest published baseline before this release: v3.9.0
 - Binary/runtime/model bundle: not included
 
 ## Verification

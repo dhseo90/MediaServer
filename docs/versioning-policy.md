@@ -295,11 +295,14 @@ v3.3에서는 historical reference로만 참조합니다.
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v3.3.0`
-- 현재 source tag 기준: `v3.3.0`
-- `v3.3.0` release tag는 annotated tag로 생성했습니다.
-- 6월 정책상 GitHub Actions가 disabled여서 required Actions check는 생성되지 않았고,
-  main ruleset required checks를 임시 제거해 PR merge 후 원복했습니다.
+- 현재 공개 release tag 기준: `v3.9.0`
+- 현재 source tag 기준: `v3.9.1`
+- `v3.9.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
+  `verified=true`/`reason=valid` 확인 대상입니다.
+- `v3.9.1` source tag는 GitHub Release publish evidence가 있을 때만 공개 완료로
+  기록합니다.
+- historical: `v3.3.0` close-out 당시 annotated tag와 6월 GitHub Actions disabled
+  예외는 당시 기록이며 현재 기준이 아닙니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.

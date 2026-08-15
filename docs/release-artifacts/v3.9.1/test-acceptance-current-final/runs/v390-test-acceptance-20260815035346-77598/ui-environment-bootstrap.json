@@ -6,7 +6,7 @@
     "status": "dependency-bootstrap-attestation",
     "engine": "playwright-native",
     "fixtureMode": false,
-    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+    "modulePath": "${HOME}/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
     "moduleVersion": "1.62.1",
     "modulePackageSha256": "ca170ec143a88ed3043ac953eb3b2377b2b97304104f4e1e23316684ce2c35af",
     "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -15,19 +15,19 @@
     "fallbackUsed": false,
     "resolutionAttempts": [
       {
-        "candidate": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/node_modules/playwright",
+        "candidate": "${REPO_ROOT}/node_modules/playwright",
         "status": "missing-package-json",
         "version": "",
         "reason": ""
       },
       {
-        "candidate": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright",
+        "candidate": "${HOME}/.nvm/versions/node/v24.13.0/node_modules/playwright",
         "status": "missing-package-json",
         "version": "",
         "reason": ""
       },
       {
-        "candidate": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+        "candidate": "${HOME}/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
         "status": "selected",
         "version": "1.62.1",
         "reason": ""
@@ -163,7 +163,7 @@
           "rtspOwners": [
             13712
           ],
-          "commandIdentity": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/build-gst-onnx/media_server"
+          "commandIdentity": "${REPO_ROOT}/build-gst-onnx/media_server"
         }
       }
     ]
@@ -175,7 +175,7 @@
     "schema": "media-server.v390-ui-build-source-binding.v1",
     "sourceCommitSha": "2882bb3594c87c3aa0d24d6bc8d45825a0054e92",
     "sourceWorktreeStatusSha256": "15b9f6845fc5e83db68135d88a4053369b9ab9fa700392684396b76fb53a9b0d",
-    "buildPath": "/Users/dhseo/Workspace/mediaServer-v391-release-clean/build-gst-onnx/media_server",
+    "buildPath": "${REPO_ROOT}/build-gst-onnx/media_server",
     "buildSha256": "637f8880cb3363111320e2d31682f0e592666ac32c25f13182225d7bed3c91d0",
     "buildBytes": 17528176,
     "bindingKind": "built-media-server-binary"

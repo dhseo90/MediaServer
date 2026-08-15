@@ -26,7 +26,7 @@
 | 영역 | 현재 결과 | 직접 evidence | 릴리즈 판정 |
 | --- | --- | --- | --- |
 | metadata/docs links | PASS | 7차 feature gate `verify-release-metadata` 18/0, `verify-docs-links` failure 0 | focused gate와 7차 full acceptance 모두 확인 |
-| public repository hygiene | PASS | 이전 focused `verify-public-repo-readiness --no-history` 8/0 | history scan은 이번 7차 명령에 없음 |
+| public repository hygiene | PASS | 원본 패키지 raw `.log`/home path를 제거한 뒤 `verify-public-repo-readiness --no-history` 8/0 | 정리 전 CI FAIL 이력은 보존. history scan은 이번 명령에 없음 |
 | v3.9.0 public evidence archive | PASS | `release-artifacts/v3.9.0/public-evidence-manifest.json` | published v3.9.0 historical evidence 보존 |
 | v3.9.1 7차 local acceptance | PASS | GitHub clean-clone `./test_release.sh` START `2026-08-15T03:53:37Z` END `2026-08-15T07:21:30Z`, exit 0, `finalEvidenceEligible=true` | local release acceptance. PR/main/tag/GitHub Release/published metadata는 별도 |
 | v3.9.1 30분 | PASS | predev `118 pass / 0 fail / 2 skip`, soak 22회, real duration 2381s | 5차 YOLO 누락 FAIL 이력은 보존. 이번 결과가 현재 30분 evidence |
@@ -97,7 +97,7 @@
 | 시도 | source/환경 | 최초 실패 또는 결과 | 뒤 단계 | cleanup |
 | --- | --- | --- | --- | --- |
 | 3차 | `6f9ad88e`, `/private/tmp` 독립 clone, sandbox 실행 | feature gate 12 `v390-vlm-incident-rule-provenance`; loopback `127.0.0.1` listen `EPERM` | 30분/UI/120분 건너뜀 | 580 MiB, 2,067 files 삭제 |
-| 4차 | `6f9ad88e`, `/Users/dhseo/Workspace` 독립 clone, sandbox 밖 실행 | feature gate 28 `release-metadata`; local clone의 `origin`이 GitHub URL이 아니라 원본 filesystem path | 30분/UI/120분 건너뜀 | 596 MiB, 2,085 files 삭제 |
+| 4차 | `6f9ad88e`, `${WORKSPACE}` 독립 clone, sandbox 밖 실행 | feature gate 28 `release-metadata`; local clone의 `origin`이 GitHub URL이 아니라 원본 filesystem path | 30분/UI/120분 건너뜀 | 596 MiB, 2,085 files 삭제 |
 | 5차 | `6f9ad88e`, GitHub origin 복원, sandbox 밖 실행 | preflight/build/36 feature gate PASS. 30분 integrated smoke 417초에서 `models/yolo11n.onnx` 누락으로 FAIL | UI exact 424/Policy v4/120분 건너뜀 | runner port/temp cleanup PASS; clone 598 MiB, 2,134 files 삭제 완료 |
 
 5차 30분 최초 실패 상세:
@@ -171,7 +171,7 @@ GitHub origin clean clone에서 `./test_release.sh`를 인자 없이 1회 실행
 
 | 항목 | 실제 결과 | 판정 |
 | --- | --- | --- |
-| Source | `2882bb3594c87c3aa0d24d6bc8d45825a0054e92`, branch `v3.9.1`, origin `git@github.com:dhseo90/MediaServer.git`, clone `/Users/dhseo/Workspace/mediaServer-v391-release-clean` | exact release source |
+| Source | `2882bb3594c87c3aa0d24d6bc8d45825a0054e92`, branch `v3.9.1`, origin `git@github.com:dhseo90/MediaServer.git`, clone `${REPO_ROOT}` | exact release source |
 | Command | `./test_release.sh`, 인자 없음, 동일 source 1회 | exit `0`, result PASS |
 | Build/feature | GStreamer 1.28.1 full build, feature gates 36/36 PASS | PASS |
 | 30분 | `118 PASS / 0 FAIL / 2 skip`, soak 22회, runner 2385.55s, delegated 2381s, ports 51645/51644 cleanup PASS | PASS |
@@ -181,7 +181,7 @@ GitHub origin clean clone에서 `./test_release.sh`를 인자 없이 1회 실행
 | Cleanup | UI server, longrun runtimes, owned PID/ports/runtime roots | PASS |
 | Final integrity | `finalEvidenceEligible=true`, `automatedAcceptanceStatus=eligible` | PASS |
 | Build binding | binary SHA-256 `637f8880cb3363111320e2d31682f0e592666ac32c25f13182225d7bed3c91d0`, 17,528,176 bytes | source-bound |
-| Evidence | [test-acceptance-current-final](./release-artifacts/v3.9.1/test-acceptance-current-final/README.md), top summary SHA-256 `6e931015c70eb411282a7f883e20f1a4e6c5f2a21daf96eefb96ada828bb8d88` | 65-file/11.7MiB bounded package. 309MB per-case UI는 Git 제외 |
+| Evidence | [test-acceptance-current-final](./release-artifacts/v3.9.1/test-acceptance-current-final/README.md), committed redacted `summary.json` SHA-256 `d23290f2f4f9aa620d82b784626fcee0f36840ffbf8727b79059859d21d89dce` | 21-file/11.42MiB bounded package. raw `.log`와 309MB per-case UI는 Git 제외. clone 경로는 `${REPO_ROOT}`로 치환 |
 | Token/elapsed | token start/end/consumed `manual-not-available`; wall time 12,519s (03:53:37Z–07:21:30Z) | 토큰 미집계를 PASS로 대체하지 않음 |
 | 잔여 close-out | PR, main merge, signed tag, GitHub Release, published metadata | 각 실제 실행 전에는 완료 아님 |
 
@@ -381,7 +381,7 @@ GitHub origin clean clone에서 `./test_release.sh`를 인자 없이 1회 실행
 | event-post-queue | MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:51644 ./server.sh verify-event-post --mode queue , 3s | pass |  |
 | queue-runtime-idle | runtime idle check , 0s | pass |  |
 | ports-clean | lsof predev ports , 0s | pass |  |
-| summary-report | ./server.sh summarize-reports /tmp/media_server_*summary*.json --output /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current- , 1s | pass |  |
+| summary-report | ./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPO_ROOT}/docs/release-artifacts/v3.9.1/test-acceptance-current- , 1s | pass |  |
 
 ### 120분 테스트 개별 항목 (7차)
 | 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
@@ -833,7 +833,7 @@ GitHub origin clean clone에서 `./test_release.sh`를 인자 없이 1회 실행
 | event-post-queue | MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:50819 ./server.sh verify-event-post --mode queue , 3s | pass |  |
 | queue-runtime-idle | runtime idle check , 0s | pass |  |
 | ports-clean | lsof predev ports , 0s | pass |  |
-| summary-report | ./server.sh summarize-reports /tmp/media_server_*summary*.json --output /Users/dhseo/Workspace/mediaServer-v391-release-clean/docs/release-artifacts/v3.9.1/test-acceptance-current- , 1s | pass |  |
+| summary-report | ./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPO_ROOT}/docs/release-artifacts/v3.9.1/test-acceptance-current- , 1s | pass |  |
 
 ### UI 풀테스트 개별 항목 (7차 exact 424)
 | 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |

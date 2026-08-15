@@ -28,7 +28,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | 검증 명령 | [stream-verification.md](stream-verification.md) |
 | 버전과 release 정책 | [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md) |
 | 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
-| v3.9.1 release notes | [release-artifacts/v3.9.1/release-notes.md](release-artifacts/v3.9.1/release-notes.md) |
+| v3.9.1 unpublished source notes | [release-artifacts/v3.9.1/release-notes.md](release-artifacts/v3.9.1/release-notes.md). GitHub Latest는 v3.9.0 |
 | v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes.md](release-artifacts/v3.9.0/release-notes.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
@@ -81,47 +81,65 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 
 ### ONVIF
 
-| 문서 | 내용 |
-| --- | --- |
-| [onvif-live-source-support.md](onvif-live-source-support.md) | ONVIF live source 지원 범위 |
-| [onvif-no-device-verification.md](onvif-no-device-verification.md) | 실기기 없는 검증 경계 |
-| [onvif-field-smoke-gate.md](onvif-field-smoke-gate.md) | 실기기 field smoke gate |
-| [onvif-field-smoke-artifact-redaction.md](onvif-field-smoke-artifact-redaction.md) | field smoke artifact redaction |
-| [onvif-protocol-support-matrix.md](onvif-protocol-support-matrix.md) | ONVIF protocol support matrix |
-| [onvif-unsupported-api-guard.md](onvif-unsupported-api-guard.md) | unsupported API guard |
-| [onvif-auth-injection-design.md](onvif-auth-injection-design.md) | auth injection design |
-| [onvif-credential-reference-policy.md](onvif-credential-reference-policy.md) | credential reference policy |
-| [onvif-credential-store-integration-design.md](onvif-credential-store-integration-design.md) | credential store integration design |
-| [onvif-https-soap-transport-design.md](onvif-https-soap-transport-design.md) | HTTPS SOAP transport design |
-| [onvif-https-tls-fixture-harness-design.md](onvif-https-tls-fixture-harness-design.md) | HTTPS/TLS fixture harness |
-| [onvif-tls-transport-policy.md](onvif-tls-transport-policy.md) | TLS transport policy |
-| [onvif-rtsps-draft-policy.md](onvif-rtsps-draft-policy.md) | RTSPS draft policy |
+실기기 성공은 기본 공개 릴리즈 PASS가 아닙니다. 운영/검증 경계와 설계 초안을
+나눕니다.
+
+운영/검증 경계:
+
+- [onvif-live-source-support.md](onvif-live-source-support.md)
+- [onvif-no-device-verification.md](onvif-no-device-verification.md)
+- [onvif-field-smoke-gate.md](onvif-field-smoke-gate.md)
+- [onvif-field-smoke-artifact-redaction.md](onvif-field-smoke-artifact-redaction.md)
+- [onvif-protocol-support-matrix.md](onvif-protocol-support-matrix.md)
+- [onvif-unsupported-api-guard.md](onvif-unsupported-api-guard.md)
+- [onvif-credential-reference-policy.md](onvif-credential-reference-policy.md)
+- [onvif-tls-transport-policy.md](onvif-tls-transport-policy.md)
+- [onvif-rtsps-draft-policy.md](onvif-rtsps-draft-policy.md)
+
+설계 초안 (default-off, 제품 PASS 아님):
+
+- [onvif-auth-injection-design.md](onvif-auth-injection-design.md)
+- [onvif-credential-store-integration-design.md](onvif-credential-store-integration-design.md)
+- [onvif-https-soap-transport-design.md](onvif-https-soap-transport-design.md)
+- [onvif-https-tls-fixture-harness-design.md](onvif-https-tls-fixture-harness-design.md)
 
 ### VLM Default-off 보조 기능
 
-| 문서 | 내용 |
-| --- | --- |
-| [vlm-model-selection.md](vlm-model-selection.md) | VLM 후보와 선택 기준 |
-| [vlm-recommendation-engine.md](vlm-recommendation-engine.md) | PC 사양별 추천 기준 |
-| [vlm-install-connection-dry-run.md](vlm-install-connection-dry-run.md) | 설치/연결 dry-run contract |
-| [vlm-local-runtime-connection-smoke.md](vlm-local-runtime-connection-smoke.md) | local runtime loopback smoke |
-| [vlm-runtime-opt-in-contract.md](vlm-runtime-opt-in-contract.md) | runtime opt-in contract |
-| [vlm-runtime-status-ui.md](vlm-runtime-status-ui.md) | runtime status UI |
-| [vlm-profile-storage.md](vlm-profile-storage.md) | profile storage |
-| [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md) | privacy/transfer guard |
-| [vlm-cloud-provider-field-smoke-gate.md](vlm-cloud-provider-field-smoke-gate.md) | cloud provider field smoke gate |
-| [vlm-queue-backpressure-stability.md](vlm-queue-backpressure-stability.md) | queue/backpressure stability |
-| [v300-vlm-feature-queue.md](v300-vlm-feature-queue.md) | v3.0 VLM feature queue |
-| [v300-feature-only-retention.md](v300-feature-only-retention.md) | v3.0 feature-only retention |
-| [vlm-evaluation-harness.md](vlm-evaluation-harness.md) | evaluation harness |
-| [vlm-evaluation-result-workflow.md](vlm-evaluation-result-workflow.md) | evaluation result workflow |
-| [vlm-review-action-workflow.md](vlm-review-action-workflow.md) | review action workflow |
-| [vlm-ops-event-review-ui.md](vlm-ops-event-review-ui.md) | Ops event review UI |
-| [vlm-event-evidence-extraction.md](vlm-event-evidence-extraction.md) | event evidence extraction |
-| [vlm-observation-sidecar.md](vlm-observation-sidecar.md) | observation sidecar |
-| [vlm-event-explanation-hints.md](vlm-event-explanation-hints.md) | explanation and false-positive hints |
-| [vlm-summary-search-candidates.md](vlm-summary-search-candidates.md) | summary/search candidates |
-| [vlm-rule-suggestion-candidates.md](vlm-rule-suggestion-candidates.md) | rule suggestion candidates |
+VLM은 제품 default-on이 아닙니다. 선택/연결, runtime opt-in, 검토, 힌트 문서로
+나눕니다.
+
+선택과 연결:
+
+- [vlm-model-selection.md](vlm-model-selection.md)
+- [vlm-recommendation-engine.md](vlm-recommendation-engine.md)
+- [vlm-install-connection-dry-run.md](vlm-install-connection-dry-run.md)
+- [vlm-local-runtime-connection-smoke.md](vlm-local-runtime-connection-smoke.md)
+
+runtime opt-in:
+
+- [vlm-runtime-opt-in-contract.md](vlm-runtime-opt-in-contract.md)
+- [vlm-runtime-status-ui.md](vlm-runtime-status-ui.md)
+- [vlm-profile-storage.md](vlm-profile-storage.md)
+- [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md)
+- [vlm-cloud-provider-field-smoke-gate.md](vlm-cloud-provider-field-smoke-gate.md)
+- [vlm-queue-backpressure-stability.md](vlm-queue-backpressure-stability.md)
+- [v300-vlm-feature-queue.md](v300-vlm-feature-queue.md)
+- [v300-feature-only-retention.md](v300-feature-only-retention.md)
+
+검토와 평가:
+
+- [vlm-evaluation-harness.md](vlm-evaluation-harness.md)
+- [vlm-evaluation-result-workflow.md](vlm-evaluation-result-workflow.md)
+- [vlm-review-action-workflow.md](vlm-review-action-workflow.md)
+- [vlm-ops-event-review-ui.md](vlm-ops-event-review-ui.md)
+
+힌트와 후보:
+
+- [vlm-event-evidence-extraction.md](vlm-event-evidence-extraction.md)
+- [vlm-observation-sidecar.md](vlm-observation-sidecar.md)
+- [vlm-event-explanation-hints.md](vlm-event-explanation-hints.md)
+- [vlm-summary-search-candidates.md](vlm-summary-search-candidates.md)
+- [vlm-rule-suggestion-candidates.md](vlm-rule-suggestion-candidates.md)
 
 ### 실험과 연구 경계
 
