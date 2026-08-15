@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.9.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-![Source Version](https://img.shields.io/badge/source-3.9.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.9.1-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,9 +15,10 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 GitHub Release: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-- 현재 소스 버전: `3.9.0`
+- 현재 소스 버전: `3.9.1`
 - v3.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 최신 공개 기준: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
 ## 한눈에 보기
 
@@ -31,26 +32,6 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
   `/ops/events` 검색, timeline, 설명, 유사 사건 lookup으로 정리합니다.
 - **제외 범위**: VMS/NVR, 장기 녹화, broad archive playback/search, VLM default-on,
   model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
-
-## v3.9 Source Roadmap
-
-- 최신 공개 릴리즈: `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation, source-only.
-- 현재 소스: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
-- v3.9 로드맵: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 전수 확인하고,
-  REVIEW4-50~63을 닫은 뒤 같은 v3.9.0 브랜치에서 동작 보존 구조 안정화와 리팩토링을
-  수행합니다. 실제 리팩토링은 REVIEW4-64, 독립 acceptance는 REVIEW4-65입니다.
-- 최신 공개 기준: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation은 published baseline이며, v3.8.0 Operator-Gated Action Pilot & Outcome Loop는 직전 published baseline입니다.
-- 불변 조건: Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path는
-  요청 없이 변경하지 않습니다.
-- AI/model 경계: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B 평가 후보,
-  Gemini cloud opt-in fallback 기준이며 runtime/model bundle 배포와 default-on 승격은 제외합니다.
-
-관련 문서:
-
-- 모델 선택: [docs/vlm-model-selection.md](docs/vlm-model-selection.md)
-- PC 사양별 추천 엔진: [docs/vlm-recommendation-engine.md](docs/vlm-recommendation-engine.md)
-- 설치/연결 dry-run: [docs/vlm-install-connection-dry-run.md](docs/vlm-install-connection-dry-run.md)
-- 운영 UI 리뷰 흐름: [docs/vlm-ops-event-review-ui.md](docs/vlm-ops-event-review-ui.md)
 
 ## 실행 환경
 
@@ -121,19 +102,11 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-- 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 
 ## 대표 UI 미리보기
 
-README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합니다.
-개발 진단과 분석 편집 상세는 [docs/ui-guide.md](docs/ui-guide.md)에서 따로 다룹니다.
-대표 이미지는 문서용 역할 이미지입니다. UI 풀테스트 PASS 증거, GitHub Release publish
-evidence, 운영 QA registry가 섞인 재캡처를 대신하지 않습니다.
-공개 문서/대표 asset 기준은 `config/docs_ui_assets.json`과
-`./server.sh verify-docs-ui-assets`로 관리합니다. 현재 S07 public docs/assets
-refresh에서는 기존 대표 이미지를 유지하며, 새 이미지 교체는 직접 이미지 검수와
-링크/asset 검증 후 별도 기록합니다.
+README에는 대표 제품 화면만 둡니다. 상세 UI는 [docs/ui-guide.md](docs/ui-guide.md)를
+봅니다. 이 이미지는 문서용 미리보기이며 UI 풀테스트나 GitHub Release 증거가 아닙니다.
 
 **Ops Home**
 
@@ -188,7 +161,8 @@ YOLO Detection
 ## 계정별 화면
 
 - 최초 실행 또는 계정 저장소가 비어 있으면 관리자 비밀번호 설정 화면으로 이동합니다.
-- `admin`과 `operator`는 운영 화면에서 채널, 룰, 사용자, 대시보드 진단을 봅니다.
+- `admin`은 운영 화면에서 채널, 룰, 사용자, 대시보드 진단을 봅니다. 사용자 관리는 admin 전용입니다.
+- `operator`는 운영 화면에서 채널, 룰, 대시보드 진단을 보지만 사용자 관리 화면에는 접근하지 않습니다.
 - `viewer`는 할당된 클라이언트 화면만 봅니다. 원본 source URL, 내부 진단 JSON, rule/profile editor는 노출하지 않습니다.
 - `integrator`는 화면 사용보다 scoped API 연동을 기준으로 합니다.
 

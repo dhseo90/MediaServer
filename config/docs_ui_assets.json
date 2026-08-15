@@ -1,13 +1,21 @@
 {
   "schema": "media-server.docs-ui-assets.v1",
   "baseline": {
-    "sourceVersion": "3.9.0",
+    "sourceVersion": "3.9.1",
     "publishedRelease": "v3.9.0",
-    "publicReleaseStatus": "v3.9.0-published-source-only",
-    "capturedAt": "2026-05-23",
+    "publicReleaseStatus": "v3.9.1-source-v3.9.0-published",
+    "capturedAt": "2026-08-14",
     "theme": "dark",
     "sampleVideo": "va_four_scene_sample.mp4",
     "manualReviewRequired": true
+  },
+  "directReview": {
+    "reviewedAt": "2026-08-14",
+    "tool": "Codex in-app Browser",
+    "assetCount": 20,
+    "status": "PASS",
+    "englishHangulResidue": 0,
+    "clientLeakCheck": "PASS"
   },
   "captureScript": "scripts/internal/capture_docs_ui_assets.mjs",
   "verificationCommand": "./server.sh verify-docs-ui-assets",

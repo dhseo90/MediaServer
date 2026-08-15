@@ -1,7 +1,7 @@
 {
   "schema": "media-server.v390-server-longrun.v1",
   "runId": "v390-server-longrun-20260710100308-60724",
-  "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30",
+  "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30",
   "durationMinutes": 30,
   "result": "PASS",
   "stopOnFirstFail": true,
@@ -12,9 +12,9 @@
     "http": 8081,
     "rtsp": 8555
   },
-  "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30",
-  "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/summary.json",
-  "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.md",
+  "outputDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30",
+  "summaryPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/summary.json",
+  "reportPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.md",
   "cleanup": {
     "serverStopped": true,
     "portsClean": true,
@@ -30,11 +30,11 @@
       "status": "PASS",
       "command": "validate duration/output-dir/tools",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/preflight.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/preflight.log",
       "summaryPath": "",
       "tail": [
         "durationMinutes=30",
-        "outputDir=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30"
+        "outputDir=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30"
       ]
     },
     {
@@ -42,28 +42,28 @@
       "status": "PASS",
       "command": "./server.sh build",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/build.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/build.log",
       "summaryPath": "",
       "tail": [
-        "[env] loaded override: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env",
-        "[1/2] configure: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx (ai=1, youtube=0)",
+        "[env] loaded override: <workspace>/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env",
+        "[1/2] configure: <workspace>/Desktop/workspace/codexTest/mediaServer/build-gst-onnx (ai=1, youtube=0)",
         "-- Configuring done (0.1s)",
         "-- Generating done (0.0s)",
-        "-- Build files have been written to: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx",
+        "-- Build files have been written to: <workspace>/Desktop/workspace/codexTest/mediaServer/build-gst-onnx",
         "[2/2] build",
         "[100%] Built target media_server",
-        "[done] build=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server"
+        "[done] build=<workspace>/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server"
       ]
     },
     {
       "id": "seed",
       "status": "PASS",
-      "command": "write /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/seed.json",
+      "command": "write <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/seed.json",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/seed.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/seed.log",
       "summaryPath": "",
       "tail": [
-        "seedPath=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/seed.json"
+        "seedPath=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/seed.json"
       ]
     },
     {
@@ -71,7 +71,7 @@
       "status": "PASS",
       "command": "delegated to verify-predev",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/start-server.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/start-server.log",
       "summaryPath": "",
       "tail": [
         "verify-predev owns isolated test server lifecycle"
@@ -82,7 +82,7 @@
       "status": "PASS",
       "command": "delegated to verify-predev integrated-smoke",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/integrated-smoke.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/integrated-smoke.log",
       "summaryPath": "",
       "tail": [
         "verify-predev runs integrated-smoke after starting the isolated test server"
@@ -91,18 +91,18 @@
     {
       "id": "soak-case-loop",
       "status": "PASS",
-      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-summary.json --report-file /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-report.md --report-html-file /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-report.html",
+      "command": "./server.sh verify-predev --soak-minutes 30 --skip-build --fail-fast --summary-file <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-summary.json --report-file <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-report.md --report-html-file <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-report.html",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/soak-case-loop.log",
-      "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-summary.json",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/soak-case-loop.log",
+      "summaryPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-summary.json",
       "tail": [
         "== predev 안정화 검증 요약 ==",
         "- 통과: 118",
         "- 실패: 0",
         "- 건너뜀: 2",
-        "- summary: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-summary.json",
-        "- report: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-report.md",
-        "- report html: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-report.html",
+        "- summary: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-summary.json",
+        "- report: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-report.md",
+        "- report html: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/predev-report.html",
         "- logs: /tmp/media_server_predev-1783677788-60793"
       ]
     },
@@ -111,7 +111,7 @@
       "status": "PASS",
       "command": "runtime idle delegated to verify-predev cleanup checks",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/runtime-idle.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/runtime-idle.log",
       "summaryPath": "",
       "tail": [
         "runtime idle state recorded by predev summary"
@@ -122,7 +122,7 @@
       "status": "PASS",
       "command": "cleanup phase",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/cleanup.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/cleanup.log",
       "summaryPath": "",
       "tail": [
         "serverStopped=true",
@@ -134,11 +134,11 @@
       "status": "PASS",
       "command": "report phase",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.log",
+      "logPath": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.log",
       "summaryPath": "",
       "tail": [
-        "summaryPath=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/summary.json",
-        "reportPath=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.md"
+        "summaryPath=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/summary.json",
+        "reportPath=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final/runs/v390-test-acceptance-20260710100233-58896/server-longrun-30/report.md"
       ]
     }
   ]

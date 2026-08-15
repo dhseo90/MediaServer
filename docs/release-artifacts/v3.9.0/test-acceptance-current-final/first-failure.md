@@ -6,18 +6,18 @@ runId: not-recorded
 sourceCommitSha: 53d7fbc9bf2c8fc0004215efb56b3ba1f29db578
 failedStage: server-longrun-30
 testcaseId: not-recorded
-error: [progress] (9/9) report test; remaining=0 | == v3.9.0 server longrun runner summary == | - schema: media-server.v390-server-longrun.v2 | - result: FAIL | - durationMinutes: 30 | - stopOnFirstFail: true | - failedPhase: integrated-smoke | - failedCase: integrated-smoke | - delegatedPhaseLedgerValid: true | - longrunEvidenceStatus: real-duration-failed-no-pass-evidence | - summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/summary.json | - reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/report.md
-logPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30.log
-failedCommand: ./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30
-reproductionCommand: ./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30
-context: [progress] (9/9) report test; remaining=0 | == v3.9.0 server longrun runner summary == | - schema: media-server.v390-server-longrun.v2 | - result: FAIL | - durationMinutes: 30 | - stopOnFirstFail: true | - failedPhase: integrated-smoke | - failedCase: integrated-smoke | - delegatedPhaseLedgerValid: true | - longrunEvidenceStatus: real-duration-failed-no-pass-evidence | - summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/summary.json | - reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/report.md
+error: [progress] (9/9) report test; remaining=0 | == v3.9.0 server longrun runner summary == | - schema: media-server.v390-server-longrun.v2 | - result: FAIL | - durationMinutes: 30 | - stopOnFirstFail: true | - failedPhase: integrated-smoke | - failedCase: integrated-smoke | - delegatedPhaseLedgerValid: true | - longrunEvidenceStatus: real-duration-failed-no-pass-evidence | - summaryPath: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/summary.json | - reportPath: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/report.md
+logPath: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30.log
+failedCommand: ./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30
+reproductionCommand: ./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30
+context: [progress] (9/9) report test; remaining=0 | == v3.9.0 server longrun runner summary == | - schema: media-server.v390-server-longrun.v2 | - result: FAIL | - durationMinutes: 30 | - stopOnFirstFail: true | - failedPhase: integrated-smoke | - failedCase: integrated-smoke | - delegatedPhaseLedgerValid: true | - longrunEvidenceStatus: real-duration-failed-no-pass-evidence | - summaryPath: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/summary.json | - reportPath: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/report.md
 childFailurePhase: integrated-smoke
 childFailureCase: integrated-smoke
 childCleanupStatus: PASS
 
 ## Diagnostic artifact snapshots
 
-### /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30.log
+### <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30.log
 
 bytes: 9247
 sha256: 88c2dbc84d3237aa7c02d09aedf56c678317cd013e4e34624612be1315dc4753
@@ -25,15 +25,15 @@ sha256: 88c2dbc84d3237aa7c02d09aedf56c678317cd013e4e34624612be1315dc4753
 ```text
 [progress] (1/9) preflight test; remaining=8
 [progress] (2/9) build test; remaining=7
-[env] loaded override: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env
-[1/2] configure: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx (ai=1, youtube=0)
+[env] loaded override: <workspace>/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env
+[1/2] configure: <workspace>/Desktop/workspace/codexTest/mediaServer/build-gst-onnx (ai=1, youtube=0)
 -- Configuring done (0.1s)
 -- Generating done (0.0s)
--- Build files have been written to: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx
+-- Build files have been written to: <workspace>/Desktop/workspace/codexTest/mediaServer/build-gst-onnx
 [2/2] build
 [ 98%] Built target media_server_runtime
 [100%] Built target media_server
-[done] build=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server
+[done] build=<workspace>/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server
 [progress] (3/9) seed test; remaining=6
 [progress] (4/9) start-server test; remaining=5
 [progress] (4/9) start-server test; remaining=5
@@ -108,19 +108,19 @@ sha256: 88c2dbc84d3237aa7c02d09aedf56c678317cd013e4e34624612be1315dc4753
 [not-run] event-post-queue: first failure=integrated-smoke
 [not-run] queue-runtime-idle: first failure=integrated-smoke
 [pass] ports-clean
-[info] predev summary=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
+[info] predev summary=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
 [info] summary-report 시작
 [pass] summary-report (1s)
-[info] predev summary=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
+[info] predev summary=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
 [info] summary-report refreshed log=/tmp/media_server_predev-1784165264-18895/summary_report_refresh.log
-[info] predev summary=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
+[info] predev summary=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
 == predev 안정화 검증 요약 ==
 - 통과: 3
 - 실패: 1
 - 건너뜀: 1
-- summary: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
-- report: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-report.md
-- report html: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-report.html
+- summary: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
+- report: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-report.md
+- report html: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-report.html
 - logs: /tmp/media_server_predev-1784165264-18895
 [first-fail] phase: soak-case-loop
 [first-fail] case: integrated-smoke
@@ -144,11 +144,11 @@ sha256: 88c2dbc84d3237aa7c02d09aedf56c678317cd013e4e34624612be1315dc4753
 - failedCase: integrated-smoke
 - delegatedPhaseLedgerValid: true
 - longrunEvidenceStatus: real-duration-failed-no-pass-evidence
-- summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/summary.json
-- reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/report.md
+- summaryPath: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/summary.json
+- reportPath: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/report.md
 ```
 
-### /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/soak-case-loop.log
+### <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/soak-case-loop.log
 
 bytes: 6225
 sha256: e942c7da0941233d932bff4fb3492dac969f8f42e927db6afe98b85d42ab5d3f
@@ -222,34 +222,34 @@ sha256: e942c7da0941233d932bff4fb3492dac969f8f42e927db6afe98b85d42ab5d3f
 [not-run] event-post-queue: first failure=integrated-smoke
 [not-run] queue-runtime-idle: first failure=integrated-smoke
 [pass] ports-clean
-[info] predev summary=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
+[info] predev summary=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
 [info] summary-report 시작
 [pass] summary-report (1s)
-[info] predev summary=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
+[info] predev summary=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
 [info] summary-report refreshed log=/tmp/media_server_predev-1784165264-18895/summary_report_refresh.log
-[info] predev summary=/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
+[info] predev summary=<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
 == predev 안정화 검증 요약 ==
 - 통과: 3
 - 실패: 1
 - 건너뜀: 1
-- summary: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
-- report: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-report.md
-- report html: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-report.html
+- summary: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-summary.json
+- report: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-report.md
+- report html: <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/predev-report.html
 - logs: /tmp/media_server_predev-1784165264-18895
 ```
 
-### /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/failure-artifacts/integrated-smoke-logFile-integrated_smoke.log
+### <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/failure-artifacts/integrated-smoke-logFile-integrated_smoke.log
 
 bytes: 13060
 sha256: 3ab93ae0972a90d93dcac8b4ddd48a2171891bfaba5f2a5332128a2e8b813138
 
 ```text
 [stdout]
-[env] skipped local override: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env
+[env] skipped local override: <workspace>/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env
 MediaServer 통합 테스트 시작
 - 모드: basic
 - FFmpeg-free: 0
-- 로그: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745
+- 로그: <workspace>/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745
 - 기준:
   1. 코드/스크립트 기본 구조가 깨지지 않아야 함
   2. 서버가 RTSP/HTTP 포트를 열고 /health에 응답해야 함
@@ -271,8 +271,8 @@ MediaServer 통합 테스트 시작
 == [3] 코드 주석 정책 검사
 [실패] 코드 주석 정책 검사
 [원인] 파일 상단 용도 주석 또는 한글 설명 주석 정책이 깨졌습니다.
-[로그] /Users/dhseo/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745/3-code-comments.log
----- 실패 로그 tail (/Users/dhseo/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745/3-code-comments.log) ----
+[로그] <workspace>/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745/3-code-comments.log
+---- 실패 로그 tail (<workspace>/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745/3-code-comments.log) ----
     - src/ingress/webrtc_http_server.cpp:5243:// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6553 function
     - src/ingress/webrtc_http_server.cpp:5291:// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6590 function
     - src/ingress/webrtc_http_server.cpp:5305:// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6610 function
@@ -412,22 +412,22 @@ MediaServer 통합 테스트 시작
 - 실패: 1
 - 건너뜀: 9
 - 소요 시간: 528s (8.8m)
-- 상세 로그: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745
+- 상세 로그: <workspace>/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745
 [결론] 실패 항목이 있습니다. 위 한글 원인과 개별 로그를 기준으로 수정하세요.
 [stderr]
 ```
 
-### /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/failure-artifacts/integrated-smoke-stdoutFile-integrated_smoke.stdout.log
+### <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/failure-artifacts/integrated-smoke-stdoutFile-integrated_smoke.stdout.log
 
 bytes: 13042
 sha256: 99b5bed3b8ef6c076046468fbc944f8295a7f75936dafe5e00ed3a190386ec9a
 
 ```text
-[env] skipped local override: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env
+[env] skipped local override: <workspace>/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env
 MediaServer 통합 테스트 시작
 - 모드: basic
 - FFmpeg-free: 0
-- 로그: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745
+- 로그: <workspace>/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745
 - 기준:
   1. 코드/스크립트 기본 구조가 깨지지 않아야 함
   2. 서버가 RTSP/HTTP 포트를 열고 /health에 응답해야 함
@@ -449,8 +449,8 @@ MediaServer 통합 테스트 시작
 == [3] 코드 주석 정책 검사
 [실패] 코드 주석 정책 검사
 [원인] 파일 상단 용도 주석 또는 한글 설명 주석 정책이 깨졌습니다.
-[로그] /Users/dhseo/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745/3-code-comments.log
----- 실패 로그 tail (/Users/dhseo/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745/3-code-comments.log) ----
+[로그] <workspace>/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745/3-code-comments.log
+---- 실패 로그 tail (<workspace>/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745/3-code-comments.log) ----
     - src/ingress/webrtc_http_server.cpp:5243:// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6553 function
     - src/ingress/webrtc_http_server.cpp:5291:// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6590 function
     - src/ingress/webrtc_http_server.cpp:5305:// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6610 function
@@ -590,11 +590,11 @@ MediaServer 통합 테스트 시작
 - 실패: 1
 - 건너뜀: 9
 - 소요 시간: 528s (8.8m)
-- 상세 로그: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745
+- 상세 로그: <workspace>/Desktop/workspace/codexTest/mediaServer/.media_server.test/20260716-102745
 [결론] 실패 항목이 있습니다. 위 한글 원인과 개별 로그를 기준으로 수정하세요.
 ```
 
-### /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/failure-artifacts/integrated-smoke-stderrFile-integrated_smoke.stderr.log
+### <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716011558-9052/server-longrun-30/failure-artifacts/integrated-smoke-stderrFile-integrated_smoke.stderr.log
 
 bytes: 1
 sha256: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b

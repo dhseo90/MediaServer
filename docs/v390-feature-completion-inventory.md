@@ -1,5 +1,9 @@
 # v3.9.0 Feature Completion Inventory
 
+> historical v3.9.0 archive: 이 문서는 published v3.9.0 feature completion과 당시
+> 검증 이력을 보존합니다. 현재 source 3.9.1의 완료 상태가 아닙니다. v3.9.1 current
+> 상태는 `docs/development-backlog.md`와 v3.9.1 release notes draft를 사용합니다.
+
 독자: MediaServer 개발/검증 에이전트. Lifecycle: v3.9.0 feature completion discovery와 개발 close-out 동안 유지되는 상세 source-of-truth. Source-of-truth 관계: `AGENTS.md`가 권한/테스트/보고 규칙을 우선하고, `docs/development-backlog.md`는 큰 phase 상태판이며, 이 문서는 작은 기능 단위의 완료 여부를 추적한다.
 
 ## Purpose

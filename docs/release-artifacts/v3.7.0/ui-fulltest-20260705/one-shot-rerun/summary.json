@@ -3,7 +3,7 @@
   "runId": "ui-fulltest-one-shot-1783239016082-59069",
   "generatedAt": "2026-07-05T08:18:14.475Z",
   "result": "PASS",
-  "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun",
+  "outputDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun",
   "widths": "390,1180",
   "visualWidths": "320,390,760,1180",
   "manualResult": "",
@@ -28,7 +28,7 @@
     {
       "id": "seed-core",
       "status": "PASS",
-      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/core-seed-plan.json --emit-registry-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/core-registry",
+      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/core-seed-plan.json --emit-registry-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/core-registry",
       "exitCode": 0,
       "elapsedMs": 29,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/seed-core.log"
@@ -36,7 +36,7 @@
     {
       "id": "seed-auth",
       "status": "PASS",
-      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/auth-seed-plan.json --emit-registry-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/auth-registry",
+      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/auth-seed-plan.json --emit-registry-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/auth-registry",
       "exitCode": 0,
       "elapsedMs": 30,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/seed-auth.log"
@@ -83,7 +83,7 @@
     {
       "id": "ops-client-ui",
       "status": "PASS",
-      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --debug-port-base 14000 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-client-ui --browser-mode chrome --allow-chrome-fallback 1",
+      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --debug-port-base 14000 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-client-ui --browser-mode chrome --allow-chrome-fallback 1",
       "exitCode": 0,
       "elapsedMs": 7784,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-client-ui.log"
@@ -91,7 +91,7 @@
     {
       "id": "ops-client-ui-screenshots",
       "status": "PASS",
-      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --screenshots --visual-widths 320,390,760,1180 --debug-port-base 14200 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-client-ui-screenshots --browser-mode chrome --allow-chrome-fallback 1",
+      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --screenshots --visual-widths 320,390,760,1180 --debug-port-base 14200 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-client-ui-screenshots --browser-mode chrome --allow-chrome-fallback 1",
       "exitCode": 0,
       "elapsedMs": 95883,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-client-ui-screenshots.log"
@@ -99,7 +99,7 @@
     {
       "id": "rule-ui",
       "status": "PASS",
-      "command": "./server.sh verify-rule-ui --http-base http://127.0.0.1:18097 --debug-port 14500 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/rule-ui",
+      "command": "./server.sh verify-rule-ui --http-base http://127.0.0.1:18097 --debug-port 14500 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/rule-ui",
       "exitCode": 0,
       "elapsedMs": 8676,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/rule-ui.log"
@@ -123,7 +123,7 @@
     {
       "id": "ops-tables-layout",
       "status": "PASS",
-      "command": "./server.sh verify-ops-tables-layout --http-base http://127.0.0.1:18097 --debug-port-base 14700 --widths 320,390,760,1180 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-tables-layout",
+      "command": "./server.sh verify-ops-tables-layout --http-base http://127.0.0.1:18097 --debug-port-base 14700 --widths 320,390,760,1180 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-tables-layout",
       "exitCode": 0,
       "elapsedMs": 8280,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-tables-layout.log"
@@ -131,7 +131,7 @@
     {
       "id": "ops-click-e2e-core",
       "status": "PASS",
-      "command": "./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:18097 --debug-port-base 15000 --widths 390,1180 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-click-core",
+      "command": "./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:18097 --debug-port-base 15000 --widths 390,1180 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-click-core",
       "exitCode": 0,
       "elapsedMs": 297361,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-click-e2e-core.log"
@@ -149,7 +149,7 @@
     {
       "id": "ops-click-e2e-auth",
       "status": "PASS",
-      "command": "./server.sh verify-ops-click-e2e --auth-ui-flow --http-base http://127.0.0.1:18197 --debug-port-base 15400 --widths 390,1180 --auth-users-file /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/auth-users.json --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-click-auth",
+      "command": "./server.sh verify-ops-click-e2e --auth-ui-flow --http-base http://127.0.0.1:18197 --debug-port-base 15400 --widths 390,1180 --auth-users-file <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/auth-users.json --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-click-auth",
       "exitCode": 0,
       "elapsedMs": 56192,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/ops-click-e2e-auth.log"

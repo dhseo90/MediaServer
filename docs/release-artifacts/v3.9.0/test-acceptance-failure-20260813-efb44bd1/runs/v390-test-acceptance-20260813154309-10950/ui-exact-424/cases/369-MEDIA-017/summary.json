@@ -41,7 +41,7 @@
     "schema": "media-server.v390-ui-case-policy-input-ref.v1",
     "caseId": "MEDIA-017",
     "runId": "1f81950a-a497-4682-bcd8-216cd5fb9a26",
-    "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/cases/369-MEDIA-017/policy-input.json",
+    "path": "${REPO_ROOT}/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260813154309-10950/ui-exact-424/cases/369-MEDIA-017/policy-input.json",
     "bytes": 46334,
     "sha256": "a55e56d193dfe7fcf6607029c5e2a50b1aff3c6b6c845f5a78defdc503f49c71"
   },

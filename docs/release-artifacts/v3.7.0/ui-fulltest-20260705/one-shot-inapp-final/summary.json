@@ -3,7 +3,7 @@
   "runId": "ui-fulltest-one-shot-1783244324767-83262",
   "generatedAt": "2026-07-05T09:38:48.000Z",
   "result": "PASS",
-  "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final",
+  "outputDir": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final",
   "widths": "390,1180",
   "visualWidths": "320,390,760,1180",
   "manualResult": "",
@@ -25,7 +25,7 @@
     {
       "id": "seed-core",
       "status": "PASS",
-      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/core-seed-plan.json --emit-registry-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/core-registry",
+      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/core-seed-plan.json --emit-registry-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/core-registry",
       "exitCode": 0,
       "elapsedMs": 36,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/seed-core.log"
@@ -33,7 +33,7 @@
     {
       "id": "seed-auth",
       "status": "PASS",
-      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/auth-seed-plan.json --emit-registry-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/auth-registry",
+      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/auth-seed-plan.json --emit-registry-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/auth-registry",
       "exitCode": 0,
       "elapsedMs": 31,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/seed-auth.log"
@@ -80,7 +80,7 @@
     {
       "id": "ops-client-ui",
       "status": "PASS",
-      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --debug-port-base 14000 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-client-ui --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
+      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --debug-port-base 14000 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-client-ui --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
       "exitCode": 0,
       "elapsedMs": 167,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-client-ui.log"
@@ -88,7 +88,7 @@
     {
       "id": "ops-client-ui-screenshots",
       "status": "PASS",
-      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --screenshots --visual-widths 320,390,760,1180 --debug-port-base 14200 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-client-ui-screenshots --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
+      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --screenshots --visual-widths 320,390,760,1180 --debug-port-base 14200 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-client-ui-screenshots --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
       "exitCode": 0,
       "elapsedMs": 196,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-client-ui-screenshots.log"
@@ -96,7 +96,7 @@
     {
       "id": "rule-ui",
       "status": "PASS",
-      "command": "./server.sh verify-rule-ui --http-base http://127.0.0.1:18097 --debug-port 14500 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/rule-ui --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
+      "command": "./server.sh verify-rule-ui --http-base http://127.0.0.1:18097 --debug-port 14500 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/rule-ui --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
       "exitCode": 0,
       "elapsedMs": 29,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/rule-ui.log"
@@ -120,7 +120,7 @@
     {
       "id": "ops-tables-layout",
       "status": "PASS",
-      "command": "./server.sh verify-ops-tables-layout --http-base http://127.0.0.1:18097 --debug-port-base 14700 --widths 320,390,760,1180 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-tables-layout --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
+      "command": "./server.sh verify-ops-tables-layout --http-base http://127.0.0.1:18097 --debug-port-base 14700 --widths 320,390,760,1180 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-tables-layout --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
       "exitCode": 0,
       "elapsedMs": 32,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-tables-layout.log"
@@ -128,7 +128,7 @@
     {
       "id": "ops-click-e2e-core",
       "status": "PASS",
-      "command": "./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:18097 --debug-port-base 15000 --widths 390,1180 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-click-core --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
+      "command": "./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:18097 --debug-port-base 15000 --widths 390,1180 --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-click-core --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
       "exitCode": 0,
       "elapsedMs": 31,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-click-e2e-core.log"
@@ -146,7 +146,7 @@
     {
       "id": "ops-click-e2e-auth",
       "status": "PASS",
-      "command": "./server.sh verify-ops-click-e2e --auth-ui-flow --http-base http://127.0.0.1:18197 --debug-port-base 15400 --widths 390,1180 --auth-users-file /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/auth-users.json --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-click-auth --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
+      "command": "./server.sh verify-ops-click-e2e --auth-ui-flow --http-base http://127.0.0.1:18197 --debug-port-base 15400 --widths 390,1180 --auth-users-file <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/auth-users.json --output-dir <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-click-auth --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json",
       "exitCode": 0,
       "elapsedMs": 36,
       "log": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/ops-click-e2e-auth.log"

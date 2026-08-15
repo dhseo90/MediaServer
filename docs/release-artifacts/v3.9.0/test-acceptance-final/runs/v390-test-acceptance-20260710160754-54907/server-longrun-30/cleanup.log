@@ -1,4 +1,0 @@
-http-port-clean=PASS
-rtsp-port-clean=PASS
-delegated-ports-clean-step=PASS
-predev-temporary-workdir-removed=PASS

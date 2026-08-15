@@ -23,7 +23,7 @@ Usage:
   ./server.sh verify-project-inventory
 
 Checks:
-  - docs/project-feature-test-inventory.md is indexed
+  - internal project-feature-test inventory is excluded from the public docs index
   - inventory pins the current release and states it is not execution evidence
   - all feature IDs use the current UI/test-area matrix shape
   - the independent 986-row implementation/UI/verifier evidence manifest matches exactly
@@ -57,12 +57,13 @@ const seedFixtureText = readText(seedFixturePath);
 const seedFixture = JSON.parse(seedFixtureText);
 const currentVersion = readText("VERSION").trim();
 const currentTag = `v${currentVersion}`;
-const latestPublishedTag = "v3.8.0";
+const latestPublishedTag = "v3.9.0";
 
 const checks = [];
 
-check("docs index references feature inventory", () => {
-  requireText(docsIndex, "project-feature-test-inventory.md", "docs index missing inventory link");
+check("public docs index excludes internal feature inventory", () => {
+  assert(!docsIndex.includes("project-feature-test-inventory.md"),
+    "public docs index exposes internal feature inventory");
 });
 
 check("feature inventory pins current release scope", () => {
@@ -1218,7 +1219,9 @@ check("AGENTS requires individual future feature test rows", () => {
 
 check("manual UI VA seed matrix covers required current release cases", () => {
   assert(seedFixture.schema === "media-server.manual-ui-fulltest-va-seed-matrix.v1", "unexpected seed fixture schema");
-  assert(seedFixture.releaseTarget === latestPublishedTag, `seed fixture must preserve latest published manual UI seed baseline ${latestPublishedTag}`);
+  assert(seedFixture.releaseTarget === currentTag, `seed fixture must target current source ${currentTag}`);
+  assert(seedFixture.publishedReleaseTarget === latestPublishedTag,
+    `seed fixture must preserve latest published manual UI seed baseline ${latestPublishedTag}`);
   requireText(inventory, "VA seed 데이터", "inventory missing VA seed boundary row");
   requireText(inventory, "준비 기준일 뿐 실행 증거 아님", "inventory must not promote VA seed fixture to execution evidence");
   assert(seedFixture.usageBoundary?.notEvidenceUntilAppliedAndVerified === true, "seed fixture must not be evidence by itself");

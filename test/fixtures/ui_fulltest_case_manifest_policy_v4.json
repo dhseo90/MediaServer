@@ -1,6 +1,6 @@
 {
   "schema": "media-server.ui-fulltest-canonical-case-manifest.v1",
-  "version": "3.9.0",
+  "version": "current",
   "implementationEvidence": {
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",

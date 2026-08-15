@@ -26,7 +26,7 @@ UI 사용법은 [ui-guide.md](./ui-guide.md)를 봅니다.
 - OS: macOS 또는 Linux
 - Language: C++17
 - Build: CMake 3.16+
-- Media framework: GStreamer 1.0
+- Media framework: GStreamer 1.28+ (the pkg-config/API namespace remains `gstreamer-1.0`)
 - Optional AI: ONNX Runtime + YOLO ONNX model
 - Optional tooling: Node.js, Python 3, ffmpeg/ffprobe, curl
 

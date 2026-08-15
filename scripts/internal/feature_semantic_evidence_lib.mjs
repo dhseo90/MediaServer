@@ -390,10 +390,24 @@ function validateReview4DirectLocator(rootDir, id, role, locator, errors) {
   try { source = review3Source(rootDir, locator.file); }
   catch { errors.push(`${id} REVIEW4 ${role} file missing: ${locator.file}`); return; }
   const lineText = (source.lines[locator.line - 1] || "").trim();
-  if (lineText !== String(locator.anchor).trim()) errors.push(`${id} REVIEW4 ${role} line drift`);
-  if (sha256(review3ContextAtLine(source.lines, locator.line)) !== locator.contextSha256) {
-    errors.push(`${id} REVIEW4 ${role} context drift`);
+  const anchor = String(locator.anchor).trim();
+  const exact = lineText === anchor &&
+    sha256(review3ContextAtLine(source.lines, locator.line)) === locator.contextSha256;
+  if (exact) return;
+
+  // 줄 삽입/삭제만으로 동일한 승인 anchor가 이동한 경우에는 절대 line 번호를
+  // semantic 변경으로 취급하지 않는다. anchor와 로컬 context가 함께 일치하는
+  // 위치가 단 하나일 때만 기존 승인을 유지하며, 중복 또는 내용 변경은 계속 FAIL한다.
+  const relocatedLines = [];
+  for (let index = 0; index < source.lines.length; index += 1) {
+    if (source.lines[index].trim() !== anchor) continue;
+    if (sha256(review3ContextAtLine(source.lines, index + 1)) === locator.contextSha256) {
+      relocatedLines.push(index + 1);
+    }
   }
+  if (relocatedLines.length === 1) return;
+  if (lineText !== anchor) errors.push(`${id} REVIEW4 ${role} line drift`);
+  errors.push(`${id} REVIEW4 ${role} context drift`);
 }
 
 export function summarizeSemanticClosure({ rows, manifest }) {

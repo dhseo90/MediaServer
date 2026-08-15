@@ -67,10 +67,11 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
+assert(currentTag === "v3.9.1", `v3.9.1 release branch must use current tag v3.9.1, got ${currentTag}`);
 const latestPublishedTag = "v3.9.0";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
-const currentRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";
-const latestPublishedBaseline = currentRoadmap;
+const currentRoadmap = "v3.9.1 Release Correctness and Public Repository Hygiene";
+const latestPublishedBaseline = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";
 const previousPublishedTag = "v3.8.0";
 const previousPublishedBaseline = `${previousPublishedTag} Operator-Gated Action Pilot & Outcome Loop`;
 const githubRepository = resolveGithubRepository();
@@ -346,7 +347,7 @@ check("versioning policy separates source version and published release", () => 
     `최신 공개 GitHub Release: \`${latestPublishedTag}\``,
     `최신 공개 roadmap: \`${latestPublishedBaseline}\``,
     `\`${latestPublishedTag}\` 공개 상태: source-only GitHub Release`,
-    `현재 소스 트리의 \`${version}\` roadmap은 v3.9.0 Feature Completion, Structure Stabilization,`,
+    `현재 소스 트리의 \`${version}\` roadmap은 ${currentRoadmap}`,
     `published tag \`${latestPublishedTag}\`와 현재 source tag \`${currentTag}\``,
     "## 2.x runway / 3.0 전환 정책",
     "## 3.9.0 latest published source-only release 범위",
@@ -504,13 +505,13 @@ check("UI guide pins current release wording", () => {
   const uiGuide = readText("docs/ui-guide.md");
   assert(uiGuide.includes(`현재 소스 버전은 \`${version}\`입니다.`), "docs/ui-guide.md source version drifted");
   assert(uiGuide.includes(`최신 공개 GitHub Release는 \`${latestPublishedTag}\` source-only`), "docs/ui-guide.md source-only release wording drifted");
-  assert(uiGuide.includes("v3.9.0 Feature Completion, Structure"), "docs/ui-guide.md source roadmap boundary drifted");
+  assert(uiGuide.includes(currentRoadmap), "docs/ui-guide.md source roadmap boundary drifted");
   return { file: "docs/ui-guide.md", currentTag, latestPublishedTag };
 });
 
 check("UI asset policy pins current source and published baseline wording", () => {
   const uiAssets = readText("docs/assets/ui/README.md");
-  assert(uiAssets.includes("현재 source tree는 `v3.9.0`"), "docs/assets/ui/README.md source version drifted");
+  assert(uiAssets.includes("현재 source tree는 `v3.9.1`"), "docs/assets/ui/README.md source version drifted");
   assert(uiAssets.includes(`최신 공개 GitHub Release는 \`${latestPublishedTag}\` Feature Completion, Structure Stabilization, and Test Model Preparation`), "docs/assets/ui/README.md latest published wording drifted");
   assert(uiAssets.includes("직전 `v3.8.0`"), "docs/assets/ui/README.md previous baseline wording drifted");
   assert(uiAssets.includes("image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는"), "docs/assets/ui/README.md image evidence boundary drifted");

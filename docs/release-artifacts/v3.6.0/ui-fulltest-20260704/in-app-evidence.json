@@ -24,10 +24,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -50,7 +50,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/home",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_320.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
@@ -66,7 +66,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/home",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_390.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
@@ -82,7 +82,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/home",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_760.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
@@ -98,7 +98,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/home",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_1180.png"
         }
       ]
     },
@@ -113,10 +113,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -139,7 +139,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/dashboard",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_320.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
@@ -155,7 +155,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/dashboard",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_390.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
@@ -171,7 +171,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/dashboard",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_760.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
@@ -187,7 +187,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/dashboard",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_1180.png"
         }
       ]
     },
@@ -202,10 +202,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -228,7 +228,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/sources",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_320.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
@@ -244,7 +244,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/sources",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_390.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
@@ -260,7 +260,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/sources",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_760.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
@@ -276,7 +276,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/sources",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_1180.png"
         }
       ]
     },
@@ -291,10 +291,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -317,7 +317,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/rules",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_320.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
@@ -333,7 +333,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/rules",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_390.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
@@ -349,7 +349,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/rules",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_760.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
@@ -365,7 +365,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/rules",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_1180.png"
         }
       ]
     },
@@ -380,10 +380,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -406,7 +406,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/users",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_320.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오 상세 추가 작업 viewer-ui Viewer UI 시청자 활성 로그인 가능 ",
@@ -422,7 +422,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/users",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_390.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오 상세 추가 작업 viewer-ui Viewer UI 시청자 활성 로그인 가능 ",
@@ -438,7 +438,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/users",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_760.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 계정명 이름 권한 상태 권한 범위 마지막 로그인 잠금 만료 비밀번호 변경 작업 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오",
@@ -454,7 +454,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/users",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_1180.png"
         }
       ]
     },
@@ -469,10 +469,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -495,7 +495,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/events",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_320.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
@@ -511,7 +511,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/events",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_390.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
@@ -527,7 +527,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/events",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_760.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
@@ -543,7 +543,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/events",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_1180.png"
         }
       ]
     },
@@ -558,10 +558,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -584,7 +584,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/vlm",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_320.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
@@ -600,7 +600,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/vlm",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_390.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
@@ -616,7 +616,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/vlm",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_760.png"
         },
         {
           "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
@@ -632,7 +632,7 @@
           "title": "운영 콘솔",
           "url": "http://127.0.0.1:18097/ops/vlm",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_1180.png"
         }
       ]
     },
@@ -647,10 +647,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -673,7 +673,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/live",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_320.png"
         },
         {
           "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
@@ -689,7 +689,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/live",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_390.png"
         },
         {
           "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
@@ -705,7 +705,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/live",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_760.png"
         },
         {
           "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
@@ -721,7 +721,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/live",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_1180.png"
         }
       ]
     },
@@ -736,10 +736,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -762,7 +762,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/dashboard",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_320.png"
         },
         {
           "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
@@ -778,7 +778,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/dashboard",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_390.png"
         },
         {
           "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
@@ -794,7 +794,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/dashboard",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_760.png"
         },
         {
           "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
@@ -810,7 +810,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/dashboard",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_1180.png"
         }
       ]
     },
@@ -825,10 +825,10 @@
         1180
       ],
       "screenshots": [
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_320.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_390.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_760.png",
-        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_1180.png"
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_320.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_390.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_760.png",
+        "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_1180.png"
       ],
       "checks": {
         "visualLayoutPass": true,
@@ -851,7 +851,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/events",
           "width": 320,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_320.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_320.png"
         },
         {
           "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
@@ -867,7 +867,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/events",
           "width": 390,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_390.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_390.png"
         },
         {
           "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
@@ -883,7 +883,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/events",
           "width": 760,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_760.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_760.png"
         },
         {
           "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
@@ -899,7 +899,7 @@
           "title": "클라이언트 포털",
           "url": "http://127.0.0.1:18097/client/events",
           "width": 1180,
-          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_1180.png"
+          "screenshot": "<workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_1180.png"
         }
       ]
     },

@@ -19,7 +19,7 @@
     "fallbackReason": "",
     "visualOnly": false,
     "dependencyStatus": "bundled-module-available",
-    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+    "modulePath": "<workspace>/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
     "moduleVersion": "1.62.1",
     "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "capabilities": [
@@ -141,7 +141,7 @@
       "processes": [
         {
           "pid": 51691,
-          "commandIdentity": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+          "commandIdentity": "${REPO_ROOT}/build-gst-onnx/media_server",
           "aliveBefore": true,
           "aliveAfter": false,
           "ownedPorts": [
@@ -185,7 +185,7 @@
         "check": "throwaway-process-identity",
         "status": "PASS",
         "pid": 51691,
-        "commandIdentity": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server"
+        "commandIdentity": "${REPO_ROOT}/build-gst-onnx/media_server"
       },
       {
         "check": "throwaway-process-alive-before",

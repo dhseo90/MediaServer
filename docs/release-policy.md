@@ -6,15 +6,15 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.9.0`
+- 현재 소스 버전: `3.9.1`
 - 최신 공개 GitHub Release: `v3.9.0`
 - `v3.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
+- 현재 source roadmap은 `v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
 - 현재 latest published release는 `v3.9.0`입니다.
 - 현재 공개 release tag 기준은 `v3.9.0`입니다.
-- 현재 source tag 기준은 `v3.9.0`입니다.
-- `v3.9.0` GitHub Release publish 완료는 tag, GitHub Release,
+- 현재 source tag 기준은 `v3.9.1`입니다.
+- `v3.9.1` GitHub Release publish 완료는 tag, GitHub Release,
   `verify-release-metadata --published` evidence가 있을 때만 완료로 기록합니다.
 
 ## 기본 공개 범위
@@ -60,9 +60,9 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.9.0 published baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.9.0`, current roadmap
-`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`,
+v3.9.1 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.9.1`, current roadmap
+`v3.9.1 Release Correctness and Public Repository Hygiene`,
 latest published `v3.9.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
 대상 문서는 `README.md`, `README.en.md`,
@@ -165,6 +165,37 @@ published metadata 확인에는 GitHub Releases list/view/latest, GitHub API
 gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 섞지 않습니다.
 
 ## GitHub Releases 운영
+
+### v3.9.1 Release Close-out Runbook
+
+아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
+순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
+v3.9.1은 현재 source patch입니다. GitHub Latest Release는 게시 전까지 `v3.9.0`입니다.
+실제 tag, GitHub Release, published metadata 확인 결과만 완료 evidence로 사용합니다.
+
+Dry-run checklist:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+- `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
+- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
+- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
+
+Real close-out checklist:
+
+- Branch close
+- PR merge
+- Main fast-forward/sync
+- public-readiness, bundle policy, Actions status check
+- Tag 전략에 맞춘 signed annotated tag 생성
+- GitHub Release 생성/갱신
+- Latest 확인
+- published metadata 재검증
+- release branch 삭제는 사용자 별도 승인 후 진행
+- Next branch sync
+
+Do not list an item as pass unless it was actually executed. tag, GitHub Release,
+published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
+있을 때만 완료로 기록합니다.
 
 ### v3.9.0 Release Close-out Runbook
 
@@ -990,19 +1021,20 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v3.9.0 Release Note Template
+## v3.9.1 Release Note Template
 
-아래 템플릿은 v3.9.0 source-only GitHub Release note 기준입니다. 실행하지 않은
-장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
+아래 템플릿은 v3.9.1 source-only GitHub Release note 기준입니다. 실행하지 않은
+장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. GitHub Latest Release는
+게시 전까지 `v3.9.0`입니다.
 
 ```markdown
-# Media Server v3.9.0
+# Media Server v3.9.1
 
 ## Scope
 
 - Source-only live media server release
 - Feature Completion, Structure Stabilization, and Test Model Preparation source scope
-- Latest published baseline before this release: v3.8.0
+- Latest published baseline before this release: v3.9.0
 - Binary/runtime/model bundle: not included
 
 ## Verification

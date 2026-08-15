@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v3.9.0 source baseline, roadmap, docs, feature inventory scaffold, dispatch 연결을 검증한다.
+// 파일 용도: v3.9.0 historical baseline과 현재 source의 비회귀 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -17,15 +17,15 @@ const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
 
 if (hasHelpFlag(rawArgs)) {
-  printUsageAndExit(`v3.9.0 entry baseline verification
+  printUsageAndExit(`v3.9.0 historical entry baseline verification
 
 Usage:
   ./server.sh verify-v390-entry-baseline
 
 Checks:
-  - VERSION/CMake identify source 3.9.0
-  - public entry docs separate current source 3.9.0 from latest published v3.8.0
-  - v3.9.0 roadmap/backlog and feature completion inventory scaffold are wired
+  - current VERSION/CMake/roadmap do not regress below the v3.9.0 baseline
+  - public entry docs separate the current source from latest published v3.9.0
+  - historical v3.9.0 roadmap/backlog and feature completion inventory remain wired
   - server.sh and verify-script-inventory know the v3.9.0 entry baseline command
 
 Not run by this command:
@@ -40,10 +40,10 @@ Not run by this command:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v390-entry-baseline";
-const currentVersion = "3.9.0";
-const currentRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";
+const baselineVersion = "3.9.0";
+const baselineRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";
 const latestPublishedTag = "v3.9.0";
-const latestPublishedBaseline = currentRoadmap;
+const latestPublishedBaseline = baselineRoadmap;
 const targetScript = "verify_v390_entry_baseline.mjs";
 
 const files = {
@@ -52,6 +52,7 @@ const files = {
   readmeEn: readText("README.en.md"),
   docsIndex: readText("docs/README.md"),
   docsEnIndex: readText("docs/en/README.md"),
+  versioning: readText("docs/versioning-policy.md"),
   uiAssetsReadme: readText("docs/assets/ui/README.md"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
@@ -66,34 +67,36 @@ const files = {
 };
 
 const version = readText("VERSION").trim();
+const currentRoadmap = requiredMatch(files.versioning, /- 현재 source roadmap: `([^`]+)`/, "current source roadmap");
 const checks = [];
 
-check("source version is v3.9.0 and CMake matches", () => {
-  assert(version === currentVersion, `VERSION must be ${currentVersion}, got ${version}`);
-  assertIncludes(files.cmake, `project(media_server VERSION ${currentVersion} LANGUAGES CXX)`, "CMake project version");
+check("current source and CMake align while v3.9.0 remains historical", () => {
+  assert(semverAtLeast(version, baselineVersion), `current VERSION ${version} predates v3.9.0 baseline`);
+  assertIncludes(files.cmake, `project(media_server VERSION ${version} LANGUAGES CXX)`, "CMake project version");
+  assert(currentRoadmap.startsWith(`v${version} `), `current roadmap must match source ${version}: ${currentRoadmap}`);
 });
 
-check("public entry docs align current source v3.9.0 and latest published v3.9.0", () => {
+check("public entry docs align current source and latest published v3.9.0", () => {
   const docs = [
     {
       label: "README.md",
       text: files.readme,
-      sourceSnippets: ["현재 소스 버전: `3.9.0`", `현재 source roadmap: \`${currentRoadmap}\``],
+      sourceSnippets: [`현재 소스 버전: \`${version}\``, `현재 source roadmap: \`${currentRoadmap}\``],
     },
     {
       label: "README.en.md",
       text: files.readmeEn,
-      sourceSnippets: ["Current source version: `3.9.0`", `Current source roadmap: \`${currentRoadmap}\``],
+      sourceSnippets: [`Current source version: \`${version}\``, `Current source roadmap: \`${currentRoadmap}\``],
     },
     {
       label: "docs/README.md",
       text: files.docsIndex,
-      sourceSnippets: ["현재 소스 버전: `3.9.0`", `현재 source roadmap: \`${currentRoadmap}\``],
+      sourceSnippets: [`현재 소스 버전: \`${version}\``, `현재 source roadmap: \`${currentRoadmap}\``],
     },
     {
       label: "docs/en/README.md",
       text: files.docsEnIndex,
-      sourceSnippets: ["Current source version: `3.9.0`", `Current source roadmap: \`${currentRoadmap}\``],
+      sourceSnippets: [`Current source version: \`${version}\``, `Current source roadmap: \`${currentRoadmap}\``],
     },
   ];
 
@@ -107,9 +110,9 @@ check("public entry docs align current source v3.9.0 and latest published v3.9.0
   }
 });
 
-check("development backlog records v3.9 published roadmap, status, review gate, v3.8 history, and scoped follow-up boundary", () => {
+check("development backlog separates current source from historical v3.9 baseline", () => {
   for (const snippet of [
-    "현재 소스 버전: `3.9.0`",
+    `현재 소스 버전: \`${version}\``,
     "최신 공개 GitHub Release: `v3.9.0`",
     `현재 source roadmap: \`${currentRoadmap}\``,
     `최신 published baseline: \`${latestPublishedBaseline}\``,
@@ -169,10 +172,11 @@ check("stream verification records current v3.9 verifier boundary", () => {
   }
 });
 
-check("project inventory maps v3.9 source baseline IDs", () => {
+check("project inventory maps current source and historical v3.9 baseline IDs", () => {
   for (const snippet of [
-    "현재 release 목표 `v3.9.0`",
+    `현재 release 목표 \`v${version}\``,
     "## v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation Coverage Mapping",
+    "v3.9.1 release correction",
     "v3.9.0 (1) v3.9.0 baseline 정렬",
     "`OPS-163`, `SAFE-196`",
     "verify-v390-entry-baseline",
@@ -208,7 +212,7 @@ check("release records and evidence index track v3.9 source baseline boundary", 
 check("release metadata verifier expects v3.9 source and latest published boundary", () => {
   for (const snippet of [
     'const latestPublishedTag = "v3.9.0";',
-    'const currentRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";',
+    `const currentRoadmap = "${currentRoadmap}";`,
     "publishedMode ? \"published-release\" : \"local-release-metadata\"",
     "Default mode checks local release metadata only",
   ]) {
@@ -216,9 +220,9 @@ check("release metadata verifier expects v3.9 source and latest published bounda
   }
 });
 
-check("UI asset policy records v3.9 published and v3.8 previous baseline boundary", () => {
+check("UI asset policy records current source, v3.9 published, and v3.8 previous baseline boundary", () => {
   for (const snippet of [
-    "현재 source tree는 `v3.9.0`",
+    `현재 source tree는 \`v${version}\``,
     "최신 공개 GitHub Release는 `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation",
     "직전 `v3.8.0`",
     "UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다",
@@ -240,8 +244,11 @@ check("script inventory explicitly tracks v3.9 entry baseline script", () => {
 });
 
 check("SAFE-196 canonical source baseline no-overclaim boundary", () => {
-  const currentSourceAligned = version === currentVersion && files.cmake.includes(`VERSION ${currentVersion}`);
-  const publishedBaselineSeparated = latestPublishedTag === "v3.9.0" && files.releaseRecords.includes("v390 Step 1 entry baseline final");
+  const currentSourceAligned = semverAtLeast(version, baselineVersion) &&
+    files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);
+  const publishedBaselineSeparated = latestPublishedTag === "v3.9.0" &&
+    files.releaseRecords.includes("v390 Step 1 entry baseline final") &&
+    files.projectInventory.includes(baselineRoadmap);
   const executionPassClaimed = !(files.releaseRecords.includes("feature discovery/dev") && files.releaseRecords.includes("not-run-by-this-command"));
   const safe196BoundaryObserved = currentSourceAligned && publishedBaselineSeparated && files.projectInventory.includes("SAFE-196");
   const ops163BaselineObserved = safe196BoundaryObserved;
@@ -256,6 +263,7 @@ console.log("- schema: media-server.v390-entry-baseline.v1");
 console.log(`- command: ${command}`);
 console.log(`- currentVersion: ${version}`);
 console.log(`- currentRoadmap: ${currentRoadmap}`);
+console.log(`- historicalBaseline: v${baselineVersion} ${baselineRoadmap}`);
 console.log(`- latestPublishedTag: ${latestPublishedTag}`);
 console.log(`- latestPublishedBaseline: ${latestPublishedBaseline}`);
 console.log("- featureImplementation: not-run-by-this-command");
@@ -289,6 +297,22 @@ function check(name, fn) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function requiredMatch(text, pattern, label) {
+  const match = String(text).match(pattern);
+  if (!match) throw new Error(`missing ${label}`);
+  return match[1];
+}
+
+function semverAtLeast(current, baseline) {
+  const currentParts = String(current).split(".").map(Number);
+  const baselineParts = String(baseline).split(".").map(Number);
+  for (let index = 0; index < 3; index += 1) {
+    if (currentParts[index] > baselineParts[index]) return true;
+    if (currentParts[index] < baselineParts[index]) return false;
+  }
+  return true;
 }
 
 function assert(condition, message) {

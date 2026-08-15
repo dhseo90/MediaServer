@@ -56,12 +56,19 @@ if (fs.existsSync(authoritativeSummary) && fs.existsSync(authoritativeEvaluation
   assert.deepEqual(actualCensus.clusterCounts, fixture.clusterCounts);
 }
 
-assert.throws(() => censusQualificationReasons(["CASE-001:unknown-policy-v4-reason"]),
-  /unassigned Policy v4 qualification reason/);
+const unknownCensus = censusQualificationReasons(["CASE-001:unknown-policy-v4-reason"]);
+assert.equal(unknownCensus.assignmentStatus, "fail-closed-incomplete-assignment",
+  "unknown Policy v4 reasons must stay structured fail-closed");
+assert.deepEqual(unknownCensus.unassignedReasons, ["unknown-policy-v4-reason"]);
+assert.deepEqual(unknownCensus.multiplyAssignedReasons, []);
+assert.equal(unknownCensus.clusterCounts["canonical-source-binding"], undefined);
 const sourceBindingCensus = censusQualificationReasons([
   "canonical-parent-binding-source-digest-mismatch",
+  "canonical-case-manifest-version-mismatch",
 ]);
-assert.equal(sourceBindingCensus.clusterCounts["canonical-source-binding"], 1,
+assert.equal(sourceBindingCensus.assignmentStatus, "exact-one-cluster",
+  "canonical source binding reasons must remain exact-one-cluster");
+assert.equal(sourceBindingCensus.clusterCounts["canonical-source-binding"], 2,
   "canonical source binding mismatch is not assigned to its exact reason cluster");
 
 const runnerSource = fs.readFileSync(path.join(rootDir,

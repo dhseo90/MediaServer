@@ -10,28 +10,78 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.9.0`
+- 현재 소스 버전: `3.9.1`
 - 최신 공개 GitHub Release: `v3.9.0`
 - `v3.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 최신 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 
-### 2026-08-14 release close-out status
+### 2026-08-14 v3.9.0 historical close-out status
 
-- Source `c6b3d20a778a7a641e44decadd1ee5b416426650`의 실제 `./test_release.sh`는 full build와
-  feature gates, 30분 longrun `118 PASS / 0 FAIL / 2 skip`, canonical UI `424/424`,
-  Policy v4 eligible·qualified `424/424`, 120분 longrun `443 PASS / 0 FAIL / 2 skip`,
-  cleanup, final-integrity `12/12`를 모두 통과했습니다.
-- 최종 evidence는
-  [test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
-  80개 파일·11.4MiB의 bounded package로 보존합니다. 4,900여 개·309MB의 per-case 중복 산출물은
-  main 병합 대상에서 제외했습니다.
-- 제품 및 local release acceptance, PR checks, main merge, signed tag, source-only GitHub
-  Release와 published metadata 검증을 v3.9.0 release close-out evidence로 분리해 확인합니다.
-- 최신 공개 GitHub Release는 `v3.9.0`이며 v3.8.0은 직전 published baseline입니다.
+- Source `c6b3d20a778a7a641e44decadd1ee5b416426650`의 `./test_release.sh`는 v3.9.0
+  local acceptance를 통과했습니다. 상세는
+  [v3.9.0 test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
+  보존합니다. 이 절은 현재 v3.9.1 완료 증거가 아닙니다.
 
-## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
+## 현재 source roadmap: v3.9.1 Release Correctness and Public Repository Hygiene
+
+상태: local `./test_release.sh` PASS. 7차 GitHub clean-clone source `2882bb35`에서
+30분 `118/0/2`, exact UI `424/424`, Policy v4 `uiFulltestPass=true`, 120분 `448/0/2`,
+final integrity를 확인했습니다. 기록 커밋은 `b2373cf1`입니다. 아래 v3.9.0 상세
+roadmap은 historical section입니다.
+
+### 2026-08-15 clean-clone test dependency bootstrap correction
+
+상태: 구현 완료. 7차 actual `./test_release.sh`에서 AI asset bootstrap이 다시 확인됐습니다.
+
+- `scripts/internal/user_test_launcher_common.sh`의
+  `media_server_prepare_user_test_ai_assets`가 네 무옵션 사용자 test launcher의 실제 하위
+  test 위임 전에 Git 비추적 `models/yolo11n.onnx`와 `models/coco.names`를 준비합니다.
+  YOLO 모델은 Ultralytics `v8.4.0` 고정 URL과 SHA-256
+  `634279b40c07c6391472c51ad45b81ebc48706a9a1fe72dd3396322acd0c053b`에 결속하고,
+  임시 파일 다운로드, digest 확인, atomic rename 순서로만 게시합니다. 기존 파일은 같은
+  digest일 때 재사용하고 다르면 동일 절차로 교체합니다.
+- COCO 80개 label은 launcher 소유 canonical bytes로 생성한 뒤 SHA-256
+  `bd17f1ee35d5f3c862a4894605855abbb9dda4b0621fdb0ac4c2c8c7bb7e730a`를 확인하고
+  atomic rename합니다. 다운로드 또는 readback 실패는 `ai-asset-bootstrap` 최초 실패로
+  기록하고 build·feature gate·30분·UI·120분을 실행하지 않습니다.
+- `scripts/internal/verify_v390_user_test_launchers_contract.mjs`는 missing asset download,
+  existing asset verify, corrupt model repair, digest mismatch no-publish/temp cleanup을 실제
+  local `file://` fixture로 검증합니다. RED `20 PASS / 2 FAIL` 뒤 구현 후 `22/22` PASS,
+  Bash syntax와 원본 model/label SHA readback도 PASS했습니다. 이어서 기본 Ultralytics URL을
+  사용한 임시 root 검증에서 10.4 MB model download, 고정 model/label SHA, COCO 80 labels가
+  모두 PASS했고 10 MiB 임시 root는 삭제했습니다.
+- 이 보정은 model/runtime을 릴리즈 bundle이나 Git에 포함하지 않고, C++ 제품 로직,
+  API/schema/event payload, RTSP/WebRTC media path를 변경하지 않습니다. 실제 30분/UI/120분
+  PASS는 새 clean commit의 `./test_release.sh` 결과로만 판정합니다.
+
+### 2026-08-15 Policy v4 current-source version rebind
+
+상태: 구현 완료. 7차 actual qualification은 `uiFulltestPass=true`, qualified 424/424.
+
+- 6차 clean-clone은 source `b7a6ed1c`에서 AI asset bootstrap, preflight/build, feature gate 36,
+  30분 `118/0/2`, exact UI `424/424`까지 통과한 뒤 `ui-fulltest-qualification`에서 중단됐습니다.
+  producer는 `VERSION=3.9.1`을 기록하고 canonical manifest는 `3.9.0`이어서
+  `canonical-case-manifest-version-mismatch`가 발생했고, reason census가 미등록 reason을 throw해
+  120분 판정과 final-integrity가 건너뛰어졌습니다.
+- 보정은 v3.9.0 published baseline을 허용하지 않습니다. current-source fixture의
+  version 필드는 패치 숫자 대신 token `current`를 쓰고, qualifier/visual/current
+  contract가 `VERSION`으로 해석합니다. 다음 버전 bump에서 이 JSON 숫자를 다시 고치지
+  않습니다. historical `3.9.0` fixture는 token이 아니므로 현재 소스로 승격되지 않습니다.
+- `censusQualificationReasons`는 `canonical-case-manifest-version-mismatch`를
+  `canonical-source-binding`에 배정하고, 미등록 reason은 uncaught exception 대신
+  `assignmentStatus=fail-closed-incomplete-assignment`와 `unassignedReasons`를 남깁니다.
+  `verify-ui-fulltest-evidence-policy-v4`는 불완전 census를 `uiFulltestPass=false`로 닫습니다.
+- focused 검증: current evidence `8/0`, actual evidence contract PASS, native exact 424/423/1/0,
+  visual `15/0`, producer `19/0`, independence `12/0`, project inventory PASS,
+  `git diff --check` PASS. Policy v4 contract fixture의 historical `3.9.0` binding은
+  current token과 분리해 유지합니다. 7차 actual UI/30분/120분은 PASS입니다.
+
+## Historical archive: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
+
+이 절은 published `v3.9.0` 이력이다. 현재 source `3.9.1`의 완료 증거가 아니다.
+아래 REVIEW4 본문과 표는 원문 보존용이며 현재 실행 계획으로 쓰지 않는다.
 
 상태: Step 1~29 기능·결정·readiness local gate는 한 차례 닫혔으나, 2026-07-11 실제 구현
 재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되었습니다. 이후 구현됐다고
@@ -129,7 +179,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 17 | v3.9.0 (17) field evidence bridge | P2 | 완료 | `V390-CAND-009`: `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run/no-field-execution boundary를 표시하고 field smoke/provider call/write는 수행하지 않음 |
 | 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 | `V390-CAND-010`: `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, tracker-none forces off boundary를 표시하고 model-backed execution/embedding/crop serialization은 수행하지 않음 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관하고 `verify-v390-structure-stabilization-handoff` gate로 구조 변경 미실행 경계를 고정 |
-| 20 | v3.9.0 (20) stabilization and release readiness | P0 | release close-out 완료 | Source `c6b3d20a`의 `./test_release.sh`가 full build, feature gates, 30분, exact UI `424/424`, Policy v4 `424/424`, trigger된 120분, cleanup과 final integrity를 모두 PASS했습니다. PR checks/main merge와 signed tag/source-only GitHub Release/published metadata는 별도 release action evidence로 확인합니다 |
+| 20 | v3.9.0 (20) stabilization and release readiness | P0 | release close-out 완료 | release close-out에서 Source `c6b3d20a`의 `./test_release.sh`가 동일 source binding으로 full build, feature gates, 30분, exact UI `424/424`, Policy v4 `424/424`, trigger된 120분, cleanup과 final integrity를 모두 PASS했습니다. PR checks/main merge와 signed tag/source-only GitHub Release/published metadata는 별도 release action evidence로 확인합니다 |
 | 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | 완료 | `./test_release.sh` exit `0`, `finalEvidenceEligible=true`. Bounded canonical evidence는 `docs/release-artifacts/v3.9.0/test-acceptance-current-final/`에 보존하며 historical failure artifact와 분리합니다 |
 | 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
@@ -157,8 +207,8 @@ Evidence 14는 실제 30분과 UI-108~115 자동화를 포함하지만 exact 424
 
 완료 경계: v3.9 source baseline/inventory 준비는 실제 기능 개발, discovery 완료,
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가
-아닙니다. `v3.9.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
+아닙니다. `v3.9.1` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.9.0`입니다.
 
 ## v3.9.0 (13) 추가 로드맵 (1)
 

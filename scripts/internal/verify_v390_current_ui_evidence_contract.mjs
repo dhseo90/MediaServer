@@ -10,6 +10,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { isCurrentSourceVersionToken } from "./current_source_version.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
@@ -26,6 +27,17 @@ historical audit-only roots, and active consumer stale-path denial. This command
 assertKnownOptions(args, ["h", "help"]);
 
 const checks = [];
+check("current fixtures bind the current VERSION token instead of a frozen patch number", () => {
+  const state = readJson("test/fixtures/v390_ui_current_evidence_state.json");
+  const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
+  const visual = readJson("test/fixtures/v390_ui_visual_matrix_plan.json");
+  assert(isCurrentSourceVersionToken(state.version),
+    `current evidence state version must be token "current", got ${state.version}`);
+  assert(isCurrentSourceVersionToken(canonical.version),
+    `canonical case manifest version must be token "current", got ${canonical.version}`);
+  assert(isCurrentSourceVersionToken(visual.version),
+    `visual matrix plan version must be token "current", got ${visual.version}`);
+});
 check("current state is explicit not-run and not PASS", () => {
   const state = readJson("test/fixtures/v390_ui_current_evidence_state.json");
   assert(state.schema === "media-server.v390-ui-current-evidence-state.v2", "current state schema mismatch");

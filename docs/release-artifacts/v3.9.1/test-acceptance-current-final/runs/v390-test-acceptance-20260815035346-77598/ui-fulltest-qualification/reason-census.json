@@ -1,0 +1,10 @@
+{
+  "schema": "media-server.v390-ui-policy-v4-reason-census.v1",
+  "assignmentStatus": "exact-one-cluster",
+  "reasonCount": 0,
+  "reasonCounts": {},
+  "clusterCounts": {},
+  "assignments": [],
+  "unassignedReasons": [],
+  "multiplyAssignedReasons": []
+}

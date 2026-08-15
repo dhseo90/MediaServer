@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v3.9 entry baseline 진행 상태 parser의 positive/negative contract를 검증한다.
+// 파일 용도: v3.9 historical entry baseline의 상태 parser와 current-source 비회귀 contract를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -17,16 +17,18 @@ const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
 
 if (hasHelpFlag(rawArgs)) {
-  printUsageAndExit(`v3.9.0 entry baseline structured state contract
+  printUsageAndExit(`v3.9.0 historical entry baseline contract
 
 Usage:
   ./server.sh verify-v390-entry-baseline-contract
 
-Checks current backlog positive and historical wording, missing Step, duplicate Step negatives.`);
+Checks current backlog positive and historical wording, missing Step, duplicate Step negatives,
+and the current-source/historical-baseline version boundary.`);
 }
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const backlog = fs.readFileSync(path.join(rootDir, "docs/development-backlog.md"), "utf8");
+const verifierSource = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_v390_entry_baseline.mjs"), "utf8");
 const expectation = loadV390EntryBaselineExpectation(rootDir);
 
 const cases = [
@@ -67,6 +69,26 @@ for (const testCase of cases) {
   if (ok) pass += 1;
   else fail += 1;
 }
+
+const sourceBoundaryRequired = [
+  'const baselineVersion = "3.9.0";',
+  'const baselineRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";',
+  'const currentRoadmap = requiredMatch(files.versioning, /- 현재 source roadmap:',
+  "semverAtLeast(version, baselineVersion)",
+  "project(media_server VERSION ${version} LANGUAGES CXX)",
+  "current roadmap must match source ${version}",
+  "historicalBaseline: v${baselineVersion} ${baselineRoadmap}",
+];
+const sourceBoundaryForbidden = [
+  'const currentVersion = "3.9.0";',
+  "version === currentVersion",
+  "VERSION must be ${currentVersion}",
+];
+const sourceBoundaryOk = sourceBoundaryRequired.every(snippet => verifierSource.includes(snippet)) &&
+  sourceBoundaryForbidden.every(snippet => !verifierSource.includes(snippet));
+console.log(`[${sourceBoundaryOk ? "pass" : "fail"}] current-source-historical-baseline-boundary`);
+if (sourceBoundaryOk) pass += 1;
+else fail += 1;
 
 console.log("");
 console.log("== v3.9.0 entry baseline contract summary ==");

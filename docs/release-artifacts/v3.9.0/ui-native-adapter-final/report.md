@@ -14,4 +14,4 @@ finalState: native-adapter:ready:typed
 | select | #native-mode=ready | PASS | 1 |
 | click | #native-apply | PASS | 24 |
 | wait | #native-status=native-adapter:ready:typed | PASS | 2 |
-| screenshot | /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/native-adapter.png | PASS | 43 |
+| screenshot | <workspace>/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-native-adapter-final/native-adapter.png | PASS | 43 |

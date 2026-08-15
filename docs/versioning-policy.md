@@ -5,21 +5,19 @@
 
 ## 현재 기준
 
-- 현재 소스 버전: `3.9.0`
-- 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- 현재 소스 버전: `3.9.1`
+- 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 최신 공개 GitHub Release: `v3.9.0`
 - 최신 공개 roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - `v3.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v3.9.0`와 현재 source tag `v3.9.0`를 함께 기록합니다.
+- source-only release 기준 tag는 published tag `v3.9.0`와 현재 source tag `v3.9.1`를 함께 기록합니다.
 - `v3.9.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid` 확인 대상입니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
-현재 소스 트리의 `3.9.0` roadmap은 v3.9.0 Feature Completion, Structure Stabilization,
-and Test Model Preparation source-only/live-only latest published roadmap입니다.
-REVIEW4-51의 최신 승인에 따라 REVIEW4-50~63 완료 뒤 실제 동작 보존 구조 안정화와
-리팩토링을 같은 `v3.9.0` 브랜치의 REVIEW4-64에서 수행하고, REVIEW4-65에서 독립
-acceptance를 실행합니다. 실제 리팩토링을 v4.0.0으로 이관하지 않습니다.
-v3.9.0 publish 완료는 signed tag, source-only GitHub Release,
+현재 소스 트리의 `3.9.1` roadmap은 v3.9.1 Release Correctness and Public Repository Hygiene
+source-only/live-only patch source입니다. 게시된 v3.9.0 signed tag와 GitHub Release를 변경하지 않고,
+tag 이후 correctness 변경과 public repository/document/evidence/UI asset 문제를
+v3.9.1에서 정정합니다. v3.9.0 publish 완료는 signed tag, source-only GitHub Release,
 `verify-release-metadata --published` evidence로 확인합니다. v3.8.0 previous published
 baseline, v3.7.0 historical published baseline과 후속 기능별 완료 evidence는 계속
 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
@@ -297,11 +295,14 @@ v3.3에서는 historical reference로만 참조합니다.
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v3.3.0`
-- 현재 source tag 기준: `v3.3.0`
-- `v3.3.0` release tag는 annotated tag로 생성했습니다.
-- 6월 정책상 GitHub Actions가 disabled여서 required Actions check는 생성되지 않았고,
-  main ruleset required checks를 임시 제거해 PR merge 후 원복했습니다.
+- 현재 공개 release tag 기준: `v3.9.0`
+- 현재 source tag 기준: `v3.9.1`
+- `v3.9.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
+  `verified=true`/`reason=valid` 확인 대상입니다.
+- `v3.9.1` source tag는 GitHub Release publish evidence가 있을 때만 공개 완료로
+  기록합니다.
+- historical: `v3.3.0` close-out 당시 annotated tag와 6월 GitHub Actions disabled
+  예외는 당시 기록이며 현재 기준이 아닙니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.

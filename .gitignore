@@ -28,6 +28,8 @@
 /.media_server.alert_deliveries.jsonl
 /.media_server.alert_delivery_attempts.jsonl
 /.media_server.client_live_layout_preferences.jsonl
+/.media_server.va_clips/
+/.media_server.va_snapshots/
 /.media_server.reset-backups/
 /.media_server.test/
 /scripts/.media_server.env

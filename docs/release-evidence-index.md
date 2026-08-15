@@ -33,7 +33,28 @@
   `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
-## v3.9.0 현재 evidence (2026-08-14)
+## v3.9.1 현재 소스 정정 상태 (2026-08-15)
+
+- current source: `v3.9.1` (`VERSION=3.9.1`)
+- latest published: v3.9.0
+- fresh full test: 1~6차 clean-clone FAIL 이력 보존. 7차 GitHub clone `./test_release.sh`는 source `2882bb35`에서 local acceptance PASS
+- release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
+
+| Evidence | 상태 | 결속/위치 | 사용 범위 |
+| --- | --- | --- | --- |
+| Metadata/docs focused gate | PASS | `verify-release-metadata` 18/0, `verify-docs-links` failure 0 | v3.9.1 source/published 경계와 local link 검증 |
+| Public readiness focused gate | PASS | 원본 패키지 raw `.log`/home path 제거 후 `verify-public-repo-readiness --no-history` 8/0 | 정리 전 CI FAIL 이력은 보존. history scan은 이번 명령에 없음 |
+| Published v3.9.0 public archive | PASS | [public evidence manifest](./release-artifacts/v3.9.0/public-evidence-manifest.json) | bounded summary/report/first-failure/Policy/hash 보존 |
+| v3.9.1 fresh release acceptance 1차 | FAIL | source `7f3e9dc9` 별도 `--no-local` clone; preflight/build PASS 뒤 `v390-stabilization-release-readiness` 최초 실패 | 30분, exact UI 424/Policy v4, 120분은 미실행이며 PASS로 주장하지 않음; 실패 clone 569.5 MiB/2,036 files cleanup 완료 |
+| v3.9.1 fresh release acceptance 2차 | FAIL | source `63d59839f6a476bc5e4f1afb491a4038f1032aaa` 별도 `--no-local` clone; preflight/build PASS 뒤 `v390-entry-baseline` 최초 실패 | historical v3.9.0 exact-source 조건이 current v3.9.1을 거부; 30분/UI/120분 미실행; 실패 clone 580 MiB/2,059 files cleanup 완료 |
+| v3.9.1 fresh release acceptance 3차 | FAIL | source `6f9ad88e`; sandbox loopback listen `EPERM`으로 feature gate 12 중단 | 환경 제한으로 확인; 30분/UI/120분 미실행; clone 580 MiB/2,067 files cleanup 완료 |
+| v3.9.1 fresh release acceptance 4차 | FAIL | source `6f9ad88e`; sandbox 밖 non-symlink clone에서 feature gate 28 `release-metadata` 중단 | local clone origin이 filesystem path라 GitHub repository 해석 불가; clone 596 MiB/2,085 files cleanup 완료 |
+| v3.9.1 fresh release acceptance 5차 | FAIL | source `6f9ad88e`; GitHub origin 복원, preflight/build/36 feature gate PASS 뒤 30분 integrated smoke 417초 실패 | Git ignored `models/yolo11n.onnx` 누락; codec 8개 PASS, AI-dependent 4개 FAIL, UI/Policy/120분 미실행 |
+| v3.9.1 test AI asset bootstrap | contract/live URL PASS | common launcher가 fixed Ultralytics URL+SHA 모델 다운로드, canonical COCO labels SHA, atomic publish/readback을 소유; launcher contract 22/22 | 7차 actual에서 bootstrap이 다시 확인됨 |
+| v3.9.1 6차 Policy v4 qualification | FAIL | source `b7a6ed1c` exact UI 424/424 뒤 `canonical-case-manifest-version-mismatch` census throw | 7차 PASS를 대체하지 않는 이력 |
+| v3.9.1 7차 GitHub clean-clone acceptance | PASS | source `2882bb35`, [bounded package](./release-artifacts/v3.9.1/test-acceptance-current-final/README.md); 30분 `118/0/2`, UI `424/424`, Policy v4 qualified 424, 120분 `448/0/2` | local release acceptance. PR/main/tag/GitHub Release/published metadata는 별도 |
+
+## Historical v3.9.0 evidence (2026-08-14)
 
 | Evidence | 상태 | 결속/위치 | 사용 범위 |
 | --- | --- | --- | --- |

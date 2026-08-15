@@ -3,6 +3,7 @@
 const clusterReasons = Object.freeze({
   "canonical-source-binding": Object.freeze(new Set([
     "canonical-parent-binding-source-digest-mismatch",
+    "canonical-case-manifest-version-mismatch",
   ])),
   "action-selector-identity": Object.freeze(new Set([
     "raw-primary-action-count-mismatch",
@@ -37,17 +38,24 @@ const clusterReasons = Object.freeze({
 export function censusQualificationReasons(reasons) {
   if (!Array.isArray(reasons)) throw new Error("Policy v4 qualification reasons must be an array");
   const assignments = reasons.map(reason => assignReason(reason));
-  const reasonCounts = countBy(assignments.map(item => item.reason));
-  const clusterCounts = countBy(assignments.map(item => item.cluster));
+  const unassignedReasons = unique(assignments
+    .filter(item => item.assignmentStatus === "unassigned")
+    .map(item => item.reason));
+  const multiplyAssignedReasons = unique(assignments
+    .filter(item => item.assignmentStatus === "multiply-assigned")
+    .map(item => item.reason));
+  const assigned = assignments.filter(item => item.cluster);
   return {
     schema: "media-server.v390-ui-policy-v4-reason-census.v1",
-    assignmentStatus: "exact-one-cluster",
+    assignmentStatus: unassignedReasons.length === 0 && multiplyAssignedReasons.length === 0
+      ? "exact-one-cluster"
+      : "fail-closed-incomplete-assignment",
     reasonCount: assignments.length,
-    reasonCounts,
-    clusterCounts,
+    reasonCounts: countBy(assignments.map(item => item.reason)),
+    clusterCounts: countBy(assigned.map(item => item.cluster)),
     assignments,
-    unassignedReasons: [],
-    multiplyAssignedReasons: [],
+    unassignedReasons,
+    multiplyAssignedReasons,
   };
 }
 
@@ -58,16 +66,29 @@ function assignReason(rawReason) {
     .filter(([, values]) => values.has(reason))
     .map(([cluster]) => cluster);
   if (matches.length === 0) {
-    throw new Error(`unassigned Policy v4 qualification reason: ${raw}`);
+    return {
+      rawReason: raw,
+      caseId: raw.includes(":") ? raw.slice(0, raw.indexOf(":")) : null,
+      reason,
+      cluster: null,
+      assignmentStatus: "unassigned",
+    };
   }
   if (matches.length !== 1) {
-    throw new Error(`multiply assigned Policy v4 qualification reason: ${raw} -> ${matches.join(",")}`);
+    return {
+      rawReason: raw,
+      caseId: raw.includes(":") ? raw.slice(0, raw.indexOf(":")) : null,
+      reason,
+      cluster: null,
+      assignmentStatus: "multiply-assigned",
+    };
   }
   return {
     rawReason: raw,
     caseId: raw.includes(":") ? raw.slice(0, raw.indexOf(":")) : null,
     reason,
     cluster: matches[0],
+    assignmentStatus: "exact-one-cluster",
   };
 }
 
@@ -79,4 +100,8 @@ function countBy(values) {
   const result = {};
   for (const value of values) result[value] = (result[value] || 0) + 1;
   return result;
+}
+
+function unique(values) {
+  return [...new Set(values)];
 }

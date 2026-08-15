@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.9.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-![Source Version](https://img.shields.io/badge/source-3.9.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.9.1-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,9 +15,10 @@ and runtime/model bundle distribution are outside the default public release.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published GitHub Release: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-- Current source version: `3.9.0`
+- Current source version: `3.9.1`
 - v3.9.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- Current source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- Latest published baseline: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
 ## At a Glance
 
@@ -33,25 +34,6 @@ and runtime/model bundle distribution are outside the default public release.
 - **Out of scope**: VMS/NVR, long-term recording, broad archive playback/search, VLM
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
-
-## v3.9 Source Roadmap
-
-- Latest published release: `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation, source-only.
-- Current source: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
-- The v3.9 roadmap audits exposed, promised, and partially implemented functionality from v1.0.0 through v3.8.0. After REVIEW4-50 through REVIEW4-63 close, behavior-preserving structure stabilization and refactoring run on the same v3.9.0 branch as REVIEW4-64, followed by independent acceptance in REVIEW4-65.
-- Latest published baseline: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation. v3.8.0 Operator-Gated Action Pilot & Outcome Loop is the previous published baseline.
-- Invariants: Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC
-  media paths are unchanged unless explicitly requested.
-- AI/model boundary: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B
-  evaluation candidate, and Gemini cloud opt-in fallback; runtime/model bundles
-  and default-on promotion are excluded.
-
-Related docs:
-
-- Model selection: [docs/vlm-model-selection.md](docs/vlm-model-selection.md)
-- PC-based recommendation engine: [docs/vlm-recommendation-engine.md](docs/vlm-recommendation-engine.md)
-- Install/connection dry-run: [docs/vlm-install-connection-dry-run.md](docs/vlm-install-connection-dry-run.md)
-- Ops review UI flow: [docs/vlm-ops-event-review-ui.md](docs/vlm-ops-event-review-ui.md)
 
 ## Runtime Requirements
 
@@ -130,17 +112,11 @@ records live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Latest published release notes: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-- Current source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` in
-  [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
 
-These images are documentation preview assets. They are not UI fulltest PASS
-evidence, GitHub Release publish evidence, or a replacement for current UI review.
-The Public docs/assets baseline is managed by `config/docs_ui_assets.json` and
-`./server.sh verify-docs-ui-assets`. The S07 public docs/assets refresh keeps the
-current representative screenshots; replacing images requires direct image review
-plus link/asset verification and a separate record.
+These images are documentation previews. They are not UI fulltest or GitHub
+Release evidence. Details live in [docs/ui-guide.md](docs/ui-guide.md).
 
 **Ops Home**
 
@@ -169,7 +145,8 @@ plus link/asset verification and a separate record.
 ## Account Views
 
 - First run, or an empty account store, opens the admin password setup view.
-- `admin` and `operator` users see Ops screens for channels, rules, users, and diagnostics.
+- `admin` users see Ops screens for channels, rules, users, and diagnostics. User management is admin-only.
+- `operator` users see Ops screens for channels, rules, and diagnostics, but cannot access user management.
 - `viewer` users see only assigned Client screens. Raw source URLs, internal diagnostic JSON, and rule/profile editors are not exposed.
 - `integrator` is intended for scoped API integration rather than daily UI operation.
 

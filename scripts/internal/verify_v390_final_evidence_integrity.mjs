@@ -25,6 +25,7 @@ import {
   validateIterationLedger,
   validateMonotonicDurationEvidence,
 } from "./v390_longrun_evidence_measurement_lib.mjs";
+import { validatePublicReleaseManifest } from "./public_release_evidence_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
 if (hasHelpFlag(rawArgs)) {
@@ -32,9 +33,12 @@ if (hasHelpFlag(rawArgs)) {
 
 Usage:
   ./server.sh verify-v390-final-evidence-integrity --summary <acceptance-summary.json>
+  ./server.sh verify-v390-final-evidence-integrity --public-manifest <manifest.json>
 
 Options:
   --summary <path>    v3.9 acceptance summary.
+  --public-manifest <path>
+                      Public archive manifest; validates bounded summary/report hashes only.
   --allow-fixture     Contract-only: validate integrity while retaining finalEvidenceEligible=false.
 
 Checks:
@@ -45,14 +49,31 @@ Checks:
 `);
 }
 
-assertKnownOptions(rawArgs, ["summary", "allow-fixture", "h", "help"]);
+assertKnownOptions(rawArgs, ["summary", "public-manifest", "allow-fixture", "h", "help"]);
 const options = parseArgs(rawArgs);
+if (options.publicManifest) {
+  const manifestPath = path.resolve(options.publicManifest);
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  const validation = validatePublicReleaseManifest(manifest, {
+    rootDir: process.cwd(),
+    verifyArtifacts: true,
+  });
+  console.log("v3.9.0 public evidence integrity verification");
+  console.log(`- manifest: ${manifestPath}`);
+  console.log(`- records: ${Array.isArray(manifest.records) ? manifest.records.length : 0}`);
+  console.log(`- result: ${validation.pass ? "PASS" : "FAIL"}`);
+  for (const reason of validation.reasons) console.log(`- reason: ${reason}`);
+  process.exit(validation.pass ? 0 : 1);
+}
 const summaryPath = path.resolve(options.summary);
 const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
 const outputDir = path.resolve(summary.outputDir || path.dirname(summaryPath));
 const outputReal = requireContainedDirectory(outputDir, outputDir, "acceptance artifact root");
 const repositoryRoot = process.cwd();
-const canonicalReleaseOutputDir = path.join(repositoryRoot, "docs/release-artifacts/v3.9.0/test-acceptance-current-final");
+const currentVersion = fs.readFileSync(path.join(repositoryRoot, "VERSION"), "utf8").trim();
+assert(/^\d+\.\d+\.\d+$/.test(currentVersion), `invalid source VERSION: ${currentVersion || "missing"}`);
+const canonicalReleaseOutputDir = path.join(repositoryRoot,
+  `docs/release-artifacts/v${currentVersion}/test-acceptance-current-final`);
 const currentProvenance = collectSourceProvenanceWithAllowedArtifacts(repositoryRoot, outputReal);
 const checks = [];
 const canonicalUiCaseIds = JSON.parse(fs.readFileSync(path.resolve(
@@ -402,13 +423,16 @@ if (result.fail > 0) process.exit(1);
 
 function parseArgs(args) {
   let summaryValue = "";
+  let publicManifest = "";
   let allowFixture = false;
   for (let index = 0; index < args.length; index += 1) {
     if (args[index] === "--summary") { summaryValue = args[index + 1] || ""; index += 1; }
+    else if (args[index] === "--public-manifest") { publicManifest = args[index + 1] || ""; index += 1; }
     else if (args[index] === "--allow-fixture") allowFixture = true;
   }
-  assert(summaryValue, "--summary is required");
-  return { summary: summaryValue, allowFixture };
+  assert(Boolean(summaryValue) !== Boolean(publicManifest),
+    "exactly one of --summary or --public-manifest is required");
+  return { summary: summaryValue, publicManifest, allowFixture };
 }
 
 function readChild(filePath, label) {

@@ -3,11 +3,11 @@
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
 파일명으로 보관합니다.
 
-현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.9.0`
-Feature Completion, Structure Stabilization, and Test Model Preparation을 가리키고,
+현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.9.1`
+Release Correctness and Public Repository Hygiene를 가리키고,
 최신 공개 GitHub Release는 `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation
 source-only baseline을 가리킵니다. 직전 `v3.8.0` Operator-Gated Action Pilot & Outcome Loop은
-previous reference입니다. 이 이미지를 v3.9.0 source baseline,
+previous reference입니다. 이 이미지를 v3.9.1 source baseline,
 UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
@@ -31,15 +31,16 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v3.9.0 source baseline alignment
+## v3.9.1 source baseline alignment
 
-이번 Task 7에서는 이미지 파일을 새로 교체하지 않았습니다. public entry 문서와
-UI guide가 같은 managed asset set을 참조하는지, 그리고 대표 이미지가 release
-publish evidence나 UI 풀테스트 PASS로 쓰이지 않는지 문서 기준을 정리합니다.
-대표 이미지 교체는 직접 이미지 검수와 `./server.sh verify-docs-ui-assets` 재실행
-후에만 기록합니다. 열지 않은 이미지는 PASS가 아니라 `미확인`으로 남깁니다.
+2026-08-14에 현재 v3.9.1 source tree를 인앱 브라우저로 직접 열어 한국어 9개와
+English 9개 제품 UI PNG를 다시 캡처했습니다. 두 VA 기준 이미지까지 포함한 관리
+대상 20개를 모두 직접 열어 화면 잘림, 현재 shell 구조, 영상 viewport와 control,
+영문 화면의 한글 잔존, client/viewer 화면의 민감 정보 노출 여부를 확인했습니다.
+이 직접 검수와 정적 gate는 대표 문서 이미지의 현재성 확인이며, UI 풀테스트나
+공개 릴리즈 증거로 쓰지 않습니다.
 
-v3.9 source 기준 공개 문서 묶음:
+v3.9.1 source 기준 공개 문서 묶음:
 
 - `README.md`
 - `README.en.md`
@@ -48,28 +49,29 @@ v3.9 source 기준 공개 문서 묶음:
 - `docs/ui-guide.md`
 - `docs/assets/ui/README.md`
 
-v3.9 source 기준:
+v3.9.1 source 기준:
 
-- v3.9.0 source roadmap과 latest published v3.9 source-only baseline을 정렬하고,
+- v3.9.1 source roadmap과 latest published v3.9.0 baseline을 분리해 표시하고,
   직전 v3.8.0 baseline은 previous reference로 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.
 - Chrome/CDP fallback 재캡처는 사용자가 명시 승인한 예외일 때만 후보로 둡니다.
 - image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는
-  source baseline 정렬 PASS로 대체하지 않습니다.
+  서로 대체하지 않습니다. 이 source baseline에서는 앞의 두 항목만 완료했습니다.
 
 ## Docs Image Review 기준
 
 문서가 참조하는 전체 이미지 20개는 manifest 관리 대상입니다. static gate는
-manifest와 링크/assets 기준만 확인하며, 실제 제품 UI 직접 조작과 현재 화면 대조는
-UI 풀테스트 승인 후 별도 evidence로 남깁니다.
+manifest와 링크/assets 기준을 확인하고, 2026-08-14 직접 검수 기록은
+`config/docs_ui_assets.json`의 `directReview`에 남깁니다. 제품 기능 전체를 직접
+조작하는 UI 풀테스트는 별도 승인과 별도 evidence가 필요합니다.
 대상은 한국어 UI PNG 9개, English UI PNG 9개,
 `docs/assets/va-four-scene-overlay-ko.jpg`, `docs/assets/va-four-scene-sample.png`입니다.
 Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 않고 폐기합니다.
 
 결론:
 
-- 기존 2026-05-23 대표 제품 shell 캡처를 README 대표 이미지로 유지합니다.
+- 2026-08-14 v3.9.1 대표 제품 shell 캡처로 한국어/English UI PNG 18개를 교체했습니다.
 - 운영 QA registry가 섞여 200개 채널을 길게 보여주는 캡처는 제품 대표 이미지로
   쓰지 않습니다.
 - README/README.en 대표 이미지 12개는 crop 없이 핵심 화면과 control이 보입니다.
@@ -81,9 +83,11 @@ Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 
   보이지 않습니다.
 - `ops-rules-preview`와 VA overlay 이미지는 4분할 sample video viewport, VA overlay,
   bbox/label, 영역/라인 control이 잘리지 않습니다.
+- English UI PNG 9개에서 한글 잔존은 0건이며, nav/card/table/control이 English 상태로
+  표시됩니다.
 - VLM 전용 `/ops/vlm`, `/ops/events` review-assist 화면은 이 대표 이미지 세트로
   대체하지 않습니다.
-- 이번 S07 public docs/assets refresh에서는 이미지 파일을 새로 교체하지 않았습니다.
+- 이 직접 검수는 UI 풀테스트, 30분/120분, published release 검증을 대체하지 않습니다.
 
 직접 이미지 검수 checklist:
 

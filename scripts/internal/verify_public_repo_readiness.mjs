@@ -8,6 +8,10 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {
+  isDeniedArtifactPath,
+  scanTrackedTextFile,
+} from "./public_repo_readiness_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -55,6 +59,19 @@ check("tracked denied paths are absent", () => {
   const denied = files.filter((file) => matchesAny(file, policy.deniedTrackedPathPatterns || []));
   assert(denied.length === 0, `denied tracked path(s):\n${denied.join("\n")}`);
   return { trackedFiles: files.length };
+});
+
+check("tracked release artifacts are bounded", () => {
+  const denied = gitLsFiles().filter((file) => isDeniedArtifactPath(file, policy));
+  assert(denied.length === 0, `raw release artifact path(s):\n${denied.join("\n")}`);
+  return { trackedArtifacts: gitLsFiles().filter((file) => file.startsWith("docs/release-artifacts/")).length };
+});
+
+check("tracked content has no personal or ephemeral paths", () => {
+  const deniedIds = new Set((policy.deniedTrackedContentPatterns || []).map((item) => item.id));
+  const hits = scanCurrentText().filter((hit) => deniedIds.has(hit.id));
+  assert(hits.length === 0, `denied content path(s):\n${renderHits(hits)}`);
+  return { patterns: deniedIds.size };
 });
 
 check("tracked file sizes stay public-friendly", () => {
@@ -120,17 +137,18 @@ function assert(condition, message) {
 }
 
 function scanCurrentSecrets() {
-  const regexes = secretRegexes();
+  const secretIds = new Set((policy.secretPatterns || []).map((item) => item.id));
+  return scanCurrentText()
+    .filter((hit) => secretIds.has(hit.id))
+    .map((hit) => `${hit.file}: ${hit.id}: ${hit.match}`);
+}
+
+function scanCurrentText() {
   const hits = [];
   for (const file of gitLsFiles()) {
     const full = path.join(rootDir, file);
     if (!fs.existsSync(full)) continue;
-    if (!looksText(full)) continue;
-    const text = fs.readFileSync(full, "utf8");
-    for (const item of regexes) {
-      const match = item.regex.exec(text);
-      if (match) hits.push(`${file}: ${item.id}: ${match[0].slice(0, 80)}`);
-    }
+    hits.push(...scanTrackedTextFile(full, file, policy));
   }
   return hits;
 }
@@ -145,26 +163,17 @@ function scanHistorySecrets(maxCommits) {
   return result.stdout.split(/\n/).filter(Boolean).slice(0, 50);
 }
 
-function secretRegexes() {
-  return (policy.secretPatterns || []).map((item) => ({
-    id: item.id,
-    regex: new RegExp(item.pattern, "m"),
-  }));
-}
-
 function gitLsFiles() {
-  return runGit(["ls-files", "-z"]).stdout.split("\0").filter(Boolean);
-}
-
-function looksText(filePath) {
-  const stat = fs.statSync(filePath);
-  if (stat.size > 2 * 1024 * 1024) return false;
-  const buffer = fs.readFileSync(filePath);
-  return !buffer.includes(0);
+  return runGit(["ls-files", "-z"]).stdout.split("\0").filter(Boolean)
+    .filter((file) => fs.existsSync(path.join(rootDir, file)));
 }
 
 function matchesAny(file, patterns) {
   return patterns.some((pattern) => new RegExp(pattern).test(file));
+}
+
+function renderHits(hits) {
+  return hits.slice(0, 200).map((hit) => `${hit.file}: ${hit.id}: ${hit.match}`).join("\n");
 }
 
 function readJson(filePath) {

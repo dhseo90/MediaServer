@@ -39,6 +39,7 @@ import {
   validateReview4TrustBindings,
 } from "./feature_semantic_review4_trust_lib.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { serializeCompactJsonArtifact } from "./json_artifact_serialization_lib.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const rawArgs = process.argv.slice(2);
@@ -83,7 +84,7 @@ if (emitCandidateOptionIndex >= 0) {
   assert(candidatePath, "--emit-candidate requires PATH");
   const absolute = path.resolve(candidatePath);
   fs.mkdirSync(path.dirname(absolute), { recursive: true });
-  fs.writeFileSync(absolute, `${JSON.stringify(candidate, null, 2)}\n`);
+  fs.writeFileSync(absolute, serializeCompactJsonArtifact(candidate));
   fs.writeSync(process.stdout.fd, `${JSON.stringify({ candidatePath: absolute, candidateDigest: candidate.candidateDigest, items: candidate.items.length }, null, 2)}\n`);
   process.exit(0);
 }
@@ -124,7 +125,7 @@ if (familyOptionIndex >= 0) {
 }
 
 if (rawArgs.includes("--write-ledger")) {
-  fs.writeFileSync(path.join(rootDir, ledgerPath), `${JSON.stringify(candidate, null, 2)}\n`);
+  fs.writeFileSync(path.join(rootDir, ledgerPath), serializeCompactJsonArtifact(candidate));
 }
 
 const stored = readJson(ledgerPath);

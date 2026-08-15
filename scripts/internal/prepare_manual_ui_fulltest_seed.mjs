@@ -96,8 +96,19 @@ if (args.apply) {
 
 function buildValidatedPlan(seed, fixtureLabel, seedTargetSelection) {
   assert(seed.schema === "media-server.manual-ui-fulltest-va-seed-matrix.v1", "unexpected seed fixture schema");
-  assert(seed.releaseTarget === seedTargetSelection.expectedReleaseTarget,
+  const releaseTargetField = seedTargetSelection.mode === "published-seed-baseline"
+    ? "publishedReleaseTarget"
+    : "releaseTarget";
+  const selectedReleaseTarget = requireNonEmptyString(
+    seed[releaseTargetField],
+    `seed fixture ${releaseTargetField}`,
+  );
+  assert(selectedReleaseTarget === seedTargetSelection.expectedReleaseTarget,
     `seed fixture must pin ${seedTargetSelection.expectedReleaseTarget}`);
+  assert(/^v\d+\.\d+\.\d+$/.test(String(seed.releaseTarget || "")),
+    "seed fixture current-source releaseTarget must be a release tag");
+  assert(/^v\d+\.\d+\.\d+$/.test(String(seed.publishedReleaseTarget || "")),
+    "seed fixture publishedReleaseTarget must be a release tag");
   assert(seed.usageBoundary?.notEvidenceUntilAppliedAndVerified === true, "seed fixture must not be evidence by itself");
   assert(seed.usageBoundary?.keepFinalRulesForEventLogReview === true, "seed fixture must keep final rules for event log review");
   assert(seed.usageBoundary?.separateCrudFromScenarioEventReview === true, "seed fixture must separate CRUD from scenario review");
@@ -240,7 +251,11 @@ function buildValidatedPlan(seed, fixtureLabel, seedTargetSelection) {
   return {
     schema: "media-server.manual-ui-fulltest-seed-plan.v1",
     fixture: fixtureLabel,
-    releaseTarget: seed.releaseTarget,
+    releaseTarget: selectedReleaseTarget,
+    fixtureReleaseTargets: {
+      currentSource: seed.releaseTarget,
+      latestPublishedBaseline: seed.publishedReleaseTarget,
+    },
     seedTargetSelection,
     mode: "dry-run",
     httpRequests: 0,
@@ -289,17 +304,23 @@ function readPublishedSeedBaseline() {
     assetConfig?.baseline?.publishedRelease,
     "docs UI asset published release",
   );
-  assert(assetConfig?.baseline?.sourceVersion === currentVersion,
-    `docs UI asset source version must be ${currentVersion}`);
+  const assetSourceVersion = requireNonEmptyString(
+    assetConfig?.baseline?.sourceVersion,
+    "docs UI asset source version",
+  );
+  assert(/^\d+\.\d+\.\d+$/.test(assetSourceVersion),
+    `invalid docs UI asset source version: ${assetSourceVersion}`);
   assert(/^v\d+\.\d+\.\d+$/.test(publishedRelease),
     `invalid docs UI asset published release: ${publishedRelease}`);
-  assert(assetConfig?.baseline?.publicReleaseStatus === `${publishedRelease}-published-source-only`,
+  const expectedPublicReleaseStatus = `v${assetSourceVersion}-source-${publishedRelease}-published`;
+  assert(assetConfig?.baseline?.publicReleaseStatus === expectedPublicReleaseStatus,
     "docs UI asset public release status mismatch");
   return {
     mode: "published-seed-baseline",
     expectedReleaseTarget: publishedRelease,
     policyPath: "config/docs_ui_assets.json",
     policySha256: sha256Text(assetConfigText),
+    assetSourceVersion,
   };
 }
 

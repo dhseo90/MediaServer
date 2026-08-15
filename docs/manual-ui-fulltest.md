@@ -8,10 +8,11 @@
 exact-ID 실행 목록은 `test/fixtures/project_feature_implementation_evidence.json`의
 UI 테스트 영역 424개 `manualUiCaseId`, `uiEvidence.screenRoute`, product UI anchor를
 사용하며 inventory ID와 manifest ID가 다르면 UI 풀테스트를 시작하지 않습니다.
-최신 공개 release 기준은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`이고
+최신 공개 release 기준은 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`이고
 현재 소스/UI 문서 기준은
-`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
-이번 v3.9.0 Required Closeout은 `V390-REQ-001`, `V390-REQ-002`,
+`v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
+이번 v3.9.1 release correction은 published v3.9.0의 exact 424-case 제품 baseline을
+상속하면서 `V390-REQ-001`, `V390-REQ-002`,
 `V390-REQ-003` 기준으로 manual UI 기준서 current화, 장시간/UI 테스트 시작 조건
 current화, `v3.5-v3.8 UI coverage bridge`를 닫습니다. 아래 v2.x/v3.x release별
 기준 섹션은 historical coverage bridge이며 현재 gate로 단독 사용하지 않습니다.
@@ -85,7 +86,7 @@ Policy v4 qualifier를 통과해야 합니다. 그 외에는 전부 `FAIL`입니
   route/control/action coverage를 먼저 확인합니다. 이 확인은 실행 PASS가 아니라
   빠뜨릴 대상을 정하는 시작 조건입니다.
 - `docs/manual-ui-checklist.md`와 `docs/manual-ui-result-template.md`가
-  `v3.9.0 release UI gate`, `## v3.9.0 Release Evidence Index`,
+  `v3.9.1 release UI gate`, `## v3.9.1 Release Evidence Index`,
   `v3.5-v3.8 UI coverage bridge`를 포함하지 않으면 30분, 120분, UI 풀테스트를
   시작하지 않습니다.
 - `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
