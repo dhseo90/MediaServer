@@ -17,7 +17,7 @@ Usage:
   ./server.sh verify-v391-documentation-truth
 
 Checks public role wording, GStreamer 1.28 minimums, public-index exclusions,
-and v3.9.1 current-source / v3.9.0 latest-published status boundaries.
+and v3.9.1 current-source / v3.9.1 latest-published status boundaries.
 `);
 }
 assertKnownOptions(rawArgs, ["h", "help"]);
@@ -76,12 +76,13 @@ check("public docs index excludes internal release and generated-test material",
   assert(denied.length === 0, `public docs index contains internal link(s): ${denied.join(", ")}`);
 });
 
-check("manual UI current header separates v3.9.1 source from v3.9.0 published", () => {
+check("manual UI current header separates v3.9.1 published from previous v3.9.0", () => {
   for (const file of ["docs/manual-ui-checklist.md", "docs/manual-ui-fulltest.md"]) {
     const current = head(read(file), 35);
     assert(current.includes("v3.9.1"), `${file} missing current source v3.9.1`);
-    assert(current.includes("v3.9.0"), `${file} missing latest published v3.9.0`);
+    assert(current.includes("v3.9.0"), `${file} missing previous published v3.9.0`);
     assert(!current.includes("최신 공개 release 기준은 `v3.8.0"), `${file} still calls v3.8.0 latest`);
+    assert(!current.includes("최신 공개 release 기준은 `v3.9.0"), `${file} still calls v3.9.0 latest`);
   }
 });
 
@@ -105,7 +106,7 @@ check("release records and evidence report v3.9.1 as not-yet-fresh-PASS", () => 
       current.includes("30분") && current.includes("미실행");
     assert(notRun || failedBeforeDurationAndUi,
       `${file} overclaims or omits v3.9.1 fresh full-test status`);
-    assert(current.includes("latest published: v3.9.0"), `${file} missing latest-published v3.9.0`);
+    assert(current.includes("latest published: v3.9.1"), `${file} missing latest-published v3.9.1`);
   }
 });
 

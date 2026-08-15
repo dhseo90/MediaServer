@@ -7,19 +7,18 @@
 
 - 현재 소스 버전: `3.9.1`
 - 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 최신 공개 GitHub Release: `v3.9.0`
-- 최신 공개 roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
-- `v3.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v3.9.0`와 현재 source tag `v3.9.1`를 함께 기록합니다.
-- `v3.9.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid` 확인 대상입니다.
+- 최신 공개 GitHub Release: `v3.9.1`
+- 최신 공개 roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- `v3.9.1` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- source-only release 기준 tag는 published tag `v3.9.1`와 현재 source tag `v3.9.1`를 함께 기록합니다.
+- `v3.9.1` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid` 확인 대상입니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `3.9.1` roadmap은 v3.9.1 Release Correctness and Public Repository Hygiene
-source-only/live-only patch source입니다. 게시된 v3.9.0 signed tag와 GitHub Release를 변경하지 않고,
-tag 이후 correctness 변경과 public repository/document/evidence/UI asset 문제를
-v3.9.1에서 정정합니다. v3.9.0 publish 완료는 signed tag, source-only GitHub Release,
-`verify-release-metadata --published` evidence로 확인합니다. v3.8.0 previous published
-baseline, v3.7.0 historical published baseline과 후속 기능별 완료 evidence는 계속
+source-only/live-only patch source입니다. 게시된 v3.9.1 signed tag와 GitHub Release가
+최신 공개 기준입니다. v3.9.1 publish 완료는 signed tag, source-only GitHub Release,
+`verify-release-metadata --published` evidence로 확인합니다. v3.9.0 previous published
+baseline, v3.8.0 historical published baseline과 후속 기능별 완료 evidence는 계속
 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
 binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 
@@ -66,7 +65,21 @@ binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 - 3.0 전에는 자동 Rule/Profile 적용, 외부 알림 실제 발송 보장, VLM default-on,
   runtime/model bundle default 배포를 2.x 완료 조건으로 승격하지 않습니다.
 
-## 3.9.0 latest published source-only release 범위
+## 3.9.1 latest published source-only release 범위
+
+- v3.9.0 post-tag correctness 보정
+- public repository hygiene
+- documentation truth
+- bounded release evidence
+- test asset bootstrap
+- Policy v4 current-source version binding
+
+위 항목은 v3.9.0 제품 기능을 유지한 latest published patch baseline입니다.
+30분/120분 장시간 테스트, exact UI `424/424`, Policy v4 `424/424`, cleanup과 final
+integrity evidence를 보존했습니다. 외부 field smoke는 실제 endpoint, credential,
+실기기, provider 조건이 없어 실행하지 않은 영역으로 계속 분리합니다.
+
+## v3.9.0 previous published source-only release 범위
 
 - v3.9.0 source baseline alignment
 - Feature Completion Inventory
@@ -295,7 +308,7 @@ v3.3에서는 historical reference로만 참조합니다.
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v3.9.0`
+- 현재 공개 release tag 기준: `v3.9.1`
 - 현재 source tag 기준: `v3.9.1`
 - `v3.9.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
   `verified=true`/`reason=valid` 확인 대상입니다.

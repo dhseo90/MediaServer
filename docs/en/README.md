@@ -6,11 +6,11 @@ points to the current public sources.
 
 ## Current Status
 
-- Latest published GitHub Release: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-- Latest published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
-- Previous published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+- Latest published GitHub Release: [v3.9.1](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.1)
+- Latest published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- Previous published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - Current source version: `3.9.1`
-- v3.9.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
+- v3.9.1 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - Default public distribution: source-only
 - Representative screenshots are managed by `config/docs_ui_assets.json` and

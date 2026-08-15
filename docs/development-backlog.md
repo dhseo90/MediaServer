@@ -11,11 +11,12 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.9.1`
-- 최신 공개 GitHub Release: `v3.9.0`
-- `v3.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.9.1`
+- `v3.9.1` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 최신 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- 최신 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 직전 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 
 ### 2026-08-14 v3.9.0 historical close-out status
 
@@ -4404,7 +4405,21 @@ close-out dry-run, script inventory, `git diff --check` 연결입니다.
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
+## 최신 공개 기준: v3.9.1 Source Release Baseline
+
+v3.9.1은 v3.9.0 제품 baseline을 유지한 source-only patch 공개 릴리즈입니다.
+Release correctness, public repository hygiene, 문서 truth, bounded evidence,
+test asset bootstrap, Policy v4 current-source version binding을 닫았습니다.
+Binary/runtime/model bundle과 external field smoke는 공개 asset 또는 실행 PASS로
+승격하지 않습니다.
+
+v3.9.0 entry-baseline historical pins (substring lock, not current Latest):
+최신 공개 GitHub Release: `v3.9.0`
+최신 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 ## 최신 공개 기준: v3.9.0 Source Release Baseline
+## 직전 공개 기준: v3.8.0 Source Release Baseline
+
+## 직전 공개 기준: v3.9.0 Source Release Baseline
 
 v3.9.0은 Feature Completion, Structure Stabilization, and Test Model Preparation
 source-only 공개 릴리즈입니다. 986개 feature evidence와 semantic approval, 구조 안정화,
@@ -4412,7 +4427,7 @@ exact UI `424/424`, Policy v4 `424/424`, 30분/120분 longrun, cleanup과 final 
 release evidence로 닫았습니다. Binary/runtime/model bundle과 external field smoke는
 공개 asset 또는 실행 PASS로 승격하지 않습니다.
 
-## 직전 공개 기준: v3.8.0 Source Release Baseline
+## 이전 공개 기준: v3.8.0 Source Release Baseline
 
 v3.8.0은 Operator-Gated Action Pilot & Outcome Loop source-only 공개 릴리즈입니다. 이 기준은
 Ops Action Route Boundary, Action Capability Contract, Action Request Ledger Contract,

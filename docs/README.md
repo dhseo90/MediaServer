@@ -6,11 +6,11 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 
 ## 현재 상태
 
-- 최신 공개 GitHub Release: [v3.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.0)
-- 최신 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
-- 직전 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+- 최신 공개 GitHub Release: [v3.9.1](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.1)
+- 최신 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 직전 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - 현재 소스 버전: `3.9.1`
-- v3.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- v3.9.1 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 기본 공개 형태: source-only
 - 대표 이미지는 `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리합니다.
@@ -28,7 +28,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | 검증 명령 | [stream-verification.md](stream-verification.md) |
 | 버전과 release 정책 | [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md) |
 | 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
-| v3.9.1 unpublished source notes | [release-artifacts/v3.9.1/release-notes.md](release-artifacts/v3.9.1/release-notes.md). GitHub Latest는 v3.9.0 |
+| v3.9.1 release notes | [release-artifacts/v3.9.1/release-notes.md](release-artifacts/v3.9.1/release-notes.md) |
 | v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes.md](release-artifacts/v3.9.0/release-notes.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
