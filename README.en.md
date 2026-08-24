@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.9.1-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.1)
-![Source Version](https://img.shields.io/badge/source-3.9.1-informational)
+![Source Version](https://img.shields.io/badge/source-4.0.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,9 +15,9 @@ and runtime/model bundle distribution are outside the default public release.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published GitHub Release: [v3.9.1](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.1)
-- Current source version: `3.9.1`
+- Current source version: `4.0.0`
 - v3.9.1 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- Current source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
 - Latest published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
 - Previous published baseline: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 

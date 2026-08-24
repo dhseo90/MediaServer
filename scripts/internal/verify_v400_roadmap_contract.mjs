@@ -58,8 +58,8 @@ const v410Steps = [
   "v4.1.0 (6) 로컬 VLM 운영 경로",
 ];
 
-check("current VERSION remains 3.9.1 until v4.0.0 baseline", () => {
-  assert(version === "3.9.1", `VERSION must stay 3.9.1 until v4.0.0 (1), got ${version}`);
+check("current VERSION is 4.0.0 after v4.0.0 (1) baseline", () => {
+  assert(version === "4.0.0", `VERSION must be 4.0.0 after v4.0.0 (1), got ${version}`);
 });
 
 check("backlog names the v4.0.0 policy/stabilization roadmap", () => {
@@ -107,21 +107,25 @@ check("v4.0.0 non-scope excludes field devices and new media contracts", () => {
   }
 });
 
-check("versioning policy points at the v4.0.0 development range without changing current source pin", () => {
-  assert(versioning.includes("현재 소스 버전: `3.9.1`"), "versioning policy current source pin drifted");
-  assert(versioning.includes("현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`"),
+check("versioning policy pins v4.0.0 current source and keeps published v3.9.1", () => {
+  assert(versioning.includes("현재 소스 버전: `4.0.0`"), "versioning policy current source pin drifted");
+  assert(versioning.includes("현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`"),
     "versioning policy current roadmap pin drifted");
-  assert(versioning.includes("## v4.0.0 다음 source 개발 범위"), "versioning policy missing v4.0.0 range");
+  assert(versioning.includes("## v4.0.0 현재 source 개발 범위"), "versioning policy missing v4.0.0 range");
+  assert(versioning.includes("최신 공개 GitHub Release: `v3.9.1`"), "versioning policy published pin drifted");
   assert(versioning.includes("신규 기능은 `v4.1.0`부터 넣는다"), "versioning policy missing v4.1.0 handoff");
 });
 
 check("stream verification, inventory, and records wire the roadmap contract", () => {
   assert(streamVerification.includes("v4.0.0 roadmap contract"), "stream verification missing v4.0.0 row");
   assert(streamVerification.includes("./server.sh verify-v400-roadmap-contract"), "stream verification missing command");
+  assert(streamVerification.includes("./server.sh verify-v400-entry-baseline"), "stream verification missing entry baseline command");
   assert(inventory.includes("v4.0.0 Local Operations Policy and Stabilization roadmap"),
     "project inventory missing v4.0.0 mapping");
   assert(inventory.includes("verify-v400-roadmap-contract"), "project inventory missing verifier");
+  assert(inventory.includes("v4.0.0 (1) v4.0.0 baseline 정렬"), "project inventory missing v4.0.0 (1) row");
   assert(records.includes("V400 roadmap contract"), "release test records missing V400 item");
+  assert(records.includes("V400 entry baseline"), "release test records missing V400 entry baseline item");
   assert(records.includes("몇버전부터 들어갔는지") && records.includes("| v4.0.0 |"),
     "release test records missing v4.0.0 introduced-in column");
 });

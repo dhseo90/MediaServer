@@ -9,10 +9,10 @@ points to the current public sources.
 - Latest published GitHub Release: [v3.9.1](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.1)
 - Latest published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - Previous published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
-- Current source version: `3.9.1`
+- Current source version: `4.0.0`
 - v3.9.1 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- Next source development roadmap: `v4.0.0 Local Operations Policy and Stabilization`
+- Current source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
+- Next source development roadmap: `v4.1.0` new-feature candidates. Not implemented in 4.0.0
 - Default public distribution: source-only
 - Representative screenshots are managed by `config/docs_ui_assets.json` and
   `./server.sh verify-docs-ui-assets`.
@@ -37,8 +37,8 @@ points to the current public sources.
 
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
-- The current source tree tracks the `v3.9.1 Release Correctness and Public Repository Hygiene`
-  release. v3.9.0 remains the previous published baseline.
+- The current source tree tracks the `v4.0.0 Local Operations Policy and Stabilization`
+  roadmap. Latest published remains `v3.9.1`. v3.9.0 remains the previous published baseline.
 - Binary, runtime, and model bundles are excluded from the default public release.
 - Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G
   recording/replay, Re-ID default-on, tracker default-on, and VLM default-on

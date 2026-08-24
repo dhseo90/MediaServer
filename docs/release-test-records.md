@@ -16,9 +16,17 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.0.0 현재 소스 baseline 상태 (2026-08-24)
+
+- current source: `v4.0.0` (`VERSION=4.0.0`)
+- latest published: v3.9.1
+- v4.0.0 (1) baseline 정렬: 이 스텝 범위. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 미실행
+- release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
+- v3.9.1 published evidence는 아래 절에 보존
+
 ## v3.9.1 현재 소스 정정 상태 (2026-08-15)
 
-- current source: `v3.9.1` (`VERSION=3.9.1`)
+- current source at the time: `v3.9.1` (`VERSION=3.9.1`)
 - latest published: v3.9.1
 - fresh full test: 1~6차 clean-clone FAIL 이력 보존. 7차 GitHub clone `./test_release.sh`는 source `2882bb3594c87c3aa0d24d6bc8d45825a0054e92`에서 exit 0, `result=PASS`
 - release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
@@ -1348,7 +1356,8 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | Feature inventory coverage | 새 기능 ID와 exact semantic implementation/UI/verifier/longrun 매핑이 누락되지 않았는지 확인 | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-implementation-evidence.v2` manifest를 읽어 handler/route/control/action/state relation, reviewer digest, semantic assertion과 canonical v3.9 longrun mapping을 확인. `covered`는 mapping coverage이며 실행 PASS가 아님 | v2.0.0, v3.9.0 semantic exact-ID 강화 |
 | Feature implementation evidence manifest | current 986개 inventory 행의 owner source, product UI route/control/state, verifier assertion, manual UI case, 30/120분 runner를 1:1 대조 | `./server.sh verify-feature-implementation-evidence`로 current manifest 986행과 source/verifier 986, exact manual UI case 424, negative fixture 11종을 확인. historical 974/984행 결과는 당시 evidence로 보존합니다. `--refresh-manifest`는 명시적 source 갱신이고 기본 검증은 read-only이며 제품/UI/장시간 실행 evidence가 아님 | v3.9.0 V390-ADD1-02 |
 | Script inventory 확인 | 새 verifier/command가 server entrypoint와 script inventory에 등록됐는지 확인 | `./server.sh verify-script-inventory` 실행 결과와 `server.sh` dispatch 확인 | v2.0.0 |
-| V400 roadmap contract | v4.0.0 로컬 운영 정책화/안정화 로드맵과 v4.1.0 신규 기능 분리, 테스트 스크립트 반영 불변 조건을 확인 | `./server.sh verify-v400-roadmap-contract`가 backlog 8개 4.0.0 스텝과 6개 4.1.0 후보, 각 행의 `테스트 스크립트 반영 필수`, 비범위, inventory/stream-verification/server dispatch 연결을 확인. VERSION `4.0.0` baseline, 기능 구현, UI/30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 roadmap contract | v4.0.0 로컬 운영 정책화/안정화 로드맵과 v4.1.0 신규 기능 분리, 테스트 스크립트 반영 불변 조건을 확인 | `./server.sh verify-v400-roadmap-contract`가 backlog 8개 4.0.0 스텝과 6개 4.1.0 후보, 각 행의 `테스트 스크립트 반영 필수`, 비범위, inventory/stream-verification/server dispatch 연결을 확인. v4.0.0 2~8번 구현, UI/30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 entry baseline | current source `4.0.0`과 published `v3.9.1` 분리, VERSION/CMake/README/docs/backlog/source roadmap 정렬 | `./server.sh verify-v400-entry-baseline`이 VERSION `4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization`, latest published `v3.9.1`, `verify-release-metadata` current/published 분리, inventory/stream-verification/records/server dispatch를 확인. UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | User test AI asset bootstrap | Git 비추적 YOLO model/COCO labels가 무옵션 30분·120분·UI·release launcher의 실제 test 위임 전에 준비되는지 확인 | `./server.sh verify-v390-user-test-launchers-contract`가 missing download, fixed SHA-256, existing verify, corrupt repair, digest mismatch no-publish/temp cleanup을 확인. 기본 Ultralytics URL의 실제 10.4 MB download와 SHA readback도 확인. Actual launcher는 `ai-asset-bootstrap` 실패 시 build/30분/UI/120분 전에 fail-stop | v3.9.1 |
 | Current UI evidence VERSION binding | Policy v4 current-source fixture가 패치 숫자를 고정하지 않고 token `current`로 `VERSION`에 결속되는지 확인 | `./server.sh verify-v390-current-ui-evidence-contract`가 canonical/visual/current state version token이 `current`인지 확인. qualifier는 token을 `VERSION`으로 해석한 뒤 비교한다. `node scripts/internal/verify_v390_ui_policy_v4_actual_evidence_contract.mjs`가 `canonical-case-manifest-version-mismatch`를 `canonical-source-binding`에 배정하고 미등록 reason은 throw 대신 `fail-closed-incomplete-assignment`를 남김. historical `3.9.0` fixture는 token이 아니므로 현재 소스로 승격되지 않음 | v3.9.1 |
 | Build | C++/UI/static asset build가 통과하는지 확인 | `./server.sh build` exit code 0 확인. 실패 후 수정했다면 최초 fail과 최종 pass를 모두 결과 기록에 남김 | v1.8.0 |
@@ -1602,6 +1611,33 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | 미실행 항목을 결과표 PASS/FAIL에 섞기 | 실행하지 않은 30분/120분/UI/field smoke를 결과표에 조건부 통과처럼 기록 | 결과표는 pass/fail만 쓰고, 미실행/제외는 별도 표에 사유와 완료 evidence로 쓸 수 없다는 경계를 기록 | v2.8.0 |
 
 ## 버전별 테스트 결과 기록
+
+### v4.0.0
+
+v4.0.0 (1) baseline 정렬. 결과표는 이 스텝에서 실행한 항목만 `pass`/`fail`로 남긴다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| git diff --check | whitespace/conflict marker 검사 | pass |
+| Build | `./server.sh build` exit 0, `build-gst-onnx/media_server` | pass |
+| V400 entry baseline | `./server.sh verify-v400-entry-baseline` 10/0 | pass |
+| V400 roadmap contract | `./server.sh verify-v400-roadmap-contract` 8/0 | pass |
+| Release metadata | `./server.sh verify-release-metadata` 18/0, current `4.0.0` / published `v3.9.1` | pass |
+| v391 documentation truth | `./server.sh verify-v391-documentation-truth` 7/0 | pass |
+| v390 entry baseline | `./server.sh verify-v390-entry-baseline` 14/0 | pass |
+| Docs links | `./server.sh verify-docs-links` failures 0 | pass |
+| Docs UI assets | `./server.sh verify-docs-ui-assets` 10/0 | pass |
+| Script inventory | `./server.sh verify-script-inventory` 11/0 | pass |
+| Project inventory | `./server.sh verify-project-inventory` 17/0 | pass |
+| Feature inventory coverage | `./server.sh verify-feature-inventory-coverage` 986/986 covered, 7/0 | pass |
+
+| 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
+| --- | --- | --- | --- |
+| UI 풀테스트 | exact 424 / Policy v4 | 사용자 이 스텝에서 미지시 | 예, 사용 불가 |
+| 30분 | `verify-predev --soak-minutes 30` | 사용자 이 스텝에서 미지시 | 예, 사용 불가 |
+| 120분 | `verify-predev --soak-minutes 120` | 7.6.2 조건/사용자 지시 없음 | 예, 사용 불가 |
+| published metadata | `verify-release-metadata --published` | 이 스텝은 local metadata만 | 예, 사용 불가 |
+| release action | PR/main/tag/GitHub Release | `v4.0.0` tag 미생성 | 예, 사용 불가 |
 
 ### v3.9.1
 

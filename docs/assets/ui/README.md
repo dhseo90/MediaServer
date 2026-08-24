@@ -3,14 +3,14 @@
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
 파일명으로 보관합니다.
 
-현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.9.1`
-Release Correctness and Public Repository Hygiene를 가리키고,
+현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v4.0.0`
+Local Operations Policy and Stabilization를 가리키고,
 최신 공개 GitHub Release는 `v3.9.1` Release Correctness and Public Repository Hygiene
 source-only baseline을 가리킵니다. 직전 `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation은
 previous reference입니다. v3.9.0 entry-baseline historical pin:
 최신 공개 GitHub Release는 `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation
 source-only baseline을 가리켰고, 직전 `v3.8.0` Operator-Gated Action Pilot & Outcome Loop은
-그 당시 previous reference입니다. 이 이미지를 v3.9.1 source baseline,
+그 당시 previous reference입니다. 이 이미지를 v4.0.0 source baseline,
 UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.

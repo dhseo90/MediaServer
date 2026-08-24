@@ -557,8 +557,8 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert(defaultResult.status === 0, `current-source seed preparation failed: ${defaultResult.stderr}`);
   const currentPlan = readJson(path.join(outputDir, "current-seed-plan.json"));
-  assert(currentPlan.releaseTarget === "v3.9.1" &&
-    currentPlan.fixtureReleaseTargets?.currentSource === "v3.9.1" &&
+  assert(currentPlan.releaseTarget === "v4.0.0" &&
+    currentPlan.fixtureReleaseTargets?.currentSource === "v4.0.0" &&
     currentPlan.fixtureReleaseTargets?.latestPublishedBaseline === "v3.9.0",
   "default seed preparation is not bound to the current source and published baseline");
 

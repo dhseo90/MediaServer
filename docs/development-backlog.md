@@ -10,15 +10,16 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.9.1`
+- 현재 소스 버전: `4.0.0`
 - 최신 공개 GitHub Release: `v3.9.1`
 - `v3.9.1` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
 - 최신 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 직전 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
-- 다음 source 개발 로드맵: `v4.0.0 Local Operations Policy and Stabilization`
+- 다음 source 개발 로드맵: `v4.1.0` 신규 기능 후보. 4.0.0에서 구현하지 않음
 - v4.0.0 범위: 로컬 운영 정책화 및 안정화. 신규 기능은 `v4.1.0`부터
+- `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
 
 ### 2026-08-14 v3.9.0 historical close-out status
 
@@ -27,7 +28,17 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
   [v3.9.0 test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
   보존합니다. 이 절은 현재 v3.9.1 완료 증거가 아닙니다.
 
-## 현재 source roadmap: v3.9.1 Release Correctness and Public Repository Hygiene
+## 현재 source roadmap: v4.0.0 Local Operations Policy and Stabilization
+
+상태: v4.0.0 (1) baseline 정렬 완료. 2~8번은 미완료. published는 `v3.9.1` 유지.
+`v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다. 아래 표의 2~8번은 구현
+완료 evidence가 아니다.
+
+직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
+read-only/decision-only 운영 표면을 정책으로 고정하고, 로컬 file/replay/fixture로
+닫히는 운영 흐름만 안정화한다. 신규 기능은 v4.1.0부터 넣는다.
+
+## Historical published: v3.9.1 Release Correctness and Public Repository Hygiene
 
 상태: local `./test_release.sh` PASS. 7차 GitHub clean-clone source `2882bb35`에서
 30분 `118/0/2`, exact UI `424/424`, Policy v4 `uiFulltestPass=true`, 120분 `448/0/2`,
@@ -83,9 +94,9 @@ roadmap은 historical section입니다.
 
 ## v4.0.0 개발 로드맵: Local Operations Policy and Stabilization
 
-상태: 로드맵 작성. `VERSION`/`CMake`/공개 문서의 현재 소스 기준은 아직 `3.9.1`이다.
-v4.0.0 (1) baseline 정렬 전에는 현재 metadata pin을 바꾸지 않는다. 아래 표는
-구현 완료 evidence가 아니다.
+상태: v4.0.0 (1) 완료. `VERSION`/`CMake`/공개 문서의 현재 소스 기준은 `4.0.0`이다.
+published GitHub Release는 `v3.9.1`을 유지한다. 2~8번 표는 구현 완료 evidence가
+아니다.
 
 직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
 read-only/decision-only 운영 표면을 정책으로 고정하고, 로컬 file/replay/fixture로
@@ -135,7 +146,7 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 
 | 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
 | --- | --- | --- | --- | --- |
-| 1 | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | 미완료 | VERSION/docs current pin은 아직 `3.9.1`. 이 로드맵 작성은 baseline 완료가 아님 |
+| 1 | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs current pin을 `4.0.0`과 `v4.0.0 Local Operations Policy and Stabilization`으로 정렬. published는 `v3.9.1` 유지. `scripts/internal/verify_v400_entry_baseline.mjs`와 `server.sh` dispatch `verify-v400-entry-baseline`를 추가. `scripts/internal/verify_release_metadata_consistency.mjs`가 current `4.0.0`과 published `v3.9.1`를 분리. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 2 | v4.0.0 (2) User Review Gate | P0 | 미완료 | 사용자 방향은 접수. 전용 review-gate verifier/승인 기록은 없음 |
 | 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 미완료 | 규칙만 로드맵에 적음. 축소 구현 없음 |
 | 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 미완료 | 3.9 defer 5개를 4.0 비구현으로 유지하기로 제안. 구현/write 없음 |

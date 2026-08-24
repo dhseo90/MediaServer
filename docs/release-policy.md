@@ -6,14 +6,14 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.9.1`
+- 현재 소스 버전: `4.0.0`
 - 최신 공개 GitHub Release: `v3.9.1`
 - `v3.9.1` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
+- 현재 source roadmap은 `v4.0.0 Local Operations Policy and Stabilization`입니다.
 - 현재 latest published release는 `v3.9.1`입니다.
 - 현재 공개 release tag 기준은 `v3.9.1`입니다.
-- 현재 source tag 기준은 `v3.9.1`입니다.
+- `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
 - `v3.9.1` GitHub Release publish 완료는 tag, GitHub Release,
   `verify-release-metadata --published` evidence로 확인합니다.
 
@@ -60,9 +60,9 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.9.1 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.9.1`, current roadmap
-`v3.9.1 Release Correctness and Public Repository Hygiene`,
+v4.0.0 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `4.0.0`, current roadmap
+`v4.0.0 Local Operations Policy and Stabilization`,
 latest published `v3.9.1` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
 `v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
 대상 문서는 `README.md`, `README.en.md`,
@@ -71,9 +71,11 @@ latest published `v3.9.1` 기준으로 정렬하는 local gate입니다. 최신 
 
 Companion local gate:
 
-전용 companion command는 `./server.sh verify-v390-entry-baseline`입니다.
+전용 companion command는 `./server.sh verify-v400-entry-baseline`입니다.
+historical v3.9.0 companion는 `./server.sh verify-v390-entry-baseline`입니다.
 
 ```bash
+./server.sh verify-v400-entry-baseline
 ./server.sh verify-v390-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
@@ -369,9 +371,16 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
+## v4.0.0 Current Source Roadmap Scope
+
+현재 `4.0.0` source tree는 로컬 운영 정책화 및 안정화 major입니다. v4.0.0 (1)
+baseline 정렬은 current source `4.0.0`과 published `v3.9.1`를 분리합니다. 신규 기능은
+`v4.1.0`부터 넣습니다. Binary/runtime/model bundle과 external field smoke는 공개
+asset 또는 실행 PASS로 승격하지 않습니다.
+
 ## v3.9.1 Published Source Roadmap Scope
 
-현재 `3.9.1` source tree는 v3.9.0 제품 기능을 유지한 채 release correctness,
+published `3.9.1` source tree는 v3.9.0 제품 기능을 유지한 채 release correctness,
 public repository hygiene, documentation truth, bounded evidence, test asset
 bootstrap, Policy v4 current-source version binding을 latest published patch
 baseline으로 닫았습니다. Binary/runtime/model bundle과 external field smoke는
@@ -1029,11 +1038,21 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
+## v4.0.0 Release Note Template
+
+아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. GitHub Latest Release는
+게시 전까지 `v3.9.1`입니다. `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
+
+```markdown
+# Media Server v4.0.0
+```
+
 ## v3.9.1 Release Note Template
 
 아래 템플릿은 v3.9.1 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. GitHub Latest Release는
-게시 전까지 `v3.9.0`입니다.
+게시된 `v3.9.1`입니다.
 
 ```markdown
 # Media Server v3.9.1
