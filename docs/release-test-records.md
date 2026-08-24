@@ -1358,6 +1358,7 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | Script inventory 확인 | 새 verifier/command가 server entrypoint와 script inventory에 등록됐는지 확인 | `./server.sh verify-script-inventory` 실행 결과와 `server.sh` dispatch 확인 | v2.0.0 |
 | V400 roadmap contract | v4.0.0 로컬 운영 정책화/안정화 로드맵과 v4.1.0 신규 기능 분리, 테스트 스크립트 반영 불변 조건을 확인 | `./server.sh verify-v400-roadmap-contract`가 backlog 8개 4.0.0 스텝과 6개 4.1.0 후보, 각 행의 `테스트 스크립트 반영 필수`, 비범위, inventory/stream-verification/server dispatch 연결을 확인. v4.0.0 2~8번 구현, UI/30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | V400 entry baseline | current source `4.0.0`과 published `v3.9.1` 분리, VERSION/CMake/README/docs/backlog/source roadmap 정렬 | `./server.sh verify-v400-entry-baseline`이 VERSION `4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization`, latest published `v3.9.1`, `verify-release-metadata` current/published 분리, inventory/stream-verification/records/server dispatch를 확인. UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 user review gate | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 사용자 승인 기록으로 고정 | `./server.sh verify-v400-user-review-gate`가 `test/fixtures/v400_user_review_gate.json`의 `approved-through-recorded-user-goals`, `blocked-until-v400-complete`, in-scope 3~8번, v4.1.0 비구현, 비범위, backlog/inventory/stream-verification/records/server dispatch를 확인. 3~8번 구현, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | User test AI asset bootstrap | Git 비추적 YOLO model/COCO labels가 무옵션 30분·120분·UI·release launcher의 실제 test 위임 전에 준비되는지 확인 | `./server.sh verify-v390-user-test-launchers-contract`가 missing download, fixed SHA-256, existing verify, corrupt repair, digest mismatch no-publish/temp cleanup을 확인. 기본 Ultralytics URL의 실제 10.4 MB download와 SHA readback도 확인. Actual launcher는 `ai-asset-bootstrap` 실패 시 build/30분/UI/120분 전에 fail-stop | v3.9.1 |
 | Current UI evidence VERSION binding | Policy v4 current-source fixture가 패치 숫자를 고정하지 않고 token `current`로 `VERSION`에 결속되는지 확인 | `./server.sh verify-v390-current-ui-evidence-contract`가 canonical/visual/current state version token이 `current`인지 확인. qualifier는 token을 `VERSION`으로 해석한 뒤 비교한다. `node scripts/internal/verify_v390_ui_policy_v4_actual_evidence_contract.mjs`가 `canonical-case-manifest-version-mismatch`를 `canonical-source-binding`에 배정하고 미등록 reason은 throw 대신 `fail-closed-incomplete-assignment`를 남김. historical `3.9.0` fixture는 token이 아니므로 현재 소스로 승격되지 않음 | v3.9.1 |
 | Build | C++/UI/static asset build가 통과하는지 확인 | `./server.sh build` exit code 0 확인. 실패 후 수정했다면 최초 fail과 최종 pass를 모두 결과 기록에 남김 | v1.8.0 |
@@ -1614,7 +1615,7 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 
 ### v4.0.0
 
-v4.0.0 (1) baseline 정렬. 결과표는 이 스텝에서 실행한 항목만 `pass`/`fail`로 남긴다.
+v4.0.0 (1) baseline 정렬과 (2) User Review Gate. 결과표는 실행한 항목만 `pass`/`fail`로 남긴다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -1630,6 +1631,7 @@ v4.0.0 (1) baseline 정렬. 결과표는 이 스텝에서 실행한 항목만 `p
 | Script inventory | `./server.sh verify-script-inventory` 11/0 | pass |
 | Project inventory | `./server.sh verify-project-inventory` 17/0 | pass |
 | Feature inventory coverage | `./server.sh verify-feature-inventory-coverage` 986/986 covered, 7/0 | pass |
+| V400 user review gate | `./server.sh verify-v400-user-review-gate` 5/0, fixture `V400-REVIEW-GATE-02` | pass |
 
 | 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
 | --- | --- | --- | --- |

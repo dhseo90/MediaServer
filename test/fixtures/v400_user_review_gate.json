@@ -1,0 +1,69 @@
+{
+  "schema": "media-server.v400-user-review-gate.v1",
+  "decisionId": "V400-REVIEW-GATE-02",
+  "recordedOn": "2026-08-24",
+  "sourceRelease": "v4.0.0",
+  "latestPublished": "v3.9.1",
+  "status": "approved-through-recorded-user-goals",
+  "implementationStatus": "not-executed",
+  "primarySelection": "로컬 운영 정책화 및 안정화",
+  "fallback": "신규 기능은 v4.1.0부터. v4.0.0에서 제품 기능을 추가하지 않는다.",
+  "approval": {
+    "source": "recorded-user-goals",
+    "approved": true,
+    "approvedOn": "2026-08-24",
+    "evidence": [
+      "user confirmed v4.0.0 primary goal is local operations policy and stabilization",
+      "user confirmed Foundation-Policy-Stabilization-Release order 1 through 8",
+      "user ordered v4.0.0 (1) then this follow-up User Review Gate"
+    ],
+    "newFeatureDevelopment": "blocked-until-v400-complete",
+    "v400Steps3to8": "approved-to-implement-in-order"
+  },
+  "inScope": [
+    "v4.0.0 (3) 검증 계층 축소 규칙",
+    "v4.0.0 (4) 로컬 운영 정책 freeze",
+    "v4.0.0 (5) Incident OS 정책화",
+    "v4.0.0 (6) Evidence 운영 정책화",
+    "v4.0.0 (7) 로컬 운영 안정화",
+    "v4.0.0 (8) stabilization and release readiness"
+  ],
+  "outOfScopeUntilV410": [
+    "v4.1.0 (1) Incident OS 제품 승격",
+    "v4.1.0 (2) Evidence default-on 제품화",
+    "v4.1.0 (3) 로컬 Action Execution",
+    "v4.1.0 (4) 로컬 credential store",
+    "v4.1.0 (5) Tracker 제품 기본 선택",
+    "v4.1.0 (6) 로컬 VLM 운영 경로"
+  ],
+  "excluded": [
+    "ONVIF 실카메라 성공",
+    "외부 TURN/WHEP field",
+    "cloud VLM 제품 호출",
+    "VMS/NVR",
+    "장기 녹화",
+    "Re-ID default-on",
+    "VLM default-on",
+    "model/runtime bundle",
+    "요청 없는 Event POST / DataChannel / SSE·WS / RTSP·WebRTC media path 변경",
+    "승인 없는 action write",
+    "외부 알림 실발송",
+    "production restore cutover",
+    "구조 리팩터를 v4.0.0 본작업으로 다시 여는 것"
+  ],
+  "constraints": {
+    "eventPostSchema": "unchanged",
+    "dataChannelSchema": "unchanged",
+    "sseWsMetadataSchema": "unchanged",
+    "evidenceDefaultOn": "deferred-to-v4.1.0",
+    "fieldSmoke": "conditional-not-run"
+  },
+  "notEvidence": [
+    "v4.0.0 steps 3-8 implementation",
+    "UI fulltest",
+    "30-minute soak",
+    "120-minute longrun",
+    "published metadata",
+    "v4.0.0 tag or GitHub Release"
+  ]
+}

@@ -30,8 +30,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v4.0.0 Local Operations Policy and Stabilization
 
-상태: v4.0.0 (1) baseline 정렬 완료. 2~8번은 미완료. published는 `v3.9.1` 유지.
-`v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다. 아래 표의 2~8번은 구현
+상태: v4.0.0 (1)~(2) 완료. 3~8번은 미완료. published는 `v3.9.1` 유지.
+`v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다. 아래 표의 3~8번은 구현
 완료 evidence가 아니다.
 
 직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
@@ -94,8 +94,8 @@ roadmap은 historical section입니다.
 
 ## v4.0.0 개발 로드맵: Local Operations Policy and Stabilization
 
-상태: v4.0.0 (1) 완료. `VERSION`/`CMake`/공개 문서의 현재 소스 기준은 `4.0.0`이다.
-published GitHub Release는 `v3.9.1`을 유지한다. 2~8번 표는 구현 완료 evidence가
+상태: v4.0.0 (1)~(2) 완료. `VERSION`/`CMake`/공개 문서의 현재 소스 기준은 `4.0.0`이다.
+published GitHub Release는 `v3.9.1`을 유지한다. 3~8번 표는 구현 완료 evidence가
 아니다.
 
 직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
@@ -147,7 +147,7 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 | 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
 | --- | --- | --- | --- | --- |
 | 1 | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs current pin을 `4.0.0`과 `v4.0.0 Local Operations Policy and Stabilization`으로 정렬. published는 `v3.9.1` 유지. `scripts/internal/verify_v400_entry_baseline.mjs`와 `server.sh` dispatch `verify-v400-entry-baseline`를 추가. `scripts/internal/verify_release_metadata_consistency.mjs`가 current `4.0.0`과 published `v3.9.1`를 분리. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
-| 2 | v4.0.0 (2) User Review Gate | P0 | 미완료 | 사용자 방향은 접수. 전용 review-gate verifier/승인 기록은 없음 |
+| 2 | v4.0.0 (2) User Review Gate | P0 | 완료 | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 `approved-through-recorded-user-goals`로 고정. `test/fixtures/v400_user_review_gate.json`, `scripts/internal/verify_v400_user_review_gate.mjs`, `./server.sh verify-v400-user-review-gate`를 추가. 3~8번은 `approved-to-implement-in-order` / `not-executed`. 신규 기능은 `blocked-until-v400-complete`. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 미완료 | 규칙만 로드맵에 적음. 축소 구현 없음 |
 | 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 미완료 | 3.9 defer 5개를 4.0 비구현으로 유지하기로 제안. 구현/write 없음 |
 | 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 미완료 | 기존 `/ops/events` 면 정책 정리 전 |
@@ -157,6 +157,34 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 
 이 절의 로드맵 계약 자체는 `./server.sh verify-v400-roadmap-contract`가 검사한다.
 계약 PASS는 4.0.0 구현 완료, baseline 완료, UI/30분/120분, published metadata가 아니다.
+
+### v4.0.0 User Review Gate
+
+승인 상태: `approved-through-recorded-user-goals`
+신규 기능 개발 상태: `blocked-until-v400-complete`
+v4.0.0 (3)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`
+
+직접 답: 4.0.0에서 쓰는 것은 **로컬 운영 정책화 및 안정화**다. 신규 제품 기능은
+4.1.0부터다.
+
+- 1차 선택값: **로컬 운영 정책화 및 안정화**
+- 실제 선택 대상: v4.0.0 (3) 검증 계층 축소 규칙, (4) 로컬 운영 정책 freeze,
+  (5) Incident OS 정책화, (6) Evidence 운영 정책화, (7) 로컬 운영 안정화,
+  (8) stabilization and release readiness
+- fallback: 없음. 4.0.0에서 제품 기능을 추가하지 않고, 해당 후보는 v4.1.0에 둔다
+- 제외 대상: ONVIF 실카메라 성공, 외부 TURN/WHEP field, cloud VLM 제품 호출,
+  VMS/NVR, 장기 녹화, Re-ID/VLM default-on, model/runtime bundle, 승인 없는
+  action write, 외부 알림 실발송, production restore cutover, 구조 리팩터 재착수,
+  v4.1.0 (1)~(6) 신규 기능
+- 제외 사유: 로드맵 비범위이며 사용자가 1~8번 순서와 정책/안정화 목표를 확인했다
+- 운영/프라이버시 제약: Event POST / DataChannel / SSE·WS schema는 변경 금지.
+  evidence default-on은 v4.1.0. field smoke는 조건부 미실행
+- 기록 위치: `test/fixtures/v400_user_review_gate.json`,
+  `scripts/internal/verify_v400_user_review_gate.mjs`,
+  `./server.sh verify-v400-user-review-gate`
+
+이 게이트 PASS는 3~8번 구현, UI 풀테스트, 30분, 120분, published metadata,
+`v4.0.0` tag/GitHub Release 완료가 아니다.
 
 ### v4.1.0 이후 신규 기능 후보
 

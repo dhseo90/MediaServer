@@ -149,7 +149,7 @@ check("development backlog current roadmap is v4.0.0 and step 1 is developed", (
     "VERSION/CMake/README/docs current pin을 `4.0.0`",
     "scripts/internal/verify_v400_entry_baseline.mjs",
     "verify_release_metadata_consistency.mjs",
-    `| 2 | v4.0.0 (2) User Review Gate | P0 | 미완료 |`,
+    `| 2 | v4.0.0 (2) User Review Gate | P0 | 완료 |`,
     `\`${expectedTag}\` GitHub Release/tag는 아직 생성하지 않습니다`,
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");

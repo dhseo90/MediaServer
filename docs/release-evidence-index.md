@@ -38,7 +38,8 @@
 - current source: `v4.0.0` (`VERSION=4.0.0`)
 - latest published: v3.9.1
 - v4.0.0 source baseline: `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`
-- v4.0.0 (1) baseline 정렬: 이 스텝 범위. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 미실행
+- v4.0.0 (1) baseline 정렬: 완료. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 미실행
+- v4.0.0 user review gate: `./server.sh verify-v400-user-review-gate`, `V400-REVIEW-GATE-02`
 - release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
 - v3.9.1 published evidence는 아래 절에 보존
 
@@ -309,6 +310,7 @@ published metadata, PR/main/tag/GitHub Release evidence가 아닙니다.
 | Evidence | 연결 | PASS/FAIL 결과표 위치 | 미실행/제외 위치 | 대체 금지 |
 | --- | --- | --- | --- | --- |
 | v4.0.0 source baseline | `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, [stream-verification.md](./stream-verification.md), [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-163`/`SAFE-196` | [release-test-records.md](./release-test-records.md) `V400 entry baseline` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | 기능 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+| v4.0.0 user review gate | `./server.sh verify-v400-user-review-gate`, `test/fixtures/v400_user_review_gate.json` `V400-REVIEW-GATE-02`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-165`/`SAFE-198` inherited | [release-test-records.md](./release-test-records.md) `V400 user review gate` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | 3~8번 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence |
 
 ## v3.9.0 source baseline, feature completion inventory, and user review gate records
 

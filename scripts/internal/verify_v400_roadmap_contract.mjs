@@ -120,6 +120,10 @@ check("stream verification, inventory, and records wire the roadmap contract", (
   assert(streamVerification.includes("v4.0.0 roadmap contract"), "stream verification missing v4.0.0 row");
   assert(streamVerification.includes("./server.sh verify-v400-roadmap-contract"), "stream verification missing command");
   assert(streamVerification.includes("./server.sh verify-v400-entry-baseline"), "stream verification missing entry baseline command");
+  assert(streamVerification.includes("./server.sh verify-v400-user-review-gate"), "stream verification missing user review gate command");
+  assert(inventory.includes("v4.0.0 (2) User Review Gate"), "project inventory missing v4.0.0 (2) row");
+  assert(inventory.includes("verify-v400-user-review-gate"), "project inventory missing user review gate verifier");
+  assert(records.includes("V400 user review gate"), "release test records missing V400 user review gate item");
   assert(inventory.includes("v4.0.0 Local Operations Policy and Stabilization roadmap"),
     "project inventory missing v4.0.0 mapping");
   assert(inventory.includes("verify-v400-roadmap-contract"), "project inventory missing verifier");
@@ -133,6 +137,8 @@ check("stream verification, inventory, and records wire the roadmap contract", (
 check("server.sh dispatches verify-v400-roadmap-contract", () => {
   assert(serverSh.includes("verify-v400-roadmap-contract"), "server.sh missing command help/dispatch");
   assert(serverSh.includes("verify_v400_roadmap_contract.mjs"), "server.sh missing script target");
+  assert(serverSh.includes("verify-v400-user-review-gate"), "server.sh missing user review gate command");
+  assert(serverSh.includes("verify_v400_user_review_gate.mjs"), "server.sh missing user review gate script");
 });
 
 const result = runChecks();

@@ -1191,6 +1191,8 @@ Usage:
                  v3.9.1 public README/현재 문서/release evidence의 정합성을 검증합니다.
   verify-v400-entry-baseline
                  v4.0.0 current source baseline과 published v3.9.1 분리를 검증합니다.
+  verify-v400-user-review-gate
+                 v4.0.0 정책/안정화 범위와 v4.1.0 신규 기능 경계의 사용자 승인 기록을 검증합니다.
   verify-v400-roadmap-contract
                  v4.0.0 로컬 운영 정책화/안정화 로드맵과 테스트 스크립트 반영 불변 조건을 검증합니다.
   verify-post-release-reconciliation
@@ -2997,6 +2999,10 @@ case "${cmd}" in
   verify-v400-entry-baseline)
     require_internal verify_v400_entry_baseline.mjs
     exec "${INTERNAL_DIR}/verify_v400_entry_baseline.mjs" "$@"
+    ;;
+  verify-v400-user-review-gate)
+    require_internal verify_v400_user_review_gate.mjs
+    exec "${INTERNAL_DIR}/verify_v400_user_review_gate.mjs" "$@"
     ;;
   verify-v400-roadmap-contract)
     require_internal verify_v400_roadmap_contract.mjs
