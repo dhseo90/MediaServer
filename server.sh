@@ -1193,6 +1193,8 @@ Usage:
                  v4.0.0 current source baseline과 published v3.9.1 분리를 검증합니다.
   verify-v400-user-review-gate
                  v4.0.0 정책/안정화 범위와 v4.1.0 신규 기능 경계의 사용자 승인 기록을 검증합니다.
+  verify-v400-verification-layer-reduction
+                 v4.0.0 986/424 유지, verifier 남발 금지, wrapper/실행 PASS 분리 규칙을 검증합니다.
   verify-v400-roadmap-contract
                  v4.0.0 로컬 운영 정책화/안정화 로드맵과 테스트 스크립트 반영 불변 조건을 검증합니다.
   verify-post-release-reconciliation
@@ -3003,6 +3005,10 @@ case "${cmd}" in
   verify-v400-user-review-gate)
     require_internal verify_v400_user_review_gate.mjs
     exec "${INTERNAL_DIR}/verify_v400_user_review_gate.mjs" "$@"
+    ;;
+  verify-v400-verification-layer-reduction)
+    require_internal verify_v400_verification_layer_reduction.mjs
+    exec "${INTERNAL_DIR}/verify_v400_verification_layer_reduction.mjs" "$@"
     ;;
   verify-v400-roadmap-contract)
     require_internal verify_v400_roadmap_contract.mjs

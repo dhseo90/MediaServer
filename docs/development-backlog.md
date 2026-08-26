@@ -30,8 +30,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v4.0.0 Local Operations Policy and Stabilization
 
-상태: v4.0.0 (1)~(2) 완료. 3~8번은 미완료. published는 `v3.9.1` 유지.
-`v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다. 아래 표의 3~8번은 구현
+상태: v4.0.0 (1)~(3) 완료. 4~8번은 미완료. published는 `v3.9.1` 유지.
+`v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다. 아래 표의 4~8번은 구현
 완료 evidence가 아니다.
 
 직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
@@ -94,8 +94,8 @@ roadmap은 historical section입니다.
 
 ## v4.0.0 개발 로드맵: Local Operations Policy and Stabilization
 
-상태: v4.0.0 (1)~(2) 완료. `VERSION`/`CMake`/공개 문서의 현재 소스 기준은 `4.0.0`이다.
-published GitHub Release는 `v3.9.1`을 유지한다. 3~8번 표는 구현 완료 evidence가
+상태: v4.0.0 (1)~(3) 완료. `VERSION`/`CMake`/공개 문서의 현재 소스 기준은 `4.0.0`이다.
+published GitHub Release는 `v3.9.1`을 유지한다. 4~8번 표는 구현 완료 evidence가
 아니다.
 
 직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
@@ -148,7 +148,7 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 | --- | --- | --- | --- | --- |
 | 1 | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs current pin을 `4.0.0`과 `v4.0.0 Local Operations Policy and Stabilization`으로 정렬. published는 `v3.9.1` 유지. `scripts/internal/verify_v400_entry_baseline.mjs`와 `server.sh` dispatch `verify-v400-entry-baseline`를 추가. `scripts/internal/verify_release_metadata_consistency.mjs`가 current `4.0.0`과 published `v3.9.1`를 분리. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 2 | v4.0.0 (2) User Review Gate | P0 | 완료 | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 `approved-through-recorded-user-goals`로 고정. `test/fixtures/v400_user_review_gate.json`, `scripts/internal/verify_v400_user_review_gate.mjs`, `./server.sh verify-v400-user-review-gate`를 추가. 3~8번은 `approved-to-implement-in-order` / `not-executed`. 신규 기능은 `blocked-until-v400-complete`. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
-| 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 미완료 | 규칙만 로드맵에 적음. 축소 구현 없음 |
+| 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 완료 | 986/424 유지, v390 verifier 118·contract 72·non-v400 fixture 79 상한, v400 command allowlist, wrapper/실행 PASS 분리를 `test/fixtures/v400_verification_layer.json`과 `scripts/internal/verify_v400_verification_layer_reduction.mjs`로 고정. 역사적 v390 verifier 삭제는 7번 안정화 범위. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 미완료 | 3.9 defer 5개를 4.0 비구현으로 유지하기로 제안. 구현/write 없음 |
 | 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 미완료 | 기존 `/ops/events` 면 정책 정리 전 |
 | 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 미완료 | opt-in/비-VMS 정책 고정 전. default-on은 4.1.0 |
@@ -162,7 +162,7 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 
 승인 상태: `approved-through-recorded-user-goals`
 신규 기능 개발 상태: `blocked-until-v400-complete`
-v4.0.0 (3)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`
+v4.0.0 (4)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`
 
 직접 답: 4.0.0에서 쓰는 것은 **로컬 운영 정책화 및 안정화**다. 신규 제품 기능은
 4.1.0부터다.
@@ -185,6 +185,35 @@ v4.0.0 (3)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`
 
 이 게이트 PASS는 3~8번 구현, UI 풀테스트, 30분, 120분, published metadata,
 `v4.0.0` tag/GitHub Release 완료가 아니다.
+
+### v4.0.0 검증 계층 축소 규칙
+
+규칙 상태: `rule-in-force`. 역사적 v390 verifier 삭제는 `not-executed-reduction`이며
+7번 로컬 운영 안정화에서만 검토한다.
+
+직접 답: 4.0.0은 **986개 feature row와 424개 UI exact case를 유지**하고, 새
+verifier/fixture를 늘리지 않으며, **wrapper PASS와 실행 PASS 분리**를 강화한다.
+
+1. cardinality: inventory `전체 기능 항목` 986, `UI 풀테스트 대상` 424, 30분 50,
+   120분 7. 새 제품 기능 ID 없이 이 숫자를 늘리지 않는다.
+2. 새 `verify-v390_*` 스크립트 추가 금지. 상한 118.
+3. `*contract*.mjs` 상한 72. 이 스텝은 companion contract를 추가하지 않는다.
+4. non-v400 JSON fixture 상한 79. v400 fixture는 allowlist/reserved만 허용.
+5. `verify-v400-*`는 구현 allowlist와 4~8번 reserved 이름만 허용.
+6. wrapper `wrapperResult` PASS와 coverage `covered`는 UI/30/120/published
+   실행 PASS가 아니다. 기존 `verify-v390-evidence-test-gate-prep`를 재사용하고
+   포크하지 않는다.
+7. REVIEW4에 묶인 `verify_release_metadata_consistency.mjs`,
+   `verify_v390_entry_baseline.mjs`,
+   `verify_v390_test_acceptance_bundle_contract.mjs`는 fixture hash freeze.
+   임의 수정 금지.
+
+기록 위치: `test/fixtures/v400_verification_layer.json`,
+`scripts/internal/verify_v400_verification_layer_reduction.mjs`,
+`./server.sh verify-v400-verification-layer-reduction`.
+
+이 규칙 PASS는 역사적 verifier 삭제, UI 풀테스트, 30분, 120분, published metadata
+완료가 아니다.
 
 ### v4.1.0 이후 신규 기능 후보
 

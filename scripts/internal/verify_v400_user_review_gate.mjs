@@ -101,12 +101,13 @@ check("development backlog records the approved scope and keeps steps 3-8 not im
     "승인 상태: `approved-through-recorded-user-goals`",
     "1차 선택값: **로컬 운영 정책화 및 안정화**",
     "신규 기능 개발 상태: `blocked-until-v400-complete`",
-    "v4.0.0 (3)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`",
+    "v4.0.0 (4)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`",
     "`scripts/internal/verify_v400_user_review_gate.mjs`",
     "`./server.sh verify-v400-user-review-gate`",
     fixturePath,
     "| 2 | v4.0.0 (2) User Review Gate | P0 | 완료 |",
-    "| 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 미완료 |",
+    "| 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 완료 |",
+    "| 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 미완료 |",
     "4.0.0에서 구현하지 않는다",
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");

@@ -121,9 +121,13 @@ check("stream verification, inventory, and records wire the roadmap contract", (
   assert(streamVerification.includes("./server.sh verify-v400-roadmap-contract"), "stream verification missing command");
   assert(streamVerification.includes("./server.sh verify-v400-entry-baseline"), "stream verification missing entry baseline command");
   assert(streamVerification.includes("./server.sh verify-v400-user-review-gate"), "stream verification missing user review gate command");
+  assert(streamVerification.includes("./server.sh verify-v400-verification-layer-reduction"), "stream verification missing verification-layer command");
   assert(inventory.includes("v4.0.0 (2) User Review Gate"), "project inventory missing v4.0.0 (2) row");
   assert(inventory.includes("verify-v400-user-review-gate"), "project inventory missing user review gate verifier");
+  assert(inventory.includes("v4.0.0 (3) 검증 계층 축소 규칙"), "project inventory missing v4.0.0 (3) row");
+  assert(inventory.includes("verify-v400-verification-layer-reduction"), "project inventory missing verification-layer verifier");
   assert(records.includes("V400 user review gate"), "release test records missing V400 user review gate item");
+  assert(records.includes("V400 verification layer reduction"), "release test records missing V400 verification layer item");
   assert(inventory.includes("v4.0.0 Local Operations Policy and Stabilization roadmap"),
     "project inventory missing v4.0.0 mapping");
   assert(inventory.includes("verify-v400-roadmap-contract"), "project inventory missing verifier");
@@ -139,6 +143,8 @@ check("server.sh dispatches verify-v400-roadmap-contract", () => {
   assert(serverSh.includes("verify_v400_roadmap_contract.mjs"), "server.sh missing script target");
   assert(serverSh.includes("verify-v400-user-review-gate"), "server.sh missing user review gate command");
   assert(serverSh.includes("verify_v400_user_review_gate.mjs"), "server.sh missing user review gate script");
+  assert(serverSh.includes("verify-v400-verification-layer-reduction"), "server.sh missing verification-layer command");
+  assert(serverSh.includes("verify_v400_verification_layer_reduction.mjs"), "server.sh missing verification-layer script");
 });
 
 const result = runChecks();
