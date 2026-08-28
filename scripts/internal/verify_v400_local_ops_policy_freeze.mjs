@@ -140,7 +140,7 @@ check("inherited v390 deferral/signoff commands still dispatch and this command 
     "server.sh inherited signoff script");
 });
 
-check("backlog records v4.0.0 (4) freeze complete and keeps (6) not implemented", () => {
+check("backlog records v4.0.0 (4) freeze complete and keeps (7) not implemented", () => {
   for (const snippet of [
     "### v4.0.0 로컬 운영 정책 freeze",
     "정책 상태: `policy-frozen`",
@@ -156,7 +156,8 @@ check("backlog records v4.0.0 (4) freeze complete and keeps (6) not implemented"
     fixturePath,
     "| 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 완료 |",
     "| 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 완료 |",
-    "| 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 미완료 |",
+    "| 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 완료 |",
+    "| 7 | v4.0.0 (7) 로컬 운영 안정화 | P0 | 미완료 |",
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");
   }
