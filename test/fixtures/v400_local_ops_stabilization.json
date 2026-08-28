@@ -1,0 +1,49 @@
+{
+  "schema": "media-server.v400-local-ops-stabilization.v1",
+  "decisionId": "V400-LOCAL-OPS-STABILIZATION-07",
+  "recordedOn": "2026-08-28",
+  "sourceRelease": "v4.0.0",
+  "latestPublished": "v3.9.1",
+  "status": "stabilization-recorded",
+  "implementationStatus": "local-consistency-recorded-no-cull",
+  "primarySelection": "keep 118 historical v390 verifiers; record v320 page-owner drift; keep current source 4.0.0 wording distinct from inherited 3.9.1/3.9.0 rows",
+  "historicalVerifierCull": {
+    "decision": "keep-118-not-deleted",
+    "v390Ceiling": 118,
+    "deletionStatus": "not-executed",
+    "reason": "REVIEW4 semantic proofs and v390 entry-baseline still require the current v390 set. 4.0 does not delete historical verifiers."
+  },
+  "knownInconsistencies": [
+    {
+      "id": "v320-unified-workspace-page-owner-vs-bundle",
+      "status": "recorded-not-fixed",
+      "pageOwner": "src/ingress/product_ui_server_pages.cpp",
+      "pageOwnerSnippet": "data-testid=\"ops-v320-unified-events-workspace\"",
+      "historicalVerifier": "verify-v320-unified-ops-events-workspace",
+      "reason": "REVIEW4 semantic proofs bind the v320 verifier. Editing it would drift source-flow digests. Incident OS policy already checks the page owner."
+    }
+  ],
+  "streamVerification": {
+    "currentSourceHeading": "## 현재 v4.0.0 verifier와 v3.9.1/v3.9.0 inherited verifier",
+    "inheritedHeadingRequiredByV390": "## 현재 v3.9.0 verifier",
+    "currentSourceSnippet": "현재 source는 `4.0.0`",
+    "historicalV391RowMustInclude": "historical cut source `3.9.1`"
+  },
+  "inheritedCommands": [
+    "verify-v400-local-ops-policy-freeze",
+    "verify-v400-incident-os-policy",
+    "verify-v400-evidence-ops-policy",
+    "verify-v400-verification-layer-reduction",
+    "verify-project-inventory",
+    "verify-script-inventory"
+  ],
+  "notEvidence": [
+    "historical v390 verifier deletion",
+    "v320 REVIEW4 verifier rewrite",
+    "UI fulltest",
+    "30-minute soak",
+    "120-minute longrun",
+    "published metadata",
+    "v4.0.0 tag or GitHub Release"
+  ]
+}

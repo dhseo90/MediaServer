@@ -94,7 +94,7 @@ check("inherited incident/search/timeline/resolution commands still dispatch", (
   assertIncludes(files.serverSh, targetScript, "server.sh");
 });
 
-check("backlog records v4.0.0 (5) Incident OS policy complete and keeps (7) not implemented", () => {
+check("backlog records v4.0.0 (5) Incident OS policy complete and keeps (8) not implemented", () => {
   for (const snippet of [
     "### v4.0.0 Incident OS 정책화",
     "정책 상태: `policy-frozen`",
@@ -106,7 +106,8 @@ check("backlog records v4.0.0 (5) Incident OS policy complete and keeps (7) not 
     fixturePath,
     "| 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 완료 |",
     "| 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 완료 |",
-    "| 7 | v4.0.0 (7) 로컬 운영 안정화 | P0 | 미완료 |",
+    "| 7 | v4.0.0 (7) 로컬 운영 안정화 | P0 | 완료 |",
+    "| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 미완료 |",
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");
   }

@@ -59,7 +59,7 @@
     "fieldSmoke": "conditional-not-run"
   },
   "notEvidence": [
-    "v4.0.0 steps 7-8 implementation",
+    "v4.0.0 step 8 implementation",
     "UI fulltest",
     "30-minute soak",
     "120-minute longrun",
