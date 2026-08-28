@@ -21,11 +21,11 @@ Usage:
 Checks:
   - recorded user goals lock v4.0.0 to local operations policy and stabilization
   - v4.1.0 new-feature candidates stay blocked until v4.0.0 completes
-  - in-scope steps 5-8 remain not-executed
+  - in-scope steps 6-8 remain not-executed
   - inventory, stream-verification, records, fixture, and server.sh dispatch are wired
 
 Not run by this command:
-  - v4.0.0 steps 5-8 implementation
+  - v4.0.0 steps 6-8 implementation
   - UI fulltest
   - 30/120 minute longrun
   - published metadata verification
@@ -72,7 +72,7 @@ check("review-gate fixture locks policy/stabilization and blocks v4.1.0 features
   assert(fixture.sourceRelease === "v4.0.0", "fixture sourceRelease mismatch");
   assert(fixture.latestPublished === "v3.9.1", "fixture latestPublished mismatch");
   assert(fixture.status === "approved-through-recorded-user-goals", "fixture status mismatch");
-  assert(fixture.implementationStatus === "not-executed", "fixture must not claim remaining steps 5-8 executed");
+  assert(fixture.implementationStatus === "not-executed", "fixture must not claim remaining steps 6-8 executed");
   assert(fixture.primarySelection === "로컬 운영 정책화 및 안정화", "primary selection drifted");
   assert(fixture.approval?.approved === true, "fixture approval.approved must be true");
   assert(fixture.approval?.newFeatureDevelopment === "blocked-until-v400-complete",
@@ -95,20 +95,21 @@ check("review-gate fixture locks policy/stabilization and blocks v4.1.0 features
   assert(fixture.constraints?.evidenceDefaultOn === "deferred-to-v4.1.0", "evidence default-on constraint drifted");
 });
 
-check("development backlog records the approved scope and keeps steps 5-8 not implemented", () => {
+check("development backlog records the approved scope and keeps steps 6-8 not implemented", () => {
   for (const snippet of [
     "### v4.0.0 User Review Gate",
     "승인 상태: `approved-through-recorded-user-goals`",
     "1차 선택값: **로컬 운영 정책화 및 안정화**",
     "신규 기능 개발 상태: `blocked-until-v400-complete`",
-    "v4.0.0 (5)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`",
+    "v4.0.0 (6)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`",
     "`scripts/internal/verify_v400_user_review_gate.mjs`",
     "`./server.sh verify-v400-user-review-gate`",
     fixturePath,
     "| 2 | v4.0.0 (2) User Review Gate | P0 | 완료 |",
     "| 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 완료 |",
     "| 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 완료 |",
-    "| 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 미완료 |",
+    "| 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 완료 |",
+    "| 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 미완료 |",
     "4.0.0에서 구현하지 않는다",
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");
@@ -157,8 +158,8 @@ check("review gate does not claim execution PASS", () => {
   const noExecutionPass = files.releaseRecords.includes("published metadata PASS가 아님") ||
     files.streamVerification.includes("published metadata, release action evidence가 아닙니다");
   assert(noExecutionPass, "v4.0.0 (2) must not claim UI/longrun/published metadata PASS");
-  assert(fixture.notEvidence.includes("v4.0.0 steps 5-8 implementation"),
-    "fixture must record remaining steps 5-8 as not evidence");
+  assert(fixture.notEvidence.includes("v4.0.0 steps 6-8 implementation"),
+    "fixture must record remaining steps 6-8 as not evidence");
 });
 
 const results = runChecks();

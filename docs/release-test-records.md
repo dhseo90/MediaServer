@@ -1361,6 +1361,7 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | V400 user review gate | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 사용자 승인 기록으로 고정 | `./server.sh verify-v400-user-review-gate`가 `test/fixtures/v400_user_review_gate.json`의 `approved-through-recorded-user-goals`, `blocked-until-v400-complete`, in-scope 3~8번, v4.1.0 비구현, 비범위, backlog/inventory/stream-verification/records/server dispatch를 확인. 3~8번 구현, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | V400 verification layer reduction | 986/424 유지, verifier/fixture 남발 금지, wrapper PASS와 실행 PASS 분리 | `./server.sh verify-v400-verification-layer-reduction`이 `test/fixtures/v400_verification_layer.json`의 cardinality, v390/contract/fixture 상한, v400 allowlist, wrapper/coverage 분리, REVIEW4-bound file freeze를 확인. 역사적 verifier 삭제, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | V400 local ops policy freeze | v3.9 defer 5개를 4.0 비구현 write path로 freeze하고 field smoke는 조건부 미실행 | `./server.sh verify-v400-local-ops-policy-freeze`가 `test/fixtures/v400_local_ops_policy_freeze.json`의 exact 5개, inherited v390 signoff SHA, C++ false token, field smoke `conditional-not-run`, backlog/inventory/stream-verification/records/server dispatch를 확인. 기존 v390 deferral verifier는 재사용만 하고 수정하지 않음. write 구현, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 incident OS policy | 기존 `/ops/events` 검색/timeline/resolution을 4.0 운영 정책으로 고정 | `./server.sh verify-v400-incident-os-policy`가 `test/fixtures/v400_incident_os_policy.json`의 primary nav 비포함, 기존 면, Event POST unchanged, 새 event type 금지, inherited v320/v310 dispatch, backlog/inventory/stream-verification/records/server dispatch를 확인. Incident OS 제품 승격, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | User test AI asset bootstrap | Git 비추적 YOLO model/COCO labels가 무옵션 30분·120분·UI·release launcher의 실제 test 위임 전에 준비되는지 확인 | `./server.sh verify-v390-user-test-launchers-contract`가 missing download, fixed SHA-256, existing verify, corrupt repair, digest mismatch no-publish/temp cleanup을 확인. 기본 Ultralytics URL의 실제 10.4 MB download와 SHA readback도 확인. Actual launcher는 `ai-asset-bootstrap` 실패 시 build/30분/UI/120분 전에 fail-stop | v3.9.1 |
 | Current UI evidence VERSION binding | Policy v4 current-source fixture가 패치 숫자를 고정하지 않고 token `current`로 `VERSION`에 결속되는지 확인 | `./server.sh verify-v390-current-ui-evidence-contract`가 canonical/visual/current state version token이 `current`인지 확인. qualifier는 token을 `VERSION`으로 해석한 뒤 비교한다. `node scripts/internal/verify_v390_ui_policy_v4_actual_evidence_contract.mjs`가 `canonical-case-manifest-version-mismatch`를 `canonical-source-binding`에 배정하고 미등록 reason은 throw 대신 `fail-closed-incomplete-assignment`를 남김. historical `3.9.0` fixture는 token이 아니므로 현재 소스로 승격되지 않음 | v3.9.1 |
 | Build | C++/UI/static asset build가 통과하는지 확인 | `./server.sh build` exit code 0 확인. 실패 후 수정했다면 최초 fail과 최종 pass를 모두 결과 기록에 남김 | v1.8.0 |
@@ -1617,7 +1618,7 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 
 ### v4.0.0
 
-v4.0.0 (1) baseline 정렬, (2) User Review Gate, (3) 검증 계층 축소 규칙, (4) 로컬 운영 정책 freeze. 결과표는 실행한 항목만 `pass`/`fail`로 남긴다.
+v4.0.0 (1) baseline 정렬, (2) User Review Gate, (3) 검증 계층 축소 규칙, (4) 로컬 운영 정책 freeze, (5) Incident OS 정책화. 결과표는 실행한 항목만 `pass`/`fail`로 남긴다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -1644,6 +1645,8 @@ v4.0.0 (1) baseline 정렬, (2) User Review Gate, (3) 검증 계층 축소 규�
 | V390 conditional field AI decisions | `./server.sh verify-v390-conditional-field-ai-decisions` 9/0, providerCallPerformed=false | pass |
 | V390 Re-ID readiness | `./server.sh verify-v390-reid-readiness-consistency` C++ matrices 2, HTTP 10, failures 0 | pass |
 | V390 field smoke no-device closure | `./server.sh verify-v390-external-field-smoke-no-device-closure` 4/0, conditional-not-run | pass |
+| V400 incident OS policy | `./server.sh verify-v400-incident-os-policy` 6/0, fixture `V400-INCIDENT-OS-POLICY-05` | pass |
+| V320 unified ops events workspace | `./server.sh verify-v320-unified-ops-events-workspace` 8/1. `data-testid`는 `product_ui_server_pages.cpp`에 있고 webrtc bundle에는 없음. 이 스텝 C++ 변경 없음. 7번 정합 후보 | fail |
 
 | 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
 | --- | --- | --- | --- |

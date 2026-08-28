@@ -1197,6 +1197,8 @@ Usage:
                  v4.0.0 986/424 유지, verifier 남발 금지, wrapper/실행 PASS 분리 규칙을 검증합니다.
   verify-v400-local-ops-policy-freeze
                  v4.0.0 로컬 운영 정책 freeze(3.9 defer 5개 비구현 유지, field smoke 조건부 미실행)를 검증합니다.
+  verify-v400-incident-os-policy
+                 v4.0.0 Incident OS 정책화(/ops/events 검색·timeline·resolution, 새 event type 금지)를 검증합니다.
   verify-v400-roadmap-contract
                  v4.0.0 로컬 운영 정책화/안정화 로드맵과 테스트 스크립트 반영 불변 조건을 검증합니다.
   verify-post-release-reconciliation
@@ -3015,6 +3017,10 @@ case "${cmd}" in
   verify-v400-local-ops-policy-freeze)
     require_internal verify_v400_local_ops_policy_freeze.mjs
     exec "${INTERNAL_DIR}/verify_v400_local_ops_policy_freeze.mjs" "$@"
+    ;;
+  verify-v400-incident-os-policy)
+    require_internal verify_v400_incident_os_policy.mjs
+    exec "${INTERNAL_DIR}/verify_v400_incident_os_policy.mjs" "$@"
     ;;
   verify-v400-roadmap-contract)
     require_internal verify_v400_roadmap_contract.mjs
