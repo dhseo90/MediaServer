@@ -149,7 +149,7 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 | 1 | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs current pin을 `4.0.0`과 `v4.0.0 Local Operations Policy and Stabilization`으로 정렬. published는 `v3.9.1` 유지. `scripts/internal/verify_v400_entry_baseline.mjs`와 `server.sh` dispatch `verify-v400-entry-baseline`를 추가. `scripts/internal/verify_release_metadata_consistency.mjs`가 current `4.0.0`과 published `v3.9.1`를 분리. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 2 | v4.0.0 (2) User Review Gate | P0 | 완료 | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 `approved-through-recorded-user-goals`로 고정. `test/fixtures/v400_user_review_gate.json`, `scripts/internal/verify_v400_user_review_gate.mjs`, `./server.sh verify-v400-user-review-gate`를 추가. 3~8번은 `approved-to-implement-in-order` / `not-executed`. 신규 기능은 `blocked-until-v400-complete`. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 완료 | 986/424 유지, v390 verifier 118·contract 72·non-v400 fixture 79 상한, v400 command allowlist, wrapper/실행 PASS 분리를 `test/fixtures/v400_verification_layer.json`과 `scripts/internal/verify_v400_verification_layer_reduction.mjs`로 고정. 역사적 v390 verifier 삭제는 7번 안정화 범위. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
-| 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 미완료 | 3.9 defer 5개를 4.0 비구현으로 유지하기로 제안. 구현/write 없음 |
+| 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 완료 | 3.9 defer 5개(action-execution, persistent-credential-store, production-restore, external-vlm-provider-call, model-backed-reid-session)를 4.0 비구현 write path로 freeze. field smoke는 별도 `conditional-not-run`. `test/fixtures/v400_local_ops_policy_freeze.json`과 `scripts/internal/verify_v400_local_ops_policy_freeze.mjs`, `./server.sh verify-v400-local-ops-policy-freeze`를 추가. 기존 v390 deferral/signoff verifier는 재사용만 하고 수정하지 않음. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 미완료 | 기존 `/ops/events` 면 정책 정리 전 |
 | 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 미완료 | opt-in/비-VMS 정책 고정 전. default-on은 4.1.0 |
 | 7 | v4.0.0 (7) 로컬 운영 안정화 | P0 | 미완료 | 기존 로컬 흐름 정합 작업 전 |
@@ -162,7 +162,7 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 
 승인 상태: `approved-through-recorded-user-goals`
 신규 기능 개발 상태: `blocked-until-v400-complete`
-v4.0.0 (4)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`
+v4.0.0 (5)~(8) 구현 상태: `approved-to-implement-in-order` / `not-executed`
 
 직접 답: 4.0.0에서 쓰는 것은 **로컬 운영 정책화 및 안정화**다. 신규 제품 기능은
 4.1.0부터다.
@@ -199,7 +199,7 @@ verifier/fixture를 늘리지 않으며, **wrapper PASS와 실행 PASS 분리**�
 2. 새 `verify-v390_*` 스크립트 추가 금지. 상한 118.
 3. `*contract*.mjs` 상한 72. 이 스텝은 companion contract를 추가하지 않는다.
 4. non-v400 JSON fixture 상한 79. v400 fixture는 allowlist/reserved만 허용.
-5. `verify-v400-*`는 구현 allowlist와 4~8번 reserved 이름만 허용.
+5. `verify-v400-*`는 구현 allowlist와 5~8번 reserved 이름만 허용.
 6. wrapper `wrapperResult` PASS와 coverage `covered`는 UI/30/120/published
    실행 PASS가 아니다. 기존 `verify-v390-evidence-test-gate-prep`를 재사용하고
    포크하지 않는다.
@@ -214,6 +214,32 @@ verifier/fixture를 늘리지 않으며, **wrapper PASS와 실행 PASS 분리**�
 
 이 규칙 PASS는 역사적 verifier 삭제, UI 풀테스트, 30분, 120분, published metadata
 완료가 아니다.
+
+### v4.0.0 로컬 운영 정책 freeze
+
+정책 상태: `policy-frozen`
+구현 상태: `not-implemented-write-paths`
+
+직접 답: 4.0.0은 v3.9에서 미룬 5개 항목을 제품 write path로 구현하지 않는다.
+field smoke는 exact 5개 밖 별도 `conditional-not-run`이다.
+
+1. `action-execution`: GET `/ops/api/actions/execution-deferral-decision`. action write not-implemented.
+2. `persistent-credential-store`: GET `/ops/api/onvif/credential-provider-status`. persistent store not-implemented.
+3. `production-restore`: GET `/ops/api/source-registry/staging-restore-validation-handoff`. product restore automation not-implemented.
+4. `external-vlm-provider-call`: GET `/ops/api/field-evidence/bridge-decision`. product runtime call forbidden-and-not-implemented.
+5. `model-backed-reid-session`: GET `/ops/api/analysis/reid-assist-decision`. experimental opt-in, supported release excluded.
+6. field smoke: `verify-v390-external-field-smoke-no-device-closure`. 조건부 미실행.
+
+기존 `verify-v390-deferred-product-owner-signoff`와 개별 deferral verifier는 재사용만
+하고 수정하지 않는다. 4.1.0 신규 기능 후보로 다시 열기 전에는 write를 추가하지 않는다.
+
+기록 위치: `test/fixtures/v400_local_ops_policy_freeze.json`,
+`scripts/internal/verify_v400_local_ops_policy_freeze.mjs`,
+`./server.sh verify-v400-local-ops-policy-freeze`.
+
+이 freeze PASS는 action write, persistent credential store, production restore,
+external VLM 제품 호출, Re-ID supported-release 승격, UI 풀테스트, 30분, 120분,
+published metadata 완료가 아니다.
 
 ### v4.1.0 이후 신규 기능 후보
 

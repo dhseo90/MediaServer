@@ -153,7 +153,8 @@ check("backlog, stream verification, inventory, and records wire v4.0.0 (3)", ()
     "`./server.sh verify-v400-verification-layer-reduction`",
     fixturePath,
     "| 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 완료 |",
-    "| 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 미완료 |",
+    "| 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 완료 |",
+    "| 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 미완료 |",
   ]) {
     assertIncludes(backlog, snippet, "development backlog");
   }

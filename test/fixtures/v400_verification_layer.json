@@ -22,10 +22,10 @@
     "verify-v400-roadmap-contract",
     "verify-v400-entry-baseline",
     "verify-v400-user-review-gate",
-    "verify-v400-verification-layer-reduction"
+    "verify-v400-verification-layer-reduction",
+    "verify-v400-local-ops-policy-freeze"
   ],
   "reservedV400Commands": [
-    "verify-v400-local-ops-policy-freeze",
     "verify-v400-incident-os-policy",
     "verify-v400-evidence-ops-policy",
     "verify-v400-local-ops-stabilization",
@@ -33,10 +33,10 @@
   ],
   "allowedV400Fixtures": [
     "v400_user_review_gate.json",
-    "v400_verification_layer.json"
+    "v400_verification_layer.json",
+    "v400_local_ops_policy_freeze.json"
   ],
   "reservedV400Fixtures": [
-    "v400_local_ops_policy_freeze.json",
     "v400_incident_os_policy.json",
     "v400_evidence_ops_policy.json",
     "v400_local_ops_stabilization.json",
