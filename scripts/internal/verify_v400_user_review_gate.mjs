@@ -21,11 +21,11 @@ Usage:
 Checks:
   - recorded user goals lock v4.0.0 to local operations policy and stabilization
   - v4.1.0 new-feature candidates stay blocked until v4.0.0 completes
-  - in-scope step 8 remains not-executed
+  - 30-minute and UI fulltest remain unrun required blockers
   - inventory, stream-verification, records, fixture, and server.sh dispatch are wired
 
 Not run by this command:
-  - v4.0.0 step 8 implementation
+  - 30-minute soak, UI fulltest, tag, GitHub Release
   - UI fulltest
   - 30/120 minute longrun
   - published metadata verification
@@ -72,7 +72,7 @@ check("review-gate fixture locks policy/stabilization and blocks v4.1.0 features
   assert(fixture.sourceRelease === "v4.0.0", "fixture sourceRelease mismatch");
   assert(fixture.latestPublished === "v3.9.1", "fixture latestPublished mismatch");
   assert(fixture.status === "approved-through-recorded-user-goals", "fixture status mismatch");
-  assert(fixture.implementationStatus === "not-executed", "fixture must not claim remaining step 8 executed");
+  assert(fixture.implementationStatus === "not-executed", "fixture must not claim 30/UI/release-action executed");
   assert(fixture.primarySelection === "로컬 운영 정책화 및 안정화", "primary selection drifted");
   assert(fixture.approval?.approved === true, "fixture approval.approved must be true");
   assert(fixture.approval?.newFeatureDevelopment === "blocked-until-v400-complete",
@@ -95,13 +95,13 @@ check("review-gate fixture locks policy/stabilization and blocks v4.1.0 features
   assert(fixture.constraints?.evidenceDefaultOn === "deferred-to-v4.1.0", "evidence default-on constraint drifted");
 });
 
-check("development backlog records the approved scope and keeps step 8 not implemented", () => {
+check("development backlog records the approved scope and keeps 30/UI/release-action not executed", () => {
   for (const snippet of [
     "### v4.0.0 User Review Gate",
     "승인 상태: `approved-through-recorded-user-goals`",
     "1차 선택값: **로컬 운영 정책화 및 안정화**",
     "신규 기능 개발 상태: `blocked-until-v400-complete`",
-    "v4.0.0 (8) 구현 상태: `approved-to-implement-in-order` / `not-executed`",
+    "v4.0.0 30분/UI/release-action 상태: `not-executed`",
     "`scripts/internal/verify_v400_user_review_gate.mjs`",
     "`./server.sh verify-v400-user-review-gate`",
     fixturePath,
@@ -111,7 +111,7 @@ check("development backlog records the approved scope and keeps step 8 not imple
     "| 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 완료 |",
     "| 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 완료 |",
     "| 7 | v4.0.0 (7) 로컬 운영 안정화 | P0 | 완료 |",
-    "| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 미완료 |",
+    "| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 완료 |",
     "4.0.0에서 구현하지 않는다",
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");
@@ -160,8 +160,10 @@ check("review gate does not claim execution PASS", () => {
   const noExecutionPass = files.releaseRecords.includes("published metadata PASS가 아님") ||
     files.streamVerification.includes("published metadata, release action evidence가 아닙니다");
   assert(noExecutionPass, "v4.0.0 (2) must not claim UI/longrun/published metadata PASS");
-  assert(fixture.notEvidence.includes("v4.0.0 step 8 implementation"),
-    "fixture must record remaining step 8 as not evidence");
+  assert(fixture.notEvidence.includes("30-minute soak"),
+    "fixture must record 30-minute soak as not evidence");
+  assert(fixture.notEvidence.includes("UI fulltest"),
+    "fixture must record UI fulltest as not evidence");
 });
 
 const results = runChecks();

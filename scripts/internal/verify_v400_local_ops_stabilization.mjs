@@ -98,7 +98,7 @@ check("inherited local-ops commands still dispatch and this command is wired", (
   assertIncludes(files.serverSh, targetScript, "server.sh");
 });
 
-check("backlog records v4.0.0 (7) stabilization complete and keeps (8) not implemented", () => {
+check("backlog records v4.0.0 (7) stabilization complete and step 8 readiness recorded", () => {
   for (const snippet of [
     "### v4.0.0 로컬 운영 안정화",
     "상태: `stabilization-recorded`",
@@ -109,7 +109,7 @@ check("backlog records v4.0.0 (7) stabilization complete and keeps (8) not imple
     "`./server.sh verify-v400-local-ops-stabilization`",
     fixturePath,
     "| 7 | v4.0.0 (7) 로컬 운영 안정화 | P0 | 완료 |",
-    "| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 미완료 |",
+    "| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 완료 |",
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");
   }

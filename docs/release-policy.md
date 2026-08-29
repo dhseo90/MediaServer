@@ -168,6 +168,39 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
+### v4.0.0 Release Close-out Runbook
+
+아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
+순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
+v4.0.0은 현재 source이며 latest published는 `v3.9.1`입니다. `v4.0.0` tag와
+GitHub Release는 아직 생성하지 않습니다. 30분 테스트와 UI 풀테스트는 미실행 필수
+blocker입니다.
+
+Dry-run checklist:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+- `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
+- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
+- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
+
+Real close-out checklist:
+
+- Branch close
+- PR merge
+- Main fast-forward/sync
+- public-readiness, bundle policy, Actions status check
+- Tag 전략에 맞춘 signed annotated tag 생성
+- GitHub Release 생성/갱신
+- Latest 확인
+- published metadata 재검증
+- release branch 삭제는 사용자 별도 승인 후 진행
+- Next branch sync
+
+Do not list an item as pass unless it was actually executed. tag, GitHub Release,
+published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
+있을 때만 완료로 기록합니다. 30분/UI 미실행 상태에서는 사용자가 blocker를 알고도
+강제 진행을 명시하기 전까지 PR/main merge/tag/GitHub Release로 넘어갈 수 없습니다.
+
 ### v3.9.1 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은

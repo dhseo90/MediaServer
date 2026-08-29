@@ -126,6 +126,7 @@ check("stream verification, inventory, and records wire the roadmap contract", (
   assert(streamVerification.includes("./server.sh verify-v400-incident-os-policy"), "stream verification missing incident-os-policy command");
   assert(streamVerification.includes("./server.sh verify-v400-evidence-ops-policy"), "stream verification missing evidence-ops-policy command");
   assert(streamVerification.includes("./server.sh verify-v400-local-ops-stabilization"), "stream verification missing local-ops-stabilization command");
+  assert(streamVerification.includes("./server.sh verify-v400-release-readiness"), "stream verification missing release-readiness command");
   assert(inventory.includes("v4.0.0 (2) User Review Gate"), "project inventory missing v4.0.0 (2) row");
   assert(inventory.includes("verify-v400-user-review-gate"), "project inventory missing user review gate verifier");
   assert(inventory.includes("v4.0.0 (3) 검증 계층 축소 규칙"), "project inventory missing v4.0.0 (3) row");
@@ -138,12 +139,15 @@ check("stream verification, inventory, and records wire the roadmap contract", (
   assert(inventory.includes("verify-v400-evidence-ops-policy"), "project inventory missing evidence-ops-policy verifier");
   assert(inventory.includes("v4.0.0 (7) 로컬 운영 안정화"), "project inventory missing v4.0.0 (7) row");
   assert(inventory.includes("verify-v400-local-ops-stabilization"), "project inventory missing local-ops-stabilization verifier");
+  assert(inventory.includes("v4.0.0 (8) stabilization and release readiness"), "project inventory missing v4.0.0 (8) row");
+  assert(inventory.includes("verify-v400-release-readiness"), "project inventory missing release-readiness verifier");
   assert(records.includes("V400 user review gate"), "release test records missing V400 user review gate item");
   assert(records.includes("V400 verification layer reduction"), "release test records missing V400 verification layer item");
   assert(records.includes("V400 local ops policy freeze"), "release test records missing V400 local ops policy freeze item");
   assert(records.includes("V400 incident OS policy"), "release test records missing V400 incident OS policy item");
   assert(records.includes("V400 evidence ops policy"), "release test records missing V400 evidence ops policy item");
   assert(records.includes("V400 local ops stabilization"), "release test records missing V400 local ops stabilization item");
+  assert(records.includes("V400 release readiness"), "release test records missing V400 release readiness item");
   assert(inventory.includes("v4.0.0 Local Operations Policy and Stabilization roadmap"),
     "project inventory missing v4.0.0 mapping");
   assert(inventory.includes("verify-v400-roadmap-contract"), "project inventory missing verifier");
@@ -169,6 +173,8 @@ check("server.sh dispatches verify-v400-roadmap-contract", () => {
   assert(serverSh.includes("verify_v400_evidence_ops_policy.mjs"), "server.sh missing evidence-ops-policy script");
   assert(serverSh.includes("verify-v400-local-ops-stabilization"), "server.sh missing local-ops-stabilization command");
   assert(serverSh.includes("verify_v400_local_ops_stabilization.mjs"), "server.sh missing local-ops-stabilization script");
+  assert(serverSh.includes("verify-v400-release-readiness"), "server.sh missing release-readiness command");
+  assert(serverSh.includes("verify_v400_release_readiness.mjs"), "server.sh missing release-readiness script");
 });
 
 const result = runChecks();

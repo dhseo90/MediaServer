@@ -1203,6 +1203,8 @@ Usage:
                  v4.0.0 Evidence 운영 정책화(opt-in, 비-VMS, 삭제 금지, default-on은 4.1.0)를 검증합니다.
   verify-v400-local-ops-stabilization
                  v4.0.0 로컬 운영 안정화(역사적 verifier 유지, 현재소스 구분, v320 drift 기록)를 검증합니다.
+  verify-v400-release-readiness
+                 v4.0.0 release readiness(네 영역 판정, 30/UI 미실행 blocker, close-out dry-run)를 검증합니다.
   verify-v400-roadmap-contract
                  v4.0.0 로컬 운영 정책화/안정화 로드맵과 테스트 스크립트 반영 불변 조건을 검증합니다.
   verify-post-release-reconciliation
@@ -3033,6 +3035,10 @@ case "${cmd}" in
   verify-v400-local-ops-stabilization)
     require_internal verify_v400_local_ops_stabilization.mjs
     exec "${INTERNAL_DIR}/verify_v400_local_ops_stabilization.mjs" "$@"
+    ;;
+  verify-v400-release-readiness)
+    require_internal verify_v400_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v400_release_readiness.mjs" "$@"
     ;;
   verify-v400-roadmap-contract)
     require_internal verify_v400_roadmap_contract.mjs

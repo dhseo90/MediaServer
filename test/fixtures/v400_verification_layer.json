@@ -26,22 +26,20 @@
     "verify-v400-local-ops-policy-freeze",
     "verify-v400-incident-os-policy",
     "verify-v400-evidence-ops-policy",
-    "verify-v400-local-ops-stabilization"
-  ],
-  "reservedV400Commands": [
+    "verify-v400-local-ops-stabilization",
     "verify-v400-release-readiness"
   ],
+  "reservedV400Commands": [],
   "allowedV400Fixtures": [
     "v400_user_review_gate.json",
     "v400_verification_layer.json",
     "v400_local_ops_policy_freeze.json",
     "v400_incident_os_policy.json",
     "v400_evidence_ops_policy.json",
-    "v400_local_ops_stabilization.json"
-  ],
-  "reservedV400Fixtures": [
+    "v400_local_ops_stabilization.json",
     "v400_release_readiness.json"
   ],
+  "reservedV400Fixtures": [],
   "wrapperExecutionSeparation": {
     "wrapperMustInclude": [
       "wrapperResult",
