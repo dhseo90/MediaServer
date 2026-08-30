@@ -16,13 +16,20 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
-## v4.0.0 현재 소스 baseline 상태 (2026-08-29)
+## v4.0.0 현재 소스 baseline 상태 (2026-08-30)
 
-- current source: `v4.0.0` (`VERSION=4.0.0`)
+- current source: `v4.0.0` (`VERSION=4.0.0`), HEAD `b53e8af1`
 - latest published: v3.9.1
-- v4.0.0 (1)~(8): 정책/안정화 기록. 30분/UI는 미실행 필수 blocker. 120분은
-  conditional-not-run. published metadata, `v4.0.0` tag/GitHub Release는 미실행.
-  이 기록은 출시 가능 판정이 아님
+- v4.0.0 (1)~(8): 정책/안정화 기록
+- 30분: 3차 `./test_server_30min.sh` PASS. runId `v390-server-longrun-20260830123921-36621`,
+  source `b53e8af1`, worktreeClean true, predev `108 pass / 0 fail / 2 skip / 0 notRun`,
+  soak 20회×5 case, duration 2383s / requested 1800s, eligibleRealDuration true,
+  cleanup PASS. 1차 HTTP video-only fail, 2차 soak-5-redaction fail 이력은 아래 표에 보존.
+  30분 PASS는 UI 풀테스트 PASS, 출시 가능, tag/GitHub Release evidence가 아님
+- UI 풀테스트: 미실행 필수 blocker (`unrun-required-blocker`)
+- 120분: conditional-not-run
+- published metadata, `v4.0.0` tag/GitHub Release: 미실행
+- 이 기록은 출시 가능 판정이 아님
 - release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
 - v3.9.1 published evidence는 아래 절에 보존
 
@@ -1366,7 +1373,7 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | V400 incident OS policy | 기존 `/ops/events` 검색/timeline/resolution을 4.0 운영 정책으로 고정 | `./server.sh verify-v400-incident-os-policy`가 `test/fixtures/v400_incident_os_policy.json`의 primary nav 비포함, 기존 면, Event POST unchanged, 새 event type 금지, inherited v320/v310 dispatch, backlog/inventory/stream-verification/records/server dispatch를 확인. Incident OS 제품 승격, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | V400 evidence ops policy | EventRecord/clip/retention을 opt-in·비-VMS로 고정하고 default-on은 4.1.0 | `./server.sh verify-v400-evidence-ops-policy`가 `test/fixtures/v400_evidence_ops_policy.json`의 opt-in, 비-VMS, pin/dry-run cleanup, evidence default-on v4.1.0, inherited v300 dispatch, backlog/inventory/stream-verification/records/server dispatch를 확인. Evidence default-on 제품화, VMS/NVR, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | V400 local ops stabilization | 역사적 verifier 유지, 현재소스 구분, v320 drift 기록 | `./server.sh verify-v400-local-ops-stabilization`가 `test/fixtures/v400_local_ops_stabilization.json`의 `keep-118-not-deleted`, stream-verification 현재 source `4.0.0`, v320 `recorded-not-fixed`, backlog/inventory/records/server dispatch를 확인. 역사적 verifier 삭제, v320 REVIEW4 rewrite, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
-| V400 release readiness | 네 테스트 영역 판정, 30/UI unrun-required-blocker, close-out dry-run | `./server.sh verify-v400-release-readiness`가 `test/fixtures/v400_release_readiness.json`의 네 영역 판정, 30/UI `unrun-required-blocker`, 120분 `conditional-not-run`, close-out dry-run, tag/GitHub Release 미생성, backlog/inventory/stream-verification/records/server dispatch를 확인. 30분/UI/120분/published metadata/tag PASS가 아님 | v4.0.0 |
+| V400 release readiness | 네 테스트 영역 판정, 30분 executed-pass, UI unrun-required-blocker, close-out dry-run | `./server.sh verify-v400-release-readiness`가 `test/fixtures/v400_release_readiness.json`의 네 영역 판정, 30분 `executed-pass`, UI `unrun-required-blocker`, 120분 `conditional-not-run`, close-out dry-run, tag/GitHub Release 미생성, backlog/inventory/stream-verification/records/server dispatch를 확인. 이 명령 PASS는 30분 soak runner, UI 풀테스트, 120분, published metadata, tag PASS가 아님 | v4.0.0 |
 | User test AI asset bootstrap | Git 비추적 YOLO model/COCO labels가 무옵션 30분·120분·UI·release launcher의 실제 test 위임 전에 준비되는지 확인 | `./server.sh verify-v390-user-test-launchers-contract`가 missing download, fixed SHA-256, existing verify, corrupt repair, digest mismatch no-publish/temp cleanup을 확인. 기본 Ultralytics URL의 실제 10.4 MB download와 SHA readback도 확인. Actual launcher는 `ai-asset-bootstrap` 실패 시 build/30분/UI/120분 전에 fail-stop | v3.9.1 |
 | Current UI evidence VERSION binding | Policy v4 current-source fixture가 패치 숫자를 고정하지 않고 token `current`로 `VERSION`에 결속되는지 확인 | `./server.sh verify-v390-current-ui-evidence-contract`가 canonical/visual/current state version token이 `current`인지 확인. qualifier는 token을 `VERSION`으로 해석한 뒤 비교한다. `node scripts/internal/verify_v390_ui_policy_v4_actual_evidence_contract.mjs`가 `canonical-case-manifest-version-mismatch`를 `canonical-source-binding`에 배정하고 미등록 reason은 throw 대신 `fail-closed-incomplete-assignment`를 남김. historical `3.9.0` fixture는 token이 아니므로 현재 소스로 승격되지 않음 | v3.9.1 |
 | Build | C++/UI/static asset build가 통과하는지 확인 | `./server.sh build` exit code 0 확인. 실패 후 수정했다면 최초 fail과 최종 pass를 모두 결과 기록에 남김 | v1.8.0 |
@@ -1624,7 +1631,8 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 ### v4.0.0
 
 v4.0.0 (1)~(8) 정책/안정화 기록. 결과표는 실행한 항목만 `pass`/`fail`로 남긴다.
-이 절은 출시 가능 판정이 아니다.
+이 절은 출시 가능 판정이 아니다. 1차/2차 30분 fail 이력은 보존하고, 3차 PASS가 현재 30분 evidence다.
+UI 풀테스트는 미실행 필수 blocker (`unrun-required-blocker`)로 남는다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
 | --- | --- | --- |
@@ -1658,7 +1666,8 @@ v4.0.0 (1)~(8) 정책/안정화 기록. 결과표는 실행한 항목만 `pass`/
 | V400 local ops stabilization | `./server.sh verify-v400-local-ops-stabilization` 7/0, fixture `V400-LOCAL-OPS-STABILIZATION-07` | pass |
 | v390 entry baseline | `./server.sh verify-v390-entry-baseline` 14/0 | pass |
 | v391 documentation truth | `./server.sh verify-v391-documentation-truth` 7/0 | pass |
-| V400 release readiness | `./server.sh verify-v400-release-readiness` 5/0, fixture `V400-RELEASE-READINESS-08`. 30분/UI unrun-required-blocker, 120분 conditional-not-run, tag/GitHub Release 미생성 | pass |
+| V400 release readiness | `./server.sh verify-v400-release-readiness` 5/0, fixture `V400-RELEASE-READINESS-08`. 당시 30분/UI unrun-required-blocker, 120분 conditional-not-run, tag/GitHub Release 미생성. 이후 30분 3차 PASS로 정정 | pass |
+| V400 release readiness 30분 executed-pass 정정 | 2026-08-30 `./server.sh verify-v400-release-readiness` 5/0. fixture `implementationStatus=policy-steps-complete-30min-pass-ui-unrun`, 30분 `executed-pass`, UI `unrun-required-blocker`, 120분 `conditional-not-run`. `verify-v400-user-review-gate` 5/0, `verify-v400-roadmap-contract` 8/0, `verify-docs-links` failures 0, `verify-script-inventory` 11/0. 이 명령 PASS는 soak runner 재실행이 아님 | pass |
 | v400 (8) closeout dry-run heading precheck | 이전 세션 최초 `./server.sh verify-release-closeout-helper --dry-run`가 `docs/release-policy.md`에 `v4.0.0 Release Close-out Runbook` 제목이 없어 `release docs keep publish gates manual`에서 fail. 제품 코드 회귀가 아니라 release readiness 문서 기준 drift | fail |
 | v400 (8) closeout dry-run | runbook 추가 후 `./server.sh verify-release-closeout-helper --dry-run` 재실행. 2026-08-29 status pass, dryRun true, localCommands 5, manualActions 10, tag not created, push not performed | pass |
 | Docs UI assets (8) | `./server.sh verify-docs-ui-assets` 10/0. 2026-08-29 재실행 | pass |
@@ -1678,16 +1687,197 @@ v4.0.0 (1)~(8) 정책/안정화 기록. 결과표는 실행한 항목만 `pass`/
 | v400 30분 soak-5-event-post-recovery | iteration 5 event-post recovery | pass |
 | v400 30분 soak-5-redaction | `verify-redaction --live-only --duration 12`. live-va-redaction ffmpeg RTSP overlay 132s timeout, `RTSP VA overlay decode failed`. 1~4회 redaction은 pass | fail |
 | v400 30분 longrun runner retest | `./test_server_30min.sh` source `faef331f` FAIL, failedPhase `soak-case-loop`, failedCase `soak-5-redaction`, elapsed 1065s / requested 1800s, soak iterations 5, cleanup PASS | fail |
+| v400 30분 3차 longrun runner retest | `./test_server_30min.sh` source `b53e8af1` inner PASS. 위 3차 전수 행이 현재 30분 evidence | pass |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| v400 30분 3차 launcher contract | `./test_server_30min.sh` 내부 `verify-v390-user-test-launchers-contract` 22/0. source `b53e8af1` | pass |
+| v400 30분 3차 AI asset bootstrap | model SHA `634279b40c07...` path `models/yolo11n.onnx` verified; labels SHA `bd17f1ee35d5...` path `models/coco.names` verified | pass |
+| v400 30분 3차 longrun preflight | `verify-v390-server-longrun --duration-minutes 30` phase preflight, outputDir `$TMPDIR/media_server_v390_server_30min.ZpQmes` | pass |
+| v400 30분 3차 longrun build | `./server.sh build` exit 0, target `build-gst-onnx/media_server` 100% | pass |
+| v400 30분 3차 longrun seed | throwaway seed.json | pass |
+| v400 30분 3차 start-server | delegated predev `server-start-queue-256` pid 36739/64346, http 50230 rtsp 50231, authMode=off | pass |
+| v400 30분 3차 launcher-contract [01] four root launchers are executable zero-option entrypoints | `verify-v390-user-test-launchers-contract` item 1/22 | pass |
+| v400 30분 3차 launcher-contract [02] common launcher owns output, contract preflight, sanitization, and exact delegation | `verify-v390-user-test-launchers-contract` item 2/22 | pass |
+| v400 30분 3차 launcher-contract [03] user launcher bootstraps checksum-bound AI assets before actual test delegation | `verify-v390-user-test-launchers-contract` item 3/22 | pass |
+| v400 30분 3차 launcher-contract [04] server launchers use OS temp while UI and release use distinct repository roots | `verify-v390-user-test-launchers-contract` item 4/22 | pass |
+| v400 30분 3차 launcher-contract [05] standalone UI verifies the exact source manifest before environment bootstrap | `verify-v390-user-test-launchers-contract` item 5/22 | pass |
+| v400 30분 3차 launcher-contract [06] standalone UI source-contract failure cannot reach the acceptance environment | `verify-v390-user-test-launchers-contract` item 6/22 | pass |
+| v400 30분 3차 launcher-contract [07] 30-minute launcher delegates only the runner-owned 30-minute suite | `verify-v390-user-test-launchers-contract` item 7/22 | pass |
+| v400 30분 3차 launcher-contract [08] 120-minute launcher invocation is recorded as direct user authorization | `verify-v390-user-test-launchers-contract` item 8/22 | pass |
+| v400 30분 3차 launcher-contract [09] server launchers preserve suite-specific first failure and later not-run evidence | `verify-v390-user-test-launchers-contract` item 9/22 | pass |
+| v400 30분 3차 launcher-contract [10] release launcher falls back to the failed feature-gate check testcase ID | `verify-v390-user-test-launchers-contract` item 10/22 | pass |
+| v400 30분 3차 launcher-contract [11] UI launcher prints exact canonical fields and fails closed on a false gate | `verify-v390-user-test-launchers-contract` item 11/22 | pass |
+| v400 30분 3차 launcher-contract [12] UI launcher fails closed and prints explicit blanks when canonical summary path is missing | `verify-v390-user-test-launchers-contract` item 12/22 | pass |
+| v400 30분 3차 launcher-contract [13] UI launcher prints every canonical gate blank when the top acceptance summary is absent | `verify-v390-user-test-launchers-contract` item 13/22 | pass |
+| v400 30분 3차 launcher-contract [14] UI launcher builds current source before exact 424 environment and Policy v4 stages | `verify-v390-user-test-launchers-contract` item 14/22 | pass |
+| v400 30분 3차 launcher-contract [15] UI launcher build failure never reaches bootstrap or browser execution | `verify-v390-user-test-launchers-contract` item 15/22 | pass |
+| v400 30분 3차 launcher-contract [16] UI launcher fail-stop keeps Policy v4 not-run and still cleans up | `verify-v390-user-test-launchers-contract` item 16/22 | pass |
+| v400 30분 3차 launcher-contract [17] actual UI suite rejects an OS temp artifact root before environment bootstrap | `verify-v390-user-test-launchers-contract` item 17/22 | pass |
+| v400 30분 3차 launcher-contract [18] release launcher records 120 minutes as not-required without a trigger | `verify-v390-user-test-launchers-contract` item 18/22 | pass |
+| v400 30분 3차 launcher-contract [19] release launcher automatically runs 120 minutes only after a trigger | `verify-v390-user-test-launchers-contract` item 19/22 | pass |
+| v400 30분 3차 launcher-contract [20] AGENTS 7.6.2 change classifier covers every automatic 120-minute area | `verify-v390-user-test-launchers-contract` item 20/22 | pass |
+| v400 30분 3차 launcher-contract [21] media-path ICE classification requires an independent path token | `verify-v390-user-test-launchers-contract` item 21/22 | pass |
+| v400 30분 3차 launcher-contract [22] lower runners expose automatic UI suite and conditional 120 source contracts | `verify-v390-user-test-launchers-contract` item 22/22 | pass |
+| v400 30분 3차 integrated-smoke | `./server.sh test --no-start --skip-external --include-rules --include-rule-ui --include-va-events --include-image-analysis --include-redaction` 22 pass / 0 fail / 8 skip, 553s (test-summary elapsed 552s). logDir `.media_server.test/20260830-213922` | pass |
+| v400 30분 3차 smoke static-scripts | 스크립트 문법 검사 `bash -n server.sh scripts/internal/*.sh` | pass |
+| v400 30분 3차 smoke script-inventory | `./server.sh verify-script-inventory` 11/0 | pass |
+| v400 30분 3차 smoke code-comments | `./server.sh verify-code-comments` | pass |
+| v400 30분 3차 smoke docs-links | `./server.sh verify-docs-links` | pass |
+| v400 30분 3차 smoke config-json | `python3 -m json.tool config/codec_test_sources.json` | pass |
+| v400 30분 3차 smoke report-summary | `./server.sh summarize-reports` smoke. 이 단계는 glob이 이전 실행 leftover `/tmp` summary도 읽음. 이번 3차 smoke 자체 fail count는 0 | pass |
+| v400 30분 3차 smoke status | `./server.sh status` 기존 서버 http 50230 rtsp 50231 | pass |
+| v400 30분 3차 smoke diagnose | `./server.sh diagnose` | pass |
+| v400 30분 3차 smoke codec-file_local_h264_aac | `verify-codecs` filter `file_local_h264_aac` file H264/AAC -> RTSP/WebRTC | pass |
+| v400 30분 3차 smoke codec-file_local_h265_aac | `verify-codecs` filter `file_local_h265_aac` file H265/AAC -> RTSP/WebRTC | pass |
+| v400 30분 3차 smoke codec-rtsp_local_h265_opus | `verify-codecs` filter `rtsp_local_h265_opus` | pass |
+| v400 30분 3차 smoke codec-rtsp_local_h264_pcmu | `verify-codecs` filter `rtsp_local_h264_pcmu` | pass |
+| v400 30분 3차 smoke codec-rtsp_local_h264_pcma | `verify-codecs` filter `rtsp_local_h264_pcma` | pass |
+| v400 30분 3차 smoke codec-webrtc_local_publish_h264_opus | `verify-codecs` filter `webrtc_local_publish_h264_opus` local WHIP publish | pass |
+| v400 30분 3차 smoke codec-http_local_h264_aac | `verify-codecs` filter `http_local_h264_aac` port 8765 | pass |
+| v400 30분 3차 smoke codec-http_local_h264_video_only | `verify-codecs` filter `http_local_h264_video_only` port 8767 ready GET, RTSP default/h264/h265 + WebRTC signaling 4/0. 1차 fail 후 pass | pass |
+| v400 30분 3차 smoke va-overlay | `./server.sh verify-va` YOLO/VA overlay | pass |
+| v400 30분 3차 smoke redaction | `./server.sh verify-redaction --duration 10` 4/0/3, live-va-redaction 32s | pass |
+| v400 30분 3차 smoke rules-registry | `scripts/internal/test_rule_registry.sh` /lab/analysis profiles+rules | pass |
+| v400 30분 3차 smoke rule-ui-smoke | `./server.sh verify-rule-ui --http-base http://127.0.0.1:50230` | pass |
+| v400 30분 3차 smoke va-tracking-events | `./server.sh verify-va-events` | pass |
+| v400 30분 3차 smoke image-analysis | `./server.sh verify-image-analysis` | pass |
+| v400 30분 3차 soak-1-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-1-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-1-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-1-redaction | `verify-redaction --live-only --duration 12` 43s. | pass |
+| v400 30분 3차 soak-1-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-2-va-events | `verify-va-events --duration 30` 34s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-2-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-2-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-2-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-2-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-3-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-3-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-3-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-3-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-3-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-4-va-events | `verify-va-events --duration 30` 34s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-4-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-4-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-4-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-4-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-5-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-5-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-5-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-5-redaction | `verify-redaction --live-only --duration 12` 43s. 2차 132s timeout fail 후 pass. | pass |
+| v400 30분 3차 soak-5-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-6-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-6-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-6-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-6-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-6-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-7-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-7-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-7-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-7-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-7-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-8-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-8-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-8-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-8-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-8-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-9-va-events | `verify-va-events --duration 30` 34s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-9-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-9-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-9-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-9-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-10-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-10-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-10-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-10-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-10-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-11-va-events | `verify-va-events --duration 30` 34s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-11-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-11-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-11-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-11-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-12-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-12-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-12-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-12-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-12-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-13-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-13-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-13-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-13-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-13-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-14-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-14-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-14-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-14-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-14-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-15-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-15-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-15-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-15-redaction | `verify-redaction --live-only --duration 12` 43s. | pass |
+| v400 30분 3차 soak-15-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-16-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-16-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-16-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-16-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-16-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-17-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-17-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-17-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-17-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-17-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-18-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-18-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-18-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-18-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-18-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-19-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-19-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-19-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-19-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-19-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-20-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-20-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-20-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-20-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-20-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 main-runtime-idle | predev later phase runtime idle check | pass |
+| v400 30분 3차 server-start-queue-2 | second `run_server_foreground` queue-256 restart pid 64346 | pass |
+| v400 30분 3차 event-post-queue | `verify-event-post --mode queue` 3s, received=1 path `/slow` | pass |
+| v400 30분 3차 queue-runtime-idle | queue 이후 runtime idle check | pass |
+| v400 30분 3차 ports-clean | lsof predev ports 50230/50231 clean, bindableAfter true | pass |
+| v400 30분 3차 summary-report | `summarize-reports` 1s. leftover 이전 fail redaction JSON이 glob에 섞임. step 자체는 pass이며 이번 soak ledger fail=0 | pass |
+| v400 30분 3차 longrun cleanup | server pid 36739/64346 stopped, ports 50230/50231 bindable, predev workdir `/tmp/media_server_predev-1788093561-36719` 551421 bytes -> 0 | pass |
+| v400 30분 3차 longrun report | report phase, summary.json result PASS, longrunEvidenceStatus=real-duration-evidence, delegatedPhaseLedger 110/110 | pass |
+| v400 30분 3차 longrun runner | `./test_server_30min.sh` inner result PASS, exitCode 0, duration 2384.44s, soak 20, failedPhase none. wrapper/tool exit 1은 inner JSON PASS와 불일치하며 제품 fail로 쓰지 않음 | pass |
 
 | 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
 | --- | --- | --- | --- |
-| UI 풀테스트 | exact 424 / Policy v4 | 미실행 필수 blocker. 사용자 실행 승인 없음 | 예, 사용 불가 |
-| 30분 soak-5-runtime-idle | iteration 5 runtime idle | first-fail `soak-5-redaction` 이후 not-run | 예, 사용 불가 |
-| 30분 soak-future-iterations | remaining soak until 1800s | first-fail 이후 not-run. duration evidence 없음 | 예, 사용 불가 |
-| 30분 runtime-idle / event-post-queue | predev later phases | first-fail 이후 not-run | 예, 사용 불가 |
+| UI 풀테스트 | exact 424 / Policy v4 | 미실행 필수 blocker (`unrun-required-blocker`). 사용자 실행 승인 없음. 30분 PASS로 대체 불가 | 예, 사용 불가 |
 | 120분 | `verify-predev --soak-minutes 120` | conditional-not-run. 7.6.2 조건/사용자 지시 없음 | 예, 사용 불가 |
+| predev build skip | delegated `--skip-build` | longrun runner가 이미 `./server.sh build` 수행 | 예, skip이지 30분 PASS 확대 아님 |
+| external-turn-hard-gate | `verify-webrtc-ice --external-turn` | `--include-external-turn` 미지정. 사용자 STUN/TURN 없음 | 예, 사용 불가 |
+| smoke 서버 자동 시작 | `./server.sh start` | `--no-start`. 이미 longrun 서버 사용 | 예, skip |
+| smoke LAN IP 외부 클라이언트 | `test_external_access.sh` | `--skip-external` | 예, 사용 불가 |
+| smoke 외부 RTSP upstream | `test_external_source_reachability.sh` | `--skip-external` | 예, 사용 불가 |
+| smoke HLS/외부 HTTP URI | codec matrix HLS/외부 HTTP | 기본 안정 테스트에서 제외 | 예, 사용 불가 |
+| smoke HTTP/HLS URI 장기 검증 | `verify-uri-longrun` | `--include-uri-longrun` 미지정 | 예, 사용 불가 |
+| smoke event POST | `verify-event-post` in smoke | smoke 플래그 없음. soak/queue에서 별도 실행 | 예, smoke 제외. soak 결과는 별도 pass 행 |
+| smoke WebRTC ICE | `verify-webrtc-ice` | `--include-webrtc-ice` 미지정 | 예, 사용 불가 |
+| smoke Product UI | ops/client UI smoke | `--include-product-ui-smoke` 미지정. UI 풀테스트 대체 아님 | 예, 사용 불가 |
 | published metadata | `verify-release-metadata --published` | 30분 실행 범위 밖 | 예, 사용 불가 |
 | release action | PR/main/tag/GitHub Release | `v4.0.0` tag 미생성 | 예, 사용 불가 |
+
+3차 30분 종료 후 7.8 cleanup (2026-08-30). `/tmp` 경로는 최종 evidence가 아니며 필요 값은 위 표로 이관 후 삭제.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `$TMPDIR/media_server_v390_server_30min.ZpQmes` | 3차 longrun outputDir summary/report | 0.3 MiB | 삭제 | 경로 없음 | AGENTS 7.8, 값은 위 표로 이관 |
+| `/tmp/media_server_*` | 1~3차 redaction/evtpost/vaevt/image-analysis leftover 833 entries | 83.0 MiB | 삭제 | glob 0 | 이전 fail live-va-redaction JSON 포함. 재현 가능 임시물 |
+| `.media_server.test/20260830-213922` | 3차 integrated-smoke logDir, test-summary 22/0/8 | 0.1 MiB | 삭제 | 경로 없음 | smoke 22/0/8 값은 위 표로 이관 |
+| `/tmp/http_local_*.http.log` | codec HTTP launcher log | <0.1 MiB | 삭제 | glob 0 | 재현 가능 |
+| 합계 | 839 paths | 83.4 MiB | 삭제 | remaining 0, ports 50230/50231/8765/8766/8767 LISTEN 없음 | 보존 파일 없음 |
 
 ### v3.9.1
 

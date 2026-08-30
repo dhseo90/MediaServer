@@ -2,11 +2,12 @@
   "schema": "media-server.v400-release-readiness.v1",
   "decisionId": "V400-RELEASE-READINESS-08",
   "recordedOn": "2026-08-28",
+  "updatedOn": "2026-08-30",
   "sourceRelease": "v4.0.0",
   "latestPublished": "v3.9.1",
   "status": "readiness-recorded",
-  "implementationStatus": "policy-steps-complete-execution-gates-not-run",
-  "primarySelection": "record four-area test judgment, close-out dry-run, and unrun 30/UI blockers; do not create tag or GitHub Release",
+  "implementationStatus": "policy-steps-complete-30min-pass-ui-unrun",
+  "primarySelection": "record four-area test judgment after 30-minute executed-pass; keep UI unrun-required-blocker; close-out dry-run; do not create tag or GitHub Release",
   "testAreaJudgment": [
     {
       "category": "안정화 테스트",
@@ -16,15 +17,15 @@
     },
     {
       "category": "30분 테스트",
-      "judgment": "미진행",
-      "approvalStatus": "unrun-required-blocker",
-      "note": "AGENTS 7.6.2 release-complete required soak; this request did not authorize verify-predev --soak-minutes 30"
+      "judgment": "진행 대상",
+      "approvalStatus": "executed-pass",
+      "note": "3rd ./test_server_30min.sh PASS on source b53e8af1, runId v390-server-longrun-20260830123921-36621, 2383s/1800s, soak 20x5. Fail-then-pass: HTTP video-only then soak-5-redaction. This command is not the soak runner."
     },
     {
       "category": "UI 풀테스트",
       "judgment": "미진행",
       "approvalStatus": "unrun-required-blocker",
-      "note": "AGENTS 7.6.2/7.9 required UI fulltest; this request did not authorize Policy v4 exact 424"
+      "note": "AGENTS 7.6.2/7.9 required UI fulltest; 30-minute PASS does not replace Policy v4 exact 424"
     },
     {
       "category": "120분 테스트",
@@ -46,7 +47,7 @@
     "policy": "delete-reproducible-temp-after-tests"
   },
   "notEvidence": [
-    "30-minute soak PASS",
+    "this-command-is-not-30-minute-soak-runner",
     "UI fulltest PASS",
     "120-minute longrun PASS",
     "published metadata PASS",
