@@ -48,10 +48,10 @@
     {
       "name": "http_local_h264_video_only",
       "source_kind": "http",
-      "source": "http://127.0.0.1:8765/sample_h264_video_only.mp4",
+      "source": "http://127.0.0.1:8767/sample_h264_video_only.mp4",
       "enabled": true,
       "requires_network": false,
-      "notes": "Local HTTP MP4 source without audio. Verifies that URI sources do not require source audio; RTSP routes synthesize silent route audio while WebRTC can signal video-only.",
+      "notes": "Local HTTP MP4 source without audio on a dedicated port. Sequential verify-codecs processes must not share 8765 with http_local_h264_aac; RTSP routes synthesize silent route audio while WebRTC can signal video-only.",
       "verify_profile": {
         "label": "local-http-video-only",
         "ffprobe_timeout_us": 10000000,
@@ -64,7 +64,7 @@
       },
       "launcher": {
         "type": "local_http",
-        "port": 8765,
+        "port": 8767,
         "root": "video"
       }
     },
