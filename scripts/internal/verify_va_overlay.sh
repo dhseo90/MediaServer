@@ -63,9 +63,11 @@ run_with_timeout() {
     if (( elapsed >= timeout_s )); then
       echo "[fail] command timed out after ${timeout_s}s: $*"
       kill "${child_pid}" >/dev/null 2>&1 || true
+      pkill -P "${child_pid}" >/dev/null 2>&1 || true
       sleep 2
       if kill -0 "${child_pid}" >/dev/null 2>&1; then
         kill -9 "${child_pid}" >/dev/null 2>&1 || true
+        pkill -9 -P "${child_pid}" >/dev/null 2>&1 || true
       fi
       wait "${child_pid}" >/dev/null 2>&1 || true
       return 124
@@ -144,10 +146,42 @@ append_extra_query() {
   fi
 }
 
-cleanup() {
-  if [[ -n "${TAP_ID}" ]]; then
-    curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1 || true
+stop_analysis_tap() {
+  if [[ -z "${TAP_ID}" ]]; then
+    return 0
   fi
+  curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1 || true
+  TAP_ID=""
+}
+
+wait_for_analysis_idle() {
+  local deadline=$((SECONDS + 20))
+  local status=""
+  while (( SECONDS < deadline )); do
+    status="$(curl -fsS --max-time 3 "${HTTP_BASE}/lab/runtime/status" || printf '{}')"
+    if python3 -c '
+import json
+import sys
+
+payload = json.loads(sys.stdin.read() or "{}")
+session = payload.get("sessionManager") or {}
+bad = []
+for key in ("activeAnalysisTaps", "resourceActiveStreams", "registryActiveStreams", "activeSessions"):
+    if int(session.get(key) or 0) != 0:
+        bad.append(key)
+if bad:
+    raise SystemExit(1)
+' <<<"${status}"; then
+      return 0
+    fi
+    sleep 0.5
+  done
+  log_info "analysis idle wait expired; continuing RTSP overlay"
+  return 0
+}
+
+cleanup() {
+  stop_analysis_tap
 }
 trap cleanup EXIT
 
@@ -338,6 +372,10 @@ PY
   else
     log_fail "lab overlay snapshot failed"
   fi
+  # lab tap이 같은 file source worker를 붙잡은 채 RTSP VA overlay를 열면
+  # soak 후반에 ffmpeg DESCRIBE/SETUP가 132s timeout으로 남을 수 있다.
+  stop_analysis_tap
+  wait_for_analysis_idle
 }
 
 run_rtsp_regression() {
