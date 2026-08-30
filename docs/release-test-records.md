@@ -1670,11 +1670,20 @@ v4.0.0 (1)~(8) 정책/안정화 기록. 결과표는 실행한 항목만 `pass`/
 | v400 30분 start-server | delegated predev `server-start-queue-256` pid 17542, http 63691 rtsp 63692 | pass |
 | v400 30분 integrated-smoke | `./server.sh test --no-start` 21 pass / 1 fail / 8 skip, 545s. 최초 실패 `codec matrix: local HTTP URI video-only -> RTSP/WebRTC`, `http_local_h264_video_only: local HTTP launcher did not become ready` (port 8765, 10s). 같은 포트 직전 `http_local_h264_aac`는 통과 | fail |
 | v400 30분 longrun runner | `./test_server_30min.sh` result FAIL, failedPhase `integrated-smoke`, soak 0 iteration, elapsed 552s / requested 1800s, cleanup PASS. 재현 `./test_server_30min.sh` | fail |
+| v400 30분 HTTP video-only retest | port 8767 + listen/GET ready 후 `http_local_h264_video_only` RTSP default/h264/h265 + WebRTC signaling 4/0. source `faef331f` | pass |
+| v400 30분 integrated-smoke retest | `./server.sh test --no-start` 22 pass / 0 fail / 8 skip, 537s. 이전 HTTP video-only fail 후 pass | pass |
+| v400 30분 soak 1~4 | va-events, event-post-schema, event-post-recovery, redaction, runtime-idle 각 4회 전부 pass | pass |
+| v400 30분 soak-5-va-events | iteration 5 va-events | pass |
+| v400 30분 soak-5-event-post-schema | iteration 5 event-post schema | pass |
+| v400 30분 soak-5-event-post-recovery | iteration 5 event-post recovery | pass |
+| v400 30분 soak-5-redaction | `verify-redaction --live-only --duration 12`. live-va-redaction ffmpeg RTSP overlay 132s timeout, `RTSP VA overlay decode failed`. 1~4회 redaction은 pass | fail |
+| v400 30분 longrun runner retest | `./test_server_30min.sh` source `faef331f` FAIL, failedPhase `soak-case-loop`, failedCase `soak-5-redaction`, elapsed 1065s / requested 1800s, soak iterations 5, cleanup PASS | fail |
 
 | 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
 | --- | --- | --- | --- |
 | UI 풀테스트 | exact 424 / Policy v4 | 미실행 필수 blocker. 사용자 실행 승인 없음 | 예, 사용 불가 |
-| 30분 soak-case-loop | `verify-predev --soak-minutes 30` 반복 case | first-fail `integrated-smoke` 이후 not-run. 30분 duration evidence 없음 | 예, 사용 불가 |
+| 30분 soak-5-runtime-idle | iteration 5 runtime idle | first-fail `soak-5-redaction` 이후 not-run | 예, 사용 불가 |
+| 30분 soak-future-iterations | remaining soak until 1800s | first-fail 이후 not-run. duration evidence 없음 | 예, 사용 불가 |
 | 30분 runtime-idle / event-post-queue | predev later phases | first-fail 이후 not-run | 예, 사용 불가 |
 | 120분 | `verify-predev --soak-minutes 120` | conditional-not-run. 7.6.2 조건/사용자 지시 없음 | 예, 사용 불가 |
 | published metadata | `verify-release-metadata --published` | 30분 실행 범위 밖 | 예, 사용 불가 |
