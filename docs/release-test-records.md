@@ -1662,13 +1662,22 @@ v4.0.0 (1)~(8) 정책/안정화 기록. 결과표는 실행한 항목만 `pass`/
 | v400 (8) closeout dry-run heading precheck | 이전 세션 최초 `./server.sh verify-release-closeout-helper --dry-run`가 `docs/release-policy.md`에 `v4.0.0 Release Close-out Runbook` 제목이 없어 `release docs keep publish gates manual`에서 fail. 제품 코드 회귀가 아니라 release readiness 문서 기준 drift | fail |
 | v400 (8) closeout dry-run | runbook 추가 후 `./server.sh verify-release-closeout-helper --dry-run` 재실행. 2026-08-29 status pass, dryRun true, localCommands 5, manualActions 10, tag not created, push not performed | pass |
 | Docs UI assets (8) | `./server.sh verify-docs-ui-assets` 10/0. 2026-08-29 재실행 | pass |
+| v400 30분 launcher contract | `./test_server_30min.sh` 내부 `verify-v390-user-test-launchers-contract` 22/0. source `18e19ce1` | pass |
+| v400 30분 AI asset bootstrap | model SHA `634279b4...`, labels SHA `bd17f1ee...` verified | pass |
+| v400 30분 longrun preflight | `verify-v390-server-longrun --duration-minutes 30` phase preflight | pass |
+| v400 30분 longrun build | `./server.sh build` target `build-gst-onnx/media_server` | pass |
+| v400 30분 longrun seed | throwaway seed.json | pass |
+| v400 30분 start-server | delegated predev `server-start-queue-256` pid 17542, http 63691 rtsp 63692 | pass |
+| v400 30분 integrated-smoke | `./server.sh test --no-start` 21 pass / 1 fail / 8 skip, 545s. 최초 실패 `codec matrix: local HTTP URI video-only -> RTSP/WebRTC`, `http_local_h264_video_only: local HTTP launcher did not become ready` (port 8765, 10s). 같은 포트 직전 `http_local_h264_aac`는 통과 | fail |
+| v400 30분 longrun runner | `./test_server_30min.sh` result FAIL, failedPhase `integrated-smoke`, soak 0 iteration, elapsed 552s / requested 1800s, cleanup PASS. 재현 `./test_server_30min.sh` | fail |
 
 | 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
 | --- | --- | --- | --- |
 | UI 풀테스트 | exact 424 / Policy v4 | 미실행 필수 blocker. 사용자 실행 승인 없음 | 예, 사용 불가 |
-| 30분 | `verify-predev --soak-minutes 30` | 미실행 필수 blocker. 사용자 실행 승인 없음 | 예, 사용 불가 |
+| 30분 soak-case-loop | `verify-predev --soak-minutes 30` 반복 case | first-fail `integrated-smoke` 이후 not-run. 30분 duration evidence 없음 | 예, 사용 불가 |
+| 30분 runtime-idle / event-post-queue | predev later phases | first-fail 이후 not-run | 예, 사용 불가 |
 | 120분 | `verify-predev --soak-minutes 120` | conditional-not-run. 7.6.2 조건/사용자 지시 없음 | 예, 사용 불가 |
-| published metadata | `verify-release-metadata --published` | 이 스텝은 local metadata만 | 예, 사용 불가 |
+| published metadata | `verify-release-metadata --published` | 30분 실행 범위 밖 | 예, 사용 불가 |
 | release action | PR/main/tag/GitHub Release | `v4.0.0` tag 미생성 | 예, 사용 불가 |
 
 ### v3.9.1
