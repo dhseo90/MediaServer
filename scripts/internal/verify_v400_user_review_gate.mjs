@@ -21,7 +21,7 @@ Usage:
 Checks:
   - recorded user goals lock v4.0.0 to local operations policy and stabilization
   - v4.1.0 new-feature candidates stay blocked until v4.0.0 completes
-  - UI fulltest and release-action remain unrun; 30-minute executed-pass is recorded separately
+  - 30-minute and UI executed-pass are recorded separately; release-action remains not-executed
   - inventory, stream-verification, records, fixture, and server.sh dispatch are wired
 
 Not run by this command:
@@ -95,14 +95,15 @@ check("review-gate fixture locks policy/stabilization and blocks v4.1.0 features
   assert(fixture.constraints?.evidenceDefaultOn === "deferred-to-v4.1.0", "evidence default-on constraint drifted");
 });
 
-check("development backlog records the approved scope and keeps UI/release-action not executed", () => {
+check("development backlog records the approved scope and keeps release-action not executed", () => {
   for (const snippet of [
     "### v4.0.0 User Review Gate",
     "승인 상태: `approved-through-recorded-user-goals`",
     "1차 선택값: **로컬 운영 정책화 및 안정화**",
     "신규 기능 개발 상태: `blocked-until-v400-complete`",
     "v4.0.0 30분 상태: `executed-pass`",
-    "v4.0.0 UI/release-action 상태: `not-executed`",
+    "v4.0.0 UI 풀테스트 상태: `executed-pass`",
+    "v4.0.0 release-action 상태: `not-executed`",
     "`scripts/internal/verify_v400_user_review_gate.mjs`",
     "`./server.sh verify-v400-user-review-gate`",
     fixturePath,

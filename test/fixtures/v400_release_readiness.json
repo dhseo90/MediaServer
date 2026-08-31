@@ -2,12 +2,12 @@
   "schema": "media-server.v400-release-readiness.v1",
   "decisionId": "V400-RELEASE-READINESS-08",
   "recordedOn": "2026-08-28",
-  "updatedOn": "2026-08-30",
+  "updatedOn": "2026-08-31",
   "sourceRelease": "v4.0.0",
   "latestPublished": "v3.9.1",
   "status": "readiness-recorded",
-  "implementationStatus": "policy-steps-complete-30min-pass-ui-unrun",
-  "primarySelection": "record four-area test judgment after 30-minute executed-pass; keep UI unrun-required-blocker; close-out dry-run; do not create tag or GitHub Release",
+  "implementationStatus": "policy-steps-complete-30min-ui-pass",
+  "primarySelection": "record four-area test judgment after 30-minute and UI executed-pass; keep 120-minute conditional-not-run; close-out dry-run; do not create tag or GitHub Release",
   "testAreaJudgment": [
     {
       "category": "안정화 테스트",
@@ -23,15 +23,15 @@
     },
     {
       "category": "UI 풀테스트",
-      "judgment": "미진행",
-      "approvalStatus": "unrun-required-blocker",
-      "note": "AGENTS 7.6.2/7.9 required UI fulltest; 30-minute PASS does not replace Policy v4 exact 424"
+      "judgment": "진행 대상",
+      "approvalStatus": "executed-pass",
+      "note": "./test_ui.sh PASS on source 166fb478, runId v390-test-acceptance-20260830225118-68124, exact 424/424, Policy v4 policyValidationResult=PASS and qualifier uiFulltestPass=true. This command is not the UI runner."
     },
     {
       "category": "120분 테스트",
       "judgment": "미진행",
       "approvalStatus": "conditional-not-run",
-      "note": "no user instruction, no 7.6.2 120-minute trigger, no media-path change in this cut"
+      "note": "no user run instruction, no 7.6.2 120-minute trigger, no product media-path change vs published v3.9.1, no 30-minute leak/drift FAIL"
     }
   ],
   "closeout": {
@@ -48,7 +48,7 @@
   },
   "notEvidence": [
     "this-command-is-not-30-minute-soak-runner",
-    "UI fulltest PASS",
+    "this-command-is-not-ui-fulltest-runner",
     "120-minute longrun PASS",
     "published metadata PASS",
     "v4.0.0 tag",
