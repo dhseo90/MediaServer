@@ -36,9 +36,9 @@
 ## v4.0.0 현재 소스 baseline 상태 (2026-08-24)
 
 - current source: `v4.0.0` (`VERSION=4.0.0`)
-- latest published: v3.9.1
+- latest published: v4.0.0
 - v4.0.0 source baseline: `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`
-- v4.0.0 (1) baseline 정렬: 완료. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 미실행
+- v4.0.0 (1) baseline 정렬: 완료. published pin은 `v4.0.0`. UI 풀테스트와 30분은 executed-pass, 120분과 field smoke는 제외
 - v4.0.0 user review gate: `./server.sh verify-v400-user-review-gate`, `V400-REVIEW-GATE-02`
 - v4.0.0 verification layer reduction: `./server.sh verify-v400-verification-layer-reduction`, `V400-VERIFICATION-LAYER-03`
 - release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
@@ -303,8 +303,8 @@ git diff --check
 
 ## v4.0.0 source baseline records
 
-v4.0.0 Foundation evidence index는 current source `4.0.0`과 latest published `v3.9.1`
-분리를 stream verification, project inventory, release test records, release metadata
+v4.0.0 Foundation evidence index는 current source `4.0.0`과 latest published `v4.0.0`
+정렬을 stream verification, project inventory, release test records, release metadata
 verifier에 연결하는 색인입니다. 이 섹션은 UI 풀테스트 직접 조작, 30분/120분,
 published metadata, PR/main/tag/GitHub Release evidence가 아닙니다.
 
