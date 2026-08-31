@@ -16,7 +16,7 @@ const docsAssetEnDir = path.join(docsAssetDir, "en");
 
 const manifest = JSON.parse(readText("config/docs_ui_assets.json"));
 const currentVersion = readText("VERSION").trim();
-const latestPublishedTag = "v3.9.0";
+const latestPublishedTag = "v3.9.1";
 const readmeAssets = manifest.assets.filter((asset) => asset.readme).map((asset) => asset.file);
 const uiGuideAssets = manifest.assets.filter((asset) => asset.uiGuide).map((asset) => asset.file);
 const assetByFile = new Map(manifest.assets.map((asset) => [asset.file, asset]));
@@ -87,12 +87,12 @@ check("managed UI asset manifest stays complete", () => {
   assert(manifest.baseline?.sourceVersion === currentVersion, "docs UI asset manifest source version drifted");
   assert(manifest.baseline?.publishedRelease === latestPublishedTag, "docs UI asset manifest published release drifted");
   assert(manifest.baseline?.publicReleaseStatus === `v${currentVersion}-source-${latestPublishedTag}-published`, "docs UI asset manifest public release status drifted");
-  assert(manifest.baseline?.capturedAt === "2026-08-14", "docs UI asset manifest capture date drifted");
+  assert(manifest.baseline?.capturedAt === "2026-08-31", "docs UI asset manifest capture date drifted");
   assert(manifest.baseline?.theme === "dark", "docs UI asset manifest theme drifted");
   assert(manifest.baseline?.sampleVideo === "va_four_scene_sample.mp4", "docs UI asset manifest sample video drifted");
   assert(manifest.baseline?.manualReviewRequired === true, "docs UI asset manifest must require direct manual image review");
   assert(manifest.directReview?.reviewedAt === manifest.baseline.capturedAt, "docs UI asset direct review date drifted");
-  assert(manifest.directReview?.tool === "Codex in-app Browser", "docs UI asset direct review must use the in-app Browser");
+  assert(manifest.directReview?.tool === "Google Chrome CDP + Grok PNG review", "docs UI asset direct review tool drifted");
   assert(manifest.directReview?.assetCount === 20, "docs UI asset direct review count drifted");
   assert(manifest.directReview?.status === "PASS", "docs UI asset direct review is not PASS");
   assert(manifest.directReview?.englishHangulResidue === 0, "English screenshot direct review found Hangul residue");

@@ -14,7 +14,10 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
 - 다음 source 개발 로드맵: `v4.1.0` 신규 기능 후보. 4.0.0에서 구현하지 않음
 - 기본 공개 형태: source-only
-- 대표 이미지는 `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리합니다.
+- 대표 이미지는 2026-08-31에 source `4.0.0` / published `v3.9.1` 기준으로 v3.8.0
+  구도를 참고해 다시 캡처했습니다. `config/docs_ui_assets.json`과
+  `./server.sh verify-docs-ui-assets`로 관리하며 UI 풀테스트나 GitHub Release 증거가
+  아닙니다. 정책은 [assets/ui/README.md](assets/ui/README.md)입니다.
 
 ## 먼저 볼 문서
 

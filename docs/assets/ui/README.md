@@ -26,22 +26,36 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `config/docs_ui_assets.json`의 managed asset list에서 단일 관리합니다.
 `ops-rules-preview`는 전체 페이지 캡처가 아니라 Rule preview/editor 대표 구간
 캡처로 유지합니다.
-재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리하되, Codex
-세션에서는 AGENTS.md의 인앱 브라우저 기준을 우선합니다. Chrome/CDP fallback
-재캡처는 사용자가 명시 승인한 예외일 때만 문서 산출물 후보로 둡니다.
+재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다. Codex
+세션에서는 AGENTS.md의 인앱 브라우저 기준을 우선합니다. 이 저장소의
+2026-08-31 대표 이미지는 사용자가 잘림 없는 재촬영을 명시한 뒤 Google Chrome
+CDP로 캡처하고 Grok이 PNG를 직접 검수한 결과입니다.
 기준 검증은 `./server.sh verify-docs-ui-assets`로 수행합니다.
 `ops-rules-preview` 캡처와 `verify-rule-ui` smoke는
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v3.9.1 source baseline alignment
+## v4.0.0 source / v3.9.1 published screenshot alignment
 
-2026-08-14에 현재 v3.9.1 source tree를 인앱 브라우저로 직접 열어 한국어 9개와
-English 9개 제품 UI PNG를 다시 캡처했습니다. 두 VA 기준 이미지까지 포함한 관리
-대상 20개를 모두 직접 열어 화면 잘림, 현재 shell 구조, 영상 viewport와 control,
-영문 화면의 한글 잔존, client/viewer 화면의 민감 정보 노출 여부를 확인했습니다.
+2026-08-31에 현재 v4.0.0 source tree와 최신 공개 `v3.9.1` pin 기준으로 한국어 9개와
+English 9개 제품 UI PNG를 다시 캡처했습니다. 구도는 v3.8.0 전체 요소 캡처를
+참고했고, 2026-08-14 잘린 히어로/메트릭 clip은 쓰지 않습니다. 두 VA 기준
+이미지까지 포함한 관리 대상 20개를 모두 직접 열어 화면 잘림, 현재 shell 구조,
+영상 viewport와 control, 영문 화면의 한글 잔존, client/viewer 화면의 민감 정보
+노출 여부를 확인했습니다.
 이 직접 검수와 정적 gate는 대표 문서 이미지의 현재성 확인이며, UI 풀테스트나
 공개 릴리즈 증거로 쓰지 않습니다.
+
+## Current English screenshot status
+
+On 2026-08-31 the nine English product UI PNGs under `docs/assets/ui/en/` were
+recaptured from the live English UI (`?lang=en`) with the v3.8.0 full-element
+composition. The published pin is `v3.9.1`. Direct PNG review found 0 Hangul
+residue after capture-time hiding of known untranslated diagnostic notes
+(`#channelScopePolicy`, VLM/what-if/approval draft cards, user scope notes).
+Those strings remain a product i18n follow-up; this recapture is not a
+translation completion. English README images are `docs/assets/ui/en/*.png`.
+These images are not UI fulltest or GitHub Release evidence.
 
 v3.9.1 source 기준 공개 문서 묶음:
 
@@ -52,29 +66,30 @@ v3.9.1 source 기준 공개 문서 묶음:
 - `docs/ui-guide.md`
 - `docs/assets/ui/README.md`
 
-v3.9.1 source 기준:
+v4.0.0 source / v3.9.1 published 기준:
 
-- v3.9.1 source roadmap과 latest published v3.9.0 baseline을 분리해 표시하고,
-  직전 v3.8.0 baseline은 previous reference로 둡니다.
+- v4.0.0 source roadmap과 latest published v3.9.1 baseline을 분리해 표시하고,
+  직전 v3.9.0 / v3.8.0 baseline은 previous reference로 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.
-- Chrome/CDP fallback 재캡처는 사용자가 명시 승인한 예외일 때만 후보로 둡니다.
+- 2026-08-31 재캡처는 사용자 명시 승인 아래 Chrome/CDP를 사용했습니다.
 - image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는
-  서로 대체하지 않습니다. 이 source baseline에서는 앞의 두 항목만 완료했습니다.
+  서로 대체하지 않습니다. 이 source baseline에서는 앞의 두 항목만 이 작업에서
+  갱신했습니다.
 
 ## Docs Image Review 기준
 
 문서가 참조하는 전체 이미지 20개는 manifest 관리 대상입니다. static gate는
-manifest와 링크/assets 기준을 확인하고, 2026-08-14 직접 검수 기록은
+manifest와 링크/assets 기준을 확인하고, 2026-08-31 직접 검수 기록은
 `config/docs_ui_assets.json`의 `directReview`에 남깁니다. 제품 기능 전체를 직접
 조작하는 UI 풀테스트는 별도 승인과 별도 evidence가 필요합니다.
 대상은 한국어 UI PNG 9개, English UI PNG 9개,
 `docs/assets/va-four-scene-overlay-ko.jpg`, `docs/assets/va-four-scene-sample.png`입니다.
-Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 않고 폐기합니다.
 
 결론:
 
-- 2026-08-14 v3.9.1 대표 제품 shell 캡처로 한국어/English UI PNG 18개를 교체했습니다.
+- 2026-08-31 v4.0.0 source / v3.9.1 published 대표 제품 shell 캡처로 한국어/English
+  UI PNG 18개를 교체했습니다.
 - 운영 QA registry가 섞여 200개 채널을 길게 보여주는 캡처는 제품 대표 이미지로
   쓰지 않습니다.
 - README/README.en 대표 이미지 12개는 crop 없이 핵심 화면과 control이 보입니다.

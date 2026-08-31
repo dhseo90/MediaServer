@@ -116,8 +116,12 @@ records live in dedicated docs.
 
 ## UI Preview
 
-These images are documentation previews. They are not UI fulltest or GitHub
-Release evidence. Details live in [docs/ui-guide.md](docs/ui-guide.md).
+These images are documentation previews recaptured on 2026-08-31 from source
+`4.0.0` against published `v3.9.1`. Composition follows the v3.8.0 full-element
+shots, so tables, video viewports, controls, and cards are not cropped. They
+are not UI fulltest or GitHub Release evidence. Details live in
+[docs/ui-guide.md](docs/ui-guide.md) and
+[docs/assets/ui/README.md](docs/assets/ui/README.md).
 
 **Ops Home**
 

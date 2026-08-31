@@ -2,16 +2,16 @@
   "schema": "media-server.docs-ui-assets.v1",
   "baseline": {
     "sourceVersion": "4.0.0",
-    "publishedRelease": "v3.9.0",
-    "publicReleaseStatus": "v4.0.0-source-v3.9.0-published",
-    "capturedAt": "2026-08-14",
+    "publishedRelease": "v3.9.1",
+    "publicReleaseStatus": "v4.0.0-source-v3.9.1-published",
+    "capturedAt": "2026-08-31",
     "theme": "dark",
     "sampleVideo": "va_four_scene_sample.mp4",
     "manualReviewRequired": true
   },
   "directReview": {
-    "reviewedAt": "2026-08-14",
-    "tool": "Codex in-app Browser",
+    "reviewedAt": "2026-08-31",
+    "tool": "Google Chrome CDP + Grok PNG review",
     "assetCount": 20,
     "status": "PASS",
     "englishHangulResidue": 0,

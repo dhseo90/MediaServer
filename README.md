@@ -106,8 +106,11 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 
 ## 대표 UI 미리보기
 
-README에는 대표 제품 화면만 둡니다. 상세 UI는 [docs/ui-guide.md](docs/ui-guide.md)를
-봅니다. 이 이미지는 문서용 미리보기이며 UI 풀테스트나 GitHub Release 증거가 아닙니다.
+README에는 대표 제품 화면만 둡니다. 2026-08-31에 source `4.0.0` / published `v3.9.1`
+기준으로 v3.8.0 구도를 참고해 다시 캡처했으며 표·영상 viewport·control·카드가 잘리지
+않습니다. 상세 UI는 [docs/ui-guide.md](docs/ui-guide.md)와
+[docs/assets/ui/README.md](docs/assets/ui/README.md)를 봅니다. 이 이미지는 문서용
+미리보기이며 UI 풀테스트나 GitHub Release 증거가 아닙니다.
 
 **Ops Home**
 

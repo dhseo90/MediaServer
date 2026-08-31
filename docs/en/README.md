@@ -14,8 +14,11 @@ points to the current public sources.
 - Current source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
 - Next source development roadmap: `v4.1.0` new-feature candidates. Not implemented in 4.0.0
 - Default public distribution: source-only
-- Representative screenshots are managed by `config/docs_ui_assets.json` and
-  `./server.sh verify-docs-ui-assets`.
+- Representative screenshots were recaptured on 2026-08-31 for source `4.0.0` /
+  published `v3.9.1`, using the v3.8.0 uncropped composition. They are managed
+  by `config/docs_ui_assets.json` and `./server.sh verify-docs-ui-assets`. They
+  are not UI fulltest or GitHub Release evidence. Policy and English PNG review
+  notes live in [../assets/ui/README.md](../assets/ui/README.md).
 
 ## Start Here
 
