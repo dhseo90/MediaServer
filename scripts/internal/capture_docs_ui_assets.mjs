@@ -33,6 +33,8 @@ if (!chromePath) {
 
 fs.mkdirSync(outputDir, { recursive: true });
 
+// 클립 선택자는 v3.8.0 전체 요소 구성을 따른다: header와 page root(또는 룰 미리보기
+// stage 전체). hero/metrics 조각 클립은 표·영상 컨트롤·섹션 제목을 자르므로 쓰지 않는다.
 const tasks = [
   {
     name: "ops-home",
@@ -51,9 +53,9 @@ const tasks = [
       selectors: [
         'header',
         '[data-testid="client-live-source-tree"]',
-        '[data-testid="client-live-drop-grid"]'
+        '[data-testid="client-live-workspace"]'
       ],
-      fitMainWidth: false,
+      fitMainWidth: true,
       margin: 18,
     },
   },
@@ -62,15 +64,8 @@ const tasks = [
     file: "ops-channels.png",
     pagePath: "/ops/sources",
     viewport: { width: 1680, height: 1250 },
-    clip: {
-      selectors: [
-        'header',
-        '[data-testid="ops-sources-page"] > .ops-workspace-hero',
-        '[data-testid="source-onboarding-quality-summary"]'
-      ],
-      fitMainWidth: true,
-      margin: 18,
-    },
+    setup: setupOpsChannels,
+    clip: { selectors: ['header', '[data-testid="ops-sources-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "ops-rules",
@@ -78,16 +73,7 @@ const tasks = [
     pagePath: "/ops/rules",
     viewport: { width: 1680, height: 1500 },
     setup: setupOpsRulesOverview,
-    clip: {
-      selectors: [
-        'header',
-        '[data-testid="ops-rules-page"] > .ops-workspace-hero',
-        '[data-testid="ops-rules-page"] > .rules-metrics-grid',
-        '[data-testid="ops-rules-page"] > .rules-workspace-readiness-grid'
-      ],
-      fitMainWidth: true,
-      margin: 18,
-    },
+    clip: { selectors: ['header', '[data-testid="ops-rules-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "ops-rules-preview",
@@ -95,7 +81,7 @@ const tasks = [
     pagePath: "/ops/rules",
     viewport: { width: 1680, height: 1600 },
     setup: setupOpsRules,
-    clip: { selectors: ['.ops-va-stage-panel'], fitMainWidth: true, margin: 18 },
+    clip: { selectors: ['.ops-va-stage-settings'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "ops-users",
@@ -110,16 +96,8 @@ const tasks = [
     file: "ops-dashboard.png",
     pagePath: "/ops/dashboard",
     viewport: { width: 1680, height: 1220 },
-    clip: {
-      selectors: [
-        'header',
-        '[data-testid="ops-dashboard-page"] > .ops-workspace-hero',
-        '[data-testid="ops-dashboard-page"] > .ops-metric-grid',
-        '[data-testid="ops-dashboard-page"] > .ops-dashboard-card-grid'
-      ],
-      fitMainWidth: true,
-      margin: 18,
-    },
+    setup: setupOpsDashboard,
+    clip: { selectors: ['header', '[data-testid="ops-dashboard-page"]'], fitMainWidth: true, margin: 18 },
   },
   {
     name: "client-dashboard",
@@ -127,18 +105,7 @@ const tasks = [
     pagePath: "/client/dashboard",
     viewport: { width: 1680, height: 1180 },
     setup: setupClientDashboard,
-    clip: {
-      selectors: [
-        '.client-preview-redaction-strip',
-        '.client-channel-dock',
-        '[data-testid="client-dashboard-shell"] > .client-dashboard-head',
-        '[data-testid="client-dashboard-field-summary"]',
-        '[data-testid="client-dashboard-safe-summary"]',
-        '[data-testid="client-dashboard-shell"] > .summary'
-      ],
-      fitMainWidth: false,
-      margin: 18,
-    },
+    clip: { selectors: ['header', '[data-testid="client-shell-page"]'], fitMainWidth: true, margin: 18 },
     optional: true,
   },
   {
@@ -150,7 +117,7 @@ const tasks = [
       await applyDarkTheme(browser);
       await delay(500);
     },
-    clip: { selectors: ["body"], fitMainWidth: true, margin: 0, minWidth: 700, minHeight: 420 },
+    clip: { selectors: [".auth-card"], margin: 24, minWidth: 700, minHeight: 420 },
     optional: true,
   }
 ];
@@ -294,14 +261,34 @@ async function setupClientLive(browser) {
     return true;
   })()`);
   await delay(700);
+  const demoLiveLabels = ["Sample H264", "VA Test File", "Public RTSP Test", "Public HTTP HLS Test"];
+  for (let index = 0; index < demoLiveLabels.length; index += 1) {
+    const label = demoLiveLabels[index];
+    await evaluate(browser, `(() => {
+      const tiles = Array.from(document.querySelectorAll('[data-tile]'));
+      const nodes = Array.from(document.querySelectorAll('[data-testid="client-live-source-tree"] [data-source-view]'));
+      const node = nodes.find((item) => (item.textContent || '').includes(${JSON.stringify(label)}));
+      if (!tiles[${index}] || !node) return false;
+      tiles[${index}].click();
+      node.click();
+      return true;
+    })()`);
+    await delay(450);
+  }
   await waitFor(browser, `(() => {
     const tiles = Array.from(document.querySelectorAll('[data-tile]'));
     const vaTile = tiles.find((tile) => (tile.textContent || '').includes('VA Test File'));
     return tiles.length >= 4 && Boolean(vaTile);
   })()`, 8000);
   await evaluate(browser, `(() => {
+    document.querySelector('#liveAllStop')?.click();
+    return true;
+  })()`);
+  await delay(1200);
+  await evaluate(browser, `(() => {
     const tiles = Array.from(document.querySelectorAll('[data-tile]'));
     const vaTile = tiles.find((tile) => (tile.textContent || '').includes('VA Test File')) || tiles[0];
+    vaTile?.click?.();
     vaTile?.focus?.();
     return true;
   })()`);
@@ -325,9 +312,11 @@ async function setupClientLive(browser) {
     if (infoToggle && !infoToggle.checked) {
       infoToggle.click();
     }
+    const video = tile?.querySelector('video');
+    const playing = Boolean(video && !video.paused && video.readyState >= 2);
     const start = tile?.querySelector('[data-action="toggle-playback"]');
-    if (start) start.click();
-    return !!start;
+    if (start && !playing) start.click();
+    return playing || !!start;
   })()`, 8000);
   await waitFor(browser, `(() => {
     const tiles = Array.from(document.querySelectorAll('[data-tile]'));
@@ -336,7 +325,7 @@ async function setupClientLive(browser) {
     const placeholder = root?.querySelector('[data-role="placeholder"]');
     const placeholderHidden = !placeholder || placeholder.hidden || getComputedStyle(placeholder).display === 'none';
     return Boolean(video && video.readyState >= 2 && placeholderHidden);
-  })()`, 15000);
+  })()`, 25000);
   await delay(3500);
 }
 
@@ -391,6 +380,49 @@ async function setupOpsRules(browser) {
     return Boolean(video && video.readyState >= 2 && placeholder?.hidden);
   })()`, 18000);
   await delay(3500);
+}
+
+async function setupOpsChannels(browser) {
+  await applyDarkTheme(browser);
+  await waitFor(browser, `(() => {
+    const row = document.querySelector('#channels-body tr');
+    return Boolean(row && !row.textContent.includes('로딩 중') && row.querySelector('td'));
+  })()`, 12000);
+  await evaluate(browser, `(() => {
+    const keep = new Set(['list', 'audit']);
+    document.querySelectorAll('[data-testid="ops-sources-page"] [data-channel-task]').forEach((node) => {
+      const task = node.getAttribute('data-channel-task');
+      if (task && !keep.has(task)) node.style.display = 'none';
+    });
+    const grid = document.querySelector('.ops-channels-main-grid');
+    if (grid) grid.style.gridTemplateColumns = 'minmax(0, 1fr)';
+    return true;
+  })()`);
+  await delay(300);
+}
+
+async function setupOpsDashboard(browser) {
+  await applyDarkTheme(browser);
+  await waitFor(browser, `(() => {
+    const page = document.querySelector('[data-testid="ops-dashboard-page"]');
+    const cards = document.querySelector('[data-testid="ops-dashboard-page"] .ops-dashboard-card-grid');
+    return Boolean(page && cards && cards.getBoundingClientRect().height > 200);
+  })()`, 12000);
+  await evaluate(browser, `(() => {
+    const page = document.querySelector('[data-testid="ops-dashboard-page"]');
+    if (!page) return false;
+    const cards = page.querySelector('.ops-dashboard-card-grid');
+    let node = cards ? cards.nextElementSibling : null;
+    while (node) {
+      node.style.display = 'none';
+      node = node.nextElementSibling;
+    }
+    page.querySelectorAll('.ops-workspace-diagnostic-grid').forEach((item) => {
+      item.style.display = 'none';
+    });
+    return true;
+  })()`);
+  await delay(300);
 }
 
 async function setupOpsRulesOverview(browser) {

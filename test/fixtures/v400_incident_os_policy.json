@@ -1,0 +1,91 @@
+{
+  "schema": "media-server.v400-incident-os-policy.v1",
+  "decisionId": "V400-INCIDENT-OS-POLICY-05",
+  "recordedOn": "2026-08-28",
+  "sourceRelease": "v4.0.0",
+  "latestPublished": "v3.9.1",
+  "status": "policy-frozen",
+  "implementationStatus": "existing-surfaces-policy-only",
+  "primarySelection": "keep /ops/events search, timeline, and resolution as Ops-only policy surfaces; do not add event types or promote to primary nav",
+  "inheritedFeatureIds": [
+    "UI-062",
+    "EVT-064",
+    "SAFE-104",
+    "OPS-071"
+  ],
+  "iaPolicy": {
+    "primaryNav": [
+      "/ops/home",
+      "/ops/dashboard",
+      "/ops/sources",
+      "/ops/rules",
+      "/ops/users",
+      "/client/live"
+    ],
+    "eventsRoute": "/ops/events",
+    "eventsNavRole": "diagnostic-direct-route-not-primary-nav",
+    "productPromotion": "deferred-to-v4.1.0"
+  },
+  "surfaces": [
+    {
+      "id": "search",
+      "route": "/ops/events",
+      "inheritedCommand": "verify-v320-resolution-search-metrics"
+    },
+    {
+      "id": "timeline",
+      "route": "/ops/events",
+      "inheritedCommand": "verify-v310-replay-timeline-ui"
+    },
+    {
+      "id": "resolution",
+      "route": "/ops/events",
+      "apiRoute": "/ops/api/events/reviews",
+      "inheritedCommand": "verify-v320-unified-ops-events-workspace"
+    }
+  ],
+  "unchangedContracts": {
+    "eventPostSchema": "unchanged",
+    "newEventTypes": "forbidden-in-v4.0.0",
+    "storageFormat": "unchanged"
+  },
+  "sourceAnchors": {
+    "opsShell": "src/ingress/product_ui_server_pages.cpp",
+    "requiredNavSnippets": [
+      "AppendImageNavLink(out, \"/ops/home\"",
+      "AppendImageNavLink(out, \"/ops/dashboard\"",
+      "AppendImageNavLink(out, \"/ops/sources\"",
+      "AppendImageNavLink(out, \"/ops/rules\"",
+      "AppendImageNavLink(out, \"/ops/users\"",
+      "AppendImageNavLink(out, \"/client/live\""
+    ],
+    "forbiddenNavSnippet": "AppendImageNavLink(out, \"/ops/events\"",
+    "workspaceSnippets": [
+      "data-testid=\"ops-v320-unified-events-workspace\"",
+      "id=\"opsV320ResolutionQueue\"",
+      "id=\"opsV320ResolutionDetail\""
+    ],
+    "eventPostBoundaryFile": "include/ingress/event_post_application_service.h",
+    "eventPostBoundarySnippets": [
+      "struct EventPostDispatchEvent",
+      "std::string event_type"
+    ]
+  },
+  "inheritedCommands": [
+    "verify-v320-unified-ops-events-workspace",
+    "verify-v320-resolution-search-metrics",
+    "verify-v310-replay-timeline-ui",
+    "verify-ops-event-review-inbox"
+  ],
+  "notEvidence": [
+    "Incident OS product promotion to primary nav",
+    "new event type",
+    "Event POST schema change",
+    "new event storage format",
+    "UI fulltest",
+    "30-minute soak",
+    "120-minute longrun",
+    "published metadata",
+    "v4.0.0 tag or GitHub Release"
+  ]
+}

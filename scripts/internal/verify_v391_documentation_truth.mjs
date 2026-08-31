@@ -17,7 +17,7 @@ Usage:
   ./server.sh verify-v391-documentation-truth
 
 Checks public role wording, GStreamer 1.28 minimums, public-index exclusions,
-and v3.9.1 current-source / v3.9.1 latest-published status boundaries.
+and v4.0.0 current-source / v3.9.1 latest-published status boundaries.
 `);
 }
 assertKnownOptions(rawArgs, ["h", "help"]);
@@ -76,10 +76,11 @@ check("public docs index excludes internal release and generated-test material",
   assert(denied.length === 0, `public docs index contains internal link(s): ${denied.join(", ")}`);
 });
 
-check("manual UI current header separates v3.9.1 published from previous v3.9.0", () => {
+check("manual UI current header separates v4.0.0 source from published v3.9.1", () => {
   for (const file of ["docs/manual-ui-checklist.md", "docs/manual-ui-fulltest.md"]) {
     const current = head(read(file), 35);
-    assert(current.includes("v3.9.1"), `${file} missing current source v3.9.1`);
+    assert(current.includes("v4.0.0"), `${file} missing current source v4.0.0`);
+    assert(current.includes("v3.9.1"), `${file} missing latest published v3.9.1`);
     assert(current.includes("v3.9.0"), `${file} missing previous published v3.9.0`);
     assert(!current.includes("최신 공개 release 기준은 `v3.8.0"), `${file} still calls v3.8.0 latest`);
     assert(!current.includes("최신 공개 release 기준은 `v3.9.0"), `${file} still calls v3.9.0 latest`);
@@ -93,20 +94,19 @@ check("current verification and inventory docs expose v3.9.1 correction state", 
     "project inventory missing v3.9.1 correction row");
   const completion = head(read("docs/v390-feature-completion-inventory.md"), 25);
   assert(completion.includes("historical v3.9.0 archive") &&
-    completion.includes("현재 source 3.9.1의 완료 상태가 아닙니다"),
+    completion.includes("현재 source 4.0.0의 완료 상태가 아닙니다"),
   "v3.9 completion inventory lacks historical archive boundary");
 });
 
-check("release records and evidence report v3.9.1 as not-yet-fresh-PASS", () => {
+check("release records and evidence report v4.0.0 current source and published v3.9.1", () => {
   for (const file of ["docs/release-test-records.md", "docs/release-evidence-index.md"]) {
-    const current = head(read(file), 90);
-    assert(current.includes("v3.9.1 현재 소스 정정 상태"), `${file} missing v3.9.1 current correction status`);
-    const notRun = current.includes("fresh full test: 미실행");
-    const failedBeforeDurationAndUi = /fresh full test: [^\n]*clean-clone[^\n]*FAIL/.test(current) &&
-      current.includes("30분") && current.includes("미실행");
-    assert(notRun || failedBeforeDurationAndUi,
-      `${file} overclaims or omits v3.9.1 fresh full-test status`);
+    const current = head(read(file), 110);
+    assert(current.includes("v4.0.0 현재 소스 baseline 상태"), `${file} missing v4.0.0 current baseline status`);
+    assert(current.includes("v3.9.1 현재 소스 정정 상태") || current.includes("v3.9.1 published 정정 상태"),
+      `${file} missing v3.9.1 published correction status`);
+    assert(current.includes("current source: `v4.0.0`"), `${file} missing current source v4.0.0`);
     assert(current.includes("latest published: v3.9.1"), `${file} missing latest-published v3.9.1`);
+    assert(current.includes("미실행"), `${file} overclaims or omits v4.0.0 unrun tests`);
   }
 });
 

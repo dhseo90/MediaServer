@@ -26,6 +26,7 @@ FAIL_COUNT=0
 SKIP_COUNT=0
 
 LAUNCHER_PIDS=()
+LAUNCHER_PORTS=()
 LAUNCHER_LOGS=()
 LAST_LAUNCHER_PID=""
 LAST_LAUNCHER_LOG=""
@@ -153,12 +154,48 @@ resolve_runtime_config() {
   ROUTE="${MEDIA_SERVER_ROUTE:-${ROUTE:-dhseo}}"
 }
 
+wait_until_tcp_listening() {
+  local port="$1"
+  local attempts="${2:-40}"
+  local i=0
+  while (( i < attempts )); do
+    if media_server_is_tcp_listening "${port}"; then
+      return 0
+    fi
+    sleep 0.25
+    i=$((i + 1))
+  done
+  return 1
+}
+
+wait_until_tcp_free() {
+  local port="$1"
+  local attempts="${2:-20}"
+  local i=0
+  while (( i < attempts )); do
+    if ! media_server_is_tcp_listening "${port}"; then
+      return 0
+    fi
+    sleep 0.25
+    i=$((i + 1))
+  done
+  return 1
+}
+
+http_launcher_answers() {
+  local port="$1"
+  curl -fsS --max-time 2 "http://127.0.0.1:${port}/" >/dev/null 2>&1
+}
+
 cleanup() {
   for pid in "${LAUNCHER_PIDS[@]:-}"; do
     if kill -0 "${pid}" 2>/dev/null; then
       kill "${pid}" >/dev/null 2>&1 || true
       wait "${pid}" 2>/dev/null || true
     fi
+  done
+  for port in "${LAUNCHER_PORTS[@]:-}"; do
+    wait_until_tcp_free "${port}" 20 || true
   done
   for log_file in "${LAUNCHER_LOGS[@]:-}"; do
     cleanup_whip_session_from_log "${log_file}"
@@ -237,32 +274,45 @@ start_local_http_launcher() {
   local root_rel="$3"
 
   # HTTP URI source 검증은 로컬 MP4를 간단한 정적 HTTP 서버로 열어 MediaServer가 source=http로 가져가게 한다.
+  # 연속 verify-codecs 프로세스가 같은 포트를 재사용하면 이전 launcher의 LISTEN이 남아
+  # ready 오판 또는 bind 대기가 생긴다. listen과 HTTP GET을 함께 확인한다.
   if media_server_is_tcp_listening "${port}"; then
-    log_info "HTTP launcher already listening on ${port} (${name})"
-    return 0
+    if http_launcher_answers "${port}"; then
+      log_info "HTTP launcher already listening on ${port} (${name})"
+      return 0
+    fi
+    log_fail "${name}: port ${port} is occupied but does not serve HTTP"
+    return 1
+  fi
+  if ! wait_until_tcp_free "${port}" 20; then
+    log_fail "${name}: port ${port} stayed occupied after previous launcher"
+    return 1
   fi
 
   local root_path="${ROOT_DIR}/${root_rel}"
   local log_file="/tmp/${name}.http.log"
-  python3 -m http.server "${port}" --bind 127.0.0.1 --directory "${root_path}" \
+  PYTHONUNBUFFERED=1 python3 -u -m http.server "${port}" --bind 127.0.0.1 --directory "${root_path}" \
     > "${log_file}" 2>&1 &
   local launcher_pid=$!
   LAUNCHER_PIDS+=("${launcher_pid}")
+  LAUNCHER_PORTS+=("${port}")
   LAUNCHER_LOGS+=("${log_file}")
   LAST_LAUNCHER_PID="${launcher_pid}"
   LAST_LAUNCHER_LOG="${log_file}"
 
-  for _ in {1..20}; do
+  local i=0
+  while (( i < 40 )); do
     if ! kill -0 "${launcher_pid}" 2>/dev/null; then
       log_fail "${name}: local HTTP launcher exited early"
       tail -n 40 "${log_file}" || true
       return 1
     fi
-    if media_server_is_tcp_listening "${port}"; then
+    if media_server_is_tcp_listening "${port}" && http_launcher_answers "${port}"; then
       log_info "HTTP launcher ready: http://127.0.0.1:${port}/"
       return 0
     fi
-    sleep 0.5
+    sleep 0.25
+    i=$((i + 1))
   done
 
   log_fail "${name}: local HTTP launcher did not become ready"

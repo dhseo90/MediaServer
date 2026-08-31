@@ -6,14 +6,14 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
 사용합니다. 최신 공개 release 기준은 `v3.9.1`이고 직전 공개 제품 baseline은
-`v3.9.0`이며, 현재 release 목표는 `v3.9.1`입니다.
+`v3.9.0`이며, 현재 release 목표는 `v4.0.0`입니다.
 exact-ID 체크 대상은 `test/fixtures/project_feature_implementation_evidence.json`의
 UI 테스트 영역 424개 `manualUiCaseId`, `uiEvidence.screenRoute`, anchor이며 누락 ID를
 prefix/range delegation으로 대체하지 않습니다.
-UI 문서 기준은 `v3.9.1 Release Correctness and Public Repository Hygiene`이며,
+UI 문서 기준은 `v4.0.0 Local Operations Policy and Stabilization`이며,
 제품 기능 baseline은 published v3.9.0의 exact 424-case 범위를 그대로 상속합니다.
 UI 풀테스트 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-현재 release 목표는 `v3.9.1`, v3.9.1 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
+현재 release 목표는 `v4.0.0`, v4.0.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다. 이번
 Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`은 manual UI
 기준서 current화, 장시간/UI 테스트 시작 조건 current화, `v3.5-v3.8 UI coverage bridge`

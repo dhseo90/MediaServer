@@ -1,0 +1,53 @@
+{
+  "schema": "media-server.v400-evidence-ops-policy.v1",
+  "decisionId": "V400-EVIDENCE-OPS-POLICY-06",
+  "recordedOn": "2026-08-28",
+  "sourceRelease": "v4.0.0",
+  "latestPublished": "v3.9.1",
+  "status": "policy-frozen",
+  "implementationStatus": "opt-in-non-vms-not-default-on",
+  "primarySelection": "keep EventRecord/clip/retention opt-in and non-VMS in 4.0; default-on storage stays v4.1.0",
+  "inheritedFeatureIds": [
+    "OPS-052",
+    "SAFE-082"
+  ],
+  "storagePolicy": {
+    "mode": "opt-in",
+    "defaultOn": "deferred-to-v4.1.0",
+    "vmsNvr": "forbidden",
+    "continuousRecording": "forbidden",
+    "destructiveCleanup": "dry-run-required",
+    "pinnedExcludedFromAutoCleanup": true
+  },
+  "contractDocument": "docs/event-evidence-contract.md",
+  "requiredContractSnippets": [
+    "Privacy And Non-VMS Boundary",
+    "24/7 상시녹화",
+    "VMS/NVR archive API",
+    "raw LLM/VLM prompt",
+    "pinned event는 automatic cleanup에서",
+    "destructive cleanup은 dry-run 없이 실행하지 않습니다"
+  ],
+  "sourceAnchors": {
+    "eventStorage": "src/analysis/event_storage.cpp",
+    "requiredSnippets": [
+      "bool WriteEvidenceManifest(",
+      "media-server.event-evidence-contract.v1"
+    ]
+  },
+  "inheritedCommands": [
+    "verify-v300-event-evidence-contract",
+    "verify-v300-feature-only-retention",
+    "verify-v300-retention-pin-cleanup"
+  ],
+  "notEvidence": [
+    "Evidence default-on productization",
+    "VMS/NVR archive API",
+    "24/7 continuous recording",
+    "UI fulltest",
+    "30-minute soak",
+    "120-minute longrun",
+    "published metadata",
+    "v4.0.0 tag or GitHub Release"
+  ]
+}

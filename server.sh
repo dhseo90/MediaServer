@@ -1189,6 +1189,24 @@ Usage:
                  대형 generated fixture의 compact 직렬화·schema·cardinality·크기 계약을 검증합니다.
   verify-v391-documentation-truth
                  v3.9.1 public README/현재 문서/release evidence의 정합성을 검증합니다.
+  verify-v400-entry-baseline
+                 v4.0.0 current source baseline과 published v3.9.1 분리를 검증합니다.
+  verify-v400-user-review-gate
+                 v4.0.0 정책/안정화 범위와 v4.1.0 신규 기능 경계의 사용자 승인 기록을 검증합니다.
+  verify-v400-verification-layer-reduction
+                 v4.0.0 986/424 유지, verifier 남발 금지, wrapper/실행 PASS 분리 규칙을 검증합니다.
+  verify-v400-local-ops-policy-freeze
+                 v4.0.0 로컬 운영 정책 freeze(3.9 defer 5개 비구현 유지, field smoke 조건부 미실행)를 검증합니다.
+  verify-v400-incident-os-policy
+                 v4.0.0 Incident OS 정책화(/ops/events 검색·timeline·resolution, 새 event type 금지)를 검증합니다.
+  verify-v400-evidence-ops-policy
+                 v4.0.0 Evidence 운영 정책화(opt-in, 비-VMS, 삭제 금지, default-on은 4.1.0)를 검증합니다.
+  verify-v400-local-ops-stabilization
+                 v4.0.0 로컬 운영 안정화(역사적 verifier 유지, 현재소스 구분, v320 drift 기록)를 검증합니다.
+  verify-v400-release-readiness
+                 v4.0.0 release readiness(네 영역 판정, 30/UI 미실행 blocker, close-out dry-run)를 검증합니다.
+  verify-v400-roadmap-contract
+                 v4.0.0 로컬 운영 정책화/안정화 로드맵과 테스트 스크립트 반영 불변 조건을 검증합니다.
   verify-post-release-reconciliation
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
@@ -2989,6 +3007,42 @@ case "${cmd}" in
   verify-v391-documentation-truth)
     require_internal verify_v391_documentation_truth.mjs
     exec "${INTERNAL_DIR}/verify_v391_documentation_truth.mjs" "$@"
+    ;;
+  verify-v400-entry-baseline)
+    require_internal verify_v400_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v400_entry_baseline.mjs" "$@"
+    ;;
+  verify-v400-user-review-gate)
+    require_internal verify_v400_user_review_gate.mjs
+    exec "${INTERNAL_DIR}/verify_v400_user_review_gate.mjs" "$@"
+    ;;
+  verify-v400-verification-layer-reduction)
+    require_internal verify_v400_verification_layer_reduction.mjs
+    exec "${INTERNAL_DIR}/verify_v400_verification_layer_reduction.mjs" "$@"
+    ;;
+  verify-v400-local-ops-policy-freeze)
+    require_internal verify_v400_local_ops_policy_freeze.mjs
+    exec "${INTERNAL_DIR}/verify_v400_local_ops_policy_freeze.mjs" "$@"
+    ;;
+  verify-v400-incident-os-policy)
+    require_internal verify_v400_incident_os_policy.mjs
+    exec "${INTERNAL_DIR}/verify_v400_incident_os_policy.mjs" "$@"
+    ;;
+  verify-v400-evidence-ops-policy)
+    require_internal verify_v400_evidence_ops_policy.mjs
+    exec "${INTERNAL_DIR}/verify_v400_evidence_ops_policy.mjs" "$@"
+    ;;
+  verify-v400-local-ops-stabilization)
+    require_internal verify_v400_local_ops_stabilization.mjs
+    exec "${INTERNAL_DIR}/verify_v400_local_ops_stabilization.mjs" "$@"
+    ;;
+  verify-v400-release-readiness)
+    require_internal verify_v400_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v400_release_readiness.mjs" "$@"
+    ;;
+  verify-v400-roadmap-contract)
+    require_internal verify_v400_roadmap_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v400_roadmap_contract.mjs" "$@"
     ;;
   verify-post-release-reconciliation)
     require_internal verify_post_release_reconciliation.mjs

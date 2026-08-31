@@ -11,7 +11,7 @@ UI 테스트 영역 424개 `manualUiCaseId`, `uiEvidence.screenRoute`, product U
 최신 공개 release 기준은 `v3.9.1 Release Correctness and Public Repository Hygiene`이고
 직전 공개 제품 baseline은 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
 현재 소스/UI 문서 기준은
-`v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
+`v4.0.0 Local Operations Policy and Stabilization`입니다.
 이번 v3.9.1 release correction은 previous published v3.9.0의 exact 424-case 제품 baseline을
 상속하면서 `V390-REQ-001`, `V390-REQ-002`,
 `V390-REQ-003` 기준으로 manual UI 기준서 current화, 장시간/UI 테스트 시작 조건

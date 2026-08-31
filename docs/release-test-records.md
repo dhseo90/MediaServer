@@ -16,9 +16,33 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.0.0 현재 소스 baseline 상태 (2026-08-31)
+
+- current source: `v4.0.0` (`VERSION=4.0.0`), HEAD `166fb478`
+- latest published: v3.9.1
+- v4.0.0 (1)~(8): 정책/안정화 기록
+- 30분: 3차 `./test_server_30min.sh` PASS. runId `v390-server-longrun-20260830123921-36621`,
+  source `b53e8af1`, worktreeClean true, predev `108 pass / 0 fail / 2 skip / 0 notRun`,
+  soak 20회×5 case, duration 2383s / requested 1800s, eligibleRealDuration true,
+  cleanup PASS. 1차 HTTP video-only fail, 2차 soak-5-redaction fail 이력은 아래 표에 보존.
+- UI 풀테스트: `./test_ui.sh` PASS. source `166fb478`, worktreeClean true, runId
+  `v390-test-acceptance-20260830225118-68124`, exact 424/424, fail 0, notRun 0,
+  unsupported 0, Policy v4 `policyValidationResult=PASS`, qualifier `uiFulltestPass=true`,
+  evidence mode qualified-native-automation (Playwright 1.62.1 + Google Chrome,
+  fallbackUsed=false, actualBrowserExecution=true). Codex 인앱 수동 UI는 not-run.
+  30분/UI PASS는 출시 가능, tag/GitHub Release evidence가 아님
+- 120분: conditional-not-run. 2026-08-31 사용자가 이 컷에서 실행하지 않기로 명시.
+  완료 evidence 아님
+- REVIEW4 8행 independent rebind: 2026-08-31. fresh candidateDigest `b90cf028b2e10e4e03a2b9ecebba1f082fcf4fc5525a178ef1785381f15ff4a7`. 978 carry-forward / 8 independent-review (`UI-019`,`MEDIA-001`,`MEDIA-004`,`MEDIA-009`,`SAFE-064`,`SAFE-071`,`OPS-041`,`OPS-179`). `verify-feature-implementation-evidence` 986/0, `verify-feature-inventory-coverage` 986/986 covered. 이 재결속은 실행 PASS가 아님
+- published metadata, `v4.0.0` tag/GitHub Release: 미실행
+- 이 기록은 출시 가능 판정이 아님
+- release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
+- step 8 기록 당시 UI는 `unrun-required-blocker`였다. 이번 실행 후 UI는 executed-pass다.
+- v3.9.1 published evidence는 아래 절에 보존
+
 ## v3.9.1 현재 소스 정정 상태 (2026-08-15)
 
-- current source: `v3.9.1` (`VERSION=3.9.1`)
+- current source at the time: `v3.9.1` (`VERSION=3.9.1`)
 - latest published: v3.9.1
 - fresh full test: 1~6차 clean-clone FAIL 이력 보존. 7차 GitHub clone `./test_release.sh`는 source `2882bb3594c87c3aa0d24d6bc8d45825a0054e92`에서 exit 0, `result=PASS`
 - release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
@@ -1348,6 +1372,15 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | Feature inventory coverage | 새 기능 ID와 exact semantic implementation/UI/verifier/longrun 매핑이 누락되지 않았는지 확인 | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-implementation-evidence.v2` manifest를 읽어 handler/route/control/action/state relation, reviewer digest, semantic assertion과 canonical v3.9 longrun mapping을 확인. `covered`는 mapping coverage이며 실행 PASS가 아님 | v2.0.0, v3.9.0 semantic exact-ID 강화 |
 | Feature implementation evidence manifest | current 986개 inventory 행의 owner source, product UI route/control/state, verifier assertion, manual UI case, 30/120분 runner를 1:1 대조 | `./server.sh verify-feature-implementation-evidence`로 current manifest 986행과 source/verifier 986, exact manual UI case 424, negative fixture 11종을 확인. historical 974/984행 결과는 당시 evidence로 보존합니다. `--refresh-manifest`는 명시적 source 갱신이고 기본 검증은 read-only이며 제품/UI/장시간 실행 evidence가 아님 | v3.9.0 V390-ADD1-02 |
 | Script inventory 확인 | 새 verifier/command가 server entrypoint와 script inventory에 등록됐는지 확인 | `./server.sh verify-script-inventory` 실행 결과와 `server.sh` dispatch 확인 | v2.0.0 |
+| V400 roadmap contract | v4.0.0 로컬 운영 정책화/안정화 로드맵과 v4.1.0 신규 기능 분리, 테스트 스크립트 반영 불변 조건을 확인 | `./server.sh verify-v400-roadmap-contract`가 backlog 8개 4.0.0 스텝과 6개 4.1.0 후보, 각 행의 `테스트 스크립트 반영 필수`, 비범위, inventory/stream-verification/server dispatch 연결을 확인. v4.0.0 2~8번 구현, UI/30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 entry baseline | current source `4.0.0`과 published `v3.9.1` 분리, VERSION/CMake/README/docs/backlog/source roadmap 정렬 | `./server.sh verify-v400-entry-baseline`이 VERSION `4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization`, latest published `v3.9.1`, `verify-release-metadata` current/published 분리, inventory/stream-verification/records/server dispatch를 확인. UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 user review gate | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 사용자 승인 기록으로 고정 | `./server.sh verify-v400-user-review-gate`가 `test/fixtures/v400_user_review_gate.json`의 `approved-through-recorded-user-goals`, `blocked-until-v400-complete`, in-scope 3~8번, v4.1.0 비구현, 비범위, backlog/inventory/stream-verification/records/server dispatch를 확인. 이 게이트 PASS는 30분/UI/published metadata PASS가 아님 | v4.0.0 |
+| V400 verification layer reduction | 986/424 유지, verifier/fixture 남발 금지, wrapper PASS와 실행 PASS 분리 | `./server.sh verify-v400-verification-layer-reduction`이 `test/fixtures/v400_verification_layer.json`의 cardinality, v390/contract/fixture 상한, v400 allowlist, wrapper/coverage 분리, REVIEW4-bound file freeze를 확인. 역사적 verifier 삭제, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 local ops policy freeze | v3.9 defer 5개를 4.0 비구현 write path로 freeze하고 field smoke는 조건부 미실행 | `./server.sh verify-v400-local-ops-policy-freeze`가 `test/fixtures/v400_local_ops_policy_freeze.json`의 exact 5개, inherited v390 signoff SHA, C++ false token, field smoke `conditional-not-run`, backlog/inventory/stream-verification/records/server dispatch를 확인. 기존 v390 deferral verifier는 재사용만 하고 수정하지 않음. write 구현, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 incident OS policy | 기존 `/ops/events` 검색/timeline/resolution을 4.0 운영 정책으로 고정 | `./server.sh verify-v400-incident-os-policy`가 `test/fixtures/v400_incident_os_policy.json`의 primary nav 비포함, 기존 면, Event POST unchanged, 새 event type 금지, inherited v320/v310 dispatch, backlog/inventory/stream-verification/records/server dispatch를 확인. Incident OS 제품 승격, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 evidence ops policy | EventRecord/clip/retention을 opt-in·비-VMS로 고정하고 default-on은 4.1.0 | `./server.sh verify-v400-evidence-ops-policy`가 `test/fixtures/v400_evidence_ops_policy.json`의 opt-in, 비-VMS, pin/dry-run cleanup, evidence default-on v4.1.0, inherited v300 dispatch, backlog/inventory/stream-verification/records/server dispatch를 확인. Evidence default-on 제품화, VMS/NVR, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 local ops stabilization | 역사적 verifier 유지, 현재소스 구분, v320 drift 기록 | `./server.sh verify-v400-local-ops-stabilization`가 `test/fixtures/v400_local_ops_stabilization.json`의 `keep-118-not-deleted`, stream-verification 현재 source `4.0.0`, v320 `recorded-not-fixed`, backlog/inventory/records/server dispatch를 확인. 역사적 verifier 삭제, v320 REVIEW4 rewrite, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
+| V400 release readiness | 네 테스트 영역 판정, 30분/UI executed-pass, 120분 conditional-not-run, close-out dry-run | `./server.sh verify-v400-release-readiness`가 `test/fixtures/v400_release_readiness.json`의 네 영역 판정, 30분·UI `executed-pass`, 120분 `conditional-not-run`, close-out dry-run, tag/GitHub Release 미생성, backlog/inventory/stream-verification/records/server dispatch를 확인. 이 명령 PASS는 30분 soak runner, `./test_ui.sh`, 120분, published metadata, tag PASS가 아님 | v4.0.0 |
 | User test AI asset bootstrap | Git 비추적 YOLO model/COCO labels가 무옵션 30분·120분·UI·release launcher의 실제 test 위임 전에 준비되는지 확인 | `./server.sh verify-v390-user-test-launchers-contract`가 missing download, fixed SHA-256, existing verify, corrupt repair, digest mismatch no-publish/temp cleanup을 확인. 기본 Ultralytics URL의 실제 10.4 MB download와 SHA readback도 확인. Actual launcher는 `ai-asset-bootstrap` 실패 시 build/30분/UI/120분 전에 fail-stop | v3.9.1 |
 | Current UI evidence VERSION binding | Policy v4 current-source fixture가 패치 숫자를 고정하지 않고 token `current`로 `VERSION`에 결속되는지 확인 | `./server.sh verify-v390-current-ui-evidence-contract`가 canonical/visual/current state version token이 `current`인지 확인. qualifier는 token을 `VERSION`으로 해석한 뒤 비교한다. `node scripts/internal/verify_v390_ui_policy_v4_actual_evidence_contract.mjs`가 `canonical-case-manifest-version-mismatch`를 `canonical-source-binding`에 배정하고 미등록 reason은 throw 대신 `fail-closed-incomplete-assignment`를 남김. historical `3.9.0` fixture는 token이 아니므로 현재 소스로 승격되지 않음 | v3.9.1 |
 | Build | C++/UI/static asset build가 통과하는지 확인 | `./server.sh build` exit code 0 확인. 실패 후 수정했다면 최초 fail과 최종 pass를 모두 결과 기록에 남김 | v1.8.0 |
@@ -1601,6 +1634,720 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | 미실행 항목을 결과표 PASS/FAIL에 섞기 | 실행하지 않은 30분/120분/UI/field smoke를 결과표에 조건부 통과처럼 기록 | 결과표는 pass/fail만 쓰고, 미실행/제외는 별도 표에 사유와 완료 evidence로 쓸 수 없다는 경계를 기록 | v2.8.0 |
 
 ## 버전별 테스트 결과 기록
+
+### v4.0.0
+
+v4.0.0 (1)~(8) 정책/안정화 기록. 결과표는 실행한 항목만 `pass`/`fail`로 남긴다.
+이 절은 출시 가능 판정이 아니다. 1차/2차 30분 fail 이력은 보존하고, 3차 PASS가 현재 30분 evidence다.
+UI 풀테스트는 `./test_ui.sh` exact 424/424 Policy v4 적격 PASS다. step 8 기록 당시 UI는
+`unrun-required-blocker`였다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| git diff --check | whitespace/conflict marker 검사. 2026-08-29 재실행 출력 없음, exit 0 | pass |
+| Build | `./server.sh build` exit 0, `build-gst-onnx/media_server` | pass |
+| V400 entry baseline | `./server.sh verify-v400-entry-baseline` 10/0 | pass |
+| V400 roadmap contract | `./server.sh verify-v400-roadmap-contract` 8/0 | pass |
+| Release metadata | `./server.sh verify-release-metadata` 18/0, current `4.0.0` / published `v3.9.1` | pass |
+| v391 documentation truth | `./server.sh verify-v391-documentation-truth` 7/0 | pass |
+| v390 entry baseline | `./server.sh verify-v390-entry-baseline` 14/0 | pass |
+| Docs links | `./server.sh verify-docs-links` failures 0 | pass |
+| Docs UI assets | `./server.sh verify-docs-ui-assets` 10/0 | pass |
+| Script inventory | `./server.sh verify-script-inventory` 11/0 | pass |
+| Project inventory | `./server.sh verify-project-inventory` 17/0 | pass |
+| Feature inventory coverage | `./server.sh verify-feature-inventory-coverage` 986/986 covered, 7/0 | pass |
+| V400 user review gate | `./server.sh verify-v400-user-review-gate` 5/0, fixture `V400-REVIEW-GATE-02` | pass |
+| V400 verification layer reduction | `./server.sh verify-v400-verification-layer-reduction` 7/0, fixture `V400-VERIFICATION-LAYER-03` | pass |
+| v390 evidence/test gate prep | `./server.sh verify-v390-evidence-test-gate-prep` 11/0 | pass |
+| V400 local ops policy freeze | `./server.sh verify-v400-local-ops-policy-freeze` 8/0, fixture `V400-LOCAL-OPS-POLICY-FREEZE-04` | pass |
+| V390 deferred product owner signoff | `./server.sh verify-v390-deferred-product-owner-signoff` 6/0, exact 5 / field smoke 별도 | pass |
+| V390 action execution deferral | `./server.sh verify-v390-action-execution-deferral-decision` 8/0, actionExecutionPerformed=false | pass |
+| V390 ONVIF credential provider status | `./server.sh verify-v390-onvif-credential-provider-status` 8/0, persistent store deferred | pass |
+| V390 backup/recovery handoff | `./server.sh verify-v390-backup-recovery-handoff-validation` 6/0, productionRestorePerformed=false | pass |
+| V390 conditional field AI decisions | `./server.sh verify-v390-conditional-field-ai-decisions` 9/0, providerCallPerformed=false | pass |
+| V390 Re-ID readiness | `./server.sh verify-v390-reid-readiness-consistency` C++ matrices 2, HTTP 10, failures 0 | pass |
+| V390 field smoke no-device closure | `./server.sh verify-v390-external-field-smoke-no-device-closure` 4/0, conditional-not-run | pass |
+| V400 incident OS policy | `./server.sh verify-v400-incident-os-policy` 6/0, fixture `V400-INCIDENT-OS-POLICY-05` | pass |
+| V320 unified ops events workspace | `./server.sh verify-v320-unified-ops-events-workspace` 8/1. `data-testid`는 `product_ui_server_pages.cpp`에 있고 webrtc bundle에는 없음. 이 스텝 C++ 변경 없음. 7번 정합 후보 | fail |
+| V400 evidence ops policy | `./server.sh verify-v400-evidence-ops-policy` 6/0, fixture `V400-EVIDENCE-OPS-POLICY-06` | pass |
+| V300 event evidence contract | `./server.sh verify-v300-event-evidence-contract` 9/0 | pass |
+| V400 local ops stabilization | `./server.sh verify-v400-local-ops-stabilization` 7/0, fixture `V400-LOCAL-OPS-STABILIZATION-07` | pass |
+| v390 entry baseline | `./server.sh verify-v390-entry-baseline` 14/0 | pass |
+| v391 documentation truth | `./server.sh verify-v391-documentation-truth` 7/0 | pass |
+| V400 release readiness | `./server.sh verify-v400-release-readiness` 5/0, fixture `V400-RELEASE-READINESS-08`. 당시 30분/UI unrun-required-blocker, 120분 conditional-not-run, tag/GitHub Release 미생성. 이후 30분 3차 PASS로 정정 | pass |
+| V400 release readiness 30분 executed-pass 정정 | 2026-08-30 `./server.sh verify-v400-release-readiness` 5/0. fixture `implementationStatus=policy-steps-complete-30min-pass-ui-unrun`, 30분 `executed-pass`, UI `unrun-required-blocker`, 120분 `conditional-not-run`. `verify-v400-user-review-gate` 5/0, `verify-v400-roadmap-contract` 8/0, `verify-docs-links` failures 0, `verify-script-inventory` 11/0. 이 명령 PASS는 soak runner 재실행이 아님 | pass |
+| V400 release readiness UI executed-pass 정정 | 2026-08-31 `./server.sh verify-v400-release-readiness` 5/0. fixture `implementationStatus=policy-steps-complete-30min-ui-pass`, 30분·UI `executed-pass`, 120분 `conditional-not-run`. `verify-v400-user-review-gate` 5/0, `verify-v400-roadmap-contract` 8/0. 이 명령 PASS는 `./test_ui.sh` 재실행이 아님 | pass |
+| v400 (8) closeout dry-run heading precheck | 이전 세션 최초 `./server.sh verify-release-closeout-helper --dry-run`가 `docs/release-policy.md`에 `v4.0.0 Release Close-out Runbook` 제목이 없어 `release docs keep publish gates manual`에서 fail. 제품 코드 회귀가 아니라 release readiness 문서 기준 drift | fail |
+| v400 (8) closeout dry-run | runbook 추가 후 `./server.sh verify-release-closeout-helper --dry-run` 재실행. 2026-08-29 status pass, dryRun true, localCommands 5, manualActions 10, tag not created, push not performed | pass |
+| v400 (8) closeout dry-run after notes draft | 2026-08-31 `./server.sh verify-release-closeout-helper --dry-run --report ... --json-report ...` on source `c43c47e3` plus notes draft. status pass, dryRun true, localCommands 5, manualActions 10, gitStatusLines 1, tag not created, push not performed. schema `media-server.release-closeout-helper-dry-run.v1`. published metadata / tag / GitHub Release PASS 아님 | pass |
+| v400 (8) closeout one-shot dry-run after notes draft | 2026-08-31 `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`. status pass, dryRun true, localCommands 5, manualActions 10, tag not created, push not performed | pass |
+| v400 English UI copy i18n | `./server.sh verify-ui-copy-i18n-parity` 7/0. channel scope policy, user scope labels, VLM/what-if/approval draft 문구를 `product_ui_js.cpp` koToEn map/pattern에 추가. schema/media path 변경 아님 | pass |
+| v400 English docs UI recapture after i18n | `node scripts/internal/capture_docs_ui_assets.mjs --lang=en` 9/0. channels/rules/users PNG 직접 검수, hangul residue 0, 표·카드 잘림 없음 | pass |
+| Docs UI assets after English i18n recapture | 2026-08-31 `./server.sh verify-docs-ui-assets` 10/0 | pass |
+| v400 (8) closeout dry-run on 9fab5fe2 | clean HEAD `9fab5fe2` `./server.sh verify-release-closeout-helper --dry-run` status pass, dryRun true, localCommands 5, manualActions 10, gitStatusLines 0, tag not created, push not performed | pass |
+| v400 (8) closeout one-shot dry-run on 9fab5fe2 | `--dry-run --one-shot-dry-run` on clean `9fab5fe2` status pass | pass |
+| v400 published seed pin v3.9.1 | seed fixture `publishedReleaseTarget` `v3.9.0`→`v3.9.1`. `prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline` exit 0. acceptance-bundle-contract 37/0. mismatch negative는 stale `v3.9.0` | pass |
+| v400 (8) closeout dry-run after seed pin | seed pin working tree `./server.sh verify-release-closeout-helper --dry-run` status pass, gitStatusLines 4 (uncommitted seed/docs), tag not created | pass |
+| v400 REVIEW4 8-row independent rebind producer | `./server.sh produce-v390-review4-migration-aware-approvals --write-ledger` prior audit/approvals + /tmp migration evidence + independent scoped decisions + review package. candidateDigest `b90cf028b2e10e4e03a2b9ecebba1f082fcf4fc5525a178ef1785381f15ff4a7`, carry-forward 978, independent-review `UI-019,MEDIA-001,MEDIA-004,MEDIA-009,SAFE-064,SAFE-071,OPS-041,OPS-179`, atomic replacements audit/approval/manifest/native, failures 0 | pass |
+| v400 REVIEW4 implementation evidence after 8-row rebind | `./server.sh verify-feature-implementation-evidence` expected/inventory/manifest/source/verifier 986, semanticReviewedRows 986, validationErrors 0, review4GlobalErrors 0, negativeFixtures 15/15, executionEvidenceStatus not-execution-evidence | pass |
+| v400 REVIEW4 inventory coverage after 8-row rebind | `./server.sh verify-feature-inventory-coverage` featureRows 986, covered 986, missing 0, pass 7, fail 0 | pass |
+| Docs UI assets (8) | `./server.sh verify-docs-ui-assets` 10/0. 2026-08-29 재실행 | pass |
+| v400 30분 launcher contract | `./test_server_30min.sh` 내부 `verify-v390-user-test-launchers-contract` 22/0. source `18e19ce1` | pass |
+| v400 30분 AI asset bootstrap | model SHA `634279b4...`, labels SHA `bd17f1ee...` verified | pass |
+| v400 30분 longrun preflight | `verify-v390-server-longrun --duration-minutes 30` phase preflight | pass |
+| v400 30분 longrun build | `./server.sh build` target `build-gst-onnx/media_server` | pass |
+| v400 30분 longrun seed | throwaway seed.json | pass |
+| v400 30분 start-server | delegated predev `server-start-queue-256` pid 17542, http 63691 rtsp 63692 | pass |
+| v400 30분 integrated-smoke | `./server.sh test --no-start` 21 pass / 1 fail / 8 skip, 545s. 최초 실패 `codec matrix: local HTTP URI video-only -> RTSP/WebRTC`, `http_local_h264_video_only: local HTTP launcher did not become ready` (port 8765, 10s). 같은 포트 직전 `http_local_h264_aac`는 통과 | fail |
+| v400 30분 longrun runner | `./test_server_30min.sh` result FAIL, failedPhase `integrated-smoke`, soak 0 iteration, elapsed 552s / requested 1800s, cleanup PASS. 재현 `./test_server_30min.sh` | fail |
+| v400 30분 HTTP video-only retest | port 8767 + listen/GET ready 후 `http_local_h264_video_only` RTSP default/h264/h265 + WebRTC signaling 4/0. source `faef331f` | pass |
+| v400 30분 integrated-smoke retest | `./server.sh test --no-start` 22 pass / 0 fail / 8 skip, 537s. 이전 HTTP video-only fail 후 pass | pass |
+| v400 30분 soak 1~4 | va-events, event-post-schema, event-post-recovery, redaction, runtime-idle 각 4회 전부 pass | pass |
+| v400 30분 soak-5-va-events | iteration 5 va-events | pass |
+| v400 30분 soak-5-event-post-schema | iteration 5 event-post schema | pass |
+| v400 30분 soak-5-event-post-recovery | iteration 5 event-post recovery | pass |
+| v400 30분 soak-5-redaction | `verify-redaction --live-only --duration 12`. live-va-redaction ffmpeg RTSP overlay 132s timeout, `RTSP VA overlay decode failed`. 1~4회 redaction은 pass | fail |
+| v400 30분 longrun runner retest | `./test_server_30min.sh` source `faef331f` FAIL, failedPhase `soak-case-loop`, failedCase `soak-5-redaction`, elapsed 1065s / requested 1800s, soak iterations 5, cleanup PASS | fail |
+| v400 30분 3차 longrun runner retest | `./test_server_30min.sh` source `b53e8af1` inner PASS. 위 3차 전수 행이 현재 30분 evidence | pass |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| v400 30분 3차 launcher contract | `./test_server_30min.sh` 내부 `verify-v390-user-test-launchers-contract` 22/0. source `b53e8af1` | pass |
+| v400 30분 3차 AI asset bootstrap | model SHA `634279b40c07...` path `models/yolo11n.onnx` verified; labels SHA `bd17f1ee35d5...` path `models/coco.names` verified | pass |
+| v400 30분 3차 longrun preflight | `verify-v390-server-longrun --duration-minutes 30` phase preflight, outputDir `$TMPDIR/media_server_v390_server_30min.ZpQmes` | pass |
+| v400 30분 3차 longrun build | `./server.sh build` exit 0, target `build-gst-onnx/media_server` 100% | pass |
+| v400 30분 3차 longrun seed | throwaway seed.json | pass |
+| v400 30분 3차 start-server | delegated predev `server-start-queue-256` pid 36739/64346, http 50230 rtsp 50231, authMode=off | pass |
+| v400 30분 3차 launcher-contract [01] four root launchers are executable zero-option entrypoints | `verify-v390-user-test-launchers-contract` item 1/22 | pass |
+| v400 30분 3차 launcher-contract [02] common launcher owns output, contract preflight, sanitization, and exact delegation | `verify-v390-user-test-launchers-contract` item 2/22 | pass |
+| v400 30분 3차 launcher-contract [03] user launcher bootstraps checksum-bound AI assets before actual test delegation | `verify-v390-user-test-launchers-contract` item 3/22 | pass |
+| v400 30분 3차 launcher-contract [04] server launchers use OS temp while UI and release use distinct repository roots | `verify-v390-user-test-launchers-contract` item 4/22 | pass |
+| v400 30분 3차 launcher-contract [05] standalone UI verifies the exact source manifest before environment bootstrap | `verify-v390-user-test-launchers-contract` item 5/22 | pass |
+| v400 30분 3차 launcher-contract [06] standalone UI source-contract failure cannot reach the acceptance environment | `verify-v390-user-test-launchers-contract` item 6/22 | pass |
+| v400 30분 3차 launcher-contract [07] 30-minute launcher delegates only the runner-owned 30-minute suite | `verify-v390-user-test-launchers-contract` item 7/22 | pass |
+| v400 30분 3차 launcher-contract [08] 120-minute launcher invocation is recorded as direct user authorization | `verify-v390-user-test-launchers-contract` item 8/22 | pass |
+| v400 30분 3차 launcher-contract [09] server launchers preserve suite-specific first failure and later not-run evidence | `verify-v390-user-test-launchers-contract` item 9/22 | pass |
+| v400 30분 3차 launcher-contract [10] release launcher falls back to the failed feature-gate check testcase ID | `verify-v390-user-test-launchers-contract` item 10/22 | pass |
+| v400 30분 3차 launcher-contract [11] UI launcher prints exact canonical fields and fails closed on a false gate | `verify-v390-user-test-launchers-contract` item 11/22 | pass |
+| v400 30분 3차 launcher-contract [12] UI launcher fails closed and prints explicit blanks when canonical summary path is missing | `verify-v390-user-test-launchers-contract` item 12/22 | pass |
+| v400 30분 3차 launcher-contract [13] UI launcher prints every canonical gate blank when the top acceptance summary is absent | `verify-v390-user-test-launchers-contract` item 13/22 | pass |
+| v400 30분 3차 launcher-contract [14] UI launcher builds current source before exact 424 environment and Policy v4 stages | `verify-v390-user-test-launchers-contract` item 14/22 | pass |
+| v400 30분 3차 launcher-contract [15] UI launcher build failure never reaches bootstrap or browser execution | `verify-v390-user-test-launchers-contract` item 15/22 | pass |
+| v400 30분 3차 launcher-contract [16] UI launcher fail-stop keeps Policy v4 not-run and still cleans up | `verify-v390-user-test-launchers-contract` item 16/22 | pass |
+| v400 30분 3차 launcher-contract [17] actual UI suite rejects an OS temp artifact root before environment bootstrap | `verify-v390-user-test-launchers-contract` item 17/22 | pass |
+| v400 30분 3차 launcher-contract [18] release launcher records 120 minutes as not-required without a trigger | `verify-v390-user-test-launchers-contract` item 18/22 | pass |
+| v400 30분 3차 launcher-contract [19] release launcher automatically runs 120 minutes only after a trigger | `verify-v390-user-test-launchers-contract` item 19/22 | pass |
+| v400 30분 3차 launcher-contract [20] AGENTS 7.6.2 change classifier covers every automatic 120-minute area | `verify-v390-user-test-launchers-contract` item 20/22 | pass |
+| v400 30분 3차 launcher-contract [21] media-path ICE classification requires an independent path token | `verify-v390-user-test-launchers-contract` item 21/22 | pass |
+| v400 30분 3차 launcher-contract [22] lower runners expose automatic UI suite and conditional 120 source contracts | `verify-v390-user-test-launchers-contract` item 22/22 | pass |
+| v400 30분 3차 integrated-smoke | `./server.sh test --no-start --skip-external --include-rules --include-rule-ui --include-va-events --include-image-analysis --include-redaction` 22 pass / 0 fail / 8 skip, 553s (test-summary elapsed 552s). logDir `.media_server.test/20260830-213922` | pass |
+| v400 30분 3차 smoke static-scripts | 스크립트 문법 검사 `bash -n server.sh scripts/internal/*.sh` | pass |
+| v400 30분 3차 smoke script-inventory | `./server.sh verify-script-inventory` 11/0 | pass |
+| v400 30분 3차 smoke code-comments | `./server.sh verify-code-comments` | pass |
+| v400 30분 3차 smoke docs-links | `./server.sh verify-docs-links` | pass |
+| v400 30분 3차 smoke config-json | `python3 -m json.tool config/codec_test_sources.json` | pass |
+| v400 30분 3차 smoke report-summary | `./server.sh summarize-reports` smoke. 이 단계는 glob이 이전 실행 leftover `/tmp` summary도 읽음. 이번 3차 smoke 자체 fail count는 0 | pass |
+| v400 30분 3차 smoke status | `./server.sh status` 기존 서버 http 50230 rtsp 50231 | pass |
+| v400 30분 3차 smoke diagnose | `./server.sh diagnose` | pass |
+| v400 30분 3차 smoke codec-file_local_h264_aac | `verify-codecs` filter `file_local_h264_aac` file H264/AAC -> RTSP/WebRTC | pass |
+| v400 30분 3차 smoke codec-file_local_h265_aac | `verify-codecs` filter `file_local_h265_aac` file H265/AAC -> RTSP/WebRTC | pass |
+| v400 30분 3차 smoke codec-rtsp_local_h265_opus | `verify-codecs` filter `rtsp_local_h265_opus` | pass |
+| v400 30분 3차 smoke codec-rtsp_local_h264_pcmu | `verify-codecs` filter `rtsp_local_h264_pcmu` | pass |
+| v400 30분 3차 smoke codec-rtsp_local_h264_pcma | `verify-codecs` filter `rtsp_local_h264_pcma` | pass |
+| v400 30분 3차 smoke codec-webrtc_local_publish_h264_opus | `verify-codecs` filter `webrtc_local_publish_h264_opus` local WHIP publish | pass |
+| v400 30분 3차 smoke codec-http_local_h264_aac | `verify-codecs` filter `http_local_h264_aac` port 8765 | pass |
+| v400 30분 3차 smoke codec-http_local_h264_video_only | `verify-codecs` filter `http_local_h264_video_only` port 8767 ready GET, RTSP default/h264/h265 + WebRTC signaling 4/0. 1차 fail 후 pass | pass |
+| v400 30분 3차 smoke va-overlay | `./server.sh verify-va` YOLO/VA overlay | pass |
+| v400 30분 3차 smoke redaction | `./server.sh verify-redaction --duration 10` 4/0/3, live-va-redaction 32s | pass |
+| v400 30분 3차 smoke rules-registry | `scripts/internal/test_rule_registry.sh` /lab/analysis profiles+rules | pass |
+| v400 30분 3차 smoke rule-ui-smoke | `./server.sh verify-rule-ui --http-base http://127.0.0.1:50230` | pass |
+| v400 30분 3차 smoke va-tracking-events | `./server.sh verify-va-events` | pass |
+| v400 30분 3차 smoke image-analysis | `./server.sh verify-image-analysis` | pass |
+| v400 30분 3차 soak-1-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-1-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-1-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-1-redaction | `verify-redaction --live-only --duration 12` 43s. | pass |
+| v400 30분 3차 soak-1-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-2-va-events | `verify-va-events --duration 30` 34s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-2-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-2-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-2-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-2-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-3-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-3-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-3-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-3-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-3-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-4-va-events | `verify-va-events --duration 30` 34s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-4-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-4-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-4-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-4-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-5-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-5-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-5-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-5-redaction | `verify-redaction --live-only --duration 12` 43s. 2차 132s timeout fail 후 pass. | pass |
+| v400 30분 3차 soak-5-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-6-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-6-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-6-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-6-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-6-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-7-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-7-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-7-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-7-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-7-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-8-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-8-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-8-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-8-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-8-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-9-va-events | `verify-va-events --duration 30` 34s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-9-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-9-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-9-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-9-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-10-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-10-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-10-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-10-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-10-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-11-va-events | `verify-va-events --duration 30` 34s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-11-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-11-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-11-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-11-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-12-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-12-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-12-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-12-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-12-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-13-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-13-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-13-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-13-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-13-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-14-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-14-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-14-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-14-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-14-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-15-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-15-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-15-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-15-redaction | `verify-redaction --live-only --duration 12` 43s. | pass |
+| v400 30분 3차 soak-15-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-16-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-16-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-16-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-16-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-16-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-17-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-17-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-17-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-17-redaction | `verify-redaction --live-only --duration 12` 42s. | pass |
+| v400 30분 3차 soak-17-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-18-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-18-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-18-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-18-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-18-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-19-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-19-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-19-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-19-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-19-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 soak-20-va-events | `verify-va-events --duration 30` 33s, http://127.0.0.1:50230 | pass |
+| v400 30분 3차 soak-20-event-post-schema | `verify-event-post --mode schema` 3s | pass |
+| v400 30분 3차 soak-20-event-post-recovery | `verify-event-post --mode recovery` 3s | pass |
+| v400 30분 3차 soak-20-redaction | `verify-redaction --live-only --duration 12` 41s. | pass |
+| v400 30분 3차 soak-20-runtime-idle | runtime idle check 0s. leftover resource/registry streams drain 후 idle | pass |
+| v400 30분 3차 main-runtime-idle | predev later phase runtime idle check | pass |
+| v400 30분 3차 server-start-queue-2 | second `run_server_foreground` queue-256 restart pid 64346 | pass |
+| v400 30분 3차 event-post-queue | `verify-event-post --mode queue` 3s, received=1 path `/slow` | pass |
+| v400 30분 3차 queue-runtime-idle | queue 이후 runtime idle check | pass |
+| v400 30분 3차 ports-clean | lsof predev ports 50230/50231 clean, bindableAfter true | pass |
+| v400 30분 3차 summary-report | `summarize-reports` 1s. leftover 이전 fail redaction JSON이 glob에 섞임. step 자체는 pass이며 이번 soak ledger fail=0 | pass |
+| v400 30분 3차 longrun cleanup | server pid 36739/64346 stopped, ports 50230/50231 bindable, predev workdir `/tmp/media_server_predev-1788093561-36719` 551421 bytes -> 0 | pass |
+| v400 30분 3차 longrun report | report phase, summary.json result PASS, longrunEvidenceStatus=real-duration-evidence, delegatedPhaseLedger 110/110 | pass |
+| v400 30분 3차 longrun runner | `./test_server_30min.sh` inner result PASS, exitCode 0, duration 2384.44s, soak 20, failedPhase none. wrapper/tool exit 1은 inner JSON PASS와 불일치하며 제품 fail로 쓰지 않음 | pass |
+
+| v400 UI launcher contract | `./test_ui.sh` 내부 `verify-v390-user-test-launchers-contract` 22/0. source `166fb478` | pass |
+| v400 UI AI asset bootstrap | model SHA `634279b40c07...`, labels SHA `bd17f1ee35d5...` verified | pass |
+| v400 UI exact-case contract | `verify-v390-ui-native-exact-cases-contract` 60/0, canonicalExactCases 424. actualBrowserExecution not-run-by-this-contract | pass |
+| v400 UI longrun preflight | acceptance bundle phase preflight | pass |
+| v400 UI longrun build | `./server.sh build` exit 0, `build-gst-onnx/media_server` | pass |
+| v400 UI environment bootstrap | throwaway server/auth roles/Playwright storage-state, http `127.0.0.1:57686` | pass |
+| v400 UI exact-424 runner | `run-v390-ui-native-exact-cases` 424 attempted / 424 PASS / 0 FAIL / 0 not-run / 0 unsupported, 1484062ms. raw producer `result=CAPTURED` `uiFulltestPass=false`는 설계상 raw≠qualification | pass |
+| v400 UI server cleanup | throwaway server pid 68261 종료, ports 57686/57687 bindable | pass |
+| v400 UI Policy v4 qualification | `verify-ui-fulltest-evidence-policy-v4 --require-eligible`. policyValidationResult=PASS, uiFulltestPass=true, qualifiedCaseCount=424, currentEvidenceStatus=actual-current-source-evidence, evidenceEligibility=eligible, reasonCount=0, manualIntervention=0, failedInteraction=0 | pass |
+| v400 UI final integrity | canonical parent/424 children/Policy/current run/source/cleanup PASS | pass |
+| v400 UI acceptance report | bundle result PASS, executionMode actual-ui-only, automatedAcceptanceStatus eligible | pass |
+| v400 UI fulltest runner | `./test_ui.sh` inner `[test] result=PASS` exit 0, exactUiPass=424, policyEligible=true, policyQualified=true, uiFulltestPass=true. evidence mode qualified-native-automation. Codex 인앱 수동 UI 아님 | pass |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| UI-001 | `./test_ui.sh` exact case requested `/` `anonymous` `390x844` `light` `WebRtcHttpServer::Start`; observed `/login` | pass |
+| UI-002 | `./test_ui.sh` exact case requested `/setup` `anonymous` `390x844` `light` `SetupPageHtml`; observed `/setup` | pass |
+| UI-003 | `./test_ui.sh` exact case requested `/login` `anonymous` `390x844` `light` `LoginPageHtml`; observed `/login` | pass |
+| UI-004 | `./test_ui.sh` exact case requested `/password/change` `operator` `390x844` `light` `ChangeUserPassword`; observed `/password/change` | pass |
+| UI-005 | `./test_ui.sh` exact case requested `/logout` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/home` | pass |
+| UI-007 | `./test_ui.sh` exact case requested `/invite/setup` `anonymous` `390x844` `light` `InviteSetupPageHtml`; observed `/invite/setup` | pass |
+| UI-008 | `./test_ui.sh` exact case requested `/client/request-access` `anonymous` `390x844` `light` `CreateAccessRequestFromJson`; observed `/client/request-access` | pass |
+| UI-009 | `./test_ui.sh` exact case requested `/ops/home` `operator` `390x844` `light` `AppendOpsHomePage`; observed `/ops/home` | pass |
+| UI-010 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `AppendOpsDashboardPage`; observed `/ops/dashboard` | pass |
+| UI-011 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `BuildOpsSourcesPageHtml`; observed `/ops/sources` | pass |
+| UI-012 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `AppendOpsRulesPage`; observed `/ops/rules` | pass |
+| UI-013 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `BuildOpsUsersPageHtml`; observed `/ops/users` | pass |
+| UI-014 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `bindEventReviewActions`; observed `/ops/events` | pass |
+| UI-015 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `liveMonitorHtml`; observed `/client/live` | pass |
+| UI-016 | `./test_ui.sh` exact case requested `/client/dashboard` `viewer` `390x844` `light` `renderDashboard`; observed `/client/dashboard` | pass |
+| UI-017 | `./test_ui.sh` exact case requested `/client/events` `viewer` `390x844` `light` `renderEventPage`; observed `/client/events` | pass |
+| UI-018 | `./test_ui.sh` exact case requested `/lab` `operator` `390x844` `light` `request-dispatch-lambda`; observed `/lab` | pass |
+| UI-019 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `AppendProductThemeScript`; observed `/ops` | pass |
+| UI-020 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `1440x900` `light` `ProductUiCss`; observed `/ops/dashboard` | pass |
+| UI-021 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `ProductUiCss`; observed `/ops` | pass |
+| UI-022 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `wireOpsVlmControls`; observed `/ops/vlm` | pass |
+| UI-023 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `const saved = await requestJson(`/ops/api/vlm/profiles/${encodeURIComponent(payload.id)}`, {`; observed `/ops/vlm` | pass |
+| UI-024 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `wireOpsVlmControls`; observed `/ops/vlm` | pass |
+| UI-025 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `opsVlmRuntimeStatusSummary`; observed `/ops/vlm` | pass |
+| UI-026 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `wireOpsVlmControls`; observed `/ops/vlm` | pass |
+| UI-027 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `opsVlmRuntimeStatusSummary`; observed `/ops/vlm` | pass |
+| UI-028 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `renderOpsVlmProfiles`; observed `/ops/vlm` | pass |
+| UI-029 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `await requestJson(`/ops/api/vlm/profiles/${encodeURIComponent(id)}`, { method: 'DELETE' });`; observed `/ops/vlm` | pass |
+| UI-030 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `opsVlmEvaluationDimensionText`; observed `/ops/vlm` | pass |
+| UI-031 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `const payload = await requestJson(`/ops/api/vlm/install-connection/dry-run?${params.toString()}`);`; observed `/ops/vlm` | pass |
+| UI-032 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `eventReviewVlmHtml`; observed `/ops/events` | pass |
+| UI-033 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `renderOpsVlmRuntimeStatus`; observed `/ops/vlm` | pass |
+| UI-034 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `renderOpsVlmEvaluationResults`; observed `/ops/vlm` | pass |
+| UI-035 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `bindEventReviewActions`; observed `/ops/events` | pass |
+| UI-036 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `applyOpsVlmRuleSuggestionDraft`; observed `/ops/rules` | pass |
+| UI-037 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `bindEventReviewActions`; observed `/ops/events` | pass |
+| UI-038 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderAlertDeliveryDryRun`; observed `/ops/events` | pass |
+| UI-039 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderIncidentMemorySearch`; observed `/ops/events` | pass |
+| UI-040 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderIncidentTimelineGraph`; observed `/ops/events` | pass |
+| UI-041 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderExplainableIncidentBrief`; observed `/ops/events` | pass |
+| UI-042 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderSimilarIncidentLookup`; observed `/ops/events` | pass |
+| UI-043 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `BuildEventEvidenceBundleZip`; observed `/ops/events` | pass |
+| UI-044 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderIncidentMemorySearch`; observed `/ops/events` | pass |
+| UI-045 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderVlmSummaryCandidateReview`; observed `/ops/events` | pass |
+| UI-046 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderIncidentRuleSuggestionReview`; observed `/ops/events` | pass |
+| UI-047 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderOnvifCredentialGate`; observed `/ops/sources` | pass |
+| UI-048 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `refreshDashboard`; observed `/ops/dashboard` | pass |
+| UI-049 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `opsRulesPresetWarningText`; observed `/ops/rules` | pass |
+| UI-050 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderIncidentTriageBoard`; observed `/ops/events` | pass |
+| UI-051 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderIncidentDecisionScorecard`; observed `/ops/events` | pass |
+| UI-052 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderOperationalActionPack`; observed `/ops/events` | pass |
+| UI-053 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderRuleWhatIfPreview`; observed `/ops/events` | pass |
+| UI-054 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderOperatorOutcomeMemory`; observed `/ops/events` | pass |
+| UI-055 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderIncidentActionReadinessQueue`; observed `/ops/events` | pass |
+| UI-056 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `renderOpsApprovalGatedRuleDraftContext`; observed `/ops/rules` | pass |
+| UI-057 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderEvidenceIntakeFieldReadiness`; observed `/ops/events` | pass |
+| UI-058 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderRuntimeEvidenceWindow`; observed `/ops/events` | pass |
+| UI-059 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV300EventEvidenceSearchUi`; observed `/ops/events` | pass |
+| UI-060 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV310ReplayTimelineUi`; observed `/ops/events` | pass |
+| UI-061 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `bindEventReviewActions`; observed `/ops/events` | pass |
+| UI-062 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV320UnifiedOpsEventsWorkspace`; observed `/ops/events` | pass |
+| UI-063 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV320EvidenceQualityLayer`; observed `/ops/events` | pass |
+| UI-064 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV320SourceReliabilityContext`; observed `/ops/events` | pass |
+| UI-065 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV320AiReviewQualityContext`; observed `/ops/events` | pass |
+| UI-066 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV320OperatorResolutionFlow`; observed `/ops/events` | pass |
+| UI-067 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV320ActionReadinessChecklist`; observed `/ops/events` | pass |
+| UI-068 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `renderClientSafeResolutionDigest`; observed `/client/live` | pass |
+| UI-069 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV320ResolutionSearchMetrics`; observed `/ops/events` | pass |
+| UI-070 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV330IncidentSourceCorrelationLayer`; observed `/ops/events` | pass |
+| UI-071 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV330OperatorRecheckRecoveryQueue`; observed `/ops/events` | pass |
+| UI-072 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `renderClientSafeSourceStatusDigest`; observed `/client/live` | pass |
+| UI-073 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderSourceReliabilitySearchMetrics`; observed `/ops/sources` | pass |
+| UI-074 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderBackupRecoverySourceHandoff`; observed `/ops/sources` | pass |
+| UI-075 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderOpsContinuityDrillWorkspace`; observed `/ops/sources` | pass |
+| UI-076 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderApprovalGatedRecoveryChecklistAudit`; observed `/ops/sources` | pass |
+| UI-077 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `renderClientSafeMaintenanceDigest`; observed `/client/live` | pass |
+| UI-078 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderDrillEvidenceExportCleanupManifest`; observed `/ops/sources` | pass |
+| UI-079 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderFieldBridgeConditionGates`; observed `/ops/sources` | pass |
+| UI-080 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `renderV350IncidentCommandHandoff`; observed `/ops/events` | pass |
+| UI-081 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV350OpsCommandWorkspace`; observed `/ops/dashboard` | pass |
+| UI-082 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV350OpsCommandWorkspace`; observed `/ops/dashboard` | pass |
+| UI-083 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `renderClientImpactForecast`; observed `/client/live` | pass |
+| UI-084 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `renderClientOperationsNotice`; observed `/client/live` | pass |
+| UI-085 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV350OpsCommandWorkspace`; observed `/ops/dashboard` | pass |
+| UI-086 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV350OpsCommandWorkspace`; observed `/ops/dashboard` | pass |
+| UI-087 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV350OpsCommandWorkspace`; observed `/ops/dashboard` | pass |
+| UI-088 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV360OpsSimulationWorkspace`; observed `/ops/dashboard` | pass |
+| UI-089 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV360OpsSimulationWorkspace`; observed `/ops/dashboard` | pass |
+| UI-090 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV360OpsSimulationWorkspace`; observed `/ops/dashboard` | pass |
+| UI-091 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV360OpsSimulationWorkspace`; observed `/ops/dashboard` | pass |
+| UI-092 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV360OpsSimulationWorkspace`; observed `/ops/dashboard` | pass |
+| UI-093 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV360OpsSimulationWorkspace`; observed `/ops/dashboard` | pass |
+| UI-094 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV360OpsSimulationWorkspace`; observed `/ops/dashboard` | pass |
+| UI-095 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV370SiteOperationsWorkspace`; observed `/ops/dashboard` | pass |
+| UI-096 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV370ClientNoticeBySiteViewGroup`; observed `/ops/dashboard` | pass |
+| UI-097 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV370RuleVaWhatIfBySite`; observed `/ops/dashboard` | pass |
+| UI-098 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV370FieldEvidenceAttachment`; observed `/ops/dashboard` | pass |
+| UI-099 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV370LimitedSafeExecutionPilot`; observed `/ops/dashboard` | pass |
+| UI-100 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV370OutcomeReconciliation`; observed `/ops/dashboard` | pass |
+| UI-101 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV370ExportHandoffBundle`; observed `/ops/dashboard` | pass |
+| UI-102 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV380OpsActionControlWorkspace`; observed `/ops/dashboard` | pass |
+| UI-103 | `./test_ui.sh` exact case requested `/client/dashboard` `viewer` `390x844` `light` `renderClientActionNoticePreview`; observed `/client/dashboard` | pass |
+| UI-104 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV380OutcomeObserverReconciliation`; observed `/ops/dashboard` | pass |
+| UI-105 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV380ActionReceiptBundle`; observed `/ops/dashboard` | pass |
+| UI-106 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV380FieldConnectorEvidencePackage`; observed `/ops/dashboard` | pass |
+| UI-107 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV380DefaultOffActionExplanation`; observed `/ops/dashboard` | pass |
+| UI-108 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderOnvifCredentialProviderStatus`; observed `/ops/sources` | pass |
+| UI-109 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `saveChannelSourceViewPair`; observed `/ops/sources` | pass |
+| UI-110 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `renderOpsVlmRuleSuggestionDraftBridge`; observed `/ops/rules` | pass |
+| UI-111 | `./test_ui.sh` exact case requested `/ops/vlm` `operator` `390x844` `light` `buildOpsVlmProfilePayload`; observed `/ops/vlm` | pass |
+| UI-112 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderStagingRestoreValidationHandoff`; observed `/ops/sources` | pass |
+| UI-113 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV390ActionExecutionDeferralDecision`; observed `/ops/dashboard` | pass |
+| UI-114 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV390FieldEvidenceBridgeDecision`; observed `/ops/dashboard` | pass |
+| UI-115 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderV390ReidAssistDecision`; observed `/ops/dashboard` | pass |
+| AUTH-004 | `./test_ui.sh` exact case requested `/login` `anonymous` `390x844` `light` `AuthenticateUserPassword`; observed `/login` | pass |
+| AUTH-005 | `./test_ui.sh` exact case requested `/setup` `anonymous` `390x844` `light` `WebRtcHttpServer::Start`; observed `/setup` | pass |
+| AUTH-006 | `./test_ui.sh` exact case requested `/setup` `anonymous` `390x844` `light` `SaveBootstrapAdmin`; observed `/setup` | pass |
+| AUTH-007 | `./test_ui.sh` exact case requested `/login` `anonymous` `390x844` `light` `AuthenticateUserPassword`; observed `/login` | pass |
+| AUTH-012 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `UsersJson`; observed `/ops/users` | pass |
+| AUTH-013 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `UsersJson`; observed `/ops/users` | pass |
+| AUTH-014 | `./test_ui.sh` exact case requested `/login` `anonymous` `390x844` `light` `UsersJson`; observed `/ops/users` | pass |
+| AUTH-015 | `./test_ui.sh` exact case requested `/invite/setup` `anonymous` `390x844` `light` `InvitesJson`; observed `/ops/users` | pass |
+| AUTH-016 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/users` | pass |
+| AUTH-018 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `CreateAuthUser`; observed `/ops/users` | pass |
+| AUTH-019 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `UpdateAuthUser`; observed `/ops/users` | pass |
+| AUTH-020 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `SetAuthUserEnabled`; observed `/ops/users` | pass |
+| AUTH-021 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `SetAuthUserEnabled`; observed `/ops/users` | pass |
+| AUTH-022 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `ResetAuthUserPassword`; observed `/ops/users` | pass |
+| AUTH-023 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `SetAuthUserEnabled`; observed `/ops/users` | pass |
+| AUTH-024 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `require_admin_principal`; observed `/ops/users` | pass |
+| AUTH-025 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `BuildPrincipalFromRequest`; observed `/ops/users` | pass |
+| AUTH-026 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `ScopeTemplateForRole`; observed `/ops/users` | pass |
+| AUTH-027 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `BuildPrincipalFromRequest`; observed `/ops/users` | pass |
+| AUTH-028 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `require_ops_principal`; observed `/ops/users` | pass |
+| AUTH-029 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/users` | pass |
+| AUTH-030 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `SourceViewApplicationService::ClientViewsJson`; observed `/ops/users` | pass |
+| AUTH-033 | `./test_ui.sh` exact case requested `/invite/setup` `anonymous` `390x844` `light` `CreateInviteFromJson`; observed `/ops/users` | pass |
+| AUTH-034 | `./test_ui.sh` exact case requested `/invite/setup` `anonymous` `390x844` `light` `CompleteInvitePasswordSetup`; observed `/invite/setup` | pass |
+| AUTH-035 | `./test_ui.sh` exact case requested `/invite/setup` `anonymous` `390x844` `light` `CompleteInvitePasswordSetup`; observed `/invite/setup` | pass |
+| AUTH-036 | `./test_ui.sh` exact case requested `/login` `anonymous` `390x844` `light` `CreateAccessRequestFromJson`; observed `/client/request-access` | pass |
+| AUTH-037 | `./test_ui.sh` exact case requested `/invite/setup` `anonymous` `390x844` `light` `ApproveAccessRequestFromJson`; observed `/ops/users` | pass |
+| AUTH-038 | `./test_ui.sh` exact case requested `/invite/setup` `anonymous` `390x844` `light` `RejectAccessRequest`; observed `/ops/users` | pass |
+| AUTH-039 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `CreateAccessRequestFromJson`; observed `/client/request-access` | pass |
+| AUTH-040 | `./test_ui.sh` exact case requested `/ops/users` `admin` `390x844` `light` `client-view-dashboard-route-guard`; observed `/ops/users` | pass |
+| SRC-001 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewApplicationService::CreateSource`; observed `/ops/sources` | pass |
+| SRC-002 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `ParseSourceRecord`; observed `/ops/sources` | pass |
+| SRC-003 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `ParseSourceRecord`; observed `/ops/sources` | pass |
+| SRC-004 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `ParseSourceRecord`; observed `/ops/sources` | pass |
+| SRC-005 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `ParseSourceRecord`; observed `/ops/sources` | pass |
+| SRC-006 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::SourcesJson`; observed `/ops/sources` | pass |
+| SRC-007 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceJson`; observed `/ops/sources` | pass |
+| SRC-008 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::CreateSource`; observed `/ops/sources` | pass |
+| SRC-009 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `saveChannelSourceViewPair`; observed `/ops/sources` | pass |
+| SRC-010 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::DisableSource`; observed `/ops/sources` | pass |
+| SRC-011 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::ResolveClientViewAccess`; observed `/ops/sources` | pass |
+| SRC-012 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `OpsSourceHealthJson`; observed `/ops/sources` | pass |
+| SRC-014 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `BuildOnvifLiveImportDraft`; observed `/ops/sources` | pass |
+| SRC-016 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::ViewsJson`; observed `/ops/sources` | pass |
+| SRC-017 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::CreateView`; observed `/ops/sources` | pass |
+| SRC-018 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::UpsertView`; observed `/ops/sources` | pass |
+| SRC-019 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::DisableView`; observed `/ops/sources` | pass |
+| SRC-020 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::DisableView`; observed `/ops/sources` | pass |
+| SRC-021 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `ParsePublishedViewRecord`; observed `/ops/sources` | pass |
+| SRC-022 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `ClientPublishedViewJson`; observed `/ops/sources` | pass |
+| SRC-023 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewApplicationService::ClientViewsJson`; observed `/ops/sources` | pass |
+| SRC-024 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/sources` | pass |
+| SRC-025 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/sources` | pass |
+| SRC-026 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/sources` | pass |
+| SRC-028 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `ClientShellPageHtml`; observed `/ops/sources` | pass |
+| SRC-029 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewApplicationService::ClientViewsJson`; observed `/ops/sources` | pass |
+| SRC-030 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `ClientShellPageHtml`; observed `/ops/sources` | pass |
+| SRC-031 | `./test_ui.sh` exact case requested `/ops/api/onvif/import-draft` `operator` `390x844` `light` `BuildOnvifLiveImportDraft`; observed `/ops/sources` | pass |
+| SRC-032 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `OpsEvidenceIntakeFieldReadinessViewJson`; observed `/ops/sources` | pass |
+| SRC-034 | `./test_ui.sh` exact case requested `/ops/api/source-registry/onboarding-quality` `operator` `390x844` `light` `SourceViewRegistry::SourceOnboardingQualitySummaryJson`; observed `/ops/sources` | pass |
+| SRC-035 | `./test_ui.sh` exact case requested `/ops/api/source-registry/reliability-timeline` `operator` `390x844` `light` `OpsV330ReliabilityTimelineHealthHistoryJson`; observed `/ops/sources` | pass |
+| SRC-036 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320UnifiedOpsEventsWorkspaceJson`; observed `/ops/events` | pass |
+| SRC-037 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320UnifiedOpsEventsWorkspaceJson`; observed `/ops/events` | pass |
+| SRC-038 | `./test_ui.sh` exact case requested `/client/api/views/{id}/events` `viewer` `390x844` `light` `AppendClientSafeSourceStatusDigestJson`; observed `/client/events` | pass |
+| SRC-039 | `./test_ui.sh` exact case requested `/ops/api/source-registry/reliability-search-metrics` `operator` `390x844` `light` `OpsV330SourceReliabilitySearchMetricsJson`; observed `/ops/sources` | pass |
+| SRC-040 | `./test_ui.sh` exact case requested `/ops/api/source-registry/backup-recovery-handoff` `operator` `390x844` `light` `OpsV330BackupRecoverySourceHandoffJson`; observed `/ops/sources` | pass |
+| SRC-065 | `./test_ui.sh` exact case requested `/ops/api/onvif/credential-provider-status` `operator` `390x844` `light` `OpsV390OnvifCredentialProviderStatusSummaryJson`; observed `/ops/sources` | pass |
+| SRC-066 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `SourceViewRegistry::UpsertOnvifSourceView`; observed `/ops/sources` | pass |
+| SRC-067 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `OpsV390StagingRestoreValidationHandoffJson`; observed `/ops/sources` | pass |
+| SRC-068 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `OpsV390FieldEvidenceBridgeDecisionJson`; observed `/ops/sources` | pass |
+| RULE-001 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `refreshRules:vaRules-assignment`; observed `/ops/rules` | pass |
+| RULE-002 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `refreshRules:rules-assignment`; observed `/ops/rules` | pass |
+| RULE-003 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `refreshRules:profiles-assignment`; observed `/ops/rules` | pass |
+| RULE-004 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-005 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-006 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-007 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-008 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `opsRulesReadVaRuleForm`; observed `/ops/rules` | pass |
+| RULE-009 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-010 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-011 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `opsRulesReadVaRuleForm`; observed `/ops/rules` | pass |
+| RULE-012 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `opsRulesReadVaRuleForm`; observed `/ops/rules` | pass |
+| RULE-013 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `opsRulesReadVaRuleForm`; observed `/ops/rules` | pass |
+| RULE-014 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `renderOpsVaRules`; observed `/ops/rules` | pass |
+| RULE-015 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `renderOpsVaRules`; observed `/ops/rules` | pass |
+| RULE-016 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `opsRulesNextNumericId`; observed `/ops/rules` | pass |
+| RULE-017 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `AppendOpsRulesPage`; observed `/ops/rules` | pass |
+| RULE-018 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-019 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-020 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-021 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-022 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-023 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-024 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-025 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-026 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-027 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-028 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-029 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-030 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-031 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-032 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-033 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-034 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-035 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ResolveAnalysisProfileForContext`; observed `/ops/rules` | pass |
+| RULE-036 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ResolveAnalysisProfileForContext`; observed `/ops/rules` | pass |
+| RULE-037 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ResolveAnalysisProfileForContext`; observed `/ops/rules` | pass |
+| RULE-038 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ResolveAnalysisProfileForContext`; observed `/ops/rules` | pass |
+| RULE-039 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ResolveAnalysisProfileForContext`; observed `/ops/rules` | pass |
+| RULE-040 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-041 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `EvaluateSceneContextRule`; observed `/ops/rules` | pass |
+| RULE-042 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `EvaluateSceneContextRule`; observed `/ops/rules` | pass |
+| RULE-043 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `EvaluateSceneContextRule`; observed `/ops/rules` | pass |
+| RULE-044 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `EvaluateSceneContextRule`; observed `/ops/rules` | pass |
+| RULE-045 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-046 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-047 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-048 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-049 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-050 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-051 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-052 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-053 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-054 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-055 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-056 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-057 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-058 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-059 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-060 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-061 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-062 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-063 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-064 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-065 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-066 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-067 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-068 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-069 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-070 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-071 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-072 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-073 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-074 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-075 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-076 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-077 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-078 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-079 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-080 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-081 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-082 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-083 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-084 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-085 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-086 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-087 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-088 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-089 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-090 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-091 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-092 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-093 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-094 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-095 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `BuildClientLiveWebRtcQuery`; observed `/ops/rules` | pass |
+| RULE-096 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `SourceViewRegistry::ResolveClientViewAccess`; observed `/ops/rules` | pass |
+| RULE-097 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `SourceViewApplicationService::ClientViewsJson`; observed `/client/live` | pass |
+| RULE-098 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `BuildClientLiveWebRtcQuery`; observed `/ops/rules` | pass |
+| RULE-100 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-101 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/rules` | pass |
+| RULE-102 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `opsRulesUpdateReviewLoop`; observed `/ops/rules` | pass |
+| RULE-103 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `ApplyEventRulesToResult`; observed `/ops/rules` | pass |
+| RULE-104 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `OpsApprovalGatedRuleDraftReadinessViewJson`; observed `/ops/events` | pass |
+| RULE-111 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `OpsV390VlmRuleSuggestionDraftBridgeJson`; observed `/ops/rules` | pass |
+| EVT-001 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `runtime_status_body`; observed `/ops/dashboard` | pass |
+| EVT-003 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `OpsSourceHealthJson`; observed `/ops/dashboard` | pass |
+| EVT-004 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsDiagnosticLogTailJson`; observed `/ops/events` | pass |
+| EVT-007 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `AnalysisEventRecordsJson`; observed `/ops/events` | pass |
+| EVT-016 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `WebRtcHttpServer::Start`; observed `/ops/events` | pass |
+| EVT-017 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsAlertDeliveryListJson`; observed `/ops/events` | pass |
+| EVT-018 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `DispatchOpsAlertDeliveryFixture`; observed `/ops/events` | pass |
+| EVT-019 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsEventReviewInboxJson`; observed `/ops/events` | pass |
+| EVT-020 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsEventReviewInboxJson`; observed `/ops/events` | pass |
+| EVT-021 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `UpsertOpsEventReviewState`; observed `/ops/events` | pass |
+| EVT-022 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsAuditEntriesJson`; observed `/ops/events` | pass |
+| EVT-023 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `OpsEventReviewInboxJson`; observed `/ops/dashboard` | pass |
+| EVT-024 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `runtime_status_body`; observed `/ops/dashboard` | pass |
+| EVT-025 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `RuntimeStatusJson`; observed `/ops/dashboard` | pass |
+| EVT-026 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `RuntimeStatusJson`; observed `/ops/dashboard` | pass |
+| EVT-028 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsVlmEventReviewJson`; observed `/ops/events` | pass |
+| EVT-030 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `BuildVlmObservationCorrelationReportJson`; observed `/ops/events` | pass |
+| EVT-031 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsVlmEventReviewJson`; observed `/ops/events` | pass |
+| EVT-036 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsVlmRuleSuggestionDraftWorkflowJson`; observed `/ops/events` | pass |
+| EVT-037 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsEventReviewStateJson`; observed `/ops/events` | pass |
+| EVT-038 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `DispatchOpsAlertDeliveryDryRun`; observed `/ops/events` | pass |
+| EVT-041 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsIncidentMemorySearchViewJson`; observed `/ops/events` | pass |
+| EVT-042 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsIncidentTimelineGraphViewJson`; observed `/ops/events` | pass |
+| EVT-043 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsExplainableIncidentBriefViewJson`; observed `/ops/events` | pass |
+| EVT-044 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsSimilarIncidentLookupViewJson`; observed `/ops/events` | pass |
+| EVT-046 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsIncidentMemorySearchViewJson`; observed `/ops/events` | pass |
+| EVT-047 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsEventReviewInboxItemJson`; observed `/ops/events` | pass |
+| EVT-048 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `renderDashboardRuntimeTrend`; observed `/ops/dashboard` | pass |
+| EVT-049 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `ReEntryScenario::Evaluate`; observed `/ops/events` | pass |
+| EVT-050 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsIncidentTriageBoardViewJson`; observed `/ops/events` | pass |
+| EVT-051 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsIncidentDecisionScorecardViewJson`; observed `/ops/events` | pass |
+| EVT-052 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsOperationalActionPackViewJson`; observed `/ops/events` | pass |
+| EVT-053 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsRuleWhatIfPreviewViewJson`; observed `/ops/events` | pass |
+| EVT-054 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsOperatorOutcomeMemoryViewJson`; observed `/ops/events` | pass |
+| EVT-055 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsIncidentActionReadinessQueueViewJson`; observed `/ops/events` | pass |
+| EVT-056 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsApprovalGatedRuleDraftReadinessViewJson`; observed `/ops/events` | pass |
+| EVT-057 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsEvidenceIntakeFieldReadinessViewJson`; observed `/ops/events` | pass |
+| EVT-058 | `./test_ui.sh` exact case requested `/ops/dashboard` `operator` `390x844` `light` `OpsRuntimeEvidenceWindowViewJson`; observed `/ops/dashboard` | pass |
+| EVT-061 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsEventReviewStateJson`; observed `/ops/events` | pass |
+| EVT-064 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320UnifiedOpsEventsWorkspaceJson`; observed `/ops/events` | pass |
+| EVT-065 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320UnifiedResolutionWorkspaceItemJson`; observed `/ops/events` | pass |
+| EVT-066 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320UnifiedResolutionWorkspaceItemJson`; observed `/ops/events` | pass |
+| EVT-067 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320UnifiedResolutionWorkspaceItemJson`; observed `/ops/events` | pass |
+| EVT-068 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320OperatorResolutionFlowInfoFor`; observed `/ops/events` | pass |
+| EVT-069 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320UnifiedResolutionWorkspaceItemJson`; observed `/ops/events` | pass |
+| EVT-070 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsV320UnifiedResolutionWorkspaceItemJson`; observed `/ops/events` | pass |
+| EVT-071 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320UnifiedResolutionWorkspaceItemJson`; observed `/ops/events` | pass |
+| EVT-072 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsV320UnifiedResolutionWorkspaceItemJson`; observed `/ops/events` | pass |
+| EVT-075 | `./test_ui.sh` exact case requested `/ops/api/events/reviews` `operator` `390x844` `light` `OpsV320UnifiedResolutionWorkspaceItemJson`; observed `/ops/events` | pass |
+| CLIENT-001 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `SourceViewRegistry::ClientViewsJson`; observed `/client/live` | pass |
+| CLIENT-002 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `WebRtcHttpServer::Start`; observed `/client/live` | pass |
+| CLIENT-005 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `close_webrtc_session`; observed `/client/live` | pass |
+| CLIENT-006 | `./test_ui.sh` exact case requested `/client/dashboard` `viewer` `390x844` `light` `ClientViewDashboardJson`; observed `/client/dashboard` | pass |
+| CLIENT-007 | `./test_ui.sh` exact case requested `/client/events` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/events` | pass |
+| CLIENT-009 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `UpsertClientLiveLayoutPreference`; observed `/client/live` | pass |
+| CLIENT-010 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientLiveLayoutPreferencesJson`; observed `/client/live` | pass |
+| CLIENT-011 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `SourceViewRegistry::ClientViewsJson`; observed `/client/live` | pass |
+| CLIENT-012 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `AppendClientShellScript`; observed `/client/live` | pass |
+| CLIENT-013 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-014 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-015 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-016 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-017 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-018 | `./test_ui.sh` exact case requested `/client/live` `admin` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-019 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-020 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-021 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-022 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientShellPageHtml`; observed `/client/live` | pass |
+| CLIENT-023 | `./test_ui.sh` exact case requested `/client/api/views/{id}/events` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/events` | pass |
+| CLIENT-024 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/live` | pass |
+| CLIENT-025 | `./test_ui.sh` exact case requested `/client/events` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/events` | pass |
+| CLIENT-027 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/live` | pass |
+| CLIENT-028 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/live` | pass |
+| CLIENT-029 | `./test_ui.sh` exact case requested `/client/api/views/{id}/events` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/events` | pass |
+| CLIENT-031 | `./test_ui.sh` exact case requested `/client/api/views/{id}/events` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/events` | pass |
+| CLIENT-032 | `./test_ui.sh` exact case requested `/client/api/views/{id}/events` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/events` | pass |
+| CLIENT-040 | `./test_ui.sh` exact case requested `/client/api/views/{id}/events` `viewer` `390x844` `light` `ClientViewEventsJson`; observed `/client/events` | pass |
+| CLIENT-041 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsV380OutcomeObserverReconciliationJson`; observed `/ops` | pass |
+| CLIENT-042 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsV380ActionReceiptBundleJson`; observed `/ops` | pass |
+| MEDIA-016 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `create_webrtc_session_response`; observed `/client/live` | pass |
+| MEDIA-017 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `AppendClientShellScript`; observed `/client/live` | pass |
+| SAFE-015 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `AppendOpsHomePage`; observed `/ops` | pass |
+| SAFE-016 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `undefined_route_BuildHttpResponse_status`; observed `/ops` | pass |
+| SAFE-017 | `./test_ui.sh` exact case requested `/lab` `operator` `390x844` `light` `legacy_lab_BuildHttpResponse_status`; observed `/ops` | pass |
+| SAFE-018 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `ClientPublishedViewJson`; observed `/client/live` | pass |
+| SAFE-019 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `WhoamiJson`; observed `/ops` | pass |
+| SAFE-020 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `require_ops_principal`; observed `/ops` | pass |
+| SAFE-021 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `AppendClientShellScript`; observed `/ops` | pass |
+| SAFE-024 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `canonical-action:SAFE-024`; observed `/ops` | pass |
+| SAFE-028 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `ValidateVlmPrivacyGuardContract`; observed `/ops` | pass |
+| SAFE-031 | `./test_ui.sh` exact case requested `/client/live` `viewer` `390x844` `light` `OpsVlmRuleSuggestionDraftWorkflowJson`; observed `/client/live` | pass |
+| SAFE-033 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `run_routes`; observed `/ops` | pass |
+| SAFE-038 | `./test_ui.sh` exact case requested `/ops/rules` `operator` `390x844` `light` `OpsVlmRuleSuggestionDraftWorkflowJson`; observed `/ops/rules` | pass |
+| SAFE-041 | `./test_ui.sh` exact case requested `/ops/api/audit` `admin` `390x844` `light` `OpsEventReviewStateJson`; observed `/ops/users` | pass |
+| SAFE-042 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsAlertDeliveryPayloadPreviewJson`; observed `/ops` | pass |
+| SAFE-045 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsIncidentMemorySearchViewJson`; observed `/ops/events` | pass |
+| SAFE-046 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsIncidentTimelineGraphViewJson`; observed `/ops` | pass |
+| SAFE-047 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsExplainableIncidentBriefViewJson`; observed `/ops` | pass |
+| SAFE-048 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsSimilarIncidentLookupViewJson`; observed `/ops` | pass |
+| SAFE-049 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `run_routes`; observed `/ops` | pass |
+| SAFE-050 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `BuildReleaseSafeIncidentEvidenceBundleManifest`; observed `/ops` | pass |
+| SAFE-052 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsVlmSummaryCandidateReviewJson`; observed `/ops/events` | pass |
+| SAFE-053 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsVlmRuleSuggestionDraftWorkflowJson`; observed `/ops/events` | pass |
+| SAFE-054 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `BuildOnvifLiveImportDraft`; observed `/ops` | pass |
+| SAFE-055 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `renderDashboardRuntimeTrend`; observed `/ops` | pass |
+| SAFE-056 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `ReEntryScenario::ConfiguredZoneMode`; observed `/ops` | pass |
+| SAFE-058 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsIncidentTriageBoardViewJson`; observed `/ops/events` | pass |
+| SAFE-059 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsIncidentDecisionScorecardViewJson`; observed `/ops/events` | pass |
+| SAFE-060 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsOperationalActionPackViewJson`; observed `/ops/events` | pass |
+| SAFE-061 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `OpsRuleWhatIfPreviewViewJson`; observed `/ops/events` | pass |
+| SAFE-062 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsOperatorOutcomeMemoryViewJson`; observed `/ops` | pass |
+| SAFE-065 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsIncidentActionReadinessQueueViewJson`; observed `/ops` | pass |
+| SAFE-066 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsApprovalGatedRuleDraftReadinessViewJson`; observed `/ops` | pass |
+| SAFE-067 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsEvidenceIntakeFieldReadinessViewJson`; observed `/ops` | pass |
+| SAFE-068 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsRuntimeEvidenceWindowViewJson`; observed `/ops` | pass |
+| SAFE-069 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `AppendClientSafeFollowUpDigestJson`; observed `/ops` | pass |
+| SAFE-098 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `safe098BoundaryObserved`; observed `/ops` | pass |
+| SAFE-104 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `check:SAFE-104 canonical unified workspace boundary`; observed `/ops/events` | pass |
+| SAFE-105 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `check:SAFE-105 canonical evidence quality boundary`; observed `/ops` | pass |
+| SAFE-106 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `check:SAFE-106 canonical source reliability boundary`; observed `/ops` | pass |
+| SAFE-107 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `check:SAFE-107 canonical AI review quality boundary`; observed `/ops` | pass |
+| SAFE-108 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `check:SAFE-108 canonical operator resolution write boundary`; observed `/ops` | pass |
+| SAFE-109 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsV320ActionReadinessChecklistJson`; observed `/ops` | pass |
+| SAFE-110 | `./test_ui.sh` exact case requested `/client/api/views/{id}/events` `viewer` `390x844` `light` `AppendClientSafeResolutionDigestJson`; observed `/client/events` | pass |
+| SAFE-111 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsV320ResolutionSearchMetricsJson`; observed `/ops` | pass |
+| SAFE-117 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsV330IncidentSourceCorrelationJson`; observed `/ops` | pass |
+| SAFE-118 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `canonical-owner:SAFE-118`; observed `/ops` | pass |
+| SAFE-119 | `./test_ui.sh` exact case requested `/client/api/views/{id}/events` `viewer` `390x844` `light` `AppendClientSafeSourceStatusDigestJson`; observed `/client/events` | pass |
+| SAFE-121 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsV330SourceReliabilitySearchMetricsJson`; observed `/ops` | pass |
+| SAFE-122 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `OpsV330BackupRecoverySourceHandoffJson`; observed `/ops` | pass |
+| SAFE-129 | `./test_ui.sh` exact case requested `/ops/sources` `operator` `390x844` `light` `renderOpsContinuityDrillWorkspace`; observed `/ops/sources` | pass |
+| SAFE-130 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `check:SAFE-130 canonical approval-gated no-auto boundary`; observed `/ops` | pass |
+| SAFE-131 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `check:SAFE-131 canonical client maintenance digest boundary`; observed `/ops` | pass |
+| SAFE-132 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `check:SAFE-132 canonical drill evidence cleanup manifest boundary`; observed `/ops` | pass |
+| SAFE-138 | `./test_ui.sh` exact case requested `/ops/events` `operator` `390x844` `light` `check:SAFE-138 canonical incident handoff read-only boundary`; observed `/ops/events` | pass |
+| SAFE-140 | `./test_ui.sh` exact case requested `/ops` `operator` `390x844` `light` `renderV350OpsCommandWorkspace`; observed `/ops` | pass |
+
+| 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
+| --- | --- | --- | --- |
+| Codex 인앱 수동 UI | 인앱 브라우저 직접 조작 | not-run-by-this-command. 이번 evidence는 Policy v4 적격 Playwright+Chrome | 예, 수동 UI evidence로 사용 불가 |
+| 120분 | `verify-predev --soak-minutes 120` | 2026-08-31 사용자 제외. 7.6.2 진행 조건도 없음 | 예, 사용 불가 |
+| predev build skip | delegated `--skip-build` | longrun runner가 이미 `./server.sh build` 수행 | 예, skip이지 30분 PASS 확대 아님 |
+| external-turn-hard-gate | `verify-webrtc-ice --external-turn` | `--include-external-turn` 미지정. 사용자 STUN/TURN 없음 | 예, 사용 불가 |
+| smoke 서버 자동 시작 | `./server.sh start` | `--no-start`. 이미 longrun 서버 사용 | 예, skip |
+| smoke LAN IP 외부 클라이언트 | `test_external_access.sh` | `--skip-external` | 예, 사용 불가 |
+| smoke 외부 RTSP upstream | `test_external_source_reachability.sh` | `--skip-external` | 예, 사용 불가 |
+| smoke HLS/외부 HTTP URI | codec matrix HLS/외부 HTTP | 기본 안정 테스트에서 제외 | 예, 사용 불가 |
+| smoke HTTP/HLS URI 장기 검증 | `verify-uri-longrun` | `--include-uri-longrun` 미지정 | 예, 사용 불가 |
+| smoke event POST | `verify-event-post` in smoke | smoke 플래그 없음. soak/queue에서 별도 실행 | 예, smoke 제외. soak 결과는 별도 pass 행 |
+| smoke WebRTC ICE | `verify-webrtc-ice` | `--include-webrtc-ice` 미지정 | 예, 사용 불가 |
+| smoke Product UI | ops/client UI smoke | `--include-product-ui-smoke` 미지정. UI 풀테스트 대체 아님 | 예, 사용 불가 |
+| published metadata | `verify-release-metadata --published` | 30분 실행 범위 밖 | 예, 사용 불가 |
+| release action | PR/main/tag/GitHub Release | `v4.0.0` tag 미생성 | 예, 사용 불가 |
+
+3차 30분 종료 후 7.8 cleanup (2026-08-30). `/tmp` 경로는 최종 evidence가 아니며 필요 값은 위 표로 이관 후 삭제.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `$TMPDIR/media_server_v390_server_30min.ZpQmes` | 3차 longrun outputDir summary/report | 0.3 MiB | 삭제 | 경로 없음 | AGENTS 7.8, 값은 위 표로 이관 |
+| `/tmp/media_server_*` | 1~3차 redaction/evtpost/vaevt/image-analysis leftover 833 entries | 83.0 MiB | 삭제 | glob 0 | 이전 fail live-va-redaction JSON 포함. 재현 가능 임시물 |
+| `.media_server.test/20260830-213922` | 3차 integrated-smoke logDir, test-summary 22/0/8 | 0.1 MiB | 삭제 | 경로 없음 | smoke 22/0/8 값은 위 표로 이관 |
+| `/tmp/http_local_*.http.log` | codec HTTP launcher log | <0.1 MiB | 삭제 | glob 0 | 재현 가능 |
+| 합계 | 839 paths | 83.4 MiB | 삭제 | remaining 0, ports 50230/50231/8765/8766/8767 LISTEN 없음 | 보존 파일 없음 |
+
+`./test_ui.sh` 종료 후 7.8 cleanup (2026-08-31). `/tmp`와 `.media_server.test`는 최종 evidence가 아니며 필요 값은 위 표로 이관 후 삭제.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `.media_server.test/v4.0.0/ui-acceptance-current` | UI exact 424 run + Policy v4 raw capture | 285.7 MiB | 삭제 | 경로 없음 | 424 결과와 qualifier 값은 위 표로 이관. 스크린샷/trace는 재현 가능 임시물 |
+| `/tmp/v400_ui_424*.md` | 전수 표 생성 임시 파일 | 0.3 MiB | 삭제 | glob 0 | records로 이관 후 삭제 |
+| `$TMPDIR/media_server_v390_ui-tiHf4C` | throwaway role-state/server log | runner cleanup 시 삭제 | 확인 | 경로 없음 | child cleanup PASS |
+| 합계 | UI 임시 산출물 | 285.9 MiB | 삭제 | remaining 0, ports 57686/57687 LISTEN 없음 | 보존 파일 없음 |
 
 ### v3.9.1
 

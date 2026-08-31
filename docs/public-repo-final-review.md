@@ -5,11 +5,11 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.9.1`
+- 현재 소스 버전: `4.0.0`
 - 최신 공개 GitHub Release: `v3.9.1`
 - `v3.9.1` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
 - 최신 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 현재 source roadmap: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
 - `v3.9.1` publish 완료는 signed tag, source-only GitHub Release, `verify-release-metadata --published` evidence로 확인합니다.
 - public repository 기준은 source-only 공개입니다.
 

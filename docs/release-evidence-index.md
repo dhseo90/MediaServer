@@ -33,9 +33,20 @@
   `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
+## v4.0.0 현재 소스 baseline 상태 (2026-08-24)
+
+- current source: `v4.0.0` (`VERSION=4.0.0`)
+- latest published: v3.9.1
+- v4.0.0 source baseline: `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`
+- v4.0.0 (1) baseline 정렬: 완료. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 미실행
+- v4.0.0 user review gate: `./server.sh verify-v400-user-review-gate`, `V400-REVIEW-GATE-02`
+- v4.0.0 verification layer reduction: `./server.sh verify-v400-verification-layer-reduction`, `V400-VERIFICATION-LAYER-03`
+- release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
+- v3.9.1 published evidence는 아래 절에 보존
+
 ## v3.9.1 현재 소스 정정 상태 (2026-08-15)
 
-- current source: `v3.9.1` (`VERSION=3.9.1`)
+- current source at the time: `v3.9.1` (`VERSION=3.9.1`)
 - latest published: v3.9.1
 - fresh full test: 1~6차 clean-clone FAIL 이력 보존. 7차 GitHub clone `./test_release.sh`는 source `2882bb35`에서 local acceptance PASS
 - release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
@@ -289,6 +300,24 @@ Companion local gate:
 ./server.sh verify-script-inventory
 git diff --check
 ```
+
+## v4.0.0 source baseline records
+
+v4.0.0 Foundation evidence index는 current source `4.0.0`과 latest published `v3.9.1`
+분리를 stream verification, project inventory, release test records, release metadata
+verifier에 연결하는 색인입니다. 이 섹션은 UI 풀테스트 직접 조작, 30분/120분,
+published metadata, PR/main/tag/GitHub Release evidence가 아닙니다.
+
+| Evidence | 연결 | PASS/FAIL 결과표 위치 | 미실행/제외 위치 | 대체 금지 |
+| --- | --- | --- | --- | --- |
+| v4.0.0 source baseline | `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, [stream-verification.md](./stream-verification.md), [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-163`/`SAFE-196` | [release-test-records.md](./release-test-records.md) `V400 entry baseline` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | 기능 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+| v4.0.0 user review gate | `./server.sh verify-v400-user-review-gate`, `test/fixtures/v400_user_review_gate.json` `V400-REVIEW-GATE-02`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-165`/`SAFE-198` inherited | [release-test-records.md](./release-test-records.md) `V400 user review gate` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | 각 스텝 전용 verifier PASS, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+| v4.0.0 verification layer reduction | `./server.sh verify-v400-verification-layer-reduction`, `test/fixtures/v400_verification_layer.json` `V400-VERIFICATION-LAYER-03`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-166`/`SAFE-199`/`OPS-167`/`SAFE-200` inherited | [release-test-records.md](./release-test-records.md) `V400 verification layer reduction` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | 역사적 verifier 삭제, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+| v4.0.0 local ops policy freeze | `./server.sh verify-v400-local-ops-policy-freeze`, `test/fixtures/v400_local_ops_policy_freeze.json` `V400-LOCAL-OPS-POLICY-FREEZE-04`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-181`/`SAFE-214` inherited | [release-test-records.md](./release-test-records.md) `V400 local ops policy freeze` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | write 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+| v4.0.0 incident OS policy | `./server.sh verify-v400-incident-os-policy`, `test/fixtures/v400_incident_os_policy.json` `V400-INCIDENT-OS-POLICY-05`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `UI-062`/`EVT-064`/`SAFE-104`/`OPS-071` inherited | [release-test-records.md](./release-test-records.md) `V400 incident OS policy` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | Incident OS 제품 승격, 새 event type, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+| v4.0.0 evidence ops policy | `./server.sh verify-v400-evidence-ops-policy`, `test/fixtures/v400_evidence_ops_policy.json` `V400-EVIDENCE-OPS-POLICY-06`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-052`/`SAFE-082` inherited | [release-test-records.md](./release-test-records.md) `V400 evidence ops policy` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | Evidence default-on 제품화, VMS/NVR, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+| v4.0.0 local ops stabilization | `./server.sh verify-v400-local-ops-stabilization`, `test/fixtures/v400_local_ops_stabilization.json` `V400-LOCAL-OPS-STABILIZATION-07`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-166`/`SAFE-199` inherited | [release-test-records.md](./release-test-records.md) `V400 local ops stabilization` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | 역사적 verifier 삭제, v320 REVIEW4 rewrite, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+| v4.0.0 release readiness | `./server.sh verify-v400-release-readiness`, `test/fixtures/v400_release_readiness.json` `V400-RELEASE-READINESS-08`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-163`/`SAFE-196` inherited | [release-test-records.md](./release-test-records.md) `V400 release readiness` | [release-test-records.md](./release-test-records.md) v4.0.0 미실행 | 이 명령 PASS로 30분 soak runner 또는 `./test_ui.sh`를 대체하지 않음. 출시 가능 판정, tag/GitHub Release, published metadata, release action evidence |
 
 ## v3.9.0 source baseline, feature completion inventory, and user review gate records
 

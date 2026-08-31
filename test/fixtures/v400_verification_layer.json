@@ -1,0 +1,93 @@
+{
+  "schema": "media-server.v400-verification-layer.v1",
+  "decisionId": "V400-VERIFICATION-LAYER-03",
+  "recordedOn": "2026-08-26",
+  "sourceRelease": "v4.0.0",
+  "latestPublished": "v3.9.1",
+  "status": "rule-in-force",
+  "implementationStatus": "not-executed-reduction",
+  "primarySelection": "keep 986/424 and freeze verifier growth; do not treat wrapper PASS as execution PASS",
+  "cardinality": {
+    "featureRows": 986,
+    "uiExactCases": 424,
+    "soak30Targets": 50,
+    "soak120Targets": 7
+  },
+  "ceilings": {
+    "v390VerifierScripts": 118,
+    "contractVerifierScripts": 72,
+    "nonV400JsonFixtures": 79
+  },
+  "allowedV400Commands": [
+    "verify-v400-roadmap-contract",
+    "verify-v400-entry-baseline",
+    "verify-v400-user-review-gate",
+    "verify-v400-verification-layer-reduction",
+    "verify-v400-local-ops-policy-freeze",
+    "verify-v400-incident-os-policy",
+    "verify-v400-evidence-ops-policy",
+    "verify-v400-local-ops-stabilization",
+    "verify-v400-release-readiness"
+  ],
+  "reservedV400Commands": [],
+  "allowedV400Fixtures": [
+    "v400_user_review_gate.json",
+    "v400_verification_layer.json",
+    "v400_local_ops_policy_freeze.json",
+    "v400_incident_os_policy.json",
+    "v400_evidence_ops_policy.json",
+    "v400_local_ops_stabilization.json",
+    "v400_release_readiness.json"
+  ],
+  "reservedV400Fixtures": [],
+  "wrapperExecutionSeparation": {
+    "wrapperMustInclude": [
+      "wrapperResult",
+      "resultScope",
+      "uiFulltestEvidenceStatus",
+      "manualResultStatus",
+      "longrunStatus",
+      "wrapperResult is not UI fulltest, 30-minute, 120-minute, or manual-result execution evidence"
+    ],
+    "coverageMustInclude": [
+      "coverageStatus",
+      "executionEvidenceStatus",
+      "not-execution-evidence"
+    ],
+    "forbiddenOverclaims": [
+      "wrapperResult is UI fulltest",
+      "coverageStatus: covered means execution PASS",
+      "contract PASS is UI fulltest PASS"
+    ]
+  },
+  "boundVerifierFreeze": [
+    {
+      "path": "scripts/internal/verify_release_metadata_consistency.mjs",
+      "sha256": "89fa9fa4930153eaeaceed575cf2d90af851bbcbcf2e60e43e9361d83c13728d",
+      "reason": "OPS-041 REVIEW4 source-flow digest is bound to this file"
+    },
+    {
+      "path": "scripts/internal/verify_v390_entry_baseline.mjs",
+      "sha256": "0c90e11b0b4e777fadcf89b997d3edd0021c99211342290403ab3798f106ff8a",
+      "reason": "OPS-163/SAFE-196 REVIEW4 source-flow digest is bound to this file"
+    },
+    {
+      "path": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
+      "sha256": "e52dcbe0374f17ff2fb57d0ecc1ffba49b8c49276292cbd8afebdae3f12a3828",
+      "reason": "OPS-179 REVIEW4 source-flow digest is bound to this file"
+    },
+    {
+      "path": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
+      "sha256": "2f539519b993a176d2fd513f56409776eae85949f49eeef3ccd70f77a1fbb1c6",
+      "reason": "SAFE-199/SAFE-200 wrapper and coverage wording live here; reuse, do not fork"
+    }
+  ],
+  "notEvidence": [
+    "deleting historical v390 verifiers",
+    "UI fulltest",
+    "30-minute soak",
+    "120-minute longrun",
+    "published metadata",
+    "v4.0.0 tag or GitHub Release"
+  ]
+}

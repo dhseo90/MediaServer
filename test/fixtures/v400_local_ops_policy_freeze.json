@@ -1,0 +1,121 @@
+{
+  "schema": "media-server.v400-local-ops-policy-freeze.v1",
+  "decisionId": "V400-LOCAL-OPS-POLICY-FREEZE-04",
+  "recordedOn": "2026-08-28",
+  "sourceRelease": "v4.0.0",
+  "latestPublished": "v3.9.1",
+  "status": "policy-frozen",
+  "implementationStatus": "not-implemented-write-paths",
+  "primarySelection": "keep v3.9 deferred 5 items unimplemented in 4.0; field smoke remains conditional-not-run",
+  "inheritedFeatureIds": [
+    "OPS-181",
+    "SAFE-214",
+    "UI-113",
+    "SAFE-208",
+    "SRC-067"
+  ],
+  "inheritedSignoff": {
+    "command": "verify-v390-deferred-product-owner-signoff",
+    "script": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
+    "fixture": "test/fixtures/v390_deferred_product_owner_signoff.json",
+    "sha256": "7cbd812941e5488e1bb9cd3d4604dcb14f1cb17b93022832e247b8c52d38485d",
+    "editPolicy": "reuse-do-not-edit"
+  },
+  "fieldSmoke": {
+    "includedInDeferredDecisionSet": false,
+    "status": "conditional-not-run",
+    "command": "verify-v390-external-field-smoke-no-device-closure",
+    "fixture": "test/fixtures/v390_external_field_smoke_no_device_closure.json",
+    "sha256": "6905b0f03efa61b6a5f9a68c565358f4f31d61dc254d29a956527e6fd8b9ec47",
+    "editPolicy": "reuse-do-not-edit"
+  },
+  "frozenDecisions": [
+    {
+      "id": "action-execution",
+      "v400Status": "not-implemented",
+      "implementationStatus": "deferred-capability-not-implemented",
+      "writeStatusField": "actionWriteStatus",
+      "writeStatus": "not-implemented",
+      "inheritedCommand": "verify-v390-action-execution-deferral-decision",
+      "route": "/ops/api/actions/execution-deferral-decision",
+      "method": "GET",
+      "sourceFile": "src/ingress/ops_action_execution_deferral.cpp",
+      "requiredSnippets": [
+        "\\\"approvalGatedExecutionEnabled\\\":false",
+        "\\\"actionExecutionPerformed\\\":false"
+      ]
+    },
+    {
+      "id": "persistent-credential-store",
+      "v400Status": "not-implemented",
+      "implementationStatus": "deferred-capability-not-implemented",
+      "writeStatusField": "persistentStoreStatus",
+      "writeStatus": "not-implemented",
+      "inheritedCommand": "verify-v390-onvif-credential-provider-status",
+      "route": "/ops/api/onvif/credential-provider-status",
+      "method": "GET",
+      "sourceFile": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+      "requiredSnippets": [
+        "\\\"productPersistentSecretStoreEnabled\\\":false",
+        "\\\"secretMaterialStored\\\":false"
+      ]
+    },
+    {
+      "id": "production-restore",
+      "v400Status": "not-implemented",
+      "implementationStatus": "product-automation-not-implemented",
+      "writeStatusField": "productRestoreAutomationStatus",
+      "writeStatus": "not-implemented",
+      "inheritedCommand": "verify-v390-backup-recovery-handoff-validation",
+      "route": "/ops/api/source-registry/staging-restore-validation-handoff",
+      "method": "GET",
+      "sourceFile": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+      "requiredSnippets": [
+        "\\\"productionRestorePerformed\\\":false",
+        "\\\"automaticRecoveryPerformed\\\":false"
+      ]
+    },
+    {
+      "id": "external-vlm-provider-call",
+      "v400Status": "not-implemented",
+      "implementationStatus": "product-runtime-call-not-implemented",
+      "writeStatusField": "productRuntimeProviderCallStatus",
+      "writeStatus": "forbidden-and-not-implemented",
+      "inheritedCommand": "verify-v390-conditional-field-ai-decisions",
+      "route": "/ops/api/field-evidence/bridge-decision",
+      "method": "GET",
+      "sourceFile": "src/ingress/webrtc_http_server_ops_workflows.cpp",
+      "requiredSnippets": [
+        "\\\"vlmProviderCalled\\\":false",
+        "\\\"cloudProviderCalled\\\":false"
+      ]
+    },
+    {
+      "id": "model-backed-reid-session",
+      "v400Status": "not-implemented-in-supported-release",
+      "implementationStatus": "experimental-capability-implemented-release-evidence-not-executed",
+      "writeStatusField": "supportedReleaseScope",
+      "writeStatus": "excluded",
+      "inheritedCommand": "verify-v390-reid-readiness-consistency",
+      "route": "/ops/api/analysis/reid-assist-decision",
+      "method": "GET",
+      "sourceFile": "src/ingress/webrtc_http_server_ops_workflows.cpp",
+      "requiredSnippets": [
+        "\\\"modelBackedExecutionPerformed\\\":false",
+        "\\\"modelSessionLoadPerformed\\\":false"
+      ]
+    }
+  ],
+  "notEvidence": [
+    "action write implementation",
+    "persistent credential store implementation",
+    "production restore automation",
+    "external VLM product call",
+    "model-backed Re-ID supported-release promotion",
+    "UI fulltest",
+    "30-minute soak",
+    "120-minute longrun",
+    "published metadata",
+    "v4.0.0 tag or GitHub Release"
+  ]
+}
