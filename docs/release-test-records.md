@@ -31,7 +31,8 @@
   evidence mode qualified-native-automation (Playwright 1.62.1 + Google Chrome,
   fallbackUsed=false, actualBrowserExecution=true). Codex 인앱 수동 UI는 not-run.
   30분/UI PASS는 출시 가능, tag/GitHub Release evidence가 아님
-- 120분: conditional-not-run
+- 120분: conditional-not-run. 2026-08-31 사용자가 이 컷에서 실행하지 않기로 명시.
+  완료 evidence 아님
 - published metadata, `v4.0.0` tag/GitHub Release: 미실행
 - 이 기록은 출시 가능 판정이 아님
 - release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
@@ -1677,6 +1678,11 @@ UI 풀테스트는 `./test_ui.sh` exact 424/424 Policy v4 적격 PASS다. step 8
 | V400 release readiness UI executed-pass 정정 | 2026-08-31 `./server.sh verify-v400-release-readiness` 5/0. fixture `implementationStatus=policy-steps-complete-30min-ui-pass`, 30분·UI `executed-pass`, 120분 `conditional-not-run`. `verify-v400-user-review-gate` 5/0, `verify-v400-roadmap-contract` 8/0. 이 명령 PASS는 `./test_ui.sh` 재실행이 아님 | pass |
 | v400 (8) closeout dry-run heading precheck | 이전 세션 최초 `./server.sh verify-release-closeout-helper --dry-run`가 `docs/release-policy.md`에 `v4.0.0 Release Close-out Runbook` 제목이 없어 `release docs keep publish gates manual`에서 fail. 제품 코드 회귀가 아니라 release readiness 문서 기준 drift | fail |
 | v400 (8) closeout dry-run | runbook 추가 후 `./server.sh verify-release-closeout-helper --dry-run` 재실행. 2026-08-29 status pass, dryRun true, localCommands 5, manualActions 10, tag not created, push not performed | pass |
+| v400 (8) closeout dry-run after notes draft | 2026-08-31 `./server.sh verify-release-closeout-helper --dry-run --report ... --json-report ...` on source `c43c47e3` plus notes draft. status pass, dryRun true, localCommands 5, manualActions 10, gitStatusLines 1, tag not created, push not performed. schema `media-server.release-closeout-helper-dry-run.v1`. published metadata / tag / GitHub Release PASS 아님 | pass |
+| v400 (8) closeout one-shot dry-run after notes draft | 2026-08-31 `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`. status pass, dryRun true, localCommands 5, manualActions 10, tag not created, push not performed | pass |
+| v400 English UI copy i18n | `./server.sh verify-ui-copy-i18n-parity` 7/0. channel scope policy, user scope labels, VLM/what-if/approval draft 문구를 `product_ui_js.cpp` koToEn map/pattern에 추가. schema/media path 변경 아님 | pass |
+| v400 English docs UI recapture after i18n | `node scripts/internal/capture_docs_ui_assets.mjs --lang=en` 9/0. channels/rules/users PNG 직접 검수, hangul residue 0, 표·카드 잘림 없음 | pass |
+| Docs UI assets after English i18n recapture | 2026-08-31 `./server.sh verify-docs-ui-assets` 10/0 | pass |
 | Docs UI assets (8) | `./server.sh verify-docs-ui-assets` 10/0. 2026-08-29 재실행 | pass |
 | v400 30분 launcher contract | `./test_server_30min.sh` 내부 `verify-v390-user-test-launchers-contract` 22/0. source `18e19ce1` | pass |
 | v400 30분 AI asset bootstrap | model SHA `634279b4...`, labels SHA `bd17f1ee...` verified | pass |
@@ -2302,7 +2308,7 @@ UI 풀테스트는 `./test_ui.sh` exact 424/424 Policy v4 적격 PASS다. step 8
 | 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
 | --- | --- | --- | --- |
 | Codex 인앱 수동 UI | 인앱 브라우저 직접 조작 | not-run-by-this-command. 이번 evidence는 Policy v4 적격 Playwright+Chrome | 예, 수동 UI evidence로 사용 불가 |
-| 120분 | `verify-predev --soak-minutes 120` | conditional-not-run. 7.6.2 조건/사용자 지시 없음 | 예, 사용 불가 |
+| 120분 | `verify-predev --soak-minutes 120` | 2026-08-31 사용자 제외. 7.6.2 진행 조건도 없음 | 예, 사용 불가 |
 | predev build skip | delegated `--skip-build` | longrun runner가 이미 `./server.sh build` 수행 | 예, skip이지 30분 PASS 확대 아님 |
 | external-turn-hard-gate | `verify-webrtc-ice --external-turn` | `--include-external-turn` 미지정. 사용자 STUN/TURN 없음 | 예, 사용 불가 |
 | smoke 서버 자동 시작 | `./server.sh start` | `--no-start`. 이미 longrun 서버 사용 | 예, skip |

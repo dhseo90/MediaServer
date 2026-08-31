@@ -1073,12 +1073,71 @@ Annotation JSON을 확보한 경우:
 
 ## v4.0.0 Release Note Template
 
-아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 초안은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. GitHub Latest Release는
 게시 전까지 `v3.9.1`입니다. `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
+이 초안은 게시된 GitHub Release 본문이 아닙니다.
 
 ```markdown
 # Media Server v4.0.0
+
+## Summary
+
+v4.0.0 is a source-only major for Local Operations Policy and Stabilization.
+It does not add a new product feature surface. Latest published GitHub Release
+remains v3.9.1 until a signed `v4.0.0` tag and GitHub Release exist.
+
+## Scope
+
+- Source-only live media server
+- Current source roadmap: v4.0.0 Local Operations Policy and Stabilization
+- Latest published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
+- Binary, runtime, and model bundles: not included
+- Feature logic, public API schemas, event payloads, metadata schemas, and
+  RTSP/WebRTC media paths: unchanged vs published v3.9.1
+
+## Changes
+
+- Freeze local operations policy: action write, persistent credential store,
+  production restore, external VLM provider call, and model-backed Re-ID stay
+  unimplemented write paths in 4.0.0.
+- Keep `/ops/events` as an Ops-only diagnostic/direct route. No new event type
+  or storage format.
+- Freeze EventRecord/clip/retention as opt-in, non-VMS. Default-on storage is
+  not in 4.0.0.
+- Keep the 986/424 verification-layer ceiling and separate wrapper PASS from
+  executed PASS.
+- Recapture Korean and English representative UI screenshots on 2026-08-31
+  using the v3.8.0 uncropped composition. Docs UI published pin is v3.9.1.
+
+## Verification
+
+- 30-minute soak: executed-pass. `./test_server_30min.sh` on source `b53e8af1`,
+  runId `v390-server-longrun-20260830123921-36621`, 2383s/1800s, soak 20x5.
+  Fail-then-pass: HTTP video-only launcher, then soak-5-redaction.
+- UI fulltest: executed-pass. `./test_ui.sh` on source `166fb478`, runId
+  `v390-test-acceptance-20260830225118-68124`, exact 424/424, Policy v4
+  `policyValidationResult=PASS` and qualifier `uiFulltestPass=true`.
+- Docs UI assets: `./server.sh verify-docs-ui-assets` PASS after the 2026-08-31
+  recapture (`c43c47e3`). Not UI fulltest evidence.
+- Local close-out dry-run: re-run 2026-08-31 after this notes draft.
+  `./server.sh verify-release-closeout-helper --dry-run` and
+  `--dry-run --one-shot-dry-run` both status pass, dryRun true,
+  localCommands 5, manualActions 10, tag not created, push not performed.
+  Not a published-metadata PASS.
+
+## Not Run / Excluded
+
+- 120-minute soak: excluded by operator instruction for this cut. AGENTS 7.6.2
+  120-minute triggers were not met. Not a PASS.
+- PR, main merge, signed `v4.0.0` tag, GitHub Release, and
+  `verify-release-metadata --published`: not run
+- Real ONVIF device field smoke: not run; device/endpoint not provided
+- External TURN/WHEP credential operation: not run
+- Real cloud/VLM provider call: not run
+- VLM model/runtime bundle: not included in source-only artifacts
+
+Do not list an item as pass unless it was actually executed for this release cut.
 ```
 
 ## v3.9.1 Release Note Template
