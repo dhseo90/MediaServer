@@ -50,12 +50,13 @@ English 9개 제품 UI PNG를 다시 캡처했습니다. 구도는 v3.8.0 전체
 
 On 2026-08-31 the nine English product UI PNGs under `docs/assets/ui/en/` were
 recaptured from the live English UI (`?lang=en`) with the v3.8.0 full-element
-composition. The published pin is `v3.9.1`. Direct PNG review found 0 Hangul
-residue after capture-time hiding of known untranslated diagnostic notes
-(`#channelScopePolicy`, VLM/what-if/approval draft cards, user scope notes).
-Those strings remain a product i18n follow-up; this recapture is not a
-translation completion. English README images are `docs/assets/ui/en/*.png`.
-These images are not UI fulltest or GitHub Release evidence.
+composition. The published pin is `v3.9.1`. A second English recapture the same
+day followed translation-map entries for channel scope policy, user scope
+labels, and Rules VLM/what-if/approval draft copy. Direct PNG review of
+channels, rules, and users found 0 Hangul residue without hiding those
+sections. Scope tokens such as `ops:write` stay as identifiers. English README
+images are `docs/assets/ui/en/*.png`. These images are not UI fulltest or
+GitHub Release evidence.
 
 v3.9.1 source 기준 공개 문서 묶음:
 

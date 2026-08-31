@@ -84,6 +84,15 @@ check("product translation map includes recent UI copy", () => {
     "'클립보드 복사 실패': 'Clipboard copy failed'",
     "'클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.': 'Clipboard copy failed. Copy the filter link from the address bar.'",
     "'메타데이터 오류': 'Metadata error'",
+    "'source:write scope 확인됨. 채널 생성/수정/삭제를 수행할 수 있습니다.':",
+    "'운영 콘솔': 'Ops console'",
+    "'룰 관리': 'Rule management'",
+    "'개발/검증 API': 'Lab/verification API'",
+    "'범위 없음': 'No scopes'",
+    "'후보 새로고침': 'Refresh candidates'",
+    "'수동 저장 가능한 VLM rule draft 후보가 없습니다.':",
+    "'rule write 없음': 'no rule write'",
+    "'저장은 기존 `/ops/rules` 수동 저장 버튼에서만 수행됩니다.':",
   ];
   for (const snippet of required) {
     assert(js.includes(snippet), `translation map missing snippet: ${snippet}`);
@@ -188,6 +197,10 @@ check("v3.9.1 docs screenshot-visible copy is mapped", () => {
     "후속 조치 요약",
     "허용된 view의 상태만 표시됩니다.",
     "표시할 viewer-safe follow-up digest가 없습니다.",
+    "source:write scope 확인됨. 채널 생성/수정/삭제를 수행할 수 있습니다.",
+    "저장된 VLM observation 후보를 이벤트 템플릿 폼 초안으로만 가져옵니다.",
+    "draftEventId와 whatIfPreview=1 query가 있으면 selected incident 저장 전 preview context를 표시합니다. 저장은 운영자가 수동으로 실행해야 합니다.",
+    "approvalDraft=1 query가 있으면 저장 전 approval state, validation summary, staged draft context를 표시합니다.",
   ];
   for (const source of requiredSources) {
     assert(js.includes(`'${source}':`), `docs screenshot-visible translation missing: ${source}`);

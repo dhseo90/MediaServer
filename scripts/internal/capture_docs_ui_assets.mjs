@@ -195,9 +195,6 @@ async function captureTask(task, debugPort) {
     }
     await applyDarkTheme(browser);
     await waitForLanguage(browser);
-    if (language === "en") {
-      await hideEnglishHangulSurfaces(browser);
-    }
     await delay(500);
     const clip = await computeClip(browser, task.clip);
     await saveClip(browser, path.join(outputDir, task.file), clip);
@@ -221,20 +218,6 @@ async function applyDarkTheme(browser) {
     document.documentElement.dataset.lang = ${JSON.stringify(language)};
     window.MediaServerUi?.setLanguage?.(${JSON.stringify(language)}, { persist: true });
     return document.documentElement.dataset.theme;
-  })()`);
-}
-
-async function hideEnglishHangulSurfaces(browser) {
-  await evaluate(browser, `(() => {
-    const hide = (node) => {
-      if (node) node.style.display = 'none';
-    };
-    hide(document.getElementById('channelScopePolicy'));
-    hide(document.querySelector('[data-testid="ops-vlm-rule-draft-workflow"]'));
-    hide(document.querySelector('[data-testid="ops-rule-what-if-preview-draft-context"]'));
-    hide(document.querySelector('[data-testid="ops-approval-gated-rule-draft-readiness"]'));
-    document.querySelectorAll('.user-note').forEach((node) => hide(node));
-    return true;
   })()`);
 }
 
