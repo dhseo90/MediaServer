@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v4.0.0 current source baseline과 published v4.0.0 정렬을 검증한다.
+// 파일 용도: v4.0.0 current source baseline과 published v3.9.1 분리를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -21,8 +21,8 @@ Usage:
 Checks:
   - VERSION/CMake current source are 4.0.0
   - current source roadmap is v4.0.0 Local Operations Policy and Stabilization
-  - latest published GitHub Release is v4.0.0
-  - public docs and release metadata align current source with published v4.0.0
+  - latest published GitHub Release remains v3.9.1
+  - public docs and release metadata separate current source from published
   - inventory, stream-verification, records, and server.sh dispatch are wired
 
 Not run by this command:
@@ -41,10 +41,10 @@ const command = "verify-v400-entry-baseline";
 const expectedVersion = "4.0.0";
 const expectedTag = `v${expectedVersion}`;
 const currentRoadmap = "v4.0.0 Local Operations Policy and Stabilization";
-const latestPublishedTag = "v4.0.0";
-const latestPublishedBaseline = "v4.0.0 Local Operations Policy and Stabilization";
-const previousPublishedTag = "v3.9.1";
-const previousPublishedBaseline = "v3.9.1 Release Correctness and Public Repository Hygiene";
+const latestPublishedTag = "v3.9.1";
+const latestPublishedBaseline = "v3.9.1 Release Correctness and Public Repository Hygiene";
+const previousPublishedTag = "v3.9.0";
+const previousPublishedBaseline = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";
 const targetScript = "verify_v400_entry_baseline.mjs";
 
 const files = {
@@ -75,21 +75,21 @@ check("VERSION and CMake pin current source 4.0.0", () => {
   assertIncludes(files.cmake, `project(media_server VERSION ${expectedVersion} LANGUAGES CXX)`, "CMake project version");
 });
 
-check("versioning policy aligns current 4.0.0 with published v4.0.0", () => {
+check("versioning policy separates current 4.0.0 from published v3.9.1", () => {
   for (const snippet of [
     `현재 소스 버전: \`${expectedVersion}\``,
     `현재 source roadmap: \`${currentRoadmap}\``,
     `최신 공개 GitHub Release: \`${latestPublishedTag}\``,
     `최신 공개 roadmap: \`${latestPublishedBaseline}\``,
     `## v4.0.0 현재 source 개발 범위`,
-    `published tag \`${latestPublishedTag}\`와 현재 source tag \`${expectedTag}\``,
+    `\`${expectedTag}\`는 아직 생성하지 않습니다`,
     "신규 기능은 `v4.1.0`부터 넣는다",
   ]) {
     assertIncludes(files.versioning, snippet, "versioning policy");
   }
 });
 
-check("public entry docs pin current source and published v4.0.0", () => {
+check("public entry docs pin current source and keep published v3.9.1", () => {
   const docs = [
     {
       label: "README.md",
@@ -120,19 +120,19 @@ check("public entry docs pin current source and published v4.0.0", () => {
     assertIncludes(doc.text, latestPublishedBaseline, doc.label);
     assertIncludes(doc.text, previousPublishedBaseline, doc.label);
     assertIncludes(doc.text, "source-only", doc.label);
-    assert(doc.text.includes(`${expectedTag}](https://github.com/dhseo90/MediaServer/releases/tag/${expectedTag})`),
-      `${doc.label} must point at the published ${expectedTag} GitHub Release`);
+    assert(!doc.text.includes(`${expectedTag}](https://github.com/dhseo90/MediaServer/releases/tag/${expectedTag})`),
+      `${doc.label} must not claim a GitHub Release for unpublished ${expectedTag}`);
   }
 });
 
-check("release policy aligns published v4.0.0 with current source tag", () => {
+check("release policy keeps published v3.9.1 and does not create a v4.0.0 tag", () => {
   for (const snippet of [
     `현재 소스 버전: \`${expectedVersion}\``,
     `현재 source roadmap은 \`${currentRoadmap}\`입니다.`,
     `현재 latest published release는 \`${latestPublishedTag}\`입니다.`,
     `현재 공개 release tag 기준은 \`${latestPublishedTag}\`입니다.`,
-    `현재 source tag 기준은 \`${expectedTag}\`입니다.`,
-    `\`${expectedTag}\` GitHub Release publish 완료는 tag, GitHub Release,`,
+    `\`${expectedTag}\` GitHub Release/tag는 아직 생성하지 않습니다`,
+    `\`${latestPublishedTag}\` GitHub Release publish 완료는 tag, GitHub Release,`,
   ]) {
     assertIncludes(files.releasePolicy, snippet, "release policy");
   }
@@ -150,7 +150,7 @@ check("development backlog current roadmap is v4.0.0 and step 1 is developed", (
     "scripts/internal/verify_v400_entry_baseline.mjs",
     "verify_release_metadata_consistency.mjs",
     `| 2 | v4.0.0 (2) User Review Gate | P0 | 완료 |`,
-    `\`${expectedTag}\` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가`,
+    `\`${expectedTag}\` GitHub Release/tag는 아직 생성하지 않습니다`,
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");
   }
@@ -161,7 +161,7 @@ check("stream verification, inventory, and records wire v4.0.0 (1)", () => {
     "v4.0.0 (1)",
     "./server.sh verify-v400-entry-baseline",
     "./server.sh verify-release-metadata",
-    "latest published `v4.0.0`",
+    "latest published `v3.9.1`",
     "UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다",
   ]) {
     assertIncludes(files.streamVerification, snippet, "stream verification");
@@ -184,18 +184,19 @@ check("stream verification, inventory, and records wire v4.0.0 (1)", () => {
   for (const snippet of [
     "v4.0.0 source baseline",
     "verify-v400-entry-baseline",
-    "latest published: v4.0.0",
+    "latest published: v3.9.1",
   ]) {
     assertIncludes(files.releaseEvidence, snippet, "release evidence index");
   }
 });
 
-check("release metadata verifier aligns current 4.0.0 with published v4.0.0", () => {
+check("release metadata verifier separates current 4.0.0 from published v3.9.1", () => {
   for (const snippet of [
     `assert(currentTag === "${expectedTag}"`,
     `const latestPublishedTag = "${latestPublishedTag}";`,
     `const currentRoadmap = "${currentRoadmap}";`,
     `const latestPublishedBaseline = "${latestPublishedBaseline}";`,
+    "currentTag !== latestPublishedTag",
     "publishedMode ? \"published-release\" : \"local-release-metadata\"",
   ]) {
     assertIncludes(files.releaseMetadataVerifier, snippet, "release metadata verifier");

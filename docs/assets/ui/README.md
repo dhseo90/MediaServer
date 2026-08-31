@@ -5,8 +5,8 @@
 
 현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v4.0.0`
 Local Operations Policy and Stabilization를 가리키고,
-최신 공개 GitHub Release는 `v4.0.0` Local Operations Policy and Stabilization
-source-only baseline을 가리킵니다. 직전 `v3.9.1` Release Correctness and Public Repository Hygiene은
+최신 공개 GitHub Release는 `v3.9.1` Release Correctness and Public Repository Hygiene
+source-only baseline을 가리킵니다. 직전 `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation은
 previous reference입니다. v3.9.0 entry-baseline historical pin:
 최신 공개 GitHub Release는 `v3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation
 source-only baseline을 가리켰고, 직전 `v3.8.0` Operator-Gated Action Pilot & Outcome Loop은
