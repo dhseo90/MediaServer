@@ -33,9 +33,8 @@ if (!chromePath) {
 
 fs.mkdirSync(outputDir, { recursive: true });
 
-// Clip selectors follow the v3.8.0 full-element composition: header plus the
-// page root (or the complete rule preview stage). Fragment heroes/metrics
-// crop tables, video controls, and section headings and must not be used.
+// 클립 선택자는 v3.8.0 전체 요소 구성을 따른다: header와 page root(또는 룰 미리보기
+// stage 전체). hero/metrics 조각 클립은 표·영상 컨트롤·섹션 제목을 자르므로 쓰지 않는다.
 const tasks = [
   {
     name: "ops-home",
