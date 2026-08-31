@@ -11,16 +11,15 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `4.0.0`
-- 최신 공개 GitHub Release: `v4.0.0`
-- `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.9.1`
+- `v3.9.1` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 최신 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
+- 직전 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - 다음 source 개발 로드맵: `v4.1.0` 신규 기능 후보. 4.0.0에서 구현하지 않음
 - v4.0.0 범위: 로컬 운영 정책화 및 안정화. 신규 기능은 `v4.1.0`부터
-- `v4.0.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
-  있을 때만 완료로 기록합니다.
+- `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
 
 ### 2026-08-14 v3.9.0 historical close-out status
 
@@ -32,9 +31,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v4.0.0 Local Operations Policy and Stabilization
 
 상태: v4.0.0 (1)~(8) 정책/안정화 기록 완료. 30분과 UI 풀테스트는 `executed-pass`.
-120분은 `conditional-not-run`. published는 `v4.0.0`. 이 로드맵 기록 완료는 출시
-가능 판정이 아니다. `v4.0.0` publish 완료는 tag, GitHub Release, published
-metadata 검증 evidence가 있을 때만 완료로 기록합니다.
+120분은 `conditional-not-run`. published는 `v3.9.1` 유지. `v4.0.0` GitHub
+Release/tag는 아직 생성하지 않습니다. 이 로드맵 기록 완료는 출시 가능 판정이
+아니다.
 
 직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
 read-only/decision-only 운영 표면을 정책으로 고정하고, 로컬 file/replay/fixture로
@@ -4695,19 +4694,6 @@ close-out dry-run, script inventory, `git diff --check` 연결입니다.
 현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
-
-## 최신 공개 기준: v4.0.0 Source Release Baseline
-
-v4.0.0은 로컬 운영 정책화 및 안정화 source-only major 공개 릴리즈입니다.
-action write, persistent credential store, production restore, external VLM
-provider call, model-backed Re-ID를 비구현으로 freeze하고, `/ops/events`는
-Ops-only diagnostic route로 유지하며 EventRecord/clip/retention은 opt-in입니다.
-30분과 UI 풀테스트는 executed-pass, 120분과 실기기 field smoke는 제외입니다.
-Binary/runtime/model bundle과 external field smoke는 공개 asset 또는 실행 PASS로
-승격하지 않습니다. `v4.0.0` publish 완료는 tag, GitHub Release, published metadata
-검증 evidence가 있을 때만 완료로 기록합니다.
-
-## 직전 공개 기준: v3.9.1 Source Release Baseline
 
 ## 최신 공개 기준: v3.9.1 Source Release Baseline
 

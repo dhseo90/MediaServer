@@ -107,12 +107,12 @@ check("v4.0.0 non-scope excludes field devices and new media contracts", () => {
   }
 });
 
-check("versioning policy pins v4.0.0 current source and published v4.0.0", () => {
+check("versioning policy pins v4.0.0 current source and keeps published v3.9.1", () => {
   assert(versioning.includes("현재 소스 버전: `4.0.0`"), "versioning policy current source pin drifted");
   assert(versioning.includes("현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`"),
     "versioning policy current roadmap pin drifted");
   assert(versioning.includes("## v4.0.0 현재 source 개발 범위"), "versioning policy missing v4.0.0 range");
-  assert(versioning.includes("최신 공개 GitHub Release: `v4.0.0`"), "versioning policy published pin drifted");
+  assert(versioning.includes("최신 공개 GitHub Release: `v3.9.1`"), "versioning policy published pin drifted");
   assert(versioning.includes("신규 기능은 `v4.1.0`부터 넣는다"), "versioning policy missing v4.1.0 handoff");
 });
 
