@@ -559,7 +559,7 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   const currentPlan = readJson(path.join(outputDir, "current-seed-plan.json"));
   assert(currentPlan.releaseTarget === "v4.0.0" &&
     currentPlan.fixtureReleaseTargets?.currentSource === "v4.0.0" &&
-    currentPlan.fixtureReleaseTargets?.latestPublishedBaseline === "v3.9.0",
+    currentPlan.fixtureReleaseTargets?.latestPublishedBaseline === "v3.9.1",
   "default seed preparation is not bound to the current source and published baseline");
 
   const planPath = path.join(outputDir, "seed-plan.json");
@@ -610,12 +610,12 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   }, "source ui-file-va-tracking-long fixture SHA-256 mismatch");
 
   const mismatchedFixturePath = path.join(outputDir, "mismatched-seed.json");
-  fs.writeFileSync(mismatchedFixturePath, `${JSON.stringify({ ...fixture, publishedReleaseTarget: "v3.9.1" }, null, 2)}\n`);
+  fs.writeFileSync(mismatchedFixturePath, `${JSON.stringify({ ...fixture, publishedReleaseTarget: "v3.9.0" }, null, 2)}\n`);
   const mismatchResult = spawnSync(path.join(rootDir, "server.sh"), [
     "prepare-manual-ui-fulltest-seed", "--dry-run", "--published-seed-baseline",
     "--fixture", mismatchedFixturePath,
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes("seed fixture must pin v3.9.0"),
+  assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes("seed fixture must pin v3.9.1"),
     "published seed preparation accepted a current-source fixture outside the published baseline");
 });
 

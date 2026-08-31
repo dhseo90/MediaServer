@@ -1683,6 +1683,10 @@ UI 풀테스트는 `./test_ui.sh` exact 424/424 Policy v4 적격 PASS다. step 8
 | v400 English UI copy i18n | `./server.sh verify-ui-copy-i18n-parity` 7/0. channel scope policy, user scope labels, VLM/what-if/approval draft 문구를 `product_ui_js.cpp` koToEn map/pattern에 추가. schema/media path 변경 아님 | pass |
 | v400 English docs UI recapture after i18n | `node scripts/internal/capture_docs_ui_assets.mjs --lang=en` 9/0. channels/rules/users PNG 직접 검수, hangul residue 0, 표·카드 잘림 없음 | pass |
 | Docs UI assets after English i18n recapture | 2026-08-31 `./server.sh verify-docs-ui-assets` 10/0 | pass |
+| v400 (8) closeout dry-run on 9fab5fe2 | clean HEAD `9fab5fe2` `./server.sh verify-release-closeout-helper --dry-run` status pass, dryRun true, localCommands 5, manualActions 10, gitStatusLines 0, tag not created, push not performed | pass |
+| v400 (8) closeout one-shot dry-run on 9fab5fe2 | `--dry-run --one-shot-dry-run` on clean `9fab5fe2` status pass | pass |
+| v400 published seed pin v3.9.1 | seed fixture `publishedReleaseTarget` `v3.9.0`→`v3.9.1`. `prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline` exit 0. acceptance-bundle-contract 37/0. mismatch negative는 stale `v3.9.0` | pass |
+| v400 (8) closeout dry-run after seed pin | seed pin working tree `./server.sh verify-release-closeout-helper --dry-run` status pass, gitStatusLines 4 (uncommitted seed/docs), tag not created | pass |
 | Docs UI assets (8) | `./server.sh verify-docs-ui-assets` 10/0. 2026-08-29 재실행 | pass |
 | v400 30분 launcher contract | `./test_server_30min.sh` 내부 `verify-v390-user-test-launchers-contract` 22/0. source `18e19ce1` | pass |
 | v400 30분 AI asset bootstrap | model SHA `634279b4...`, labels SHA `bd17f1ee...` verified | pass |

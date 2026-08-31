@@ -1073,10 +1073,10 @@ Annotation JSON을 확보한 경우:
 
 ## v4.0.0 Release Note Template
 
-아래 초안은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. GitHub Latest Release는
 게시 전까지 `v3.9.1`입니다. `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
-이 초안은 게시된 GitHub Release 본문이 아닙니다.
+채워 넣은 본문은 게시된 GitHub Release가 아닙니다.
 
 ```markdown
 # Media Server v4.0.0
@@ -1120,9 +1120,9 @@ remains v3.9.1 until a signed `v4.0.0` tag and GitHub Release exist.
   `policyValidationResult=PASS` and qualifier `uiFulltestPass=true`.
 - Docs UI assets: `./server.sh verify-docs-ui-assets` PASS after the 2026-08-31
   recapture (`c43c47e3`). Not UI fulltest evidence.
-- Local close-out dry-run: re-run 2026-08-31 after this notes draft.
-  `./server.sh verify-release-closeout-helper --dry-run` and
-  `--dry-run --one-shot-dry-run` both status pass, dryRun true,
+- Local close-out dry-run: 2026-08-31 clean HEAD `9fab5fe2` and again after
+  the published seed pin, `./server.sh verify-release-closeout-helper --dry-run`
+  and `--dry-run --one-shot-dry-run` both status pass, dryRun true,
   localCommands 5, manualActions 10, tag not created, push not performed.
   Not a published-metadata PASS.
 
