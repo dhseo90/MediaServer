@@ -17,10 +17,21 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
 - 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
 - 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 다음 source 개발 로드맵: `v4.1.0` 신규 기능 후보. 4.0.0에서 구현하지 않음
+- 다음 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
+  2026-09-02 사용자 설계 승인을 받았으며 구현·테스트 완료 상태는 아님
+- 상세 구현계획:
+  [`2026-09-02-v410-recording-foundation-implementation-plan.md`](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
+- 장기 로드맵은 `main` 공통 문서로 관리하고, 각 버전 브랜치는 자신의 버전 단계만
+  구현하며 후속 버전 절은 contract 소비 문맥으로만 상속함
+- 현재 장기 로드맵 변경은 v4.1.0에 포함하고 v4.1.0 머지 때 `main`에 공통 반영함
+- 의도된 공개용 영문 문서를 제외한 문서 작성과 상태 판정은 한글을 기본으로 함
 - v4.0.0 범위: 로컬 운영 정책화 및 안정화. 신규 기능은 `v4.1.0`부터
 - `v4.0.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
   있을 때만 완료로 기록합니다.
+
+2026-09-02 이전에 이 문서에 기록된 `v4.1.0 (1)~(6)` 후보와 `evidence default-on은
+v4.1.0` 같은 문구는 당시의 historical planning context다. 현재 일정과 범위가 충돌하면
+`v4.1.0 Recording Foundation과 후속 검색 로드맵` 절과 전용 로드맵 문서를 우선한다.
 
 ### 2026-08-14 v3.9.0 historical close-out status
 
@@ -369,20 +380,35 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 이 보강은 다음 실제 30분/UI 재실행에서 사람이 읽을 compact 결과와 실패 시 에이전트
 전달 파일을 추가하는 범위다.
 
-### v4.1.0 이후 신규 기능 후보
+### v4.1.0 Recording Foundation과 후속 검색 로드맵
 
-아래는 4.0.0 완료 후 넣는 신규 기능이다. 4.0.0에서 구현하지 않는다.
+사용자와 합의한 현재 source roadmap은
+[v410-v49-recording-search-roadmap.md](v410-v49-recording-search-roadmap.md)다. v4.1.0은
+상시·이벤트 연동 녹화, 순환 보존, event 우선 재생, 검색-ready 녹화 메타데이터 기반에
+집중한다. 구조화 검색은 v4.2.0, 벡터 검색은 v4.3.0, 자연어 query API는 v4.7.0,
+대화형 검색과 정확한 녹화 재생은 v4.8.0에서 진행한다.
 
-| 번호 | 제목 | 우선순위 | 개발 내용 | 테스트 스크립트 반영 |
+| 단계 | 제목 | 우선순위 | 상태 | 개발 내용 |
 | --- | --- | --- | --- | --- |
-| 1 | v4.1.0 (1) Incident OS 제품 승격 | P1 | `/ops/events`를 primary 운영 면으로 승격하고 검색/timeline/resolution을 한 제품 흐름으로 묶음 | 테스트 스크립트 반영 필수. 새 route/control/action을 inventory·UI case·verifier에 실행 전 등록 |
-| 2 | v4.1.0 (2) Evidence default-on 제품화 | P1 | EventRecord/clip/retention을 기본 운영 저장으로 켜되 VMS/장기 녹화는 금지 | 테스트 스크립트 반영 필수. 저장/retention/privacy verifier와 30분 대상 여부를 실행 전 등록 |
-| 3 | v4.1.0 (3) 로컬 Action Execution | P0 | file source recheck, rule apply, 내부 notice persist만. 외부 발송·자동 apply 금지 | 테스트 스크립트 반영 필수. write/audit/rollback/권한 행렬 verifier를 실행 전 등록 |
-| 4 | v4.1.0 (4) 로컬 credential store | P1 | 암호화 로컬 store + no-device 검증. 실 ONVIF 성공은 조건부 제외 | 테스트 스크립트 반영 필수. store/redaction/negative verifier를 실행 전 등록 |
-| 5 | v4.1.0 (5) Tracker 제품 기본 선택 | P1 | file/4신 sample/replay로 기본 tracker를 선택. Re-ID default-on 제외 | 테스트 스크립트 반영 필수. replay/VA event 항목을 실행 전 등록 |
-| 6 | v4.1.0 (6) 로컬 VLM 운영 경로 | P1 | 로컬 stub/runtime opt-in만. cloud/default-on 금지 | 테스트 스크립트 반영 필수. opt-in/no-call/privacy verifier를 실행 전 등록 |
+| V410-S00 | 조사·설계 freeze | P0 | 설계 승인 완료·조사 gate 미실행 | 공개 표준·호환 오픈소스·KR/US/EP/PCT IP screening과 Apache-2.0 경계 확정 |
+| V410-S01 | Recording contract v1 | P0 | 미구현 | segment/frame/event link/analysis observation/tombstone 계약과 migration 규칙 |
+| V410-S02 | Continuous segment recorder | P0 | 미구현 | 채널별 opt-in, keyframe segment, atomic finalize, restart recovery |
+| V410-S03 | Catalog and recovery journal | P0 | 미구현 | SQLite primary, append-only JSONL rebuild/fallback |
+| V410-S04 | Retention coordinator | P0 | 미구현 | continuous/event 용량 분리, oldest-first overwrite, pin/tombstone/disk reserve |
+| V410-S05 | Event recording linker | P0 | 미구현 | 겹치는 원본 segment와 pre/event/post 파생 clip, frame-buffer fallback |
+| V410-S06 | Priority timeline | P0 | 미구현 | event > continuous 조회·재생 API와 Ops UI |
+| V410-S07 | Search-ready metadata | P1 | 미구현 | event/track summary와 bounded representative observations, exact frame locator |
+| V410-S08 | Recovery/compatibility gate | P0 | 미구현 | crash/disk-full/gap/corruption/migration/fixture verifier |
+| V410-S09 | Stabilization/readiness | P0 | 미구현 | 사용자 승인 범위의 안정화·UI·longrun·release 판정 |
 
-### v4.0.0 / v4.1.0 모델 추천
+기존에 v4.1.0 후보로 적었던 Incident OS 제품 승격, Evidence default-on, 로컬 Action
+Execution, credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 이번 v4.1.0 범위가
+아니다. 삭제하지 않고 보류 후보로 유지하되, 사용자가 별도 버전과 순서를 승인하기 전에는
+자동 착수하지 않는다.
+
+### v4.0.0 / 과거 v4.1.0 후보 모델 추천
+
+아래 v4.1.0 후보 행은 과거 기록이며 현재 Recording Foundation 실행계획이 아니다.
 
 런타임 패밀리: Grok. 현재 에이전트가 Grok이므로 Codex 등급명을 쓰지 않는다.
 
@@ -396,7 +422,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | v4.0.0 (6) Evidence 운영 정책화 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 저장/프라이버시 정책. Event POST schema는 변경 금지 |
 | v4.0.0 (7) 로컬 운영 안정화 | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 기존 회귀와 오판 방지 |
 | v4.0.0 (8) close-out | grok-4.6 | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. release correctness 13.4 |
-| v4.1.0 (3) 로컬 Action Execution | grok-4.6 | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. auth/write/audit. TUI는 max 미지원 |
+| 과거 v4.1.0 후보 (3) 로컬 Action Execution | grok-4.6 | 매우 높음 (xhigh) | 현재 v4.1.0 비범위. 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. auth/write/audit. TUI는 max 미지원 |
 
 ## Historical archive: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 

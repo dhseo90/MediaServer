@@ -12,7 +12,12 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 현재 소스 버전: `4.0.0`
 - v4.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- 다음 source 개발 로드맵: `v4.1.0` 신규 기능 후보. 4.0.0에서 구현하지 않음
+- 다음 source 개발 로드맵: `v4.1.0 Recording Foundation`. 현재는 설계/계획 단계이며
+  구현·테스트·릴리즈 완료 상태가 아님
+- 장기 로드맵은 `main`에서 공통 관리하며 각 버전 브랜치는 해당 버전 구현에만 집중하고
+  후속 버전 절은 stable contract 설계 문맥으로 상속함
+- 현재 장기 로드맵은 v4.1.0 변경에 포함하며 v4.1.0 머지 때 `main`에 공통 반영
+- 의도된 공개용 영문 문서를 제외한 프로젝트 문서의 기본 언어는 한글
 - 기본 공개 형태: source-only
 - 대표 이미지는 2026-08-31에 source `4.0.0` / 당시 published `v3.9.1` 기준으로 v3.8.0
   구도를 참고해 다시 캡처했습니다. `config/docs_ui_assets.json`과
@@ -32,6 +37,8 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | 검증 명령 | [stream-verification.md](stream-verification.md) |
 | 버전과 release 정책 | [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md) |
 | 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
+| v4.1.0~v4.9.0 녹화·검색 로드맵 | [v410-v49-recording-search-roadmap.md](v410-v49-recording-search-roadmap.md) |
+| v4.1.0 녹화 기반 상세 구현계획 | [superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md) |
 | v4.0.0 release notes | [release-artifacts/v4.0.0/release-notes.md](release-artifacts/v4.0.0/release-notes.md) |
 | v3.9.1 release notes | [release-artifacts/v3.9.1/release-notes.md](release-artifacts/v3.9.1/release-notes.md) |
 | v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes.md](release-artifacts/v3.9.0/release-notes.md) |
