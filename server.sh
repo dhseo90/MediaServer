@@ -3034,6 +3034,10 @@ case "${cmd}" in
     require_internal verify_v410_recording_recorder.sh
     exec "${INTERNAL_DIR}/verify_v410_recording_recorder.sh" "$@"
     ;;
+  verify-v410-recording-catalog)
+    require_internal verify_v410_recording_catalog.sh
+    exec "${INTERNAL_DIR}/verify_v410_recording_catalog.sh" "$@"
+    ;;
   verify-v400-user-review-gate)
     require_internal verify_v400_user_review_gate.mjs
     exec "${INTERNAL_DIR}/verify_v400_user_review_gate.mjs" "$@"

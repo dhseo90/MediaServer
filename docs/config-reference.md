@@ -765,6 +765,13 @@ media source root와 같은 경로일 수 없고, 쓰기 불가·GStreamer 미�
 해당 recorder를 시작하지 않습니다. H.264는 MP4, VP8은 WebM으로 기록하며 final callback 전
 `.partial`만 사용합니다.
 
+storage root 아래 `recording-mutations.jsonl`은 durable source-of-truth이고
+`recording-catalog.sqlite3`은 재구축 가능한 projection입니다. SQLite 사용 빌드는
+`catalogMode=sqlite-primary`, 미사용 빌드 또는 초기화 불가 환경은
+`catalogMode=jsonl-fallback`으로 동작합니다. SQLite 손상 원본은 덮어쓰지 않고
+`.corrupt-<timestamp>`로 격리합니다. catalog에 없는 final MP4/WebM은 정상/손상 orphan으로
+구분만 하며 V410-S04 전에는 자동 삭제하지 않습니다.
+
 ## EventStorage env
 
 ### EventRecord storage

@@ -31,6 +31,12 @@
 #include "ingress/gstreamer_rtsp_server.h"
 #include "ingress/http_auth.h"
 #include "ingress/webrtc_http_server.h"
+#include "ingress/source_view_application_service.h"
+#include "recording/gstreamer_segment_writer.h"
+#include "recording/recording_catalog.h"
+#include "recording/recording_journal.h"
+#include "recording/recording_session_service.h"
+#include "recording/recording_supervisor.h"
 
 namespace media_server::application {
 namespace {
@@ -307,6 +313,39 @@ int RunMediaServerApplication(int argc, char** argv) {
     core::StreamRegistry registry;
     core::ResourceGuard resource_guard(config.max_sessions, config.max_streams);
     core::SessionManager session_manager(registry, resource_guard);
+
+    const std::filesystem::path recording_root(config.recording_storage_root);
+    recording::RecordingJournal recording_journal(recording_root / "recording-mutations.jsonl");
+    std::string recording_error;
+    if (!recording_journal.Open(&recording_error)) {
+        std::cerr << "recording journal open failed: " << recording_error << "\n";
+        return 1;
+    }
+    recording::RecordingCatalog recording_catalog(
+        recording_journal,
+        {recording_root / "recording-catalog.sqlite3", recording_root, true});
+    if (!recording_catalog.Open(&recording_error)) {
+        std::cerr << "recording catalog open failed: " << recording_error << "\n";
+        return 1;
+    }
+    recording::RecordingSessionService recording_sessions(
+        session_manager,
+        recording_catalog,
+        [&config] {
+            return std::make_unique<recording::GStreamerSegmentWriter>(
+                recording::GStreamerSegmentWriter::Options{
+                    config.recording_storage_root,
+                    static_cast<std::int64_t>(config.recording_segment_duration_seconds) * 1000});
+        });
+    recording::RecordingSupervisor recording_supervisor(
+        config,
+        ingress::SourceViewApplicationService::Instance(),
+        recording_sessions);
+    if (!recording_supervisor.Start(&recording_error)) {
+        std::cerr << "recording supervisor start failed: " << recording_error << "\n";
+        return 1;
+    }
+
     analysis::AnalysisSessionService analysis_sessions(session_manager);
     auto analysis_session_lifecycle =
         ingress::MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);
@@ -347,6 +386,8 @@ int RunMediaServerApplication(int argc, char** argv) {
     std::cout << "listen: rtsp://" << rtsp_address << ":" << rtsp_port << "/" << config.stream_route << "\n";
     std::cout << "ops console: http://" << http_address << ":" << http_port << "/ops/home\n";
     std::cout << "client live: http://" << http_address << ":" << http_port << "/client/live\n";
+    std::cout << "recording catalog: " << recording_catalog.catalog_mode()
+              << " (enabled=" << (config.recording_enabled ? "yes" : "no") << ")\n";
     std::cout << "file test url: rtsp://" << rtsp_address << ":" << rtsp_port << "/" << config.stream_route
               << "?file=" << default_file_token << "\n";
     std::cout << "running... (SIGINT/SIGTERM to stop)\n";
@@ -361,6 +402,7 @@ int RunMediaServerApplication(int argc, char** argv) {
 
     webrtc_http_server.Stop();
     gst_rtsp_server.Stop();
+    recording_supervisor.Stop();
     session_manager.SetAuxiliaryStreamRuntimeProvider({});
     analysis::StopEventStorage();
     return 0;

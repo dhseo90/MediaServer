@@ -4,6 +4,36 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## V410-S03 JSONL 원장, SQLite projection과 supervisor wiring
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `recording_journal.h/.cpp`: mutation envelope, 6종 type, mutex append/write/fsync,
+    corrupt/truncated replay report
+  - `recording_catalog.h/.cpp`: `RecordingStorePort` 구현, idempotent memory projection,
+    SQLite schema v1/WAL/FK/index, JSONL fallback, 손상 DB 격리/rebuild, orphan 분류
+  - `recording_supervisor.h/.cpp`: 시작 snapshot, source 저장 callback, 5초 safety reconcile,
+    policy revision idempotency와 channel recorder lifecycle
+  - `media_server_application.cpp`: journal→catalog→session→supervisor→ingress 시작 순서와
+    ingress→supervisor finalize→EventStorage 종료 순서
+  - `recording_catalog_smoke.cpp`, `verify_v410_recording_catalog.sh`, `server.sh`:
+    C++ recovery/parity test와 composition order 확인
+- RED 확인: 최초 verifier는 `recording_journal.cpp`, `recording_catalog.cpp` 부재로 실패
+- GREEN 확인:
+  - `./server.sh verify-v410-recording-catalog`: C++ `pass=24 fail=0`, supervisor/composition
+    정적 항목 8건 PASS
+  - `./server.sh verify-v410-recording-recorder`: `pass=38 fail=0`
+  - `./server.sh verify-v410-recording-contracts`: `pass=45 fail=0`
+  - `./server.sh build`: 제품 runtime/executable 100% PASS
+- 개별 확인: 동일 mutation 중복 replay, 마지막 truncate, 중간 corrupt, SQLite on/off query
+  parity, event link FK 위반 무기록 rollback, 정상/손상 final media orphan, 손상 SQLite 원본
+  격리와 journal rebuild, 저장 callback/5초 reconcile/revision idempotency, 시작·종료 순서
+- 미실행/비대체: S04 순환 삭제, event runtime 연결, timeline API/UI, UI 풀테스트,
+  30분/120분, published metadata, PR/main/tag/GitHub Release
+- 회귀 가능성: journal append 후 projection 실패 시 재시작 replay에 의존하는 경계,
+  SQLite compile-time on/off drift, source policy revision 누락, shutdown 순서 역전.
+  focused catalog/recorder verifier와 제품 build로 방어
+
 ## V410-S02 채널 정책, Recorder subscriber와 segment writer
 
 - 상태: local focused PASS

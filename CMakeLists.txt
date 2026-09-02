@@ -90,7 +90,10 @@ add_library(media_server_runtime STATIC
     src/ingress/product_ui_auth_pages.cpp
     src/recording/recording_contracts.cpp
     src/recording/gstreamer_segment_writer.cpp
+    src/recording/recording_journal.cpp
+    src/recording/recording_catalog.cpp
     src/recording/recording_session_service.cpp
+    src/recording/recording_supervisor.cpp
     src/ingress/product_ui_components.cpp
     src/ingress/product_ui_client_css.cpp
     src/ingress/product_ui_client_scripts.cpp

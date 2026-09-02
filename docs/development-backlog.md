@@ -19,7 +19,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
   2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선, S01 녹화 v1 계약,
-  S02 채널별 상시녹화 recorder 완료. S03~S09는 미구현
+  S02 채널별 상시녹화 recorder와 S03 JSONL/SQLite catalog·supervisor 완료.
+  S04~S09는 미구현
 - 상세 구현계획:
   [`2026-09-02-v410-recording-foundation-implementation-plan.md`](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
 - 장기 로드맵은 `main` 공통 문서로 관리하고, 각 버전 브랜치는 자신의 버전 단계만
@@ -394,7 +395,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S00 | 조사·설계 freeze | P0 | 완료 | 공개 표준·라이선스 metadata, KR/US/EP/PCT clean-room 차단선, source `4.1.0` 정렬. 특정 특허 상세·외부 코드 미반입 |
 | V410-S01 | Recording contract v1 | P0 | 완료 | segment/frame/event link/analysis observation/tombstone 계약, v1 additive migration/rebuild 규칙, golden JSONL round-trip |
 | V410-S02 | Continuous segment recorder | P0 | 완료 | 채널별 opt-in, Recorder subscriber, H.264/MP4·VP8/WebM keyframe segment, atomic finalize, PTS rollback epoch |
-| V410-S03 | Catalog and recovery journal | P0 | 미구현 | SQLite primary, append-only JSONL rebuild/fallback |
+| V410-S03 | Catalog and recovery journal | P0 | 완료 | fsync append-only JSONL, SQLite primary/rebuild, in-memory fallback, 손상 격리, source policy supervisor |
 | V410-S04 | Retention coordinator | P0 | 미구현 | continuous/event 용량 분리, oldest-first overwrite, pin/tombstone/disk reserve |
 | V410-S05 | Event recording linker | P0 | 미구현 | 겹치는 원본 segment와 pre/event/post 파생 clip, frame-buffer fallback |
 | V410-S06 | Priority timeline | P0 | 미구현 | event > continuous 조회·재생 API와 Ops UI |
@@ -506,6 +507,34 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
   client queue 비차단이다.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간, S03 catalog/recovery,
   순환 삭제, event 우선 timeline, published metadata, release action.
+
+### v4.1.0 S03 개발 기록
+
+- 범위: P0 `V410-S03 Catalog and recovery journal`. S04 순환 삭제와 이후 event/timeline/
+  검색 단계는 구현하지 않았다.
+- `recording_journal.*`: `recording-mutation.v1` envelope와 여섯 mutation type을
+  append-only JSONL로 기록한다. process mutex 아래 한 줄 write와 `fsync`를 끝낸 뒤 성공을
+  반환하고, replay는 중간 corrupt line과 newline 없는 마지막 truncated line을 각각 센다.
+- `recording_catalog.*`: journal을 source-of-truth로 replay하는 in-memory projection과
+  SQLite schema version 1 primary를 제공한다. mutation ID 중복은 row/합계를 늘리지 않고,
+  channel/time range query는 SQLite 사용 여부와 같은 ID·순서를 반환한다. SQLite는 WAL/FK를
+  켜며 손상 파일은 `.corrupt-<timestamp>`로 격리한 뒤 journal에서 재구축한다.
+- `recording_catalog.*`의 `RecordingStorePort` 구현: finalized segment, event link,
+  analysis observation, deletion request/tombstone을 journal→memory→SQLite 순서로 적용한다.
+  event link/observation의 없는 segment 참조는 durable append 전에 거부한다.
+- orphan 점검은 catalog에 없는 final MP4/WebM을 container magic 기준 정상/손상으로
+  분리한다. 자동 삭제나 보존 정책 적용은 S04 이전에는 수행하지 않는다.
+- `recording_supervisor.*`, `source_view_application_service.*`: 시작 snapshot, source 저장
+  callback, 5초 safety reconcile을 연결하고 같은 policy revision은 recorder를 재생성하지
+  않는다. global/source/channel opt-in을 모두 만족한 채널만 시작한다.
+- `media_server_application.cpp`: journal open → catalog open/rebuild → recording session →
+  supervisor start → HTTP/RTSP ingress 순서로 조립한다. 종료는 ingress를 먼저 닫고
+  supervisor/writer finalize 뒤 EventStorage를 닫는다.
+- RED: 최초 `verify-v410-recording-catalog`는 journal/catalog 구현 파일 부재로 실패했다.
+- GREEN: `verify-v410-recording-catalog` C++ `pass=24 fail=0`과 composition 정적 확인 8건,
+  `verify-v410-recording-recorder` `pass=38 fail=0`, 제품 build 100% PASS.
+- 미실행/비대체: retention unlink/overwrite, event link runtime bridge, timeline API/UI,
+  UI 풀테스트, 30분/120분, external field smoke, published metadata, release action.
 
 기존에 v4.1.0 후보로 적었던 Incident OS 제품 승격, Evidence default-on, 로컬 Action
 Execution, credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 이번 v4.1.0 범위가
