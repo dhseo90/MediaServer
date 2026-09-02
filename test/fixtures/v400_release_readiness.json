@@ -5,15 +5,18 @@
   "updatedOn": "2026-09-02",
   "sourceRelease": "v4.0.0",
   "latestPublished": "v3.9.1",
-  "status": "candidate-docs-ready-tests-pending",
-  "implementationStatus": "policy-steps-complete-fresh-30min-ui-pending",
-  "primarySelection": "prepare the concrete v4.0.0 release-note candidate; preserve historical 30-minute and UI pass only as prior evidence; require fresh runs after the compact handoff boundary; keep 120-minute conditional-not-run; do not create tag or GitHub Release",
+  "status": "candidate-tests-pass-release-actions-pending",
+  "implementationStatus": "policy-steps-complete-fresh-30min-ui-pass",
+  "primarySelection": "record fresh 30-minute and UI pass on the same clean v4.0.0 candidate; keep 120-minute conditional-not-run; do not create tag or GitHub Release",
   "candidateStatus": {
     "branch": "v4.0.0",
     "minimumIncludedCommit": "09436674028817befcecbe1398348489e7ae88a7",
     "releaseNotes": "prepared-not-published",
-    "fresh30Minute": "not-run-required",
-    "freshUiFulltest": "not-run-required"
+    "fresh30Minute": "executed-pass",
+    "freshUiFulltest": "executed-pass",
+    "testedCommit": "b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b",
+    "fresh30MinuteRunId": "v390-server-longrun-20260902105027-50646",
+    "freshUiFulltestRunId": "v390-test-acceptance-20260902113505-82611"
   },
   "testAreaJudgment": [
     {
@@ -25,14 +28,14 @@
     {
       "category": "30분 테스트",
       "judgment": "진행 대상",
-      "approvalStatus": "historical-pass-fresh-rerun-pending",
-      "note": "Historical PASS: 3rd ./test_server_30min.sh on source b53e8af1, runId v390-server-longrun-20260830123921-36621, 2383s/1800s, soak 20x5. Fresh run including compact handoff boundary 09436674 is not run and required before release action. This command is not the soak runner."
+      "approvalStatus": "fresh-executed-pass",
+      "note": "Fresh ./test_server_30min.sh PASS on clean source b96f74ab, runId v390-server-longrun-20260902105027-50646, 2381s/1800s, 20 iterations, compact 117 pass/0 fail/2 not-run. This command is not the soak runner."
     },
     {
       "category": "UI 풀테스트",
       "judgment": "진행 대상",
-      "approvalStatus": "historical-pass-fresh-rerun-pending",
-      "note": "Historical PASS: ./test_ui.sh on source 166fb478, runId v390-test-acceptance-20260830225118-68124, exact 424/424, Policy v4 policyValidationResult=PASS and qualifier uiFulltestPass=true. Fresh run including compact handoff boundary 09436674 is not run and required before release action. This command is not the UI runner."
+      "approvalStatus": "fresh-executed-pass",
+      "note": "Fresh ./test_ui.sh PASS on clean source b96f74ab, runId v390-test-acceptance-20260902113505-82611, exact 424/424, failure census 0, Policy v4 policyValidationResult=PASS, qualifier uiFulltestPass=true, final integrity and cleanup PASS. This command is not the UI runner."
     },
     {
       "category": "120분 테스트",
@@ -56,8 +59,6 @@
   "notEvidence": [
     "this-command-is-not-30-minute-soak-runner",
     "this-command-is-not-ui-fulltest-runner",
-    "fresh 30-minute soak PASS",
-    "fresh UI fulltest PASS",
     "120-minute longrun PASS",
     "published metadata PASS",
     "v4.0.0 tag",

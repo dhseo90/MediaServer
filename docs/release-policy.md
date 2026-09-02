@@ -173,9 +173,9 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
 v4.0.0은 현재 source이며 latest published는 `v3.9.1`입니다. `v4.0.0` tag와
-GitHub Release는 아직 생성하지 않습니다. 이전 30분/UI PASS는 historical evidence로
-보존하되 compact handoff boundary `09436674` 이후 fresh 30분/UI는 미실행·필수입니다.
-120분은 `conditional-not-run`입니다.
+GitHub Release는 아직 생성하지 않습니다. compact handoff boundary `09436674`를 포함한
+동일 clean source `b96f74ab`에서 fresh 30분/UI는 PASS했습니다. 120분은 재판정 후
+`conditional-not-run`입니다.
 
 Dry-run checklist:
 
@@ -1079,7 +1079,8 @@ Annotation JSON을 확보한 경우:
 아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다. 현재는 후보이며, 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. GitHub Latest Release는
 게시 전까지 `v3.9.1`입니다. `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
-후보 본문은 게시된 GitHub Release가 아닙니다. 현재 상태는 fresh 30분/UI 미실행·필수입니다.
+후보 본문은 게시된 GitHub Release가 아닙니다. 현재 상태는 fresh 30분/UI PASS,
+120분 conditional-not-run, release action 미실행입니다.
 
 ```markdown
 # Media Server v4.0.0
@@ -1117,15 +1118,13 @@ remains v3.9.1 until a signed `v4.0.0` tag and GitHub Release exist.
 
 ## Verification
 
-- Historical 30-minute soak: executed-pass. `./test_server_30min.sh` on source `b53e8af1`,
-  runId `v390-server-longrun-20260830123921-36621`, 2383s/1800s, soak 20x5.
-  This predates the current candidate and is not its fresh PASS.
-- Historical UI fulltest: executed-pass. `./test_ui.sh` on source `166fb478`, runId
-  `v390-test-acceptance-20260830225118-68124`, exact 424/424, Policy v4
-  `policyValidationResult=PASS` and qualifier `uiFulltestPass=true`. This predates
-  the current candidate and is not its fresh PASS.
-- Fresh 30-minute soak: not run; required before release action.
-- Fresh UI fulltest: not run; required before release action.
+- Fresh 30-minute soak: executed-pass on clean source `b96f74ab`, runId
+  `v390-server-longrun-20260902105027-50646`, 2381s/1800s, 20 iterations,
+  compact 117/0/2, cleanup PASS.
+- Fresh UI fulltest: executed-pass on the same clean source, runId
+  `v390-test-acceptance-20260902113505-82611`, exact 424/424, failure census 0,
+  Policy v4 `policyValidationResult=PASS`, qualifier `uiFulltestPass=true`,
+  final integrity and cleanup PASS.
 - Docs UI assets: `./server.sh verify-docs-ui-assets` PASS after the 2026-08-31
   recapture (`c43c47e3`). Not UI fulltest evidence.
 - Local close-out dry-run: 2026-08-31 clean HEAD `9fab5fe2` and again after

@@ -141,7 +141,7 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 | Policy | v4.0.0 (5) Incident OS 정책화 | P0 | 기존 `/ops/events` 검색/timeline/resolution 면을 운영 정책으로 정리. 새 event type/저장 형식은 추가하지 않음 | 테스트 스크립트 반영 필수. 정책/IA/route 경계를 확인하는 verifier와 inventory 행을 같은 스텝에서 추가 |
 | Policy | v4.0.0 (6) Evidence 운영 정책화 | P0 | EventRecord/clip/retention의 opt-in, 비-VMS, 삭제 금지 경계를 정책으로 고정. default-on 저장은 v4.1.0 | 테스트 스크립트 반영 필수. evidence 정책 verifier와 inventory/records 행을 같은 스텝에서 추가 |
 | Stabilization | v4.0.0 (7) 로컬 운영 안정화 | P0 | 기존 로컬 Ops 흐름의 decision-only 오판 방지, 문서/inventory/verifier 정합, 로컬 file/replay로 닫히는 회귀 | 테스트 스크립트 반영 필수. 안정화 대상 기존 verifier를 전수 연결하고 누락 항목을 inventory에 먼저 등록 |
-| Release | v4.0.0 (8) stabilization and release readiness | P0 | concrete release-note candidate와 AGENTS 네 테스트 영역 판정을 결속. 이전 30분/UI PASS와 fresh 미실행·필수를 분리하고 120분은 conditional-not-run | 테스트 스크립트 반영 필수. close-out verifier와 실행/미실행 기록을 inventory/records에 남김 |
+| Release | v4.0.0 (8) stabilization and release readiness | P0 | concrete release-note candidate와 AGENTS 네 테스트 영역 판정을 결속. 동일 clean source의 fresh 30분/UI PASS와 120분 conditional-not-run을 분리 | 테스트 스크립트 반영 필수. close-out verifier와 실행/미실행 기록을 inventory/records에 남김 |
 
 ### v4.0.0 진행 상태
 
@@ -154,7 +154,7 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 | 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 완료 | 기존 `/ops/events` 검색/timeline/resolution을 Ops-only diagnostic/direct route로 정책 고정. primary nav 승격과 새 event type/저장 형식은 4.1.0. `test/fixtures/v400_incident_os_policy.json`과 `scripts/internal/verify_v400_incident_os_policy.mjs`, `./server.sh verify-v400-incident-os-policy`를 추가. 기존 v320/v310 events verifier는 재사용만 함. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 완료 | EventRecord/clip/retention을 opt-in·비-VMS로 고정. pin은 auto cleanup 제외, destructive cleanup은 dry-run 필수. default-on 저장은 4.1.0. `test/fixtures/v400_evidence_ops_policy.json`과 `scripts/internal/verify_v400_evidence_ops_policy.mjs`, `./server.sh verify-v400-evidence-ops-policy`를 추가. 기존 v300 evidence/retention verifier는 재사용만 함. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 7 | v4.0.0 (7) 로컬 운영 안정화 | P0 | 완료 | 역사적 v390 verifier 118개를 `keep-118-not-deleted`로 유지. stream-verification 현재 source `4.0.0`과 inherited 3.9 행을 구분. v320 page-owner/bundle drift는 REVIEW4 결속 때문에 `recorded-not-fixed`. `test/fixtures/v400_local_ops_stabilization.json`과 `scripts/internal/verify_v400_local_ops_stabilization.mjs`, `./server.sh verify-v400-local-ops-stabilization`를 추가. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
-| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 완료 | 정책/안정화와 concrete release-note candidate 구현 완료. 과거 30분 PASS(source `b53e8af1`)와 UI PASS(source `166fb478`, exact 424/424)는 historical evidence로 보존. compact handoff boundary `09436674`를 포함한 fresh 30분/UI는 미실행·필수. 120분은 conditional-not-run. tag/GitHub Release/PR/published metadata는 미실행. 이 로드맵 구현 완료와 readiness verifier PASS는 출시 가능 판정이 아님 |
+| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 완료 | 정책/안정화와 concrete release-note candidate 구현 완료. 동일 clean source `b96f74ab`에서 fresh 30분은 2381s/20회 PASS, UI는 exact 424/424·Policy v4·final integrity PASS. 120분은 재판정 후 conditional-not-run. tag/GitHub Release/PR/published metadata는 미실행. 이 로드맵 구현 완료와 readiness verifier PASS는 출시 가능 판정이 아님 |
 
 이 절의 로드맵 계약 자체는 `./server.sh verify-v400-roadmap-contract`가 검사한다.
 계약 PASS는 4.0.0 구현 완료, baseline 완료, UI/30분/120분, published metadata가 아니다.
@@ -315,20 +315,21 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 
 ### v4.0.0 stabilization and release readiness
 
-상태: `candidate-docs-ready-tests-pending`
-구현 상태: `policy-steps-complete-fresh-30min-ui-pending`
+상태: `candidate-tests-pass-release-actions-pending`
+구현 상태: `policy-steps-complete-fresh-30min-ui-pass`
 
 직접 답: 4.0.0 정책/안정화 8스텝과 concrete release-note candidate는 기록됐다.
-출시 가능은 아니다. 이전 30분과 UI 풀테스트 PASS는
-`historical-pass-fresh-rerun-pending`이며 현재 후보 PASS로 사용하지 않는다. compact
-handoff boundary `09436674028817befcecbe1398348489e7ae88a7`를 포함하는 fresh 30분/UI는
-미실행·필수다. 120분은 conditional-not-run이다.
+출시 가능은 아니다. compact handoff boundary
+`09436674028817befcecbe1398348489e7ae88a7`를 포함하는 동일 clean source
+`b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b`에서 fresh 30분/UI는 PASS했다.
+상태는 `fresh-executed-pass`이며 120분은 재판정 후 conditional-not-run이다.
 
 1. 안정화 테스트: 이 컷의 v400 local verifier는 진행 대상.
-2. 30분 테스트: 과거 source `b53e8af1`에서 PASS. fresh 후보 재실행은 미실행·필수.
-   이 명령은 soak runner가 아니다.
-3. UI 풀테스트: 과거 source `166fb478`에서 exact 424/424,
-   qualifier `uiFulltestPass=true`. fresh 후보 재실행은 미실행·필수. 이 명령은 UI runner가 아니다.
+2. 30분 테스트: `fresh-executed-pass`. runId `v390-server-longrun-20260902105027-50646`,
+   2381s/1800s, 20 iterations, compact 117/0/2. 이 명령은 soak runner가 아니다.
+3. UI 풀테스트: `fresh-executed-pass`. runId `v390-test-acceptance-20260902113505-82611`,
+   exact 424/424, failure census 0, Policy v4 PASS, qualifier `uiFulltestPass=true`,
+   final integrity/cleanup PASS. 이 명령은 UI runner가 아니다.
 4. 120분 테스트: 미진행. 이번 cut 제품 media path 변경/사용자 실행 지시/high-risk
    FAIL signal 없음.
 5. close-out: `verify-release-closeout-helper` dry-run. tag/GitHub Release/PR/published
@@ -338,8 +339,8 @@ handoff boundary `09436674028817befcecbe1398348489e7ae88a7`를 포함하는 fres
 `scripts/internal/verify_v400_release_readiness.mjs`,
 `./server.sh verify-v400-release-readiness`.
 
-이 readiness PASS는 fresh 30분/UI, 120분, published metadata, `v4.0.0` tag,
-GitHub Release, PR/main merge 완료가 아니며, 실제 runner PASS를 대체하지 않는다.
+이 readiness PASS는 실제 30분/UI 결과를 기록하지만 120분, published metadata,
+`v4.0.0` tag, GitHub Release, PR/main merge 완료가 아니다.
 
 #### v4.0.0 compact user-test result handoff 보강 (2026-09-02)
 

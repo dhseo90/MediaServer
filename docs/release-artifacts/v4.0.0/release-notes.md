@@ -37,14 +37,13 @@ paths are unchanged from the published v3.9.1 product baseline.
 - Compact result/handoff contract: PASS, `26/26`.
 - Acceptance bundle contract: PASS, `37/37`.
 - Server longrun runner contract: PASS, `9/9`.
-- Historical 30-minute soak: PASS on source `b53e8af1`, runId
-  `v390-server-longrun-20260830123921-36621`. This predates the current candidate
-  boundary and is not the fresh release-cut result.
-- Historical UI fulltest: PASS on source `166fb478`, exact `424/424`, Policy v4
-  `uiFulltestPass=true`. This predates the current candidate boundary and is not
-  the fresh release-cut result.
-- Fresh 30-minute soak: not run; required before release action.
-- Fresh UI fulltest: not run; required before release action.
+- Fresh 30-minute soak: PASS on clean source
+  `b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b`, runId
+  `v390-server-longrun-20260902105027-50646`, 2381s/1800s, 20 iterations,
+  compact `117 PASS / 0 FAIL / 2 NOT-RUN`, cleanup PASS.
+- Fresh UI fulltest: PASS on the same clean source, runId
+  `v390-test-acceptance-20260902113505-82611`, exact `424/424`, failure census 0,
+  Policy v4 PASS with `uiFulltestPass=true`, final integrity and cleanup PASS.
 - 120-minute soak: conditional-not-run. It becomes required only when the AGENTS
   7.6.2 trigger or an explicit release requirement applies.
 
@@ -57,6 +56,5 @@ paths are unchanged from the published v3.9.1 product baseline.
 - Real ONVIF device, external TURN/WHEP, and cloud/VLM provider field smoke: not run
 - Binary, runtime, model, container, and offline bundles: not included
 
-Do not publish this candidate or describe v4.0.0 as released until the fresh
-30-minute and UI fulltests pass and each separately authorized release action is
-completed.
+Do not publish this candidate or describe v4.0.0 as released until each separately
+authorized release action is completed.

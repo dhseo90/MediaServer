@@ -45,8 +45,8 @@
 - v4.0.0 user review gate: `./server.sh verify-v400-user-review-gate`, `V400-REVIEW-GATE-02`
 - v4.0.0 verification layer reduction: `./server.sh verify-v400-verification-layer-reduction`, `V400-VERIFICATION-LAYER-03`
 - v4.0.0 local ops policy/Incident OS/evidence ops/stabilization: 문서·fixture gate 완료
-- historical 30분/UI: 각각 source `b53e8af1`/`166fb478` PASS. 현재 후보 PASS로 사용하지 않음
-- fresh 30분/UI: 미실행·필수. `09436674` compact 결과/handoff를 포함한 후보에서 재실행해야 함
+- fresh 30분/UI: PASS. 동일 clean source `b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b`; 30분 runId `v390-server-longrun-20260902105027-50646`, UI runId `v390-test-acceptance-20260902113505-82611`
+- UI exact `424/424`, failure census 0, Policy v4 PASS, `uiFulltestPass=true`, final integrity/cleanup PASS
 - 120분: `conditional-not-run`. 7.6.2 조건 또는 사용자 지시가 생기면 실행
 - release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
 - v3.9.1 published evidence는 아래 절에 보존
