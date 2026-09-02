@@ -1,18 +1,16 @@
 # Media Server v4.0.0
 
-> Release candidate document. This is not a published GitHub Release.
-> Latest published GitHub Release remains v3.9.1.
-
 ## Summary
 
-v4.0.0 is a source-only major release candidate for Local Operations Policy and
+v4.0.0 is a source-only major release for Local Operations Policy and
 Stabilization. It freezes the supported local-operations boundary and improves the
 operator-facing test result handoff without adding a new product feature surface.
 
-The current candidate must include compact test handoff commit
-`09436674028817befcecbe1398348489e7ae88a7` or a descendant. Product UI, feature
-logic, public API schemas, event payloads, metadata schemas, and RTSP/WebRTC media
-paths are unchanged from the published v3.9.1 product baseline.
+This release includes compact test handoff commit
+`09436674028817befcecbe1398348489e7ae88a7` or a descendant. It adds no new
+product surface and does not change public API schemas, event payloads, metadata
+schemas, or RTSP/WebRTC media paths from the previous published v3.9.1 product
+baseline.
 
 ## Changes
 
@@ -31,6 +29,8 @@ paths are unchanged from the published v3.9.1 product baseline.
 - Correct the shared launcher result boundary so server-only longrun PASS does not
   incorrectly require UI evidence. UI and release suites continue to fail closed
   when their canonical UI summary is absent.
+- Complete English localization coverage for existing operator UI labels and
+  dynamic status patterns without adding or rearranging product controls.
 
 ## Verification Status
 
@@ -49,12 +49,8 @@ paths are unchanged from the published v3.9.1 product baseline.
 
 ## Not Run / Excluded
 
-- PR and main merge: not run
-- Signed annotated `v4.0.0` tag: not created
-- GitHub Release creation/update: not run
-- `verify-release-metadata --published`: not run
 - Real ONVIF device, external TURN/WHEP, and cloud/VLM provider field smoke: not run
 - Binary, runtime, model, container, and offline bundles: not included
 
-Do not publish this candidate or describe v4.0.0 as released until each separately
-authorized release action is completed.
+The signed tag, GitHub Release, and published metadata are verified as external
+release evidence and are not inferred from this repository note alone.

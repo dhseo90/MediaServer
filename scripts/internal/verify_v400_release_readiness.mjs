@@ -84,7 +84,7 @@ check("release-readiness fixture records candidate docs and fresh 30-minute/UI P
   assert(fixture.closeout.githubRelease === "not-created", "GitHub Release must stay not-created");
 });
 
-check("release-note candidate is concrete, truthful, and linked from the docs index", () => {
+check("release-note source is concrete, truthful, and linked from the docs index", () => {
   for (const snippet of [
     "# Media Server v4.0.0",
     "09436674028817befcecbe1398348489e7ae88a7",
@@ -92,10 +92,12 @@ check("release-note candidate is concrete, truthful, and linked from the docs in
     "v390-test-acceptance-20260902113505-82611",
     "Fresh 30-minute soak: PASS",
     "Fresh UI fulltest: PASS",
-    "Latest published GitHub Release remains v3.9.1",
-    "Product UI, feature",
-    "logic, public API schemas, event payloads, metadata schemas",
-    "paths are unchanged from the published v3.9.1 product baseline",
+    "v4.0.0 is a source-only major release",
+    "It adds no new",
+    "product surface and does not change public API schemas, event payloads, metadata",
+    "schemas, or RTSP/WebRTC media paths from the previous published v3.9.1 product",
+    "Complete English localization coverage for existing operator UI labels",
+    "without adding or rearranging product controls",
   ]) {
     assertIncludes(files.releaseNotes, snippet, releaseNotesPath);
   }

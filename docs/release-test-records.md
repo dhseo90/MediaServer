@@ -16,10 +16,38 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
-## v4.0.0 현재 소스 baseline 상태 (2026-08-31)
+## v4.0.0 현재 소스 baseline 상태 (2026-09-02)
+
+- current source: `v4.0.0` (`VERSION=4.0.0`)
+- product test source: `b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b`; compact handoff source:
+  `09436674028817befcecbe1398348489e7ae88a7`
+- latest published target: v4.0.0. 실제 published 완료는 signed tag, GitHub Release,
+  published metadata 검증을 직접 통과한 뒤 확정
+- 30분: `./test_server_30min.sh` PASS. runId
+  `v390-server-longrun-20260902105027-50646`, clean source, duration 2381s / requested
+  1800s, 20 iterations, compact `117 pass / 0 fail / 2 not-run`, cleanup PASS
+- UI 풀테스트: `./test_ui.sh` PASS. runId
+  `v390-test-acceptance-20260902113505-82611`, 같은 clean source, exact 424/424,
+  failure census 0, Policy v4 PASS, qualified 424, final integrity/cleanup PASS
+- 120분: conditional-not-run. AGENTS 7.6.2 trigger와 별도 필수 release gate가 적용되지 않음.
+  완료 evidence로 사용하지 않음
+- REVIEW4 semantic binding: candidateDigest
+  `684ebaa84766e176cdda9c3193d132b81c2ed52c578ca51313338ba4cef91b89`,
+  985 carry-forward / 1 independent-review (`OPS-041`), validation 986/0,
+  feature coverage 986/986. 이 재결속은 실행 PASS가 아님
+- v4.0.0 close-out 결정: published verifier에 새 tag-object 자동 gate를 추가하는 변경은
+  별도 REVIEW4 provenance가 필요한 후속 개발로 분리하고 이번 릴리즈에는 포함하지 않음.
+  이번 publish에서는 signed annotated local tag 검증, GitHub Git Tag API의
+  `verification.verified=true`/`reason=valid`, tag target=final main commit, 원격/GitHub
+  tag-object SHA 일치를 release action에서 직접 확인한다. 이 결정과 위 fresh 30분/UI
+  evidence는 v4.0.0 재검토 시 재수행하지 않고 본 기록을 source-of-truth로 사용한다.
+- 아래 2026-08-31 snapshot은 이전 release attempt 당시 상태와 실패/정정 이력을
+  보존한 historical evidence이며 현재 실행 결과를 대체하지 않음
+
+## v4.0.0 이전 release-attempt snapshot (2026-08-31)
 
 - current source: `v4.0.0` (`VERSION=4.0.0`), HEAD `166fb478`
-- latest published: v3.9.1
+- latest published at the time: v3.9.1
 - v4.0.0 (1)~(8): 정책/안정화 기록
 - 30분: 3차 `./test_server_30min.sh` PASS. runId `v390-server-longrun-20260830123921-36621`,
   source `b53e8af1`, worktreeClean true, predev `108 pass / 0 fail / 2 skip / 0 notRun`,
@@ -34,11 +62,11 @@
 - 120분: conditional-not-run. 2026-08-31 사용자가 이 컷에서 실행하지 않기로 명시.
   완료 evidence 아님
 - REVIEW4 8행 independent rebind: 2026-08-31. fresh candidateDigest `b90cf028b2e10e4e03a2b9ecebba1f082fcf4fc5525a178ef1785381f15ff4a7`. 978 carry-forward / 8 independent-review (`UI-019`,`MEDIA-001`,`MEDIA-004`,`MEDIA-009`,`SAFE-064`,`SAFE-071`,`OPS-041`,`OPS-179`). `verify-feature-implementation-evidence` 986/0, `verify-feature-inventory-coverage` 986/986 covered. 이 재결속은 실행 PASS가 아님
-- published metadata, `v4.0.0` tag/GitHub Release: 미실행
+- published metadata, `v4.0.0` tag/GitHub Release: 당시 미실행
 - 이 기록은 출시 가능 판정이 아님
-- release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
+- release action: PR·main merge·tag·GitHub Release·published metadata는 당시 미실행
 - step 8 기록 당시 UI는 `unrun-required-blocker`였다. 이번 실행 후 UI는 executed-pass다.
-- v3.9.1 published evidence는 아래 절에 보존
+- v3.9.1 previous published evidence는 아래 절에 보존
 
 ## v3.9.1 현재 소스 정정 상태 (2026-08-15)
 
@@ -1709,6 +1737,7 @@ UI 풀테스트는 `./test_ui.sh` exact 424/424 Policy v4 적격 PASS다. step 8
 | v400 REVIEW4 8-row independent rebind producer | `./server.sh produce-v390-review4-migration-aware-approvals --write-ledger` prior audit/approvals + /tmp migration evidence + independent scoped decisions + review package. candidateDigest `b90cf028b2e10e4e03a2b9ecebba1f082fcf4fc5525a178ef1785381f15ff4a7`, carry-forward 978, independent-review `UI-019,MEDIA-001,MEDIA-004,MEDIA-009,SAFE-064,SAFE-071,OPS-041,OPS-179`, atomic replacements audit/approval/manifest/native, failures 0 | pass |
 | v400 REVIEW4 implementation evidence after 8-row rebind | `./server.sh verify-feature-implementation-evidence` expected/inventory/manifest/source/verifier 986, semanticReviewedRows 986, validationErrors 0, review4GlobalErrors 0, negativeFixtures 15/15, executionEvidenceStatus not-execution-evidence | pass |
 | v400 REVIEW4 inventory coverage after 8-row rebind | `./server.sh verify-feature-inventory-coverage` featureRows 986, covered 986, missing 0, pass 7, fail 0 | pass |
+| v400 published pin v4.0.0 local metadata | `./server.sh verify-release-metadata` 18/0 latest published tag `v4.0.0`. `verify-v400-entry-baseline` 10/0. `verify-v400-roadmap-contract` 8/0. OPS-041 independent rebind candidateDigest `684ebaa84766e176cdda9c3193d132b81c2ed52c578ca51313338ba4cef91b89`. coverage 986/986. GitHub Latest/tag는 이 행만으로 PASS 아님 | pass |
 | Docs UI assets (8) | `./server.sh verify-docs-ui-assets` 10/0. 2026-08-29 재실행 | pass |
 | v400 30분 launcher contract | `./test_server_30min.sh` 내부 `verify-v390-user-test-launchers-contract` 22/0. source `18e19ce1` | pass |
 | v400 30분 AI asset bootstrap | model SHA `634279b4...`, labels SHA `bd17f1ee...` verified | pass |

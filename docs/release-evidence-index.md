@@ -33,13 +33,13 @@
   `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
-## v4.0.0 release candidate 상태 (2026-09-02)
+## v4.0.0 release baseline 상태 (2026-09-02)
 
 - current source: `v4.0.0` (`VERSION=4.0.0`)
-- latest published: v3.9.1
-- candidate branch: `v4.0.0`
+- latest published: v4.0.0
+- release branch at cut: `v4.0.0`
 - compact test handoff boundary: `09436674028817befcecbe1398348489e7ae88a7`
-- release note candidate: [v4.0.0 release notes](./release-artifacts/v4.0.0/release-notes.md), 미게시
+- release note source: [v4.0.0 release notes](./release-artifacts/v4.0.0/release-notes.md)
 - v4.0.0 source baseline: `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`
 - v4.0.0 (1) baseline 정렬: 완료
 - v4.0.0 user review gate: `./server.sh verify-v400-user-review-gate`, `V400-REVIEW-GATE-02`
@@ -48,8 +48,12 @@
 - fresh 30분/UI: PASS. 동일 clean source `b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b`; 30분 runId `v390-server-longrun-20260902105027-50646`, UI runId `v390-test-acceptance-20260902113505-82611`
 - UI exact `424/424`, failure census 0, Policy v4 PASS, `uiFulltestPass=true`, final integrity/cleanup PASS
 - 120분: `conditional-not-run`. 7.6.2 조건 또는 사용자 지시가 생기면 실행
-- release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
-- v3.9.1 published evidence는 아래 절에 보존
+- release action evidence: PR·main merge·tag·GitHub Release·published metadata는 저장소 snapshot과 분리해 직접 확인
+- v4.0.0 publish의 signed-tag 검증은 local signature, GitHub Git Tag API
+  `verified=true`/`reason=valid`, final main target, 원격/GitHub tag-object SHA 일치를
+  직접 확인한다. 새 자동 tag-object verifier 개발은 이번 릴리즈에서 반복하지 않고
+  별도 REVIEW4 provenance가 있는 후속 작업으로 분리한다.
+- v3.9.1 previous published evidence는 아래 절에 보존
 
 ## v3.9.1 현재 소스 정정 상태 (2026-08-15)
 
@@ -310,8 +314,8 @@ git diff --check
 
 ## v4.0.0 source baseline records
 
-v4.0.0 Foundation evidence index는 current source `4.0.0`과 latest published `v3.9.1`
-분리를 stream verification, project inventory, release test records, release metadata
+v4.0.0 Foundation evidence index는 current source `4.0.0`과 latest published `v4.0.0`
+정렬을 stream verification, project inventory, release test records, release metadata
 verifier에 연결하는 색인입니다. 이 섹션은 UI 풀테스트 직접 조작, 30분/120분,
 published metadata, PR/main/tag/GitHub Release evidence가 아닙니다.
 
