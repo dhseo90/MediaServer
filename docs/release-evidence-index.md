@@ -33,14 +33,21 @@
   `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
-## v4.0.0 현재 소스 baseline 상태 (2026-08-24)
+## v4.0.0 release candidate 상태 (2026-09-02)
 
 - current source: `v4.0.0` (`VERSION=4.0.0`)
 - latest published: v3.9.1
+- candidate branch: `v4.0.0`
+- compact test handoff boundary: `09436674028817befcecbe1398348489e7ae88a7`
+- release note candidate: [v4.0.0 release notes](./release-artifacts/v4.0.0/release-notes.md), 미게시
 - v4.0.0 source baseline: `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`
-- v4.0.0 (1) baseline 정렬: 완료. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 미실행
+- v4.0.0 (1) baseline 정렬: 완료
 - v4.0.0 user review gate: `./server.sh verify-v400-user-review-gate`, `V400-REVIEW-GATE-02`
 - v4.0.0 verification layer reduction: `./server.sh verify-v400-verification-layer-reduction`, `V400-VERIFICATION-LAYER-03`
+- v4.0.0 local ops policy/Incident OS/evidence ops/stabilization: 문서·fixture gate 완료
+- historical 30분/UI: 각각 source `b53e8af1`/`166fb478` PASS. 현재 후보 PASS로 사용하지 않음
+- fresh 30분/UI: 미실행·필수. `09436674` compact 결과/handoff를 포함한 후보에서 재실행해야 함
+- 120분: `conditional-not-run`. 7.6.2 조건 또는 사용자 지시가 생기면 실행
 - release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
 - v3.9.1 published evidence는 아래 절에 보존
 
