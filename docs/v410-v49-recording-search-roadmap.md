@@ -2,8 +2,8 @@
 
 ## 문서 상태
 
-- 상태: 2026-09-02 사용자 승인 완료, 2026-09-03 V410-S00~S01 완료. S02~S09 구현·테스트와
-  v4.1.0 릴리즈 완료 증거가 아님
+- 상태: 2026-09-02 사용자 승인 완료, 2026-09-03 V410-S00~S03 local 구현·focused 검증 완료.
+  S04~S09 구현·테스트와 v4.1.0 릴리즈 완료 증거가 아님
 - 현재 작성 브랜치: `v4.1.0`
 - 공통 반영 시점: v4.1.0을 `main`에 머지할 때 장기 로드맵도 함께 반영
 - 이후 소유 브랜치: `main`. 후속 버전 브랜치는 장기 로드맵이 반영된 최신 `main`에서 생성
@@ -163,7 +163,10 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 V410-S00 완료: 공개 표준과 라이선스 metadata, 특정 특허 상세를 반입하지 않는 IP
 clean-room 차단선, source `4.1.0` baseline을 고정했다. V410-S01 완료: segment/frame/
 event link/analysis observation/tombstone v1 계약과 golden JSONL 호환 경계를 고정했다.
-실제 녹화 제품 기능인 S02~S09는 아직 시작하지 않았다.
+V410-S02 완료: 채널별 opt-in Recorder subscriber, H.264/MP4·VP8/WebM keyframe segment,
+atomic finalize와 source policy round-trip을 구현했다. V410-S03 완료: fsync JSONL 원장,
+SQLite primary/rebuild와 fallback projection, source policy supervisor를 제품 composition root에
+연결했다. S04~S09는 아직 시작하지 않았다.
 
 v4.1.0에서 검색-ready 메타데이터를 저장하지만 검색 DSL, 검색 결과 랭킹, 벡터 인덱스,
 자연어 해석은 구현하지 않는다. 객체의 모든 분석 frame을 무제한 저장하지 않고,
