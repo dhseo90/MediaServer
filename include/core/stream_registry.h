@@ -21,6 +21,7 @@ public:
     bool ReleaseLeaseAndTryRemoveIfIdle(const StreamKey& key);
     bool TryRemoveIfIdle(const StreamKey& key);
     std::size_t ActiveStreamCount() const;
+    std::vector<std::pair<StreamKey, std::shared_ptr<SharedStream>>> Snapshot() const;
 
 private:
     mutable std::mutex mu_;

@@ -159,6 +159,11 @@ SessionManager::RuntimeStateSnapshot SessionManager::GetRuntimeStateSnapshot() c
     snapshot.resource_active_streams = resource_guard_.ActiveStreams();
     snapshot.registry_active_streams = registry_.ActiveStreamCount();
     snapshot.active_analysis_taps = AuxiliaryRuntimeSnapshot().active_consumers;
+    for (const auto& [_, stream] : registry_.Snapshot()) {
+        if (stream != nullptr && stream->RecordingSubscriberCount() > 0) {
+            ++snapshot.active_recording_channels;
+        }
+    }
     return snapshot;
 }
 
@@ -238,6 +243,15 @@ std::vector<SessionManager::SourceEgressStats> SessionManager::SourceEgressStats
         auto& stats = stats_by_stream[entry.stream_key];
         stats.stream_key = entry.stream_key;
         stats.analysis_tap_count += entry.consumer_count;
+    }
+    for (const auto& [stream_key, stream] : registry_.Snapshot()) {
+        auto& stats = stats_by_stream[stream_key];
+        stats.stream_key = stream_key;
+        if (stream != nullptr) {
+            stats.session_count = stream->RefCount();
+            stats.analysis_tap_count = stream->AnalysisSubscriberCount();
+            stats.recording_subscriber_count = stream->RecordingSubscriberCount();
+        }
     }
 
     std::vector<SourceEgressStats> stats;

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <functional>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -17,6 +18,13 @@ public:
                            const std::string& required_scope_prefix)>;
 
     struct SourceRecord {
+        struct RecordingPolicy {
+            bool enabled{false};
+            std::uint64_t quota_bytes{0};
+            int retention_days{7};
+            std::string storage_path;
+            std::uint64_t revision{1};
+        };
         std::string source_id;
         std::string display_name;
         std::string kind;
@@ -33,6 +41,7 @@ public:
         std::string group;
         std::string floor;
         std::string zone;
+        RecordingPolicy recording;
     };
 
     struct PublishedViewRecord {
@@ -72,6 +81,8 @@ public:
     bool Snapshot(std::vector<SourceRecord>* sources,
                   std::vector<PublishedViewRecord>* views,
                   std::string* error_message);
+    using SourceMutationCallback = std::function<void(const SourceRecord&)>;
+    void SetSourceMutationCallback(SourceMutationCallback callback);
 
     ApplicationServiceResult CreateSource(const std::string& body);
     ApplicationServiceResult UpsertSource(const std::string& source_id,

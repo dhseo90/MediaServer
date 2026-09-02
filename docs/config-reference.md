@@ -18,6 +18,7 @@
 | [Scenario env](#scenario-env) | scenario/rule 관련 설정 |
 | [Event POST env](#event-post-env) | Event POST 전송 |
 | [EventStorage env](#eventstorage-env) | EventRecord 저장 |
+| [Recording env](#recording-env) | v4.1.0 상시녹화 opt-in과 segment 저장 |
 | [WebRTC metadata env](#webrtc-metadata-env) | DataChannel metadata |
 | [Debug/Metrics env](#debugmetrics-env) | debug와 metrics |
 | [YouTube experimental env](#youtube-experimental-env) | lab-only YouTube 실험 |
@@ -743,6 +744,26 @@ Zone Occupancy 상태:
 | `MEDIA_SERVER_ANALYSIS_EVENT_POST_COOLDOWN_MS` | `2000` | dedupe cooldown |
 
 POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JSON/API/POST payload 형식은 기존 형식을 유지합니다.
+
+## Recording env
+
+상시녹화는 전역과 채널을 모두 명시적으로 켜야 시작합니다. source 자체가 disabled이면
+채널 recording policy가 enabled여도 recorder를 만들지 않습니다.
+
+| 환경변수 | 기본값 | 설명 |
+| --- | --- | --- |
+| `MEDIA_SERVER_RECORDING_ENABLED` | `0` | 전역 상시녹화 opt-in. `0`이면 파일과 Recorder subscriber를 만들지 않음 |
+| `MEDIA_SERVER_RECORDING_STORAGE_ROOT` | `.media_server/recordings` | JSONL 원장, SQLite catalog, 채널별 media segment의 전용 root |
+| `MEDIA_SERVER_RECORDING_DEFAULT_CHANNEL_QUOTA_BYTES` | `10737418240` | source policy에 값이 없을 때의 채널 기본 용량. 활성화 시 `0` 거부 |
+| `MEDIA_SERVER_RECORDING_SEGMENT_DURATION_SECONDS` | `10` | 목표 segment 길이. 도달 즉시가 아니라 다음 video keyframe에서 분할 |
+| `MEDIA_SERVER_RECORDING_DEFAULT_RETENTION_DAYS` | `7` | source policy 기본 보존 일수. 실제 순환 삭제 적용은 V410-S04 범위 |
+
+운영 source의 `recording` 객체는 `enabled`, `quotaBytes`, `retentionDays`, 상대
+`storagePath`, 단조 증가 `revision`을 저장합니다. Ops source API/form에서만 전체 값을
+다루며 viewer-safe client view에는 quota와 storage path를 내보내지 않습니다. 녹화 root는
+media source root와 같은 경로일 수 없고, 쓰기 불가·GStreamer 미포함 빌드는 fail-closed로
+해당 recorder를 시작하지 않습니다. H.264는 MP4, VP8은 WebM으로 기록하며 final callback 전
+`.partial`만 사용합니다.
 
 ## EventStorage env
 

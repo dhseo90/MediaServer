@@ -18,8 +18,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
 - 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
-  2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선과 S01 녹화 v1 계약 완료.
-  S02~S09는 미구현
+  2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선, S01 녹화 v1 계약,
+  S02 채널별 상시녹화 recorder 완료. S03~S09는 미구현
 - 상세 구현계획:
   [`2026-09-02-v410-recording-foundation-implementation-plan.md`](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
 - 장기 로드맵은 `main` 공통 문서로 관리하고, 각 버전 브랜치는 자신의 버전 단계만
@@ -393,7 +393,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | --- | --- | --- | --- | --- |
 | V410-S00 | 조사·설계 freeze | P0 | 완료 | 공개 표준·라이선스 metadata, KR/US/EP/PCT clean-room 차단선, source `4.1.0` 정렬. 특정 특허 상세·외부 코드 미반입 |
 | V410-S01 | Recording contract v1 | P0 | 완료 | segment/frame/event link/analysis observation/tombstone 계약, v1 additive migration/rebuild 규칙, golden JSONL round-trip |
-| V410-S02 | Continuous segment recorder | P0 | 미구현 | 채널별 opt-in, keyframe segment, atomic finalize, restart recovery |
+| V410-S02 | Continuous segment recorder | P0 | 완료 | 채널별 opt-in, Recorder subscriber, H.264/MP4·VP8/WebM keyframe segment, atomic finalize, PTS rollback epoch |
 | V410-S03 | Catalog and recovery journal | P0 | 미구현 | SQLite primary, append-only JSONL rebuild/fallback |
 | V410-S04 | Retention coordinator | P0 | 미구현 | continuous/event 용량 분리, oldest-first overwrite, pin/tombstone/disk reserve |
 | V410-S05 | Event recording linker | P0 | 미구현 | 겹치는 원본 segment와 pre/event/post 파생 clip, frame-buffer fallback |
@@ -472,6 +472,40 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
   계약 구현에 섞어 수정하지 않고 후속 정합성 부채로 남긴다.
 - 미실행/비대체: 실제 상시/이벤트 녹화, store/catalog, 순환 삭제, timeline API/UI,
   UI 풀테스트, 30분/120분, external field smoke, published metadata, release action.
+
+### v4.1.0 S02 개발 기록
+
+- 범위: P0 `V410-S02 Continuous segment recorder`만 구현했다. S03 이후 catalog, 보존,
+  이벤트 연결, 조회·재생 기능은 이 단계 완료 근거로 사용하지 않는다.
+- `include/core/recording_runtime_defaults.h`,
+  `include/core/recording_runtime_config_data.h`, `src/app_config.cpp`: 전역 녹화는 default-off로
+  두고 storage root, 채널 기본 quota, 10초 segment, 보존 일수를 환경변수와 fail-closed
+  validation에 연결했다. 녹화 root와 media source root의 동일 경로를 거부한다.
+- `include/ingress/source_view_registry.h`, `src/ingress/source_view_registry.cpp`,
+  application service와 `/ops/sources` form/script: source의 nested recording policy
+  `enabled/quotaBytes/retentionDays/storagePath/revision`을 create/upsert/save/load/snapshot으로
+  보존한다. 저장 성공 뒤에만 reconcile callback을 호출하고 client view에는 quota와
+  storage path를 노출하지 않는다.
+- `include/core/shared_stream.h`, `src/core/shared_stream.cpp`, `StreamRegistry`,
+  `SessionManager`: `Recorder` subscriber 역할과 역할별 계수를 additive하게 추가했다.
+  client/analysis/recorder queue는 각각 독립이고 recorder가 남아 있으면 source idle cleanup을
+  하지 않는다.
+- `include/recording/segment_writer.h`, `gstreamer_segment_writer.*`: 첫 video keyframe부터
+  H.264는 MP4, VP8은 WebM으로 작성하고 10초 도달 뒤 다음 keyframe에서 분할한다. 쓰기 중
+  파일은 `.partial`이며 EOS와 checksum 완료 뒤 final path로 rename하고 callback한다.
+  PTS rollback은 현재 segment를 닫고 새 `stream_epoch_id`에서 keyframe을 기다린다.
+- `recording_session_service.*`: 채널당 하나의 recorder만 허용하고
+  `AcquireAuxiliaryStream → AddRecordingSubscriber → StartAuxiliaryStream` 및 detach 시
+  `RemoveSubscriber → writer Stop → ReleaseAuxiliaryStreamWhenIdle` 순서를 고정했다.
+- RED: 최초 `verify-v410-recording-recorder`는 writer 구현 파일 부재로 실패했다. 구현 중
+  GStreamer 미포함 경고와 VP8 parser 경로 실패를 각각 fail-closed/직접 WebM mux 경로로
+  교정했다.
+- GREEN: `verify-v410-recording-recorder` `pass=38 fail=0`, 제품 build 100% PASS.
+  개별 항목은 global/source/channel opt-in, quota 0·root 중복, source policy round-trip과
+  viewer-safe 비노출, H.264/VP8 keyframe·분할·partial/final, PTS rollback, 느린 recorder의
+  client queue 비차단이다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간, S03 catalog/recovery,
+  순환 삭제, event 우선 timeline, published metadata, release action.
 
 기존에 v4.1.0 후보로 적었던 Incident OS 제품 승격, Evidence default-on, 로컬 Action
 Execution, credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 이번 v4.1.0 범위가

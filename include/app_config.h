@@ -7,6 +7,7 @@
 #include <string>
 
 #include "core/analysis_runtime_config_data.h"
+#include "core/recording_runtime_config_data.h"
 #include "stdafx.h"
 
 #ifndef MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
@@ -24,7 +25,7 @@ enum class AuthMode {
     Session,
 };
 
-struct AppConfig : core::AnalysisRuntimeConfigData {
+struct AppConfig : core::AnalysisRuntimeConfigData, core::RecordingRuntimeConfigData {
     std::string stream_route{app_config::kStreamRoute};
     std::size_t subscriber_queue_size{app_config::kSubscriberQueueSize};
     std::size_t max_sessions{app_config::kMaxSessions};

@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <cstdint>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -23,6 +24,13 @@ public:
                            const std::string& required_scope_prefix)>;
 
     struct SourceRecord {
+        struct RecordingPolicy {
+            bool enabled{false};
+            std::uint64_t quota_bytes{0};
+            int retention_days{7};
+            std::string storage_path;
+            std::uint64_t revision{1};
+        };
         std::string source_id;
         std::string display_name;
         std::string kind;
@@ -39,6 +47,7 @@ public:
         std::string group;
         std::string floor;
         std::string zone;
+        RecordingPolicy recording;
     };
 
     struct PublishedViewRecord {
@@ -155,6 +164,8 @@ public:
     bool Snapshot(std::vector<SourceRecord>* sources,
                   std::vector<PublishedViewRecord>* views,
                   std::string* error_message);
+    using SourceMutationCallback = std::function<void(const SourceRecord&)>;
+    void SetSourceMutationCallback(SourceMutationCallback callback);
 
     RegistryResult CreateSource(const std::string& body);
     RegistryResult UpsertSource(const std::string& source_id, const std::string& body);
@@ -182,6 +193,7 @@ private:
     std::filesystem::path views_storage_path_;
     std::vector<SourceRecord> sources_;
     std::vector<PublishedViewRecord> views_;
+    SourceMutationCallback source_mutation_callback_;
 };
 
 }  // namespace ingress

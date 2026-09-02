@@ -4,6 +4,40 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## V410-S02 채널 정책, Recorder subscriber와 segment writer
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `include/core/recording_runtime_defaults.h`,
+    `include/core/recording_runtime_config_data.h`, `include/app_config.h`, `src/app_config.cpp`:
+    default-off 전역 설정, 전용 root, quota, 10초 segment와 storage layout validation
+  - `include/ingress/source_view_registry.h`, `src/ingress/source_view_registry.cpp`,
+    `source_view_application_service.*`, `webrtc_http_server.cpp`,
+    `product_ui_ops_sources_script.cpp`: nested recording policy의 create/upsert/save/load/snapshot/
+    Ops form round-trip, 저장 후 callback, viewer-safe quota/path 비노출
+  - `include/core/shared_stream.h`, `src/core/shared_stream.cpp`, `StreamRegistry`,
+    `SessionManager`: Recorder 역할, client/analysis/recorder 독립 계수와 queue
+  - `segment_writer.h`, `gstreamer_segment_writer.*`: H.264/MP4·VP8/WebM keyframe segment,
+    `.partial`→final atomic rename, checksum, PTS rollback epoch
+  - `recording_session_service.*`: auxiliary stream acquire/subscribe/start와 detach/release 순서
+  - `recording_segment_writer_smoke.cpp`, `verify_v410_recording_recorder.sh`, `server.sh`:
+    실제 encoded fixture 기반 focused verifier
+- RED 확인:
+  - 최초 verifier는 `gstreamer_segment_writer.cpp` 부재로 실패
+  - 첫 구현 후 GStreamer 미포함 `-Werror` 경계와 VP8 intermediate parser 경로가 실패했고,
+    미포함 fail-closed와 `video/x-vp8 → webmmux` 직접 경로로 수정
+- GREEN 확인:
+  - `./server.sh verify-v410-recording-recorder`: `pass=38 fail=0`
+  - `./server.sh build`: `media_server_runtime`, `media_server` 100% PASS
+- 개별 확인: global/source/channel disabled, quota 0, 녹화/media root 중복, source policy
+  round-trip, 저장 실패 callback 미호출, viewer-safe 비노출, 역할별 subscriber 계수,
+  느린 recorder queue 격리, H.264/VP8 delta-start 차단, 10초 뒤 keyframe 분할,
+  `.partial`/final callback 순서, PTS rollback 새 epoch
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분, S03 catalog/recovery,
+  순환 삭제/event 연동/timeline, external field smoke, published metadata, release action
+- 회귀 가능성: source policy revision 누락, client quota/path 노출, codec caps와 muxer drift,
+  recorder detach lease 불균형. focused C++ verifier와 제품 build로 방어
+
 ## V410-S02 전 선행 인벤토리 정합성 부채
 
 - 상태: local focused PASS

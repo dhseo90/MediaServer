@@ -36,6 +36,11 @@ SourceViewApplicationService::SourceRecord ToApplicationSource(
     output.group = input.group;
     output.floor = input.floor;
     output.zone = input.zone;
+    output.recording.enabled = input.recording.enabled;
+    output.recording.quota_bytes = input.recording.quota_bytes;
+    output.recording.retention_days = input.recording.retention_days;
+    output.recording.storage_path = input.recording.storage_path;
+    output.recording.revision = input.recording.revision;
     return output;
 }
 
@@ -145,6 +150,13 @@ bool SourceViewApplicationService::Snapshot(std::vector<SourceRecord>* sources,
         *views = std::move(converted);
     }
     return true;
+}
+
+void SourceViewApplicationService::SetSourceMutationCallback(SourceMutationCallback callback) {
+    SourceViewRegistry::Instance().SetSourceMutationCallback(
+        [callback = std::move(callback)](const SourceViewRegistry::SourceRecord& input) {
+            if (callback) callback(ToApplicationSource(input));
+        });
 }
 
 ApplicationServiceResult SourceViewApplicationService::CreateSource(const std::string& body) {

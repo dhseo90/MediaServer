@@ -80,4 +80,12 @@ std::size_t StreamRegistry::ActiveStreamCount() const {
     return streams_.size();
 }
 
+std::vector<std::pair<StreamKey, std::shared_ptr<SharedStream>>> StreamRegistry::Snapshot() const {
+    std::lock_guard lock(mu_);
+    std::vector<std::pair<StreamKey, std::shared_ptr<SharedStream>>> snapshot;
+    snapshot.reserve(streams_.size());
+    for (const auto& entry : streams_) snapshot.push_back(entry);
+    return snapshot;
+}
+
 }  // namespace core

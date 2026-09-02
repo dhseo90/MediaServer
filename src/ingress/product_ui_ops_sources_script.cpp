@@ -999,6 +999,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         floor: source.floor || '',
         zone: source.zone || ''
       };
+      payload.recording = {
+        enabled: source.recording?.enabled === true,
+        quotaBytes: Number(source.recording?.quotaBytes || 10737418240),
+        retentionDays: Number(source.recording?.retentionDays || 7),
+        storagePath: source.recording?.storagePath || '',
+        revision: Number(source.recording?.revision || 1)
+      };
       if (source.file) payload.file = source.file;
       if (source.rtspUrl) payload.rtspUrl = source.rtspUrl;
       if (source.webrtcSourceId) payload.webrtcSourceId = source.webrtcSourceId;
@@ -1030,6 +1037,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         return;
       }
       channelForm.reset();
+      channelForm.elements.recordingQuotaBytes.value = '10737418240';
+      channelForm.elements.recordingRetentionDays.value = '7';
+      channelForm.elements.recordingEnabled.checked = false;
       setGeneratedChannelId(nextChannelId());
       currentChannelEnabled = true;
       setChannelValidation('');
@@ -1057,6 +1067,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       channelForm.elements.group.value = source.group || source.ownerGroup || '';
       channelForm.elements.floor.value = source.floor || '';
       channelForm.elements.zone.value = source.zone || '';
+      channelForm.elements.recordingEnabled.checked = source.recording?.enabled === true;
+      channelForm.elements.recordingQuotaBytes.value = String(source.recording?.quotaBytes || 10737418240);
+      channelForm.elements.recordingRetentionDays.value = String(source.recording?.retentionDays || 7);
+      channelForm.elements.recordingStoragePath.value = source.recording?.storagePath || '';
       channelForm.elements.allowedRuleIds.value = Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds.join(', ') : '';
       channelForm.elements.clientGroups.value = Array.isArray(view.clientGroups) ? view.clientGroups.join(', ') : '';
       currentChannelEnabled = isClone ? false : (source.enabled !== false && view.enabled !== false);
@@ -1216,6 +1230,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (kind === 'onvif' && uriContainsAuthorityCredential(data.onvifStreamUrl)) {
         return 'ONVIF stream URI에는 username/password를 포함할 수 없습니다.';
       }
+      if (data.recordingEnabled && Number(data.recordingQuotaBytes || 0) <= 0) {
+        return '상시녹화 사용 시 녹화 용량은 1 이상이어야 합니다.';
+      }
+      if (Number(data.recordingRetentionDays || 0) <= 0) return '녹화 보존 일수는 1 이상이어야 합니다.';
+      if (String(data.recordingStoragePath || '').includes('..')) return '저장 하위경로에는 ..을 사용할 수 없습니다.';
       return '';
     }
     function onvifTransportFromUri(value) {
@@ -1256,6 +1275,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         group: (data.group || '').trim(),
         floor: (data.floor || '').trim(),
         zone: (data.zone || '').trim()
+      };
+      sourcePayload.recording = {
+        enabled: data.recordingEnabled === 'true' || data.recordingEnabled === 'on',
+        quotaBytes: Number(data.recordingQuotaBytes || 0),
+        retentionDays: Number(data.recordingRetentionDays || 7),
+        storagePath: (data.recordingStoragePath || '').trim(),
+        revision: Number((findSource(channelId)?.recording?.revision || 0)) + 1
       };
       if (formKind === 'file') sourcePayload.file = (data.file || '').trim();
       if (formKind === 'onvif' && onvifTransport?.rtspUrl) sourcePayload.rtspUrl = onvifTransport.rtspUrl;

@@ -330,6 +330,14 @@ constexpr const char* kEnvYoutubeResolverBin = "MEDIA_SERVER_YOUTUBE_RESOLVER_BI
 constexpr const char* kEnvYoutubeFormat = "MEDIA_SERVER_YOUTUBE_FORMAT";
 constexpr const char* kEnvYoutubeResolveTimeoutMs = "MEDIA_SERVER_YOUTUBE_RESOLVE_TIMEOUT_MS";
 constexpr const char* kEnvYoutubeReconnectDelayMs = "MEDIA_SERVER_YOUTUBE_RECONNECT_DELAY_MS";
+constexpr const char* kEnvRecordingEnabled = "MEDIA_SERVER_RECORDING_ENABLED";
+constexpr const char* kEnvRecordingStorageRoot = "MEDIA_SERVER_RECORDING_STORAGE_ROOT";
+constexpr const char* kEnvRecordingDefaultChannelQuotaBytes =
+    "MEDIA_SERVER_RECORDING_DEFAULT_CHANNEL_QUOTA_BYTES";
+constexpr const char* kEnvRecordingSegmentDurationSeconds =
+    "MEDIA_SERVER_RECORDING_SEGMENT_DURATION_SECONDS";
+constexpr const char* kEnvRecordingDefaultRetentionDays =
+    "MEDIA_SERVER_RECORDING_DEFAULT_RETENTION_DAYS";
 
 const char* ReadEnv(const char* name) {
     const char* value = std::getenv(name);
@@ -611,6 +619,15 @@ app::AppConfig LoadAppConfig() {
     config.enable_client = ReadBoolEnv(kEnvEnableClient, config.enable_client);
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
+    config.recording_enabled = ReadBoolEnv(kEnvRecordingEnabled, config.recording_enabled);
+    config.recording_storage_root =
+        ReadStringEnv(kEnvRecordingStorageRoot, config.recording_storage_root);
+    config.recording_default_channel_quota_bytes = ReadSizeEnv(
+        kEnvRecordingDefaultChannelQuotaBytes, config.recording_default_channel_quota_bytes);
+    config.recording_segment_duration_seconds = ReadIntEnv(
+        kEnvRecordingSegmentDurationSeconds, config.recording_segment_duration_seconds);
+    config.recording_default_retention_days = ReadIntEnv(
+        kEnvRecordingDefaultRetentionDays, config.recording_default_retention_days);
     config.webrtc_va_metadata_channel_enabled =
         ReadBoolEnv(kEnvWebRtcVaMetadataChannelEnabled, config.webrtc_va_metadata_channel_enabled);
     config.webrtc_va_metadata_channel_label =
@@ -1713,6 +1730,19 @@ app::AppConfig LoadAppConfig() {
         config.ui_default_home = "ops";
     }
     config.auth_users_file = ResolveRuntimePath(config.auth_users_file);
+    config.recording_storage_root = ResolveRuntimePath(config.recording_storage_root);
+    std::string recording_error;
+    if (!core::ValidateRecordingRuntimeConfig(config, &recording_error)) {
+        std::cerr << "[env] invalid recording configuration: " << recording_error
+                  << ", recording disabled\n";
+        config.recording_enabled = false;
+    }
+    if (!core::ValidateRecordingStorageLayout(
+            config.recording_storage_root, config.file_root_path, &recording_error)) {
+        std::cerr << "[env] invalid recording storage layout: " << recording_error
+                  << ", recording disabled\n";
+        config.recording_enabled = false;
+    }
     return config;
 }
 

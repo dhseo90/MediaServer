@@ -30,6 +30,7 @@ public:
         std::size_t resource_active_streams{0};
         std::size_t registry_active_streams{0};
         std::size_t active_analysis_taps{0};
+        std::size_t active_recording_channels{0};
     };
 
     struct SourceReconnectStats {
@@ -47,6 +48,7 @@ public:
         StreamKey stream_key;
         std::size_t session_count{0};
         std::size_t analysis_tap_count{0};
+        std::size_t recording_subscriber_count{0};
     };
 
     struct AuxiliaryStreamHandle {
