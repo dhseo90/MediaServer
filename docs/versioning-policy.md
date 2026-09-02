@@ -5,17 +5,17 @@
 
 ## 현재 기준
 
-- 현재 소스 버전: `4.0.0`
-- 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
+- 현재 소스 버전: `4.1.0`
+- 현재 source roadmap: `v4.1.0 Recording Foundation`
 - 최신 공개 GitHub Release: `v4.0.0`
 - 최신 공개 roadmap: `v4.0.0 Local Operations Policy and Stabilization`
 - `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v4.0.0`와 현재 source tag `v4.0.0`를 기록합니다.
+- source-only release 기준 tag는 published tag `v4.0.0`와 현재 source tag `v4.1.0`을 기록합니다.
 - `v4.0.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid` 확인 대상입니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
-현재 소스 트리의 `4.0.0` roadmap은 v4.0.0 Local Operations Policy and Stabilization
-source-only/live-only major source입니다. 게시된 v4.0.0 signed tag와 GitHub Release가
+현재 소스 트리의 `4.1.0` roadmap은 v4.1.0 Recording Foundation이며 S00 조사·설계
+차단선만 완료된 source-only/live-only 개발 source입니다. 게시된 v4.0.0 signed tag와 GitHub Release가
 최신 공개 기준입니다. v4.0.0 publish 완료는 signed tag, source-only GitHub Release,
 `verify-release-metadata --published` evidence로 확인합니다. v3.9.1 previous published
 baseline, v3.9.0/v3.8.0 historical published baseline과 후속 기능별 완료 evidence는
@@ -94,14 +94,15 @@ baseline입니다. 외부 field smoke는 실제 endpoint, credential, 실기기,
 integrity evidence를 보존했습니다. 외부 field smoke는 실제 endpoint, credential,
 실기기, provider 조건이 없어 실행하지 않은 영역으로 계속 분리합니다.
 
-## v4.0.0 현재 source 개발 범위
+## v4.1.0 현재 source 개발 범위
 
-- `v4.0.0`은 로컬 운영 정책화 및 안정화 major다.
-- 현재 소스 트리의 `VERSION`은 `4.0.0`이다. published GitHub Release도 `v4.0.0`이다.
-- 신규 기능은 `v4.1.0`부터 넣는다.
-- 실기기 ONVIF 성공, 외부 TURN/WHEP field, cloud VLM 제품 호출은 4.0.0 기본 범위가 아니다.
+- `v4.1.0`은 Recording Foundation minor다.
+- 현재 소스 트리의 `VERSION`은 `4.1.0`이고 latest published GitHub Release는 `v4.0.0`이다.
+- S00 조사·설계 차단선만 완료됐으며 상시·이벤트 연동 녹화는 S01부터 순서대로 구현한다.
+- 구조화/벡터/자연어 검색과 실기기 ONVIF 성공, 외부 TURN/WHEP field, cloud VLM 제품 호출은
+  v4.1.0 기본 범위가 아니다.
 - 상세 스텝과 테스트 스크립트 반영 불변 조건은 [development-backlog.md](./development-backlog.md)의
-  `v4.0.0 Local Operations Policy and Stabilization` 절이 source-of-truth다.
+  `v4.1.0 Recording Foundation` 절이 source-of-truth다.
 
 ## v3.9.0 previous published source-only release 범위
 
@@ -333,7 +334,7 @@ v3.3에서는 historical reference로만 참조합니다.
 ## Tag와 GitHub Release 기준
 
 - 현재 공개 release tag 기준: `v4.0.0`
-- 현재 source tag 기준: `v4.0.0`
+- 현재 source tag 기준: `v4.1.0`
 - `v4.0.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
   `verified=true`/`reason=valid` 확인 대상입니다.
 - `v3.9.1` previous published tag는 GitHub Release publish evidence가 있을 때만

@@ -6,15 +6,15 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `4.0.0`
+- 현재 소스 버전: `4.1.0`
 - 최신 공개 GitHub Release: `v4.0.0`
 - `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v4.0.0 Local Operations Policy and Stabilization`입니다.
+- 현재 source roadmap은 `v4.1.0 Recording Foundation`입니다.
 - 현재 latest published release는 `v4.0.0`입니다.
 - 현재 공개 release tag 기준은 `v4.0.0`입니다.
-- 현재 source tag 기준은 `v4.0.0`입니다.
-- `v4.0.0` GitHub Release publish 완료는 tag, GitHub Release,
+- 현재 source tag 기준은 `v4.1.0`입니다.
+- `v4.1.0` GitHub Release publish 완료는 tag, GitHub Release,
   `verify-release-metadata --published` evidence로 확인합니다.
 
 ## 기본 공개 범위
@@ -60,9 +60,9 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v4.0.0 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `4.0.0`, current roadmap
-`v4.0.0 Local Operations Policy and Stabilization`,
+v4.1.0 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `4.1.0`, current roadmap
+`v4.1.0 Recording Foundation`,
 latest published `v4.0.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
 `v4.0.0 Local Operations Policy and Stabilization`입니다.
 대상 문서는 `README.md`, `README.en.md`,
@@ -71,11 +71,12 @@ latest published `v4.0.0` 기준으로 정렬하는 local gate입니다. 최신 
 
 Companion local gate:
 
-전용 companion command는 `./server.sh verify-v400-entry-baseline`입니다.
+전용 companion command는 `./server.sh verify-v410-entry-baseline`입니다.
+historical v4.0.0 companion는 `./server.sh verify-v400-entry-baseline`입니다.
 historical v3.9.0 companion는 `./server.sh verify-v390-entry-baseline`입니다.
 
 ```bash
-./server.sh verify-v400-entry-baseline
+./server.sh verify-v410-entry-baseline
 ./server.sh verify-v390-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
@@ -1079,7 +1080,8 @@ Annotation JSON을 확보한 경우:
 [release-artifacts/v4.0.0/release-notes.md](./release-artifacts/v4.0.0/release-notes.md)입니다.
 아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. latest published metadata와
-현재 source tag 기준은 `v4.0.0`입니다. 실제 signed tag, GitHub Release, published
+이 절은 latest published `v4.0.0`의 보존된 release note source입니다. 현재 개발 source
+tag 기준은 `v4.1.0`이며, 실제 signed tag, GitHub Release, published
 metadata 결과는 저장소 snapshot과 분리해 직접 확인합니다.
 
 ```markdown

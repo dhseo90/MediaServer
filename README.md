@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v4.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
-![Source Version](https://img.shields.io/badge/source-4.0.0-informational)
+![Source Version](https://img.shields.io/badge/source-4.1.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,9 +15,10 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 GitHub Release: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
-- 현재 소스 버전: `4.0.0`
+- 현재 소스 버전: `4.1.0`
 - v4.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
+- 현재 source roadmap: `v4.1.0 Recording Foundation`
+- v4.1.0 상태: S00 조사·설계 차단선 완료. 녹화 기능 구현은 S01부터 순서대로 진행
 - 최신 공개 기준: v4.0.0 Local Operations Policy and Stabilization
 - 직전 공개 기준: v3.9.1 Release Correctness and Public Repository Hygiene
 

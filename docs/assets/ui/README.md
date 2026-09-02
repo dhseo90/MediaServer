@@ -3,8 +3,8 @@
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
 파일명으로 보관합니다.
 
-현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v4.0.0`
-Local Operations Policy and Stabilization를 가리키고,
+현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v4.1.0`
+Recording Foundation을 가리키고,
 최신 공개 GitHub Release는 `v4.0.0` Local Operations Policy and Stabilization
 source-only baseline을 가리킵니다. 직전 `v3.9.1` Release Correctness and Public Repository Hygiene은
 previous reference입니다. v3.9.0 entry-baseline historical pin:

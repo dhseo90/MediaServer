@@ -67,10 +67,10 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-assert(currentTag === "v4.0.0", `v4.0.0 source branch must use current tag v4.0.0, got ${currentTag}`);
+assert(currentTag === "v4.1.0", `v4.1.0 source branch must use current tag v4.1.0, got ${currentTag}`);
 const latestPublishedTag = "v4.0.0";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
-const currentRoadmap = "v4.0.0 Local Operations Policy and Stabilization";
+const currentRoadmap = "v4.1.0 Recording Foundation";
 const latestPublishedBaseline = "v4.0.0 Local Operations Policy and Stabilization";
 const previousPublishedTag = "v3.9.1";
 const previousPublishedBaseline = `${previousPublishedTag} Release Correctness and Public Repository Hygiene`;
@@ -387,11 +387,11 @@ check("release policy separates source version and published release", () => {
   return { file: "docs/release-policy.md" };
 });
 
-check("release policy pins future release note template", () => {
+check("release policy preserves latest published release note source", () => {
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
-    `# Media Server ${currentTag}`,
-    `아래 템플릿은 ${currentTag} source-only GitHub Release note 기준입니다.`,
+    `# Media Server ${latestPublishedTag}`,
+    `아래 템플릿은 ${latestPublishedTag} source-only GitHub Release note 기준입니다.`,
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }

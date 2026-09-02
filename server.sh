@@ -1207,6 +1207,10 @@ Usage:
                  v4.0.0 release readiness(네 영역 판정, 30/UI 미실행 blocker, close-out dry-run)를 검증합니다.
   verify-v400-roadmap-contract
                  v4.0.0 로컬 운영 정책화/안정화 로드맵과 테스트 스크립트 반영 불변 조건을 검증합니다.
+  verify-v410-research-gate
+                 v4.1.0 녹화 기반의 공개 자료 provenance와 IP clean-room 차단선을 검증합니다.
+  verify-v410-entry-baseline
+                 v4.1.0 source target과 published v4.0.0 baseline 분리를 검증합니다.
   verify-post-release-reconciliation
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
@@ -3011,6 +3015,14 @@ case "${cmd}" in
   verify-v400-entry-baseline)
     require_internal verify_v400_entry_baseline.mjs
     exec "${INTERNAL_DIR}/verify_v400_entry_baseline.mjs" "$@"
+    ;;
+  verify-v410-research-gate)
+    require_internal verify_v410_research_gate.sh
+    exec "${INTERNAL_DIR}/verify_v410_research_gate.sh" "$@"
+    ;;
+  verify-v410-entry-baseline)
+    require_internal verify_v410_entry_baseline.sh
+    exec "${INTERNAL_DIR}/verify_v410_entry_baseline.sh" "$@"
     ;;
   verify-v400-user-review-gate)
     require_internal verify_v400_user_review_gate.mjs

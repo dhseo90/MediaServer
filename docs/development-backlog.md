@@ -10,15 +10,15 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `4.0.0`
+- 현재 소스 버전: `4.1.0`
 - 최신 공개 GitHub Release: `v4.0.0`
 - `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
+- 현재 source roadmap: `v4.1.0 Recording Foundation`
 - 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
 - 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 다음 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
-  2026-09-02 사용자 설계 승인을 받았으며 구현·테스트 완료 상태는 아님
+- 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
+  2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선 완료. S01~S09는 미구현
 - 상세 구현계획:
   [`2026-09-02-v410-recording-foundation-implementation-plan.md`](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
 - 장기 로드맵은 `main` 공통 문서로 관리하고, 각 버전 브랜치는 자신의 버전 단계만
@@ -40,7 +40,7 @@ v4.1.0` 같은 문구는 당시의 historical planning context다. 현재 일정
   [v3.9.0 test-acceptance-current-final](./release-artifacts/v3.9.0/test-acceptance-current-final/README.md)에
   보존합니다. 이 절은 현재 v3.9.1 완료 증거가 아닙니다.
 
-## 현재 source roadmap: v4.0.0 Local Operations Policy and Stabilization
+## 최신 공개 기준: v4.0.0 Local Operations Policy and Stabilization
 
 상태: v4.0.0 (1)~(8) 정책/안정화 기록 완료. 30분과 UI 풀테스트는 `executed-pass`.
 120분은 `conditional-not-run`. published는 `v4.0.0`. 이 로드맵 기록 완료는 출시
@@ -380,7 +380,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 이 보강은 다음 실제 30분/UI 재실행에서 사람이 읽을 compact 결과와 실패 시 에이전트
 전달 파일을 추가하는 범위다.
 
-### v4.1.0 Recording Foundation과 후속 검색 로드맵
+## 현재 source roadmap: v4.1.0 Recording Foundation
 
 사용자와 합의한 현재 source roadmap은
 [v410-v49-recording-search-roadmap.md](v410-v49-recording-search-roadmap.md)다. v4.1.0은
@@ -390,7 +390,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 
 | 단계 | 제목 | 우선순위 | 상태 | 개발 내용 |
 | --- | --- | --- | --- | --- |
-| V410-S00 | 조사·설계 freeze | P0 | 설계 승인 완료·조사 gate 미실행 | 공개 표준·호환 오픈소스·KR/US/EP/PCT IP screening과 Apache-2.0 경계 확정 |
+| V410-S00 | 조사·설계 freeze | P0 | 완료 | 공개 표준·라이선스 metadata, KR/US/EP/PCT clean-room 차단선, source `4.1.0` 정렬. 특정 특허 상세·외부 코드 미반입 |
 | V410-S01 | Recording contract v1 | P0 | 미구현 | segment/frame/event link/analysis observation/tombstone 계약과 migration 규칙 |
 | V410-S02 | Continuous segment recorder | P0 | 미구현 | 채널별 opt-in, keyframe segment, atomic finalize, restart recovery |
 | V410-S03 | Catalog and recovery journal | P0 | 미구현 | SQLite primary, append-only JSONL rebuild/fallback |
@@ -400,6 +400,31 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S07 | Search-ready metadata | P1 | 미구현 | event/track summary와 bounded representative observations, exact frame locator |
 | V410-S08 | Recovery/compatibility gate | P0 | 미구현 | crash/disk-full/gap/corruption/migration/fixture verifier |
 | V410-S09 | Stabilization/readiness | P0 | 미구현 | 사용자 승인 범위의 안정화·UI·longrun·release 판정 |
+
+### v4.1.0 S00 개발 기록
+
+- 범위: P0 `V410-S00 표준·오픈소스·IP 게이트와 source baseline 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source target을 `4.1.0`으로 정렬했다.
+- 공개 진입 문서와 전용 로드맵: current source `v4.1.0 Recording Foundation`과 latest
+  published `v4.0.0 Local Operations Policy and Stabilization`을 분리했다.
+- `docs/research/v410-recording-storage-open-source-review.md`: GStreamer, ONVIF, SQLite,
+  MyLocalLLM, VARuleLens, 공유 대화의 URL·revision·license·허용 범위·미채택 범위를 기록했다.
+  VARuleLens는 license metadata가 없어 구현 참고에서 제외했다.
+- `docs/research/v410-recording-ip-risk-gate.md`: 특정 특허 번호·청구항·구현 상세를 반입하지
+  않는 원칙과 접근별 `허용/재설계/보류`를 기록했다. 법률 의견이나 FTO 증거가 아니다.
+- `scripts/internal/verify_v410_research_gate.sh`,
+  `scripts/internal/verify_v410_entry_baseline.sh`, `server.sh`: provenance/IP 필드와
+  branch/source/current roadmap/latest published baseline의 focused verifier를 연결했다.
+- versioning/release/public/UI 문서와 UI asset manifest, release metadata verifier의 현재형
+  source 표기를 `4.1.0`으로 맞추고 latest published `v4.0.0` 및 기존 캡처 증적은 보존했다.
+- RED: 조사 문서 부재와 source `4.0.0` 상태에서 두 verifier가 각각 예상 실패했다.
+- GREEN 중 source 정합성 확대 검증에서 정책 문구 1건과 UI manifest pin 1건의 drift가
+  발견돼 최소 수정 후 재검증했다. script inventory는 S01~S09 미래 verifier가 현재
+  명령처럼 문서화된 상태를 검출했고, 가짜 dispatch 대신 `planned-command` 표기로 교정했다.
+  최종 결과는
+  [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
+- 미실행/비대체: 제품 build, 안정화 묶음, UI 풀테스트, 30분/120분 장시간 테스트,
+  external TURN/WHEP, ONVIF 실기기, 외부 VLM/provider, published metadata, V410-S01~S09.
 
 기존에 v4.1.0 후보로 적었던 Incident OS 제품 승격, Evidence default-on, 로컬 Action
 Execution, credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 이번 v4.1.0 범위가

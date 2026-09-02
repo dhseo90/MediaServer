@@ -6,9 +6,9 @@
 [video-analysis.md](./video-analysis.md)를 봅니다.
 제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
 
-현재 소스 버전은 `4.0.0`입니다. 최신 공개 GitHub Release는 `v4.0.0` source-only
+현재 소스 버전은 `4.1.0`입니다. 최신 공개 GitHub Release는 `v4.0.0` source-only
 release이며, 최신 published baseline은 `v4.0.0 Local Operations Policy and Stabilization`입니다.
-이 문서는 현재 source tree의 UI 구조와 v4.0.0 Local Operations Policy and Stabilization
+이 문서는 현재 source tree의 UI 구조와 v4.1.0 Recording Foundation
 roadmap, v3.9.1 previous published baseline 경계를 설명합니다.
 UI 풀테스트 직접 조작 evidence는 별도 실행한 경우에만 PASS로 기록합니다.
 

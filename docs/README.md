@@ -9,11 +9,11 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 최신 공개 GitHub Release: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
 - 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
 - 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 현재 소스 버전: `4.0.0`
+- 현재 소스 버전: `4.1.0`
 - v4.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- 다음 source 개발 로드맵: `v4.1.0 Recording Foundation`. 현재는 설계/계획 단계이며
-  구현·테스트·릴리즈 완료 상태가 아님
+- 현재 source roadmap: `v4.1.0 Recording Foundation`
+- v4.1.0 상태: `V410-S00` 조사·설계 차단선 완료. `V410-S01~S09` 기능 구현·테스트와
+  릴리즈는 완료 상태가 아님
 - 장기 로드맵은 `main`에서 공통 관리하며 각 버전 브랜치는 해당 버전 구현에만 집중하고
   후속 버전 절은 stable contract 설계 문맥으로 상속함
 - 현재 장기 로드맵은 v4.1.0 변경에 포함하며 v4.1.0 머지 때 `main`에 공통 반영
@@ -39,6 +39,8 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | 현재 roadmap 요약 | [development-backlog.md](development-backlog.md) |
 | v4.1.0~v4.9.0 녹화·검색 로드맵 | [v410-v49-recording-search-roadmap.md](v410-v49-recording-search-roadmap.md) |
 | v4.1.0 녹화 기반 상세 구현계획 | [superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md) |
+| v4.1.0 저장 표준·오픈소스 검토 | [research/v410-recording-storage-open-source-review.md](research/v410-recording-storage-open-source-review.md) |
+| v4.1.0 IP 위험 차단 게이트 | [research/v410-recording-ip-risk-gate.md](research/v410-recording-ip-risk-gate.md) |
 | v4.0.0 release notes | [release-artifacts/v4.0.0/release-notes.md](release-artifacts/v4.0.0/release-notes.md) |
 | v3.9.1 release notes | [release-artifacts/v3.9.1/release-notes.md](release-artifacts/v3.9.1/release-notes.md) |
 | v3.9.0 release notes | [release-artifacts/v3.9.0/release-notes.md](release-artifacts/v3.9.0/release-notes.md) |

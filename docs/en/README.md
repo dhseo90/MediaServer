@@ -9,10 +9,10 @@ points to the current public sources.
 - Latest published GitHub Release: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
 - Latest published baseline: `v4.0.0 Local Operations Policy and Stabilization`
 - Previous published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- Current source version: `4.0.0`
+- Current source version: `4.1.0`
 - v4.0.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- Next source development roadmap: `v4.1.0` new-feature candidates. Not implemented in 4.0.0
+- Current source roadmap: `v4.1.0 Recording Foundation`
+- v4.1.0 status: S00 research and design guardrails complete. S01-S09 are not implemented.
 - Default public distribution: source-only
 - Representative screenshots were recaptured on 2026-08-31 for source `4.0.0` /
   then-published `v3.9.1`, using the v3.8.0 uncropped composition. They are managed
@@ -40,7 +40,7 @@ points to the current public sources.
 
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
-- The current source tree tracks the `v4.0.0 Local Operations Policy and Stabilization`
+- The current source tree tracks the `v4.1.0 Recording Foundation`
   roadmap. Latest published is `v4.0.0`. v3.9.1 remains the previous published baseline.
 - Binary, runtime, and model bundles are excluded from the default public release.
 - Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G

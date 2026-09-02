@@ -2,11 +2,12 @@
 
 ## 문서 상태
 
-- 상태: 2026-09-02 사용자 승인 완료. 구현·테스트·릴리즈 완료 증거가 아님
+- 상태: 2026-09-02 사용자 승인 완료, 2026-09-03 V410-S00 완료. S01~S09 구현·테스트와
+  v4.1.0 릴리즈 완료 증거가 아님
 - 현재 작성 브랜치: `v4.1.0`
 - 공통 반영 시점: v4.1.0을 `main`에 머지할 때 장기 로드맵도 함께 반영
 - 이후 소유 브랜치: `main`. 후속 버전 브랜치는 장기 로드맵이 반영된 최신 `main`에서 생성
-- 현재 소스 버전: `4.0.0`
+- 현재 소스 버전: `4.1.0`
 - 적용 라이선스: Apache License 2.0 유지
 - 세부 설계: [2026-09-02-v410-recording-search-foundation-design.md](superpowers/specs/2026-09-02-v410-recording-search-foundation-design.md)
 - 상세 구현계획: [2026-09-02-v410-recording-foundation-implementation-plan.md](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
@@ -158,6 +159,10 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 | 7 | V410-S07 | P1 | event/track 경계·요약과 설정 주기 대표 관측 저장, 정확한 frame seek 기반 |
 | 8 | V410-S08 | P0 | crash/disk-full/corrupt catalog/gap/migration/호환성 검증과 문서·evidence 연결 |
 | 9 | V410-S09 | P0 | 사용자 승인 범위의 안정화·UI·장시간 녹화·release readiness 판정 |
+
+V410-S00 완료: 공개 표준과 라이선스 metadata, 특정 특허 상세를 반입하지 않는 IP
+clean-room 차단선, source `4.1.0` baseline을 고정했다. 녹화 계약과 제품 기능은
+V410-S01부터 구현하며 S01~S09는 아직 시작하지 않았다.
 
 v4.1.0에서 검색-ready 메타데이터를 저장하지만 검색 DSL, 검색 결과 랭킹, 벡터 인덱스,
 자연어 해석은 구현하지 않는다. 객체의 모든 분석 frame을 무제한 저장하지 않고,

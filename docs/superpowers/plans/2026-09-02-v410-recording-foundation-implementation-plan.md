@@ -159,8 +159,19 @@ path를 응답에 노출하지 않는다.
 - 수정: `README.md`
 - 수정: `README.en.md`
 - 수정: `docs/README.md`
+- 수정: `docs/en/README.md`
 - 수정: `docs/development-backlog.md`
 - 수정: `docs/v410-v49-recording-search-roadmap.md`
+- 수정: `docs/versioning-policy.md`
+- 수정: `docs/release-policy.md`
+- 수정: `docs/public-repo-final-review.md`
+- 수정: `docs/ui-guide.md`
+- 수정: `docs/assets/ui/README.md`
+- 수정: `config/docs_ui_assets.json`
+- 수정: `scripts/internal/verify_docs_ui_assets.mjs`
+- 수정: `scripts/internal/verify_release_metadata_consistency.mjs`
+- 수정: `docs/superpowers/specs/2026-09-02-v410-recording-search-foundation-design.md`
+- 수정: `docs/superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md`
 - 생성: `docs/research/v410-recording-storage-open-source-review.md`
 - 생성: `docs/research/v410-recording-ip-risk-gate.md`
 - 생성: `docs/release-evidence-v410.md`
@@ -211,7 +222,10 @@ path를 응답에 노출하지 않는다.
 ```bash
 ./server.sh verify-v410-research-gate
 ./server.sh verify-v410-entry-baseline
+./server.sh verify-release-metadata
+./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
+./server.sh verify-script-inventory
 git diff --check
 ```
 
@@ -223,11 +237,15 @@ git diff --check
 사용자가 이 단계 커밋을 명시 승인한 경우에만:
 
 ```bash
-git add VERSION CMakeLists.txt README.md README.en.md docs/README.md docs/development-backlog.md docs/v410-v49-recording-search-roadmap.md docs/research/v410-recording-storage-open-source-review.md docs/research/v410-recording-ip-risk-gate.md docs/release-evidence-v410.md scripts/internal/verify_v410_research_gate.sh scripts/internal/verify_v410_entry_baseline.sh server.sh
+git add VERSION CMakeLists.txt README.md README.en.md config/docs_ui_assets.json docs/README.md docs/en/README.md docs/development-backlog.md docs/v410-v49-recording-search-roadmap.md docs/versioning-policy.md docs/release-policy.md docs/public-repo-final-review.md docs/ui-guide.md docs/assets/ui/README.md docs/research/v410-recording-storage-open-source-review.md docs/research/v410-recording-ip-risk-gate.md docs/release-evidence-v410.md docs/superpowers/specs/2026-09-02-v410-recording-search-foundation-design.md scripts/internal/verify_v410_research_gate.sh scripts/internal/verify_v410_entry_baseline.sh scripts/internal/verify_docs_ui_assets.mjs scripts/internal/verify_release_metadata_consistency.mjs server.sh
 git commit -m "docs: v4.1.0 녹화 연구 게이트 고정"
 ```
 
 ---
+
+아래 S01~S09의 `planned-command`는 해당 단계에서 verifier와 `server.sh` dispatch를 함께
+구현한 뒤 `./server.sh` 실행 명령으로 승격할 계획 ID다. 현재 실행 가능한 명령이나 PASS
+증거가 아니다.
 
 ## Task 1: V410-S01 녹화 v1 계약과 golden fixture
 
@@ -258,7 +276,7 @@ smoke는 다음을 먼저 요구하고 구현 전 compile 또는 assertion 실�
 - tombstone ID 재사용 거부
 
 ```bash
-./server.sh verify-v410-recording-contracts
+planned-command verify-v410-recording-contracts
 ```
 
 ### Step 2: exact C++ 계약을 구현한다
@@ -341,7 +359,7 @@ filesystem path는 internal port 인자로만 사용하고 JSON serializer에 �
 ### Step 4: GREEN과 문서 기록
 
 ```bash
-./server.sh verify-v410-recording-contracts
+planned-command verify-v410-recording-contracts
 ./server.sh verify-docs-links
 git diff --check
 ```
@@ -399,7 +417,7 @@ fixture packet으로 다음을 실패시키는 test부터 만든다.
 - final callback 전 `.partial`, callback 뒤 final path만 존재
 
 ```bash
-./server.sh verify-v410-recording-recorder
+planned-command verify-v410-recording-recorder
 ```
 
 ### Step 2: Recorder role을 additive하게 추가한다
@@ -459,8 +477,8 @@ parser와 muxer 선택은 전역의 미디어 형식 표를 따른다. writer ca
 ### Step 5: focused 검증과 문서 기록
 
 ```bash
-./server.sh verify-v410-recording-recorder
-./server.sh verify-v410-recording-contracts
+planned-command verify-v410-recording-recorder
+planned-command verify-v410-recording-contracts
 ./server.sh verify-docs-links
 git diff --check
 ```
@@ -501,7 +519,7 @@ git commit -m "feat: 채널별 상시녹화 segment writer 추가"
 - SQLite 파일 손상 시 원본을 덮어쓰지 않고 격리한 뒤 journal rebuild
 
 ```bash
-./server.sh verify-v410-recording-catalog
+planned-command verify-v410-recording-catalog
 ```
 
 ### Step 2: append-only mutation envelope를 구현한다
@@ -569,8 +587,8 @@ reconcile은 subscriber를 재생성하지 않는다.
 ### Step 5: GREEN과 parity evidence
 
 ```bash
-./server.sh verify-v410-recording-catalog
-./server.sh verify-v410-recording-recorder
+planned-command verify-v410-recording-catalog
+planned-command verify-v410-recording-recorder
 git diff --check
 ```
 
@@ -612,7 +630,7 @@ git commit -m "feat: 녹화 journal과 SQLite catalog 연결"
 - tombstone은 남고 media path와 원본 bytes는 남지 않음
 
 ```bash
-./server.sh verify-v410-recording-retention
+planned-command verify-v410-recording-retention
 ```
 
 ### Step 2: 순수 selection과 side effect 실행을 분리한다
@@ -634,8 +652,8 @@ event artifact를 선택하는 코드는 허용하지 않는다.
 ### Step 4: GREEN과 문서 기록
 
 ```bash
-./server.sh verify-v410-recording-retention
-./server.sh verify-v410-recording-catalog
+planned-command verify-v410-recording-retention
+planned-command verify-v410-recording-catalog
 git diff --check
 ```
 
@@ -677,7 +695,7 @@ git commit -m "feat: 녹화 순환 보존과 용량 보호 추가"
   event만 처리
 
 ```bash
-./server.sh verify-v410-event-recording
+planned-command verify-v410-event-recording
 ```
 
 ### Step 2: EventStorage에 narrow bridge를 추가한다
@@ -727,9 +745,9 @@ source segment를 직접 이어 붙이지 않고 GStreamer demux/parser/mux pipe
 ### Step 5: GREEN과 회귀 검증
 
 ```bash
-./server.sh verify-v410-event-recording
-./server.sh verify-v410-recording-retention
-./server.sh verify-v410-recording-catalog
+planned-command verify-v410-event-recording
+planned-command verify-v410-recording-retention
+planned-command verify-v410-recording-catalog
 git diff --check
 ```
 
@@ -780,8 +798,8 @@ git commit -m "feat: 이벤트 녹화 연결과 파생 clip 추가"
 - 자연어·vector 검색 input은 존재하지 않음
 
 ```bash
-./server.sh verify-v410-recording-timeline
-./server.sh verify-v410-recording-ui-contract
+planned-command verify-v410-recording-timeline
+planned-command verify-v410-recording-ui-contract
 ```
 
 ### Step 2: application DTO와 read service를 구현한다
@@ -826,8 +844,8 @@ filter, event/continuous badge, completeness, quota 상태, `<video controls pre
 ### Step 5: GREEN과 문서 기록
 
 ```bash
-./server.sh verify-v410-recording-timeline
-./server.sh verify-v410-recording-ui-contract
+planned-command verify-v410-recording-timeline
+planned-command verify-v410-recording-ui-contract
 ./server.sh verify-docs-links
 git diff --check
 ```
@@ -870,7 +888,7 @@ git commit -m "feat: 이벤트 우선 녹화 timeline과 재생 추가"
 - detector가 없거나 tracking disabled여도 recording path는 실패하지 않음
 
 ```bash
-./server.sh verify-v410-recording-observations
+planned-command verify-v410-recording-observations
 ```
 
 ### Step 2: analysis result observer를 additive하게 추가한다
@@ -907,9 +925,9 @@ segment가 corrupt/deleted면 observation은 남길 수 있지만 `frameLocator=
 ### Step 5: GREEN과 문서 기록
 
 ```bash
-./server.sh verify-v410-recording-observations
-./server.sh verify-v410-recording-timeline
-./server.sh verify-v410-recording-catalog
+planned-command verify-v410-recording-observations
+planned-command verify-v410-recording-timeline
+planned-command verify-v410-recording-catalog
 git diff --check
 ```
 
@@ -956,8 +974,8 @@ git commit -m "feat: 녹화 검색용 분석 관측 저장 추가"
 - event link는 있으나 derived clip 없음
 
 ```bash
-./server.sh verify-v410-recording-recovery
-./server.sh verify-v410-recording-fixture-compatibility
+planned-command verify-v410-recording-recovery
+planned-command verify-v410-recording-fixture-compatibility
 ```
 
 ### Step 2: 시작 복구 state machine을 구현한다
@@ -990,14 +1008,14 @@ PASS가 아님을 그대로 유지한다.
 ### Step 5: GREEN과 회귀 검증
 
 ```bash
-./server.sh verify-v410-recording-recovery
-./server.sh verify-v410-recording-fixture-compatibility
-./server.sh verify-v410-recording-observations
-./server.sh verify-v410-event-recording
-./server.sh verify-v410-recording-retention
-./server.sh verify-v410-recording-catalog
-./server.sh verify-v410-recording-recorder
-./server.sh verify-v410-recording-contracts
+planned-command verify-v410-recording-recovery
+planned-command verify-v410-recording-fixture-compatibility
+planned-command verify-v410-recording-observations
+planned-command verify-v410-event-recording
+planned-command verify-v410-recording-retention
+planned-command verify-v410-recording-catalog
+planned-command verify-v410-recording-recorder
+planned-command verify-v410-recording-contracts
 ./server.sh verify-docs-links
 git diff --check
 ```
@@ -1060,7 +1078,7 @@ AGENTS.md 7.6.2 기준으로 다음을 분리한다.
 
 ```bash
 ./server.sh build
-./server.sh verify-v410-recording-foundation
+planned-command verify-v410-recording-foundation
 ./server.sh verify-v410-entry-baseline
 ./server.sh verify-release-metadata
 ./server.sh verify-script-inventory
