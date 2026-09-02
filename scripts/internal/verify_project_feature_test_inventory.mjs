@@ -57,7 +57,7 @@ const seedFixtureText = readText(seedFixturePath);
 const seedFixture = JSON.parse(seedFixtureText);
 const currentVersion = readText("VERSION").trim();
 const currentTag = `v${currentVersion}`;
-const latestPublishedTag = "v3.9.1";
+const latestPublishedTag = "v4.0.0";
 
 const checks = [];
 

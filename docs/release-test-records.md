@@ -16,6 +16,20 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.1.0 선행 인벤토리 정합성 부채 테스트 기록 (2026-09-03)
+
+| 테스트 항목 | 실행 명령 | 결과 | 직접 확인 범위 |
+| --- | --- | --- | --- |
+| 현재 pin RED | `./server.sh verify-project-inventory` | fail | inventory/seed가 v4.0.0에 머물고 published seed가 v3.9.1에 고정됨 |
+| 과거 기록 경계 RED | `./server.sh verify-v290-release-test-records-enforcement` | fail | 상태표의 `미실행`을 pass/fail 결과 열로 오인 |
+| current/published seed | `./server.sh verify-project-inventory` | pass | current v4.1.0, published v4.0.0, seed matrix 전체 |
+| 과거 기록 결과 열 | `./server.sh verify-v290-release-test-records-enforcement` | pass | 상태표 허용, pass/fail 결과 열의 미실행 거부 |
+| REVIEW4 행 단위 재결속 | REVIEW4 audit/migration/approval/implementation verifier | pass | 980 carry-forward, 6 independent-review, 986/986 승인·manifest |
+| inventory 소비자 | `./server.sh verify-feature-inventory-coverage` | pass | 986/986 exact mapping과 테스트 영역 7/7 |
+
+미실행/제외: 실제 UI 풀테스트, 30분/120분 장시간 테스트, field smoke, published metadata,
+release action. 위 정적 검증과 독립 source-flow 재검토는 해당 실행 evidence를 대체하지 않는다.
+
 ## v4.1.0 S01 녹화 계약 테스트 기록 (2026-09-03)
 
 | 테스트 항목 | 실행 명령 | 결과 | 직접 확인 범위 |
@@ -2480,7 +2494,7 @@ UI 풀테스트는 `/ops/vlm` control/payload 변경 때문에 최종 release에
 필요하지만 최신 지시가 실행 승인은 아니므로 미진행입니다. 이 미실행 항목은 완료
 evidence로 사용하지 않습니다.
 
-| 제목 | 수행내용 | 결과(pass/fail) |
+| 제목 | 수행내용 | 상태 |
 | --- | --- | --- |
 | v390 Step 1 RED entry baseline gate | 최초 `./server.sh verify-v390-entry-baseline`은 command dispatch가 아직 없어 `알 수 없는 명령입니다: verify-v390-entry-baseline`로 실패. v3.9 baseline verifier를 추가하기 전 기대 실패이며 제품 회귀가 아님 | fail |
 | v390 Step 2 RED feature completion inventory gate | 최초 `./server.sh verify-v390-feature-completion-inventory`는 command dispatch가 아직 없어 `알 수 없는 명령입니다: verify-v390-feature-completion-inventory`로 실패. inventory verifier를 추가하기 전 기대 실패이며 제품 회귀가 아님 | fail |
@@ -4843,7 +4857,7 @@ evidence로 사용하지 않습니다.
 
 ### REVIEW4-65 deferred owner row-local source correction
 
-| 제목 | 수행내용 | 결과(pass/fail) |
+| 제목 | 수행내용 | 상태 |
 | --- | --- | --- |
 | Canonical actual failure 보존 | `9d68f7d9`의 run `v390-test-acceptance-20260717113149-625`는 build PASS 뒤 feature gate `v390-deferred-product-owner-signoff`에서 `external-vlm-provider-call`의 `product_ui_page_scripts.cpp` whole-file digest drift로 FAIL했습니다. 30분·exact424·Policy v4·120분·final integrity는 not-run, cleanup/report는 PASS이며 canonical summary/report/run log를 실제 실패 evidence로 보존합니다 | fail / preserved |
 | 원인 비교 | REVIEW4-65 event-rule UI 추가 영역만 변경됐고 `renderV390FieldEvidenceBridgeDecision`, `renderV390ReidAssistDecision` 및 두 대응 server-page section은 이전 bytes와 동일했습니다 | pass |
@@ -4854,7 +4868,7 @@ evidence로 사용하지 않습니다.
 
 ### REVIEW4-65 UI manifest drift actual failure/correction
 
-| 제목 | 수행내용 | 결과(pass/fail) |
+| 제목 | 수행내용 | 상태 |
 | --- | --- | --- |
 | Canonical actual evidence 보존 | Source `911446e802a5eb984843d929238715563722261a`, run `v390-test-acceptance-20260717153927-36826`은 feature gate 35/35와 real 30분을 PASS한 뒤 `ui-exact-424` implementation source binding drift로 browser case 실행 전 0/424 FAIL했습니다. Policy v4 qualification, 120분 판정/실행, final integrity는 not-run입니다 | acceptance fail / 30-minute pass preserved |
 | 30분 actual | Runner monotonic 2,360.544초, delegated 2,358초, 118 PASS/0 FAIL/2 제외, 22회 ordered soak와 PID/port/temp 609,552B cleanup이 PASS했습니다 | pass; 전체 acceptance PASS 아님 |
@@ -4869,7 +4883,7 @@ evidence로 사용하지 않습니다.
 
 ### REVIEW4-65 UI artifact/lifecycle invariant correction
 
-| 제목 | 수행내용 | 결과(pass/fail) |
+| 제목 | 수행내용 | 상태 |
 | --- | --- | --- |
 | Standalone actual failure 보존 | Source `2bc7ad050a8eea18fd22892c2485da63523d829e`의 sandbox 밖 `./test_ui.sh` 1회 실행은 UI-001~003 뒤 `Policy v4 artifact root must be inside the repository root`로 `ui-exact-424` FAIL했습니다. Policy qualification은 not-run이고 UI child server/PID/ephemeral port/runtime root cleanup은 PASS, root cleanup은 child summary 누락과 UI-004 partial duplicate screenshot 때문에 FAIL했습니다 | infrastructure fail / preserved outside repository |
 | 원인 경계 | 공통 launcher contract가 UI output을 OS temp로 강제했지만 Policy v4 producer/qualifier는 repository-relative artifact root만 허용해 정상 UI 데이터와 무관하게 standalone UI가 구조적으로 완주할 수 없었습니다. Raw producer의 정상 결과는 `CAPTURED`인데 acceptance/runner가 `PASS`를 기대한 잠복 상태 모순도 함께 확인했습니다 | root cause confirmed |
@@ -5197,7 +5211,7 @@ Source `c8887148742c62fe84ef43d1e50a2519e1e23f09` actual UI는 exact `154/153/1/
 
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
-| 제목 | 수행내용 | 결과(pass/fail) |
+| 제목 | 수행내용 | 상태 |
 | --- | --- | --- |
 | Canonical actual failure 보존 | Source `99f6f110643fb47498edd75c311e3d0491baaba0`, sandbox 밖 single run `v390-test-acceptance-20260717130122-44713`은 build와 앞선 gate PASS 뒤 `feature-gates`의 `v390-structure-stabilization-handoff`에서 SAFE-211 line-count drift로 중단됐습니다. 30분·UI·Policy v4·120분·final integrity는 not-run, cleanup/report는 PASS입니다 | fail / preserved |
 | 원인 경계 | Slice 32 completion graph의 `product_ui_page_scripts.cpp` 10,156줄과 REVIEW4-65 event-rule UI가 반영된 current source 10,173줄을 같은 lifecycle로 비교했습니다. Owner/include/target violation/SCC 변화는 없습니다 | pass |

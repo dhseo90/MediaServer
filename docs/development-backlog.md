@@ -402,6 +402,28 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S08 | Recovery/compatibility gate | P0 | 미구현 | crash/disk-full/gap/corruption/migration/fixture verifier |
 | V410-S09 | Stabilization/readiness | P0 | 미구현 | 사용자 승인 범위의 안정화·UI·longrun·release 판정 |
 
+### v4.1.0 선행 인벤토리 정합성 부채 정리
+
+- 상태: local focused PASS. V410-S02 착수 전 기존 S00/S01에서 남긴 source-of-truth
+  부채만 정리했으며 녹화 제품 기능은 추가하지 않았다.
+- 현재 pin: `docs/project-feature-test-inventory.md`와 수동 UI seed를 current
+  `v4.1.0`, latest published `v4.0.0`으로 정렬했다.
+- 과거 기록 경계: `verify_v290_release_test_records_enforcement.mjs`는 문서 전체의
+  `미실행` 문자열이 아니라 Markdown의 pass/fail 결과 열만 검사한다. historical 상태표의
+  `미실행`은 허용하고 pass/fail 결과 열의 `미실행`은 계속 거부한다.
+- REVIEW4: `UI-019`, `SAFE-064`, `SAFE-071`, `SAFE-075`, `OPS-041`, `OPS-045`만
+  현재 작업 트리의 독립 검토 대상으로 분리하고, 나머지 980행은 strict-equivalent
+  carry-forward로 유지한다. 이 재결속은 실제 UI/장시간/release action PASS가 아니다.
+- 구현 위치: `scripts/internal/verify_project_feature_test_inventory.mjs`,
+  `scripts/internal/verify_v290_release_test_records_enforcement.mjs`,
+  `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`, REVIEW4 audit/approval/implementation/
+  native exact fixture.
+- 검증: `verify-v290-release-test-records-enforcement`, `verify-project-inventory`,
+  `verify-feature-inventory-coverage`, REVIEW4 audit/approval/migration/implementation gate,
+  docs/script inventory와 `git diff --check`.
+- 미실행/비대체: 실제 UI 풀테스트, 30분/120분, field smoke, published metadata,
+  PR/main merge/tag/GitHub Release.
+
 ### v4.1.0 S00 개발 기록
 
 - 범위: P0 `V410-S00 표준·오픈소스·IP 게이트와 source baseline 정렬`.

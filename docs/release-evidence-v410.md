@@ -4,6 +4,39 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## V410-S02 전 선행 인벤토리 정합성 부채
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `docs/project-feature-test-inventory.md`: current release 목표를 `v4.1.0`으로 pin하고
+    S00/S01 현재 범위와 후속 `REC-*` ID 추가 시점을 분리
+  - `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`,
+    `scripts/internal/verify_project_feature_test_inventory.mjs`: 수동 UI 준비 fixture를
+    current `v4.1.0`, latest published `v4.0.0`으로 정렬
+  - `scripts/internal/verify_v290_release_test_records_enforcement.mjs`:
+    Markdown 표의 pass/fail 결과 열만 검사하고 상태표는 분리하는 parser와 양·음성 self-check
+  - `docs/release-test-records.md`: historical 개발 상태표 다섯 곳을 pass/fail 결과표와 분리
+  - REVIEW4 audit/approval/implementation/native exact fixture: 공식 migration-aware producer로
+    980행 strict carry-forward와 6행 독립 검토를 원자 반영
+- RED 확인:
+  - `verify-project-inventory`: current inventory/seed pin과 published seed 기준 실패
+  - `verify-v290-release-test-records-enforcement`: 상태표 `미실행`을 결과 셀로 오인
+  - `verify-feature-inventory-coverage`: REVIEW4 trust binding drift로 실패
+- GREEN 확인:
+  - `verify-v290-release-test-records-enforcement`: 8/0
+  - `verify-project-inventory`: 17/0
+  - REVIEW4 migration: 986행 중 carry-forward 980, independent-review
+    `UI-019`, `SAFE-064`, `SAFE-071`, `SAFE-075`, `OPS-041`, `OPS-045`
+  - `verify-feature-implementation-evidence`: 986/986와 negative fixture 전부 PASS
+  - `verify-feature-inventory-coverage`: 986/986 exact mapping, 테스트 영역 7/7
+- 독립 검토 경계: UI 테마, V280/V290 역사적 inventory, V290 기록 분리의 각
+  owner→dispatch→action→state→readback→verifier 의미를 행 단위로 확인했다. whole-file
+  또는 inventory pin 변경을 다른 기능 승인으로 확장하지 않는다.
+- 미실행/비대체: 실제 UI 풀테스트, 30분/120분, field smoke, published metadata,
+  release action
+- 영향 범위: 내부 inventory/fixture/verifier/REVIEW4 evidence만 변경한다. C++ 제품 로직,
+  API/schema/event payload, RTSP/WebRTC media path, 제품 UI 동작은 변경하지 않는다.
+
 ## V410-S01 녹화 v1 영속 계약과 golden fixture
 
 - 상태: local focused PASS

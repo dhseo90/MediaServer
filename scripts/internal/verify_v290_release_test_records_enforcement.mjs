@@ -137,10 +137,16 @@ check("server entrypoint exposes V290-S04 records command", () => {
 });
 
 check("release result tables keep pass/fail cells separate from not-run wording", () => {
-  const forbiddenCells = ["| skip |", "| skipped |", "| 조건부 pass |", "| 조건부 PASS |", "| 미실행 |", "| not-run |"];
-  for (const snippet of forbiddenCells) {
-    assert(!releaseRecords.includes(snippet), `release records must not use forbidden result cell: ${snippet}`);
+  const forbiddenCells = new Set(["skip", "skipped", "조건부 pass", "미실행", "not-run"]);
+  const resultCells = markdownResultCells(releaseRecords);
+  for (const cell of resultCells) {
+    assert(!forbiddenCells.has(cell.value.toLowerCase()),
+      `release records must not use forbidden result cell at line ${cell.line}: ${cell.value}`);
   }
+  assert(markdownResultCells("| 항목 | 상태 |\n| --- | --- |\n| UI | 미실행 |").length === 0,
+    "not-run status tables must stay outside pass/fail result-cell enforcement");
+  assert(markdownResultCells("| 항목 | 결과 |\n| --- | --- |\n| gate | 미실행 |")[0]?.value === "미실행",
+    "pass/fail result-cell enforcement must detect forbidden not-run values");
 });
 
 check("canonical records gate rejects tmp evidence without writing the records source", () => {
@@ -195,6 +201,33 @@ function assert(condition, message) {
 
 function normalizeWhitespace(text) {
   return text.replace(/\s+/g, " ");
+}
+
+function markdownResultCells(text) {
+  const cells = [];
+  const lines = text.split(/\r?\n/);
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+    const header = markdownTableCells(lines[lineIndex]);
+    if (!header) continue;
+    const resultIndex = header.findIndex(cell => /^결과(?:\s*\(\s*pass\s*\/\s*fail\s*\))?$/i.test(cell));
+    const verdictIndex = header.findIndex(cell => cell === "판정");
+    if (resultIndex < 0 || (verdictIndex >= 0 && !/pass\s*\/\s*fail/i.test(header[resultIndex]))) continue;
+    const separator = markdownTableCells(lines[lineIndex + 1] || "");
+    if (!separator || separator.length !== header.length ||
+        separator.some(cell => !/^:?-{3,}:?$/.test(cell))) continue;
+    for (let rowIndex = lineIndex + 2; rowIndex < lines.length; rowIndex += 1) {
+      const row = markdownTableCells(lines[rowIndex]);
+      if (!row || row.length !== header.length) break;
+      cells.push({ line: rowIndex + 1, value: row[resultIndex] });
+    }
+  }
+  return cells;
+}
+
+function markdownTableCells(line) {
+  const trimmed = String(line || "").trim();
+  if (!trimmed.startsWith("|") || !trimmed.endsWith("|")) return null;
+  return trimmed.slice(1, -1).split("|").map(cell => cell.trim());
 }
 
 function sha256Text(text) {

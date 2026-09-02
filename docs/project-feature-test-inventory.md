@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v4.0.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v4.1.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -110,6 +110,7 @@ Static으로만 실행 예정이며 actual completion evidence가 아닙니다.
 
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
+| v4.1.0 Recording Foundation 현재 범위 | 기존 986개 ID 유지, 신규 `REC-*` ID는 V410-S08에서 별도 추가 | `verify-v410-research-gate`, `verify-v410-entry-baseline`, `verify-v410-recording-contracts`, `verify-project-inventory`, `verify-feature-inventory-coverage` | S00 조사·설계 차단선과 S01 녹화 영속 계약까지의 현재 범위입니다. 실제 recorder/store/catalog/순환 삭제/timeline, UI 풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다 |
 | v3.9.1 release correction | `OPS-163`, `SAFE-196` inherited scope | `verify-release-metadata`, `verify-v391-documentation-truth`, `verify-public-repo-readiness`, `verify-docs-links`, `verify-docs-ui-assets` | current source `3.9.1`, latest published `v3.9.0`의 metadata/docs/public evidence/UI asset correction입니다. 기능 ID·API/schema/media 동작을 추가하지 않으며 fresh build, 30분, exact UI 424/Policy v4, 120분, release action은 별도 evidence가 필요합니다. |
 | v4.0.0 Local Operations Policy and Stabilization roadmap | `OPS-163`, `SAFE-196` inherited scope | `verify-v400-roadmap-contract`, `verify-v400-entry-baseline`, `verify-script-inventory`, `verify-project-inventory`, `verify-docs-links` | 현재 source 개발 로드맵이 로컬 운영 정책화/안정화와 v4.1.0 신규 기능을 분리하고, 모든 스텝에 테스트 스크립트 반영 필수를 심었는지 확인합니다. v4.0.0 (1) 외 기능 구현, UI 풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다 |
 | v4.0.0 (1) v4.0.0 baseline 정렬 | `OPS-163`, `SAFE-196` inherited scope | `verify-v400-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-v400-roadmap-contract`, `verify-script-inventory`, `verify-project-inventory` | current source `4.0.0`, latest published `v4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization` 정렬. UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release evidence와는 별도 gate입니다 |
