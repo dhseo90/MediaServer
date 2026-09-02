@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v3.9.1-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.1)
+[![Published Release](https://img.shields.io/badge/published-v4.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
 ![Source Version](https://img.shields.io/badge/source-4.0.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
@@ -14,12 +14,12 @@ and runtime/model bundle distribution are outside the default public release.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published GitHub Release: [v3.9.1](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.1)
+- Latest published GitHub Release: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
 - Current source version: `4.0.0`
-- v3.9.1 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
+- v4.0.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- Latest published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
-- Previous published baseline: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
+- Latest published baseline: v4.0.0 Local Operations Policy and Stabilization
+- Previous published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
 
 ## At a Glance
 
@@ -112,7 +112,7 @@ records live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest published release notes: [v3.9.1](https://github.com/dhseo90/MediaServer/releases/tag/v3.9.1)
+- Latest published release notes: [v4.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0)
 
 ## UI Preview
 

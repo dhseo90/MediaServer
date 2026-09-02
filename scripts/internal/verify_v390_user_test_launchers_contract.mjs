@@ -12,6 +12,7 @@ import { classifyLongrun120ChangedAreas } from "./v390_longrun_evidence_measurem
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
+const compactResultWriter = path.join(scriptDir, "write_user_test_result_artifacts.mjs");
 const temporaryRoots = [];
 const checks = [];
 
@@ -86,10 +87,154 @@ check("common launcher owns output, contract preflight, sanitization, and exact 
     "testcaseId=",
     "reproductionCommand=",
     "laterNotRun=",
+    "media_server_write_compact_user_test_result",
+    "write_user_test_result_artifacts.mjs",
+    "launcher-summary-gate",
   ]) assertIncludes(commonSource, snippet, "common user launcher");
   assert(!commonSource.includes("--run-120"), "release launcher unconditionally requests 120 minutes");
   assert(!commonSource.includes("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD="), "launcher assigns a password");
   assert(!commonSource.includes("MEDIA_SERVER_V390_UI_ROLE_SECRETS="), "launcher assigns a role-secret envelope");
+});
+
+check("compact result writer normalizes parent checks and exact UI cases without stale failure files", () => {
+  const outputDir = fixtureRoot("compact-pass");
+  const longrunSummaryPath = path.join(outputDir, "longrun-30-summary.json");
+  fs.writeFileSync(longrunSummaryPath, `${JSON.stringify({
+    schema: "media-server.v390-server-longrun.v2",
+    result: "PASS",
+    phases: [{ id: "preflight", status: "PASS" }, { id: "soak-case-loop", status: "PASS" }],
+    delegatedSteps: [{ name: "integrated-smoke", result: "pass" }],
+  }, null, 2)}\n`);
+  const uiSummaryPath = path.join(outputDir, "ui-parent-summary.json");
+  fs.writeFileSync(uiSummaryPath, `${JSON.stringify({
+    schema: "media-server.v390-ui-canonical-parent.v1",
+    result: "PASS",
+    cases: [
+      { caseId: "UI-001", featureId: "OPS-001", status: "PASS" },
+      { caseId: "UI-002", featureId: "SAFE-001", status: "PASS" },
+    ],
+    failureCensus: [],
+  }, null, 2)}\n`);
+  const summaryPath = path.join(outputDir, "summary.json");
+  fs.writeFileSync(summaryPath, `${JSON.stringify({
+    result: "PASS",
+    sourceProvenance: { commitSha: "abc123", branch: "main", worktreeClean: true },
+    stages: [
+      { id: "preflight", status: "PASS", exitCode: 0,
+        checks: [{ id: "source-manifest", status: "PASS", exitCode: 0 }] },
+      { id: "ui-exact-424", status: "PASS", exitCode: 0 },
+      { id: "server-longrun-120", status: "not-run", reason: "not required" },
+    ],
+    longrun30: { summaryPath: longrunSummaryPath },
+    uiAutomation: { summaryPath: uiSummaryPath },
+    cleanup: { status: "PASS" },
+  }, null, 2)}\n`);
+  fs.writeFileSync(path.join(outputDir, "failure-handoff.json"), "stale\n");
+  fs.writeFileSync(path.join(outputDir, "failure-handoff.md"), "stale\n");
+
+  const result = runCompactWriter([
+    "--suite", "ui", "--user-command", "./test_ui.sh", "--source-root", rootDir,
+    "--output-dir", outputDir, "--summary", summaryPath,
+  ]);
+  assert(result.status === 0, result.stderr || result.stdout);
+  const compact = readJson(path.join(outputDir, "test-run-summary.json"));
+  assert(compact.schema === "media-server.user-test-run-summary.v1", "compact summary schema mismatch");
+  assert(compact.result === "pass", "compact PASS result mismatch");
+  assert(compact.source.commitSha === "abc123" && compact.source.worktreeClean === true,
+    "compact source binding mismatch");
+  for (const [scope, id, status] of [
+    ["stage", "preflight", "pass"],
+    ["check", "preflight/source-manifest", "pass"],
+    ["stage", "server-longrun-120", "not-run"],
+    ["longrun30-phase", "longrun30/preflight", "pass"],
+    ["longrun30-delegated-step", "longrun30/integrated-smoke", "pass"],
+    ["ui-case", "UI-001", "pass"],
+    ["ui-case", "UI-002", "pass"],
+  ]) {
+    assert(compact.items.some(item => item.scope === scope && item.id === id && item.status === status),
+      `compact item missing: ${scope}/${id}/${status}`);
+  }
+  assert(compact.counts.pass === compact.items.filter(item => item.status === "pass").length &&
+    compact.counts.fail === 0 && compact.counts.notRun === 1,
+  "compact counts do not match normalized items");
+  assert(!fs.existsSync(path.join(outputDir, "failure-handoff.json")) &&
+    !fs.existsSync(path.join(outputDir, "failure-handoff.md")),
+  "PASS run retained stale failure handoff files");
+});
+
+check("compact failure handoff preserves first failure and every later not-run item", () => {
+  const outputDir = fixtureRoot("compact-fail");
+  const summaryPath = path.join(outputDir, "summary.json");
+  fs.writeFileSync(summaryPath, `${JSON.stringify({
+    result: "FAIL",
+    sourceProvenance: { commitSha: "def456", branch: "main", workingTreeClean: false },
+    phases: [
+      { id: "preflight", status: "PASS", exitCode: 0 },
+      { id: "integrated-smoke", status: "FAIL", exitCode: 23, logPath: "/tmp/integrated.log" },
+      { id: "soak-case-loop", status: "not-run", reason: "not run after integrated-smoke failure" },
+    ],
+    delegatedSteps: [
+      { name: "build", result: "pass" },
+      { name: "integrated-smoke", result: "fail" },
+      { name: "soak-1-redaction", result: "not-run" },
+    ],
+    failure: {
+      phase: "integrated-smoke", caseName: "codec-matrix-video-only",
+      command: "./server.sh test --no-start", exitCode: 23,
+      context: "local HTTP launcher did not become ready", logPath: "/tmp/integrated.log",
+      reproductionCommand: "./test_server_30min.sh",
+    },
+    cleanup: { status: "PASS" },
+  }, null, 2)}\n`);
+
+  const result = runCompactWriter([
+    "--suite", "server-30", "--user-command", "./test_server_30min.sh", "--source-root", rootDir,
+    "--output-dir", outputDir, "--summary", summaryPath,
+  ]);
+  assert(result.status === 0, result.stderr || result.stdout);
+  const compact = readJson(path.join(outputDir, "test-run-summary.json"));
+  const handoff = readJson(path.join(outputDir, "failure-handoff.json"));
+  const markdown = fs.readFileSync(path.join(outputDir, "failure-handoff.md"), "utf8");
+  assert(compact.result === "fail" && compact.counts.fail === 2,
+    "compact failure result/count mismatch");
+  assert(handoff.firstFailure.stage === "integrated-smoke" &&
+    handoff.firstFailure.testcaseId === "codec-matrix-video-only" &&
+    handoff.firstFailure.command === "./server.sh test --no-start" &&
+    handoff.firstFailure.exitCode === 23 &&
+    handoff.firstFailure.errorSummary === "local HTTP launcher did not become ready" &&
+    handoff.firstFailure.reproductionCommand === "./test_server_30min.sh",
+  "failure handoff lost agent-ready first failure fields");
+  for (const id of ["soak-case-loop", "soak-1-redaction"]) {
+    assert(handoff.laterNotRun.some(item => item.id === id), `failure handoff missing later not-run: ${id}`);
+  }
+  assert(markdown.includes("codec-matrix-video-only") &&
+    markdown.includes("./test_server_30min.sh") && markdown.includes("/tmp/integrated.log"),
+  "failure handoff markdown is not directly transferable");
+});
+
+check("compact result writer records failures before a child summary exists", () => {
+  const outputDir = fixtureRoot("compact-synthetic-fail");
+  const result = runCompactWriter([
+    "--suite", "ui", "--user-command", "./test_ui.sh", "--source-root", rootDir,
+    "--output-dir", outputDir, "--result", "FAIL",
+    "--failure-stage", "launcher-contract",
+    "--testcase-id", "verify-v390-user-test-launchers-contract",
+    "--exit-code", "19", "--log-path", path.join(outputDir, "launcher-contract.log"),
+    "--error-summary", "launcher contract failed",
+    "--later-not-run", "ui-source-contract,ui-environment-bootstrap,ui-exact-424,ui-fulltest-qualification",
+  ]);
+  assert(result.status === 0, result.stderr || result.stdout);
+  const compact = readJson(path.join(outputDir, "test-run-summary.json"));
+  const handoff = readJson(path.join(outputDir, "failure-handoff.json"));
+  assert(compact.syntheticSourceSummary === true && compact.result === "fail",
+    "pre-child compact summary is not marked synthetic failure");
+  assert(compact.items.find(item => item.id === "launcher-contract")?.status === "fail",
+    "pre-child failure item missing");
+  assert(compact.counts.notRun === 4 && handoff.laterNotRun.length === 4,
+    "pre-child later not-run census mismatch");
+  assert(handoff.firstFailure.testcaseId === "verify-v390-user-test-launchers-contract" &&
+    handoff.firstFailure.reproductionCommand === "./test_ui.sh",
+  "pre-child failure is not agent-transferable");
 });
 
 check("user launcher bootstraps checksum-bound AI assets before actual test delegation", () => {
@@ -220,6 +365,8 @@ esac
     "UI source-contract testcase ID missing");
   const evidenceDir = path.join(fakeRoot, `.media_server.test/${currentTag}/ui-acceptance-current`);
   const summary = readJson(path.join(evidenceDir, "summary.json"));
+  const compact = readJson(path.join(evidenceDir, "test-run-summary.json"));
+  const handoff = readJson(path.join(evidenceDir, "failure-handoff.json"));
   assert(summary.runId?.startsWith("v390-ui-source-contract-"), "fresh source-contract invocation ID missing");
   assert(summary.failedStage === "ui-source-contract", "fresh source-contract failure stage mismatch");
   assert(summary.firstFailure?.testcaseId === "verify-v390-ui-native-exact-cases-contract",
@@ -234,6 +381,12 @@ esac
   }
   assert(summary.outputPreparation?.acceptanceChildInvoked === false,
     "source-contract failure claimed acceptance child invocation");
+  assert(compact.result === "fail" &&
+    compact.items.find(item => item.id === "ui-source-contract")?.status === "fail",
+  "source-contract failure compact summary missing");
+  assert(handoff.firstFailure.testcaseId === "verify-v390-ui-native-exact-cases-contract" &&
+    handoff.laterNotRun.some(item => item.id === "ui-exact-424"),
+  "source-contract failure handoff is incomplete");
   assert(!JSON.stringify(summary).includes("verify-v390-test-acceptance-bundle"),
     "source-contract failure retained acceptance-child command evidence");
   const calls = fs.readFileSync(callLog, "utf8").trim().split("\n");
@@ -254,6 +407,39 @@ check("30-minute launcher delegates only the runner-owned 30-minute suite", () =
   assert(summary.authorization?.status === "not-required", "30-minute authorization mismatch");
   assert(summary.authorization?.source === "direct-user-entrypoint-30", "30-minute entrypoint source mismatch");
   assert(summary.ports?.allocation === "runner-owned-ephemeral-loopback", "30-minute ports are not runner-owned");
+});
+
+check("30-minute root launcher accepts a passing server summary without UI evidence", () => {
+  const fakeRoot = fixtureRoot("server-30-root-pass");
+  const fakeServer = path.join(fakeRoot, "server.sh");
+  fs.writeFileSync(fakeServer, `#!/usr/bin/env bash
+set -euo pipefail
+output_dir=""
+while [[ "$#" -gt 0 ]]; do
+  if [[ "$1" == "--output-dir" ]]; then output_dir="$2"; shift 2; continue; fi
+  shift
+done
+mkdir -p "$output_dir"
+cat >"$output_dir/summary.json" <<'JSON'
+{"schema":"media-server.v390-server-longrun.v2","result":"PASS","sourceProvenance":{"commitSha":"server-pass","branch":"main","worktreeClean":true},"phases":[{"id":"preflight","status":"PASS","exitCode":0},{"id":"integrated-smoke","status":"PASS","exitCode":0},{"id":"soak-case-loop","status":"PASS","exitCode":0},{"id":"runtime-idle","status":"PASS","exitCode":0}],"cleanup":{"status":"PASS"}}
+JSON
+exit 0
+`);
+  fs.chmodSync(fakeServer, 0o755);
+  const result = spawnSync("bash", ["-c",
+    'ROOT_DIR="$1"; source "$2"; media_server_run_user_test server-30',
+    "bash", fakeRoot, path.join(rootDir, "scripts/internal/user_test_launcher_common.sh")], {
+    cwd: rootDir,
+    env: { ...contractEnv(), ROOT_DIR: fakeRoot },
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  assert(result.status === 0, result.stderr || result.stdout);
+  const outputMatch = result.stdout.match(/^\[test\] outputDir=(.+)$/m);
+  assert(outputMatch, "30-minute root launcher output directory missing");
+  const compact = readJson(path.join(outputMatch[1], "test-run-summary.json"));
+  assert(compact.result === "pass" && compact.counts.pass === 4 && compact.counts.fail === 0,
+    "30-minute root launcher compact PASS mismatch");
 });
 
 check("120-minute launcher invocation is recorded as direct user authorization", () => {
@@ -372,6 +558,15 @@ exit 0
     "exactUiFailureCensusCount=0", "policyEligible=true", "policyQualified=false",
     "uiFulltestPass=false", "finalIntegrity=not-run", "cleanup=PASS",
   ]) assert(result.stdout.includes(`[test] ${field}`), `launcher exact field missing: ${field}`);
+  const evidenceDir = path.join(fakeRoot, `.media_server.test/${currentTag}/ui-acceptance-current`);
+  const compact = readJson(path.join(evidenceDir, "test-run-summary.json"));
+  const handoff = readJson(path.join(evidenceDir, "failure-handoff.json"));
+  assert(compact.result === "fail" && compact.counts.fail === 1 &&
+    compact.items.find(item => item.id === "launcher-summary-gate")?.status === "fail",
+  "false UI gate compact result must contain one explicit failure item");
+  assert(handoff.firstFailure.stage === "launcher-summary-gate" &&
+    handoff.firstFailure.testcaseId === "summary-gate-evaluation",
+  "false UI gate failure handoff did not identify launcher summary evaluation");
 });
 
 check("UI launcher fails closed and prints explicit blanks when canonical summary path is missing", () => {
@@ -629,6 +824,15 @@ function runLower(args) {
     env: contractEnv(),
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
+  });
+}
+
+function runCompactWriter(args) {
+  return spawnSync(process.execPath, [compactResultWriter, ...args], {
+    cwd: rootDir,
+    env: contractEnv(),
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
   });
 }
 

@@ -7,14 +7,14 @@
 ## 현재 공개 상태
 
 - 현재 소스 버전: `4.0.0`
-- 최신 공개 GitHub Release: `v3.9.1`
-- `v3.9.1` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v4.0.0`
+- `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap은 `v4.0.0 Local Operations Policy and Stabilization`입니다.
-- 현재 latest published release는 `v3.9.1`입니다.
-- 현재 공개 release tag 기준은 `v3.9.1`입니다.
-- `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
-- `v3.9.1` GitHub Release publish 완료는 tag, GitHub Release,
+- 현재 latest published release는 `v4.0.0`입니다.
+- 현재 공개 release tag 기준은 `v4.0.0`입니다.
+- 현재 source tag 기준은 `v4.0.0`입니다.
+- `v4.0.0` GitHub Release publish 완료는 tag, GitHub Release,
   `verify-release-metadata --published` evidence로 확인합니다.
 
 ## 기본 공개 범위
@@ -63,8 +63,8 @@ main merge를 수행하지 않습니다.
 v4.0.0 source alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
 source `4.0.0`, current roadmap
 `v4.0.0 Local Operations Policy and Stabilization`,
-latest published `v3.9.1` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
-`v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
+latest published `v4.0.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
+`v4.0.0 Local Operations Policy and Stabilization`입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
 `docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
@@ -172,9 +172,10 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-v4.0.0은 현재 source이며 latest published는 `v3.9.1`입니다. `v4.0.0` tag와
-GitHub Release는 아직 생성하지 않습니다. 30분 테스트와 UI 풀테스트는
-`executed-pass`입니다. 120분은 `conditional-not-run`입니다.
+v4.0.0은 현재 source이며 latest published metadata 기준도 `v4.0.0`입니다.
+compact handoff boundary `09436674`를 포함한
+동일 clean source `b96f74ab`에서 fresh 30분/UI는 PASS했습니다. 120분은 재판정 후
+`conditional-not-run`입니다.
 
 Dry-run checklist:
 
@@ -196,16 +197,17 @@ Real close-out checklist:
 - release branch 삭제는 사용자 별도 승인 후 진행
 - Next branch sync
 
-Do not list an item as pass unless it was actually executed. tag, GitHub Release,
+Do not list an item as pass unless it was actually executed on the release candidate. tag, GitHub Release,
 published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
-있을 때만 완료로 기록합니다. 30분과 UI 풀테스트 evidence가 있어도 PR/main merge/tag/
+있을 때만 완료로 기록합니다. fresh 30분과 UI 풀테스트 PASS가 있어도 PR/main merge/tag/
 GitHub Release는 사용자 명시 승인 없이 진행하지 않습니다.
 
 ### v3.9.1 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-v3.9.1은 현재 source patch이며 GitHub Latest Release입니다.
+v3.9.1은 당시 current source patch이자 GitHub Latest Release였으며, 현재는 v4.0.0의
+previous published baseline입니다.
 실제 tag, GitHub Release, published metadata 확인 결과만 완료 evidence로 사용합니다.
 
 Dry-run checklist:
@@ -407,11 +409,11 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 ## v4.0.0 Current Source Roadmap Scope
 
 현재 `4.0.0` source tree는 로컬 운영 정책화 및 안정화 major입니다. v4.0.0 (1)
-baseline 정렬은 current source `4.0.0`과 published `v3.9.1`를 분리합니다. 신규 기능은
+baseline 정렬은 current source `4.0.0`과 published `v4.0.0`를 맞춥니다. 신규 기능은
 `v4.1.0`부터 넣습니다. Binary/runtime/model bundle과 external field smoke는 공개
 asset 또는 실행 PASS로 승격하지 않습니다.
 
-## v3.9.1 Published Source Roadmap Scope
+## v3.9.1 Previous Published Source Roadmap Scope
 
 published `3.9.1` source tree는 v3.9.0 제품 기능을 유지한 채 release correctness,
 public repository hygiene, documentation truth, bounded evidence, test asset
@@ -1071,12 +1073,14 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v4.0.0 Release Note Template
+## v4.0.0 Release Note Source
 
+아래 본문의 저장소 원본은
+[release-artifacts/v4.0.0/release-notes.md](./release-artifacts/v4.0.0/release-notes.md)입니다.
 아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
-장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. GitHub Latest Release는
-게시 전까지 `v3.9.1`입니다. `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
-채워 넣은 본문은 게시된 GitHub Release가 아닙니다.
+장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다. latest published metadata와
+현재 source tag 기준은 `v4.0.0`입니다. 실제 signed tag, GitHub Release, published
+metadata 결과는 저장소 snapshot과 분리해 직접 확인합니다.
 
 ```markdown
 # Media Server v4.0.0
@@ -1084,14 +1088,14 @@ Annotation JSON을 확보한 경우:
 ## Summary
 
 v4.0.0 is a source-only major for Local Operations Policy and Stabilization.
-It does not add a new product feature surface. Latest published GitHub Release
-remains v3.9.1 until a signed `v4.0.0` tag and GitHub Release exist.
+It does not add a new product feature surface.
 
 ## Scope
 
 - Source-only live media server
 - Current source roadmap: v4.0.0 Local Operations Policy and Stabilization
-- Latest published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
+- Latest published baseline: v4.0.0 Local Operations Policy and Stabilization
+- Previous published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
 - Binary, runtime, and model bundles: not included
 - Feature logic, public API schemas, event payloads, metadata schemas, and
   RTSP/WebRTC media paths: unchanged vs published v3.9.1
@@ -1107,17 +1111,20 @@ remains v3.9.1 until a signed `v4.0.0` tag and GitHub Release exist.
   not in 4.0.0.
 - Keep the 986/424 verification-layer ceiling and separate wrapper PASS from
   executed PASS.
+- Add compact `test-run-summary.json` and failure-only `failure-handoff.json`/`.md`
+  artifacts to the user-facing test launchers at boundary `09436674`.
 - Recapture Korean and English representative UI screenshots on 2026-08-31
-  using the v3.8.0 uncropped composition. Docs UI published pin is v3.9.1.
+  using the v3.8.0 uncropped composition. Docs UI published pin is v4.0.0.
 
 ## Verification
 
-- 30-minute soak: executed-pass. `./test_server_30min.sh` on source `b53e8af1`,
-  runId `v390-server-longrun-20260830123921-36621`, 2383s/1800s, soak 20x5.
-  Fail-then-pass: HTTP video-only launcher, then soak-5-redaction.
-- UI fulltest: executed-pass. `./test_ui.sh` on source `166fb478`, runId
-  `v390-test-acceptance-20260830225118-68124`, exact 424/424, Policy v4
-  `policyValidationResult=PASS` and qualifier `uiFulltestPass=true`.
+- Fresh 30-minute soak: executed-pass on clean source `b96f74ab`, runId
+  `v390-server-longrun-20260902105027-50646`, 2381s/1800s, 20 iterations,
+  compact 117/0/2, cleanup PASS.
+- Fresh UI fulltest: executed-pass on the same clean source, runId
+  `v390-test-acceptance-20260902113505-82611`, exact 424/424, failure census 0,
+  Policy v4 `policyValidationResult=PASS`, qualifier `uiFulltestPass=true`,
+  final integrity and cleanup PASS.
 - Docs UI assets: `./server.sh verify-docs-ui-assets` PASS after the 2026-08-31
   recapture (`c43c47e3`). Not UI fulltest evidence.
 - Local close-out dry-run: 2026-08-31 clean HEAD `9fab5fe2` and again after
@@ -1130,14 +1137,12 @@ remains v3.9.1 until a signed `v4.0.0` tag and GitHub Release exist.
 
 - 120-minute soak: excluded by operator instruction for this cut. AGENTS 7.6.2
   120-minute triggers were not met. Not a PASS.
-- PR, main merge, signed `v4.0.0` tag, GitHub Release, and
-  `verify-release-metadata --published`: not run
 - Real ONVIF device field smoke: not run; device/endpoint not provided
 - External TURN/WHEP credential operation: not run
 - Real cloud/VLM provider call: not run
 - VLM model/runtime bundle: not included in source-only artifacts
 
-Do not list an item as pass unless it was actually executed for this release cut.
+Do not list an item as pass unless it was actually executed for the current release candidate.
 ```
 
 ## v3.9.1 Release Note Template

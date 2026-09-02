@@ -16,10 +16,38 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
-## v4.0.0 현재 소스 baseline 상태 (2026-08-31)
+## v4.0.0 현재 소스 baseline 상태 (2026-09-02)
+
+- current source: `v4.0.0` (`VERSION=4.0.0`)
+- product test source: `b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b`; compact handoff source:
+  `09436674028817befcecbe1398348489e7ae88a7`
+- latest published target: v4.0.0. 실제 published 완료는 signed tag, GitHub Release,
+  published metadata 검증을 직접 통과한 뒤 확정
+- 30분: `./test_server_30min.sh` PASS. runId
+  `v390-server-longrun-20260902105027-50646`, clean source, duration 2381s / requested
+  1800s, 20 iterations, compact `117 pass / 0 fail / 2 not-run`, cleanup PASS
+- UI 풀테스트: `./test_ui.sh` PASS. runId
+  `v390-test-acceptance-20260902113505-82611`, 같은 clean source, exact 424/424,
+  failure census 0, Policy v4 PASS, qualified 424, final integrity/cleanup PASS
+- 120분: conditional-not-run. AGENTS 7.6.2 trigger와 별도 필수 release gate가 적용되지 않음.
+  완료 evidence로 사용하지 않음
+- REVIEW4 semantic binding: candidateDigest
+  `684ebaa84766e176cdda9c3193d132b81c2ed52c578ca51313338ba4cef91b89`,
+  985 carry-forward / 1 independent-review (`OPS-041`), validation 986/0,
+  feature coverage 986/986. 이 재결속은 실행 PASS가 아님
+- v4.0.0 close-out 결정: published verifier에 새 tag-object 자동 gate를 추가하는 변경은
+  별도 REVIEW4 provenance가 필요한 후속 개발로 분리하고 이번 릴리즈에는 포함하지 않음.
+  이번 publish에서는 signed annotated local tag 검증, GitHub Git Tag API의
+  `verification.verified=true`/`reason=valid`, tag target=final main commit, 원격/GitHub
+  tag-object SHA 일치를 release action에서 직접 확인한다. 이 결정과 위 fresh 30분/UI
+  evidence는 v4.0.0 재검토 시 재수행하지 않고 본 기록을 source-of-truth로 사용한다.
+- 아래 2026-08-31 snapshot은 이전 release attempt 당시 상태와 실패/정정 이력을
+  보존한 historical evidence이며 현재 실행 결과를 대체하지 않음
+
+## v4.0.0 이전 release-attempt snapshot (2026-08-31)
 
 - current source: `v4.0.0` (`VERSION=4.0.0`), HEAD `166fb478`
-- latest published: v3.9.1
+- latest published at the time: v3.9.1
 - v4.0.0 (1)~(8): 정책/안정화 기록
 - 30분: 3차 `./test_server_30min.sh` PASS. runId `v390-server-longrun-20260830123921-36621`,
   source `b53e8af1`, worktreeClean true, predev `108 pass / 0 fail / 2 skip / 0 notRun`,
@@ -34,11 +62,11 @@
 - 120분: conditional-not-run. 2026-08-31 사용자가 이 컷에서 실행하지 않기로 명시.
   완료 evidence 아님
 - REVIEW4 8행 independent rebind: 2026-08-31. fresh candidateDigest `b90cf028b2e10e4e03a2b9ecebba1f082fcf4fc5525a178ef1785381f15ff4a7`. 978 carry-forward / 8 independent-review (`UI-019`,`MEDIA-001`,`MEDIA-004`,`MEDIA-009`,`SAFE-064`,`SAFE-071`,`OPS-041`,`OPS-179`). `verify-feature-implementation-evidence` 986/0, `verify-feature-inventory-coverage` 986/986 covered. 이 재결속은 실행 PASS가 아님
-- published metadata, `v4.0.0` tag/GitHub Release: 미실행
+- published metadata, `v4.0.0` tag/GitHub Release: 당시 미실행
 - 이 기록은 출시 가능 판정이 아님
-- release action: PR·main merge·tag·GitHub Release·published metadata는 미실행
+- release action: PR·main merge·tag·GitHub Release·published metadata는 당시 미실행
 - step 8 기록 당시 UI는 `unrun-required-blocker`였다. 이번 실행 후 UI는 executed-pass다.
-- v3.9.1 published evidence는 아래 절에 보존
+- v3.9.1 previous published evidence는 아래 절에 보존
 
 ## v3.9.1 현재 소스 정정 상태 (2026-08-15)
 
@@ -1380,7 +1408,8 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | V400 incident OS policy | 기존 `/ops/events` 검색/timeline/resolution을 4.0 운영 정책으로 고정 | `./server.sh verify-v400-incident-os-policy`가 `test/fixtures/v400_incident_os_policy.json`의 primary nav 비포함, 기존 면, Event POST unchanged, 새 event type 금지, inherited v320/v310 dispatch, backlog/inventory/stream-verification/records/server dispatch를 확인. Incident OS 제품 승격, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | V400 evidence ops policy | EventRecord/clip/retention을 opt-in·비-VMS로 고정하고 default-on은 4.1.0 | `./server.sh verify-v400-evidence-ops-policy`가 `test/fixtures/v400_evidence_ops_policy.json`의 opt-in, 비-VMS, pin/dry-run cleanup, evidence default-on v4.1.0, inherited v300 dispatch, backlog/inventory/stream-verification/records/server dispatch를 확인. Evidence default-on 제품화, VMS/NVR, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | V400 local ops stabilization | 역사적 verifier 유지, 현재소스 구분, v320 drift 기록 | `./server.sh verify-v400-local-ops-stabilization`가 `test/fixtures/v400_local_ops_stabilization.json`의 `keep-118-not-deleted`, stream-verification 현재 source `4.0.0`, v320 `recorded-not-fixed`, backlog/inventory/records/server dispatch를 확인. 역사적 verifier 삭제, v320 REVIEW4 rewrite, UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
-| V400 release readiness | 네 테스트 영역 판정, 30분/UI executed-pass, 120분 conditional-not-run, close-out dry-run | `./server.sh verify-v400-release-readiness`가 `test/fixtures/v400_release_readiness.json`의 네 영역 판정, 30분·UI `executed-pass`, 120분 `conditional-not-run`, close-out dry-run, tag/GitHub Release 미생성, backlog/inventory/stream-verification/records/server dispatch를 확인. 이 명령 PASS는 30분 soak runner, `./test_ui.sh`, 120분, published metadata, tag PASS가 아님 | v4.0.0 |
+| V400 release readiness | concrete release-note candidate, 동일 clean source fresh 30분/UI PASS, 120분 conditional-not-run, close-out dry-run | `./server.sh verify-v400-release-readiness`가 `docs/release-artifacts/v4.0.0/release-notes.md`, `test/fixtures/v400_release_readiness.json`, tested source `b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b`, 30분 runId `v390-server-longrun-20260902105027-50646`, UI runId `v390-test-acceptance-20260902113505-82611`, 120분 `conditional-not-run`, tag/GitHub Release 미생성을 확인. readiness PASS는 actual runner를 재실행하지 않으며 published metadata/tag PASS가 아님 | v4.0.0 |
+| V400 compact user-test result handoff | 30분·120분·UI·release launcher가 기존 판정과 원본 evidence를 유지하면서 항목별 `pass`/`fail`/`not-run` 요약과 최초 실패의 재현 정보를 별도 산출물로 기록하는지 확인 | `./server.sh verify-v390-user-test-launchers-contract`가 parent stage/phase/check, delegated longrun step, exact UI case를 `test-run-summary.json`에 정규화하고, 실패 시 `failure-handoff.json`/`.md`에 stage·testcase·command·exit·log·error·reproduction·later not-run을 기록하며, 성공 재실행은 stale failure handoff를 제거하는지 fixture로 확인. 실제 30분/UI/120분/release 실행 PASS가 아님 | v4.0.0 |
 | User test AI asset bootstrap | Git 비추적 YOLO model/COCO labels가 무옵션 30분·120분·UI·release launcher의 실제 test 위임 전에 준비되는지 확인 | `./server.sh verify-v390-user-test-launchers-contract`가 missing download, fixed SHA-256, existing verify, corrupt repair, digest mismatch no-publish/temp cleanup을 확인. 기본 Ultralytics URL의 실제 10.4 MB download와 SHA readback도 확인. Actual launcher는 `ai-asset-bootstrap` 실패 시 build/30분/UI/120분 전에 fail-stop | v3.9.1 |
 | Current UI evidence VERSION binding | Policy v4 current-source fixture가 패치 숫자를 고정하지 않고 token `current`로 `VERSION`에 결속되는지 확인 | `./server.sh verify-v390-current-ui-evidence-contract`가 canonical/visual/current state version token이 `current`인지 확인. qualifier는 token을 `VERSION`으로 해석한 뒤 비교한다. `node scripts/internal/verify_v390_ui_policy_v4_actual_evidence_contract.mjs`가 `canonical-case-manifest-version-mismatch`를 `canonical-source-binding`에 배정하고 미등록 reason은 throw 대신 `fail-closed-incomplete-assignment`를 남김. historical `3.9.0` fixture는 token이 아니므로 현재 소스로 승격되지 않음 | v3.9.1 |
 | Build | C++/UI/static asset build가 통과하는지 확인 | `./server.sh build` exit code 0 확인. 실패 후 수정했다면 최초 fail과 최종 pass를 모두 결과 기록에 남김 | v1.8.0 |
@@ -1677,6 +1706,23 @@ UI 풀테스트는 `./test_ui.sh` exact 424/424 Policy v4 적격 PASS다. step 8
 | V400 release readiness | `./server.sh verify-v400-release-readiness` 5/0, fixture `V400-RELEASE-READINESS-08`. 당시 30분/UI unrun-required-blocker, 120분 conditional-not-run, tag/GitHub Release 미생성. 이후 30분 3차 PASS로 정정 | pass |
 | V400 release readiness 30분 executed-pass 정정 | 2026-08-30 `./server.sh verify-v400-release-readiness` 5/0. fixture `implementationStatus=policy-steps-complete-30min-pass-ui-unrun`, 30분 `executed-pass`, UI `unrun-required-blocker`, 120분 `conditional-not-run`. `verify-v400-user-review-gate` 5/0, `verify-v400-roadmap-contract` 8/0, `verify-docs-links` failures 0, `verify-script-inventory` 11/0. 이 명령 PASS는 soak runner 재실행이 아님 | pass |
 | V400 release readiness UI executed-pass 정정 | 2026-08-31 `./server.sh verify-v400-release-readiness` 5/0. fixture `implementationStatus=policy-steps-complete-30min-ui-pass`, 30분·UI `executed-pass`, 120분 `conditional-not-run`. `verify-v400-user-review-gate` 5/0, `verify-v400-roadmap-contract` 8/0. 이 명령 PASS는 `./test_ui.sh` 재실행이 아님 | pass |
+| v400 compact user-test handoff RED | 테스트 항목 선등록 뒤 writer 구현 전 `./server.sh verify-v390-user-test-launchers-contract` 실행. 기존 22개 PASS, 신규 성공 요약/실패 handoff/child 이전 실패 3개는 `write_user_test_result_artifacts.mjs` 부재로 예상 FAIL | fail |
+| v400 server root launcher suite-boundary RED | compact writer 연결 뒤 server-30 root PASS fixture가 `summary.result=PASS`인데도 공통 출력기의 UI summary 부재 판정으로 exit 1. 신규 포함 25/26 PASS, 원인은 server suite에 UI evidence gate를 잘못 공통 적용한 기존 잠복 결함 | fail |
+| v400 compact user-test handoff final contract | `./server.sh verify-v390-user-test-launchers-contract` 26/0. 성공 요약과 stale failure 제거, parent/check/standalone·release-child delegated/UI case 정규화, first-failure handoff, child 이전 실패, false UI summary gate, UI source-contract, server-30 root PASS를 fixture로 확인 | pass |
+| v400 compact handoff acceptance/longrun regression | `verify-v390-test-acceptance-bundle-contract` 37/0, `verify-v390-server-longrun-runner-contract` 9/0, `verify-script-inventory` 11/0, `verify-v400-roadmap-contract` 8/0, `verify-v400-release-readiness` 5/0 | pass |
+| v400 compact handoff inventory drift diagnostic | 기존 986행 inventory의 V390 launcher 설명 문구를 수정한 상태에서 `verify-project-inventory`가 content-addressed `inventorySha256 drift` 16/1로 예상 차단. 신규 제품 기능 ID가 아니므로 해당 문구 변경을 되돌리고 manifest는 재생성하지 않음 | fail |
+| v400 compact handoff inventory recovery | inventory 문구 원복 후 `./server.sh verify-project-inventory` 17/0, featureRows 986와 implementation evidence manifest digest 불변 | pass |
+| v400 release candidate concrete-notes RED | 2026-09-02 readiness verifier를 concrete v4.0.0 release note와 fresh 30분/UI 대기 상태를 요구하도록 먼저 강화. `docs/release-artifacts/v4.0.0/release-notes.md` 부재 `ENOENT`로 예상 실패 | fail |
+| v400 release candidate wording-oracle RED | release note/fixture 추가 후 readiness 4/2, 의미는 존재했으나 줄바꿈 결합 문자열과 `historical PASS` 영문 고정으로 실패. 의미 단위 문자열과 한국어 기록을 허용하도록 오라클 보정 후 5/1, 추가 줄바꿈 경계 보정 | fail |
+| v400 release candidate docs/readiness final | `./server.sh verify-v400-release-readiness` 6/0. concrete notes 링크, compact handoff boundary `09436674028817befcecbe1398348489e7ae88a7`, 과거 PASS와 fresh 30분/UI 미실행·필수 분리, 120분 conditional-not-run, release action 미실행을 확인 | pass |
+| v400 release candidate metadata wording regression | 연관 gate 병렬 실행에서 `verify-release-metadata` 17/1. release policy의 기존 고정 문구 `아래 템플릿은 v4.0.0 source-only GitHub Release note 기준입니다.`를 후보 링크 문장으로 바꾸며 계약 문자열이 빠짐. concrete artifact 링크와 후보 상태를 유지하면서 고정 문구 복원 | fail |
+| v400 release candidate roadmap-status wording regression | 연관 gate 재실행에서 `verify-v400-user-review-gate` 4/1. 로드맵 8번의 정책/문서 구현 `완료`를 fresh 테스트 `대기`와 같은 축으로 바꿔 기존 승인 계약 문자열이 빠짐. 로드맵 구현 완료는 복원하고 같은 행에서 fresh 30분/UI 미실행·필수를 명시해 릴리즈 완료와 분리 | fail |
+| v400 release candidate local gates final | 2026-09-02 최종 재실행: `verify-release-metadata` 18/0, `verify-v400-entry-baseline` 10/0, `verify-v400-user-review-gate` 5/0, `verify-v400-release-readiness` 6/0, `verify-v400-roadmap-contract` 8/0, `verify-docs-links` failures 0, `verify-release-evidence-index` 8/0, close-out dry-run 6/0, script inventory 11/0, project inventory 17/0, verifier syntax와 `git diff --check` PASS. fresh 30분/UI/120분 및 published metadata는 미실행 | pass |
+| v400 fresh 30분 actual | clean source `b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b`, runId `v390-server-longrun-20260902105027-50646`. `./test_server_30min.sh` result PASS, real-duration 2381.086s/1800s, 20 iterations, predev 108/0/2, compact 117/0/2, first failure 없음, cleanup/ports PASS. token start/end/consumed: `manual-not-available`; 자동 집계 수단 없음 | pass |
+| v400 fresh UI actual | 동일 clean source, runId `v390-test-acceptance-20260902113505-82611`. `./test_ui.sh` result PASS, exact 424/424, fail/not-run/unsupported/runnerAbort 0, failure census 0, Policy v4 PASS, eligible/qualified 424, `uiFulltestPass=true`, UI stage 1543.984s, 전체 약 1568s, final integrity/cleanup PASS. compact 436/0/5. token start/end/consumed: `manual-not-available`; 자동 집계 수단 없음 | pass |
+| v400 fresh candidate readiness RED | fresh actual 결과를 요구하도록 readiness verifier를 먼저 변경한 뒤 실행. fixture status, release note runId, backlog status, stream status, stale notEvidence가 반영 전이라 1/5 예상 FAIL | fail |
+| v400 120분 재판정 | source `b96f74ab`의 변경은 release docs/readiness와 compact test handoff이며 제품 기능 로직, public API/schema/event payload/metadata, RTSP/WebRTC media path 변경 없음. fresh 30분/UI 모두 PASS하고 leak/drift/high-risk FAIL signal 없음. 사용자 120분 실행 지시도 없으므로 AGENTS 7.6.2 기준 `conditional-not-run`; PASS evidence로 사용하지 않음 | pass |
+| v400 fresh candidate result docs final | readiness RED 1/5 뒤 fixture/notes/backlog/evidence/policy/records/stream을 실제 runId와 source에 맞춤. 최종 `verify-release-metadata` 18/0, entry 10/0, user review 5/0, readiness 6/0, roadmap 8/0, docs failures 0, evidence 8/0, close-out dry-run 6/0, script inventory 11/0, project inventory 17/0, syntax/diff PASS. 재현 가능 임시 산출물은 30분 344K/15파일, UI 308M/4,604파일을 결과 이관 후 삭제 | pass |
 | v400 (8) closeout dry-run heading precheck | 이전 세션 최초 `./server.sh verify-release-closeout-helper --dry-run`가 `docs/release-policy.md`에 `v4.0.0 Release Close-out Runbook` 제목이 없어 `release docs keep publish gates manual`에서 fail. 제품 코드 회귀가 아니라 release readiness 문서 기준 drift | fail |
 | v400 (8) closeout dry-run | runbook 추가 후 `./server.sh verify-release-closeout-helper --dry-run` 재실행. 2026-08-29 status pass, dryRun true, localCommands 5, manualActions 10, tag not created, push not performed | pass |
 | v400 (8) closeout dry-run after notes draft | 2026-08-31 `./server.sh verify-release-closeout-helper --dry-run --report ... --json-report ...` on source `c43c47e3` plus notes draft. status pass, dryRun true, localCommands 5, manualActions 10, gitStatusLines 1, tag not created, push not performed. schema `media-server.release-closeout-helper-dry-run.v1`. published metadata / tag / GitHub Release PASS 아님 | pass |
@@ -1691,6 +1737,7 @@ UI 풀테스트는 `./test_ui.sh` exact 424/424 Policy v4 적격 PASS다. step 8
 | v400 REVIEW4 8-row independent rebind producer | `./server.sh produce-v390-review4-migration-aware-approvals --write-ledger` prior audit/approvals + /tmp migration evidence + independent scoped decisions + review package. candidateDigest `b90cf028b2e10e4e03a2b9ecebba1f082fcf4fc5525a178ef1785381f15ff4a7`, carry-forward 978, independent-review `UI-019,MEDIA-001,MEDIA-004,MEDIA-009,SAFE-064,SAFE-071,OPS-041,OPS-179`, atomic replacements audit/approval/manifest/native, failures 0 | pass |
 | v400 REVIEW4 implementation evidence after 8-row rebind | `./server.sh verify-feature-implementation-evidence` expected/inventory/manifest/source/verifier 986, semanticReviewedRows 986, validationErrors 0, review4GlobalErrors 0, negativeFixtures 15/15, executionEvidenceStatus not-execution-evidence | pass |
 | v400 REVIEW4 inventory coverage after 8-row rebind | `./server.sh verify-feature-inventory-coverage` featureRows 986, covered 986, missing 0, pass 7, fail 0 | pass |
+| v400 published pin v4.0.0 local metadata | `./server.sh verify-release-metadata` 18/0 latest published tag `v4.0.0`. `verify-v400-entry-baseline` 10/0. `verify-v400-roadmap-contract` 8/0. OPS-041 independent rebind candidateDigest `684ebaa84766e176cdda9c3193d132b81c2ed52c578ca51313338ba4cef91b89`. coverage 986/986. GitHub Latest/tag는 이 행만으로 PASS 아님 | pass |
 | Docs UI assets (8) | `./server.sh verify-docs-ui-assets` 10/0. 2026-08-29 재실행 | pass |
 | v400 30분 launcher contract | `./test_server_30min.sh` 내부 `verify-v390-user-test-launchers-contract` 22/0. source `18e19ce1` | pass |
 | v400 30분 AI asset bootstrap | model SHA `634279b4...`, labels SHA `bd17f1ee...` verified | pass |
@@ -2316,6 +2363,7 @@ UI 풀테스트는 `./test_ui.sh` exact 424/424 Policy v4 적격 PASS다. step 8
 | 미실행/제외 항목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없음 |
 | --- | --- | --- | --- |
 | Codex 인앱 수동 UI | 인앱 브라우저 직접 조작 | not-run-by-this-command. 이번 evidence는 Policy v4 적격 Playwright+Chrome | 예, 수동 UI evidence로 사용 불가 |
+| compact handoff 보강 후 미실행 범위 | `./test_server_120min.sh`, `./test_release.sh` | fresh 30분/UI는 source `b96f74ab`에서 실행 PASS. 120분은 재판정 후 conditional-not-run, 전체 release는 미실행 | 예, 120분/release PASS evidence로 사용 불가 |
 | 120분 | `verify-predev --soak-minutes 120` | 2026-08-31 사용자 제외. 7.6.2 진행 조건도 없음 | 예, 사용 불가 |
 | predev build skip | delegated `--skip-build` | longrun runner가 이미 `./server.sh build` 수행 | 예, skip이지 30분 PASS 확대 아님 |
 | external-turn-hard-gate | `verify-webrtc-ice --external-turn` | `--include-external-turn` 미지정. 사용자 STUN/TURN 없음 | 예, 사용 불가 |

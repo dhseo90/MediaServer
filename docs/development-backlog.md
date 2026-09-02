@@ -11,15 +11,16 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `4.0.0`
-- 최신 공개 GitHub Release: `v3.9.1`
-- `v3.9.1` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v4.0.0`
+- `v4.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v4.0.0 Local Operations Policy and Stabilization`
-- 최신 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 직전 published baseline: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
+- 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
+- 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 다음 source 개발 로드맵: `v4.1.0` 신규 기능 후보. 4.0.0에서 구현하지 않음
 - v4.0.0 범위: 로컬 운영 정책화 및 안정화. 신규 기능은 `v4.1.0`부터
-- `v4.0.0` GitHub Release/tag는 아직 생성하지 않습니다.
+- `v4.0.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
+  있을 때만 완료로 기록합니다.
 
 ### 2026-08-14 v3.9.0 historical close-out status
 
@@ -31,9 +32,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v4.0.0 Local Operations Policy and Stabilization
 
 상태: v4.0.0 (1)~(8) 정책/안정화 기록 완료. 30분과 UI 풀테스트는 `executed-pass`.
-120분은 `conditional-not-run`. published는 `v3.9.1` 유지. `v4.0.0` GitHub
-Release/tag는 아직 생성하지 않습니다. 이 로드맵 기록 완료는 출시 가능 판정이
-아니다.
+120분은 `conditional-not-run`. published는 `v4.0.0`. 이 로드맵 기록 완료는 출시
+가능 판정이 아니다. `v4.0.0` publish 완료는 tag, GitHub Release, published
+metadata 검증 evidence가 있을 때만 완료로 기록합니다.
 
 직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
 read-only/decision-only 운영 표면을 정책으로 고정하고, 로컬 file/replay/fixture로
@@ -96,8 +97,9 @@ roadmap은 historical section입니다.
 ## v4.0.0 개발 로드맵: Local Operations Policy and Stabilization
 
 상태: v4.0.0 (1)~(8) 정책/안정화 기록 완료. `VERSION`/`CMake`/공개 문서의 현재 소스
-기준은 `4.0.0`이다. published GitHub Release는 `v3.9.1`을 유지한다. 30분/UI
-미실행과 tag/GitHub Release 미생성 때문에 출시 가능 판정이 아니다.
+기준은 `4.0.0`이다. latest published metadata 기준은 `v4.0.0`이다. fresh 30분/UI는
+동일 clean source에서 executed-pass, 120분은 conditional-not-run이다. 실제 signed
+tag, GitHub Release, published metadata는 저장소 snapshot과 분리해 직접 확인한다.
 
 직접 답: v4.0.0의 1차 선택값은 **로컬 운영 정책화 및 안정화**다. 3.x가 쌓아 둔
 read-only/decision-only 운영 표면을 정책으로 고정하고, 로컬 file/replay/fixture로
@@ -134,27 +136,27 @@ verifier를 빼는 것은 해당 스텝 `fail`이다.
 
 | 구간 | 제목 | 우선순위 | 개발 내용 | 테스트 스크립트 반영 |
 | --- | --- | --- | --- | --- |
-| Foundation | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | `VERSION`/`CMake`/README/docs/backlog/source roadmap을 `4.0.0`과 `v4.0.0 Local Operations Policy and Stabilization`으로 정렬. published는 `v3.9.1` 유지 | 테스트 스크립트 반영 필수. `verify-v400-entry-baseline`과 `verify-release-metadata` current/published 분리를 같은 스텝에서 추가·갱신 |
+| Foundation | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | `VERSION`/`CMake`/README/docs/backlog/source roadmap을 `4.0.0`과 `v4.0.0 Local Operations Policy and Stabilization`으로 정렬. 최종 published metadata도 `v4.0.0`으로 정렬 | 테스트 스크립트 반영 필수. `verify-v400-entry-baseline`과 `verify-release-metadata` current/published 정렬을 같은 스텝에서 추가·갱신 |
 | Foundation | v4.0.0 (2) User Review Gate | P0 | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 사용자 승인 전 고정. 승인 전 신규 기능 개발 금지 | 테스트 스크립트 반영 필수. review-gate verifier와 inventory/stream-verification 행을 같은 스텝에서 추가 |
 | Policy | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 새 verifier/fixture 남발 금지, 424/986 유지·축소 규칙, wrapper PASS와 실행 PASS 분리 강화 | 테스트 스크립트 반영 필수. 축소 규칙 자체를 검사하는 verifier와 inventory 행을 같은 스텝에서 추가 |
 | Policy | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | action write, persistent credential store, production restore, external VLM call, model-backed Re-ID를 4.0 비구현 정책으로 고정. field smoke는 조건부 미실행 | 테스트 스크립트 반영 필수. 기존 deferral/signoff verifier를 4.0 정책 문구와 다시 결속하고 inventory를 갱신 |
 | Policy | v4.0.0 (5) Incident OS 정책화 | P0 | 기존 `/ops/events` 검색/timeline/resolution 면을 운영 정책으로 정리. 새 event type/저장 형식은 추가하지 않음 | 테스트 스크립트 반영 필수. 정책/IA/route 경계를 확인하는 verifier와 inventory 행을 같은 스텝에서 추가 |
 | Policy | v4.0.0 (6) Evidence 운영 정책화 | P0 | EventRecord/clip/retention의 opt-in, 비-VMS, 삭제 금지 경계를 정책으로 고정. default-on 저장은 v4.1.0 | 테스트 스크립트 반영 필수. evidence 정책 verifier와 inventory/records 행을 같은 스텝에서 추가 |
 | Stabilization | v4.0.0 (7) 로컬 운영 안정화 | P0 | 기존 로컬 Ops 흐름의 decision-only 오판 방지, 문서/inventory/verifier 정합, 로컬 file/replay로 닫히는 회귀 | 테스트 스크립트 반영 필수. 안정화 대상 기존 verifier를 전수 연결하고 누락 항목을 inventory에 먼저 등록 |
-| Release | v4.0.0 (8) stabilization and release readiness | P0 | AGENTS 네 테스트 영역 판정, cleanup, release close-out dry-run을 실제 실행/미실행으로 분리. 30분과 UI는 executed-pass, 120분은 conditional-not-run | 테스트 스크립트 반영 필수. close-out verifier와 실행/미실행 기록을 inventory/records에 남김 |
+| Release | v4.0.0 (8) stabilization and release readiness | P0 | concrete release-note source와 AGENTS 네 테스트 영역 판정을 결속. 동일 clean source의 fresh 30분/UI PASS와 120분 conditional-not-run을 분리 | 테스트 스크립트 반영 필수. close-out verifier와 실행/미실행 기록을 inventory/records에 남김 |
 
 ### v4.0.0 진행 상태
 
 | 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
 | --- | --- | --- | --- | --- |
-| 1 | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs current pin을 `4.0.0`과 `v4.0.0 Local Operations Policy and Stabilization`으로 정렬. published는 `v3.9.1` 유지. `scripts/internal/verify_v400_entry_baseline.mjs`와 `server.sh` dispatch `verify-v400-entry-baseline`를 추가. `scripts/internal/verify_release_metadata_consistency.mjs`가 current `4.0.0`과 published `v3.9.1`를 분리. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
+| 1 | v4.0.0 (1) v4.0.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs current pin을 `4.0.0`과 `v4.0.0 Local Operations Policy and Stabilization`으로 정렬. 초기 개발 시 source `4.0.0`과 당시 published `v3.9.1`을 분리했고, release source에서는 published metadata도 `v4.0.0`으로 재결속. `scripts/internal/verify_v400_entry_baseline.mjs`와 `server.sh` dispatch `verify-v400-entry-baseline`를 추가. UI 풀테스트, 30분, 120분, 실제 published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 2 | v4.0.0 (2) User Review Gate | P0 | 완료 | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 `approved-through-recorded-user-goals`로 고정. `test/fixtures/v400_user_review_gate.json`, `scripts/internal/verify_v400_user_review_gate.mjs`, `./server.sh verify-v400-user-review-gate`를 추가. 3~8번은 당시 `approved-to-implement-in-order`였고 각 스텝 verifier로 기록됐다. 30분/UI/release-action은 `not-executed`. 신규 기능은 `blocked-until-v400-complete`. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 3 | v4.0.0 (3) 검증 계층 축소 규칙 | P0 | 완료 | 986/424 유지, v390 verifier 118·contract 72·non-v400 fixture 79 상한, v400 command allowlist, wrapper/실행 PASS 분리를 `test/fixtures/v400_verification_layer.json`과 `scripts/internal/verify_v400_verification_layer_reduction.mjs`로 고정. 역사적 v390 verifier 삭제는 7번 안정화 범위. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 4 | v4.0.0 (4) 로컬 운영 정책 freeze | P0 | 완료 | 3.9 defer 5개(action-execution, persistent-credential-store, production-restore, external-vlm-provider-call, model-backed-reid-session)를 4.0 비구현 write path로 freeze. field smoke는 별도 `conditional-not-run`. `test/fixtures/v400_local_ops_policy_freeze.json`과 `scripts/internal/verify_v400_local_ops_policy_freeze.mjs`, `./server.sh verify-v400-local-ops-policy-freeze`를 추가. 기존 v390 deferral/signoff verifier는 재사용만 하고 수정하지 않음. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 5 | v4.0.0 (5) Incident OS 정책화 | P0 | 완료 | 기존 `/ops/events` 검색/timeline/resolution을 Ops-only diagnostic/direct route로 정책 고정. primary nav 승격과 새 event type/저장 형식은 4.1.0. `test/fixtures/v400_incident_os_policy.json`과 `scripts/internal/verify_v400_incident_os_policy.mjs`, `./server.sh verify-v400-incident-os-policy`를 추가. 기존 v320/v310 events verifier는 재사용만 함. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 6 | v4.0.0 (6) Evidence 운영 정책화 | P0 | 완료 | EventRecord/clip/retention을 opt-in·비-VMS로 고정. pin은 auto cleanup 제외, destructive cleanup은 dry-run 필수. default-on 저장은 4.1.0. `test/fixtures/v400_evidence_ops_policy.json`과 `scripts/internal/verify_v400_evidence_ops_policy.mjs`, `./server.sh verify-v400-evidence-ops-policy`를 추가. 기존 v300 evidence/retention verifier는 재사용만 함. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
 | 7 | v4.0.0 (7) 로컬 운영 안정화 | P0 | 완료 | 역사적 v390 verifier 118개를 `keep-118-not-deleted`로 유지. stream-verification 현재 source `4.0.0`과 inherited 3.9 행을 구분. v320 page-owner/bundle drift는 REVIEW4 결속 때문에 `recorded-not-fixed`. `test/fixtures/v400_local_ops_stabilization.json`과 `scripts/internal/verify_v400_local_ops_stabilization.mjs`, `./server.sh verify-v400-local-ops-stabilization`를 추가. UI 풀테스트, 30분, 120분, published metadata, `v4.0.0` tag/GitHub Release는 이 스텝 완료 evidence가 아님 |
-| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 완료 | 네 테스트 영역 판정 기록. 30분은 `executed-pass`(3차 `./test_server_30min.sh`, source `b53e8af1`). UI는 `executed-pass`(`./test_ui.sh` exact 424/424, qualifier `uiFulltestPass=true`). 120분은 사용자 제외+conditional-not-run. close-out dry-run은 2026-08-31 재실행 PASS. `docs/release-policy.md` v4.0.0 notes 초안을 실제 실행/미실행으로 채움. 영문 UI 잔여 한글은 translation map에 넣고 `docs/assets/ui/en/`를 재촬영. REVIEW4 8행(`UI-019`,`MEDIA-001`,`MEDIA-004`,`MEDIA-009`,`SAFE-064`,`SAFE-071`,`OPS-041`,`OPS-179`) independent rebind 후 candidateDigest `b90cf028b2e10e4e03a2b9ecebba1f082fcf4fc5525a178ef1785381f15ff4a7`. 978 carry-forward + 8 independent-review. `produce-v390-review4-migration-aware-approvals --write-ledger`가 audit/approval/manifest/native를 원자 교체. `verify-feature-implementation-evidence` 986/0, `verify-feature-inventory-coverage` 986/986 covered. tag/GitHub Release/PR/published metadata는 이 기록 시점 미생성. 이 스텝 완료와 이 명령 PASS는 출시 가능 판정이 아님 |
+| 8 | v4.0.0 (8) stabilization and release readiness | P0 | 완료 | 정책/안정화와 concrete release-note source 구현 완료. 동일 clean source `b96f74ab`에서 fresh 30분은 2381s/20회 PASS, UI는 exact 424/424·Policy v4·final integrity PASS. 120분은 재판정 후 conditional-not-run. 실제 tag/GitHub Release/PR/published metadata는 외부 release evidence로 직접 확인하며 readiness verifier PASS로 대체하지 않음 |
 
 이 절의 로드맵 계약 자체는 `./server.sh verify-v400-roadmap-contract`가 검사한다.
 계약 PASS는 4.0.0 구현 완료, baseline 완료, UI/30분/120분, published metadata가 아니다.
@@ -315,18 +317,21 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 
 ### v4.0.0 stabilization and release readiness
 
-상태: `readiness-recorded`
-구현 상태: `policy-steps-complete-30min-ui-pass`
+상태: `candidate-tests-pass-release-actions-pending`
+구현 상태: `policy-steps-complete-fresh-30min-ui-pass`
 
-직접 답: 4.0.0 정책/안정화 8스텝은 기록됐다. 출시 가능은 아니다. 30분과 UI
-풀테스트는 `executed-pass`다. 120분은 conditional-not-run이다. step 8 최초 기록
-당시 UI는 `unrun-required-blocker`였다.
+직접 답: 4.0.0 정책/안정화 8스텝과 concrete release-note candidate는 기록됐다.
+출시 가능은 아니다. compact handoff boundary
+`09436674028817befcecbe1398348489e7ae88a7`를 포함하는 동일 clean source
+`b96f74ab1809c46f5ee49c8dd1fb075d7bbc392b`에서 fresh 30분/UI는 PASS했다.
+상태는 `fresh-executed-pass`이며 120분은 재판정 후 conditional-not-run이다.
 
 1. 안정화 테스트: 이 컷의 v400 local verifier는 진행 대상.
-2. 30분 테스트: 진행 대상 실행 후 `executed-pass`. 3차 `./test_server_30min.sh`
-   source `b53e8af1`, 2383s/1800s. 이 명령은 soak runner가 아니다.
-3. UI 풀테스트: 진행 대상 실행 후 `executed-pass`. `./test_ui.sh` exact 424/424,
-   qualifier `uiFulltestPass=true`. 이 명령은 UI runner가 아니다.
+2. 30분 테스트: `fresh-executed-pass`. runId `v390-server-longrun-20260902105027-50646`,
+   2381s/1800s, 20 iterations, compact 117/0/2. 이 명령은 soak runner가 아니다.
+3. UI 풀테스트: `fresh-executed-pass`. runId `v390-test-acceptance-20260902113505-82611`,
+   exact 424/424, failure census 0, Policy v4 PASS, qualifier `uiFulltestPass=true`,
+   final integrity/cleanup PASS. 이 명령은 UI runner가 아니다.
 4. 120분 테스트: 미진행. 이번 cut 제품 media path 변경/사용자 실행 지시/high-risk
    FAIL signal 없음.
 5. close-out: `verify-release-closeout-helper` dry-run. tag/GitHub Release/PR/published
@@ -336,9 +341,33 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 `scripts/internal/verify_v400_release_readiness.mjs`,
 `./server.sh verify-v400-release-readiness`.
 
-이 readiness PASS는 120분, published metadata, `v4.0.0` tag, GitHub Release,
-PR/main merge 완료가 아니며, 30분 soak runner 또는 `./test_ui.sh` PASS를 대체하지
-않는다.
+이 readiness PASS는 실제 30분/UI 결과를 기록하지만 120분, published metadata,
+`v4.0.0` tag, GitHub Release, PR/main merge 완료가 아니다.
+
+#### v4.0.0 compact user-test result handoff 보강 (2026-09-02)
+
+상태: 구현 및 fixture contract 완료. 실제 30분/UI/120분/release 재실행은 미실행.
+
+- `scripts/internal/write_user_test_result_artifacts.mjs`가 기존 `summary.json`을 읽어
+  parent stage/phase/check, standalone 및 release-child delegated longrun step, exact UI case를
+  `pass`/`fail`/`not-run`으로 정규화한 `test-run-summary.json`을 기록한다.
+- 실패 시 같은 output root의 `failure-handoff.json`/`.md`에 source commit/clean,
+  최초 failure stage/testcase/command/exit/error/log/reproduction과 이후 `not-run` 목록을
+  기록한다. 원본 대용량 log, screenshot, 424 child evidence는 복제하지 않는다.
+- `scripts/internal/user_test_launcher_common.sh`의
+  `media_server_write_compact_user_test_result`가 launcher-contract, AI asset bootstrap,
+  UI source-contract, child summary 판정, summary 누락 경로에 writer를 연결한다. 기존
+  원본 summary/report와 하위 test verdict는 변경하지 않는다.
+- 같은 공통 launcher에서 server-30/server-120 summary에 UI evidence를 요구하던 잘못된
+  공통 판정을 분리했다. UI/release suite만 canonical UI summary 부재를 fail-close하고,
+  server longrun PASS는 UI evidence 없이 PASS를 유지한다.
+- `scripts/internal/verify_v390_user_test_launchers_contract.mjs`가 성공/stale failure 정리,
+  first-failure handoff, child 이전 실패, UI summary gate 실패, server-30 root PASS를
+  fixture로 검증한다. 최종 `26/26`이며 actual 30분/UI/120분/release 실행 evidence가 아니다.
+
+제품 C++/API/schema/event payload/RTSP·WebRTC media path와 제품 UI는 변경하지 않았다.
+이 보강은 다음 실제 30분/UI 재실행에서 사람이 읽을 compact 결과와 실패 시 에이전트
+전달 파일을 추가하는 범위다.
 
 ### v4.1.0 이후 신규 기능 후보
 
@@ -4695,7 +4724,18 @@ close-out dry-run, script inventory, `git diff --check` 연결입니다.
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
-## 최신 공개 기준: v3.9.1 Source Release Baseline
+## 최신 공개 기준: v4.0.0 Source Release Baseline
+
+v4.0.0은 로컬 운영 정책화 및 안정화 source-only major 공개 릴리즈입니다.
+action write, persistent credential store, production restore, external VLM
+provider call, model-backed Re-ID를 비구현으로 freeze하고, `/ops/events`는
+Ops-only diagnostic route로 유지하며 EventRecord/clip/retention은 opt-in입니다.
+30분과 UI 풀테스트는 executed-pass, 120분과 실기기 field smoke는 제외입니다.
+Binary/runtime/model bundle과 external field smoke는 공개 asset 또는 실행 PASS로
+승격하지 않습니다. `v4.0.0` publish 완료는 tag, GitHub Release, published metadata
+검증 evidence가 있을 때만 완료로 기록합니다.
+
+## 직전 공개 기준: v3.9.1 Source Release Baseline
 
 v3.9.1은 v3.9.0 제품 baseline을 유지한 source-only patch 공개 릴리즈입니다.
 Release correctness, public repository hygiene, 문서 truth, bounded evidence,
