@@ -4,6 +4,64 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## V410-S01 녹화 v1 영속 계약과 golden fixture
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `include/recording/recording_contracts.h`, `src/recording/recording_contracts.cpp`:
+    `RecordingSegmentV1`, `FrameLocatorV1`, `EventRecordingLinkV1`,
+    `AnalysisObservationV1`, `RecordingTombstoneV1`의 strict parser와 정규 serializer
+  - `include/recording/recording_store_port.h`: 세그먼트 finalize, 이벤트 연결, 분석 관측,
+    삭제 요청·완료와 시간 범위 조회의 내부 port. filesystem path는 finalize 인자로만 전달
+  - `test/fixtures/recording/v1/*.jsonl`: segment/event link/observation/tombstone v1
+    golden fixture. segment fixture는 알 수 없는 optional field를 포함
+  - `scripts/internal/recording_contract_smoke.cpp`,
+    `scripts/internal/verify_v410_recording_contracts.sh`, `server.sh`: 실제 C++ compile/run
+    verifier와 dispatch
+  - `CMakeLists.txt`: `src/recording/recording_contracts.cpp`를 제품 runtime target에 연결
+- 계약 원칙:
+  - ID는 경로·빈 값·SQLite rowid가 아닌 opaque string이며 tombstone이 남은 segment ID는
+    재사용하지 않는다.
+  - 시간 범위는 UTC millisecond 반개구간 `[start, end)`이고 PTS와 timebase를 함께 보존한다.
+  - 재생 가능 상태는 `finalized` 하나뿐이다. 알 수 없는 lifecycle은 호환 읽기 후
+    `Unknown`으로 내리고 재생 가능 상태로 승격하지 않는다.
+  - v1의 알 수 없는 optional field는 무시하고 known field를 보존한다. v1 변경은 additive
+    optional field만 허용하고 breaking 변경은 새 schema version과 별도 fixture로 추가한다.
+  - rebuild는 v1 JSONL record를 parser로 다시 읽는 방식이며, tombstone을 삭제의 최종
+    기록으로 적용한다. v1 golden fixture는 후속 버전에서 덮어쓰지 않는다.
+  - 공개 JSON에는 filesystem path를 직렬화하지 않는다.
+- RED 확인:
+  - 최초 `./server.sh verify-v410-recording-contracts`는 제품 구현 전
+    `src/recording/recording_contracts.cpp` 부재로 exit 1 실패
+- GREEN 확인:
+  - `./server.sh verify-v410-recording-contracts`: `pass=45 fail=0`
+  - `./server.sh build`: `media_server_runtime`, `media_server` 100% PASS
+  - `./server.sh verify-docs-links`: 최초 내부 release evidence 문서가 공개 문서 색인 필수
+    대상으로 잘못 분류돼 failure 1. 공개 색인 제외 정책과 verifier를 일치시킨 뒤
+    Markdown 218개, local link 980개, failure 0 PASS
+  - 확대 확인에서 `verify-project-inventory`, `verify-feature-inventory-coverage`,
+    `verify-v290-release-test-records-enforcement`는 FAIL. 별도 clean clone의 시작 commit
+    `b55f4bf0`에서도 각각 v4.1 inventory/seed 미정렬과 REVIEW4 trust binding 2건,
+    기존 `| 미실행 |` cell로 동일하게 실패함을 확인했다. S01 회귀나 완료 evidence로
+    사용하지 않고 후속 정합성 부채로 분리
+- 개별 확인 항목:
+  - opaque ID 정상/빈 값/path/SQLite rowid 4건
+  - UTC 반개구간 겹침/맞닿음/빈 범위 3건
+  - unknown optional field known-value 보존, PTS/timebase exact round-trip,
+    public JSON path 비노출
+  - unknown lifecycle 호환 parse, `Unknown` 보존, 비재생 3건
+  - segment 2건, event link 1건, observation 1건, tombstone 1건의
+    parse → canonical serialize → parse → serialize parity
+  - tombstone segment ID 재사용 거부와 신규 ID 허용
+- 미실행/비대체: 실제 녹화, 파일 쓰기, SQLite/JSONL store, recorder subscriber,
+  event clip 생성, timeline API/UI, UI 풀테스트, 30분/120분 장시간 테스트,
+  external field smoke, published metadata, release action
+- 영향 범위: 새 `recording` C++ 계약과 내부 store port, fixture, focused verifier만 추가.
+  기존 API/schema/event payload와 RTSP/WebRTC media path, 제품 UI 동작은 변경하지 않음
+- 회귀 가능성: 후속 writer가 반개구간·PTS/timebase·lifecycle·tombstone 불변 조건을
+  우회하거나 v1 fixture를 덮어쓸 위험. focused verifier와 제품 build로 S01 경계를 방어.
+  release evidence를 공개 색인으로 오분류할 위험은 docs link verifier의 명시적 pattern으로 방어
+
 ## V410-S00 표준·오픈소스·IP 게이트와 source baseline
 
 - 상태: local focused PASS

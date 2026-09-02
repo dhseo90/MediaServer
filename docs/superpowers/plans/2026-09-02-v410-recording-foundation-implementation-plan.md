@@ -243,9 +243,9 @@ git commit -m "docs: v4.1.0 녹화 연구 게이트 고정"
 
 ---
 
-아래 S01~S09의 `planned-command`는 해당 단계에서 verifier와 `server.sh` dispatch를 함께
-구현한 뒤 `./server.sh` 실행 명령으로 승격할 계획 ID다. 현재 실행 가능한 명령이나 PASS
-증거가 아니다.
+S01의 verifier와 `server.sh` dispatch는 구현되어 실제 명령으로 승격됐다. S02~S09의
+`planned-command`는 해당 단계에서 verifier와 dispatch를 함께 구현한 뒤 실행 명령으로
+승격할 계획 ID이며 현재 실행 가능한 명령이나 PASS 증거가 아니다.
 
 ## Task 1: V410-S01 녹화 v1 계약과 golden fixture
 
@@ -276,7 +276,7 @@ smoke는 다음을 먼저 요구하고 구현 전 compile 또는 assertion 실�
 - tombstone ID 재사용 거부
 
 ```bash
-planned-command verify-v410-recording-contracts
+./server.sh verify-v410-recording-contracts
 ```
 
 ### Step 2: exact C++ 계약을 구현한다
@@ -359,7 +359,7 @@ filesystem path는 internal port 인자로만 사용하고 JSON serializer에 �
 ### Step 4: GREEN과 문서 기록
 
 ```bash
-planned-command verify-v410-recording-contracts
+./server.sh verify-v410-recording-contracts
 ./server.sh verify-docs-links
 git diff --check
 ```
@@ -478,7 +478,7 @@ parser와 muxer 선택은 전역의 미디어 형식 표를 따른다. writer ca
 
 ```bash
 planned-command verify-v410-recording-recorder
-planned-command verify-v410-recording-contracts
+./server.sh verify-v410-recording-contracts
 ./server.sh verify-docs-links
 git diff --check
 ```
@@ -1015,7 +1015,7 @@ planned-command verify-v410-event-recording
 planned-command verify-v410-recording-retention
 planned-command verify-v410-recording-catalog
 planned-command verify-v410-recording-recorder
-planned-command verify-v410-recording-contracts
+./server.sh verify-v410-recording-contracts
 ./server.sh verify-docs-links
 git diff --check
 ```

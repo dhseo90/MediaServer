@@ -16,6 +16,26 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.1.0 S01 녹화 계약 테스트 기록 (2026-09-03)
+
+| 테스트 항목 | 실행 명령 | 결과 | 직접 확인 범위 |
+| --- | --- | --- | --- |
+| S01 RED | `./server.sh verify-v410-recording-contracts` | fail | 구현 전 `src/recording/recording_contracts.cpp` 부재로 exit 1 |
+| opaque ID | `./server.sh verify-v410-recording-contracts` | pass | 정상 ID, 빈 값, path, SQLite rowid 형태 |
+| 시간 계약 | `./server.sh verify-v410-recording-contracts` | pass | UTC 반개구간 overlap 3경계, PTS/timebase exact round-trip |
+| 전방 호환 lifecycle | `./server.sh verify-v410-recording-contracts` | pass | unknown optional field 뒤 known ID 보존, unknown lifecycle `Unknown`·비재생 |
+| 공개 JSON 경계 | `./server.sh verify-v410-recording-contracts` | pass | filesystem `media_path` 비직렬화 |
+| v1 golden fixture | `./server.sh verify-v410-recording-contracts` | pass | segment 2, event link 1, observation 1, tombstone 1의 canonical round-trip |
+| 삭제 ID 불변 | `./server.sh verify-v410-recording-contracts` | pass | tombstone segment ID 재사용 거부, 신규 ID 허용 |
+| focused 합계 | `./server.sh verify-v410-recording-contracts` | pass | `pass=45 fail=0` |
+| 제품 빌드 연결 | `./server.sh build` | pass | `media_server_runtime`, `media_server` 100% |
+| 문서 링크·색인 | `./server.sh verify-docs-links` | fail | 내부 `release-evidence-v410.md`가 공개 색인 필수 대상으로 오분류된 최초 실패 1건 |
+| 문서 링크·색인 재검증 | `./server.sh verify-docs-links` | pass | release evidence ledger 제외 정책과 verifier를 정렬해 failure 0 |
+
+미실행/제외: 실제 녹화·파일 쓰기·store/catalog·순환 삭제·이벤트 파생 clip·timeline
+API/UI, UI 풀테스트, 30분/120분 장시간 테스트, external field smoke, published metadata,
+release action은 S01 테스트가 아니며 완료 evidence로 사용하지 않는다.
+
 ## v4.0.0 현재 소스 baseline 상태 (2026-09-02)
 
 - current source: `v4.0.0` (`VERSION=4.0.0`)
@@ -1400,6 +1420,7 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | Feature inventory coverage | 새 기능 ID와 exact semantic implementation/UI/verifier/longrun 매핑이 누락되지 않았는지 확인 | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-implementation-evidence.v2` manifest를 읽어 handler/route/control/action/state relation, reviewer digest, semantic assertion과 canonical v3.9 longrun mapping을 확인. `covered`는 mapping coverage이며 실행 PASS가 아님 | v2.0.0, v3.9.0 semantic exact-ID 강화 |
 | Feature implementation evidence manifest | current 986개 inventory 행의 owner source, product UI route/control/state, verifier assertion, manual UI case, 30/120분 runner를 1:1 대조 | `./server.sh verify-feature-implementation-evidence`로 current manifest 986행과 source/verifier 986, exact manual UI case 424, negative fixture 11종을 확인. historical 974/984행 결과는 당시 evidence로 보존합니다. `--refresh-manifest`는 명시적 source 갱신이고 기본 검증은 read-only이며 제품/UI/장시간 실행 evidence가 아님 | v3.9.0 V390-ADD1-02 |
 | Script inventory 확인 | 새 verifier/command가 server entrypoint와 script inventory에 등록됐는지 확인 | `./server.sh verify-script-inventory` 실행 결과와 `server.sh` dispatch 확인 | v2.0.0 |
+| V410 녹화 v1 영속 계약 | segment/frame/event link/analysis observation/tombstone 계약과 golden fixture 호환성 확인 | `./server.sh verify-v410-recording-contracts`가 실제 C++ compile/run으로 opaque ID, UTC 반개구간, PTS/timebase, unknown optional field/lifecycle, public JSON path 비노출, 4종 JSONL canonical round-trip, tombstone segment ID 재사용 금지를 확인. 실제 recorder/store/catalog/retention/timeline/UI/장시간 테스트 PASS가 아님 | v4.1.0 V410-S01 |
 | V400 roadmap contract | v4.0.0 로컬 운영 정책화/안정화 로드맵과 v4.1.0 신규 기능 분리, 테스트 스크립트 반영 불변 조건을 확인 | `./server.sh verify-v400-roadmap-contract`가 backlog 8개 4.0.0 스텝과 6개 4.1.0 후보, 각 행의 `테스트 스크립트 반영 필수`, 비범위, inventory/stream-verification/server dispatch 연결을 확인. v4.0.0 2~8번 구현, UI/30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | V400 entry baseline | current source `4.0.0`과 published `v3.9.1` 분리, VERSION/CMake/README/docs/backlog/source roadmap 정렬 | `./server.sh verify-v400-entry-baseline`이 VERSION `4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization`, latest published `v3.9.1`, `verify-release-metadata` current/published 분리, inventory/stream-verification/records/server dispatch를 확인. UI 풀테스트, 30분/120분, published metadata PASS가 아님 | v4.0.0 |
 | V400 user review gate | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 사용자 승인 기록으로 고정 | `./server.sh verify-v400-user-review-gate`가 `test/fixtures/v400_user_review_gate.json`의 `approved-through-recorded-user-goals`, `blocked-until-v400-complete`, in-scope 3~8번, v4.1.0 비구현, 비범위, backlog/inventory/stream-verification/records/server dispatch를 확인. 이 게이트 PASS는 30분/UI/published metadata PASS가 아님 | v4.0.0 |
@@ -1663,6 +1684,19 @@ target `2`는 불변입니다. 공식 current graph와 WebRTC source-bundle writ
 | 미실행 항목을 결과표 PASS/FAIL에 섞기 | 실행하지 않은 30분/120분/UI/field smoke를 결과표에 조건부 통과처럼 기록 | 결과표는 pass/fail만 쓰고, 미실행/제외는 별도 표에 사유와 완료 evidence로 쓸 수 없다는 경계를 기록 | v2.8.0 |
 
 ## 버전별 테스트 결과 기록
+
+### v4.1.0 S01
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Recording contract RED | 구현 전 focused verifier가 `src/recording/recording_contracts.cpp` 부재로 exit 1 | fail |
+| Recording contract GREEN | 실제 C++ 계약과 v1 golden fixture `pass=45 fail=0` | pass |
+| Build | 새 recording source를 포함한 `media_server_runtime`, `media_server` 100% | pass |
+| Docs link 최초 | 내부 release evidence ledger 공개 색인 오분류 1건 | fail |
+| Docs link 최종 | 공개 색인 제외 정책과 verifier 정렬 후 failure 0 | pass |
+
+미실행/제외: 실제 녹화·파일 쓰기·store/catalog·retention·timeline API/UI, UI 풀테스트,
+30분/120분, external field smoke, published metadata, release action.
 
 ### v4.0.0
 

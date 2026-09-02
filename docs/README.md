@@ -12,8 +12,8 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 현재 소스 버전: `4.1.0`
 - v4.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 상태: `V410-S00` 조사·설계 차단선 완료. `V410-S01~S09` 기능 구현·테스트와
-  릴리즈는 완료 상태가 아님
+- v4.1.0 상태: `V410-S00` 조사·설계 차단선과 `V410-S01` 녹화 v1 영속 계약 완료.
+  `V410-S02~S09` 제품 기능 구현·테스트와 릴리즈는 완료 상태가 아님
 - 장기 로드맵은 `main`에서 공통 관리하며 각 버전 브랜치는 해당 버전 구현에만 집중하고
   후속 버전 절은 stable contract 설계 문맥으로 상속함
 - 현재 장기 로드맵은 v4.1.0 변경에 포함하며 v4.1.0 머지 때 `main`에 공통 반영

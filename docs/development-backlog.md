@@ -18,7 +18,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
 - 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
-  2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선 완료. S01~S09는 미구현
+  2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선과 S01 녹화 v1 계약 완료.
+  S02~S09는 미구현
 - 상세 구현계획:
   [`2026-09-02-v410-recording-foundation-implementation-plan.md`](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
 - 장기 로드맵은 `main` 공통 문서로 관리하고, 각 버전 브랜치는 자신의 버전 단계만
@@ -391,7 +392,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | 단계 | 제목 | 우선순위 | 상태 | 개발 내용 |
 | --- | --- | --- | --- | --- |
 | V410-S00 | 조사·설계 freeze | P0 | 완료 | 공개 표준·라이선스 metadata, KR/US/EP/PCT clean-room 차단선, source `4.1.0` 정렬. 특정 특허 상세·외부 코드 미반입 |
-| V410-S01 | Recording contract v1 | P0 | 미구현 | segment/frame/event link/analysis observation/tombstone 계약과 migration 규칙 |
+| V410-S01 | Recording contract v1 | P0 | 완료 | segment/frame/event link/analysis observation/tombstone 계약, v1 additive migration/rebuild 규칙, golden JSONL round-trip |
 | V410-S02 | Continuous segment recorder | P0 | 미구현 | 채널별 opt-in, keyframe segment, atomic finalize, restart recovery |
 | V410-S03 | Catalog and recovery journal | P0 | 미구현 | SQLite primary, append-only JSONL rebuild/fallback |
 | V410-S04 | Retention coordinator | P0 | 미구현 | continuous/event 용량 분리, oldest-first overwrite, pin/tombstone/disk reserve |
@@ -425,6 +426,30 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
   [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
 - 미실행/비대체: 제품 build, 안정화 묶음, UI 풀테스트, 30분/120분 장시간 테스트,
   external TURN/WHEP, ONVIF 실기기, 외부 VLM/provider, published metadata, V410-S01~S09.
+
+### v4.1.0 S01 개발 기록
+
+- 범위: P0 `V410-S01 Recording contract v1`만 구현했다. V410-S02~S09는 미진행이다.
+- `include/recording/recording_contracts.h`, `src/recording/recording_contracts.cpp`:
+  세그먼트, 프레임 위치, 이벤트-녹화 연결, 검색 준비 분석 관측, 삭제 tombstone의 v1
+  parser/serializer와 validation을 추가했다. 재생 가능 lifecycle은 `finalized`로 제한했다.
+- `include/recording/recording_store_port.h`: 파일 경로를 공개 JSON과 분리한 내부 저장
+  port를 추가했다. 실제 저장 구현과 recorder는 S02/S03 범위라 추가하지 않았다.
+- `test/fixtures/recording/v1/*.jsonl`: 후속 버전에서 수정하지 않는 v1 golden fixture를
+  추가했다. v1은 additive optional field만 허용하고 breaking 변경은 새 schema/fixture로
+  병행한다. rebuild는 v1 parser와 tombstone 최종 삭제 기록을 기준으로 한다.
+- `scripts/internal/recording_contract_smoke.cpp`,
+  `scripts/internal/verify_v410_recording_contracts.sh`, `server.sh`: 실제 C++ compile/run으로
+  ID, UTC 반개구간, PTS/timebase, unknown field/lifecycle, 4종 fixture round-trip,
+  tombstone ID 재사용 금지를 검증한다.
+- RED: 구현 전 focused verifier가 `src/recording/recording_contracts.cpp` 부재로 exit 1.
+- GREEN: focused verifier `45/0`, 제품 build 100% PASS. 최종 관련 검증 결과는
+  [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
+- 시작 commit `b55f4bf0` clean clone에서도 동일한 project/feature inventory와 v2.9
+  release-records verifier 실패를 확인했다. S01 변경으로 생긴 회귀가 아니므로 이번
+  계약 구현에 섞어 수정하지 않고 후속 정합성 부채로 남긴다.
+- 미실행/비대체: 실제 상시/이벤트 녹화, store/catalog, 순환 삭제, timeline API/UI,
+  UI 풀테스트, 30분/120분, external field smoke, published metadata, release action.
 
 기존에 v4.1.0 후보로 적었던 Incident OS 제품 승격, Evidence default-on, 로컬 Action
 Execution, credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 이번 v4.1.0 범위가

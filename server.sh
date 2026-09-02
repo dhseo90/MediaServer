@@ -1211,6 +1211,8 @@ Usage:
                  v4.1.0 녹화 기반의 공개 자료 provenance와 IP clean-room 차단선을 검증합니다.
   verify-v410-entry-baseline
                  v4.1.0 source target과 published v4.0.0 baseline 분리를 검증합니다.
+  verify-v410-recording-contracts
+                 v4.1.0 녹화 v1 계약과 golden JSONL fixture의 ID·시간·호환성 경계를 검증합니다.
   verify-post-release-reconciliation
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
@@ -3023,6 +3025,10 @@ case "${cmd}" in
   verify-v410-entry-baseline)
     require_internal verify_v410_entry_baseline.sh
     exec "${INTERNAL_DIR}/verify_v410_entry_baseline.sh" "$@"
+    ;;
+  verify-v410-recording-contracts)
+    require_internal verify_v410_recording_contracts.sh
+    exec "${INTERNAL_DIR}/verify_v410_recording_contracts.sh" "$@"
     ;;
   verify-v400-user-review-gate)
     require_internal verify_v400_user_review_gate.mjs

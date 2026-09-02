@@ -32,6 +32,13 @@
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
 
+## 현재 v4.1.0 녹화 기반 verifier
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| V410-S00 | `./server.sh verify-v410-research-gate`, `./server.sh verify-v410-entry-baseline` | 공개 자료 provenance/IP clean-room 차단선과 source `4.1.0`/published `v4.0.0` 분리 기준. 녹화 구현 PASS가 아님 |
+| V410-S01 | `./server.sh verify-v410-recording-contracts` | 실제 C++로 opaque ID, UTC 반개구간, PTS/timebase, unknown optional field/lifecycle, segment/event link/observation/tombstone v1 JSONL round-trip과 tombstone ID 재사용 거부를 검증. 실제 recorder/store/catalog/retention/timeline/UI/장시간 테스트 PASS가 아님 |
+
 ## 과거 v2.5.0 verifier
 
 | Step | Command | Scope |
@@ -46,10 +53,10 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v4.0.0 verifier와 v3.9.1/v3.9.0 inherited verifier
+## 과거 v4.0.0 verifier와 v3.9.1/v3.9.0 inherited verifier
 ## 현재 v3.9.0 verifier
 
-현재 source는 `4.0.0`이다. 아래 v3.9.1/v3.9.0 행은 inherited historical gate이며
+현재 source는 `4.1.0`이다. 아래 v4.0.0/v3.9.1/v3.9.0 행은 inherited historical gate이며
 당시 표기를 보존한다. `## 현재 v3.9.0 verifier` 제목은 v390 entry-baseline이
 요구하므로 유지한다.
 
@@ -60,7 +67,7 @@ UI 풀테스트·30분·120분·published metadata 또는 release action evidenc
 
 | Step | Command | Scope |
 | --- | --- | --- |
-| v3.9.1 release correction | `./server.sh verify-release-metadata`, `./server.sh verify-v391-documentation-truth`, `./server.sh verify-public-repo-readiness`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | historical cut source `3.9.1`, latest published `v3.9.1`, public docs/evidence/UI asset correction을 검증합니다. 현재 source는 `4.0.0`입니다. fresh build, 30분, exact UI 424/Policy v4, 120분, PR/main/tag/GitHub Release는 별도 gate입니다. |
+| v3.9.1 release correction | `./server.sh verify-release-metadata`, `./server.sh verify-v391-documentation-truth`, `./server.sh verify-public-repo-readiness`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | historical cut source `3.9.1`, latest published `v3.9.1`, public docs/evidence/UI asset correction을 검증합니다. 현재 source는 `4.1.0`입니다. fresh build, 30분, exact UI 424/Policy v4, 120분, PR/main/tag/GitHub Release는 별도 gate입니다. |
 | v4.0.0 (1) | `./server.sh verify-v400-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | current source `4.0.0`, latest published `v4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization` 정렬. v4.0.0 2~8번, 기능 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v4.0.0 (2) | `./server.sh verify-v400-user-review-gate` | 4.0.0 정책/안정화 범위와 4.1.0 신규 기능 경계를 `approved-through-recorded-user-goals`로 고정하고 신규 기능을 `blocked-until-v400-complete`로 둡니다. 각 스텝 전용 verifier PASS, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v4.0.0 (3) | `./server.sh verify-v400-verification-layer-reduction` | 986/424 유지, v390 verifier·contract·fixture 상한, v400 command allowlist, wrapper PASS와 실행 PASS 분리를 검사합니다. 역사적 verifier 삭제, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
