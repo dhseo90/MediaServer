@@ -340,6 +340,31 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 PR/main merge 완료가 아니며, 30분 soak runner 또는 `./test_ui.sh` PASS를 대체하지
 않는다.
 
+#### v4.0.0 compact user-test result handoff 보강 (2026-09-02)
+
+상태: 구현 및 fixture contract 완료. 실제 30분/UI/120분/release 재실행은 미실행.
+
+- `scripts/internal/write_user_test_result_artifacts.mjs`가 기존 `summary.json`을 읽어
+  parent stage/phase/check, standalone 및 release-child delegated longrun step, exact UI case를
+  `pass`/`fail`/`not-run`으로 정규화한 `test-run-summary.json`을 기록한다.
+- 실패 시 같은 output root의 `failure-handoff.json`/`.md`에 source commit/clean,
+  최초 failure stage/testcase/command/exit/error/log/reproduction과 이후 `not-run` 목록을
+  기록한다. 원본 대용량 log, screenshot, 424 child evidence는 복제하지 않는다.
+- `scripts/internal/user_test_launcher_common.sh`의
+  `media_server_write_compact_user_test_result`가 launcher-contract, AI asset bootstrap,
+  UI source-contract, child summary 판정, summary 누락 경로에 writer를 연결한다. 기존
+  원본 summary/report와 하위 test verdict는 변경하지 않는다.
+- 같은 공통 launcher에서 server-30/server-120 summary에 UI evidence를 요구하던 잘못된
+  공통 판정을 분리했다. UI/release suite만 canonical UI summary 부재를 fail-close하고,
+  server longrun PASS는 UI evidence 없이 PASS를 유지한다.
+- `scripts/internal/verify_v390_user_test_launchers_contract.mjs`가 성공/stale failure 정리,
+  first-failure handoff, child 이전 실패, UI summary gate 실패, server-30 root PASS를
+  fixture로 검증한다. 최종 `26/26`이며 actual 30분/UI/120분/release 실행 evidence가 아니다.
+
+제품 C++/API/schema/event payload/RTSP·WebRTC media path와 제품 UI는 변경하지 않았다.
+이 보강은 다음 실제 30분/UI 재실행에서 사람이 읽을 compact 결과와 실패 시 에이전트
+전달 파일을 추가하는 범위다.
+
 ### v4.1.0 이후 신규 기능 후보
 
 아래는 4.0.0 완료 후 넣는 신규 기능이다. 4.0.0에서 구현하지 않는다.

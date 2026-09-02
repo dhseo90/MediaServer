@@ -175,6 +175,56 @@ EOF
   echo "[assets] labels=${labels_state} path=${labels_path} sha256=${final_labels_sha256}"
 }
 
+media_server_write_compact_user_test_result() {
+  local root_dir="$1"
+  local suite="$2"
+  local user_command="$3"
+  local output_dir="$4"
+  local summary_path="$5"
+  local result_override="${6:-}"
+  local failure_stage="${7:-}"
+  local testcase_id="${8:-}"
+  local exit_code="${9:-}"
+  local log_path="${10:-}"
+  local error_summary="${11:-}"
+  local later_not_run="${12:-}"
+  local common_dir
+  common_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  local -a writer=(
+    node "${common_dir}/write_user_test_result_artifacts.mjs"
+    --suite "${suite}"
+    --user-command "${user_command}"
+    --source-root "${root_dir}"
+    --output-dir "${output_dir}"
+  )
+  if [[ -f "${summary_path}" ]]; then
+    writer+=(--summary "${summary_path}")
+  fi
+  if [[ -n "${result_override}" ]]; then
+    writer+=(--result "${result_override}")
+  fi
+  if [[ -n "${failure_stage}" ]]; then
+    writer+=(--failure-stage "${failure_stage}")
+  fi
+  if [[ -n "${testcase_id}" ]]; then
+    writer+=(--testcase-id "${testcase_id}")
+  fi
+  if [[ -n "${exit_code}" ]]; then
+    writer+=(--exit-code "${exit_code}")
+  fi
+  if [[ -n "${log_path}" ]]; then
+    writer+=(--log-path "${log_path}")
+  fi
+  if [[ -n "${error_summary}" ]]; then
+    writer+=(--error-summary "${error_summary}")
+  fi
+  writer+=(--reproduction-command "${user_command}")
+  if [[ -n "${later_not_run}" ]]; then
+    writer+=(--later-not-run "${later_not_run}")
+  fi
+  "${writer[@]}"
+}
+
 media_server_run_user_test() {
   local suite="$1"
   shift
@@ -257,6 +307,12 @@ media_server_run_user_test() {
     fi
     sed -n '1,240p' "${contract_log}"
     if [[ "${contract_status}" -ne 0 ]]; then
+      if ! media_server_write_compact_user_test_result \
+        "${root_dir}" "${suite}" "${user_command}" "${output_dir}" "${summary_path}" \
+        "FAIL" "launcher-contract" "verify-v390-user-test-launchers-contract" \
+        "${contract_status}" "${contract_log}" "launcher contract failed" "${suite}"; then
+        echo "[test] compact result artifact write failed" >&2
+      fi
       echo "[test] failureStage=launcher-contract" >&2
       echo "[test] testcaseId=verify-v390-user-test-launchers-contract" >&2
       echo "[test] exitCode=${contract_status}" >&2
@@ -275,6 +331,12 @@ media_server_run_user_test() {
     fi
     sed -n '1,240p' "${asset_log}"
     if [[ "${asset_status}" -ne 0 ]]; then
+      if ! media_server_write_compact_user_test_result \
+        "${root_dir}" "${suite}" "${user_command}" "${output_dir}" "${summary_path}" \
+        "FAIL" "ai-asset-bootstrap" "prepare-user-test-ai-assets" \
+        "${asset_status}" "${asset_log}" "AI asset bootstrap failed" "${suite}"; then
+        echo "[test] compact result artifact write failed" >&2
+      fi
       echo "[test] failureStage=ai-asset-bootstrap" >&2
       echo "[test] testcaseId=prepare-user-test-ai-assets" >&2
       echo "[test] exitCode=${asset_status}" >&2
@@ -298,6 +360,13 @@ media_server_run_user_test() {
       media_server_write_ui_source_contract_failure_evidence \
         "${root_dir}" "${output_dir}" "${ui_source_contract_log}" \
         "${ui_source_contract_status}" "${user_command}"
+      if ! media_server_write_compact_user_test_result \
+        "${root_dir}" "${suite}" "${user_command}" "${output_dir}" "${summary_path}" \
+        "FAIL" "ui-source-contract" "verify-v390-ui-native-exact-cases-contract" \
+        "${ui_source_contract_status}" "${ui_source_contract_log}" "UI source contract failed" \
+        "ui-environment-bootstrap,ui-exact-424,ui-fulltest-qualification,cleanup,report"; then
+        echo "[test] compact result artifact write failed" >&2
+      fi
       echo "[test] failureStage=ui-source-contract" >&2
       echo "[test] testcaseId=verify-v390-ui-native-exact-cases-contract" >&2
       echo "[test] exitCode=${ui_source_contract_status}" >&2
@@ -359,13 +428,15 @@ if (failureStage || first) {
   console.log(`[test] laterNotRun=${ledger.filter(item => item.status === "not-run").map(item => item.id).join(",")}`);
 }
 const uiSummaryPath = summary.uiAutomation?.summaryPath || "";
+const uiEvidenceRequired = summary.suite === "ui" ||
+  summary.schema === "media-server.v390-test-acceptance-bundle.v1";
 if (!uiSummaryPath || !fs.existsSync(uiSummaryPath)) {
   for (const field of ["exactUiSelected", "exactUiAttempted", "exactUiPass", "exactUiFail",
     "exactUiNotRun", "exactUiUnsupported", "exactUiRunnerAbort",
     "exactUiFailureCensusCount", "exactUiFailureCensusPath", "policyEligible",
     "policyQualified", "uiFulltestPass", "finalIntegrity",
     "finalIntegrityPath"]) console.log(`[test] ${field}=`);
-  process.exitCode = 1;
+  if (uiEvidenceRequired) process.exitCode = 1;
 } else {
   const ui = JSON.parse(fs.readFileSync(uiSummaryPath, "utf8"));
   const canonical = ui.schema === "media-server.v390-ui-canonical-parent.v1";
@@ -440,6 +511,30 @@ NODE
     echo "[test] summary missing: ${summary_path}" >&2
     echo "[test] reproductionCommand=${user_command}" >&2
     test_status=1
+  fi
+
+  local compact_status=0
+  local compact_result="PASS"
+  local compact_failure_stage=""
+  local compact_testcase_id=""
+  local compact_error_summary=""
+  if [[ "${test_status}" -ne 0 ]]; then
+    compact_result="FAIL"
+    compact_failure_stage="launcher-summary-gate"
+    compact_testcase_id="summary-gate-evaluation"
+    compact_error_summary="child result or launcher summary gate failed"
+  fi
+  if media_server_write_compact_user_test_result \
+    "${root_dir}" "${suite}" "${user_command}" "${output_dir}" "${summary_path}" \
+    "${compact_result}" "${compact_failure_stage}" "${compact_testcase_id}" \
+    "${test_status}" "" "${compact_error_summary}" ""; then
+    compact_status=0
+  else
+    compact_status=$?
+    echo "[test] compact result artifact write failed" >&2
+  fi
+  if [[ "${test_status}" -eq 0 && "${compact_status}" -ne 0 ]]; then
+    test_status="${compact_status}"
   fi
 
   return "${test_status}"

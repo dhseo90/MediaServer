@@ -463,6 +463,7 @@ server longrun→exact 424 Policy v4 producer→throwaway server cleanup→Polic
 - Release launcher는 저장소 canonical `docs/release-artifacts/v3.9.0/test-acceptance-current-final`을 자동 output으로 사용하고 AGENTS 7.6.2 trigger가 있을 때만 내부 `--auto-run-120`으로 120분을 선택합니다. Trigger가 없으면 `not-required`로 계속하며 사용자는 option/env를 조합하지 않습니다. 개별 30분·120분 launcher는 OS temp, UI launcher는 저장소 내부 transient `.media_server.test/v3.9.0/ui-acceptance-current`를 사용하며 세 경로 모두 최종 release evidence가 아닙니다.
 - `./server.sh verify-v390-user-test-launchers-contract`
 - `./server.sh verify-v390-test-acceptance-bundle-contract`
+- 네 root launcher는 원본 `summary.json`과 verdict를 유지한 채 `test-run-summary.json`을 항상 기록합니다. 이 compact summary는 parent stage/phase/check, delegated longrun step, exact UI case를 `pass`/`fail`/`not-run`으로 나열합니다. 실패 시 `failure-handoff.json`/`.md`가 최초 failure stage/testcase/command/exit/log/error/reproduction과 이후 `not-run`을 담으며, 원본 대용량 로그나 424 상세 evidence를 복제하지 않습니다.
 
 R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. Dry-run은 command/schema
 경계를 확인하되 Evidence 13 이전 R1/R2 보존본을 measured-cleanup/placeholder/dedupe 정책의
