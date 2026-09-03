@@ -12,6 +12,10 @@
 #define MEDIA_SERVER_USE_SQLITE3 0
 #endif
 
+#if MEDIA_SERVER_USE_SQLITE3
+#include <sqlite3.h>
+#endif
+
 namespace {
 int passes = 0;
 int failures = 0;
@@ -87,6 +91,19 @@ int main(int argc, char** argv) {
     if (!replay.mutations.empty()) {
         Expect(journal.Append(replay.mutations.front(), &error), "동일 mutation 중복 append");
     }
+    const auto known_cleanup_marker =
+        std::filesystem::path(known_media.string() + ".cleanup-pending");
+    const auto orphan_cleanup_media =
+        media_root / "channel-1" / "seg-writer-orphan.mp4";
+    const auto orphan_cleanup_marker =
+        std::filesystem::path(orphan_cleanup_media.string() + ".cleanup-pending");
+    WriteMp4Header(orphan_cleanup_media);
+    {
+        std::ofstream known_marker_output(known_cleanup_marker);
+        known_marker_output << "recording-cleanup-pending-v1\n";
+        std::ofstream orphan_marker_output(orphan_cleanup_marker);
+        orphan_marker_output << "recording-cleanup-pending-v1\n";
+    }
     {
         std::ofstream output(journal_path, std::ios::binary | std::ios::app);
         output << "{bad-json}\n";
@@ -103,10 +120,36 @@ int main(int argc, char** argv) {
         Expect(fallback_replay.Open(&error), "fallback replay open");
         const auto report = fallback_replay.recovery_report();
         Expect(report.duplicate_mutation_count == 1, "같은 mutation idempotent replay");
+        Expect(report.writer_cleanup_recovered_count == 2 &&
+                   report.writer_cleanup_error_count == 0 &&
+                   std::filesystem::exists(known_media) &&
+                   !std::filesystem::exists(known_cleanup_marker) &&
+                   !std::filesystem::exists(orphan_cleanup_media) &&
+                   !std::filesystem::exists(orphan_cleanup_marker),
+               "재시작 시 catalog 추적 media는 보존하고 미추적 writer media/marker 복구");
         const auto query = fallback_replay.QuerySegments("channel-1", 500, 2500);
         for (const auto& item : query) fallback_ids.push_back(item.segment_id);
         Expect(fallback_ids.size() == 1, "중복 replay row/합계 불증가");
     }
+
+    const auto cleanup_failure_root = root / "cleanup-failure-media";
+    const auto cleanup_failure_channel = cleanup_failure_root / "channel-1";
+    std::filesystem::create_directories(cleanup_failure_channel);
+    const auto cleanup_failure_target = root / "cleanup-failure-target.txt";
+    {
+        std::ofstream output(cleanup_failure_target, std::ios::binary | std::ios::trunc);
+        output << "외부-보존-내용";
+    }
+    const auto cleanup_failure_marker =
+        cleanup_failure_channel / "seg-untracked.mp4.cleanup-pending";
+    std::error_code cleanup_fixture_error;
+    std::filesystem::create_symlink(
+        cleanup_failure_target, cleanup_failure_marker, cleanup_fixture_error);
+    recording::RecordingCatalog cleanup_failure_catalog(
+        journal, {root / "cleanup-failure.sqlite3", cleanup_failure_root, false});
+    Expect(!cleanup_fixture_error && !cleanup_failure_catalog.Open(&error) &&
+               std::filesystem::exists(cleanup_failure_target),
+           "writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed");
 
     std::vector<std::string> sqlite_ids;
     {
@@ -126,6 +169,92 @@ int main(int argc, char** argv) {
         const auto orphan = sqlite_catalog.InspectOrphans();
         Expect(orphan.normal_orphan_count == 1, "journal 없는 정상 media orphan 구분");
         Expect(orphan.corrupt_orphan_count == 1, "journal 없는 손상 media orphan 구분");
+    }
+
+    const auto projection_root = root / "projection-failover";
+    const auto projection_media_root = projection_root / "media";
+    const auto projection_media =
+        projection_media_root / "channel-1" / "seg-projection-fallback.mp4";
+    WriteMp4Header(projection_media);
+    recording::RecordingJournal projection_journal(projection_root / "recording.jsonl");
+    Expect(projection_journal.Open(&error), "projection failover journal open: " + error);
+    {
+        recording::RecordingCatalog::Options projection_options;
+        projection_options.sqlite_path = projection_root / "recording.sqlite3";
+        projection_options.media_root = projection_media_root;
+        projection_options.prefer_sqlite = true;
+        recording::RecordingCatalog projection_catalog(
+            projection_journal, std::move(projection_options));
+        Expect(projection_catalog.Open(&error), "projection failover catalog open: " + error);
+#if MEDIA_SERVER_USE_SQLITE3
+        sqlite3* fault_db = nullptr;
+        const auto projection_sqlite_path = projection_root / "recording.sqlite3";
+        bool trigger_ready =
+            sqlite3_open(projection_sqlite_path.string().c_str(), &fault_db) == SQLITE_OK;
+        if (trigger_ready) {
+            trigger_ready = sqlite3_exec(
+                                fault_db,
+                                "CREATE TRIGGER fail_recording_projection "
+                                "BEFORE INSERT ON recording_mutations "
+                                "BEGIN SELECT RAISE(ABORT,'injected projection failure'); END;",
+                                nullptr, nullptr, nullptr) == SQLITE_OK;
+        }
+        if (fault_db != nullptr) sqlite3_close(fault_db);
+        Expect(trigger_ready, "실제 SQLite INSERT 실패 trigger 설치");
+#endif
+        Expect(projection_catalog.FinalizeSegment(
+                   Segment("seg-projection-fallback"), projection_media.string(), &error),
+               "SQLite 투영 실패 뒤 journal+memory finalize 유지: " + error);
+#if MEDIA_SERVER_USE_SQLITE3
+        Expect(projection_catalog.catalog_mode() == "jsonl-fallback" &&
+                   projection_catalog.recovery_report().projection_error_count == 1,
+               "SQLite 투영 실패 즉시 JSONL fallback 전환");
+        sqlite3* cleanup_db = nullptr;
+        bool trigger_removed =
+            sqlite3_open(projection_sqlite_path.string().c_str(), &cleanup_db) == SQLITE_OK;
+        if (trigger_removed) {
+            trigger_removed = sqlite3_exec(
+                                  cleanup_db,
+                                  "DROP TRIGGER fail_recording_projection",
+                                  nullptr, nullptr, nullptr) == SQLITE_OK;
+        }
+        if (cleanup_db != nullptr) sqlite3_close(cleanup_db);
+        Expect(trigger_removed, "재시작 rebuild 전 실패 trigger 제거");
+#else
+        Expect(projection_catalog.catalog_mode() == "jsonl-fallback",
+               "SQLite 미빌드 projection test fallback 유지");
+#endif
+        Expect(projection_catalog.QuerySegments("channel-1", 500, 2500).size() == 1,
+               "투영 실패 직후 in-memory query 정합성 유지");
+    }
+    {
+        recording::RecordingCatalog projection_reopen(
+            projection_journal,
+            {projection_root / "recording.sqlite3", projection_media_root, true});
+        Expect(projection_reopen.Open(&error),
+               "projection failover 재시작 journal rebuild: " + error);
+        Expect(projection_reopen.QuerySegments("channel-1", 500, 2500).size() == 1,
+               "재시작 후 journal에서 누락 SQLite projection 복구");
+#if MEDIA_SERVER_USE_SQLITE3
+        Expect(projection_reopen.catalog_mode() == "sqlite-primary",
+               "재시작 후 SQLite primary 복귀");
+        sqlite3* verify_db = nullptr;
+        sqlite3_stmt* count_statement = nullptr;
+        int rebuilt_rows = -1;
+        if (sqlite3_open((projection_root / "recording.sqlite3").string().c_str(),
+                         &verify_db) == SQLITE_OK &&
+            sqlite3_prepare_v2(
+                verify_db,
+                "SELECT COUNT(*) FROM recording_segments "
+                "WHERE segment_id='seg-projection-fallback'",
+                -1, &count_statement, nullptr) == SQLITE_OK &&
+            sqlite3_step(count_statement) == SQLITE_ROW) {
+            rebuilt_rows = sqlite3_column_int(count_statement, 0);
+        }
+        if (count_statement != nullptr) sqlite3_finalize(count_statement);
+        if (verify_db != nullptr) sqlite3_close(verify_db);
+        Expect(rebuilt_rows == 1, "재시작 journal rebuild가 실제 SQLite row 복원");
+#endif
     }
 
 #if MEDIA_SERVER_USE_SQLITE3

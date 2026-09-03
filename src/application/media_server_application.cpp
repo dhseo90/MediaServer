@@ -328,19 +328,67 @@ int RunMediaServerApplication(int argc, char** argv) {
         std::cerr << "recording catalog open failed: " << recording_error << "\n";
         return 1;
     }
+    recording::RetentionCoordinator::Options retention_options;
+    retention_options.reserved_free_bytes = config.recording_reserved_free_bytes;
+    retention_options.media_root = recording_root;
+    recording::RetentionCoordinator recording_retention(
+        recording_catalog,
+        [&recording_catalog] { return recording_catalog.RetentionSnapshot(); },
+        [&recording_root](std::uint64_t* free_bytes, std::string* error) {
+            std::error_code fs_error;
+            const auto space = std::filesystem::space(recording_root, fs_error);
+            if (fs_error) {
+                if (error != nullptr) *error = fs_error.message();
+                return false;
+            }
+            *free_bytes = space.available;
+            if (error != nullptr) error->clear();
+            return true;
+        },
+        [&recording_root](const std::filesystem::path& path, std::string* error) {
+            return recording::RemoveContainedMediaFile(recording_root, path, error);
+        },
+        retention_options);
     recording::RecordingSessionService recording_sessions(
         session_manager,
         recording_catalog,
-        [&config] {
-            return std::make_unique<recording::GStreamerSegmentWriter>(
-                recording::GStreamerSegmentWriter::Options{
-                    config.recording_storage_root,
-                    static_cast<std::int64_t>(config.recording_segment_duration_seconds) * 1000});
+        [&config, &recording_retention] {
+            recording::GStreamerSegmentWriter::Options options(
+                config.recording_storage_root,
+                static_cast<std::int64_t>(config.recording_segment_duration_seconds) * 1000);
+            options.admit_segment = [&recording_retention](
+                                        const std::string& channel_id,
+                                        std::uint64_t minimum_segment_bytes) {
+                const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                        std::chrono::system_clock::now().time_since_epoch())
+                                        .count();
+                const auto admission = recording_retention.AdmitContinuousWrite(
+                    channel_id, minimum_segment_bytes, now_ms);
+                return recording::SegmentAdmissionDecision{
+                    admission.allowed,
+                    admission.start_new_epoch,
+                    admission.reserved_bytes,
+                };
+            };
+            options.report_segment_progress = [&recording_retention](
+                                                  const std::string& channel_id,
+                                                  std::uint64_t written_bytes) {
+                recording_retention.UpdateContinuousWriteProgress(
+                    channel_id, written_bytes);
+            };
+            options.complete_segment = [&recording_retention](
+                                           const std::string& channel_id,
+                                           std::uint64_t actual_segment_bytes) {
+                recording_retention.CompleteContinuousWrite(
+                    channel_id, actual_segment_bytes);
+            };
+            return std::make_unique<recording::GStreamerSegmentWriter>(std::move(options));
         });
     recording::RecordingSupervisor recording_supervisor(
         config,
         ingress::SourceViewApplicationService::Instance(),
-        recording_sessions);
+        recording_sessions,
+        recording_retention);
     if (!recording_supervisor.Start(&recording_error)) {
         std::cerr << "recording supervisor start failed: " << recording_error << "\n";
         return 1;

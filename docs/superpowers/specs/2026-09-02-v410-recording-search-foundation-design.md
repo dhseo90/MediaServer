@@ -3,8 +3,8 @@
 ## 문서 상태
 
 이 명세는 2026-09-02에 사용자와 합의하고 승인한 아키텍처 방향을 기록한다. 2026-09-03
-`V410-S00` 조사·설계 차단선과 source baseline만 구현했으며, S01~S09 제품 구현·테스트,
-릴리즈 또는 완료 증거가 아니다. 공개 버전 순서는
+`V410-S00`~`V410-S04`의 조사·계약·segment recorder·catalog/journal·순환 보존을 구현했다.
+S05~S09 이벤트 연결·timeline·검색 관측·안정화와 릴리즈 완료 증거는 아니다. 공개 버전 순서는
 [`docs/v410-v49-recording-search-roadmap.md`](../../v410-v49-recording-search-roadmap.md)에
 요약한다. 단계별 파일·인터페이스·검증 순서는
 [`2026-09-02-v410-recording-foundation-implementation-plan.md`](../plans/2026-09-02-v410-recording-foundation-implementation-plan.md)에
@@ -213,6 +213,14 @@ finalized -> deletion_pending -> media removed -> deleted tombstone
 media 삭제가 실패하면 `deletion_pending`을 유지하고 오류를 표출하며 공간이 회수됐다고
 계산하지 않는다. 삭제 가능한 항목으로 reserve를 복구할 수 없으면 해당 채널 녹화만
 명시적인 `storage-blocked` 상태로 전환한다. live media와 영상분석은 계속 동작한다.
+새 segment 예상 byte는 continuous quota와 store reserve 둘 다에 선반영하고,
+채널 간 in-flight reserve를 직렬화해 동일 여유 공간의 중복 승인을 막는다.
+tombstone 기록 실패로 남은 pending은 다음 retention tick에서 idempotent하게
+재시도하며 한 채널의 pending 실패를 다른 채널과 격리한다. replay 시 경로 containment를
+검사하고 실제 삭제는 `openat`/`unlinkat` dirfd 결박으로 검사-삭제 경쟁 조건을 막는다.
+partial 실제 쓰기량은 물리 free와 예약에서 이중 차감하지 않으며 event quota와 continuous
+writer admission은 독립 판정한다. SQLite 실시간 projection 실패는 JSONL fallback으로
+내리고 다음 시작에서 journal로 재구축한다.
 
 ### Event recording linker
 

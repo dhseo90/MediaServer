@@ -338,6 +338,10 @@ constexpr const char* kEnvRecordingSegmentDurationSeconds =
     "MEDIA_SERVER_RECORDING_SEGMENT_DURATION_SECONDS";
 constexpr const char* kEnvRecordingDefaultRetentionDays =
     "MEDIA_SERVER_RECORDING_DEFAULT_RETENTION_DAYS";
+constexpr const char* kEnvRecordingReservedFreeBytes =
+    "MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES";
+constexpr const char* kEnvRecordingRetentionIntervalMs =
+    "MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS";
 
 const char* ReadEnv(const char* name) {
     const char* value = std::getenv(name);
@@ -628,6 +632,10 @@ app::AppConfig LoadAppConfig() {
         kEnvRecordingSegmentDurationSeconds, config.recording_segment_duration_seconds);
     config.recording_default_retention_days = ReadIntEnv(
         kEnvRecordingDefaultRetentionDays, config.recording_default_retention_days);
+    config.recording_reserved_free_bytes = ReadSizeEnv(
+        kEnvRecordingReservedFreeBytes, config.recording_reserved_free_bytes);
+    config.recording_retention_interval_ms = ReadIntEnv(
+        kEnvRecordingRetentionIntervalMs, config.recording_retention_interval_ms);
     config.webrtc_va_metadata_channel_enabled =
         ReadBoolEnv(kEnvWebRtcVaMetadataChannelEnabled, config.webrtc_va_metadata_channel_enabled);
     config.webrtc_va_metadata_channel_label =

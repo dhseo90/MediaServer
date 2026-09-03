@@ -11,5 +11,7 @@ inline constexpr const char* kStorageRoot = ".media_server/recordings";
 inline constexpr std::size_t kDefaultChannelQuotaBytes = 10ULL * 1024ULL * 1024ULL * 1024ULL;
 inline constexpr int kSegmentDurationSeconds = 10;
 inline constexpr int kDefaultRetentionDays = 7;
+inline constexpr std::size_t kReservedFreeBytes = 1024ULL * 1024ULL * 1024ULL;
+inline constexpr int kRetentionIntervalMs = 5000;
 
 }  // namespace core::recording_runtime_defaults

@@ -16264,14 +16264,14 @@
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::ClientViewsJson",
           "anchor": "out << ClientPublishedViewJson(view, *source);",
-          "line": 1929,
+          "line": 2104,
           "contextSha256": "3ceef19d36cc0bf1839690f08b5b2b59ae331747f3cf919f686af827dcecf1c3"
         },
         "state": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "ClientPublishedViewJson",
           "anchor": "<< \"\\\"viewId\\\":\\\"\" << JsonEscape(view.view_id) << \"\\\",\"",
-          "line": 926,
+          "line": 1101,
           "contextSha256": "e8fd40e796cc9fd596894f8bc5bac7d53ef2aca13e1108a4d575b8ca2c10f7c7"
         },
         "readback": {
@@ -16285,7 +16285,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes",
           "anchor": "verify-auth-routes)",
-          "line": 2925,
+          "line": 3199,
           "contextSha256": "7957f9e3037cfb6c21c09ffd6f15387e56c831f6785b9213f24b823ca09bd68b"
         }
       },
@@ -16304,22 +16304,22 @@
           "kind": "direct-callsite",
           "witness": "SAFE-011 dispatch-action",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:3328",
-          "target": "src/ingress/source_view_registry.cpp:1929"
+          "target": "src/ingress/source_view_registry.cpp:2104"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "direct-callsite",
           "witness": "SAFE-011 action-state",
-          "source": "src/ingress/source_view_registry.cpp:1929",
-          "target": "src/ingress/source_view_registry.cpp:926"
+          "source": "src/ingress/source_view_registry.cpp:2104",
+          "target": "src/ingress/source_view_registry.cpp:1101"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-011 state-readback",
-          "source": "src/ingress/source_view_registry.cpp:926",
+          "source": "src/ingress/source_view_registry.cpp:1101",
           "target": "scripts/internal/verify_auth_workflow.sh:442"
         },
         {
@@ -16328,7 +16328,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:442",
-          "target": "server.sh:2925"
+          "target": "server.sh:3199"
         }
       ],
       "rationale": "SAFE-011 exact reviewed source flow."
@@ -16944,28 +16944,28 @@
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::ClientViewsJson",
           "anchor": "RegistryResult SourceViewRegistry::ClientViewsJson(const ClientViewAccessAuthorizer& authorizer) {",
-          "line": 1908,
+          "line": 2083,
           "contextSha256": "ba738a028756d67c7a0171b1aaabc2714e979731beb63999dde52ec43696522d"
         },
         "dispatch": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::ClientViewsJson",
           "anchor": "out << ClientPublishedViewJson(view, *source);",
-          "line": 1929,
+          "line": 2104,
           "contextSha256": "3ceef19d36cc0bf1839690f08b5b2b59ae331747f3cf919f686af827dcecf1c3"
         },
         "action": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "ClientPublishedViewJson",
           "anchor": "std::string ClientPublishedViewJson(const SourceViewRegistry::PublishedViewRecord& view,",
-          "line": 922,
+          "line": 1097,
           "contextSha256": "f0f7d60dfe8c5b8caf8bcd7e0bb38e014eac357908a62689bca0fcafca0305e7"
         },
         "state": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "ClientPublishedViewJson",
           "anchor": "<< \"\\\"viewId\\\":\\\"\" << JsonEscape(view.view_id) << \"\\\",\"",
-          "line": 926,
+          "line": 1101,
           "contextSha256": "e8fd40e796cc9fd596894f8bc5bac7d53ef2aca13e1108a4d575b8ca2c10f7c7"
         },
         "readback": {
@@ -16979,7 +16979,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes",
           "anchor": "verify-auth-routes)",
-          "line": 2925,
+          "line": 3199,
           "contextSha256": "7957f9e3037cfb6c21c09ffd6f15387e56c831f6785b9213f24b823ca09bd68b"
         }
       },
@@ -16989,31 +16989,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-018 owner-dispatch",
-          "source": "src/ingress/source_view_registry.cpp:1908",
-          "target": "src/ingress/source_view_registry.cpp:1929"
+          "source": "src/ingress/source_view_registry.cpp:2083",
+          "target": "src/ingress/source_view_registry.cpp:2104"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "SAFE-018 dispatch-action",
-          "source": "src/ingress/source_view_registry.cpp:1929",
-          "target": "src/ingress/source_view_registry.cpp:922"
+          "source": "src/ingress/source_view_registry.cpp:2104",
+          "target": "src/ingress/source_view_registry.cpp:1097"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-018 action-state",
-          "source": "src/ingress/source_view_registry.cpp:922",
-          "target": "src/ingress/source_view_registry.cpp:926"
+          "source": "src/ingress/source_view_registry.cpp:1097",
+          "target": "src/ingress/source_view_registry.cpp:1101"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-018 state-readback",
-          "source": "src/ingress/source_view_registry.cpp:926",
+          "source": "src/ingress/source_view_registry.cpp:1101",
           "target": "scripts/internal/verify_auth_workflow.sh:442"
         },
         {
@@ -17022,7 +17022,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:442",
-          "target": "server.sh:2925"
+          "target": "server.sh:3199"
         }
       ],
       "rationale": "SAFE-018 exact reviewed source flow."

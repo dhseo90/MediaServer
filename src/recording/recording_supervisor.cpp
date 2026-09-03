@@ -19,8 +19,9 @@ std::int64_t NowMs() {
 
 RecordingSupervisor::RecordingSupervisor(const core::RecordingRuntimeConfigData& config,
                                          ingress::SourceViewApplicationService& sources,
-                                         RecordingSessionService& sessions)
-    : config_(config), sources_(sources), sessions_(sessions) {}
+                                         RecordingSessionService& sessions,
+                                         RetentionCoordinator& retention)
+    : config_(config), sources_(sources), sessions_(sessions), retention_(retention) {}
 
 RecordingSupervisor::~RecordingSupervisor() { Stop(); }
 
@@ -74,9 +75,23 @@ void RecordingSupervisor::ReconcileSource(
         config_.recording_enabled, source.enabled, source.recording.enabled);
     if (!desired) {
         if (state.active) (void)sessions_.StopChannel(source.source_id);
+        retention_.RemoveChannelPolicy(source.source_id);
         state.active = false;
         state.revision = source.recording.revision;
         state.last_error.clear();
+        return;
+    }
+    RetentionPolicy policy;
+    policy.continuous_max_bytes = source.recording.continuous_max_bytes;
+    policy.continuous_max_age_ms = source.recording.continuous_max_age_ms;
+    policy.event_max_bytes = source.recording.event_max_bytes;
+    policy.event_max_age_ms = source.recording.event_max_age_ms;
+    std::string policy_error;
+    if (!retention_.UpdateChannelPolicy(source.source_id, policy, &policy_error)) {
+        if (state.active) (void)sessions_.StopChannel(source.source_id);
+        state.active = false;
+        state.revision = source.recording.revision;
+        state.last_error = policy_error;
         return;
     }
     if (state.active && state.revision == source.recording.revision) return;
@@ -118,10 +133,16 @@ media::IngressRequest RecordingSupervisor::BuildRequest(
 
 void RecordingSupervisor::SafetyLoop() {
     std::unique_lock lock(wait_mu_);
+    const auto fallback_interval = std::chrono::seconds(5);
+    const auto interval = config_.recording_retention_interval_ms > 0
+                              ? std::chrono::milliseconds(config_.recording_retention_interval_ms)
+                              : std::chrono::duration_cast<std::chrono::milliseconds>(
+                                    fallback_interval);
     while (!stop_requested_) {
-        if (wait_cv_.wait_for(lock, std::chrono::seconds(5), [this] { return stop_requested_; })) break;
+        if (wait_cv_.wait_for(lock, interval, [this] { return stop_requested_; })) break;
         lock.unlock();
         ReconcileNow();
+        retention_.RunPeriodic(NowMs());
         lock.lock();
     }
 }

@@ -61,6 +61,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let currentChannelId = '';
     let editorMode = 'view';
     let currentChannelEnabled = true;
+    let currentRecordingPolicy = null;
     let initializedHashChannel = false;
     let pendingChannelDangerAction = '';
     let opsPrincipal = null;
@@ -999,10 +1000,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         floor: source.floor || '',
         zone: source.zone || ''
       };
+      const legacyMaxBytes = Number(source.recording?.quotaBytes || 10737418240);
+      const legacyMaxAgeMs = Number(source.recording?.retentionDays || 7) * 86400000;
       payload.recording = {
         enabled: source.recording?.enabled === true,
-        quotaBytes: Number(source.recording?.quotaBytes || 10737418240),
-        retentionDays: Number(source.recording?.retentionDays || 7),
+        continuousMaxBytes: Number(source.recording?.continuousMaxBytes ?? legacyMaxBytes),
+        continuousMaxAgeMs: Number(source.recording?.continuousMaxAgeMs ?? legacyMaxAgeMs),
+        eventMaxBytes: Number(source.recording?.eventMaxBytes ?? legacyMaxBytes),
+        eventMaxAgeMs: Number(source.recording?.eventMaxAgeMs ?? legacyMaxAgeMs),
         storagePath: source.recording?.storagePath || '',
         revision: Number(source.recording?.revision || 1)
       };
@@ -1042,6 +1047,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       channelForm.elements.recordingEnabled.checked = false;
       setGeneratedChannelId(nextChannelId());
       currentChannelEnabled = true;
+      currentRecordingPolicy = null;
       setChannelValidation('');
       updateKindFields();
       loadFileOptions();
@@ -1068,8 +1074,16 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       channelForm.elements.floor.value = source.floor || '';
       channelForm.elements.zone.value = source.zone || '';
       channelForm.elements.recordingEnabled.checked = source.recording?.enabled === true;
-      channelForm.elements.recordingQuotaBytes.value = String(source.recording?.quotaBytes || 10737418240);
-      channelForm.elements.recordingRetentionDays.value = String(source.recording?.retentionDays || 7);
+      currentRecordingPolicy = source.recording
+        ? JSON.parse(JSON.stringify(source.recording))
+        : null;
+      channelForm.elements.recordingQuotaBytes.value = String(
+        source.recording?.continuousMaxBytes ?? source.recording?.quotaBytes ?? 10737418240
+      );
+      const continuousMaxAgeMs = Number(
+        source.recording?.continuousMaxAgeMs ?? (Number(source.recording?.retentionDays || 7) * 86400000)
+      );
+      channelForm.elements.recordingRetentionDays.value = String(continuousMaxAgeMs / 86400000);
       channelForm.elements.recordingStoragePath.value = source.recording?.storagePath || '';
       channelForm.elements.allowedRuleIds.value = Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds.join(', ') : '';
       channelForm.elements.clientGroups.value = Array.isArray(view.clientGroups) ? view.clientGroups.join(', ') : '';
@@ -1233,7 +1247,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (data.recordingEnabled && Number(data.recordingQuotaBytes || 0) <= 0) {
         return '상시녹화 사용 시 녹화 용량은 1 이상이어야 합니다.';
       }
-      if (Number(data.recordingRetentionDays || 0) <= 0) return '녹화 보존 일수는 1 이상이어야 합니다.';
+      if (Number(data.recordingRetentionDays || 0) < 0) return '녹화 보존 일수는 0 이상이어야 합니다.';
       if (String(data.recordingStoragePath || '').includes('..')) return '저장 하위경로에는 ..을 사용할 수 없습니다.';
       return '';
     }
@@ -1276,12 +1290,17 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         floor: (data.floor || '').trim(),
         zone: (data.zone || '').trim()
       };
+      const previousRecording = currentRecordingPolicy || findSource(channelId)?.recording || {};
+      const continuousMaxBytes = Number(data.recordingQuotaBytes || 0);
+      const continuousMaxAgeMs = Number(data.recordingRetentionDays || 0) * 86400000;
       sourcePayload.recording = {
         enabled: data.recordingEnabled === 'true' || data.recordingEnabled === 'on',
-        quotaBytes: Number(data.recordingQuotaBytes || 0),
-        retentionDays: Number(data.recordingRetentionDays || 7),
+        continuousMaxBytes,
+        continuousMaxAgeMs,
+        eventMaxBytes: Number(previousRecording.eventMaxBytes ?? continuousMaxBytes),
+        eventMaxAgeMs: Number(previousRecording.eventMaxAgeMs ?? continuousMaxAgeMs),
         storagePath: (data.recordingStoragePath || '').trim(),
-        revision: Number((findSource(channelId)?.recording?.revision || 0)) + 1
+        revision: Number(previousRecording.revision || 0) + 1
       };
       if (formKind === 'file') sourcePayload.file = (data.file || '').trim();
       if (formKind === 'onvif' && onvifTransport?.rtspUrl) sourcePayload.rtspUrl = onvifTransport.rtspUrl;

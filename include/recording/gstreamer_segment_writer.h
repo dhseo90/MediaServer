@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <utility>
 
 #include "recording/segment_writer.h"
 
@@ -14,6 +15,14 @@ public:
     struct Options {
         std::filesystem::path storage_root;
         std::int64_t segment_duration_ms{10000};
+        std::uint64_t container_overhead_reservation_bytes{1024ULL * 1024ULL};
+        AdmissionCallback admit_segment;
+        SegmentProgressCallback report_segment_progress;
+        SegmentCompletionCallback complete_segment;
+
+        Options() = default;
+        Options(std::filesystem::path root, std::int64_t duration_ms)
+            : storage_root(std::move(root)), segment_duration_ms(duration_ms) {}
     };
 
     explicit GStreamerSegmentWriter(Options options);

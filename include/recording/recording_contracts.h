@@ -109,6 +109,7 @@ struct RecordingTombstoneV1 {
     std::string channel_id;
     UtcRangeV1 recorded_range;
     std::string checksum_sha256;
+    RecordingRetentionClass retention_class{RecordingRetentionClass::Unknown};
     std::string deletion_reason;
     std::int64_t deleted_at_ms{0};
 };

@@ -6,6 +6,7 @@
 #include <atomic>
 #include <chrono>
 #include <fstream>
+#include <limits>
 #include <sstream>
 
 #include "domain/strict_json.h"
@@ -70,6 +71,36 @@ bool IsRecognizedMedia(const std::filesystem::path& path) {
     const bool mp4 = count >= 8 && bytes[4] == 'f' && bytes[5] == 't' && bytes[6] == 'y' && bytes[7] == 'p';
     const bool webm = count >= 4 && bytes[0] == 0x1a && bytes[1] == 0x45 && bytes[2] == 0xdf && bytes[3] == 0xa3;
     return mp4 || webm;
+}
+
+bool IsSafeMediaRelpath(const std::string& value) {
+    if (value.empty()) return false;
+    const std::filesystem::path path(value);
+    if (path.is_absolute()) return false;
+    const auto normalized = path.lexically_normal();
+    if (normalized.empty() || normalized == ".") return false;
+    for (const auto& part : normalized) {
+        if (part == "..") return false;
+    }
+    return true;
+}
+
+bool ResolveContainedMediaPath(const std::filesystem::path& root,
+                               const std::filesystem::path& relative,
+                               std::filesystem::path* resolved) {
+    if (resolved == nullptr || !IsSafeMediaRelpath(relative.generic_string())) return false;
+    std::error_code root_error;
+    std::error_code media_error;
+    const auto canonical_root = std::filesystem::weakly_canonical(root, root_error);
+    const auto canonical_media = std::filesystem::weakly_canonical(root / relative, media_error);
+    if (root_error || media_error) return false;
+    const auto containment = canonical_media.lexically_relative(canonical_root);
+    if (containment.empty() || containment.is_absolute()) return false;
+    for (const auto& part : containment) {
+        if (part == "..") return false;
+    }
+    *resolved = canonical_media;
+    return true;
 }
 
 std::string LifecycleName(RecordingLifecycle value) {
@@ -148,6 +179,7 @@ bool RecordingCatalog::Open(std::string* error) {
         catalog_mode_ = "jsonl-fallback";
         if (error != nullptr) error->clear();
     }
+    if (!RecoverWriterCleanupMarkersLocked(error)) return false;
     opened_ = true;
     return true;
 }
@@ -160,6 +192,74 @@ std::string RecordingCatalog::catalog_mode() const {
 RecordingCatalogRecoveryReport RecordingCatalog::recovery_report() const {
     std::lock_guard lock(mu_);
     return recovery_report_;
+}
+
+bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
+    constexpr const char* kCleanupSuffix = ".cleanup-pending";
+    std::vector<std::filesystem::path> markers;
+    std::error_code scan_error;
+    if (!std::filesystem::exists(options_.media_root, scan_error)) {
+        if (scan_error) return Fail(error, "writer cleanup marker root 확인 실패");
+        return true;
+    }
+    for (std::filesystem::recursive_directory_iterator iterator(
+             options_.media_root, scan_error), end;
+         !scan_error && iterator != end;
+         iterator.increment(scan_error)) {
+        const auto& entry = *iterator;
+        const std::string path = entry.path().string();
+        if (entry.is_regular_file(scan_error) && !scan_error &&
+            path.size() > std::char_traits<char>::length(kCleanupSuffix) &&
+            path.compare(path.size() - std::char_traits<char>::length(kCleanupSuffix),
+                         std::char_traits<char>::length(kCleanupSuffix),
+                         kCleanupSuffix) == 0) {
+            markers.push_back(entry.path());
+        }
+    }
+    if (scan_error) return Fail(error, "writer cleanup marker 순회 실패");
+
+    for (const auto& marker : markers) {
+        std::filesystem::path final_path = marker;
+        std::string final_text = final_path.string();
+        final_text.resize(final_text.size() - std::char_traits<char>::length(kCleanupSuffix));
+        final_path = final_text;
+        if (final_path.extension() != ".mp4" && final_path.extension() != ".webm") {
+            ++recovery_report_.writer_cleanup_error_count;
+            return Fail(error, "writer cleanup marker 대상 확장자가 유효하지 않음");
+        }
+        const std::string segment_id = final_path.stem().string();
+        const auto known = segments_.find(segment_id);
+        const auto known_path = media_relpaths_.find(segment_id);
+        const auto relative_final = final_path.lexically_relative(options_.media_root);
+        const bool tracked_final =
+            known != segments_.end() && known_path != media_relpaths_.end() &&
+            known_path->second == relative_final.generic_string() &&
+            (known->second.lifecycle == RecordingLifecycle::Finalized ||
+             known->second.lifecycle == RecordingLifecycle::DeletionPending);
+        std::string cleanup_error;
+        if (!tracked_final) {
+            auto partial_path = final_path;
+            partial_path += ".partial";
+            if (!RemoveContainedMediaFile(
+                    options_.media_root, final_path, &cleanup_error) ||
+                !RemoveContainedMediaFile(
+                    options_.media_root, partial_path, &cleanup_error)) {
+                ++recovery_report_.writer_cleanup_error_count;
+                return Fail(error, cleanup_error.empty()
+                                       ? "미추적 writer media 복구 삭제 실패"
+                                       : cleanup_error);
+            }
+        }
+        if (!RemoveContainedMediaFile(options_.media_root, marker, &cleanup_error)) {
+            ++recovery_report_.writer_cleanup_error_count;
+            return Fail(error, cleanup_error.empty()
+                                   ? "writer cleanup marker 제거 실패"
+                                   : cleanup_error);
+        }
+        ++recovery_report_.writer_cleanup_recovered_count;
+    }
+    if (error != nullptr) error->clear();
+    return true;
 }
 
 bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
@@ -176,7 +276,11 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             const auto segment_json = ObjectField(mutation.payload_json, "segment");
             const auto relpath = StringField(mutation.payload_json, "mediaRelpath");
             RecordingSegmentV1 segment;
-            ok = segment_json && relpath && ParseRecordingSegmentV1(*segment_json, &segment, error);
+            ok = segment_json && relpath && IsSafeMediaRelpath(*relpath) &&
+                 ParseRecordingSegmentV1(*segment_json, &segment, error);
+            if (!ok && error != nullptr && error->empty()) {
+                *error = "recording mediaRelpath가 안전한 상대 경로가 아님";
+            }
             if (ok) { segments_[segment.segment_id] = segment; media_relpaths_[segment.segment_id] = *relpath; }
             break;
         }
@@ -207,8 +311,13 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         }
         case RecordingMutationType::DeletionRequested: {
             const auto it = segments_.find(mutation.entity_id);
+            const auto reason = StringField(mutation.payload_json, "reason");
             ok = it != segments_.end();
-            if (ok) it->second.lifecycle = RecordingLifecycle::DeletionPending;
+            if (ok) {
+                it->second.lifecycle = RecordingLifecycle::DeletionPending;
+                deletion_reasons_[mutation.entity_id] =
+                    reason.value_or("manual-corrupt-cleanup");
+            }
             else Fail(error, "삭제 요청 segment가 없음");
             break;
         }
@@ -220,6 +329,9 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                 tombstones_[tombstone.segment_id] = tombstone;
                 const auto it = segments_.find(tombstone.segment_id);
                 if (it != segments_.end()) it->second.lifecycle = RecordingLifecycle::Deleted;
+                media_relpaths_.erase(tombstone.segment_id);
+                hold_counts_.erase(tombstone.segment_id);
+                deletion_reasons_.erase(tombstone.segment_id);
             }
             break;
         }
@@ -239,7 +351,15 @@ bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::s
     mutation.occurred_at_ms = mutation.occurred_at_ms == 0 ? NowMs() : mutation.occurred_at_ms;
     if (!journal_.Append(mutation, error)) return false;
     if (!ApplyMutationLocked(mutation, false, error)) return false;
-    if (sqlite_db_ != nullptr && !ProjectMutationSqliteLocked(mutation, error)) return false;
+    if (sqlite_db_ != nullptr) {
+        std::string projection_error;
+        if (!ProjectMutationSqliteLocked(mutation, &projection_error)) {
+            ++recovery_report_.projection_error_count;
+            CloseSqliteLocked();
+            catalog_mode_ = "jsonl-fallback";
+            if (error != nullptr) error->clear();
+        }
+    }
     return true;
 }
 
@@ -249,10 +369,15 @@ bool RecordingCatalog::FinalizeSegment(const RecordingSegmentV1& segment,
     std::lock_guard lock(mu_);
     if (!opened_) return Fail(error, "catalog가 열리지 않음");
     if (!ValidateRecordingSegmentV1(segment, error) || segment.lifecycle != RecordingLifecycle::Finalized) return false;
-    const auto root = std::filesystem::absolute(options_.media_root).lexically_normal();
-    const auto media = std::filesystem::absolute(media_path).lexically_normal();
+    std::error_code fs_error;
+    const auto root = std::filesystem::weakly_canonical(options_.media_root, fs_error);
+    if (fs_error) return Fail(error, "recording root canonicalize 실패");
+    const auto media = std::filesystem::weakly_canonical(media_path, fs_error);
+    if (fs_error) return Fail(error, "recording media canonicalize 실패");
     const auto relative = media.lexically_relative(root);
-    if (relative.empty() || relative.string().rfind("..", 0) == 0 || !std::filesystem::is_regular_file(media)) {
+    std::filesystem::path contained_media;
+    if (!ResolveContainedMediaPath(root, relative, &contained_media) ||
+        contained_media != media || !std::filesystem::is_regular_file(media)) {
         return Fail(error, "media path가 recording root 밖이거나 파일이 없음");
     }
     RecordingMutationV1 mutation;
@@ -289,7 +414,15 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
                                        const std::string& reason,
                                        std::string* error) {
     std::lock_guard lock(mu_);
-    if (segments_.find(segment_id) == segments_.end()) return Fail(error, "삭제 요청 segment가 없음");
+    const auto segment = segments_.find(segment_id);
+    if (segment == segments_.end() ||
+        segment->second.lifecycle != RecordingLifecycle::Finalized) {
+        return Fail(error, "삭제 요청 가능한 finalized segment가 없음");
+    }
+    const auto hold = hold_counts_.find(segment_id);
+    if (segment->second.pinned || (hold != hold_counts_.end() && hold->second > 0)) {
+        return Fail(error, "pin 또는 hold가 있는 segment는 삭제 요청할 수 없음");
+    }
     RecordingMutationV1 mutation;
     mutation.mutation_type = RecordingMutationType::DeletionRequested;
     mutation.entity_id = segment_id;
@@ -320,6 +453,89 @@ std::vector<RecordingSegmentV1> RecordingCatalog::QuerySegments(const std::strin
         return lhs.segment_id < rhs.segment_id;
     });
     return result;
+}
+
+RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
+    std::lock_guard lock(mu_);
+    struct RetentionSnapshot snapshot;
+    for (const auto& [segment_id, segment] : segments_) {
+        if (segment.lifecycle != RecordingLifecycle::Finalized &&
+            segment.lifecycle != RecordingLifecycle::DeletionPending) {
+            continue;
+        }
+        const auto path = media_relpaths_.find(segment_id);
+        if (path == media_relpaths_.end()) continue;
+        std::filesystem::path contained_media;
+        if (!ResolveContainedMediaPath(options_.media_root, path->second, &contained_media)) {
+            if (segment.lifecycle == RecordingLifecycle::DeletionPending) {
+                RetentionCandidate pending;
+                pending.segment = segment;
+                pending.media_path = options_.media_root / path->second;
+                const auto reason = deletion_reasons_.find(segment_id);
+                if (reason != deletion_reasons_.end()) {
+                    pending.deletion_reason = reason->second;
+                }
+                snapshot.candidates.push_back(std::move(pending));
+            }
+            continue;
+        }
+        RetentionCandidate candidate;
+        candidate.segment = segment;
+        candidate.media_path = std::move(contained_media);
+        const auto hold = hold_counts_.find(segment_id);
+        candidate.hold_count = hold == hold_counts_.end() ? 0 : hold->second;
+        const auto reason = deletion_reasons_.find(segment_id);
+        if (reason != deletion_reasons_.end()) candidate.deletion_reason = reason->second;
+        snapshot.candidates.push_back(std::move(candidate));
+    }
+    return snapshot;
+}
+
+bool RecordingCatalog::AdjustHoldCount(const std::string& segment_id,
+                                       std::int64_t delta,
+                                       std::string* error) {
+    std::lock_guard lock(mu_);
+    const auto segment = segments_.find(segment_id);
+    if (segment == segments_.end() || segment->second.lifecycle != RecordingLifecycle::Finalized) {
+        return Fail(error, "hold 대상 finalized segment가 없음");
+    }
+    const std::uint64_t current = hold_counts_[segment_id];
+    const std::uint64_t magnitude = delta < 0
+                                        ? static_cast<std::uint64_t>(-(delta + 1)) + 1
+                                        : static_cast<std::uint64_t>(delta);
+    if (delta < 0 && magnitude > current) {
+        return Fail(error, "hold_count는 음수가 될 수 없음");
+    }
+    constexpr auto kMaxPersistentHoldCount =
+        static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
+    if (delta >= 0 && magnitude > kMaxPersistentHoldCount - current) {
+        return Fail(error, "hold_count가 int64 저장 범위를 넘음");
+    }
+    const std::uint64_t next = delta >= 0 ? current + magnitude : current - magnitude;
+#if MEDIA_SERVER_USE_SQLITE3
+    if (sqlite_db_ != nullptr) {
+        sqlite3_stmt* statement = nullptr;
+        if (sqlite3_prepare_v2(sqlite_db_,
+                               "UPDATE recording_segments SET hold_count=? WHERE segment_id=?",
+                               -1, &statement, nullptr) != SQLITE_OK) {
+            return Fail(error, sqlite3_errmsg(sqlite_db_));
+        }
+        sqlite3_bind_int64(statement, 1, static_cast<sqlite3_int64>(next));
+        BindText(statement, 2, segment_id);
+        const bool ok = sqlite3_step(statement) == SQLITE_DONE &&
+                        sqlite3_changes(sqlite_db_) == 1;
+        if (!ok) {
+            const std::string message = sqlite3_errmsg(sqlite_db_);
+            sqlite3_finalize(statement);
+            return Fail(error, message);
+        }
+        sqlite3_finalize(statement);
+    }
+#endif
+    if (next == 0) hold_counts_.erase(segment_id);
+    else hold_counts_[segment_id] = next;
+    if (error != nullptr) error->clear();
+    return true;
 }
 
 RecordingOrphanReport RecordingCatalog::InspectOrphans() const {
@@ -417,8 +633,15 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
     if (sqlite3_prepare_v2(sqlite_db_, "INSERT OR IGNORE INTO recording_mutations VALUES(?,?,?,?)", -1, &statement, nullptr) != SQLITE_OK) { Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
     BindText(statement, 1, mutation.mutation_id); BindText(statement, 2, RecordingMutationTypeName(mutation.mutation_type));
     sqlite3_bind_int64(statement, 3, mutation.occurred_at_ms); BindText(statement, 4, mutation.entity_id);
-    const bool inserted = sqlite3_step(statement) == SQLITE_DONE && sqlite3_changes(sqlite_db_) > 0;
+    const int mutation_step = sqlite3_step(statement);
+    const bool inserted = mutation_step == SQLITE_DONE && sqlite3_changes(sqlite_db_) > 0;
+    const std::string mutation_error =
+        mutation_step == SQLITE_DONE ? std::string() : sqlite3_errmsg(sqlite_db_);
     sqlite3_finalize(statement);
+    if (mutation_step != SQLITE_DONE) {
+        Exec(sqlite_db_, "ROLLBACK", nullptr);
+        return Fail(error, mutation_error);
+    }
     if (!inserted) return Exec(sqlite_db_, "COMMIT", error);
     if (mutation.mutation_type == RecordingMutationType::SegmentFinalized) {
         const auto segment_json = ObjectField(mutation.payload_json, "segment");
@@ -501,7 +724,7 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         sqlite3_bind_int64(statement, 5, tombstone.recorded_range.end_ms);
         sqlite3_bind_int64(statement, 6, tombstone.deleted_at_ms);
         BindText(statement, 7, tombstone.deletion_reason);
-        BindText(statement, 8, "unknown");
+        BindText(statement, 8, RetentionName(tombstone.retention_class));
         BindText(statement, 9, tombstone.checksum_sha256);
         if (sqlite3_step(statement) != SQLITE_DONE) {
             const std::string message = sqlite3_errmsg(sqlite_db_);
@@ -509,7 +732,7 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         }
         sqlite3_finalize(statement);
         sqlite3_prepare_v2(sqlite_db_,
-                           "UPDATE recording_segments SET lifecycle='deleted' WHERE segment_id=?",
+                           "UPDATE recording_segments SET lifecycle='deleted', media_relpath='' WHERE segment_id=?",
                            -1, &statement, nullptr);
         BindText(statement, 1, tombstone.segment_id);
         if (sqlite3_step(statement) != SQLITE_DONE) {

@@ -19,8 +19,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
   2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선, S01 녹화 v1 계약,
-  S02 채널별 상시녹화 recorder와 S03 JSONL/SQLite catalog·supervisor 완료.
-  S04~S09는 미구현
+  S02 채널별 상시녹화 recorder, S03 JSONL/SQLite catalog·supervisor,
+  S04 등급별 순환 보존과 disk reserve 완료. S05~S09는 미구현
 - 상세 구현계획:
   [`2026-09-02-v410-recording-foundation-implementation-plan.md`](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
 - 장기 로드맵은 `main` 공통 문서로 관리하고, 각 버전 브랜치는 자신의 버전 단계만
@@ -396,7 +396,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S01 | Recording contract v1 | P0 | 완료 | segment/frame/event link/analysis observation/tombstone 계약, v1 additive migration/rebuild 규칙, golden JSONL round-trip |
 | V410-S02 | Continuous segment recorder | P0 | 완료 | 채널별 opt-in, Recorder subscriber, H.264/MP4·VP8/WebM keyframe segment, atomic finalize, PTS rollback epoch |
 | V410-S03 | Catalog and recovery journal | P0 | 완료 | fsync append-only JSONL, SQLite primary/rebuild, in-memory fallback, 손상 격리, source policy supervisor |
-| V410-S04 | Retention coordinator | P0 | 미구현 | continuous/event 용량 분리, oldest-first overwrite, pin/tombstone/disk reserve |
+| V410-S04 | Retention coordinator | P0 | 완료 | continuous/event 등급별 quota·기간, `(end_utc_ms, segment_id)` oldest-first, pin·hold, journal 선행 tombstone/채널별 pending 복구, dirfd 결박 unlink, 채널 간 in-flight disk reserve·실제 쓰기 정산과 writer admission |
 | V410-S05 | Event recording linker | P0 | 미구현 | 겹치는 원본 segment와 pre/event/post 파생 clip, frame-buffer fallback |
 | V410-S06 | Priority timeline | P0 | 미구현 | event > continuous 조회·재생 API와 Ops UI |
 | V410-S07 | Search-ready metadata | P1 | 미구현 | event/track summary와 bounded representative observations, exact frame locator |
@@ -535,6 +535,54 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
   `verify-v410-recording-recorder` `pass=38 fail=0`, 제품 build 100% PASS.
 - 미실행/비대체: retention unlink/overwrite, event link runtime bridge, timeline API/UI,
   UI 풀테스트, 30분/120분, external field smoke, published metadata, release action.
+
+### v4.1.0 S04 개발 기록
+
+- 범위: P0 `V410-S04 Retention coordinator`만 구현했다. S05 event recording
+  linker와 이후 timeline/검색 단계는 시작하지 않았다.
+- `retention_coordinator.*`: catalog snapshot에서 continuous/event 용량·기간을
+  독립 계산하고 `(end_utc_ms, segment_id)` oldest-first 선택을 수행한다.
+  새 segment 예상 크기를 continuous quota에 포함하고 채널 간 in-flight
+  reserve를 직렬화해 같은 물리 여유 공간을 중복 승인하지 않는다. partial 파일의 실제
+  쓰기 진행량은 물리 free와 예약에서 이중 차감되지 않게 정산한다.
+- `recording_catalog.*`, `recording_contracts.*`: pin·process-lifetime hold를 삭제
+  transition에서 다시 확인하고 hold를 SQLite int64 범위로 제한한다.
+  `deletion_requested → media unlink → deletion_completed/tombstone`를 적용하며,
+  unlink 후 tombstone 실패로 남은 pending을 다음 tick에서 idempotent하게 재시도하며,
+  한 채널의 복구 실패가 다른 채널 admission과 주기 정리를 막지 않는다.
+- catalog replay containment와 실제 삭제의 `openat`/`unlinkat` dirfd 결박을 함께
+  적용해 `..` 경로와 검사 뒤 상위 디렉터리 symlink 교체 경쟁에서도 root 밖 파일이
+  삭제되지 않게 했다.
+- `gstreamer_segment_writer.*`, `recording_supervisor.*`, `media_server_application.cpp`:
+  keyframe segment open 직전 admission, container overhead 포함 예약 상한, partial/final
+  실제 크기 보고와 finalize/실패 시 예약 반환, 주기
+  cleanup, 해당 채널만 `storage-blocked`, 공간 회복 뒤 새 epoch 재개를
+  제품 composition root에 연결했다. live/client/analysis subscriber 경로는
+  변경하지 않았다.
+- writer는 final media를 열기 전에 cleanup-pending 마커를 storage root dirfd에서
+  `openat(O_NOFOLLOW|O_EXCL)`로 만들고 file과 parent directory까지 fsync한다. catalog
+  finalize 또는 file cleanup 뒤 마커 안전 제거·directory fsync까지 성공해야 예약을
+  반환하며, 삭제·single-link 안전 truncate·마커 제거 중 하나라도 실패하면 예약을 유지한다.
+  policy disable/재활성화도 미해결 예약을 지우지
+  않으며 재시작 catalog 복구는 추적 media를 보존하고 미추적 media/partial/마커를 안전하게
+  제거한다. 복구 cleanup 실패는 catalog open을 fail-closed한다.
+- source recording policy는 `continuousMaxBytes/continuousMaxAgeMs`와
+  `eventMaxBytes/eventMaxAgeMs`를 분리하고 legacy `quotaBytes/retentionDays`를
+  양쪽으로 이행한다. 명시한 음수·비정상 숫자는 default로 대체하지
+  않고 거부하며 Ops 복제도 기존 event policy를 보존한다. event quota가 보호 항목 때문에
+  초과돼도 continuous quota와 disk reserve가 정상이면 상시녹화 admission은 독립 허용한다.
+- SQLite 실시간 projection 실패는 journal과 in-memory 적용을 유지한 채 즉시 DB를 닫고
+  `jsonl-fallback`으로 전환하며, 다음 시작에서 journal 전체를 SQLite로 재구축한다.
+- RED: 최초 focused verifier는 coordinator 구현 부재로 compile 실패했다.
+  후속 안전성 RED는 reservation/root 계약 부재 compile 실패와 입력 검증
+  `fail=2`를 확인했다.
+- GREEN: `verify-v410-recording-retention` `pass=56 fail=0`,
+  `verify-v410-recording-recorder` `pass=67 fail=0`,
+  `verify-v410-recording-catalog` C++ `pass=37 fail=0`. contracts/제품 build와
+  docs/inventory/diff 검증 결과는
+  [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
+- 미실행/비대체: S05~S09, 실제 UI 풀테스트, 30분/120분 장시간,
+  실장비 disk-full field smoke, published metadata, PR/main merge/tag/GitHub Release.
 
 기존에 v4.1.0 후보로 적었던 Incident OS 제품 승격, Evidence default-on, 로컬 Action
 Execution, credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 이번 v4.1.0 범위가

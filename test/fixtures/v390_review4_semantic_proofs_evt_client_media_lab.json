@@ -13832,28 +13832,28 @@
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::UpsertSource",
           "anchor": "RegistryResult SourceViewRegistry::UpsertSource(const std::string& source_id, const std::string& body) {",
-          "line": 2031,
-          "contextSha256": "0508f36a55a41f1eec036b381762c9cbf0b0eabe03d247a7888603a804e3dd13"
+          "line": 2209,
+          "contextSha256": "524de7b6b96bd699291211b06202fb9b19bfe2f038f9710929277bad6c654c07"
         },
         "dispatch": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::UpsertSource:ParseSourceRecord-callsite",
           "anchor": "const auto source = ParseSourceRecord(body, source_id, &error);",
-          "line": 2038,
+          "line": 2216,
           "contextSha256": "1eefc8bd22c62c0181592c653822761e8868d465a154c4855bed2e4d0c2ce342"
         },
         "action": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "ParseSourceRecord",
           "anchor": "std::optional<SourceViewRegistry::SourceRecord> ParseSourceRecord(const std::string& body,",
-          "line": 675,
+          "line": 732,
           "contextSha256": "70660523aa3dd65ff6149ff4602fb4be1124ecb668f005d056e20969c0e3cdf1"
         },
         "state": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "ParseSourceRecord",
           "anchor": "if (source.whep_url.empty() && source.kind == \"whep\" && !generic_url.empty()) {",
-          "line": 720,
+          "line": 777,
           "contextSha256": "6f872c323c5217d56bd9fa2028ff2465572fe1405e347ecd920805b9e2ce76ee"
         },
         "readback": {
@@ -13867,7 +13867,7 @@
           "file": "server.sh",
           "symbol": "server.sh:verify-ops-click-e2e",
           "anchor": "verify-ops-click-e2e)",
-          "line": 1493,
+          "line": 1599,
           "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         }
       },
@@ -13877,31 +13877,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "UpsertSource contains the authoritative ParseSourceRecord call before atomic source registry save.",
-          "source": "src/ingress/source_view_registry.cpp:2031",
-          "target": "src/ingress/source_view_registry.cpp:2038"
+          "source": "src/ingress/source_view_registry.cpp:2209",
+          "target": "src/ingress/source_view_registry.cpp:2216"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "The UpsertSource dispatch anchor directly calls ParseSourceRecord.",
-          "source": "src/ingress/source_view_registry.cpp:2038",
-          "target": "src/ingress/source_view_registry.cpp:675"
+          "source": "src/ingress/source_view_registry.cpp:2216",
+          "target": "src/ingress/source_view_registry.cpp:732"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "ParseSourceRecord binds kind whep to the whepUrl locator and rejects invalid source-kind/locator combinations.",
-          "source": "src/ingress/source_view_registry.cpp:675",
-          "target": "src/ingress/source_view_registry.cpp:720"
+          "source": "src/ingress/source_view_registry.cpp:732",
+          "target": "src/ingress/source_view_registry.cpp:777"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "verify-ops-click-e2e independently observes whep through a runtime condition and fails on mismatch.",
-          "source": "src/ingress/source_view_registry.cpp:720",
+          "source": "src/ingress/source_view_registry.cpp:777",
           "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:831"
         },
         {
@@ -13910,7 +13910,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-click-e2e",
           "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:831",
-          "target": "server.sh:1493"
+          "target": "server.sh:1599"
         }
       ],
       "rationale": "The authoritative WHEP registry mutation is tied to an exact API readback predicate; the same workflow immediately exercises the client session wrapper."
@@ -17032,28 +17032,28 @@
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "StreamVaMetadataSse",
           "anchor": "bool StreamVaMetadataSse(int client_fd,",
-          "line": 6726,
+          "line": 6732,
           "contextSha256": "530dd2aad88319a354a8dc78ee740a72735ccf2d13f10e32799fac6ec1084dbe"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "StreamVaMetadataSse",
           "anchor": "const std::string payload = BuildVaRuntimeMetadataJsonWithinBudget(",
-          "line": 6780,
+          "line": 6786,
           "contextSha256": "3a1a992176721ce49c7c27715d604fe7e84c4cb2638d3d6ee7bc09fcd3b668a9"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "StreamVaMetadataSse",
           "anchor": "if (!payload.empty()) {",
-          "line": 6785,
+          "line": 6791,
           "contextSha256": "cb6cbc120ba752a4a135f792096e54754a47df34dfdcc4d997523d8f7eecded2"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "StreamVaMetadataSse",
           "anchor": "if (!SendSseEvent(client_fd, \"metadata\", payload, sse_sequence++)) {",
-          "line": 6786,
+          "line": 6792,
           "contextSha256": "3b94b4fb6354e1006501bd15db83eef1ddd50c6593938162ca5ed5f89472f24b"
         },
         "readback": {
@@ -17067,7 +17067,7 @@
           "file": "server.sh",
           "symbol": "server.sh:verify-v390-review4-lab-core-api",
           "anchor": "verify-v390-review4-lab-core-api)",
-          "line": 2389,
+          "line": 2587,
           "contextSha256": "36a96faa51677dc0e3793ef7886ad0609101f029ecf5a8f577111feb4eab195f"
         }
       },
@@ -17077,31 +17077,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The product owner contains the exact route/control callsite.",
-          "source": "src/ingress/webrtc_http_server.cpp:6726",
-          "target": "src/ingress/webrtc_http_server.cpp:6780"
+          "source": "src/ingress/webrtc_http_server.cpp:6732",
+          "target": "src/ingress/webrtc_http_server.cpp:6786"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The route branch contains the image encoding action.",
-          "source": "src/ingress/webrtc_http_server.cpp:6780",
-          "target": "src/ingress/webrtc_http_server.cpp:6785"
+          "source": "src/ingress/webrtc_http_server.cpp:6786",
+          "target": "src/ingress/webrtc_http_server.cpp:6791"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action owns the authoritative response/state emission.",
-          "source": "src/ingress/webrtc_http_server.cpp:6785",
-          "target": "src/ingress/webrtc_http_server.cpp:6786"
+          "source": "src/ingress/webrtc_http_server.cpp:6791",
+          "target": "src/ingress/webrtc_http_server.cpp:6792"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes metadata from the product response.",
-          "source": "src/ingress/webrtc_http_server.cpp:6786",
+          "source": "src/ingress/webrtc_http_server.cpp:6792",
           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:118"
         },
         {
@@ -17110,7 +17110,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v390-review4-lab-core-api",
           "source": "scripts/internal/verify_v390_review4_lab_core_api.mjs:118",
-          "target": "server.sh:2389"
+          "target": "server.sh:2587"
         }
       ],
       "rationale": "The product call/data-flow is tied to an independently dispatched managed-server HTTP oracle for LAB-015; external endpoints, UI, and long-run execution are not claimed."
@@ -17632,28 +17632,28 @@
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "AnalysisMetadataJsonValue",
           "anchor": "std::string AnalysisMetadataJsonValue(const std::string& tap_id,",
-          "line": 5893,
+          "line": 5899,
           "contextSha256": "987e037568affa32dcf5dec3abadb8f40d9ba93238df52a2921d850a47de9913"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "AnalysisMetadataJsonValue",
           "anchor": "std::ostringstream out;",
-          "line": 5895,
+          "line": 5901,
           "contextSha256": "51e64080848bf1cb998598b94232cd303f411023de2028334199abbb956475ab"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "AnalysisMetadataJsonValue",
           "anchor": "out << \"{\"",
-          "line": 5896,
+          "line": 5902,
           "contextSha256": "7578f1bd3f1a448d5bd461c55ef21889775ce590fa1db0ce1adaef31c51d1d8d"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "AnalysisMetadataJson",
           "anchor": "<< \"\\\"hasResult\\\":\" << (result.has_value() ? \"true\" : \"false\") << \",\"",
-          "line": 5898,
+          "line": 5904,
           "contextSha256": "795e95d0f186b43b5bcd035cc9f4bbf441936066c885bea16bc5cba9e3a9bc04"
         },
         "readback": {
@@ -17667,7 +17667,7 @@
           "file": "server.sh",
           "symbol": "server.sh:verify-v390-review4-lab-core-api",
           "anchor": "verify-v390-review4-lab-core-api)",
-          "line": 2389,
+          "line": 2587,
           "contextSha256": "36a96faa51677dc0e3793ef7886ad0609101f029ecf5a8f577111feb4eab195f"
         }
       },
@@ -17677,31 +17677,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The product owner contains the exact route/control callsite.",
-          "source": "src/ingress/webrtc_http_server.cpp:5893",
-          "target": "src/ingress/webrtc_http_server.cpp:5895"
+          "source": "src/ingress/webrtc_http_server.cpp:5899",
+          "target": "src/ingress/webrtc_http_server.cpp:5901"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "AnalysisMetadataJsonValue initializes its response stream before producing the payload object.",
-          "source": "src/ingress/webrtc_http_server.cpp:5895",
-          "target": "src/ingress/webrtc_http_server.cpp:5896"
+          "source": "src/ingress/webrtc_http_server.cpp:5901",
+          "target": "src/ingress/webrtc_http_server.cpp:5902"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action owns the authoritative response/state emission.",
-          "source": "src/ingress/webrtc_http_server.cpp:5896",
-          "target": "src/ingress/webrtc_http_server.cpp:5898"
+          "source": "src/ingress/webrtc_http_server.cpp:5902",
+          "target": "src/ingress/webrtc_http_server.cpp:5904"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes hasResult from the product response.",
-          "source": "src/ingress/webrtc_http_server.cpp:5898",
+          "source": "src/ingress/webrtc_http_server.cpp:5904",
           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:115"
         },
         {
@@ -17710,7 +17710,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v390-review4-lab-core-api",
           "source": "scripts/internal/verify_v390_review4_lab_core_api.mjs:115",
-          "target": "server.sh:2389"
+          "target": "server.sh:2587"
         }
       ],
       "rationale": "The product call/data-flow is tied to an independently dispatched managed-server HTTP oracle for LAB-021; external endpoints, UI, and long-run execution are not claimed."
@@ -18046,14 +18046,14 @@
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "AnalysisEventsJson",
           "anchor": "std::string AnalysisEventsJson(",
-          "line": 7708,
+          "line": 7714,
           "contextSha256": "acb957e2aeab2c25f16d158d7592c6dc9afb6f04ff3659dd08c15f49b517a961"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "AnalysisEventsJson",
           "anchor": "<< \",\\\"events\\\":[\";",
-          "line": 7718,
+          "line": 7724,
           "contextSha256": "413e67837f7ed45ec8dcc92a76704a9dbe0dc30bfe8dbbe42313fe51fa0163c2"
         },
         "readback": {
@@ -18067,7 +18067,7 @@
           "file": "server.sh",
           "symbol": "server.sh:verify-v390-review4-lab-core-api",
           "anchor": "verify-v390-review4-lab-core-api)",
-          "line": 2389,
+          "line": 2587,
           "contextSha256": "36a96faa51677dc0e3793ef7886ad0609101f029ecf5a8f577111feb4eab195f"
         }
       },
@@ -18086,22 +18086,22 @@
           "kind": "direct-callsite",
           "witness": "The callsite directly invokes AnalysisEventsJson.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:4543",
-          "target": "src/ingress/webrtc_http_server.cpp:7708"
+          "target": "src/ingress/webrtc_http_server.cpp:7714"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action owns the authoritative response/state emission.",
-          "source": "src/ingress/webrtc_http_server.cpp:7708",
-          "target": "src/ingress/webrtc_http_server.cpp:7718"
+          "source": "src/ingress/webrtc_http_server.cpp:7714",
+          "target": "src/ingress/webrtc_http_server.cpp:7724"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes events from the product response.",
-          "source": "src/ingress/webrtc_http_server.cpp:7718",
+          "source": "src/ingress/webrtc_http_server.cpp:7724",
           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:132"
         },
         {
@@ -18110,7 +18110,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v390-review4-lab-core-api",
           "source": "scripts/internal/verify_v390_review4_lab_core_api.mjs:132",
-          "target": "server.sh:2389"
+          "target": "server.sh:2587"
         }
       ],
       "rationale": "The product call/data-flow is tied to an independently dispatched managed-server HTTP oracle for LAB-025; external endpoints, UI, and long-run execution are not claimed."

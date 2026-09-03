@@ -1,12 +1,14 @@
 // 파일 요약: GStreamer appsrc/parser/muxer로 녹화 segment를 작성한다.
 // 동작 요약: partial 파일을 EOS까지 닫은 뒤 rename하고 finalized metadata를 callback한다.
 #include "recording/gstreamer_segment_writer.h"
+#include "recording/retention_coordinator.h"
 
 #include <chrono>
 #include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <iomanip>
+#include <limits>
 #include <mutex>
 #include <sstream>
 
@@ -55,6 +57,13 @@ std::string FileSha256(const std::filesystem::path& path) {
     const std::string result = digest != nullptr ? digest : std::string(64, '0');
     g_checksum_free(checksum);
     return result;
+}
+
+bool WriteCleanupMarkerDurably(const std::filesystem::path& storage_root,
+                               const std::filesystem::path& path) {
+    std::string error;
+    return WriteContainedFileDurably(
+        storage_root, path, "recording-cleanup-pending-v1\n", &error);
 }
 #endif
 
@@ -128,6 +137,18 @@ public:
             FinalizeLocked();
             if (!OpenLocked(packet, utc_ms)) return;
         }
+        const std::uint64_t payload_budget =
+            current_reserved_bytes > options.container_overhead_reservation_bytes
+                ? current_reserved_bytes - options.container_overhead_reservation_bytes
+                : 0;
+        if (segment_open && current_reserved_bytes > 0 &&
+            (packet.payload.size() >
+             payload_budget - std::min(current_payload_bytes, payload_budget))) {
+            const bool can_restart = packet.is_key_frame;
+            FinalizeLocked();
+            admission_blocked = true;
+            if (!can_restart || !OpenLocked(packet, utc_ms)) return;
+        }
         PushBufferLocked(packet, utc_ms);
 #else
         (void)utc_ms;
@@ -150,12 +171,46 @@ private:
 
 #if MEDIA_SERVER_USE_GSTREAMER
     bool OpenLocked(const media::Packet& first, std::int64_t utc_ms) {
+        if (options.admit_segment) {
+            SegmentAdmissionDecision decision;
+            const std::uint64_t minimum_segment_bytes =
+                first.payload.size() >
+                        std::numeric_limits<std::uint64_t>::max() -
+                            options.container_overhead_reservation_bytes
+                    ? std::numeric_limits<std::uint64_t>::max()
+                    : first.payload.size() + options.container_overhead_reservation_bytes;
+            try {
+                decision = options.admit_segment(channel_id, minimum_segment_bytes);
+            } catch (...) {
+                decision.allowed = false;
+            }
+            if (decision.allowed && decision.reserved_bytes < minimum_segment_bytes) {
+                decision.allowed = false;
+            }
+            if (!decision.allowed) {
+                admission_blocked = true;
+                return false;
+            }
+            reservation_active = true;
+            current_reserved_bytes = decision.reserved_bytes;
+            if (admission_blocked || decision.start_new_epoch) {
+                ++epoch_revision;
+                epoch_id = base_epoch_id + "-r" + std::to_string(epoch_revision);
+            }
+            admission_blocked = false;
+        }
         const std::string extension = video_track.codec == media::CodecId::H264 ? ".mp4" : ".webm";
         const std::string id = "seg-" + SafeToken(channel_id) + "-" +
                                std::to_string(utc_ms) + "-" + std::to_string(++sequence);
         final_path = options.storage_root / SafeToken(channel_id) / (id + extension);
         partial_path = final_path;
         partial_path += ".partial";
+        cleanup_marker_path = final_path;
+        cleanup_marker_path += ".cleanup-pending";
+        if (!WriteCleanupMarkerDurably(options.storage_root, cleanup_marker_path)) {
+            AbortSegmentFileLocked(final_path, 0);
+            return false;
+        }
 
         pipeline = gst_pipeline_new(nullptr);
         appsrc = gst_element_factory_make("appsrc", nullptr);
@@ -166,6 +221,7 @@ private:
         sink = gst_element_factory_make("filesink", nullptr);
         if (pipeline == nullptr || appsrc == nullptr || parser == nullptr || muxer == nullptr || sink == nullptr) {
             ResetPipelineLocked();
+            AbortSegmentFileLocked(partial_path, 0);
             return false;
         }
         g_object_set(appsrc, "is-live", TRUE, "format", GST_FORMAT_TIME, "block", TRUE, nullptr);
@@ -183,6 +239,7 @@ private:
         if (!gst_element_link_many(appsrc, parser, muxer, sink, nullptr) ||
             gst_element_set_state(pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
             ResetPipelineLocked();
+            AbortSegmentFileLocked(partial_path, 0);
             return false;
         }
         current = RecordingSegmentV1{};
@@ -201,6 +258,8 @@ private:
         current.retention_class = RecordingRetentionClass::Continuous;
         current.lifecycle = RecordingLifecycle::Writing;
         current.created_at_ms = NowMs();
+        current_payload_bytes = 0;
+        reported_on_disk_bytes = 0;
         segment_start_utc_ms = utc_ms;
         first_pts = first.pts;
         segment_open = true;
@@ -218,6 +277,23 @@ private:
                                      : GST_CLOCK_TIME_NONE;
         if (!packet.is_key_frame) GST_BUFFER_FLAG_SET(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
         if (gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer) != GST_FLOW_OK) return;
+        current_payload_bytes = packet.payload.size() >
+                                        std::numeric_limits<std::uint64_t>::max() -
+                                            current_payload_bytes
+                                    ? std::numeric_limits<std::uint64_t>::max()
+                                    : current_payload_bytes + packet.payload.size();
+        if (options.report_segment_progress && reservation_active) {
+            std::error_code size_error;
+            const std::uint64_t on_disk_bytes =
+                std::filesystem::file_size(partial_path, size_error);
+            if (!size_error && on_disk_bytes > reported_on_disk_bytes) {
+                reported_on_disk_bytes = on_disk_bytes;
+                try {
+                    options.report_segment_progress(channel_id, reported_on_disk_bytes);
+                } catch (...) {
+                }
+            }
+        }
         current.end.utc_ms = utc_ms;
         current.end.pts = packet.pts;
         current.end.time_base_num = 1;
@@ -239,23 +315,92 @@ private:
         }
         ResetPipelineLocked();
         if (!eos) {
-            segment_open = false;
+            AbortSegmentFileLocked(partial_path, 0);
             return;
         }
         std::error_code fs_error;
         std::filesystem::rename(partial_path, final_path, fs_error);
         if (fs_error) {
-            segment_open = false;
+            AbortSegmentFileLocked(partial_path, 0);
             return;
         }
         current.size_bytes = std::filesystem::file_size(final_path, fs_error);
+        if (fs_error) {
+            AbortSegmentFileLocked(final_path, 0);
+            return;
+        }
+        if (reservation_active && current_reserved_bytes > 0 &&
+            current.size_bytes > current_reserved_bytes) {
+            AbortSegmentFileLocked(final_path, current.size_bytes);
+            return;
+        }
+        if (options.report_segment_progress && reservation_active &&
+            current.size_bytes > reported_on_disk_bytes) {
+            reported_on_disk_bytes = current.size_bytes;
+            try {
+                options.report_segment_progress(channel_id, reported_on_disk_bytes);
+            } catch (...) {
+            }
+        }
         current.checksum_sha256 = FileSha256(final_path);
         current.lifecycle = RecordingLifecycle::Finalized;
         current.finalized_at_ms = NowMs();
+        bool finalized = true;
         if (callback) {
-            try { callback(current, final_path.string()); } catch (...) {}
+            std::string callback_error;
+            try {
+                finalized = callback(current, final_path.string(), &callback_error);
+            } catch (...) {
+                finalized = false;
+            }
         }
+        if (!finalized) {
+            AbortSegmentFileLocked(final_path, current.size_bytes);
+            return;
+        }
+        if (!ClearCleanupMarkerLocked()) {
+            admission_blocked = true;
+            segment_open = false;
+            return;
+        }
+        ReleaseReservationLocked(current.size_bytes);
         segment_open = false;
+    }
+
+    bool ClearCleanupMarkerLocked() {
+        std::string marker_error;
+        return RemoveContainedMediaFile(
+            options.storage_root, cleanup_marker_path, &marker_error);
+    }
+
+    void AbortSegmentFileLocked(const std::filesystem::path& path,
+                                std::uint64_t observed_bytes) {
+        std::string cleanup_error;
+        const bool removed = RemoveContainedMediaFile(
+            options.storage_root, path, &cleanup_error);
+        admission_blocked = true;
+        segment_open = false;
+        if (removed) {
+            if (ClearCleanupMarkerLocked()) ReleaseReservationLocked(observed_bytes);
+            return;
+        }
+        if (TruncateContainedMediaFile(options.storage_root, path, &cleanup_error)) {
+            if (ClearCleanupMarkerLocked()) ReleaseReservationLocked(observed_bytes);
+        }
+    }
+
+    void ReleaseReservationLocked(std::uint64_t actual_segment_bytes) {
+        if (!reservation_active) return;
+        reservation_active = false;
+        current_reserved_bytes = 0;
+        current_payload_bytes = 0;
+        reported_on_disk_bytes = 0;
+        if (options.complete_segment) {
+            try {
+                options.complete_segment(channel_id, actual_segment_bytes);
+            } catch (...) {
+            }
+        }
     }
 
     void ResetPipelineLocked() {
@@ -276,8 +421,13 @@ private:
     bool started{false};
     [[maybe_unused]] bool segment_open{false};
     [[maybe_unused]] bool has_last_pts{false};
+    [[maybe_unused]] bool admission_blocked{false};
+    [[maybe_unused]] bool reservation_active{false};
     [[maybe_unused]] std::uint64_t sequence{0};
     [[maybe_unused]] std::uint64_t epoch_revision{0};
+    [[maybe_unused]] std::uint64_t current_reserved_bytes{0};
+    [[maybe_unused]] std::uint64_t current_payload_bytes{0};
+    [[maybe_unused]] std::uint64_t reported_on_disk_bytes{0};
     [[maybe_unused]] std::int64_t last_pts{0};
     [[maybe_unused]] std::int64_t first_pts{0};
     [[maybe_unused]] std::int64_t segment_start_utc_ms{0};
@@ -290,6 +440,7 @@ private:
     RecordingSegmentV1 current;
     std::filesystem::path partial_path;
     std::filesystem::path final_path;
+    std::filesystem::path cleanup_marker_path;
 #if MEDIA_SERVER_USE_GSTREAMER
     GstElement* pipeline{nullptr};
     GstElement* appsrc{nullptr};

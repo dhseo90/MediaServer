@@ -243,7 +243,7 @@ git commit -m "docs: v4.1.0 녹화 연구 게이트 고정"
 
 ---
 
-S01의 verifier와 `server.sh` dispatch는 구현되어 실제 명령으로 승격됐다. S02~S09의
+S01~S04의 verifier와 `server.sh` dispatch는 구현되어 실제 명령으로 승격됐다. S05~S09의
 `planned-command`는 해당 단계에서 verifier와 dispatch를 함께 구현한 뒤 실행 명령으로
 승격할 계획 ID이며 현재 실행 가능한 명령이나 PASS 증거가 아니다.
 
@@ -628,9 +628,19 @@ git commit -m "feat: 녹화 journal과 SQLite catalog 연결"
 - 더 지울 수 없으면 해당 channel만 `storage-blocked`, live/analysis 정상
 - 공간이 회복되면 새 keyframe부터 자동 재개하고 epoch를 새로 발급
 - tombstone은 남고 media path와 원본 bytes는 남지 않음
+- 새 segment 예상 용량까지 continuous quota에 반영
+- 채널 간 in-flight reserve 중복 승인 차단과 finalize/실패 반환
+- tombstone 기록 실패 pending을 다음 tick에서 idempotent 재시도
+- replay와 unlink 직전 storage-root canonical containment 검사
+- 명시한 음수·비정상 quota/기간 입력 거부
+- 검사와 unlink 사이 상위 디렉터리 교체를 dirfd 결박으로 방어
+- 한 채널의 pending 실패가 다른 채널 admission과 주기 cleanup을 막지 않음
+- partial 실제 쓰기량과 in-flight 예약을 중복 차감하지 않음
+- event quota 초과와 continuous writer admission을 독립 판정
+- SQLite 실시간 projection 실패 시 JSONL fallback과 재시작 rebuild
 
 ```bash
-planned-command verify-v410-recording-retention
+./server.sh verify-v410-recording-retention
 ```
 
 ### Step 2: 순수 selection과 side effect 실행을 분리한다
@@ -649,11 +659,24 @@ event artifact를 선택하는 코드는 허용하지 않는다.
 즉시 retention을 한 번 실행한다. 복구하지 못하면 현재 channel writer만 멈추고 status에
 필요 byte, 현재 free byte, eligible count, 마지막 오류를 남긴다.
 
+예상 segment byte는 continuous quota 선택에도 포함한다. admission은 채널 전체의
+in-flight reserve를 하나의 lock 안에서 검사·등록하고 writer가 partial/final 실제 크기를
+보고하며 finalize하거나 open/finalize에 실패하면 실제 byte 또는 0으로 반환한다.
+container overhead를 포함한 예약 상한을 넘기기 전 segment를 닫고 다음 keyframe에서
+새 epoch로 재개한다. EOS 뒤 실제 파일이 예약보다 크면 finalize하지 않고 제거하며 실제
+크기를 다음 admission high-water로 반영한다. catalog journal/finalize 실패도 final 파일을
+삭제하거나 0 byte로 만들고, 둘 다 실패하면 예약을 반환하지 않는다. final media를 열기
+전 storage root dirfd의 `openat(O_NOFOLLOW|O_EXCL)`로 cleanup-pending 마커를 만들고 file과
+parent directory까지 fsync한다. catalog 성공 또는 cleanup 뒤 마커 안전 제거와 directory
+fsync까지 성공해야 예약을 반환한다. 재시작 catalog는 추적 media를 보존하고 미추적 final/partial과 마커를
+안전하게 정리하며, 정리할 수 없으면 open을 fail-closed한다. journal을 남긴 뒤 실제 삭제는 recording root에서 연 dirfd를
+하위 디렉터리마다 `O_NOFOLLOW`로 결박한 뒤 `unlinkat`으로 수행한다.
+
 ### Step 4: GREEN과 문서 기록
 
 ```bash
-planned-command verify-v410-recording-retention
-planned-command verify-v410-recording-catalog
+./server.sh verify-v410-recording-retention
+./server.sh verify-v410-recording-catalog
 git diff --check
 ```
 
@@ -746,7 +769,7 @@ source segment를 직접 이어 붙이지 않고 GStreamer demux/parser/mux pipe
 
 ```bash
 planned-command verify-v410-event-recording
-planned-command verify-v410-recording-retention
+./server.sh verify-v410-recording-retention
 planned-command verify-v410-recording-catalog
 git diff --check
 ```
@@ -1012,7 +1035,7 @@ planned-command verify-v410-recording-recovery
 planned-command verify-v410-recording-fixture-compatibility
 planned-command verify-v410-recording-observations
 planned-command verify-v410-event-recording
-planned-command verify-v410-recording-retention
+./server.sh verify-v410-recording-retention
 planned-command verify-v410-recording-catalog
 planned-command verify-v410-recording-recorder
 ./server.sh verify-v410-recording-contracts

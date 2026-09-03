@@ -15895,8 +15895,8 @@
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::CreateSource",
           "anchor": "return JsonResult(201, \"Created\", \"{\\\"ok\\\":true,\\\"status\\\":\\\"created\\\",\\\"source\\\":\" +",
-          "line": 2027,
-          "contextSha256": "8c8f2166bbd9a648cdff3133973647cf6161ea0db40d16503fccc8ae7379583d"
+          "line": 2205,
+          "contextSha256": "d3dcbc1fbe71f3efdd136157c8c4e7e8b8f55705526f2cbc226c5f42122ec3f4"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -15909,7 +15909,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1631,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -15936,14 +15936,14 @@
           "kind": "direct-callsite",
           "witness": "SourceViewApplicationService::CreateSource reaches the registry created state producer",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:3101",
-          "target": "src/ingress/source_view_registry.cpp:2027"
+          "target": "src/ingress/source_view_registry.cpp:2205"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SRC-001 product state independent API/storage readback",
-          "source": "src/ingress/source_view_registry.cpp:2027",
+          "source": "src/ingress/source_view_registry.cpp:2205",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:242"
         },
         {
@@ -15952,7 +15952,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:242",
-          "target": "server.sh:1525"
+          "target": "server.sh:1631"
         }
       ],
       "rationale": "64번 application service 경계를 포함해 runtime→SourceViewApplicationService::CreateSource→SourceViewRegistry 상태→독립 oracle을 재결속했다.",
@@ -16779,22 +16779,22 @@
           "file": "src/ingress/source_view_application_service.cpp",
           "symbol": "SourceViewApplicationService::DisableSource",
           "anchor": "ApplicationServiceResult SourceViewApplicationService::DisableSource(",
-          "line": 168,
+          "line": 182,
           "contextSha256": "58ecc31cb7de41327a3eafa4983ca34089c63c9385d9d868d680ef7d621a382e"
         },
         "action": {
           "file": "src/ingress/source_view_application_service.cpp",
           "symbol": "SourceViewRegistry::DisableSource",
           "anchor": "return ToApplicationServiceResult(SourceViewRegistry::Instance().DisableSource(source_id));",
-          "line": 170,
+          "line": 184,
           "contextSha256": "48a77f4cb78ad4b8f805404ea480d7a73603d81a8fbd16be5a80529e65b94256"
         },
         "state": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::DisableSource",
           "anchor": "\"{\\\"ok\\\":true,\\\"status\\\":\\\"disabled\\\",\\\"source\\\":\" +",
-          "line": 2299,
-          "contextSha256": "5abff3bdb4a7e61f961b94d88e890739b23388d276c7ebb683a4fecf794f90da"
+          "line": 2485,
+          "contextSha256": "e8988b13e064a0bc130809e1a2fc72fbb6c61a24463be2c690fec327a574bbb6"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -16807,7 +16807,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1631,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -16818,30 +16818,30 @@
           "kind": "direct-callsite",
           "witness": "runtime route calls SourceViewApplicationService::DisableSource",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:3231",
-          "target": "src/ingress/source_view_application_service.cpp:168"
+          "target": "src/ingress/source_view_application_service.cpp:182"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "application service DisableSource delegates to SourceViewRegistry",
-          "source": "src/ingress/source_view_application_service.cpp:168",
-          "target": "src/ingress/source_view_application_service.cpp:170"
+          "source": "src/ingress/source_view_application_service.cpp:182",
+          "target": "src/ingress/source_view_application_service.cpp:184"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "direct-callsite",
           "witness": "application service DisableSource delegates to the registry state producer",
-          "source": "src/ingress/source_view_application_service.cpp:170",
-          "target": "src/ingress/source_view_registry.cpp:2299"
+          "source": "src/ingress/source_view_application_service.cpp:184",
+          "target": "src/ingress/source_view_registry.cpp:2485"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SRC-010 product state independent API/storage readback",
-          "source": "src/ingress/source_view_registry.cpp:2299",
+          "source": "src/ingress/source_view_registry.cpp:2485",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:274"
         },
         {
@@ -16850,7 +16850,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:274",
-          "target": "server.sh:1525"
+          "target": "server.sh:1631"
         }
       ],
       "rationale": "64번 application service 경계를 포함해 runtime→SourceViewApplicationService::DisableSource→SourceViewRegistry 상태→독립 oracle을 재결속했다.",
@@ -22291,22 +22291,22 @@
           "file": "src/ingress/source_view_application_service.cpp",
           "symbol": "SourceViewApplicationService::UpsertOnvifSourceView",
           "anchor": "ApplicationServiceResult SourceViewApplicationService::UpsertOnvifSourceView(",
-          "line": 160,
+          "line": 174,
           "contextSha256": "0a857b073fc45fdf53dd8ffdee4d58e7fa3c157234d6914e3db2fd76f0bb0bc9"
         },
         "action": {
           "file": "src/ingress/source_view_application_service.cpp",
           "symbol": "SourceViewRegistry::UpsertOnvifSourceView",
           "anchor": "return ToApplicationServiceResult(SourceViewRegistry::Instance().UpsertOnvifSourceView(",
-          "line": 164,
+          "line": 178,
           "contextSha256": "bc76887ff157d6236bc4c1b3e5dd85be8e2fd1c82f07150274bc60e2369ce9fa"
         },
         "state": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::UpsertOnvifSourceView",
           "anchor": "views_ = std::move(next_views);",
-          "line": 2263,
-          "contextSha256": "20e9fe7f82f53a96426eebef0a6ea005fb7b2685d5dde0a666b9c6b7345d151a"
+          "line": 2444,
+          "contextSha256": "a611a2c7b471ef91adc925dbb60a20e9529cb5fa4c3f7d7b568cec44273ff547"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
@@ -22319,7 +22319,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v390-onvif-source-view-atomicity",
           "anchor": "verify-v390-onvif-source-view-atomicity)",
-          "line": 2381,
+          "line": 2579,
           "contextSha256": "b08f495dbdf81526fc43cf462939f91f75021d0b45ce4affe928820eba6e16ec"
         }
       },
@@ -22330,30 +22330,30 @@
           "kind": "direct-callsite",
           "witness": "runtime route calls SourceViewApplicationService::UpsertOnvifSourceView",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:3179",
-          "target": "src/ingress/source_view_application_service.cpp:160"
+          "target": "src/ingress/source_view_application_service.cpp:174"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "application service UpsertOnvifSourceView delegates to SourceViewRegistry",
-          "source": "src/ingress/source_view_application_service.cpp:160",
-          "target": "src/ingress/source_view_application_service.cpp:164"
+          "source": "src/ingress/source_view_application_service.cpp:174",
+          "target": "src/ingress/source_view_application_service.cpp:178"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "direct-callsite",
           "witness": "application service UpsertOnvifSourceView delegates to the registry state producer",
-          "source": "src/ingress/source_view_application_service.cpp:164",
-          "target": "src/ingress/source_view_registry.cpp:2263"
+          "source": "src/ingress/source_view_application_service.cpp:178",
+          "target": "src/ingress/source_view_registry.cpp:2444"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "the published view vector is independently re-read through the source/view GET pair after crash recovery",
-          "source": "src/ingress/source_view_registry.cpp:2263",
+          "source": "src/ingress/source_view_registry.cpp:2444",
           "target": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs:379"
         },
         {
@@ -22362,7 +22362,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-v390-onvif-source-view-atomicity",
           "source": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs:379",
-          "target": "server.sh:2381"
+          "target": "server.sh:2579"
         }
       ],
       "rationale": "64번 application service 경계를 포함해 runtime→SourceViewApplicationService::UpsertOnvifSourceView→SourceViewRegistry 상태→독립 oracle을 재결속했다."

@@ -756,21 +756,77 @@ POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JS
 | `MEDIA_SERVER_RECORDING_STORAGE_ROOT` | `.media_server/recordings` | JSONL 원장, SQLite catalog, 채널별 media segment의 전용 root |
 | `MEDIA_SERVER_RECORDING_DEFAULT_CHANNEL_QUOTA_BYTES` | `10737418240` | source policy에 값이 없을 때의 채널 기본 용량. 활성화 시 `0` 거부 |
 | `MEDIA_SERVER_RECORDING_SEGMENT_DURATION_SECONDS` | `10` | 목표 segment 길이. 도달 즉시가 아니라 다음 video keyframe에서 분할 |
-| `MEDIA_SERVER_RECORDING_DEFAULT_RETENTION_DAYS` | `7` | source policy 기본 보존 일수. 실제 순환 삭제 적용은 V410-S04 범위 |
+| `MEDIA_SERVER_RECORDING_DEFAULT_RETENTION_DAYS` | `7` | 기존 source policy와 새 등급별 최대 기간의 호환 기본값 |
+| `MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES` | `1073741824` | 새 segment를 열기 전에 store 전체에 남겨야 하는 최소 여유 공간 |
+| `MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS` | `5000` | supervisor의 policy reconcile과 주기 보존 정리 간격 |
 
-운영 source의 `recording` 객체는 `enabled`, `quotaBytes`, `retentionDays`, 상대
-`storagePath`, 단조 증가 `revision`을 저장합니다. Ops source API/form에서만 전체 값을
-다루며 viewer-safe client view에는 quota와 storage path를 내보내지 않습니다. 녹화 root는
-media source root와 같은 경로일 수 없고, 쓰기 불가·GStreamer 미포함 빌드는 fail-closed로
-해당 recorder를 시작하지 않습니다. H.264는 MP4, VP8은 WebM으로 기록하며 final callback 전
-`.partial`만 사용합니다.
+운영 source의 `recording` 객체는 다음 등급별 정책을 저장합니다.
+
+```json
+{
+  "recording": {
+    "enabled": false,
+    "continuousMaxBytes": 10737418240,
+    "continuousMaxAgeMs": 604800000,
+    "eventMaxBytes": 10737418240,
+    "eventMaxAgeMs": 604800000,
+    "storagePath": "",
+    "revision": 1
+  }
+}
+```
+
+`continuousMaxBytes`와 `eventMaxBytes`는 활성화 시 각각 `0`보다 커야 합니다.
+`continuousMaxAgeMs`와 `eventMaxAgeMs`의 `0`은 기간 제한 없음입니다. 이전 버전에서 저장한
+`quotaBytes`와 `retentionDays`는 읽을 때 상시/이벤트 양쪽 정책으로 이행하지만 새 저장에는
+등급별 필드를 사용합니다. 기존 Ops form의 용량·보존 일수 입력은 상시녹화 값을 편집하고,
+이미 별도 설정된 이벤트 값은 보존합니다. 이벤트 값을 독립 변경할 때는 source API의
+등급별 필드를 사용합니다. viewer-safe client view에는 용량·기간·storage path를 내보내지
+않습니다.
+
+quota는 채널과 retention class별로 독립 적용합니다. 상시녹화 quota 정리는 이벤트
+artifact를 선택하지 않고, 이벤트 quota 정리도 상시녹화를 대신 삭제하지 않습니다. 같은
+등급에서는 `(end_utc_ms, segment_id)`가 작은 finalized segment부터 삭제합니다. pinned 또는
+`hold_count > 0`인 항목은 자동 삭제 대상이 아닙니다. 새 segment는 예상 크기를
+continuous quota에 먼저 반영하며, 동시에 여러 채널이 쓰는 용량은 in-flight reserve로
+중복 사용하지 않습니다. partial 파일의 실제 쓰기량은 물리 free에 이미 반영된 만큼
+예약 잔량에서 차감해 이중 계산하지 않습니다. writer는 container overhead까지 예약하고
+상한에 도달하면 segment를 닫아 다음 keyframe에서 새 epoch로 재개합니다. EOS 뒤 실제
+파일이 예약보다 크면 catalog에 finalize하지 않고 파일을 제거한 뒤 실제 크기를 다음
+예약의 high-water로 반영합니다. catalog journal/finalize 실패도 같은 방식으로 final 파일을
+제거하고, 제거가 실패하면 0 byte truncate를 시도합니다. 둘 다 실패하면 예약을 반환하지
+않아 해당 채널을 fail-closed 상태로 둡니다. writer는 final 파일 open 전에 storage root
+dirfd에 결박한 `openat(O_NOFOLLOW|O_EXCL)`로 `.cleanup-pending` 마커를 만들고 file과
+parent directory까지 fsync합니다. catalog finalize 또는 cleanup 뒤 마커 안전 제거와
+directory fsync까지 성공해야 예약을 반환합니다. 프로세스 재시작 시 catalog는 추적된 media를 보존하고
+미추적 final/partial을 안전하게 정리합니다. 정리 실패는 catalog open을 fail-closed합니다.
+disk reserve가 부족하면 삭제 가능한
+상시녹화를 먼저 정리하며, 그래도 공간을 확보할 수 없으면 그 채널 writer만
+`storage-blocked`로 두고 live/VA 구독은 유지합니다. 공간이 회복되면 다음 video keyframe에서
+새 stream epoch로 녹화를 재개하고 finalize/실패 시 예약을 반환합니다.
+
+삭제 순서는 `deletion_requested` journal fsync → catalog `deletion_pending` → media unlink →
+`deletion_completed`/tombstone journal fsync → catalog `deleted`입니다. journal 선행 기록이
+실패하면 media를 지우지 않습니다. unlink가 실패하면 `deletion_pending`과 오류를 유지하고
+회수 byte를 `0`으로 계산합니다. 완료된 삭제는 tombstone을 남기되 내부 media locator와
+원본 파일은 제거합니다. unlink 성공 뒤 tombstone 기록이 실패한 pending은 다음
+retention tick에서 채널별로 재시도합니다. catalog replay에서 경로 containment를 확인하고
+실제 삭제는 recording root에서 연 dirfd와 하위 `O_NOFOLLOW` 디렉터리 fd에 결박한
+`unlinkat`으로 수행하므로 검사 뒤 경로가 바뀌어도 root 밖 파일은 자동 삭제하지 않습니다.
+
+녹화 root는 media source root와 같은 경로일 수 없고, 쓰기 불가·GStreamer 미포함 빌드는
+fail-closed로 해당 recorder를 시작하지 않습니다. H.264는 MP4, VP8은 WebM으로 기록하며
+final callback 전 `.partial`만 사용합니다.
 
 storage root 아래 `recording-mutations.jsonl`은 durable source-of-truth이고
 `recording-catalog.sqlite3`은 재구축 가능한 projection입니다. SQLite 사용 빌드는
 `catalogMode=sqlite-primary`, 미사용 빌드 또는 초기화 불가 환경은
 `catalogMode=jsonl-fallback`으로 동작합니다. SQLite 손상 원본은 덮어쓰지 않고
 `.corrupt-<timestamp>`로 격리합니다. catalog에 없는 final MP4/WebM은 정상/손상 orphan으로
-구분만 하며 V410-S04 전에는 자동 삭제하지 않습니다.
+구분하며 자동 보존 정리는 catalog의 finalized locator만 대상으로 합니다.
+실시간 mutation의 SQLite projection이 실패해도 이미 fsync된 journal과 in-memory 상태는
+유지하고 즉시 `jsonl-fallback`으로 전환합니다. 다음 시작에서는 journal 전체로 SQLite를
+다시 구성합니다.
 
 ## EventStorage env
 

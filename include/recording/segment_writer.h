@@ -11,9 +11,27 @@
 
 namespace recording {
 
+struct SegmentAdmissionDecision {
+    bool allowed{true};
+    bool start_new_epoch{false};
+    std::uint64_t reserved_bytes{0};
+};
+
 class SegmentWriter {
 public:
-    using FinalizedCallback = std::function<void(RecordingSegmentV1, std::string media_path)>;
+    using FinalizedCallback =
+        std::function<bool(RecordingSegmentV1,
+                           std::string media_path,
+                           std::string* error)>;
+    using AdmissionCallback =
+        std::function<SegmentAdmissionDecision(const std::string& channel_id,
+                                               std::uint64_t minimum_segment_bytes)>;
+    using SegmentProgressCallback =
+        std::function<void(const std::string& channel_id,
+                           std::uint64_t written_bytes)>;
+    using SegmentCompletionCallback =
+        std::function<void(const std::string& channel_id,
+                           std::uint64_t actual_segment_bytes)>;
     virtual ~SegmentWriter() = default;
     virtual bool Start(const std::string& channel_id,
                        const std::string& stream_epoch_id,

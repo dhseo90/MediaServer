@@ -97,9 +97,10 @@ void RecordingSessionService::OnPacket(const std::shared_ptr<ChannelState>& stat
                 state->channel_id,
                 state->stream_epoch_id,
                 *descriptor,
-                [this](RecordingSegmentV1 segment, std::string media_path) {
-                    std::string ignored_error;
-                    (void)store_.FinalizeSegment(segment, media_path, &ignored_error);
+                [this](RecordingSegmentV1 segment,
+                       std::string media_path,
+                       std::string* finalize_error) {
+                    return store_.FinalizeSegment(segment, media_path, finalize_error);
                 },
                 &error)) {
             state->stopping = true;

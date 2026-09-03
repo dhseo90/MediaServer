@@ -4,6 +4,72 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## V410-S04 등급별 순환 보존과 disk reserve
+
+- 상태: local focused PASS
+- 구현 위치:
+  - `retention_coordinator.h/.cpp`: catalog snapshot 기반 순수 `Plan`, 등급별 quota·기간,
+    `(end_utc_ms, segment_id)` oldest-first, continuous 우선 reserve 정리와
+    `RequestDeletion → unlink → CompleteDeletion` 실행 경계, pending 재시도,
+    채널별 pending 격리, 채널 간 in-flight 용량 예약과 실제 쓰기 진행량 정산,
+    `openat`/`unlinkat` dirfd 결박 삭제
+  - `recording_catalog.h/.cpp`, `recording_contracts.h/.cpp`: retention snapshot,
+    process-lifetime `hold_count`, 삭제 완료 시 media locator 제거, retention class가 포함된
+    additive tombstone와 SQLite/in-memory projection parity, SQLite 투영 실패 즉시
+    `jsonl-fallback` 전환과 재시작 journal rebuild
+  - `recording_runtime_defaults.h`, `recording_runtime_config_data.h`, `app_config.cpp`:
+    `MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES`,
+    `MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS` 기본값·검증·환경변수 로드
+  - `source_view_registry.*`, `source_view_application_service.*`,
+    `product_ui_ops_sources_script.cpp`: `continuousMaxBytes/continuousMaxAgeMs`와
+    `eventMaxBytes/eventMaxAgeMs` 분리 저장, 기존 `quotaBytes/retentionDays` 호환 이행,
+    viewer-safe 비노출
+  - `gstreamer_segment_writer.*`, `recording_supervisor.*`,
+    `media_server_application.cpp`: segment-open admission, 채널별 policy reconcile/주기 정리,
+    공간 부족 시 해당 writer만 keyframe 쓰기 보류, container overhead를 포함한 segment
+    예약 상한, partial/final 실제 크기 보고, finalize/실패 시 reserve 반환,
+    cleanup 전 dirfd·`O_NOFOLLOW|O_EXCL` 결박 fsync 내구 마커, 안전한 unlink/truncate,
+    회복 시 새 epoch 재개
+  - `recording_retention_smoke.cpp`, `verify_v410_recording_retention.sh`, `server.sh`,
+    `CMakeLists.txt`: 실제 C++ focused verifier와 제품 runtime 연결
+- RED 확인:
+  - 최초 `./server.sh verify-v410-recording-retention`은
+    `src/recording/retention_coordinator.cpp` 부재로 compile 실패
+  - source 등급별 설정과 writer admission test 추가 뒤에는 해당 config/policy/callback 심볼
+    부재로 compile 실패
+  - 안전성 보강 RED에서 `CompleteContinuousWrite`/`media_root` 계약 부재로 compile
+    실패했고, 음수·비정상 quota 입력은 recorder smoke `fail=2`를 확인
+- GREEN 확인:
+  - `./server.sh verify-v410-recording-retention`: `pass=56 fail=0`
+  - `./server.sh verify-v410-recording-recorder`: `pass=67 fail=0`
+  - `./server.sh verify-v410-recording-catalog`: C++ `pass=37 fail=0`, supervisor/composition
+    정적 항목 8건 PASS
+  - `./server.sh verify-v410-recording-contracts`: `pass=45 fail=0`
+  - `./server.sh build`: `media_server_runtime`, `media_server` 100% PASS
+- 개별 확인: continuous/event quota·기간 상호 비침범, 예상 segment 크기를
+  포함한 oldest-first 선회, pinned/hold·hold overflow 보호, journal/unlink/tombstone 각 실패
+  경계, pending idempotent 복구와 채널별 실패 격리, reserve continuous 우선,
+  실제 병렬 채널 중복 예약 차단, partial 물리 사용량 이중 차감 방지,
+  삭제 불가 채널의 `storage-blocked`, 공간 회복·새 epoch, tombstone 존치와
+  media/locator 제거, replay containment와 dirfd 결박 unlink 경쟁 조건 방어,
+  event quota 초과와 continuous admission 분리, SQLite projection 장애 폴백/재구축,
+  legacy source policy 이행, Ops 복제 시 event 보존 정책 유지, 예약보다 큰 실제 EOS 파일과
+  catalog callback 실패의 catalog 전 cleanup, 삭제·truncate 동시 실패 시 예약·내구 마커 유지,
+  symlink/hardlink 마커 선점 시 외부·공유 inode 불변, catalog 성공 뒤 마커 제거 실패 시
+  예약 유지, 재시작 시 catalog가 추적 media는 보존하고 미추적 orphan과 마커는 정리하며
+  안전 제거가 불가능하면 open을 거부하는 복구
+- 실행 경고: macOS GStreamer plugin scanner가 GI/GTK 동적 라이브러리 경고를 출력했지만
+  recorder smoke 본체는 `67/0`으로 종료했다. 경고를 기능 PASS로 숨기거나 해결 완료로
+  기록하지 않는다.
+- 미실행/비대체: S05 event linker/파생 clip, S06 timeline API/UI, 실제 UI 풀테스트,
+  30분/120분 장시간 녹화, disk-full 실장비 field smoke, published metadata,
+  PR/main/tag/GitHub Release
+- 회귀 가능성: filesystem 여유 공간 조회와 container overhead 예약치의 편차,
+  cleanup 마커 복구 시 디렉터리 권한·I/O 실패가 catalog open blocker가 되는 경계,
+  source policy legacy 이행 drift, GStreamer keyframe 간격이 긴 채널의 재개 지연.
+  pending은 다음 retention tick에서 재시도하고, focused retention/recorder/catalog verifier와
+  제품 build로 현재 S04 경계를 방어
+
 ## V410-S03 JSONL 원장, SQLite projection과 supervisor wiring
 
 - 상태: local focused PASS

@@ -2,14 +2,17 @@
 // 동작 요약: SQLite primary와 in-memory fallback이 같은 range query와 저장 port를 제공한다.
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 #include "recording/recording_journal.h"
 #include "recording/recording_store_port.h"
+#include "recording/retention_coordinator.h"
 
 struct sqlite3;
 
@@ -21,6 +24,8 @@ struct RecordingCatalogRecoveryReport {
     std::size_t projection_error_count{0};
     std::size_t corrupt_line_count{0};
     std::size_t truncated_tail_count{0};
+    std::size_t writer_cleanup_recovered_count{0};
+    std::size_t writer_cleanup_error_count{0};
     bool sqlite_quarantined{false};
     std::filesystem::path sqlite_quarantine_path;
 };
@@ -38,6 +43,14 @@ public:
         std::filesystem::path sqlite_path;
         std::filesystem::path media_root;
         bool prefer_sqlite{true};
+
+        Options() = default;
+        Options(std::filesystem::path sqlite,
+                std::filesystem::path media,
+                bool prefer)
+            : sqlite_path(std::move(sqlite)),
+              media_root(std::move(media)),
+              prefer_sqlite(prefer) {}
     };
 
     RecordingCatalog(RecordingJournal& journal, Options options);
@@ -46,6 +59,10 @@ public:
     std::string catalog_mode() const;
     RecordingCatalogRecoveryReport recovery_report() const;
     RecordingOrphanReport InspectOrphans() const;
+    RetentionSnapshot RetentionSnapshot() const;
+    bool AdjustHoldCount(const std::string& segment_id,
+                         std::int64_t delta,
+                         std::string* error);
 
     bool FinalizeSegment(const RecordingSegmentV1& segment,
                          const std::string& media_path,
@@ -69,6 +86,7 @@ private:
     bool InitializeSqliteSchemaLocked(std::string* error);
     bool RebuildSqliteLocked(std::string* error);
     bool ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error);
+    bool RecoverWriterCleanupMarkersLocked(std::string* error);
     void CloseSqliteLocked();
 
     RecordingJournal& journal_;
@@ -80,6 +98,8 @@ private:
     std::unordered_set<std::string> mutation_ids_;
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, std::string> media_relpaths_;
+    std::unordered_map<std::string, std::uint64_t> hold_counts_;
+    std::unordered_map<std::string, std::string> deletion_reasons_;
     std::unordered_map<std::string, EventRecordingLinkV1> event_links_;
     std::unordered_map<std::string, AnalysisObservationV1> observations_;
     std::unordered_map<std::string, RecordingTombstoneV1> tombstones_;

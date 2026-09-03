@@ -29,6 +29,7 @@ fi
   "${ROOT_DIR}/src/ingress/source_view_registry.cpp" \
   "${ROOT_DIR}/src/ingress/source_view_application_service.cpp" \
   "${ROOT_DIR}/src/recording/gstreamer_segment_writer.cpp" \
+  "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" \
   -DMEDIA_SERVER_USE_GSTREAMER="${GST_DEFINE}" \
@@ -38,3 +39,8 @@ fi
 MEDIA_SERVER_SOURCE_REGISTRY="${BUILD_DIR}/sources.json" \
 MEDIA_SERVER_PUBLISHED_VIEWS="${BUILD_DIR}/views.json" \
 "${BUILD_DIR}/recording_segment_writer_smoke" "${BUILD_DIR}"
+
+grep -q 'currentRecordingPolicy = source.recording' \
+  "${ROOT_DIR}/src/ingress/product_ui_ops_sources_script.cpp"
+grep -q 'const previousRecording = currentRecordingPolicy' \
+  "${ROOT_DIR}/src/ingress/product_ui_ops_sources_script.cpp"

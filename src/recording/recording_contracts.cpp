@@ -691,6 +691,7 @@ std::string SerializeRecordingTombstoneV1(const RecordingTombstoneV1& value) {
            << ",\"channel_id\":" << Quote(value.channel_id)
            << ",\"recorded_range\":" << SerializeRange(value.recorded_range)
            << ",\"checksum_sha256\":" << Quote(value.checksum_sha256)
+           << ",\"retention_class\":" << Quote(RetentionString(value.retention_class))
            << ",\"deletion_reason\":" << Quote(value.deletion_reason)
            << ",\"deleted_at_ms\":" << value.deleted_at_ms << '}';
     return output.str();
@@ -702,6 +703,7 @@ bool ParseRecordingTombstoneV1(const std::string& json,
     if (value == nullptr) return Fail(error, "tombstone output이 null");
     Document document;
     std::string range_json;
+    std::optional<std::string> retention_class;
     if (!ParseDocument(json, &document, error) ||
         !RequiredString(document, "schema", &value->schema, error) ||
         !RequiredString(document, "tombstone_id", &value->tombstone_id, error) ||
@@ -710,9 +712,13 @@ bool ParseRecordingTombstoneV1(const std::string& json,
         !RequiredString(document, "channel_id", &value->channel_id, error) ||
         !RequiredObject(document, "recorded_range", &range_json, error) ||
         !RequiredString(document, "checksum_sha256", &value->checksum_sha256, error) ||
+        !OptionalString(document, "retention_class", &retention_class, error) ||
         !RequiredString(document, "deletion_reason", &value->deletion_reason, error) ||
         !RequiredInteger(document, "deleted_at_ms", &value->deleted_at_ms, error) ||
         !ParseRange(range_json, &value->recorded_range, error)) return false;
+    value->retention_class = retention_class.has_value()
+                                 ? ParseRetention(*retention_class)
+                                 : RecordingRetentionClass::Unknown;
     if (value->schema != "media-server.recording-tombstone.v1" ||
         !ValidateOpaqueId(value->tombstone_id, error) ||
         !ValidateOpaqueId(value->segment_id, error) ||

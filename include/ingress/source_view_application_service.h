@@ -20,8 +20,10 @@ public:
     struct SourceRecord {
         struct RecordingPolicy {
             bool enabled{false};
-            std::uint64_t quota_bytes{0};
-            int retention_days{7};
+            std::uint64_t continuous_max_bytes{0};
+            std::int64_t continuous_max_age_ms{0};
+            std::uint64_t event_max_bytes{0};
+            std::int64_t event_max_age_ms{0};
             std::string storage_path;
             std::uint64_t revision{1};
         };

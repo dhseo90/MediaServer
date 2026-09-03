@@ -12,6 +12,7 @@
 #include "core/recording_runtime_config_data.h"
 #include "ingress/source_view_application_service.h"
 #include "recording/recording_session_service.h"
+#include "recording/retention_coordinator.h"
 
 namespace recording {
 
@@ -19,7 +20,8 @@ class RecordingSupervisor {
 public:
     RecordingSupervisor(const core::RecordingRuntimeConfigData& config,
                         ingress::SourceViewApplicationService& sources,
-                        RecordingSessionService& sessions);
+                        RecordingSessionService& sessions,
+                        RetentionCoordinator& retention);
     ~RecordingSupervisor();
     bool Start(std::string* error);
     void Stop();
@@ -40,6 +42,7 @@ private:
     core::RecordingRuntimeConfigData config_;
     ingress::SourceViewApplicationService& sources_;
     RecordingSessionService& sessions_;
+    RetentionCoordinator& retention_;
     std::mutex reconcile_mu_;
     std::mutex wait_mu_;
     std::condition_variable wait_cv_;

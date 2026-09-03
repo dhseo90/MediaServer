@@ -37,8 +37,10 @@ SourceViewApplicationService::SourceRecord ToApplicationSource(
     output.floor = input.floor;
     output.zone = input.zone;
     output.recording.enabled = input.recording.enabled;
-    output.recording.quota_bytes = input.recording.quota_bytes;
-    output.recording.retention_days = input.recording.retention_days;
+    output.recording.continuous_max_bytes = input.recording.continuous_max_bytes;
+    output.recording.continuous_max_age_ms = input.recording.continuous_max_age_ms;
+    output.recording.event_max_bytes = input.recording.event_max_bytes;
+    output.recording.event_max_age_ms = input.recording.event_max_age_ms;
     output.recording.storage_path = input.recording.storage_path;
     output.recording.revision = input.recording.revision;
     return output;

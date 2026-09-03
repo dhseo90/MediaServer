@@ -2,8 +2,8 @@
 
 ## 문서 상태
 
-- 상태: 2026-09-02 사용자 승인 완료, 2026-09-03 V410-S00~S03 local 구현·focused 검증 완료.
-  S04~S09 구현·테스트와 v4.1.0 릴리즈 완료 증거가 아님
+- 상태: 2026-09-02 사용자 승인 완료, 2026-09-03 V410-S00~S04 local 구현·focused 검증 완료.
+  S05~S09 구현·테스트와 v4.1.0 릴리즈 완료 증거가 아님
 - 현재 작성 브랜치: `v4.1.0`
 - 공통 반영 시점: v4.1.0을 `main`에 머지할 때 장기 로드맵도 함께 반영
 - 이후 소유 브랜치: `main`. 후속 버전 브랜치는 장기 로드맵이 반영된 최신 `main`에서 생성
@@ -153,7 +153,7 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 | 1 | V410-S01 | P0 | RecordingSegmentV1, FrameLocatorV1, EventRecordingLinkV1, AnalysisObservationV1 계약과 migration/rebuild 규칙 |
 | 2 | V410-S02 | P0 | 채널별 opt-in 연속 세그먼트 recorder, keyframe 경계, atomic finalize, 재시작 복구 |
 | 3 | V410-S03 | P0 | SQLite 메타데이터 카탈로그와 append-only JSONL 복구 저널, SQLite 미사용 fallback |
-| 4 | V410-S04 | P0 | 상시/이벤트 용량 분리, oldest-first 순환 삭제, pin·tombstone·disk reserve·cleanup audit |
+| 4 | V410-S04 | P0 | 완료: 상시/이벤트 용량·기간 분리, oldest-first 순환 삭제, pin·hold·tombstone, 채널별 pending 복구, dirfd 결박 unlink/truncate, 실제 쓰기량 정산, 채널 간 in-flight disk reserve·writer admission, 내구 cleanup 마커 재시작 복구 |
 | 5 | V410-S05 | P0 | 이벤트와 겹치는 원본 세그먼트 연결, pre/event/post 파생 clip, frame-buffer fallback |
 | 6 | V410-S06 | P0 | event > continuous 우선 조회·재생 계약, timeline API와 Ops UI 표출 |
 | 7 | V410-S07 | P1 | event/track 경계·요약과 설정 주기 대표 관측 저장, 정확한 frame seek 기반 |
@@ -166,7 +166,12 @@ event link/analysis observation/tombstone v1 계약과 golden JSONL 호환 경�
 V410-S02 완료: 채널별 opt-in Recorder subscriber, H.264/MP4·VP8/WebM keyframe segment,
 atomic finalize와 source policy round-trip을 구현했다. V410-S03 완료: fsync JSONL 원장,
 SQLite primary/rebuild와 fallback projection, source policy supervisor를 제품 composition root에
-연결했다. S04~S09는 아직 시작하지 않았다.
+연결했다. V410-S04 완료: 등급별 quota·기간, oldest-first 선택, journal 선행 삭제 상태기,
+pin·hold 보호, 채널별 pending 재시도, dirfd 결박 unlink, 예상 segment 크기·partial 실제
+쓰기량·다중 채널 in-flight 예약을 반영한 disk reserve, event quota와 continuous admission
+독립 판정, SQLite projection 장애의 JSONL fallback, 채널별 `storage-blocked`/새 epoch 재개를
+제품 composition에 연결했다. writer cleanup 마커를 내구 기록하고 재시작 catalog에서 추적
+media 보존·미추적 orphan 정리 또는 fail-closed하도록 연결했다. S05~S09는 아직 시작하지 않았다.
 
 v4.1.0에서 검색-ready 메타데이터를 저장하지만 검색 DSL, 검색 결과 랭킹, 벡터 인덱스,
 자연어 해석은 구현하지 않는다. 객체의 모든 분석 frame을 무제한 저장하지 않고,
