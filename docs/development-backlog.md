@@ -20,7 +20,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
   2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선, S01 녹화 v1 계약,
   S02 채널별 상시녹화 recorder, S03 JSONL/SQLite catalog·supervisor,
-  S04 등급별 순환 보존과 disk reserve 완료. S05~S09는 미구현
+  S04 등급별 순환 보존과 disk reserve, S05 이벤트 녹화 연결·파생 clip local 완료.
+  S05 개별 등록 누락 FAIL 보정·재실행·독립 결속 검증도 완료했다.
+  S06~S09는 미구현
 - 상세 구현계획:
   [`2026-09-02-v410-recording-foundation-implementation-plan.md`](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
 - 장기 로드맵은 `main` 공통 문서로 관리하고, 각 버전 브랜치는 자신의 버전 단계만
@@ -397,7 +399,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S02 | Continuous segment recorder | P0 | 완료 | 채널별 opt-in, Recorder subscriber, H.264/MP4·VP8/WebM keyframe segment, atomic finalize, PTS rollback epoch |
 | V410-S03 | Catalog and recovery journal | P0 | 완료 | fsync append-only JSONL, SQLite primary/rebuild, in-memory fallback, 손상 격리, source policy supervisor |
 | V410-S04 | Retention coordinator | P0 | 완료 | continuous/event 등급별 quota·기간, `(end_utc_ms, segment_id)` oldest-first, pin·hold, journal 선행 tombstone/채널별 pending 복구, dirfd 결박 unlink, 채널 간 in-flight disk reserve·실제 쓰기 정산과 writer admission |
-| V410-S05 | Event recording linker | P0 | 미구현 | 겹치는 원본 segment와 pre/event/post 파생 clip, frame-buffer fallback |
+| V410-S05 | Event recording linker | P0 | local 완료 | finalized 원본 연결, 명시적 시간축, 비동기 무재인코딩 remux, fallback, Event quota·hold·재시작 멱등성. 개별 등록 27개·focused·회귀·독립 인벤토리 결속 검증 통과 |
 | V410-S06 | Priority timeline | P0 | 미구현 | event > continuous 조회·재생 API와 Ops UI |
 | V410-S07 | Search-ready metadata | P1 | 미구현 | event/track summary와 bounded representative observations, exact frame locator |
 | V410-S08 | Recovery/compatibility gate | P0 | 미구현 | crash/disk-full/gap/corruption/migration/fixture verifier |
@@ -538,8 +540,9 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 
 ### v4.1.0 S04 개발 기록
 
-- 범위: P0 `V410-S04 Retention coordinator`만 구현했다. S05 event recording
-  linker와 이후 timeline/검색 단계는 시작하지 않았다.
+- S04 종료 당시 범위: P0 `V410-S04 Retention coordinator`만 구현했고 S05 event recording
+  linker와 이후 timeline/검색 단계는 시작하지 않았다. 현재 S05 상태는 아래 별도 기록을
+  따른다.
 - `retention_coordinator.*`: catalog snapshot에서 continuous/event 용량·기간을
   독립 계산하고 `(end_utc_ms, segment_id)` oldest-first 선택을 수행한다.
   새 segment 예상 크기를 continuous quota에 포함하고 채널 간 in-flight
@@ -581,8 +584,64 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
   `verify-v410-recording-catalog` C++ `pass=37 fail=0`. contracts/제품 build와
   docs/inventory/diff 검증 결과는
   [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
-- 미실행/비대체: S05~S09, 실제 UI 풀테스트, 30분/120분 장시간,
+- S04 종료 당시 미실행/비대체: S05~S09, 실제 UI 풀테스트, 30분/120분 장시간,
   실장비 disk-full field smoke, published metadata, PR/main merge/tag/GitHub Release.
+
+### v4.1.0 S05 개발 기록
+
+- 범위: P0 `V410-S05 Event recording linker`만 구현했다. S06 priority timeline과 이후
+  API/UI·검색 단계는 시작하지 않았다.
+- `event_storage.h/.cpp`, `event_storage_application_service.*`,
+  `webrtc_http_server_ops_incidents.cpp`: `EventRecord`에 optional time anchor/epoch와 recording
+  link/completeness를 추가하고, internal media event는 `media-pts-ms`를 명시한다. 시간축이
+  없는 외부 입력은 임의 UTC로 해석하지 않는다. EventStorage JSONL이 꺼져 있어도 녹화
+  bridge가 등록돼 있으면 이벤트를 전달하며, bounded queue보다 catalog link를 먼저 내구
+  기록한다. derived clip이 준비되지 않은 경우에만 기존
+  bounded frame-buffer hook을 실행해 fallback을 같은 link에 기록한다.
+- `event_recording_bridge.*`: event ID별 bounded 비동기 job, 요청 범위 병합, finalized
+  continuous overlap의 반개구간 정렬, 같은 epoch/codec 확인, 원자적 source lease,
+  범위 결속 결정적 link/segment ID, same-process mapping 재시도와 pending 재시작 복구를
+  구현했다. complete event update가 범위를 넓히면 새 segment를 파생한다. gap·시간축
+  불명확·epoch/codec 불일치·lease 실패는 complete로 승격하지 않고 missing range와 원인을
+  남긴다. 유일 source epoch는 결정 ID 계산 전에 고정하며, 실제 remux 중에는 admission
+  직렬화 lock을 풀어 다른 event의 durable link 기록을 막지 않는다. marker 제거 뒤
+  resource-release pending을 내구 기록하고 source/output hold와 reservation 해제가 끝난
+  뒤에만 complete로 승격한다. catalog는 terminal 미완료 link 참조 media의 삭제를 거부한다.
+  복구 중 event/fallback update는 단계를 보존하고 UTC 확장은 `deferred_requested_range`에
+  내구 기록한 뒤 자원 정리 후 새 파생 요청으로 전환한다.
+- `event_clip_deriver.*`: 검증된 video-only H.264/MP4 overlap을 decoder/encoder 없이
+  seek해 MPEG-TS로 remux하고 source/output fd, owner-only directory와 output inode를
+  결박한다. UUID `.partial.<uuid>`, 이를 정확히 지목하는 durable v2 cleanup marker,
+  no-replace publish, fsync, SHA-256과 실제
+  packet timestamp로 측정한 요청/실제 범위를 기록한다. VP8/WebM event 파생은 재생
+  불가능한 결과를 허용하지 않고 fail-closed한다.
+- `recording_catalog.*`, `recording_contracts.*`, `retention_coordinator.*`: event link 조회·목록,
+  source lease의 hold 일괄 획득/해제, 동일 event ID 충돌 거부, Event 등급 admission·oldest-first
+  정리와 reservation, terminal link까지 source/output hold, tombstone ID 재사용 거부,
+  소유권 불명 final의 orphan 보존, optional actual range/derivation mode/time basis/
+  completeness reason의 additive 계약 및 SQLite/JSONL projection을 연결했다.
+- `media_server_application.cpp`: recording enabled일 때 bridge/deriver를 조립하고 외부
+  ingress 시작 전에 bridge를 등록한다. 종료 시 ingress → continuous finalize →
+  EventStorage drain → event bridge drain/해제 순서를 적용했다.
+- RED/수정: 최초 전용 verifier는 신규 bridge/deriver 부재로 compile 실패했다. 구현 뒤
+  async job의 이동된 event ID 재사용, completeness reason/status 혼용, `/tmp`와
+  `/private/tmp` canonical root 불일치와 GStreamer output fd 경계를 각각 재현해 수정했다.
+  Matroska 산출물은 seek 뒤 header 누락으로 demux가 실패해 순차 MPEG-TS 출력으로 교체했다.
+  final 파생 writer는 owner-only 디렉터리 안에 `O_NOFOLLOW|O_EXCL`로 선점한 nonce partial
+  fd를 `fdsink`에 직접 전달하고 pipeline 뒤 inode를 재검증해 no-replace로 publish한다.
+  crash marker가 소유한 partial과 foreign fixed partial을 구분하도록 continuous writer도
+  같은 v2 nonce 규약으로 이행했다.
+- GREEN: `verify-v410-event-recording` C++ `pass=140 fail=0`과 EventStorage application-only
+  계약 `6/0`, contracts `45/0`, retention `56/0`, recorder `71/0`, catalog C++ `45/0`과
+  composition 정적 항목 9건, 제품 build를 확인했다. 최종 inventory 검증 결과는
+  [release-evidence-v410.md](./release-evidence-v410.md)에 기록한다.
+- 등록 보정 후 최종 재실행: C++ 140/0, application-only 7/0, 등록기 단위 16/0,
+  개별 기능 27/0(check 69개). 소스 감사 51/0, 승인 986개, 구현 검증 오류 0·negative
+  15/15, 중앙 inventory 18/0, coverage 8/0. 874 carry +112개 독립 검토를 공식 producer로
+  적용했다. 이전 등록 누락 FAIL과 리뷰 지적 3개, 수정·재실행 이력 및 원문 증거는
+  [release-test-records.md](./release-test-records.md)에 보존한다.
+- 미실행/비대체: S06~S09, 실제 UI 풀테스트, 30분/120분 장시간, 실장비 field smoke,
+  published metadata, PR/main merge/tag/GitHub Release.
 
 기존에 v4.1.0 후보로 적었던 Incident OS 제품 승격, Evidence default-on, 로컬 Action
 Execution, credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 이번 v4.1.0 범위가

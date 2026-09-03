@@ -51,6 +51,7 @@ struct RetentionPlanRequest {
     std::uint64_t free_bytes{0};
     std::uint64_t reserved_free_bytes{0};
     std::uint64_t required_write_bytes{0};
+    RecordingRetentionClass required_write_class{RecordingRetentionClass::Continuous};
 };
 
 struct RetentionDeletion {
@@ -90,7 +91,8 @@ bool WriteContainedFileDurably(const std::filesystem::path& media_root,
 bool RemoveContainedMediaFile(const std::filesystem::path& media_root,
                               const std::filesystem::path& media_path,
                               std::string* error,
-                              BeforeContainedUnlinkHook before_unlink = {});
+                              BeforeContainedUnlinkHook before_unlink = {},
+                              bool require_single_link = false);
 bool TruncateContainedMediaFile(const std::filesystem::path& media_root,
                                 const std::filesystem::path& media_path,
                                 std::string* error);
@@ -136,16 +138,25 @@ public:
     RetentionAdmissionResult AdmitContinuousWrite(const std::string& channel_id,
                                                   std::uint64_t expected_segment_bytes,
                                                   std::int64_t now_ms);
+    RetentionAdmissionResult AdmitEventWrite(const std::string& channel_id,
+                                             const std::string& reservation_id,
+                                             std::uint64_t expected_segment_bytes,
+                                             std::int64_t now_ms);
     void UpdateContinuousWriteProgress(const std::string& channel_id,
                                        std::uint64_t written_bytes);
     void CompleteContinuousWrite(const std::string& channel_id,
                                  std::uint64_t actual_segment_bytes);
+    void UpdateEventWriteProgress(const std::string& reservation_id,
+                                  std::uint64_t written_bytes);
+    void CompleteEventWrite(const std::string& reservation_id,
+                            std::uint64_t actual_segment_bytes);
     RetentionChannelStatus ChannelStatus(const std::string& channel_id) const;
 
 private:
     struct InflightReservation {
         std::uint64_t reserved_bytes{0};
         std::uint64_t written_bytes{0};
+        std::string channel_id;
     };
 
     RetentionApplyResult RecoverPendingForChannel(std::int64_t deleted_at_ms,
@@ -163,7 +174,9 @@ private:
     std::unordered_map<std::string, RetentionPolicy> policies_;
     std::unordered_map<std::string, RetentionChannelStatus> statuses_;
     std::unordered_map<std::string, InflightReservation> inflight_reservations_;
+    std::unordered_map<std::string, InflightReservation> event_inflight_reservations_;
     std::unordered_map<std::string, std::uint64_t> observed_segment_bytes_;
+    std::unordered_map<std::string, std::uint64_t> observed_event_bytes_;
 };
 
 }  // namespace recording

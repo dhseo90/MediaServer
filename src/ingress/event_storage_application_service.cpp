@@ -90,6 +90,10 @@ void DispatchEventRecordsForApplication(const EventStorageApplicationDispatchReq
     result.context.source_kind = request.source.source_kind;
     result.context.route = request.source.route;
     result.context.client_id = request.source.client_id;
+    result.context.event_time_basis = request.source.time_basis;
+    result.context.event_anchor_utc_ms = request.source.time_anchor_utc_ms;
+    result.context.event_anchor_pts_ms = request.source.time_anchor_pts_ms;
+    result.context.event_stream_epoch_id = request.source.stream_epoch_id;
     result.pts = request.source.pts;
 
     std::vector<analysis::AnalysisEvent> events;

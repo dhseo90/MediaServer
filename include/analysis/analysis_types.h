@@ -139,6 +139,11 @@ struct AnalysisContext {
     std::string client_id;
     std::string va_rule_id;
     std::vector<std::string> va_rule_ids;
+    // 이벤트 녹화 시간축은 내부 분석(media-pts-ms)과 외부 UTC 입력을 명시적으로 구분한다.
+    std::string event_time_basis{"media-pts-ms"};
+    std::int64_t event_anchor_utc_ms{0};
+    std::int64_t event_anchor_pts_ms{0};
+    std::string event_stream_epoch_id;
 };
 
 struct AnalysisProfile {

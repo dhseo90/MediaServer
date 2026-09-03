@@ -25,6 +25,9 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 ## Summary
 
+아래 요약은 역사적 canonical 986개 ID의 고정 집합이다. S05 신규 등록은 별도 고정 ID로
+관리하며 이 집합이나 historical UI 424개를 재번호화하지 않는다.
+
 | 항목 | 수 |
 | --- | ---: |
 | 전체 기능 항목 | 986 |
@@ -36,6 +39,55 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | UI 풀테스트 대상 | 424 |
 | 30분 soak 대상 | 50 |
 | 120분 대상 | 7 |
+
+| 현재 등록 범위 | 수 |
+| --- | ---: |
+| 역사적 canonical ID | 986 |
+| S05 개별 action ID | 27 |
+| 현재 등록 총계 | 1013 |
+
+이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
+이번 S05 보정에서 전수 감사하지 않았다.
+
+## V410-S05 개별 동작 등록
+
+아래 27개는 S05의 정식 고정 ID다. S08에서는 기존 ID를 보존해 종합 gate에 연결하며
+등록 자체를 S08로 미루지 않는다. 신규 UI는 없으며 S06 UI 구현은 이번 범위가 아니다.
+정확한 check ID·기대 메시지·시험 함수 연결은
+`test/fixtures/recording/v1/s05-action-inventory.json`에서 대조한다.
+정적 등록 검사는 실행 PASS가 아니다. `verify-v410-event-recording`이 실제 C++ assertion과
+application-only check 결과를 모두 수집한 뒤 각 ID의 PASS를 판정한다. 반복 lease 검사는
+같은 check를 여러 원본에 실행할 수 있으며 ID 정의 중복은 허용하지 않는다.
+
+| 기능 ID | 개별 동작 | 구현 파일·함수 | 검증 함수·check ID | PASS 출력/판정 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트·UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| V410-S05-I01 | 선택 시간축 DTO 왕복 | `src/ingress/event_storage_application_service.cpp` · `DispatchEventRecordsForApplication` | `compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order` · V410-S05-I01-C01, V410-S05-I01-C02, V410-S05-I01-C03 | 선택 시간축·anchor·epoch 및 실패 출력 전체 매핑 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I02 | 저장 큐 이전 내구 접수 | `src/analysis/event_storage.cpp` · `Enqueue` | `recording link is durably admitted before the bounded storage queue can drop an event` · V410-S05-I02-C01 | 정적 계약: JSONL 비활성 guard·TryResolve 선행·큐 eviction 호출 순서 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I03 | 명시적 PTS UTC 및 pre/post | `src/recording/event_recording_bridge.cpp` · `TryResolve` | `VerifyEventLinking` · V410-S05-I03-C01 | pre 1000/post 200으로 UTC 10300~12500 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I04 | anchor 없는 PTS 내구 복구 | `src/recording/event_recording_bridge.cpp` · `TryResolve` | `VerifyEventLinking` · V410-S05-I04-C01, V410-S05-I04-C02, V410-S05-I04-C03 | finalized mapping 복구·불명확 PTS Pending 보존 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I05 | 이벤트 중복 및 범위별 ID | `src/recording/event_recording_bridge.cpp` · `TryResolve` | `VerifyEventLinking` · V410-S05-I05-C01, V410-S05-I05-C02, V410-S05-I05-C03 | 동일 update 1회·확장 새 ID·긴 prefix 비충돌 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I06 | 링크 계약과 가산 필드 | `src/recording/recording_contracts.cpp` · `ValidateEventRecordingLinkV1` | `VerifyLinkContractInvariants` · V410-S05-I06-C01, V410-S05-I06-C02, V410-S05-I06-C03, V410-S05-I06-C04, V410-S05-I06-C05, V410-S05-I06-C06, V410-S05-I06-C07, V410-S05-I06-C08 | 왕복 보존·축소/겹침/분할 누락/잘못된 terminal 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I07 | 정렬 overlap 및 누락 구간 | `src/recording/event_recording_bridge.cpp` · `Process` | `VerifyEventLinking` · V410-S05-I07-C01, V410-S05-I07-C02, V410-S05-I07-C03, V410-S05-I07-C04 | 3개 순서·접점 제외·gap 11000~12000 Partial | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I08 | 원본 lease 획득 및 해제 | `src/recording/recording_catalog.cpp` · `AcquireEventSourceLease` | `VerifyEventLinking` · V410-S05-I08-C01, V410-S05-I08-C02 | 각 원본 파생 중 hold 1·완료 뒤 0 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I09 | 이벤트 용량과 예약 분리 | `src/recording/retention_coordinator.cpp` · `AdmitEventWrite` | `VerifyEventQuotaIsolation` · V410-S05-I09-C01, V410-S05-I09-C02, V410-S05-I09-C03, V410-S05-I09-C04 | continuous 보존·오래된 event 삭제·예약 수명 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I10 | 긴 remux 접수 비차단 | `src/recording/event_recording_bridge.cpp` · `Process` | `VerifyQueueRefillAndCleanupHold` · V410-S05-I10-C01 | blocked deriver 중 다른 접수 100ms 이내 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I11 | 포화 큐 내구 재흡수 | `src/recording/event_recording_bridge.cpp` · `Process` | `VerifyQueueRefillAndCleanupHold` · V410-S05-I11-C01 | 최대 대기 1에서 3개 이벤트 모두 완료 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I12 | frame-buffer fallback 연결 | `src/recording/event_recording_bridge.cpp` · `RecordFallback` | `VerifyEventLinking` · V410-S05-I12-C01 | 동일 Partial link에 실제 절대 locator 보존 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I13 | 완료 파생 clip 반환 | `src/recording/event_recording_bridge.cpp` · `TryResolve` | `VerifyEventLinking` · V410-S05-I13-C01, V410-S05-I13-C02, V410-S05-I13-C03 | ready·Complete·derived ID/path 동시 일치 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I14 | H264 무재인코딩 실측 출력 | `src/recording/event_clip_deriver.cpp` · `Derive` | `VerifyRealRemux` · V410-S05-I14-C01, V410-S05-I14-C02, V410-S05-I14-C03, V410-S05-I14-C04, V410-S05-I14-C05 | MP4 입력→TS 출력 크기·checksum·keyframe 확대; 동일 함수 EOS parse도 성공 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I15 | 출력 무덮어쓰기와 fd 결박 | `src/recording/event_clip_deriver.cpp` · `Derive` | `VerifyRealRemux` · V410-S05-I15-C01, V410-S05-I15-C02 | 기존 final/foreign partial 크기 보존 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I16 | 소유 crash partial 복구 | `src/recording/recording_catalog.cpp` · `Open` | `VerifyRealRemux` · V410-S05-I16-C01, V410-S05-I16-C02 | v2 UUID marker 일치 partial 정리 후 재파생 성공 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I17 | VP8 파생 거부 | `src/recording/event_clip_deriver.cpp` · `Derive` | `VerifyRealVp8Remux` · V410-S05-I17-C01 | 실제 VP8 source에서 파일 없이 명시적 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I18 | segment ID 충돌 거부 | `src/recording/event_recording_bridge.cpp` · `Process` | `VerifyRestartRecoveryAndIdConflict` · V410-S05-I18-C01, V410-S05-I18-C02 | 타 channel/class ID는 Failed·derive 0회 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I19 | finalized 파생물 재시작 연결 | `src/recording/event_recording_bridge.cpp` · `Process` | `VerifyRestartRecoveryAndIdConflict` · V410-S05-I19-C01, V410-S05-I19-C02 | 기존 derived ID·actual range 연결·derive 0회 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I20 | terminal 단계와 삭제 보호 | `src/recording/event_recording_bridge.cpp` · `ReleaseTerminalResources` | `VerifyQueueRefillAndCleanupHold` · V410-S05-I20-C01, V410-S05-I20-C02, V410-S05-I20-C03, V410-S05-I20-C04, V410-S05-I20-C05 | cleanup/marker/release 실패는 Pending 자원 유지·재시도 다른 hold 보존 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I21 | 보류 확장 및 재시작 수렴 | `src/recording/event_recording_bridge.cpp` · `TryResolve` | `VerifyDeferredFailureAndPtsUpdates` · V410-S05-I21-C01, V410-S05-I21-C02, V410-S05-I21-C03, V410-S05-I21-C04, V410-S05-I21-C05 | UTC 실패/Partial 수렴·PTS 2회 확장·재시작 총3회 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I22 | hold overflow 거부 | `src/recording/recording_catalog.cpp` · `AcquireEventSourceLease` | `VerifyQueueRefillAndCleanupHold` · V410-S05-I22-C01 | 저장 int64 한계에서 증가 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I23 | SQLite 동일 링크 갱신 | `src/recording/recording_catalog.cpp` · `PutEventLink` | `VerifyEventLinking` · V410-S05-I23-C01, V410-S05-I23-C02 | sqlite-primary 유지 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I24 | terminal replay 및 삭제 차단 | `src/recording/recording_catalog.cpp` · `RequestDeletion` | `VerifyPendingDerivedHoldRecovery` · V410-S05-I24-C01, V410-S05-I24-C02, V410-S05-I24-C03, V410-S05-I24-C04 | 단계별 hold 복원·hold 0이어도 terminal 전 삭제 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I25 | 전송 DTO 경계 | `src/ingress/webrtc_http_server_ops_incidents.cpp` · `ProjectEventStorageDispatchRequest` | `transport has zero canonical bypass and exact projection/call ordering` · V410-S05-I25-C01 | 전송 DTO 우회·필드 누락·잘못된 호출 순서 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I26 | 출력 fd 검증 계약 | `src/recording/event_clip_deriver.cpp` · `Derive` | `event clip output remains fd-bound and measured before no-replace publication` · V410-S05-I26-C01 | fd 결박·timestamp 측정·no-replace 출판의 정적 경계 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I27 | 제품 시작·종료 순서 | `src/application/media_server_application.cpp` · `RunMediaServerApplication` | `S05 composition starts the bridge before ingress and drains it after storage` · V410-S05-I27-C01 | ingress 전 bridge 등록·정상 및 시작 실패 경로에서 storage 뒤 bridge drain | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 
 ## Current Coverage Status
 
@@ -110,7 +162,7 @@ Static으로만 실행 예정이며 actual completion evidence가 아닙니다.
 
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
-| v4.1.0 Recording Foundation 현재 범위 | 기존 986개 ID 유지, 신규 `REC-*` ID는 V410-S08에서 별도 추가 | `verify-v410-research-gate`, `verify-v410-entry-baseline`, `verify-v410-recording-contracts`, `verify-v410-recording-recorder`, `verify-v410-recording-catalog`, `verify-v410-recording-retention`, `verify-project-inventory`, `verify-feature-inventory-coverage` | S00~S04의 조사·계약·segment recorder·catalog/journal·순환 보존까지 구현했습니다. S05 event linker, timeline API/UI, 검색 관측, UI 풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다 |
+| v4.1.0 Recording Foundation 현재 범위 | 기존 canonical 986개와 S05 고정 ID 27개 분리 | `verify-v410-research-gate`, `verify-v410-entry-baseline`, `verify-v410-recording-contracts`, `verify-v410-recording-recorder`, `verify-v410-recording-catalog`, `verify-v410-recording-retention`, `verify-v410-event-recording`, `verify-project-inventory`, `verify-feature-inventory-coverage` | S05 local 구현·개별 등록·재실행·독립 결속 검증 완료. 이전 등록 누락 FAIL과 보정 이력은 release-test-records에 보존합니다. S06 timeline API/UI, 검색 관측, UI 풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다 |
 | v3.9.1 release correction | `OPS-163`, `SAFE-196` inherited scope | `verify-release-metadata`, `verify-v391-documentation-truth`, `verify-public-repo-readiness`, `verify-docs-links`, `verify-docs-ui-assets` | current source `3.9.1`, latest published `v3.9.0`의 metadata/docs/public evidence/UI asset correction입니다. 기능 ID·API/schema/media 동작을 추가하지 않으며 fresh build, 30분, exact UI 424/Policy v4, 120분, release action은 별도 evidence가 필요합니다. |
 | v4.0.0 Local Operations Policy and Stabilization roadmap | `OPS-163`, `SAFE-196` inherited scope | `verify-v400-roadmap-contract`, `verify-v400-entry-baseline`, `verify-script-inventory`, `verify-project-inventory`, `verify-docs-links` | 현재 source 개발 로드맵이 로컬 운영 정책화/안정화와 v4.1.0 신규 기능을 분리하고, 모든 스텝에 테스트 스크립트 반영 필수를 심었는지 확인합니다. v4.0.0 (1) 외 기능 구현, UI 풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다 |
 | v4.0.0 (1) v4.0.0 baseline 정렬 | `OPS-163`, `SAFE-196` inherited scope | `verify-v400-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-v400-roadmap-contract`, `verify-script-inventory`, `verify-project-inventory` | current source `4.0.0`, latest published `v4.0.0`, current roadmap `v4.0.0 Local Operations Policy and Stabilization` 정렬. UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release evidence와는 별도 gate입니다 |

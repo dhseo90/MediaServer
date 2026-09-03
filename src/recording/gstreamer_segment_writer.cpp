@@ -17,9 +17,12 @@
 #endif
 
 #if MEDIA_SERVER_USE_GSTREAMER
+#include <fcntl.h>
 #include <gst/app/gstappsrc.h>
 #include <gst/gst.h>
 #include <glib.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 namespace recording {
@@ -60,10 +63,14 @@ std::string FileSha256(const std::filesystem::path& path) {
 }
 
 bool WriteCleanupMarkerDurably(const std::filesystem::path& storage_root,
-                               const std::filesystem::path& path) {
+                               const std::filesystem::path& path,
+                               const std::filesystem::path& partial_path) {
     std::string error;
+    const std::string contents =
+        "recording-cleanup-pending-v2\npartial=" +
+        partial_path.filename().string() + "\n";
     return WriteContainedFileDurably(
-        storage_root, path, "recording-cleanup-pending-v1\n", &error);
+        storage_root, path, contents, &error);
 }
 #endif
 
@@ -204,11 +211,33 @@ private:
                                std::to_string(utc_ms) + "-" + std::to_string(++sequence);
         final_path = options.storage_root / SafeToken(channel_id) / (id + extension);
         partial_path = final_path;
-        partial_path += ".partial";
+        gchar* partial_nonce_raw = g_uuid_string_random();
+        const std::string partial_nonce =
+            partial_nonce_raw == nullptr ? std::string() : partial_nonce_raw;
+        g_free(partial_nonce_raw);
+        if (partial_nonce.empty()) {
+            admission_blocked = true;
+            segment_open = false;
+            ReleaseReservationLocked(0);
+            return false;
+        }
+        partial_path += ".partial." + partial_nonce;
         cleanup_marker_path = final_path;
         cleanup_marker_path += ".cleanup-pending";
-        if (!WriteCleanupMarkerDurably(options.storage_root, cleanup_marker_path)) {
-            AbortSegmentFileLocked(final_path, 0);
+        if (!WriteCleanupMarkerDurably(
+                options.storage_root, cleanup_marker_path, partial_path)) {
+            admission_blocked = true;
+            segment_open = false;
+            ReleaseReservationLocked(0);
+            return false;
+        }
+        partial_fd = ::open(partial_path.c_str(),
+                            O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW,
+                            0600);
+        if (partial_fd < 0) {
+            admission_blocked = true;
+            segment_open = false;
+            if (ClearCleanupMarkerLocked()) ReleaseReservationLocked(0);
             return false;
         }
 
@@ -218,14 +247,14 @@ private:
             video_track.codec == media::CodecId::H264 ? "h264parse" : "identity", nullptr);
         muxer = gst_element_factory_make(
             video_track.codec == media::CodecId::H264 ? "mp4mux" : "webmmux", nullptr);
-        sink = gst_element_factory_make("filesink", nullptr);
+        sink = gst_element_factory_make("fdsink", nullptr);
         if (pipeline == nullptr || appsrc == nullptr || parser == nullptr || muxer == nullptr || sink == nullptr) {
             ResetPipelineLocked();
             AbortSegmentFileLocked(partial_path, 0);
             return false;
         }
         g_object_set(appsrc, "is-live", TRUE, "format", GST_FORMAT_TIME, "block", TRUE, nullptr);
-        g_object_set(sink, "location", partial_path.string().c_str(), "sync", FALSE, nullptr);
+        g_object_set(sink, "fd", partial_fd, "sync", FALSE, nullptr);
         GstCaps* caps = nullptr;
         if (!video_track.caps_string.empty()) caps = gst_caps_from_string(video_track.caps_string.c_str());
         if (caps == nullptr) {
@@ -313,8 +342,17 @@ private:
             gst_object_unref(bus);
             gst_element_set_state(pipeline, GST_STATE_NULL);
         }
+        struct stat output_status {};
+        struct stat path_status {};
+        const bool output_binding_ok = eos && partial_fd >= 0 &&
+            ::fsync(partial_fd) == 0 && ::fstat(partial_fd, &output_status) == 0 &&
+            ::lstat(partial_path.c_str(), &path_status) == 0 &&
+            S_ISREG(output_status.st_mode) && S_ISREG(path_status.st_mode) &&
+            output_status.st_nlink == 1 && path_status.st_nlink == 1 &&
+            output_status.st_dev == path_status.st_dev &&
+            output_status.st_ino == path_status.st_ino;
         ResetPipelineLocked();
-        if (!eos) {
+        if (!output_binding_ok) {
             AbortSegmentFileLocked(partial_path, 0);
             return;
         }
@@ -413,6 +451,10 @@ private:
         parser = nullptr;
         muxer = nullptr;
         sink = nullptr;
+        if (partial_fd >= 0) {
+            ::close(partial_fd);
+            partial_fd = -1;
+        }
     }
 #endif
 
@@ -442,6 +484,7 @@ private:
     std::filesystem::path final_path;
     std::filesystem::path cleanup_marker_path;
 #if MEDIA_SERVER_USE_GSTREAMER
+    int partial_fd{-1};
     GstElement* pipeline{nullptr};
     GstElement* appsrc{nullptr};
     GstElement* parser{nullptr};

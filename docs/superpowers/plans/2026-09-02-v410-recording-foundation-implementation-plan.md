@@ -243,7 +243,7 @@ git commit -m "docs: v4.1.0 녹화 연구 게이트 고정"
 
 ---
 
-S01~S04의 verifier와 `server.sh` dispatch는 구현되어 실제 명령으로 승격됐다. S05~S09의
+S01~S05의 verifier와 `server.sh` dispatch는 구현되어 실제 명령으로 승격됐다. S06~S09의
 `planned-command`는 해당 단계에서 verifier와 dispatch를 함께 구현한 뒤 실행 명령으로
 승격할 계획 ID이며 현재 실행 가능한 명령이나 PASS 증거가 아니다.
 
@@ -668,8 +668,9 @@ container overhead를 포함한 예약 상한을 넘기기 전 segment를 닫고
 삭제하거나 0 byte로 만들고, 둘 다 실패하면 예약을 반환하지 않는다. final media를 열기
 전 storage root dirfd의 `openat(O_NOFOLLOW|O_EXCL)`로 cleanup-pending 마커를 만들고 file과
 parent directory까지 fsync한다. catalog 성공 또는 cleanup 뒤 마커 안전 제거와 directory
-fsync까지 성공해야 예약을 반환한다. 재시작 catalog는 추적 media를 보존하고 미추적 final/partial과 마커를
-안전하게 정리하며, 정리할 수 없으면 open을 fail-closed한다. journal을 남긴 뒤 실제 삭제는 recording root에서 연 dirfd를
+fsync까지 성공해야 예약을 반환한다. 재시작 catalog는 추적 media를 보존하고 미추적
+partial과 마커만 안전하게 정리한다. 소유권을 증명할 수 없는 final은 삭제하지 않고 orphan
+진단에 남기며, 안전하게 정리할 수 없으면 open을 fail-closed한다. journal을 남긴 뒤 실제 삭제는 recording root에서 연 dirfd를
 하위 디렉터리마다 `O_NOFOLLOW`로 결박한 뒤 `unlinkat`으로 수행한다.
 
 ### Step 4: GREEN과 문서 기록
@@ -689,6 +690,15 @@ git commit -m "feat: 녹화 순환 보존과 용량 보호 추가"
 ---
 
 ## Task 5: V410-S05 이벤트 segment 연결, 파생 clip과 frame-buffer fallback
+
+### 중단 재개 보정 계획 (2026-09-04)
+
+1. 개별 테스트 등록을 S08로 미룬 위반을 FAIL 이력으로 보존하고 완료 표기를 보류한다.
+2. S05 고정 ID 27개와 네 테스트 영역·UI 부재·입력/판정/check 연결을 실행 전에 등록한다.
+3. 등록기 negative 테스트 뒤 실제 assertion별 출력과 중앙 inventory 필수 연결을 구현한다.
+4. S05·S01~S04·빌드·문서 검증을 재실행하고 개별 결과를 release-test-records에 기록한다.
+5. 기존 canonical 986개 trust 변화는 독립 검토 후 공식 producer로만 재결속한다.
+6. S06은 착수하지 않는다. 최신 명시 승인 없이 커밋·푸시·release action을 수행하지 않는다.
 
 **수정 파일:**
 
@@ -718,7 +728,7 @@ git commit -m "feat: 녹화 순환 보존과 용량 보호 추가"
   event만 처리
 
 ```bash
-planned-command verify-v410-event-recording
+./server.sh verify-v410-event-recording
 ```
 
 ### Step 2: EventStorage에 narrow bridge를 추가한다
@@ -753,24 +763,26 @@ EventRecord JSON 기존 필드는 유지하고 `recordingLinkId`, `recordingComp
 ### Step 3: PTS event 시간을 UTC로 매핑한다
 
 internal event의 기존 `start_time_ms/update_time_ms/end_time_ms`가 media PTS millisecond인
-경우 current result PTS와 stream epoch anchor의 delta로 UTC를 계산한다. 외부 dispatch에는
+경우 명시 anchor의 delta로 UTC를 계산한다. anchor가 없으면 media PTS 범위를 별도 보존하고
+같은 epoch의 finalized segment가 가진 실제 PTS/UTC mapping으로만 승격한다. 외부 dispatch에는
 additive `timeBasis`를 추가해 `utc-ms` 또는 `media-pts-ms`를 명시하게 한다. 값이 없으면
 기존 호환은 유지하되 recording link는 `time-basis-ambiguous`로 두고 임의 UTC 연결을 하지
 않는다.
 
 ### Step 4: 파생 clip을 작성한다
 
-source segment를 직접 이어 붙이지 않고 GStreamer demux/parser/mux pipeline으로 요청
-범위를 remux한다. 첫 seek는 앞선 keyframe까지 넓힐 수 있으므로 manifest에
+source segment를 직접 이어 붙이지 않고 GStreamer demux/parser/MPEG-TS mux pipeline으로
+요청 범위를 remux한다. 첫 seek는 앞선 keyframe까지 넓힐 수 있으므로 실제 출력 packet의
+timestamp를 측정해 manifest에
 `requestedStartMs`, `actualStartMs`, `requestedEndMs`, `actualEndMs`를 모두 기록한다.
 완료된 event clip은 새 `RecordingSegmentV1`이며 retention class `Event`다.
 
 ### Step 5: GREEN과 회귀 검증
 
 ```bash
-planned-command verify-v410-event-recording
+./server.sh verify-v410-event-recording
 ./server.sh verify-v410-recording-retention
-planned-command verify-v410-recording-catalog
+./server.sh verify-v410-recording-catalog
 git diff --check
 ```
 
@@ -779,6 +791,47 @@ git diff --check
 ```bash
 git commit -m "feat: 이벤트 녹화 연결과 파생 clip 추가"
 ```
+
+### 구현 결과
+
+- `EventStorage`는 JSONL 저장 활성화 여부와 독립적으로 process-lifetime bridge가 있으면
+  이벤트를 bounded worker에 전달한다. bridge는 `shared_ptr` snapshot으로 등록·해제하며
+  storage worker에서 remux를 직접 실행하지 않는다.
+- internal media event는 `media-pts-ms`와 UTC/PTS anchor·stream epoch를 함께 넘기고, 외부
+  application DTO는 시간축이 비어 있으면 임의 UTC로 해석하지 않는다.
+- keyed 비동기 worker는 같은 event update를 하나의 결정적 link/segment ID로 합치고,
+  finalized continuous source lease와 Event 전용 quota reservation을 얻은 뒤 파생한다.
+- GStreamer deriver는 검증된 video-only H.264/MP4 overlap을 demux/parser/MPEG-TS mux로
+  연결하고 video decoder와 encoder를 사용하지 않는다. VP8/WebM event 파생은 S05에서
+  fail-closed해 frame-buffer fallback으로 보낸다. source/output fd 결박, owner-only
+  `.partial.<uuid>`, 이를 지목하는 durable v2 cleanup marker, inode 재검증, no-replace
+  publish, fsync, SHA-256을 적용한다. catalog 재시작은 v2 marker가 지목한 단일-link
+  partial만 정리하고 v1/foreign final·partial은 보존한다.
+- complete link에는 source overlap, 요청/실제 범위, `remux-no-video-reencode`를 기록한다.
+  gap·epoch/codec 불일치·lease 실패는 partial/failed 경계와 missing range로 남기고 기존
+  frame-buffer 결과를 같은 link의 fallback evidence로 갱신한다.
+- 제품 종료는 ingress 정지 → continuous writer finalize → EventStorage drain → event bridge
+  drain/해제 순서다. bridge는 외부 ingress 시작 전에 등록한다. 재시작 시 pending link를 재대기시키고 이미 finalized된 결정적 event
+  segment가 있으면 재파생하지 않고 link만 복구한다.
+- EventRecord bounded queue가 포화되기 전에 durable link를 먼저 기록하고 keyed worker의
+  pending은 후속 슬롯으로 다시 흡수한다. SHA-256 결정 ID로 긴 공통 prefix 충돌을 막고,
+  complete event 범위가 넓어지면 범위 결속 ID로 새 파생물을 만든다. provisional fallback에는
+  내부 media locator를 함께 남긴다.
+- marker 제거와 terminal link 기록이 끝날 때까지 source/output hold와 Event reservation을
+  유지한다. marker 제거 뒤 terminal resource-release pending을 먼저 기록하고 hold와
+  reservation 해제가 모두 성공해야 complete로 승격한다. 실제 remux 중에는 admission lock을
+  풀어 다른 event의 durable link 기록을 막지 않는다. tombstone ID 재사용은 거부하며,
+  소유권을 증명할 수 없는 기존 final은 삭제하지 않고 orphan 진단에 남긴다.
+- terminal 미완료 link의 source/output은 hold가 해제됐어도 catalog가 삭제 요청을 차단한다.
+  복구 중 event/fallback update는 단계와 소유 자원을 보존하고 UTC 확장 요청은 additive
+  `deferred_requested_range`로 journal 대기한 뒤 기존 자원 정리 후 새 파생으로 전환한다.
+- anchor 없는 후속 PTS도 기존 epoch의 segment map으로 변환한다. map이 아직 없으면
+  `deferred_media_pts_range_ms`로 별도 내구 대기한다. 복구할 finalized 파생물이 없는 경우
+  보류 UTC/PTS 요청을 먼저 소비해 실패·부분 완료 전이가 무한 재시도에 남지 않게 한다.
+- focused 결과: `verify-v410-event-recording` C++ `pass=140 fail=0`과 EventStorage
+  application-only 계약 `6/0`, contracts `45/0`, retention `56/0`, recorder `71/0`, catalog
+  `45/0`과 composition 정적 항목 9건, 제품 build를 확인했다. UI·장시간·release action은 이 결과에
+  포함하지 않는다.
 
 ---
 
@@ -1024,9 +1077,10 @@ fixture 파일의 SHA-256 목록을 고정한다. 후속 v4.2+는 이 fixture를
 
 ### Step 4: feature/test inventory와 evidence를 연결한다
 
-새 기능 ID는 `REC-*` namespace로 추가한다. 각 ID는 owner symbol, route/control,
-positive/negative verifier와 안정화/UI/30분/120분 판정 근거를 가진다. inventory는 실행
-PASS가 아님을 그대로 유지한다.
+각 단계에서 이미 등록한 고정 ID를 재번호화하지 않고 종합 검증에 연결한다.
+S05의 `V410-S05-I*`도 보존한다. 신규 동작은 구현 단계에서 시험 실행 전에 등록하며
+S08까지 미루지 않는다. 각 ID는 owner symbol, route/control, positive/negative verifier와
+안정화/UI/30분/120분 판정 근거를 가진다. inventory는 실행 PASS가 아니다.
 
 ### Step 5: GREEN과 회귀 검증
 
@@ -1034,10 +1088,10 @@ PASS가 아님을 그대로 유지한다.
 planned-command verify-v410-recording-recovery
 planned-command verify-v410-recording-fixture-compatibility
 planned-command verify-v410-recording-observations
-planned-command verify-v410-event-recording
+./server.sh verify-v410-event-recording
 ./server.sh verify-v410-recording-retention
-planned-command verify-v410-recording-catalog
-planned-command verify-v410-recording-recorder
+./server.sh verify-v410-recording-catalog
+./server.sh verify-v410-recording-recorder
 ./server.sh verify-v410-recording-contracts
 ./server.sh verify-docs-links
 git diff --check

@@ -13,6 +13,10 @@ AnalysisSessionApplicationContext FromCanonical(const analysis::AnalysisContext&
     output.client_id = input.client_id;
     output.va_rule_id = input.va_rule_id;
     output.va_rule_ids = input.va_rule_ids;
+    output.event_time_basis = input.event_time_basis;
+    output.event_anchor_utc_ms = input.event_anchor_utc_ms;
+    output.event_anchor_pts_ms = input.event_anchor_pts_ms;
+    output.event_stream_epoch_id = input.event_stream_epoch_id;
     return output;
 }
 
@@ -356,6 +360,10 @@ analysis::AnalysisContext ToCanonical(const AnalysisSessionApplicationContext& i
     output.client_id = input.client_id;
     output.va_rule_id = input.va_rule_id;
     output.va_rule_ids = input.va_rule_ids;
+    output.event_time_basis = input.event_time_basis;
+    output.event_anchor_utc_ms = input.event_anchor_utc_ms;
+    output.event_anchor_pts_ms = input.event_anchor_pts_ms;
+    output.event_stream_epoch_id = input.event_stream_epoch_id;
     return output;
 }
 

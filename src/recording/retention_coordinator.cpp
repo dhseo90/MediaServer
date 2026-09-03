@@ -98,12 +98,14 @@ bool OpenContainedParentDirectory(const std::filesystem::path& media_root,
         return false;
     }
     std::error_code path_error;
-    const auto absolute_root = std::filesystem::absolute(media_root, path_error).lexically_normal();
+    const auto absolute_root =
+        std::filesystem::weakly_canonical(media_root, path_error).lexically_normal();
     if (path_error) {
         if (error != nullptr) *error = "녹화 storage root 절대 경로 변환 실패";
         return false;
     }
-    const auto absolute_media = std::filesystem::absolute(media_path, path_error).lexically_normal();
+    const auto absolute_media =
+        std::filesystem::weakly_canonical(media_path, path_error).lexically_normal();
     if (path_error || absolute_media == absolute_root) {
         if (error != nullptr) *error = "녹화 media 절대 경로가 유효하지 않음";
         return false;
@@ -220,7 +222,8 @@ bool WriteContainedFileDurably(const std::filesystem::path& media_root,
 bool RemoveContainedMediaFile(const std::filesystem::path& media_root,
                               const std::filesystem::path& media_path,
                               std::string* error,
-                              BeforeContainedUnlinkHook before_unlink) {
+                              BeforeContainedUnlinkHook before_unlink,
+                              bool require_single_link) {
     if (media_root.empty() || media_path.empty()) {
         if (error != nullptr) *error = "녹화 storage root 또는 media 경로가 비어 있음";
         return false;
@@ -251,6 +254,10 @@ bool RemoveContainedMediaFile(const std::filesystem::path& media_root,
         if (error != nullptr) *error = "녹화 media 삭제 대상이 일반 파일이 아님";
         return false;
     }
+    if (require_single_link && media_stat.st_nlink != 1) {
+        if (error != nullptr) *error = "녹화 media 삭제 대상이 단일 link 파일이 아님";
+        return false;
+    }
     if (before_unlink) {
         try {
             before_unlink();
@@ -268,6 +275,7 @@ bool RemoveContainedMediaFile(const std::filesystem::path& media_root,
     return true;
 #else
     (void)before_unlink;
+    (void)require_single_link;
     if (error != nullptr) *error = "지원하지 않는 플랫폼의 안전 unlink";
     return false;
 #endif
@@ -351,7 +359,11 @@ RetentionPlan RetentionCoordinator::Plan(const RetentionSnapshot& snapshot,
             if (IsEligible(candidate)) events.push_back(&candidate);
         }
     }
-    continuous_bytes = SaturatingAdd(continuous_bytes, request.required_write_bytes);
+    if (request.required_write_class == RecordingRetentionClass::Event) {
+        event_bytes = SaturatingAdd(event_bytes, request.required_write_bytes);
+    } else {
+        continuous_bytes = SaturatingAdd(continuous_bytes, request.required_write_bytes);
+    }
     std::sort(continuous.begin(), continuous.end(), OldestFirst);
     std::sort(events.begin(), events.end(), OldestFirst);
     plan.eligible_count = continuous.size();
@@ -555,6 +567,8 @@ void RetentionCoordinator::RemoveChannelPolicy(const std::string& channel_id) {
     std::lock_guard lock(mu_);
     policies_.erase(channel_id);
     statuses_.erase(channel_id);
+    // 진행 중인 writer/event reservation은 policy lifecycle과 독립된 물리 공간 보호다.
+    // verified finalize 또는 cleanup이 Complete*Write를 호출할 때까지 유지한다.
 }
 
 void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
@@ -693,7 +707,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         options_.reserved_free_bytes, expected_segment_bytes);
     const bool allowed = applied.ok && refreshed && plan.continuous_quota_satisfied &&
                          refreshed_free >= required_bytes;
-    if (allowed) inflight_reservations_[channel_id] = {expected_segment_bytes, 0};
+    if (allowed) inflight_reservations_[channel_id] = {expected_segment_bytes, 0, channel_id};
     bool was_blocked = false;
     {
         std::lock_guard lock(mu_);
@@ -725,9 +739,113 @@ void RetentionCoordinator::UpdateContinuousWriteProgress(
         std::min(written_bytes, it->second.reserved_bytes));
 }
 
+RetentionAdmissionResult RetentionCoordinator::AdmitEventWrite(
+    const std::string& channel_id,
+    const std::string& reservation_id,
+    std::uint64_t expected_segment_bytes,
+    std::int64_t now_ms) {
+    std::lock_guard admission_lock(admission_mu_);
+    if (channel_id.empty() || reservation_id.empty() || expected_segment_bytes == 0) {
+        return {false, false, 0, "event write 예약 인자가 유효하지 않음"};
+    }
+    RetentionPolicy policy;
+    {
+        std::lock_guard lock(mu_);
+        const auto it = policies_.find(channel_id);
+        if (it == policies_.end()) return {false, false, 0, "channel retention policy가 없음"};
+        policy = it->second;
+    }
+    if (event_inflight_reservations_.find(reservation_id) !=
+        event_inflight_reservations_.end()) {
+        return {false, false, 0, "같은 event write 예약이 이미 존재함"};
+    }
+    const auto recovered = RecoverPendingForChannel(now_ms, channel_id);
+    if (!recovered.ok) return {false, false, 0, recovered.last_error};
+
+    const auto observed = observed_event_bytes_.find(channel_id);
+    if (observed != observed_event_bytes_.end()) {
+        expected_segment_bytes = std::max(expected_segment_bytes, observed->second);
+    }
+    if (expected_segment_bytes > policy.event_max_bytes) {
+        return {false, false, 0, "예상 event clip 용량이 event quota를 초과함"};
+    }
+
+    std::uint64_t free_bytes = 0;
+    std::string error;
+    if (!free_space_provider_ || !free_space_provider_(&free_bytes, &error)) {
+        return {false, false, 0,
+                error.empty() ? "recording root 여유 공간 조회 실패" : error};
+    }
+    const std::uint64_t inflight_bytes = OutstandingReservationsLocked();
+    const std::uint64_t effective_free =
+        free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
+    RetentionPlanRequest request;
+    request.channel_id = channel_id;
+    request.policy = policy;
+    request.now_ms = now_ms;
+    request.free_bytes = effective_free;
+    request.reserved_free_bytes = options_.reserved_free_bytes;
+    request.required_write_bytes = expected_segment_bytes;
+    request.required_write_class = RecordingRetentionClass::Event;
+    auto admission_snapshot = snapshot_provider_();
+    admission_snapshot.candidates.erase(
+        std::remove_if(admission_snapshot.candidates.begin(),
+                       admission_snapshot.candidates.end(),
+                       [](const RetentionCandidate& candidate) {
+                           return candidate.segment.retention_class !=
+                                  RecordingRetentionClass::Event;
+                       }),
+        admission_snapshot.candidates.end());
+    const auto plan = Plan(admission_snapshot, request);
+    const auto applied = Apply(plan, now_ms);
+    std::uint64_t refreshed_physical_free = free_bytes;
+    std::string refresh_error;
+    bool refreshed = true;
+    if (applied.ok && applied.deleted_count > 0) {
+        refreshed = free_space_provider_ &&
+                    free_space_provider_(&refreshed_physical_free, &refresh_error);
+    }
+    const std::uint64_t refreshed_free =
+        refreshed_physical_free > inflight_bytes
+            ? refreshed_physical_free - inflight_bytes
+            : 0;
+    const std::uint64_t required_bytes =
+        SaturatingAdd(options_.reserved_free_bytes, expected_segment_bytes);
+    const bool allowed = applied.ok && refreshed && plan.event_quota_satisfied &&
+                         refreshed_free >= required_bytes;
+    if (!allowed) {
+        return {false, false, 0,
+                !applied.last_error.empty()
+                    ? applied.last_error
+                    : (!refresh_error.empty()
+                           ? refresh_error
+                           : "삭제 가능한 event segment로 quota 또는 disk reserve를 복구할 수 없음")};
+    }
+    event_inflight_reservations_[reservation_id] =
+        {expected_segment_bytes, 0, channel_id};
+    return {true, false, expected_segment_bytes, "ok"};
+}
+
+void RetentionCoordinator::UpdateEventWriteProgress(
+    const std::string& reservation_id,
+    std::uint64_t written_bytes) {
+    std::lock_guard admission_lock(admission_mu_);
+    const auto it = event_inflight_reservations_.find(reservation_id);
+    if (it == event_inflight_reservations_.end()) return;
+    it->second.written_bytes = std::max(
+        it->second.written_bytes,
+        std::min(written_bytes, it->second.reserved_bytes));
+}
+
 std::uint64_t RetentionCoordinator::OutstandingReservationsLocked() const {
     std::uint64_t outstanding = 0;
     for (const auto& [_, reservation] : inflight_reservations_) {
+        const std::uint64_t written =
+            std::min(reservation.written_bytes, reservation.reserved_bytes);
+        outstanding = SaturatingAdd(
+            outstanding, reservation.reserved_bytes - written);
+    }
+    for (const auto& [_, reservation] : event_inflight_reservations_) {
         const std::uint64_t written =
             std::min(reservation.written_bytes, reservation.reserved_bytes);
         outstanding = SaturatingAdd(
@@ -743,6 +861,20 @@ void RetentionCoordinator::CompleteContinuousWrite(
     inflight_reservations_.erase(channel_id);
     if (actual_segment_bytes > 0) {
         auto& observed = observed_segment_bytes_[channel_id];
+        observed = std::max(observed, actual_segment_bytes);
+    }
+}
+
+void RetentionCoordinator::CompleteEventWrite(
+    const std::string& reservation_id,
+    std::uint64_t actual_segment_bytes) {
+    std::lock_guard admission_lock(admission_mu_);
+    const auto it = event_inflight_reservations_.find(reservation_id);
+    if (it == event_inflight_reservations_.end()) return;
+    const std::string channel_id = it->second.channel_id;
+    event_inflight_reservations_.erase(it);
+    if (actual_segment_bytes > 0) {
+        auto& observed = observed_event_bytes_[channel_id];
         observed = std::max(observed, actual_segment_bytes);
     }
 }

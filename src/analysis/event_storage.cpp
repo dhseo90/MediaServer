@@ -36,6 +36,14 @@ namespace {
 
 constexpr std::size_t kMaxEventRecordLineBytes = 1024 * 1024;
 
+std::mutex g_event_recording_bridge_mu;
+std::shared_ptr<EventRecordingBridge> g_event_recording_bridge;
+
+std::shared_ptr<EventRecordingBridge> EventRecordingBridgeSnapshot() {
+    std::lock_guard lock(g_event_recording_bridge_mu);
+    return g_event_recording_bridge;
+}
+
 enum class BoundedLineStatus {
     kLine,
     kEnd,
@@ -153,6 +161,13 @@ EventRecord BuildEventRecord(const AnalysisResult& result, const AnalysisEvent& 
     record.bbox = event.box;
     record.pre_event_ms = core::GetAnalysisRuntimeConfig().analysis_event_pre_event_ms;
     record.post_event_ms = core::GetAnalysisRuntimeConfig().analysis_event_post_event_ms;
+    record.time_basis = result.context.event_time_basis;
+    record.time_anchor_utc_ms = result.context.event_anchor_utc_ms;
+    record.time_anchor_pts_ms = result.context.event_anchor_pts_ms;
+    record.stream_epoch_id = result.context.event_stream_epoch_id;
+    // media PTS를 현재 wall clock으로 추정하면 녹화 segment epoch와 다른 UTC를
+    // 영속하게 된다. anchor가 없으면 0을 유지하고 recording bridge가 finalized
+    // segment의 실제 PTS<->UTC mapping으로만 해석한다.
     record.metadata_json = BuildMetadataJson(result, event);
     return record;
 }
@@ -180,8 +195,23 @@ std::string EventRecordJson(const EventRecord& record) {
         << "\"snapshotPath\":\"" << JsonEscape(record.snapshot_path) << "\","
         << "\"clipPath\":\"" << JsonEscape(record.clip_path) << "\","
         << "\"preEventMs\":" << record.pre_event_ms << ","
-        << "\"postEventMs\":" << record.post_event_ms << ","
-        << "\"metadata\":" << (record.metadata_json.empty() ? "{}" : record.metadata_json)
+        << "\"postEventMs\":" << record.post_event_ms;
+    if (!record.time_basis.empty()) {
+        out << ",\"timeBasis\":\"" << JsonEscape(record.time_basis) << "\""
+            << ",\"timeAnchorUtcMs\":" << record.time_anchor_utc_ms
+            << ",\"timeAnchorPtsMs\":" << record.time_anchor_pts_ms;
+    }
+    if (!record.stream_epoch_id.empty()) {
+        out << ",\"streamEpochId\":\"" << JsonEscape(record.stream_epoch_id) << "\"";
+    }
+    if (!record.recording_link_id.empty()) {
+        out << ",\"recordingLinkId\":\"" << JsonEscape(record.recording_link_id) << "\"";
+    }
+    if (!record.recording_completeness.empty()) {
+        out << ",\"recordingCompleteness\":\""
+            << JsonEscape(record.recording_completeness) << "\"";
+    }
+    out << ",\"metadata\":" << (record.metadata_json.empty() ? "{}" : record.metadata_json)
         << "}";
     return out.str();
 }
@@ -2718,17 +2748,38 @@ public:
         Stop();
     }
 
-    void Enqueue(EventRecord record) {
+    struct QueuedEvent {
+        AnalysisResult result;
+        EventRecord record;
+    };
+
+    void Enqueue(AnalysisResult result, EventRecord record) {
         const auto& config = core::GetAnalysisRuntimeConfig();
-        if (!config.analysis_event_storage_enabled) {
+        const auto recording_bridge = EventRecordingBridgeSnapshot();
+        if (!config.analysis_event_storage_enabled && !recording_bridge) {
             return;
+        }
+        // 녹화 link는 bounded JSONL/media-hook queue보다 먼저 journal에 넣는다.
+        // 이후 queue가 포화되어 오래된 EventRecord를 버리더라도 녹화 요청 자체는
+        // catalog pending + bridge refill 경계에서 복구할 수 있다.
+        if (recording_bridge) {
+            EventMediaHookOptions options;
+            options.enabled = config.analysis_event_clip_hook_enabled;
+            options.directory = config.analysis_event_clip_dir;
+            options.pre_event_ms = config.analysis_event_pre_event_ms;
+            options.post_event_ms = config.analysis_event_post_event_ms;
+            options.clip_buffer_ms = config.analysis_event_clip_buffer_ms;
+            const auto bridge_result = recording_bridge->TryResolve(result, record, options);
+            record.recording_link_id = bridge_result.link_id;
+            record.recording_completeness = bridge_result.completeness;
+            if (bridge_result.derived_clip_ready) record.clip_path = bridge_result.clip_path;
         }
         std::lock_guard lock(mu_);
         if (queue_.size() >= config.analysis_event_storage_max_queue) {
             queue_.pop_front();
             ++dropped_count_;
         }
-        queue_.push_back(std::move(record));
+        queue_.push_back({std::move(result), std::move(record)});
         ++enqueued_count_;
         StartWorkerLocked();
         cv_.notify_one();
@@ -2794,20 +2845,24 @@ private:
 
     void WorkerLoop() {
         while (true) {
-            EventRecord record;
+            QueuedEvent item;
             {
                 std::unique_lock lock(mu_);
                 cv_.wait(lock, [this] { return stop_ || !queue_.empty(); });
                 if (stop_ && queue_.empty()) {
                     return;
                 }
-                record = std::move(queue_.front());
+                item = std::move(queue_.front());
                 queue_.pop_front();
             }
 
-            ApplyMediaHooks(&record);
+            ApplyMediaHooks(item.result, &item.record);
+            const auto& config = core::GetAnalysisRuntimeConfig();
+            if (!config.analysis_event_storage_enabled) {
+                continue;
+            }
             const std::uint64_t next_record_bytes =
-                static_cast<std::uint64_t>(EventRecordJson(record).size() + 1);
+                static_cast<std::uint64_t>(EventRecordJson(item.record).size() + 1);
             bool rotated = false;
             std::string rotation_error;
             if (RotateActiveEventStorageIfNeeded(next_record_bytes, &rotated, &rotation_error)) {
@@ -2823,7 +2878,7 @@ private:
             }
             FileEventStorage storage(core::GetAnalysisRuntimeConfig().analysis_event_storage_path);
             std::string error_message;
-            if (storage.Store(record, &error_message)) {
+            if (storage.Store(item.record, &error_message)) {
                 if (rotated) {
                     const RetentionResult retention = ApplyEventStorageRetention();
                     if (retention.deleted_count > 0 || retention.deleted_bytes > 0 ||
@@ -2851,7 +2906,7 @@ private:
         }
     }
 
-    void ApplyMediaHooks(EventRecord* record) {
+    void ApplyMediaHooks(const AnalysisResult& result, EventRecord* record) {
         if (record == nullptr) {
             return;
         }
@@ -2899,14 +2954,28 @@ private:
         NoOpEventClipHook noop_clip_hook;
         EventClipHook& clip_hook = clip_options.enabled ? static_cast<EventClipHook&>(file_clip_hook)
                                                         : static_cast<EventClipHook&>(noop_clip_hook);
+        const auto recording_bridge = EventRecordingBridgeSnapshot();
+        EventRecordingBridgeResult bridge_result;
+        if (recording_bridge) {
+            bridge_result = recording_bridge->TryResolve(result, *record, clip_options);
+            record->recording_link_id = bridge_result.link_id;
+            record->recording_completeness = bridge_result.completeness;
+            if (bridge_result.derived_clip_ready) {
+                record->clip_path = bridge_result.clip_path;
+            }
+        }
         std::string clip_path;
         error_message.clear();
-        if (clip_hook.CaptureClip(*record, clip_options, &clip_path, &error_message)) {
+        if (!bridge_result.derived_clip_ready &&
+            clip_hook.CaptureClip(*record, clip_options, &clip_path, &error_message)) {
             record->clip_path = clip_path;
-        } else {
+        } else if (!bridge_result.derived_clip_ready && clip_options.enabled) {
             std::lock_guard lock(mu_);
             ++clip_hook_failed_count_;
             last_clip_error_ = TrimForLog(error_message);
+        }
+        if (recording_bridge && !bridge_result.derived_clip_ready) {
+            recording_bridge->RecordFallback(*record, bridge_result);
         }
         AttachVlmEvidenceRefs(record);
     }
@@ -2980,7 +3049,7 @@ private:
     mutable std::mutex mu_;
     mutable std::mutex recovery_mu_;
     std::condition_variable cv_;
-    std::deque<EventRecord> queue_;
+    std::deque<QueuedEvent> queue_;
     std::thread worker_;
     bool worker_started_{false};
     bool stop_{false};
@@ -3076,11 +3145,11 @@ bool FileEventStorage::Store(const EventRecord& record, std::string* error_messa
 }
 
 void DispatchEventRecords(const AnalysisResult& result, const std::vector<AnalysisEvent>& events) {
-    if (events.empty() || !core::GetAnalysisRuntimeConfig().analysis_event_storage_enabled) {
+    if (events.empty()) {
         return;
     }
     for (const auto& event : events) {
-        Dispatcher().Enqueue(BuildEventRecord(result, event));
+        Dispatcher().Enqueue(result, BuildEventRecord(result, event));
     }
 }
 
@@ -3555,6 +3624,11 @@ bool CleanupCompactedEventRecordFiles(std::size_t keep_newest,
 
 void StopEventStorage() {
     Dispatcher().Stop();
+}
+
+void SetEventRecordingBridge(std::shared_ptr<EventRecordingBridge> bridge) {
+    std::lock_guard lock(g_event_recording_bridge_mu);
+    g_event_recording_bridge = std::move(bridge);
 }
 
 }  // namespace analysis

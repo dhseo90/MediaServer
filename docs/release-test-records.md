@@ -16,6 +16,111 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.1.0 S05 등록 보정 재검증 (2026-09-04)
+
+이전 focused C++ 140/0과 application-only 6/0은 실제 실행 이력이나,
+개별 action 선등록을 S08로 미룬 규칙 위반 때문에 S05 단계 완료 판정은 **fail**이다.
+아래 정의를 등록한 뒤 재실행하며 이전 결과를 새 등록의 실행 증거로 소급하지 않는다.
+
+### 테스트 항목 상세 기록
+
+공통 명령은 `./server.sh verify-v410-event-recording`이다. 각 check의 입력 fixture와
+assertion은 아래 지정 함수, 기대 결과는 등록 JSON의 exact check ID/message가 정의한다.
+C++ 9개 시나리오의 모든 assertion·application-only 7개 결과도 함께 보존한다.
+
+- `V410-S05-I01` 선택 시간축 DTO 왕복: `compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order`; 선택 시간축·anchor·epoch 및 실패 출력 전체 매핑. check: `V410-S05-I01-C01`, `V410-S05-I01-C02`, `V410-S05-I01-C03`.
+- `V410-S05-I02` 저장 큐 이전 내구 접수: `recording link is durably admitted before the bounded storage queue can drop an event`; 정적 계약: JSONL 비활성 guard·TryResolve 선행·큐 eviction 호출 순서. check: `V410-S05-I02-C01`.
+- `V410-S05-I03` 명시적 PTS UTC 및 pre/post: `VerifyEventLinking`; pre 1000/post 200으로 UTC 10300~12500. check: `V410-S05-I03-C01`.
+- `V410-S05-I04` anchor 없는 PTS 내구 복구: `VerifyEventLinking`; finalized mapping 복구·불명확 PTS Pending 보존. check: `V410-S05-I04-C01`, `V410-S05-I04-C02`, `V410-S05-I04-C03`.
+- `V410-S05-I05` 이벤트 중복 및 범위별 ID: `VerifyEventLinking`; 동일 update 1회·확장 새 ID·긴 prefix 비충돌. check: `V410-S05-I05-C01`, `V410-S05-I05-C02`, `V410-S05-I05-C03`.
+- `V410-S05-I06` 링크 계약과 가산 필드: `VerifyLinkContractInvariants`; 왕복 보존·축소/겹침/분할 누락/잘못된 terminal 거부. check: `V410-S05-I06-C01`, `V410-S05-I06-C02`, `V410-S05-I06-C03`, `V410-S05-I06-C04`, `V410-S05-I06-C05`, `V410-S05-I06-C06`, `V410-S05-I06-C07`, `V410-S05-I06-C08`.
+- `V410-S05-I07` 정렬 overlap 및 누락 구간: `VerifyEventLinking`; 3개 순서·접점 제외·gap 11000~12000 Partial. check: `V410-S05-I07-C01`, `V410-S05-I07-C02`, `V410-S05-I07-C03`, `V410-S05-I07-C04`.
+- `V410-S05-I08` 원본 lease 획득 및 해제: `VerifyEventLinking`; 각 원본 파생 중 hold 1·완료 뒤 0. check: `V410-S05-I08-C01`, `V410-S05-I08-C02`.
+- `V410-S05-I09` 이벤트 용량과 예약 분리: `VerifyEventQuotaIsolation`; continuous 보존·오래된 event 삭제·예약 수명. check: `V410-S05-I09-C01`, `V410-S05-I09-C02`, `V410-S05-I09-C03`, `V410-S05-I09-C04`.
+- `V410-S05-I10` 긴 remux 접수 비차단: `VerifyQueueRefillAndCleanupHold`; blocked deriver 중 다른 접수 100ms 이내. check: `V410-S05-I10-C01`.
+- `V410-S05-I11` 포화 큐 내구 재흡수: `VerifyQueueRefillAndCleanupHold`; 최대 대기 1에서 3개 이벤트 모두 완료. check: `V410-S05-I11-C01`.
+- `V410-S05-I12` frame-buffer fallback 연결: `VerifyEventLinking`; 동일 Partial link에 실제 절대 locator 보존. check: `V410-S05-I12-C01`.
+- `V410-S05-I13` 완료 파생 clip 반환: `VerifyEventLinking`; ready·Complete·derived ID/path 동시 일치. check: `V410-S05-I13-C01`, `V410-S05-I13-C02`, `V410-S05-I13-C03`.
+- `V410-S05-I14` H264 무재인코딩 실측 출력: `VerifyRealRemux`; MP4 입력→TS 출력 크기·checksum·keyframe 확대; 동일 함수 EOS parse도 성공. check: `V410-S05-I14-C01`, `V410-S05-I14-C02`, `V410-S05-I14-C03`, `V410-S05-I14-C04`, `V410-S05-I14-C05`.
+- `V410-S05-I15` 출력 무덮어쓰기와 fd 결박: `VerifyRealRemux`; 기존 final/foreign partial 크기 보존. check: `V410-S05-I15-C01`, `V410-S05-I15-C02`.
+- `V410-S05-I16` 소유 crash partial 복구: `VerifyRealRemux`; v2 UUID marker 일치 partial 정리 후 재파생 성공. check: `V410-S05-I16-C01`, `V410-S05-I16-C02`.
+- `V410-S05-I17` VP8 파생 거부: `VerifyRealVp8Remux`; 실제 VP8 source에서 파일 없이 명시적 거부. check: `V410-S05-I17-C01`.
+- `V410-S05-I18` segment ID 충돌 거부: `VerifyRestartRecoveryAndIdConflict`; 타 channel/class ID는 Failed·derive 0회. check: `V410-S05-I18-C01`, `V410-S05-I18-C02`.
+- `V410-S05-I19` finalized 파생물 재시작 연결: `VerifyRestartRecoveryAndIdConflict`; 기존 derived ID·actual range 연결·derive 0회. check: `V410-S05-I19-C01`, `V410-S05-I19-C02`.
+- `V410-S05-I20` terminal 단계와 삭제 보호: `VerifyQueueRefillAndCleanupHold`; cleanup/marker/release 실패는 Pending 자원 유지·재시도 다른 hold 보존. check: `V410-S05-I20-C01`, `V410-S05-I20-C02`, `V410-S05-I20-C03`, `V410-S05-I20-C04`, `V410-S05-I20-C05`.
+- `V410-S05-I21` 보류 확장 및 재시작 수렴: `VerifyDeferredFailureAndPtsUpdates`; UTC 실패/Partial 수렴·PTS 2회 확장·재시작 총3회. check: `V410-S05-I21-C01`, `V410-S05-I21-C02`, `V410-S05-I21-C03`, `V410-S05-I21-C04`, `V410-S05-I21-C05`.
+- `V410-S05-I22` hold overflow 거부: `VerifyQueueRefillAndCleanupHold`; 저장 int64 한계에서 증가 거부. check: `V410-S05-I22-C01`.
+- `V410-S05-I23` SQLite 동일 링크 갱신: `VerifyEventLinking`; sqlite-primary 유지. check: `V410-S05-I23-C01`, `V410-S05-I23-C02`.
+- `V410-S05-I24` terminal replay 및 삭제 차단: `VerifyPendingDerivedHoldRecovery`; 단계별 hold 복원·hold 0이어도 terminal 전 삭제 거부. check: `V410-S05-I24-C01`, `V410-S05-I24-C02`, `V410-S05-I24-C03`, `V410-S05-I24-C04`.
+- `V410-S05-I25` 전송 DTO 경계: `transport has zero canonical bypass and exact projection/call ordering`; 전송 DTO 우회·필드 누락·잘못된 호출 순서 거부. check: `V410-S05-I25-C01`.
+- `V410-S05-I26` 출력 fd 검증 계약: `event clip output remains fd-bound and measured before no-replace publication`; fd 결박·timestamp 측정·no-replace 출판의 정적 경계. check: `V410-S05-I26-C01`.
+- `V410-S05-I27` 제품 시작·종료 순서: `S05 composition starts the bridge before ingress and drains it after storage`; ingress 전 bridge 등록·정상 및 시작 실패 경로에서 storage 뒤 bridge drain. check: `V410-S05-I27-C01`.
+
+등록 검증 보조 테스트: 누락/중복/추가 ID, 빈 테스트 영역, 없는 구현 심볼, 없는 시험
+함수/check, 기대 메시지 누락, 실제 결과 누락/실패를 각각 거부해야 한다.
+이는 등록기 자체의 negative 테스트이며 제품 실행 PASS를 대신하지 않는다.
+
+### 버전별 테스트 결과 기록
+
+등록 보정과 독립 검토의 3개 지적 수정 후 새로 실행했다.
+개별 assertion 140개, application 7개, 기능 27개의 exact check 결과는
+[개별 결과 JSON](release-artifacts/v4.1.0/20260904-s05-resume/individual-results.json)에
+전수 보존한다. 테스트 소스 SHA-256도 함께 기록했다.
+
+| 테스트 항목 | 실행 명령 | 결과 | 직접 확인 범위 |
+| --- | --- | --- | --- |
+| 등록기 TDD 최초 RED | `node scripts/internal/v410_s05_inventory.test.mjs` | fail | 구현 모듈 부재; 이후 구현 중 복수 named check의 함수 연결 오류도 정정 |
+| 등록기 단위 회귀 | 같은 명령 및 S05 dispatch | pass | 16/0; ID/영역/심볼/결과 누락·중복·실패와 EOS 삭제+감소 summary 거부 |
+| S05 C++ | `./server.sh verify-v410-event-recording` | pass | 140/0, 실제 H264→TS remux/EOS 포함 |
+| application-only 경계 | 같은 명령 | pass | 7/0; compiled DTO matrix 및 정적 disabled guard·호출/종료 순서. 실제 포화 운용 시험 아님 |
+| S01 계약 | `./server.sh verify-v410-recording-contracts` | pass | 45/0 |
+| S04 순환 보존 회귀 | `./server.sh verify-v410-recording-retention` | pass | 56/0 |
+| S03 catalog 회귀 | `./server.sh verify-v410-recording-catalog` | pass | C++ 45/0 및 composition 정적 9개 |
+| S02 recorder 회귀 | `./server.sh verify-v410-recording-recorder` | pass | 71/0 |
+| 제품 빌드 | `./server.sh build` | pass | runtime와 media_server 100% |
+| 조사 경계 | `./server.sh verify-v410-research-gate` | pass | 승인된 자료·IP gate, 신규 특허 조사 아님 |
+| v4.1 진입 기준 | `./server.sh verify-v410-entry-baseline` | pass | 33/0 |
+| 문서·스크립트·기록 | `verify-docs-links`, `verify-script-inventory`, `verify-v290-release-test-records-enforcement` | pass | 링크 fail0, script11/0, records8/0 |
+| 공백/패치 | `git diff --check` | pass | 당시 패치 오류 없음; 최종 기록 뒤 재검증 |
+| 승인 이행 준비 인자 오류 | `verify-v390-review4-semantic-migration-contract --trust-rebind-id ... --write-evidence ...` | fail | 중앙 verifier 변경 3개를 trust-only로 잘못 지정해 SAFE-064에서 거부; 제품/검증 로직은 변경하지 않음 |
+| 승인 이행 분류 재생성 | 같은 명령, semantic 변경 3개는 자동 독립 분류·trust-only 109개만 명시 | pass | carry 874개, 독립 검토 112개. 승인 자체나 최종 적용 PASS가 아님 |
+| 공식 승인 적용 | `produce-v390-review4-migration-aware-approvals --write-ledger`와 명시 입력 5개 | pass | 874 carry·112 독립 검토, audit/approval/manifest/native 원자적 적용·failures0 |
+| 적용 소스 감사 | `./server.sh verify-v390-review4-feature-semantic-source-audit` | pass | 986개·51/0 |
+| 승인 원장 | `./server.sh verify-v390-review4-feature-semantic-source-approvals` | pass | 승인 986개·failures0 |
+| 구현 증거 대조 | `./server.sh verify-feature-implementation-evidence` | pass | 986개·validationErrors0·negative15/15; 제품 실행 증거 아님 |
+| 중앙 인벤토리 | `./server.sh verify-project-inventory` | pass | legacy986·신규 S05 등록 필수 대조, 18/0 |
+| coverage | `./server.sh verify-feature-inventory-coverage` | pass | legacy986 covered/missing0 및 S0527 연결, 8/0; 실행 PASS 대체 불가 |
+
+독립 검토 지적과 조치: I01 owner를 실제 시간축 매핑 함수로 수정, I14 EOS parse를 C05로
+추가하고 누락 거부 회귀 추가, I02 disabled guard 회귀 검사를 추가하고 정적 판정 범위로
+한정했다. 세 지적은 독립 재검토에서 해소됐다. 다음 상태표는 실행 PASS가 아니다.
+
+독립 검토 원문은 [검토 패키지](release-artifacts/v4.1.0/20260904-s05-resume/review-package.json)와
+[행별 판정](release-artifacts/v4.1.0/20260904-s05-resume/independent-decisions.json)에
+원본 바이트로 보존했다. candidate는 `648b9c8acb115fde2953fecf1aa3a30dc861ebaf23ed0fa3bf4ac038fd689e47`,
+package SHA-256은 `4a08719e79b1008ba6ddef8b7de433a8ae5226518d14e5455b1473da183866ef`,
+판정 SHA-256은 `a3baa642b11e236f71d2660c7c5ab82d625fd3f0cc2718a164a9aaf2b4606582`다.
+
+최종 문서 반영 뒤 링크 218개 Markdown/988개 local link/22개 image/100개 anchor의
+failures0, script11/0, records8/0, S05 등록 27개 대조와 `git diff --check`를 확인했다.
+
+| 정리 대상 | 삭제 전 크기·종류 | 조치 | 결과·보존 사유 |
+| --- | --- | --- | --- |
+| `/private/tmp/v410-s05-resume-JLDLHO` | 29개·21,878,381 bytes, 임시 로그/이전·후보 감사/이행 준비 | 실행·검토 결과를 저장소로 보존 후 삭제 | 경로 부재 확인; 재생성 가능하며 원본 제품 소스는 삭제하지 않음 |
+| S05 verifier 전용 mktemp 디렉터리 | C++ binary·실제 remux 영상·일시 로그 | EXIT trap 정리 | 명령 exit0; 임의 기존 디렉터리 override를 받지 않도록 보강 |
+| `docs/release-artifacts/v4.1.0/20260904-s05-resume/` | 약 316KiB·JSON 3개 | 보존 | 실제 개별 결과 및 독립 검토 원문; package/판정 SHA 원본 일치 확인 |
+
+최종 상태: S05 local 완료, 커밋 가능. 이번 재개 요청에서 커밋 명시 승인이 없어 실제
+stage/commit/push는 수행하지 않았다. 30분·UI·120분·release action으로 확대하지 않는다.
+
+| 항목 | 상태 | 사유 |
+| --- | --- | --- |
+| S05 개별 action 27개 | 실행됨 | 개별 pass/fail은 위 보존 JSON 참조 |
+| canonical 인벤토리 독립 결속 | 적용됨 | 위 명령별 결과와 독립 검토 원문 참조 |
+| 30분·UI 풀테스트 | 미실행·릴리즈 blocker | 별도 실행 승인 없음 |
+| 120분 | 미실행 | writer/lifecycle 변경 대상이나 별도 실행 승인 없음 |
+| field smoke·published metadata·release action | 미실행 | 이번 범위 밖 |
+
 ## v4.1.0 선행 인벤토리 정합성 부채 테스트 기록 (2026-09-03)
 
 | 테스트 항목 | 실행 명령 | 결과 | 직접 확인 범위 |
@@ -2766,7 +2871,7 @@ evidence로 사용하지 않습니다.
 | V390-REVIEW4-62/65 무옵션 실행 인터페이스 correction | Root `test_server_30min.sh`, `test_server_120min.sh`, `test_ui.sh`, `test_release.sh`가 모든 인자를 exit 64로 거부하고 contract preflight와 temp output을 자동 소유합니다. Server runner는 ephemeral HTTP/RTSP port를 만들며 직접 120 launcher 호출은 사용자 승인으로 기록합니다. UI는 exact 424+Policy v4만, release는 안정화/30/UI 뒤 AGENTS 7.6.2 다섯 변경 영역 또는 upstream signal이 있을 때만 120분을 실행하고 없으면 `not-required`로 계속합니다. Role secret은 all-role random·unique, inherited/local override 차단, exact-only memory 전달, artifact scan 후 해제입니다. 첫 실패·later not-run·testcase/exit/log/user reproduction 출력을 유지합니다 | 전용 launcher contract 최초 server failure fixture의 reproduction이 내부 fixture command여서 9/1 FAIL한 뒤 user root command로 교정해 최종 11/11 PASS. Acceptance 14/14, longrun 9/9, Bash/MJS syntax PASS입니다. 기존 2.1GB untracked root를 보존한 채 64MiB git capture buffer를 사용했습니다. 실제 build·30분·exact 424·Policy v4·120분은 미실행, 커밋·푸시 미수행 |
 | V390-ADD1-06 actual acceptance initial failures | non-dry 구현 전 dry-run 강제 실패, Step 20/11 coverage command 하드코딩 실패, code-comment policy 2건 실패, integrated smoke 실패 뒤 soak 계속 실행, UI-109 stale rollback marker 실패를 순서대로 확인했습니다. 각 실패에서 뒤 일반 stage는 중단했고 같은 Step 6 범위에서 exact manifest gate, 한글 주석, predev `--fail-fast`, 현재 rollback UI fixture로 수정한 뒤 재실행했습니다. | fail |
 | V390-ADD1-06 fixture orchestration contract final | `./server.sh verify-v390-test-acceptance-bundle-contract`가 dry-run, actual fixture fixed order, first failure 뒤 later `not-run`, explicit 120, cleanup failure를 포함해 `pass=6 fail=0`으로 통과했습니다. `./server.sh verify-v390-server-longrun-runner-contract`도 `pass=6 fail=0`, `verify-code-comments`는 missing header 0/english-only 0입니다. fixture PASS는 실제 지속시간/UI evidence가 아닙니다. | pass |
-| V390-ADD1-06 actual acceptance bundle final | `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final --allow-chrome-fallback=1` 최종 단일 run `v390-test-acceptance-20260710083909-44592`를 실행했습니다. build, 26개 current feature gate, exact inventory 974/974, real 30-minute server longrun, UI automation/replay, cleanup/report가 모두 PASS했습니다. longrun은 predev `pass=118 fail=0 skip=2`, 22회 soak, main/queue idle, ports-clean, `realDurationEvidence=true`; UI는 `caseCount=7 pass=7 fail=0 notRun=0`; root summary는 `result=PASS`, `executionMode=actual`, `failedStage=""`입니다. 보존 위치는 `docs/release-artifacts/v3.9.0/test-acceptance-final/`입니다. | pass |
+| V390-ADD1-06 actual acceptance bundle final | `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final --allow-chrome-fallback=1` 최종 단일 run `v390-test-acceptance-20260710083909-44592`를 실행했습니다. build, 27개 current feature gate, exact inventory 974/974, real 30-minute server longrun, UI automation/replay, cleanup/report가 모두 PASS했습니다. longrun은 predev `pass=118 fail=0 skip=2`, 22회 soak, main/queue idle, ports-clean, `realDurationEvidence=true`; UI는 `caseCount=7 pass=7 fail=0 notRun=0`; root summary는 `result=PASS`, `executionMode=actual`, `failedStage=""`입니다. 보존 위치는 `docs/release-artifacts/v3.9.0/test-acceptance-final/`입니다. | pass |
 | V390-ADD1-06 120분 conditional decision | Step 6 변경은 test orchestration/fixture/docs이고 media path, connection/session lifecycle, codec/GStreamer, runtime provider 동작을 변경하지 않아 AGENTS 7.6.2 trigger가 없습니다. 최종 summary에 `conditional-not-run`/stage `not-run`으로 기록했으며 PASS로 대체하지 않습니다. | fail |
 | V390-ADD1-06 UI 풀테스트 | bundle의 UI automation은 Chrome CDP fallback으로 UI-108~UI-111/UI-113~UI-115 7개를 실행했지만 Codex 인앱 전체 UI 직접 조작 풀테스트는 실행 승인되지 않았습니다. `UI-112`/native adapter/whole-page marker closure도 후속 7~9번 범위이므로 UI 풀테스트 PASS로 대체하지 않습니다. | fail |
 | V390-ADD1-06 temporary artifact cleanup | 실패 재시도 run 4개와 `/tmp/media_server_v390_add1_06_ui_retry`, 두 성공/실패 predev workdir, RED 임시 경로를 삭제했습니다. 최종 PASS run 1개 약 1.1MB만 재현·replay evidence로 보존하고 throwaway registry, 서버, listener는 summary cleanup에서 제거/종료/clean을 확인했습니다. | pass |
@@ -2788,7 +2893,7 @@ evidence로 사용하지 않습니다.
 | V390-ADD1-09 visible DOM replay final | `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json`이 schema/counts/exact routes/trusted interaction/visible target/exact assertion evidence/failure/artifact/cleanup을 `pass=7 fail=0`으로 재검증했습니다. | pass |
 | V390-ADD1-09 R5 replay guard v3 migration | 최종 companion gate에서 R5 fixture가 `assertionModel`/`visibleAssertions` 없이 구버전 R5 title을 요구해 `pass=5 fail=3`으로 실패했습니다. fixture를 visible-DOM schema로 갱신하고 process-exit temp cleanup 및 07~09 title을 반영한 뒤 `./server.sh verify-v390-ui-automation-report-replay-guard`가 `pass=8 fail=0`, `/tmp` 잔여 0으로 통과했습니다. | pass |
 | V390-ADD1-09 post-UI acceptance first run | `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final` 첫 실행은 local HTTP H264/AAC의 `/default`, `/h264`, WebRTC는 통과했지만 `/opus` ffprobe가 20초 timeout나 `server-longrun-30` FAIL했습니다. 상위 fail-fast로 UI/replay/120은 `not-run`, cleanup/report만 PASS했습니다. 실패 run 608KB와 통합 로그 260KB를 기록 후 삭제하고 코드/timeout 변경 없이 clean 재시도했습니다. | fail |
-| V390-ADD1-09 post-UI acceptance retry final | 동일 명령의 run `v390-test-acceptance-20260710100233-58896`가 build, 26개 current feature gate, 실제 30분 predev `pass=118 fail=0 skip=2`, soak 22회, main/queue runtime idle, ports clean, native visible-DOM UI `8/8`, replay `7/0`, cleanup/report를 모두 PASS했습니다. root `result=PASS`, `executionMode=actual`, `failedStage=""`, `knownUiClosureBlockers=[]`, `automatedAcceptanceStatus=eligible`이며 120분은 `not-required`/`not-run`/pass substitution false입니다. | pass |
+| V390-ADD1-09 post-UI acceptance retry final | 동일 명령의 run `v390-test-acceptance-20260710100233-58896`가 build, 27개 current feature gate, 실제 30분 predev `pass=118 fail=0 skip=2`, soak 22회, main/queue runtime idle, ports clean, native visible-DOM UI `8/8`, replay `7/0`, cleanup/report를 모두 PASS했습니다. root `result=PASS`, `executionMode=actual`, `failedStage=""`, `knownUiClosureBlockers=[]`, `automatedAcceptanceStatus=eligible`이며 120분은 `not-required`/`not-run`/pass substitution false입니다. | pass |
 | V390-ADD1-09 temporary artifact cleanup | 최종 acceptance 1.4MB와 standalone visible-DOM UI 608KB를 보존했습니다. 첫 실패 run 608KB, `.media_server.test` 통합 로그 260KB, predev 600KB, dry-run/acceptance/longrun contract fixture dirs를 삭제했고 두 contract에 process-exit cleanup을 추가해 재실행 후 `/tmp` 잔여 0, listener 0을 확인했습니다. | pass |
 | V390-ADD1-09 UI 풀테스트 | native exact-selector visible DOM 8-case automation은 실행했지만 Codex 인앱 전체 UI 직접 조작 풀테스트는 실행하지 않았습니다. | fail |
 | V390-ADD1-10 first-fail contract RED | 최초 `./server.sh verify-v390-server-longrun-runner-contract`는 phase failure context/stderr/reproduction, delegated diagnostics, executable predev fixture, 문서 계약이 없어 `pass=3 fail=4`였습니다. 기존 결함을 재현한 RED이며 duration 실행 evidence가 아닙니다. | fail |
@@ -2858,13 +2963,13 @@ evidence로 사용하지 않습니다.
 | Evidence 13 companion first rerun | build와 핵심 runner/integrity/readiness는 PASS했지만 acceptance contract가 제거된 `R2 UI automation preserved evidence` 구문을 계속 요구해 5/1, project inventory는 Evidence 13 행 추가로 `inventorySha256 drift` 13/1이었습니다. 현재 historical final-rerun 문구로 contract를 수정하고 feature 974행/ID/anchor는 바꾸지 않은 채 inventory SHA만 명시 갱신한 뒤 안정화를 다시 시작했습니다 | fail |
 | Evidence 13 companion stabilization final | `./server.sh build` target `media_server` 생성, acceptance 6/0, UI runner 9/0, longrun 7/0, final integrity 5/0, replay guard 8/0, Policy v4 10/0, exact-ID coverage 12/0, feature implementation 974/974 validation 0 negative 11/11, project inventory 14/0, feature coverage 974/974 pass 6/0, evidence/test gate 9/0, stabilization readiness 7/0, script inventory 11/0, release evidence 8/0, docs links failure 0, `git diff --check` 출력 없음으로 통과했습니다 | pass |
 | Evidence 14 canonical replacement pre-state | source `b6cac906d8b138aee5e0e2e88743ca9aa9a53529`, branch `v3.9.0`, clean worktree에서 `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final`을 실행했습니다. 기존 canonical은 80 files/848198 bytes를 제거했고 screenshot 7개 중 hash 중복 3개, `.video.txt` placeholder 7개를 교체 대상으로 실측 기록했습니다 | pass |
-| Evidence 14 first acceptance failure | build와 26개 feature gate PASS 후 실제 30분 `server-longrun-30`의 delegated `soak-case-loop`/`integrated-smoke`가 exit 1로 첫 중단됐습니다. 재현 명령은 `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_AUTH_MODE=off ./server.sh test --no-start --skip-external --include-rules --include-va-events --include-image-analysis --include-redaction`이며, 실제 원인은 선행 `verify-code-comments`가 `scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs` 상단 용도 주석 누락 1건을 검출한 것입니다. 통합 smoke의 media/VA/redaction 포함 나머지는 pass 20/fail 1/skip 9였고 UI/replay/120분은 `not-run`입니다 | fail |
+| Evidence 14 first acceptance failure | build와 27개 feature gate PASS 후 실제 30분 `server-longrun-30`의 delegated `soak-case-loop`/`integrated-smoke`가 exit 1로 첫 중단됐습니다. 재현 명령은 `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_AUTH_MODE=off ./server.sh test --no-start --skip-external --include-rules --include-va-events --include-image-analysis --include-redaction`이며, 실제 원인은 선행 `verify-code-comments`가 `scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs` 상단 용도 주석 누락 1건을 검출한 것입니다. 통합 smoke의 media/VA/redaction 포함 나머지는 pass 20/fail 1/skip 9였고 UI/replay/120분은 `not-run`입니다 | fail |
 | Evidence 14 first failure cleanup | delegated longrun은 server stop, HTTP 8081/RTSP 8555 port clean, `/tmp/media_server_predev-1783698547-25839` 101514 bytes 삭제 후 absence를 실측 PASS했고 failure log/stdout/stderr를 저장소 run에 보존했습니다. 상위 bundle은 실패 child summary를 읽지 않아 처음에는 `childCleanupVerified=false`로 잘못 축약했으며, 실패 child summary도 읽어 실측 cleanup을 반영하도록 수정했습니다 | fail |
 | Evidence 14 recovery contract RED/GREEN | 재시도 후 첫 실패가 사라지는 결함을 acceptance contract로 먼저 재현해 6/1 RED를 확인했습니다. `first-failure.json`/`.md`에 최초 source SHA, stage/command/context/reproduction, child failure/cleanup, 진단 artifact bytes/SHA-256/tail을 보존하고 final integrity가 두 파일을 강제하도록 구현한 뒤 acceptance 7/0, final integrity 6/0, code comments 588/588, `git diff --check`를 PASS했습니다 | pass |
 | Evidence 14 recovery inventory precheck | first-failure 보존 경계를 project inventory에 추가한 직후 `verify-project-inventory`는 기능 974행과 나머지 13개 check를 통과했지만 명시적 `inventorySha256 drift` 1건으로 13/1이었습니다. 기능 ID/anchor/source evidence는 변경하지 않고 검토한 inventory SHA만 `1699f2c807d2aba9758f04101680885b3146ad5ef5c53d2752d77a7d9345e9dd`로 갱신한 뒤 14/0을 확인했습니다 | fail |
 | Evidence 14 first-failure artifact preservation | 실패 canonical은 752KB/50 files이며 first-failure 원본 3개(log 5924 bytes, stdout 5906 bytes, stderr 1 byte)를 다음 retry 직전까지 보존합니다. 복구 commit 후 runner가 이 파일들의 bytes/SHA-256/tail을 root `first-failure.json`/`.md`로 이관하고 전체 failed run tree는 canonical replacement 대상으로 정리합니다 | pass |
 | Evidence 14 independent acceptance retry final | clean source `8fe583d815ce31628cbb8d1f4188b3e6455b396a`에서 `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final`을 build부터 전체 재실행했습니다. run `v390-test-acceptance-20260710160754-54907`, top result `PASS`, source worktree clean, 실행 command ledger 35개, 현재 `firstFailure=null`, 기존 실패는 `priorFirstFailure`로 보존, `automatedAcceptanceStatus=eligible`입니다 | pass |
-| Evidence 14 final feature gates | build와 26개 feature command가 모두 exit 0입니다: stabilization readiness, entry baseline, feature completion inventory, user review gate, manual UI evidence, evidence/test prep, ONVIF credential/live persist, VLM draft/promotion/trust, recovery/action/field/Re-ID/ONVIF atomicity/structure handoff, release metadata, docs links/assets, feature implementation, project inventory, feature coverage, release evidence, script inventory, `git diff --check` | pass |
+| Evidence 14 final feature gates | build와 27개 feature command가 모두 exit 0입니다: stabilization readiness, entry baseline, feature completion inventory, user review gate, manual UI evidence, evidence/test prep, ONVIF credential/live persist, VLM draft/promotion/trust, recovery/action/field/Re-ID/ONVIF atomicity/structure handoff, release metadata, docs links/assets, feature implementation, project inventory, feature coverage, release evidence, script inventory, `git diff --check` | pass |
 | Evidence 14 final 30-minute individual evidence | `server-longrun-30/predev-summary.json`의 120개 개별 step은 `pass=118 fail=0 skip=2`입니다. skip은 상위 bundle에서 이미 수행한 build와 승인되지 않은 external TURN hard gate뿐입니다. server-start-queue-256, integrated-smoke 521초, soak 1~22 각각 VA events/Event POST schema/Event POST recovery/live redaction/runtime idle 110개, main-runtime-idle, queue=2 server start, event-post-queue, queue-runtime-idle, ports-clean, summary-report가 모두 PASS했습니다 | pass |
 | Evidence 14 final UI automation cases | native Playwright 1.61.1, Chrome, fallback=false로 `UI-108 /ops/sources`, `UI-109 /ops/sources`, `UI-110 /ops/rules`, `UI-111 /ops/vlm`, `UI-112 /ops/sources`, `UI-113 /ops/dashboard`, `UI-114 /ops/dashboard`, `UI-115 /ops/dashboard`가 모두 PASS했습니다. exact 424개 UI fulltest가 아니라 8개 부분 자동화 evidence입니다 | pass |
 | Evidence 14 final UI replay checks | summary schema, count/status, exact UI-108~115 manifest, route/control/action granularity, failure evidence fields, first-fail later not-run, cleanup/report artifact의 7개 replay check가 `7/0`으로 PASS했습니다 | pass |

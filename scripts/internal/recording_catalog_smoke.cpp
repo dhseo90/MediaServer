@@ -79,6 +79,10 @@ int main(int argc, char** argv) {
         invalid_link.event_id = "event-invalid";
         invalid_link.source_id = "source-1";
         invalid_link.channel_id = "channel-1";
+        invalid_link.time_basis = "utc-ms";
+        invalid_link.status = recording::EventRecordingLinkStatus::Pending;
+        invalid_link.created_at_ms = 1000;
+        invalid_link.updated_at_ms = 1000;
         invalid_link.requested_range = {1000, 2000};
         invalid_link.ordered_overlaps.push_back({"seg-missing", {1000, 2000}});
         const auto before = journal.Replay().mutations.size();
@@ -93,16 +97,37 @@ int main(int argc, char** argv) {
     }
     const auto known_cleanup_marker =
         std::filesystem::path(known_media.string() + ".cleanup-pending");
+    const auto known_cleanup_partial = media_root / "channel-1" /
+        "seg-alpha.mp4.partial.123e4567-e89b-42d3-a456-426614174003";
     const auto orphan_cleanup_media =
         media_root / "channel-1" / "seg-writer-orphan.mp4";
     const auto orphan_cleanup_marker =
         std::filesystem::path(orphan_cleanup_media.string() + ".cleanup-pending");
+    const auto owned_event_final = media_root / "channel-1" / "event-owned.ts";
+    const auto owned_event_partial =
+        media_root / "channel-1" /
+        "event-owned.ts.partial.123e4567-e89b-42d3-a456-426614174000";
+    const auto foreign_event_partial =
+        media_root / "channel-1" / "event-owned.ts.partial";
+    const auto owned_event_marker =
+        std::filesystem::path(owned_event_final.string() + ".cleanup-pending");
     WriteMp4Header(orphan_cleanup_media);
     {
+        std::ofstream owned_partial_output(owned_event_partial, std::ios::binary);
+        owned_partial_output << "owned-crash-partial";
+        std::ofstream foreign_partial_output(foreign_event_partial, std::ios::binary);
+        foreign_partial_output << "foreign-partial";
+    }
+    {
         std::ofstream known_marker_output(known_cleanup_marker);
-        known_marker_output << "recording-cleanup-pending-v1\n";
+        known_marker_output << "recording-cleanup-pending-v2\npartial="
+                            << known_cleanup_partial.filename().string() << "\n";
         std::ofstream orphan_marker_output(orphan_cleanup_marker);
         orphan_marker_output << "recording-cleanup-pending-v1\n";
+        std::ofstream owned_event_marker_output(owned_event_marker);
+        owned_event_marker_output << "recording-cleanup-pending-v2\n"
+                                  << "partial=" << owned_event_partial.filename().string()
+                                  << "\n";
     }
     {
         std::ofstream output(journal_path, std::ios::binary | std::ios::app);
@@ -120,16 +145,36 @@ int main(int argc, char** argv) {
         Expect(fallback_replay.Open(&error), "fallback replay open");
         const auto report = fallback_replay.recovery_report();
         Expect(report.duplicate_mutation_count == 1, "같은 mutation idempotent replay");
-        Expect(report.writer_cleanup_recovered_count == 2 &&
+        Expect(report.writer_cleanup_recovered_count == 3 &&
                    report.writer_cleanup_error_count == 0 &&
                    std::filesystem::exists(known_media) &&
                    !std::filesystem::exists(known_cleanup_marker) &&
-                   !std::filesystem::exists(orphan_cleanup_media) &&
-                   !std::filesystem::exists(orphan_cleanup_marker),
-               "재시작 시 catalog 추적 media는 보존하고 미추적 writer media/marker 복구");
+                   std::filesystem::exists(orphan_cleanup_media) &&
+                   !std::filesystem::exists(orphan_cleanup_marker) &&
+                   !std::filesystem::exists(owned_event_partial) &&
+                   std::filesystem::exists(foreign_event_partial) &&
+                   !std::filesystem::exists(owned_event_marker),
+               "재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존");
         const auto query = fallback_replay.QuerySegments("channel-1", 500, 2500);
         for (const auto& item : query) fallback_ids.push_back(item.segment_id);
         Expect(fallback_ids.size() == 1, "중복 replay row/합계 불증가");
+    }
+
+    {
+        {
+            std::ofstream known_partial_output(known_cleanup_partial, std::ios::binary);
+            known_partial_output << "tracked-owned-partial";
+            std::ofstream known_marker_output(known_cleanup_marker, std::ios::binary);
+            known_marker_output << "recording-cleanup-pending-v2\npartial="
+                                << known_cleanup_partial.filename().string() << "\n";
+        }
+        recording::RecordingCatalog tracked_partial_replay(
+            journal, {root / "tracked-partial.sqlite3", media_root, false});
+        Expect(tracked_partial_replay.Open(&error) &&
+                   std::filesystem::exists(known_media) &&
+                   !std::filesystem::exists(known_cleanup_partial) &&
+                   !std::filesystem::exists(known_cleanup_marker),
+               "추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: " + error);
     }
 
     const auto cleanup_failure_root = root / "cleanup-failure-media";
@@ -151,6 +196,31 @@ int main(int argc, char** argv) {
                std::filesystem::exists(cleanup_failure_target),
            "writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed");
 
+    const auto hardlink_cleanup_root = root / "hardlink-cleanup-media";
+    const auto hardlink_cleanup_channel = hardlink_cleanup_root / "channel-1";
+    std::filesystem::create_directories(hardlink_cleanup_channel);
+    const auto hardlink_partial = hardlink_cleanup_channel /
+        "event-hardlink.ts.partial.123e4567-e89b-42d3-a456-426614174002";
+    const auto hardlink_alias = root / "event-hardlink-alias.bin";
+    const auto hardlink_marker =
+        hardlink_cleanup_channel / "event-hardlink.ts.cleanup-pending";
+    {
+        std::ofstream output(hardlink_partial, std::ios::binary | std::ios::trunc);
+        output << "shared-partial";
+        std::ofstream marker_output(hardlink_marker, std::ios::binary | std::ios::trunc);
+        marker_output << "recording-cleanup-pending-v2\npartial="
+                      << hardlink_partial.filename().string() << "\n";
+    }
+    std::error_code hardlink_error;
+    std::filesystem::create_hard_link(hardlink_partial, hardlink_alias, hardlink_error);
+    recording::RecordingCatalog hardlink_cleanup_catalog(
+        journal, {root / "hardlink-cleanup.sqlite3", hardlink_cleanup_root, false});
+    Expect(!hardlink_error && !hardlink_cleanup_catalog.Open(&error) &&
+               std::filesystem::exists(hardlink_partial) &&
+               std::filesystem::exists(hardlink_alias) &&
+               std::filesystem::exists(hardlink_marker),
+           "v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed");
+
     std::vector<std::string> sqlite_ids;
     {
         recording::RecordingCatalog sqlite_catalog(journal, {sqlite_path, media_root, true});
@@ -167,7 +237,8 @@ int main(int argc, char** argv) {
         WriteMp4Header(media_root / "orphan-normal.mp4");
         { std::ofstream bad(media_root / "orphan-corrupt.webm", std::ios::binary); bad << "broken"; }
         const auto orphan = sqlite_catalog.InspectOrphans();
-        Expect(orphan.normal_orphan_count == 1, "journal 없는 정상 media orphan 구분");
+        Expect(orphan.normal_orphan_count == 2,
+               "journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분");
         Expect(orphan.corrupt_orphan_count == 1, "journal 없는 손상 media orphan 구분");
     }
 
@@ -256,6 +327,39 @@ int main(int argc, char** argv) {
         Expect(rebuilt_rows == 1, "재시작 journal rebuild가 실제 SQLite row 복원");
 #endif
     }
+
+    const auto tombstone_root = root / "tombstone-id-reuse";
+    const auto tombstone_media_root = tombstone_root / "media";
+    const auto tombstone_media = tombstone_media_root / "channel-1" / "seg-tombstoned.mp4";
+    WriteMp4Header(tombstone_media);
+    recording::RecordingJournal tombstone_journal(tombstone_root / "recording.jsonl");
+    Expect(tombstone_journal.Open(&error), "tombstone journal open: " + error);
+    recording::RecordingCatalog tombstone_catalog(
+        tombstone_journal, {tombstone_root / "recording.sqlite3", tombstone_media_root, false});
+    Expect(tombstone_catalog.Open(&error), "tombstone catalog open: " + error);
+    auto tombstoned_segment = Segment("seg-tombstoned");
+    Expect(tombstone_catalog.FinalizeSegment(tombstoned_segment, tombstone_media.string(), &error),
+           "tombstone 대상 segment finalize: " + error);
+    Expect(tombstone_catalog.RequestDeletion("seg-tombstoned", "event-retention", &error),
+           "tombstone 대상 deletion request: " + error);
+    recording::RecordingTombstoneV1 tombstone;
+    tombstone.tombstone_id = "tombstone-seg-tombstoned";
+    tombstone.segment_id = tombstoned_segment.segment_id;
+    tombstone.source_id = tombstoned_segment.source_id;
+    tombstone.channel_id = tombstoned_segment.channel_id;
+    tombstone.recorded_range = {tombstoned_segment.start.utc_ms,
+                                tombstoned_segment.end.utc_ms};
+    tombstone.checksum_sha256 = tombstoned_segment.checksum_sha256;
+    tombstone.retention_class = tombstoned_segment.retention_class;
+    tombstone.deletion_reason = "event-retention";
+    tombstone.deleted_at_ms = 3000;
+    Expect(tombstone_catalog.CompleteDeletion(tombstone, &error),
+           "tombstone 완료 기록: " + error);
+    WriteMp4Header(tombstone_media);
+    Expect(!tombstone_catalog.FinalizeSegment(
+               tombstoned_segment, tombstone_media.string(), &error) &&
+               error.find("tombstone") != std::string::npos,
+           "catalog finalize가 tombstone segment ID 재사용을 거부해야 함");
 
 #if MEDIA_SERVER_USE_SQLITE3
     { std::ofstream corrupt(sqlite_path, std::ios::binary | std::ios::trunc); corrupt << "not-a-sqlite-database"; }

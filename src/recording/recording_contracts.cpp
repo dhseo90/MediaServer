@@ -12,6 +12,7 @@
 #include <limits>
 #include <sstream>
 #include <string_view>
+#include <unordered_set>
 
 namespace recording {
 namespace {
@@ -526,6 +527,132 @@ bool ParseFrameLocatorV1(const std::string& json, FrameLocatorV1* value, std::st
     return ValidateOpaqueId(value->segment_id, error);
 }
 
+bool ValidateEventRecordingLinkV1(const EventRecordingLinkV1& value,
+                                  std::string* error) {
+    if (!ValidateOpaqueId(value.link_id, error) ||
+        !ValidateOpaqueId(value.event_id, error) ||
+        !ValidateReferenceId(value.source_id, "source_id", error) ||
+        !ValidateReferenceId(value.channel_id, "channel_id", error) ||
+        value.status == EventRecordingLinkStatus::Unknown ||
+        value.created_at_ms <= 0 || value.updated_at_ms < value.created_at_ms) {
+        return Fail(error, "event recording link 기본 field가 유효하지 않음");
+    }
+    if (value.time_basis != "utc-ms" && value.time_basis != "media-pts-ms") {
+        return Fail(error, "event recording time basis가 유효하지 않음");
+    }
+    if (value.requested_range.has_value() &&
+        value.requested_range->start_ms >= value.requested_range->end_ms) {
+        return Fail(error, "event recording requested UTC range가 유효하지 않음");
+    }
+    if (value.media_pts_range_ms.has_value() &&
+        value.media_pts_range_ms->start_ms >= value.media_pts_range_ms->end_ms) {
+        return Fail(error, "event recording media PTS range가 유효하지 않음");
+    }
+    if (!value.requested_range.has_value() &&
+        (!value.media_pts_range_ms.has_value() || value.time_basis != "media-pts-ms" ||
+         value.status != EventRecordingLinkStatus::Pending)) {
+        return Fail(error, "미해석 media PTS link 불변식 위반");
+    }
+    if (value.requested_range.has_value() && value.media_pts_range_ms.has_value()) {
+        return Fail(error, "UTC range와 미해석 media PTS range를 동시에 저장할 수 없음");
+    }
+    if (value.deferred_requested_range.has_value() &&
+        (!value.requested_range.has_value() ||
+         value.status != EventRecordingLinkStatus::Pending ||
+         value.deferred_requested_range->start_ms >= value.deferred_requested_range->end_ms ||
+         value.deferred_requested_range->start_ms > value.requested_range->start_ms ||
+         value.deferred_requested_range->end_ms < value.requested_range->end_ms)) {
+        return Fail(error, "deferred requested range가 현재 pending UTC 범위를 포함하지 않음");
+    }
+    if (value.deferred_media_pts_range_ms.has_value() &&
+        (!value.requested_range.has_value() || value.time_basis != "media-pts-ms" ||
+         value.status != EventRecordingLinkStatus::Pending ||
+         value.deferred_media_pts_range_ms->start_ms >= value.deferred_media_pts_range_ms->end_ms)) {
+        return Fail(error, "미해석 후속 PTS는 기존 UTC 요청이 있는 pending link에만 허용함");
+    }
+    const UtcRangeV1 requested = value.requested_range.value_or(UtcRangeV1{});
+    std::int64_t previous_end = requested.start_ms;
+    std::unordered_set<std::string> segment_ids;
+    for (const auto& overlap : value.ordered_overlaps) {
+        if (!value.requested_range.has_value() ||
+            !ValidateOpaqueId(overlap.segment_id, error) ||
+            !segment_ids.insert(overlap.segment_id).second ||
+            overlap.range.start_ms < requested.start_ms ||
+            overlap.range.end_ms > requested.end_ms ||
+            overlap.range.start_ms >= overlap.range.end_ms ||
+            overlap.range.start_ms < previous_end) {
+            return Fail(error, "event recording overlap 범위 또는 순서가 유효하지 않음");
+        }
+        previous_end = overlap.range.end_ms;
+    }
+    previous_end = requested.start_ms;
+    for (const auto& range : value.missing_ranges) {
+        if (!value.requested_range.has_value() ||
+            range.start_ms < requested.start_ms ||
+            range.end_ms > requested.end_ms ||
+            range.start_ms >= range.end_ms || range.start_ms < previous_end) {
+            return Fail(error, "event recording missing range가 유효하지 않음");
+        }
+        previous_end = range.end_ms;
+    }
+    if (value.derived_segment_id.has_value() &&
+        !ValidateOpaqueId(*value.derived_segment_id, error)) return false;
+    if (value.fallback_evidence_id.has_value() &&
+        !ValidateOpaqueId(*value.fallback_evidence_id, error)) return false;
+    if (value.fallback_media_locator.has_value() &&
+        (value.fallback_media_locator->empty() ||
+         value.fallback_media_locator->size() > 4096 ||
+         value.fallback_media_locator->find('\0') != std::string::npos)) {
+        return Fail(error, "fallback media locator가 유효하지 않음");
+    }
+    if (value.fallback_evidence_id.has_value() !=
+        value.fallback_media_locator.has_value()) {
+        return Fail(error, "fallback evidence ID와 locator는 함께 저장해야 함");
+    }
+    if (!value.stream_epoch_id.empty() &&
+        !ValidateOpaqueId(value.stream_epoch_id, error)) return false;
+    if (value.derived_actual_range.has_value() &&
+        (!value.requested_range.has_value() ||
+         value.derived_actual_range->start_ms >= value.derived_actual_range->end_ms ||
+         value.derived_actual_range->start_ms > requested.start_ms ||
+         value.derived_actual_range->end_ms < requested.end_ms)) {
+        return Fail(error, "derived actual range가 requested range를 포함하지 않음");
+    }
+    if (value.status == EventRecordingLinkStatus::Complete &&
+        (!value.requested_range.has_value() || !value.derived_segment_id.has_value() ||
+         !value.derived_actual_range.has_value() || !value.missing_ranges.empty())) {
+        return Fail(error, "complete event recording link 불변식 위반");
+    }
+    if (value.status == EventRecordingLinkStatus::Partial &&
+        (!value.requested_range.has_value() || value.missing_ranges.empty())) {
+        return Fail(error, "partial event recording link 불변식 위반");
+    }
+    if (value.requested_range.has_value() &&
+        (value.status == EventRecordingLinkStatus::Complete ||
+         value.status == EventRecordingLinkStatus::Partial)) {
+        std::vector<UtcRangeV1> coverage;
+        coverage.reserve(value.ordered_overlaps.size() + value.missing_ranges.size());
+        for (const auto& overlap : value.ordered_overlaps) coverage.push_back(overlap.range);
+        coverage.insert(coverage.end(), value.missing_ranges.begin(), value.missing_ranges.end());
+        std::sort(coverage.begin(), coverage.end(), [](const auto& lhs, const auto& rhs) {
+            if (lhs.start_ms != rhs.start_ms) return lhs.start_ms < rhs.start_ms;
+            return lhs.end_ms < rhs.end_ms;
+        });
+        std::int64_t cursor = requested.start_ms;
+        for (const auto& range : coverage) {
+            if (range.start_ms != cursor) {
+                return Fail(error, "overlap/missing range가 requested range의 정확한 분할이 아님");
+            }
+            cursor = range.end_ms;
+        }
+        if (cursor != requested.end_ms) {
+            return Fail(error, "overlap/missing range가 requested range를 완전히 덮지 않음");
+        }
+    }
+    ClearError(error);
+    return true;
+}
+
 std::string SerializeEventRecordingLinkV1(const EventRecordingLinkV1& value) {
     std::ostringstream output;
     output << "{\"schema\":" << Quote(value.schema)
@@ -533,8 +660,21 @@ std::string SerializeEventRecordingLinkV1(const EventRecordingLinkV1& value) {
            << ",\"event_id\":" << Quote(value.event_id)
            << ",\"source_id\":" << Quote(value.source_id)
            << ",\"channel_id\":" << Quote(value.channel_id)
-           << ",\"requested_range\":" << SerializeRange(value.requested_range)
-           << ",\"ordered_overlaps\":[";
+           << ",\"requested_range\":"
+           << (value.requested_range.has_value() ? SerializeRange(*value.requested_range)
+                                                 : "null");
+    if (value.media_pts_range_ms.has_value()) {
+        output << ",\"media_pts_range_ms\":" << SerializeRange(*value.media_pts_range_ms);
+    }
+    if (value.deferred_requested_range.has_value()) {
+        output << ",\"deferred_requested_range\":"
+               << SerializeRange(*value.deferred_requested_range);
+    }
+    if (value.deferred_media_pts_range_ms.has_value()) {
+        output << ",\"deferred_media_pts_range_ms\":"
+               << SerializeRange(*value.deferred_media_pts_range_ms);
+    }
+    output << ",\"ordered_overlaps\":[";
     for (std::size_t index = 0; index < value.ordered_overlaps.size(); ++index) {
         if (index != 0) output << ',';
         output << "{\"segment_id\":" << Quote(value.ordered_overlaps[index].segment_id)
@@ -542,12 +682,29 @@ std::string SerializeEventRecordingLinkV1(const EventRecordingLinkV1& value) {
     }
     output << "]" << ",\"derived_segment_id\":" << SerializeOptionalString(value.derived_segment_id)
            << ",\"fallback_evidence_id\":" << SerializeOptionalString(value.fallback_evidence_id)
+           << ",\"fallback_media_locator\":" << SerializeOptionalString(value.fallback_media_locator)
            << ",\"missing_ranges\":[";
     for (std::size_t index = 0; index < value.missing_ranges.size(); ++index) {
         if (index != 0) output << ',';
         output << SerializeRange(value.missing_ranges[index]);
     }
-    output << "]" << ",\"status\":" << Quote(LinkStatusString(value.status))
+    output << "]";
+    if (value.derived_actual_range.has_value()) {
+        output << ",\"derived_actual_range\":" << SerializeRange(*value.derived_actual_range);
+    }
+    if (!value.derivation_mode.empty()) {
+        output << ",\"derivation_mode\":" << Quote(value.derivation_mode);
+    }
+    if (!value.time_basis.empty()) {
+        output << ",\"time_basis\":" << Quote(value.time_basis);
+    }
+    if (!value.stream_epoch_id.empty()) {
+        output << ",\"stream_epoch_id\":" << Quote(value.stream_epoch_id);
+    }
+    if (!value.completeness_reason.empty()) {
+        output << ",\"completeness_reason\":" << Quote(value.completeness_reason);
+    }
+    output << ",\"status\":" << Quote(LinkStatusString(value.status))
            << ",\"created_at_ms\":" << value.created_at_ms
            << ",\"updated_at_ms\":" << value.updated_at_ms << '}';
     return output.str();
@@ -558,7 +715,6 @@ bool ParseEventRecordingLinkV1(const std::string& json,
                                std::string* error) {
     if (value == nullptr) return Fail(error, "event link output이 null");
     Document document;
-    std::string range_json;
     std::string status;
     if (!ParseDocument(json, &document, error) ||
         !RequiredString(document, "schema", &value->schema, error) ||
@@ -566,13 +722,98 @@ bool ParseEventRecordingLinkV1(const std::string& json,
         !RequiredString(document, "event_id", &value->event_id, error) ||
         !RequiredString(document, "source_id", &value->source_id, error) ||
         !RequiredString(document, "channel_id", &value->channel_id, error) ||
-        !RequiredObject(document, "requested_range", &range_json, error) ||
         !OptionalString(document, "derived_segment_id", &value->derived_segment_id, error) ||
         !OptionalString(document, "fallback_evidence_id", &value->fallback_evidence_id, error) ||
+        !OptionalString(document, "fallback_media_locator", &value->fallback_media_locator, error) ||
         !RequiredString(document, "status", &status, error) ||
         !RequiredInteger(document, "created_at_ms", &value->created_at_ms, error) ||
-        !RequiredInteger(document, "updated_at_ms", &value->updated_at_ms, error) ||
-        !ParseRange(range_json, &value->requested_range, error)) return false;
+        !RequiredInteger(document, "updated_at_ms", &value->updated_at_ms, error)) return false;
+
+    value->requested_range.reset();
+    const Member* requested_range = document.Find("requested_range");
+    if (requested_range == nullptr) return Fail(error, "필수 field 누락: requested_range");
+    if (requested_range->type != Type::Null) {
+        if (requested_range->type != Type::Object) {
+            return Fail(error, "requested_range field type 불일치");
+        }
+        UtcRangeV1 parsed_range;
+        if (!ParseRange(requested_range->raw, &parsed_range, error)) return false;
+        value->requested_range = parsed_range;
+    }
+    value->deferred_requested_range.reset();
+    const Member* deferred_range = document.Find("deferred_requested_range");
+    if (deferred_range != nullptr) {
+        if (deferred_range->type != Type::Object) {
+            return Fail(error, "deferred_requested_range field type 불일치");
+        }
+        UtcRangeV1 parsed_range;
+        if (!ParseRange(deferred_range->raw, &parsed_range, error)) return false;
+        value->deferred_requested_range = parsed_range;
+    }
+    value->media_pts_range_ms.reset();
+    value->deferred_media_pts_range_ms.reset();
+    const Member* deferred_pts = document.Find("deferred_media_pts_range_ms");
+    if (deferred_pts != nullptr) {
+        if (deferred_pts->type != Type::Object) {
+            return Fail(error, "deferred_media_pts_range_ms field type 불일치");
+        }
+        UtcRangeV1 parsed_range;
+        if (!ParseRange(deferred_pts->raw, &parsed_range, error)) return false;
+        value->deferred_media_pts_range_ms = parsed_range;
+    }
+    const Member* media_pts_range = document.Find("media_pts_range_ms");
+    if (media_pts_range != nullptr) {
+        if (media_pts_range->type != Type::Object) {
+            return Fail(error, "media_pts_range_ms field type 불일치");
+        }
+        UtcRangeV1 parsed_range;
+        if (!ParseRange(media_pts_range->raw, &parsed_range, error)) return false;
+        value->media_pts_range_ms = parsed_range;
+    }
+
+    const Member* actual_range = document.Find("derived_actual_range");
+    value->derived_actual_range.reset();
+    if (actual_range != nullptr) {
+        if (actual_range->type != Type::Object) {
+            return Fail(error, "derived_actual_range field type 불일치");
+        }
+        UtcRangeV1 parsed_actual_range;
+        if (!ParseRange(actual_range->raw, &parsed_actual_range, error)) return false;
+        value->derived_actual_range = parsed_actual_range;
+    }
+    value->derivation_mode.clear();
+    const Member* derivation_mode = document.Find("derivation_mode");
+    if (derivation_mode != nullptr) {
+        if (derivation_mode->type != Type::String) {
+            return Fail(error, "derivation_mode field type 불일치");
+        }
+        value->derivation_mode = derivation_mode->string_value;
+    }
+    value->time_basis = "utc-ms";
+    const Member* time_basis = document.Find("time_basis");
+    if (time_basis != nullptr) {
+        if (time_basis->type != Type::String) {
+            return Fail(error, "time_basis field type 불일치");
+        }
+        value->time_basis = time_basis->string_value;
+    }
+    value->stream_epoch_id.clear();
+    const Member* stream_epoch_id = document.Find("stream_epoch_id");
+    if (stream_epoch_id != nullptr) {
+        if (stream_epoch_id->type != Type::String) {
+            return Fail(error, "stream_epoch_id field type 불일치");
+        }
+        value->stream_epoch_id = stream_epoch_id->string_value;
+        if (!ValidateOpaqueId(value->stream_epoch_id, error)) return false;
+    }
+    value->completeness_reason.clear();
+    const Member* completeness_reason = document.Find("completeness_reason");
+    if (completeness_reason != nullptr) {
+        if (completeness_reason->type != Type::String) {
+            return Fail(error, "completeness_reason field type 불일치");
+        }
+        value->completeness_reason = completeness_reason->string_value;
+    }
 
     const Member* overlaps = RequiredMember(document, "ordered_overlaps", Type::Array, error);
     const Member* missing = RequiredMember(document, "missing_ranges", Type::Array, error);
@@ -602,14 +843,10 @@ bool ParseEventRecordingLinkV1(const std::string& json,
         value->missing_ranges.push_back(range);
     }
     value->status = ParseLinkStatus(status);
-    if (value->schema != "media-server.event-recording-link.v1" ||
-        !ValidateOpaqueId(value->link_id, error) || !ValidateOpaqueId(value->event_id, error) ||
-        !ValidateReferenceId(value->source_id, "source_id", error) ||
-        !ValidateReferenceId(value->channel_id, "channel_id", error)) return false;
-    if (value->derived_segment_id.has_value() && !ValidateOpaqueId(*value->derived_segment_id, error)) return false;
-    if (value->fallback_evidence_id.has_value() && !ValidateOpaqueId(*value->fallback_evidence_id, error)) return false;
-    ClearError(error);
-    return true;
+    if (value->schema != "media-server.event-recording-link.v1") {
+        return Fail(error, "event recording link schema 불일치");
+    }
+    return ValidateEventRecordingLinkV1(*value, error);
 }
 
 std::string SerializeAnalysisObservationV1(const AnalysisObservationV1& value) {

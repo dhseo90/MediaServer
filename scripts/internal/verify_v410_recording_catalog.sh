@@ -53,6 +53,8 @@ check_contains "src/application/media_server_application.cpp" \
 check_contains "src/application/media_server_application.cpp" \
   "recording_supervisor.Start" "서버 전 supervisor 시작"
 check_contains "src/application/media_server_application.cpp" \
+  "analysis::SetEventRecordingBridge(event_recording_bridge)" "ingress 전 event bridge 등록"
+check_contains "src/application/media_server_application.cpp" \
   "recording_supervisor.Stop" "ingress 종료 뒤 recorder finalize"
 
 line_of() { grep -nF "$2" "${ROOT_DIR}/$1" | head -1 | cut -d: -f1; }
@@ -61,12 +63,16 @@ APP_FILE="src/application/media_server_application.cpp"
 JOURNAL_LINE="$(line_of "${APP_FILE}" "recording_journal.Open")"
 CATALOG_LINE="$(line_of "${APP_FILE}" "recording_catalog.Open")"
 SUPERVISOR_LINE="$(line_of "${APP_FILE}" "recording_supervisor.Start")"
+BRIDGE_REGISTER_LINE="$(line_of "${APP_FILE}" "analysis::SetEventRecordingBridge(event_recording_bridge)")"
 RTSP_START_LINE="$(line_of "${APP_FILE}" "gst_rtsp_server.Start")"
+HTTP_START_LINE="$(line_of "${APP_FILE}" "webrtc_http_server.Start")"
 HTTP_STOP_LINE="$(line_of_last "${APP_FILE}" "webrtc_http_server.Stop")"
 RTSP_STOP_LINE="$(line_of_last "${APP_FILE}" "gst_rtsp_server.Stop")"
 SUPERVISOR_STOP_LINE="$(line_of_last "${APP_FILE}" "recording_supervisor.Stop")"
 EVENT_STOP_LINE="$(line_of_last "${APP_FILE}" "analysis::StopEventStorage")"
-if (( JOURNAL_LINE < CATALOG_LINE && CATALOG_LINE < SUPERVISOR_LINE && SUPERVISOR_LINE < RTSP_START_LINE &&
+if (( JOURNAL_LINE < CATALOG_LINE && CATALOG_LINE < SUPERVISOR_LINE &&
+      SUPERVISOR_LINE < BRIDGE_REGISTER_LINE && BRIDGE_REGISTER_LINE < RTSP_START_LINE &&
+      RTSP_START_LINE < HTTP_START_LINE &&
       HTTP_STOP_LINE < RTSP_STOP_LINE && RTSP_STOP_LINE < SUPERVISOR_STOP_LINE && SUPERVISOR_STOP_LINE < EVENT_STOP_LINE )); then
   echo "[pass] composition root 시작/종료 순서"
 else

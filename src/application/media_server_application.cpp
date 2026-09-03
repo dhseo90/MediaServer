@@ -9,6 +9,7 @@
 #include <csignal>
 #include <filesystem>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -33,6 +34,8 @@
 #include "ingress/webrtc_http_server.h"
 #include "ingress/source_view_application_service.h"
 #include "recording/gstreamer_segment_writer.h"
+#include "recording/event_clip_deriver.h"
+#include "recording/event_recording_bridge.h"
 #include "recording/recording_catalog.h"
 #include "recording/recording_journal.h"
 #include "recording/recording_session_service.h"
@@ -412,11 +415,32 @@ int RunMediaServerApplication(int argc, char** argv) {
         *analysis_session_reads,
         webrtc_http_runtime_config);
 
+    // 외부 ingress를 열기 전에 recording bridge를 등록해야 시작 직후 이벤트도
+    // bounded EventStorage queue보다 먼저 durable link를 얻는다.
+    std::shared_ptr<recording::GStreamerEventClipDeriver> event_clip_deriver;
+    std::shared_ptr<recording::CatalogEventRecordingBridge> event_recording_bridge;
+    if (config.recording_enabled) {
+        event_clip_deriver = std::make_shared<recording::GStreamerEventClipDeriver>();
+        recording::CatalogEventRecordingBridge::Options bridge_options;
+        bridge_options.output_root = recording_root;
+        bridge_options.finalization_grace_ms =
+            static_cast<std::int64_t>(config.recording_segment_duration_seconds) * 1000 + 1000;
+        event_recording_bridge =
+            std::make_shared<recording::CatalogEventRecordingBridge>(
+                recording_catalog, recording_retention, *event_clip_deriver,
+                std::move(bridge_options));
+        analysis::SetEventRecordingBridge(event_recording_bridge);
+    }
+
     std::string server_error;
     const bool rtsp_server_started = gst_rtsp_server.Start(rtsp_port, &server_error);
     if (!rtsp_server_started) {
         std::cerr << "gstreamer rtsp server started: no\n";
         std::cerr << "reason: " << server_error << "\n";
+        recording_supervisor.Stop();
+        analysis::StopEventStorage();
+        if (event_recording_bridge) event_recording_bridge->StopAndDrain();
+        analysis::SetEventRecordingBridge(nullptr);
         return 1;
     }
 
@@ -426,6 +450,10 @@ int RunMediaServerApplication(int argc, char** argv) {
         std::cerr << "webrtc http server started: no\n";
         std::cerr << "reason: " << http_error << "\n";
         gst_rtsp_server.Stop();
+        recording_supervisor.Stop();
+        analysis::StopEventStorage();
+        if (event_recording_bridge) event_recording_bridge->StopAndDrain();
+        analysis::SetEventRecordingBridge(nullptr);
         return 1;
     }
 
@@ -451,8 +479,10 @@ int RunMediaServerApplication(int argc, char** argv) {
     webrtc_http_server.Stop();
     gst_rtsp_server.Stop();
     recording_supervisor.Stop();
-    session_manager.SetAuxiliaryStreamRuntimeProvider({});
     analysis::StopEventStorage();
+    if (event_recording_bridge) event_recording_bridge->StopAndDrain();
+    analysis::SetEventRecordingBridge(nullptr);
+    session_manager.SetAuxiliaryStreamRuntimeProvider({});
     return 0;
 }
 

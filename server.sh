@@ -1215,6 +1215,8 @@ Usage:
                  v4.1.0 녹화 v1 계약과 golden JSONL fixture의 ID·시간·호환성 경계를 검증합니다.
   verify-v410-recording-retention
                  v4.1.0 상시/이벤트 분리 보존, oldest-first 삭제와 disk reserve 경계를 검증합니다.
+  verify-v410-event-recording
+                 v4.1.0 이벤트-상시녹화 연결, 비동기 remux, fallback과 event quota 경계를 검증합니다.
   verify-post-release-reconciliation
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
@@ -3043,6 +3045,10 @@ case "${cmd}" in
   verify-v410-recording-retention)
     require_internal verify_v410_recording_retention.sh
     exec "${INTERNAL_DIR}/verify_v410_recording_retention.sh" "$@"
+    ;;
+  verify-v410-event-recording)
+    require_internal verify_v410_event_recording.sh
+    exec "${INTERNAL_DIR}/verify_v410_event_recording.sh" "$@"
     ;;
   verify-v400-user-review-gate)
     require_internal verify_v400_user_review_gate.mjs

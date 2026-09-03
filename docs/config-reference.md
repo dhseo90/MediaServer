@@ -797,9 +797,13 @@ continuous quota에 먼저 반영하며, 동시에 여러 채널이 쓰는 용�
 제거하고, 제거가 실패하면 0 byte truncate를 시도합니다. 둘 다 실패하면 예약을 반환하지
 않아 해당 채널을 fail-closed 상태로 둡니다. writer는 final 파일 open 전에 storage root
 dirfd에 결박한 `openat(O_NOFOLLOW|O_EXCL)`로 `.cleanup-pending` 마커를 만들고 file과
-parent directory까지 fsync합니다. catalog finalize 또는 cleanup 뒤 마커 안전 제거와
-directory fsync까지 성공해야 예약을 반환합니다. 프로세스 재시작 시 catalog는 추적된 media를 보존하고
-미추적 final/partial을 안전하게 정리합니다. 정리 실패는 catalog open을 fail-closed합니다.
+parent directory까지 fsync합니다. 새 v2 마커는 UUID가 붙은 `.partial.<uuid>` leaf를
+결박하며 writer는 해당 partial을 `O_EXCL`로 선점해 fd에 직접 씁니다. catalog finalize 또는
+cleanup 뒤 마커 안전 제거와 directory fsync까지 성공해야 예약을 반환합니다. 프로세스
+재시작 시 catalog는 추적 media를 보존하고, v2 마커가 정확히 지목한 단일-link 일반
+partial만 root dirfd 경계 안에서 정리합니다. 기존 v1 마커는 제거하되 소유권 불명 final/partial은
+삭제하지 않고 orphan 진단에 남기며, 형식·symlink·hardlink·I/O 안전 검사가 실패하면 catalog
+open을 fail-closed합니다.
 disk reserve가 부족하면 삭제 가능한
 상시녹화를 먼저 정리하며, 그래도 공간을 확보할 수 없으면 그 채널 writer만
 `storage-blocked`로 두고 live/VA 구독은 유지합니다. 공간이 회복되면 다음 video keyframe에서
@@ -816,17 +820,58 @@ retention tick에서 채널별로 재시도합니다. catalog replay에서 경�
 
 녹화 root는 media source root와 같은 경로일 수 없고, 쓰기 불가·GStreamer 미포함 빌드는
 fail-closed로 해당 recorder를 시작하지 않습니다. H.264는 MP4, VP8은 WebM으로 기록하며
-final callback 전 `.partial`만 사용합니다.
+final callback 전 nonce가 결박된 `.partial.<uuid>`만 사용합니다.
 
 storage root 아래 `recording-mutations.jsonl`은 durable source-of-truth이고
 `recording-catalog.sqlite3`은 재구축 가능한 projection입니다. SQLite 사용 빌드는
 `catalogMode=sqlite-primary`, 미사용 빌드 또는 초기화 불가 환경은
 `catalogMode=jsonl-fallback`으로 동작합니다. SQLite 손상 원본은 덮어쓰지 않고
-`.corrupt-<timestamp>`로 격리합니다. catalog에 없는 final MP4/WebM은 정상/손상 orphan으로
-구분하며 자동 보존 정리는 catalog의 finalized locator만 대상으로 합니다.
+`.corrupt-<timestamp>`로 격리합니다. catalog에 없는 final MP4/MPEG-TS/WebM은 정상/손상
+orphan으로 구분하며 자동 보존 정리는 catalog의 finalized locator만 대상으로 합니다.
+cleanup marker만으로 final 소유권을 추정하지 않습니다. 재시작 복구는 v2 마커의 final
+basename과 정확한 UUID 규칙에 맞는 단일-link partial만 먼저 제거하고 마커를 제거합니다.
+v1 마커만 제거하고, 소유권 불명 final/partial은 orphan 진단에 보존합니다.
 실시간 mutation의 SQLite projection이 실패해도 이미 fsync된 journal과 in-memory 상태는
 유지하고 즉시 `jsonl-fallback`으로 전환합니다. 다음 시작에서는 journal 전체로 SQLite를
 다시 구성합니다.
+
+전역 녹화가 활성화되면 EventStorage와 녹화 catalog 사이의 이벤트 bridge도 외부 RTSP/HTTP
+ingress 시작 전에 등록됩니다. 이 bridge는 `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED`와 독립적으로
+동작하므로 EventRecord JSONL 저장이 꺼져 있어도 VA 이벤트의 녹화 연결은 계속됩니다.
+내부 media event는 `media-pts-ms`와 UTC/PTS anchor·stream epoch를 사용하고, 외부 event는
+`utc-ms` 또는 유효한 anchor를 명시해야 합니다. 시간축이 불명확하면 임의 wall clock으로
+연결하지 않고 별도 media PTS 범위의 `time-basis-ambiguous` pending으로 남깁니다. 같은
+epoch의 finalized segment에서 실제 PTS↔UTC mapping을 하나로 결정할 수 있으면 이후 같은
+link를 UTC 범위로 승격합니다.
+
+이벤트 구간은 기존 `MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS`와
+`MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS`를 사용합니다. 겹치는 finalized continuous
+segment가 같은 epoch/codec으로 전체 범위를 덮으면 별도 worker가 video 재인코딩 없이
+Event 등급 MPEG-TS clip으로 remux합니다. S05의 검증된 입력 codec은 video-only
+H.264/MP4이며,
+VP8/WebM continuous source는 재생 불가능한 파생물을 만들지 않도록 fail-closed하고 기존
+frame-buffer fallback을 사용합니다. 공백이나 불일치가 있으면 기존
+`MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED` bounded frame-buffer 결과를 fallback으로
+연결합니다. 이벤트 파생물은 source의 `eventMaxBytes/eventMaxAgeMs`와 store disk reserve를
+사용하며 continuous quota를 대신 소비하거나 정리하지 않습니다. 파생 중 원본 segment는
+process-lifetime hold로 자동 삭제에서 제외됩니다. 오래 걸리는 remux 구간에는 link admission
+직렬화 lock을 유지하지 않으므로 다른 event의 선행 durable link 기록을 막지 않습니다.
+source와 output은 `O_NOFOLLOW|O_EXCL` fd와 UUID v2 marker에 결박하고, 실제 packet
+timestamp로 keyframe 확대 범위를 측정합니다. marker 제거 뒤에도 terminal resource-release
+pending을 먼저 내구 기록하며 source/output hold와 Event reservation 해제가 모두 성공한
+뒤에만 link를 `complete`로 승격합니다. 해제 실패는 pending으로 재시도합니다.
+hold 해제와 complete 기록 사이에도 catalog는 terminal 미완료 link의 source/output 삭제
+요청을 거부합니다. 복구 중 같은 이벤트가 확장되면 기존 derived ID와 복구 단계를 덮어쓰지
+않고 `deferred_requested_range`에 UTC 합집합을 내구 기록해 자원 정리 뒤 처리합니다.
+anchor 없는 후속 PTS는 기존 epoch의 segment map으로 변환하며, 아직 map이 없으면
+`deferred_media_pts_range_ms`에 기존 UTC 요청과 분리해 저장합니다. 후행 segment를 찾으면
+같은 link의 확장 범위로 재파생합니다. 복구할 finalized 파생물이 없을 때는 보류 요청을
+먼저 소비하므로 실패·부분 완료 전이가 보류 필드 때문에 거부되지 않습니다.
+frame-buffer fallback 갱신도 marker/terminal 복구 단계를 보존합니다.
+EventRecord bounded queue에 넣기 전에 catalog link를 내구 기록하며, 파생 worker가 가득
+차도 durable pending link는 버리지 않고 완료 슬롯이 생길
+때 다시 흡수합니다. pending 단계의 frame-buffer fallback은 분석 buffer 만료 전에 증거를
+확보하기 위한 provisional locator이며, derived Event clip이 완료되면 항상 우선합니다.
 
 ## EventStorage env
 

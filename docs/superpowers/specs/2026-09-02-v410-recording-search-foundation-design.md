@@ -3,8 +3,8 @@
 ## 문서 상태
 
 이 명세는 2026-09-02에 사용자와 합의하고 승인한 아키텍처 방향을 기록한다. 2026-09-03
-`V410-S00`~`V410-S04`의 조사·계약·segment recorder·catalog/journal·순환 보존을 구현했다.
-S05~S09 이벤트 연결·timeline·검색 관측·안정화와 릴리즈 완료 증거는 아니다. 공개 버전 순서는
+`V410-S00`~`V410-S05`의 조사·계약·segment recorder·catalog/journal·순환 보존·이벤트
+연결을 구현했다. S06~S09 timeline·검색 관측·안정화와 릴리즈 완료 증거는 아니다. 공개 버전 순서는
 [`docs/v410-v49-recording-search-roadmap.md`](../../v410-v49-recording-search-roadmap.md)에
 요약한다. 단계별 파일·인터페이스·검증 순서는
 [`2026-09-02-v410-recording-foundation-implementation-plan.md`](../plans/2026-09-02-v410-recording-foundation-implementation-plan.md)에
@@ -226,11 +226,38 @@ writer admission은 독립 판정한다. SQLite 실시간 projection 실패는 J
 
 event가 dispatch되면 설정된 pre/event/post 범위와 겹치는 모든 finalized 상시녹화
 segment를 찾는다. 파생 media 작업을 예약하기 전에 `EventRecordingLinkV1`을 기록한다.
-codec과 경계 조건이 허용하면 재인코딩 없이 overlap 구간을 remux해 event clip을 만든다.
+codec과 경계 조건이 허용하면 재인코딩 없이 overlap 구간을 순차 쓰기 가능한 MPEG-TS로
+remux해 event clip을 만든다.
 
 archive가 불완전하면 기존 event frame buffer가 fallback clip/evidence를 만든다. link는
 사용한 원본과 누락 범위를 기록한다. 일부 구간만 존재하는 clip을 complete로 표시하지
 않는다.
+
+구현된 bridge는 EventStorage JSONL 저장 opt-in과 녹화 opt-in을 분리하고, keyed bounded
+worker에서 파생한다. `utc-ms` 또는 UTC/PTS anchor가 있는 `media-pts-ms`를 녹화 범위로
+변환하고, anchor 없는 media PTS는 별도 range로 보존한 뒤 finalized segment의 실제 mapping이
+하나로 결정될 때만 UTC로 승격한다. 불명확한 시간축을 wall clock으로 추측하지 않는다.
+원본 목록 조회와 삭제 사이의
+경쟁은 같은 channel/epoch의 finalized continuous segment를 원자적으로 hold하는 source
+lease로 막는다. 파생 파일은 Event 등급 reservation과 UUID `.partial.<uuid>`를 사용하며,
+partial leaf를 지목하는 v2 cleanup marker, no-replace finalize와 SHA-256 결정 event
+link/segment ID로 crash/retry 중복을 방지한다. v2 marker가 지목한 단일-link partial만
+재시작 정리하고 v1/foreign final·partial은 보존한다. marker 제거 뒤 terminal
+resource-release pending을 내구 기록하며 source/output hold와 reservation이 모두 해제된
+뒤에만 complete로 승격한다. 실제 remux 동안 admission lock을 풀어 다른 event의 선행 link
+기록을 막지 않는다. source/output은 경로를 다시 열지 않고 fd에 결박하며, keyframe 때문에
+넓어진 실제 범위는 출력 packet timestamp로 측정해 요청 범위와 별도로 보존한다.
+EventRecord bounded queue보다 link journal 기록을 먼저 수행해 queue drop이 녹화 요청을
+소실시키지 않게 한다.
+hold 해제 뒤에도 terminal complete commit 전까지 catalog가 source/output 삭제 요청을
+차단한다. 복구 중 후속 event/fallback 갱신은 단계를 보존하고 UTC 확장은
+`deferred_requested_range`에 내구 대기시켜 기존 자원 정리 뒤에만 새 파생으로 전환한다.
+
+S05에서 검증된 archive 입력 codec은 video-only H.264/MP4이며 파생 컨테이너는 MPEG-TS다.
+VP8/WebM 상시녹화는
+지원하지만 event seek/remux는 재생 가능성이 입증되기 전까지 fail-closed하고 provisional
+frame-buffer fallback을 사용한다. fallback에는 ID뿐 아니라 내부 media locator를 함께
+보존하며 derived Event clip이 완료되면 우선 재생 대상으로 승격한다.
 
 ### 녹화 read service와 UI
 

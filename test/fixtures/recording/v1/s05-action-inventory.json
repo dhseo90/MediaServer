@@ -1,0 +1,686 @@
+{
+  "schema": "media-server.v410-s05-action-inventory.v1",
+  "rows": [
+    {
+      "id": "V410-S05-I01",
+      "action": "선택 시간축 DTO 왕복",
+      "sourceFile": "src/ingress/event_storage_application_service.cpp",
+      "sourceSymbol": "DispatchEventRecordsForApplication",
+      "testFile": "scripts/internal/verify_v390_event_storage_application_boundary.mjs",
+      "testSymbol": "compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order",
+      "checks": [
+        {
+          "id": "V410-S05-I01-C01",
+          "message": "application header is standard-only with exact DTO/default manifests"
+        },
+        {
+          "id": "V410-S05-I01-C02",
+          "message": "application source owns exact canonical mapping and overwrite semantics"
+        },
+        {
+          "id": "V410-S05-I01-C03",
+          "message": "compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order"
+        }
+      ],
+      "criterion": "선택 시간축·anchor·epoch 및 실패 출력 전체 매핑",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I02",
+      "action": "저장 큐 이전 내구 접수",
+      "sourceFile": "src/analysis/event_storage.cpp",
+      "sourceSymbol": "Enqueue",
+      "testFile": "scripts/internal/verify_v390_event_storage_application_boundary.mjs",
+      "testSymbol": "recording link is durably admitted before the bounded storage queue can drop an event",
+      "checks": [
+        {
+          "id": "V410-S05-I02-C01",
+          "message": "recording link is durably admitted before the bounded storage queue can drop an event"
+        }
+      ],
+      "criterion": "정적 계약: JSONL 비활성 guard·TryResolve 선행·큐 eviction 호출 순서",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I03",
+      "action": "명시적 PTS UTC 및 pre/post",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "TryResolve",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyEventLinking",
+      "checks": [
+        {
+          "id": "V410-S05-I03-C01",
+          "message": "media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함"
+        }
+      ],
+      "criterion": "pre 1000/post 200으로 UTC 10300~12500",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I04",
+      "action": "anchor 없는 PTS 내구 복구",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "TryResolve",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyEventLinking",
+      "checks": [
+        {
+          "id": "V410-S05-I04-C01",
+          "message": "anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함"
+        },
+        {
+          "id": "V410-S05-I04-C02",
+          "message": "PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨"
+        },
+        {
+          "id": "V410-S05-I04-C03",
+          "message": "anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함"
+        }
+      ],
+      "criterion": "finalized mapping 복구·불명확 PTS Pending 보존",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I05",
+      "action": "이벤트 중복 및 범위별 ID",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "TryResolve",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyEventLinking",
+      "checks": [
+        {
+          "id": "V410-S05-I05-C01",
+          "message": "같은 event update는 파생 clip을 중복 생성하지 않아야 함"
+        },
+        {
+          "id": "V410-S05-I05-C02",
+          "message": "완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함"
+        },
+        {
+          "id": "V410-S05-I05-C03",
+          "message": "같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨"
+        }
+      ],
+      "criterion": "동일 update 1회·확장 새 ID·긴 prefix 비충돌",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I06",
+      "action": "링크 계약과 가산 필드",
+      "sourceFile": "src/recording/recording_contracts.cpp",
+      "sourceSymbol": "ValidateEventRecordingLinkV1",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyLinkContractInvariants",
+      "checks": [
+        {
+          "id": "V410-S05-I06-C01",
+          "message": "terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함"
+        },
+        {
+          "id": "V410-S05-I06-C02",
+          "message": "terminal 대기 요청이 현재 범위를 축소하면 거부해야 함"
+        },
+        {
+          "id": "V410-S05-I06-C03",
+          "message": "미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함"
+        },
+        {
+          "id": "V410-S05-I06-C04",
+          "message": "미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함"
+        },
+        {
+          "id": "V410-S05-I06-C05",
+          "message": "서로 겹치는 ordered overlap을 거부해야 함"
+        },
+        {
+          "id": "V410-S05-I06-C06",
+          "message": "overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함"
+        },
+        {
+          "id": "V410-S05-I06-C07",
+          "message": "unknown link status를 영속 계약으로 허용하면 안 됨"
+        },
+        {
+          "id": "V410-S05-I06-C08",
+          "message": "locator 없는 fallback evidence를 거부해야 함"
+        }
+      ],
+      "criterion": "왕복 보존·축소/겹침/분할 누락/잘못된 terminal 거부",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I07",
+      "action": "정렬 overlap 및 누락 구간",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "Process",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyEventLinking",
+      "checks": [
+        {
+          "id": "V410-S05-I07-C01",
+          "message": "반개구간 overlap은 맞닿기만 한 segment를 제외해야 함"
+        },
+        {
+          "id": "V410-S05-I07-C02",
+          "message": "overlap segment가 UTC 순서로 전달되어야 함"
+        },
+        {
+          "id": "V410-S05-I07-C03",
+          "message": "archive gap이 있으면 complete로 표시하면 안 됨"
+        },
+        {
+          "id": "V410-S05-I07-C04",
+          "message": "link가 정확한 missing UTC range를 보존해야 함"
+        }
+      ],
+      "criterion": "3개 순서·접점 제외·gap 11000~12000 Partial",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I08",
+      "action": "원본 lease 획득 및 해제",
+      "sourceFile": "src/recording/recording_catalog.cpp",
+      "sourceSymbol": "AcquireEventSourceLease",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyEventLinking",
+      "checks": [
+        {
+          "id": "V410-S05-I08-C01",
+          "message": "파생 중 원본 segment hold가 유지되어야 함"
+        },
+        {
+          "id": "V410-S05-I08-C02",
+          "message": "파생 완료 뒤 원본 hold가 해제되어야 함"
+        }
+      ],
+      "criterion": "각 원본 파생 중 hold 1·완료 뒤 0",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I09",
+      "action": "이벤트 용량과 예약 분리",
+      "sourceFile": "src/recording/retention_coordinator.cpp",
+      "sourceSymbol": "AdmitEventWrite",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyEventQuotaIsolation",
+      "checks": [
+        {
+          "id": "V410-S05-I09-C01",
+          "message": "event quota 충족을 위해 continuous를 삭제하면 안 됨"
+        },
+        {
+          "id": "V410-S05-I09-C02",
+          "message": "event quota는 oldest eligible event를 삭제해야 함"
+        },
+        {
+          "id": "V410-S05-I09-C03",
+          "message": "policy 제거가 진행 중 event reservation을 지우면 안 됨"
+        },
+        {
+          "id": "V410-S05-I09-C04",
+          "message": "명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함"
+        }
+      ],
+      "criterion": "continuous 보존·오래된 event 삭제·예약 수명",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I10",
+      "action": "긴 remux 접수 비차단",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "Process",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyQueueRefillAndCleanupHold",
+      "checks": [
+        {
+          "id": "V410-S05-I10-C01",
+          "message": "긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨"
+        }
+      ],
+      "criterion": "blocked deriver 중 다른 접수 100ms 이내",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I11",
+      "action": "포화 큐 내구 재흡수",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "Process",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyQueueRefillAndCleanupHold",
+      "checks": [
+        {
+          "id": "V410-S05-I11-C01",
+          "message": "bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함"
+        }
+      ],
+      "criterion": "최대 대기 1에서 3개 이벤트 모두 완료",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I12",
+      "action": "frame-buffer fallback 연결",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "RecordFallback",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyEventLinking",
+      "checks": [
+        {
+          "id": "V410-S05-I12-C01",
+          "message": "frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함"
+        }
+      ],
+      "criterion": "동일 Partial link에 실제 절대 locator 보존",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I13",
+      "action": "완료 파생 clip 반환",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "TryResolve",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyEventLinking",
+      "checks": [
+        {
+          "id": "V410-S05-I13-C01",
+          "message": "완전한 archive 파생 완료 뒤 ready clip을 반환해야 함"
+        },
+        {
+          "id": "V410-S05-I13-C02",
+          "message": "event link ID와 derived clip path가 반환되어야 함"
+        },
+        {
+          "id": "V410-S05-I13-C03",
+          "message": "파생 성공 link가 catalog complete로 저장되어야 함"
+        }
+      ],
+      "criterion": "ready·Complete·derived ID/path 동시 일치",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I14",
+      "action": "H264 무재인코딩 실측 출력",
+      "sourceFile": "src/recording/event_clip_deriver.cpp",
+      "sourceSymbol": "Derive",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyRealRemux",
+      "checks": [
+        {
+          "id": "V410-S05-I14-C01",
+          "message": "remux 결과 파일과 size가 일치해야 함"
+        },
+        {
+          "id": "V410-S05-I14-C02",
+          "message": "event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함"
+        },
+        {
+          "id": "V410-S05-I14-C03",
+          "message": "event clip이 source segment 전체 단순 연결보다 작아야 함"
+        },
+        {
+          "id": "V410-S05-I14-C04",
+          "message": "remux 결과 checksum과 crash cleanup marker를 남겨야 함"
+        },
+        {
+          "id": "V410-S05-I14-C05",
+          "message": "파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함: "
+        }
+      ],
+      "criterion": "MP4 입력→TS 출력 크기·checksum·keyframe 확대; 동일 함수 EOS parse도 성공",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I15",
+      "action": "출력 무덮어쓰기와 fd 결박",
+      "sourceFile": "src/recording/event_clip_deriver.cpp",
+      "sourceSymbol": "Derive",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyRealRemux",
+      "checks": [
+        {
+          "id": "V410-S05-I15-C01",
+          "message": "동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함"
+        },
+        {
+          "id": "V410-S05-I15-C02",
+          "message": "nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함"
+        }
+      ],
+      "criterion": "기존 final/foreign partial 크기 보존",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I16",
+      "action": "소유 crash partial 복구",
+      "sourceFile": "src/recording/recording_catalog.cpp",
+      "sourceSymbol": "Open",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyRealRemux",
+      "checks": [
+        {
+          "id": "V410-S05-I16-C01",
+          "message": "재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함: "
+        },
+        {
+          "id": "V410-S05-I16-C02",
+          "message": "owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함: "
+        }
+      ],
+      "criterion": "v2 UUID marker 일치 partial 정리 후 재파생 성공",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I17",
+      "action": "VP8 파생 거부",
+      "sourceFile": "src/recording/event_clip_deriver.cpp",
+      "sourceSymbol": "Derive",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyRealVp8Remux",
+      "checks": [
+        {
+          "id": "V410-S05-I17-C01",
+          "message": "검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함"
+        }
+      ],
+      "criterion": "실제 VP8 source에서 파일 없이 명시적 거부",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I18",
+      "action": "segment ID 충돌 거부",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "Process",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyRestartRecoveryAndIdConflict",
+      "checks": [
+        {
+          "id": "V410-S05-I18-C01",
+          "message": "다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨"
+        },
+        {
+          "id": "V410-S05-I18-C02",
+          "message": "segment ID conflict에서 파생을 실행하면 안 됨"
+        }
+      ],
+      "criterion": "타 channel/class ID는 Failed·derive 0회",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I19",
+      "action": "finalized 파생물 재시작 연결",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "Process",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyRestartRecoveryAndIdConflict",
+      "checks": [
+        {
+          "id": "V410-S05-I19-C01",
+          "message": "재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함"
+        },
+        {
+          "id": "V410-S05-I19-C02",
+          "message": "재시작 복구에서 event clip을 중복 파생하면 안 됨"
+        }
+      ],
+      "criterion": "기존 derived ID·actual range 연결·derive 0회",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I20",
+      "action": "terminal 단계와 삭제 보호",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "ReleaseTerminalResources",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyQueueRefillAndCleanupHold",
+      "checks": [
+        {
+          "id": "V410-S05-I20-C01",
+          "message": "cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨"
+        },
+        {
+          "id": "V410-S05-I20-C02",
+          "message": "terminal marker unlink 실패 시 source/output hold를 유지해야 함"
+        },
+        {
+          "id": "V410-S05-I20-C03",
+          "message": "terminal marker unlink 실패 시 event reservation을 유지해야 함"
+        },
+        {
+          "id": "V410-S05-I20-C04",
+          "message": "terminal hold 해제 실패를 Complete로 기록하면 안 됨"
+        },
+        {
+          "id": "V410-S05-I20-C05",
+          "message": "complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨"
+        }
+      ],
+      "criterion": "cleanup/marker/release 실패는 Pending 자원 유지·재시도 다른 hold 보존",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I21",
+      "action": "보류 확장 및 재시작 수렴",
+      "sourceFile": "src/recording/event_recording_bridge.cpp",
+      "sourceSymbol": "TryResolve",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyDeferredFailureAndPtsUpdates",
+      "checks": [
+        {
+          "id": "V410-S05-I21-C01",
+          "message": "cleanup 확장 remux 실패는 한 번만 실행되어야 함"
+        },
+        {
+          "id": "V410-S05-I21-C02",
+          "message": "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함"
+        },
+        {
+          "id": "V410-S05-I21-C03",
+          "message": "PTS 확장은 다른 범위 ID를 사용해야 함"
+        },
+        {
+          "id": "V410-S05-I21-C04",
+          "message": "미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨"
+        },
+        {
+          "id": "V410-S05-I21-C05",
+          "message": "PTS 확장 2회는 최초 포함 총 3회 파생해야 함"
+        }
+      ],
+      "criterion": "UTC 실패/Partial 수렴·PTS 2회 확장·재시작 총3회",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I22",
+      "action": "hold overflow 거부",
+      "sourceFile": "src/recording/recording_catalog.cpp",
+      "sourceSymbol": "AcquireEventSourceLease",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyQueueRefillAndCleanupHold",
+      "checks": [
+        {
+          "id": "V410-S05-I22-C01",
+          "message": "event source lease hold_count overflow를 사전에 거부해야 함"
+        }
+      ],
+      "criterion": "저장 int64 한계에서 증가 거부",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I23",
+      "action": "SQLite 동일 링크 갱신",
+      "sourceFile": "src/recording/recording_catalog.cpp",
+      "sourceSymbol": "PutEventLink",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyEventLinking",
+      "checks": [
+        {
+          "id": "V410-S05-I23-C01",
+          "message": "event link 갱신은 SQLite primary projection에서 검증해야 함"
+        },
+        {
+          "id": "V410-S05-I23-C02",
+          "message": "같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함"
+        }
+      ],
+      "criterion": "sqlite-primary 유지",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I24",
+      "action": "terminal replay 및 삭제 차단",
+      "sourceFile": "src/recording/recording_catalog.cpp",
+      "sourceSymbol": "RequestDeletion",
+      "testFile": "scripts/internal/event_recording_link_smoke.cpp",
+      "testSymbol": "VerifyPendingDerivedHoldRecovery",
+      "checks": [
+        {
+          "id": "V410-S05-I24-C01",
+          "message": "재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함"
+        },
+        {
+          "id": "V410-S05-I24-C02",
+          "message": "complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨"
+        },
+        {
+          "id": "V410-S05-I24-C03",
+          "message": "terminal Complete 기록 전 source 삭제 요청을 차단해야 함"
+        },
+        {
+          "id": "V410-S05-I24-C04",
+          "message": "terminal Complete 기록 전 output 삭제 요청을 차단해야 함"
+        }
+      ],
+      "criterion": "단계별 hold 복원·hold 0이어도 terminal 전 삭제 거부",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I25",
+      "action": "전송 DTO 경계",
+      "sourceFile": "src/ingress/webrtc_http_server_ops_incidents.cpp",
+      "sourceSymbol": "ProjectEventStorageDispatchRequest",
+      "testFile": "scripts/internal/verify_v390_event_storage_application_boundary.mjs",
+      "testSymbol": "transport has zero canonical bypass and exact projection/call ordering",
+      "checks": [
+        {
+          "id": "V410-S05-I25-C01",
+          "message": "transport has zero canonical bypass and exact projection/call ordering"
+        }
+      ],
+      "criterion": "전송 DTO 우회·필드 누락·잘못된 호출 순서 거부",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I26",
+      "action": "출력 fd 검증 계약",
+      "sourceFile": "src/recording/event_clip_deriver.cpp",
+      "sourceSymbol": "Derive",
+      "testFile": "scripts/internal/verify_v390_event_storage_application_boundary.mjs",
+      "testSymbol": "event clip output remains fd-bound and measured before no-replace publication",
+      "checks": [
+        {
+          "id": "V410-S05-I26-C01",
+          "message": "event clip output remains fd-bound and measured before no-replace publication"
+        }
+      ],
+      "criterion": "fd 결박·timestamp 측정·no-replace 출판의 정적 경계",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    },
+    {
+      "id": "V410-S05-I27",
+      "action": "제품 시작·종료 순서",
+      "sourceFile": "src/application/media_server_application.cpp",
+      "sourceSymbol": "RunMediaServerApplication",
+      "testFile": "scripts/internal/verify_v390_event_storage_application_boundary.mjs",
+      "testSymbol": "S05 composition starts the bridge before ingress and drains it after storage",
+      "checks": [
+        {
+          "id": "V410-S05-I27-C01",
+          "message": "S05 composition starts the bridge before ingress and drains it after storage"
+        }
+      ],
+      "criterion": "ingress 전 bridge 등록·정상 및 시작 실패 경로에서 storage 뒤 bridge drain",
+      "stability": "대상",
+      "soak30": "대상: 별도 승인 후 녹화 연속 운용",
+      "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",
+      "ui": "비대상: UI 없어야 정상"
+    }
+  ]
+}

@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -36,6 +37,12 @@ struct EventRecord {
     std::string clip_path;
     int pre_event_ms{0};
     int post_event_ms{0};
+    std::string time_basis;
+    std::int64_t time_anchor_utc_ms{0};
+    std::int64_t time_anchor_pts_ms{0};
+    std::string stream_epoch_id;
+    std::string recording_link_id;
+    std::string recording_completeness;
     std::string metadata_json{"{}"};
 };
 
@@ -63,6 +70,26 @@ public:
                              const EventMediaHookOptions& options,
                              std::string* clip_path,
                              std::string* error_message) = 0;
+};
+
+struct EventRecordingBridgeResult {
+    bool handled{false};
+    bool derived_clip_ready{false};
+    std::string clip_path;
+    std::string link_id;
+    std::string completeness;
+    std::string error;
+};
+
+class EventRecordingBridge {
+public:
+    virtual ~EventRecordingBridge() = default;
+    virtual EventRecordingBridgeResult TryResolve(
+        const AnalysisResult& result,
+        const EventRecord& record,
+        const EventMediaHookOptions& options) = 0;
+    virtual void RecordFallback(const EventRecord& record,
+                                const EventRecordingBridgeResult& previous) = 0;
 };
 
 class NoOpEventSnapshotHook final : public EventSnapshotHook {
@@ -224,6 +251,7 @@ bool CleanupCompactedEventRecordFiles(std::size_t keep_newest,
 void RecordEventFrame(const std::string& stream_id,
                       const std::string& channel_id,
                       const RawVideoFrame& frame);
+void SetEventRecordingBridge(std::shared_ptr<EventRecordingBridge> bridge);
 void StopEventStorage();
 
 }  // namespace analysis

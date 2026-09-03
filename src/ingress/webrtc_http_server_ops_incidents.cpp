@@ -613,6 +613,10 @@ EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequestValue(
     request.source.route = result.context.route;
     request.source.client_id = result.context.client_id;
     request.source.pts = result.pts;
+    request.source.time_basis = result.context.event_time_basis;
+    request.source.time_anchor_utc_ms = result.context.event_anchor_utc_ms;
+    request.source.time_anchor_pts_ms = result.context.event_anchor_pts_ms;
+    request.source.stream_epoch_id = result.context.event_stream_epoch_id;
     request.events.reserve(events.size());
     for (const auto& event : events) {
         EventStorageApplicationDispatchEvent output;

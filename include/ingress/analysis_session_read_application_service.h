@@ -16,6 +16,10 @@ struct AnalysisSessionApplicationContext {
     std::string client_id;
     std::string va_rule_id;
     std::vector<std::string> va_rule_ids;
+    std::string event_time_basis{"media-pts-ms"};
+    std::int64_t event_anchor_utc_ms{0};
+    std::int64_t event_anchor_pts_ms{0};
+    std::string event_stream_epoch_id;
 };
 
 struct AnalysisSessionApplicationBox {

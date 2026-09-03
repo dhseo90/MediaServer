@@ -41,8 +41,14 @@ std::size_t CountSuffix(const std::filesystem::path& root, const std::string& su
     for (const auto& entry : std::filesystem::recursive_directory_iterator(root, error)) {
         if (error) break;
         const std::string path = entry.path().string();
-        if (entry.is_regular_file() && path.size() >= suffix.size() &&
-            path.compare(path.size() - suffix.size(), suffix.size(), suffix) == 0) ++count;
+        const bool exact_suffix = path.size() >= suffix.size() &&
+            path.compare(path.size() - suffix.size(), suffix.size(), suffix) == 0;
+        const auto nonce_suffix = suffix == ".partial"
+                                      ? path.rfind(suffix + ".")
+                                      : std::string::npos;
+        const bool nonce_bound_suffix = nonce_suffix != std::string::npos &&
+            nonce_suffix + suffix.size() + 1 < path.size();
+        if (entry.is_regular_file() && (exact_suffix || nonce_bound_suffix)) ++count;
     }
     return count;
 }
@@ -51,6 +57,21 @@ std::string ReadText(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary);
     return std::string(std::istreambuf_iterator<char>(input),
                        std::istreambuf_iterator<char>());
+}
+
+std::filesystem::path FindSuffix(const std::filesystem::path& root,
+                                 const std::string& suffix) {
+    std::error_code error;
+    if (!std::filesystem::exists(root, error)) return {};
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(root, error)) {
+        if (error) break;
+        const std::string path = entry.path().string();
+        if (entry.is_regular_file() && path.size() >= suffix.size() &&
+            path.compare(path.size() - suffix.size(), suffix.size(), suffix) == 0) {
+            return entry.path();
+        }
+    }
+    return {};
 }
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -244,11 +265,42 @@ int main(int argc, char** argv) {
         const auto base_pts = packets.front().pts;
         for (const auto& packet : packets) writer.Push(packet, 1000 + (packet.pts - base_pts) / 1000000);
         Expect(CountSuffix(codec_root, ".partial") == 1, codec_name + " 열린 segment는 partial 한 개");
+        const auto active_marker = FindSuffix(codec_root, ".cleanup-pending");
+        Expect(!active_marker.empty() &&
+                   ReadText(active_marker).rfind(
+                       "recording-cleanup-pending-v2\npartial=", 0) == 0,
+               codec_name + " 열린 segment marker는 소유 partial nonce를 결박");
         writer.Stop();
         const std::string extension = codec == media::CodecId::H264 ? ".mp4" : ".webm";
         Expect(CountSuffix(codec_root, extension) >= 2, codec_name + " 10초 뒤 다음 keyframe 분할");
         Expect(finalized.size() >= 2, codec_name + " finalized callback");
         if (codec == media::CodecId::H264) {
+            const auto foreign_partial_root = root / "foreign-fixed-partial";
+            const auto foreign_partial = foreign_partial_root / "channel-foreign" /
+                "seg-channel-foreign-60000-1.mp4.partial";
+            std::filesystem::create_directories(foreign_partial.parent_path());
+            {
+                std::ofstream foreign_output(
+                    foreign_partial, std::ios::binary | std::ios::trunc);
+                foreign_output << "foreign-fixed-partial";
+            }
+            recording::GStreamerSegmentWriter foreign_partial_writer(
+                {foreign_partial_root, 60000});
+            Expect(foreign_partial_writer.Start(
+                       "channel-foreign", "epoch-foreign", descriptor,
+                       [](recording::RecordingSegmentV1, std::string, std::string*) {
+                           return true;
+                       }, &error),
+                   "foreign 고정 partial 보존 writer 시작");
+            for (const auto& packet : packets) {
+                foreign_partial_writer.Push(
+                    packet, 60000 + (packet.pts - base_pts) / 1000000);
+            }
+            foreign_partial_writer.Stop();
+            Expect(ReadText(foreign_partial) == "foreign-fixed-partial" &&
+                       CountSuffix(foreign_partial_root, ".cleanup-pending") == 0,
+                   "nonce partial은 기존 고정 foreign partial을 덮어쓰거나 삭제하면 안 됨");
+
             recording::GStreamerSegmentWriter rollback_writer({root / "rollback", 60000});
             std::vector<std::string> epochs;
             Expect(rollback_writer.Start("channel-2", "epoch-base", descriptor,

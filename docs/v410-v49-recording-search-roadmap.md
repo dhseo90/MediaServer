@@ -2,8 +2,9 @@
 
 ## 문서 상태
 
-- 상태: 2026-09-02 사용자 승인 완료, 2026-09-03 V410-S00~S04 local 구현·focused 검증 완료.
-  S05~S09 구현·테스트와 v4.1.0 릴리즈 완료 증거가 아님
+- 상태: 2026-09-02 사용자 승인 완료. 2026-09-04 S00~S05 local 구현·검증 완료.
+  S05 개별 등록 누락 FAIL은 보정·재실행·독립 재결속으로 해소했다. 릴리즈 완료는 아니다.
+  S06~S09 구현·테스트와 v4.1.0 릴리즈 완료 증거가 아님
 - 현재 작성 브랜치: `v4.1.0`
 - 공통 반영 시점: v4.1.0을 `main`에 머지할 때 장기 로드맵도 함께 반영
 - 이후 소유 브랜치: `main`. 후속 버전 브랜치는 장기 로드맵이 반영된 최신 `main`에서 생성
@@ -154,7 +155,7 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 | 2 | V410-S02 | P0 | 채널별 opt-in 연속 세그먼트 recorder, keyframe 경계, atomic finalize, 재시작 복구 |
 | 3 | V410-S03 | P0 | SQLite 메타데이터 카탈로그와 append-only JSONL 복구 저널, SQLite 미사용 fallback |
 | 4 | V410-S04 | P0 | 완료: 상시/이벤트 용량·기간 분리, oldest-first 순환 삭제, pin·hold·tombstone, 채널별 pending 복구, dirfd 결박 unlink/truncate, 실제 쓰기량 정산, 채널 간 in-flight disk reserve·writer admission, 내구 cleanup 마커 재시작 복구 |
-| 5 | V410-S05 | P0 | 이벤트와 겹치는 원본 세그먼트 연결, pre/event/post 파생 clip, frame-buffer fallback |
+| 5 | V410-S05 | P0 | local 완료: finalized 원본 연결, 명시적 PTS/UTC 시간축, 비동기 H.264/MP4→MPEG-TS remux, 실측 범위, fallback, quota·hold, UUID v2 partial·재시작 복구. 개별 ID 27개·check 69개 등록, focused·기존 단계 회귀·독립 인벤토리 재결속 검증 통과 |
 | 6 | V410-S06 | P0 | event > continuous 우선 조회·재생 계약, timeline API와 Ops UI 표출 |
 | 7 | V410-S07 | P1 | event/track 경계·요약과 설정 주기 대표 관측 저장, 정확한 frame seek 기반 |
 | 8 | V410-S08 | P0 | crash/disk-full/corrupt catalog/gap/migration/호환성 검증과 문서·evidence 연결 |
@@ -171,7 +172,28 @@ pin·hold 보호, 채널별 pending 재시도, dirfd 결박 unlink, 예상 segme
 쓰기량·다중 채널 in-flight 예약을 반영한 disk reserve, event quota와 continuous admission
 독립 판정, SQLite projection 장애의 JSONL fallback, 채널별 `storage-blocked`/새 epoch 재개를
 제품 composition에 연결했다. writer cleanup 마커를 내구 기록하고 재시작 catalog에서 추적
-media 보존·미추적 orphan 정리 또는 fail-closed하도록 연결했다. S05~S09는 아직 시작하지 않았다.
+media 보존·미추적 orphan 정리 또는 fail-closed하도록 연결했다. V410-S05 local 완료: EventStorage와
+녹화 catalog 사이에 narrow bridge를 두고 명시적 `utc-ms`/`media-pts-ms` 시간축만 연결한다.
+겹치는 finalized continuous segment를 원자적으로 hold한 뒤 별도 worker에서 검증된
+video-only H.264/MP4를 video 재인코딩 없이 MPEG-TS로 overlap remux하고, 실제 출력 packet
+timestamp로 요청 범위와 keyframe 확대 범위를 함께 기록한다. VP8/WebM event 파생은 재생
+불가능한 결과를 허용하지 않고 fail-closed해 기존
+bounded frame-buffer fallback으로 보낸다. 공백·epoch/codec 불일치·시간축 불명확은 complete로
+승격하지 않으며 기존 bounded
+frame-buffer 결과를 같은 link의 fallback evidence로 남긴다. 이벤트 파생물은 Event 등급
+quota로만 admission/oldest-first 정리하고 동일 event ID와 재시작은 SHA-256 결정
+link/segment ID로 중복 생성을 막는다. anchor 없는 media PTS는 UTC로 추측하지 않고 segment
+mapping으로만 복구하며 같은 process에서 segment finalize 뒤 재시도한다. EventRecord bounded
+queue보다 link 내구 기록을 먼저 수행하고 queue/worker 포화 pending도 durable catalog에서
+다시 흡수한다. 실제 remux 중에는 다른 event의 link admission lock을 풀며, marker 제거 뒤
+terminal resource-release pending을 기록하고 source/output hold와 reservation 해제가
+끝난 뒤에만 complete로 승격한다. UUID v2 marker가 지목한 단일-link partial만 재시작
+정리하고 v1/foreign final·partial, tombstone ID 재사용을 보수적으로 거부한다. S06~S09는
+아직 시작하지 않았다.
+terminal complete 기록 전까지 catalog가 참조 source/output의 삭제를 차단하며, 복구 중
+후속 event/fallback 갱신은 단계를 보존하고 UTC 확장은 내구 대기 후 순서대로 파생한다.
+anchor 없는 후속 PTS 확장도 같은 epoch의 segment map으로 변환하거나 별도 내구 대기하며,
+복구할 finalized 파생물이 없으면 확장 요청을 먼저 소비해 Partial/Failed로 수렴한다.
 
 v4.1.0에서 검색-ready 메타데이터를 저장하지만 검색 DSL, 검색 결과 랭킹, 벡터 인덱스,
 자연어 해석은 구현하지 않는다. 객체의 모든 분석 frame을 무제한 저장하지 않고,

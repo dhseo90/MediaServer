@@ -18120,28 +18120,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "std::string OpsVlmRuleSuggestionDraftWorkflowJson(",
-          "line": 1054,
+          "line": 1157,
           "contextSha256": "dcc3a6856609c5dbcebc6a0ffcc71036fdba6175eeb293e247e6ef26bdde6969"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "VlmRuleSuggestionRequest options;",
-          "line": 1057,
+          "line": 1160,
           "contextSha256": "cf88ad020617bebf26539e631068208235feb6b84653d7575b2fa740d6464dd3"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "options.source_id = query.count(\"sourceId\") != 0 ? Trim(query.at(\"sourceId\")) : std::string();",
-          "line": 1058,
+          "line": 1161,
           "contextSha256": "6709cf05b01b3281566dac6efb9135bbe8c4557dc743c508653408905a3b0b12"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "<< \"\\\"autoRuleApplied\\\":false,\"",
-          "line": 1198,
+          "line": 1202,
           "contextSha256": "0cdc6dd5c670dbca2b7c88ceb2030c4cece84fbcef30552743661f6589e4b882"
         },
         "readback": {
@@ -18155,7 +18155,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes",
           "anchor": "  verify-auth-routes)",
-          "line": 2925,
+          "line": 3205,
           "contextSha256": "7957f9e3037cfb6c21c09ffd6f15387e56c831f6785b9213f24b823ca09bd68b"
         }
       },
@@ -18165,31 +18165,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-030 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1054",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1057"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1157",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1160"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-030 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1057",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1058"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1160",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1161"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-030 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1058",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1198"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1161",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1202"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-030 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1198",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1202",
           "target": "scripts/internal/verify_auth_workflow.sh:1075"
         },
         {
@@ -18198,7 +18198,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1075",
-          "target": "server.sh:2925"
+          "target": "server.sh:3205"
         }
       ],
       "rationale": "SAFE-030 exact reviewed source flow."
@@ -18218,28 +18218,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "std::string OpsVlmRuleSuggestionDraftWorkflowJson(",
-          "line": 1054,
+          "line": 1157,
           "contextSha256": "dcc3a6856609c5dbcebc6a0ffcc71036fdba6175eeb293e247e6ef26bdde6969"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "VlmRuleSuggestionRequest options;",
-          "line": 1057,
+          "line": 1160,
           "contextSha256": "cf88ad020617bebf26539e631068208235feb6b84653d7575b2fa740d6464dd3"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "options.source_id = query.count(\"sourceId\") != 0 ? Trim(query.at(\"sourceId\")) : std::string();",
-          "line": 1058,
+          "line": 1161,
           "contextSha256": "6709cf05b01b3281566dac6efb9135bbe8c4557dc743c508653408905a3b0b12"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "<< \"\\\"viewerClientExposureAdded\\\":false,\"",
-          "line": 1194,
+          "line": 1198,
           "contextSha256": "7a35365e526d576b956e063b0955045c1d8c1630f5a9cbfab633a5f176fefa6e"
         },
         "readback": {
@@ -18253,7 +18253,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes",
           "anchor": "  verify-auth-routes)",
-          "line": 2925,
+          "line": 3205,
           "contextSha256": "7957f9e3037cfb6c21c09ffd6f15387e56c831f6785b9213f24b823ca09bd68b"
         }
       },
@@ -18263,31 +18263,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-031 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1054",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1057"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1157",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1160"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-031 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1057",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1058"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1160",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1161"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-031 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1058",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1194"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1161",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1198"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-031 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1194",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1198",
           "target": "scripts/internal/verify_auth_workflow.sh:1077"
         },
         {
@@ -18296,7 +18296,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1077",
-          "target": "server.sh:2925"
+          "target": "server.sh:3205"
         }
       ],
       "rationale": "SAFE-031 exact reviewed source flow."
@@ -18904,28 +18904,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "std::string OpsVlmRuleSuggestionDraftWorkflowJson(",
-          "line": 1054,
+          "line": 1157,
           "contextSha256": "dcc3a6856609c5dbcebc6a0ffcc71036fdba6175eeb293e247e6ef26bdde6969"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "VlmRuleSuggestionRequest options;",
-          "line": 1057,
+          "line": 1160,
           "contextSha256": "cf88ad020617bebf26539e631068208235feb6b84653d7575b2fa740d6464dd3"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "options.source_id = query.count(\"sourceId\") != 0 ? Trim(query.at(\"sourceId\")) : std::string();",
-          "line": 1058,
+          "line": 1161,
           "contextSha256": "6709cf05b01b3281566dac6efb9135bbe8c4557dc743c508653408905a3b0b12"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "<< \"\\\"ruleRegistryWritePerformed\\\":false,\"",
-          "line": 1197,
+          "line": 1201,
           "contextSha256": "d937a27471b68c1cc08a1a69e0db96fe2b7934668153eecab7e7237d6a5930b9"
         },
         "readback": {
@@ -18939,7 +18939,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes",
           "anchor": "  verify-auth-routes)",
-          "line": 2925,
+          "line": 3205,
           "contextSha256": "7957f9e3037cfb6c21c09ffd6f15387e56c831f6785b9213f24b823ca09bd68b"
         }
       },
@@ -18949,31 +18949,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-038 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1054",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1057"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1157",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1160"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-038 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1057",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1058"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1160",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1161"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-038 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1058",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1197"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1161",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1201"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-038 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1197",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1201",
           "target": "scripts/internal/verify_auth_workflow.sh:1079"
         },
         {
@@ -18982,7 +18982,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1079",
-          "target": "server.sh:2925"
+          "target": "server.sh:3205"
         }
       ],
       "rationale": "SAFE-038 exact reviewed source flow."
@@ -20378,28 +20378,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "std::string OpsVlmRuleSuggestionDraftWorkflowJson(",
-          "line": 1054,
+          "line": 1157,
           "contextSha256": "dcc3a6856609c5dbcebc6a0ffcc71036fdba6175eeb293e247e6ef26bdde6969"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "VlmRuleSuggestionRequest options;",
-          "line": 1057,
+          "line": 1160,
           "contextSha256": "cf88ad020617bebf26539e631068208235feb6b84653d7575b2fa740d6464dd3"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "options.source_id = query.count(\"sourceId\") != 0 ? Trim(query.at(\"sourceId\")) : std::string();",
-          "line": 1058,
+          "line": 1161,
           "contextSha256": "6709cf05b01b3281566dac6efb9135bbe8c4557dc743c508653408905a3b0b12"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsVlmRuleSuggestionDraftWorkflowJson",
           "anchor": "<< \"\\\"ruleRegistryWritePerformed\\\":false,\"",
-          "line": 1197,
+          "line": 1201,
           "contextSha256": "d937a27471b68c1cc08a1a69e0db96fe2b7934668153eecab7e7237d6a5930b9"
         },
         "readback": {
@@ -20413,7 +20413,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes WebRTC/SSE/RTSP boundary",
           "anchor": "  verify-auth-routes",
-          "line": 1172,
+          "line": 1280,
           "contextSha256": "b6ca16c0b53800cce16756c8c896321c9dd88530f592309626a248ecf8a4fdd4"
         }
       },
@@ -20423,31 +20423,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-053 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1054",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1057"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1157",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1160"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-053 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1057",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1058"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1160",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1161"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-053 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1058",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1197"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1161",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1201"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-053 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1197",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1201",
           "target": "scripts/internal/verify_auth_workflow.sh:1153"
         },
         {
@@ -20456,7 +20456,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1153",
-          "target": "server.sh:1172"
+          "target": "server.sh:1280"
         }
       ],
       "rationale": "SAFE-053 exact reviewed source flow."
@@ -21064,28 +21064,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsOperationalActionPackViewJson",
           "anchor": "std::string OpsOperationalActionPackViewJson(",
-          "line": 1832,
+          "line": 1836,
           "contextSha256": "c304c649537b62b47ee42ad2cb7d281c2afc8cfbdbdd0f06d3e9681017e582e0"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsOperationalActionPackViewJson",
           "anchor": "std::vector<std::string> items;",
-          "line": 1835,
+          "line": 1839,
           "contextSha256": "d34a3428e4f14a935fa790f5aec61c1bc7dd91b74c6a499f9d584bbb13f5e6d0"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsOperationalActionPackViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 1836,
+          "line": 1840,
           "contextSha256": "e754cd27cc469b00c687bcbfd9501e0a74b1537ae54ef850d9dba70403735abc"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsOperationalActionPackViewJson",
           "anchor": "<< \"\\\"ruleRegistryWritePerformed\\\":false,\"",
-          "line": 1866,
+          "line": 1870,
           "contextSha256": "f810f7978ec72a222d5013105c427936084c45b30dbca9ed23bb0b9789d56863"
         },
         "readback": {
@@ -21099,7 +21099,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes WebRTC/SSE/RTSP boundary",
           "anchor": "verify-auth-routes",
-          "line": 1210,
+          "line": 1280,
           "contextSha256": "b6ca16c0b53800cce16756c8c896321c9dd88530f592309626a248ecf8a4fdd4"
         }
       },
@@ -21109,31 +21109,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-060 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1832",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1835"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1836",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1839"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-060 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1835",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1836"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1839",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1840"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-060 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1836",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1866"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1840",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:1870"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-060 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1866",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:1870",
           "target": "scripts/internal/verify_auth_workflow.sh:1163"
         },
         {
@@ -21142,7 +21142,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1163",
-          "target": "server.sh:1210"
+          "target": "server.sh:1280"
         }
       ],
       "rationale": "SAFE-060 exact reviewed source flow."
@@ -21260,28 +21260,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsOperatorOutcomeMemoryViewJson",
           "anchor": "std::string OpsOperatorOutcomeMemoryViewJson(",
-          "line": 3049,
+          "line": 3053,
           "contextSha256": "daa88385c404dbf3e4dec1c74b741df320fa15f958cb8acf1848ea7e2a9c651d"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsOperatorOutcomeMemoryViewJson",
           "anchor": "std::vector<std::string> items;",
-          "line": 3052,
+          "line": 3056,
           "contextSha256": "d34a3428e4f14a935fa790f5aec61c1bc7dd91b74c6a499f9d584bbb13f5e6d0"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsOperatorOutcomeMemoryViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 3053,
+          "line": 3057,
           "contextSha256": "b75a23be112b4a14ecdd6d3f86b9a1254868898a0623ffe93232c9147b2ca8a9"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsOperatorOutcomeMemoryViewJson",
           "anchor": "<< \"\\\"operatorOutcomeMemoryPersistentWrite\\\":false,\"",
-          "line": 3088,
+          "line": 3092,
           "contextSha256": "e41da118d1918e180412ef40b3d22fa60068695b7e51a70f7e653dbf4e71488c"
         },
         "readback": {
@@ -21295,7 +21295,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes WebRTC/SSE/RTSP boundary",
           "anchor": "verify-auth-routes",
-          "line": 1210,
+          "line": 1280,
           "contextSha256": "b6ca16c0b53800cce16756c8c896321c9dd88530f592309626a248ecf8a4fdd4"
         }
       },
@@ -21305,31 +21305,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-062 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3049",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:3052"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3053",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:3056"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-062 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3052",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:3053"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3056",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:3057"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-062 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3053",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:3088"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3057",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:3092"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-062 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3088",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:3092",
           "target": "scripts/internal/verify_auth_workflow.sh:1169"
         },
         {
@@ -21338,7 +21338,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1169",
-          "target": "server.sh:1210"
+          "target": "server.sh:1280"
         }
       ],
       "rationale": "SAFE-062 exact reviewed source flow."
@@ -21558,28 +21558,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentActionReadinessQueueViewJson",
           "anchor": "std::string OpsIncidentActionReadinessQueueViewJson(",
-          "line": 2020,
+          "line": 2024,
           "contextSha256": "13205759c61a35015b6f5a38c9dfdeb552d787710ec788a822371b739cff396e"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentActionReadinessQueueViewJson",
           "anchor": "std::vector<std::string> items;",
-          "line": 2023,
+          "line": 2027,
           "contextSha256": "d34a3428e4f14a935fa790f5aec61c1bc7dd91b74c6a499f9d584bbb13f5e6d0"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentActionReadinessQueueViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 2024,
+          "line": 2028,
           "contextSha256": "32be5c3d51e4e2f3f4514aa5c6741be3c842622d66a5d5e6caa4b85d81ff216e"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsIncidentActionReadinessQueueViewJson",
           "anchor": "<< \"\\\"autoActionWritePerformed\\\":false,\"",
-          "line": 2077,
+          "line": 2081,
           "contextSha256": "f0064186096f9ec4026a25d41ef60c0481d388ab26647cfcbb43abb0e56120f8"
         },
         "readback": {
@@ -21593,7 +21593,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes WebRTC/SSE/RTSP boundary",
           "anchor": "verify-auth-routes",
-          "line": 1210,
+          "line": 1280,
           "contextSha256": "b6ca16c0b53800cce16756c8c896321c9dd88530f592309626a248ecf8a4fdd4"
         }
       },
@@ -21603,31 +21603,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-065 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2020",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2023"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2024",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2027"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-065 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2023",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2024"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2027",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2028"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-065 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2024",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2077"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2028",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2081"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-065 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2077",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2081",
           "target": "scripts/internal/verify_auth_workflow.sh:1172"
         },
         {
@@ -21636,7 +21636,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1172",
-          "target": "server.sh:1210"
+          "target": "server.sh:1280"
         }
       ],
       "rationale": "SAFE-065 exact reviewed source flow."
@@ -21656,28 +21656,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsApprovalGatedRuleDraftReadinessViewJson",
           "anchor": "std::string OpsApprovalGatedRuleDraftReadinessViewJson(",
-          "line": 2735,
+          "line": 2739,
           "contextSha256": "dabab5567891b594c87b4f78737a78acb3e8b9c9815db69633fc9311704a9612"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsApprovalGatedRuleDraftReadinessViewJson",
           "anchor": "std::vector<std::string> items;",
-          "line": 2738,
+          "line": 2742,
           "contextSha256": "d34a3428e4f14a935fa790f5aec61c1bc7dd91b74c6a499f9d584bbb13f5e6d0"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsApprovalGatedRuleDraftReadinessViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 2739,
+          "line": 2743,
           "contextSha256": "168d5b632eb1a84737131084ad95d8ca8029341ad5264d043a20048ca3a36bac"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsApprovalGatedRuleDraftReadinessViewJson",
           "anchor": "<< \"\\\"ruleRegistryWritePerformed\\\":false,\"",
-          "line": 2791,
+          "line": 2795,
           "contextSha256": "54cce4bbaeaf5e8789ea43fb2d5ead596b8ddf8636b6a87950d45ccd5c6242b0"
         },
         "readback": {
@@ -21691,7 +21691,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes WebRTC/SSE/RTSP boundary",
           "anchor": "verify-auth-routes",
-          "line": 1210,
+          "line": 1280,
           "contextSha256": "b6ca16c0b53800cce16756c8c896321c9dd88530f592309626a248ecf8a4fdd4"
         }
       },
@@ -21701,31 +21701,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-066 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2735",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2738"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2739",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2742"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-066 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2738",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2739"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2742",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2743"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-066 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2739",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2791"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2743",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2795"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-066 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2791",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2795",
           "target": "scripts/internal/verify_auth_workflow.sh:1175"
         },
         {
@@ -21734,7 +21734,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1175",
-          "target": "server.sh:1210"
+          "target": "server.sh:1280"
         }
       ],
       "rationale": "SAFE-066 exact reviewed source flow."
@@ -21754,28 +21754,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEvidenceIntakeFieldReadinessViewJson",
           "anchor": "std::string OpsEvidenceIntakeFieldReadinessViewJson(",
-          "line": 2221,
+          "line": 2225,
           "contextSha256": "ccfb2020e2b3d244e39ac421e589c30c982bc4d4d0b127c66ce69491a4e1bbe3"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEvidenceIntakeFieldReadinessViewJson",
           "anchor": "std::vector<std::string> items;",
-          "line": 2224,
+          "line": 2228,
           "contextSha256": "d34a3428e4f14a935fa790f5aec61c1bc7dd91b74c6a499f9d584bbb13f5e6d0"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEvidenceIntakeFieldReadinessViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 2225,
+          "line": 2229,
           "contextSha256": "db8328ee6795c709abf3b3aaffec02d1422d821eebdedd1266bd002a27534304"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsEvidenceIntakeFieldReadinessViewJson",
           "anchor": "<< \"\\\"credentialMaterialExposed\\\":false,\"",
-          "line": 2285,
+          "line": 2289,
           "contextSha256": "48e2ee29097168db61ca9ac5754b80e5683a52ae1821eff981674ecd455f4fdf"
         },
         "readback": {
@@ -21789,7 +21789,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes WebRTC/SSE/RTSP boundary",
           "anchor": "verify-auth-routes",
-          "line": 1210,
+          "line": 1280,
           "contextSha256": "b6ca16c0b53800cce16756c8c896321c9dd88530f592309626a248ecf8a4fdd4"
         }
       },
@@ -21799,31 +21799,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-067 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2221",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2224"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2225",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2228"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-067 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2224",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2225"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2228",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2229"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-067 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2225",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2285"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2229",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2289"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-067 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2285",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2289",
           "target": "scripts/internal/verify_auth_workflow.sh:1178"
         },
         {
@@ -21832,7 +21832,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1178",
-          "target": "server.sh:1210"
+          "target": "server.sh:1280"
         }
       ],
       "rationale": "SAFE-067 exact reviewed source flow."
@@ -21852,28 +21852,28 @@
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "std::string OpsRuntimeEvidenceWindowViewJson(",
-          "line": 2385,
+          "line": 2389,
           "contextSha256": "b0e09141cdadffaa5756442222ed738f968002357a352c87ed3d7e5c28465697"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "std::vector<std::string> items;",
-          "line": 2388,
+          "line": 2392,
           "contextSha256": "d34a3428e4f14a935fa790f5aec61c1bc7dd91b74c6a499f9d584bbb13f5e6d0"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "items.reserve(event_json_records.size());",
-          "line": 2389,
+          "line": 2393,
           "contextSha256": "aab589cca7992c995ee3e43cd54afb62e37528e26cc4656d5799452c2db65e39"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
           "symbol": "OpsRuntimeEvidenceWindowViewJson",
           "anchor": "<< \"\\\"persistentArchiveCreated\\\":false,\"",
-          "line": 2441,
+          "line": 2445,
           "contextSha256": "bf2f43c063ec9f4f1485a317337c0561146ac7b1bad86a3387c1b956dd03fa56"
         },
         "readback": {
@@ -21887,7 +21887,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes WebRTC/SSE/RTSP boundary",
           "anchor": "verify-auth-routes",
-          "line": 1210,
+          "line": 1280,
           "contextSha256": "b6ca16c0b53800cce16756c8c896321c9dd88530f592309626a248ecf8a4fdd4"
         }
       },
@@ -21897,31 +21897,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-068 owner-dispatch",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2385",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2388"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2389",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2392"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-068 dispatch-action",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2388",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2389"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2392",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2393"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-068 action-state",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2389",
-          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2441"
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2393",
+          "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:2445"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-068 state-readback",
-          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2441",
+          "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:2445",
           "target": "scripts/internal/verify_auth_workflow.sh:1181"
         },
         {
@@ -21930,7 +21930,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
           "source": "scripts/internal/verify_auth_workflow.sh:1181",
-          "target": "server.sh:1210"
+          "target": "server.sh:1280"
         }
       ],
       "rationale": "SAFE-068 exact reviewed source flow."
@@ -23449,28 +23449,28 @@
           "file": "src/analysis/event_storage.cpp",
           "symbol": "WriteEvidenceManifest",
           "anchor": "bool WriteEvidenceManifest(",
-          "line": 2022,
+          "line": 2052,
           "contextSha256": "7d690d2350af4693651015359c9bb6e4da59a6cc864c04e4471b586765d89e94"
         },
         "dispatch": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "WriteEvidenceManifest",
           "anchor": "std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);",
-          "line": 2038,
+          "line": 2068,
           "contextSha256": "f567029619a492ffbaed59ce17ccdc5030c462601363fa88df7856ed08b1adbd"
         },
         "action": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "WriteEvidenceManifest",
           "anchor": "<< \"\\\"schema\\\":\\\"media-server.event-evidence-contract.v1\\\",\"",
-          "line": 2047,
+          "line": 2077,
           "contextSha256": "b4bb5941fbb5927d3393510d12ca80cf01d6169a76734e7a0f8c8a71d142bf93"
         },
         "state": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "WriteEvidenceManifest",
           "anchor": "<< \"\\\"eventFrame\\\":{\"",
-          "line": 2057,
+          "line": 2087,
           "contextSha256": "113a0dea03d0f178996294a5313434a18871a507c202d9217262bce7bf138f5d"
         },
         "readback": {
@@ -23484,7 +23484,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-analysis-state",
           "anchor": "verify-analysis-state)",
-          "line": 3165,
+          "line": 3445,
           "contextSha256": "ca0e049c2ef289ce7e4014deee897cc45473205ad477a3e7f25370e88597388f"
         }
       },
@@ -23494,31 +23494,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-084 owner-dispatch",
-          "source": "src/analysis/event_storage.cpp:2022",
-          "target": "src/analysis/event_storage.cpp:2038"
+          "source": "src/analysis/event_storage.cpp:2052",
+          "target": "src/analysis/event_storage.cpp:2068"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-084 dispatch-action",
-          "source": "src/analysis/event_storage.cpp:2038",
-          "target": "src/analysis/event_storage.cpp:2047"
+          "source": "src/analysis/event_storage.cpp:2068",
+          "target": "src/analysis/event_storage.cpp:2077"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "SAFE-084 action-state",
-          "source": "src/analysis/event_storage.cpp:2047",
-          "target": "src/analysis/event_storage.cpp:2057"
+          "source": "src/analysis/event_storage.cpp:2077",
+          "target": "src/analysis/event_storage.cpp:2087"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-084 state-readback",
-          "source": "src/analysis/event_storage.cpp:2057",
+          "source": "src/analysis/event_storage.cpp:2087",
           "target": "scripts/internal/verify_analysis_state_review4_wrapper.mjs:30"
         },
         {
@@ -23527,7 +23527,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-analysis-state",
           "source": "scripts/internal/verify_analysis_state_review4_wrapper.mjs:30",
-          "target": "server.sh:3165"
+          "target": "server.sh:3445"
         }
       ],
       "rationale": "SAFE-084 exact reviewed source flow."

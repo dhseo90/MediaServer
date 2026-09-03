@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -37,6 +38,10 @@ struct RecordingOrphanReport {
     std::vector<std::filesystem::path> corrupt_orphans;
 };
 
+struct EventSourceLease {
+    std::vector<RetentionCandidate> sources;
+};
+
 class RecordingCatalog final : public RecordingStorePort {
 public:
     struct Options {
@@ -63,10 +68,29 @@ public:
     bool AdjustHoldCount(const std::string& segment_id,
                          std::int64_t delta,
                          std::string* error);
+    std::optional<EventRecordingLinkV1> FindEventLinkByEventId(
+        const std::string& event_id) const;
+    std::optional<RecordingSegmentV1> FindSegmentById(
+        const std::string& segment_id) const;
+    std::optional<std::filesystem::path> FindSegmentMediaPath(
+        const std::string& segment_id) const;
+    std::vector<EventRecordingLinkV1> ListEventLinks(
+        EventRecordingLinkStatus status) const;
+    bool AcquireEventSourceLease(const std::string& channel_id,
+                                 const std::string& stream_epoch_id,
+                                 const std::vector<std::string>& segment_ids,
+                                 EventSourceLease* lease,
+                                 std::string* error);
+    bool ReleaseEventSourceLease(const EventSourceLease& lease,
+                                 std::string* error);
 
     bool FinalizeSegment(const RecordingSegmentV1& segment,
                          const std::string& media_path,
                          std::string* error) override;
+    // event clip은 finalize와 동시에 hold를 취득해 link terminal commit 전 삭제를 막는다.
+    bool FinalizeSegmentWithHold(const RecordingSegmentV1& segment,
+                                 const std::string& media_path,
+                                 std::string* error);
     bool PutEventLink(const EventRecordingLinkV1& link, std::string* error) override;
     bool PutObservation(const AnalysisObservationV1& observation, std::string* error) override;
     bool RequestDeletion(const std::string& segment_id,
@@ -87,6 +111,12 @@ private:
     bool RebuildSqliteLocked(std::string* error);
     bool ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error);
     bool RecoverWriterCleanupMarkersLocked(std::string* error);
+    bool FinalizeSegmentLocked(const RecordingSegmentV1& segment,
+                               const std::string& media_path,
+                               bool acquire_hold,
+                               std::string* error);
+    bool ValidateEventLinkReferencesLocked(const EventRecordingLinkV1& link,
+                                           std::string* error) const;
     void CloseSqliteLocked();
 
     RecordingJournal& journal_;
