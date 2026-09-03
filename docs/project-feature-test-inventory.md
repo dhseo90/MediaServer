@@ -56,13 +56,15 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 정확한 check ID·기대 메시지·시험 함수 연결은
 `test/fixtures/recording/v1/s05-action-inventory.json`에서 대조한다.
 정적 등록 검사는 실행 PASS가 아니다. `verify-v410-event-recording`이 실제 C++ assertion과
-application-only check 결과를 모두 수집한 뒤 각 ID의 PASS를 판정한다. 반복 lease 검사는
+application-only check 및 실제 저장 큐 네 프로세스 결과를 모두 수집한 뒤 각 ID의 PASS를
+판정한다. I02의 JSONL 비활성·퇴출·journal 재구축·실제 파생은 20개 runtime check이며,
+두 source mutation의 실제 assertion 실패도 필수 대조한다. 반복 lease 검사는
 같은 check를 여러 원본에 실행할 수 있으며 ID 정의 중복은 허용하지 않는다.
 
 | 기능 ID | 개별 동작 | 구현 파일·함수 | 검증 함수·check ID | PASS 출력/판정 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트·UI 존재 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | V410-S05-I01 | 선택 시간축 DTO 왕복 | `src/ingress/event_storage_application_service.cpp` · `DispatchEventRecordsForApplication` | `compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order` · V410-S05-I01-C01, V410-S05-I01-C02, V410-S05-I01-C03 | 선택 시간축·anchor·epoch 및 실패 출력 전체 매핑 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
-| V410-S05-I02 | 저장 큐 이전 내구 접수 | `src/analysis/event_storage.cpp` · `Enqueue` | `recording link is durably admitted before the bounded storage queue can drop an event` · V410-S05-I02-C01 | 정적 계약: JSONL 비활성 guard·TryResolve 선행·큐 eviction 호출 순서 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I02 | 저장 큐 이전 내구 접수 | `src/analysis/event_storage.cpp` · `Enqueue` | `recording link is durably admitted before the bounded storage queue can drop an event` · `VerifyAdmission` · `VerifyRecovery` · V410-S05-I02-C01, V410-S05-I02-C02, V410-S05-I02-C03, V410-S05-I02-C04, V410-S05-I02-C05, V410-S05-I02-C06, V410-S05-I02-C07, V410-S05-I02-C08, V410-S05-I02-C09, V410-S05-I02-C10, V410-S05-I02-C11, V410-S05-I02-C12, V410-S05-I02-C13, V410-S05-I02-C14, V410-S05-I02-C15, V410-S05-I02-C16, V410-S05-I02-C17, V410-S05-I02-C18, V410-S05-I02-C19, V410-S05-I02-C20, V410-S05-I02-C21 | 정적 계약 및 실제 JSONL 비활성·큐 퇴출 내구 접수·새 프로세스 복구·H264 파생·멱등성 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 | V410-S05-I03 | 명시적 PTS UTC 및 pre/post | `src/recording/event_recording_bridge.cpp` · `TryResolve` | `VerifyEventLinking` · V410-S05-I03-C01 | pre 1000/post 200으로 UTC 10300~12500 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 | V410-S05-I04 | anchor 없는 PTS 내구 복구 | `src/recording/event_recording_bridge.cpp` · `TryResolve` | `VerifyEventLinking` · V410-S05-I04-C01, V410-S05-I04-C02, V410-S05-I04-C03 | finalized mapping 복구·불명확 PTS Pending 보존 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 | V410-S05-I05 | 이벤트 중복 및 범위별 ID | `src/recording/event_recording_bridge.cpp` · `TryResolve` | `VerifyEventLinking` · V410-S05-I05-C01, V410-S05-I05-C02, V410-S05-I05-C03 | 동일 update 1회·확장 새 ID·긴 prefix 비충돌 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |

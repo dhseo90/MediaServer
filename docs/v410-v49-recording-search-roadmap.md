@@ -155,7 +155,7 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 | 2 | V410-S02 | P0 | 채널별 opt-in 연속 세그먼트 recorder, keyframe 경계, atomic finalize, 재시작 복구 |
 | 3 | V410-S03 | P0 | SQLite 메타데이터 카탈로그와 append-only JSONL 복구 저널, SQLite 미사용 fallback |
 | 4 | V410-S04 | P0 | 완료: 상시/이벤트 용량·기간 분리, oldest-first 순환 삭제, pin·hold·tombstone, 채널별 pending 복구, dirfd 결박 unlink/truncate, 실제 쓰기량 정산, 채널 간 in-flight disk reserve·writer admission, 내구 cleanup 마커 재시작 복구 |
-| 5 | V410-S05 | P0 | local 완료: finalized 원본 연결, 명시적 PTS/UTC 시간축, 비동기 H.264/MP4→MPEG-TS remux, 실측 범위, fallback, quota·hold, UUID v2 partial·재시작 복구. 개별 ID 27개·check 69개 등록, focused·기존 단계 회귀·독립 인벤토리 재결속 검증 통과 |
+| 5 | V410-S05 | P0 | local 완료: finalized 원본 연결, 명시적 PTS/UTC 시간축, 비동기 H.264/MP4→MPEG-TS remux, 실측 범위, fallback, quota·hold, UUID v2 partial·재시작 복구. 개별 ID 27개·check 89개 등록. 실제 EventStorage JSONL 비활성·큐 퇴출·새 프로세스 journal 복구·실제 파생 통합 검증 및 focused·기존 단계 회귀·독립 검토 통과 |
 | 6 | V410-S06 | P0 | event > continuous 우선 조회·재생 계약, timeline API와 Ops UI 표출 |
 | 7 | V410-S07 | P1 | event/track 경계·요약과 설정 주기 대표 관측 저장, 정확한 frame seek 기반 |
 | 8 | V410-S08 | P0 | crash/disk-full/corrupt catalog/gap/migration/호환성 검증과 문서·evidence 연결 |
@@ -189,7 +189,12 @@ queue보다 link 내구 기록을 먼저 수행하고 queue/worker 포화 pendin
 terminal resource-release pending을 기록하고 source/output hold와 reservation 해제가
 끝난 뒤에만 complete로 승격한다. UUID v2 marker가 지목한 단일-link partial만 재시작
 정리하고 v1/foreign final·partial, tombstone ID 재사용을 보수적으로 거부한다. S06~S09는
-아직 시작하지 않았다.
+아직 시작하지 않았다. S05의 `event_storage_recording_runtime_smoke.cpp`와 전용 runner는
+고정 설정·시각·가용량과 latch를 제외한 실제 EventStorage·catalog·journal·bridge·deriver를 실행한다.
+JSONL 활성/비활성 모두 queue=2/enqueued=5/dropped=2와 연결 5개 보존, 별도 프로세스에서
+새 SQLite 재구축·후행 H264 source 연결·파생 5개·재접수 ID 불변을 확인했다.
+runtime check 20개와 source mutation 2개를 기존 S05 gate에 필수 연결했으며,
+이는 HTTP/전체 서버 재시작, 장시간/UI/field smoke를 대체하지 않는다.
 terminal complete 기록 전까지 catalog가 참조 source/output의 삭제를 차단하며, 복구 중
 후속 event/fallback 갱신은 단계를 보존하고 UTC 확장은 내구 대기 후 순서대로 파생한다.
 anchor 없는 후속 PTS 확장도 같은 epoch의 segment map으로 변환하거나 별도 내구 대기하며,

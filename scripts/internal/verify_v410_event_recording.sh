@@ -56,5 +56,7 @@ fi
 
 node "${SCRIPT_DIR}/verify_v390_event_storage_application_boundary.mjs" --application-only |
   tee "${BUILD_DIR}/application.log"
+node "${SCRIPT_DIR}/verify_v410_event_storage_recording_runtime.mjs" |
+  tee "${BUILD_DIR}/runtime.log"
 node "${SCRIPT_DIR}/v410_s05_inventory.mjs" --results \
-  "${BUILD_DIR}/assertions.log" "${BUILD_DIR}/application.log"
+  "${BUILD_DIR}/assertions.log" "${BUILD_DIR}/application.log" "${BUILD_DIR}/runtime.log"

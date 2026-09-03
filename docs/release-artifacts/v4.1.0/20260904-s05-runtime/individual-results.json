@@ -1,0 +1,1061 @@
+{
+  "schema": "media-server.v410-s05-runtime-evidence.v1",
+  "recordedAt": "2026-09-03T21:47:56.969Z",
+  "baselineCommit": "d7ee14a1",
+  "workingTree": "S05 통합 검증 보강 미커밋 상태",
+  "command": "./server.sh verify-v410-event-recording",
+  "exitCode": 0,
+  "scope": "실제 EventStorage/bridge/catalog/journal/deriver, 고정 설정·시각·가용량 및 worker latch. 전체 서버/환경변수/HTTP/라이브 카메라 시험 아님",
+  "summaries": [
+    "[v410-s05-inventory-unit] pass=26 fail=0",
+    "[verify-v410-event-recording] pass=140 fail=0",
+    "[s05-runtime-summary] case=disabled-admit pass=7 fail=0",
+    "[s05-runtime-summary] case=disabled-recover pass=3 fail=0",
+    "[s05-runtime-summary] case=enabled-admit pass=7 fail=0",
+    "[s05-runtime-summary] case=enabled-recover pass=3 fail=0",
+    "[s05-runtime-mutation] disabled-guard: PASS (실제 assertion의 RED 확인)",
+    "[s05-runtime-mutation] prequeue-admission: PASS (실제 assertion의 RED 확인)",
+    "[s05-runtime-negative] pass=2 fail=0 elapsedMs=18274",
+    "[S05 개별 실행] pass=27 fail=0"
+  ],
+  "cppAssertions": [
+    "기본 pending event link가 유효해야 함: ",
+    "terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함",
+    "terminal 대기 요청이 현재 범위를 축소하면 거부해야 함",
+    "미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함",
+    "미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함",
+    "서로 겹치는 ordered overlap을 거부해야 함",
+    "overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함",
+    "unknown link status를 영속 계약으로 허용하면 안 됨",
+    "locator 없는 fallback evidence를 거부해야 함",
+    "journal open 실패: ",
+    "catalog open 실패: ",
+    "event link 갱신은 SQLite primary projection에서 검증해야 함",
+    "segment finalize 실패: ",
+    "segment finalize 실패: ",
+    "segment finalize 실패: ",
+    "segment finalize 실패: ",
+    "segment finalize 실패: ",
+    "retention policy 실패: ",
+    "이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "완전한 archive 파생 완료 뒤 ready clip을 반환해야 함",
+    "event link ID와 derived clip path가 반환되어야 함",
+    "반개구간 overlap은 맞닿기만 한 segment를 제외해야 함",
+    "media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함",
+    "overlap segment가 UTC 순서로 전달되어야 함",
+    "파생 성공 link가 catalog complete로 저장되어야 함",
+    "파생 완료 뒤 원본 hold가 해제되어야 함",
+    "파생 완료 뒤 원본 hold가 해제되어야 함",
+    "파생 완료 뒤 원본 hold가 해제되어야 함",
+    "같은 event update는 파생 clip을 중복 생성하지 않아야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함",
+    "segment finalize 실패: ",
+    "segment finalize 실패: ",
+    "cam-b policy 실패: ",
+    "archive gap이 있으면 complete로 표시하면 안 됨",
+    "link가 정확한 missing UTC range를 보존해야 함",
+    "frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함",
+    "같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함",
+    "cam-late policy 실패: ",
+    "segment finalize 실패: ",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함",
+    "PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨",
+    "anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함",
+    "같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "파생 중 원본 segment hold가 유지되어야 함",
+    "확장 회귀 journal open 실패: ",
+    "확장 회귀 initial catalog open 실패: ",
+    "segment finalize 실패: ",
+    "cleanup 확장 fixture 저장 실패: ",
+    "cleanup 확장 fixture 저장 실패: ",
+    "확장 회귀 restart catalog open 실패: ",
+    "확장 policy 실패",
+    "cleanup 확장 remux 실패는 한 번만 실행되어야 함",
+    "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함",
+    "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함",
+    "PTS 확장은 다른 범위 ID를 사용해야 함",
+    "미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨",
+    "segment finalize 실패: ",
+    "PTS 확장 2회는 최초 포함 총 3회 파생해야 함",
+    "quota journal open 실패: ",
+    "quota catalog open 실패: ",
+    "segment finalize 실패: ",
+    "segment finalize 실패: ",
+    "quota policy 실패: ",
+    "event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok",
+    "event quota 충족을 위해 continuous를 삭제하면 안 됨",
+    "event quota는 oldest eligible event를 삭제해야 함",
+    "policy 재등록 실패: ",
+    "policy 제거가 진행 중 event reservation을 지우면 안 됨",
+    "명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함",
+    "queue journal open 실패: ",
+    "queue catalog open 실패: ",
+    "segment finalize 실패: ",
+    "queue policy 실패: ",
+    "bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함",
+    "긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨",
+    "cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨",
+    "terminal marker unlink 실패 시 source/output hold를 유지해야 함",
+    "terminal marker unlink 실패 시 event reservation을 유지해야 함",
+    "marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함",
+    "terminal hold 해제 실패를 Complete로 기록하면 안 됨",
+    "terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨",
+    "복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함",
+    "terminal complete commit retry fixture 저장 실패: ",
+    "complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨",
+    "overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨",
+    "hold overflow fixture 준비 실패: ",
+    "event source lease hold_count overflow를 사전에 거부해야 함",
+    "hold fixture journal open 실패: ",
+    "hold fixture catalog open 실패: ",
+    "segment finalize 실패: ",
+    "segment finalize 실패: ",
+    "hold pending link 저장 실패: ",
+    "hold replay journal open 실패: ",
+    "hold replay catalog open 실패: ",
+    "재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함",
+    "terminal stage fixture event link 조회",
+    "terminal stage fixture 저장 실패: ",
+    "terminal stage replay journal open: ",
+    "terminal stage catalog open: ",
+    "complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨",
+    "terminal Complete 기록 전 source 삭제 요청을 차단해야 함",
+    "terminal Complete 기록 전 output 삭제 요청을 차단해야 함",
+    "restart journal open 실패: ",
+    "restart catalog open 실패: ",
+    "segment finalize 실패: ",
+    "segment finalize 실패: ",
+    "restart pending link 저장 실패: ",
+    "재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함",
+    "재시작 복구에서 event clip을 중복 파생하면 안 됨",
+    "segment finalize 실패: ",
+    "conflict pending link 저장 실패: ",
+    "다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨",
+    "segment ID conflict에서 파생을 실행하면 안 됨",
+    "실제 H264/MP4 source를 video 재인코딩 없이 remux해야 함: ",
+    "remux 결과 파일과 size가 일치해야 함",
+    "event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함",
+    "event clip이 source segment 전체 단순 연결보다 작아야 함",
+    "remux 결과 checksum과 crash cleanup marker를 남겨야 함",
+    "동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함",
+    "파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함: ",
+    "nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함",
+    "event remux recovery journal open 실패: ",
+    "재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함: ",
+    "owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함: ",
+    "VP8/WebM test source 생성 실패: ",
+    "VP8/WebM test source demux 실패: ",
+    "검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함"
+  ],
+  "applicationChecks": [
+    "application header is standard-only with exact DTO/default manifests",
+    "application source owns exact canonical mapping and overwrite semantics",
+    "transport has zero canonical bypass and exact projection/call ordering",
+    "recording link is durably admitted before the bounded storage queue can drop an event",
+    "event clip output remains fd-bound and measured before no-replace publication",
+    "compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order",
+    "S05 composition starts the bridge before ingress and drains it after storage"
+  ],
+  "runtimeAssertions": [
+    {
+      "case": "disabled-admit",
+      "message": "실제 EventStorage worker 진입을 관찰한다"
+    },
+    {
+      "case": "disabled-admit",
+      "message": "worker 처리 전에 첫 이벤트 연결이 내구 접수된다"
+    },
+    {
+      "case": "disabled-admit",
+      "message": "실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다"
+    },
+    {
+      "case": "disabled-admit",
+      "message": "퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다"
+    },
+    {
+      "case": "disabled-admit",
+      "message": "저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다"
+    },
+    {
+      "case": "disabled-admit",
+      "message": "JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다"
+    },
+    {
+      "case": "disabled-admit",
+      "message": "JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다"
+    },
+    {
+      "case": "disabled-recover",
+      "message": "새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다"
+    },
+    {
+      "case": "disabled-recover",
+      "message": "퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다"
+    },
+    {
+      "case": "disabled-recover",
+      "message": "같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다"
+    },
+    {
+      "case": "enabled-admit",
+      "message": "실제 EventStorage worker 진입을 관찰한다"
+    },
+    {
+      "case": "enabled-admit",
+      "message": "worker 처리 전에 첫 이벤트 연결이 내구 접수된다"
+    },
+    {
+      "case": "enabled-admit",
+      "message": "실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다"
+    },
+    {
+      "case": "enabled-admit",
+      "message": "퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다"
+    },
+    {
+      "case": "enabled-admit",
+      "message": "저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다"
+    },
+    {
+      "case": "enabled-admit",
+      "message": "JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다"
+    },
+    {
+      "case": "enabled-admit",
+      "message": "JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다"
+    },
+    {
+      "case": "enabled-recover",
+      "message": "새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다"
+    },
+    {
+      "case": "enabled-recover",
+      "message": "퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다"
+    },
+    {
+      "case": "enabled-recover",
+      "message": "같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다"
+    }
+  ],
+  "registryUnitChecks": [
+    "[등록기 단위 테스트] PASS 정상 정식 등록 27개",
+    "[등록기 단위 테스트] PASS 누락 ID",
+    "[등록기 단위 테스트] PASS 중복 ID",
+    "[등록기 단위 테스트] PASS 추가 ID",
+    "[등록기 단위 테스트] PASS 빈 테스트 영역",
+    "[등록기 단위 테스트] PASS 없는 구현 심볼",
+    "[등록기 단위 테스트] PASS 없는 테스트 함수",
+    "[등록기 단위 테스트] PASS 없는 check",
+    "[등록기 단위 테스트] PASS 중복 check ID",
+    "[등록기 단위 테스트] PASS 문서 행 누락",
+    "[등록기 단위 테스트] PASS 실행 소비자 정상 합성 입력",
+    "[등록기 단위 테스트] PASS 실제 check 결과 누락",
+    "[등록기 단위 테스트] PASS EOS assertion 제거와 감소한 summary도 거부",
+    "[등록기 단위 테스트] PASS 실패 summary",
+    "[등록기 단위 테스트] PASS 성공 summary만으로 PASS 금지",
+    "[등록기 단위 테스트] PASS 중복 application 결과",
+    "[등록기 단위 테스트] PASS runtime 로그 전체 누락",
+    "[등록기 단위 테스트] PASS runtime 시나리오 누락",
+    "[등록기 단위 테스트] PASS runtime assertion 누락 및 감소 summary",
+    "[등록기 단위 테스트] PASS runtime assertion 중복 및 증가 summary",
+    "[등록기 단위 테스트] PASS runtime summary 실패",
+    "[등록기 단위 테스트] PASS runtime summary 중복",
+    "[등록기 단위 테스트] PASS runtime failure marker",
+    "[등록기 단위 테스트] PASS runtime mutation 결과 누락",
+    "[등록기 단위 테스트] PASS runtime mutation 결과 중복",
+    "[등록기 단위 테스트] PASS runtime negative summary 실패"
+  ],
+  "actions": [
+    {
+      "id": "V410-S05-I01",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I01-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I01-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I01-C03",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I02",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I02-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C03",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C04",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C05",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C06",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C07",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C08",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C09",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C10",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C11",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C12",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C13",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C14",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C15",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C16",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C17",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C18",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C19",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C20",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I02-C21",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I03",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I03-C01",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I04",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I04-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I04-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I04-C03",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I05",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I05-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I05-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I05-C03",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I06",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I06-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I06-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I06-C03",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I06-C04",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I06-C05",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I06-C06",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I06-C07",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I06-C08",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I07",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I07-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I07-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I07-C03",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I07-C04",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I08",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I08-C01",
+          "status": "PASS",
+          "executions": 14
+        },
+        {
+          "id": "V410-S05-I08-C02",
+          "status": "PASS",
+          "executions": 3
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I09",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I09-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I09-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I09-C03",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I09-C04",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I10",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I10-C01",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I11",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I11-C01",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I12",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I12-C01",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I13",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I13-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I13-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I13-C03",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I14",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I14-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I14-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I14-C03",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I14-C04",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I14-C05",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I15",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I15-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I15-C02",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I16",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I16-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I16-C02",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I17",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I17-C01",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I18",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I18-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I18-C02",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I19",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I19-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I19-C02",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I20",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I20-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I20-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I20-C03",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I20-C04",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I20-C05",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I21",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I21-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I21-C02",
+          "status": "PASS",
+          "executions": 2
+        },
+        {
+          "id": "V410-S05-I21-C03",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I21-C04",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I21-C05",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I22",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I22-C01",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I23",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I23-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I23-C02",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I24",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I24-C01",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I24-C02",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I24-C03",
+          "status": "PASS",
+          "executions": 1
+        },
+        {
+          "id": "V410-S05-I24-C04",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I25",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I25-C01",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I26",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I26-C01",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "V410-S05-I27",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V410-S05-I27-C01",
+          "status": "PASS",
+          "executions": 1
+        }
+      ]
+    }
+  ],
+  "cleanup": [
+    {
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_s05_storage_runtime_V64UQT",
+      "files": 41,
+      "bytes": 9634275,
+      "removed": true
+    }
+  ],
+  "logSha256": "bb9c8b30780c410f15ad45bb2c3e82061ae3514a9e9afd1108e73de512c76b19",
+  "sourceSha256": {
+    "scripts/internal/event_recording_link_smoke.cpp": "42d19b9893d9ae131b2db169e4cafd17fe77fb023c6096abe3256a4e638652b5",
+    "scripts/internal/event_storage_recording_runtime_smoke.cpp": "f81908ee4e8581dcf55b2182a5d228d811eeb69448322e76283ddd5b5da30412",
+    "scripts/internal/verify_v410_event_storage_recording_runtime.mjs": "968c292da9d3725c62099f0d6225cde4ea51c00ca709a2ad70e7ecfe5cf94c8b",
+    "scripts/internal/verify_v410_event_recording.sh": "ffb090fdf4271811f57f3d70d8aa44f3ee38ec77c2a1404f21001b1f6ccc3d75",
+    "scripts/internal/v410_s05_inventory.mjs": "9dc37fb1e3e340f5276c3b03b0b672526860cc29c418e6f5f4b074a9a769f7f2",
+    "scripts/internal/v410_s05_inventory.test.mjs": "68f4534d89fcd586822c1f81b76c6be33ab12e71e2a400cb5e7c0607acdd0192",
+    "scripts/internal/verify_v390_event_storage_application_boundary.mjs": "62629a133df4c65d5d37496e71c68686148b487b24fb1ac2b9521a8110c48a78",
+    "test/fixtures/recording/v1/s05-action-inventory.json": "a2c6ab8b5848c84e01b37a062ad32d6edefc9d5785ed72dd185b74a1b2b464b2",
+    "src/analysis/event_storage.cpp": "503583f3028f4290ff12590c9523dee426c402fb37618f6787e307a524d3c262",
+    "src/analysis/snapshot_encoder.cpp": "8b915ded8b274e7f4902e3f2e99d06a5530b83a895fa54e829aadbb7eab5d3d5",
+    "src/recording/event_recording_bridge.cpp": "b4a571e2d79ede965c3f05c069cdc9da92cf8cae87e7ec8df073e7f498ed264f",
+    "src/recording/event_clip_deriver.cpp": "d1b5968ca1d85a298ede228bc48ecf221cd4084d3384d888b2c2b21ffab63c9b",
+    "src/recording/recording_catalog.cpp": "731824e705000125174a113300b3acc0a9d3d9a567896f7269037292efaffe56",
+    "src/recording/recording_journal.cpp": "4b993b1b52033cfa4d9747862f7c915833767e3daf4a04007af6fd9a7c0c1b1b",
+    "src/recording/retention_coordinator.cpp": "fef096afc62c6b744c855dfc7dbdb0827050b096df8326f3941031c9b71839fe",
+    "src/recording/recording_contracts.cpp": "1d24b3b6cf1ebf064ed26371cbe68d5c576beb013923180b25da407772ff3079",
+    "src/domain/strict_json.cpp": "be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b",
+    "video/sample_h264_video_only.mp4": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b"
+  },
+  "failuresAndCorrections": [
+    {
+      "kind": "테스트 개발 컴파일 실패",
+      "detail": "새 runtime smoke가 optional<string> derived_segment_id를 string으로 취급해 4개 컴파일 오류. optional 존재 검사/역참조로 수정. 제품 코드 미변경."
+    },
+    {
+      "kind": "TDD RED",
+      "detail": "mutation 결과 누락을 소비자가 거부하지 않아 Missing expected exception. exact mutation 집합/단일 negative 2/0 검사 추가 후 단위 26/0."
+    }
+  ],
+  "manifestReconciliation": {
+    "initialInventoryResult": "17/1 FAIL: inventorySha256 drift",
+    "initialCoverageResult": "7/1 FAIL: inventorySha256 drift; covered986/missing0",
+    "baselineAlreadyMismatched": true,
+    "baselineManifestInventorySha256": "0df1d2216db7d32d8273e25fbc20a13654a0cf195e1a3241db3e9688eea8116d",
+    "baselineDocumentSha256": "420887a816f3002582eabdec8be6e7fc280eb090ce76192525161f709fccb3f9",
+    "finalInventorySha256": "20c274f2f83985c6461043a5616a1f9b0d76067ca802d01f7b20340d0944f655",
+    "command": "./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest",
+    "result": "51/0, 기존 독립 승인 재검증·적용 성공",
+    "onlyChangedField": "inventorySha256",
+    "unchangedItems": 986,
+    "independentReview": "review_inventory_trust: 한 필드 외 JSON 전체와 986개 항목 동일, audit/approvals/native exact/Policy canonical fixture 바이트 불변. 새 승인 원장 불필요.",
+    "formatting": "공식 생성 결과를 기존 indent2로 복원; 의미 변경 없음"
+  },
+  "review": {
+    "reviewer": "review_inventory_trust",
+    "mode": "독립 읽기 전용, 테스트 미실행",
+    "critical": 0,
+    "important": 0,
+    "minor": "mutation 로그 완결성 1건 보강 후 독립 재검토 CLOSED",
+    "canonicalBindings": "986개 기존 직접 SHA 불일치 없음, 재결속 불필요"
+  },
+  "warnings": [
+    "기존 macOS GStreamer GI/GTK plugin scanner 경고 지속; actual remux 성공, 환경 경고 해결 주장은 하지 않음"
+  ],
+  "notRun": [
+    "30분",
+    "120분",
+    "UI 풀테스트",
+    "HTTP ingress/전체 서버 재시작",
+    "라이브 카메라 field smoke",
+    "S06~S09",
+    "PR/main/tag/release"
+  ],
+  "finalGateLogs": {
+    "build.log": {
+      "sha256": "32f0efcbffc20c72e4ed15548102e657968316fff2abe5e6f2b25232a34b9173",
+      "output": [
+        "[100%] Built target media_server",
+        "[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server"
+      ]
+    },
+    "manifest-apply.log": {
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "output": [
+        "[pass] negative fixtures reject unrelated, shared, self-comparison, invented-edge, and generator approval",
+        "- pass: 51",
+        "- fail: 0",
+        "[pass] applied independently approved REVIEW4 source flows to canonical implementation manifest"
+      ]
+    },
+    "inventory-final.log": {
+      "sha256": "24bb204e1d76822921986e77bab3a0e0e701cd8577060411f57c0e0b18d29d00",
+      "output": [
+        "- featureRows: 986",
+        "- pass: 18",
+        "- fail: 0"
+      ]
+    },
+    "coverage-final.log": {
+      "sha256": "fa968412b5d12919a0ddfe45a6ec26be6931a13369b0cc0ae8e3504ab8b85a94",
+      "output": [
+        "- featureRows: 986",
+        "- covered: 986",
+        "- missing: 0",
+        "- pass: 8",
+        "- fail: 0"
+      ]
+    },
+    "implementation-final.log": {
+      "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "output": [
+        "[pass] negative fixture missing-id",
+        "[pass] negative fixture duplicate-id",
+        "[pass] negative fixture wrong-section-prefix",
+        "[pass] negative fixture missing-source-file",
+        "[pass] negative fixture missing-source-anchor",
+        "[pass] negative fixture missing-ui-control-anchor",
+        "[pass] negative fixture missing-ui-screen-route",
+        "[pass] negative fixture unknown-verifier-command",
+        "[pass] negative fixture missing-verifier-assertion",
+        "[pass] negative fixture legacy-longrun-command",
+        "[pass] negative fixture inventory-hash-drift",
+        "[pass] negative fixture missing-reviewed-call-chain",
+        "[pass] negative fixture bulk-review-reason",
+        "[pass] negative fixture safe-140-unrelated-owner",
+        "[pass] negative fixture rule-017-generic-json-owner",
+        "- validationErrors: 0",
+        "- review4GlobalErrors: 0",
+        "- negativeFixtures: 15/15"
+      ]
+    },
+    "docs-final.log": {
+      "sha256": "dc80e08dbf1bff48b36f2db1768365d03befcc4cd1988110c95353ef40a0b5c7",
+      "output": [
+        "- markdown files: 218",
+        "- local links: 991",
+        "- local images: 22",
+        "- local anchors: 100"
+      ]
+    },
+    "scripts.log": {
+      "sha256": "6dd8cf74712dc38a106bf5279f0eaee695cd78696529a36bcc05b10cb6b15352",
+      "output": [
+        "- pass: 11",
+        "- fail: 0"
+      ]
+    },
+    "comments-final.log": {
+      "sha256": "aa2dba3f1aad4ae87aca64b8604ea29be6b2fde47d45f5c95737729fad71a0cf",
+      "output": [
+        "- files: 848",
+        "- missing headers: 0",
+        "- english-only comments: 0"
+      ]
+    },
+    "records-final.log": {
+      "sha256": "110499d9ed3ca3e190e79bafffe65104b90d28c025c24fc3e59fd161e5985115",
+      "output": [
+        "- pass: 8",
+        "- fail: 0"
+      ]
+    }
+  },
+  "usage": {
+    "tokenStart": null,
+    "tokenEnd": null,
+    "tokenConsumed": null,
+    "reason": "goal 계측 없음",
+    "elapsedSource": "runtime runner negative summary elapsedMs; 전체 명령 token/elapsed는 미집계"
+  }
+}

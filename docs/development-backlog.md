@@ -399,7 +399,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S02 | Continuous segment recorder | P0 | 완료 | 채널별 opt-in, Recorder subscriber, H.264/MP4·VP8/WebM keyframe segment, atomic finalize, PTS rollback epoch |
 | V410-S03 | Catalog and recovery journal | P0 | 완료 | fsync append-only JSONL, SQLite primary/rebuild, in-memory fallback, 손상 격리, source policy supervisor |
 | V410-S04 | Retention coordinator | P0 | 완료 | continuous/event 등급별 quota·기간, `(end_utc_ms, segment_id)` oldest-first, pin·hold, journal 선행 tombstone/채널별 pending 복구, dirfd 결박 unlink, 채널 간 in-flight disk reserve·실제 쓰기 정산과 writer admission |
-| V410-S05 | Event recording linker | P0 | local 완료 | finalized 원본 연결, 명시적 시간축, 비동기 무재인코딩 remux, fallback, Event quota·hold·재시작 멱등성. 개별 등록 27개·focused·회귀·독립 인벤토리 결속 검증 통과 |
+| V410-S05 | Event recording linker | P0 | local 완료 | finalized 원본 연결, 명시적 시간축, 비동기 무재인코딩 remux, fallback, Event quota·hold·재시작 멱등성. 개별 등록 27개·check 89개, 실제 EventStorage 비활성·큐 퇴출·journal 새 프로세스 복구·파생 통합, focused·회귀·독립 검토 통과 |
 | V410-S06 | Priority timeline | P0 | 미구현 | event > continuous 조회·재생 API와 Ops UI |
 | V410-S07 | Search-ready metadata | P1 | 미구현 | event/track summary와 bounded representative observations, exact frame locator |
 | V410-S08 | Recovery/compatibility gate | P0 | 미구현 | crash/disk-full/gap/corruption/migration/fixture verifier |
@@ -589,6 +589,14 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 
 ### v4.1.0 S05 개발 기록
 
+- 잔여 통합 검증 종료: 선행 `d7ee14a1` 이후 제품 로직 변경 없이 실제 EventStorage
+  비활성/활성 큐 포화와 journal 기반 별도 프로세스 복구를 추가했다.
+  `event_storage_recording_runtime_smoke.cpp`·runtime runner가 실제 H264 파생까지 확인하고,
+  I02에 20개 check를 더했다. 최종 C++ 140/0, application 7/0, runtime 20/0,
+  source mutation 2/0, 등록기 단위 26/0, action 27/0(check 89개).
+  두 mutation 결과까지 exact 대조하도록 독립 검토 지적을 보강했다.
+  S05 범위에서 새로 확인된 미해결 제품 결함은 없다. 환경의 기존 GI/GTK 경고,
+  장시간·UI·실기기 미실행은 해결된 것으로 기록하지 않는다.
 - 범위: P0 `V410-S05 Event recording linker`만 구현했다. S06 priority timeline과 이후
   API/UI·검색 단계는 시작하지 않았다.
 - `event_storage.h/.cpp`, `event_storage_application_service.*`,

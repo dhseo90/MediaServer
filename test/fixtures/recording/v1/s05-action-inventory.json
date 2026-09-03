@@ -39,9 +39,149 @@
         {
           "id": "V410-S05-I02-C01",
           "message": "recording link is durably admitted before the bounded storage queue can drop an event"
+        },
+        {
+          "id": "V410-S05-I02-C02",
+          "message": "실제 EventStorage worker 진입을 관찰한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "disabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C03",
+          "message": "worker 처리 전에 첫 이벤트 연결이 내구 접수된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "disabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C04",
+          "message": "실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "disabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C05",
+          "message": "퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "disabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C06",
+          "message": "저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "disabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C07",
+          "message": "JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "disabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C08",
+          "message": "JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "disabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C09",
+          "message": "실제 EventStorage worker 진입을 관찰한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "enabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C10",
+          "message": "worker 처리 전에 첫 이벤트 연결이 내구 접수된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "enabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C11",
+          "message": "실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "enabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C12",
+          "message": "퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "enabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C13",
+          "message": "저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "enabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C14",
+          "message": "JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "enabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C15",
+          "message": "JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyAdmission",
+          "runtimeCase": "enabled-admit"
+        },
+        {
+          "id": "V410-S05-I02-C16",
+          "message": "새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyRecovery",
+          "runtimeCase": "disabled-recover"
+        },
+        {
+          "id": "V410-S05-I02-C17",
+          "message": "퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyRecovery",
+          "runtimeCase": "disabled-recover"
+        },
+        {
+          "id": "V410-S05-I02-C18",
+          "message": "같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyRecovery",
+          "runtimeCase": "disabled-recover"
+        },
+        {
+          "id": "V410-S05-I02-C19",
+          "message": "새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyRecovery",
+          "runtimeCase": "enabled-recover"
+        },
+        {
+          "id": "V410-S05-I02-C20",
+          "message": "퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyRecovery",
+          "runtimeCase": "enabled-recover"
+        },
+        {
+          "id": "V410-S05-I02-C21",
+          "message": "같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyRecovery",
+          "runtimeCase": "enabled-recover"
         }
       ],
-      "criterion": "정적 계약: JSONL 비활성 guard·TryResolve 선행·큐 eviction 호출 순서",
+      "criterion": "정적 계약 및 실제 JSONL 비활성·큐 퇴출 내구 접수·새 프로세스 복구·H264 파생·멱등성",
       "stability": "대상",
       "soak30": "대상: 별도 승인 후 녹화 연속 운용",
       "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",

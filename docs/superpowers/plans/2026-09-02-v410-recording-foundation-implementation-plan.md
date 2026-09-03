@@ -691,6 +691,18 @@ git commit -m "feat: 녹화 순환 보존과 용량 보호 추가"
 
 ## Task 5: V410-S05 이벤트 segment 연결, 파생 clip과 frame-buffer fallback
 
+### 승인된 잔여 통합 검증 실행 결과 (2026-09-04)
+
+선행 구현을 `d7ee14a1`로 먼저 커밋했다. 제품 코드 추가 변경 없이 실제 저장 큐의
+JSONL 비활성/활성·queue=2에서 퇴출·5개 내구 PTS 연결 보존을 검증했다.
+별도 프로세스에서 새 SQLite를 journal로 재구축하고 후행 H264 source로 5개씩 실제
+파생·재접수 멱등성을 확인했다. `event_storage_recording_runtime_smoke.cpp`와
+`verify_v410_event_storage_recording_runtime.mjs`를 기존 S05 명령에 필수 연결하고,
+I02에 20개 check를 선등록했다. 기존 고정 action ID 27개를 유지한다.
+실제 runtime 20/0·mutation 2/0, C++ 140/0·application 7/0·등록기 단위 26/0·
+action 27/0(check 89개). mutation 로그 소비자 보강의 TDD RED/수정 이력 및 최종 결과는
+[테스트 기록](../../release-test-records.md)에 남긴다. S06 이후는 착수하지 않는다.
+
 ### 중단 재개 보정 계획 (2026-09-04)
 
 1. 개별 테스트 등록을 S08로 미룬 위반을 FAIL 이력으로 보존하고 완료 표기를 보류한다.

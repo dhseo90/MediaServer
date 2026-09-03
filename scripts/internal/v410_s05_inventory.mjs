@@ -8,6 +8,8 @@ const ids = Array.from({ length: 27 }, (_, i) => `V410-S05-I${String(i + 1).padS
 const fixture = "test/fixtures/recording/v1/s05-action-inventory.json";
 const cppFile = "scripts/internal/event_recording_link_smoke.cpp";
 const appFile = "scripts/internal/verify_v390_event_storage_application_boundary.mjs";
+const runtimeFile = "scripts/internal/event_storage_recording_runtime_smoke.cpp";
+const runtimeCases = ["disabled-admit", "enabled-admit", "disabled-recover", "enabled-recover"];
 
 export function validateS05Registration({ rootDir, manifest, inventoryText }) {
   const read = p => fs.readFileSync(path.join(rootDir, p), "utf8");
@@ -35,31 +37,39 @@ export function validateS05Registration({ rootDir, manifest, inventoryText }) {
     assert(row.sourceFile.startsWith("src/") && !row.sourceFile.includes(".."));
     assert(new RegExp("\\b" + row.sourceSymbol + "\\s*\\(").test(read(row.sourceFile)), `${row.id}: 구현 함수 없음`);
     assert([cppFile, appFile].includes(row.testFile), `${row.id}: 허용되지 않은 시험 파일`);
-    const source = read(row.testFile);
-    const marker = row.testFile === cppFile ? `void ${row.testSymbol}(` : `check("${row.testSymbol}",`;
-    const start = source.indexOf(marker);
-    assert(start >= 0, `${row.id}: 시험 함수/check 없음`);
-    const next = source.indexOf(row.testFile === cppFile ? "\nvoid Verify" : "\ncheck(", start + marker.length);
-    const body = source.slice(start, next < 0 ? source.length : next);
     assert(row.checks.length > 0, `${row.id}: check 없음`);
     for (const [checkIndex, check] of row.checks.entries()) {
       assert.equal(check.id, `${row.id}-C${String(checkIndex + 1).padStart(2, "0")}`);
-      assert(!checkIds.has(check.id) && !messages.has(check.message), "중복 check 정의");
+      const testFile = check.testFile ?? row.testFile;
+      const testSymbol = check.testSymbol ?? row.testSymbol;
+      assert([cppFile, appFile, runtimeFile].includes(testFile), `${check.id}: 허용되지 않은 시험 파일`);
+      if (testFile === runtimeFile) {
+        assert(runtimeCases.includes(check.runtimeCase), `${check.id}: runtime 시나리오 누락/오류`);
+        assert(cells[3].includes(testSymbol), `${check.id}: runtime 함수 문서 연결 없음`);
+      } else assert.equal(check.runtimeCase, undefined, `${check.id}: 잘못된 runtime 시나리오`);
+      const messageKey = `${testFile}:${check.runtimeCase ?? ""}:${check.message}`;
+      assert(!checkIds.has(check.id) && !messages.has(messageKey), "중복 check 정의");
       assert(typeof check.message === "string" && check.message.trim(), "기대 메시지 없음");
+      const source = read(testFile);
+      const marker = testFile === appFile ? `check("${testSymbol}",` : `void ${testSymbol}(`;
+      const start = source.indexOf(marker);
+      assert(start >= 0, `${check.id}: 시험 함수/check 없음`);
+      const next = source.indexOf(testFile === appFile ? "\ncheck(" : "\nvoid Verify", start + marker.length);
+      const body = source.slice(start, next < 0 ? source.length : next);
       // 함수 내부에 실제 assertion 메시지/check 이름이 있어야 한다. 이는 실행 판정이 아니다.
-      const declared = row.testFile === appFile
+      const declared = testFile === appFile
         ? source.includes(`check("${check.message}",`)
         : body.includes(JSON.stringify(check.message));
       assert(declared, `${check.id}: 시험 함수에 assertion 없음`);
       assert(cells[3].includes(check.id), `${check.id}: 문서 연결 없음`);
-      checkIds.add(check.id); messages.add(check.message);
+      checkIds.add(check.id); messages.add(messageKey);
     }
   }
   assert(inventoryText.includes("| 현재 등록 총계 | 1013 |"), "legacy 986 + S05 27 총계 불일치");
   return manifest.rows;
 }
 
-export function validateS05Execution(rows, cppLog, appLog) {
+export function validateS05Execution(rows, cppLog, appLog, runtimeLog = "") {
   const cppResults = cppLog.split("\n").filter(l => l.startsWith("[s05-assert] "))
     .map(l => JSON.parse(l.slice("[s05-assert] ".length)));
   const summaries = [...cppLog.matchAll(/^\[verify-v410-event-recording\] pass=(\d+) fail=(\d+)$/gm)];
@@ -72,12 +82,38 @@ export function validateS05Execution(rows, cppLog, appLog) {
   assert.equal(Number(appSummaries[0][2]), 0, "application 실행 실패");
   assert.equal(appResults.length, Number(appSummaries[0][1]), "application 개별 결과 누락");
   assert.equal(new Set(appResults).size, appResults.length, "application 결과 중복");
-  const expectedApp = rows.filter(r => r.testFile === appFile).flatMap(r => r.checks.map(c => c.message));
+  const allChecks = rows.flatMap(row => row.checks.map(check => ({ ...check, testFile: check.testFile ?? row.testFile })));
+  const expectedApp = allChecks.filter(c => c.testFile === appFile).map(c => c.message);
   assert.deepEqual([...appResults].sort(), [...expectedApp].sort(), "application 결과 exact 집합 불일치");
   assert(!cppLog.includes("[fail]") && !appLog.includes("- FAIL:"), "실패를 포함한 실행 로그");
+  const runtimeResults = runtimeLog.split("\n").filter(l => l.startsWith("[s05-runtime-assert] "))
+    .map(l => JSON.parse(l.slice("[s05-runtime-assert] ".length)));
+  const runtimeSummaries = [...runtimeLog.matchAll(/^\[s05-runtime-summary\] case=(\S+) pass=(\d+) fail=(\d+)$/gm)];
+  assert.deepEqual(runtimeSummaries.map(m => m[1]).sort(), [...runtimeCases].sort(), "runtime 시나리오 summary 누락/중복");
+  assert(!runtimeLog.includes("[s05-runtime-fail]"), "runtime 실패 포함");
+  const mutations = [...runtimeLog.matchAll(/^\[s05-runtime-mutation\] (.+)$/gm)].map(m => m[1]);
+  assert.deepEqual(mutations.sort(), [
+    "disabled-guard: PASS (실제 assertion의 RED 확인)",
+    "prequeue-admission: PASS (실제 assertion의 RED 확인)",
+  ], "runtime mutation 결과 누락/중복/오류");
+  const negatives = [...runtimeLog.matchAll(/^\[s05-runtime-negative\] pass=(\d+) fail=(\d+) elapsedMs=\d+$/gm)];
+  assert.equal(negatives.length, 1, "runtime negative summary 누락/중복");
+  assert.equal(Number(negatives[0][1]), 2, "runtime negative PASS 수 불일치");
+  assert.equal(Number(negatives[0][2]), 0, "runtime negative summary 실패");
+  assert(runtimeResults.every(r => runtimeCases.includes(r.case)), "runtime 알 수 없는 결과 시나리오");
+  for (const summary of runtimeSummaries) {
+    assert.equal(Number(summary[3]), 0, "runtime 실패 summary");
+    const actual = runtimeResults.filter(r => r.case === summary[1]).map(r => r.message);
+    const expected = allChecks.filter(c => c.testFile === runtimeFile && c.runtimeCase === summary[1]).map(c => c.message);
+    assert.equal(actual.length, Number(summary[2]), "runtime 개별 결과 수 불일치");
+    assert.deepEqual([...actual].sort(), [...expected].sort(), "runtime assertion 누락/중복/알 수 없는 결과");
+  }
   return rows.map(row => {
-    const results = row.testFile === cppFile ? cppResults : appResults;
     const checks = row.checks.map(check => {
+      const testFile = check.testFile ?? row.testFile;
+      const results = testFile === runtimeFile
+        ? runtimeResults.filter(r => r.case === check.runtimeCase).map(r => r.message)
+        : testFile === cppFile ? cppResults : appResults;
       const executions = results.filter(m => m === check.message).length;
       assert(executions > 0, `${check.id}: 실제 assertion 성공 결과 없음`);
       return { id: check.id, status: "PASS", executions };
@@ -91,11 +127,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
     const rows = validateS05Registration({ rootDir });
     const args = process.argv.slice(2);
-    assert(args.length === 0 || (args.length === 3 && args[0] === "--results"), "사용법: [--results cpp-log app-log]");
+    assert(args.length === 0 || (args.length === 4 && args[0] === "--results"), "사용법: [--results cpp-log app-log runtime-log]");
     if (args.length === 0) {
       console.log("[S05 등록 대조] 27개 연결 확인; 실행 증거 아님");
     } else {
-      const results = validateS05Execution(rows, fs.readFileSync(args[1], "utf8"), fs.readFileSync(args[2], "utf8"));
+      const results = validateS05Execution(rows, ...args.slice(1).map(p => fs.readFileSync(p, "utf8")));
       for (const row of results) console.log("[s05-action] " + JSON.stringify(row));
       console.log("[S05 개별 실행] pass=27 fail=0");
     }

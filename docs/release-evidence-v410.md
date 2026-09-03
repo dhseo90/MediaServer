@@ -19,10 +19,25 @@ published metadata 완료를 뜻하지 않는다.
 
 - 현재 상태: S05 local 구현·개별 등록·재실행·독립 인벤토리 재결속 검증 완료.
   아래 최초 실행 이력은 당시 등록 누락 FAIL을 소급해서 지우지 않는다.
-  최종 재검증은 C++ 140/0, application-only 7/0, 등록기 단위 16/0, 개별 동작 27/0
-  (check 69개), 소스 감사 51/0, 승인 986개, 구현 오류 0·negative 15/15,
+  등록 보정 당시 재검증은 C++ 140/0, application-only 7/0, 등록기 단위 16/0, 개별 동작 27/0
+  (당시 check 69개), 소스 감사 51/0, 승인 986개, 구현 오류 0·negative 15/15,
   중앙 inventory 18/0, coverage 8/0이다.
   [개별 결과 및 독립 검토 기록](release-test-records.md)을 최종 증거로 사용한다.
+- S05 잔여 통합 검증 완료(선행 커밋 `d7ee14a1` 이후):
+  `event_storage_recording_runtime_smoke.cpp`의 `VerifyAdmission`/`VerifyRecovery`와
+  `verify_v410_event_storage_recording_runtime.mjs`를 기존 S05 dispatch에 연결했다.
+  실제 EventStorage queue=2에 이벤트 5개를 접수해 2개가 퇴출되더라도 5개 PTS 연결이
+  유지되며, JSONL 비활성은 파일 없음·stored=0, 활성은 event 0/3/4만 stored=3이다.
+  각 모드의 새 프로세스가 원래 SQLite 대신 journal로 새 primary를 재구축하고,
+  후행 H264 source의 UTC 매핑 후 퇴출 이벤트까지 실제 clip 5개를 파생한다.
+  재접수는 같은 derived ID를 유지한다. 고정 설정·시각·가용량과 worker latch는 시험 장치이며 제품 코드는
+  추가 변경하지 않았다. 전체 서버/HTTP/환경변수 파싱/라이브 입력 재시작의 증거는 아니다.
+  최종 정식 실행은 C++ 140/0, application 7/0, runtime 20/0, source mutation 2/0,
+  등록기 단위 26/0, 개별 동작 27/0(check 89개)다.
+  [통합 개별 결과](release-artifacts/v4.1.0/20260904-s05-runtime/individual-results.json)에
+  실제 assertion·check·소스 SHA와 cleanup을 보존한다. 독립 검토의 mutation 로그 누락
+  대조 지적 1건도 TDD RED 후 보강해 CLOSED했다. 기존 canonical 986개 직접 결박은
+  변경되지 않아 새로운 승인 원장 이행은 하지 않았다.
 - 구현 위치:
   - `event_storage.h/.cpp`, `event_storage_application_service.*`,
     `webrtc_http_server_ops_incidents.cpp`: optional event 시간축/anchor/epoch와 recording

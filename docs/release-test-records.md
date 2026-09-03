@@ -16,6 +16,81 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.1.0 S05 실제 저장 큐 통합 보강 (2026-09-04)
+
+`d7ee14a1` 선행 커밋 이후 사용자가 승인한 S05 잔여 통합 검증이다. 제품 API/UI와
+S06은 변경하지 않았다. 아래 항목을 실행 전에 등록한 뒤 정식 S05 명령으로 재실행했다.
+
+| 테스트 영역 | 판정·범위 | 승인·실행 상태 |
+| --- | --- | --- |
+| 안정화 | 대상: 기존 S05 및 실제 EventStorage 큐·journal 복구·H264 파생, 등록기 negative, 문서·인벤토리 | 이번 S05 수정 범위 승인, 아래 실제 결과 기록 |
+| 30분 | 대상: 녹화 연속 운용 | 별도 승인 전 미실행, 버전 릴리즈 필수 blocker |
+| 120분 | 대상: 녹화 장시간 누수·복구 관찰 | 필요 시 별도 승인, 미실행 |
+| UI | S05 신규 UI 비대상: UI 없어야 정상 | 버전 전체 UI 풀테스트는 별도 승인 전 미실행 필수 blocker |
+
+### 통합 테스트 사전 정의
+
+실제 `DispatchEventRecords → Enqueue → WorkerLoop`와 `CatalogEventRecordingBridge`,
+`RecordingCatalog`, `RecordingJournal`, `GStreamerEventClipDeriver`를 링크한다.
+설정 port·시각·가용량을 고정하고 worker 진입에 latch를 추가한다. 설정 환경변수 파싱·HTTP ingress·
+라이브 카메라·전체 서버 재시작 시험으로 확대 해석하지 않는다.
+
+- I02-C01: 기존 정적 접수 순서 검사 유지.
+- I02-C02~C08: `disabled-admit`의 worker 진입, 첫 내구 접수, 실제 queue=2/enqueued=5/dropped=2,
+  퇴출 포함 5개 PTS 연결의 worker 전/후 보존, stored=0/queue=0/failed=0, JSONL 파일 부재.
+- I02-C09~C15: `enabled-admit`에서 같은 실제 큐 검증, stored=3,
+  생존 event 0/3/4 순서 및 각 recordingLinkId가 JSONL과 catalog에서 일치.
+- I02-C16~C18: `disabled-recover` 새 프로세스에서 기존 SQLite 대신 새 DB를 journal만으로
+  재구축, 5개 Pending 복구, 후행 H264 segment의 UTC 매핑 및 실제 5개 파생 파일 완료,
+  동일 event 재접수 후 derived ID·완료 연결 수 불변.
+- I02-C19~C21: `enabled-recover`에서도 퇴출 event 1/2를 포함해 위 복구·파생·멱등성을 검증.
+- `v410_s05_inventory.test.mjs`: 런타임 로그/시나리오/assertion 누락·중복·실패 summary 거부.
+  독립 검토 보강: mutation 결과 누락·중복 및 negative summary 실패도 거부해야 한다.
+- 음성 대조: 임시 source 복사본에서 JSONL 비활성 조기 반환 또는 큐 이전 `TryResolve`를
+  제거하면 해당 runtime assertion이 실패해야 한다. 제품 source는 수정하지 않는다.
+
+정확한 함수/입력/기대 메시지 89개는 `s05-action-inventory.json`과 정식 개별 인벤토리에
+연결한다. C++ 단기 smoke·네 프로세스 실행은 30분/120분/UI evidence가 아니다.
+token start/end/consumed는 goal 계측이 없어 미집계이며 elapsed/source는 실제 명령 기록에 남긴다.
+
+### 실제 실행 결과와 최초 실패 이력
+
+[개별 결과 JSON](release-artifacts/v4.1.0/20260904-s05-runtime/individual-results.json)은
+최종 실제 C++ assertion 140개·application 7개·runtime 20개·등록기 26개·기능 27개/check 89개,
+두 source mutation 및 테스트 소스 SHA를 보존한다. 합성 consumer 입력은 제품 증거가 아니다.
+
+| 테스트 항목 | 실행 명령 | 결과 | 직접 확인·원인·조치 |
+| --- | --- | --- | --- |
+| runtime 개발 첫 빌드 | `node scripts/internal/verify_v410_event_storage_recording_runtime.mjs` | fail | 새 테스트의 `optional<string>` 사용 오류로 컴파일 4건 실패. 존재 검사·역참조 수정, 제품 코드 미변경 |
+| runtime 단독 재실행 | 같은 명령 | pass | disabled/enabled 각각 admit 7/0 + 별도 process recover 3/0. mutation 2/0, 17.526초 |
+| mutation 소비자 TDD RED | `node scripts/internal/v410_s05_inventory.test.mjs` | fail | mutation 결과 누락 거부를 새로 요구하자 Missing expected exception. 기존 consumer가 누락 로그를 허용함을 재현 |
+| mutation 소비자 보강 | 같은 명령 | pass | exact mutation 2개·단일 negative summary 2/0 검사 후 26/0 |
+| 최종 정식 S05 dispatch | `./server.sh verify-v410-event-recording` | pass | C++ 140/0, application 7/0, runtime 20/0, source mutation 2/0, 등록기 26/0, action 27/0(check 89개). 시험 장치 주석 보정 뒤 최종 runtime runner 18.274초 |
+| 제품 빌드 | `./server.sh build` | pass | runtime·media_server 100%, S05 통합 보강에서 제품 코드 변경 없음 |
+| 소스 감사 | `./server.sh verify-v390-review4-feature-semantic-source-audit` | pass | 51/0, resolved986/approval986, 현재 기존 source trust 불일치 없음 |
+| 중앙 인벤토리 최초 | `./server.sh verify-project-inventory` | fail | 17/1, 단일 `inventorySha256 drift`. 선행 `d7ee14a1`에서도 manifest 문서 해시 `0df1d221…`와 당시 문서 `420887a8…`가 이미 달랐음을 직접 확인 |
+| coverage 최초 | `./server.sh verify-feature-inventory-coverage` | fail | 7/1, 같은 문서 SHA 불일치. covered986/missing0이므로 누락 기능이나 제품 실패로 바꾸어 해석하지 않음 |
+| 승인된 manifest 공식 재적용 | `./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest` | pass | 51/0 뒤 기존 독립 승인을 재검증·적용. 실제 JSON 변경은 inventorySha256 한 필드뿐이며 986행·원장·proof·UI fixture 불변. 생성기 포맷은 기존 indent2로 복원 |
+| 중앙 인벤토리 재실행 | `./server.sh verify-project-inventory` | pass | 18/0, 기존986행 및 S0527개 등록 필수 대조 |
+| coverage 재실행 | `./server.sh verify-feature-inventory-coverage` | pass | 8/0, covered986/missing0, S05 등록 연결. 제품 실행 PASS 대체 아님 |
+| 전체 구현 증거 재실행 | `./server.sh verify-feature-implementation-evidence` | pass | 986행, validationErrors0/review4GlobalErrors0, negative15/15. 소스/증거 정합성 검사이며 제품·UI·장시간 실행을 대체하지 않음 |
+| 문서·주석·스크립트·기록 | `verify-docs-links`, `verify-code-comments`, `verify-script-inventory`, `verify-v290-release-test-records-enforcement` | pass | 링크 failures0, 헤더 누락0/영문 전용 주석0, script11/0, 기록8/0 |
+
+독립 리뷰는 기존 에이전트 한 명만 사용했고 Critical/Important 없음, mutation 로그 완결성
+Minor 1개는 TDD 보강 후 재검토 CLOSED다. 기존 macOS GStreamer GI/GTK scanner 경고는
+여전히 관찰되며 환경 문제 해결 완료로 기록하지 않는다. 30분/120분/UI/field/전체 서버
+재시작은 미실행이다. S06 이후 및 release action은 수행하지 않았다.
+
+임시 산출물 정리: runtime runner의 최종 전용 root
+`/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_s05_storage_runtime_V64UQT`의
+미디어·DB·바이너리·mutation source 41개(9,634,275바이트)는 runner finally에서 삭제했고
+`removed=true`를 확인했다. 앞선 단독/중간 runtime 실행도 각 전용 root를 자동 삭제했다.
+기존 focused wrapper의 별도 mktemp는 EXIT trap으로 삭제하며 해당 wrapper의 크기는 미집계다.
+최종 통합/부속 검증 로그 root `/private/tmp/v410-s05-runtime-final.8gBNtE`의 18개 파일
+(544,291바이트)은 JSON에 개별 결과·SHA·필수 요약을 보존한 뒤 삭제하고 부재를 확인했다.
+테스트 산출물만 제거했으며 원본 `video/sample_h264_video_only.mp4`와 제품 저장 데이터는
+변경·삭제하지 않았다. 보존 JSON은 재검토용 최종 evidence이며 미디어는 재실행으로 생성한다.
+
 ## v4.1.0 S05 등록 보정 재검증 (2026-09-04)
 
 이전 focused C++ 140/0과 application-only 6/0은 실제 실행 이력이나,
